@@ -6,6 +6,12 @@ import '../../features/auth/presentation/auth_controller.dart';
 import '../../features/auth/presentation/change_password_screen.dart';
 import '../../features/auth/presentation/forgot_password_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
+import '../../features/employees/presentation/employee_detail_screen.dart';
+import '../../features/employees/presentation/employees_screen.dart';
+import '../../features/notifications/presentation/notifications_screen.dart';
+import '../../features/projects/presentation/project_detail_screen.dart';
+import '../../features/projects/presentation/projects_screen.dart';
+import '../../features/shell/presentation/app_shell.dart';
 import '../../features/shell/presentation/home_screen.dart';
 import '../../features/shell/presentation/splash_screen.dart';
 import 'app_routes.dart';
@@ -36,14 +42,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         return location == AppRoutes.splash ? null : AppRoutes.splash;
       }
 
-      final isSignedIn = auth.value is Authenticated;
+      final authState = auth.value;
       final isAnonymousRoute = AppRoutes.anonymous.contains(location);
 
-      if (!isSignedIn) {
+      if (authState is! Authenticated) {
         return isAnonymousRoute ? null : AppRoutes.login;
       }
 
       if (isAnonymousRoute || location == AppRoutes.splash) {
+        return AppRoutes.home;
+      }
+
+      // The API serves the directory to Foreman and above only.
+      if (AppRoutes.isDirectoryLocation(location) &&
+          !authState.user.canViewDirectory) {
         return AppRoutes.home;
       }
 
@@ -63,12 +75,60 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ForgotPasswordScreen(),
       ),
       GoRoute(
-        path: AppRoutes.home,
-        builder: (context, state) => const HomeScreen(),
-      ),
-      GoRoute(
         path: AppRoutes.changePassword,
         builder: (context, state) => const ChangePasswordScreen(),
+      ),
+      // Detail screens sit above the shell so they open full-screen, which
+      // also lets a notification deep-link into one from any tab.
+      GoRoute(
+        path: '${AppRoutes.employees}/:id',
+        builder: (context, state) => EmployeeDetailScreen(
+          employeeId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '${AppRoutes.projects}/:id',
+        builder: (context, state) => ProjectDetailScreen(
+          projectId: state.pathParameters['id']!,
+        ),
+      ),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            AppShell(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.home,
+                builder: (context, state) => const HomeScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.employees,
+                builder: (context, state) => const EmployeesScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.projects,
+                builder: (context, state) => const ProjectsScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.notifications,
+                builder: (context, state) => const NotificationsScreen(),
+              ),
+            ],
+          ),
+        ],
       ),
     ],
   );

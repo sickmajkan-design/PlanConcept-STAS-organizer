@@ -64,8 +64,9 @@ flutter pub get
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:5000
 ```
 
-Sign-in, token refresh, sign-out, change password and forgot password are
-implemented; see [`src/construction_mobile/README.md`](src/construction_mobile/README.md).
+Implemented: authentication, the employee and project directories, GPS
+reporting and push notifications. See
+[`src/construction_mobile/README.md`](src/construction_mobile/README.md).
 
 ## EF Core migrations
 

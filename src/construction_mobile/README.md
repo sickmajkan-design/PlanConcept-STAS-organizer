@@ -8,10 +8,23 @@ Talks to `Construction.API`.
 | Concern | Choice |
 |---|---|
 | State management | Riverpod (hand-written `Notifier`s — no codegen) |
-| Navigation | GoRouter, with an auth-driven redirect |
+| Navigation | GoRouter, with an auth-driven redirect and a bottom-nav shell |
 | HTTP | Dio, with a token-refresh interceptor |
 | Models | Freezed + json_serializable |
 | Token storage | flutter_secure_storage (Keychain / EncryptedSharedPreferences) |
+| Location | geolocator |
+| Push | firebase_core + firebase_messaging |
+
+## Modules
+
+| Module | Status |
+|---|---|
+| Authentication | sign in/out, refresh, change & forgot password |
+| Employees | paged list with debounced search, status filters, detail with project assignments |
+| Projects | paged list with search and status filters, detail with the crew |
+| GPS tracking | position reported every 60 s, buffered while offline |
+| Notifications | FCM registration, in-app inbox with unread badge, deep links |
+| Vehicles / Tools / Materials | API is ready; no mobile screens yet |
 
 ## Running
 
@@ -44,14 +57,46 @@ lib/
 │   ├── validation/           form rules mirroring the API's policies
 │   └── widgets/              small shared UI pieces
 └── features/
-    ├── auth/
-    │   ├── data/             models + repository
-    │   └── presentation/     controller + screens
-    └── shell/presentation/   splash and home
+    ├── auth/                 models, repository, controller, screens
+    ├── employees/            directory list + detail
+    ├── projects/             project list + detail
+    ├── location/             position reporting and its status card
+    ├── notifications/        inbox, FCM registration, deep links
+    └── shell/                splash, home, bottom-navigation frame
 ```
 
 Each backend module gets its own folder under `features/`, following the same
-`data/` + `presentation/` split.
+`data/` + `presentation/` split. Paging, search debouncing and list rendering
+live once in `core/pagination` and `core/widgets`, so every list behaves the
+same way.
+
+## Roles
+
+The API serves the employee and project directories to Foreman and above. The
+app mirrors that: a Worker is not shown those tabs, and the router refuses the
+routes, so the app never presents something that would answer 403.
+
+## Location sharing
+
+While an **employee-linked** account is signed in, the app sends its position
+once a minute. Admin accounts have no employee record, so the app never asks
+them for the permission — the API would refuse their pings anyway.
+
+Fixes that cannot be delivered (no coverage on site) are buffered and go out
+with the next batch; the buffer is capped at one batch (120 fixes) so a long
+outage cannot grow it without bound. The home screen always shows whether
+sharing is on and when the last position reached the office.
+
+## Push notifications
+
+On sign-in the app registers its FCM token with the API, refreshes it when the
+OS rotates it, and unregisters it during sign-out while the session is still
+valid. Assignment notifications deep-link into the relevant project or
+employee.
+
+Firebase is optional for a developer build: without `google-services.json` /
+`GoogleService-Info.plist` the app reports that push is not configured and the
+in-app inbox keeps working.
 
 ## Authentication behaviour
 

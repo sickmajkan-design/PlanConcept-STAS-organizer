@@ -30,4 +30,16 @@ abstract class User with _$User {
 
   /// Only accounts linked to an employee may report GPS positions.
   bool get isEmployee => employeeId != null;
+
+  /// Roles the API lets read the employee and project directories.
+  static const _directoryRoles = <String>{
+    'SuperAdmin',
+    'Admin',
+    'ProjectManager',
+    'Foreman',
+  };
+
+  /// Workers are not served the directory endpoints, so the app does not
+  /// offer them either.
+  bool get canViewDirectory => _directoryRoles.contains(role);
 }

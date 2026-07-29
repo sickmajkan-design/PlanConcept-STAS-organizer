@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/network_providers.dart';
+import '../../notifications/presentation/push_controller.dart';
 import '../data/auth_repository.dart';
 import '../data/models/auth_session.dart';
 import '../data/models/user.dart';
@@ -64,6 +65,9 @@ class AuthController extends AsyncNotifier<AuthState> {
   /// A failing call still signs the user out locally — the token expires on
   /// its own and the device must not stay stuck in a signed-in state.
   Future<void> signOut() async {
+    // Remove this device's push token while the session is still valid.
+    await ref.read(pushControllerProvider.notifier).unregisterCurrentDevice();
+
     final manager = ref.read(authSessionManagerProvider);
     final refreshToken = manager.session?.refreshToken;
 

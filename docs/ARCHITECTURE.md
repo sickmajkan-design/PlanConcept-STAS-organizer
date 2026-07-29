@@ -174,8 +174,15 @@ module are done. The React admin (`construction_admin`) follows.
 |---|---|
 | Foundation (network, secure session, routing, theme) | ✅ done |
 | Authentication (sign in/out, refresh, change & forgot password) | ✅ done |
-| Employees / Projects / Vehicles / Tools / Materials screens | pending |
-| GPS reporting, push notifications | pending |
+| Employees (list, search, filters, detail) | ✅ done |
+| Projects (list, search, filters, detail with crew) | ✅ done |
+| GPS reporting (60 s interval, offline buffer) | ✅ done |
+| Push notifications (FCM token, inbox, badge, deep links) | ✅ done |
+| Vehicles / Tools / Materials screens | pending |
+
+The app mirrors the API's authorization model rather than discovering it
+through errors: the directory tabs and routes are withheld from Workers, and
+location reporting is only started for accounts linked to an employee.
 
 See [`src/construction_mobile/README.md`](../src/construction_mobile/README.md)
 for its structure and the client-side auth behaviour.
