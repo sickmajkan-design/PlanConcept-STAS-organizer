@@ -154,7 +154,7 @@ Key decisions:
 |---|--------|--------|
 | 1 | Authentication | ✅ implemented & verified end-to-end |
 | 2 | Employees | ✅ implemented & verified end-to-end (API) |
-| 3 | Projects | domain + schema ready; API/UI awaiting approval |
+| 3 | Projects | ✅ implemented & verified end-to-end (API) |
 | 4 | Vehicles | domain + schema ready; API/UI awaiting approval |
 | 5 | Tools | domain + schema ready; API/UI awaiting approval |
 | 6 | Materials | domain + schema ready; API/UI awaiting approval |
