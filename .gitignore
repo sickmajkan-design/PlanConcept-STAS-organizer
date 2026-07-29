@@ -1,0 +1,46 @@
+# .NET
+bin/
+obj/
+out/
+*.user
+*.suo
+.vs/
+.vscode/
+*.DotSettings.user
+TestResults/
+artifacts/
+
+# Logs
+logs/
+*.log
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+appsettings.*.local.json
+secrets.json
+
+# Rider / IDEA
+.idea/
+
+# Node (React admin - future module)
+node_modules/
+dist/
+build/
+coverage/
+
+# Flutter (mobile - future module)
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+*.iml
+ios/Pods/
+android/.gradle/
+
+# OS
+.DS_Store
+Thumbs.db

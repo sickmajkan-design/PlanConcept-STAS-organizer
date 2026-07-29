@@ -1,0 +1,38 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: construction-postgres
+    environment:
+      POSTGRES_DB: construction
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d construction"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: src/Construction.API/Dockerfile
+    container_name: construction-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=construction;Username=postgres;Password=${POSTGRES_PASSWORD:-postgres}"
+      JwtSettings__SecretKey: ${JWT_SECRET_KEY:-dev-only-secret-key-change-me-0123456789abcdef}
+      Seed__SuperAdmin__Email: ${SUPERADMIN_EMAIL:-admin@construction.local}
+      Seed__SuperAdmin__Password: ${SUPERADMIN_PASSWORD:-Admin123!}
+      Database__ApplyMigrationsOnStartup: "true"
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres-data:

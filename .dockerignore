@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+**/logs/
+**/.git/
+**/.vs/
+**/.idea/
+**/node_modules/
+**/*.user
+docs/
+README.md
