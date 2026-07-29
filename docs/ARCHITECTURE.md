@@ -164,9 +164,21 @@ Key decisions:
 The full database schema ships in the initial migration so later modules add only
 application/API/client code — no disruptive schema churn between modules.
 
-All eight Phase 1 backend modules are complete. Remaining Phase 1 work:
-the Flutter mobile app (`construction_mobile`) and the React admin
-(`construction_admin`), delivered module by module against this API.
+All eight Phase 1 backend modules are complete. The Flutter app
+(`construction_mobile`) is under way — its foundation and Authentication
+module are done. The React admin (`construction_admin`) follows.
+
+### Mobile client status
+
+| Area | Status |
+|---|---|
+| Foundation (network, secure session, routing, theme) | ✅ done |
+| Authentication (sign in/out, refresh, change & forgot password) | ✅ done |
+| Employees / Projects / Vehicles / Tools / Materials screens | pending |
+| GPS reporting, push notifications | pending |
+
+See [`src/construction_mobile/README.md`](../src/construction_mobile/README.md)
+for its structure and the client-side auth behaviour.
 
 ## Push notification design (module 8)
 

@@ -12,6 +12,7 @@ database design and module status.
 
 - .NET 9 SDK (building with a newer SDK also works — projects target `net9.0`)
 - PostgreSQL 16 (or Docker)
+- Flutter 3.44+ for the mobile app (`src/construction_mobile`)
 
 ## Run with Docker
 
@@ -54,6 +55,17 @@ Note: AutoMapper ≥ 15 is dual-licensed (free for smaller organizations,
 commercial license otherwise) — review licensing for your deployment, or pin
 an earlier version and accept its security advisory. The pinned 15.1.3 is the
 patched line.
+
+## Mobile app
+
+```bash
+cd src/construction_mobile
+flutter pub get
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:5000
+```
+
+Sign-in, token refresh, sign-out, change password and forgot password are
+implemented; see [`src/construction_mobile/README.md`](src/construction_mobile/README.md).
 
 ## EF Core migrations
 

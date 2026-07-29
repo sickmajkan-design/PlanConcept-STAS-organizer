@@ -1,0 +1,12 @@
+targets:
+  $default:
+    builders:
+      json_serializable:
+        options:
+          # Without this, a nested model is emitted as the object itself and
+          # `toJson()` only survives because `jsonEncode` happens to call
+          # `toJson()` on it. Serialising nested models explicitly keeps
+          # `toJson()` a genuine JSON map wherever it is used.
+          explicit_to_json: true
+          # Never send nulls the API did not ask for.
+          include_if_null: false
