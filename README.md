@@ -69,4 +69,5 @@ dotnet ef migrations add <Name> \
 | Module | Endpoints |
 |---|---|
 | Authentication | `POST /api/auth/login`, `/refresh`, `/logout`, `/change-password`, `/forgot-password`, `/reset-password`, `GET /api/auth/me` |
-| Employees, Projects, Vehicles, Tools, Materials, GPS Tracking, Push Notifications | schema shipped; endpoints arrive module by module |
+| Employees | `GET /api/employees` (pagination `pageNumber`/`pageSize`, `search`, `status`, `position`, `projectId` filters, `sortBy`/`sortDescending`), `GET /api/employees/{id}`, `POST /api/employees`, `PUT /api/employees/{id}`, `DELETE /api/employees/{id}` (soft), `POST`/`DELETE /api/employees/{id}/projects/{projectId}` |
+| Projects, Vehicles, Tools, Materials, GPS Tracking, Push Notifications | schema shipped; endpoints arrive module by module |

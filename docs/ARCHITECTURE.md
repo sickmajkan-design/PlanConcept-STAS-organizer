@@ -153,7 +153,7 @@ Key decisions:
 | # | Module | Status |
 |---|--------|--------|
 | 1 | Authentication | ✅ implemented & verified end-to-end |
-| 2 | Employees | domain + schema ready; API/UI awaiting approval |
+| 2 | Employees | ✅ implemented & verified end-to-end (API) |
 | 3 | Projects | domain + schema ready; API/UI awaiting approval |
 | 4 | Vehicles | domain + schema ready; API/UI awaiting approval |
 | 5 | Tools | domain + schema ready; API/UI awaiting approval |
