@@ -29,6 +29,16 @@ public class CurrentUserService : ICurrentUserService
         }
     }
 
+    public Guid? EmployeeId
+    {
+        get
+        {
+            var value = _httpContextAccessor.HttpContext?.User.FindFirstValue("employeeId");
+
+            return Guid.TryParse(value, out var id) ? id : null;
+        }
+    }
+
     public string? Email =>
         _httpContextAccessor.HttpContext?.User.FindFirstValue(JwtRegisteredClaimNames.Email);
 

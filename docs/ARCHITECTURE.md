@@ -158,7 +158,7 @@ Key decisions:
 | 4 | Vehicles | ✅ implemented & verified end-to-end (API) |
 | 5 | Tools | ✅ implemented & verified end-to-end (API) |
 | 6 | Materials | ✅ implemented & verified end-to-end (API) |
-| 7 | GPS Tracking | domain + schema ready; API/UI awaiting approval |
+| 7 | GPS Tracking | ✅ implemented & verified end-to-end (API) |
 | 8 | Push Notifications | domain + schema ready; FCM integration awaiting approval |
 
 The full database schema ships in the initial migration so later modules add only
