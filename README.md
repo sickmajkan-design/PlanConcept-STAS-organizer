@@ -71,4 +71,5 @@ dotnet ef migrations add <Name> \
 | Authentication | `POST /api/auth/login`, `/refresh`, `/logout`, `/change-password`, `/forgot-password`, `/reset-password`, `GET /api/auth/me` |
 | Employees | `GET /api/employees` (pagination `pageNumber`/`pageSize`, `search`, `status`, `position`, `projectId` filters, `sortBy`/`sortDescending`), `GET /api/employees/{id}`, `POST /api/employees`, `PUT /api/employees/{id}`, `DELETE /api/employees/{id}` (soft), `POST`/`DELETE /api/employees/{id}/projects/{projectId}` |
 | Projects | `GET /api/projects` (pagination, `search`, `status`, `client`, `employeeId` filters, `sortBy`/`sortDescending`), `GET /api/projects/{id}` (with employee roster), `POST /api/projects`, `PUT /api/projects/{id}`, `DELETE /api/projects/{id}` (soft, releases tool assignments) |
-| Vehicles, Tools, Materials, GPS Tracking, Push Notifications | schema shipped; endpoints arrive module by module |
+| Vehicles | `GET /api/vehicles` (pagination, `search`, `status`, `fuelType`, `assignedEmployeeId`, `unassigned` filters, `sortBy`/`sortDescending`), `GET /api/vehicles/{id}`, `POST /api/vehicles`, `PUT /api/vehicles/{id}`, `DELETE /api/vehicles/{id}` (soft), `POST /api/vehicles/{id}/assign/{employeeId}`, `POST /api/vehicles/{id}/unassign` |
+| Tools, Materials, GPS Tracking, Push Notifications | schema shipped; endpoints arrive module by module |
