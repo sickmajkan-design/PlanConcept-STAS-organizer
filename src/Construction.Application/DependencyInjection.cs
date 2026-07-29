@@ -1,6 +1,8 @@
 using System.Reflection;
 using Construction.Application.Common.Behaviours;
+using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Authentication.Services;
+using Construction.Application.Features.Notifications.Services;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,6 +26,7 @@ public static class DependencyInjection
         });
 
         services.AddScoped<IAuthTokenService, AuthTokenService>();
+        services.AddScoped<INotificationService, NotificationService>();
 
         return services;
     }

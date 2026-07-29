@@ -159,7 +159,28 @@ Key decisions:
 | 5 | Tools | ✅ implemented & verified end-to-end (API) |
 | 6 | Materials | ✅ implemented & verified end-to-end (API) |
 | 7 | GPS Tracking | ✅ implemented & verified end-to-end (API) |
-| 8 | Push Notifications | domain + schema ready; FCM integration awaiting approval |
+| 8 | Push Notifications | ✅ implemented & verified end-to-end (API) |
 
 The full database schema ships in the initial migration so later modules add only
 application/API/client code — no disruptive schema churn between modules.
+
+All eight Phase 1 backend modules are complete. Remaining Phase 1 work:
+the Flutter mobile app (`construction_mobile`) and the React admin
+(`construction_admin`), delivered module by module against this API.
+
+## Push notification design (module 8)
+
+- `IPushSender` is the transport port; `FcmPushSender` (FirebaseAdmin SDK)
+  implements it, chunking sends at FCM's 500-message limit and reporting
+  permanently invalid tokens. Without configured credentials
+  (`Firebase:CredentialsPath` or `Firebase:CredentialsJson`), pushes are
+  logged instead of sent so every flow stays testable locally.
+- `INotificationService` persists an inbox row per recipient, then pushes to
+  all their registered devices and prunes tokens FCM reports dead. It never
+  throws — notification delivery must not break the business operation.
+- Device tokens are registered per user (`POST /api/notifications/device-tokens`);
+  a token seen on another account is re-assigned to the current login.
+- Wired events: employee→project assignment (ProjectAssigned to the employee,
+  EmployeeAssigned to foremen/PMs already on that crew), vehicle assignment
+  (VehicleAssigned), tool hand-out (ToolAssigned), and admin-sent
+  GeneralAnnouncement with optional role / project-crew audience filters.

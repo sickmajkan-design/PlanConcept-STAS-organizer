@@ -3,6 +3,7 @@ using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Authentication.Commands.ForgotPassword;
 using Construction.Infrastructure.Authentication;
 using Construction.Infrastructure.Email;
+using Construction.Infrastructure.Notifications;
 using Construction.Infrastructure.Persistence;
 using Construction.Infrastructure.Persistence.Interceptors;
 using Construction.Infrastructure.Services;
@@ -100,5 +101,8 @@ public static class DependencyInjection
 
         services.Configure<EmailSettings>(configuration.GetSection(EmailSettings.SectionName));
         services.AddScoped<IEmailSender, SmtpEmailSender>();
+
+        services.Configure<FirebaseSettings>(configuration.GetSection(FirebaseSettings.SectionName));
+        services.AddSingleton<IPushSender, FcmPushSender>();
     }
 }

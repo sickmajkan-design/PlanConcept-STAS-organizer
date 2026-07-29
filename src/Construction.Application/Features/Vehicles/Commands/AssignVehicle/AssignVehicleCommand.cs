@@ -18,11 +18,16 @@ public record AssignVehicleCommand(Guid VehicleId, Guid EmployeeId) : IRequest<V
 public class AssignVehicleCommandHandler : IRequestHandler<AssignVehicleCommand, VehicleDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly INotificationService _notificationService;
     private readonly IMapper _mapper;
 
-    public AssignVehicleCommandHandler(IApplicationDbContext context, IMapper mapper)
+    public AssignVehicleCommandHandler(
+        IApplicationDbContext context,
+        INotificationService notificationService,
+        IMapper mapper)
     {
         _context = context;
+        _notificationService = notificationService;
         _mapper = mapper;
     }
 
@@ -35,6 +40,7 @@ public class AssignVehicleCommandHandler : IRequestHandler<AssignVehicleCommand,
             ?? throw new NotFoundException(nameof(Vehicle), request.VehicleId);
 
         var employee = await _context.Employees
+            .Include(e => e.User)
             .FirstOrDefaultAsync(e => e.Id == request.EmployeeId, cancellationToken)
             ?? throw new NotFoundException(nameof(Employee), request.EmployeeId);
 
@@ -54,6 +60,17 @@ public class AssignVehicleCommandHandler : IRequestHandler<AssignVehicleCommand,
         vehicle.Status = VehicleStatus.Assigned;
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        if (employee.User is { IsActive: true } user)
+        {
+            await _notificationService.NotifyUserAsync(
+                user.Id,
+                NotificationType.VehicleAssigned,
+                "Vehicle assigned",
+                $"Vehicle {vehicle.Brand} {vehicle.Model} ({vehicle.RegistrationNumber}) has been assigned to you.",
+                new Dictionary<string, string> { ["vehicleId"] = vehicle.Id.ToString() },
+                cancellationToken);
+        }
 
         return _mapper.Map<VehicleDto>(vehicle);
     }

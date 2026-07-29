@@ -46,6 +46,7 @@ the repository:
 | `JwtSettings__SecretKey` | JWT signing key (min 32 chars, validated on start) |
 | `Seed__SuperAdmin__Email` / `Seed__SuperAdmin__Password` | Initial Super Admin (first boot only) |
 | `EmailSettings__Host`, `__Port`, `__Username`, `__Password` | SMTP for password-reset emails |
+| `Firebase__CredentialsPath` or `Firebase__CredentialsJson` | FCM service-account for push notifications |
 | `ClientApp__PasswordResetUrl` | Admin-app page that completes password reset |
 | `Cors__AllowedOrigins__0…` | Allowed browser origins |
 
@@ -75,4 +76,4 @@ dotnet ef migrations add <Name> \
 | Tools | `GET /api/tools` (pagination, `search`, `status`, `category`, `assignedEmployeeId`, `assignedProjectId`, `unassigned` filters, `sortBy`/`sortDescending`), `GET /api/tools/{id}`, `GET /api/tools/by-qr/{qrCode}`, `POST /api/tools`, `PUT /api/tools/{id}`, `DELETE /api/tools/{id}` (soft), `POST /api/tools/{id}/assign-employee/{employeeId}`, `/unassign-employee`, `/assign-project/{projectId}`, `/unassign-project` |
 | Materials | `GET /api/materials` (pagination, `search`, `projectId`, `warehouse`, `unassignedOnly`, `maxQuantity` filters, `sortBy`/`sortDescending`), `GET /api/materials/{id}`, `POST /api/materials`, `PUT /api/materials/{id}`, `POST /api/materials/{id}/adjust` (atomic relative stock movement), `DELETE /api/materials/{id}` (soft) |
 | GPS Tracking | `POST /api/locations` (batched pings from the mobile app, identity from JWT), `GET /api/locations/current` (`projectId`, `maxAgeMinutes`, `includeInactive` filters), `GET /api/locations/employees/{id}/last`, `GET /api/locations/employees/{id}/history` (`from`/`to`, paged) |
-| Push Notifications | schema shipped; endpoints arrive with module 8 |
+| Push Notifications | `GET /api/notifications` (`unreadOnly`, paged), `GET /api/notifications/unread-count`, `POST /api/notifications/{id}/read`, `POST /api/notifications/read-all`, `POST /api/notifications/device-tokens`, `POST /api/notifications/device-tokens/unregister`, `POST /api/notifications/announce` (role/project audience filters) |

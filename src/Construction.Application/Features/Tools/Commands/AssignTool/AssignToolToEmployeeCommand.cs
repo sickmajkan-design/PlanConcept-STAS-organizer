@@ -3,6 +3,7 @@ using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Tools.Models;
 using Construction.Domain.Entities;
+using Construction.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,11 +19,16 @@ public record AssignToolToEmployeeCommand(Guid ToolId, Guid EmployeeId) : IReque
 public class AssignToolToEmployeeCommandHandler : IRequestHandler<AssignToolToEmployeeCommand, ToolDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly INotificationService _notificationService;
     private readonly IMapper _mapper;
 
-    public AssignToolToEmployeeCommandHandler(IApplicationDbContext context, IMapper mapper)
+    public AssignToolToEmployeeCommandHandler(
+        IApplicationDbContext context,
+        INotificationService notificationService,
+        IMapper mapper)
     {
         _context = context;
+        _notificationService = notificationService;
         _mapper = mapper;
     }
 
@@ -36,6 +42,7 @@ public class AssignToolToEmployeeCommandHandler : IRequestHandler<AssignToolToEm
             ?? throw new NotFoundException(nameof(Tool), request.ToolId);
 
         var employee = await _context.Employees
+            .Include(e => e.User)
             .FirstOrDefaultAsync(e => e.Id == request.EmployeeId, cancellationToken)
             ?? throw new NotFoundException(nameof(Employee), request.EmployeeId);
 
@@ -51,6 +58,17 @@ public class AssignToolToEmployeeCommandHandler : IRequestHandler<AssignToolToEm
         ToolRules.RecomputeStatus(tool);
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        if (employee.User is { IsActive: true } user)
+        {
+            await _notificationService.NotifyUserAsync(
+                user.Id,
+                NotificationType.ToolAssigned,
+                "Tool assigned",
+                $"Tool '{tool.Name}' has been assigned to you.",
+                new Dictionary<string, string> { ["toolId"] = tool.Id.ToString() },
+                cancellationToken);
+        }
 
         return _mapper.Map<ToolDto>(tool);
     }
