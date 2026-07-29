@@ -1,0 +1,148 @@
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Construction.Application.Common.Interfaces;
+using Construction.Application.Common.Models;
+using Construction.Application.Features.Tools.Models;
+using Construction.Domain.Entities;
+using Construction.Domain.Enums;
+using FluentValidation;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+
+namespace Construction.Application.Features.Tools.Queries.GetTools;
+
+public record GetToolsQuery : IRequest<PagedList<ToolDto>>
+{
+    public static readonly string[] AllowedSortFields =
+    [
+        "name", "category", "serialNumber", "status", "createdAt"
+    ];
+
+    public int PageNumber { get; init; } = 1;
+
+    public int PageSize { get; init; } = 20;
+
+    /// <summary>Matches name, category, serial number and QR code (case-insensitive).</summary>
+    public string? Search { get; init; }
+
+    public ToolStatus? Status { get; init; }
+
+    public string? Category { get; init; }
+
+    public Guid? AssignedEmployeeId { get; init; }
+
+    public Guid? AssignedProjectId { get; init; }
+
+    /// <summary>When true, returns only tools with no employee and no project assignment.</summary>
+    public bool? Unassigned { get; init; }
+
+    public string? SortBy { get; init; }
+
+    public bool SortDescending { get; init; }
+}
+
+public class GetToolsQueryValidator : AbstractValidator<GetToolsQuery>
+{
+    public GetToolsQueryValidator()
+    {
+        RuleFor(x => x.PageNumber)
+            .GreaterThanOrEqualTo(1).WithMessage("Page number must be at least 1.");
+
+        RuleFor(x => x.PageSize)
+            .InclusiveBetween(1, 100).WithMessage("Page size must be between 1 and 100.");
+
+        RuleFor(x => x.SortBy)
+            .Must(sortBy => string.IsNullOrWhiteSpace(sortBy) ||
+                            GetToolsQuery.AllowedSortFields.Contains(
+                                sortBy, StringComparer.OrdinalIgnoreCase))
+            .WithMessage(
+                $"SortBy must be one of: {string.Join(", ", GetToolsQuery.AllowedSortFields)}.");
+    }
+}
+
+public class GetToolsQueryHandler : IRequestHandler<GetToolsQuery, PagedList<ToolDto>>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly IMapper _mapper;
+
+    public GetToolsQueryHandler(IApplicationDbContext context, IMapper mapper)
+    {
+        _context = context;
+        _mapper = mapper;
+    }
+
+    public async Task<PagedList<ToolDto>> Handle(
+        GetToolsQuery request,
+        CancellationToken cancellationToken)
+    {
+        var query = _context.Tools.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var pattern = $"%{request.Search.Trim().ToLowerInvariant()}%";
+
+            query = query.Where(t =>
+                EF.Functions.Like(t.Name.ToLower(), pattern) ||
+                (t.Category != null && EF.Functions.Like(t.Category.ToLower(), pattern)) ||
+                (t.SerialNumber != null && EF.Functions.Like(t.SerialNumber.ToLower(), pattern)) ||
+                (t.QrCode != null && EF.Functions.Like(t.QrCode.ToLower(), pattern)));
+        }
+
+        if (request.Status is { } status)
+        {
+            query = query.Where(t => t.Status == status);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Category))
+        {
+            query = query.Where(t => t.Category != null && EF.Functions.Like(
+                t.Category.ToLower(), $"%{request.Category.Trim().ToLowerInvariant()}%"));
+        }
+
+        if (request.AssignedEmployeeId is { } employeeId)
+        {
+            query = query.Where(t => t.AssignedEmployeeId == employeeId);
+        }
+
+        if (request.AssignedProjectId is { } projectId)
+        {
+            query = query.Where(t => t.AssignedProjectId == projectId);
+        }
+
+        if (request.Unassigned == true)
+        {
+            query = query.Where(t => t.AssignedEmployeeId == null && t.AssignedProjectId == null);
+        }
+
+        query = ApplySorting(query, request.SortBy, request.SortDescending);
+
+        return await PagedList<ToolDto>.CreateAsync(
+            query.ProjectTo<ToolDto>(_mapper.ConfigurationProvider),
+            request.PageNumber,
+            request.PageSize,
+            cancellationToken);
+    }
+
+    private static IQueryable<Tool> ApplySorting(
+        IQueryable<Tool> query,
+        string? sortBy,
+        bool descending)
+    {
+        IOrderedQueryable<Tool> ordered = (sortBy?.ToLowerInvariant(), descending) switch
+        {
+            ("category", false) => query.OrderBy(t => t.Category),
+            ("category", true) => query.OrderByDescending(t => t.Category),
+            ("serialnumber", false) => query.OrderBy(t => t.SerialNumber),
+            ("serialnumber", true) => query.OrderByDescending(t => t.SerialNumber),
+            ("status", false) => query.OrderBy(t => t.Status),
+            ("status", true) => query.OrderByDescending(t => t.Status),
+            ("createdat", false) => query.OrderBy(t => t.CreatedAt),
+            ("createdat", true) => query.OrderByDescending(t => t.CreatedAt),
+            (_, true) => query.OrderByDescending(t => t.Name),
+            _ => query.OrderBy(t => t.Name)
+        };
+
+        // Stable tiebreaker so pagination never skips or duplicates rows.
+        return ordered.ThenBy(t => t.Id);
+    }
+}

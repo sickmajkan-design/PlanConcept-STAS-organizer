@@ -156,7 +156,7 @@ Key decisions:
 | 2 | Employees | ✅ implemented & verified end-to-end (API) |
 | 3 | Projects | ✅ implemented & verified end-to-end (API) |
 | 4 | Vehicles | ✅ implemented & verified end-to-end (API) |
-| 5 | Tools | domain + schema ready; API/UI awaiting approval |
+| 5 | Tools | ✅ implemented & verified end-to-end (API) |
 | 6 | Materials | domain + schema ready; API/UI awaiting approval |
 | 7 | GPS Tracking | domain + schema ready; API/UI awaiting approval |
 | 8 | Push Notifications | domain + schema ready; FCM integration awaiting approval |
