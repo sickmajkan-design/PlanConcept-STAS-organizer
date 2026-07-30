@@ -93,7 +93,7 @@ Thin HTTP shell: controllers only build commands and delegate to MediatR.
     ├── Construction.Infrastructure/
     ├── Construction.API/
     ├── construction_mobile/     # Flutter app  (added with its first approved module)
-    └── construction_admin/      # React admin  (added with its first approved module)
+    └── construction_admin/      # React admin
 ```
 
 ## Database design
@@ -164,11 +164,11 @@ Key decisions:
 The full database schema ships in the initial migration so later modules add only
 application/API/client code — no disruptive schema churn between modules.
 
-All eight Phase 1 backend modules are complete. The Flutter app
-(`construction_mobile`) is under way — its foundation and Authentication
-module are done. The React admin (`construction_admin`) follows.
+All eight Phase 1 backend modules are complete. Both clients have their
+Authentication + Employees + Projects modules in place; GPS tracking and push
+notifications are additionally done on mobile.
 
-### Mobile client status
+### Mobile client status (`construction_mobile`, Flutter)
 
 | Area | Status |
 |---|---|
@@ -185,6 +185,26 @@ through errors: the directory tabs and routes are withheld from Workers, and
 location reporting is only started for accounts linked to an employee.
 
 See [`src/construction_mobile/README.md`](../src/construction_mobile/README.md)
+for its structure and the client-side auth behaviour.
+
+### Admin client status (`construction_admin`, React)
+
+| Area | Status |
+|---|---|
+| Foundation (Axios client, session handling, routing, theme, layout) | ✅ done |
+| Authentication (sign in/out, refresh, change & forgot password) | ✅ done |
+| Employees (paged grid, search, status filter, CRUD, project assignment) | ✅ done |
+| Projects (paged grid, search, status filter, CRUD, crew display) | ✅ done |
+| Live map (Google Maps, project filter, 30 s refresh) | ✅ done |
+| Vehicles / Tools / Materials screens | pending |
+
+Same authorization-mirroring approach as the mobile app: the navigation
+drawer and route guards withhold the employee/project directory from a
+`Worker`, matching the roles the API actually serves those endpoints to.
+Heavy pages (the data grids, the map) are code-split with `React.lazy` so the
+initial bundle stays lean.
+
+See [`src/construction_admin/README.md`](../src/construction_admin/README.md)
 for its structure and the client-side auth behaviour.
 
 ## Push notification design (module 8)

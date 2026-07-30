@@ -13,6 +13,7 @@ database design and module status.
 - .NET 9 SDK (building with a newer SDK also works — projects target `net9.0`)
 - PostgreSQL 16 (or Docker)
 - Flutter 3.44+ for the mobile app (`src/construction_mobile`)
+- Node.js 22+ for the admin web app (`src/construction_admin`)
 
 ## Run with Docker
 
@@ -67,6 +68,19 @@ flutter run --dart-define=API_BASE_URL=http://10.0.2.2:5000
 Implemented: authentication, the employee and project directories, GPS
 reporting and push notifications. See
 [`src/construction_mobile/README.md`](src/construction_mobile/README.md).
+
+## Admin web app
+
+```bash
+cd src/construction_admin
+npm install
+cp .env.example .env
+npm run dev
+```
+
+Implemented: authentication, the employee and project directories (CRUD,
+search, filters, project assignment), and a live map of employee locations.
+See [`src/construction_admin/README.md`](src/construction_admin/README.md).
 
 ## EF Core migrations
 
