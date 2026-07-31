@@ -108,4 +108,27 @@ void main() {
 
     expect(find.textContaining('Location sharing'), findsNothing);
   });
+
+  testWidgets('offers vehicles, tools and materials to a Foreman on Home',
+      (tester) async {
+    await _pumpSignedIn(tester, _sessionFor('Foreman'));
+
+    expect(find.text('Vehicles'), findsOneWidget);
+    expect(find.text('Tools'), findsOneWidget);
+    expect(find.text('Materials'), findsOneWidget);
+    expect(find.text('Look up a tool'), findsOneWidget);
+  });
+
+  testWidgets(
+      'hides vehicles, tools and materials from a Worker, but keeps tool lookup',
+      (tester) async {
+    // The API answers 403 for the directory-gated list endpoints, but
+    // `by-qr` is intentionally open to every employee.
+    await _pumpSignedIn(tester, _sessionFor('Worker'));
+
+    expect(find.text('Vehicles'), findsNothing);
+    expect(find.text('Tools'), findsNothing);
+    expect(find.text('Materials'), findsNothing);
+    expect(find.text('Look up a tool'), findsOneWidget);
+  });
 }

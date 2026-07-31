@@ -12,8 +12,11 @@ import 'package:construction_mobile/features/auth/data/models/auth_response.dart
 import 'package:construction_mobile/features/auth/data/models/auth_session.dart';
 import 'package:construction_mobile/features/auth/data/models/user.dart';
 import 'package:construction_mobile/features/employees/data/models/employee.dart';
+import 'package:construction_mobile/features/materials/data/models/material.dart';
 import 'package:construction_mobile/features/notifications/data/models/app_notification.dart';
 import 'package:construction_mobile/features/projects/data/models/project.dart';
+import 'package:construction_mobile/features/tools/data/models/tool.dart';
+import 'package:construction_mobile/features/vehicles/data/models/vehicle.dart';
 
 const _baseUrl = 'http://localhost:5000';
 
@@ -212,6 +215,84 @@ Future<void> _checkProjects(String adminToken) async {
       project.hasCoordinates == (project.latitude != null));
 }
 
+Future<void> _checkVehicles(String adminToken) async {
+  section('Vehicles');
+
+  final list = await _get('/api/vehicles', adminToken);
+  check('list returns 200', list.statusCode == 200, list.statusCode);
+
+  final page = PagedList<Vehicle>.fromJson(list.map!, Vehicle.fromJson);
+  check('vehicles parsed', page.items.isNotEmpty, page.totalCount);
+  check('display name derived',
+      page.items.first.displayName.contains(' '), page.items.first.displayName);
+
+  final detail = await _get('/api/vehicles/${page.items.first.id}', adminToken);
+  check('detail returns 200', detail.statusCode == 200);
+  final vehicle = Vehicle.fromJson(detail.map!);
+  check('detail matches the list item', vehicle.id == page.items.first.id);
+
+  final filtered = await _get('/api/vehicles?status=Available', adminToken);
+  final filteredPage =
+      PagedList<Vehicle>.fromJson(filtered.map!, Vehicle.fromJson);
+  check('status filter narrows the list',
+      filteredPage.items.every((v) => v.status == 'Available'));
+}
+
+Future<void> _checkTools(String adminToken, String workerToken) async {
+  section('Tools');
+
+  final list = await _get('/api/tools', adminToken);
+  check('list returns 200', list.statusCode == 200, list.statusCode);
+
+  final page = PagedList<Tool>.fromJson(list.map!, Tool.fromJson);
+  check('tools parsed', page.items.isNotEmpty, page.totalCount);
+
+  final withQr = page.items.where((t) => t.qrCode != null).toList();
+  check('at least one seeded tool carries a QR code', withQr.isNotEmpty);
+
+  if (withQr.isNotEmpty) {
+    final byQrAsAdmin =
+        await _get('/api/tools/by-qr/${withQr.first.qrCode}', adminToken);
+    check('by-qr returns 200 for a directory role',
+        byQrAsAdmin.statusCode == 200, byQrAsAdmin.statusCode);
+
+    // AllEmployees: a Worker has no directory access, but the API still
+    // opens this one lookup endpoint for on-site tool identification.
+    final byQrAsWorker =
+        await _get('/api/tools/by-qr/${withQr.first.qrCode}', workerToken);
+    check('by-qr is open to a Worker (AllEmployees policy)',
+        byQrAsWorker.statusCode == 200, byQrAsWorker.statusCode);
+    check('by-qr payload parses the same tool',
+        Tool.fromJson(byQrAsWorker.map!).id == withQr.first.id);
+  }
+
+  final missingQr = await _get('/api/tools/by-qr/does-not-exist', adminToken);
+  check('unknown QR code returns 404', missingQr.statusCode == 404);
+}
+
+Future<void> _checkMaterials(String adminToken) async {
+  section('Materials');
+
+  final list = await _get('/api/materials', adminToken);
+  check('list returns 200', list.statusCode == 200, list.statusCode);
+
+  final page =
+      PagedList<MaterialItem>.fromJson(list.map!, MaterialItem.fromJson);
+  check('materials parsed', page.items.isNotEmpty, page.totalCount);
+  check('quantities are non-negative',
+      page.items.every((m) => m.quantity >= 0));
+
+  final detail = await _get('/api/materials/${page.items.first.id}', adminToken);
+  check('detail returns 200', detail.statusCode == 200);
+
+  final warehouseOnly =
+      await _get('/api/materials?unassignedOnly=true', adminToken);
+  final warehousePage = PagedList<MaterialItem>.fromJson(
+      warehouseOnly.map!, MaterialItem.fromJson);
+  check('unassignedOnly returns only warehouse stock',
+      warehousePage.items.every((m) => !m.isAssignedToProject));
+}
+
 Future<void> _checkDirectoryIsGated(String workerToken) async {
   section('Role gating');
 
@@ -222,6 +303,17 @@ Future<void> _checkDirectoryIsGated(String workerToken) async {
   final projects = await _get('/api/projects', workerToken);
   check('Worker cannot read projects', projects.statusCode == 403,
       projects.statusCode);
+
+  final vehicles = await _get('/api/vehicles', workerToken);
+  check('Worker cannot read vehicles', vehicles.statusCode == 403,
+      vehicles.statusCode);
+
+  final tools = await _get('/api/tools', workerToken);
+  check('Worker cannot read tools', tools.statusCode == 403, tools.statusCode);
+
+  final materials = await _get('/api/materials', workerToken);
+  check('Worker cannot read materials', materials.statusCode == 403,
+      materials.statusCode);
 }
 
 Future<void> _checkNotifications(String workerToken) async {
@@ -330,6 +422,9 @@ Future<void> main() async {
   await _checkAuth();
   await _checkEmployees(adminToken);
   await _checkProjects(adminToken);
+  await _checkVehicles(adminToken);
+  await _checkTools(adminToken, workerToken);
+  await _checkMaterials(adminToken);
   await _checkDirectoryIsGated(workerToken);
   await _checkNotifications(workerToken);
   await _checkLocations(workerToken, adminToken);

@@ -46,6 +46,45 @@ const ProjectDetailPage = lazy(() =>
 const LiveMapPage = lazy(() =>
   import('./pages/map/LiveMapPage').then((m) => ({ default: m.LiveMapPage })),
 );
+const VehiclesListPage = lazy(() =>
+  import('./pages/vehicles/VehiclesListPage').then((m) => ({
+    default: m.VehiclesListPage,
+  })),
+);
+const VehicleFormPage = lazy(() =>
+  import('./pages/vehicles/VehicleFormPage').then((m) => ({
+    default: m.VehicleFormPage,
+  })),
+);
+const VehicleDetailPage = lazy(() =>
+  import('./pages/vehicles/VehicleDetailPage').then((m) => ({
+    default: m.VehicleDetailPage,
+  })),
+);
+const ToolsListPage = lazy(() =>
+  import('./pages/tools/ToolsListPage').then((m) => ({ default: m.ToolsListPage })),
+);
+const ToolFormPage = lazy(() =>
+  import('./pages/tools/ToolFormPage').then((m) => ({ default: m.ToolFormPage })),
+);
+const ToolDetailPage = lazy(() =>
+  import('./pages/tools/ToolDetailPage').then((m) => ({ default: m.ToolDetailPage })),
+);
+const MaterialsListPage = lazy(() =>
+  import('./pages/materials/MaterialsListPage').then((m) => ({
+    default: m.MaterialsListPage,
+  })),
+);
+const MaterialFormPage = lazy(() =>
+  import('./pages/materials/MaterialFormPage').then((m) => ({
+    default: m.MaterialFormPage,
+  })),
+);
+const MaterialDetailPage = lazy(() =>
+  import('./pages/materials/MaterialDetailPage').then((m) => ({
+    default: m.MaterialDetailPage,
+  })),
+);
 
 function RouteFallback() {
   return (
@@ -74,6 +113,21 @@ function Layout() {
             <Route path={paths.projectNew} element={<ProjectFormPage />} />
             <Route path={`${paths.projects}/:id`} element={<ProjectDetailPage />} />
             <Route path={`${paths.projects}/:id/edit`} element={<ProjectFormPage />} />
+
+            <Route path={paths.vehicles} element={<VehiclesListPage />} />
+            <Route path={paths.vehicleNew} element={<VehicleFormPage />} />
+            <Route path={`${paths.vehicles}/:id`} element={<VehicleDetailPage />} />
+            <Route path={`${paths.vehicles}/:id/edit`} element={<VehicleFormPage />} />
+
+            <Route path={paths.tools} element={<ToolsListPage />} />
+            <Route path={paths.toolNew} element={<ToolFormPage />} />
+            <Route path={`${paths.tools}/:id`} element={<ToolDetailPage />} />
+            <Route path={`${paths.tools}/:id/edit`} element={<ToolFormPage />} />
+
+            <Route path={paths.materials} element={<MaterialsListPage />} />
+            <Route path={paths.materialNew} element={<MaterialFormPage />} />
+            <Route path={`${paths.materials}/:id`} element={<MaterialDetailPage />} />
+            <Route path={`${paths.materials}/:id/edit`} element={<MaterialFormPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to={paths.home} replace />} />

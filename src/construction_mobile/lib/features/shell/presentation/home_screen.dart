@@ -44,6 +44,8 @@ class HomeScreen extends ConsumerWidget {
             const LocationStatusCard(),
             const _PushStatusNotice(),
             const SizedBox(height: 24),
+            _ResourcesSection(canViewDirectory: user.canViewDirectory),
+            const SizedBox(height: 24),
             Padding(
               padding: const EdgeInsets.only(left: 4, bottom: 8),
               child: Text(
@@ -111,6 +113,69 @@ class HomeScreen extends ConsumerWidget {
     if (shouldSignOut ?? false) {
       await ref.read(authControllerProvider.notifier).signOut();
     }
+  }
+}
+
+/// Site resources: vehicles, tools and materials. The directory-gated ones
+/// mirror the API's `ForemanAndAbove` policy; tool lookup mirrors the API's
+/// `AllEmployees` policy on `by-qr`, so it stays visible for a Worker too.
+class _ResourcesSection extends StatelessWidget {
+  const _ResourcesSection({required this.canViewDirectory});
+
+  final bool canViewDirectory;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            'Resources',
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+          ),
+        ),
+        Card(
+          child: Column(
+            children: [
+              if (canViewDirectory) ...[
+                ListTile(
+                  leading: const Icon(Icons.local_shipping_outlined),
+                  title: const Text('Vehicles'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push(AppRoutes.vehicles),
+                ),
+                const Divider(height: 1, indent: 20, endIndent: 20),
+                ListTile(
+                  leading: const Icon(Icons.handyman_outlined),
+                  title: const Text('Tools'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push(AppRoutes.tools),
+                ),
+                const Divider(height: 1, indent: 20, endIndent: 20),
+                ListTile(
+                  leading: const Icon(Icons.inventory_2_outlined),
+                  title: const Text('Materials'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push(AppRoutes.materials),
+                ),
+                const Divider(height: 1, indent: 20, endIndent: 20),
+              ],
+              ListTile(
+                leading: const Icon(Icons.qr_code_scanner_outlined),
+                title: const Text('Look up a tool'),
+                subtitle: const Text('By QR code'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(AppRoutes.toolLookup),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 }
 

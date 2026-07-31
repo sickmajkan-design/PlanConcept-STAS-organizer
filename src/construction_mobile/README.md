@@ -24,7 +24,8 @@ Talks to `Construction.API`.
 | Projects | paged list with search and status filters, detail with the crew |
 | GPS tracking | position reported every 60 s, buffered while offline |
 | Notifications | FCM registration, in-app inbox with unread badge, deep links |
-| Vehicles / Tools / Materials | API is ready; no mobile screens yet |
+| Vehicles / Tools / Materials | read-only list + detail, reachable from the Home screen's Resources section |
+| Tool lookup by QR code | manual code entry, open to every signed-in employee (not just the directory roles) |
 
 ## Running
 
@@ -60,6 +61,9 @@ lib/
     ├── auth/                 models, repository, controller, screens
     ├── employees/            directory list + detail
     ├── projects/             project list + detail
+    ├── vehicles/              vehicle list + detail, with employee assignment shown
+    ├── tools/                 tool list + detail, dual assignment shown, QR lookup screen
+    ├── materials/             stock list + detail
     ├── location/             position reporting and its status card
     ├── notifications/        inbox, FCM registration, deep links
     └── shell/                splash, home, bottom-navigation frame
@@ -72,9 +76,16 @@ same way.
 
 ## Roles
 
-The API serves the employee and project directories to Foreman and above. The
-app mirrors that: a Worker is not shown those tabs, and the router refuses the
-routes, so the app never presents something that would answer 403.
+The API serves the employee, project, vehicle, tool and material directories
+to Foreman and above. The app mirrors that: a Worker is not shown those
+sections, and the router refuses the routes, so the app never presents
+something that would answer 403.
+
+The one exception is tool lookup by QR code: the API opens `GET
+/api/tools/by-qr/{code}` to every authenticated employee (`AllEmployees`
+policy) so a crew member without directory access can still identify a tool
+on site. The app mirrors that too — "Look up a tool" stays on the Home screen
+for every role, including a Worker.
 
 ## Location sharing
 
@@ -118,12 +129,17 @@ in-app inbox keeps working.
 flutter test
 ```
 
-Unit tests cover the validators, the problem-details error mapping and the
-session/token expiry rules; widget tests drive the real router and screens
-(session restore, redirects, form validation) with an in-memory session store.
+Unit tests cover the validators, the problem-details error mapping, the
+session/token expiry rules and every model's JSON parsing; widget tests drive
+the real router and screens (session restore, redirects, form validation,
+role-gated navigation) with an in-memory session store.
 
 To check the models against a running API:
 
 ```bash
 dart run tool/api_contract_check.dart
 ```
+
+The contract check covers authentication, employees, projects, vehicles,
+tools (including the QR lookup), materials, role gating, notifications and
+GPS reporting against a live API instance.

@@ -15,5 +15,20 @@ export const paths = {
   projectNew: '/projects/new',
   projectEdit: (id: string) => `/projects/${id}/edit`,
 
+  vehicles: '/vehicles',
+  vehicleDetail: (id: string) => `/vehicles/${id}`,
+  vehicleNew: '/vehicles/new',
+  vehicleEdit: (id: string) => `/vehicles/${id}/edit`,
+
+  tools: '/tools',
+  toolDetail: (id: string) => `/tools/${id}`,
+  toolNew: '/tools/new',
+  toolEdit: (id: string) => `/tools/${id}/edit`,
+
+  materials: '/materials',
+  materialDetail: (id: string) => `/materials/${id}`,
+  materialNew: '/materials/new',
+  materialEdit: (id: string) => `/materials/${id}/edit`,
+
   map: '/map',
 } as const;

@@ -73,6 +73,14 @@ void main() {
     expect(find.text('ivan@construction.local'), findsOneWidget);
     // Role names arrive in PascalCase and are humanised for display.
     expect(find.text('Project Manager'), findsOneWidget);
+
+    // The Resources section (vehicles/tools/materials) sits above the
+    // Account section, so scroll it into view first.
+    await tester.dragUntilVisible(
+      find.text('Change password'),
+      find.byType(ListView),
+      const Offset(0, -200),
+    );
     expect(find.text('Change password'), findsOneWidget);
   });
 

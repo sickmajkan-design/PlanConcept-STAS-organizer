@@ -1,7 +1,10 @@
 import 'package:construction_mobile/features/auth/data/models/user.dart';
 import 'package:construction_mobile/features/employees/data/models/employee.dart';
+import 'package:construction_mobile/features/materials/data/models/material.dart';
 import 'package:construction_mobile/features/notifications/data/models/app_notification.dart';
 import 'package:construction_mobile/features/projects/data/models/project.dart';
+import 'package:construction_mobile/features/tools/data/models/tool.dart';
+import 'package:construction_mobile/features/vehicles/data/models/vehicle.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -145,6 +148,110 @@ void main() {
       });
 
       expect(detail.employees.single.fullName, 'Ivan Horvat');
+    });
+  });
+
+  group('Vehicle', () {
+    test('parses an assigned vehicle', () {
+      final vehicle = Vehicle.fromJson(const {
+        'id': '019fae00-0000-7000-8000-000000000001',
+        'brand': 'Ford',
+        'model': 'Transit',
+        'registrationNumber': 'ZG1234AB',
+        'vin': 'WF0XXXTTGXKA12345',
+        'fuelType': 'Diesel',
+        'status': 'Assigned',
+        'assignedEmployeeId': '019fad73-e894-791b-a6c3-715bddf61164',
+        'assignedEmployeeName': 'Ivan Horvat',
+        'assignedEmployeeNumber': 'EMP-001',
+        'createdAt': '2026-07-29T10:30:00Z',
+      });
+
+      expect(vehicle.displayName, 'Ford Transit');
+      expect(vehicle.isAssigned, isTrue);
+    });
+
+    test('parses an unassigned vehicle', () {
+      final vehicle = Vehicle.fromJson(const {
+        'id': '019fae00-0000-7000-8000-000000000002',
+        'brand': 'Iveco',
+        'model': 'Daily',
+        'registrationNumber': 'ZG5678CD',
+        'fuelType': 'Diesel',
+        'status': 'Available',
+        'createdAt': '2026-07-29T10:30:00Z',
+      });
+
+      expect(vehicle.isAssigned, isFalse);
+      expect(vehicle.vin, isNull);
+    });
+  });
+
+  group('Tool', () {
+    test('parses a tool assigned to both an employee and a project', () {
+      final tool = Tool.fromJson(const {
+        'id': '019fae10-0000-7000-8000-000000000001',
+        'name': 'Cordless drill',
+        'category': 'Power tools',
+        'serialNumber': 'SN-9001',
+        'qrCode': 'QR-9001',
+        'status': 'Assigned',
+        'assignedEmployeeId': '019fad73-e894-791b-a6c3-715bddf61164',
+        'assignedEmployeeName': 'Ivan Horvat',
+        'assignedEmployeeNumber': 'EMP-001',
+        'assignedProjectId': '019fad7f-0000-7000-8000-000000000002',
+        'assignedProjectName': 'Riverside Apartments',
+        'createdAt': '2026-07-29T10:30:00Z',
+      });
+
+      expect(tool.isAssignedToEmployee, isTrue);
+      expect(tool.isAssignedToProject, isTrue);
+    });
+
+    test('parses an unassigned tool', () {
+      final tool = Tool.fromJson(const {
+        'id': '019fae10-0000-7000-8000-000000000002',
+        'name': 'Angle grinder',
+        'status': 'Available',
+        'createdAt': '2026-07-29T10:30:00Z',
+      });
+
+      expect(tool.isAssignedToEmployee, isFalse);
+      expect(tool.isAssignedToProject, isFalse);
+      expect(tool.qrCode, isNull);
+    });
+  });
+
+  group('MaterialItem', () {
+    test('parses a material assigned to a project', () {
+      final material = MaterialItem.fromJson(const {
+        'id': '019fae20-0000-7000-8000-000000000001',
+        'name': 'Cement',
+        'unit': 'bag',
+        'quantity': 120.5,
+        'warehouse': 'Main warehouse',
+        'projectId': '019fad7f-0000-7000-8000-000000000002',
+        'projectName': 'Riverside Apartments',
+        'lastUpdated': '2026-07-29T12:00:00Z',
+        'createdAt': '2026-07-29T10:30:00Z',
+      });
+
+      expect(material.quantity, 120.5);
+      expect(material.isAssignedToProject, isTrue);
+    });
+
+    test('parses warehouse-only stock', () {
+      final material = MaterialItem.fromJson(const {
+        'id': '019fae20-0000-7000-8000-000000000002',
+        'name': 'Rebar',
+        'unit': 'kg',
+        'quantity': 500,
+        'lastUpdated': '2026-07-29T12:00:00Z',
+        'createdAt': '2026-07-29T10:30:00Z',
+      });
+
+      expect(material.isAssignedToProject, isFalse);
+      expect(material.projectName, isNull);
     });
   });
 

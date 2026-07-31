@@ -65,8 +65,9 @@ flutter pub get
 flutter run --dart-define=API_BASE_URL=http://10.0.2.2:5000
 ```
 
-Implemented: authentication, the employee and project directories, GPS
-reporting and push notifications. See
+Implemented: authentication, the employee/project/vehicle/tool/material
+directories (read-only, with a QR-code tool lookup open to every employee),
+GPS reporting and push notifications. See
 [`src/construction_mobile/README.md`](src/construction_mobile/README.md).
 
 ## Admin web app
@@ -78,9 +79,10 @@ cp .env.example .env
 npm run dev
 ```
 
-Implemented: authentication, the employee and project directories (CRUD,
-search, filters, project assignment), and a live map of employee locations.
-See [`src/construction_admin/README.md`](src/construction_admin/README.md).
+Implemented: authentication, the employee/project/vehicle/tool/material
+directories (CRUD, search, filters, project assignment, tool dual
+assignment, material stock adjustment), and a live map of employee
+locations. See [`src/construction_admin/README.md`](src/construction_admin/README.md).
 
 ## EF Core migrations
 

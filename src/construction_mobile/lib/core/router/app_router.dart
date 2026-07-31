@@ -8,12 +8,19 @@ import '../../features/auth/presentation/forgot_password_screen.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/employees/presentation/employee_detail_screen.dart';
 import '../../features/employees/presentation/employees_screen.dart';
+import '../../features/materials/presentation/material_detail_screen.dart';
+import '../../features/materials/presentation/materials_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/projects/presentation/project_detail_screen.dart';
 import '../../features/projects/presentation/projects_screen.dart';
 import '../../features/shell/presentation/app_shell.dart';
 import '../../features/shell/presentation/home_screen.dart';
 import '../../features/shell/presentation/splash_screen.dart';
+import '../../features/tools/presentation/tool_detail_screen.dart';
+import '../../features/tools/presentation/tool_lookup_screen.dart';
+import '../../features/tools/presentation/tools_screen.dart';
+import '../../features/vehicles/presentation/vehicle_detail_screen.dart';
+import '../../features/vehicles/presentation/vehicles_screen.dart';
 import 'app_routes.dart';
 
 /// Router whose redirect follows the auth state: while the stored session is
@@ -90,6 +97,40 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '${AppRoutes.projects}/:id',
         builder: (context, state) => ProjectDetailScreen(
           projectId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.vehicles,
+        builder: (context, state) => const VehiclesScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.vehicles}/:id',
+        builder: (context, state) => VehicleDetailScreen(
+          vehicleId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.tools,
+        builder: (context, state) => const ToolsScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.tools}/:id',
+        builder: (context, state) => ToolDetailScreen(
+          toolId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.toolLookup,
+        builder: (context, state) => const ToolLookupScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.materials,
+        builder: (context, state) => const MaterialsScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.materials}/:id',
+        builder: (context, state) => MaterialDetailScreen(
+          materialId: state.pathParameters['id']!,
         ),
       ),
       StatefulShellRoute.indexedStack(

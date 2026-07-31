@@ -160,3 +160,95 @@ export interface ListQuery {
   sortBy?: string;
   sortDescending?: boolean;
 }
+
+export const vehicleStatuses = [
+  'Available',
+  'Assigned',
+  'InService',
+  'OutOfService',
+] as const;
+
+export type VehicleStatus = (typeof vehicleStatuses)[number];
+
+export const fuelTypes = ['Petrol', 'Diesel', 'Electric', 'Hybrid', 'Lpg'] as const;
+
+export type FuelType = (typeof fuelTypes)[number];
+
+export interface Vehicle {
+  id: string;
+  brand: string;
+  model: string;
+  registrationNumber: string;
+  vin: string | null;
+  fuelType: FuelType;
+  status: VehicleStatus;
+  assignedEmployeeId: string | null;
+  assignedEmployeeName: string | null;
+  assignedEmployeeNumber: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface VehicleInput {
+  brand: string;
+  model: string;
+  registrationNumber: string;
+  vin?: string | null;
+  fuelType: FuelType;
+  status: VehicleStatus;
+}
+
+export const toolStatuses = [
+  'Available',
+  'Assigned',
+  'UnderRepair',
+  'Lost',
+  'Retired',
+] as const;
+
+export type ToolStatus = (typeof toolStatuses)[number];
+
+export interface Tool {
+  id: string;
+  name: string;
+  category: string | null;
+  serialNumber: string | null;
+  qrCode: string | null;
+  status: ToolStatus;
+  assignedEmployeeId: string | null;
+  assignedEmployeeName: string | null;
+  assignedEmployeeNumber: string | null;
+  assignedProjectId: string | null;
+  assignedProjectName: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface ToolInput {
+  name: string;
+  category?: string | null;
+  serialNumber?: string | null;
+  qrCode?: string | null;
+  status: ToolStatus;
+}
+
+export interface Material {
+  id: string;
+  name: string;
+  unit: string;
+  quantity: number;
+  warehouse: string | null;
+  projectId: string | null;
+  projectName: string | null;
+  lastUpdated: string;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface MaterialInput {
+  name: string;
+  unit: string;
+  quantity: number;
+  warehouse?: string | null;
+  projectId?: string | null;
+}

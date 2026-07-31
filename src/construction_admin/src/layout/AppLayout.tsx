@@ -1,5 +1,8 @@
 import {
   ApartmentOutlined,
+  HandymanOutlined,
+  Inventory2Outlined,
+  LocalShippingOutlined,
   LogoutOutlined,
   MapOutlined,
   MenuOutlined,
@@ -60,6 +63,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
       ? [
           { label: 'Employees', path: paths.employees, icon: <PeopleOutlined /> },
           { label: 'Projects', path: paths.projects, icon: <ApartmentOutlined /> },
+          { label: 'Vehicles', path: paths.vehicles, icon: <LocalShippingOutlined /> },
+          { label: 'Tools', path: paths.tools, icon: <HandymanOutlined /> },
+          { label: 'Materials', path: paths.materials, icon: <Inventory2Outlined /> },
         ]
       : []),
   ];

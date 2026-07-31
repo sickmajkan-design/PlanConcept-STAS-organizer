@@ -164,9 +164,9 @@ Key decisions:
 The full database schema ships in the initial migration so later modules add only
 application/API/client code — no disruptive schema churn between modules.
 
-All eight Phase 1 backend modules are complete. Both clients have their
-Authentication + Employees + Projects modules in place; GPS tracking and push
-notifications are additionally done on mobile.
+All eight Phase 1 backend modules are complete, and both clients now cover
+every Phase 1 module: Authentication, Employees, Projects, Vehicles, Tools
+and Materials, plus GPS tracking and push notifications on mobile.
 
 ### Mobile client status (`construction_mobile`, Flutter)
 
@@ -176,13 +176,21 @@ notifications are additionally done on mobile.
 | Authentication (sign in/out, refresh, change & forgot password) | ✅ done |
 | Employees (list, search, filters, detail) | ✅ done |
 | Projects (list, search, filters, detail with crew) | ✅ done |
+| Vehicles (list, search, status filter, detail) | ✅ done |
+| Tools (list, search, status filter, detail, QR lookup) | ✅ done |
+| Materials (list, search, warehouse-only filter, detail) | ✅ done |
 | GPS reporting (60 s interval, offline buffer) | ✅ done |
 | Push notifications (FCM token, inbox, badge, deep links) | ✅ done |
-| Vehicles / Tools / Materials screens | pending |
 
 The app mirrors the API's authorization model rather than discovering it
-through errors: the directory tabs and routes are withheld from Workers, and
-location reporting is only started for accounts linked to an employee.
+through errors: directory-gated routes are withheld from Workers, and
+location reporting is only started for accounts linked to an employee. The
+one deliberate exception is tool lookup by QR code, open to every employee
+(mirroring the API's `AllEmployees` policy on that one endpoint) so a Worker
+can still identify a tool on site. Vehicles/Tools/Materials are read-only on
+mobile — CRUD and assignment management live in the admin app — reached from
+a "Resources" section on the Home screen rather than the bottom-nav tabs, to
+keep the tab bar to four items.
 
 See [`src/construction_mobile/README.md`](../src/construction_mobile/README.md)
 for its structure and the client-side auth behaviour.
@@ -195,14 +203,18 @@ for its structure and the client-side auth behaviour.
 | Authentication (sign in/out, refresh, change & forgot password) | ✅ done |
 | Employees (paged grid, search, status filter, CRUD, project assignment) | ✅ done |
 | Projects (paged grid, search, status filter, CRUD, crew display) | ✅ done |
+| Vehicles (paged grid, search, status filter, CRUD, employee assignment) | ✅ done |
+| Tools (paged grid, search, status filter, CRUD, dual employee + project assignment) | ✅ done |
+| Materials (paged grid, search, warehouse-only filter, CRUD, stock adjustment) | ✅ done |
 | Live map (Google Maps, project filter, 30 s refresh) | ✅ done |
-| Vehicles / Tools / Materials screens | pending |
 
 Same authorization-mirroring approach as the mobile app: the navigation
-drawer and route guards withhold the employee/project directory from a
-`Worker`, matching the roles the API actually serves those endpoints to.
-Heavy pages (the data grids, the map) are code-split with `React.lazy` so the
-initial bundle stays lean.
+drawer and route guards withhold the directory from a `Worker`, matching the
+roles the API actually serves those endpoints to. Create/edit/delete and
+assignment actions rely on the API's finer-grained role checks and surface a
+refusal as the same error banner used everywhere else. Heavy pages (the data
+grids, the map) are code-split with `React.lazy` so the initial bundle stays
+lean.
 
 See [`src/construction_admin/README.md`](../src/construction_admin/README.md)
 for its structure and the client-side auth behaviour.

@@ -25,6 +25,15 @@ export function useEmployeeQuery(id: string | undefined) {
   });
 }
 
+/** All employees for pickers (assign vehicle/tool to an employee). */
+export function useAllEmployeesQuery() {
+  return useQuery({
+    queryKey: employeeKeys.list({ pageNumber: 1, pageSize: 100, sortBy: 'lastName' }),
+    queryFn: () => employeesApi.list({ pageNumber: 1, pageSize: 100, sortBy: 'lastName' }),
+    staleTime: 60_000,
+  });
+}
+
 export function useCreateEmployee() {
   const queryClient = useQueryClient();
 

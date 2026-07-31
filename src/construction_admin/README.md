@@ -57,11 +57,17 @@ src/
 ├── components/                shared widgets: StatusChip, ConfirmDialog, PagedList-agnostic bits
 ├── features/
 │   ├── employees/             TanStack Query hooks + Zod validation for Employees
-│   └── projects/              same, for Projects
+│   ├── projects/              same, for Projects
+│   ├── vehicles/               same, for Vehicles
+│   ├── tools/                  same, for Tools (dual employee + project assignment)
+│   └── materials/              same, for Materials (plus the adjust-stock mutation)
 └── pages/
     ├── auth/                  sign in, forgot/reset/change password
     ├── employees/              list, detail, create/edit form
     ├── projects/                list, detail, create/edit form
+    ├── vehicles/                list, detail with assign/unassign, create/edit form
+    ├── tools/                   list, detail with dual assign/unassign, create/edit form
+    ├── materials/               list, detail with an adjust-stock dialog, create/edit form
     └── map/                    live employee locations
 ```
 
@@ -79,13 +85,34 @@ Mirrors the mobile app's approach on the web:
 
 ## Role-aware UI
 
-The employee/project directory is only served by the API to
-`SuperAdmin` / `Admin` / `ProjectManager` / `Foreman`. The admin app mirrors
-this rather than discovering it via 403s:
+The employee/project/vehicle/tool/material directory is only served by the
+API to `SuperAdmin` / `Admin` / `ProjectManager` / `Foreman`. The admin app
+mirrors this rather than discovering it via 403s:
 
-- The navigation drawer omits the Employees/Projects links for a `Worker`.
-- `RequireDirectoryAccess` redirects a direct visit to `/employees` or
-  `/projects` back to the home page for a role that cannot use them.
+- The navigation drawer omits those links for a `Worker`.
+- `RequireDirectoryAccess` redirects a direct visit to any of those routes
+  back to the home page for a role that cannot use them.
+
+Create/edit/delete and the assignment actions are not further gated in the
+UI beyond that — the API enforces the finer-grained roles for those
+(`AdminAndAbove` for create/update/delete, `ProjectManagerAndAbove` or
+`ForemanAndAbove` for assignment, depending on the resource) and a refusal
+surfaces as the same error banner used everywhere else in the app.
+
+## Tools' dual assignment
+
+A tool can be held by an employee, placed on a project, both, or neither —
+the detail page shows an assignment card for each and lets them be set or
+cleared independently, matching the API's separate assign/unassign endpoints
+for each target.
+
+## Materials stock
+
+The create/edit form sets an absolute quantity. Day-to-day stock movements
+(deliveries, consumption) go through "Adjust stock" on the detail page
+instead, which posts a relative change to `POST /api/materials/{id}/adjust`;
+the API rejects an adjustment that would take the quantity negative with a
+409, shown inline in the dialog.
 
 ## Live map
 
@@ -98,7 +125,8 @@ without a Maps key.
 ## Verification
 
 Type-checked with `tsc -b` (part of `npm run build`), linted with `oxlint`,
-and driven end-to-end with a Playwright script covering sign-in, employee and
-project CRUD, project assignment, role-gated navigation, and the live map's
-graceful no-API-key state — against both the dev server and the production
-build.
+and driven end-to-end with Playwright scripts covering sign-in, employee and
+project CRUD, project assignment, vehicle/tool/material CRUD, tool dual
+assignment, material stock adjustment (including the 409 over-consumption
+case), role-gated navigation, and the live map's graceful no-API-key state —
+against both the dev server and the production build.
