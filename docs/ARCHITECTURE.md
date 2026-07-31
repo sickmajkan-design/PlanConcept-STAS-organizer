@@ -86,14 +86,18 @@ Thin HTTP shell: controllers only build commands and delegate to MediatR.
 ├── Construction.slnx
 ├── Directory.Build.props        # net9.0, nullable, implicit usings for all projects
 ├── docker-compose.yml           # postgres + api
+├── .github/workflows/ci.yml     # backend + both clients on every push
 ├── docs/ARCHITECTURE.md
-└── src/
-    ├── Construction.Domain/
-    ├── Construction.Application/
-    ├── Construction.Infrastructure/
-    ├── Construction.API/
-    ├── construction_mobile/     # Flutter app  (added with its first approved module)
-    └── construction_admin/      # React admin
+├── src/
+│   ├── Construction.Domain/
+│   ├── Construction.Application/
+│   ├── Construction.Infrastructure/
+│   ├── Construction.API/
+│   ├── construction_mobile/     # Flutter app
+│   └── construction_admin/      # React admin
+└── tests/
+    ├── Construction.UnitTests/          # no database
+    └── Construction.IntegrationTests/   # throwaway PostgreSQL database
 ```
 
 ## Database design
@@ -218,6 +222,32 @@ lean.
 
 See [`src/construction_admin/README.md`](../src/construction_admin/README.md)
 for its structure and the client-side auth behaviour.
+
+## Testing strategy
+
+Split by what each layer can prove, so the fast suite stays fast and the slow
+one earns its cost:
+
+- **`tests/Construction.UnitTests`** — pure logic with no I/O: PBKDF2 hashing,
+  JWT claim and expiry construction, token hashing, every module's
+  FluentValidation rules, and the pagination arithmetic both clients page off.
+  Uses plain xUnit assertions and a hand-written clock fake, so the suite
+  carries no mocking library and no dual-licensed assertion package.
+- **`tests/Construction.IntegrationTests`** — real handlers resolved from the
+  same dependency graph the API builds, sent through MediatR so the validation
+  and logging behaviours stay in the path, against a throwaway PostgreSQL
+  database created and dropped per run.
+
+  PostgreSQL rather than an in-memory provider is a deliberate cost: the
+  properties worth pinning down are provider-specific. Filtered unique indexes
+  are what let a deleted employee number be reused; `ExecuteUpdate` is not
+  implemented by the in-memory provider at all; and the "concurrent
+  withdrawals cannot oversell stock" test only means anything against a
+  database that actually serialises writers. An in-memory suite would report
+  green while production broke.
+
+The clients keep their own suites (`flutter test`, plus `tsc -b`, `oxlint` and
+a Playwright script for the admin app). CI runs all of it on every push.
 
 ## Push notification design (module 8)
 

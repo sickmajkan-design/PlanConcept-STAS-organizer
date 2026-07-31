@@ -84,6 +84,29 @@ directories (CRUD, search, filters, project assignment, tool dual
 assignment, material stock adjustment), and a live map of employee
 locations. See [`src/construction_admin/README.md`](src/construction_admin/README.md).
 
+## Tests
+
+```bash
+dotnet test                                    # backend: unit + integration
+cd src/construction_mobile && flutter test     # mobile
+cd src/construction_admin && npm run build     # admin: type-check + bundle
+```
+
+| Suite | Covers |
+|---|---|
+| `tests/Construction.UnitTests` | Password hashing, JWT claims and expiry, token hashing, every module's validation rules, pagination arithmetic. No database. |
+| `tests/Construction.IntegrationTests` | Real handlers over a throwaway PostgreSQL database: refresh-token rotation and reuse detection, soft delete with identifier reuse, atomic stock adjustment under concurrency, tool assignment. |
+| `src/construction_mobile/test` | Validators, error mapping, model parsing, and widget tests driving the real router. |
+| `src/construction_admin` | `tsc -b` type-checking, `oxlint`, and a Playwright script covering CRUD, assignment and role-gated navigation. |
+
+The integration tests need a reachable PostgreSQL server. They create and drop
+their own database, so point them at one with `ConstructionTests__Postgres`
+(default `Host=localhost;Port=5432;Username=postgres;Password=postgres`);
+`docker compose up postgres` provides one.
+
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs all of the
+above on every push, with PostgreSQL 16 as a service container.
+
 ## EF Core migrations
 
 ```bash

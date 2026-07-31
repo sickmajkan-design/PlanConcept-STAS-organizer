@@ -16,6 +16,19 @@ System. Talks to `Construction.API`.
 | Live map | `@vis.gl/react-google-maps` |
 | Lint | oxlint |
 
+## Dependency notes
+
+`npm audit` reports a high-severity React Router advisory
+([GHSA-qwww-vcr4-c8h2](https://github.com/advisories/GHSA-qwww-vcr4-c8h2))
+against the installed 7.18.2. It is a **CSRF bypass in RSC mode**, and this
+app is a plain client-rendered SPA that never enables RSC, so the vulnerable
+code path is not reachable here.
+
+The pin is deliberate rather than neglected: `npm audit fix --force`
+downgrades to 7.11.0, which carries its own separate advisories, so the
+downgrade trades a non-applicable finding for applicable ones. Revisit when
+an upstream 7.x release fixes it without going backwards.
+
 ## Running
 
 ```bash
