@@ -235,6 +235,42 @@ tokens are issued and how credentials are stored.
   every request is built, 17 tests now pin each repository's path, query map
   and body against a recording Dio adapter.
 
+### Shared building blocks in the clients
+
+A second pass removed the remaining copy-paste in both client apps. Each
+abstraction below exists because the same code appeared in four or five places,
+not because a layer seemed desirable:
+
+| Where | What it replaced |
+|---|---|
+| `core/widgets/info_tile.dart` | Five byte-identical private `_InfoTile` widgets, one per detail screen. |
+| `core/pagination/filtered_paged_list_notifier.dart` | The filter field, getter and reload logic repeated in all five list controllers. |
+| `api/resource.ts` | The `get`/`create`/`update`/`remove` calls and the hand-written query-parameter block in all five resource modules. |
+| `features/resourceQueries.ts` | The cache-key triple, the two query hooks, and the invalidate-on-success wiring repeated across twenty mutations. |
+
+Two of these are worth explaining, because they encode a decision rather than
+just saving lines.
+
+**`listParams` states one rule about empty filters.** Every list endpoint reads
+an absent parameter as "no filter" and applies its own default, so an empty
+value must be dropped rather than sent. The rule is: drop `undefined`, `null`,
+`''` and `false`; keep `0`. That last part matters — `maxQuantity: 0` means
+"out of stock", which is a real filter. The old code expressed this by using
+`||` on eight fields and `??` on one, which is the kind of distinction that
+survives exactly as long as nobody copies the wrong line.
+
+**`useResourceMutation` takes its invalidation keys explicitly.** It would have
+been shorter to always invalidate the resource's own collection, but that is
+wrong for assignment: adding an employee to a project also changes what the
+projects endpoint returns. Naming the affected caches at each call site is what
+keeps a screen from showing stale data after a successful write, so the
+parameter is required rather than defaulted.
+
+The resource modules also gained something the extraction did not aim for:
+because `createCrudApi` forwards the whole typed query object, adding a filter
+now means adding one field to an interface instead of editing an interface and
+a parallel parameter list that could silently disagree with it.
+
 ### Known limits, not fixed
 
 - **`location_records` grows without bound.** One ping per employee per minute
@@ -348,8 +384,12 @@ one earns its cost:
   database that actually serialises writers. An in-memory suite would report
   green while production broke.
 
-The clients keep their own suites (`flutter test`, plus `tsc -b`, `oxlint` and
-a Playwright script for the admin app). On the mobile side that includes
+The clients are not covered equally. The mobile app has a real suite
+(`flutter test`); the admin app has only `tsc -b` and `oxlint` — its behaviour
+has been verified end to end with a Playwright script run against a live API,
+but that script is not committed and does not run in CI, so the admin panel is
+currently unguarded against regressions. On the mobile side the suite
+includes
 repository tests that assert the exact path, query map and body each call puts
 on the wire, using a recording `HttpClientAdapter` instead of a server — the
 layer where a silently dropped filter would otherwise reach production

@@ -97,7 +97,14 @@ cd src/construction_admin && npm run build     # admin: type-check + bundle
 | `tests/Construction.UnitTests` | Password hashing, JWT claims and expiry, token hashing, every module's validation rules, pagination arithmetic, and which failures reach the error log. No database. |
 | `tests/Construction.IntegrationTests` | Real handlers over a throwaway PostgreSQL database: refresh-token rotation and reuse detection, soft delete with identifier reuse, atomic stock adjustment under concurrency, tool assignment. |
 | `src/construction_mobile/test` | Validators, error mapping, model parsing, the exact requests each repository puts on the wire, and widget tests driving the real router. |
-| `src/construction_admin` | `tsc -b` type-checking, `oxlint`, and a Playwright script covering CRUD, assignment and role-gated navigation. |
+| `src/construction_admin` | `tsc -b` type-checking and `oxlint`. **No automated tests yet** — see the gap noted below. |
+
+> **Known gap.** The admin panel has no test suite. Its CRUD, assignment and
+> role-gated navigation have been verified end to end with a Playwright script
+> run against a live API, but that script is not in the repository and does not
+> run in CI, so nothing here guards against a regression in the admin app.
+> Closing this is the first item in
+> [the readiness audit](docs/PRODUCTION_READINESS_AUDIT.md#high-priority--before-releasing-to-users).
 
 The integration tests need a reachable PostgreSQL server. They create and drop
 their own database, so point them at one with `ConstructionTests__Postgres`
