@@ -1,11 +1,11 @@
 import { request } from './client';
+import { createCrudApi } from './resource';
 import type {
   Employee,
   EmployeeDetail,
   EmployeeInput,
   EmployeeStatus,
   ListQuery,
-  PagedList,
 } from './types';
 
 export interface EmployeeListQuery extends ListQuery {
@@ -14,36 +14,9 @@ export interface EmployeeListQuery extends ListQuery {
 }
 
 export const employeesApi = {
-  list: (query: EmployeeListQuery) =>
-    request<PagedList<Employee>>({
-      method: 'GET',
-      url: '/api/employees',
-      params: {
-        pageNumber: query.pageNumber,
-        pageSize: query.pageSize,
-        search: query.search || undefined,
-        status: query.status || undefined,
-        projectId: query.projectId || undefined,
-        sortBy: query.sortBy || undefined,
-        sortDescending: query.sortDescending || undefined,
-      },
-    }),
-
-  get: (id: string) =>
-    request<EmployeeDetail>({ method: 'GET', url: `/api/employees/${id}` }),
-
-  create: (input: EmployeeInput) =>
-    request<Employee>({ method: 'POST', url: '/api/employees', data: input }),
-
-  update: (id: string, input: EmployeeInput) =>
-    request<Employee>({
-      method: 'PUT',
-      url: `/api/employees/${id}`,
-      data: input,
-    }),
-
-  remove: (id: string) =>
-    request<void>({ method: 'DELETE', url: `/api/employees/${id}` }),
+  ...createCrudApi<Employee, EmployeeDetail, EmployeeInput, EmployeeListQuery>(
+    '/api/employees',
+  ),
 
   assignToProject: (employeeId: string, projectId: string) =>
     request<void>({

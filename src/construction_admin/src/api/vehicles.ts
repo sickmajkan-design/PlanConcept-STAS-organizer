@@ -1,8 +1,8 @@
 import { request } from './client';
+import { createCrudApi } from './resource';
 import type {
   FuelType,
   ListQuery,
-  PagedList,
   Vehicle,
   VehicleInput,
   VehicleStatus,
@@ -15,37 +15,9 @@ export interface VehicleListQuery extends ListQuery {
 }
 
 export const vehiclesApi = {
-  list: (query: VehicleListQuery) =>
-    request<PagedList<Vehicle>>({
-      method: 'GET',
-      url: '/api/vehicles',
-      params: {
-        pageNumber: query.pageNumber,
-        pageSize: query.pageSize,
-        search: query.search || undefined,
-        status: query.status || undefined,
-        fuelType: query.fuelType || undefined,
-        unassigned: query.unassigned || undefined,
-        sortBy: query.sortBy || undefined,
-        sortDescending: query.sortDescending || undefined,
-      },
-    }),
-
-  get: (id: string) =>
-    request<Vehicle>({ method: 'GET', url: `/api/vehicles/${id}` }),
-
-  create: (input: VehicleInput) =>
-    request<Vehicle>({ method: 'POST', url: '/api/vehicles', data: input }),
-
-  update: (id: string, input: VehicleInput) =>
-    request<Vehicle>({
-      method: 'PUT',
-      url: `/api/vehicles/${id}`,
-      data: input,
-    }),
-
-  remove: (id: string) =>
-    request<void>({ method: 'DELETE', url: `/api/vehicles/${id}` }),
+  ...createCrudApi<Vehicle, Vehicle, VehicleInput, VehicleListQuery>(
+    '/api/vehicles',
+  ),
 
   assign: (id: string, employeeId: string) =>
     request<Vehicle>({

@@ -1,10 +1,12 @@
 import { request } from './client';
-import type { ListQuery, Material, MaterialInput, PagedList } from './types';
+import { createCrudApi } from './resource';
+import type { ListQuery, Material, MaterialInput } from './types';
 
 export interface MaterialListQuery extends ListQuery {
   projectId?: string;
   warehouse?: string;
   unassignedOnly?: boolean;
+  /** `0` is a meaningful filter here — "out of stock" — and is sent as such. */
   maxQuantity?: number;
 }
 
@@ -14,35 +16,9 @@ export interface AdjustMaterialInput {
 }
 
 export const materialsApi = {
-  list: (query: MaterialListQuery) =>
-    request<PagedList<Material>>({
-      method: 'GET',
-      url: '/api/materials',
-      params: {
-        pageNumber: query.pageNumber,
-        pageSize: query.pageSize,
-        search: query.search || undefined,
-        projectId: query.projectId || undefined,
-        warehouse: query.warehouse || undefined,
-        unassignedOnly: query.unassignedOnly || undefined,
-        maxQuantity: query.maxQuantity ?? undefined,
-        sortBy: query.sortBy || undefined,
-        sortDescending: query.sortDescending || undefined,
-      },
-    }),
-
-  get: (id: string) =>
-    request<Material>({ method: 'GET', url: `/api/materials/${id}` }),
-
-  create: (input: MaterialInput) =>
-    request<Material>({ method: 'POST', url: '/api/materials', data: input }),
-
-  update: (id: string, input: MaterialInput) =>
-    request<Material>({
-      method: 'PUT',
-      url: `/api/materials/${id}`,
-      data: input,
-    }),
+  ...createCrudApi<Material, Material, MaterialInput, MaterialListQuery>(
+    '/api/materials',
+  ),
 
   adjust: (id: string, input: AdjustMaterialInput) =>
     request<Material>({
@@ -50,7 +26,4 @@ export const materialsApi = {
       url: `/api/materials/${id}/adjust`,
       data: input,
     }),
-
-  remove: (id: string) =>
-    request<void>({ method: 'DELETE', url: `/api/materials/${id}` }),
 };
