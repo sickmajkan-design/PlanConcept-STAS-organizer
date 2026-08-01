@@ -1,103 +1,66 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-
 import { toolsApi, type ToolListQuery } from '../../api/tools';
-import type { ToolInput } from '../../api/types';
+import type { Tool, ToolInput } from '../../api/types';
+import {
+  createResourceKeys,
+  useResourceDetail,
+  useResourceList,
+  useResourceMutation,
+} from '../resourceQueries';
 
-export const toolKeys = {
-  all: ['tools'] as const,
-  list: (query: ToolListQuery) => [...toolKeys.all, 'list', query] as const,
-  detail: (id: string) => [...toolKeys.all, 'detail', id] as const,
-};
+export const toolKeys = createResourceKeys<ToolListQuery>('tools');
 
 export function useToolsQuery(query: ToolListQuery) {
-  return useQuery({
-    queryKey: toolKeys.list(query),
-    queryFn: () => toolsApi.list(query),
-    placeholderData: keepPreviousData,
-  });
+  return useResourceList(toolKeys, toolsApi.list, query);
 }
 
 export function useToolQuery(id: string | undefined) {
-  return useQuery({
-    queryKey: toolKeys.detail(id ?? ''),
-    queryFn: () => toolsApi.get(id!),
-    enabled: !!id,
-  });
+  return useResourceDetail(toolKeys, toolsApi.get, id);
 }
 
 export function useCreateTool() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (input: ToolInput) => toolsApi.create(input),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: toolKeys.all });
-    },
-  });
+  return useResourceMutation(
+    (input: ToolInput) => toolsApi.create(input),
+    [toolKeys.all],
+  );
 }
 
 export function useUpdateTool(id: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (input: ToolInput) => toolsApi.update(id, input),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: toolKeys.all });
-    },
-  });
+  return useResourceMutation(
+    (input: ToolInput) => toolsApi.update(id, input),
+    [toolKeys.all],
+  );
 }
 
 export function useDeleteTool() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) => toolsApi.remove(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: toolKeys.all });
-    },
-  });
+  return useResourceMutation((id: string) => toolsApi.remove(id), [
+    toolKeys.all,
+  ]);
 }
 
 export function useAssignToolEmployee(id: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (employeeId: string) => toolsApi.assignEmployee(id, employeeId),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: toolKeys.all });
-    },
-  });
+  return useResourceMutation(
+    (employeeId: string) => toolsApi.assignEmployee(id, employeeId),
+    [toolKeys.all],
+  );
 }
 
+// `void` is explicit: the callback takes no argument, so there is nothing for
+// the variables type to be inferred from, and the call site invokes `mutate()`.
 export function useUnassignToolEmployee(id: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: () => toolsApi.unassignEmployee(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: toolKeys.all });
-    },
-  });
+  return useResourceMutation<void, Tool>(() => toolsApi.unassignEmployee(id), [
+    toolKeys.all,
+  ]);
 }
 
 export function useAssignToolProject(id: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (projectId: string) => toolsApi.assignProject(id, projectId),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: toolKeys.all });
-    },
-  });
+  return useResourceMutation(
+    (projectId: string) => toolsApi.assignProject(id, projectId),
+    [toolKeys.all],
+  );
 }
 
 export function useUnassignToolProject(id: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: () => toolsApi.unassignProject(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: toolKeys.all });
-    },
-  });
+  return useResourceMutation<void, Tool>(() => toolsApi.unassignProject(id), [
+    toolKeys.all,
+  ]);
 }

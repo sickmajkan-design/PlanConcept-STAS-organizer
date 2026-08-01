@@ -1,81 +1,54 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-
 import { vehiclesApi, type VehicleListQuery } from '../../api/vehicles';
-import type { VehicleInput } from '../../api/types';
+import type { Vehicle, VehicleInput } from '../../api/types';
+import {
+  createResourceKeys,
+  useResourceDetail,
+  useResourceList,
+  useResourceMutation,
+} from '../resourceQueries';
 
-export const vehicleKeys = {
-  all: ['vehicles'] as const,
-  list: (query: VehicleListQuery) => [...vehicleKeys.all, 'list', query] as const,
-  detail: (id: string) => [...vehicleKeys.all, 'detail', id] as const,
-};
+export const vehicleKeys = createResourceKeys<VehicleListQuery>('vehicles');
 
 export function useVehiclesQuery(query: VehicleListQuery) {
-  return useQuery({
-    queryKey: vehicleKeys.list(query),
-    queryFn: () => vehiclesApi.list(query),
-    placeholderData: keepPreviousData,
-  });
+  return useResourceList(vehicleKeys, vehiclesApi.list, query);
 }
 
 export function useVehicleQuery(id: string | undefined) {
-  return useQuery({
-    queryKey: vehicleKeys.detail(id ?? ''),
-    queryFn: () => vehiclesApi.get(id!),
-    enabled: !!id,
-  });
+  return useResourceDetail(vehicleKeys, vehiclesApi.get, id);
 }
 
 export function useCreateVehicle() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (input: VehicleInput) => vehiclesApi.create(input),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: vehicleKeys.all });
-    },
-  });
+  return useResourceMutation(
+    (input: VehicleInput) => vehiclesApi.create(input),
+    [vehicleKeys.all],
+  );
 }
 
 export function useUpdateVehicle(id: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (input: VehicleInput) => vehiclesApi.update(id, input),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: vehicleKeys.all });
-    },
-  });
+  return useResourceMutation(
+    (input: VehicleInput) => vehiclesApi.update(id, input),
+    [vehicleKeys.all],
+  );
 }
 
 export function useDeleteVehicle() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) => vehiclesApi.remove(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: vehicleKeys.all });
-    },
-  });
+  return useResourceMutation(
+    (id: string) => vehiclesApi.remove(id),
+    [vehicleKeys.all],
+  );
 }
 
 export function useAssignVehicle(id: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (employeeId: string) => vehiclesApi.assign(id, employeeId),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: vehicleKeys.all });
-    },
-  });
+  return useResourceMutation(
+    (employeeId: string) => vehiclesApi.assign(id, employeeId),
+    [vehicleKeys.all],
+  );
 }
 
+// `void` is explicit: the callback takes no argument, so there is nothing for
+// the variables type to be inferred from, and the call site invokes `mutate()`.
 export function useUnassignVehicle(id: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: () => vehiclesApi.unassign(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: vehicleKeys.all });
-    },
-  });
+  return useResourceMutation<void, Vehicle>(() => vehiclesApi.unassign(id), [
+    vehicleKeys.all,
+  ]);
 }

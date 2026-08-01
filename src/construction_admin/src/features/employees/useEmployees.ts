@@ -1,94 +1,80 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 
 import { employeesApi, type EmployeeListQuery } from '../../api/employees';
 import type { EmployeeInput } from '../../api/types';
+import { projectKeys } from '../projects/useProjects';
+import {
+  createResourceKeys,
+  useResourceDetail,
+  useResourceList,
+  useResourceMutation,
+} from '../resourceQueries';
 
-export const employeeKeys = {
-  all: ['employees'] as const,
-  list: (query: EmployeeListQuery) => [...employeeKeys.all, 'list', query] as const,
-  detail: (id: string) => [...employeeKeys.all, 'detail', id] as const,
+export const employeeKeys = createResourceKeys<EmployeeListQuery>('employees');
+
+/** The largest page the API will serve, used by the picker query below. */
+const PICKER_QUERY: EmployeeListQuery = {
+  pageNumber: 1,
+  pageSize: 100,
+  sortBy: 'lastName',
 };
 
 export function useEmployeesQuery(query: EmployeeListQuery) {
-  return useQuery({
-    queryKey: employeeKeys.list(query),
-    queryFn: () => employeesApi.list(query),
-    placeholderData: keepPreviousData,
-  });
+  return useResourceList(employeeKeys, employeesApi.list, query);
 }
 
 export function useEmployeeQuery(id: string | undefined) {
-  return useQuery({
-    queryKey: employeeKeys.detail(id ?? ''),
-    queryFn: () => employeesApi.get(id!),
-    enabled: !!id,
-  });
+  return useResourceDetail(employeeKeys, employeesApi.get, id);
 }
 
-/** All employees for pickers (assign vehicle/tool to an employee). */
+/**
+ * All employees for the pickers that assign a vehicle or tool to someone.
+ * Kept separate from `useEmployeesQuery` because it is cached for a minute
+ * rather than paged: a picker is opened repeatedly and its contents rarely
+ * change mid-session.
+ */
 export function useAllEmployeesQuery() {
   return useQuery({
-    queryKey: employeeKeys.list({ pageNumber: 1, pageSize: 100, sortBy: 'lastName' }),
-    queryFn: () => employeesApi.list({ pageNumber: 1, pageSize: 100, sortBy: 'lastName' }),
+    queryKey: employeeKeys.list(PICKER_QUERY),
+    queryFn: () => employeesApi.list(PICKER_QUERY),
     staleTime: 60_000,
   });
 }
 
 export function useCreateEmployee() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (input: EmployeeInput) => employeesApi.create(input),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: employeeKeys.all });
-    },
-  });
+  return useResourceMutation(
+    (input: EmployeeInput) => employeesApi.create(input),
+    [employeeKeys.all],
+  );
 }
 
 export function useUpdateEmployee(id: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (input: EmployeeInput) => employeesApi.update(id, input),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: employeeKeys.all });
-    },
-  });
+  return useResourceMutation(
+    (input: EmployeeInput) => employeesApi.update(id, input),
+    [employeeKeys.all],
+  );
 }
 
 export function useDeleteEmployee() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) => employeesApi.remove(id),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: employeeKeys.all });
-    },
-  });
+  return useResourceMutation((id: string) => employeesApi.remove(id), [
+    employeeKeys.all,
+  ]);
 }
 
+// Assignment changes the crew shown on the project side too, so both caches
+// are refreshed. Only this employee's detail is invalidated, not the whole
+// employee collection — the list columns do not show project membership.
 export function useAssignEmployeeToProject(employeeId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (projectId: string) =>
-      employeesApi.assignToProject(employeeId, projectId),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: employeeKeys.detail(employeeId) });
-      void queryClient.invalidateQueries({ queryKey: ['projects'] });
-    },
-  });
+  return useResourceMutation(
+    (projectId: string) => employeesApi.assignToProject(employeeId, projectId),
+    [employeeKeys.detail(employeeId), projectKeys.all],
+  );
 }
 
 export function useRemoveEmployeeFromProject(employeeId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (projectId: string) =>
+  return useResourceMutation(
+    (projectId: string) =>
       employeesApi.removeFromProject(employeeId, projectId),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: employeeKeys.detail(employeeId) });
-      void queryClient.invalidateQueries({ queryKey: ['projects'] });
-    },
-  });
+    [employeeKeys.detail(employeeId), projectKeys.all],
+  );
 }
