@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Construction.Application.Features.Employees.Queries.GetEmployees;
 
-public record GetEmployeesQuery : IRequest<PagedList<EmployeeDto>>
+public record GetEmployeesQuery : ISortablePagedQuery, IRequest<PagedList<EmployeeDto>>
 {
     public static readonly string[] AllowedSortFields =
     [
@@ -37,22 +37,11 @@ public record GetEmployeesQuery : IRequest<PagedList<EmployeeDto>>
     public bool SortDescending { get; init; }
 }
 
-public class GetEmployeesQueryValidator : AbstractValidator<GetEmployeesQuery>
+public class GetEmployeesQueryValidator : SortablePagedQueryValidator<GetEmployeesQuery>
 {
     public GetEmployeesQueryValidator()
+        : base(GetEmployeesQuery.AllowedSortFields)
     {
-        RuleFor(x => x.PageNumber)
-            .GreaterThanOrEqualTo(1).WithMessage("Page number must be at least 1.");
-
-        RuleFor(x => x.PageSize)
-            .InclusiveBetween(1, 100).WithMessage("Page size must be between 1 and 100.");
-
-        RuleFor(x => x.SortBy)
-            .Must(sortBy => string.IsNullOrWhiteSpace(sortBy) ||
-                            GetEmployeesQuery.AllowedSortFields.Contains(
-                                sortBy, StringComparer.OrdinalIgnoreCase))
-            .WithMessage(
-                $"SortBy must be one of: {string.Join(", ", GetEmployeesQuery.AllowedSortFields)}.");
     }
 }
 

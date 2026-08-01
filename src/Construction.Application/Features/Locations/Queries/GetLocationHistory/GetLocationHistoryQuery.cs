@@ -15,7 +15,7 @@ namespace Construction.Application.Features.Locations.Queries.GetLocationHistory
 /// Paged movement history for one employee, newest first, optionally limited
 /// to a time window (used for route playback in the admin).
 /// </summary>
-public record GetLocationHistoryQuery : IRequest<PagedList<LocationRecordDto>>
+public record GetLocationHistoryQuery : IPagedQuery, IRequest<PagedList<LocationRecordDto>>
 {
     /// <summary>Set by the API layer from the route.</summary>
     public Guid EmployeeId { get; init; }
@@ -29,16 +29,11 @@ public record GetLocationHistoryQuery : IRequest<PagedList<LocationRecordDto>>
     public int PageSize { get; init; } = 100;
 }
 
-public class GetLocationHistoryQueryValidator : AbstractValidator<GetLocationHistoryQuery>
+public class GetLocationHistoryQueryValidator : PagedQueryValidator<GetLocationHistoryQuery>
 {
     public GetLocationHistoryQueryValidator()
+        : base(maxPageSize: 1000)
     {
-        RuleFor(x => x.PageNumber)
-            .GreaterThanOrEqualTo(1).WithMessage("Page number must be at least 1.");
-
-        RuleFor(x => x.PageSize)
-            .InclusiveBetween(1, 1000).WithMessage("Page size must be between 1 and 1000.");
-
         RuleFor(x => x)
             .Must(x => x.From is null || x.To is null || x.From <= x.To)
             .WithMessage("'From' must not be after 'To'.")

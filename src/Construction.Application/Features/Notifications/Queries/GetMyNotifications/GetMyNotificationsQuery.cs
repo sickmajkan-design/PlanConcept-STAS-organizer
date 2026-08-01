@@ -10,7 +10,7 @@ using MediatR;
 namespace Construction.Application.Features.Notifications.Queries.GetMyNotifications;
 
 /// <summary>The current user's notification inbox, newest first.</summary>
-public record GetMyNotificationsQuery : IRequest<PagedList<NotificationDto>>
+public record GetMyNotificationsQuery : IPagedQuery, IRequest<PagedList<NotificationDto>>
 {
     public int PageNumber { get; init; } = 1;
 
@@ -19,15 +19,11 @@ public record GetMyNotificationsQuery : IRequest<PagedList<NotificationDto>>
     public bool UnreadOnly { get; init; }
 }
 
-public class GetMyNotificationsQueryValidator : AbstractValidator<GetMyNotificationsQuery>
+public class GetMyNotificationsQueryValidator : PagedQueryValidator<GetMyNotificationsQuery>
 {
     public GetMyNotificationsQueryValidator()
+        : base()
     {
-        RuleFor(x => x.PageNumber)
-            .GreaterThanOrEqualTo(1).WithMessage("Page number must be at least 1.");
-
-        RuleFor(x => x.PageSize)
-            .InclusiveBetween(1, 100).WithMessage("Page size must be between 1 and 100.");
     }
 }
 

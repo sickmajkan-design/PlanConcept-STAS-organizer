@@ -5,63 +5,43 @@ import {
   IconButton,
   InputLabel,
   MenuItem,
-  Paper,
   Select,
   Stack,
   Tooltip,
   Typography,
 } from '@mui/material';
-import { DataGrid, type GridColDef, type GridPaginationModel, type GridSortModel } from '@mui/x-data-grid';
-import { useMemo, useState } from 'react';
+import type { GridColDef } from '@mui/x-data-grid';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { ApiError } from '../../api/apiError';
 import type { EmployeeListQuery } from '../../api/employees';
 import type { Employee, EmployeeStatus } from '../../api/types';
 import { employeeStatuses } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
-import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
+import { ResourceDataGrid } from '../../components/ResourceDataGrid';
+import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
-import { useDebouncedValue } from '../../hooks/useDebouncedValue';
+import { useDeleteEmployee, useEmployeesQuery } from '../../features/employees/useEmployees';
+import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
+import { useListQueryState } from '../../hooks/useListQueryState';
 import { paths } from '../../routes/paths';
 import { formatDate, humanizeEnum } from '../../utils/formatting';
-import { useDeleteEmployee, useEmployeesQuery } from '../../features/employees/useEmployees';
-import { SearchField } from '../../components/SearchField';
-
-const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
 export function EmployeesListPage() {
   const navigate = useNavigate();
-
-  const [search, setSearch] = useState('');
-  const debouncedSearch = useDebouncedValue(search, 350);
-  const [status, setStatus] = useState<EmployeeStatus | ''>('');
-  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
-    page: 0,
-    pageSize: 20,
-  });
-  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'lastName', sort: 'asc' }]);
-  const [pendingDelete, setPendingDelete] = useState<Employee | null>(null);
+  const list = useListQueryState<EmployeeStatus>('lastName');
 
   const query: EmployeeListQuery = useMemo(
-    () => ({
-      pageNumber: paginationModel.page + 1,
-      pageSize: paginationModel.pageSize,
-      search: debouncedSearch,
-      status: status || undefined,
-      sortBy: sortModel[0]?.field,
-      sortDescending: sortModel[0]?.sort === 'desc',
-    }),
-    [paginationModel, debouncedSearch, status, sortModel],
+    () => ({ ...list.query, status: list.filter || undefined }),
+    [list.query, list.filter],
   );
 
   const { data, isLoading, isError, error, refetch } = useEmployeesQuery(query);
-  const deleteEmployee = useDeleteEmployee();
+  const remove = useDeleteWithConfirm<Employee>(useDeleteEmployee());
 
   // Memoized: DataGrid treats a new columns array as a structural change on
-  // every render, which is wasted work (and, combined with Suspense-loaded
-  // routes, can trigger a spurious "setState during render" warning).
+  // every render, which is wasted work.
   const columns: GridColDef<Employee>[] = useMemo(
     () => [
       { field: 'employeeNumber', headerName: 'Number', width: 110 },
@@ -91,23 +71,17 @@ export function EmployeesListPage() {
         renderCell: (params) => (
           <Stack direction="row" spacing={0.5}>
             <Tooltip title="View">
-              <IconButton
-                size="small"
-                onClick={() => navigate(paths.employeeDetail(params.row.id))}
-              >
+              <IconButton size="small" onClick={() => navigate(paths.employeeDetail(params.row.id))}>
                 <VisibilityOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
             <Tooltip title="Edit">
-              <IconButton
-                size="small"
-                onClick={() => navigate(paths.employeeEdit(params.row.id))}
-              >
+              <IconButton size="small" onClick={() => navigate(paths.employeeEdit(params.row.id))}>
                 <EditOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
             <Tooltip title="Delete">
-              <IconButton size="small" onClick={() => setPendingDelete(params.row)}>
+              <IconButton size="small" onClick={() => remove.request(params.row)}>
                 <DeleteOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
@@ -115,19 +89,8 @@ export function EmployeesListPage() {
         ),
       },
     ],
-    [navigate],
+    [navigate, remove],
   );
-
-  const confirmDelete = async () => {
-    if (!pendingDelete) return;
-
-    try {
-      await deleteEmployee.mutateAsync(pendingDelete.id);
-      setPendingDelete(null);
-    } catch {
-      // The dialog stays open with the mutation's error surfaced via its own state.
-    }
-  };
 
   return (
     <Box>
@@ -143,8 +106,8 @@ export function EmployeesListPage() {
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }}>
         <SearchField
-          value={search}
-          onChange={setSearch}
+          value={list.search}
+          onChange={list.setSearch}
           placeholder="Name, number, position…"
         />
         <FormControl size="small" sx={{ minWidth: 180 }}>
@@ -152,11 +115,8 @@ export function EmployeesListPage() {
           <Select
             labelId="status-filter-label"
             label="Status"
-            value={status}
-            onChange={(event) => {
-              setStatus(event.target.value as EmployeeStatus | '');
-              setPaginationModel((prev) => ({ ...prev, page: 0 }));
-            }}
+            value={list.filter}
+            onChange={(event) => list.setFilter(event.target.value as EmployeeStatus | '')}
           >
             <MenuItem value="">
               <em>All</em>
@@ -170,49 +130,39 @@ export function EmployeesListPage() {
         </FormControl>
       </Stack>
 
-      <Paper sx={{ height: 600 }}>
-        {isError ? (
-          <ErrorState error={error} onRetry={() => void refetch()} />
-        ) : (
-          <DataGrid
-            rows={data?.items ?? []}
-            columns={columns}
-            loading={isLoading}
-            rowCount={data?.totalCount ?? 0}
-            paginationMode="server"
-            paginationModel={paginationModel}
-            onPaginationModelChange={setPaginationModel}
-            pageSizeOptions={PAGE_SIZE_OPTIONS}
-            sortingMode="server"
-            sortModel={sortModel}
-            onSortModelChange={setSortModel}
-            disableColumnMenu
-            disableRowSelectionOnClick
-            onRowClick={(params) => navigate(paths.employeeDetail(params.row.id))}
-            sx={{ border: 'none', cursor: 'pointer' }}
-          />
-        )}
-      </Paper>
+      <ResourceDataGrid
+        data={data}
+        columns={columns}
+        isLoading={isLoading}
+        isError={isError}
+        error={error}
+        onRetry={() => void refetch()}
+        paginationModel={list.paginationModel}
+        onPaginationModelChange={list.setPaginationModel}
+        sortModel={list.sortModel}
+        onSortModelChange={list.setSortModel}
+        onRowClick={(row) => navigate(paths.employeeDetail(row.id))}
+      />
 
       <ConfirmDialog
-        open={!!pendingDelete}
+        open={!!remove.pending}
         title="Delete employee?"
         description={
-          pendingDelete
-            ? `${pendingDelete.fullName} (${pendingDelete.employeeNumber}) will be removed from active records. This can be reversed by support if needed.`
+          remove.pending
+            ? `${remove.pending.fullName} (${remove.pending.employeeNumber}) will be removed from active records. This can be reversed by support if needed.`
             : ''
         }
         confirmLabel="Delete"
         destructive
-        loading={deleteEmployee.isPending}
-        onConfirm={confirmDelete}
-        onCancel={() => setPendingDelete(null)}
+        loading={remove.isDeleting}
+        onConfirm={remove.confirm}
+        onCancel={remove.cancel}
       />
 
-      {deleteEmployee.isError && (
+      {remove.error && (
         <Box sx={{ mt: 1 }}>
           <Typography variant="body2" color="error">
-            {(deleteEmployee.error as ApiError).message}
+            {remove.error.message}
           </Typography>
         </Box>
       )}

@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Construction.Application.Features.Tools.Queries.GetTools;
 
-public record GetToolsQuery : IRequest<PagedList<ToolDto>>
+public record GetToolsQuery : ISortablePagedQuery, IRequest<PagedList<ToolDto>>
 {
     public static readonly string[] AllowedSortFields =
     [
@@ -41,22 +41,11 @@ public record GetToolsQuery : IRequest<PagedList<ToolDto>>
     public bool SortDescending { get; init; }
 }
 
-public class GetToolsQueryValidator : AbstractValidator<GetToolsQuery>
+public class GetToolsQueryValidator : SortablePagedQueryValidator<GetToolsQuery>
 {
     public GetToolsQueryValidator()
+        : base(GetToolsQuery.AllowedSortFields)
     {
-        RuleFor(x => x.PageNumber)
-            .GreaterThanOrEqualTo(1).WithMessage("Page number must be at least 1.");
-
-        RuleFor(x => x.PageSize)
-            .InclusiveBetween(1, 100).WithMessage("Page size must be between 1 and 100.");
-
-        RuleFor(x => x.SortBy)
-            .Must(sortBy => string.IsNullOrWhiteSpace(sortBy) ||
-                            GetToolsQuery.AllowedSortFields.Contains(
-                                sortBy, StringComparer.OrdinalIgnoreCase))
-            .WithMessage(
-                $"SortBy must be one of: {string.Join(", ", GetToolsQuery.AllowedSortFields)}.");
     }
 }
 

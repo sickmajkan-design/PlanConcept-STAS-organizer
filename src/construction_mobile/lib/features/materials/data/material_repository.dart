@@ -1,15 +1,12 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/models/paged_list.dart';
-import '../../../core/network/api_exception.dart';
+import '../../../core/network/api_repository.dart';
 import '../../../core/network/network_providers.dart';
 import 'models/material.dart';
 
-class MaterialRepository {
-  MaterialRepository(this._dio);
-
-  final Dio _dio;
+class MaterialRepository extends ApiRepository {
+  const MaterialRepository(super.dio);
 
   Future<PagedList<MaterialItem>> fetchMaterials({
     int pageNumber = 1,
@@ -18,40 +15,25 @@ class MaterialRepository {
     bool? unassignedOnly,
     String? sortBy,
     bool sortDescending = false,
-  }) async {
-    return _guard(() async {
-      final response = await _dio.get<Map<String, dynamic>>(
-        '/api/materials',
-        queryParameters: <String, dynamic>{
-          'pageNumber': pageNumber,
-          'pageSize': pageSize,
-          if (search != null && search.isNotEmpty) 'search': search,
-          if (unassignedOnly == true) 'unassignedOnly': true,
-          'sortBy': ?sortBy,
-          if (sortDescending) 'sortDescending': true,
-        },
-      );
-
-      return PagedList<MaterialItem>.fromJson(
-          response.data!, MaterialItem.fromJson);
-    });
+  }) {
+    return getPaged(
+      '/api/materials',
+      MaterialItem.fromJson,
+      query: pagedQuery(
+        pageNumber: pageNumber,
+        pageSize: pageSize,
+        search: search,
+        sortBy: sortBy,
+        sortDescending: sortDescending,
+        // Only ever sent to turn the filter on: false and null both mean
+        // "no filter", which is the API's default.
+        filters: {'unassignedOnly': unassignedOnly == true ? true : null},
+      ),
+    );
   }
 
-  Future<MaterialItem> fetchMaterial(String id) async {
-    return _guard(() async {
-      final response =
-          await _dio.get<Map<String, dynamic>>('/api/materials/$id');
-
-      return MaterialItem.fromJson(response.data!);
-    });
-  }
-
-  Future<T> _guard<T>(Future<T> Function() request) async {
-    try {
-      return await request();
-    } on DioException catch (exception) {
-      throw ApiException.fromDioException(exception);
-    }
+  Future<MaterialItem> fetchMaterial(String id) {
+    return getJson('/api/materials/$id', MaterialItem.fromJson);
   }
 }
 

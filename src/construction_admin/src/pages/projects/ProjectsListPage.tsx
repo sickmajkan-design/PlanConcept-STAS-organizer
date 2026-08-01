@@ -5,67 +5,53 @@ import {
   IconButton,
   InputLabel,
   MenuItem,
-  Paper,
   Select,
   Stack,
   Tooltip,
   Typography,
 } from '@mui/material';
-import { DataGrid, type GridColDef, type GridPaginationModel, type GridSortModel } from '@mui/x-data-grid';
-import { useMemo, useState } from 'react';
+import type { GridColDef } from '@mui/x-data-grid';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { ApiError } from '../../api/apiError';
 import type { ProjectListQuery } from '../../api/projects';
 import type { Project, ProjectStatus } from '../../api/types';
 import { projectStatuses } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
-import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
+import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
 import { useDeleteProject, useProjectsQuery } from '../../features/projects/useProjects';
-import { useDebouncedValue } from '../../hooks/useDebouncedValue';
+import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
+import { useListQueryState } from '../../hooks/useListQueryState';
 import { paths } from '../../routes/paths';
 import { formatDate, humanizeEnum } from '../../utils/formatting';
 
-const PAGE_SIZE_OPTIONS = [10, 20, 50];
-
 export function ProjectsListPage() {
   const navigate = useNavigate();
-
-  const [search, setSearch] = useState('');
-  const debouncedSearch = useDebouncedValue(search, 350);
-  const [status, setStatus] = useState<ProjectStatus | ''>('');
-  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
-    page: 0,
-    pageSize: 20,
-  });
-  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'name', sort: 'asc' }]);
-  const [pendingDelete, setPendingDelete] = useState<Project | null>(null);
+  const list = useListQueryState<ProjectStatus>('name');
 
   const query: ProjectListQuery = useMemo(
-    () => ({
-      pageNumber: paginationModel.page + 1,
-      pageSize: paginationModel.pageSize,
-      search: debouncedSearch,
-      status: status || undefined,
-      sortBy: sortModel[0]?.field,
-      sortDescending: sortModel[0]?.sort === 'desc',
-    }),
-    [paginationModel, debouncedSearch, status, sortModel],
+    () => ({ ...list.query, status: list.filter || undefined }),
+    [list.query, list.filter],
   );
 
   const { data, isLoading, isError, error, refetch } = useProjectsQuery(query);
-  const deleteProject = useDeleteProject();
+  const remove = useDeleteWithConfirm<Project>(useDeleteProject());
 
   // Memoized: DataGrid treats a new columns array as a structural change on
-  // every render, which is wasted work (and, combined with Suspense-loaded
-  // routes, can trigger a spurious "setState during render" warning).
+  // every render, which is wasted work.
   const columns: GridColDef<Project>[] = useMemo(
     () => [
       { field: 'name', headerName: 'Name', flex: 1, minWidth: 200 },
-      { field: 'client', headerName: 'Client', flex: 1, minWidth: 160, valueGetter: (v) => v || '—' },
+      {
+        field: 'client',
+        headerName: 'Client',
+        flex: 1,
+        minWidth: 160,
+        valueGetter: (v) => v || '—',
+      },
       {
         field: 'status',
         headerName: 'Status',
@@ -100,7 +86,7 @@ export function ProjectsListPage() {
               </IconButton>
             </Tooltip>
             <Tooltip title="Delete">
-              <IconButton size="small" onClick={() => setPendingDelete(params.row)}>
+              <IconButton size="small" onClick={() => remove.request(params.row)}>
                 <DeleteOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
@@ -108,19 +94,8 @@ export function ProjectsListPage() {
         ),
       },
     ],
-    [navigate],
+    [navigate, remove],
   );
-
-  const confirmDelete = async () => {
-    if (!pendingDelete) return;
-
-    try {
-      await deleteProject.mutateAsync(pendingDelete.id);
-      setPendingDelete(null);
-    } catch {
-      // Error surfaced below via the mutation's own state.
-    }
-  };
 
   return (
     <Box>
@@ -135,17 +110,18 @@ export function ProjectsListPage() {
       />
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }}>
-        <SearchField value={search} onChange={setSearch} placeholder="Name, client, address…" />
+        <SearchField
+          value={list.search}
+          onChange={list.setSearch}
+          placeholder="Name, client, address…"
+        />
         <FormControl size="small" sx={{ minWidth: 180 }}>
           <InputLabel id="project-status-filter-label">Status</InputLabel>
           <Select
             labelId="project-status-filter-label"
             label="Status"
-            value={status}
-            onChange={(event) => {
-              setStatus(event.target.value as ProjectStatus | '');
-              setPaginationModel((prev) => ({ ...prev, page: 0 }));
-            }}
+            value={list.filter}
+            onChange={(event) => list.setFilter(event.target.value as ProjectStatus | '')}
           >
             <MenuItem value="">
               <em>All</em>
@@ -159,49 +135,39 @@ export function ProjectsListPage() {
         </FormControl>
       </Stack>
 
-      <Paper sx={{ height: 600 }}>
-        {isError ? (
-          <ErrorState error={error} onRetry={() => void refetch()} />
-        ) : (
-          <DataGrid
-            rows={data?.items ?? []}
-            columns={columns}
-            loading={isLoading}
-            rowCount={data?.totalCount ?? 0}
-            paginationMode="server"
-            paginationModel={paginationModel}
-            onPaginationModelChange={setPaginationModel}
-            pageSizeOptions={PAGE_SIZE_OPTIONS}
-            sortingMode="server"
-            sortModel={sortModel}
-            onSortModelChange={setSortModel}
-            disableColumnMenu
-            disableRowSelectionOnClick
-            onRowClick={(params) => navigate(paths.projectDetail(params.row.id))}
-            sx={{ border: 'none', cursor: 'pointer' }}
-          />
-        )}
-      </Paper>
+      <ResourceDataGrid
+        data={data}
+        columns={columns}
+        isLoading={isLoading}
+        isError={isError}
+        error={error}
+        onRetry={() => void refetch()}
+        paginationModel={list.paginationModel}
+        onPaginationModelChange={list.setPaginationModel}
+        sortModel={list.sortModel}
+        onSortModelChange={list.setSortModel}
+        onRowClick={(row) => navigate(paths.projectDetail(row.id))}
+      />
 
       <ConfirmDialog
-        open={!!pendingDelete}
+        open={!!remove.pending}
         title="Delete project?"
         description={
-          pendingDelete
-            ? `${pendingDelete.name} will be removed from active records. Any tools assigned only to this project will be released.`
+          remove.pending
+            ? `${remove.pending.name} will be removed from active records. Any tools assigned only to this project will be released.`
             : ''
         }
         confirmLabel="Delete"
         destructive
-        loading={deleteProject.isPending}
-        onConfirm={confirmDelete}
-        onCancel={() => setPendingDelete(null)}
+        loading={remove.isDeleting}
+        onConfirm={remove.confirm}
+        onCancel={remove.cancel}
       />
 
-      {deleteProject.isError && (
+      {remove.error && (
         <Box sx={{ mt: 1 }}>
           <Typography variant="body2" color="error">
-            {(deleteProject.error as ApiError).message}
+            {remove.error.message}
           </Typography>
         </Box>
       )}

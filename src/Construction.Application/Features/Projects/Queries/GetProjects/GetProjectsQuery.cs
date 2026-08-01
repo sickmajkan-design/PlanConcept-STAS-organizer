@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Construction.Application.Features.Projects.Queries.GetProjects;
 
-public record GetProjectsQuery : IRequest<PagedList<ProjectDto>>
+public record GetProjectsQuery : ISortablePagedQuery, IRequest<PagedList<ProjectDto>>
 {
     public static readonly string[] AllowedSortFields =
     [
@@ -37,22 +37,11 @@ public record GetProjectsQuery : IRequest<PagedList<ProjectDto>>
     public bool SortDescending { get; init; }
 }
 
-public class GetProjectsQueryValidator : AbstractValidator<GetProjectsQuery>
+public class GetProjectsQueryValidator : SortablePagedQueryValidator<GetProjectsQuery>
 {
     public GetProjectsQueryValidator()
+        : base(GetProjectsQuery.AllowedSortFields)
     {
-        RuleFor(x => x.PageNumber)
-            .GreaterThanOrEqualTo(1).WithMessage("Page number must be at least 1.");
-
-        RuleFor(x => x.PageSize)
-            .InclusiveBetween(1, 100).WithMessage("Page size must be between 1 and 100.");
-
-        RuleFor(x => x.SortBy)
-            .Must(sortBy => string.IsNullOrWhiteSpace(sortBy) ||
-                            GetProjectsQuery.AllowedSortFields.Contains(
-                                sortBy, StringComparer.OrdinalIgnoreCase))
-            .WithMessage(
-                $"SortBy must be one of: {string.Join(", ", GetProjectsQuery.AllowedSortFields)}.");
     }
 }
 

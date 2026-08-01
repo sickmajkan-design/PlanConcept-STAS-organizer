@@ -5,64 +5,51 @@ import {
   IconButton,
   InputLabel,
   MenuItem,
-  Paper,
   Select,
   Stack,
   Tooltip,
   Typography,
 } from '@mui/material';
-import { DataGrid, type GridColDef, type GridPaginationModel, type GridSortModel } from '@mui/x-data-grid';
-import { useMemo, useState } from 'react';
+import type { GridColDef } from '@mui/x-data-grid';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { ApiError } from '../../api/apiError';
 import type { ToolListQuery } from '../../api/tools';
 import type { Tool, ToolStatus } from '../../api/types';
 import { toolStatuses } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
-import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
+import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
 import { useDeleteTool, useToolsQuery } from '../../features/tools/useTools';
-import { useDebouncedValue } from '../../hooks/useDebouncedValue';
+import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
+import { useListQueryState } from '../../hooks/useListQueryState';
 import { paths } from '../../routes/paths';
 import { humanizeEnum } from '../../utils/formatting';
 
-const PAGE_SIZE_OPTIONS = [10, 20, 50];
-
 export function ToolsListPage() {
   const navigate = useNavigate();
-
-  const [search, setSearch] = useState('');
-  const debouncedSearch = useDebouncedValue(search, 350);
-  const [status, setStatus] = useState<ToolStatus | ''>('');
-  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
-    page: 0,
-    pageSize: 20,
-  });
-  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'name', sort: 'asc' }]);
-  const [pendingDelete, setPendingDelete] = useState<Tool | null>(null);
+  const list = useListQueryState<ToolStatus>('name');
 
   const query: ToolListQuery = useMemo(
-    () => ({
-      pageNumber: paginationModel.page + 1,
-      pageSize: paginationModel.pageSize,
-      search: debouncedSearch,
-      status: status || undefined,
-      sortBy: sortModel[0]?.field,
-      sortDescending: sortModel[0]?.sort === 'desc',
-    }),
-    [paginationModel, debouncedSearch, status, sortModel],
+    () => ({ ...list.query, status: list.filter || undefined }),
+    [list.query, list.filter],
   );
 
   const { data, isLoading, isError, error, refetch } = useToolsQuery(query);
-  const deleteTool = useDeleteTool();
+  const remove = useDeleteWithConfirm<Tool>(useDeleteTool());
 
   const columns: GridColDef<Tool>[] = useMemo(
     () => [
       { field: 'name', headerName: 'Tool', flex: 1, minWidth: 180 },
-      { field: 'category', headerName: 'Category', flex: 1, minWidth: 140, valueGetter: (v) => v || '—' },
+      {
+        field: 'category',
+        headerName: 'Category',
+        flex: 1,
+        minWidth: 140,
+        valueGetter: (v) => v || '—',
+      },
       {
         field: 'status',
         headerName: 'Status',
@@ -74,7 +61,8 @@ export function ToolsListPage() {
         headerName: 'Held by',
         flex: 1,
         minWidth: 150,
-        valueGetter: (_value, row) => row.assignedEmployeeName || row.assignedProjectName || '—',
+        valueGetter: (_value, row) =>
+          row.assignedEmployeeName || row.assignedProjectName || '—',
       },
       {
         field: 'actions',
@@ -97,7 +85,7 @@ export function ToolsListPage() {
               </IconButton>
             </Tooltip>
             <Tooltip title="Delete">
-              <IconButton size="small" onClick={() => setPendingDelete(params.row)}>
+              <IconButton size="small" onClick={() => remove.request(params.row)}>
                 <DeleteOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
@@ -105,19 +93,8 @@ export function ToolsListPage() {
         ),
       },
     ],
-    [navigate],
+    [navigate, remove],
   );
-
-  const confirmDelete = async () => {
-    if (!pendingDelete) return;
-
-    try {
-      await deleteTool.mutateAsync(pendingDelete.id);
-      setPendingDelete(null);
-    } catch {
-      // Error surfaced below via the mutation's own state.
-    }
-  };
 
   return (
     <Box>
@@ -132,17 +109,18 @@ export function ToolsListPage() {
       />
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }}>
-        <SearchField value={search} onChange={setSearch} placeholder="Name, category, serial number…" />
+        <SearchField
+          value={list.search}
+          onChange={list.setSearch}
+          placeholder="Name, category, serial number…"
+        />
         <FormControl size="small" sx={{ minWidth: 180 }}>
           <InputLabel id="tool-status-filter-label">Status</InputLabel>
           <Select
             labelId="tool-status-filter-label"
             label="Status"
-            value={status}
-            onChange={(event) => {
-              setStatus(event.target.value as ToolStatus | '');
-              setPaginationModel((prev) => ({ ...prev, page: 0 }));
-            }}
+            value={list.filter}
+            onChange={(event) => list.setFilter(event.target.value as ToolStatus | '')}
           >
             <MenuItem value="">
               <em>All</em>
@@ -156,45 +134,37 @@ export function ToolsListPage() {
         </FormControl>
       </Stack>
 
-      <Paper sx={{ height: 600 }}>
-        {isError ? (
-          <ErrorState error={error} onRetry={() => void refetch()} />
-        ) : (
-          <DataGrid
-            rows={data?.items ?? []}
-            columns={columns}
-            loading={isLoading}
-            rowCount={data?.totalCount ?? 0}
-            paginationMode="server"
-            paginationModel={paginationModel}
-            onPaginationModelChange={setPaginationModel}
-            pageSizeOptions={PAGE_SIZE_OPTIONS}
-            sortingMode="server"
-            sortModel={sortModel}
-            onSortModelChange={setSortModel}
-            disableColumnMenu
-            disableRowSelectionOnClick
-            onRowClick={(params) => navigate(paths.toolDetail(params.row.id))}
-            sx={{ border: 'none', cursor: 'pointer' }}
-          />
-        )}
-      </Paper>
-
-      <ConfirmDialog
-        open={!!pendingDelete}
-        title="Delete tool?"
-        description={pendingDelete ? `${pendingDelete.name} will be removed from active records.` : ''}
-        confirmLabel="Delete"
-        destructive
-        loading={deleteTool.isPending}
-        onConfirm={confirmDelete}
-        onCancel={() => setPendingDelete(null)}
+      <ResourceDataGrid
+        data={data}
+        columns={columns}
+        isLoading={isLoading}
+        isError={isError}
+        error={error}
+        onRetry={() => void refetch()}
+        paginationModel={list.paginationModel}
+        onPaginationModelChange={list.setPaginationModel}
+        sortModel={list.sortModel}
+        onSortModelChange={list.setSortModel}
+        onRowClick={(row) => navigate(paths.toolDetail(row.id))}
       />
 
-      {deleteTool.isError && (
+      <ConfirmDialog
+        open={!!remove.pending}
+        title="Delete tool?"
+        description={
+          remove.pending ? `${remove.pending.name} will be removed from active records.` : ''
+        }
+        confirmLabel="Delete"
+        destructive
+        loading={remove.isDeleting}
+        onConfirm={remove.confirm}
+        onCancel={remove.cancel}
+      />
+
+      {remove.error && (
         <Box sx={{ mt: 1 }}>
           <Typography variant="body2" color="error">
-            {(deleteTool.error as ApiError).message}
+            {remove.error.message}
           </Typography>
         </Box>
       )}

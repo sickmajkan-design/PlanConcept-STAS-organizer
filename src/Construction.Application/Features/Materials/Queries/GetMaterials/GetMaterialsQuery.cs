@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Construction.Application.Features.Materials.Queries.GetMaterials;
 
-public record GetMaterialsQuery : IRequest<PagedList<MaterialDto>>
+public record GetMaterialsQuery : ISortablePagedQuery, IRequest<PagedList<MaterialDto>>
 {
     public static readonly string[] AllowedSortFields =
     [
@@ -39,26 +39,14 @@ public record GetMaterialsQuery : IRequest<PagedList<MaterialDto>>
     public bool SortDescending { get; init; }
 }
 
-public class GetMaterialsQueryValidator : AbstractValidator<GetMaterialsQuery>
+public class GetMaterialsQueryValidator : SortablePagedQueryValidator<GetMaterialsQuery>
 {
     public GetMaterialsQueryValidator()
+        : base(GetMaterialsQuery.AllowedSortFields)
     {
-        RuleFor(x => x.PageNumber)
-            .GreaterThanOrEqualTo(1).WithMessage("Page number must be at least 1.");
-
-        RuleFor(x => x.PageSize)
-            .InclusiveBetween(1, 100).WithMessage("Page size must be between 1 and 100.");
-
         RuleFor(x => x.MaxQuantity)
             .GreaterThanOrEqualTo(0).WithMessage("MaxQuantity must not be negative.")
             .When(x => x.MaxQuantity is not null);
-
-        RuleFor(x => x.SortBy)
-            .Must(sortBy => string.IsNullOrWhiteSpace(sortBy) ||
-                            GetMaterialsQuery.AllowedSortFields.Contains(
-                                sortBy, StringComparer.OrdinalIgnoreCase))
-            .WithMessage(
-                $"SortBy must be one of: {string.Join(", ", GetMaterialsQuery.AllowedSortFields)}.");
     }
 }
 

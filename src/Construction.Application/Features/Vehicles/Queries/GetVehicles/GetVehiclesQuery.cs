@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Construction.Application.Features.Vehicles.Queries.GetVehicles;
 
-public record GetVehiclesQuery : IRequest<PagedList<VehicleDto>>
+public record GetVehiclesQuery : ISortablePagedQuery, IRequest<PagedList<VehicleDto>>
 {
     public static readonly string[] AllowedSortFields =
     [
@@ -39,22 +39,11 @@ public record GetVehiclesQuery : IRequest<PagedList<VehicleDto>>
     public bool SortDescending { get; init; }
 }
 
-public class GetVehiclesQueryValidator : AbstractValidator<GetVehiclesQuery>
+public class GetVehiclesQueryValidator : SortablePagedQueryValidator<GetVehiclesQuery>
 {
     public GetVehiclesQueryValidator()
+        : base(GetVehiclesQuery.AllowedSortFields)
     {
-        RuleFor(x => x.PageNumber)
-            .GreaterThanOrEqualTo(1).WithMessage("Page number must be at least 1.");
-
-        RuleFor(x => x.PageSize)
-            .InclusiveBetween(1, 100).WithMessage("Page size must be between 1 and 100.");
-
-        RuleFor(x => x.SortBy)
-            .Must(sortBy => string.IsNullOrWhiteSpace(sortBy) ||
-                            GetVehiclesQuery.AllowedSortFields.Contains(
-                                sortBy, StringComparer.OrdinalIgnoreCase))
-            .WithMessage(
-                $"SortBy must be one of: {string.Join(", ", GetVehiclesQuery.AllowedSortFields)}.");
     }
 }
 

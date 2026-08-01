@@ -1,15 +1,12 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/models/paged_list.dart';
-import '../../../core/network/api_exception.dart';
+import '../../../core/network/api_repository.dart';
 import '../../../core/network/network_providers.dart';
 import 'models/employee.dart';
 
-class EmployeeRepository {
-  EmployeeRepository(this._dio);
-
-  final Dio _dio;
+class EmployeeRepository extends ApiRepository {
+  const EmployeeRepository(super.dio);
 
   Future<PagedList<Employee>> fetchEmployees({
     int pageNumber = 1,
@@ -19,40 +16,23 @@ class EmployeeRepository {
     String? projectId,
     String? sortBy,
     bool sortDescending = false,
-  }) async {
-    return _guard(() async {
-      final response = await _dio.get<Map<String, dynamic>>(
-        '/api/employees',
-        queryParameters: <String, dynamic>{
-          'pageNumber': pageNumber,
-          'pageSize': pageSize,
-          if (search != null && search.isNotEmpty) 'search': search,
-          'status': ?status,
-          'projectId': ?projectId,
-          'sortBy': ?sortBy,
-          if (sortDescending) 'sortDescending': true,
-        },
-      );
-
-      return PagedList<Employee>.fromJson(response.data!, Employee.fromJson);
-    });
+  }) {
+    return getPaged(
+      '/api/employees',
+      Employee.fromJson,
+      query: pagedQuery(
+        pageNumber: pageNumber,
+        pageSize: pageSize,
+        search: search,
+        sortBy: sortBy,
+        sortDescending: sortDescending,
+        filters: {'status': status, 'projectId': projectId},
+      ),
+    );
   }
 
-  Future<EmployeeDetail> fetchEmployee(String id) async {
-    return _guard(() async {
-      final response =
-          await _dio.get<Map<String, dynamic>>('/api/employees/$id');
-
-      return EmployeeDetail.fromJson(response.data!);
-    });
-  }
-
-  Future<T> _guard<T>(Future<T> Function() request) async {
-    try {
-      return await request();
-    } on DioException catch (exception) {
-      throw ApiException.fromDioException(exception);
-    }
+  Future<EmployeeDetail> fetchEmployee(String id) {
+    return getJson('/api/employees/$id', EmployeeDetail.fromJson);
   }
 }
 
