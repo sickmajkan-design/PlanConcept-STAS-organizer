@@ -94,9 +94,9 @@ cd src/construction_admin && npm run build     # admin: type-check + bundle
 
 | Suite | Covers |
 |---|---|
-| `tests/Construction.UnitTests` | Password hashing, JWT claims and expiry, token hashing, every module's validation rules, pagination arithmetic. No database. |
+| `tests/Construction.UnitTests` | Password hashing, JWT claims and expiry, token hashing, every module's validation rules, pagination arithmetic, and which failures reach the error log. No database. |
 | `tests/Construction.IntegrationTests` | Real handlers over a throwaway PostgreSQL database: refresh-token rotation and reuse detection, soft delete with identifier reuse, atomic stock adjustment under concurrency, tool assignment. |
-| `src/construction_mobile/test` | Validators, error mapping, model parsing, and widget tests driving the real router. |
+| `src/construction_mobile/test` | Validators, error mapping, model parsing, the exact requests each repository puts on the wire, and widget tests driving the real router. |
 | `src/construction_admin` | `tsc -b` type-checking, `oxlint`, and a Playwright script covering CRUD, assignment and role-gated navigation. |
 
 The integration tests need a reachable PostgreSQL server. They create and drop

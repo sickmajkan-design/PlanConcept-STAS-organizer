@@ -152,6 +152,106 @@ Key decisions:
   (`JwtSettings__SecretKey`, `ConnectionStrings__DefaultConnection`,
   `Seed__SuperAdmin__*`); `appsettings.Development.json` carries dev-only defaults.
 
+## Production-readiness review
+
+A full architecture pass was run over the solution. What it changed, and what
+it deliberately left alone:
+
+### Hardened
+
+- **Fatal startup failures now exit non-zero.** The top-level handler logged
+  and fell through, so the process still exited 0 — an orchestrator read a
+  crash as a clean shutdown and neither restarted nor alerted.
+- **Rate limiting on the guessable endpoints.** Sign-in and the password-reset
+  pair are limited per client address. Refresh, logout and `/me` are
+  deliberately *not*: a site usually reaches the API through one NAT address,
+  so an office-wide limit would be spent on routine token refreshes. Refresh
+  is already protected by 64-byte random tokens plus reuse detection.
+- **Client address taken from forwarded headers.** Behind a proxy —
+  i.e. every real deployment — `RemoteIpAddress` is the proxy, so every
+  refresh-token audit row recorded the load balancer instead of the caller,
+  silently degrading the reuse-detection trail. `UseForwardedHeaders` runs
+  before anything reads the address, including the rate limiter's partition.
+- **Exception middleware no longer rewrites a started response.** Setting the
+  status code after the body has begun streaming throws a second exception on
+  top of the first; it now logs and re-throws so the connection aborts
+  cleanly. Problem details also carry a `traceId`, so a user-reported failure
+  can be matched to a log entry.
+- **Migrate-on-startup defaults to off.** Two replicas would race to migrate.
+  Development still opts in explicitly.
+
+### The error log now means something
+
+Request logging was registered *inside* the exception middleware, so Serilog
+saw every exception before it had been translated and recorded it as a 500 —
+even when the client had correctly received a 400, 404 or 409. A duplicate
+employee number, an ordinary not-found, a user navigating away mid-request:
+all of them landed in the log as server faults. Nothing was broken from the
+caller's side, which is why it survived this long, but it makes the error rate
+useless as an alerting signal and buries real failures.
+
+Three changes:
+
+- Request logging now wraps the exception middleware, so it records the status
+  the client actually received.
+- A caller that hangs up is no longer an error. `OperationCanceledException`
+  raised because `RequestAborted` fired is logged at information and answered
+  with 499 (the established "client closed request" convention), keeping
+  aborts out of the 5xx bucket. A cancellation the caller did *not* ask for —
+  a timeout inside a handler — is still an error, and is covered by a test.
+- The mediator pipeline draws the same distinction before the exception
+  reaches the API.
+
+Measured over a full end-to-end run — 308 requests, including every expected
+400/401/403/404/409 and five client aborts — the API now logs **zero** error
+lines. Before the change, all 40 non-2xx requests were logged as
+`ERR … responded 500`.
+
+### Layering
+
+`AddInfrastructure` used to configure the ASP.NET Core bearer scheme, so a
+non-web host could not compose the application without dragging in the web
+authentication stack — which is exactly what the integration tests hit.
+Validating an incoming `Authorization` header is a web-host concern and now
+lives in the API (`AddJwtBearerAuthentication`); Infrastructure keeps only how
+tokens are issued and how credentials are stored.
+
+### Duplication removed
+
+- Five list queries carried an identical copy of the paging bounds and the
+  sort-field allow-list. They now derive from `PagedQueryValidator<T>` /
+  `SortablePagedQueryValidator<T>`, which is also where the limits are stated
+  once (‑65 lines).
+- The admin app's five list pages repeated the same paging/sorting/search
+  state, grid configuration and delete-confirmation flow. Extracted into
+  `useListQueryState`, `ResourceDataGrid` and `useDeleteWithConfirm`
+  (‑166 lines), with each page keeping its own columns and filter.
+- All eight mobile repositories carried their own copy of the `DioException`
+  → `ApiException` conversion, and five of them rebuilt the same paged query
+  map. They now extend `ApiRepository` (555 → 397 lines against a 106-line
+  shared base), which is also where the
+  guarantee callers depend on — a repository only ever throws `ApiException`,
+  never a transport type — is stated once. Because that refactor changed how
+  every request is built, 17 tests now pin each repository's path, query map
+  and body against a recording Dio adapter.
+
+### Known limits, not fixed
+
+- **`location_records` grows without bound.** One ping per employee per minute
+  is roughly a million rows a month for a hundred-person crew. The "last known
+  position" query stays fast — it is a single lateral join on the
+  `(EmployeeId, Timestamp DESC)` index — but history queries, backups and disk
+  will degrade over a year. A retention window or monthly partitioning is the
+  fix; it is a schema decision, not a code cleanup.
+- **Search cannot use an index.** Every list filters with
+  `LIKE '%term%'` over `lower(column)`, which forces a sequential scan. At the
+  stated scale (hundreds of employees) this is irrelevant. If the data grows an
+  order of magnitude, the answer is a `pg_trgm` GIN index rather than
+  reworking the queries.
+- **No account lockout.** Rate limiting slows guessing; it does not lock an
+  account after repeated failures. Worth adding if the system faces the public
+  internet rather than a company network.
+
 ## Phase 1 modules & status
 
 | # | Module | Status |
@@ -232,7 +332,9 @@ one earns its cost:
   JWT claim and expiry construction, token hashing, every module's
   FluentValidation rules, and the pagination arithmetic both clients page off.
   Uses plain xUnit assertions and a hand-written clock fake, so the suite
-  carries no mocking library and no dual-licensed assertion package.
+  carries no mocking library and no dual-licensed assertion package. Also
+  covers what the mediator pipeline puts in the error log, since that is what
+  alerting reads.
 - **`tests/Construction.IntegrationTests`** — real handlers resolved from the
   same dependency graph the API builds, sent through MediatR so the validation
   and logging behaviours stay in the path, against a throwaway PostgreSQL
@@ -247,7 +349,11 @@ one earns its cost:
   green while production broke.
 
 The clients keep their own suites (`flutter test`, plus `tsc -b`, `oxlint` and
-a Playwright script for the admin app). CI runs all of it on every push.
+a Playwright script for the admin app). On the mobile side that includes
+repository tests that assert the exact path, query map and body each call puts
+on the wire, using a recording `HttpClientAdapter` instead of a server — the
+layer where a silently dropped filter would otherwise reach production
+unnoticed. CI runs all of it on every push.
 
 ## Push notification design (module 8)
 
