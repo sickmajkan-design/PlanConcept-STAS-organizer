@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/failure_view.dart';
+import '../../../core/widgets/info_tile.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../data/models/vehicle.dart';
 import 'vehicles_controller.dart';
@@ -38,17 +39,17 @@ class VehicleDetailScreen extends ConsumerWidget {
                 _Section(
                   title: 'Vehicle',
                   children: [
-                    _InfoTile(
+                    InfoTile(
                       icon: Icons.pin_outlined,
                       label: 'Registration number',
                       value: vehicle.registrationNumber,
                     ),
-                    _InfoTile(
+                    InfoTile(
                       icon: Icons.confirmation_number_outlined,
                       label: 'VIN',
                       value: vehicle.vin,
                     ),
-                    _InfoTile(
+                    InfoTile(
                       icon: Icons.local_gas_station_outlined,
                       label: 'Fuel type',
                       value: humanizeEnum(vehicle.fuelType),
@@ -159,29 +160,6 @@ class _Section extends StatelessWidget {
         ),
         Card(child: Column(children: children)),
       ],
-    );
-  }
-}
-
-class _InfoTile extends StatelessWidget {
-  const _InfoTile({required this.icon, required this.label, this.value});
-
-  final IconData icon;
-  final String label;
-  final String? value;
-
-  @override
-  Widget build(BuildContext context) {
-    final hasValue = (value ?? '').trim().isNotEmpty;
-
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(label, style: Theme.of(context).textTheme.bodySmall),
-      subtitle: Text(
-        hasValue ? value! : '—',
-        style: Theme.of(context).textTheme.bodyLarge,
-      ),
-      dense: true,
     );
   }
 }

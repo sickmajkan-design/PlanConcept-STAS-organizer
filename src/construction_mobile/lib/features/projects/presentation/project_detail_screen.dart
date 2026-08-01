@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/failure_view.dart';
+import '../../../core/widgets/info_tile.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../data/models/project.dart';
 import 'projects_controller.dart';
@@ -47,17 +48,17 @@ class ProjectDetailScreen extends ConsumerWidget {
                 _Section(
                   title: 'Details',
                   children: [
-                    _InfoTile(
+                    InfoTile(
                       icon: Icons.business_outlined,
                       label: 'Client',
                       value: project.client,
                     ),
-                    _InfoTile(
+                    InfoTile(
                       icon: Icons.place_outlined,
                       label: 'Address',
                       value: project.address,
                     ),
-                    _InfoTile(
+                    InfoTile(
                       icon: Icons.my_location,
                       label: 'Coordinates',
                       value: project.hasCoordinates
@@ -65,14 +66,14 @@ class ProjectDetailScreen extends ConsumerWidget {
                               '${project.longitude!.toStringAsFixed(5)}'
                           : null,
                     ),
-                    _InfoTile(
+                    InfoTile(
                       icon: Icons.play_circle_outline,
                       label: 'Start date',
                       value: project.startDate == null
                           ? null
                           : formatDate(project.startDate),
                     ),
-                    _InfoTile(
+                    InfoTile(
                       icon: Icons.flag_outlined,
                       label: 'End date',
                       value: project.endDate == null
@@ -205,29 +206,6 @@ class _Section extends StatelessWidget {
         ),
         Card(child: Column(children: children)),
       ],
-    );
-  }
-}
-
-class _InfoTile extends StatelessWidget {
-  const _InfoTile({required this.icon, required this.label, this.value});
-
-  final IconData icon;
-  final String label;
-  final String? value;
-
-  @override
-  Widget build(BuildContext context) {
-    final hasValue = (value ?? '').trim().isNotEmpty;
-
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(label, style: Theme.of(context).textTheme.bodySmall),
-      subtitle: Text(
-        hasValue ? value! : '—',
-        style: Theme.of(context).textTheme.bodyLarge,
-      ),
-      dense: true,
     );
   }
 }

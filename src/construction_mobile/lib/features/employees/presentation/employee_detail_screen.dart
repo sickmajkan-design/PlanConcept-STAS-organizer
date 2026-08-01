@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/failure_view.dart';
+import '../../../core/widgets/info_tile.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../data/models/employee.dart';
 import 'employees_controller.dart';
@@ -40,17 +41,17 @@ class EmployeeDetailScreen extends ConsumerWidget {
                 _Section(
                   title: 'Contact',
                   children: [
-                    _InfoTile(
+                    InfoTile(
                       icon: Icons.phone_outlined,
                       label: 'Phone',
                       value: employee.phone,
                     ),
-                    _InfoTile(
+                    InfoTile(
                       icon: Icons.alternate_email,
                       label: 'Email',
                       value: employee.email,
                     ),
-                    _InfoTile(
+                    InfoTile(
                       icon: Icons.home_outlined,
                       label: 'Address',
                       value: employee.address,
@@ -61,29 +62,29 @@ class EmployeeDetailScreen extends ConsumerWidget {
                 _Section(
                   title: 'Employment',
                   children: [
-                    _InfoTile(
+                    InfoTile(
                       icon: Icons.badge_outlined,
                       label: 'Employee number',
                       value: employee.employeeNumber,
                     ),
-                    _InfoTile(
+                    InfoTile(
                       icon: Icons.work_outline,
                       label: 'Position',
                       value: employee.position,
                     ),
-                    _InfoTile(
+                    InfoTile(
                       icon: Icons.event_available_outlined,
                       label: 'Employed since',
                       value: formatDate(employee.employmentDate),
                     ),
-                    _InfoTile(
+                    InfoTile(
                       icon: Icons.cake_outlined,
                       label: 'Date of birth',
                       value: employee.dateOfBirth == null
                           ? null
                           : formatDate(employee.dateOfBirth),
                     ),
-                    _InfoTile(
+                    InfoTile(
                       icon: Icons.account_circle_outlined,
                       label: 'App account',
                       value: employee.hasUserAccount ? 'Yes' : 'No',
@@ -214,29 +215,6 @@ class _Section extends StatelessWidget {
         ),
         Card(child: Column(children: children)),
       ],
-    );
-  }
-}
-
-class _InfoTile extends StatelessWidget {
-  const _InfoTile({required this.icon, required this.label, this.value});
-
-  final IconData icon;
-  final String label;
-  final String? value;
-
-  @override
-  Widget build(BuildContext context) {
-    final hasValue = (value ?? '').trim().isNotEmpty;
-
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(label, style: Theme.of(context).textTheme.bodySmall),
-      subtitle: Text(
-        hasValue ? value! : '—',
-        style: Theme.of(context).textTheme.bodyLarge,
-      ),
-      dense: true,
     );
   }
 }

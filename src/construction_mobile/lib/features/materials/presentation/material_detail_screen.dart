@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/failure_view.dart';
+import '../../../core/widgets/info_tile.dart';
 import '../data/models/material.dart' as models;
 import 'materials_controller.dart';
 import 'materials_screen.dart' show formatQuantity;
@@ -38,12 +39,12 @@ class MaterialDetailScreen extends ConsumerWidget {
                 _Section(
                   title: 'Stock',
                   children: [
-                    _InfoTile(
+                    InfoTile(
                       icon: Icons.warehouse_outlined,
                       label: 'Warehouse',
                       value: material.warehouse,
                     ),
-                    _InfoTile(
+                    InfoTile(
                       icon: Icons.update_outlined,
                       label: 'Last updated',
                       value: formatDateTime(material.lastUpdated),
@@ -152,29 +153,6 @@ class _Section extends StatelessWidget {
         ),
         Card(child: Column(children: children)),
       ],
-    );
-  }
-}
-
-class _InfoTile extends StatelessWidget {
-  const _InfoTile({required this.icon, required this.label, this.value});
-
-  final IconData icon;
-  final String label;
-  final String? value;
-
-  @override
-  Widget build(BuildContext context) {
-    final hasValue = (value ?? '').trim().isNotEmpty;
-
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(label, style: Theme.of(context).textTheme.bodySmall),
-      subtitle: Text(
-        hasValue ? value! : '—',
-        style: Theme.of(context).textTheme.bodyLarge,
-      ),
-      dense: true,
     );
   }
 }

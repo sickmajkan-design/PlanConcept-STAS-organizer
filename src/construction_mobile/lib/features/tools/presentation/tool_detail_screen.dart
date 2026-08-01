@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/router/app_routes.dart';
 import '../../../core/widgets/failure_view.dart';
+import '../../../core/widgets/info_tile.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../data/models/tool.dart';
 import 'tools_controller.dart';
@@ -108,12 +109,12 @@ class _ToolInfo extends StatelessWidget {
     return _Section(
       title: 'Tool',
       children: [
-        _InfoTile(
+        InfoTile(
           icon: Icons.confirmation_number_outlined,
           label: 'Serial number',
           value: tool.serialNumber,
         ),
-        _InfoTile(
+        InfoTile(
           icon: Icons.qr_code_outlined,
           label: 'QR code',
           value: tool.qrCode,
@@ -184,29 +185,6 @@ class _Section extends StatelessWidget {
         ),
         Card(child: Column(children: children)),
       ],
-    );
-  }
-}
-
-class _InfoTile extends StatelessWidget {
-  const _InfoTile({required this.icon, required this.label, this.value});
-
-  final IconData icon;
-  final String label;
-  final String? value;
-
-  @override
-  Widget build(BuildContext context) {
-    final hasValue = (value ?? '').trim().isNotEmpty;
-
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(label, style: Theme.of(context).textTheme.bodySmall),
-      subtitle: Text(
-        hasValue ? value! : '—',
-        style: Theme.of(context).textTheme.bodyLarge,
-      ),
-      dense: true,
     );
   }
 }
