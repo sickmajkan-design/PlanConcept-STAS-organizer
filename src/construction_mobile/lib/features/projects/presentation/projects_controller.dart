@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/models/paged_list.dart';
+import '../../../core/pagination/filtered_paged_list_notifier.dart';
 import '../../../core/pagination/paged_list_notifier.dart';
 import '../../../core/pagination/paged_state.dart';
 import '../data/models/project.dart';
@@ -15,11 +16,7 @@ const projectStatusFilters = <String>[
   'Cancelled',
 ];
 
-class ProjectsController extends PagedListNotifier<Project> {
-  String? _status;
-
-  String? get statusFilter => _status;
-
+class ProjectsController extends FilteredPagedListNotifier<Project> {
   @override
   Future<PagedList<Project>> loadPage({
     required int pageNumber,
@@ -29,17 +26,8 @@ class ProjectsController extends PagedListNotifier<Project> {
           pageNumber: pageNumber,
           pageSize: PagedListNotifier.pageSize,
           search: search,
-          status: _status,
+          status: filter,
         );
-  }
-
-  void filterByStatus(String? status) {
-    if (_status == status) {
-      return;
-    }
-
-    _status = status;
-    ref.invalidateSelf();
   }
 }
 

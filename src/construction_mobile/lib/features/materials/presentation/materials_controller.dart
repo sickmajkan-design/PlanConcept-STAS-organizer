@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/models/paged_list.dart';
+import '../../../core/pagination/filtered_paged_list_notifier.dart';
 import '../../../core/pagination/paged_list_notifier.dart';
 import '../../../core/pagination/paged_state.dart';
 import '../data/material_repository.dart';
@@ -10,12 +11,7 @@ import '../data/models/material.dart';
 /// project.
 const materialWarehouseOnlyFilter = 'Warehouse stock only';
 
-class MaterialsController extends PagedListNotifier<MaterialItem> {
-  bool _warehouseOnly = false;
-
-  String? get selectedFilter =>
-      _warehouseOnly ? materialWarehouseOnlyFilter : null;
-
+class MaterialsController extends FilteredPagedListNotifier<MaterialItem> {
   @override
   Future<PagedList<MaterialItem>> loadPage({
     required int pageNumber,
@@ -25,19 +21,11 @@ class MaterialsController extends PagedListNotifier<MaterialItem> {
           pageNumber: pageNumber,
           pageSize: PagedListNotifier.pageSize,
           search: search,
-          unassignedOnly: _warehouseOnly ? true : null,
+          // The one chip is an on/off toggle: selected means "warehouse stock
+          // only", anything else means no filter, which is the API's default.
+          unassignedOnly:
+              filter == materialWarehouseOnlyFilter ? true : null,
         );
-  }
-
-  void toggleWarehouseOnly(String? filter) {
-    final next = filter == materialWarehouseOnlyFilter;
-
-    if (next == _warehouseOnly) {
-      return;
-    }
-
-    _warehouseOnly = next;
-    ref.invalidateSelf();
   }
 }
 
