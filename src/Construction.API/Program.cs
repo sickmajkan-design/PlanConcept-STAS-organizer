@@ -6,6 +6,7 @@ using Construction.Application;
 using Construction.Application.Common.Interfaces;
 using Construction.Infrastructure;
 using Construction.Infrastructure.Persistence;
+using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -37,8 +38,22 @@ try
                 new System.Text.Json.Serialization.JsonStringEnumConverter());
         });
 
+    builder.Services.AddJwtBearerAuthentication(builder.Configuration);
     builder.Services.AddAuthorizationPolicies();
     builder.Services.AddSwaggerWithJwt();
+    builder.Services.AddAuthRateLimiting();
+
+    // The API runs behind a reverse proxy in every deployment, so the client
+    // address must come from the forwarded headers. Without this, every
+    // refresh-token audit row records the proxy instead of the caller.
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        // Cleared because the proxy is not on a known address in a container
+        // network; restrict these in an environment where it is.
+        options.KnownNetworks.Clear();
+        options.KnownProxies.Clear();
+    });
 
     builder.Services
         .AddHealthChecks()
@@ -65,9 +80,17 @@ try
         await initializer.InitializeAsync();
     }
 
-    app.UseMiddleware<ExceptionHandlingMiddleware>();
+    // Must run before anything reads the client address or scheme.
+    app.UseForwardedHeaders();
 
+    // Request logging wraps the exception handler, not the other way round.
+    // Inside it, Serilog would see every exception before it was translated
+    // and record a 500 — so a duplicate employee number the client correctly
+    // received as 409, or a page the user navigated away from, would land in
+    // the log as a server fault and drive false alerts.
     app.UseSerilogRequestLogging();
+
+    app.UseMiddleware<ExceptionHandlingMiddleware>();
 
     if (app.Environment.IsDevelopment())
     {
@@ -85,6 +108,8 @@ try
 
     app.UseCors("Default");
 
+    app.UseRateLimiter();
+
     app.UseAuthentication();
     app.UseAuthorization();
 
@@ -96,6 +121,10 @@ try
 catch (Exception ex)
 {
     Log.Fatal(ex, "Construction API terminated unexpectedly");
+
+    // Without this the process still exits 0, so an orchestrator sees a clean
+    // shutdown and neither restarts the container nor raises an alert.
+    Environment.ExitCode = 1;
 }
 finally
 {

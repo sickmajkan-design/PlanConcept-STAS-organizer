@@ -6,8 +6,10 @@ using Construction.Application.Features.Authentication.Commands.RefreshToken;
 using Construction.Application.Features.Authentication.Commands.ResetPassword;
 using Construction.Application.Features.Authentication.Models;
 using Construction.Application.Features.Authentication.Queries.GetCurrentUser;
+using Construction.API.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Construction.API.Controllers;
 
@@ -15,6 +17,7 @@ public class AuthController : ApiControllerBase
 {
     /// <summary>Authenticates a user and returns an access/refresh token pair.</summary>
     [HttpPost("login")]
+    [EnableRateLimiting(RateLimitingExtensions.CredentialsPolicy)]
     [AllowAnonymous]
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
@@ -54,6 +57,7 @@ public class AuthController : ApiControllerBase
 
     /// <summary>Changes the current user's password and revokes all sessions.</summary>
     [HttpPost("change-password")]
+    [EnableRateLimiting(RateLimitingExtensions.CredentialsPolicy)]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
@@ -71,6 +75,7 @@ public class AuthController : ApiControllerBase
     /// the email exists, to prevent account enumeration.
     /// </summary>
     [HttpPost("forgot-password")]
+    [EnableRateLimiting(RateLimitingExtensions.CredentialsPolicy)]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status202Accepted)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
@@ -84,6 +89,7 @@ public class AuthController : ApiControllerBase
 
     /// <summary>Completes the password-reset flow using the emailed token.</summary>
     [HttpPost("reset-password")]
+    [EnableRateLimiting(RateLimitingExtensions.CredentialsPolicy)]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
