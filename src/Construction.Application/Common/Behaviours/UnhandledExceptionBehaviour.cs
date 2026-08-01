@@ -28,6 +28,16 @@ public class UnhandledExceptionBehaviour<TRequest, TResponse> : IPipelineBehavio
         {
             return await next();
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // A caller that hung up is not a fault. It still gets a line, so a
+            // handler that keeps being abandoned is visible, but not one that
+            // pages anyone at three in the morning.
+            _logger.LogInformation(
+                "Request {RequestName} was cancelled by the caller",
+                typeof(TRequest).Name);
+            throw;
+        }
         catch (Exception ex) when (ex is not ValidationException
                                        and not NotFoundException
                                        and not UnauthorizedException

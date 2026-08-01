@@ -9,6 +9,9 @@ namespace Construction.API.Middleware;
 /// </summary>
 public class ExceptionHandlingMiddleware
 {
+    /// <summary>Non-standard but widely understood: the client closed the request.</summary>
+    private const int ClientClosedRequest = 499;
+
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
@@ -24,8 +27,39 @@ public class ExceptionHandlingMiddleware
         {
             await _next(context);
         }
+        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+        {
+            // The caller went away mid-request — a user navigating off a page,
+            // a closed tab, a client that timed out. Nothing failed on the
+            // server and nobody is left to answer, so this must not be logged
+            // as an error: otherwise ordinary navigation raises the 5xx rate
+            // that availability alerts are built on.
+            _logger.LogInformation(
+                "Request aborted by the client for {Path}",
+                context.Request.Path);
+
+            if (!context.Response.HasStarted)
+            {
+                // 499 is the established convention for a client-closed
+                // request, and keeps these out of the 5xx bucket.
+                context.Response.StatusCode = ClientClosedRequest;
+            }
+        }
         catch (Exception exception)
         {
+            if (context.Response.HasStarted)
+            {
+                // The status code and headers are already on the wire, so the
+                // response cannot be rewritten. Logging and re-throwing lets
+                // the server abort the connection rather than throw a second,
+                // confusing exception on top of the first.
+                _logger.LogError(
+                    exception,
+                    "Exception after the response started for {Path}; connection will be aborted",
+                    context.Request.Path);
+                throw;
+            }
+
             await HandleExceptionAsync(context, exception);
         }
     }
@@ -96,6 +130,11 @@ public class ExceptionHandlingMiddleware
                 };
                 break;
         }
+
+        // Correlates a client-reported failure with the server log entry; the
+        // opaque 500 above is otherwise untraceable once a user reports it.
+        problemDetails.Extensions["traceId"] =
+            System.Diagnostics.Activity.Current?.Id ?? context.TraceIdentifier;
 
         context.Response.StatusCode = problemDetails.Status!.Value;
         context.Response.ContentType = "application/problem+json";
