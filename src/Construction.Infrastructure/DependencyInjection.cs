@@ -1,4 +1,3 @@
-using System.Text;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Authentication.Commands.ForgotPassword;
 using Construction.Infrastructure.Authentication;
@@ -7,11 +6,9 @@ using Construction.Infrastructure.Notifications;
 using Construction.Infrastructure.Persistence;
 using Construction.Infrastructure.Persistence.Interceptors;
 using Construction.Infrastructure.Services;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Construction.Infrastructure;
 
@@ -65,34 +62,9 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IResetLinkBuilder, ResetLinkBuilder>();
 
-        var jwtSection = configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>()
-            ?? throw new InvalidOperationException("JwtSettings section is not configured.");
-
-        services
-            .AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
-            .AddJwtBearer(options =>
-            {
-                options.MapInboundClaims = false;
-
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidIssuer = jwtSection.Issuer,
-                    ValidateAudience = true,
-                    ValidAudience = jwtSection.Audience,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(jwtSection.SecretKey)),
-                    ClockSkew = TimeSpan.FromSeconds(30),
-                    NameClaimType = "sub",
-                    RoleClaimType = System.Security.Claims.ClaimTypes.Role
-                };
-            });
+        // Validating incoming bearer tokens is a web-host concern and lives in
+        // the API layer (AddJwtBearerAuthentication). Infrastructure only owns
+        // how tokens are issued and how credentials are stored.
     }
 
     private static void AddServices(IServiceCollection services, IConfiguration configuration)
