@@ -16,6 +16,17 @@ public class PasswordHasher : IPasswordHasher
     private const int SaltSizeBytes = 16;
     private const int KeySizeBytes = 32;
 
+    // Built once, on first use, from a value that is never stored anywhere, so
+    // verifying against it always fails and always costs a full derivation.
+    private readonly Lazy<string> _dummyHash;
+
+    public PasswordHasher()
+    {
+        _dummyHash = new Lazy<string>(() => Hash(Guid.NewGuid().ToString("N")));
+    }
+
+    public string DummyHash => _dummyHash.Value;
+
     public string Hash(string password)
     {
         var salt = RandomNumberGenerator.GetBytes(SaltSizeBytes);

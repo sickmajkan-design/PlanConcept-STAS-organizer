@@ -19,6 +19,22 @@ public class User : BaseEntity
 
     public DateTime? LastLoginAt { get; set; }
 
+    /// <summary>
+    /// Consecutive failed sign-ins since the last success. Reset on any
+    /// successful sign-in or password change.
+    /// </summary>
+    public int FailedLoginAttempts { get; set; }
+
+    /// <summary>
+    /// When set and in the future, sign-in is refused regardless of the
+    /// password. Tracked per account rather than per address because an
+    /// attacker chooses their address but not the account they are attacking.
+    /// </summary>
+    public DateTime? LockoutEndsAt { get; set; }
+
+    /// <summary>Whether sign-in is currently barred by lockout.</summary>
+    public bool IsLockedOut(DateTime utcNow) => LockoutEndsAt is { } until && until > utcNow;
+
     public Guid? EmployeeId { get; set; }
 
     public Employee? Employee { get; set; }

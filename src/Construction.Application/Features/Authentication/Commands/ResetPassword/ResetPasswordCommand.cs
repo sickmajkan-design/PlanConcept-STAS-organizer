@@ -74,6 +74,11 @@ public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand>
         resetToken.User.PasswordHash = _passwordHasher.Hash(request.NewPassword);
         resetToken.UsedAt = utcNow;
 
+        // Proving control of the mailbox clears any lockout, so the recovery
+        // path still works for someone an attacker has locked out.
+        resetToken.User.FailedLoginAttempts = 0;
+        resetToken.User.LockoutEndsAt = null;
+
         // Force every existing session to re-authenticate with the new password.
         var activeRefreshTokens = await _context.RefreshTokens
             .Where(rt => rt.UserId == resetToken.UserId && rt.RevokedAt == null && rt.ExpiresAt > utcNow)
