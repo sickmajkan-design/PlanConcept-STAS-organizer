@@ -2,6 +2,7 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
+using Construction.Application.Common.Security;
 using Construction.Application.Features.Materials.Models;
 using Construction.Domain.Entities;
 using FluentValidation;
@@ -69,7 +70,7 @@ public class GetMaterialsQueryHandler : IRequestHandler<GetMaterialsQuery, Paged
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            var pattern = $"%{request.Search.Trim().ToLowerInvariant()}%";
+            var pattern = SearchPattern.Contains(request.Search);
 
             query = query.Where(m =>
                 EF.Functions.Like(m.Name.ToLower(), pattern) ||

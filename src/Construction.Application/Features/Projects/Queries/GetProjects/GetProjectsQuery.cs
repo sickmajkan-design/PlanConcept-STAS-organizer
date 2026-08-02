@@ -2,6 +2,7 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
+using Construction.Application.Common.Security;
 using Construction.Application.Features.Projects.Models;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
@@ -64,7 +65,7 @@ public class GetProjectsQueryHandler : IRequestHandler<GetProjectsQuery, PagedLi
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            var pattern = $"%{request.Search.Trim().ToLowerInvariant()}%";
+            var pattern = SearchPattern.Contains(request.Search);
 
             query = query.Where(p =>
                 EF.Functions.Like(p.Name.ToLower(), pattern) ||

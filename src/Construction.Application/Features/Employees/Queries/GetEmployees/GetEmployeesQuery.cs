@@ -2,6 +2,7 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
+using Construction.Application.Common.Security;
 using Construction.Application.Features.Employees.Models;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
@@ -64,7 +65,7 @@ public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, Paged
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            var pattern = $"%{request.Search.Trim().ToLowerInvariant()}%";
+            var pattern = SearchPattern.Contains(request.Search);
 
             query = query.Where(e =>
                 EF.Functions.Like((e.FirstName + " " + e.LastName).ToLower(), pattern) ||

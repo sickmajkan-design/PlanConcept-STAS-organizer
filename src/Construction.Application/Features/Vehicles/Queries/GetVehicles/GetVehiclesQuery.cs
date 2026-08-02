@@ -2,6 +2,7 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
+using Construction.Application.Common.Security;
 using Construction.Application.Features.Vehicles.Models;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
@@ -66,7 +67,7 @@ public class GetVehiclesQueryHandler : IRequestHandler<GetVehiclesQuery, PagedLi
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            var pattern = $"%{request.Search.Trim().ToLowerInvariant()}%";
+            var pattern = SearchPattern.Contains(request.Search);
 
             query = query.Where(v =>
                 EF.Functions.Like((v.Brand + " " + v.Model).ToLower(), pattern) ||

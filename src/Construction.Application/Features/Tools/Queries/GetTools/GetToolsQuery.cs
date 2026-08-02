@@ -2,6 +2,7 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
+using Construction.Application.Common.Security;
 using Construction.Application.Features.Tools.Models;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
@@ -68,7 +69,7 @@ public class GetToolsQueryHandler : IRequestHandler<GetToolsQuery, PagedList<Too
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
-            var pattern = $"%{request.Search.Trim().ToLowerInvariant()}%";
+            var pattern = SearchPattern.Contains(request.Search);
 
             query = query.Where(t =>
                 EF.Functions.Like(t.Name.ToLower(), pattern) ||
