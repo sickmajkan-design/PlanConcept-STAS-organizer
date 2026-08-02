@@ -30,5 +30,9 @@ export const paths = {
   materialNew: '/materials/new',
   materialEdit: (id: string) => `/materials/${id}/edit`,
 
+  users: '/users',
+  userNew: '/users/new',
+  userEdit: (id: string) => `/users/${id}/edit`,
+
   map: '/map',
 } as const;

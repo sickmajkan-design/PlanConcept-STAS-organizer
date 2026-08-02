@@ -46,6 +46,29 @@ export function RequireGuest() {
   return <Outlet />;
 }
 
+/**
+ * Restricts a route to the roles allowed to administer accounts.
+ *
+ * Mirrors the API's AdminAndAbove policy. This only hides the screens — the
+ * API refuses the calls regardless, and additionally stops an administrator
+ * acting on an account senior to their own.
+ */
+export function RequireAccountAdmin() {
+  const { user } = useAuth();
+
+  if (user === undefined) {
+    return null;
+  }
+
+  const allowed = new Set(['SuperAdmin', 'Admin']);
+
+  if (!user || !allowed.has(user.role)) {
+    return <Navigate to={paths.home} replace />;
+  }
+
+  return <Outlet />;
+}
+
 /** Restricts a route to roles the API actually serves it to. */
 export function RequireDirectoryAccess() {
   const { user } = useAuth();

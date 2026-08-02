@@ -40,7 +40,8 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
   onPaginationModelChange: (model: GridPaginationModel) => void;
   sortModel: GridSortModel;
   onSortModelChange: (model: GridSortModel) => void;
-  onRowClick: (row: T) => void;
+  /** Omit for lists with no drill-down, such as user accounts. */
+  onRowClick?: (row: T) => void;
   height?: number;
 }) {
   return (
@@ -62,8 +63,9 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
           onSortModelChange={onSortModelChange}
           disableColumnMenu
           disableRowSelectionOnClick
-          onRowClick={(params) => onRowClick(params.row)}
-          sx={{ border: 'none', cursor: 'pointer' }}
+          onRowClick={onRowClick ? (params) => onRowClick(params.row) : undefined}
+          // Only offer the affordance when a click actually goes somewhere.
+          sx={{ border: 'none', cursor: onRowClick ? 'pointer' : 'default' }}
         />
       )}
     </Paper>

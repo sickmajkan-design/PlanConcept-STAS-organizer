@@ -252,3 +252,32 @@ export interface MaterialInput {
   warehouse?: string | null;
   projectId?: string | null;
 }
+
+/**
+ * An account as the user-administration screens see it.
+ *
+ * Distinct from `User`, which is the signed-in operator's own profile from
+ * `/api/auth/me`. Keeping them apart stops "the current user" and "a row in
+ * the accounts table" drifting into one type that is right for neither.
+ */
+export interface UserAccount {
+  id: string;
+  email: string;
+  role: Role;
+  isActive: boolean;
+  lastLoginAt: string | null;
+  lockoutEndsAt: string | null;
+  employeeId: string | null;
+  employeeName: string | null;
+  createdAt: string;
+}
+
+export interface UserAccountInput {
+  email: string;
+  role: Role;
+  employeeId?: string | null;
+}
+
+export interface CreateUserAccountInput extends UserAccountInput {
+  password: string;
+}

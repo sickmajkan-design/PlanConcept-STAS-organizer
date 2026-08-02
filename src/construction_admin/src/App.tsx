@@ -9,7 +9,12 @@ import { LoginPage } from './pages/auth/LoginPage';
 import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 import { HomePage } from './pages/HomePage';
 import { paths } from './routes/paths';
-import { RequireAuth, RequireDirectoryAccess, RequireGuest } from './routes/RequireAuth';
+import {
+  RequireAccountAdmin,
+  RequireAuth,
+  RequireDirectoryAccess,
+  RequireGuest,
+} from './routes/RequireAuth';
 
 // Code-split the heaviest dependencies (DataGrid, Google Maps) out of the
 // initial bundle — they only load when the operator actually visits them.
@@ -42,6 +47,12 @@ const ProjectDetailPage = lazy(() =>
   import('./pages/projects/ProjectDetailPage').then((m) => ({
     default: m.ProjectDetailPage,
   })),
+);
+const UsersListPage = lazy(() =>
+  import('./pages/users/UsersListPage').then((m) => ({ default: m.UsersListPage })),
+);
+const UserFormPage = lazy(() =>
+  import('./pages/users/UserFormPage').then((m) => ({ default: m.UserFormPage })),
 );
 const LiveMapPage = lazy(() =>
   import('./pages/map/LiveMapPage').then((m) => ({ default: m.LiveMapPage })),
@@ -128,6 +139,14 @@ function Layout() {
             <Route path={paths.materialNew} element={<MaterialFormPage />} />
             <Route path={`${paths.materials}/:id`} element={<MaterialDetailPage />} />
             <Route path={`${paths.materials}/:id/edit`} element={<MaterialFormPage />} />
+          </Route>
+
+          {/* Account administration is Admin and above, a narrower set than
+              the directory screens above. */}
+          <Route element={<RequireAccountAdmin />}>
+            <Route path={paths.users} element={<UsersListPage />} />
+            <Route path={paths.userNew} element={<UserFormPage />} />
+            <Route path={`${paths.users}/:id/edit`} element={<UserFormPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to={paths.home} replace />} />

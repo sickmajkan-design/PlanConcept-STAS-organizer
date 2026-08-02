@@ -4,6 +4,7 @@ import {
   Inventory2Outlined,
   LocalShippingOutlined,
   LogoutOutlined,
+  ManageAccountsOutlined,
   MapOutlined,
   MenuOutlined,
   PasswordOutlined,
@@ -30,7 +31,7 @@ import {
 import { useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-import { canViewDirectory, displayName } from '../auth/authHelpers';
+import { canAdministerAccounts, canViewDirectory, displayName } from '../auth/authHelpers';
 import { useAuth } from '../auth/useAuth';
 import { paths } from '../routes/paths';
 import { humanizeEnum, initialsOf } from '../utils/formatting';
@@ -67,6 +68,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
           { label: 'Tools', path: paths.tools, icon: <HandymanOutlined /> },
           { label: 'Materials', path: paths.materials, icon: <Inventory2Outlined /> },
         ]
+      : []),
+    ...(canAdministerAccounts(user)
+      ? [{ label: 'User accounts', path: paths.users, icon: <ManageAccountsOutlined /> }]
       : []),
   ];
 
