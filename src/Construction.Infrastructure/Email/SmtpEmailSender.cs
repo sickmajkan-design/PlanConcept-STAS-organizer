@@ -27,9 +27,13 @@ public class SmtpEmailSender : IEmailSender
     {
         if (!_settings.IsConfigured)
         {
+            // The body is deliberately not logged. Password-reset mail carries
+            // a link that is equivalent to the account's password for the next
+            // hour, and logs are shipped, retained and read far more widely
+            // than mailboxes. Losing the message is the safer failure.
             _logger.LogWarning(
-                "SMTP is not configured; email to {To} with subject '{Subject}' was not sent. Body: {Body}",
-                to, subject, htmlBody);
+                "SMTP is not configured; email to {To} with subject '{Subject}' was not sent.",
+                to, subject);
             return;
         }
 
