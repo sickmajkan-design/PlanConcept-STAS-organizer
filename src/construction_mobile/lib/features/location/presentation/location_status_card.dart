@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/utils/formatting.dart';
+import '../../../l10n/app_localizations.dart';
 import 'location_tracking_controller.dart';
 
 /// Makes location sharing visible to the person being tracked: whether it is
@@ -32,32 +33,32 @@ class LocationStatusCard extends ConsumerWidget {
       LocationTrackingStatus.active => (
           Icons.location_on,
           theme.colorScheme.tertiary,
-          'Location sharing is on',
+          l10n.locationSharingOn,
         ),
       LocationTrackingStatus.starting => (
           Icons.location_searching,
           theme.colorScheme.onSurfaceVariant,
-          'Starting location sharing…',
+          l10n.locationStarting,
         ),
       LocationTrackingStatus.serviceDisabled => (
           Icons.location_disabled,
           theme.colorScheme.error,
-          'Location services are switched off',
+          l10n.locationServicesOff,
         ),
       LocationTrackingStatus.permissionDenied => (
           Icons.location_disabled,
           theme.colorScheme.error,
-          'Location permission not granted',
+          l10n.locationPermissionDenied,
         ),
       LocationTrackingStatus.permissionBlocked => (
           Icons.location_disabled,
           theme.colorScheme.error,
-          'Location permission is blocked',
+          l10n.locationPermissionBlocked,
         ),
       _ => (
           Icons.warning_amber_outlined,
           theme.colorScheme.error,
-          'Location sharing has a problem',
+          l10n.locationProblem,
         ),
     };
 
@@ -83,7 +84,7 @@ class LocationStatusCard extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              _subtitle(state),
+              _subtitle(l10n, state),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -102,12 +103,13 @@ class LocationStatusCard extends ConsumerWidget {
                   OutlinedButton(
                     onPressed: () => _resolve(ref, state.status),
                     child: Text(
-                      state.status == LocationTrackingStatus.serviceDisabled
-                          ? 'Open location settings'
-                          : state.status ==
-                                  LocationTrackingStatus.permissionBlocked
-                              ? 'Open app settings'
-                              : 'Allow location',
+                      switch (state.status) {
+                        LocationTrackingStatus.serviceDisabled =>
+                          l10n.locationOpenSettings,
+                        LocationTrackingStatus.permissionBlocked =>
+                          l10n.locationOpenAppSettings,
+                        _ => l10n.locationAllow,
+                      },
                     ),
                   ),
                 ],
@@ -125,17 +127,20 @@ class LocationStatusCard extends ConsumerWidget {
       status == LocationTrackingStatus.permissionBlocked ||
       status == LocationTrackingStatus.error;
 
-  static String _subtitle(LocationTrackingState state) {
+  static String _subtitle(AppLocalizations l10n, LocationTrackingState state) {
     if (state.status != LocationTrackingStatus.active) {
-      return 'Your position is not being shared with the office.';
+      return l10n.locationNotShared;
     }
 
-    final pending = state.pendingCount > 0
-        ? ' · ${state.pendingCount} waiting to send'
-        : '';
+    final parts = <String>[
+      l10n.locationSharingOnBody,
+      l10n.locationLastSent(formatRelative(state.lastReportedAt)),
+      // Serbian inflects this by count, so it is a plural message rather than
+      // a number glued to a noun.
+      if (state.pendingCount > 0) l10n.locationPending(state.pendingCount),
+    ];
 
-    return 'Your position is sent to the office every minute while you are '
-        'signed in. Last sent ${formatRelative(state.lastReportedAt)}$pending.';
+    return parts.join(' ');
   }
 
   static Future<void> _resolve(WidgetRef ref, LocationTrackingStatus status) async {

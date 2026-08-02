@@ -1,0 +1,25 @@
+# Copy to android/key.properties to sign release builds with the real key.
+#
+#   cp android/key.properties.example android/key.properties
+#
+# key.properties and the keystore it points at are git-ignored. Without this
+# file, release builds are signed with the debug key: they install and run, but
+# Play will reject the upload — which is the intended failure, since a build
+# signed with the wrong key must never reach users.
+#
+# Generate the keystore once, for the life of the app:
+#
+#   keytool -genkey -v -keystore ~/stas-organizer-upload.jks \
+#     -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+#
+# Then back it up. If this keystore is lost, the app on Play can never be
+# updated again — Google will not accept a rebuild signed with a different key,
+# and the only remedy is publishing a new listing and asking every user to
+# reinstall. Store it in the organisation's password manager alongside the
+# passwords below, not on a single laptop.
+
+# Absolute path, or relative to the android/ directory.
+storeFile=/absolute/path/to/stas-organizer-upload.jks
+storePassword=
+keyAlias=upload
+keyPassword=

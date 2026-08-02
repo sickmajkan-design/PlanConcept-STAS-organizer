@@ -884,6 +884,42 @@ abstract class AppLocalizations {
   /// **'Queued — {reason}'**
   String locationQueued(String reason);
 
+  /// No description provided for @locationServiceNotificationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing your location'**
+  String get locationServiceNotificationTitle;
+
+  /// No description provided for @locationServiceNotificationBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The office can see which site you are on. Sign out to stop.'**
+  String get locationServiceNotificationBody;
+
+  /// No description provided for @locationServiceChannelName.
+  ///
+  /// In en, this message translates to:
+  /// **'Location sharing'**
+  String get locationServiceChannelName;
+
+  /// No description provided for @locationPending.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Everything sent} one{{count} reading waiting to be sent} other{{count} readings waiting to be sent}}'**
+  String locationPending(int count);
+
+  /// No description provided for @locationLastSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Last sent {when}.'**
+  String locationLastSent(String when);
+
+  /// No description provided for @locationOpenAppSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open app settings'**
+  String get locationOpenAppSettings;
+
   /// No description provided for @roleSuperAdmin.
   ///
   /// In en, this message translates to:

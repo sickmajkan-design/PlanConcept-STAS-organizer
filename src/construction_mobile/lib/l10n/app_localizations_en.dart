@@ -431,6 +431,36 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get locationServiceNotificationTitle => 'Sharing your location';
+
+  @override
+  String get locationServiceNotificationBody =>
+      'The office can see which site you are on. Sign out to stop.';
+
+  @override
+  String get locationServiceChannelName => 'Location sharing';
+
+  @override
+  String locationPending(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count readings waiting to be sent',
+      one: '$count reading waiting to be sent',
+      zero: 'Everything sent',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String locationLastSent(String when) {
+    return 'Last sent $when.';
+  }
+
+  @override
+  String get locationOpenAppSettings => 'Open app settings';
+
+  @override
   String get roleSuperAdmin => 'Super Admin';
 
   @override

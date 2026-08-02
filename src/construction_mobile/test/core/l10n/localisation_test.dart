@@ -69,6 +69,19 @@ void main() {
           'Sent For Calibration');
     });
 
+    test('inflect the queue count through all three Serbian plural forms', () {
+      // English has two forms and Serbian has three, so a count glued to a
+      // noun reads as broken Serbian for most numbers. These are the
+      // boundaries that catch it: 21 takes the same form as 1, and 5 does
+      // not take the same form as 2.
+      expect(sr.locationPending(1), contains('očitavanje čeka'));
+      expect(sr.locationPending(21), contains('očitavanje čeka'));
+      expect(sr.locationPending(3), contains('očitavanja čekaju'));
+      expect(sr.locationPending(22), contains('očitavanja čekaju'));
+      expect(sr.locationPending(5), contains('očitavanja čeka'));
+      expect(sr.locationPending(0), 'Sve je poslato');
+    });
+
     test('resolve controller messages in the chosen language', () {
       expect(AppMessage.locationNoFix.resolve(sr), sr.locationNoFix);
       expect(AppMessage.locationNoFix.resolve(en), en.locationNoFix);

@@ -57,15 +57,17 @@ Ordering is not "by value" but **by dependency, then value**. Three rules:
 
 ---
 
-## Faza 0 — Popravi polomljeno / Fix what is broken
+## Faza 0 — Popravi polomljeno / Fix what is broken — **ODRAĐENO / DONE**
 
-**Nema novih funkcija. / No new features.**
+**Nema novih funkcija. / No new features.** Detalji koraka koje mora uraditi
+vlasnik: `PROVISIONING.md`. / Owner-only steps: see `PROVISIONING.md`.
 
-| Stavka / Item | Problem | Posao / Work |
+| Stavka / Item | Problem | Stanje / State |
 |---|---|---|
-| GPS u pozadini / Background GPS | Lokacija se šalje samo dok je aplikacija na ekranu (`location_tracking_controller.dart:105`). Za praćenje na terenu neupotrebljivo. | Foreground service (Android) + background location (iOS), red za slanje, dozvole, baterija |
-| Push / Firebase | Kod postoji, projekat nije provizioniran — nijedna notifikacija ne izlazi. | FCM projekat, `google-services.json`, APNs ključ, end-to-end provera |
-| Potpisivanje Android builda / Android signing | Nema release keystore-a. | Keystore, `key.properties` van repozitorijuma, CI korak |
+| GPS u pozadini / Background GPS | Lokacija se slala samo dok je aplikacija na ekranu — tajmer prestaje da radi čim aplikacija ode u pozadinu. | **Odrađeno.** Position stream uz Android foreground servis i Apple background updates. Ne pokriva slučaj kada korisnik ručno ukloni aplikaciju — vidi `PROVISIONING.md` §3. |
+| Red za slanje / Send queue | Bafer je bio samo u memoriji: sve uhvaćeno tokom nestanka mreže gubilo se kad Android povrati proces. | **Odrađeno.** Trajni red, ograničen na jedan batch i 12 sati starosti. |
+| Push / Firebase | Kod postoji, projekat nije provizioniran. | **Kod i konfiguracija odrađeni** (Gradle plugin uslovno, `Firebase__CredentialsJson` kroz compose). Sam Firebase projekat mora napraviti vlasnik. |
+| Potpisivanje Android builda / Android signing | Nije bilo release keystore-a. | **Odrađeno** — čita se iz `android/key.properties` van repozitorijuma, uz pad na debug ključ da build i dalje prolazi. Keystore pravi vlasnik. |
 
 **Zašto prvo / Why first:** ovo su jedine dve funkcije koje *tvrdimo* da imamo a
 ne rade. Sve dalje na listi (podsetnici o isteku dokumenata, dodela zadatka,

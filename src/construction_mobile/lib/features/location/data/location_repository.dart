@@ -12,6 +12,35 @@ class LocationPing {
     this.accuracy,
   });
 
+  /// Rebuilds a ping the app stored while it had no coverage.
+  ///
+  /// Throws [FormatException] on anything it does not recognise, so a payload
+  /// left behind by an older build is discarded rather than half-read.
+  factory LocationPing.fromJson(Map<String, dynamic> json) {
+    final latitude = json['latitude'];
+    final longitude = json['longitude'];
+    final timestamp = json['timestamp'];
+
+    if (latitude is! num || longitude is! num || timestamp is! String) {
+      throw const FormatException('Unrecognised stored location ping');
+    }
+
+    final parsed = DateTime.tryParse(timestamp);
+
+    if (parsed == null) {
+      throw const FormatException('Unrecognised stored location timestamp');
+    }
+
+    final accuracy = json['accuracy'];
+
+    return LocationPing(
+      latitude: latitude.toDouble(),
+      longitude: longitude.toDouble(),
+      accuracy: accuracy is num ? accuracy.toDouble() : null,
+      timestamp: parsed.toUtc(),
+    );
+  }
+
   final double latitude;
   final double longitude;
   final double? accuracy;

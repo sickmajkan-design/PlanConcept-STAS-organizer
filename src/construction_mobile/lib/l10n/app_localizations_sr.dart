@@ -423,6 +423,37 @@ class AppLocalizationsSr extends AppLocalizations {
   }
 
   @override
+  String get locationServiceNotificationTitle => 'Deljenje lokacije je u toku';
+
+  @override
+  String get locationServiceNotificationBody =>
+      'Kancelarija vidi na kom ste gradilištu. Odjavite se da prekinete.';
+
+  @override
+  String get locationServiceChannelName => 'Deljenje lokacije';
+
+  @override
+  String locationPending(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count očitavanja čeka slanje',
+      few: '$count očitavanja čekaju slanje',
+      one: '$count očitavanje čeka slanje',
+      zero: 'Sve je poslato',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String locationLastSent(String when) {
+    return 'Poslednji put poslato $when.';
+  }
+
+  @override
+  String get locationOpenAppSettings => 'Otvori podešavanja aplikacije';
+
+  @override
   String get roleSuperAdmin => 'Super administrator';
 
   @override

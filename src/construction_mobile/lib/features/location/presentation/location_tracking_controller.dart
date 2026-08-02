@@ -3,10 +3,14 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
-import '../../../core/config/app_config.dart';
+import '../../../core/l10n/app_locales.dart';
 import '../../../core/l10n/app_message.dart';
+import '../../../core/l10n/locale_controller.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../data/background_location_settings.dart';
+import '../data/location_queue.dart';
 import '../data/location_repository.dart';
 
 enum LocationTrackingStatus {
@@ -38,6 +42,7 @@ class LocationTrackingState {
 
   /// Fixes captured but not yet accepted by the server (poor coverage).
   final int pendingCount;
+
   /// A translatable app message; resolved by the widget that shows it.
   final AppMessage? message;
 
@@ -66,25 +71,27 @@ class LocationTrackingState {
   }
 }
 
-/// Reports the device position to the API once a minute while an
-/// employee-linked account is signed in.
+/// Reports the device position to the API while an employee-linked account is
+/// signed in, including with the app off screen.
 ///
-/// Fixes that cannot be delivered (no coverage on site) are buffered and sent
-/// in the next batch, which is why the API accepts batches at all. The buffer
-/// is capped at one batch so a long outage cannot grow it without bound.
+/// The platform, not a timer, drives capture: [backgroundLocationSettings]
+/// attaches the stream to an Android foreground service or Apple background
+/// location updates, so a phone in a pocket keeps reporting. A timer could
+/// not — the framework stops servicing timers the moment the app is
+/// backgrounded, which is the state a site worker's phone spends the day in.
+///
+/// Fixes that cannot be delivered (no coverage on site) go to [LocationQueue],
+/// which survives the process being reclaimed mid-shift, and are sent in the
+/// next batch — which is why the API accepts batches at all.
 class LocationTrackingController extends Notifier<LocationTrackingState> {
-  Timer? _timer;
-  final List<LocationPing> _buffer = <LocationPing>[];
+  StreamSubscription<Position>? _subscription;
   bool _busy = false;
 
   @override
   LocationTrackingState build() {
     final user = ref.watch(currentUserProvider);
 
-    ref.onDispose(() {
-      _timer?.cancel();
-      _timer = null;
-    });
+    ref.onDispose(_stopStream);
 
     // Admin accounts are not linked to an employee; the API would reject
     // their pings with 403, so the app does not ask for location at all.
@@ -97,26 +104,67 @@ class LocationTrackingController extends Notifier<LocationTrackingState> {
   }
 
   Future<void> _start() async {
+    final queue = ref.read(locationQueueProvider);
+
+    // Anything the previous run captured but could not deliver.
+    await queue.restore();
+
     final permission = await _ensurePermission();
 
     if (permission != LocationTrackingStatus.active) {
-      state = state.copyWith(status: permission);
+      state = state.copyWith(
+        status: permission,
+        pendingCount: queue.length,
+      );
       return;
     }
 
     state = state.copyWith(
       status: LocationTrackingStatus.active,
+      pendingCount: queue.length,
       clearMessage: true,
     );
 
-    _timer?.cancel();
-    _timer = Timer.periodic(AppConfig.locationReportInterval, (_) => _tick());
+    await _listen();
 
-    await _tick();
+    // A queue carried over from the last run should not wait for the first
+    // fix of this one, which may be minutes away.
+    if (!queue.isEmpty) {
+      await _flush();
+    }
   }
 
   /// Re-runs the permission flow, e.g. after the user returns from settings.
   Future<void> retry() => _start();
+
+  Future<void> _listen() async {
+    _stopStream();
+
+    // The service notification is text the worker reads all day, so it is
+    // resolved in the language they picked rather than the build's default.
+    final l10n = await _localisations();
+
+    _subscription = Geolocator.getPositionStream(
+      locationSettings: backgroundLocationSettings(l10n),
+    ).listen(
+      _onPosition,
+      onError: _onStreamError,
+      cancelOnError: false,
+    );
+  }
+
+  Future<AppLocalizations> _localisations() async {
+    final selected = await ref.read(localeControllerProvider.future);
+
+    return AppLocalizations.delegate.load(
+      resolveLocale(selected, supportedLocales),
+    );
+  }
+
+  void _stopStream() {
+    _subscription?.cancel();
+    _subscription = null;
+  }
 
   Future<LocationTrackingStatus> _ensurePermission() async {
     try {
@@ -143,88 +191,78 @@ class LocationTrackingController extends Notifier<LocationTrackingState> {
     }
   }
 
-  Future<void> _tick() async {
+  Future<void> _onPosition(Position position) async {
+    await ref.read(locationQueueProvider).add(
+          LocationPing(
+            latitude: position.latitude,
+            longitude: position.longitude,
+            accuracy: position.accuracy,
+            timestamp: position.timestamp.toUtc(),
+          ),
+        );
+
+    state = state.copyWith(
+      status: LocationTrackingStatus.active,
+      pendingCount: ref.read(locationQueueProvider).length,
+      clearMessage: true,
+    );
+
+    await _flush();
+  }
+
+  void _onStreamError(Object error) {
+    // A dropped fix is not a dropped stream: the platform keeps trying, so
+    // the subscription stays and only the surfaced message changes.
+    state = state.copyWith(
+      message: error is TimeoutException
+          ? AppMessage.locationNoFix
+          : AppMessage.locationReadFailed,
+    );
+  }
+
+  Future<void> _flush() async {
     if (_busy) {
+      return;
+    }
+
+    final queue = ref.read(locationQueueProvider);
+
+    if (queue.isEmpty) {
       return;
     }
 
     _busy = true;
 
     try {
-      await _capture();
-      await _flush();
-    } finally {
-      _busy = false;
-    }
-  }
+      final batch = queue.pending;
 
-  Future<void> _capture() async {
-    try {
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 30),
-        ),
-      );
-
-      _buffer.add(
-        LocationPing(
-          latitude: position.latitude,
-          longitude: position.longitude,
-          accuracy: position.accuracy,
-          timestamp: position.timestamp.toUtc(),
-        ),
-      );
-
-      // Keep only the newest batch; older fixes lose their value quickly.
-      if (_buffer.length > LocationRepository.maxBatchSize) {
-        _buffer.removeRange(0, _buffer.length - LocationRepository.maxBatchSize);
-      }
-
-      state = state.copyWith(pendingCount: _buffer.length, clearMessage: true);
-    } on TimeoutException {
-      state = state.copyWith(message: AppMessage.locationNoFix);
-    } catch (error) {
-      state = state.copyWith(
-        status: LocationTrackingStatus.error,
-        message: AppMessage.locationReadFailed,
-      );
-    }
-  }
-
-  Future<void> _flush() async {
-    if (_buffer.isEmpty) {
-      return;
-    }
-
-    final batch = List<LocationPing>.unmodifiable(_buffer);
-
-    try {
       await ref.read(locationRepositoryProvider).report(batch);
 
       // Only drop what was actually accepted; anything captured meanwhile
       // stays queued for the next batch.
-      _buffer.removeRange(0, batch.length);
+      await queue.acknowledge(batch.length);
 
       state = state.copyWith(
         status: LocationTrackingStatus.active,
         lastReportedAt: DateTime.now().toUtc(),
-        pendingCount: _buffer.length,
+        pendingCount: queue.length,
         clearMessage: true,
       );
     } on ApiException catch (exception) {
       // 403 means this account may not report at all — stop trying.
       if (exception.statusCode == 403) {
-        _timer?.cancel();
-        _buffer.clear();
+        _stopStream();
+        await queue.clear();
         state = const LocationTrackingState(status: LocationTrackingStatus.off);
         return;
       }
 
       state = state.copyWith(
-        pendingCount: _buffer.length,
+        pendingCount: queue.length,
         queuedReason: exception.message,
       );
+    } finally {
+      _busy = false;
     }
   }
 }

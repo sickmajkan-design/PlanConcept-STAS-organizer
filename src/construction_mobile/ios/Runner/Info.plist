@@ -68,8 +68,17 @@
 	</array>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Your position is shared with the office while you are signed in, so your team can see who is on which site.</string>
+	<!-- Reporting has to continue with the phone in a pocket, which geolocator
+	     serves on iOS only under "Always" authorisation. The presence of this
+	     key is what makes the plugin ask for it, so it is deliberate rather
+	     than boilerplate. The blue status-bar indicator stays on throughout,
+	     so background tracking is never invisible to the person carrying the
+	     phone. -->
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Your position is shared with the office while you are signed in, including when the app is in your pocket, so your team can see who is on which site.</string>
 	<key>UIBackgroundModes</key>
 	<array>
+		<string>location</string>
 		<string>remote-notification</string>
 	</array>
 </dict>

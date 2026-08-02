@@ -334,25 +334,62 @@ enters this path: users never receive resets, and anyone with log access can
 take over any account.
 *Fix: validate email configuration at startup in non-development; never log the body.*
 
-**C3. GPS tracking does not run in the background.**
-`location_tracking_controller.dart:105` uses `Timer.periodic` in the Flutter
-isolate. Android throttles and then kills it; iOS suspends it. There is no
-`ACCESS_BACKGROUND_LOCATION` permission, no foreground service, no
-`NSLocationAlwaysUsageDescription`. The feature works in a demo with the app
-open and records almost nothing once a phone is pocketed or locked — which is
-the entire real-world use case. The offline buffer is also in-memory only, so
-a killed app loses it.
-*This is a functional gap in the headline feature, not a polish item.*
+**C3. GPS tracking does not run in the background.** — **MOSTLY CLOSED**
+`location_tracking_controller.dart:105` used `Timer.periodic` in the Flutter
+isolate. Android throttles and then kills it; iOS suspends it. There was no
+foreground service and no `NSLocationAlwaysUsageDescription`. The feature
+worked in a demo with the app open and recorded almost nothing once a phone
+was pocketed or locked — which is the entire real-world use case. The offline
+buffer was also in-memory only, so a killed app lost it.
 
-**C4. Android release builds are signed with the debug key.**
-`android/app/build.gradle.kts:29-33`. Cannot be uploaded to the Play Store.
-No keystore, no signing procedure, no CI signing.
+*Fixed:* capture is now a `getPositionStream` driven by
+`backgroundLocationSettings` — a location-typed Android foreground service
+with a wake lock and an undismissable bilingual notification, and Apple
+background location updates with the status-bar indicator on. The buffer moved
+to `LocationQueue`, which persists to the platform keystore and survives the
+process being reclaimed. Pinned by 18 tests; the foreground-service assertions
+were mutation-checked (removing the config fails three of them).
 
-**C5. Push notifications cannot work — no Firebase configuration exists.**
-No `google-services.json`, no `GoogleService-Info.plist`, and
-`FirebaseSettings` is bound without validation. The entire notifications
-module — backend, mobile and admin — is currently inert in any real
-deployment, and fails silently.
+*Residual:* geolocator's foreground service is tied to the activity, so
+tracking still stops if the user swipes the app away or reboots the phone.
+Queued fixes survive both and go out on next launch. Closing that needs a
+background-service package running a second Flutter engine — a new dependency,
+deliberately deferred. Recorded in `PROVISIONING.md` §3.
+
+**C4. Android release builds are signed with the debug key.** — **CLOSED**
+`android/app/build.gradle.kts` now reads signing credentials from a git-ignored
+`android/key.properties`, validating that every field and the keystore itself
+are present before configuring. It still falls back to the debug key when the
+file is absent, so a fresh clone and CI can build — and a debug-signed artefact
+fails at Play upload rather than shipping silently. Keystore creation is the
+owner's step (`PROVISIONING.md` §2).
+
+*Not build-verified:* this environment has no Android SDK and the egress policy
+blocks `dl.google.com`, so the Android Gradle Plugin cannot resolve. The Kotlin
+DSL changes need a build on a machine with the SDK before being relied on.
+
+**C5. Push notifications cannot work — no Firebase configuration exists.** —
+**CODE CLOSED, PROVISIONING OUTSTANDING**
+There was no route by which credentials could reach either side: the Google
+Services Gradle plugin was never declared, and `Firebase__CredentialsJson`
+was not plumbed through compose, so even an operator holding a service account
+had nowhere to put it.
+
+*Fixed:* the Gradle plugin is declared in `settings.gradle.kts` and applied by
+`app/build.gradle.kts` only when `google-services.json` exists — present means
+Firebase, absent means a warning and a working build, so CI and fresh clones
+are unaffected. Credentials now flow through `FIREBASE_CREDENTIALS_JSON` in
+compose and `.env.example`. Both config files are git-ignored on Android and
+iOS.
+
+*Not fixed, by design:* no background message handler was added. The API sends
+an FCM `Notification` payload, which the platform displays itself; a handler
+would be dead code.
+
+*Outstanding:* the Firebase project, `google-services.json`, the APNs key and
+the service account are the owner's steps (`PROVISIONING.md` §1). Until then
+the mobile app reports `unconfigured` and the API logs pushes instead of
+sending them — visibly, not silently.
 
 **C6. No backup or restore procedure.**
 Nothing is backed up; nothing has been restored. Highest-probability

@@ -6,7 +6,21 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 
-    <!-- Push notifications (runtime permission from Android 13). -->
+    <!-- Reporting continues with the phone in a pocket, which needs a
+         foreground service. Deliberately NOT ACCESS_BACKGROUND_LOCATION:
+         while a location-typed foreground service runs, Android treats the
+         app as in use, so the ordinary permission is enough. That keeps the
+         app out of Play's background-location review, and it keeps the
+         promise the notification makes — no tracking without a visible sign
+         of it. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
+
+    <!-- Held while a fix is being taken, so dozing cannot cut it short. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+
+    <!-- Push notifications, and the service notification above
+         (runtime permission from Android 13). -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application

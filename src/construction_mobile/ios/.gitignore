@@ -32,3 +32,7 @@ Runner/GeneratedPluginRegistrant.*
 !default.mode2v3
 !default.pbxuser
 !default.perspectivev3
+
+# Firebase credentials belong to the organisation deploying the app.
+# See docs/PROVISIONING.md.
+Runner/GoogleService-Info.plist

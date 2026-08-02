@@ -40,6 +40,11 @@ services:
       # Empty means "trust no proxy", which is correct when the API is reached
       # directly. Set it to the proxy address when running behind one.
       Network__TrustedProxies: ${TRUSTED_PROXIES:-}
+      # Service-account JSON for Firebase Cloud Messaging, passed inline rather
+      # than as a mounted path so no credential file has to exist on the host.
+      # Empty means push is logged instead of sent, which is what every
+      # environment without a Firebase project should do.
+      Firebase__CredentialsJson: ${FIREBASE_CREDENTIALS_JSON:-}
     ports:
       - "8080:8080"
 

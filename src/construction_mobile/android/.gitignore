@@ -12,3 +12,9 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# Firebase credentials belong to the organisation deploying the app, not to
+# the repository. app/build.gradle.kts applies the Google Services plugin only
+# when this file is present.
+google-services.json
+app/google-services.json
