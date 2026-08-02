@@ -27,8 +27,8 @@ because they are invisible from the demo that has been shown to the client:
    published to the Play Store at all.
 
 Alongside those: the admin panel (7,000 lines, the client's primary interface)
-has **zero automated tests in the repository**, and the app is **English-only**
-while the intended users are Bosnian/Croatian-speaking site workers.
+has **zero automated tests in the repository**. *(The English-only finding
+below is now closed — both apps ship Serbian and English, Serbian by default.)*
 
 **Maturity: ~65%.** A strong Phase 1 build. Roughly 6–8 weeks of focused work
 from a defensible 1.0.
@@ -90,7 +90,7 @@ GoRouter with `StatefulShellRoute`, Dio with single-flight token refresh,
 correctly done, unlike the web app.
 
 **Issues:** covered under Critical (background tracking, signing, Firebase) and
-in Medium (no i18n, no offline cache).
+in Medium (no offline cache). Localisation is done — see H9.
 
 ---
 
@@ -302,8 +302,8 @@ Beyond code, nothing exists for:
   erasure path (soft delete keeps everything), and no way for a worker to see
   what is held about them. **This is a legal precondition to go-live, not a
   feature**, and it needs the client's counsel, not just engineering.
-- **Localisation.** English only. The intended users are Bosnian/Croatian-speaking
-  site workers and foremen. This is likely the largest single adoption risk.
+- ~~**Localisation.** English only.~~ **Closed.** Both apps are bilingual —
+  Serbian (Latin, ekavian) and English — and default to Serbian.
 - **User documentation.** No admin guide, no worker onboarding, no support runbook.
 - **App store presence.** No store listings, screenshots, privacy declarations
   or review process started. Play Store data-safety disclosure for background
@@ -396,10 +396,21 @@ password verification for unknown emails, making them measurably faster).
 **H8. API versioning** (`/api/v1/…`). Cheap now; a breaking change against
 installed mobile apps is very expensive later.
 
-**H9. Localisation (bs/hr).** Almost certainly the biggest adoption risk with
-actual site crews. Needs to happen before the app reaches workers, and
-retrofitting i18n across 13,500 lines of client code is far more expensive
-than doing it deliberately.
+**H9. Localisation. — DONE.** Both apps ship Serbian and English and default
+to Serbian; an unknown device language falls back to Serbian rather than
+English, since a neighbouring language is far likelier here than an English
+reader. The admin panel uses a typed dictionary with `Intl.PluralRules`, the
+mobile app Flutter's own gen-l10n; neither added a third-party package.
+
+Translating surfaced a modelling gap worth recording: `StatusChip` in both
+apps was passing a bare status value, but the same API value inflects
+differently per entity in Serbian — a vehicle is "slobodno", a tool
+"slobodan". One English word had been standing in for two. Both apps now
+require the enum kind, and it is asserted by tests.
+
+Still English: text the **API** produces — validation details, conflict
+messages. Translating those is an API-side decision (an `Accept-Language`
+contract) and is not done.
 
 **H10. Deployment pipeline and a staging environment.** Build and publish
 images, deploy automatically, and have somewhere to verify a release that is
@@ -517,7 +528,7 @@ boundary is asserted by a test.
 - C7 privacy notice, lawful basis, DPIA, retention policy, subject-access and
   erasure paths — with the client's legal counsel
 - H5 implement the retention decision (partitioning/pruning)
-- H9 localisation to Bosnian/Croatian
+- ~~H9 localisation~~ — done
 - H11 decide and enforce resource-scoped authorization
 - User documentation and a support runbook
 

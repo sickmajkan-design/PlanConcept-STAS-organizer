@@ -297,6 +297,33 @@ demoted.
 The admin panel mirrors these rules to disable buttons it knows will fail, but
 the API enforces them regardless of what the UI does.
 
+### Bilingual clients
+
+Both clients ship Serbian (Latin, ekavian) and English and default to Serbian:
+an unknown device language in this region is far likelier to be a neighbouring
+one than to mean the person reads English. Neither app took a third-party
+package — the admin panel uses a typed dictionary with `Intl.PluralRules`, the
+mobile app Flutter's own gen-l10n.
+
+The dictionaries are typed so a missing translation is a build failure rather
+than English appearing in front of a customer: `en.ts` is the source of keys
+and `sr.ts` is a complete `Record<MessageKey, Message>`.
+
+Translating exposed a modelling gap that English had concealed. `StatusChip`
+took a bare status value, but the same API value inflects differently per
+entity in Serbian — a vehicle is "slobodno", a tool "slobodan", while English
+says "Available" for both. Both apps now require the enum *kind* alongside the
+value. The compiler located every call site.
+
+The mobile controllers hold an `AppMessage` rather than a finished sentence,
+because they have no `BuildContext` and cannot translate. Resolving in the
+widget also means a message already in state re-reads correctly when the
+language changes instead of keeping the language it was created in.
+
+Text the **API** produces — validation details, conflict messages — is still
+English wherever it reaches the screen. Translating it means an
+`Accept-Language` contract on the API, which is a separate decision.
+
 ### Known limits, not fixed
 
 - **`location_records` grows without bound.** One ping per employee per minute
