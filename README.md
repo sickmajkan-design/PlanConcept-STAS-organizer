@@ -18,14 +18,20 @@ database design and module status.
 ## Run with Docker
 
 ```bash
+cp .env.example .env      # required: compose has no built-in secrets
 docker compose up --build
 ```
 
 API: http://localhost:8080 — Swagger UI at `/swagger` (Development only),
 health check at `/health`.
 
-Default development credentials (Development environment only):
-`admin@construction.local` / `Admin123!`
+`.env.example` carries local development values only, and signing in with them
+gives you `admin@construction.local` / `Admin123!`. Compose deliberately has no
+fallback for `JWT_SECRET_KEY`, `SUPERADMIN_PASSWORD` or `POSTGRES_PASSWORD` —
+it fails to start rather than come up with a known signing key and a known
+admin password. Generate real values per environment
+(`openssl rand -base64 48`) and see [`docs/SECURITY.md`](docs/SECURITY.md)
+before deploying anywhere shared.
 
 ## Run locally
 

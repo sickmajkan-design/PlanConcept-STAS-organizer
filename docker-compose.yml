@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_DB: construction
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?copy .env.example to .env first}
     ports:
       - "5432:5432"
     volumes:
@@ -24,13 +24,22 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    # Every secret below uses `:?` rather than a default on purpose. A default
+    # that works is a default that ships: with fallbacks here, `docker compose
+    # up` produced a running system with a publicly known JWT signing key and a
+    # known Super Admin password. Compose now refuses to start until they are
+    # set, and `.env.example` makes that one copy away for local development.
     environment:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
-      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=construction;Username=postgres;Password=${POSTGRES_PASSWORD:-postgres}"
-      JwtSettings__SecretKey: ${JWT_SECRET_KEY:-dev-only-secret-key-change-me-0123456789abcdef}
-      Seed__SuperAdmin__Email: ${SUPERADMIN_EMAIL:-admin@construction.local}
-      Seed__SuperAdmin__Password: ${SUPERADMIN_PASSWORD:-Admin123!}
-      Database__ApplyMigrationsOnStartup: "true"
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=construction;Username=postgres;Password=${POSTGRES_PASSWORD:?copy .env.example to .env first}"
+      JwtSettings__SecretKey: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY to at least 32 random characters}
+      Seed__SuperAdmin__Email: ${SUPERADMIN_EMAIL:?set SUPERADMIN_EMAIL}
+      Seed__SuperAdmin__Password: ${SUPERADMIN_PASSWORD:?set SUPERADMIN_PASSWORD}
+      # Off unless asked for: concurrent replicas would race to migrate.
+      Database__ApplyMigrationsOnStartup: ${APPLY_MIGRATIONS_ON_STARTUP:-false}
+      # Empty means "trust no proxy", which is correct when the API is reached
+      # directly. Set it to the proxy address when running behind one.
+      Network__TrustedProxies: ${TRUSTED_PROXIES:-}
     ports:
       - "8080:8080"
 
