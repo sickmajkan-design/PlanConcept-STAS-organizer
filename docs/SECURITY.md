@@ -166,13 +166,41 @@ These were considered and **not** changed. Each is a decision, not an oversight.
 | **Access token stays valid up to 15 minutes after deactivation** | Inherent to stateless JWTs. A revocation list would trade a database read per request for it; 15 minutes is an acceptable window at this scale. |
 | **`AllowedHosts: "*"`** | Host filtering belongs at the reverse proxy for this deployment shape. Listed in the checklist below instead. |
 
-## Not a vulnerability, but security-relevant
+## Offboarding — closed
 
-**There is no user-management endpoint.** Accounts exist only via seeding —
-there is no API to create, deactivate or change the role of a user. An
-offboarded employee cannot be deprovisioned through the application, only by
-direct database access. This is a functionality gap with a security
-consequence, and it should be built before real staff are onboarded.
+This review originally recorded that accounts existed only via seeding, so a
+departing employee could not be deprovisioned except through direct database
+access. `/api/users` now covers it, and deactivation is a real revocation
+rather than a flag:
+
+| Step | Why it is part of offboarding |
+|---|---|
+| `IsActive = false` | Blocks sign-in. |
+| Every active refresh token revoked | The refresh token is what outlives the 15-minute access token. Without this, "offboarded" would mean nothing for another seven days. |
+| Outstanding password-reset tokens marked used | A link already sitting in their inbox must not become a way back in. |
+| Device registrations deleted | Push is delivered to a device, not through an access check, so a leftover registration keeps sending project notifications to someone who has left. |
+
+Verified end to end against a running instance: after deactivation, sign-in and
+refresh both return 401, the device-token row is gone, and no active refresh
+token remains.
+
+**Residual, by design.** An access token already issued stays valid until it
+expires — measured at up to 15 minutes. This is inherent to stateless JWTs;
+removing it means a revocation check per request. For a same-day departure
+where minutes matter, revoke at the proxy or shorten
+`JwtSettings:AccessTokenLifetimeMinutes`.
+
+**Privilege escalation is bounded by rank.** `RoleAdministration` allows acting
+only strictly below your own role, with Super Admin able to act on peers so a
+compromised Super Admin can still be removed. Verified live: an Admin creating
+a Super Admin or another Admin is refused with 403, while Project Manager,
+Foreman and Worker succeed; an Admin deactivating a Super Admin is refused; a
+Worker cannot reach the endpoints at all. The full role matrix is asserted
+exhaustively in `RoleAdministrationTests`.
+
+**Two lockout protections.** Nobody can deactivate their own account, and the
+last active Super Admin cannot be deactivated or demoted — otherwise an
+administrator can lock everyone out and the only repair is database access.
 
 ---
 
@@ -213,7 +241,7 @@ consequence, and it should be built before real staff are onboarded.
 - [ ] Log aggregation with alerting on the 5xx rate and on repeated lockouts
 - [ ] Secret rotation procedure written down, including what breaks when the JWT key rotates (all sessions)
 - [ ] GDPR obligations for continuous location tracking addressed — lawful basis, privacy notice, retention limit, erasure path (see the readiness audit)
-- [ ] Offboarding procedure — currently requires database access, see above
+- [ ] Offboarding procedure written down: deactivate in **User accounts**, which revokes sessions, reset links and device registrations (an already-issued access token still lasts up to 15 minutes)
 
 ---
 
@@ -228,6 +256,10 @@ consequence, and it should be built before real staff are onboarded.
 | LIKE wildcard escaping, including escape ordering | `SearchPatternTests` |
 | Empty proxy configuration yields no trusted proxy; invalid entries fail loudly | `TrustedProxyConfigurationTests` |
 | Refresh rotation, reuse detection, session revocation | `AuthenticationTests` |
+| The role matrix for who may administer whom | `RoleAdministrationTests` |
+| Offboarding revokes sessions, reset links and device tokens | `UserManagementTests` |
+| Self-deactivation and last-Super-Admin protection | `UserManagementTests` |
+| A role change ends sessions carrying the old role | `UserManagementTests` |
 
 The pipeline-level controls — rate limiting, the security headers, and the
 forwarded-header decision — have **no automated coverage**, because the

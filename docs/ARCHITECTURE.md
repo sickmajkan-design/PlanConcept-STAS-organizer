@@ -271,6 +271,32 @@ because `createCrudApi` forwards the whole typed query object, adding a filter
 now means adding one field to an interface instead of editing an interface and
 a parallel parameter list that could silently disagree with it.
 
+### Account administration
+
+`/api/users` owns the account lifecycle. Two decisions in it are worth stating,
+because both are security properties rather than conveniences.
+
+**Deactivation is a revocation, not a flag.** Setting `IsActive = false` alone
+would leave a refresh token working for its remaining seven days and a device
+registration delivering push indefinitely, because push goes to a device rather
+than through an access check. The handler therefore also revokes every active
+refresh token, marks outstanding password-reset tokens used, and deletes the
+device registrations. An access token already issued still lives out its
+15 minutes — inherent to stateless JWTs, and documented rather than papered
+over.
+
+**Rank, not just role, decides who may act.** The controller policy admits
+Admin and above; `RoleAdministration` then allows acting only strictly below
+your own role, with Super Admin able to act on peers so that a compromised
+Super Admin can still be removed. Without the second check any Admin could mint
+another Admin — or a Super Admin — and the role hierarchy would be decorative.
+Two lockout protections sit alongside it: nobody may deactivate their own
+account, and the last active Super Admin may be neither deactivated nor
+demoted.
+
+The admin panel mirrors these rules to disable buttons it knows will fail, but
+the API enforces them regardless of what the UI does.
+
 ### Known limits, not fixed
 
 - **`location_records` grows without bound.** One ping per employee per minute
