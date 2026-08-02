@@ -6,7 +6,6 @@ using Construction.Application;
 using Construction.Application.Common.Interfaces;
 using Construction.Infrastructure;
 using Construction.Infrastructure.Persistence;
-using Microsoft.AspNetCore.HttpOverrides;
 using Serilog;
 
 Log.Logger = new LoggerConfiguration()
@@ -43,17 +42,7 @@ try
     builder.Services.AddSwaggerWithJwt();
     builder.Services.AddAuthRateLimiting();
 
-    // The API runs behind a reverse proxy in every deployment, so the client
-    // address must come from the forwarded headers. Without this, every
-    // refresh-token audit row records the proxy instead of the caller.
-    builder.Services.Configure<ForwardedHeadersOptions>(options =>
-    {
-        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
-        // Cleared because the proxy is not on a known address in a container
-        // network; restrict these in an environment where it is.
-        options.KnownNetworks.Clear();
-        options.KnownProxies.Clear();
-    });
+    builder.Services.AddTrustedProxyForwarding(builder.Configuration);
 
     builder.Services
         .AddHealthChecks()
@@ -73,6 +62,8 @@ try
 
     var app = builder.Build();
 
+    app.ValidateProductionConfiguration();
+
     if (app.Configuration.GetValue<bool>("Database:ApplyMigrationsOnStartup"))
     {
         using var scope = app.Services.CreateScope();
@@ -80,8 +71,11 @@ try
         await initializer.InitializeAsync();
     }
 
-    // Must run before anything reads the client address or scheme.
-    app.UseForwardedHeaders();
+    // Must run before anything reads the client address or scheme — the rate
+    // limiter partitions on it and the refresh-token audit trail records it.
+    app.UseTrustedProxyForwarding();
+
+    app.UseSecurityHeaders();
 
     // Request logging wraps the exception handler, not the other way round.
     // Inside it, Serilog would see every exception before it was translated
