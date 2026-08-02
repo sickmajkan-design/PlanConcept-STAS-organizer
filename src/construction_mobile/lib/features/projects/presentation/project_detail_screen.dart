@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/app_locales.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/failure_view.dart';
 import '../../../core/widgets/info_tile.dart';
+import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../data/models/project.dart';
 import 'projects_controller.dart';
@@ -46,21 +48,21 @@ class ProjectDetailScreen extends ConsumerWidget {
                 ],
                 const SizedBox(height: 20),
                 _Section(
-                  title: 'Details',
+                  title: context.l10n.commonDetails,
                   children: [
                     InfoTile(
                       icon: Icons.business_outlined,
-                      label: 'Client',
+                      label: context.l10n.projectClient,
                       value: project.client,
                     ),
                     InfoTile(
                       icon: Icons.place_outlined,
-                      label: 'Address',
+                      label: context.l10n.employeeAddress,
                       value: project.address,
                     ),
                     InfoTile(
                       icon: Icons.my_location,
-                      label: 'Coordinates',
+                      label: context.l10n.projectCoordinates,
                       value: project.hasCoordinates
                           ? '${project.latitude!.toStringAsFixed(5)}, '
                               '${project.longitude!.toStringAsFixed(5)}'
@@ -68,14 +70,14 @@ class ProjectDetailScreen extends ConsumerWidget {
                     ),
                     InfoTile(
                       icon: Icons.play_circle_outline,
-                      label: 'Start date',
+                      label: context.l10n.projectStartDate,
                       value: project.startDate == null
                           ? null
                           : formatDate(project.startDate),
                     ),
                     InfoTile(
                       icon: Icons.flag_outlined,
-                      label: 'End date',
+                      label: context.l10n.projectEndDate,
                       value: project.endDate == null
                           ? null
                           : formatDate(project.endDate),
@@ -117,7 +119,7 @@ class _Header extends StatelessWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                StatusChip(status: project.status),
+                StatusChip(status: project.status, kind: EnumKind.projectStatus),
                 const SizedBox(width: 12),
                 Icon(
                   Icons.people_outline,
@@ -148,12 +150,12 @@ class _CrewSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (employees.isEmpty) {
-      return const _Section(
+      return _Section(
         title: 'Crew',
         children: [
           ListTile(
             leading: Icon(Icons.person_off_outlined),
-            title: Text('Nobody assigned yet'),
+            title: Text(context.l10n.projectCrewEmpty),
           ),
         ],
       );
@@ -175,7 +177,7 @@ class _CrewSection extends StatelessWidget {
             ),
             title: Text(member.fullName),
             subtitle: Text('${member.position} · ${member.employeeNumber}'),
-            trailing: StatusChip(status: member.status, dense: true),
+            trailing: StatusChip(status: member.status, kind: EnumKind.employeeStatus, dense: true),
             onTap: () =>
                 context.push(AppRoutes.employeeDetail(member.employeeId)),
           ),

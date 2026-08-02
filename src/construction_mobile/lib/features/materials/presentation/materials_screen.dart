@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/app_locales.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/widgets/paged_list_view.dart';
 import '../data/models/material.dart';
@@ -25,7 +26,7 @@ class MaterialsScreen extends ConsumerWidget {
     final state = ref.watch(materialsControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Materials')),
+      appBar: AppBar(title: Text(context.l10n.navMaterials)),
       body: SafeArea(
         child: PagedListView<MaterialItem>(
           state: state,
@@ -34,7 +35,7 @@ class MaterialsScreen extends ConsumerWidget {
           emptyMessage: 'No materials match your search.',
           emptyIcon: Icons.inventory_2_outlined,
           header: ListSearchHeader(
-            hintText: 'Name, warehouse…',
+            hintText: context.l10n.materialsSearchHint,
             onSearchChanged: controller.search,
             filters: const [materialWarehouseOnlyFilter],
             selectedFilter: controller.filter,

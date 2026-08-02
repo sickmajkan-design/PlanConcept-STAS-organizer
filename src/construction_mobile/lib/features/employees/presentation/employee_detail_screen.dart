@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/app_locales.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/failure_view.dart';
 import '../../../core/widgets/info_tile.dart';
+import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../data/models/employee.dart';
 import 'employees_controller.dart';
@@ -39,54 +41,54 @@ class EmployeeDetailScreen extends ConsumerWidget {
                 _Header(employee: employee),
                 const SizedBox(height: 20),
                 _Section(
-                  title: 'Contact',
+                  title: context.l10n.commonContact,
                   children: [
                     InfoTile(
                       icon: Icons.phone_outlined,
-                      label: 'Phone',
+                      label: context.l10n.employeePhone,
                       value: employee.phone,
                     ),
                     InfoTile(
                       icon: Icons.alternate_email,
-                      label: 'Email',
+                      label: context.l10n.authEmail,
                       value: employee.email,
                     ),
                     InfoTile(
                       icon: Icons.home_outlined,
-                      label: 'Address',
+                      label: context.l10n.employeeAddress,
                       value: employee.address,
                     ),
                   ],
                 ),
                 const SizedBox(height: 20),
                 _Section(
-                  title: 'Employment',
+                  title: context.l10n.commonEmployment,
                   children: [
                     InfoTile(
                       icon: Icons.badge_outlined,
-                      label: 'Employee number',
+                      label: context.l10n.employeeNumber,
                       value: employee.employeeNumber,
                     ),
                     InfoTile(
                       icon: Icons.work_outline,
-                      label: 'Position',
+                      label: context.l10n.employeePosition,
                       value: employee.position,
                     ),
                     InfoTile(
                       icon: Icons.event_available_outlined,
-                      label: 'Employed since',
+                      label: context.l10n.employeeEmployedSince,
                       value: formatDate(employee.employmentDate),
                     ),
                     InfoTile(
                       icon: Icons.cake_outlined,
-                      label: 'Date of birth',
+                      label: context.l10n.employeeDateOfBirth,
                       value: employee.dateOfBirth == null
                           ? null
                           : formatDate(employee.dateOfBirth),
                     ),
                     InfoTile(
                       icon: Icons.account_circle_outlined,
-                      label: 'App account',
+                      label: context.l10n.employeeAppAccount,
                       value: employee.hasUserAccount ? 'Yes' : 'No',
                     ),
                   ],
@@ -146,7 +148,7 @@ class _Header extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  StatusChip(status: employee.status),
+                  StatusChip(status: employee.status, kind: EnumKind.employeeStatus),
                 ],
               ),
             ),
@@ -165,12 +167,12 @@ class _ProjectsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (projects.isEmpty) {
-      return const _Section(
-        title: 'Projects',
+      return _Section(
+        title: context.l10n.navProjects,
         children: [
           ListTile(
             leading: Icon(Icons.work_off_outlined),
-            title: Text('Not assigned to any project'),
+            title: Text(context.l10n.toolNotOnProject),
           ),
         ],
       );
@@ -184,7 +186,7 @@ class _ProjectsSection extends StatelessWidget {
             leading: const Icon(Icons.apartment),
             title: Text(assignment.projectName),
             subtitle: Text('Assigned ${formatDate(assignment.assignedAt)}'),
-            trailing: StatusChip(status: assignment.projectStatus, dense: true),
+            trailing: StatusChip(status: assignment.projectStatus, kind: EnumKind.projectStatus, dense: true),
             onTap: () =>
                 context.push(AppRoutes.projectDetail(assignment.projectId)),
           ),

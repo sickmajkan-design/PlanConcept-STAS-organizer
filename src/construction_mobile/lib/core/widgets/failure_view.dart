@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_locales.dart';
+
 import '../network/api_exception.dart';
 
 /// Full-screen failure state with a retry action.
@@ -42,7 +44,7 @@ class FailureView extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh),
-                label: const Text('Try again'),
+                label: Text(context.l10n.commonRetry),
               ),
             ],
           ],

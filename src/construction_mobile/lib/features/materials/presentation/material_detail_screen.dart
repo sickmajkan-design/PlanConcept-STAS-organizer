@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/app_locales.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/failure_view.dart';
@@ -37,16 +38,16 @@ class MaterialDetailScreen extends ConsumerWidget {
                 _Header(material: material),
                 const SizedBox(height: 20),
                 _Section(
-                  title: 'Stock',
+                  title: context.l10n.materialStock,
                   children: [
                     InfoTile(
                       icon: Icons.warehouse_outlined,
-                      label: 'Warehouse',
+                      label: context.l10n.materialWarehouse,
                       value: material.warehouse,
                     ),
                     InfoTile(
                       icon: Icons.update_outlined,
-                      label: 'Last updated',
+                      label: context.l10n.materialLastUpdated,
                       value: formatDateTime(material.lastUpdated),
                     ),
                   ],
@@ -64,9 +65,9 @@ class MaterialDetailScreen extends ConsumerWidget {
                         ),
                       )
                     else
-                      const ListTile(
+                      ListTile(
                         leading: Icon(Icons.warehouse_outlined),
-                        title: Text('Warehouse stock, not tied to a project'),
+                        title: Text(context.l10n.materialWarehouseNote),
                       ),
                   ],
                 ),

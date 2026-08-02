@@ -30,6 +30,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # Both ship with the SDK: the delegates Flutter's own widgets need for
+  # Serbian, and the message/plural machinery gen-l10n compiles against.
+  flutter_localizations:
+    sdk: flutter
+  intl: any
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -63,6 +68,9 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+  # Compiles lib/l10n/*.arb into AppLocalizations on every build, so a
+  # message added to the ARB is available without a separate codegen step.
+  generate: true
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

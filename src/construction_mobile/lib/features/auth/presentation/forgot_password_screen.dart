@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n/app_locales.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/validation/validators.dart';
 import '../../../core/widgets/message_banner.dart';
@@ -62,7 +63,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     final error = _error;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Reset password')),
+      appBar: AppBar(title: Text(context.l10n.authResetPassword)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
@@ -105,7 +106,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       validator: Validators.email,
                       onFieldSubmitted: (_) => _submit(),
                       decoration: InputDecoration(
-                        labelText: 'Email',
+                        labelText: context.l10n.authEmail,
                         prefixIcon: const Icon(Icons.alternate_email),
                         errorText: error?.errorFor('email'),
                       ),

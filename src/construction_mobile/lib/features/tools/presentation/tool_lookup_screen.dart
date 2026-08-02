@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n/app_locales.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../data/models/tool.dart';
 import '../data/tool_repository.dart';
@@ -64,7 +66,7 @@ class _ToolLookupScreenState extends ConsumerState<ToolLookupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Look up a tool')),
+      appBar: AppBar(title: Text(context.l10n.toolLookUp)),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -78,9 +80,9 @@ class _ToolLookupScreenState extends ConsumerState<ToolLookupScreen> {
               controller: _controller,
               textInputAction: TextInputAction.search,
               autofocus: true,
-              decoration: const InputDecoration(
-                labelText: 'QR code',
-                prefixIcon: Icon(Icons.qr_code_outlined),
+              decoration: InputDecoration(
+                labelText: context.l10n.toolQrCode,
+                prefixIcon: const Icon(Icons.qr_code_outlined),
               ),
               onSubmitted: (_) => _lookup(),
             ),
@@ -94,7 +96,7 @@ class _ToolLookupScreenState extends ConsumerState<ToolLookupScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.search),
-              label: const Text('Look up'),
+              label: Text(context.l10n.toolLookUpAction),
             ),
             const SizedBox(height: 24),
             if (_errorMessage != null)
@@ -143,7 +145,7 @@ class _ToolResultCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                StatusChip(status: tool.status),
+                StatusChip(status: tool.status, kind: EnumKind.toolStatus),
               ],
             ),
             const SizedBox(height: 8),

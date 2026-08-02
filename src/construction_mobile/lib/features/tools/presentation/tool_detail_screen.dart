@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/app_locales.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/widgets/failure_view.dart';
 import '../../../core/widgets/info_tile.dart';
+import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../data/models/tool.dart';
 import 'tools_controller.dart';
@@ -88,7 +90,7 @@ class _Header extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  StatusChip(status: tool.status),
+                  StatusChip(status: tool.status, kind: EnumKind.toolStatus),
                 ],
               ),
             ),
@@ -111,12 +113,12 @@ class _ToolInfo extends StatelessWidget {
       children: [
         InfoTile(
           icon: Icons.confirmation_number_outlined,
-          label: 'Serial number',
+          label: context.l10n.toolSerialNumber,
           value: tool.serialNumber,
         ),
         InfoTile(
           icon: Icons.qr_code_outlined,
-          label: 'QR code',
+          label: context.l10n.toolQrCode,
           value: tool.qrCode,
         ),
       ],
@@ -132,7 +134,7 @@ class _AssignmentSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _Section(
-      title: 'Assignment',
+      title: context.l10n.commonAssignment,
       children: [
         if (tool.isAssignedToEmployee)
           ListTile(
@@ -144,9 +146,9 @@ class _AssignmentSection extends StatelessWidget {
             ),
           )
         else
-          const ListTile(
-            leading: Icon(Icons.person_off_outlined),
-            title: Text('Not held by an employee'),
+          ListTile(
+            leading: const Icon(Icons.person_off_outlined),
+            title: Text(context.l10n.toolNotHeld),
           ),
         if (tool.isAssignedToProject) ...[
           const Divider(height: 1, indent: 20, endIndent: 20),

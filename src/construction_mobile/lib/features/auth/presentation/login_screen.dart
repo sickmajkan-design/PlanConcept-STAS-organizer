@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/app_locales.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/validation/validators.dart';
@@ -110,7 +111,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       autofillHints: const [AutofillHints.username],
                       validator: Validators.email,
                       decoration: InputDecoration(
-                        labelText: 'Email',
+                        labelText: context.l10n.authEmail,
                         prefixIcon: const Icon(Icons.alternate_email),
                         errorText: error?.errorFor('email'),
                       ),
@@ -118,7 +119,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     const SizedBox(height: 16),
                     PasswordField(
                       controller: _passwordController,
-                      label: 'Password',
+                      label: context.l10n.authPassword,
                       enabled: !_submitting,
                       validator: (value) =>
                           Validators.notEmpty(value, 'Password'),
@@ -134,14 +135,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               height: 22,
                               child: CircularProgressIndicator(strokeWidth: 2.5),
                             )
-                          : const Text('Sign in'),
+                          : Text(context.l10n.commonSignIn),
                     ),
                     const SizedBox(height: 8),
                     TextButton(
                       onPressed: _submitting
                           ? null
                           : () => context.push(AppRoutes.forgotPassword),
-                      child: const Text('Forgot password?'),
+                      child: Text(context.l10n.authForgotPassword),
                     ),
                   ],
                 ),

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/app_locales.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/widgets/paged_list_view.dart';
+import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../data/models/vehicle.dart';
 import 'vehicles_controller.dart';
@@ -17,7 +19,7 @@ class VehiclesScreen extends ConsumerWidget {
     final state = ref.watch(vehiclesControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Vehicles')),
+      appBar: AppBar(title: Text(context.l10n.navVehicles)),
       body: SafeArea(
         child: PagedListView<Vehicle>(
           state: state,
@@ -26,7 +28,7 @@ class VehiclesScreen extends ConsumerWidget {
           emptyMessage: 'No vehicles match your search.',
           emptyIcon: Icons.local_shipping_outlined,
           header: ListSearchHeader(
-            hintText: 'Brand, model, registration…',
+            hintText: context.l10n.vehiclesSearchHint,
             onSearchChanged: controller.search,
             filters: vehicleStatusFilters,
             selectedFilter: controller.filter,
@@ -87,7 +89,7 @@ class _VehicleCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              StatusChip(status: vehicle.status, dense: true),
+              StatusChip(status: vehicle.status, kind: EnumKind.vehicleStatus, dense: true),
             ],
           ),
         ),

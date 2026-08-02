@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
+import '../../../core/l10n/app_locales.dart';
 import '../../../core/utils/formatting.dart';
 import 'location_tracking_controller.dart';
 
@@ -13,8 +14,15 @@ class LocationStatusCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final state = ref.watch(locationTrackingProvider);
     final theme = Theme.of(context);
+
+    // Either an app message we can translate, or server text we cannot.
+    final detail = state.message?.resolve(l10n) ??
+        (state.queuedReason == null
+            ? null
+            : l10n.locationQueued(state.queuedReason!));
 
     if (state.status == LocationTrackingStatus.off) {
       return const SizedBox.shrink();
@@ -80,10 +88,10 @@ class LocationStatusCard extends ConsumerWidget {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            if (state.message != null) ...[
+            if (detail != null) ...[
               const SizedBox(height: 4),
               Text(
-                state.message!,
+                detail,
                 style: theme.textTheme.bodySmall?.copyWith(color: tint),
               ),
             ],

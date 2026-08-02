@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/app_locales.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/widgets/paged_list_view.dart';
+import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../data/models/employee.dart';
 import 'employees_controller.dart';
@@ -17,7 +19,7 @@ class EmployeesScreen extends ConsumerWidget {
     final state = ref.watch(employeesControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Employees')),
+      appBar: AppBar(title: Text(context.l10n.navEmployees)),
       body: SafeArea(
         child: PagedListView<Employee>(
           state: state,
@@ -26,7 +28,7 @@ class EmployeesScreen extends ConsumerWidget {
           emptyMessage: 'No employees match your search.',
           emptyIcon: Icons.people_outline,
           header: ListSearchHeader(
-            hintText: 'Name, number, position…',
+            hintText: context.l10n.employeesSearchHint,
             onSearchChanged: controller.search,
             filters: employeeStatusFilters,
             selectedFilter: controller.filter,
@@ -89,7 +91,7 @@ class _EmployeeCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              StatusChip(status: employee.status, dense: true),
+              StatusChip(status: employee.status, kind: EnumKind.employeeStatus, dense: true),
             ],
           ),
         ),

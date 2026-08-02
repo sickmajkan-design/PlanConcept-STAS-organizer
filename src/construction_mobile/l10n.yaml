@@ -1,0 +1,8 @@
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+# Serbian is the fallback for anyone whose device is set to something we do
+# not ship, because the people using this app are on sites in the region.
+untranslated-messages-file: l10n_missing.json
+nullable-getter: false

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../l10n/app_locales.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../pagination/paged_state.dart';
@@ -166,7 +168,7 @@ class _Footer<T> extends StatelessWidget {
             const SizedBox(height: 8),
             OutlinedButton(
               onPressed: onRetry,
-              child: const Text('Load more'),
+              child: Text(context.l10n.commonLoadMore),
             ),
           ],
         ),

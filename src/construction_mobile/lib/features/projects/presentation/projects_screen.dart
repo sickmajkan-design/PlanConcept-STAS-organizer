@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/app_locales.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/paged_list_view.dart';
+import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../data/models/project.dart';
 import 'projects_controller.dart';
@@ -18,7 +20,7 @@ class ProjectsScreen extends ConsumerWidget {
     final state = ref.watch(projectsControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Projects')),
+      appBar: AppBar(title: Text(context.l10n.navProjects)),
       body: SafeArea(
         child: PagedListView<Project>(
           state: state,
@@ -27,7 +29,7 @@ class ProjectsScreen extends ConsumerWidget {
           emptyMessage: 'No projects match your search.',
           emptyIcon: Icons.apartment_outlined,
           header: ListSearchHeader(
-            hintText: 'Name, client, address…',
+            hintText: context.l10n.projectsSearchHint,
             onSearchChanged: controller.search,
             filters: projectStatusFilters,
             selectedFilter: controller.filter,
@@ -70,7 +72,7 @@ class _ProjectCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  StatusChip(status: project.status, dense: true),
+                  StatusChip(status: project.status, kind: EnumKind.projectStatus, dense: true),
                 ],
               ),
               if ((project.client ?? '').isNotEmpty) ...[

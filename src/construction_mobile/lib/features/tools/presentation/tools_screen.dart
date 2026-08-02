@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/app_locales.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/widgets/paged_list_view.dart';
+import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../data/models/tool.dart';
 import 'tools_controller.dart';
@@ -18,11 +20,11 @@ class ToolsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tools'),
+        title: Text(context.l10n.navTools),
         actions: [
           IconButton(
             icon: const Icon(Icons.qr_code_scanner_outlined),
-            tooltip: 'Look up by QR code',
+            tooltip: context.l10n.toolLookUpByQr,
             onPressed: () => context.push(AppRoutes.toolLookup),
           ),
         ],
@@ -35,7 +37,7 @@ class ToolsScreen extends ConsumerWidget {
           emptyMessage: 'No tools match your search.',
           emptyIcon: Icons.handyman_outlined,
           header: ListSearchHeader(
-            hintText: 'Name, category, serial number…',
+            hintText: context.l10n.toolsSearchHint,
             onSearchChanged: controller.search,
             filters: toolStatusFilters,
             selectedFilter: controller.filter,
@@ -98,7 +100,7 @@ class _ToolCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              StatusChip(status: tool.status, dense: true),
+              StatusChip(status: tool.status, kind: EnumKind.toolStatus, dense: true),
             ],
           ),
         ),

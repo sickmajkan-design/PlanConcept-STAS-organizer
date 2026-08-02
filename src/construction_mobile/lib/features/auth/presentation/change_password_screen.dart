@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n/app_locales.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/validation/validators.dart';
 import '../../../core/widgets/message_banner.dart';
@@ -69,7 +70,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(Icons.check_circle_outline),
-        title: const Text('Password changed'),
+        title: Text(context.l10n.authPasswordChanged),
         content: const Text(
           'Your password has been updated. For security, all your signed-in '
           'devices were signed out. Please sign in again with the new password.',
@@ -77,7 +78,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
         actions: [
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Sign in again'),
+            child: Text(context.l10n.authSignInAgain),
           ),
         ],
       ),
@@ -104,7 +105,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
     final error = _error;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Change password')),
+      appBar: AppBar(title: Text(context.l10n.authChangePassword)),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
@@ -130,7 +131,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                     ],
                     PasswordField(
                       controller: _currentController,
-                      label: 'Current password',
+                      label: context.l10n.authCurrentPassword,
                       enabled: !_submitting,
                       textInputAction: TextInputAction.next,
                       validator: (value) =>
@@ -140,7 +141,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                     const SizedBox(height: 16),
                     PasswordField(
                       controller: _newController,
-                      label: 'New password',
+                      label: context.l10n.authNewPassword,
                       enabled: !_submitting,
                       textInputAction: TextInputAction.next,
                       validator: Validators.strongPassword,
@@ -149,7 +150,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                     const SizedBox(height: 16),
                     PasswordField(
                       controller: _confirmController,
-                      label: 'Confirm new password',
+                      label: context.l10n.authConfirmPassword,
                       enabled: !_submitting,
                       validator: _validateConfirmation,
                       onSubmitted: _submit,
@@ -163,7 +164,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                               height: 22,
                               child: CircularProgressIndicator(strokeWidth: 2.5),
                             )
-                          : const Text('Change password'),
+                          : Text(context.l10n.authChangePassword),
                     ),
                   ],
                 ),

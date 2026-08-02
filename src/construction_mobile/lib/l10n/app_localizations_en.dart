@@ -1,0 +1,540 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for English (`en`).
+class AppLocalizationsEn extends AppLocalizations {
+  AppLocalizationsEn([String locale = 'en']) : super(locale);
+
+  @override
+  String get appName => 'Construction Organizer';
+
+  @override
+  String get commonCancel => 'Cancel';
+
+  @override
+  String get commonRetry => 'Try again';
+
+  @override
+  String get commonLoadMore => 'Load more';
+
+  @override
+  String get commonSignIn => 'Sign in';
+
+  @override
+  String get commonSignOut => 'Sign out';
+
+  @override
+  String get commonSignOutQuestion => 'Sign out?';
+
+  @override
+  String get commonSignOutBody =>
+      'You will need to sign in again to use the app.';
+
+  @override
+  String get commonNotSet => '—';
+
+  @override
+  String get commonDetails => 'Details';
+
+  @override
+  String get commonAssignment => 'Assignment';
+
+  @override
+  String get commonContact => 'Contact';
+
+  @override
+  String get commonEmployment => 'Employment';
+
+  @override
+  String get commonAccount => 'Account';
+
+  @override
+  String get commonResources => 'Resources';
+
+  @override
+  String get commonAlerts => 'Alerts';
+
+  @override
+  String get authSignInSubtitle => 'Sign in to your work account';
+
+  @override
+  String get authEmail => 'Email';
+
+  @override
+  String get authPassword => 'Password';
+
+  @override
+  String get authCurrentPassword => 'Current password';
+
+  @override
+  String get authNewPassword => 'New password';
+
+  @override
+  String get authConfirmPassword => 'Confirm new password';
+
+  @override
+  String get authShowPassword => 'Show password';
+
+  @override
+  String get authHidePassword => 'Hide password';
+
+  @override
+  String get authForgotPassword => 'Forgot password?';
+
+  @override
+  String get authResetPassword => 'Reset password';
+
+  @override
+  String get authResetIntro =>
+      'Enter the email address of your work account. If an account exists, we will send a link to choose a new password.';
+
+  @override
+  String get authResetSent =>
+      'If that address belongs to an account, a reset link is on its way.';
+
+  @override
+  String get authSendResetLink => 'Send reset link';
+
+  @override
+  String get authSendAgain => 'Send again';
+
+  @override
+  String get authChangePassword => 'Change password';
+
+  @override
+  String get authPasswordChanged => 'Password changed';
+
+  @override
+  String get authPasswordChangedBody =>
+      'Your password has been updated. For security, all your signed-in devices have been signed out.';
+
+  @override
+  String get authSignInAgain => 'Sign in again';
+
+  @override
+  String get authSessionExpired =>
+      'Your session has expired. Please sign in again.';
+
+  @override
+  String get validationEmailRequired => 'Email is required.';
+
+  @override
+  String get validationEmailInvalid => 'Enter a valid email address.';
+
+  @override
+  String get validationPasswordRequired => 'Password is required.';
+
+  @override
+  String get validationPasswordUpper =>
+      'Password must contain an upper-case letter.';
+
+  @override
+  String get validationPasswordLower =>
+      'Password must contain a lower-case letter.';
+
+  @override
+  String get validationPasswordDigit => 'Password must contain a digit.';
+
+  @override
+  String get validationPasswordsDiffer => 'The passwords do not match.';
+
+  @override
+  String get validationConfirmPassword => 'Confirm the new password.';
+
+  @override
+  String get errorNoConnection =>
+      'No connection to the server. Check your network and try again.';
+
+  @override
+  String get errorTimeout =>
+      'The server took too long to respond. Please try again.';
+
+  @override
+  String get errorCancelled => 'The request was cancelled.';
+
+  @override
+  String get errorCertificate =>
+      'The server certificate could not be verified.';
+
+  @override
+  String get errorServer =>
+      'The server encountered an error. Please try again later.';
+
+  @override
+  String get errorNotFound => 'The requested item could not be found.';
+
+  @override
+  String get errorForbidden =>
+      'You do not have permission to perform this action.';
+
+  @override
+  String get errorBadRequest =>
+      'The request was rejected. Please check the entered data.';
+
+  @override
+  String get errorConflict => 'The action conflicts with the current data.';
+
+  @override
+  String get errorUnknown => 'Something went wrong. Please try again.';
+
+  @override
+  String get navEmployees => 'Employees';
+
+  @override
+  String get navProjects => 'Projects';
+
+  @override
+  String get navVehicles => 'Vehicles';
+
+  @override
+  String get navTools => 'Tools';
+
+  @override
+  String get navMaterials => 'Materials';
+
+  @override
+  String get navNotifications => 'Notifications';
+
+  @override
+  String get employeesSearchHint => 'Name, number, position…';
+
+  @override
+  String get employeesEmpty => 'No employees match your search.';
+
+  @override
+  String get employeeNumber => 'Employee number';
+
+  @override
+  String get employeePosition => 'Position';
+
+  @override
+  String get employeePhone => 'Phone';
+
+  @override
+  String get employeeEmail => 'Email';
+
+  @override
+  String get employeeAddress => 'Address';
+
+  @override
+  String get employeeDateOfBirth => 'Date of birth';
+
+  @override
+  String get employeeEmployedSince => 'Employed since';
+
+  @override
+  String get employeeAppAccount => 'App account';
+
+  @override
+  String get employeeNoProjects => 'Not assigned to any project';
+
+  @override
+  String get projectsSearchHint => 'Name, client, address…';
+
+  @override
+  String get projectsEmpty => 'No projects match your search.';
+
+  @override
+  String get projectClient => 'Client';
+
+  @override
+  String get projectAddress => 'Address';
+
+  @override
+  String get projectStartDate => 'Start date';
+
+  @override
+  String get projectEndDate => 'End date';
+
+  @override
+  String get projectCoordinates => 'Coordinates';
+
+  @override
+  String get projectCrewEmpty => 'Nobody assigned yet';
+
+  @override
+  String projectAssignedOn(String date) {
+    return 'Assigned $date';
+  }
+
+  @override
+  String projectMemberSubtitle(String position, String number) {
+    return '$position · $number';
+  }
+
+  @override
+  String get vehiclesSearchHint => 'Brand, model, registration…';
+
+  @override
+  String get vehiclesEmpty => 'No vehicles match your search.';
+
+  @override
+  String get vehicleRegistration => 'Registration number';
+
+  @override
+  String get vehicleFuelType => 'Fuel type';
+
+  @override
+  String get vehicleUnassigned => 'Not assigned to any employee';
+
+  @override
+  String get toolsSearchHint => 'Name, category, serial number…';
+
+  @override
+  String get toolsEmpty => 'No tools match your search.';
+
+  @override
+  String get toolSerialNumber => 'Serial number';
+
+  @override
+  String get toolQrCode => 'QR code';
+
+  @override
+  String get toolUncategorised => 'Uncategorised';
+
+  @override
+  String get toolNotHeld => 'Not held by an employee';
+
+  @override
+  String get toolNotOnProject => 'Not assigned to any project';
+
+  @override
+  String get toolLookUp => 'Look up a tool';
+
+  @override
+  String get toolLookUpAction => 'Look up';
+
+  @override
+  String get toolLookUpByQr => 'Look up by QR code';
+
+  @override
+  String get toolByQrCode => 'By QR code';
+
+  @override
+  String toolCategoryLine(String category) {
+    return 'Category: $category';
+  }
+
+  @override
+  String toolSerialLine(String serial) {
+    return 'Serial number: $serial';
+  }
+
+  @override
+  String get materialsSearchHint => 'Name, warehouse…';
+
+  @override
+  String get materialsEmpty => 'No materials match your search.';
+
+  @override
+  String get materialStock => 'Stock';
+
+  @override
+  String get materialWarehouse => 'Warehouse';
+
+  @override
+  String get materialWarehouseStock => 'Warehouse stock';
+
+  @override
+  String get materialWarehouseOnly => 'Warehouse stock only';
+
+  @override
+  String get materialWarehouseNote => 'Warehouse stock, not tied to a project';
+
+  @override
+  String get materialLastUpdated => 'Last updated';
+
+  @override
+  String get materialNoAssignment => 'No assignment';
+
+  @override
+  String get notificationsEmpty => 'No notifications yet.';
+
+  @override
+  String get notificationsUnreadEmpty => 'Nothing unread.';
+
+  @override
+  String get notificationsUnread => 'Unread';
+
+  @override
+  String get notificationsMarkAllRead => 'Mark all read';
+
+  @override
+  String get notificationsDisabled =>
+      'Notifications are turned off for this app.';
+
+  @override
+  String get notificationsNotConfigured =>
+      'Push notifications are not configured in this build.';
+
+  @override
+  String get notificationsNotConfiguredBody =>
+      'Push delivery is not configured in this build. Notifications are still listed here.';
+
+  @override
+  String get notificationsBlockedBody =>
+      'Push notifications are turned off for this app. You can still read them here.';
+
+  @override
+  String get notificationsOpenSettings => 'Open app settings';
+
+  @override
+  String get notificationsTokenFailed => 'Could not obtain a device token.';
+
+  @override
+  String get notificationsFirebaseFailed => 'Firebase messaging failed.';
+
+  @override
+  String get locationSharingOn => 'Location sharing is on';
+
+  @override
+  String get locationSharingOnBody =>
+      'Your position is sent to the office every minute while you are signed in.';
+
+  @override
+  String get locationStarting => 'Starting location sharing…';
+
+  @override
+  String get locationProblem => 'Location sharing has a problem';
+
+  @override
+  String get locationNotShared =>
+      'Your position is not being shared with the office.';
+
+  @override
+  String get locationServicesOff => 'Location services are switched off';
+
+  @override
+  String get locationPermissionDenied => 'Location permission not granted';
+
+  @override
+  String get locationPermissionBlocked => 'Location permission is blocked';
+
+  @override
+  String get locationAllow => 'Allow location';
+
+  @override
+  String get locationOpenSettings => 'Open location settings';
+
+  @override
+  String get locationNoFix => 'No GPS fix yet.';
+
+  @override
+  String get locationReadFailed => 'Could not read the device location.';
+
+  @override
+  String locationQueued(String reason) {
+    return 'Queued — $reason';
+  }
+
+  @override
+  String get roleSuperAdmin => 'Super Admin';
+
+  @override
+  String get roleAdmin => 'Admin';
+
+  @override
+  String get roleProjectManager => 'Project Manager';
+
+  @override
+  String get roleForeman => 'Foreman';
+
+  @override
+  String get roleWorker => 'Worker';
+
+  @override
+  String get employeeStatusActive => 'Active';
+
+  @override
+  String get employeeStatusOnLeave => 'On leave';
+
+  @override
+  String get employeeStatusSuspended => 'Suspended';
+
+  @override
+  String get employeeStatusTerminated => 'Terminated';
+
+  @override
+  String get projectStatusPlanned => 'Planned';
+
+  @override
+  String get projectStatusActive => 'Active';
+
+  @override
+  String get projectStatusOnHold => 'On hold';
+
+  @override
+  String get projectStatusCompleted => 'Completed';
+
+  @override
+  String get projectStatusCancelled => 'Cancelled';
+
+  @override
+  String get vehicleStatusAvailable => 'Available';
+
+  @override
+  String get vehicleStatusAssigned => 'Assigned';
+
+  @override
+  String get vehicleStatusInService => 'In service';
+
+  @override
+  String get vehicleStatusOutOfService => 'Out of service';
+
+  @override
+  String get toolStatusAvailable => 'Available';
+
+  @override
+  String get toolStatusAssigned => 'Assigned';
+
+  @override
+  String get toolStatusUnderRepair => 'Under repair';
+
+  @override
+  String get toolStatusLost => 'Lost';
+
+  @override
+  String get toolStatusRetired => 'Retired';
+
+  @override
+  String get fuelPetrol => 'Petrol';
+
+  @override
+  String get fuelDiesel => 'Diesel';
+
+  @override
+  String get fuelElectric => 'Electric';
+
+  @override
+  String get fuelHybrid => 'Hybrid';
+
+  @override
+  String get fuelLpg => 'LPG';
+
+  @override
+  String get notificationTypeEmployeeAssigned => 'Employee assigned';
+
+  @override
+  String get notificationTypeProjectAssigned => 'Project assigned';
+
+  @override
+  String get notificationTypeToolAssigned => 'Tool assigned';
+
+  @override
+  String get notificationTypeVehicleAssigned => 'Vehicle assigned';
+
+  @override
+  String get notificationTypeAnnouncement => 'Announcement';
+
+  @override
+  String get settingsLanguage => 'Language';
+
+  @override
+  String get settingsLanguageSerbian => 'Srpski';
+
+  @override
+  String get settingsLanguageEnglish => 'English';
+}

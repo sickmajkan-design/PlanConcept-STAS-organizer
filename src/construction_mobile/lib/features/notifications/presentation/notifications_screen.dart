@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/app_locales.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/paged_list_view.dart';
@@ -21,12 +22,12 @@ class NotificationsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notifications'),
+        title: Text(context.l10n.navNotifications),
         actions: [
           if (unread > 0)
             TextButton(
               onPressed: () => _markAllRead(context, ref),
-              child: const Text('Mark all read'),
+              child: Text(context.l10n.notificationsMarkAllRead),
             ),
         ],
       ),

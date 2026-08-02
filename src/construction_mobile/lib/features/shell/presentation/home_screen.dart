@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/app_locales.dart';
+import '../../../core/l10n/locale_controller.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/utils/formatting.dart';
@@ -29,7 +31,7 @@ class HomeScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            tooltip: 'Sign out',
+            tooltip: context.l10n.commonSignOut,
             onPressed: () => _confirmSignOut(context, ref),
           ),
         ],
@@ -49,7 +51,7 @@ class HomeScreen extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.only(left: 4, bottom: 8),
               child: Text(
-                'Account',
+                context.l10n.commonAccount,
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),
@@ -59,15 +61,27 @@ class HomeScreen extends ConsumerWidget {
               child: Column(
                 children: [
                   ListTile(
+                    leading: const Icon(Icons.language),
+                    title: Text(context.l10n.settingsLanguage),
+                    trailing: Text(
+                      localeName(Localizations.localeOf(context)),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                    onTap: () => _pickLanguage(context, ref),
+                  ),
+                  const Divider(height: 1, indent: 20, endIndent: 20),
+                  ListTile(
                     leading: const Icon(Icons.password),
-                    title: const Text('Change password'),
+                    title: Text(context.l10n.authChangePassword),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => context.push(AppRoutes.changePassword),
                   ),
                   const Divider(height: 1, indent: 20, endIndent: 20),
                   ListTile(
                     leading: const Icon(Icons.logout),
-                    title: const Text('Sign out'),
+                    title: Text(context.l10n.commonSignOut),
                     onTap: () => _confirmSignOut(context, ref),
                   ),
                 ],
@@ -89,22 +103,52 @@ class HomeScreen extends ConsumerWidget {
     }
   }
 
+  /// Lets the user override the device language. On a shared site phone the
+  /// device is often set to whatever the last person left it on, so following
+  /// it blindly is not enough.
+  Future<void> _pickLanguage(BuildContext context, WidgetRef ref) async {
+    final current = Localizations.localeOf(context);
+
+    final chosen = await showModalBottomSheet<Locale>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final locale in supportedLocales)
+              ListTile(
+                title: Text(localeName(locale)),
+                trailing: locale.languageCode == current.languageCode
+                    ? const Icon(Icons.check)
+                    : null,
+                onTap: () => Navigator.of(sheetContext).pop(locale),
+              ),
+          ],
+        ),
+      ),
+    );
+
+    if (chosen != null) {
+      await ref.read(localeControllerProvider.notifier).select(chosen);
+    }
+  }
+
   Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {
     final shouldSignOut = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Sign out?'),
+        title: Text(context.l10n.commonSignOutQuestion),
         content: const Text(
           'You will need to sign in again to use the app.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(context.l10n.commonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: const Text('Sign out'),
+            child: Text(context.l10n.commonSignOut),
           ),
         ],
       ),
@@ -144,21 +188,21 @@ class _ResourcesSection extends StatelessWidget {
               if (canViewDirectory) ...[
                 ListTile(
                   leading: const Icon(Icons.local_shipping_outlined),
-                  title: const Text('Vehicles'),
+                  title: Text(context.l10n.navVehicles),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push(AppRoutes.vehicles),
                 ),
                 const Divider(height: 1, indent: 20, endIndent: 20),
                 ListTile(
                   leading: const Icon(Icons.handyman_outlined),
-                  title: const Text('Tools'),
+                  title: Text(context.l10n.navTools),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push(AppRoutes.tools),
                 ),
                 const Divider(height: 1, indent: 20, endIndent: 20),
                 ListTile(
                   leading: const Icon(Icons.inventory_2_outlined),
-                  title: const Text('Materials'),
+                  title: Text(context.l10n.navMaterials),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push(AppRoutes.materials),
                 ),
@@ -166,8 +210,8 @@ class _ResourcesSection extends StatelessWidget {
               ],
               ListTile(
                 leading: const Icon(Icons.qr_code_scanner_outlined),
-                title: const Text('Look up a tool'),
-                subtitle: const Text('By QR code'),
+                title: Text(context.l10n.toolLookUp),
+                subtitle: Text(context.l10n.toolByQrCode),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.push(AppRoutes.toolLookup),
               ),
@@ -188,14 +232,13 @@ class _PushStatusNotice extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final push = ref.watch(pushControllerProvider);
 
+    final l10n = context.l10n;
+
     final message = switch (push.status) {
-      PushStatus.permissionDenied =>
-        'Push notifications are turned off for this app. You can still read '
-            'them in the Alerts tab.',
-      PushStatus.unconfigured =>
-        'Push delivery is not configured in this build. Notifications are '
-            'still available in the Alerts tab.',
-      PushStatus.error => push.message,
+      PushStatus.permissionDenied => l10n.notificationsBlockedBody,
+      PushStatus.unconfigured => l10n.notificationsNotConfiguredBody,
+      // Either a message of ours or, failing that, whatever the platform said.
+      PushStatus.error => push.message?.resolve(l10n) ?? push.detail,
       _ => null,
     };
 

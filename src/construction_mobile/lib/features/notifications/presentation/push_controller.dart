@@ -5,6 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n/app_message.dart';
 import '../../../core/network/api_exception.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/notification_repository.dart';
@@ -24,11 +25,15 @@ enum PushStatus {
 }
 
 class PushState {
-  const PushState({required this.status, this.token, this.message});
+  const PushState({required this.status, this.token, this.message, this.detail});
 
   final PushStatus status;
   final String? token;
-  final String? message;
+  /// A translatable app message; resolved by the widget that shows it.
+  final AppMessage? message;
+
+  /// Server text, which cannot be translated client-side.
+  final String? detail;
 
   bool get isRegistered => status == PushStatus.registered;
 }
@@ -75,7 +80,7 @@ class PushController extends Notifier<PushState> {
     if (settings.authorizationStatus == AuthorizationStatus.denied) {
       state = const PushState(
         status: PushStatus.permissionDenied,
-        message: 'Notifications are turned off for this app.',
+        message: AppMessage.notificationsDisabled,
       );
       return;
     }
@@ -86,7 +91,7 @@ class PushController extends Notifier<PushState> {
       if (token == null) {
         state = const PushState(
           status: PushStatus.error,
-          message: 'Could not obtain a device token.',
+          message: AppMessage.notificationsTokenFailed,
         );
         return;
       }
@@ -103,11 +108,12 @@ class PushController extends Notifier<PushState> {
         ref.invalidate(notificationsControllerProvider);
       });
     } on ApiException catch (exception) {
-      state = PushState(status: PushStatus.error, message: exception.message);
+      state = PushState(status: PushStatus.error, detail: exception.message);
     } on FirebaseException catch (exception) {
       state = PushState(
         status: PushStatus.error,
-        message: exception.message ?? 'Firebase messaging failed.',
+        message: exception.message == null ? AppMessage.notificationsFirebaseFailed : null,
+        detail: exception.message,
       );
     }
   }
@@ -124,7 +130,7 @@ class PushController extends Notifier<PushState> {
       // No Firebase configuration bundled with this build.
       state = const PushState(
         status: PushStatus.unconfigured,
-        message: 'Push notifications are not configured in this build.',
+        message: AppMessage.notificationsNotConfigured,
       );
       return false;
     }

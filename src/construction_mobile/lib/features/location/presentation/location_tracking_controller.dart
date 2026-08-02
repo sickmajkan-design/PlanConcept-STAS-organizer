@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../../core/config/app_config.dart';
+import '../../../core/l10n/app_message.dart';
 import '../../../core/network/api_exception.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/location_repository.dart';
@@ -29,6 +30,7 @@ class LocationTrackingState {
     this.lastReportedAt,
     this.pendingCount = 0,
     this.message,
+    this.queuedReason,
   });
 
   final LocationTrackingStatus status;
@@ -36,7 +38,11 @@ class LocationTrackingState {
 
   /// Fixes captured but not yet accepted by the server (poor coverage).
   final int pendingCount;
-  final String? message;
+  /// A translatable app message; resolved by the widget that shows it.
+  final AppMessage? message;
+
+  /// Server text for a queued batch, which cannot be translated client-side.
+  final String? queuedReason;
 
   bool get isTracking =>
       status == LocationTrackingStatus.active ||
@@ -46,7 +52,8 @@ class LocationTrackingState {
     LocationTrackingStatus? status,
     DateTime? lastReportedAt,
     int? pendingCount,
-    String? message,
+    AppMessage? message,
+    String? queuedReason,
     bool clearMessage = false,
   }) {
     return LocationTrackingState(
@@ -54,6 +61,7 @@ class LocationTrackingState {
       lastReportedAt: lastReportedAt ?? this.lastReportedAt,
       pendingCount: pendingCount ?? this.pendingCount,
       message: clearMessage ? null : (message ?? this.message),
+      queuedReason: clearMessage ? null : (queuedReason ?? this.queuedReason),
     );
   }
 }
@@ -175,11 +183,11 @@ class LocationTrackingController extends Notifier<LocationTrackingState> {
 
       state = state.copyWith(pendingCount: _buffer.length, clearMessage: true);
     } on TimeoutException {
-      state = state.copyWith(message: 'No GPS fix yet.');
+      state = state.copyWith(message: AppMessage.locationNoFix);
     } catch (error) {
       state = state.copyWith(
         status: LocationTrackingStatus.error,
-        message: 'Could not read the device location.',
+        message: AppMessage.locationReadFailed,
       );
     }
   }
@@ -215,7 +223,7 @@ class LocationTrackingController extends Notifier<LocationTrackingState> {
 
       state = state.copyWith(
         pendingCount: _buffer.length,
-        message: 'Queued — ${exception.message}',
+        queuedReason: exception.message,
       );
     }
   }

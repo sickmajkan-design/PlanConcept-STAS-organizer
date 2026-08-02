@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/app_locales.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/failure_view.dart';
 import '../../../core/widgets/info_tile.dart';
+import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../data/models/vehicle.dart';
 import 'vehicles_controller.dart';
@@ -41,7 +43,7 @@ class VehicleDetailScreen extends ConsumerWidget {
                   children: [
                     InfoTile(
                       icon: Icons.pin_outlined,
-                      label: 'Registration number',
+                      label: context.l10n.vehicleRegistration,
                       value: vehicle.registrationNumber,
                     ),
                     InfoTile(
@@ -51,14 +53,14 @@ class VehicleDetailScreen extends ConsumerWidget {
                     ),
                     InfoTile(
                       icon: Icons.local_gas_station_outlined,
-                      label: 'Fuel type',
+                      label: context.l10n.vehicleFuelType,
                       value: humanizeEnum(vehicle.fuelType),
                     ),
                   ],
                 ),
                 const SizedBox(height: 20),
                 _Section(
-                  title: 'Assignment',
+                  title: context.l10n.commonAssignment,
                   children: [
                     if (vehicle.isAssigned)
                       ListTile(
@@ -70,9 +72,9 @@ class VehicleDetailScreen extends ConsumerWidget {
                         ),
                       )
                     else
-                      const ListTile(
+                      ListTile(
                         leading: Icon(Icons.person_off_outlined),
-                        title: Text('Not assigned to any employee'),
+                        title: Text(context.l10n.vehicleUnassigned),
                       ),
                   ],
                 ),
@@ -127,7 +129,7 @@ class _Header extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  StatusChip(status: vehicle.status),
+                  StatusChip(status: vehicle.status, kind: EnumKind.vehicleStatus),
                 ],
               ),
             ),

@@ -1,14 +1,25 @@
 import 'package:flutter/material.dart';
 
-import '../utils/formatting.dart';
+import '../l10n/app_locales.dart';
+import '../l10n/enum_labels.dart';
 
 /// Colour-coded label for the API's status enums. Colours are grouped by
 /// meaning rather than per entity, so the same colour always means the same
 /// thing across employees, projects, vehicles and tools.
+///
+/// [kind] says which enum the value comes from — needed because the label is
+/// translated and the same value inflects differently per entity. See
+/// [EnumKind].
 class StatusChip extends StatelessWidget {
-  const StatusChip({super.key, required this.status, this.dense = false});
+  const StatusChip({
+    super.key,
+    required this.status,
+    required this.kind,
+    this.dense = false,
+  });
 
   final String status;
+  final EnumKind kind;
   final bool dense;
 
   static const _good = <String>{'Active', 'Available', 'Completed'};
@@ -46,7 +57,7 @@ class StatusChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
-        humanizeEnum(status),
+        enumLabel(context.l10n, kind, status),
         style: (dense
                 ? Theme.of(context).textTheme.labelSmall
                 : Theme.of(context).textTheme.labelMedium)

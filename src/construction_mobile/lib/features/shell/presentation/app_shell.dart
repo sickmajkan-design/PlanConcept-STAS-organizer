@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import '../../../core/l10n/app_locales.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -55,15 +57,15 @@ class AppShell extends ConsumerWidget {
             label: 'Home',
           ),
           if (canViewDirectory) ...[
-            const NavigationDestination(
+            NavigationDestination(
               icon: Icon(Icons.people_outline),
               selectedIcon: Icon(Icons.people),
-              label: 'Employees',
+              label: context.l10n.navEmployees,
             ),
-            const NavigationDestination(
+            NavigationDestination(
               icon: Icon(Icons.apartment_outlined),
               selectedIcon: Icon(Icons.apartment),
-              label: 'Projects',
+              label: context.l10n.navProjects,
             ),
           ],
           NavigationDestination(
@@ -77,7 +79,7 @@ class AppShell extends ConsumerWidget {
               isLabelVisible: unread > 0,
               child: const Icon(Icons.notifications),
             ),
-            label: 'Alerts',
+            label: context.l10n.commonAlerts,
           ),
         ],
       ),
