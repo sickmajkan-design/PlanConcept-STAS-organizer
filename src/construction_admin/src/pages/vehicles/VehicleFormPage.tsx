@@ -23,8 +23,9 @@ import { fuelTypes, vehicleStatuses } from '../../api/types';
 import { ErrorState } from '../../components/ErrorState';
 import { useCreateVehicle, useUpdateVehicle, useVehicleQuery } from '../../features/vehicles/useVehicles';
 import { vehicleFormSchema, type VehicleFormValues } from '../../features/vehicles/validation';
+import { useEnumLabel } from '../../i18n/enumLabels';
+import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
-import { humanizeEnum } from '../../utils/formatting';
 
 const emptyValues: VehicleFormValues = {
   brand: '',
@@ -39,6 +40,8 @@ export function VehicleFormPage() {
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
   const navigate = useNavigate();
+  const t = useT();
+  const enumLabel = useEnumLabel();
 
   const { data: existing, isLoading, isError, error, refetch } = useVehicleQuery(id);
   const createVehicle = useCreateVehicle();
@@ -113,7 +116,7 @@ export function VehicleFormPage() {
   return (
     <Box sx={{ maxWidth: 720 }}>
       <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
-        {isEdit ? 'Edit vehicle' : 'Add vehicle'}
+        {isEdit ? t('vehicles.editTitle') : t('vehicles.newTitle')}
       </Typography>
 
       <Paper sx={{ p: 3, mt: 2 }}>
@@ -129,7 +132,7 @@ export function VehicleFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Brand"
+                      label={t('vehicles.brand')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
@@ -144,7 +147,7 @@ export function VehicleFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Model"
+                      label={t('vehicles.model')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
@@ -159,7 +162,7 @@ export function VehicleFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Registration number"
+                      label={t('vehicles.registrationNumber')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
@@ -174,7 +177,7 @@ export function VehicleFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="VIN"
+                      label={t('vehicles.vin')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
@@ -188,11 +191,11 @@ export function VehicleFormPage() {
                   control={control}
                   render={({ field }) => (
                     <FormControl fullWidth>
-                      <InputLabel id="vehicle-fuel-type-label">Fuel type</InputLabel>
-                      <Select {...field} labelId="vehicle-fuel-type-label" label="Fuel type">
+                      <InputLabel id="vehicle-fuel-type-label">{t('vehicles.fuelType')}</InputLabel>
+                      <Select {...field} labelId="vehicle-fuel-type-label" label={t('vehicles.fuelType')}>
                         {fuelTypes.map((value) => (
                           <MenuItem key={value} value={value}>
-                            {humanizeEnum(value)}
+                            {enumLabel('fuelType', value)}
                           </MenuItem>
                         ))}
                       </Select>
@@ -206,11 +209,11 @@ export function VehicleFormPage() {
                   control={control}
                   render={({ field }) => (
                     <FormControl fullWidth>
-                      <InputLabel id="vehicle-status-label">Status</InputLabel>
-                      <Select {...field} labelId="vehicle-status-label" label="Status">
+                      <InputLabel id="vehicle-status-label">{t('vehicles.status')}</InputLabel>
+                      <Select {...field} labelId="vehicle-status-label" label={t('vehicles.status')}>
                         {vehicleStatuses.map((value) => (
                           <MenuItem key={value} value={value}>
-                            {humanizeEnum(value)}
+                            {enumLabel('vehicleStatus', value)}
                           </MenuItem>
                         ))}
                       </Select>
@@ -222,10 +225,10 @@ export function VehicleFormPage() {
 
             <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
               <Button onClick={() => navigate(-1)} disabled={isSubmitting}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="submit" variant="contained" loading={isSubmitting}>
-                {isEdit ? 'Save changes' : 'Create vehicle'}
+                {isEdit ? t('common.save') : 'Create vehicle'}
               </Button>
             </Stack>
           </Stack>

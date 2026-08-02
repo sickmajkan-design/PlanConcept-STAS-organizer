@@ -9,11 +9,13 @@ import { useAuth } from '../../auth/useAuth';
 import { loginSchema, type LoginFormValues } from '../../auth/validation';
 import { AuthCard } from '../../components/AuthCard';
 import { PasswordField } from '../../components/PasswordField';
+import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 
 export function LoginPage() {
   const { signIn } = useAuth();
   const navigate = useNavigate();
+  const t = useT();
   const location = useLocation() as Location & { state?: { from?: Location } };
   const [error, setError] = useState<ApiError | null>(null);
 
@@ -34,12 +36,12 @@ export function LoginPage() {
       const redirectTo = location.state?.from?.pathname ?? paths.home;
       navigate(redirectTo, { replace: true });
     } catch (err) {
-      setError(err instanceof ApiError ? err : new ApiError('Something went wrong.'));
+      setError(err instanceof ApiError ? err : new ApiError(t('common.somethingWentWrong')));
     }
   };
 
   return (
-    <AuthCard title="Construction Organizer" subtitle="Sign in to the admin console">
+    <AuthCard title={t('nav.appName')} subtitle={t('auth.signInToConsole')}>
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <Stack spacing={2.5}>
           {error && <Alert severity="error">{error.message}</Alert>}
@@ -50,7 +52,7 @@ export function LoginPage() {
             render={({ field, fieldState }) => (
               <TextField
                 {...field}
-                label="Email"
+                label={t('auth.email')}
                 type="email"
                 autoComplete="username"
                 autoFocus
@@ -67,7 +69,7 @@ export function LoginPage() {
             render={({ field, fieldState }) => (
               <PasswordField
                 {...field}
-                label="Password"
+                label={t('auth.password')}
                 fullWidth
                 error={!!fieldState.error || !!error?.errorFor('password')}
                 helperText={fieldState.error?.message ?? error?.errorFor('password')}
@@ -76,7 +78,7 @@ export function LoginPage() {
           />
 
           <Button type="submit" variant="contained" size="large" loading={isSubmitting}>
-            Sign in
+            {t('auth.signIn')}
           </Button>
 
           <MuiLink
@@ -85,7 +87,7 @@ export function LoginPage() {
             variant="body2"
             sx={{ textAlign: 'center' }}
           >
-            Forgot password?
+            {t('auth.forgotPasswordShort')}
           </MuiLink>
         </Stack>
       </form>

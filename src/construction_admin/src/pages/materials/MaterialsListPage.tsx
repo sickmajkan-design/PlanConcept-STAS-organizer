@@ -20,11 +20,13 @@ import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { SearchField } from '../../components/SearchField';
 import { useDeleteMaterial, useMaterialsQuery } from '../../features/materials/useMaterials';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
+import { useT } from '../../i18n/useI18n';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { paths } from '../../routes/paths';
 
 export function MaterialsListPage() {
   const navigate = useNavigate();
+  const t = useT();
   const list = useListQueryState('name');
 
   // Materials filter on a boolean rather than a status enum, so this one keeps
@@ -41,24 +43,24 @@ export function MaterialsListPage() {
 
   const columns: GridColDef<Material>[] = useMemo(
     () => [
-      { field: 'name', headerName: 'Material', flex: 1, minWidth: 180 },
+      { field: 'name', headerName: t('materials.name'), flex: 1, minWidth: 180 },
       {
         field: 'quantity',
-        headerName: 'Quantity',
+        headerName: t('materials.quantity'),
         width: 140,
         type: 'number',
         valueGetter: (_value, row) => `${row.quantity} ${row.unit}`,
       },
       {
         field: 'warehouse',
-        headerName: 'Warehouse',
+        headerName: t('materials.warehouse'),
         flex: 1,
         minWidth: 140,
         valueGetter: (v) => v || '—',
       },
       {
         field: 'projectName',
-        headerName: 'Project',
+        headerName: t('materials.project'),
         flex: 1,
         minWidth: 160,
         valueGetter: (v) => v || 'Warehouse stock',
@@ -73,17 +75,17 @@ export function MaterialsListPage() {
         headerAlign: 'right',
         renderCell: (params) => (
           <Stack direction="row" spacing={0.5}>
-            <Tooltip title="View">
+            <Tooltip title={t('common.view')}>
               <IconButton size="small" onClick={() => navigate(paths.materialDetail(params.row.id))}>
                 <VisibilityOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Edit">
+            <Tooltip title={t('common.edit')}>
               <IconButton size="small" onClick={() => navigate(paths.materialEdit(params.row.id))}>
                 <EditOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Delete">
+            <Tooltip title={t('common.delete')}>
               <IconButton size="small" onClick={() => remove.request(params.row)}>
                 <DeleteOutlined fontSize="small" />
               </IconButton>
@@ -92,16 +94,16 @@ export function MaterialsListPage() {
         ),
       },
     ],
-    [navigate, remove],
+    [navigate, remove, t],
   );
 
   return (
     <Box>
       <PageHeader
-        title="Materials"
-        subtitle={data ? `${data.totalCount} total` : undefined}
+        title={t('materials.title')}
+        subtitle={data ? t('common.total', { count: data.totalCount }) : undefined}
         action={{
-          label: 'Add material',
+          label: t('materials.add'),
           icon: <AddOutlined />,
           onClick: () => navigate(paths.materialNew),
         }}
@@ -112,7 +114,7 @@ export function MaterialsListPage() {
         spacing={2}
         sx={{ mb: 2, alignItems: { sm: 'center' } }}
       >
-        <SearchField value={list.search} onChange={list.setSearch} placeholder="Name, warehouse…" />
+        <SearchField value={list.search} onChange={list.setSearch} placeholder={t('materials.searchPlaceholder')} />
         <FormControlLabel
           control={
             <Switch
@@ -123,7 +125,7 @@ export function MaterialsListPage() {
               }}
             />
           }
-          label="Warehouse stock only"
+          label={t('materials.warehouseOnly')}
         />
       </Stack>
 
@@ -143,11 +145,11 @@ export function MaterialsListPage() {
 
       <ConfirmDialog
         open={!!remove.pending}
-        title="Delete material?"
+        title={t('materials.deleteTitle')}
         description={
           remove.pending ? `${remove.pending.name} will be removed from active records.` : ''
         }
-        confirmLabel="Delete"
+        confirmLabel={t('common.delete')}
         destructive
         loading={remove.isDeleting}
         onConfirm={remove.confirm}

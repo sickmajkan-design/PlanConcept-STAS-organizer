@@ -1,5 +1,7 @@
 import { EngineeringOutlined } from '@mui/icons-material';
 import { Box, Paper, Stack, Typography } from '@mui/material';
+
+import { LanguageSwitcher } from './LanguageSwitcher';
 import type { ReactNode } from 'react';
 
 /** Centered card frame shared by every anonymous auth screen. */
@@ -30,6 +32,11 @@ export function AuthCard({
         <Stack spacing={3}>
           <Stack spacing={1} sx={{ alignItems: 'center', textAlign: 'center' }}>
             <EngineeringOutlined sx={{ fontSize: 44, color: 'primary.main' }} />
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              {/* Someone who cannot read this screen cannot get past it to
+                  change the language anywhere else. */}
+              <LanguageSwitcher />
+            </Box>
             <Typography variant="h5" sx={{ fontWeight: 700 }}>
               {title}
             </Typography>

@@ -9,6 +9,7 @@ import {
 
 import type { PagedList } from '../api/types';
 import { ErrorState } from './ErrorState';
+import { useT } from '../i18n/useI18n';
 import { PAGE_SIZE_OPTIONS } from '../hooks/useListQueryState';
 
 /**
@@ -44,6 +45,8 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
   onRowClick?: (row: T) => void;
   height?: number;
 }) {
+  const t = useT();
+
   return (
     <Paper sx={{ height }}>
       {isError ? (
@@ -61,6 +64,20 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
           sortingMode="server"
           sortModel={sortModel}
           onSortModelChange={onSortModelChange}
+          // MUI ships no Serbian locale, so the grid's own chrome — the
+          // pagination footer and empty state — has to be handed over
+          // explicitly or it stays English inside a translated page.
+          localeText={{
+            noRowsLabel: t('common.noRows'),
+            paginationRowsPerPage: `${t('common.rowsPerPage')}:`,
+            paginationDisplayedRows: ({ from, to, count }) =>
+              t('common.displayedRows', {
+                from,
+                to,
+                // -1 means the total is not known yet.
+                count: count === -1 ? to : count,
+              }),
+          }}
           disableColumnMenu
           disableRowSelectionOnClick
           onRowClick={onRowClick ? (params) => onRowClick(params.row) : undefined}

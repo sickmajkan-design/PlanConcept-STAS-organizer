@@ -25,16 +25,20 @@ import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
 import { config, hasGoogleMapsKey } from '../../config';
+import { useFormatRelative } from '../../i18n/useFormatRelative';
+import { useT } from '../../i18n/useI18n';
 import { canViewDirectory } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
-import { formatRelative } from '../../utils/formatting';
+
 
 /** Zagreb — a reasonable default center until real fixes are loaded. */
 const DEFAULT_CENTER = { lat: 45.815, lng: 15.9819 };
 
 export function LiveMapPage() {
   const { user } = useAuth();
+  const t = useT();
+  const formatRelative = useFormatRelative();
   const [projectId, setProjectId] = useState('');
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
 
@@ -58,25 +62,25 @@ export function LiveMapPage() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 112px)' }}>
       <PageHeader
-        title="Live map"
+        title={t('map.title')}
         subtitle={
           dataUpdatedAt
-            ? `Updated ${formatRelative(new Date(dataUpdatedAt).toISOString())} · refreshes every 30 s`
+            ? t('map.updated', { when: formatRelative(new Date(dataUpdatedAt).toISOString()) })
             : undefined
         }
       />
 
       {canViewDirectory(user) && (
         <FormControl size="small" sx={{ minWidth: 240, mb: 2, alignSelf: 'flex-start' }}>
-          <InputLabel id="map-project-filter-label">Project</InputLabel>
+          <InputLabel id="map-project-filter-label">{t('map.project')}</InputLabel>
           <Select
             labelId="map-project-filter-label"
-            label="Project"
+            label={t('map.project')}
             value={projectId}
             onChange={(event) => setProjectId(event.target.value)}
           >
             <MenuItem value="">
-              <em>All projects</em>
+              <em>{t('map.allProjects')}</em>
             </MenuItem>
             {(projects?.items ?? []).map((project) => (
               <MenuItem key={project.id} value={project.id}>

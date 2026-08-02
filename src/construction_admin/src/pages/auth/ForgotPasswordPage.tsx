@@ -11,9 +11,11 @@ import {
   type ForgotPasswordFormValues,
 } from '../../auth/validation';
 import { AuthCard } from '../../components/AuthCard';
+import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 
 export function ForgotPasswordPage() {
+  const t = useT();
   const [sent, setSent] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -39,8 +41,8 @@ export function ForgotPasswordPage() {
 
   return (
     <AuthCard
-      title="Reset password"
-      subtitle="Enter the email address of your admin account. If an account exists, we will send a link to choose a new password."
+      title={t('auth.resetPasswordTitle')}
+      subtitle={t('auth.forgotIntro')}
     >
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <Stack spacing={2.5}>
@@ -58,7 +60,7 @@ export function ForgotPasswordPage() {
             render={({ field, fieldState }) => (
               <TextField
                 {...field}
-                label="Email"
+                label={t('auth.email')}
                 type="email"
                 autoComplete="username"
                 autoFocus
@@ -70,7 +72,7 @@ export function ForgotPasswordPage() {
           />
 
           <Button type="submit" variant="contained" size="large" loading={isSubmitting}>
-            {sent ? 'Send again' : 'Send reset link'}
+            {sent ? t('auth.sendAgain') : t('auth.sendResetLink')}
           </Button>
 
           <MuiLink

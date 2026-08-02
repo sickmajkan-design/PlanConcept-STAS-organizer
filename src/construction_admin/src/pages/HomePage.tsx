@@ -4,31 +4,33 @@ import { Link } from 'react-router-dom';
 
 import { canViewDirectory, displayName } from '../auth/authHelpers';
 import { useAuth } from '../auth/useAuth';
+import { useT } from '../i18n/useI18n';
 import { paths } from '../routes/paths';
 
 export function HomePage() {
   const { user } = useAuth();
+  const t = useT();
 
   if (!user) return null;
 
   const cards = [
     {
-      label: 'Live map',
-      description: "See where today's crews are, live.",
+      label: t('nav.liveMap'),
+      description: t('home.mapCard'),
       icon: <MapOutlined sx={{ fontSize: 32 }} />,
       to: paths.map,
     },
     ...(canViewDirectory(user)
       ? [
           {
-            label: 'Employees',
-            description: 'Search, add and manage the workforce.',
+            label: t('nav.employees'),
+            description: t('home.employeesCard'),
             icon: <PeopleOutlined sx={{ fontSize: 32 }} />,
             to: paths.employees,
           },
           {
-            label: 'Projects',
-            description: 'Manage sites and their assigned crews.',
+            label: t('nav.projects'),
+            description: t('home.projectsCard'),
             icon: <ApartmentOutlined sx={{ fontSize: 32 }} />,
             to: paths.projects,
           },
@@ -39,10 +41,10 @@ export function HomePage() {
   return (
     <Box>
       <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
-        Welcome, {displayName(user)}
+        {t('home.welcome', { name: displayName(user) })}
       </Typography>
       <Typography color="text.secondary" sx={{ mb: 4 }}>
-        Here is what you can do today.
+        {t('home.subtitle')}
       </Typography>
 
       <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 2 }}>

@@ -12,11 +12,13 @@ import {
   type ChangePasswordFormValues,
 } from '../../auth/validation';
 import { PasswordField } from '../../components/PasswordField';
+import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 
 export function ChangePasswordPage() {
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  const t = useT();
   const [error, setError] = useState<ApiError | null>(null);
   const [done, setDone] = useState(false);
 
@@ -83,7 +85,7 @@ export function ChangePasswordPage() {
                   render={({ field, fieldState }) => (
                     <PasswordField
                       {...field}
-                      label="Current password"
+                      label={t('auth.currentPassword')}
                       fullWidth
                       error={!!fieldState.error || !!error?.errorFor('currentPassword')}
                       helperText={
@@ -99,7 +101,7 @@ export function ChangePasswordPage() {
                   render={({ field, fieldState }) => (
                     <PasswordField
                       {...field}
-                      label="New password"
+                      label={t('auth.newPassword')}
                       autoComplete="new-password"
                       fullWidth
                       error={!!fieldState.error || !!error?.errorFor('newPassword')}
@@ -116,7 +118,7 @@ export function ChangePasswordPage() {
                   render={({ field, fieldState }) => (
                     <PasswordField
                       {...field}
-                      label="Confirm new password"
+                      label={t('auth.confirmPassword')}
                       autoComplete="new-password"
                       fullWidth
                       error={!!fieldState.error}

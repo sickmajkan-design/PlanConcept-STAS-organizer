@@ -37,11 +37,13 @@ import {
   useUnassignToolEmployee,
   useUnassignToolProject,
 } from '../../features/tools/useTools';
+import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 
 export function ToolDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const t = useT();
 
   const { data: tool, isLoading, isError, error, refetch } = useToolQuery(id);
   const { data: allEmployees } = useAllEmployeesQuery();
@@ -107,9 +109,9 @@ export function ToolDetailPage() {
               <Typography variant="h5" sx={{ fontWeight: 700 }}>
                 {tool.name}
               </Typography>
-              <Typography color="text.secondary">{tool.category ?? 'Uncategorised'}</Typography>
+              <Typography color="text.secondary">{tool.category ?? t('tools.uncategorised')}</Typography>
               <Stack direction="row" spacing={1} sx={{ mt: 1.5, alignItems: 'center' }}>
-                <StatusChip status={tool.status} />
+                <StatusChip status={tool.status} kind="toolStatus" />
               </Stack>
             </Box>
             <Stack direction="row" spacing={1}>
@@ -141,8 +143,8 @@ export function ToolDetailPage() {
                 Tool
               </Typography>
               <Stack spacing={1.5} sx={{ mt: 1 }}>
-                <InfoRow label="Serial number" value={tool.serialNumber} />
-                <InfoRow label="QR code" value={tool.qrCode} />
+                <InfoRow label={t('tools.serialNumber')} value={tool.serialNumber} />
+                <InfoRow label={t('tools.qrCode')} value={tool.qrCode} />
               </Stack>
             </CardContent>
           </Card>
@@ -175,7 +177,7 @@ export function ToolDetailPage() {
                 </Stack>
               ) : (
                 <Stack spacing={2} sx={{ mt: 1 }}>
-                  <Typography color="text.secondary">Not held by an employee.</Typography>
+                  <Typography color="text.secondary">{t('tools.notHeldSentence')}</Typography>
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                     <FormControl size="small" sx={{ minWidth: 220 }}>
                       <Select
@@ -247,7 +249,7 @@ export function ToolDetailPage() {
                 </Stack>
               ) : (
                 <Stack spacing={2} sx={{ mt: 1 }}>
-                  <Typography color="text.secondary">Not placed on any project.</Typography>
+                  <Typography color="text.secondary">{t('tools.notPlacedSentence')}</Typography>
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                     <FormControl size="small" sx={{ minWidth: 260 }}>
                       <Select
@@ -291,7 +293,7 @@ export function ToolDetailPage() {
 
       <ConfirmDialog
         open={confirmUnassignEmployee}
-        title="Unassign tool?"
+        title={t('tools.unassignTitle')}
         description={`${tool.name} will no longer be held by ${tool.assignedEmployeeName ?? 'this employee'}.`}
         confirmLabel="Unassign"
         destructive
@@ -302,9 +304,9 @@ export function ToolDetailPage() {
 
       <ConfirmDialog
         open={confirmUnassignProject}
-        title="Remove from project?"
+        title={t('tools.unassignProject')}
         description={`${tool.name} will no longer be placed at ${tool.assignedProjectName ?? 'this project'}.`}
-        confirmLabel="Remove"
+        confirmLabel={t('employees.removeFromProject')}
         destructive
         loading={unassignProject.isPending}
         onConfirm={handleUnassignProject}
@@ -313,9 +315,9 @@ export function ToolDetailPage() {
 
       <ConfirmDialog
         open={confirmDelete}
-        title="Delete tool?"
+        title={t('tools.deleteTitle')}
         description={`${tool.name} will be removed from active records.`}
-        confirmLabel="Delete"
+        confirmLabel={t('common.delete')}
         destructive
         loading={deleteTool.isPending}
         onConfirm={handleDelete}

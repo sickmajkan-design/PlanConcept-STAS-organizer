@@ -23,6 +23,7 @@ import { ErrorState } from '../../components/ErrorState';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
 import { useCreateMaterial, useMaterialQuery, useUpdateMaterial } from '../../features/materials/useMaterials';
 import { materialFormSchema, type MaterialFormValues } from '../../features/materials/validation';
+import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 
 const emptyValues: MaterialFormValues = {
@@ -37,6 +38,7 @@ export function MaterialFormPage() {
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
   const navigate = useNavigate();
+  const t = useT();
 
   const { data: existing, isLoading, isError, error, refetch } = useMaterialQuery(id);
   const { data: allProjects } = useAllProjectsQuery();
@@ -110,7 +112,7 @@ export function MaterialFormPage() {
   return (
     <Box sx={{ maxWidth: 720 }}>
       <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
-        {isEdit ? 'Edit material' : 'Add material'}
+        {isEdit ? t('materials.editTitle') : t('materials.newTitle')}
       </Typography>
 
       {isEdit && (
@@ -133,7 +135,7 @@ export function MaterialFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Name"
+                      label={t('materials.name')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
@@ -148,7 +150,7 @@ export function MaterialFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Unit (kg, bag, m³…)"
+                      label={t('materials.unitHint')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
@@ -163,7 +165,7 @@ export function MaterialFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Quantity"
+                      label={t('materials.quantity')}
                       type="number"
                       fullWidth
                       error={!!fieldState.error}
@@ -179,7 +181,7 @@ export function MaterialFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Warehouse"
+                      label={t('materials.warehouse')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
@@ -193,8 +195,8 @@ export function MaterialFormPage() {
                   control={control}
                   render={({ field }) => (
                     <FormControl fullWidth>
-                      <InputLabel id="material-project-label">Project</InputLabel>
-                      <Select {...field} labelId="material-project-label" label="Project">
+                      <InputLabel id="material-project-label">{t('materials.project')}</InputLabel>
+                      <Select {...field} labelId="material-project-label" label={t('materials.project')}>
                         <MenuItem value="">
                           <em>Warehouse stock (no project)</em>
                         </MenuItem>
@@ -212,10 +214,10 @@ export function MaterialFormPage() {
 
             <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
               <Button onClick={() => navigate(-1)} disabled={isSubmitting}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="submit" variant="contained" loading={isSubmitting}>
-                {isEdit ? 'Save changes' : 'Create material'}
+                {isEdit ? t('common.save') : 'Create material'}
               </Button>
             </Stack>
           </Stack>

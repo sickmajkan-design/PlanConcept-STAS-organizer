@@ -7,11 +7,13 @@ import {
   DialogTitle,
 } from '@mui/material';
 
+import { useT } from '../i18n/useI18n';
+
 export function ConfirmDialog({
   open,
   title,
   description,
-  confirmLabel = 'Confirm',
+  confirmLabel,
   destructive = false,
   loading = false,
   onConfirm,
@@ -26,6 +28,8 @@ export function ConfirmDialog({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const t = useT();
+
   return (
     <Dialog open={open} onClose={onCancel} maxWidth="xs" fullWidth>
       <DialogTitle>{title}</DialogTitle>
@@ -34,7 +38,7 @@ export function ConfirmDialog({
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={onCancel} disabled={loading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button
           onClick={onConfirm}
@@ -42,7 +46,7 @@ export function ConfirmDialog({
           variant="contained"
           loading={loading}
         >
-          {confirmLabel}
+          {confirmLabel ?? t('common.delete')}
         </Button>
       </DialogActions>
     </Dialog>

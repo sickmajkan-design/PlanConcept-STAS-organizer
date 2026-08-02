@@ -23,8 +23,9 @@ import { employeeStatuses } from '../../api/types';
 import { ErrorState } from '../../components/ErrorState';
 import { useCreateEmployee, useEmployeeQuery, useUpdateEmployee } from '../../features/employees/useEmployees';
 import { employeeFormSchema, type EmployeeFormValues } from '../../features/employees/validation';
+import { useEnumLabel } from '../../i18n/enumLabels';
+import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
-import { humanizeEnum } from '../../utils/formatting';
 
 const emptyValues: EmployeeFormValues = {
   employeeNumber: '',
@@ -44,6 +45,8 @@ export function EmployeeFormPage() {
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
   const navigate = useNavigate();
+  const t = useT();
+  const enumLabel = useEnumLabel();
 
   const { data: existing, isLoading, isError, error, refetch } = useEmployeeQuery(id);
   const createEmployee = useCreateEmployee();
@@ -130,7 +133,7 @@ export function EmployeeFormPage() {
   return (
     <Box sx={{ maxWidth: 720 }}>
       <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
-        {isEdit ? 'Edit employee' : 'Add employee'}
+        {isEdit ? t('employees.editTitle') : t('employees.newTitle')}
       </Typography>
 
       <Paper sx={{ p: 3, mt: 2 }}>
@@ -146,7 +149,7 @@ export function EmployeeFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Employee number"
+                      label={t('employees.employeeNumber')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
@@ -161,7 +164,7 @@ export function EmployeeFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Position"
+                      label={t('employees.position')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
@@ -176,7 +179,7 @@ export function EmployeeFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="First name"
+                      label={t('employees.firstName')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
@@ -191,7 +194,7 @@ export function EmployeeFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Last name"
+                      label={t('employees.lastName')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
@@ -206,7 +209,7 @@ export function EmployeeFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Phone"
+                      label={t('employees.phone')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
@@ -221,7 +224,7 @@ export function EmployeeFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Email"
+                      label={t('employees.email')}
                       type="email"
                       fullWidth
                       error={!!fieldState.error}
@@ -237,7 +240,7 @@ export function EmployeeFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Address"
+                      label={t('employees.address')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
@@ -252,7 +255,7 @@ export function EmployeeFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Employment date"
+                      label={t('employees.employmentDate')}
                       type="date"
                       fullWidth
                       slotProps={{ inputLabel: { shrink: true } }}
@@ -269,7 +272,7 @@ export function EmployeeFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Date of birth"
+                      label={t('employees.dateOfBirth')}
                       type="date"
                       fullWidth
                       slotProps={{ inputLabel: { shrink: true } }}
@@ -285,11 +288,11 @@ export function EmployeeFormPage() {
                   control={control}
                   render={({ field }) => (
                     <FormControl fullWidth>
-                      <InputLabel id="employee-status-label">Status</InputLabel>
-                      <Select {...field} labelId="employee-status-label" label="Status">
+                      <InputLabel id="employee-status-label">{t('employees.status')}</InputLabel>
+                      <Select {...field} labelId="employee-status-label" label={t('employees.status')}>
                         {employeeStatuses.map((value) => (
                           <MenuItem key={value} value={value}>
-                            {humanizeEnum(value)}
+                            {enumLabel('employeeStatus', value)}
                           </MenuItem>
                         ))}
                       </Select>
@@ -301,10 +304,10 @@ export function EmployeeFormPage() {
 
             <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
               <Button onClick={() => navigate(-1)} disabled={isSubmitting}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="submit" variant="contained" loading={isSubmitting}>
-                {isEdit ? 'Save changes' : 'Create employee'}
+                {isEdit ? t('common.save') : 'Create employee'}
               </Button>
             </Stack>
           </Stack>

@@ -23,8 +23,9 @@ import { toolStatuses } from '../../api/types';
 import { ErrorState } from '../../components/ErrorState';
 import { useCreateTool, useToolQuery, useUpdateTool } from '../../features/tools/useTools';
 import { toolFormSchema, type ToolFormValues } from '../../features/tools/validation';
+import { useEnumLabel } from '../../i18n/enumLabels';
+import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
-import { humanizeEnum } from '../../utils/formatting';
 
 const emptyValues: ToolFormValues = {
   name: '',
@@ -38,6 +39,8 @@ export function ToolFormPage() {
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
   const navigate = useNavigate();
+  const t = useT();
+  const enumLabel = useEnumLabel();
 
   const { data: existing, isLoading, isError, error, refetch } = useToolQuery(id);
   const createTool = useCreateTool();
@@ -110,7 +113,7 @@ export function ToolFormPage() {
   return (
     <Box sx={{ maxWidth: 720 }}>
       <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
-        {isEdit ? 'Edit tool' : 'Add tool'}
+        {isEdit ? t('tools.editTitle') : t('tools.newTitle')}
       </Typography>
 
       <Paper sx={{ p: 3, mt: 2 }}>
@@ -126,7 +129,7 @@ export function ToolFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Name"
+                      label={t('tools.name')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
@@ -141,7 +144,7 @@ export function ToolFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Category"
+                      label={t('tools.category')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
@@ -156,7 +159,7 @@ export function ToolFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Serial number"
+                      label={t('tools.serialNumber')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
@@ -171,7 +174,7 @@ export function ToolFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="QR code"
+                      label={t('tools.qrCode')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
@@ -185,11 +188,11 @@ export function ToolFormPage() {
                   control={control}
                   render={({ field }) => (
                     <FormControl fullWidth>
-                      <InputLabel id="tool-status-label">Status</InputLabel>
-                      <Select {...field} labelId="tool-status-label" label="Status">
+                      <InputLabel id="tool-status-label">{t('tools.status')}</InputLabel>
+                      <Select {...field} labelId="tool-status-label" label={t('tools.status')}>
                         {toolStatuses.map((value) => (
                           <MenuItem key={value} value={value}>
-                            {humanizeEnum(value)}
+                            {enumLabel('toolStatus', value)}
                           </MenuItem>
                         ))}
                       </Select>
@@ -201,10 +204,10 @@ export function ToolFormPage() {
 
             <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
               <Button onClick={() => navigate(-1)} disabled={isSubmitting}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="submit" variant="contained" loading={isSubmitting}>
-                {isEdit ? 'Save changes' : 'Create tool'}
+                {isEdit ? t('common.save') : 'Create tool'}
               </Button>
             </Stack>
           </Stack>

@@ -20,12 +20,14 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
 import { StatusChip } from '../../components/StatusChip';
 import { useDeleteProject, useProjectQuery } from '../../features/projects/useProjects';
+import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { formatDate, initialsOf } from '../../utils/formatting';
 
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const t = useT();
 
   const { data: project, isLoading, isError, error, refetch } = useProjectQuery(id);
   const deleteProject = useDeleteProject();
@@ -60,7 +62,7 @@ export function ProjectDetailPage() {
                 {project.name}
               </Typography>
               <Stack direction="row" spacing={1} sx={{ mt: 1.5, alignItems: 'center' }}>
-                <StatusChip status={project.status} />
+                <StatusChip status={project.status} kind="projectStatus" />
                 <Typography variant="body2" color="text.secondary">
                   · {project.employeeCount} assigned
                 </Typography>
@@ -101,18 +103,18 @@ export function ProjectDetailPage() {
                 Details
               </Typography>
               <Stack spacing={1.5} sx={{ mt: 1 }}>
-                <InfoRow label="Client" value={project.client} />
-                <InfoRow label="Address" value={project.address} />
+                <InfoRow label={t('projects.client')} value={project.client} />
+                <InfoRow label={t('projects.address')} value={project.address} />
                 <InfoRow
-                  label="Coordinates"
+                  label={t('projects.coordinates')}
                   value={
                     hasCoordinates
                       ? `${project.latitude!.toFixed(5)}, ${project.longitude!.toFixed(5)}`
                       : null
                   }
                 />
-                <InfoRow label="Start date" value={project.startDate ? formatDate(project.startDate) : null} />
-                <InfoRow label="End date" value={project.endDate ? formatDate(project.endDate) : null} />
+                <InfoRow label={t('projects.startDate')} value={project.startDate ? formatDate(project.startDate) : null} />
+                <InfoRow label={t('projects.endDate')} value={project.endDate ? formatDate(project.endDate) : null} />
               </Stack>
             </CardContent>
           </Card>
@@ -147,7 +149,7 @@ export function ProjectDetailPage() {
                         primary={member.fullName}
                         secondary={`${member.position} · ${member.employeeNumber}`}
                       />
-                      <StatusChip status={member.status} />
+                      <StatusChip status={member.status} kind="employeeStatus" />
                     </ListItem>
                   ))}
                 </List>
@@ -159,9 +161,9 @@ export function ProjectDetailPage() {
 
       <ConfirmDialog
         open={confirmDelete}
-        title="Delete project?"
+        title={t('projects.deleteTitle')}
         description={`${project.name} will be removed from active records. Any tools assigned only to this project will be released.`}
-        confirmLabel="Delete"
+        confirmLabel={t('common.delete')}
         destructive
         loading={deleteProject.isPending}
         onConfirm={handleDelete}

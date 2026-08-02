@@ -24,12 +24,16 @@ import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
 import { useDeleteProject, useProjectsQuery } from '../../features/projects/useProjects';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
+import { useEnumLabel } from '../../i18n/enumLabels';
+import { useT } from '../../i18n/useI18n';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { paths } from '../../routes/paths';
-import { formatDate, humanizeEnum } from '../../utils/formatting';
+import { formatDate } from '../../utils/formatting';
 
 export function ProjectsListPage() {
   const navigate = useNavigate();
+  const t = useT();
+  const enumLabel = useEnumLabel();
   const list = useListQueryState<ProjectStatus>('name');
 
   const query: ProjectListQuery = useMemo(
@@ -44,24 +48,24 @@ export function ProjectsListPage() {
   // every render, which is wasted work.
   const columns: GridColDef<Project>[] = useMemo(
     () => [
-      { field: 'name', headerName: 'Name', flex: 1, minWidth: 200 },
+      { field: 'name', headerName: t('projects.name'), flex: 1, minWidth: 200 },
       {
         field: 'client',
-        headerName: 'Client',
+        headerName: t('projects.client'),
         flex: 1,
         minWidth: 160,
         valueGetter: (v) => v || '—',
       },
       {
         field: 'status',
-        headerName: 'Status',
+        headerName: t('projects.status'),
         width: 130,
-        renderCell: (params) => <StatusChip status={params.value as string} />,
+        renderCell: (params) => <StatusChip status={params.value as string} kind="projectStatus" />,
       },
-      { field: 'employeeCount', headerName: 'Crew', width: 90, type: 'number' },
+      { field: 'employeeCount', headerName: t('projects.crew'), width: 90, type: 'number' },
       {
         field: 'startDate',
-        headerName: 'Start',
+        headerName: t('projects.start'),
         width: 120,
         valueFormatter: (value: string | null) => formatDate(value),
       },
@@ -75,17 +79,17 @@ export function ProjectsListPage() {
         headerAlign: 'right',
         renderCell: (params) => (
           <Stack direction="row" spacing={0.5}>
-            <Tooltip title="View">
+            <Tooltip title={t('common.view')}>
               <IconButton size="small" onClick={() => navigate(paths.projectDetail(params.row.id))}>
                 <VisibilityOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Edit">
+            <Tooltip title={t('common.edit')}>
               <IconButton size="small" onClick={() => navigate(paths.projectEdit(params.row.id))}>
                 <EditOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Delete">
+            <Tooltip title={t('common.delete')}>
               <IconButton size="small" onClick={() => remove.request(params.row)}>
                 <DeleteOutlined fontSize="small" />
               </IconButton>
@@ -94,16 +98,16 @@ export function ProjectsListPage() {
         ),
       },
     ],
-    [navigate, remove],
+    [navigate, remove, t],
   );
 
   return (
     <Box>
       <PageHeader
-        title="Projects"
-        subtitle={data ? `${data.totalCount} total` : undefined}
+        title={t('projects.title')}
+        subtitle={data ? t('common.total', { count: data.totalCount }) : undefined}
         action={{
-          label: 'Add project',
+          label: t('projects.add'),
           icon: <AddOutlined />,
           onClick: () => navigate(paths.projectNew),
         }}
@@ -113,22 +117,22 @@ export function ProjectsListPage() {
         <SearchField
           value={list.search}
           onChange={list.setSearch}
-          placeholder="Name, client, address…"
+          placeholder={t('projects.searchPlaceholder')}
         />
         <FormControl size="small" sx={{ minWidth: 180 }}>
-          <InputLabel id="project-status-filter-label">Status</InputLabel>
+          <InputLabel id="project-status-filter-label">{t('projects.status')}</InputLabel>
           <Select
             labelId="project-status-filter-label"
-            label="Status"
+            label={t('projects.status')}
             value={list.filter}
             onChange={(event) => list.setFilter(event.target.value as ProjectStatus | '')}
           >
             <MenuItem value="">
-              <em>All</em>
+              <em>{t('common.all')}</em>
             </MenuItem>
             {projectStatuses.map((value) => (
               <MenuItem key={value} value={value}>
-                {humanizeEnum(value)}
+                {enumLabel('projectStatus', value)}
               </MenuItem>
             ))}
           </Select>
@@ -151,13 +155,13 @@ export function ProjectsListPage() {
 
       <ConfirmDialog
         open={!!remove.pending}
-        title="Delete project?"
+        title={t('projects.deleteTitle')}
         description={
           remove.pending
-            ? `${remove.pending.name} will be removed from active records. Any tools assigned only to this project will be released.`
+            ? t('projects.deleteBody', { name: remove.pending.name })
             : ''
         }
-        confirmLabel="Delete"
+        confirmLabel={t('common.delete')}
         destructive
         loading={remove.isDeleting}
         onConfirm={remove.confirm}

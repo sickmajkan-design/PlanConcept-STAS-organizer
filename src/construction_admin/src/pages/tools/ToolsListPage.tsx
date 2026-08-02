@@ -24,12 +24,15 @@ import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
 import { useDeleteTool, useToolsQuery } from '../../features/tools/useTools';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
+import { useEnumLabel } from '../../i18n/enumLabels';
+import { useT } from '../../i18n/useI18n';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { paths } from '../../routes/paths';
-import { humanizeEnum } from '../../utils/formatting';
 
 export function ToolsListPage() {
   const navigate = useNavigate();
+  const t = useT();
+  const enumLabel = useEnumLabel();
   const list = useListQueryState<ToolStatus>('name');
 
   const query: ToolListQuery = useMemo(
@@ -42,23 +45,23 @@ export function ToolsListPage() {
 
   const columns: GridColDef<Tool>[] = useMemo(
     () => [
-      { field: 'name', headerName: 'Tool', flex: 1, minWidth: 180 },
+      { field: 'name', headerName: t('tools.tool'), flex: 1, minWidth: 180 },
       {
         field: 'category',
-        headerName: 'Category',
+        headerName: t('tools.category'),
         flex: 1,
         minWidth: 140,
         valueGetter: (v) => v || '—',
       },
       {
         field: 'status',
-        headerName: 'Status',
+        headerName: t('tools.status'),
         width: 130,
-        renderCell: (params) => <StatusChip status={params.value as string} />,
+        renderCell: (params) => <StatusChip status={params.value as string} kind="toolStatus" />,
       },
       {
         field: 'assignedEmployeeName',
-        headerName: 'Held by',
+        headerName: t('tools.heldBy'),
         flex: 1,
         minWidth: 150,
         valueGetter: (_value, row) =>
@@ -74,17 +77,17 @@ export function ToolsListPage() {
         headerAlign: 'right',
         renderCell: (params) => (
           <Stack direction="row" spacing={0.5}>
-            <Tooltip title="View">
+            <Tooltip title={t('common.view')}>
               <IconButton size="small" onClick={() => navigate(paths.toolDetail(params.row.id))}>
                 <VisibilityOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Edit">
+            <Tooltip title={t('common.edit')}>
               <IconButton size="small" onClick={() => navigate(paths.toolEdit(params.row.id))}>
                 <EditOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Delete">
+            <Tooltip title={t('common.delete')}>
               <IconButton size="small" onClick={() => remove.request(params.row)}>
                 <DeleteOutlined fontSize="small" />
               </IconButton>
@@ -93,16 +96,16 @@ export function ToolsListPage() {
         ),
       },
     ],
-    [navigate, remove],
+    [navigate, remove, t],
   );
 
   return (
     <Box>
       <PageHeader
-        title="Tools"
-        subtitle={data ? `${data.totalCount} total` : undefined}
+        title={t('tools.title')}
+        subtitle={data ? t('common.total', { count: data.totalCount }) : undefined}
         action={{
-          label: 'Add tool',
+          label: t('tools.add'),
           icon: <AddOutlined />,
           onClick: () => navigate(paths.toolNew),
         }}
@@ -112,22 +115,22 @@ export function ToolsListPage() {
         <SearchField
           value={list.search}
           onChange={list.setSearch}
-          placeholder="Name, category, serial number…"
+          placeholder={t('tools.searchPlaceholder')}
         />
         <FormControl size="small" sx={{ minWidth: 180 }}>
-          <InputLabel id="tool-status-filter-label">Status</InputLabel>
+          <InputLabel id="tool-status-filter-label">{t('tools.status')}</InputLabel>
           <Select
             labelId="tool-status-filter-label"
-            label="Status"
+            label={t('tools.status')}
             value={list.filter}
             onChange={(event) => list.setFilter(event.target.value as ToolStatus | '')}
           >
             <MenuItem value="">
-              <em>All</em>
+              <em>{t('common.all')}</em>
             </MenuItem>
             {toolStatuses.map((value) => (
               <MenuItem key={value} value={value}>
-                {humanizeEnum(value)}
+                {enumLabel('toolStatus', value)}
               </MenuItem>
             ))}
           </Select>
@@ -150,11 +153,11 @@ export function ToolsListPage() {
 
       <ConfirmDialog
         open={!!remove.pending}
-        title="Delete tool?"
+        title={t('tools.deleteTitle')}
         description={
           remove.pending ? `${remove.pending.name} will be removed from active records.` : ''
         }
-        confirmLabel="Delete"
+        confirmLabel={t('common.delete')}
         destructive
         loading={remove.isDeleting}
         onConfirm={remove.confirm}

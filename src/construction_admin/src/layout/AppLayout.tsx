@@ -33,8 +33,11 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { canAdministerAccounts, canViewDirectory, displayName } from '../auth/authHelpers';
 import { useAuth } from '../auth/useAuth';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { useEnumLabel } from '../i18n/enumLabels';
+import { useT } from '../i18n/useI18n';
 import { paths } from '../routes/paths';
-import { humanizeEnum, initialsOf } from '../utils/formatting';
+import { initialsOf } from '../utils/formatting';
 
 const DRAWER_WIDTH = 240;
 
@@ -53,24 +56,26 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const t = useT();
+  const enumLabel = useEnumLabel();
 
   if (!user) {
     return null;
   }
 
   const navItems: NavItem[] = [
-    { label: 'Live map', path: paths.map, icon: <MapOutlined /> },
+    { label: t('nav.liveMap'), path: paths.map, icon: <MapOutlined /> },
     ...(canViewDirectory(user)
       ? [
-          { label: 'Employees', path: paths.employees, icon: <PeopleOutlined /> },
-          { label: 'Projects', path: paths.projects, icon: <ApartmentOutlined /> },
-          { label: 'Vehicles', path: paths.vehicles, icon: <LocalShippingOutlined /> },
-          { label: 'Tools', path: paths.tools, icon: <HandymanOutlined /> },
-          { label: 'Materials', path: paths.materials, icon: <Inventory2Outlined /> },
+          { label: t('nav.employees'), path: paths.employees, icon: <PeopleOutlined /> },
+          { label: t('nav.projects'), path: paths.projects, icon: <ApartmentOutlined /> },
+          { label: t('nav.vehicles'), path: paths.vehicles, icon: <LocalShippingOutlined /> },
+          { label: t('nav.tools'), path: paths.tools, icon: <HandymanOutlined /> },
+          { label: t('nav.materials'), path: paths.materials, icon: <Inventory2Outlined /> },
         ]
       : []),
     ...(canAdministerAccounts(user)
-      ? [{ label: 'User accounts', path: paths.users, icon: <ManageAccountsOutlined /> }]
+      ? [{ label: t('nav.users'), path: paths.users, icon: <ManageAccountsOutlined /> }]
       : []),
   ];
 
@@ -84,7 +89,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Toolbar sx={{ gap: 1 }}>
         <Typography variant="subtitle1" noWrap sx={{ fontWeight: 700 }}>
-          Construction Organizer
+          {t('nav.appName')}
         </Typography>
       </Toolbar>
       <Divider />
@@ -124,6 +129,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </IconButton>
           )}
           <Box sx={{ flex: 1 }} />
+          <LanguageSwitcher />
           <IconButton onClick={(event) => setMenuAnchor(event.currentTarget)}>
             <Avatar sx={{ width: 34, height: 34, bgcolor: 'primary.main', fontSize: 14 }}>
               {initialsOf(user.firstName, user.lastName, user.email)}
@@ -144,7 +150,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 {user.email}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                {humanizeEnum(user.role)}
+                {enumLabel('role', user.role)}
               </Typography>
             </Box>
             <Divider />
@@ -156,13 +162,13 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <ListItemIcon>
                 <PasswordOutlined fontSize="small" />
               </ListItemIcon>
-              Change password
+              {t('common.changePassword')}
             </MenuItem>
             <MenuItem onClick={handleSignOut}>
               <ListItemIcon>
                 <LogoutOutlined fontSize="small" />
               </ListItemIcon>
-              Sign out
+              {t('common.signOut')}
             </MenuItem>
           </Menu>
         </Toolbar>

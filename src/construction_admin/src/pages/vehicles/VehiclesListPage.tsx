@@ -24,12 +24,16 @@ import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
 import { useDeleteVehicle, useVehiclesQuery } from '../../features/vehicles/useVehicles';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
+import { useEnumLabel } from '../../i18n/enumLabels';
+import { useT } from '../../i18n/useI18n';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { paths } from '../../routes/paths';
 import { humanizeEnum } from '../../utils/formatting';
 
 export function VehiclesListPage() {
   const navigate = useNavigate();
+  const t = useT();
+  const enumLabel = useEnumLabel();
   const list = useListQueryState<VehicleStatus>('brand');
 
   const query: VehicleListQuery = useMemo(
@@ -46,27 +50,27 @@ export function VehiclesListPage() {
     () => [
       {
         field: 'brand',
-        headerName: 'Vehicle',
+        headerName: t('vehicles.vehicle'),
         flex: 1,
         minWidth: 180,
         valueGetter: (_value, row) => `${row.brand} ${row.model}`,
       },
-      { field: 'registrationNumber', headerName: 'Registration', width: 140 },
+      { field: 'registrationNumber', headerName: t('vehicles.registrationShort'), width: 140 },
       {
         field: 'fuelType',
-        headerName: 'Fuel',
+        headerName: t('vehicles.fuelShort'),
         width: 110,
         valueFormatter: (value: string) => humanizeEnum(value),
       },
       {
         field: 'status',
-        headerName: 'Status',
+        headerName: t('vehicles.status'),
         width: 130,
-        renderCell: (params) => <StatusChip status={params.value as string} />,
+        renderCell: (params) => <StatusChip status={params.value as string} kind="vehicleStatus" />,
       },
       {
         field: 'assignedEmployeeName',
-        headerName: 'Assigned to',
+        headerName: t('vehicles.assignedTo'),
         flex: 1,
         minWidth: 160,
         valueGetter: (v) => v || '—',
@@ -81,17 +85,17 @@ export function VehiclesListPage() {
         headerAlign: 'right',
         renderCell: (params) => (
           <Stack direction="row" spacing={0.5}>
-            <Tooltip title="View">
+            <Tooltip title={t('common.view')}>
               <IconButton size="small" onClick={() => navigate(paths.vehicleDetail(params.row.id))}>
                 <VisibilityOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Edit">
+            <Tooltip title={t('common.edit')}>
               <IconButton size="small" onClick={() => navigate(paths.vehicleEdit(params.row.id))}>
                 <EditOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Delete">
+            <Tooltip title={t('common.delete')}>
               <IconButton size="small" onClick={() => remove.request(params.row)}>
                 <DeleteOutlined fontSize="small" />
               </IconButton>
@@ -100,16 +104,16 @@ export function VehiclesListPage() {
         ),
       },
     ],
-    [navigate, remove],
+    [navigate, remove, t],
   );
 
   return (
     <Box>
       <PageHeader
-        title="Vehicles"
-        subtitle={data ? `${data.totalCount} total` : undefined}
+        title={t('vehicles.title')}
+        subtitle={data ? t('common.total', { count: data.totalCount }) : undefined}
         action={{
-          label: 'Add vehicle',
+          label: t('vehicles.add'),
           icon: <AddOutlined />,
           onClick: () => navigate(paths.vehicleNew),
         }}
@@ -119,22 +123,22 @@ export function VehiclesListPage() {
         <SearchField
           value={list.search}
           onChange={list.setSearch}
-          placeholder="Brand, model, registration…"
+          placeholder={t('vehicles.searchPlaceholder')}
         />
         <FormControl size="small" sx={{ minWidth: 180 }}>
-          <InputLabel id="vehicle-status-filter-label">Status</InputLabel>
+          <InputLabel id="vehicle-status-filter-label">{t('vehicles.status')}</InputLabel>
           <Select
             labelId="vehicle-status-filter-label"
-            label="Status"
+            label={t('vehicles.status')}
             value={list.filter}
             onChange={(event) => list.setFilter(event.target.value as VehicleStatus | '')}
           >
             <MenuItem value="">
-              <em>All</em>
+              <em>{t('common.all')}</em>
             </MenuItem>
             {vehicleStatuses.map((value) => (
               <MenuItem key={value} value={value}>
-                {humanizeEnum(value)}
+                {enumLabel('vehicleStatus', value)}
               </MenuItem>
             ))}
           </Select>
@@ -157,13 +161,13 @@ export function VehiclesListPage() {
 
       <ConfirmDialog
         open={!!remove.pending}
-        title="Delete vehicle?"
+        title={t('vehicles.deleteTitle')}
         description={
           remove.pending
             ? `${remove.pending.brand} ${remove.pending.model} (${remove.pending.registrationNumber}) will be removed from active records.`
             : ''
         }
-        confirmLabel="Delete"
+        confirmLabel={t('common.delete')}
         destructive
         loading={remove.isDeleting}
         onConfirm={remove.confirm}

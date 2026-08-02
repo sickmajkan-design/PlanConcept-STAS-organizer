@@ -23,8 +23,9 @@ import { projectStatuses } from '../../api/types';
 import { ErrorState } from '../../components/ErrorState';
 import { useCreateProject, useProjectQuery, useUpdateProject } from '../../features/projects/useProjects';
 import { projectFormSchema, type ProjectFormValues } from '../../features/projects/validation';
+import { useEnumLabel } from '../../i18n/enumLabels';
+import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
-import { humanizeEnum } from '../../utils/formatting';
 
 const emptyValues: ProjectFormValues = {
   name: '',
@@ -42,6 +43,8 @@ export function ProjectFormPage() {
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
   const navigate = useNavigate();
+  const t = useT();
+  const enumLabel = useEnumLabel();
 
   const { data: existing, isLoading, isError, error, refetch } = useProjectQuery(id);
   const createProject = useCreateProject();
@@ -120,7 +123,7 @@ export function ProjectFormPage() {
   return (
     <Box sx={{ maxWidth: 720 }}>
       <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
-        {isEdit ? 'Edit project' : 'Add project'}
+        {isEdit ? t('projects.editTitle') : t('projects.newTitle')}
       </Typography>
 
       <Paper sx={{ p: 3, mt: 2 }}>
@@ -136,7 +139,7 @@ export function ProjectFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Project name"
+                      label={t('projects.projectName')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
@@ -151,7 +154,7 @@ export function ProjectFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Description"
+                      label={t('projects.description')}
                       fullWidth
                       multiline
                       minRows={2}
@@ -168,7 +171,7 @@ export function ProjectFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Client"
+                      label={t('projects.client')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
@@ -182,11 +185,11 @@ export function ProjectFormPage() {
                   control={control}
                   render={({ field }) => (
                     <FormControl fullWidth>
-                      <InputLabel id="project-status-label">Status</InputLabel>
-                      <Select {...field} labelId="project-status-label" label="Status">
+                      <InputLabel id="project-status-label">{t('projects.status')}</InputLabel>
+                      <Select {...field} labelId="project-status-label" label={t('projects.status')}>
                         {projectStatuses.map((value) => (
                           <MenuItem key={value} value={value}>
-                            {humanizeEnum(value)}
+                            {enumLabel('projectStatus', value)}
                           </MenuItem>
                         ))}
                       </Select>
@@ -201,7 +204,7 @@ export function ProjectFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Address"
+                      label={t('projects.address')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
@@ -216,7 +219,7 @@ export function ProjectFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Latitude"
+                      label={t('projects.latitude')}
                       fullWidth
                       placeholder="45.8150"
                       error={!!fieldState.error}
@@ -232,7 +235,7 @@ export function ProjectFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Longitude"
+                      label={t('projects.longitude')}
                       fullWidth
                       placeholder="15.9819"
                       error={!!fieldState.error}
@@ -248,7 +251,7 @@ export function ProjectFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="Start date"
+                      label={t('projects.startDate')}
                       type="date"
                       fullWidth
                       slotProps={{ inputLabel: { shrink: true } }}
@@ -265,7 +268,7 @@ export function ProjectFormPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
-                      label="End date"
+                      label={t('projects.endDate')}
                       type="date"
                       fullWidth
                       slotProps={{ inputLabel: { shrink: true } }}
@@ -279,10 +282,10 @@ export function ProjectFormPage() {
 
             <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
               <Button onClick={() => navigate(-1)} disabled={isSubmitting}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="submit" variant="contained" loading={isSubmitting}>
-                {isEdit ? 'Save changes' : 'Create project'}
+                {isEdit ? t('common.save') : 'Create project'}
               </Button>
             </Stack>
           </Stack>

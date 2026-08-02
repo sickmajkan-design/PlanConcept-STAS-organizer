@@ -38,8 +38,10 @@ import {
   type CreateUserFormValues,
   type SetPasswordFormValues,
 } from '../../features/users/validation';
+import { useEnumLabel } from '../../i18n/enumLabels';
+import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
-import { humanizeEnum } from '../../utils/formatting';
+
 
 /** Roles the signed-in operator may hand out — mirrors the API's rule. */
 const RANK: Record<Role, number> = {
@@ -65,6 +67,8 @@ export function UserFormPage() {
   const isEdit = !!id;
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
+  const t = useT();
+  const enumLabel = useEnumLabel();
 
   const { data: existing, isLoading, isError, error, refetch } = useUserQuery(id);
   const { data: employees } = useAllEmployeesQuery();
@@ -140,7 +144,7 @@ export function UserFormPage() {
 
   return (
     <Box>
-      <PageHeader title={isEdit ? 'Edit account' : 'New account'} />
+      <PageHeader title={isEdit ? t('users.editTitle') : t('users.newTitle')} />
 
       <Paper sx={{ p: 3, maxWidth: 720 }}>
         <form onSubmit={onSubmit} noValidate>
@@ -152,13 +156,13 @@ export function UserFormPage() {
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label="Email"
+                    label={t('users.email')}
                     type="email"
                     fullWidth
                     required
                     disabled={isLoading && isEdit}
                     error={!!errors.email}
-                    helperText={errors.email?.message ?? 'Used to sign in.'}
+                    helperText={errors.email?.message ?? t('users.emailHelp')}
                   />
                 )}
               />
@@ -172,14 +176,14 @@ export function UserFormPage() {
                   render={({ field }) => (
                     <TextField
                       {...field}
-                      label="Initial password"
+                      label={t('users.initialPassword')}
                       type="password"
                       fullWidth
                       required
                       error={!!errors.password}
                       helperText={
                         errors.password?.message ??
-                        'At least 8 characters with upper case, lower case and a digit. Ask the holder to change it after the first sign-in.'
+                        t('users.initialPasswordHelp')
                       }
                     />
                   )}
@@ -193,11 +197,11 @@ export function UserFormPage() {
                 control={control}
                 render={({ field }) => (
                   <FormControl fullWidth error={!!errors.role}>
-                    <InputLabel id="user-role-label">Role</InputLabel>
-                    <Select {...field} labelId="user-role-label" label="Role">
+                    <InputLabel id="user-role-label">{t('users.role')}</InputLabel>
+                    <Select {...field} labelId="user-role-label" label={t('users.role')}>
                       {allowedRoles.map((role) => (
                         <MenuItem key={role} value={role}>
-                          {humanizeEnum(role)}
+                          {enumLabel('role', role)}
                         </MenuItem>
                       ))}
                     </Select>
@@ -212,10 +216,10 @@ export function UserFormPage() {
                 control={control}
                 render={({ field }) => (
                   <FormControl fullWidth>
-                    <InputLabel id="user-employee-label">Employee</InputLabel>
-                    <Select {...field} labelId="user-employee-label" label="Employee">
+                    <InputLabel id="user-employee-label">{t('users.employee')}</InputLabel>
+                    <Select {...field} labelId="user-employee-label" label={t('users.employee')}>
                       <MenuItem value="">
-                        <em>Not linked</em>
+                        <em>{t('users.notLinked')}</em>
                       </MenuItem>
                       {employees?.items.map((employee) => (
                         <MenuItem key={employee.id} value={employee.id}>
@@ -244,9 +248,9 @@ export function UserFormPage() {
 
             <Grid size={{ xs: 12 }}>
               <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
-                <Button onClick={() => navigate(paths.users)}>Cancel</Button>
+                <Button onClick={() => navigate(paths.users)}>{t('common.cancel')}</Button>
                 <Button type="submit" variant="contained" disabled={isSubmitting}>
-                  {isEdit ? 'Save changes' : 'Create account'}
+                  {isEdit ? t('common.save') : t('users.createAccount')}
                 </Button>
               </Stack>
             </Grid>
@@ -265,6 +269,7 @@ export function UserFormPage() {
  * and should not ride along with an email correction.
  */
 function SetPasswordSection({ userId }: { userId: string }) {
+  const t = useT();
   const setPassword = useSetUserPassword(userId);
 
   const {
@@ -290,11 +295,10 @@ function SetPasswordSection({ userId }: { userId: string }) {
   return (
     <Paper sx={{ p: 3, mt: 3, maxWidth: 720 }}>
       <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-        Set password
+        {t('users.setPasswordTitle')}
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-        For someone with no mailbox to receive a reset link. This signs them out
-        everywhere and clears any lockout.
+        {t('users.setPasswordHelp')}
       </Typography>
 
       <Divider sx={{ my: 2 }} />
@@ -311,7 +315,7 @@ function SetPasswordSection({ userId }: { userId: string }) {
             render={({ field }) => (
               <TextField
                 {...field}
-                label="New password"
+                label={t('auth.newPassword')}
                 type="password"
                 fullWidth
                 error={!!errors.newPassword}
@@ -320,14 +324,14 @@ function SetPasswordSection({ userId }: { userId: string }) {
             )}
           />
           <Button type="submit" variant="outlined" disabled={isSubmitting} sx={{ mt: 1 }}>
-            Set password
+            {t('users.setPassword')}
           </Button>
         </Stack>
       </form>
 
       {setPassword.isSuccess && (
         <Alert severity="success" sx={{ mt: 2 }}>
-          Password updated. The account has been signed out everywhere.
+          {t('users.setPasswordDone')}
         </Alert>
       )}
     </Paper>

@@ -33,9 +33,11 @@ import {
   useDeactivateUser,
   useUsersQuery,
 } from '../../features/users/useUsers';
+import { useEnumLabel } from '../../i18n/enumLabels';
+import { useT } from '../../i18n/useI18n';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { paths } from '../../routes/paths';
-import { formatDate, humanizeEnum } from '../../utils/formatting';
+import { formatDate } from '../../utils/formatting';
 
 /** Mirrors the API's RoleAdministration: everyone may act strictly below
  * themselves, and a Super Admin may also act on peers. Shown here only to keep
@@ -59,6 +61,8 @@ function canManage(callerRole: Role | undefined, targetRole: Role): boolean {
 export function UsersListPage() {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
+  const t = useT();
+  const enumLabel = useEnumLabel();
   const list = useListQueryState<Role>('isActive');
   const [pendingOffboard, setPendingOffboard] = useState<UserAccount | null>(null);
 
@@ -85,34 +89,34 @@ export function UsersListPage() {
 
   const columns: GridColDef<UserAccount>[] = useMemo(
     () => [
-      { field: 'email', headerName: 'Email', flex: 1, minWidth: 220 },
+      { field: 'email', headerName: t('users.email'), flex: 1, minWidth: 220 },
       {
         field: 'role',
-        headerName: 'Role',
+        headerName: t('users.role'),
         width: 150,
-        valueFormatter: (value: string) => humanizeEnum(value),
+        valueFormatter: (value: string) => enumLabel('role', value),
       },
       {
         field: 'employeeName',
-        headerName: 'Employee',
+        headerName: t('users.employee'),
         flex: 1,
         minWidth: 160,
         valueGetter: (v) => v || '—',
       },
       {
         field: 'isActive',
-        headerName: 'Access',
+        headerName: t('users.access'),
         width: 130,
         renderCell: (params) =>
           params.row.isActive ? (
-            <Chip size="small" color="success" variant="outlined" label="Active" />
+            <Chip size="small" color="success" variant="outlined" label={t('users.active')} />
           ) : (
-            <Chip size="small" color="default" label="Deactivated" />
+            <Chip size="small" color="default" label={t('users.deactivated')} />
           ),
       },
       {
         field: 'lastLoginAt',
-        headerName: 'Last sign-in',
+        headerName: t('users.lastSignIn'),
         width: 130,
         valueFormatter: (value: string | null) => formatDate(value),
       },
@@ -131,7 +135,7 @@ export function UsersListPage() {
 
           return (
             <Stack direction="row" spacing={0.5}>
-              <Tooltip title={allowed ? 'Edit' : 'You cannot administer this account'}>
+              <Tooltip title={allowed ? t('common.edit') : t('users.cannotAdminister')}>
                 <span>
                   <IconButton
                     size="small"
@@ -147,10 +151,10 @@ export function UsersListPage() {
                 <Tooltip
                   title={
                     isSelf
-                      ? 'You cannot deactivate your own account'
+                      ? t('users.cannotRevokeSelf')
                       : allowed
-                        ? 'Revoke access'
-                        : 'You cannot administer this account'
+                        ? t('users.revoke')
+                        : t('users.cannotAdminister')
                   }
                 >
                   <span>
@@ -165,7 +169,7 @@ export function UsersListPage() {
                   </span>
                 </Tooltip>
               ) : (
-                <Tooltip title={allowed ? 'Restore access' : 'You cannot administer this account'}>
+                <Tooltip title={allowed ? t('users.restore') : t('users.cannotAdminister')}>
                   <span>
                     <IconButton
                       size="small"
@@ -182,16 +186,16 @@ export function UsersListPage() {
         },
       },
     ],
-    [navigate, currentUser, activate],
+    [navigate, currentUser, activate, t, enumLabel],
   );
 
   return (
     <Box>
       <PageHeader
-        title="User accounts"
-        subtitle={data ? `${data.totalCount} total` : undefined}
+        title={t('users.title')}
+        subtitle={data ? t('common.total', { count: data.totalCount }) : undefined}
         action={{
-          label: 'Add account',
+          label: t('users.add'),
           icon: <AddOutlined />,
           onClick: () => navigate(paths.userNew),
         }}
@@ -201,22 +205,22 @@ export function UsersListPage() {
         <SearchField
           value={list.search}
           onChange={list.setSearch}
-          placeholder="Email or employee name…"
+          placeholder={t('users.searchPlaceholder')}
         />
         <FormControl size="small" sx={{ minWidth: 180 }}>
-          <InputLabel id="user-role-filter-label">Role</InputLabel>
+          <InputLabel id="user-role-filter-label">{t('users.role')}</InputLabel>
           <Select
             labelId="user-role-filter-label"
-            label="Role"
+            label={t('users.role')}
             value={list.filter}
             onChange={(event) => list.setFilter(event.target.value as Role | '')}
           >
             <MenuItem value="">
-              <em>All</em>
+              <em>{t('common.all')}</em>
             </MenuItem>
             {(Object.keys(RANK) as Role[]).map((value) => (
               <MenuItem key={value} value={value}>
-                {humanizeEnum(value)}
+                {enumLabel('role', value)}
               </MenuItem>
             ))}
           </Select>
@@ -238,16 +242,13 @@ export function UsersListPage() {
 
       <ConfirmDialog
         open={!!pendingOffboard}
-        title="Revoke access?"
+        title={t('users.revokeTitle')}
         description={
           pendingOffboard
-            ? `${pendingOffboard.email} will be signed out everywhere immediately. ` +
-              'Open sessions end, any password-reset link already sent stops working, ' +
-              'and the account stops receiving push notifications. Their employee ' +
-              'record and history are kept, and access can be restored later.'
+            ? t('users.revokeBody', { email: pendingOffboard.email })
             : ''
         }
-        confirmLabel="Revoke access"
+        confirmLabel={t('users.revoke')}
         destructive
         loading={deactivate.isPending}
         onConfirm={confirmOffboard}

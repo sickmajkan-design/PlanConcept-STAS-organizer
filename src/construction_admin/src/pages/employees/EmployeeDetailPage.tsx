@@ -39,12 +39,14 @@ import {
   useRemoveEmployeeFromProject,
 } from '../../features/employees/useEmployees';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
+import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { formatDate, initialsOf } from '../../utils/formatting';
 
 export function EmployeeDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const t = useT();
 
   const { data: employee, isLoading, isError, error, refetch } = useEmployeeQuery(id);
   const { data: allProjects } = useAllProjectsQuery();
@@ -104,7 +106,7 @@ export function EmployeeDetailPage() {
               </Typography>
               <Typography color="text.secondary">{employee.position}</Typography>
               <Stack direction="row" spacing={1} sx={{ mt: 1.5, alignItems: 'center' }}>
-                <StatusChip status={employee.status} />
+                <StatusChip status={employee.status} kind="employeeStatus" />
                 <Typography variant="body2" color="text.secondary">
                   · {employee.employeeNumber}
                 </Typography>
@@ -139,9 +141,9 @@ export function EmployeeDetailPage() {
                 Contact
               </Typography>
               <Stack spacing={1.5} sx={{ mt: 1 }}>
-                <InfoRow label="Phone" value={employee.phone} />
-                <InfoRow label="Email" value={employee.email} />
-                <InfoRow label="Address" value={employee.address} />
+                <InfoRow label={t('employees.phone')} value={employee.phone} />
+                <InfoRow label={t('employees.email')} value={employee.email} />
+                <InfoRow label={t('employees.address')} value={employee.address} />
               </Stack>
             </CardContent>
           </Card>
@@ -153,13 +155,13 @@ export function EmployeeDetailPage() {
                 Employment
               </Typography>
               <Stack spacing={1.5} sx={{ mt: 1 }}>
-                <InfoRow label="Employed since" value={formatDate(employee.employmentDate)} />
+                <InfoRow label={t('employees.employedSince')} value={formatDate(employee.employmentDate)} />
                 <InfoRow
-                  label="Date of birth"
+                  label={t('employees.dateOfBirth')}
                   value={employee.dateOfBirth ? formatDate(employee.dateOfBirth) : null}
                 />
                 <InfoRow
-                  label="App account"
+                  label={t('employees.appAccount')}
                   value={employee.hasUserAccount ? 'Yes' : 'No'}
                 />
               </Stack>
@@ -187,7 +189,7 @@ export function EmployeeDetailPage() {
                       sx={{ cursor: 'pointer' }}
                       onClick={() => navigate(paths.projectDetail(assignment.projectId))}
                       secondaryAction={
-                        <Tooltip title="Remove from project">
+                        <Tooltip title={t('employees.removeFromProject')}>
                           <IconButton
                             edge="end"
                             onClick={(event) => {
@@ -212,7 +214,7 @@ export function EmployeeDetailPage() {
                         primary={assignment.projectName}
                         secondary={`Assigned ${formatDate(assignment.assignedAt)}`}
                       />
-                      <StatusChip status={assignment.projectStatus} />
+                      <StatusChip status={assignment.projectStatus} kind="projectStatus" />
                     </ListItem>
                   ))}
                 </List>
@@ -260,13 +262,13 @@ export function EmployeeDetailPage() {
 
       <ConfirmDialog
         open={!!removeTarget}
-        title="Remove from project?"
+        title={t('employees.removeAssignmentTitle')}
         description={
           removeTarget
             ? `${employee.fullName} will no longer be assigned to ${removeTarget.name}.`
             : ''
         }
-        confirmLabel="Remove"
+        confirmLabel={t('employees.removeFromProject')}
         destructive
         loading={remove.isPending}
         onConfirm={handleRemove}
@@ -275,9 +277,9 @@ export function EmployeeDetailPage() {
 
       <ConfirmDialog
         open={confirmDelete}
-        title="Delete employee?"
+        title={t('employees.deleteTitle')}
         description={`${employee.fullName} (${employee.employeeNumber}) will be removed from active records.`}
-        confirmLabel="Delete"
+        confirmLabel={t('common.delete')}
         destructive
         loading={deleteEmployee.isPending}
         onConfirm={handleDelete}

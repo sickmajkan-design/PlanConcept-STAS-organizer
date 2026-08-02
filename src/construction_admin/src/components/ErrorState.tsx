@@ -2,6 +2,7 @@ import { LockOutlined, RefreshRounded, WifiOffRounded } from '@mui/icons-materia
 import { Box, Button, Stack, Typography } from '@mui/material';
 
 import { ApiError } from '../api/apiError';
+import { useT } from '../i18n/useI18n';
 
 /** Full-page or full-panel failure state with an optional retry action. */
 export function ErrorState({
@@ -11,8 +12,10 @@ export function ErrorState({
   error: unknown;
   onRetry?: () => void;
 }) {
+  const t = useT();
+
   const message =
-    error instanceof ApiError ? error.message : 'Something went wrong. Please try again.';
+    error instanceof ApiError ? error.message : t('common.somethingWentWrong');
 
   const isForbidden = error instanceof ApiError && error.isForbidden;
 
@@ -31,7 +34,7 @@ export function ErrorState({
             startIcon={<RefreshRounded />}
             onClick={onRetry}
           >
-            Try again
+            {t('common.retry')}
           </Button>
         )}
       </Stack>

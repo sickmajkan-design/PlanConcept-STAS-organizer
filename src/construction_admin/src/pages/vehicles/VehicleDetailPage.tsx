@@ -28,12 +28,15 @@ import {
   useUnassignVehicle,
   useVehicleQuery,
 } from '../../features/vehicles/useVehicles';
+import { useEnumLabel } from '../../i18n/enumLabels';
+import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
-import { humanizeEnum } from '../../utils/formatting';
 
 export function VehicleDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const t = useT();
+  const enumLabel = useEnumLabel();
 
   const { data: vehicle, isLoading, isError, error, refetch } = useVehicleQuery(id);
   const { data: allEmployees } = useAllEmployeesQuery();
@@ -85,7 +88,7 @@ export function VehicleDetailPage() {
               </Typography>
               <Typography color="text.secondary">{vehicle.registrationNumber}</Typography>
               <Stack direction="row" spacing={1} sx={{ mt: 1.5, alignItems: 'center' }}>
-                <StatusChip status={vehicle.status} />
+                <StatusChip status={vehicle.status} kind="vehicleStatus" />
               </Stack>
             </Box>
             <Stack direction="row" spacing={1}>
@@ -117,8 +120,8 @@ export function VehicleDetailPage() {
                 Vehicle
               </Typography>
               <Stack spacing={1.5} sx={{ mt: 1 }}>
-                <InfoRow label="VIN" value={vehicle.vin} />
-                <InfoRow label="Fuel type" value={humanizeEnum(vehicle.fuelType)} />
+                <InfoRow label={t('vehicles.vin')} value={vehicle.vin} />
+                <InfoRow label={t('vehicles.fuelType')} value={enumLabel('fuelType', vehicle.fuelType)} />
               </Stack>
             </CardContent>
           </Card>
@@ -151,7 +154,7 @@ export function VehicleDetailPage() {
                 </Stack>
               ) : (
                 <Stack spacing={2} sx={{ mt: 1 }}>
-                  <Typography color="text.secondary">Not assigned to any employee.</Typography>
+                  <Typography color="text.secondary">{t('vehicles.notAssignedSentence')}</Typography>
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                     <FormControl size="small" sx={{ minWidth: 220 }}>
                       <Select
@@ -195,7 +198,7 @@ export function VehicleDetailPage() {
 
       <ConfirmDialog
         open={confirmUnassign}
-        title="Unassign vehicle?"
+        title={t('vehicles.unassignTitle')}
         description={`${vehicle.brand} ${vehicle.model} will no longer be assigned to ${vehicle.assignedEmployeeName ?? 'this employee'}.`}
         confirmLabel="Unassign"
         destructive
@@ -206,9 +209,9 @@ export function VehicleDetailPage() {
 
       <ConfirmDialog
         open={confirmDelete}
-        title="Delete vehicle?"
+        title={t('vehicles.deleteTitle')}
         description={`${vehicle.brand} ${vehicle.model} (${vehicle.registrationNumber}) will be removed from active records.`}
-        confirmLabel="Delete"
+        confirmLabel={t('common.delete')}
         destructive
         loading={deleteVehicle.isPending}
         onConfirm={handleDelete}

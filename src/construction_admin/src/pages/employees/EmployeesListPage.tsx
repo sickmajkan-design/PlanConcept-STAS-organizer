@@ -24,12 +24,16 @@ import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
 import { useDeleteEmployee, useEmployeesQuery } from '../../features/employees/useEmployees';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
+import { useEnumLabel } from '../../i18n/enumLabels';
+import { useT } from '../../i18n/useI18n';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { paths } from '../../routes/paths';
-import { formatDate, humanizeEnum } from '../../utils/formatting';
+import { formatDate } from '../../utils/formatting';
 
 export function EmployeesListPage() {
   const navigate = useNavigate();
+  const t = useT();
+  const enumLabel = useEnumLabel();
   const list = useListQueryState<EmployeeStatus>('lastName');
 
   const query: EmployeeListQuery = useMemo(
@@ -44,22 +48,22 @@ export function EmployeesListPage() {
   // every render, which is wasted work.
   const columns: GridColDef<Employee>[] = useMemo(
     () => [
-      { field: 'employeeNumber', headerName: 'Number', width: 110 },
-      { field: 'fullName', headerName: 'Name', flex: 1, minWidth: 180 },
-      { field: 'position', headerName: 'Position', flex: 1, minWidth: 150 },
+      { field: 'employeeNumber', headerName: t('employees.number'), width: 110 },
+      { field: 'fullName', headerName: t('employees.name'), flex: 1, minWidth: 180 },
+      { field: 'position', headerName: t('employees.position'), flex: 1, minWidth: 150 },
       {
         field: 'status',
-        headerName: 'Status',
+        headerName: t('employees.status'),
         width: 130,
-        renderCell: (params) => <StatusChip status={params.value as string} />,
+        renderCell: (params) => <StatusChip status={params.value as string} kind="employeeStatus" />,
       },
       {
         field: 'employmentDate',
-        headerName: 'Employed',
+        headerName: t('employees.employedOn'),
         width: 120,
         valueFormatter: (value: string) => formatDate(value),
       },
-      { field: 'phone', headerName: 'Phone', width: 150, valueGetter: (v) => v || '—' },
+      { field: 'phone', headerName: t('employees.phone'), width: 150, valueGetter: (v) => v || '—' },
       {
         field: 'actions',
         headerName: '',
@@ -70,17 +74,17 @@ export function EmployeesListPage() {
         headerAlign: 'right',
         renderCell: (params) => (
           <Stack direction="row" spacing={0.5}>
-            <Tooltip title="View">
+            <Tooltip title={t('common.view')}>
               <IconButton size="small" onClick={() => navigate(paths.employeeDetail(params.row.id))}>
                 <VisibilityOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Edit">
+            <Tooltip title={t('common.edit')}>
               <IconButton size="small" onClick={() => navigate(paths.employeeEdit(params.row.id))}>
                 <EditOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
-            <Tooltip title="Delete">
+            <Tooltip title={t('common.delete')}>
               <IconButton size="small" onClick={() => remove.request(params.row)}>
                 <DeleteOutlined fontSize="small" />
               </IconButton>
@@ -89,16 +93,16 @@ export function EmployeesListPage() {
         ),
       },
     ],
-    [navigate, remove],
+    [navigate, remove, t],
   );
 
   return (
     <Box>
       <PageHeader
-        title="Employees"
-        subtitle={data ? `${data.totalCount} total` : undefined}
+        title={t('employees.title')}
+        subtitle={data ? t('common.total', { count: data.totalCount }) : undefined}
         action={{
-          label: 'Add employee',
+          label: t('employees.add'),
           icon: <AddOutlined />,
           onClick: () => navigate(paths.employeeNew),
         }}
@@ -108,22 +112,22 @@ export function EmployeesListPage() {
         <SearchField
           value={list.search}
           onChange={list.setSearch}
-          placeholder="Name, number, position…"
+          placeholder={t('employees.searchPlaceholder')}
         />
         <FormControl size="small" sx={{ minWidth: 180 }}>
-          <InputLabel id="status-filter-label">Status</InputLabel>
+          <InputLabel id="status-filter-label">{t('employees.status')}</InputLabel>
           <Select
             labelId="status-filter-label"
-            label="Status"
+            label={t('employees.status')}
             value={list.filter}
             onChange={(event) => list.setFilter(event.target.value as EmployeeStatus | '')}
           >
             <MenuItem value="">
-              <em>All</em>
+              <em>{t('common.all')}</em>
             </MenuItem>
             {employeeStatuses.map((value) => (
               <MenuItem key={value} value={value}>
-                {humanizeEnum(value)}
+                {enumLabel('employeeStatus', value)}
               </MenuItem>
             ))}
           </Select>
@@ -146,13 +150,16 @@ export function EmployeesListPage() {
 
       <ConfirmDialog
         open={!!remove.pending}
-        title="Delete employee?"
+        title={t('employees.deleteTitle')}
         description={
           remove.pending
-            ? `${remove.pending.fullName} (${remove.pending.employeeNumber}) will be removed from active records. This can be reversed by support if needed.`
+            ? t('employees.deleteBody', {
+                name: remove.pending.fullName,
+                number: remove.pending.employeeNumber,
+              })
             : ''
         }
-        confirmLabel="Delete"
+        confirmLabel={t('common.delete')}
         destructive
         loading={remove.isDeleting}
         onConfirm={remove.confirm}

@@ -25,12 +25,14 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
 import { useAdjustMaterial, useDeleteMaterial, useMaterialQuery } from '../../features/materials/useMaterials';
 import { adjustMaterialSchema, type AdjustMaterialFormValues } from '../../features/materials/validation';
+import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { formatDateTime } from '../../utils/formatting';
 
 export function MaterialDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const t = useT();
 
   const { data: material, isLoading, isError, error, refetch } = useMaterialQuery(id);
   const adjust = useAdjustMaterial(id ?? '');
@@ -120,8 +122,8 @@ export function MaterialDetailPage() {
                 Stock
               </Typography>
               <Stack spacing={1.5} sx={{ mt: 1 }}>
-                <InfoRow label="Warehouse" value={material.warehouse} />
-                <InfoRow label="Last updated" value={formatDateTime(material.lastUpdated)} />
+                <InfoRow label={t('materials.warehouse')} value={material.warehouse} />
+                <InfoRow label={t('materials.lastUpdated')} value={formatDateTime(material.lastUpdated)} />
               </Stack>
             </CardContent>
           </Card>
@@ -157,7 +159,7 @@ export function MaterialDetailPage() {
       </Grid>
 
       <Dialog open={adjustOpen} onClose={() => setAdjustOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle>Adjust stock</DialogTitle>
+        <DialogTitle>{t('materials.adjust')}</DialogTitle>
         <form onSubmit={handleSubmit(onAdjust)} noValidate>
           <DialogContent>
             <Stack spacing={2.5} sx={{ mt: 0.5 }}>
@@ -171,7 +173,7 @@ export function MaterialDetailPage() {
                 render={({ field, fieldState }) => (
                   <TextField
                     {...field}
-                    label="Change"
+                    label={t('materials.change')}
                     type="number"
                     fullWidth
                     autoFocus
@@ -186,7 +188,7 @@ export function MaterialDetailPage() {
                 render={({ field, fieldState }) => (
                   <TextField
                     {...field}
-                    label="Reason (optional)"
+                    label={t('materials.reasonOptional')}
                     fullWidth
                     multiline
                     minRows={2}
@@ -212,9 +214,9 @@ export function MaterialDetailPage() {
 
       <ConfirmDialog
         open={confirmDelete}
-        title="Delete material?"
+        title={t('materials.deleteTitle')}
         description={`${material.name} will be removed from active records.`}
-        confirmLabel="Delete"
+        confirmLabel={t('common.delete')}
         destructive
         loading={deleteMaterial.isPending}
         onConfirm={handleDelete}

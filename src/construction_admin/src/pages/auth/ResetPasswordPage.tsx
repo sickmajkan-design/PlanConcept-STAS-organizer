@@ -12,6 +12,7 @@ import {
 } from '../../auth/validation';
 import { AuthCard } from '../../components/AuthCard';
 import { PasswordField } from '../../components/PasswordField';
+import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 
 /**
@@ -20,6 +21,7 @@ import { paths } from '../../routes/paths';
  * ForgotPasswordCommandHandler puts in the link.
  */
 export function ResetPasswordPage() {
+  const t = useT();
   const [searchParams] = useSearchParams();
   const [done, setDone] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
@@ -51,7 +53,7 @@ export function ResetPasswordPage() {
 
   if (done) {
     return (
-      <AuthCard title="Password updated">
+      <AuthCard title={t('auth.passwordUpdated')}>
         <Stack spacing={2.5}>
           <Alert severity="success">
             Your password has been changed. You can now sign in with the new
@@ -66,7 +68,7 @@ export function ResetPasswordPage() {
   }
 
   return (
-    <AuthCard title="Choose a new password" subtitle="At least 8 characters with an upper-case letter, a lower-case letter and a digit.">
+    <AuthCard title={t('auth.resetTitle')} subtitle={t('auth.passwordRule')}>
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <Stack spacing={2.5}>
           {error && <Alert severity="error">{error.message}</Alert>}
@@ -77,7 +79,7 @@ export function ResetPasswordPage() {
             render={({ field, fieldState }) => (
               <TextField
                 {...field}
-                label="Email"
+                label={t('auth.email')}
                 type="email"
                 autoComplete="username"
                 fullWidth
@@ -93,13 +95,13 @@ export function ResetPasswordPage() {
             render={({ field, fieldState }) => (
               <TextField
                 {...field}
-                label="Reset code"
+                label={t('auth.resetCode')}
                 fullWidth
                 error={!!fieldState.error || !!error?.errorFor('token')}
                 helperText={
                   fieldState.error?.message ??
                   error?.errorFor('token') ??
-                  'Copied from the link in your email.'
+                  t('auth.resetCodeHelp')
                 }
               />
             )}
@@ -111,7 +113,7 @@ export function ResetPasswordPage() {
             render={({ field, fieldState }) => (
               <PasswordField
                 {...field}
-                label="New password"
+                label={t('auth.newPassword')}
                 autoComplete="new-password"
                 fullWidth
                 error={!!fieldState.error || !!error?.errorFor('newPassword')}
@@ -126,7 +128,7 @@ export function ResetPasswordPage() {
             render={({ field, fieldState }) => (
               <PasswordField
                 {...field}
-                label="Confirm new password"
+                label={t('auth.confirmPassword')}
                 autoComplete="new-password"
                 fullWidth
                 error={!!fieldState.error}
