@@ -48,6 +48,14 @@ Future<void> _pumpSignedIn(
   AuthSession session, {
   int unread = 0,
 }) async {
+  // Home is a lazily built ListView, so anything past the default 600pt test
+  // surface is simply not constructed and a finder reports it missing whether
+  // the screen offers it or not. A tall surface makes "offered" and "not
+  // offered" mean what the assertions below say they mean.
+  tester.view.physicalSize = const Size(1080, 3600);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -117,6 +125,29 @@ void main() {
     expect(find.text('Tools'), findsOneWidget);
     expect(find.text('Materials'), findsOneWidget);
     expect(find.text('Look up a tool'), findsOneWidget);
+  });
+
+  testWidgets('offers a Worker their own schedule and time off',
+      (tester) async {
+    // Both endpoints are open to every employee-linked account: the API
+    // narrows them to the caller's own line rather than refusing them.
+    await _pumpSignedIn(tester, _sessionFor('Worker'));
+
+    expect(find.text('My schedule'), findsOneWidget);
+    expect(find.text('Time off'), findsOneWidget);
+  });
+
+  testWidgets('offers no schedule to an account with no employee record',
+      (tester) async {
+    // Nothing to show, and the same reasoning as the shift screen: an account
+    // with no employee has no schedule and no leave to ask for.
+    await _pumpSignedIn(
+      tester,
+      _sessionFor('Admin', linkedToEmployee: false),
+    );
+
+    expect(find.text('My schedule'), findsNothing);
+    expect(find.text('Time off'), findsNothing);
   });
 
   testWidgets(

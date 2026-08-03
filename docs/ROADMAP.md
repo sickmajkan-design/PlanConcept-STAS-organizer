@@ -138,19 +138,32 @@ ručno, a fotografija se bez pickera ne može uzeti.
 
 ---
 
-## Faza 4 — Raspoređivanje i odsustva / Scheduling and absences
+## Faza 4 — Raspoređivanje i odsustva / Scheduling and absences — **ODRAĐENO / DONE**
 
-- Nadogradnja `EmployeeProject`: sada nosi samo `AssignedAt`. Treba raspon datuma,
-  pa jedan radnik može biti na različitim gradilištima kroz nedelju
-- Kalendarski prikaz u admin panelu, prevlačenje radnika i timova po danu
-- Godišnji odmori, bolovanja i dostupnost — da kalendar prikazuje ko *stvarno* može
-- Objedinjen profil radnika: sve što je zadužio na jednom mestu
+| Stavka / Item | Stanje / State |
+|---|---|
+| `EmployeeProject` sa rasponom datuma | **Odrađeno.** Raspored je sada raspon, ne članstvo: radnik se kroz nedelju seli sa gradilišta na gradilište, vraća se kasnije kao drugi raspored, i može pokrivati dva gradilišta odjednom — poslednje namerno, jer nadzornik to stvarno radi. |
+| Migracija bez gubitka podataka | **Odrađeno.** `Id` iz `gen_random_uuid()`, `StartDate` izveden iz `AssignedAt`. Provereno na bazi sa podacima, ne pretpostavljeno. |
+| Preklapanja kao ograničenja baze | **Odrađeno.** `EXCLUDE USING gist` nad `daterange` za oba slučaja, pa dva zahteva u trci ne mogu oba proći. Rukovaoci proveravaju samo da bi odgovor bio rečenica. |
+| Skidanje sa gradilišta | **Odrađeno.** Zatvara raspored današnjim danom umesto da ga briše — radnik je bio tamo, a satnica pored toga to i kaže. Raspored koji nije počeo se briše. |
+| Odsustva sa odobrenjem | **Odrađeno.** Zahtev dok ga neko ne odgovori. Sopstveno odsustvo ne odobrava niko, bez obzira na ulogu — ista provera koju satnica već nosi. |
+| Tabla rasporeda u admin panelu | **Odrađeno.** Nedelja po nedelja, jedan upit za celu tablu. Na tabli je samo odobreno odsustvo; zahtev bez odgovora bi značio da se posao planira oko slobodnih dana koje niko nije dao. |
+| Mobilno: moj raspored i moja odsustva | **Odrađeno.** Isti `/api/schedule`, server suzi radnika na njegov red. Radnik traži odsustvo i povlači zahtev bez odgovora; odobreno mora nadređeni da odbije. |
 
-**Zašto peto / Why fifth:** ovo je njihova reklamna funkcija (drag-and-drop
-raspoređivanje), ali bez modula sati raspored je samo slika — ne zna se šta je
-zaista odrađeno.
+**Poznati nedostaci / Known gaps:**
 
-**Procena / Estimate:** 2–3 nedelje. **Pokrivenost / Coverage: ≈58%**
+- Push obaveštenje kad se odsustvo odobri ili odbije **ne postoji**. To je i
+  dalje tako za sve preglede u sistemu (satnica takođe ne šalje), pa je ovde
+  ostavljeno dosledno — ali radnik trenutno mora sam da otvori aplikaciju da
+  bi video odgovor. Prvi kandidat za dopunu.
+- Prevlačenje mišem po tabli (drag-and-drop) nije urađeno. Tabla prikazuje i
+  filtrira; raspoređivanje ide preko ekrana radnika. Njihova reklamna funkcija,
+  ali ne menja šta sistem zna.
+- Poruke validacije formi su i dalje samo na engleskom — na sva tri sloja
+  (FluentValidation, zod, ARB nije u pitanju). Nije uvedeno ovom fazom;
+  pogađa svih devet postojećih formi jednako.
+
+**Pokrivenost / Coverage: ≈58%**
 
 ---
 

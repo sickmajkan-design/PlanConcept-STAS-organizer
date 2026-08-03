@@ -24,7 +24,9 @@ export type EnumKind =
   | 'attachmentCategory'
   | 'workItemKind'
   | 'workItemStatus'
-  | 'workItemPriority';
+  | 'workItemPriority'
+  | 'absenceType'
+  | 'absenceStatus';
 
 export function useEnumLabel() {
   const t = useT();

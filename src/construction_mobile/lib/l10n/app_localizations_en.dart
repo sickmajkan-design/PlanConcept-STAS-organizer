@@ -832,4 +832,141 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get workItemPriorityUrgent => 'Urgent';
+
+  @override
+  String get navSchedule => 'My schedule';
+
+  @override
+  String get navAbsences => 'Time off';
+
+  @override
+  String get scheduleTitle => 'My schedule';
+
+  @override
+  String get scheduleEmpty => 'Nothing scheduled for the next two weeks.';
+
+  @override
+  String get scheduleToday => 'Today';
+
+  @override
+  String get scheduleTomorrow => 'Tomorrow';
+
+  @override
+  String get scheduleContinues => 'Runs on';
+
+  @override
+  String get scheduleUpcoming => 'Next two weeks';
+
+  @override
+  String scheduleDateRange(String from, String to) {
+    return '$from – $to';
+  }
+
+  @override
+  String get scheduleAway => 'Away';
+
+  @override
+  String get scheduleOnSite => 'On site';
+
+  @override
+  String get absencesTitle => 'Time off';
+
+  @override
+  String get absencesEmpty => 'You have not asked for any time off.';
+
+  @override
+  String get absencesPendingOnly => 'Waiting for an answer';
+
+  @override
+  String get absencesRequest => 'Ask for time off';
+
+  @override
+  String get absencesType => 'Kind';
+
+  @override
+  String get absencesStartDate => 'From';
+
+  @override
+  String get absencesEndDate => 'To';
+
+  @override
+  String get absencesReason => 'Reason (optional)';
+
+  @override
+  String get absencesSend => 'Send request';
+
+  @override
+  String get absencesSent => 'Request sent.';
+
+  @override
+  String get absencesPickDates =>
+      'Pick the first and last day you will be away.';
+
+  @override
+  String get absencesEndsBeforeStart =>
+      'The last day cannot be before the first.';
+
+  @override
+  String absencesDayCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      few: '$count days',
+      one: '$count day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get absencesWithdraw => 'Withdraw';
+
+  @override
+  String get absencesWithdrawTitle => 'Withdraw this request?';
+
+  @override
+  String get absencesWithdrawBody =>
+      'Your supervisor will no longer see you asking for these days.';
+
+  @override
+  String get absencesWithdrawn => 'Request withdrawn.';
+
+  @override
+  String get absencesGrantedLocked =>
+      'Granted time off has to be cancelled by your supervisor.';
+
+  @override
+  String absencesAnsweredBy(String name) {
+    return 'Answered by $name';
+  }
+
+  @override
+  String get absenceTypeAnnualLeave => 'Annual leave';
+
+  @override
+  String get absenceTypeSickLeave => 'Sick leave';
+
+  @override
+  String get absenceTypeUnpaidLeave => 'Unpaid leave';
+
+  @override
+  String get absenceTypePaidSpecialLeave => 'Paid special leave';
+
+  @override
+  String get absenceTypeTraining => 'Training';
+
+  @override
+  String get absenceTypeOther => 'Other';
+
+  @override
+  String get absenceStatusRequested => 'Waiting';
+
+  @override
+  String get absenceStatusApproved => 'Granted';
+
+  @override
+  String get absenceStatusRejected => 'Refused';
+
+  @override
+  String get absenceStatusCancelled => 'Withdrawn';
 }

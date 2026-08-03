@@ -1597,6 +1597,246 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Urgent'**
   String get workItemPriorityUrgent;
+
+  /// No description provided for @navSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'My schedule'**
+  String get navSchedule;
+
+  /// No description provided for @navAbsences.
+  ///
+  /// In en, this message translates to:
+  /// **'Time off'**
+  String get navAbsences;
+
+  /// No description provided for @scheduleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My schedule'**
+  String get scheduleTitle;
+
+  /// No description provided for @scheduleEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing scheduled for the next two weeks.'**
+  String get scheduleEmpty;
+
+  /// No description provided for @scheduleToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get scheduleToday;
+
+  /// No description provided for @scheduleTomorrow.
+  ///
+  /// In en, this message translates to:
+  /// **'Tomorrow'**
+  String get scheduleTomorrow;
+
+  /// No description provided for @scheduleContinues.
+  ///
+  /// In en, this message translates to:
+  /// **'Runs on'**
+  String get scheduleContinues;
+
+  /// No description provided for @scheduleUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Next two weeks'**
+  String get scheduleUpcoming;
+
+  /// No description provided for @scheduleDateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} – {to}'**
+  String scheduleDateRange(String from, String to);
+
+  /// No description provided for @scheduleAway.
+  ///
+  /// In en, this message translates to:
+  /// **'Away'**
+  String get scheduleAway;
+
+  /// No description provided for @scheduleOnSite.
+  ///
+  /// In en, this message translates to:
+  /// **'On site'**
+  String get scheduleOnSite;
+
+  /// No description provided for @absencesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time off'**
+  String get absencesTitle;
+
+  /// No description provided for @absencesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You have not asked for any time off.'**
+  String get absencesEmpty;
+
+  /// No description provided for @absencesPendingOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for an answer'**
+  String get absencesPendingOnly;
+
+  /// No description provided for @absencesRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask for time off'**
+  String get absencesRequest;
+
+  /// No description provided for @absencesType.
+  ///
+  /// In en, this message translates to:
+  /// **'Kind'**
+  String get absencesType;
+
+  /// No description provided for @absencesStartDate.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get absencesStartDate;
+
+  /// No description provided for @absencesEndDate.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get absencesEndDate;
+
+  /// No description provided for @absencesReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason (optional)'**
+  String get absencesReason;
+
+  /// No description provided for @absencesSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send request'**
+  String get absencesSend;
+
+  /// No description provided for @absencesSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Request sent.'**
+  String get absencesSent;
+
+  /// No description provided for @absencesPickDates.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the first and last day you will be away.'**
+  String get absencesPickDates;
+
+  /// No description provided for @absencesEndsBeforeStart.
+  ///
+  /// In en, this message translates to:
+  /// **'The last day cannot be before the first.'**
+  String get absencesEndsBeforeStart;
+
+  /// No description provided for @absencesDayCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} day} few{{count} days} other{{count} days}}'**
+  String absencesDayCount(int count);
+
+  /// No description provided for @absencesWithdraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw'**
+  String get absencesWithdraw;
+
+  /// No description provided for @absencesWithdrawTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw this request?'**
+  String get absencesWithdrawTitle;
+
+  /// No description provided for @absencesWithdrawBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your supervisor will no longer see you asking for these days.'**
+  String get absencesWithdrawBody;
+
+  /// No description provided for @absencesWithdrawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Request withdrawn.'**
+  String get absencesWithdrawn;
+
+  /// No description provided for @absencesGrantedLocked.
+  ///
+  /// In en, this message translates to:
+  /// **'Granted time off has to be cancelled by your supervisor.'**
+  String get absencesGrantedLocked;
+
+  /// No description provided for @absencesAnsweredBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Answered by {name}'**
+  String absencesAnsweredBy(String name);
+
+  /// No description provided for @absenceTypeAnnualLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Annual leave'**
+  String get absenceTypeAnnualLeave;
+
+  /// No description provided for @absenceTypeSickLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Sick leave'**
+  String get absenceTypeSickLeave;
+
+  /// No description provided for @absenceTypeUnpaidLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid leave'**
+  String get absenceTypeUnpaidLeave;
+
+  /// No description provided for @absenceTypePaidSpecialLeave.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid special leave'**
+  String get absenceTypePaidSpecialLeave;
+
+  /// No description provided for @absenceTypeTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'Training'**
+  String get absenceTypeTraining;
+
+  /// No description provided for @absenceTypeOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get absenceTypeOther;
+
+  /// No description provided for @absenceStatusRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get absenceStatusRequested;
+
+  /// No description provided for @absenceStatusApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Granted'**
+  String get absenceStatusApproved;
+
+  /// No description provided for @absenceStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Refused'**
+  String get absenceStatusRejected;
+
+  /// No description provided for @absenceStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawn'**
+  String get absenceStatusCancelled;
 }
 
 class _AppLocalizationsDelegate

@@ -446,3 +446,90 @@ export interface WorkItemInput {
   latitude?: number | null;
   longitude?: number | null;
 }
+
+export const absenceTypes = [
+  'AnnualLeave',
+  'SickLeave',
+  'UnpaidLeave',
+  'PaidSpecialLeave',
+  'Training',
+  'Other',
+] as const;
+
+export type AbsenceType = (typeof absenceTypes)[number];
+
+export const absenceStatuses = [
+  'Requested',
+  'Approved',
+  'Rejected',
+  'Cancelled',
+] as const;
+
+export type AbsenceStatus = (typeof absenceStatuses)[number];
+
+export interface Absence {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  type: AbsenceType;
+  status: AbsenceStatus;
+  /** `YYYY-MM-DD`. */
+  startDate: string;
+  /** `YYYY-MM-DD`, inclusive. */
+  endDate: string;
+  /** Calendar days covered, both ends included. */
+  dayCount: number;
+  reason: string | null;
+  requestedByName: string | null;
+  reviewedByName: string | null;
+  reviewedAt: string | null;
+  reviewNote: string | null;
+  createdAt: string;
+}
+
+export interface AbsenceInput {
+  /** Omitted books the caller's own leave. */
+  employeeId?: string | null;
+  type: AbsenceType;
+  startDate: string;
+  endDate: string;
+  reason?: string | null;
+  /** Records it as already granted. Supervisors only. */
+  approve?: boolean;
+}
+
+/**
+ * A posting on the board, already clipped to the window being shown, so the
+ * bar can be drawn without re-deriving where it starts.
+ */
+export interface ScheduleAssignment {
+  id: string;
+  projectId: string;
+  projectName: string;
+  from: string;
+  to: string;
+  /** True when the posting runs on past the end of the window. */
+  continuesAfter: boolean;
+}
+
+export interface ScheduleAbsence {
+  id: string;
+  type: AbsenceType;
+  from: string;
+  to: string;
+}
+
+export interface ScheduleRow {
+  employeeId: string;
+  employeeName: string;
+  position: string;
+  assignments: ScheduleAssignment[];
+  /** Only granted leave. A request nobody has answered is not on the board. */
+  absences: ScheduleAbsence[];
+}
+
+export interface Schedule {
+  from: string;
+  to: string;
+  rows: ScheduleRow[];
+}

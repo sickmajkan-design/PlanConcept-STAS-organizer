@@ -22,6 +22,14 @@ class AppRoutes {
   /// Open to every employee-linked account: a worker's own list.
   static const workItems = '/work-items';
 
+  /// Open to every employee-linked account: where this person is posted. The
+  /// API narrows the same endpoint the admin board uses to the caller's own
+  /// line, so it must not sit under a directory prefix.
+  static const schedule = '/schedule';
+
+  /// Open to every employee-linked account: their own leave.
+  static const absences = '/absences';
+
   /// Open to every authenticated employee (mirrors the API's `by-qr`
   /// endpoint), so it must not sit under [tools] or it would be swept into
   /// [isDirectoryLocation].

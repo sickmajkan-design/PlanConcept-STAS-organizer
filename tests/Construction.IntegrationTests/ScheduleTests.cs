@@ -580,6 +580,99 @@ public class ScheduleTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task A_worker_gets_their_own_line_and_nobody_elses()
+    {
+        // What the phone shows: where am I this week. Narrowed rather than
+        // refused, so a worker asking about a site sees their own posting to
+        // it and not the crew list.
+        var mine = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var theirs = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var worker = await InScope(scope =>
+            TestData.SeedUserAsync(scope, UserRole.Worker, mine.Id));
+
+        foreach (var employee in new[] { mine, theirs })
+        {
+            await InScope(scope => scope.Send(
+                new AssignEmployeeToProjectCommand(employee.Id, project.Id)
+                {
+                    StartDate = Monday,
+                    EndDate = Monday.AddDays(4)
+                }));
+        }
+
+        var schedule = await InScope(scope =>
+        {
+            ActAs(scope, worker, mine.Id);
+            return scope.Send(new GetScheduleQuery
+            {
+                From = Monday,
+                To = Monday.AddDays(6)
+            });
+        });
+
+        var row = Assert.Single(schedule.Rows);
+
+        Assert.Equal(mine.Id, row.EmployeeId);
+        Assert.Single(row.Assignments);
+    }
+
+    [Fact]
+    public async Task An_account_with_no_employee_record_gets_an_empty_board()
+    {
+        // Falling through to everybody's schedule would turn an unlinked
+        // account into a staff directory.
+        await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var orphan = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Worker));
+
+        var schedule = await InScope(scope =>
+        {
+            ActAs(scope, orphan);
+            return scope.Send(new GetScheduleQuery
+            {
+                From = Monday,
+                To = Monday.AddDays(6)
+            });
+        });
+
+        Assert.Empty(schedule.Rows);
+    }
+
+    [Fact]
+    public async Task A_worker_sees_their_own_granted_leave_on_their_line()
+    {
+        var (employee, reviewer) = await SeedReviewablePairAsync();
+        var worker = await InScope(scope =>
+            TestData.SeedUserAsync(scope, UserRole.Worker, employee.Id));
+
+        await InScope(scope =>
+        {
+            ActAs(scope, reviewer);
+            return scope.Send(new RequestAbsenceCommand
+            {
+                EmployeeId = employee.Id,
+                StartDate = Monday,
+                EndDate = Monday.AddDays(2),
+                Approve = true
+            });
+        });
+
+        var schedule = await InScope(scope =>
+        {
+            ActAs(scope, worker, employee.Id);
+            return scope.Send(new GetScheduleQuery
+            {
+                From = Monday,
+                To = Monday.AddDays(6)
+            });
+        });
+
+        var row = Assert.Single(schedule.Rows);
+
+        Assert.Single(row.Absences);
+    }
+
+    [Fact]
     public async Task A_window_wider_than_the_limit_is_refused()
     {
         var foreman = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Foreman));

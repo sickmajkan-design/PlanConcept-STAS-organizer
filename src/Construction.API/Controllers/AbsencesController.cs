@@ -33,9 +33,12 @@ public class AbsencesController : ApiControllerBase
         return Ok(await Mediator.Send(query, cancellationToken));
     }
 
-    /// <summary>Who is posted where, and who is away, over a window.</summary>
+    /// <summary>
+    /// Who is posted where, and who is away, over a window. A worker gets
+    /// their own line, which is what the phone shows.
+    /// </summary>
     [HttpGet("/api/schedule")]
-    [Authorize(Policy = Policies.ForemanAndAbove)]
+    [Authorize(Policy = Policies.AllEmployees)]
     [ProducesResponseType(typeof(ScheduleDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ScheduleDto>> GetSchedule(

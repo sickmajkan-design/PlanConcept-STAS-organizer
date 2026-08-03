@@ -825,4 +825,139 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get workItemPriorityUrgent => 'Hitno';
+
+  @override
+  String get navSchedule => 'Moj raspored';
+
+  @override
+  String get navAbsences => 'Odsustva';
+
+  @override
+  String get scheduleTitle => 'Moj raspored';
+
+  @override
+  String get scheduleEmpty => 'Nema rasporeda za naredne dve nedelje.';
+
+  @override
+  String get scheduleToday => 'Danas';
+
+  @override
+  String get scheduleTomorrow => 'Sutra';
+
+  @override
+  String get scheduleContinues => 'Traje dalje';
+
+  @override
+  String get scheduleUpcoming => 'Naredne dve nedelje';
+
+  @override
+  String scheduleDateRange(String from, String to) {
+    return '$from – $to';
+  }
+
+  @override
+  String get scheduleAway => 'Odsutan';
+
+  @override
+  String get scheduleOnSite => 'Na gradilištu';
+
+  @override
+  String get absencesTitle => 'Odsustva';
+
+  @override
+  String get absencesEmpty => 'Nisi tražio nijedno odsustvo.';
+
+  @override
+  String get absencesPendingOnly => 'Čeka odgovor';
+
+  @override
+  String get absencesRequest => 'Zatraži odsustvo';
+
+  @override
+  String get absencesType => 'Vrsta';
+
+  @override
+  String get absencesStartDate => 'Od';
+
+  @override
+  String get absencesEndDate => 'Do';
+
+  @override
+  String get absencesReason => 'Razlog (opciono)';
+
+  @override
+  String get absencesSend => 'Pošalji zahtev';
+
+  @override
+  String get absencesSent => 'Zahtev je poslat.';
+
+  @override
+  String get absencesPickDates => 'Izaberi prvi i poslednji dan odsustva.';
+
+  @override
+  String get absencesEndsBeforeStart => 'Poslednji dan ne može biti pre prvog.';
+
+  @override
+  String absencesDayCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dana',
+      few: '$count dana',
+      one: '$count dan',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get absencesWithdraw => 'Povuci';
+
+  @override
+  String get absencesWithdrawTitle => 'Povući ovaj zahtev?';
+
+  @override
+  String get absencesWithdrawBody =>
+      'Nadređeni više neće videti da tražiš te dane.';
+
+  @override
+  String get absencesWithdrawn => 'Zahtev je povučen.';
+
+  @override
+  String get absencesGrantedLocked =>
+      'Odobreno odsustvo može da otkaže samo nadređeni.';
+
+  @override
+  String absencesAnsweredBy(String name) {
+    return 'Odgovorio $name';
+  }
+
+  @override
+  String get absenceTypeAnnualLeave => 'Godišnji odmor';
+
+  @override
+  String get absenceTypeSickLeave => 'Bolovanje';
+
+  @override
+  String get absenceTypeUnpaidLeave => 'Neplaćeno odsustvo';
+
+  @override
+  String get absenceTypePaidSpecialLeave => 'Plaćeno odsustvo';
+
+  @override
+  String get absenceTypeTraining => 'Obuka';
+
+  @override
+  String get absenceTypeOther => 'Ostalo';
+
+  @override
+  String get absenceStatusRequested => 'Na čekanju';
+
+  @override
+  String get absenceStatusApproved => 'Odobreno';
+
+  @override
+  String get absenceStatusRejected => 'Odbijeno';
+
+  @override
+  String get absenceStatusCancelled => 'Povučeno';
 }

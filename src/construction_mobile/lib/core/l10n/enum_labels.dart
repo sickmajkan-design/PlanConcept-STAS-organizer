@@ -22,6 +22,8 @@ enum EnumKind {
   workItemKind,
   workItemStatus,
   workItemPriority,
+  absenceType,
+  absenceStatus,
 }
 
 /// Translates one of the API's enum values.
@@ -96,6 +98,16 @@ String enumLabel(AppLocalizations l10n, EnumKind kind, String? value) {
     (EnumKind.workItemPriority, 'Normal') => l10n.workItemPriorityNormal,
     (EnumKind.workItemPriority, 'High') => l10n.workItemPriorityHigh,
     (EnumKind.workItemPriority, 'Urgent') => l10n.workItemPriorityUrgent,
+    (EnumKind.absenceType, 'AnnualLeave') => l10n.absenceTypeAnnualLeave,
+    (EnumKind.absenceType, 'SickLeave') => l10n.absenceTypeSickLeave,
+    (EnumKind.absenceType, 'UnpaidLeave') => l10n.absenceTypeUnpaidLeave,
+    (EnumKind.absenceType, 'PaidSpecialLeave') => l10n.absenceTypePaidSpecialLeave,
+    (EnumKind.absenceType, 'Training') => l10n.absenceTypeTraining,
+    (EnumKind.absenceType, 'Other') => l10n.absenceTypeOther,
+    (EnumKind.absenceStatus, 'Requested') => l10n.absenceStatusRequested,
+    (EnumKind.absenceStatus, 'Approved') => l10n.absenceStatusApproved,
+    (EnumKind.absenceStatus, 'Rejected') => l10n.absenceStatusRejected,
+    (EnumKind.absenceStatus, 'Cancelled') => l10n.absenceStatusCancelled,
     _ => null,
   };
 

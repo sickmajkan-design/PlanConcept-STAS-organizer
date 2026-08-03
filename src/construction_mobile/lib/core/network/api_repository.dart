@@ -66,6 +66,14 @@ abstract class ApiRepository {
     });
   }
 
+  /// DELETEs and discards the response body.
+  @protected
+  Future<void> deleteVoid(String path) {
+    return guard(() async {
+      await dio.delete<void>(path);
+    });
+  }
+
   /// POSTs and maps the JSON body of the response.
   @protected
   Future<T> postJson<T>(

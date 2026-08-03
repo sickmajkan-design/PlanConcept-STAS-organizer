@@ -18,6 +18,10 @@ namespace Construction.Application.Features.Absences.Queries.GetSchedule;
 /// Only approved absences appear. A request that has not been answered is a
 /// question, and a board that greys someone out on the strength of one would
 /// have work planned around leave nobody granted.
+///
+/// A worker gets the same query narrowed to their own line, which is what the
+/// phone shows: where am I this week. Narrowed rather than refused, so the
+/// answer to "whose schedule?" is always their own.
 /// </remarks>
 public record GetScheduleQuery : IRequest<ScheduleDto>
 {
@@ -56,10 +60,14 @@ public class GetScheduleQueryValidator : AbstractValidator<GetScheduleQuery>
 public class GetScheduleQueryHandler : IRequestHandler<GetScheduleQuery, ScheduleDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public GetScheduleQueryHandler(IApplicationDbContext context)
+    public GetScheduleQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService)
     {
         _context = context;
+        _currentUserService = currentUserService;
     }
 
     public async Task<ScheduleDto> Handle(
@@ -69,10 +77,23 @@ public class GetScheduleQueryHandler : IRequestHandler<GetScheduleQuery, Schedul
         var from = request.From;
         var to = request.To;
 
+        // A worker sees their own line only. An account not linked to an
+        // employee has no line to see, so it gets an empty board rather than
+        // everybody's.
+        var restrictedTo = AbsenceRules.IsRestrictedToOwnAbsences(_currentUserService.Role)
+            ? _currentUserService.EmployeeId ?? Guid.Empty
+            : (Guid?)null;
+
+        if (restrictedTo == Guid.Empty)
+        {
+            return new ScheduleDto { From = from, To = to };
+        }
+
         // Overlap, not containment: a posting that started last month and runs
         // through this week belongs on the board.
         var assignments = await _context.EmployeeProjects
             .AsNoTracking()
+            .Where(ep => restrictedTo == null || ep.EmployeeId == restrictedTo)
             .Where(ep => ep.StartDate <= to && (ep.EndDate == null || ep.EndDate >= from))
             .Where(ep => request.ProjectId == null || ep.ProjectId == request.ProjectId)
             .Select(ep => new
@@ -88,6 +109,7 @@ public class GetScheduleQueryHandler : IRequestHandler<GetScheduleQuery, Schedul
 
         var absences = await _context.Absences
             .AsNoTracking()
+            .Where(a => restrictedTo == null || a.EmployeeId == restrictedTo)
             .Where(a => a.Status == AbsenceStatus.Approved)
             .Where(a => a.StartDate <= to && a.EndDate >= from)
             .Select(a => new
@@ -106,6 +128,7 @@ public class GetScheduleQueryHandler : IRequestHandler<GetScheduleQuery, Schedul
 
         var employees = await _context.Employees
             .AsNoTracking()
+            .Where(e => restrictedTo == null || e.Id == restrictedTo)
             // The unassigned still belong on the board — they are exactly who
             // a supervisor is looking for when filling a gap.
             .Where(e => !request.AssignedOnly || employeeIds.Contains(e.Id))

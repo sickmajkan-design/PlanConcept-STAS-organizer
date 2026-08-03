@@ -39,6 +39,9 @@ export const paths = {
   workItemNew: '/work-items/new',
   workItemEdit: (id: string) => `/work-items/${id}/edit`,
 
+  schedule: '/schedule',
+  absences: '/absences',
+
   expiringDocuments: '/documents/expiring',
 
   users: '/users',

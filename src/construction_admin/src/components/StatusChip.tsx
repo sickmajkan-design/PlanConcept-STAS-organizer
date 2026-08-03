@@ -12,6 +12,9 @@ const CAUTION = new Set([
   'InProgress',
   'Submitted',
   'Open',
+  // An unanswered leave request is waiting on somebody, the same as a
+  // submitted timesheet.
+  'Requested',
 ]);
 const BAD = new Set(['Suspended', 'UnderRepair', 'Lost', 'Rejected', 'Cancelled']);
 

@@ -9,6 +9,8 @@ import {
   FolderOutlined,
   MapOutlined,
   ScheduleOutlined,
+  CalendarMonthOutlined,
+  EventBusyOutlined,
   MenuOutlined,
   PasswordOutlined,
   PeopleOutlined,
@@ -77,6 +79,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
           { label: t('nav.materials'), path: paths.materials, icon: <Inventory2Outlined /> },
           { label: t('nav.timeEntries'), path: paths.timeEntries, icon: <ScheduleOutlined /> },
           { label: t('nav.workItems'), path: paths.workItems, icon: <ChecklistOutlined /> },
+          { label: t('nav.schedule'), path: paths.schedule, icon: <CalendarMonthOutlined /> },
+          { label: t('nav.absences'), path: paths.absences, icon: <EventBusyOutlined /> },
         ]
       : []),
     ...(canAdministerAccounts(user)

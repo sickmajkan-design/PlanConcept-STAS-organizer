@@ -91,6 +91,16 @@ const WorkItemFormPage = lazy(() =>
     default: m.WorkItemFormPage,
   })),
 );
+const SchedulePage = lazy(() =>
+  import('./pages/schedule/SchedulePage').then((m) => ({
+    default: m.SchedulePage,
+  })),
+);
+const AbsencesListPage = lazy(() =>
+  import('./pages/absences/AbsencesListPage').then((m) => ({
+    default: m.AbsencesListPage,
+  })),
+);
 const ExpiringDocumentsPage = lazy(() =>
   import('./pages/documents/ExpiringDocumentsPage').then((m) => ({
     default: m.ExpiringDocumentsPage,
@@ -175,6 +185,9 @@ function Layout() {
             <Route path={paths.workItems} element={<WorkItemsListPage />} />
             <Route path={paths.workItemNew} element={<WorkItemFormPage />} />
             <Route path={`${paths.workItems}/:id/edit`} element={<WorkItemFormPage />} />
+
+            <Route path={paths.schedule} element={<SchedulePage />} />
+            <Route path={paths.absences} element={<AbsencesListPage />} />
 
             <Route path={paths.timeEntrySummary} element={<TimeEntrySummaryPage />} />
             <Route path={paths.timeEntries} element={<TimeEntriesListPage />} />

@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/absences/presentation/my_absences_screen.dart';
+import '../../features/absences/presentation/my_schedule_screen.dart';
 import '../../features/auth/presentation/auth_controller.dart';
 import '../../features/auth/presentation/change_password_screen.dart';
 import '../../features/auth/presentation/forgot_password_screen.dart';
@@ -132,6 +134,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.workItems,
         builder: (context, state) => const MyWorkScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.schedule,
+        builder: (context, state) => const MyScheduleScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.absences,
+        builder: (context, state) => const MyAbsencesScreen(),
       ),
       GoRoute(
         path: AppRoutes.materials,

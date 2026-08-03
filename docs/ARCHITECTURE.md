@@ -110,9 +110,21 @@ Key decisions:
   `ISoftDeletable` + global query filters; unique indexes are filtered on
   `IsDeleted = false` so identifiers (employee number, registration number, VIN,
   serial number, QR code) can be reused after deletion.
-- **`employee_projects`** join table with composite PK `(EmployeeId, ProjectId)` —
-  employees belong to many projects and vice versa; the assignment row carries
-  `AssignedAt` / `AssignedByUserId`.
+- **`employee_projects`** is a dated posting rather than a bare membership: a
+  surrogate `Id` plus `StartDate` / `EndDate` (null being open-ended), carrying
+  `AssignedAt` / `AssignedByUserId`. It began life with a composite PK
+  `(EmployeeId, ProjectId)`, which made "the same person back on that site next
+  month" unrepresentable. Overlap is refused by an exclusion constraint,
+  `EXCLUDE USING gist ("EmployeeId" =, "ProjectId" =, daterange(...) &&)`,
+  scoped per project on purpose — one person covering two sites at once is
+  real, and forbidding it would make the schedule board lie about where people
+  are.
+- **`absences`** carries the same shape with a status. Only *approved* leave is
+  protected from overlap, by a partial exclusion constraint
+  (`WHERE Status = Approved AND IsDeleted = false`): two people may ask for the
+  same days, because a request is a question, but nobody can be granted leave
+  twice over. Both constraints need the `btree_gist` extension, created by the
+  migration.
 - **`location_records`** is append-only with a `bigint` identity key and a composite
   index `(EmployeeId, Timestamp DESC)` sized for one GPS ping per employee per
   minute; "last known location" is a single index-backed `LIMIT 1`.
@@ -322,7 +334,11 @@ language changes instead of keeping the language it was created in.
 
 Text the **API** produces — validation details, conflict messages — is still
 English wherever it reaches the screen. Translating it means an
-`Accept-Language` contract on the API, which is a separate decision.
+`Accept-Language` contract on the API, which is a separate decision. The same
+holds for the admin panel's own client-side form messages: all nine `zod`
+schemas carry English strings, so a rejected field reads in English even with
+the interface in Serbian. Both are the same missing decision rather than two
+problems, and neither is specific to a module.
 
 ### Known limits, not fixed
 
@@ -337,9 +353,10 @@ English wherever it reaches the screen. Translating it means an
   stated scale (hundreds of employees) this is irrelevant. If the data grows an
   order of magnitude, the answer is a `pg_trgm` GIN index rather than
   reworking the queries.
-- **No account lockout.** Rate limiting slows guessing; it does not lock an
-  account after repeated failures. Worth adding if the system faces the public
-  internet rather than a company network.
+- **No drag-and-drop on the schedule board.** The board shows and filters a
+  week; postings are changed from the employee screen. This is the competitor's
+  advertised feature, but it changes how a change is made rather than what the
+  system knows.
 
 ## Phase 1 modules & status
 
