@@ -43,4 +43,6 @@ public class Employee : BaseEntity, ISoftDeletable
     public ICollection<Tool> AssignedTools { get; set; } = new List<Tool>();
 
     public ICollection<LocationRecord> LocationRecords { get; set; } = new List<LocationRecord>();
+
+    public ICollection<TimeEntry> TimeEntries { get; set; } = new List<TimeEntry>();
 }

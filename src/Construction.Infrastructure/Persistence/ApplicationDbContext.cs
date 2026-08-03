@@ -35,6 +35,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<Notification> Notifications => Set<Notification>();
 
+    public DbSet<TimeEntry> TimeEntries => Set<TimeEntry>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);

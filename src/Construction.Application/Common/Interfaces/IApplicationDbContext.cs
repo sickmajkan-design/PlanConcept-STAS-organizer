@@ -29,5 +29,7 @@ public interface IApplicationDbContext
 
     DbSet<Notification> Notifications { get; }
 
+    DbSet<TimeEntry> TimeEntries { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

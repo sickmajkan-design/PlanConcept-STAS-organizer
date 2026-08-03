@@ -32,4 +32,6 @@ public class Project : BaseEntity, ISoftDeletable
     public ICollection<Tool> AssignedTools { get; set; } = new List<Tool>();
 
     public ICollection<Material> Materials { get; set; } = new List<Material>();
+
+    public ICollection<TimeEntry> TimeEntries { get; set; } = new List<TimeEntry>();
 }
