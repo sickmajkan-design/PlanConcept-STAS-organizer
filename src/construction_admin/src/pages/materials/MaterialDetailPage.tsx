@@ -215,7 +215,7 @@ export function MaterialDetailPage() {
       <ConfirmDialog
         open={confirmDelete}
         title={t('materials.deleteTitle')}
-        description={`${material.name} will be removed from active records.`}
+        description={t('materials.deleteBody', { name: material.name })}
         confirmLabel={t('common.delete')}
         destructive
         loading={deleteMaterial.isPending}

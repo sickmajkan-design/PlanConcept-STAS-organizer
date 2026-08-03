@@ -5,6 +5,7 @@ import {
   LocalShippingOutlined,
   LogoutOutlined,
   ManageAccountsOutlined,
+  FolderOutlined,
   MapOutlined,
   ScheduleOutlined,
   MenuOutlined,
@@ -77,7 +78,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
         ]
       : []),
     ...(canAdministerAccounts(user)
-      ? [{ label: t('nav.users'), path: paths.users, icon: <ManageAccountsOutlined /> }]
+      ? [
+          {
+            label: t('nav.documents'),
+            path: paths.expiringDocuments,
+            icon: <FolderOutlined />,
+          },
+          { label: t('nav.users'), path: paths.users, icon: <ManageAccountsOutlined /> },
+        ]
       : []),
   ];
 

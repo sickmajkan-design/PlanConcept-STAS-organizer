@@ -7,6 +7,7 @@ import '../../../core/router/app_routes.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/failure_view.dart';
 import '../../../core/widgets/info_tile.dart';
+import '../../attachments/presentation/attachment_section.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../data/models/employee.dart';
@@ -90,6 +91,19 @@ class EmployeeDetailScreen extends ConsumerWidget {
                       icon: Icons.account_circle_outlined,
                       label: context.l10n.employeeAppAccount,
                       value: employee.hasUserAccount ? 'Yes' : 'No',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                // Read-only: the API serves an employee their own documents
+                // and refuses everyone else's below Admin, so this is either
+                // the signed-in worker's own file or an administrator looking.
+                _Section(
+                  title: context.l10n.attachmentsTitle,
+                  children: [
+                    AttachmentSection(
+                      ownerType: 'Employee',
+                      ownerId: employee.id,
                     ),
                   ],
                 ),

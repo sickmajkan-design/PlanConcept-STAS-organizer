@@ -117,8 +117,7 @@ export function MaterialFormPage() {
 
       {isEdit && (
         <Alert severity="info" sx={{ mt: 1 }}>
-          This form sets an absolute quantity. For day-to-day stock movements, use "Adjust stock" on the
-          material's detail page instead.
+          {t('materials.absoluteQuantityNotice')}
         </Alert>
       )}
 

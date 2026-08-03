@@ -677,4 +677,72 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get workTypeTravel => 'Travel';
+
+  @override
+  String get attachmentsTitle => 'Documents';
+
+  @override
+  String get attachmentsEmpty => 'No documents on this record.';
+
+  @override
+  String get attachmentsExpired => 'Expired';
+
+  @override
+  String attachmentsExpiresOn(String date) {
+    return 'Valid until $date';
+  }
+
+  @override
+  String get attachmentsOpenFailed => 'The file could not be opened.';
+
+  @override
+  String get attachmentsAddPhoto => 'Add a photo';
+
+  @override
+  String get attachmentsTakePhoto => 'Take a photo';
+
+  @override
+  String get attachmentsFromGallery => 'Choose from gallery';
+
+  @override
+  String get attachmentsPhotoNote => 'Note (optional)';
+
+  @override
+  String get attachmentsUploading => 'Uploading…';
+
+  @override
+  String get attachmentsUploaded => 'Photo added.';
+
+  @override
+  String attachmentsTooLarge(int limit) {
+    return 'The photo is larger than the $limit MB limit.';
+  }
+
+  @override
+  String get attachmentsNotAnImage =>
+      'Only a document or image can be attached.';
+
+  @override
+  String get attachmentCategoryContract => 'Contract';
+
+  @override
+  String get attachmentCategoryCertificate => 'Certificate';
+
+  @override
+  String get attachmentCategoryMedicalCheck => 'Medical check';
+
+  @override
+  String get attachmentCategoryLicence => 'Licence';
+
+  @override
+  String get attachmentCategoryInsurance => 'Insurance';
+
+  @override
+  String get attachmentCategorySiteDocument => 'Site document';
+
+  @override
+  String get attachmentCategoryPhoto => 'Photo';
+
+  @override
+  String get attachmentCategoryOther => 'Other';
 }

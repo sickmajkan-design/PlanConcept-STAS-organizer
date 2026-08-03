@@ -155,7 +155,7 @@ export function ToolsListPage() {
         open={!!remove.pending}
         title={t('tools.deleteTitle')}
         description={
-          remove.pending ? `${remove.pending.name} will be removed from active records.` : ''
+          remove.pending ? t('tools.deleteBody', { name: remove.pending.name }) : ''
         }
         confirmLabel={t('common.delete')}
         destructive

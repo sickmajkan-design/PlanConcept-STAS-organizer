@@ -18,6 +18,7 @@ enum EnumKind {
   notificationType,
   timeEntryStatus,
   workType,
+  attachmentCategory,
 }
 
 /// Translates one of the API's enum values.
@@ -73,6 +74,14 @@ String enumLabel(AppLocalizations l10n, EnumKind kind, String? value) {
     (EnumKind.workType, 'Weekend') => l10n.workTypeWeekend,
     (EnumKind.workType, 'PublicHoliday') => l10n.workTypePublicHoliday,
     (EnumKind.workType, 'Travel') => l10n.workTypeTravel,
+    (EnumKind.attachmentCategory, 'Contract') => l10n.attachmentCategoryContract,
+    (EnumKind.attachmentCategory, 'Certificate') => l10n.attachmentCategoryCertificate,
+    (EnumKind.attachmentCategory, 'MedicalCheck') => l10n.attachmentCategoryMedicalCheck,
+    (EnumKind.attachmentCategory, 'Licence') => l10n.attachmentCategoryLicence,
+    (EnumKind.attachmentCategory, 'Insurance') => l10n.attachmentCategoryInsurance,
+    (EnumKind.attachmentCategory, 'SiteDocument') => l10n.attachmentCategorySiteDocument,
+    (EnumKind.attachmentCategory, 'Photo') => l10n.attachmentCategoryPhoto,
+    (EnumKind.attachmentCategory, 'Other') => l10n.attachmentCategoryOther,
     _ => null,
   };
 

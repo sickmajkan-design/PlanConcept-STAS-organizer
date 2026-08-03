@@ -20,6 +20,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toApiError } from '../../api/apiError';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
+import { AttachmentList } from '../../components/AttachmentList';
 import { StatusChip } from '../../components/StatusChip';
 import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
 import {
@@ -30,12 +31,15 @@ import {
 } from '../../features/vehicles/useVehicles';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
+import { canAdministerAccounts } from '../../auth/authHelpers';
+import { useAuth } from '../../auth/useAuth';
 import { paths } from '../../routes/paths';
 
 export function VehicleDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const t = useT();
+  const { user } = useAuth();
   const enumLabel = useEnumLabel();
 
   const { data: vehicle, isLoading, isError, error, refetch } = useVehicleQuery(id);
@@ -192,6 +196,20 @@ export function VehicleDetailPage() {
             </CardContent>
           </Card>
         </Grid>
+
+        <Grid size={12}>
+          <Card>
+            <CardContent>
+              <AttachmentList
+                ownerType="Vehicle"
+                ownerId={vehicle.id}
+                categories={['Insurance', 'Licence', 'Certificate', 'Photo', 'Other']}
+                canDelete={canAdministerAccounts(user)}
+              />
+            </CardContent>
+          </Card>
+        </Grid>
+
       </Grid>
 
       <Divider sx={{ my: 3 }} />
@@ -210,7 +228,9 @@ export function VehicleDetailPage() {
       <ConfirmDialog
         open={confirmDelete}
         title={t('vehicles.deleteTitle')}
-        description={`${vehicle.brand} ${vehicle.model} (${vehicle.registrationNumber}) will be removed from active records.`}
+        description={t('vehicles.deleteBody', {
+          name: `${vehicle.brand} ${vehicle.model} (${vehicle.registrationNumber})`,
+        })}
         confirmLabel={t('common.delete')}
         destructive
         loading={deleteVehicle.isPending}

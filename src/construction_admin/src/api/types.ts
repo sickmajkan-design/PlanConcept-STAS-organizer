@@ -353,3 +353,41 @@ export interface TimeEntrySummary {
   approvedMinutes: number;
   pendingCount: number;
 }
+
+export const attachmentOwnerTypes = [
+  'Employee',
+  'Project',
+  'Vehicle',
+  'Tool',
+] as const;
+
+export type AttachmentOwnerType = (typeof attachmentOwnerTypes)[number];
+
+export const attachmentCategories = [
+  'Contract',
+  'Certificate',
+  'MedicalCheck',
+  'Licence',
+  'Insurance',
+  'SiteDocument',
+  'Photo',
+  'Other',
+] as const;
+
+export type AttachmentCategory = (typeof attachmentCategories)[number];
+
+export interface Attachment {
+  id: string;
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+  category: AttachmentCategory;
+  description: string | null;
+  /** `YYYY-MM-DD`, or null for anything that does not lapse. */
+  expiresAt: string | null;
+  ownerType: AttachmentOwnerType;
+  ownerId: string;
+  ownerName: string | null;
+  uploadedByName: string | null;
+  createdAt: string;
+}

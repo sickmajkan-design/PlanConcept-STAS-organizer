@@ -76,6 +76,12 @@
 	     phone. -->
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Your position is shared with the office while you are signed in, including when the app is in your pocket, so your team can see who is on which site.</string>
+	<!-- Required for the site-photo button; iOS terminates an app that opens
+	     the camera or the library without them. -->
+	<key>NSCameraUsageDescription</key>
+	<string>Take photographs of the site to attach to a project.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Attach a photograph from your library to a project.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>

@@ -18,9 +18,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
+import { AttachmentList } from '../../components/AttachmentList';
 import { StatusChip } from '../../components/StatusChip';
 import { useDeleteProject, useProjectQuery } from '../../features/projects/useProjects';
 import { useT } from '../../i18n/useI18n';
+import { canAdministerAccounts } from '../../auth/authHelpers';
+import { useAuth } from '../../auth/useAuth';
 import { paths } from '../../routes/paths';
 import { formatDate, initialsOf } from '../../utils/formatting';
 
@@ -28,6 +31,7 @@ export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const t = useT();
+  const { user } = useAuth();
 
   const { data: project, isLoading, isError, error, refetch } = useProjectQuery(id);
   const deleteProject = useDeleteProject();
@@ -157,12 +161,26 @@ export function ProjectDetailPage() {
             </CardContent>
           </Card>
         </Grid>
+
+        <Grid size={12}>
+          <Card>
+            <CardContent>
+              <AttachmentList
+                ownerType="Project"
+                ownerId={project.id}
+                categories={['SiteDocument', 'Photo', 'Licence', 'Insurance', 'Other']}
+                canDelete={canAdministerAccounts(user)}
+              />
+            </CardContent>
+          </Card>
+        </Grid>
+
       </Grid>
 
       <ConfirmDialog
         open={confirmDelete}
         title={t('projects.deleteTitle')}
-        description={`${project.name} will be removed from active records. Any tools assigned only to this project will be released.`}
+        description={t('projects.deleteBody', { name: project.name })}
         confirmLabel={t('common.delete')}
         destructive
         loading={deleteProject.isPending}

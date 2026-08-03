@@ -81,6 +81,11 @@ const ToolFormPage = lazy(() =>
 const ToolDetailPage = lazy(() =>
   import('./pages/tools/ToolDetailPage').then((m) => ({ default: m.ToolDetailPage })),
 );
+const ExpiringDocumentsPage = lazy(() =>
+  import('./pages/documents/ExpiringDocumentsPage').then((m) => ({
+    default: m.ExpiringDocumentsPage,
+  })),
+);
 const TimeEntriesListPage = lazy(() =>
   import('./pages/timeEntries/TimeEntriesListPage').then((m) => ({
     default: m.TimeEntriesListPage,
@@ -166,6 +171,10 @@ function Layout() {
           {/* Account administration is Admin and above, a narrower set than
               the directory screens above. */}
           <Route element={<RequireAccountAdmin />}>
+            {/* Expiry spans every record type and includes employee
+                documents, so it sits with account administration rather than
+                with the directory screens. */}
+            <Route path={paths.expiringDocuments} element={<ExpiringDocumentsPage />} />
             <Route path={paths.users} element={<UsersListPage />} />
             <Route path={paths.userNew} element={<UserFormPage />} />
             <Route path={`${paths.users}/:id/edit`} element={<UserFormPage />} />

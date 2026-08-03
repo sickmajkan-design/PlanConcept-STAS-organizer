@@ -97,23 +97,29 @@ može dodati kasnije bez izmena na API-ju.
 
 ---
 
-## Faza 2 — Dokumenti i fotografije / Documents and photos
+## Faza 2 — Dokumenti i fotografije / Documents and photos — **ODRAĐENO / DONE**
 
-Nova infrastruktura — `Infrastructure/` trenutno **nema** sloj za fajlove.
-New infrastructure — `Infrastructure/` currently has **no** file layer.
+| Stavka / Item | Stanje / State |
+|---|---|
+| `IFileStorage` + dve implementacije | **Odrađeno.** Disk je podrazumevan, pa klon i CI rade bez ijednog spoljnog servisa; podešavanje bucket-a prebacuje na bilo koji S3-kompatibilan servis. |
+| Upload/download, ograničenja tipa i veličine | **Odrađeno.** 20 MB, allow-lista ekstenzija, tip se izvodi iz ekstenzije a ne iz zahteva. |
+| Prilog na `Employee`, `Project`, `Vehicle`, `Tool` | **Odrađeno.** Četiri nullable strana ključa uz check ograničenje „tačno jedan", pa kaskada i integritet i dalje rade. |
+| Dokumenti sa datumom isteka | **Odrađeno.** Ugovori, sertifikati, lekarski pregledi, licence, osiguranja. |
+| Podsetnik na istek preko push-a | **Odrađeno.** Dnevni prolaz, idempotentan — druga replika ne javlja isto dvaput. |
+| Mobilno: pregled + slikanje gradilišta | **Odrađeno.** Radnik može da doda fotografiju na projekat i ništa drugo. |
 
-- `IFileStorage` apstrakcija + S3-kompatibilna implementacija (MinIO lokalno)
-- Upload/download sa potpisanim URL-ovima, ograničenje tipa i veličine,
-  provera vlasništva pri preuzimanju
-- Prilog na `Employee`, `Project`, `Tool`, `Vehicle`
-- Dokumenti radnika sa datumom isteka: ugovori, sertifikati, lekarski pregledi
-- **Podsetnik na istek preko push-a** (koristi Fazu 0)
+**Odstupanje od plana / Deviation:** umesto potpisanih URL-ova, API prenosi
+bajtove u oba smera. Potpisan link izlazi iz autorizacije koja ga je izdala —
+ko ga ima, ima i fajl do isteka. Ovde su u pitanju dokumenti i fotografije, ne
+video, pa je jedan odgovor na pitanje „sme li ovaj korisnik ovaj fajl" vredniji
+od uštede propusnog opsega. Potpisivanje ostaje moguće kasnije iza istog
+interfejsa.
 
-**Zašto treće / Why third:** jedan sloj otključava tri modula — dokumenta radnika,
-gradilišnu dokumentaciju i fotografije nedostataka (Faza 3). Podsetnici na istek
-sertifikata su neposredna korist za usklađenost.
+**Nova zavisnost / New dependency:** `AWSSDK.S3` (server) i `image_picker`
+(mobilna). Obe su neophodne za navedene funkcije — S3 protokol se ne piše
+ručno, a fotografija se bez pickera ne može uzeti.
 
-**Procena / Estimate:** 2 nedelje. **Pokrivenost / Coverage: ≈42%**
+**Pokrivenost / Coverage: ≈42%**
 
 ---
 
@@ -200,7 +206,7 @@ Every module from here inherits the existing conventions — not done until it h
 |---|---|---|---|
 | 0 | GPS, push, potpisivanje — **odrađeno** | 1–2 ned. | 31% |
 | 1 | Radni sati — **odrađeno** | 2–3 ned. | 35% |
-| 2 | Dokumenti i fotografije | 2 ned. | 42% |
+| 2 | Dokumenti i fotografije — **odrađeno** | 2 ned. | 42% |
 | 3 | Zadaci i nedostaci | 2 ned. | 50% |
 | 4 | Raspoređivanje i odsustva | 2–3 ned. | 58% |
 | 5 | Troškovi i statistika | 3 ned. | 75% |

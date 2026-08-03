@@ -1321,6 +1321,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Travel'**
   String get workTypeTravel;
+
+  /// No description provided for @attachmentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get attachmentsTitle;
+
+  /// No description provided for @attachmentsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No documents on this record.'**
+  String get attachmentsEmpty;
+
+  /// No description provided for @attachmentsExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get attachmentsExpired;
+
+  /// No description provided for @attachmentsExpiresOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid until {date}'**
+  String attachmentsExpiresOn(String date);
+
+  /// No description provided for @attachmentsOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The file could not be opened.'**
+  String get attachmentsOpenFailed;
+
+  /// No description provided for @attachmentsAddPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a photo'**
+  String get attachmentsAddPhoto;
+
+  /// No description provided for @attachmentsTakePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get attachmentsTakePhoto;
+
+  /// No description provided for @attachmentsFromGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from gallery'**
+  String get attachmentsFromGallery;
+
+  /// No description provided for @attachmentsPhotoNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note (optional)'**
+  String get attachmentsPhotoNote;
+
+  /// No description provided for @attachmentsUploading.
+  ///
+  /// In en, this message translates to:
+  /// **'Uploading…'**
+  String get attachmentsUploading;
+
+  /// No description provided for @attachmentsUploaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo added.'**
+  String get attachmentsUploaded;
+
+  /// No description provided for @attachmentsTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'The photo is larger than the {limit} MB limit.'**
+  String attachmentsTooLarge(int limit);
+
+  /// No description provided for @attachmentsNotAnImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Only a document or image can be attached.'**
+  String get attachmentsNotAnImage;
+
+  /// No description provided for @attachmentCategoryContract.
+  ///
+  /// In en, this message translates to:
+  /// **'Contract'**
+  String get attachmentCategoryContract;
+
+  /// No description provided for @attachmentCategoryCertificate.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate'**
+  String get attachmentCategoryCertificate;
+
+  /// No description provided for @attachmentCategoryMedicalCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Medical check'**
+  String get attachmentCategoryMedicalCheck;
+
+  /// No description provided for @attachmentCategoryLicence.
+  ///
+  /// In en, this message translates to:
+  /// **'Licence'**
+  String get attachmentCategoryLicence;
+
+  /// No description provided for @attachmentCategoryInsurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance'**
+  String get attachmentCategoryInsurance;
+
+  /// No description provided for @attachmentCategorySiteDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Site document'**
+  String get attachmentCategorySiteDocument;
+
+  /// No description provided for @attachmentCategoryPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get attachmentCategoryPhoto;
+
+  /// No description provided for @attachmentCategoryOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get attachmentCategoryOther;
 }
 
 class _AppLocalizationsDelegate

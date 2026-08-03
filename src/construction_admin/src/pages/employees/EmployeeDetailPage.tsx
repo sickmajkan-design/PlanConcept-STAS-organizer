@@ -31,6 +31,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toApiError } from '../../api/apiError';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
+import { AttachmentList } from '../../components/AttachmentList';
 import { StatusChip } from '../../components/StatusChip';
 import {
   useAssignEmployeeToProject,
@@ -40,6 +41,8 @@ import {
 } from '../../features/employees/useEmployees';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
 import { useT } from '../../i18n/useI18n';
+import { canAdministerAccounts } from '../../auth/authHelpers';
+import { useAuth } from '../../auth/useAuth';
 import { paths } from '../../routes/paths';
 import { formatDate, initialsOf } from '../../utils/formatting';
 
@@ -47,6 +50,7 @@ export function EmployeeDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const t = useT();
+  const { user } = useAuth();
 
   const { data: employee, isLoading, isError, error, refetch } = useEmployeeQuery(id);
   const { data: allProjects } = useAllProjectsQuery();
@@ -173,12 +177,12 @@ export function EmployeeDetailPage() {
           <Card>
             <CardContent>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700 }}>
-                Projects ({employee.projects.length})
+                {t('employees.projectsCount', { count: employee.projects.length })}
               </Typography>
 
               {employee.projects.length === 0 ? (
                 <Typography color="text.secondary" sx={{ py: 2 }}>
-                  Not assigned to any project.
+                  {t('employees.notOnAnyProject')}
                 </Typography>
               ) : (
                 <List disablePadding>
@@ -212,7 +216,7 @@ export function EmployeeDetailPage() {
                       </ListItemAvatar>
                       <ListItemText
                         primary={assignment.projectName}
-                        secondary={`Assigned ${formatDate(assignment.assignedAt)}`}
+                        secondary={`${t('projects.assignedOn')} ${formatDate(assignment.assignedAt)}`}
                       />
                       <StatusChip status={assignment.projectStatus} kind="projectStatus" />
                     </ListItem>
@@ -230,7 +234,7 @@ export function EmployeeDetailPage() {
                     onChange={(event) => setSelectedProjectId(event.target.value)}
                   >
                     <MenuItem value="">
-                      <em>Select a project…</em>
+                      <em>{t('common.selectProject')}</em>
                     </MenuItem>
                     {assignableProjects.map((project) => (
                       <MenuItem key={project.id} value={project.id}>
@@ -258,6 +262,20 @@ export function EmployeeDetailPage() {
             </CardContent>
           </Card>
         </Grid>
+
+        <Grid size={12}>
+          <Card>
+            <CardContent>
+              <AttachmentList
+                ownerType="Employee"
+                ownerId={employee.id}
+                categories={['Contract', 'Certificate', 'MedicalCheck', 'Licence', 'Other']}
+                canDelete={canAdministerAccounts(user)}
+              />
+            </CardContent>
+          </Card>
+        </Grid>
+
       </Grid>
 
       <ConfirmDialog
@@ -278,7 +296,9 @@ export function EmployeeDetailPage() {
       <ConfirmDialog
         open={confirmDelete}
         title={t('employees.deleteTitle')}
-        description={`${employee.fullName} (${employee.employeeNumber}) will be removed from active records.`}
+        description={t('employees.deleteBody', {
+          name: `${employee.fullName} (${employee.employeeNumber})`,
+        })}
         confirmLabel={t('common.delete')}
         destructive
         loading={deleteEmployee.isPending}

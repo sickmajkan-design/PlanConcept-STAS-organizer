@@ -35,6 +35,8 @@ export const paths = {
   timeEntryEdit: (id: string) => `/time-entries/${id}/edit`,
   timeEntrySummary: '/time-entries/summary',
 
+  expiringDocuments: '/documents/expiring',
+
   users: '/users',
   userNew: '/users/new',
   userEdit: (id: string) => `/users/${id}/edit`,

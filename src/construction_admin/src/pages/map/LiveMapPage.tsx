@@ -104,7 +104,7 @@ export function LiveMapPage() {
           <ErrorState error={error} onRetry={() => void refetch()} />
         ) : !isLoading && (locations?.length ?? 0) === 0 ? (
           <EmptyState
-            message="No employee locations reported yet."
+            message={t('map.empty')}
             icon={PersonPinCircle}
           />
         ) : (

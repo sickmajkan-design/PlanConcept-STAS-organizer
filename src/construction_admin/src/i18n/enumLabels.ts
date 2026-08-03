@@ -20,7 +20,8 @@ export type EnumKind =
   | 'toolStatus'
   | 'fuelType'
   | 'timeEntryStatus'
-  | 'workType';
+  | 'workType'
+  | 'attachmentCategory';
 
 export function useEnumLabel() {
   const t = useT();

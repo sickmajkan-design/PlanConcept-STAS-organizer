@@ -63,7 +63,7 @@ export function MaterialsListPage() {
         headerName: t('materials.project'),
         flex: 1,
         minWidth: 160,
-        valueGetter: (v) => v || 'Warehouse stock',
+        valueGetter: (v) => v || t('materials.warehouseStock'),
       },
       {
         field: 'actions',
@@ -147,7 +147,7 @@ export function MaterialsListPage() {
         open={!!remove.pending}
         title={t('materials.deleteTitle')}
         description={
-          remove.pending ? `${remove.pending.name} will be removed from active records.` : ''
+          remove.pending ? t('materials.deleteBody', { name: remove.pending.name }) : ''
         }
         confirmLabel={t('common.delete')}
         destructive

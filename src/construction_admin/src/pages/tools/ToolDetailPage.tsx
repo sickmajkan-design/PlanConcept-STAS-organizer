@@ -26,6 +26,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toApiError } from '../../api/apiError';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
+import { AttachmentList } from '../../components/AttachmentList';
 import { StatusChip } from '../../components/StatusChip';
 import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
@@ -38,12 +39,15 @@ import {
   useUnassignToolProject,
 } from '../../features/tools/useTools';
 import { useT } from '../../i18n/useI18n';
+import { canAdministerAccounts } from '../../auth/authHelpers';
+import { useAuth } from '../../auth/useAuth';
 import { paths } from '../../routes/paths';
 
 export function ToolDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const t = useT();
+  const { user } = useAuth();
 
   const { data: tool, isLoading, isError, error, refetch } = useToolQuery(id);
   const { data: allEmployees } = useAllEmployeesQuery();
@@ -258,7 +262,7 @@ export function ToolDetailPage() {
                         onChange={(event) => setSelectedProjectId(event.target.value)}
                       >
                         <MenuItem value="">
-                          <em>Select a project…</em>
+                          <em>{t('common.selectProject')}</em>
                         </MenuItem>
                         {(allProjects?.items ?? []).map((project) => (
                           <MenuItem key={project.id} value={project.id}>
@@ -287,6 +291,20 @@ export function ToolDetailPage() {
             </CardContent>
           </Card>
         </Grid>
+
+        <Grid size={12}>
+          <Card>
+            <CardContent>
+              <AttachmentList
+                ownerType="Tool"
+                ownerId={tool.id}
+                categories={['Certificate', 'Licence', 'Photo', 'Other']}
+                canDelete={canAdministerAccounts(user)}
+              />
+            </CardContent>
+          </Card>
+        </Grid>
+
       </Grid>
 
       <Divider sx={{ my: 3 }} />
@@ -316,7 +334,7 @@ export function ToolDetailPage() {
       <ConfirmDialog
         open={confirmDelete}
         title={t('tools.deleteTitle')}
-        description={`${tool.name} will be removed from active records.`}
+        description={t('tools.deleteBody', { name: tool.name })}
         confirmLabel={t('common.delete')}
         destructive
         loading={deleteTool.isPending}

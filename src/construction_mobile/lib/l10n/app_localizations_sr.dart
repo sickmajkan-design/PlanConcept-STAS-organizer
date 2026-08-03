@@ -670,4 +670,72 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get workTypeTravel => 'Putovanje';
+
+  @override
+  String get attachmentsTitle => 'Dokumenti';
+
+  @override
+  String get attachmentsEmpty => 'Na ovom zapisu nema dokumenata.';
+
+  @override
+  String get attachmentsExpired => 'Isteklo';
+
+  @override
+  String attachmentsExpiresOn(String date) {
+    return 'Važi do $date';
+  }
+
+  @override
+  String get attachmentsOpenFailed => 'Fajl nije moguće otvoriti.';
+
+  @override
+  String get attachmentsAddPhoto => 'Dodaj fotografiju';
+
+  @override
+  String get attachmentsTakePhoto => 'Slikaj';
+
+  @override
+  String get attachmentsFromGallery => 'Izaberi iz galerije';
+
+  @override
+  String get attachmentsPhotoNote => 'Napomena (opciono)';
+
+  @override
+  String get attachmentsUploading => 'Otpremanje…';
+
+  @override
+  String get attachmentsUploaded => 'Fotografija je dodata.';
+
+  @override
+  String attachmentsTooLarge(int limit) {
+    return 'Fotografija je veća od ograničenja od $limit MB.';
+  }
+
+  @override
+  String get attachmentsNotAnImage =>
+      'Moguće je priložiti samo dokument ili sliku.';
+
+  @override
+  String get attachmentCategoryContract => 'Ugovor';
+
+  @override
+  String get attachmentCategoryCertificate => 'Sertifikat';
+
+  @override
+  String get attachmentCategoryMedicalCheck => 'Lekarski pregled';
+
+  @override
+  String get attachmentCategoryLicence => 'Licenca';
+
+  @override
+  String get attachmentCategoryInsurance => 'Osiguranje';
+
+  @override
+  String get attachmentCategorySiteDocument => 'Gradilišna dokumentacija';
+
+  @override
+  String get attachmentCategoryPhoto => 'Fotografija';
+
+  @override
+  String get attachmentCategoryOther => 'Ostalo';
 }

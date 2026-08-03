@@ -164,7 +164,9 @@ export function VehiclesListPage() {
         title={t('vehicles.deleteTitle')}
         description={
           remove.pending
-            ? `${remove.pending.brand} ${remove.pending.model} (${remove.pending.registrationNumber}) will be removed from active records.`
+            ? t('vehicles.deleteBody', {
+                name: `${remove.pending.brand} ${remove.pending.model} (${remove.pending.registrationNumber})`,
+              })
             : ''
         }
         confirmLabel={t('common.delete')}
