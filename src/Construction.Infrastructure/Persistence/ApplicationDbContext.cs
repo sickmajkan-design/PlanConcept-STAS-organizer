@@ -37,6 +37,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<TimeEntry> TimeEntries => Set<TimeEntry>();
 
+    public DbSet<Attachment> Attachments => Set<Attachment>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);

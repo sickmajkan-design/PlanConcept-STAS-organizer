@@ -45,8 +45,20 @@ services:
       # Empty means push is logged instead of sent, which is what every
       # environment without a Firebase project should do.
       Firebase__CredentialsJson: ${FIREBASE_CREDENTIALS_JSON:-}
+      # Empty bucket means the container's own disk, which the volume below
+      # keeps across restarts. Set a bucket to use object storage instead.
+      FileStorage__Bucket: ${FILE_STORAGE_BUCKET:-}
+      FileStorage__ServiceUrl: ${FILE_STORAGE_SERVICE_URL:-}
+      FileStorage__Region: ${FILE_STORAGE_REGION:-}
+      FileStorage__AccessKey: ${FILE_STORAGE_ACCESS_KEY:-}
+      FileStorage__SecretKey: ${FILE_STORAGE_SECRET_KEY:-}
+      FileStorage__RootPath: /var/lib/construction/storage
     ports:
       - "8080:8080"
+    volumes:
+      # Without this, every container restart loses the uploaded files.
+      - attachment-data:/var/lib/construction/storage
 
 volumes:
   postgres-data:
+  attachment-data:

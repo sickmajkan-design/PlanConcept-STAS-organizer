@@ -31,5 +31,7 @@ public interface IApplicationDbContext
 
     DbSet<TimeEntry> TimeEntries { get; }
 
+    DbSet<Attachment> Attachments { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

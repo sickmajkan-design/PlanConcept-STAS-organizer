@@ -34,4 +34,6 @@ public class Project : BaseEntity, ISoftDeletable
     public ICollection<Material> Materials { get; set; } = new List<Material>();
 
     public ICollection<TimeEntry> TimeEntries { get; set; } = new List<TimeEntry>();
+
+    public ICollection<Attachment> Attachments { get; set; } = new List<Attachment>();
 }

@@ -6,6 +6,7 @@ using Construction.Infrastructure.Notifications;
 using Construction.Infrastructure.Persistence;
 using Construction.Infrastructure.Persistence.Interceptors;
 using Construction.Infrastructure.Services;
+using Construction.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -76,5 +77,36 @@ public static class DependencyInjection
 
         services.Configure<FirebaseSettings>(configuration.GetSection(FirebaseSettings.SectionName));
         services.AddSingleton<IPushSender, FcmPushSender>();
+
+        AddFileStorage(services, configuration);
+    }
+
+    /// <summary>
+    /// Picks the storage backing from configuration: a bucket means object
+    /// storage, anything else means the local disk.
+    /// </summary>
+    /// <remarks>
+    /// Defaulting to the disk keeps a fresh clone and CI runnable with no
+    /// external service, and the disk implementation logs loudly enough that
+    /// nobody reaches production on it by accident. Choosing on the presence
+    /// of a bucket rather than on a separate "provider" setting removes the
+    /// state where the two disagree.
+    /// </remarks>
+    private static void AddFileStorage(IServiceCollection services, IConfiguration configuration)
+    {
+        var section = configuration.GetSection(FileStorageSettings.SectionName);
+
+        services.Configure<FileStorageSettings>(section);
+
+        var settings = section.Get<FileStorageSettings>() ?? new FileStorageSettings();
+
+        if (settings.UsesObjectStorage)
+        {
+            services.AddSingleton<IFileStorage, S3FileStorage>();
+        }
+        else
+        {
+            services.AddSingleton<IFileStorage, FileSystemFileStorage>();
+        }
     }
 }

@@ -42,6 +42,10 @@ public sealed class DatabaseFixture : IAsyncLifetime
         new NpgsqlConnectionStringBuilder(AdminConnectionString) { Database = _databaseName }
             .ConnectionString;
 
+    /// <summary>Throwaway directory backing file storage for this run.</summary>
+    public string StorageRoot { get; } = Path.Combine(
+        Path.GetTempPath(), "construction-tests", Guid.NewGuid().ToString("N"));
+
     public async Task InitializeAsync()
     {
         await CreateDatabaseAsync();
@@ -56,6 +60,11 @@ public sealed class DatabaseFixture : IAsyncLifetime
     public async Task DisposeAsync()
     {
         await _services.DisposeAsync();
+
+        if (Directory.Exists(StorageRoot))
+        {
+            Directory.Delete(StorageRoot, recursive: true);
+        }
 
         // Pooled connections would keep the database busy and block the drop.
         NpgsqlConnection.ClearAllPools();
@@ -112,7 +121,11 @@ public sealed class DatabaseFixture : IAsyncLifetime
                 ["JwtSettings:RefreshTokenLifetimeDays"] = "7",
                 // Left unconfigured on purpose: the email and push senders log
                 // instead of reaching the network, so no test touches either.
-                ["ClientApp:PasswordResetUrl"] = "https://admin.example.test/reset-password"
+                ["ClientApp:PasswordResetUrl"] = "https://admin.example.test/reset-password",
+                // The real filesystem storage, pointed at a throwaway
+                // directory. A fake would let an upload test pass while the
+                // code that actually writes bytes went unexercised.
+                ["FileStorage:RootPath"] = StorageRoot
             })
             .Build();
 

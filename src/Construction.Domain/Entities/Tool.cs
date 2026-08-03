@@ -24,6 +24,8 @@ public class Tool : BaseEntity, ISoftDeletable
 
     public Project? AssignedProject { get; set; }
 
+    public ICollection<Attachment> Attachments { get; set; } = new List<Attachment>();
+
     public bool IsDeleted { get; set; }
 
     public DateTime? DeletedAt { get; set; }

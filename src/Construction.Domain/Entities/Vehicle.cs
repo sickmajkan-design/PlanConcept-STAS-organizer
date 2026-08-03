@@ -21,6 +21,8 @@ public class Vehicle : BaseEntity, ISoftDeletable
 
     public Employee? AssignedEmployee { get; set; }
 
+    public ICollection<Attachment> Attachments { get; set; } = new List<Attachment>();
+
     public bool IsDeleted { get; set; }
 
     public DateTime? DeletedAt { get; set; }

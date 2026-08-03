@@ -1,4 +1,5 @@
 using Construction.API.Authorization;
+using Construction.API.BackgroundServices;
 using Construction.API.Extensions;
 using Construction.API.Middleware;
 using Construction.API.Services;
@@ -43,6 +44,10 @@ try
     builder.Services.AddAuthRateLimiting();
 
     builder.Services.AddTrustedProxyForwarding(builder.Configuration);
+
+    // The product's one recurring job. Safe to run on every replica — it
+    // claims each document before notifying, so nobody is told twice.
+    builder.Services.AddHostedService<DocumentExpiryReminderService>();
 
     builder.Services
         .AddHealthChecks()
