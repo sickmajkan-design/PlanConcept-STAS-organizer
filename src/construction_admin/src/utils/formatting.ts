@@ -66,3 +66,32 @@ export function initialsOf(
   const alt = fallback?.trim() ?? '';
   return alt ? alt[0]!.toUpperCase() : '?';
 }
+
+/**
+ * Splits a minute count into whole hours and the remaining minutes.
+ *
+ * Returned as parts rather than a formatted string because the separator is
+ * translated — the caller feeds these into `timeEntries.hoursShort`. Negative
+ * input is clamped: the API never sends it, and a "-1 h 30 min" on a timesheet
+ * would be read as a correction rather than as the bug it is.
+ */
+export function splitMinutes(total: number | null | undefined): {
+  hours: number;
+  minutes: number;
+} {
+  const safe = Math.max(0, Math.trunc(total ?? 0));
+
+  return { hours: Math.floor(safe / 60), minutes: safe % 60 };
+}
+
+/** `HH:MM` for a timestamp, for grids where the date is already a column. */
+export function formatTimeOfDay(value: string | null | undefined): string {
+  if (!value) return '—';
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+
+  return `${String(date.getHours()).padStart(2, '0')}:${String(
+    date.getMinutes(),
+  ).padStart(2, '0')}`;
+}

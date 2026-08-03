@@ -25,7 +25,7 @@ class EmployeesScreen extends ConsumerWidget {
           state: state,
           onRefresh: controller.refresh,
           onLoadMore: controller.loadMore,
-          emptyMessage: 'No employees match your search.',
+          emptyMessage: context.l10n.employeesEmpty,
           emptyIcon: Icons.people_outline,
           header: ListSearchHeader(
             hintText: context.l10n.employeesSearchHint,

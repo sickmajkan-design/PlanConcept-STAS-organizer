@@ -16,6 +16,8 @@ enum EnumKind {
   toolStatus,
   fuelType,
   notificationType,
+  timeEntryStatus,
+  workType,
 }
 
 /// Translates one of the API's enum values.
@@ -62,6 +64,15 @@ String enumLabel(AppLocalizations l10n, EnumKind kind, String? value) {
     (EnumKind.notificationType, 'ToolAssigned') => l10n.notificationTypeToolAssigned,
     (EnumKind.notificationType, 'VehicleAssigned') => l10n.notificationTypeVehicleAssigned,
     (EnumKind.notificationType, 'Announcement') => l10n.notificationTypeAnnouncement,
+    (EnumKind.timeEntryStatus, 'InProgress') => l10n.timeEntryStatusInProgress,
+    (EnumKind.timeEntryStatus, 'Submitted') => l10n.timeEntryStatusSubmitted,
+    (EnumKind.timeEntryStatus, 'Approved') => l10n.timeEntryStatusApproved,
+    (EnumKind.timeEntryStatus, 'Rejected') => l10n.timeEntryStatusRejected,
+    (EnumKind.workType, 'Regular') => l10n.workTypeRegular,
+    (EnumKind.workType, 'Overtime') => l10n.workTypeOvertime,
+    (EnumKind.workType, 'Weekend') => l10n.workTypeWeekend,
+    (EnumKind.workType, 'PublicHoliday') => l10n.workTypePublicHoliday,
+    (EnumKind.workType, 'Travel') => l10n.workTypeTravel,
     _ => null,
   };
 

@@ -6,6 +6,7 @@ import {
   LogoutOutlined,
   ManageAccountsOutlined,
   MapOutlined,
+  ScheduleOutlined,
   MenuOutlined,
   PasswordOutlined,
   PeopleOutlined,
@@ -72,6 +73,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           { label: t('nav.vehicles'), path: paths.vehicles, icon: <LocalShippingOutlined /> },
           { label: t('nav.tools'), path: paths.tools, icon: <HandymanOutlined /> },
           { label: t('nav.materials'), path: paths.materials, icon: <Inventory2Outlined /> },
+          { label: t('nav.timeEntries'), path: paths.timeEntries, icon: <ScheduleOutlined /> },
         ]
       : []),
     ...(canAdministerAccounts(user)

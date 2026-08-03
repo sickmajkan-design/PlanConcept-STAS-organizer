@@ -50,6 +50,16 @@ String formatDateTime(DateTime? value) {
   return '${formatDate(local)} ${_twoDigits(local.hour)}:${_twoDigits(local.minute)}';
 }
 
+/// `HH:MM` alone, for lists where the date is already on the row.
+String formatTime(DateTime? value) {
+  if (value == null) {
+    return '—';
+  }
+
+  final local = value.isUtc ? value.toLocal() : value;
+  return '${_twoDigits(local.hour)}:${_twoDigits(local.minute)}';
+}
+
 /// Compact "how long ago" label for timestamps such as the last GPS fix.
 String formatRelative(DateTime? value) {
   if (value == null) {

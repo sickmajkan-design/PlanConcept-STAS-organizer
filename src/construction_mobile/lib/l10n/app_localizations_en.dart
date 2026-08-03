@@ -567,4 +567,114 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsLanguageEnglish => 'English';
+
+  @override
+  String get navTimeEntries => 'Work time';
+
+  @override
+  String get shiftTitle => 'My work time';
+
+  @override
+  String get shiftRunning => 'You are clocked in';
+
+  @override
+  String get shiftOff => 'You are not clocked in';
+
+  @override
+  String shiftSince(String time) {
+    return 'Since $time';
+  }
+
+  @override
+  String shiftElapsed(int hours, int minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String get shiftClockIn => 'Clock in';
+
+  @override
+  String get shiftClockOut => 'Clock out';
+
+  @override
+  String get shiftClockOutTitle => 'End the shift';
+
+  @override
+  String get shiftBreakLabel => 'Unpaid break (minutes)';
+
+  @override
+  String get shiftBreakHint => 'Leave at 0 if you did not take one.';
+
+  @override
+  String get shiftProject => 'Site';
+
+  @override
+  String get shiftNoProject => 'No site';
+
+  @override
+  String get shiftWorkType => 'Type of work';
+
+  @override
+  String get shiftConfirm => 'Confirm';
+
+  @override
+  String get shiftHistory => 'Recent entries';
+
+  @override
+  String get shiftHistoryEmpty => 'No hours recorded yet.';
+
+  @override
+  String get shiftWorked => 'Worked';
+
+  @override
+  String get shiftBreak => 'Break';
+
+  @override
+  String shiftBreakMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      few: '$count minutes',
+      one: '$count minute',
+      zero: 'No break',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String shiftSentBack(String reason) {
+    return 'Sent back: $reason';
+  }
+
+  @override
+  String get shiftNotAnEmployee =>
+      'This account is not linked to an employee, so it cannot record work time.';
+
+  @override
+  String get timeEntryStatusInProgress => 'Running';
+
+  @override
+  String get timeEntryStatusSubmitted => 'Awaiting review';
+
+  @override
+  String get timeEntryStatusApproved => 'Approved';
+
+  @override
+  String get timeEntryStatusRejected => 'Sent back';
+
+  @override
+  String get workTypeRegular => 'Regular';
+
+  @override
+  String get workTypeOvertime => 'Overtime';
+
+  @override
+  String get workTypeWeekend => 'Weekend';
+
+  @override
+  String get workTypePublicHoliday => 'Public holiday';
+
+  @override
+  String get workTypeTravel => 'Travel';
 }

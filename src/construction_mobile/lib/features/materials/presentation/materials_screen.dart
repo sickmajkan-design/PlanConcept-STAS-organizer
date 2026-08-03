@@ -32,7 +32,7 @@ class MaterialsScreen extends ConsumerWidget {
           state: state,
           onRefresh: controller.refresh,
           onLoadMore: controller.loadMore,
-          emptyMessage: 'No materials match your search.',
+          emptyMessage: context.l10n.materialsEmpty,
           emptyIcon: Icons.inventory_2_outlined,
           header: ListSearchHeader(
             hintText: context.l10n.materialsSearchHint,

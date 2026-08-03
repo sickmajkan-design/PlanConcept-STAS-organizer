@@ -77,21 +77,23 @@ prijava na gradilište) oslanja se na push ili GPS.
 
 ---
 
-## Faza 1 — Radni sati / Work hours
+## Faza 1 — Radni sati / Work hours — **ODRAĐENO / DONE**
 
 Ključni modul. / The keystone module.
 
-- Entitet `TimeEntry`: zaposleni, projekat, početak, kraj, pauza, tip sata
-  (redovan / prekovremeni / vikend), status odobrenja, ko je odobrio
-- Mobilno: prijava i odjava sa gradilišta, sa GPS pečatom iz Faze 0
-- Admin: nedeljna mreža po radniku i projektu, masovno odobravanje, ispravke
-- Pravila: preklapanje unosa, unos unazad, zaključavanje odobrenog perioda
+| Stavka / Item | Stanje / State |
+|---|---|
+| Entitet `TimeEntry` + migracija | **Odrađeno.** Smena u toku je red bez kraja, ne zasebna tabela. Parcijalni jedinstveni indeks dozvoljava tačno jednu otvorenu smenu po radniku; check ograničenja odbijaju negativnu pauzu i kraj pre početka. Sva četiri proverena direktno na PostgreSQL-u. |
+| Mobilno: prijava/odjava sa GPS pečatom | **Odrađeno.** Kartica smene sa proteklim vremenom, lista sopstvenih unosa. Pozicija je dokaz kad je ima, nikad uslov — rad u podrumu mora da se evidentira. |
+| Admin: pregled, odobravanje, ispravke | **Odrađeno.** Lista sa filterima „čeka pregled" i „u toku", odobri/vrati na doradu, ručni unos i ispravka. |
+| Zbir sati po zaposlenom | **Odrađeno.** Agregacija u bazi (`GROUP BY`), ne prolaskom kroz stranice. |
+| Pravila | **Odrađeno.** Preklapanje, granica unosa unazad (31 dan), maksimalna smena (16 h), zaključavanje odobrenog, i zabrana odobravanja sopstvenih sati. |
 
-**Zašto drugo / Why second:** najveća dnevna ušteda administracije; jedini razlog
-da radnik otvori aplikaciju svaki dan; i izvor podataka bez kojeg statistika
-troškova (Faza 5) ne postoji.
+**Nije rađeno / Not built:** nedeljna mreža kao tabela dan-po-dan. Zbir po
+zaposlenom za period odgovara na isto pitanje uz znatno manje posla; mreža se
+može dodati kasnije bez izmena na API-ju.
 
-**Procena / Estimate:** 2–3 nedelje. **Pokrivenost / Coverage: ≈35%**
+**Pokrivenost / Coverage: ≈35%**
 
 ---
 
@@ -196,8 +198,8 @@ Every module from here inherits the existing conventions — not done until it h
 
 | Faza / Phase | Sadržaj / Content | Trajanje / Duration | Pokrivenost / Coverage |
 |---|---|---|---|
-| 0 | GPS, push, potpisivanje | 1–2 ned. | 31% |
-| 1 | Radni sati | 2–3 ned. | 35% |
+| 0 | GPS, push, potpisivanje — **odrađeno** | 1–2 ned. | 31% |
+| 1 | Radni sati — **odrađeno** | 2–3 ned. | 35% |
 | 2 | Dokumenti i fotografije | 2 ned. | 42% |
 | 3 | Zadaci i nedostaci | 2 ned. | 50% |
 | 4 | Raspoređivanje i odsustva | 2–3 ned. | 58% |

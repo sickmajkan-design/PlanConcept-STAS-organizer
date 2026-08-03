@@ -26,7 +26,7 @@ class ProjectsScreen extends ConsumerWidget {
           state: state,
           onRefresh: controller.refresh,
           onLoadMore: controller.loadMore,
-          emptyMessage: 'No projects match your search.',
+          emptyMessage: context.l10n.projectsEmpty,
           emptyIcon: Icons.apartment_outlined,
           header: ListSearchHeader(
             hintText: context.l10n.projectsSearchHint,

@@ -45,6 +45,19 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             const LocationStatusCard(),
             const _PushStatusNotice(),
+            // Above the resource list because it is the thing a worker opens
+            // the app for twice a day, and it is open to every role.
+            if (user.isEmployee) ...[
+              const SizedBox(height: 16),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.schedule_outlined),
+                  title: Text(context.l10n.navTimeEntries),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push(AppRoutes.timeEntries),
+                ),
+              ),
+            ],
             const SizedBox(height: 24),
             _ResourcesSection(canViewDirectory: user.canViewDirectory),
             const SizedBox(height: 24),
@@ -176,7 +189,7 @@ class _ResourcesSection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 8),
           child: Text(
-            'Resources',
+            context.l10n.commonResources,
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),

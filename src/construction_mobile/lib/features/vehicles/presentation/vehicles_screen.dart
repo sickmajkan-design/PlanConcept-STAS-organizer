@@ -25,7 +25,7 @@ class VehiclesScreen extends ConsumerWidget {
           state: state,
           onRefresh: controller.refresh,
           onLoadMore: controller.loadMore,
-          emptyMessage: 'No vehicles match your search.',
+          emptyMessage: context.l10n.vehiclesEmpty,
           emptyIcon: Icons.local_shipping_outlined,
           header: ListSearchHeader(
             hintText: context.l10n.vehiclesSearchHint,

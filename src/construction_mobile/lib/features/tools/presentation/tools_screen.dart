@@ -34,7 +34,7 @@ class ToolsScreen extends ConsumerWidget {
           state: state,
           onRefresh: controller.refresh,
           onLoadMore: controller.loadMore,
-          emptyMessage: 'No tools match your search.',
+          emptyMessage: context.l10n.toolsEmpty,
           emptyIcon: Icons.handyman_outlined,
           header: ListSearchHeader(
             hintText: context.l10n.toolsSearchHint,

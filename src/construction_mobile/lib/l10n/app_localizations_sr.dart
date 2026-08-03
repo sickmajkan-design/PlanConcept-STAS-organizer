@@ -560,4 +560,114 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get settingsLanguageEnglish => 'English';
+
+  @override
+  String get navTimeEntries => 'Radno vreme';
+
+  @override
+  String get shiftTitle => 'Moje radno vreme';
+
+  @override
+  String get shiftRunning => 'Prijavljeni ste na smenu';
+
+  @override
+  String get shiftOff => 'Niste prijavljeni na smenu';
+
+  @override
+  String shiftSince(String time) {
+    return 'Od $time';
+  }
+
+  @override
+  String shiftElapsed(int hours, int minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String get shiftClockIn => 'Prijavi se na smenu';
+
+  @override
+  String get shiftClockOut => 'Odjavi se sa smene';
+
+  @override
+  String get shiftClockOutTitle => 'Završetak smene';
+
+  @override
+  String get shiftBreakLabel => 'Neplaćena pauza (minuta)';
+
+  @override
+  String get shiftBreakHint => 'Ostavite 0 ako je niste koristili.';
+
+  @override
+  String get shiftProject => 'Gradilište';
+
+  @override
+  String get shiftNoProject => 'Bez gradilišta';
+
+  @override
+  String get shiftWorkType => 'Vrsta rada';
+
+  @override
+  String get shiftConfirm => 'Potvrdi';
+
+  @override
+  String get shiftHistory => 'Poslednji unosi';
+
+  @override
+  String get shiftHistoryEmpty => 'Još nema evidentiranih sati.';
+
+  @override
+  String get shiftWorked => 'Odrađeno';
+
+  @override
+  String get shiftBreak => 'Pauza';
+
+  @override
+  String shiftBreakMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minuta',
+      few: '$count minuta',
+      one: '$count minut',
+      zero: 'Bez pauze',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String shiftSentBack(String reason) {
+    return 'Vraćeno: $reason';
+  }
+
+  @override
+  String get shiftNotAnEmployee =>
+      'Ovaj nalog nije povezan sa zaposlenim, pa ne može da evidentira radno vreme.';
+
+  @override
+  String get timeEntryStatusInProgress => 'U toku';
+
+  @override
+  String get timeEntryStatusSubmitted => 'Čeka pregled';
+
+  @override
+  String get timeEntryStatusApproved => 'Odobreno';
+
+  @override
+  String get timeEntryStatusRejected => 'Vraćeno na doradu';
+
+  @override
+  String get workTypeRegular => 'Redovan rad';
+
+  @override
+  String get workTypeOvertime => 'Prekovremeni';
+
+  @override
+  String get workTypeWeekend => 'Vikend';
+
+  @override
+  String get workTypePublicHoliday => 'Praznik';
+
+  @override
+  String get workTypeTravel => 'Putovanje';
 }

@@ -10,6 +10,7 @@ import '../../features/employees/presentation/employee_detail_screen.dart';
 import '../../features/employees/presentation/employees_screen.dart';
 import '../../features/materials/presentation/material_detail_screen.dart';
 import '../../features/materials/presentation/materials_screen.dart';
+import '../../features/time_entries/presentation/shift_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/projects/presentation/project_detail_screen.dart';
 import '../../features/projects/presentation/projects_screen.dart';
@@ -122,6 +123,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.toolLookup,
         builder: (context, state) => const ToolLookupScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.timeEntries,
+        builder: (context, state) => const ShiftScreen(),
       ),
       GoRoute(
         path: AppRoutes.materials,

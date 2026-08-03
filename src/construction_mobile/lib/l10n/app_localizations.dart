@@ -1135,6 +1135,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'English'**
   String get settingsLanguageEnglish;
+
+  /// No description provided for @navTimeEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Work time'**
+  String get navTimeEntries;
+
+  /// No description provided for @shiftTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My work time'**
+  String get shiftTitle;
+
+  /// No description provided for @shiftRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'You are clocked in'**
+  String get shiftRunning;
+
+  /// No description provided for @shiftOff.
+  ///
+  /// In en, this message translates to:
+  /// **'You are not clocked in'**
+  String get shiftOff;
+
+  /// No description provided for @shiftSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Since {time}'**
+  String shiftSince(String time);
+
+  /// No description provided for @shiftElapsed.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours} h {minutes} min'**
+  String shiftElapsed(int hours, int minutes);
+
+  /// No description provided for @shiftClockIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock in'**
+  String get shiftClockIn;
+
+  /// No description provided for @shiftClockOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock out'**
+  String get shiftClockOut;
+
+  /// No description provided for @shiftClockOutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'End the shift'**
+  String get shiftClockOutTitle;
+
+  /// No description provided for @shiftBreakLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Unpaid break (minutes)'**
+  String get shiftBreakLabel;
+
+  /// No description provided for @shiftBreakHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave at 0 if you did not take one.'**
+  String get shiftBreakHint;
+
+  /// No description provided for @shiftProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Site'**
+  String get shiftProject;
+
+  /// No description provided for @shiftNoProject.
+  ///
+  /// In en, this message translates to:
+  /// **'No site'**
+  String get shiftNoProject;
+
+  /// No description provided for @shiftWorkType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type of work'**
+  String get shiftWorkType;
+
+  /// No description provided for @shiftConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get shiftConfirm;
+
+  /// No description provided for @shiftHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent entries'**
+  String get shiftHistory;
+
+  /// No description provided for @shiftHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No hours recorded yet.'**
+  String get shiftHistoryEmpty;
+
+  /// No description provided for @shiftWorked.
+  ///
+  /// In en, this message translates to:
+  /// **'Worked'**
+  String get shiftWorked;
+
+  /// No description provided for @shiftBreak.
+  ///
+  /// In en, this message translates to:
+  /// **'Break'**
+  String get shiftBreak;
+
+  /// No description provided for @shiftBreakMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No break} one{{count} minute} few{{count} minutes} other{{count} minutes}}'**
+  String shiftBreakMinutes(int count);
+
+  /// No description provided for @shiftSentBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent back: {reason}'**
+  String shiftSentBack(String reason);
+
+  /// No description provided for @shiftNotAnEmployee.
+  ///
+  /// In en, this message translates to:
+  /// **'This account is not linked to an employee, so it cannot record work time.'**
+  String get shiftNotAnEmployee;
+
+  /// No description provided for @timeEntryStatusInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'Running'**
+  String get timeEntryStatusInProgress;
+
+  /// No description provided for @timeEntryStatusSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting review'**
+  String get timeEntryStatusSubmitted;
+
+  /// No description provided for @timeEntryStatusApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get timeEntryStatusApproved;
+
+  /// No description provided for @timeEntryStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent back'**
+  String get timeEntryStatusRejected;
+
+  /// No description provided for @workTypeRegular.
+  ///
+  /// In en, this message translates to:
+  /// **'Regular'**
+  String get workTypeRegular;
+
+  /// No description provided for @workTypeOvertime.
+  ///
+  /// In en, this message translates to:
+  /// **'Overtime'**
+  String get workTypeOvertime;
+
+  /// No description provided for @workTypeWeekend.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekend'**
+  String get workTypeWeekend;
+
+  /// No description provided for @workTypePublicHoliday.
+  ///
+  /// In en, this message translates to:
+  /// **'Public holiday'**
+  String get workTypePublicHoliday;
+
+  /// No description provided for @workTypeTravel.
+  ///
+  /// In en, this message translates to:
+  /// **'Travel'**
+  String get workTypeTravel;
 }
 
 class _AppLocalizationsDelegate

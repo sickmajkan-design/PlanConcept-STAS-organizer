@@ -81,6 +81,21 @@ const ToolFormPage = lazy(() =>
 const ToolDetailPage = lazy(() =>
   import('./pages/tools/ToolDetailPage').then((m) => ({ default: m.ToolDetailPage })),
 );
+const TimeEntriesListPage = lazy(() =>
+  import('./pages/timeEntries/TimeEntriesListPage').then((m) => ({
+    default: m.TimeEntriesListPage,
+  })),
+);
+const TimeEntryFormPage = lazy(() =>
+  import('./pages/timeEntries/TimeEntryFormPage').then((m) => ({
+    default: m.TimeEntryFormPage,
+  })),
+);
+const TimeEntrySummaryPage = lazy(() =>
+  import('./pages/timeEntries/TimeEntrySummaryPage').then((m) => ({
+    default: m.TimeEntrySummaryPage,
+  })),
+);
 const MaterialsListPage = lazy(() =>
   import('./pages/materials/MaterialsListPage').then((m) => ({
     default: m.MaterialsListPage,
@@ -139,6 +154,13 @@ function Layout() {
             <Route path={paths.materialNew} element={<MaterialFormPage />} />
             <Route path={`${paths.materials}/:id`} element={<MaterialDetailPage />} />
             <Route path={`${paths.materials}/:id/edit`} element={<MaterialFormPage />} />
+
+            {/* `summary` is declared before the `:id` routes so it is matched
+                as a page rather than as an entry id. */}
+            <Route path={paths.timeEntrySummary} element={<TimeEntrySummaryPage />} />
+            <Route path={paths.timeEntries} element={<TimeEntriesListPage />} />
+            <Route path={paths.timeEntryNew} element={<TimeEntryFormPage />} />
+            <Route path={`${paths.timeEntries}/:id/edit`} element={<TimeEntryFormPage />} />
           </Route>
 
           {/* Account administration is Admin and above, a narrower set than

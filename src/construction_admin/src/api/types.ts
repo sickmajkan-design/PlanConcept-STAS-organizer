@@ -281,3 +281,75 @@ export interface UserAccountInput {
 export interface CreateUserAccountInput extends UserAccountInput {
   password: string;
 }
+
+export const timeEntryStatuses = [
+  'InProgress',
+  'Submitted',
+  'Approved',
+  'Rejected',
+] as const;
+
+export type TimeEntryStatus = (typeof timeEntryStatuses)[number];
+
+export const workTypes = [
+  'Regular',
+  'Overtime',
+  'Weekend',
+  'PublicHoliday',
+  'Travel',
+] as const;
+
+export type WorkType = (typeof workTypes)[number];
+
+export interface TimeEntry {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  projectId: string | null;
+  projectName: string | null;
+  startedAt: string;
+  endedAt: string | null;
+  breakMinutes: number;
+  /** Null while the shift is still running. */
+  workedMinutes: number | null;
+  workType: WorkType;
+  status: TimeEntryStatus;
+  note: string | null;
+  startLatitude: number | null;
+  startLongitude: number | null;
+  endLatitude: number | null;
+  endLongitude: number | null;
+  reviewedByName: string | null;
+  reviewedAt: string | null;
+  reviewNote: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface TimeEntryInput {
+  employeeId: string;
+  projectId?: string | null;
+  startedAt: string;
+  endedAt?: string | null;
+  breakMinutes: number;
+  workType: WorkType;
+  note?: string | null;
+}
+
+export interface TimeEntrySummaryRow {
+  employeeId: string;
+  employeeName: string;
+  entryCount: number;
+  totalMinutes: number;
+  approvedMinutes: number;
+  pendingCount: number;
+}
+
+export interface TimeEntrySummary {
+  from: string;
+  to: string;
+  rows: TimeEntrySummaryRow[];
+  totalMinutes: number;
+  approvedMinutes: number;
+  pendingCount: number;
+}
