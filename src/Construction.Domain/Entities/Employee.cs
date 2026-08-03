@@ -49,4 +49,6 @@ public class Employee : BaseEntity, ISoftDeletable
     public ICollection<Attachment> Attachments { get; set; } = new List<Attachment>();
 
     public ICollection<WorkItem> WorkItems { get; set; } = new List<WorkItem>();
+
+    public ICollection<Absence> Absences { get; set; } = new List<Absence>();
 }

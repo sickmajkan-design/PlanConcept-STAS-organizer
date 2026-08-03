@@ -35,5 +35,7 @@ public interface IApplicationDbContext
 
     DbSet<WorkItem> WorkItems { get; }
 
+    DbSet<Absence> Absences { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

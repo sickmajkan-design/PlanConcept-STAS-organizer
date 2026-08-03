@@ -2,12 +2,41 @@ using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Construction.Application.Features.Employees.Commands.AssignEmployeeToProject;
 
-public record AssignEmployeeToProjectCommand(Guid EmployeeId, Guid ProjectId) : IRequest;
+/// <summary>Posts an employee to a project for a stretch of time.</summary>
+/// <remarks>
+/// The dates are optional so existing callers keep working: omitting them
+/// means "from today, open-ended", which is exactly what the assignment meant
+/// before it had dates.
+/// </remarks>
+public record AssignEmployeeToProjectCommand(Guid EmployeeId, Guid ProjectId) : IRequest
+{
+    /// <summary>Defaults to today.</summary>
+    public DateOnly? StartDate { get; init; }
+
+    /// <summary>Null leaves the posting open-ended.</summary>
+    public DateOnly? EndDate { get; init; }
+}
+
+public class AssignEmployeeToProjectCommandValidator
+    : AbstractValidator<AssignEmployeeToProjectCommand>
+{
+    public AssignEmployeeToProjectCommandValidator()
+    {
+        RuleFor(x => x.EmployeeId).NotEmpty();
+        RuleFor(x => x.ProjectId).NotEmpty();
+
+        RuleFor(x => x.EndDate)
+            .GreaterThanOrEqualTo(x => x.StartDate!.Value)
+            .WithMessage("The posting cannot end before it starts.")
+            .When(x => x.StartDate is not null && x.EndDate is not null);
+    }
+}
 
 public class AssignEmployeeToProjectCommandHandler : IRequestHandler<AssignEmployeeToProjectCommand>
 {
@@ -39,19 +68,34 @@ public class AssignEmployeeToProjectCommandHandler : IRequestHandler<AssignEmplo
             .FirstOrDefaultAsync(p => p.Id == request.ProjectId, cancellationToken)
             ?? throw new NotFoundException(nameof(Project), request.ProjectId);
 
-        var alreadyAssigned = await _context.EmployeeProjects
-            .AnyAsync(ep => ep.EmployeeId == request.EmployeeId && ep.ProjectId == request.ProjectId,
+        var startDate = request.StartDate
+            ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var endDate = request.EndDate;
+
+        // Overlapping postings to the same site are always a mistake. The
+        // database refuses them too — this exists so the answer is a sentence
+        // rather than a constraint violation, and the database exists so two
+        // requests racing each other cannot both slip through.
+        var overlaps = await _context.EmployeeProjects
+            .AnyAsync(
+                ep => ep.EmployeeId == request.EmployeeId
+                    && ep.ProjectId == request.ProjectId
+                    && ep.StartDate <= (endDate ?? DateOnly.MaxValue)
+                    && (ep.EndDate == null || ep.EndDate >= startDate),
                 cancellationToken);
 
-        if (alreadyAssigned)
+        if (overlaps)
         {
-            throw new ConflictException("The employee is already assigned to this project.");
+            throw new ConflictException(
+                "The employee is already posted to this project over those dates.");
         }
 
         _context.EmployeeProjects.Add(new EmployeeProject
         {
             EmployeeId = request.EmployeeId,
             ProjectId = request.ProjectId,
+            StartDate = startDate,
+            EndDate = endDate,
             AssignedAt = _dateTimeProvider.UtcNow,
             AssignedByUserId = _currentUserService.UserId
         });

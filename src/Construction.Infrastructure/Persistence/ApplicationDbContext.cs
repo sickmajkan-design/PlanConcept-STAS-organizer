@@ -41,6 +41,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<WorkItem> WorkItems => Set<WorkItem>();
 
+    public DbSet<Absence> Absences => Set<Absence>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
