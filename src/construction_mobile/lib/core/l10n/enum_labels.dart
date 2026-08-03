@@ -19,6 +19,9 @@ enum EnumKind {
   timeEntryStatus,
   workType,
   attachmentCategory,
+  workItemKind,
+  workItemStatus,
+  workItemPriority,
 }
 
 /// Translates one of the API's enum values.
@@ -82,6 +85,17 @@ String enumLabel(AppLocalizations l10n, EnumKind kind, String? value) {
     (EnumKind.attachmentCategory, 'SiteDocument') => l10n.attachmentCategorySiteDocument,
     (EnumKind.attachmentCategory, 'Photo') => l10n.attachmentCategoryPhoto,
     (EnumKind.attachmentCategory, 'Other') => l10n.attachmentCategoryOther,
+    (EnumKind.workItemKind, 'Task') => l10n.workItemKindTask,
+    (EnumKind.workItemKind, 'Defect') => l10n.workItemKindDefect,
+    (EnumKind.workItemStatus, 'Open') => l10n.workItemStatusOpen,
+    (EnumKind.workItemStatus, 'InProgress') => l10n.workItemStatusInProgress,
+    (EnumKind.workItemStatus, 'Resolved') => l10n.workItemStatusResolved,
+    (EnumKind.workItemStatus, 'Closed') => l10n.workItemStatusClosed,
+    (EnumKind.workItemStatus, 'Cancelled') => l10n.workItemStatusCancelled,
+    (EnumKind.workItemPriority, 'Low') => l10n.workItemPriorityLow,
+    (EnumKind.workItemPriority, 'Normal') => l10n.workItemPriorityNormal,
+    (EnumKind.workItemPriority, 'High') => l10n.workItemPriorityHigh,
+    (EnumKind.workItemPriority, 'Urgent') => l10n.workItemPriorityUrgent,
     _ => null,
   };
 

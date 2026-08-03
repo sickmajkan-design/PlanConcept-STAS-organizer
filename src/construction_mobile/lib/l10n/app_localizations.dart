@@ -1447,6 +1447,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Other'**
   String get attachmentCategoryOther;
+
+  /// No description provided for @navWorkItems.
+  ///
+  /// In en, this message translates to:
+  /// **'My work'**
+  String get navWorkItems;
+
+  /// No description provided for @workItemsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing on your list.'**
+  String get workItemsEmpty;
+
+  /// No description provided for @workItemsIncludeFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Include finished'**
+  String get workItemsIncludeFinished;
+
+  /// No description provided for @workItemsDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Due {date}'**
+  String workItemsDue(String date);
+
+  /// No description provided for @workItemsOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get workItemsOverdue;
+
+  /// No description provided for @workItemsNoDueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'No deadline'**
+  String get workItemsNoDueDate;
+
+  /// No description provided for @workItemsNoProject.
+  ///
+  /// In en, this message translates to:
+  /// **'No site'**
+  String get workItemsNoProject;
+
+  /// No description provided for @workItemsReportDefect.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a defect'**
+  String get workItemsReportDefect;
+
+  /// No description provided for @workItemsDefectTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'What is wrong'**
+  String get workItemsDefectTitle;
+
+  /// No description provided for @workItemsDefectDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Details (optional)'**
+  String get workItemsDefectDescription;
+
+  /// No description provided for @workItemsDefectSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get workItemsDefectSend;
+
+  /// No description provided for @workItemsDefectSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Defect reported.'**
+  String get workItemsDefectSent;
+
+  /// No description provided for @workItemsDefectNeedsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the problem in a few words.'**
+  String get workItemsDefectNeedsTitle;
+
+  /// No description provided for @workItemsPhotoCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No photos} one{{count} photo} other{{count} photos}}'**
+  String workItemsPhotoCount(int count);
+
+  /// No description provided for @workItemKindTask.
+  ///
+  /// In en, this message translates to:
+  /// **'Task'**
+  String get workItemKindTask;
+
+  /// No description provided for @workItemKindDefect.
+  ///
+  /// In en, this message translates to:
+  /// **'Defect'**
+  String get workItemKindDefect;
+
+  /// No description provided for @workItemStatusOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get workItemStatusOpen;
+
+  /// No description provided for @workItemStatusInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get workItemStatusInProgress;
+
+  /// No description provided for @workItemStatusResolved.
+  ///
+  /// In en, this message translates to:
+  /// **'Done, to check'**
+  String get workItemStatusResolved;
+
+  /// No description provided for @workItemStatusClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get workItemStatusClosed;
+
+  /// No description provided for @workItemStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancelled'**
+  String get workItemStatusCancelled;
+
+  /// No description provided for @workItemPriorityLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get workItemPriorityLow;
+
+  /// No description provided for @workItemPriorityNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get workItemPriorityNormal;
+
+  /// No description provided for @workItemPriorityHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get workItemPriorityHigh;
+
+  /// No description provided for @workItemPriorityUrgent.
+  ///
+  /// In en, this message translates to:
+  /// **'Urgent'**
+  String get workItemPriorityUrgent;
 }
 
 class _AppLocalizationsDelegate

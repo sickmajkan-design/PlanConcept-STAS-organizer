@@ -50,11 +50,22 @@ class HomeScreen extends ConsumerWidget {
             if (user.isEmployee) ...[
               const SizedBox(height: 16),
               Card(
-                child: ListTile(
-                  leading: const Icon(Icons.schedule_outlined),
-                  title: Text(context.l10n.navTimeEntries),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push(AppRoutes.timeEntries),
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.schedule_outlined),
+                      title: Text(context.l10n.navTimeEntries),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push(AppRoutes.timeEntries),
+                    ),
+                    const Divider(height: 1, indent: 20, endIndent: 20),
+                    ListTile(
+                      leading: const Icon(Icons.checklist_outlined),
+                      title: Text(context.l10n.navWorkItems),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push(AppRoutes.workItems),
+                    ),
+                  ],
                 ),
               ),
             ],

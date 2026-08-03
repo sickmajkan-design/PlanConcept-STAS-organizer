@@ -738,4 +738,91 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get attachmentCategoryOther => 'Ostalo';
+
+  @override
+  String get navWorkItems => 'Moji zadaci';
+
+  @override
+  String get workItemsEmpty => 'Nemate ništa na spisku.';
+
+  @override
+  String get workItemsIncludeFinished => 'Prikaži i završeno';
+
+  @override
+  String workItemsDue(String date) {
+    return 'Rok $date';
+  }
+
+  @override
+  String get workItemsOverdue => 'Kasni';
+
+  @override
+  String get workItemsNoDueDate => 'Bez roka';
+
+  @override
+  String get workItemsNoProject => 'Bez gradilišta';
+
+  @override
+  String get workItemsReportDefect => 'Prijavi nedostatak';
+
+  @override
+  String get workItemsDefectTitle => 'Šta nije u redu';
+
+  @override
+  String get workItemsDefectDescription => 'Detalji (opciono)';
+
+  @override
+  String get workItemsDefectSend => 'Prijavi';
+
+  @override
+  String get workItemsDefectSent => 'Nedostatak je prijavljen.';
+
+  @override
+  String get workItemsDefectNeedsTitle => 'Opišite problem u par reči.';
+
+  @override
+  String workItemsPhotoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count fotografija',
+      few: '$count fotografije',
+      one: '$count fotografija',
+      zero: 'Bez fotografija',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get workItemKindTask => 'Zadatak';
+
+  @override
+  String get workItemKindDefect => 'Nedostatak';
+
+  @override
+  String get workItemStatusOpen => 'Otvoreno';
+
+  @override
+  String get workItemStatusInProgress => 'U toku';
+
+  @override
+  String get workItemStatusResolved => 'Urađeno, za proveru';
+
+  @override
+  String get workItemStatusClosed => 'Zatvoreno';
+
+  @override
+  String get workItemStatusCancelled => 'Otkazano';
+
+  @override
+  String get workItemPriorityLow => 'Nizak';
+
+  @override
+  String get workItemPriorityNormal => 'Normalan';
+
+  @override
+  String get workItemPriorityHigh => 'Visok';
+
+  @override
+  String get workItemPriorityUrgent => 'Hitno';
 }

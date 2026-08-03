@@ -19,6 +19,9 @@ class AppRoutes {
   /// sit under a directory prefix.
   static const timeEntries = '/time-entries';
 
+  /// Open to every employee-linked account: a worker's own list.
+  static const workItems = '/work-items';
+
   /// Open to every authenticated employee (mirrors the API's `by-qr`
   /// endpoint), so it must not sit under [tools] or it would be swept into
   /// [isDirectoryLocation].

@@ -263,5 +263,35 @@
   "attachmentCategoryInsurance": "Insurance",
   "attachmentCategorySiteDocument": "Site document",
   "attachmentCategoryPhoto": "Photo",
-  "attachmentCategoryOther": "Other"
+  "attachmentCategoryOther": "Other",
+  "navWorkItems": "My work",
+  "workItemsEmpty": "Nothing on your list.",
+  "workItemsIncludeFinished": "Include finished",
+  "workItemsDue": "Due {date}",
+  "@workItemsDue": { "placeholders": { "date": { "type": "String" } } },
+  "workItemsOverdue": "Overdue",
+  "workItemsNoDueDate": "No deadline",
+  "workItemsNoProject": "No site",
+  "workItemsReportDefect": "Report a defect",
+  "workItemsDefectTitle": "What is wrong",
+  "workItemsDefectDescription": "Details (optional)",
+  "workItemsDefectSend": "Report",
+  "workItemsDefectSent": "Defect reported.",
+  "workItemsDefectNeedsTitle": "Describe the problem in a few words.",
+  "workItemsPhotoCount": "{count, plural, =0{No photos} one{{count} photo} other{{count} photos}}",
+  "@workItemsPhotoCount": { "placeholders": { "count": { "type": "int" } } },
+
+  "workItemKindTask": "Task",
+  "workItemKindDefect": "Defect",
+
+  "workItemStatusOpen": "Open",
+  "workItemStatusInProgress": "In progress",
+  "workItemStatusResolved": "Done, to check",
+  "workItemStatusClosed": "Closed",
+  "workItemStatusCancelled": "Cancelled",
+
+  "workItemPriorityLow": "Low",
+  "workItemPriorityNormal": "Normal",
+  "workItemPriorityHigh": "High",
+  "workItemPriorityUrgent": "Urgent"
 }

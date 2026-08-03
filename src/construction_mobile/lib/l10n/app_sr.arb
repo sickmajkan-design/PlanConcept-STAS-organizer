@@ -263,5 +263,35 @@
   "attachmentCategoryInsurance": "Osiguranje",
   "attachmentCategorySiteDocument": "Gradilišna dokumentacija",
   "attachmentCategoryPhoto": "Fotografija",
-  "attachmentCategoryOther": "Ostalo"
+  "attachmentCategoryOther": "Ostalo",
+  "navWorkItems": "Moji zadaci",
+  "workItemsEmpty": "Nemate ništa na spisku.",
+  "workItemsIncludeFinished": "Prikaži i završeno",
+  "workItemsDue": "Rok {date}",
+  "@workItemsDue": { "placeholders": { "date": { "type": "String" } } },
+  "workItemsOverdue": "Kasni",
+  "workItemsNoDueDate": "Bez roka",
+  "workItemsNoProject": "Bez gradilišta",
+  "workItemsReportDefect": "Prijavi nedostatak",
+  "workItemsDefectTitle": "Šta nije u redu",
+  "workItemsDefectDescription": "Detalji (opciono)",
+  "workItemsDefectSend": "Prijavi",
+  "workItemsDefectSent": "Nedostatak je prijavljen.",
+  "workItemsDefectNeedsTitle": "Opišite problem u par reči.",
+  "workItemsPhotoCount": "{count, plural, =0{Bez fotografija} one{{count} fotografija} few{{count} fotografije} other{{count} fotografija}}",
+  "@workItemsPhotoCount": { "placeholders": { "count": { "type": "int" } } },
+
+  "workItemKindTask": "Zadatak",
+  "workItemKindDefect": "Nedostatak",
+
+  "workItemStatusOpen": "Otvoreno",
+  "workItemStatusInProgress": "U toku",
+  "workItemStatusResolved": "Urađeno, za proveru",
+  "workItemStatusClosed": "Zatvoreno",
+  "workItemStatusCancelled": "Otkazano",
+
+  "workItemPriorityLow": "Nizak",
+  "workItemPriorityNormal": "Normalan",
+  "workItemPriorityHigh": "Visok",
+  "workItemPriorityUrgent": "Hitno"
 }

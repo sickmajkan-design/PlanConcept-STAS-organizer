@@ -11,6 +11,7 @@ import '../../features/employees/presentation/employees_screen.dart';
 import '../../features/materials/presentation/material_detail_screen.dart';
 import '../../features/materials/presentation/materials_screen.dart';
 import '../../features/time_entries/presentation/shift_screen.dart';
+import '../../features/work_items/presentation/my_work_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/projects/presentation/project_detail_screen.dart';
 import '../../features/projects/presentation/projects_screen.dart';
@@ -127,6 +128,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.timeEntries,
         builder: (context, state) => const ShiftScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.workItems,
+        builder: (context, state) => const MyWorkScreen(),
       ),
       GoRoute(
         path: AppRoutes.materials,

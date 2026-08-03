@@ -359,6 +359,7 @@ export const attachmentOwnerTypes = [
   'Project',
   'Vehicle',
   'Tool',
+  'WorkItem',
 ] as const;
 
 export type AttachmentOwnerType = (typeof attachmentOwnerTypes)[number];
@@ -390,4 +391,58 @@ export interface Attachment {
   ownerName: string | null;
   uploadedByName: string | null;
   createdAt: string;
+}
+
+export const workItemKinds = ['Task', 'Defect'] as const;
+
+export type WorkItemKind = (typeof workItemKinds)[number];
+
+export const workItemStatuses = [
+  'Open',
+  'InProgress',
+  'Resolved',
+  'Closed',
+  'Cancelled',
+] as const;
+
+export type WorkItemStatus = (typeof workItemStatuses)[number];
+
+export const workItemPriorities = ['Low', 'Normal', 'High', 'Urgent'] as const;
+
+export type WorkItemPriority = (typeof workItemPriorities)[number];
+
+export interface WorkItem {
+  id: string;
+  kind: WorkItemKind;
+  title: string;
+  description: string | null;
+  projectId: string | null;
+  projectName: string | null;
+  assignedEmployeeId: string | null;
+  assignedEmployeeName: string | null;
+  priority: WorkItemPriority;
+  status: WorkItemStatus;
+  /** `YYYY-MM-DD`. */
+  dueDate: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  createdByName: string | null;
+  resolvedByName: string | null;
+  resolvedAt: string | null;
+  attachmentCount: number;
+  isFinished: boolean;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface WorkItemInput {
+  kind: WorkItemKind;
+  title: string;
+  description?: string | null;
+  projectId?: string | null;
+  assignedEmployeeId?: string | null;
+  priority: WorkItemPriority;
+  dueDate?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 }

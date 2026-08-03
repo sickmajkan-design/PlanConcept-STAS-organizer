@@ -21,7 +21,10 @@ export type EnumKind =
   | 'fuelType'
   | 'timeEntryStatus'
   | 'workType'
-  | 'attachmentCategory';
+  | 'attachmentCategory'
+  | 'workItemKind'
+  | 'workItemStatus'
+  | 'workItemPriority';
 
 export function useEnumLabel() {
   const t = useT();

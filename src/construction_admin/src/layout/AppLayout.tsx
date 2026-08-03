@@ -5,6 +5,7 @@ import {
   LocalShippingOutlined,
   LogoutOutlined,
   ManageAccountsOutlined,
+  ChecklistOutlined,
   FolderOutlined,
   MapOutlined,
   ScheduleOutlined,
@@ -75,6 +76,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           { label: t('nav.tools'), path: paths.tools, icon: <HandymanOutlined /> },
           { label: t('nav.materials'), path: paths.materials, icon: <Inventory2Outlined /> },
           { label: t('nav.timeEntries'), path: paths.timeEntries, icon: <ScheduleOutlined /> },
+          { label: t('nav.workItems'), path: paths.workItems, icon: <ChecklistOutlined /> },
         ]
       : []),
     ...(canAdministerAccounts(user)

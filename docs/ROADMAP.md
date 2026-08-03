@@ -123,17 +123,18 @@ ručno, a fotografija se bez pickera ne može uzeti.
 
 ---
 
-## Faza 3 — Zadaci i nedostaci / Tasks and defects
+## Faza 3 — Zadaci i nedostaci / Tasks and defects — **ODRAĐENO / DONE**
 
-- `Task`: dodeljen, rok, projekat, prioritet, status → **push pri dodeli i pred rok**
-- `Defect`: zadatak vezan za projekat, sa fotografijama iz Faze 2 i pozicijom
-- Lista „moje danas" na mobilnom
+| Stavka / Item | Stanje / State |
+|---|---|
+| `WorkItem` — jedna tabela za oba | **Odrađeno.** Nedostatak je zadatak sa mestom i fotografijom; sve ostalo je isto, pa bi dve tabele značile duple upite, ekrane i notifikacije zbog jednog polja. |
+| Pravila u bazi | **Odrađeno.** Nedostatak mora imati gradilište; pozicija je cela ili je nema. Oba proverena na PostgreSQL-u. |
+| Životni ciklus | **Odrađeno.** Prelazi su tabela, ne lanac `if`-ova. Zatvaranje traži nadređenog — to je provera da je posao urađen, pa nije poziv iste osobe koja ga je radila. |
+| Fotografije nedostatka | **Odrađeno.** Peti vlasnik priloga, tačno put predviđen u Fazi 2 — fotografija nestaje sa nedostatkom. |
+| Push pri dodeli i pred rok | **Odrađeno.** Dnevni prolaz uz isti idempotentni obrazac; pomeren rok briše oznaku, pa se novi datum najavljuje. |
+| Mobilno: „moji zadaci" + prijava nedostatka | **Odrađeno.** Radnik pomera svoje stavke i prijavljuje nedostatak sa GPS pečatom. |
 
-**Zašto četvrto / Why fourth:** koristi obe prethodne faze i tek ovde push postaje
-smislen — do sada bi slao notifikacije ni o čemu. Nedostaci (punch list) su
-standardna očekivana funkcija u građevini.
-
-**Procena / Estimate:** 2 nedelje. **Pokrivenost / Coverage: ≈50%**
+**Pokrivenost / Coverage: ≈50%**
 
 ---
 
@@ -207,7 +208,7 @@ Every module from here inherits the existing conventions — not done until it h
 | 0 | GPS, push, potpisivanje — **odrađeno** | 1–2 ned. | 31% |
 | 1 | Radni sati — **odrađeno** | 2–3 ned. | 35% |
 | 2 | Dokumenti i fotografije — **odrađeno** | 2 ned. | 42% |
-| 3 | Zadaci i nedostaci | 2 ned. | 50% |
+| 3 | Zadaci i nedostaci — **odrađeno** | 2 ned. | 50% |
 | 4 | Raspoređivanje i odsustva | 2–3 ned. | 58% |
 | 5 | Troškovi i statistika | 3 ned. | 75% |
 | 6 | Narudžbe, računi, offline, chat, iOS | otvoreno / open | ~100% |

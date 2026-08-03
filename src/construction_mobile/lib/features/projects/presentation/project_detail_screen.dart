@@ -9,6 +9,7 @@ import '../../../core/widgets/failure_view.dart';
 import '../../../core/widgets/info_tile.dart';
 import '../../attachments/presentation/add_site_photo.dart';
 import '../../attachments/presentation/attachment_section.dart';
+import '../../work_items/presentation/report_defect.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../data/models/project.dart';
@@ -96,9 +97,12 @@ class ProjectDetailScreen extends ConsumerWidget {
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-                      child: Align(
-                        alignment: Alignment.centerLeft,
-                        child: AddSitePhotoButton(projectId: project.id),
+                      child: Wrap(
+                        spacing: 8,
+                        children: [
+                          AddSitePhotoButton(projectId: project.id),
+                          ReportDefectButton(projectId: project.id),
+                        ],
                       ),
                     ),
                   ],

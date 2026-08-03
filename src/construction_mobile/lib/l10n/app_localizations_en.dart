@@ -745,4 +745,91 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get attachmentCategoryOther => 'Other';
+
+  @override
+  String get navWorkItems => 'My work';
+
+  @override
+  String get workItemsEmpty => 'Nothing on your list.';
+
+  @override
+  String get workItemsIncludeFinished => 'Include finished';
+
+  @override
+  String workItemsDue(String date) {
+    return 'Due $date';
+  }
+
+  @override
+  String get workItemsOverdue => 'Overdue';
+
+  @override
+  String get workItemsNoDueDate => 'No deadline';
+
+  @override
+  String get workItemsNoProject => 'No site';
+
+  @override
+  String get workItemsReportDefect => 'Report a defect';
+
+  @override
+  String get workItemsDefectTitle => 'What is wrong';
+
+  @override
+  String get workItemsDefectDescription => 'Details (optional)';
+
+  @override
+  String get workItemsDefectSend => 'Report';
+
+  @override
+  String get workItemsDefectSent => 'Defect reported.';
+
+  @override
+  String get workItemsDefectNeedsTitle =>
+      'Describe the problem in a few words.';
+
+  @override
+  String workItemsPhotoCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos',
+      one: '$count photo',
+      zero: 'No photos',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get workItemKindTask => 'Task';
+
+  @override
+  String get workItemKindDefect => 'Defect';
+
+  @override
+  String get workItemStatusOpen => 'Open';
+
+  @override
+  String get workItemStatusInProgress => 'In progress';
+
+  @override
+  String get workItemStatusResolved => 'Done, to check';
+
+  @override
+  String get workItemStatusClosed => 'Closed';
+
+  @override
+  String get workItemStatusCancelled => 'Cancelled';
+
+  @override
+  String get workItemPriorityLow => 'Low';
+
+  @override
+  String get workItemPriorityNormal => 'Normal';
+
+  @override
+  String get workItemPriorityHigh => 'High';
+
+  @override
+  String get workItemPriorityUrgent => 'Urgent';
 }

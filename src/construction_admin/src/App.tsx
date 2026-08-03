@@ -81,6 +81,16 @@ const ToolFormPage = lazy(() =>
 const ToolDetailPage = lazy(() =>
   import('./pages/tools/ToolDetailPage').then((m) => ({ default: m.ToolDetailPage })),
 );
+const WorkItemsListPage = lazy(() =>
+  import('./pages/workItems/WorkItemsListPage').then((m) => ({
+    default: m.WorkItemsListPage,
+  })),
+);
+const WorkItemFormPage = lazy(() =>
+  import('./pages/workItems/WorkItemFormPage').then((m) => ({
+    default: m.WorkItemFormPage,
+  })),
+);
 const ExpiringDocumentsPage = lazy(() =>
   import('./pages/documents/ExpiringDocumentsPage').then((m) => ({
     default: m.ExpiringDocumentsPage,
@@ -162,6 +172,10 @@ function Layout() {
 
             {/* `summary` is declared before the `:id` routes so it is matched
                 as a page rather than as an entry id. */}
+            <Route path={paths.workItems} element={<WorkItemsListPage />} />
+            <Route path={paths.workItemNew} element={<WorkItemFormPage />} />
+            <Route path={`${paths.workItems}/:id/edit`} element={<WorkItemFormPage />} />
+
             <Route path={paths.timeEntrySummary} element={<TimeEntrySummaryPage />} />
             <Route path={paths.timeEntries} element={<TimeEntriesListPage />} />
             <Route path={paths.timeEntryNew} element={<TimeEntryFormPage />} />
