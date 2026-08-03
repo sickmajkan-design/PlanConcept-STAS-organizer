@@ -39,6 +39,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<Attachment> Attachments => Set<Attachment>();
 
+    public DbSet<WorkItem> WorkItems => Set<WorkItem>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);

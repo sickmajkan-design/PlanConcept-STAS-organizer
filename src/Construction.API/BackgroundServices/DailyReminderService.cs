@@ -1,10 +1,12 @@
 using Construction.Application.Features.Attachments.Commands.SendExpiryReminders;
+using Construction.Application.Features.WorkItems.Commands.SendDueReminders;
 using MediatR;
 
 namespace Construction.API.BackgroundServices;
 
 /// <summary>
-/// Runs the document-expiry sweep once a day.
+/// Runs the daily reminder sweeps: documents about to lapse, and work about to
+/// fall due.
 /// </summary>
 /// <remarks>
 /// A hosted service rather than a scheduling library. The product has exactly
@@ -17,7 +19,7 @@ namespace Construction.API.BackgroundServices;
 /// conditional update before notifying, so a duplicate run finds nothing left
 /// to claim rather than telling anyone twice.
 /// </remarks>
-public class DocumentExpiryReminderService : BackgroundService
+public class DailyReminderService : BackgroundService
 {
     private static readonly TimeSpan Interval = TimeSpan.FromHours(24);
 
@@ -28,11 +30,11 @@ public class DocumentExpiryReminderService : BackgroundService
     private static readonly TimeSpan StartupDelay = TimeSpan.FromMinutes(2);
 
     private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILogger<DocumentExpiryReminderService> _logger;
+    private readonly ILogger<DailyReminderService> _logger;
 
-    public DocumentExpiryReminderService(
+    public DailyReminderService(
         IServiceScopeFactory scopeFactory,
-        ILogger<DocumentExpiryReminderService> logger)
+        ILogger<DailyReminderService> logger)
     {
         _scopeFactory = scopeFactory;
         _logger = logger;
@@ -66,13 +68,22 @@ public class DocumentExpiryReminderService : BackgroundService
 
             var mediator = scope.ServiceProvider.GetRequiredService<ISender>();
 
-            var sent = await mediator.Send(
+            var documents = await mediator.Send(
                 new SendExpiryRemindersCommand(), cancellationToken);
 
-            if (sent > 0)
+            if (documents > 0)
             {
                 _logger.LogInformation(
-                    "Sent expiry reminders for {Count} document(s).", sent);
+                    "Sent expiry reminders for {Count} document(s).", documents);
+            }
+
+            var work = await mediator.Send(
+                new SendDueRemindersCommand(), cancellationToken);
+
+            if (work > 0)
+            {
+                _logger.LogInformation(
+                    "Sent deadline reminders for {Count} work item(s).", work);
             }
         }
         catch (OperationCanceledException)
@@ -81,11 +92,11 @@ public class DocumentExpiryReminderService : BackgroundService
         }
         catch (Exception exception)
         {
-            // A failed sweep must not take the host down with it — the
-            // documents are still there and tomorrow's run will find them,
-            // because nothing was marked as reminded.
+            // A failed sweep must not take the host down with it — the rows
+            // are still there and tomorrow's run will find them, because
+            // nothing that was not sent got marked as sent.
             _logger.LogError(
-                exception, "The document expiry sweep failed; it will run again.");
+                exception, "The daily reminder sweep failed; it will run again.");
         }
     }
 }

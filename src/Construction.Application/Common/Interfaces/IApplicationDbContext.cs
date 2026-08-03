@@ -33,5 +33,7 @@ public interface IApplicationDbContext
 
     DbSet<Attachment> Attachments { get; }
 
+    DbSet<WorkItem> WorkItems { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

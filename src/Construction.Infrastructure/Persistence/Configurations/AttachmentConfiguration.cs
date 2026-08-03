@@ -54,6 +54,11 @@ public class AttachmentConfiguration : IEntityTypeConfiguration<Attachment>
             .HasForeignKey(a => a.ToolId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne(a => a.WorkItem)
+            .WithMany(w => w.Attachments)
+            .HasForeignKey(a => a.WorkItemId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // Uploader accounts are not hard-deleted, but the file must survive
         // losing the name of who put it there.
         builder.HasOne(a => a.UploadedByUser)
@@ -70,7 +75,8 @@ public class AttachmentConfiguration : IEntityTypeConfiguration<Attachment>
             (CASE WHEN "EmployeeId" IS NULL THEN 0 ELSE 1 END
             + CASE WHEN "ProjectId" IS NULL THEN 0 ELSE 1 END
             + CASE WHEN "VehicleId" IS NULL THEN 0 ELSE 1 END
-            + CASE WHEN "ToolId" IS NULL THEN 0 ELSE 1 END) = 1
+            + CASE WHEN "ToolId" IS NULL THEN 0 ELSE 1 END
+            + CASE WHEN "WorkItemId" IS NULL THEN 0 ELSE 1 END) = 1
             """));
 
         builder.ToTable(t => t.HasCheckConstraint(
@@ -81,6 +87,7 @@ public class AttachmentConfiguration : IEntityTypeConfiguration<Attachment>
         builder.HasIndex(a => a.ProjectId);
         builder.HasIndex(a => a.VehicleId);
         builder.HasIndex(a => a.ToolId);
+        builder.HasIndex(a => a.WorkItemId);
 
         // The expiry sweep: everything lapsing soon that nobody has been told
         // about. Partial, because rows without an expiry are most of the table

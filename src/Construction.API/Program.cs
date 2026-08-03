@@ -45,9 +45,9 @@ try
 
     builder.Services.AddTrustedProxyForwarding(builder.Configuration);
 
-    // The product's one recurring job. Safe to run on every replica — it
-    // claims each document before notifying, so nobody is told twice.
-    builder.Services.AddHostedService<DocumentExpiryReminderService>();
+    // The product's recurring job. Safe to run on every replica — each sweep
+    // claims a row before notifying, so nobody is told twice.
+    builder.Services.AddHostedService<DailyReminderService>();
 
     builder.Services
         .AddHealthChecks()

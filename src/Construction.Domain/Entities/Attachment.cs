@@ -18,7 +18,8 @@ namespace Construction.Domain.Entities;
 ///
 /// A fifth owner type means a fifth column and an updated constraint. That is
 /// a migration, which is the point — adding one should be a decision, not a
-/// value someone passes in.
+/// value someone passes in. <see cref="WorkItem"/> was the fifth, so a defect
+/// photograph disappears with the defect rather than outliving it.
 /// </remarks>
 public class Attachment : BaseEntity, ISoftDeletable
 {
@@ -66,6 +67,10 @@ public class Attachment : BaseEntity, ISoftDeletable
     public Guid? ToolId { get; set; }
 
     public Tool? Tool { get; set; }
+
+    public Guid? WorkItemId { get; set; }
+
+    public WorkItem? WorkItem { get; set; }
 
     public Guid? UploadedByUserId { get; set; }
 
