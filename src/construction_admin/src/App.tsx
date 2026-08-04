@@ -13,6 +13,7 @@ import {
   RequireAccountAdmin,
   RequireAuth,
   RequireDirectoryAccess,
+  RequireLabourCostAccess,
   RequireGuest,
 } from './routes/RequireAuth';
 
@@ -101,6 +102,22 @@ const AbsencesListPage = lazy(() =>
     default: m.AbsencesListPage,
   })),
 );
+const CostsPage = lazy(() =>
+  import('./pages/costs/CostsPage').then((m) => ({ default: m.CostsPage })),
+);
+const StockMovementsPage = lazy(() =>
+  import('./pages/costs/StockMovementsPage').then((m) => ({
+    default: m.StockMovementsPage,
+  })),
+);
+const VehicleExpensesPage = lazy(() =>
+  import('./pages/costs/VehicleExpensesPage').then((m) => ({
+    default: m.VehicleExpensesPage,
+  })),
+);
+const RatesPage = lazy(() =>
+  import('./pages/costs/RatesPage').then((m) => ({ default: m.RatesPage })),
+);
 const ExpiringDocumentsPage = lazy(() =>
   import('./pages/documents/ExpiringDocumentsPage').then((m) => ({
     default: m.ExpiringDocumentsPage,
@@ -186,6 +203,10 @@ function Layout() {
             <Route path={paths.workItemNew} element={<WorkItemFormPage />} />
             <Route path={`${paths.workItems}/:id/edit`} element={<WorkItemFormPage />} />
 
+            <Route path={paths.costs} element={<CostsPage />} />
+            <Route path={paths.stockMovements} element={<StockMovementsPage />} />
+            <Route path={paths.vehicleExpenses} element={<VehicleExpensesPage />} />
+
             <Route path={paths.schedule} element={<SchedulePage />} />
             <Route path={paths.absences} element={<AbsencesListPage />} />
 
@@ -193,6 +214,12 @@ function Layout() {
             <Route path={paths.timeEntries} element={<TimeEntriesListPage />} />
             <Route path={paths.timeEntryNew} element={<TimeEntryFormPage />} />
             <Route path={`${paths.timeEntries}/:id/edit`} element={<TimeEntryFormPage />} />
+          </Route>
+
+          {/* Pay rates are narrower than the directory screens but wider
+              than account administration: project managers price jobs. */}
+          <Route element={<RequireLabourCostAccess />}>
+            <Route path={paths.rates} element={<RatesPage />} />
           </Route>
 
           {/* Account administration is Admin and above, a narrower set than

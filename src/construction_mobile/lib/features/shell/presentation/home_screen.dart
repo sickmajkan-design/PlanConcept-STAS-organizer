@@ -245,6 +245,16 @@ class _ResourcesSection extends StatelessWidget {
                   onTap: () => context.push(AppRoutes.materials),
                 ),
                 const Divider(height: 1, indent: 20, endIndent: 20),
+                // Foreman and above, the same set the API lets record
+                // spending. The person filling the tank is standing next to
+                // the receipt and the odometer.
+                ListTile(
+                  leading: const Icon(Icons.local_gas_station_outlined),
+                  title: Text(context.l10n.navVehicleExpenses),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push(AppRoutes.vehicleExpenses),
+                ),
+                const Divider(height: 1, indent: 20, endIndent: 20),
               ],
               ListTile(
                 leading: const Icon(Icons.qr_code_scanner_outlined),

@@ -24,6 +24,7 @@ enum EnumKind {
   workItemPriority,
   absenceType,
   absenceStatus,
+  vehicleExpenseKind,
 }
 
 /// Translates one of the API's enum values.
@@ -108,6 +109,12 @@ String enumLabel(AppLocalizations l10n, EnumKind kind, String? value) {
     (EnumKind.absenceStatus, 'Approved') => l10n.absenceStatusApproved,
     (EnumKind.absenceStatus, 'Rejected') => l10n.absenceStatusRejected,
     (EnumKind.absenceStatus, 'Cancelled') => l10n.absenceStatusCancelled,
+    (EnumKind.vehicleExpenseKind, 'Fuel') => l10n.vehicleExpenseKindFuel,
+    (EnumKind.vehicleExpenseKind, 'Service') => l10n.vehicleExpenseKindService,
+    (EnumKind.vehicleExpenseKind, 'Repair') => l10n.vehicleExpenseKindRepair,
+    (EnumKind.vehicleExpenseKind, 'Insurance') => l10n.vehicleExpenseKindInsurance,
+    (EnumKind.vehicleExpenseKind, 'Registration') => l10n.vehicleExpenseKindRegistration,
+    (EnumKind.vehicleExpenseKind, 'Other') => l10n.vehicleExpenseKindOther,
     _ => null,
   };
 

@@ -125,6 +125,21 @@ Key decisions:
   same days, because a request is a question, but nobody can be granted leave
   twice over. Both constraints need the `btree_gist` extension, created by the
   migration.
+- **`employee_rates`**, **`material_movements`** and **`vehicle_expenses`** carry
+  the money. Rates are dated with the same exclusion constraint as the postings,
+  because a cost report is about the past: a single current-rate column on the
+  employee would rewrite every report ever run whenever anyone's pay changed.
+  Movements keep `materials.Quantity` as a cache of their own sum — the stock
+  screen reads it on every page, and summing the history to draw a list would be
+  paid for every time — so the movement and the update are written in one
+  transaction. `vehicle_expenses` puts fuel, servicing, insurance and
+  registration in one table; they differ in two nullable fields and the question
+  being asked adds them together anyway.
+- **Two check constraints here are `CASE` expressions, not `OR` chains.** The
+  obvious form, `("Kind" = 1 AND "Litres" > 0) OR ("Kind" <> 1 AND "Litres" IS
+  NULL)`, evaluates to NULL when `Litres` is NULL, and a CHECK only rejects on
+  FALSE — so it let a fill-up through with no litres at all. Both were caught by
+  executing them, not by reading them.
 - **`location_records`** is append-only with a `bigint` identity key and a composite
   index `(EmployeeId, Timestamp DESC)` sized for one GPS ping per employee per
   minute; "last known location" is a single index-backed `LIMIT 1`.

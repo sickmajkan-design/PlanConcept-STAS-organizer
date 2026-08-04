@@ -960,4 +960,82 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get absenceStatusCancelled => 'Povučeno';
+
+  @override
+  String get navVehicleExpenses => 'Troškovi vozila';
+
+  @override
+  String get vehicleExpensesTitle => 'Troškovi vozila';
+
+  @override
+  String get vehicleExpensesEmpty => 'Još nema evidentiranih troškova.';
+
+  @override
+  String get vehicleExpensesFuelOnly => 'Samo točenja';
+
+  @override
+  String get vehicleExpensesRecord => 'Evidentiraj trošak';
+
+  @override
+  String get vehicleExpensesVehicle => 'Vozilo';
+
+  @override
+  String get vehicleExpensesKind => 'Vrsta';
+
+  @override
+  String get vehicleExpensesAmount => 'Iznos';
+
+  @override
+  String get vehicleExpensesLitres => 'Litara';
+
+  @override
+  String get vehicleExpensesOdometer => 'Kilometraža';
+
+  @override
+  String get vehicleExpensesSupplier => 'Gde';
+
+  @override
+  String get vehicleExpensesNote => 'Napomena';
+
+  @override
+  String get vehicleExpensesSend => 'Evidentiraj';
+
+  @override
+  String get vehicleExpensesSent => 'Trošak je evidentiran.';
+
+  @override
+  String get vehicleExpensesNeedsVehicle => 'Izaberi vozilo.';
+
+  @override
+  String get vehicleExpensesNeedsAmount => 'Upiši koliko je koštalo.';
+
+  @override
+  String get vehicleExpensesFuelNeedsLitres => 'Upiši koliko je litara sipano.';
+
+  @override
+  String get vehicleExpensesOdometerHint =>
+      'Nije obavezno, ali dva stanja daju potrošnju.';
+
+  @override
+  String vehicleExpensesPerLitre(String price) {
+    return '$price po litru';
+  }
+
+  @override
+  String get vehicleExpenseKindFuel => 'Gorivo';
+
+  @override
+  String get vehicleExpenseKindService => 'Servis';
+
+  @override
+  String get vehicleExpenseKindRepair => 'Popravka';
+
+  @override
+  String get vehicleExpenseKindInsurance => 'Osiguranje';
+
+  @override
+  String get vehicleExpenseKindRegistration => 'Registracija';
+
+  @override
+  String get vehicleExpenseKindOther => 'Ostalo';
 }

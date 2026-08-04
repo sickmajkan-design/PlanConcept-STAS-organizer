@@ -26,7 +26,9 @@ export type EnumKind =
   | 'workItemStatus'
   | 'workItemPriority'
   | 'absenceType'
-  | 'absenceStatus';
+  | 'absenceStatus'
+  | 'materialMovementKind'
+  | 'vehicleExpenseKind';
 
 export function useEnumLabel() {
   const t = useT();

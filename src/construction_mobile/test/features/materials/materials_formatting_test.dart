@@ -1,4 +1,4 @@
-import 'package:construction_mobile/features/materials/presentation/materials_screen.dart';
+import 'package:construction_mobile/core/utils/formatting.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

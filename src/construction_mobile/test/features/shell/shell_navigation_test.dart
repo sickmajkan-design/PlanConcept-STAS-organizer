@@ -127,6 +127,19 @@ void main() {
     expect(find.text('Look up a tool'), findsOneWidget);
   });
 
+  testWidgets('offers vehicle costs to a Foreman but not to a Worker',
+      (tester) async {
+    // Matches the API's CanRecordSpending: the person filling the tank is the
+    // one who knows what it cost, and a Worker is not that person.
+    await _pumpSignedIn(tester, _sessionFor('Foreman'));
+    expect(find.text('Vehicle costs'), findsOneWidget);
+  });
+
+  testWidgets('hides vehicle costs from a Worker', (tester) async {
+    await _pumpSignedIn(tester, _sessionFor('Worker'));
+    expect(find.text('Vehicle costs'), findsNothing);
+  });
+
   testWidgets('offers a Worker their own schedule and time off',
       (tester) async {
     // Both endpoints are open to every employee-linked account: the API

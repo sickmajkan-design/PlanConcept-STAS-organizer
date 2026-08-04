@@ -1,3 +1,5 @@
+import { useQuery } from '@tanstack/react-query';
+
 import { vehiclesApi, type VehicleListQuery } from '../../api/vehicles';
 import type { Vehicle, VehicleInput } from '../../api/types';
 import {
@@ -9,12 +11,27 @@ import {
 
 export const vehicleKeys = createResourceKeys<VehicleListQuery>('vehicles');
 
+/** The largest page the API will serve, used by the picker query below. */
+const PICKER_QUERY: VehicleListQuery = {
+  pageNumber: 1,
+  pageSize: 100,
+};
+
 export function useVehiclesQuery(query: VehicleListQuery) {
   return useResourceList(vehicleKeys, vehiclesApi.list, query);
 }
 
 export function useVehicleQuery(id: string | undefined) {
   return useResourceDetail(vehicleKeys, vehiclesApi.get, id);
+}
+
+/** All vehicles for the expense picker. Cached like the other pickers. */
+export function useAllVehiclesQuery() {
+  return useQuery({
+    queryKey: vehicleKeys.list(PICKER_QUERY),
+    queryFn: () => vehiclesApi.list(PICKER_QUERY),
+    staleTime: 60_000,
+  });
 }
 
 export function useCreateVehicle() {

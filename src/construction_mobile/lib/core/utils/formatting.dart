@@ -86,3 +86,34 @@ String formatRelative(DateTime? value) {
 
   return formatDate(value);
 }
+
+/// A money amount, to two decimals.
+///
+/// No currency symbol: the system stores one currency and never says which, so
+/// printing a symbol would be the app inventing a fact the data does not
+/// carry — and getting it wrong on the one deployment where it differs.
+String formatAmount(double? value) {
+  if (value == null) {
+    return '—';
+  }
+
+  return value.toStringAsFixed(2);
+}
+
+/// A quantity, which unlike money may legitimately be a fraction of a unit.
+///
+/// Trailing zeroes are trimmed, so 60 litres reads as "60" rather than
+/// "60.000" on a card where the space is already tight.
+String formatQuantity(double? value) {
+  if (value == null) {
+    return '—';
+  }
+
+  final text = value.toStringAsFixed(3);
+
+  if (!text.contains('.')) {
+    return text;
+  }
+
+  return text.replaceFirst(RegExp(r'\.?0+$'), '');
+}

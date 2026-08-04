@@ -969,4 +969,82 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get absenceStatusCancelled => 'Withdrawn';
+
+  @override
+  String get navVehicleExpenses => 'Vehicle costs';
+
+  @override
+  String get vehicleExpensesTitle => 'Vehicle costs';
+
+  @override
+  String get vehicleExpensesEmpty => 'No costs recorded yet.';
+
+  @override
+  String get vehicleExpensesFuelOnly => 'Fill-ups only';
+
+  @override
+  String get vehicleExpensesRecord => 'Record a cost';
+
+  @override
+  String get vehicleExpensesVehicle => 'Vehicle';
+
+  @override
+  String get vehicleExpensesKind => 'Kind';
+
+  @override
+  String get vehicleExpensesAmount => 'Amount';
+
+  @override
+  String get vehicleExpensesLitres => 'Litres';
+
+  @override
+  String get vehicleExpensesOdometer => 'Odometer (km)';
+
+  @override
+  String get vehicleExpensesSupplier => 'Where';
+
+  @override
+  String get vehicleExpensesNote => 'Note';
+
+  @override
+  String get vehicleExpensesSend => 'Record';
+
+  @override
+  String get vehicleExpensesSent => 'Cost recorded.';
+
+  @override
+  String get vehicleExpensesNeedsVehicle => 'Pick the vehicle.';
+
+  @override
+  String get vehicleExpensesNeedsAmount => 'Enter what it cost.';
+
+  @override
+  String get vehicleExpensesFuelNeedsLitres => 'Say how many litres went in.';
+
+  @override
+  String get vehicleExpensesOdometerHint =>
+      'Optional, but two readings are what give you consumption.';
+
+  @override
+  String vehicleExpensesPerLitre(String price) {
+    return '$price per litre';
+  }
+
+  @override
+  String get vehicleExpenseKindFuel => 'Fuel';
+
+  @override
+  String get vehicleExpenseKindService => 'Service';
+
+  @override
+  String get vehicleExpenseKindRepair => 'Repair';
+
+  @override
+  String get vehicleExpenseKindInsurance => 'Insurance';
+
+  @override
+  String get vehicleExpenseKindRegistration => 'Registration';
+
+  @override
+  String get vehicleExpenseKindOther => 'Other';
 }

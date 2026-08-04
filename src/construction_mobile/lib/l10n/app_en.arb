@@ -341,5 +341,34 @@
   "absenceStatusRequested": "Waiting",
   "absenceStatusApproved": "Granted",
   "absenceStatusRejected": "Refused",
-  "absenceStatusCancelled": "Withdrawn"
+  "absenceStatusCancelled": "Withdrawn",
+
+  "navVehicleExpenses": "Vehicle costs",
+
+  "vehicleExpensesTitle": "Vehicle costs",
+  "vehicleExpensesEmpty": "No costs recorded yet.",
+  "vehicleExpensesFuelOnly": "Fill-ups only",
+  "vehicleExpensesRecord": "Record a cost",
+  "vehicleExpensesVehicle": "Vehicle",
+  "vehicleExpensesKind": "Kind",
+  "vehicleExpensesAmount": "Amount",
+  "vehicleExpensesLitres": "Litres",
+  "vehicleExpensesOdometer": "Odometer (km)",
+  "vehicleExpensesSupplier": "Where",
+  "vehicleExpensesNote": "Note",
+  "vehicleExpensesSend": "Record",
+  "vehicleExpensesSent": "Cost recorded.",
+  "vehicleExpensesNeedsVehicle": "Pick the vehicle.",
+  "vehicleExpensesNeedsAmount": "Enter what it cost.",
+  "vehicleExpensesFuelNeedsLitres": "Say how many litres went in.",
+  "vehicleExpensesOdometerHint": "Optional, but two readings are what give you consumption.",
+  "vehicleExpensesPerLitre": "{price} per litre",
+  "@vehicleExpensesPerLitre": { "placeholders": { "price": { "type": "String" } } },
+
+  "vehicleExpenseKindFuel": "Fuel",
+  "vehicleExpenseKindService": "Service",
+  "vehicleExpenseKindRepair": "Repair",
+  "vehicleExpenseKindInsurance": "Insurance",
+  "vehicleExpenseKindRegistration": "Registration",
+  "vehicleExpenseKindOther": "Other"
 }

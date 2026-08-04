@@ -533,3 +533,142 @@ export interface Schedule {
   to: string;
   rows: ScheduleRow[];
 }
+
+export const materialMovementKinds = ['In', 'Out', 'Adjustment'] as const;
+
+export type MaterialMovementKind = (typeof materialMovementKinds)[number];
+
+export const vehicleExpenseKinds = [
+  'Fuel',
+  'Service',
+  'Repair',
+  'Insurance',
+  'Registration',
+  'Other',
+] as const;
+
+export type VehicleExpenseKind = (typeof vehicleExpenseKinds)[number];
+
+export interface EmployeeRate {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  hourlyRate: number;
+  /** `YYYY-MM-DD`. */
+  startDate: string;
+  /** `YYYY-MM-DD`, or null while it is the rate in force. */
+  endDate: string | null;
+  note: string | null;
+  setByName: string | null;
+  createdAt: string;
+}
+
+export interface EmployeeRateInput {
+  employeeId: string;
+  hourlyRate: number;
+  startDate?: string | null;
+  endDate?: string | null;
+  note?: string | null;
+}
+
+export interface MaterialMovement {
+  id: string;
+  materialId: string;
+  materialName: string;
+  unit: string;
+  kind: MaterialMovementKind;
+  /** Positive for a delivery or an issue; signed for a correction. */
+  quantity: number;
+  unitPrice: number | null;
+  totalCost: number | null;
+  projectId: string | null;
+  projectName: string | null;
+  /** `YYYY-MM-DD`. */
+  occurredOn: string;
+  note: string | null;
+  recordedByName: string | null;
+  createdAt: string;
+}
+
+export interface MaterialMovementInput {
+  materialId: string;
+  kind: MaterialMovementKind;
+  quantity: number;
+  unitPrice?: number | null;
+  projectId?: string | null;
+  occurredOn?: string | null;
+  note?: string | null;
+}
+
+export interface VehicleExpense {
+  id: string;
+  vehicleId: string;
+  vehicleName: string;
+  kind: VehicleExpenseKind;
+  amount: number;
+  /** `YYYY-MM-DD`. */
+  occurredOn: string;
+  /** Only ever set on a fill-up. */
+  litres: number | null;
+  pricePerLitre: number | null;
+  odometerKm: number | null;
+  supplier: string | null;
+  note: string | null;
+  recordedByName: string | null;
+  createdAt: string;
+}
+
+export interface VehicleExpenseInput {
+  vehicleId: string;
+  kind: VehicleExpenseKind;
+  amount: number;
+  occurredOn?: string | null;
+  litres?: number | null;
+  odometerKm?: number | null;
+  supplier?: string | null;
+  note?: string | null;
+}
+
+export interface ProjectCostRow {
+  projectId: string;
+  projectName: string;
+  /** Approved hours only. */
+  labourMinutes: number;
+  labourCost: number;
+  /** Hours no rate covered — reported rather than treated as free. */
+  unpricedMinutes: number;
+  materialCost: number;
+  total: number;
+}
+
+export interface ProjectCostReport {
+  from: string;
+  to: string;
+  /** False when the caller may not see pay rates; every labour figure is zero. */
+  includesLabour: boolean;
+  rows: ProjectCostRow[];
+  totalLabourCost: number;
+  totalMaterialCost: number;
+  total: number;
+}
+
+export interface VehicleCostRow {
+  vehicleId: string;
+  vehicleName: string;
+  fuelCost: number;
+  litres: number;
+  serviceCost: number;
+  otherCost: number;
+  total: number;
+  distanceKm: number | null;
+  litresPer100Km: number | null;
+}
+
+export interface VehicleCostReport {
+  from: string;
+  to: string;
+  rows: VehicleCostRow[];
+  total: number;
+  totalFuelCost: number;
+  totalLitres: number;
+}

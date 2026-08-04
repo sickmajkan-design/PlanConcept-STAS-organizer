@@ -167,19 +167,32 @@ ručno, a fotografija se bez pickera ne može uzeti.
 
 ---
 
-## Faza 5 — Troškovi i statistika / Costs and statistics
+## Faza 5 — Troškovi i statistika / Costs and statistics — **ODRAĐENO / DONE**
 
-- Servisi vozila i evidencija goriva (sada imamo samo `FuelType` enum)
-- Promet materijala — ulaz/izlaz i nabavna cena (sada samo trenutno stanje)
-- Obračun: sat × cena rada + materijal + gorivo + servis → **trošak po projektu,
-  vozilu i radniku**
-- Izvoz u Excel kao presečna funkcija nad svim listama
+| Stavka / Item | Stanje / State |
+|---|---|
+| Cena rada sa datumom | **Odrađeno.** Svi su dobili povišicu u junu; martovski izveštaj i dalje mora reći koliko je mart koštao. Jedna kolona sa „trenutnom cenom" bi nečujno prepisala svaki ranije odrađen izveštaj, a broj bi i dalje izgledao uverljivo. Nova cena zatvara prethodnu, preklapanja odbija ograničenje baze. |
+| Promet materijala | **Odrađeno.** Stanje odgovara samo na „koliko je ostalo". Ne može reći koliko je potrošeno ni koje gradilište — a to su dva pitanja zbog kojih izveštaj postoji. Stanje ostaje kao keš zbira; promet i izmena stanja idu u istoj transakciji, pa magacinski ekran ne može da odluta od istorije. |
+| Vrednovanje izdatog materijala | **Odrađeno.** Po proseku dosadašnjih nabavki, i taj broj se **upisuje** na red. Da se računa u trenutku izveštaja, nabavka sledećeg meseca po drugoj ceni bi promenila koliko je završen posao koštao. |
+| Gorivo i servisi vozila | **Odrađeno.** Jedna tabela: gorivo, servis, popravka, osiguranje i registracija se razlikuju u dva polja a slažu u svemu ostalom, i pitanje „koliko nas je ovaj kombi koštao" ih ionako sabira. Izveštaj razdvaja gorivo nazad i računa l/100 km — broj koji zaista otkriva kvar ili tuđu upotrebu kartice. |
+| Izveštaj po gradilištu i vozilu | **Odrađeno.** Samo odobreni sati ulaze u trošak; neodobreni su tvrdnja, ne trošak. Sati koje nijedna cena ne pokriva se **prijavljuju**, ne prećutkuju — zbir koji tiho izostavi trećinu ekipe izgleda isto kao onaj koji ne izostavlja. |
+| Uloge drugačije nego drugde | **Odrađeno.** Poslovođa evidentira nabavku i vidi šta je njegovo gradilište potrošilo, ali cena rada je tuđa plata, pa mu izveštaj vraća taj deo kao nulu umesto da odbije ceo izveštaj. |
+| Mobilno: trošak sa pumpe | **Odrađeno.** Jedino mesto u ovom modulu gde telefon pobeđuje kancelariju: čovek koji toči stoji pored računa i kilometraže, a sve što mora da zapamti biva upisano pogrešno ili nikako. |
 
-**Zašto šesto / Why sixth:** ovo je ono zbog čega vlasnik firme plaća pretplatu,
-ali se ne može izgraditi pre nego što podaci iz Faza 1 i 5 postoje. Graditi
-statistiku ranije znači graditi prazne grafikone.
+**Poznati nedostaci / Known gaps:**
 
-**Procena / Estimate:** 3 nedelje. **Pokrivenost / Coverage: ≈75%**
+- **Izvoz u Excel nije urađen.** Bio je u planu faze kao presečna funkcija nad
+  svim listama; ostaje neurađen i nije zamenjen ničim.
+- Trošak vozila se ne raspoređuje po gradilištima. Kombi nije raspoređen na
+  gradilište kao čovek, pa bi svako pripisivanje bilo izmišljena raspodela koju
+  podaci ne podržavaju. Vozni park ima svoj izveštaj.
+- Valuta nigde ne piše. Sistem čuva jednu valutu i ne kaže koju; klijenti zato
+  ne štampaju oznaku umesto da izmisle pogrešnu.
+- Vrednovanje je prosečna cena, ne FIFO. Gomila šljunka nema serije da se troše
+  po redu, a FIFO bi tražio tabelu slojeva zarad pitanja koje na gradilištu niko
+  ne postavlja.
+
+**Pokrivenost / Coverage: ≈75%**
 
 ---
 

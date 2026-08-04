@@ -95,3 +95,35 @@ export function formatTimeOfDay(value: string | null | undefined): string {
     date.getMinutes(),
   ).padStart(2, '0')}`;
 }
+
+/**
+ * A money amount, grouped and to two decimals.
+ *
+ * No currency symbol. The system stores one currency and never says which, so
+ * printing a symbol here would be the client inventing a fact the data does
+ * not carry — and getting it wrong on the one deployment where it differs.
+ * Grouping still follows the reader's locale, because that is presentation.
+ */
+export function formatMoney(
+  value: number | null | undefined,
+  locale: string,
+): string {
+  if (value === null || value === undefined || Number.isNaN(value)) return '—';
+
+  return new Intl.NumberFormat(locale === 'sr' ? 'sr-Latn' : 'en-GB', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+/** A quantity, which unlike money may legitimately be a fraction of a unit. */
+export function formatQuantity(
+  value: number | null | undefined,
+  locale: string,
+): string {
+  if (value === null || value === undefined || Number.isNaN(value)) return '—';
+
+  return new Intl.NumberFormat(locale === 'sr' ? 'sr-Latn' : 'en-GB', {
+    maximumFractionDigits: 3,
+  }).format(value);
+}

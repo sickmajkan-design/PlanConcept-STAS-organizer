@@ -66,4 +66,35 @@ void main() {
       expect(formatRelative(null), 'never');
     });
   });
+
+  group('formatAmount', () {
+    test('always shows two decimals, because money does', () {
+      expect(formatAmount(1200), '1200.00');
+      expect(formatAmount(1200.5), '1200.50');
+      expect(formatAmount(0), '0.00');
+    });
+
+    test('rounds rather than truncating', () {
+      expect(formatAmount(10.005), '10.01');
+      expect(formatAmount(10.004), '10.00');
+    });
+
+    test('shows a dash for a missing amount', () {
+      // Not "0.00": a cost nobody recorded is not a cost of nothing.
+      expect(formatAmount(null), '—');
+    });
+  });
+
+  group('formatQuantity against formatAmount', () {
+    test('a quantity trims where an amount pads', () {
+      // The two look alike and behave oppositely on purpose: 60 litres reads
+      // as "60", 60 dinars as "60.00".
+      expect(formatQuantity(60), '60');
+      expect(formatAmount(60), '60.00');
+    });
+
+    test('shows a dash for a missing quantity', () {
+      expect(formatQuantity(null), '—');
+    });
+  });
 }

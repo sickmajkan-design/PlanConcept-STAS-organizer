@@ -3,19 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/app_locales.dart';
+import '../../../core/utils/formatting.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/widgets/paged_list_view.dart';
 import '../data/models/material.dart';
 import 'materials_controller.dart';
-
-/// Trims trailing zeros from a stock quantity, e.g. `12.500` -> `12.5`,
-/// `40.000` -> `40`.
-String formatQuantity(double value) {
-  var text = value.toStringAsFixed(3);
-  text = text.replaceFirst(RegExp(r'0+$'), '');
-  text = text.replaceFirst(RegExp(r'\.$'), '');
-  return text;
-}
 
 class MaterialsScreen extends ConsumerWidget {
   const MaterialsScreen({super.key});

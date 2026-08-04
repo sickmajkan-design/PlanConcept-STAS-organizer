@@ -9,7 +9,6 @@ import '../../../core/widgets/failure_view.dart';
 import '../../../core/widgets/info_tile.dart';
 import '../data/models/material.dart' as models;
 import 'materials_controller.dart';
-import 'materials_screen.dart' show formatQuantity;
 
 class MaterialDetailScreen extends ConsumerWidget {
   const MaterialDetailScreen({super.key, required this.materialId});

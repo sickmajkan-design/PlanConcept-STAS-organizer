@@ -11,6 +11,10 @@ import {
   ScheduleOutlined,
   CalendarMonthOutlined,
   EventBusyOutlined,
+  PaidOutlined,
+  LocalGasStationOutlined,
+  SwapVertOutlined,
+  RequestQuoteOutlined,
   MenuOutlined,
   PasswordOutlined,
   PeopleOutlined,
@@ -36,7 +40,12 @@ import {
 import { useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-import { canAdministerAccounts, canViewDirectory, displayName } from '../auth/authHelpers';
+import {
+  canAdministerAccounts,
+  canSeeLabourCost,
+  canViewDirectory,
+  displayName,
+} from '../auth/authHelpers';
 import { useAuth } from '../auth/useAuth';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { useEnumLabel } from '../i18n/enumLabels';
@@ -81,6 +90,22 @@ export function AppLayout({ children }: { children: ReactNode }) {
           { label: t('nav.workItems'), path: paths.workItems, icon: <ChecklistOutlined /> },
           { label: t('nav.schedule'), path: paths.schedule, icon: <CalendarMonthOutlined /> },
           { label: t('nav.absences'), path: paths.absences, icon: <EventBusyOutlined /> },
+          { label: t('nav.costs'), path: paths.costs, icon: <PaidOutlined /> },
+          {
+            label: t('nav.stockMovements'),
+            path: paths.stockMovements,
+            icon: <SwapVertOutlined />,
+          },
+          {
+            label: t('nav.vehicleExpenses'),
+            path: paths.vehicleExpenses,
+            icon: <LocalGasStationOutlined />,
+          },
+        ]
+      : []),
+    ...(canSeeLabourCost(user)
+      ? [
+          { label: t('nav.rates'), path: paths.rates, icon: <RequestQuoteOutlined /> },
         ]
       : []),
     ...(canAdministerAccounts(user)

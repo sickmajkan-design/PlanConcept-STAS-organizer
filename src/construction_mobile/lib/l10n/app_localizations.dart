@@ -1837,6 +1837,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Withdrawn'**
   String get absenceStatusCancelled;
+
+  /// No description provided for @navVehicleExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle costs'**
+  String get navVehicleExpenses;
+
+  /// No description provided for @vehicleExpensesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle costs'**
+  String get vehicleExpensesTitle;
+
+  /// No description provided for @vehicleExpensesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No costs recorded yet.'**
+  String get vehicleExpensesEmpty;
+
+  /// No description provided for @vehicleExpensesFuelOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill-ups only'**
+  String get vehicleExpensesFuelOnly;
+
+  /// No description provided for @vehicleExpensesRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Record a cost'**
+  String get vehicleExpensesRecord;
+
+  /// No description provided for @vehicleExpensesVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle'**
+  String get vehicleExpensesVehicle;
+
+  /// No description provided for @vehicleExpensesKind.
+  ///
+  /// In en, this message translates to:
+  /// **'Kind'**
+  String get vehicleExpensesKind;
+
+  /// No description provided for @vehicleExpensesAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get vehicleExpensesAmount;
+
+  /// No description provided for @vehicleExpensesLitres.
+  ///
+  /// In en, this message translates to:
+  /// **'Litres'**
+  String get vehicleExpensesLitres;
+
+  /// No description provided for @vehicleExpensesOdometer.
+  ///
+  /// In en, this message translates to:
+  /// **'Odometer (km)'**
+  String get vehicleExpensesOdometer;
+
+  /// No description provided for @vehicleExpensesSupplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Where'**
+  String get vehicleExpensesSupplier;
+
+  /// No description provided for @vehicleExpensesNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get vehicleExpensesNote;
+
+  /// No description provided for @vehicleExpensesSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Record'**
+  String get vehicleExpensesSend;
+
+  /// No description provided for @vehicleExpensesSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost recorded.'**
+  String get vehicleExpensesSent;
+
+  /// No description provided for @vehicleExpensesNeedsVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick the vehicle.'**
+  String get vehicleExpensesNeedsVehicle;
+
+  /// No description provided for @vehicleExpensesNeedsAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter what it cost.'**
+  String get vehicleExpensesNeedsAmount;
+
+  /// No description provided for @vehicleExpensesFuelNeedsLitres.
+  ///
+  /// In en, this message translates to:
+  /// **'Say how many litres went in.'**
+  String get vehicleExpensesFuelNeedsLitres;
+
+  /// No description provided for @vehicleExpensesOdometerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional, but two readings are what give you consumption.'**
+  String get vehicleExpensesOdometerHint;
+
+  /// No description provided for @vehicleExpensesPerLitre.
+  ///
+  /// In en, this message translates to:
+  /// **'{price} per litre'**
+  String vehicleExpensesPerLitre(String price);
+
+  /// No description provided for @vehicleExpenseKindFuel.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel'**
+  String get vehicleExpenseKindFuel;
+
+  /// No description provided for @vehicleExpenseKindService.
+  ///
+  /// In en, this message translates to:
+  /// **'Service'**
+  String get vehicleExpenseKindService;
+
+  /// No description provided for @vehicleExpenseKindRepair.
+  ///
+  /// In en, this message translates to:
+  /// **'Repair'**
+  String get vehicleExpenseKindRepair;
+
+  /// No description provided for @vehicleExpenseKindInsurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance'**
+  String get vehicleExpenseKindInsurance;
+
+  /// No description provided for @vehicleExpenseKindRegistration.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration'**
+  String get vehicleExpenseKindRegistration;
+
+  /// No description provided for @vehicleExpenseKindOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get vehicleExpenseKindOther;
 }
 
 class _AppLocalizationsDelegate

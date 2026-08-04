@@ -341,5 +341,34 @@
   "absenceStatusRequested": "Na čekanju",
   "absenceStatusApproved": "Odobreno",
   "absenceStatusRejected": "Odbijeno",
-  "absenceStatusCancelled": "Povučeno"
+  "absenceStatusCancelled": "Povučeno",
+
+  "navVehicleExpenses": "Troškovi vozila",
+
+  "vehicleExpensesTitle": "Troškovi vozila",
+  "vehicleExpensesEmpty": "Još nema evidentiranih troškova.",
+  "vehicleExpensesFuelOnly": "Samo točenja",
+  "vehicleExpensesRecord": "Evidentiraj trošak",
+  "vehicleExpensesVehicle": "Vozilo",
+  "vehicleExpensesKind": "Vrsta",
+  "vehicleExpensesAmount": "Iznos",
+  "vehicleExpensesLitres": "Litara",
+  "vehicleExpensesOdometer": "Kilometraža",
+  "vehicleExpensesSupplier": "Gde",
+  "vehicleExpensesNote": "Napomena",
+  "vehicleExpensesSend": "Evidentiraj",
+  "vehicleExpensesSent": "Trošak je evidentiran.",
+  "vehicleExpensesNeedsVehicle": "Izaberi vozilo.",
+  "vehicleExpensesNeedsAmount": "Upiši koliko je koštalo.",
+  "vehicleExpensesFuelNeedsLitres": "Upiši koliko je litara sipano.",
+  "vehicleExpensesOdometerHint": "Nije obavezno, ali dva stanja daju potrošnju.",
+  "vehicleExpensesPerLitre": "{price} po litru",
+  "@vehicleExpensesPerLitre": { "placeholders": { "price": { "type": "String" } } },
+
+  "vehicleExpenseKindFuel": "Gorivo",
+  "vehicleExpenseKindService": "Servis",
+  "vehicleExpenseKindRepair": "Popravka",
+  "vehicleExpenseKindInsurance": "Osiguranje",
+  "vehicleExpenseKindRegistration": "Registracija",
+  "vehicleExpenseKindOther": "Ostalo"
 }

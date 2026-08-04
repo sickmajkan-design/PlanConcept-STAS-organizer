@@ -1,6 +1,7 @@
 import { Box, CircularProgress } from '@mui/material';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
+import { canSeeLabourCost } from '../auth/authHelpers';
 import { useAuth } from '../auth/useAuth';
 import { paths } from './paths';
 
@@ -80,6 +81,28 @@ export function RequireDirectoryAccess() {
   const allowed = new Set(['SuperAdmin', 'Admin', 'ProjectManager', 'Foreman']);
 
   if (!user || !allowed.has(user.role)) {
+    return <Navigate to={paths.home} replace />;
+  }
+
+  return <Outlet />;
+}
+
+/**
+ * Restricts a route to the roles the API shows pay rates to.
+ *
+ * Tighter than {@link RequireDirectoryAccess} on purpose: a rate is
+ * effectively somebody's pay, and a foreman running a site has no business
+ * with it. Hiding the screen is the courtesy; the API refuses the calls
+ * regardless.
+ */
+export function RequireLabourCostAccess() {
+  const { user } = useAuth();
+
+  if (user === undefined) {
+    return null;
+  }
+
+  if (!canSeeLabourCost(user)) {
     return <Navigate to={paths.home} replace />;
   }
 

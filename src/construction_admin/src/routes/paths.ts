@@ -42,6 +42,11 @@ export const paths = {
   schedule: '/schedule',
   absences: '/absences',
 
+  costs: '/costs',
+  stockMovements: '/stock-movements',
+  vehicleExpenses: '/vehicle-expenses',
+  rates: '/rates',
+
   expiringDocuments: '/documents/expiring',
 
   users: '/users',
