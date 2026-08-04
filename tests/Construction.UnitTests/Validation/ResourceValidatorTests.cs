@@ -168,14 +168,17 @@ public class AdjustMaterialQuantityValidatorTests
     }
 
     [Fact]
-    public void Caps_the_reason_length()
+    public void Caps_the_reason_at_the_column_it_is_stored_in()
     {
+        // The reason is now written to the movement's Note, which is 500. It
+        // used to be capped at 512 against nothing in particular; a longer
+        // one would reach the database and be refused there instead of here.
         ValidationAssert.Valid(
             _validator,
-            new AdjustMaterialQuantityCommand { Change = 1m, Reason = new string('r', 512) });
+            new AdjustMaterialQuantityCommand { Change = 1m, Reason = new string('r', 500) });
         ValidationAssert.Invalid(
             _validator,
-            new AdjustMaterialQuantityCommand { Change = 1m, Reason = new string('r', 513) },
+            new AdjustMaterialQuantityCommand { Change = 1m, Reason = new string('r', 501) },
             "Reason");
     }
 }

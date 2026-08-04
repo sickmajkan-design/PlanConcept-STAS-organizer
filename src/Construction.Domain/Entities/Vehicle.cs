@@ -23,6 +23,8 @@ public class Vehicle : BaseEntity, ISoftDeletable
 
     public ICollection<Attachment> Attachments { get; set; } = new List<Attachment>();
 
+    public ICollection<VehicleExpense> Expenses { get; set; } = new List<VehicleExpense>();
+
     public bool IsDeleted { get; set; }
 
     public DateTime? DeletedAt { get; set; }

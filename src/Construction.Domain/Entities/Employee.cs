@@ -51,4 +51,6 @@ public class Employee : BaseEntity, ISoftDeletable
     public ICollection<WorkItem> WorkItems { get; set; } = new List<WorkItem>();
 
     public ICollection<Absence> Absences { get; set; } = new List<Absence>();
+
+    public ICollection<EmployeeRate> Rates { get; set; } = new List<EmployeeRate>();
 }

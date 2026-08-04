@@ -38,4 +38,6 @@ public class Project : BaseEntity, ISoftDeletable
     public ICollection<Attachment> Attachments { get; set; } = new List<Attachment>();
 
     public ICollection<WorkItem> WorkItems { get; set; } = new List<WorkItem>();
+
+    public ICollection<MaterialMovement> MaterialMovements { get; set; } = new List<MaterialMovement>();
 }

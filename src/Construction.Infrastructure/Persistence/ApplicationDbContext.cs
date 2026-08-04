@@ -43,6 +43,41 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<Absence> Absences => Set<Absence>();
 
+    public DbSet<EmployeeRate> EmployeeRates => Set<EmployeeRate>();
+
+    public DbSet<MaterialMovement> MaterialMovements => Set<MaterialMovement>();
+
+    public DbSet<VehicleExpense> VehicleExpenses => Set<VehicleExpense>();
+
+    public async Task ExecuteInTransactionAsync(
+        Func<CancellationToken, Task> action,
+        CancellationToken cancellationToken = default)
+    {
+        // Joining an open transaction rather than nesting: PostgreSQL has no
+        // nested transactions, and starting a second one here would throw
+        // rather than do what the caller means. The outermost caller owns the
+        // commit either way.
+        if (Database.CurrentTransaction is not null)
+        {
+            await action(cancellationToken);
+            return;
+        }
+
+        // The execution strategy owns the retry loop, so the whole block is
+        // replayed on a transient failure instead of half of it.
+        var strategy = Database.CreateExecutionStrategy();
+
+        await strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction =
+                await Database.BeginTransactionAsync(cancellationToken);
+
+            await action(cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
+        });
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);

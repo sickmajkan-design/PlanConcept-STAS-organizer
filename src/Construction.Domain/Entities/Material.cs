@@ -20,6 +20,8 @@ public class Material : BaseEntity, ISoftDeletable
     /// <summary>Timestamp of the last inventory movement (set on every quantity change).</summary>
     public DateTime LastUpdated { get; set; }
 
+    public ICollection<MaterialMovement> Movements { get; set; } = new List<MaterialMovement>();
+
     public bool IsDeleted { get; set; }
 
     public DateTime? DeletedAt { get; set; }

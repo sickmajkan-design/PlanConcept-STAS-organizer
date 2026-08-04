@@ -37,5 +37,30 @@ public interface IApplicationDbContext
 
     DbSet<Absence> Absences { get; }
 
+    DbSet<EmployeeRate> EmployeeRates { get; }
+
+    DbSet<MaterialMovement> MaterialMovements { get; }
+
+    DbSet<VehicleExpense> VehicleExpenses { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Runs <paramref name="action"/> so that everything it writes lands
+    /// together or not at all.
+    /// </summary>
+    /// <remarks>
+    /// Almost every handler needs no transaction: a single
+    /// <see cref="SaveChangesAsync"/> is already atomic, and asking for one
+    /// around it would be noise. This exists for the handful that mix a
+    /// tracked insert with an <c>ExecuteUpdate</c> — those bypass the change
+    /// tracker and go straight to the database, so without this they are two
+    /// statements that can half-succeed.
+    ///
+    /// Nesting is safe: an <c>action</c> that runs when a transaction is
+    /// already open joins it rather than starting a second one.
+    /// </remarks>
+    Task ExecuteInTransactionAsync(
+        Func<CancellationToken, Task> action,
+        CancellationToken cancellationToken = default);
 }

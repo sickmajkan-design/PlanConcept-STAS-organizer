@@ -4,6 +4,7 @@ using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Materials.Models;
 using Construction.Domain.Entities;
+using Construction.Domain.Enums;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -12,10 +13,21 @@ using Microsoft.Extensions.Logging;
 namespace Construction.Application.Features.Materials.Commands.AdjustMaterialQuantity;
 
 /// <summary>
-/// Applies a relative stock movement (positive = received, negative =
-/// consumed). Executed as a single conditional UPDATE so concurrent
-/// adjustments can never push the stock below zero.
+/// Applies a relative stock correction (positive = found, negative = short).
 /// </summary>
+/// <remarks>
+/// Kept as its own endpoint after movements arrived, because it is what the
+/// stock screen's "+/-" does and rewriting that was not worth breaking the
+/// clients over. It now writes a
+/// <see cref="Domain.Enums.MaterialMovementKind.Adjustment"/> alongside the
+/// update: a change to the quantity that left no movement behind would make
+/// the running total stop matching the history it is supposed to summarise,
+/// with nothing to say which of the two was wrong.
+///
+/// A correction rather than a delivery or an issue, deliberately. This path
+/// has no site and no price, so counting it as consumption would put
+/// unexplained losses onto somebody's project.
+/// </remarks>
 public record AdjustMaterialQuantityCommand : IRequest<MaterialDto>
 {
     /// <summary>Set by the API layer from the route, never from the request body.</summary>
@@ -34,7 +46,7 @@ public class AdjustMaterialQuantityCommandValidator : AbstractValidator<AdjustMa
             .NotEqual(0).WithMessage("Change must not be zero.");
 
         RuleFor(x => x.Reason)
-            .MaximumLength(512);
+            .MaximumLength(500);
     }
 }
 
@@ -67,30 +79,46 @@ public class AdjustMaterialQuantityCommandHandler
     {
         var utcNow = _dateTimeProvider.UtcNow;
 
-        // Single conditional UPDATE: applies the delta only when the result
-        // stays non-negative, making concurrent adjustments race-safe.
-        var updated = await _context.Materials
-            .Where(m => m.Id == request.Id && m.Quantity + request.Change >= 0)
-            .ExecuteUpdateAsync(
-                setters => setters
-                    .SetProperty(m => m.Quantity, m => m.Quantity + request.Change)
-                    .SetProperty(m => m.LastUpdated, utcNow)
-                    .SetProperty(m => m.UpdatedAt, utcNow),
-                cancellationToken);
-
-        if (updated == 0)
-        {
-            var exists = await _context.Materials
-                .AnyAsync(m => m.Id == request.Id, cancellationToken);
-
-            if (!exists)
+        // The update and the movement land together, so the running total can
+        // never drift from the history behind it.
+        await _context.ExecuteInTransactionAsync(
+            async token =>
             {
-                throw new NotFoundException(nameof(Material), request.Id);
-            }
+                // Conditional UPDATE: applies the delta only when the result
+                // stays non-negative, making concurrent adjustments race-safe.
+                var updated = await _context.Materials
+                    .Where(m => m.Id == request.Id && m.Quantity + request.Change >= 0)
+                    .ExecuteUpdateAsync(
+                        setters => setters
+                            .SetProperty(m => m.Quantity, m => m.Quantity + request.Change)
+                            .SetProperty(m => m.LastUpdated, utcNow)
+                            .SetProperty(m => m.UpdatedAt, utcNow),
+                        token);
 
-            throw new ConflictException(
-                "The adjustment would make the stock quantity negative.");
-        }
+                if (updated == 0)
+                {
+                    var exists = await _context.Materials
+                        .AnyAsync(m => m.Id == request.Id, token);
+
+                    throw exists
+                        ? new ConflictException(
+                            "The adjustment would make the stock quantity negative.")
+                        : new NotFoundException(nameof(Material), request.Id);
+                }
+
+                _context.MaterialMovements.Add(new MaterialMovement
+                {
+                    MaterialId = request.Id,
+                    Kind = MaterialMovementKind.Adjustment,
+                    Quantity = request.Change,
+                    OccurredOn = DateOnly.FromDateTime(utcNow),
+                    Note = request.Reason?.Trim(),
+                    RecordedByUserId = _currentUserService.UserId
+                });
+
+                await _context.SaveChangesAsync(token);
+            },
+            cancellationToken);
 
         var material = await _context.Materials
             .AsNoTracking()
