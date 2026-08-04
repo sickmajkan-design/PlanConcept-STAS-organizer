@@ -1,4 +1,5 @@
 using Construction.Application.Common.Interfaces;
+using Construction.Infrastructure.Spreadsheets;
 using Construction.Application.Features.Authentication.Commands.ForgotPassword;
 using Construction.Infrastructure.Authentication;
 using Construction.Infrastructure.Email;
@@ -71,6 +72,9 @@ public static class DependencyInjection
     private static void AddServices(IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
+
+        // Stateless: it turns a value object into bytes and holds nothing.
+        services.AddSingleton<ISpreadsheetWriter, ClosedXmlSpreadsheetWriter>();
 
         services.Configure<EmailSettings>(configuration.GetSection(EmailSettings.SectionName));
         services.AddScoped<IEmailSender, SmtpEmailSender>();

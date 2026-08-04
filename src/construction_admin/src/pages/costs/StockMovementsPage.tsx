@@ -24,7 +24,9 @@ import {
   type MaterialMovement,
   type MaterialMovementKind,
 } from '../../api/types';
+import { exportsApi } from '../../api/exports';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import {
@@ -39,6 +41,22 @@ import { useListQueryState } from '../../hooks/useListQueryState';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { formatDate, formatMoney, formatQuantity } from '../../utils/formatting';
+
+/**
+ * The period an export covers when the screen itself has no date filter.
+ *
+ * A year back to today. Long enough to be the document somebody actually
+ * wants, short enough to stay inside the API's own two-year bound.
+ */
+function lastYear(): { from: string; to: string } {
+  const today = new Date();
+  const start = new Date(today);
+  start.setFullYear(start.getFullYear() - 1);
+
+  const iso = (date: Date) => date.toISOString().slice(0, 10);
+
+  return { from: iso(start), to: iso(today) };
+}
 
 export function StockMovementsPage() {
   const t = useT();
@@ -165,6 +183,14 @@ export function StockMovementsPage() {
             </MenuItem>
           ))}
         </TextField>
+
+        {/* Exports the last year rather than the page on screen: a spreadsheet
+            of twenty rows is not what anyone opens this for. */}
+        <ExportButton
+          onExport={(language) =>
+            exportsApi.materialMovements({ ...lastYear(), language })
+          }
+        />
       </Stack>
 
       <ResourceDataGrid

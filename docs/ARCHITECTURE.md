@@ -148,6 +148,36 @@ Key decisions:
 - `materials.Quantity` is `numeric(18,3)` with a `>= 0` check constraint.
 - `notifications.DataJson` is `jsonb` for deep-link payloads.
 
+## Spreadsheet exports
+
+The Application layer builds a `Spreadsheet` — sheets, typed columns, rows —
+and Infrastructure renders it with ClosedXML. The port keeps the library out of
+the feature handlers, which is what lets the exports be tested by reading the
+bytes back rather than by trusting a length.
+
+`.xlsx` rather than CSV, and the reason is the audience rather than taste.
+Excel in a Serbian locale expects a semicolon delimiter and reads a
+comma-delimited file as one column per row; it also opens a UTF-8 file as
+Windows-1250 unless it finds a byte-order mark, which turns every š and ć into
+mojibake. A workbook has neither problem, and it carries number formats — a
+duration column written as `[h]:mm` sums past 24 hours instead of wrapping back
+round to zero, which a text column cannot do at all.
+
+Headings are localised, uniquely in this API. Everywhere else English is
+defensible because the clients translate what they display; an export leaves
+the system and is opened by someone who never sees the app, so nothing
+downstream can translate it. The language is a query parameter rather than
+`Accept-Language`, because the file outlives the request that produced it.
+
+The cost exports are built by sending the report queries, not by repeating
+their arithmetic — so a foreman's export withholds exactly what their screen
+does, and there is no second place for the rule to drift.
+
+`Content-Disposition` is named in `WithExposedHeaders`. Cross-origin JavaScript
+cannot read a response header that is not, and without it every download would
+arrive with a generic name — visible only once the API and the panel are on
+different origins, which is production and not development.
+
 ## Authentication design (module 1)
 
 - **Login** — email + password (PBKDF2 verify) → 15-minute JWT access token +

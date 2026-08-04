@@ -17,7 +17,9 @@ import {
 } from '@mui/material';
 import { useMemo, useState } from 'react';
 
+import { exportsApi } from '../../api/exports';
 import { ErrorState } from '../../components/ErrorState';
+import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
 import { useTimeEntrySummaryQuery } from '../../features/timeEntries/useTimeEntries';
 import { useT } from '../../i18n/useI18n';
@@ -105,6 +107,15 @@ export function TimeEntrySummaryPage() {
             />
           }
           label={t('timeEntries.summaryApproved')}
+        />
+
+        {/* The row-by-row hours rather than this summary: payroll is run from
+            the shifts, and a per-employee total is what the screen is for. */}
+        <ExportButton
+          disabled={!valid}
+          onExport={(language) =>
+            exportsApi.timeEntries({ from, to, approvedOnly, language })
+          }
         />
       </Stack>
 

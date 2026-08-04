@@ -181,8 +181,13 @@ ručno, a fotografija se bez pickera ne može uzeti.
 
 **Poznati nedostaci / Known gaps:**
 
-- **Izvoz u Excel nije urađen.** Bio je u planu faze kao presečna funkcija nad
-  svim listama; ostaje neurađen i nije zamenjen ničim.
+- Izvoz u Excel **je naknadno urađen** za četiri stvari koje se stvarno iznose
+  iz sistema: sate, troškove po gradilištu, troškove voznog parka i promet
+  materijala. Prava `.xlsx` datoteka, ne CSV — Excel na srpskom očekuje tačku i
+  zarez kao razdvajač i čita UTF-8 kao Windows-1250, pa svako š i ć postane
+  smeće. Zaglavlja idu na jeziku koji se traži, jer datoteka nadživi zahtev:
+  neko je pošalje knjigovođi čiji pretraživač o jeziku nikad nije imao mišljenja.
+  Ostale liste (radnici, projekti, vozila, alat) još nemaju izvoz.
 - Trošak vozila se ne raspoređuje po gradilištima. Kombi nije raspoređen na
   gradilište kao čovek, pa bi svako pripisivanje bilo izmišljena raspodela koju
   podaci ne podržavaju. Vozni park ima svoj izveštaj.

@@ -645,6 +645,12 @@ export const en = {
   'vehicleExpenseKind.Insurance': 'Insurance',
   'vehicleExpenseKind.Registration': 'Registration',
   'vehicleExpenseKind.Other': 'Other',
+  'exports.download': 'Export to Excel',
+  'exports.language': 'Headings in',
+  'exports.languageSr': 'Serbian',
+  'exports.languageEn': 'English',
+  'exports.failed': 'The export could not be produced.',
+  'exports.working': 'Preparing…',
 } as const;
 
 export type MessageKey = keyof typeof en;

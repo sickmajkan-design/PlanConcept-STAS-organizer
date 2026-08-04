@@ -655,4 +655,10 @@ export const sr: Record<MessageKey, Message> = {
   'vehicleExpenseKind.Insurance': 'Osiguranje',
   'vehicleExpenseKind.Registration': 'Registracija',
   'vehicleExpenseKind.Other': 'Ostalo',
+  'exports.download': 'Izvoz u Excel',
+  'exports.language': 'Zaglavlja na',
+  'exports.languageSr': 'srpskom',
+  'exports.languageEn': 'engleskom',
+  'exports.failed': 'Izvoz nije mogao da se napravi.',
+  'exports.working': 'Priprema…',
 };

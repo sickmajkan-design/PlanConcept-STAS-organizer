@@ -20,7 +20,9 @@ import {
 } from '@mui/material';
 import { useMemo, useState } from 'react';
 
+import { exportsApi } from '../../api/exports';
 import { EmptyState } from '../../components/EmptyState';
+import { ExportButton } from '../../components/ExportButton';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
 import {
@@ -126,6 +128,14 @@ function ProjectCosts({ period }: { period: Period }) {
 
   return (
     <Stack spacing={2}>
+      <Box>
+        <ExportButton
+          onExport={(language) =>
+            exportsApi.projectCosts({ ...period, language })
+          }
+        />
+      </Box>
+
       {/* Said plainly rather than left as a suspiciously small number: a
           foreman comparing this against what they know was spent should
           understand at once why the two differ. */}
@@ -216,7 +226,16 @@ function VehicleCosts({ period }: { period: Period }) {
   if (!data || data.rows.length === 0) return <EmptyState message={t('costs.empty')} />;
 
   return (
-    <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}>
+    <Stack spacing={2}>
+      <Box>
+        <ExportButton
+          onExport={(language) =>
+            exportsApi.vehicleCosts({ ...period, language })
+          }
+        />
+      </Box>
+
+      <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}>
       <Table size="small">
         <TableHead>
           <TableRow>
@@ -272,7 +291,8 @@ function VehicleCosts({ period }: { period: Period }) {
           </TableRow>
         </TableFooter>
       </Table>
-    </TableContainer>
+      </TableContainer>
+    </Stack>
   );
 }
 

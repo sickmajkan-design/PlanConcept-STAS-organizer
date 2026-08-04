@@ -62,7 +62,13 @@ try
         options.AddPolicy("Default", policy => policy
             .WithOrigins(corsOrigins)
             .AllowAnyHeader()
-            .AllowAnyMethod());
+            .AllowAnyMethod()
+            // Response headers are hidden from cross-origin JavaScript unless
+            // named here. Without this the admin panel cannot read the file
+            // name off an export and every download arrives called
+            // "export.xlsx" — which only shows up once the API and the panel
+            // are on different origins, i.e. in production and not in dev.
+            .WithExposedHeaders("Content-Disposition"));
     });
 
     var app = builder.Build();
