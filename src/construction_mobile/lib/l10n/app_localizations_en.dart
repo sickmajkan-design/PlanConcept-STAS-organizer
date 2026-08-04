@@ -1047,4 +1047,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get vehicleExpenseKindOther => 'Other';
+
+  @override
+  String get workItemsDefectPhoto => 'Photo';
+
+  @override
+  String get workItemsDefectPhotoAdded => 'Photo attached';
+
+  @override
+  String get workItemsDefectPhotoHint =>
+      'The picture is usually the whole report.';
+
+  @override
+  String get workItemsDefectPhotoFailed =>
+      'The defect was reported, but the photo could not be attached.';
+
+  @override
+  String get workItemsAddPhoto => 'Add a photo';
 }

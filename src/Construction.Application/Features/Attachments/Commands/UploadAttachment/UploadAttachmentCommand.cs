@@ -102,6 +102,8 @@ public class UploadAttachmentCommandHandler
 
         await EnsureOwnerExistsAsync(request.OwnerType, request.OwnerId, cancellationToken);
 
+        await EnsureWorkItemIsTheirsAsync(request, cancellationToken);
+
         var fileName = AttachmentRules.SanitiseFileName(request.FileName);
 
         // Re-derived from the name rather than trusted from the upload: the
@@ -153,6 +155,41 @@ public class UploadAttachmentCommandHandler
             .FirstAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Keeps a worker's work-item photo on a work item that is theirs.
+    /// </summary>
+    /// <remarks>
+    /// Runs after the existence check, so an item that does not exist answers
+    /// 404 rather than 403 — a 403 here would confirm that a guessed id is
+    /// real, which is the same reasoning the read paths use.
+    /// </remarks>
+    private async Task EnsureWorkItemIsTheirsAsync(
+        UploadAttachmentCommand request,
+        CancellationToken cancellationToken)
+    {
+        if (request.OwnerType != AttachmentOwnerType.WorkItem)
+        {
+            return;
+        }
+
+        var owner = await _context.WorkItems
+            .AsNoTracking()
+            .Where(w => w.Id == request.OwnerId)
+            .Select(w => new { w.CreatedByUserId, w.AssignedEmployeeId })
+            .FirstAsync(cancellationToken);
+
+        if (!AttachmentRules.CanUploadToWorkItem(
+                _currentUserService.Role,
+                _currentUserService.UserId,
+                _currentUserService.EmployeeId,
+                owner.CreatedByUserId,
+                owner.AssignedEmployeeId))
+        {
+            throw new ForbiddenAccessException(
+                "You may only add photographs to your own work.");
+        }
+    }
+
     private async Task EnsureOwnerExistsAsync(
         AttachmentOwnerType type,
         Guid id,
@@ -168,6 +205,8 @@ public class UploadAttachmentCommandHandler
                 await _context.Vehicles.AnyAsync(v => v.Id == id, cancellationToken),
             AttachmentOwnerType.Tool =>
                 await _context.Tools.AnyAsync(t => t.Id == id, cancellationToken),
+            AttachmentOwnerType.WorkItem =>
+                await _context.WorkItems.AnyAsync(w => w.Id == id, cancellationToken),
             _ => false
         };
 

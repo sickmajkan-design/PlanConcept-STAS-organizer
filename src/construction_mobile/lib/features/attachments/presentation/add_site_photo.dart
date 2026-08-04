@@ -100,7 +100,8 @@ class _AddSitePhotoButtonState extends ConsumerState<AddSitePhotoButton> {
 
     try {
       await ref.read(attachmentRepositoryProvider).uploadPhoto(
-            projectId: widget.projectId,
+            ownerType: 'Project',
+            ownerId: widget.projectId,
             filePath: picked.path,
             fileName: picked.name,
           );

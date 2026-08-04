@@ -137,12 +137,18 @@ public static class AttachmentRules
     /// True when <paramref name="role"/> may attach this category here.
     /// </summary>
     /// <remarks>
-    /// Uploads are Foreman and above, with one deliberate exception: a Worker
-    /// may add a photograph to a project. Site photographs are the one thing
-    /// the person holding the phone is best placed to capture, and adding a
-    /// file cannot overwrite or remove anything.
+    /// Uploads are Foreman and above, with two exceptions for a Worker, both
+    /// photographs: a site photo on a project, and a photo on a work item.
+    /// Photographs are the one thing the person holding the phone is best
+    /// placed to capture, and adding a file cannot overwrite or remove
+    /// anything.
     ///
-    /// The exception is not scoped to projects the worker is assigned to,
+    /// The work-item case is the one the defect report needs — somebody stands
+    /// in front of a crack and the picture is the whole report. It *is* scoped:
+    /// <see cref="CanUploadToWorkItem"/> narrows it to items the worker raised
+    /// or is assigned to, which the caller must also check.
+    ///
+    /// The project case is not scoped to projects the worker is assigned to,
     /// because assignment-level authorization does not exist yet (H11 in the
     /// audit). The consequence is bounded — a worker could file a photo
     /// against the wrong site — and is recorded rather than hidden.
@@ -159,8 +165,41 @@ public static class AttachmentRules
         }
 
         return role is UserRole.Worker
-            && ownerType == AttachmentOwnerType.Project
-            && category == AttachmentCategory.Photo;
+            && category == AttachmentCategory.Photo
+            && ownerType is AttachmentOwnerType.Project or AttachmentOwnerType.WorkItem;
+    }
+
+    /// <summary>
+    /// True when this work item is one the caller may photograph.
+    /// </summary>
+    /// <remarks>
+    /// Unlike the project case, this one can be scoped without inventing
+    /// anything: a work item already records who raised it and who it is
+    /// assigned to, so "their own" is a fact the row carries. Only a Worker is
+    /// narrowed — a supervisor photographing any item is the ordinary case.
+    /// </remarks>
+    /// <param name="createdByUserId">
+    /// The work item records its author as a <em>user</em>, not an employee,
+    /// so the two ids are compared against different things. Mixing them would
+    /// compile and quietly never match.
+    /// </param>
+    public static bool CanUploadToWorkItem(
+        UserRole? role,
+        Guid? callerUserId,
+        Guid? callerEmployeeId,
+        Guid? createdByUserId,
+        Guid? assignedEmployeeId)
+    {
+        if (role is not UserRole.Worker)
+        {
+            return true;
+        }
+
+        var raisedIt = callerUserId is not null && callerUserId == createdByUserId;
+        var assignedToIt =
+            callerEmployeeId is not null && callerEmployeeId == assignedEmployeeId;
+
+        return raisedIt || assignedToIt;
     }
 
     /// <summary>Deleting a file is Admin and above, whatever it hangs off.</summary>

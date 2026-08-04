@@ -1038,4 +1038,20 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get vehicleExpenseKindOther => 'Ostalo';
+
+  @override
+  String get workItemsDefectPhoto => 'Fotografija';
+
+  @override
+  String get workItemsDefectPhotoAdded => 'Fotografija priložena';
+
+  @override
+  String get workItemsDefectPhotoHint => 'Slika je obično ceo izveštaj.';
+
+  @override
+  String get workItemsDefectPhotoFailed =>
+      'Nedostatak je prijavljen, ali fotografija nije priložena.';
+
+  @override
+  String get workItemsAddPhoto => 'Dodaj fotografiju';
 }

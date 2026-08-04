@@ -148,6 +148,36 @@ Key decisions:
 - `materials.Quantity` is `numeric(18,3)` with a `>= 0` check constraint.
 - `notifications.DataJson` is `jsonb` for deep-link payloads.
 
+## A half-built feature, and how it stayed hidden
+
+Work-item attachments — the photograph of the defect — were described as done
+and were not reachable at all. The entity had `WorkItemId`, the migration
+created the column with a foreign key, the check constraint counted it as a
+fifth owner, both clients rendered an upload control, and `WorkItemDto` carried
+an attachment count. But `AttachmentOwnerType` stopped at four values, so
+nothing could name the owner, and three places behind it had no case for it
+either.
+
+Two of those three failed *silently in the wrong direction* rather than
+loudly:
+
+- the list query's owner switch ended in `_ => query.Where(a => a.ToolId == ...)`,
+  so asking for a work item's files returned a tool's;
+- the DTO's projection chain ended at `s.ToolId!.Value`, so a row owned by
+  anything else reported itself as a tool.
+
+Both were catch-alls written when there were four owners and never revisited
+when a fifth arrived. The lesson taken: a `switch` over a closed set that ends
+in `_` will not tell you when the set grows. Both are now exhaustive and throw
+on an unknown value, which is what turns the next addition into a failure
+instead of a wrong answer.
+
+The consequence on the phone was worse than a missing screen. `uploadPhoto`
+hardcoded `ownerType: 'Project'` and its only button sat on the project detail
+screen, which is Foreman-and-above — so no worker could upload any photograph
+anywhere, even though `AttachmentRules` carried a deliberate, commented
+carve-out permitting exactly that.
+
 ## Spreadsheet exports
 
 The Application layer builds a `Spreadsheet` — sheets, typed columns, rows —

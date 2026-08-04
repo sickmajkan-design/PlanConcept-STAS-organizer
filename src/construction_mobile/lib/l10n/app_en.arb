@@ -370,5 +370,11 @@
   "vehicleExpenseKindRepair": "Repair",
   "vehicleExpenseKindInsurance": "Insurance",
   "vehicleExpenseKindRegistration": "Registration",
-  "vehicleExpenseKindOther": "Other"
+  "vehicleExpenseKindOther": "Other",
+
+  "workItemsDefectPhoto": "Photo",
+  "workItemsDefectPhotoAdded": "Photo attached",
+  "workItemsDefectPhotoHint": "The picture is usually the whole report.",
+  "workItemsDefectPhotoFailed": "The defect was reported, but the photo could not be attached.",
+  "workItemsAddPhoto": "Add a photo"
 }

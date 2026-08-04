@@ -370,5 +370,11 @@
   "vehicleExpenseKindRepair": "Popravka",
   "vehicleExpenseKindInsurance": "Osiguranje",
   "vehicleExpenseKindRegistration": "Registracija",
-  "vehicleExpenseKindOther": "Ostalo"
+  "vehicleExpenseKindOther": "Ostalo",
+
+  "workItemsDefectPhoto": "Fotografija",
+  "workItemsDefectPhotoAdded": "Fotografija priložena",
+  "workItemsDefectPhotoHint": "Slika je obično ceo izveštaj.",
+  "workItemsDefectPhotoFailed": "Nedostatak je prijavljen, ali fotografija nije priložena.",
+  "workItemsAddPhoto": "Dodaj fotografiju"
 }

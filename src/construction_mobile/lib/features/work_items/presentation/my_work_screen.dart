@@ -6,6 +6,9 @@ import '../../../core/l10n/enum_labels.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/paged_list_view.dart';
+import 'package:image_picker/image_picker.dart';
+
+import '../../attachments/data/attachment_repository.dart';
 import '../data/models/work_item.dart';
 import 'my_work_controller.dart';
 
@@ -122,6 +125,20 @@ class _WorkItemCard extends ConsumerWidget {
                   ),
               ],
             ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              children: [
+                // Available on anything of theirs, not only on a defect they
+                // raised: a photograph of the work as it stands is the
+                // cheapest progress report there is.
+                OutlinedButton.icon(
+                  onPressed: () => _addPhoto(context, ref),
+                  icon: const Icon(Icons.photo_camera_outlined, size: 18),
+                  label: Text(l10n.workItemsAddPhoto),
+                ),
+              ],
+            ),
             if (item.nextStates.isNotEmpty) ...[
               const SizedBox(height: 12),
               Wrap(
@@ -141,6 +158,49 @@ class _WorkItemCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  /// Photographs this item. The camera first, the gallery as a fallback.
+  Future<void> _addPhoto(BuildContext context, WidgetRef ref) async {
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final picker = ImagePicker();
+
+    XFile? picked;
+
+    try {
+      picked = await picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1920,
+        imageQuality: 85,
+      );
+    } on Exception {
+      picked = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        imageQuality: 85,
+      );
+    }
+
+    if (picked == null) {
+      return;
+    }
+
+    try {
+      await ref.read(attachmentRepositoryProvider).uploadPhoto(
+            ownerType: 'WorkItem',
+            ownerId: item.id,
+            filePath: picked.path,
+            fileName: picked.name,
+          );
+
+      // Reloads so the photo count on the card matches what was just added.
+      await ref.read(myWorkControllerProvider.notifier).refresh();
+
+      messenger.showSnackBar(SnackBar(content: Text(l10n.attachmentsUploaded)));
+    } on ApiException catch (exception) {
+      messenger.showSnackBar(SnackBar(content: Text(exception.message)));
+    }
   }
 
   Future<void> _move(BuildContext context, WidgetRef ref, String status) async {

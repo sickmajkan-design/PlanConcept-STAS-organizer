@@ -509,4 +509,231 @@ public class AttachmentTests : IntegrationTestBase
                     expiresAt: DateOnly.FromDateTime(DateTime.UtcNow).AddDays(30));
             }));
     }
+
+    // ---- work items -------------------------------------------------------
+    //
+    // The whole owner type was unreachable: the entity, the foreign key, the
+    // check constraint and both clients had it, but AttachmentOwnerType stopped
+    // at four values, so nothing could be filed against a task or a defect at
+    // all. These tests exist so it cannot silently go missing again.
+
+    [Fact]
+    public async Task A_photograph_can_be_filed_against_a_defect()
+    {
+        var (workItem, foreman) = await SeedDefectAsync();
+
+        var uploaded = await InScope(scope =>
+        {
+            ActAs(scope, foreman);
+            return UploadAsync(
+                scope,
+                AttachmentOwnerType.WorkItem,
+                workItem.Id,
+                fileName: "pukotina.jpg",
+                category: AttachmentCategory.Photo);
+        });
+
+        Assert.Equal(workItem.Id, uploaded.OwnerId);
+
+        // And it is stored on the right column, not on some other owner's.
+        var stored = await InScope(scope => scope.Db.Attachments
+            .Where(a => a.Id == uploaded.Id)
+            .Select(a => new { a.WorkItemId, a.ToolId, a.ProjectId })
+            .SingleAsync());
+
+        Assert.Equal(workItem.Id, stored.WorkItemId);
+        Assert.Null(stored.ToolId);
+        Assert.Null(stored.ProjectId);
+    }
+
+    [Fact]
+    public async Task Listing_a_work_items_files_does_not_return_a_tools()
+    {
+        // The owner switch used to end in a catch-all pointing at ToolId, so
+        // asking about a work item returned whatever hung off a tool with the
+        // same id — a wrong answer rather than an error.
+        var (workItem, foreman) = await SeedDefectAsync();
+        var tool = await InScope(scope => TestData.SeedToolAsync(scope));
+
+        await InScope(scope =>
+        {
+            ActAs(scope, foreman);
+            return UploadAsync(scope, AttachmentOwnerType.Tool, tool.Id);
+        });
+
+        var files = await InScope(scope =>
+        {
+            ActAs(scope, foreman);
+            return scope.Send(new GetAttachmentsQuery
+            {
+                OwnerType = AttachmentOwnerType.WorkItem,
+                OwnerId = workItem.Id
+            });
+        });
+
+        Assert.Empty(files);
+    }
+
+    [Fact]
+    public async Task A_worker_photographs_the_defect_they_reported_and_can_see_it()
+    {
+        // The point of the whole module on a phone: the person standing in
+        // front of the crack is the one who can photograph it.
+        var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var worker = await InScope(scope =>
+            TestData.SeedUserAsync(scope, UserRole.Worker, employee.Id));
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+
+        var defect = await InScope(scope =>
+        {
+            ActAs(scope, worker, employee.Id);
+            return scope.Send(new Application.Features.WorkItems.Commands.CreateWorkItem
+                .CreateWorkItemCommand
+            {
+                Kind = WorkItemKind.Defect,
+                Title = "Pukotina na zidu",
+                ProjectId = project.Id,
+                Priority = WorkItemPriority.Normal
+            });
+        });
+
+        var uploaded = await InScope(scope =>
+        {
+            ActAs(scope, worker, employee.Id);
+            return UploadAsync(
+                scope,
+                AttachmentOwnerType.WorkItem,
+                defect.Id,
+                fileName: "pukotina.jpg",
+                category: AttachmentCategory.Photo);
+        });
+
+        // Write-only would be no use: they have to be able to open it again.
+        var files = await InScope(scope =>
+        {
+            ActAs(scope, worker, employee.Id);
+            return scope.Send(new GetAttachmentsQuery
+            {
+                OwnerType = AttachmentOwnerType.WorkItem,
+                OwnerId = defect.Id
+            });
+        });
+
+        Assert.Equal(uploaded.Id, Assert.Single(files).Id);
+
+        var content = await InScope(scope =>
+        {
+            ActAs(scope, worker, employee.Id);
+            return scope.Send(new GetAttachmentContentQuery(uploaded.Id));
+        });
+
+        Assert.Equal("pukotina.jpg", content.FileName);
+    }
+
+    [Fact]
+    public async Task A_worker_cannot_photograph_somebody_elses_work()
+    {
+        // Scoped, unlike the project case: a work item records who raised it
+        // and who it is assigned to, so "their own" is a fact the row carries.
+        var (workItem, _) = await SeedDefectAsync();
+        var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var worker = await InScope(scope =>
+            TestData.SeedUserAsync(scope, UserRole.Worker, employee.Id));
+
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => InScope(scope =>
+        {
+            ActAs(scope, worker, employee.Id);
+            return UploadAsync(
+                scope,
+                AttachmentOwnerType.WorkItem,
+                workItem.Id,
+                fileName: "tudje.jpg",
+                category: AttachmentCategory.Photo);
+        }));
+    }
+
+    [Fact]
+    public async Task A_worker_may_photograph_work_assigned_to_them()
+    {
+        var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var worker = await InScope(scope =>
+            TestData.SeedUserAsync(scope, UserRole.Worker, employee.Id));
+        var (workItem, _) = await SeedDefectAsync(assignedTo: employee.Id);
+
+        var uploaded = await InScope(scope =>
+        {
+            ActAs(scope, worker, employee.Id);
+            return UploadAsync(
+                scope,
+                AttachmentOwnerType.WorkItem,
+                workItem.Id,
+                fileName: "napredak.jpg",
+                category: AttachmentCategory.Photo);
+        });
+
+        Assert.Equal(workItem.Id, uploaded.OwnerId);
+    }
+
+    [Fact]
+    public async Task A_worker_may_not_file_a_contract_against_their_own_defect()
+    {
+        // The carve-out is for photographs. A document is paperwork, and
+        // paperwork is the office's.
+        var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var worker = await InScope(scope =>
+            TestData.SeedUserAsync(scope, UserRole.Worker, employee.Id));
+        var (workItem, _) = await SeedDefectAsync(assignedTo: employee.Id);
+
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => InScope(scope =>
+        {
+            ActAs(scope, worker, employee.Id);
+            return UploadAsync(
+                scope,
+                AttachmentOwnerType.WorkItem,
+                workItem.Id,
+                category: AttachmentCategory.Contract);
+        }));
+    }
+
+    [Fact]
+    public async Task Attaching_to_a_work_item_that_does_not_exist_is_a_404()
+    {
+        var foreman = await InScope(scope =>
+            TestData.SeedUserAsync(scope, UserRole.Foreman));
+
+        await Assert.ThrowsAsync<NotFoundException>(() => InScope(scope =>
+        {
+            ActAs(scope, foreman);
+            return UploadAsync(scope, AttachmentOwnerType.WorkItem, Guid.NewGuid());
+        }));
+    }
+
+    /// <summary>A defect raised by a foreman, optionally assigned to somebody.</summary>
+    private async Task<(WorkItem Item, User Foreman)> SeedDefectAsync(Guid? assignedTo = null)
+    {
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var foreman = await InScope(scope =>
+            TestData.SeedUserAsync(scope, UserRole.Foreman));
+
+        var item = await InScope(async scope =>
+        {
+            var entity = new WorkItem
+            {
+                Kind = WorkItemKind.Defect,
+                Title = "Pukotina",
+                ProjectId = project.Id,
+                AssignedEmployeeId = assignedTo,
+                Priority = WorkItemPriority.Normal,
+                Status = WorkItemStatus.Open,
+                CreatedByUserId = foreman.Id
+            };
+
+            scope.Db.WorkItems.Add(entity);
+            await scope.Db.SaveChangesAsync();
+
+            return entity;
+        });
+
+        return (item, foreman);
+    }
 }

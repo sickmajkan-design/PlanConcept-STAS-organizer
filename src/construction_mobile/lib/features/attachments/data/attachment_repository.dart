@@ -49,17 +49,22 @@ class AttachmentRepository extends ApiRepository {
     });
   }
 
-  /// Uploads a photograph taken on site.
+  /// Uploads a photograph against any record the caller may attach one to.
+  ///
+  /// [ownerType] used to be hardcoded to `Project`, which quietly made the
+  /// whole work-item case unreachable from the phone — the one the defect
+  /// report exists for.
   Future<Attachment> uploadPhoto({
-    required String projectId,
+    required String ownerType,
+    required String ownerId,
     required String filePath,
     required String fileName,
     String? description,
   }) {
     return guard(() async {
       final form = FormData.fromMap(<String, dynamic>{
-        'ownerType': 'Project',
-        'ownerId': projectId,
+        'ownerType': ownerType,
+        'ownerId': ownerId,
         'category': 'Photo',
         'description': ?description,
         'file': await MultipartFile.fromFile(filePath, filename: fileName),

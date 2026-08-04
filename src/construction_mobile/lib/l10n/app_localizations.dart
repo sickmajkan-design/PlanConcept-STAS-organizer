@@ -1987,6 +1987,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Other'**
   String get vehicleExpenseKindOther;
+
+  /// No description provided for @workItemsDefectPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get workItemsDefectPhoto;
+
+  /// No description provided for @workItemsDefectPhotoAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo attached'**
+  String get workItemsDefectPhotoAdded;
+
+  /// No description provided for @workItemsDefectPhotoHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The picture is usually the whole report.'**
+  String get workItemsDefectPhotoHint;
+
+  /// No description provided for @workItemsDefectPhotoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The defect was reported, but the photo could not be attached.'**
+  String get workItemsDefectPhotoFailed;
+
+  /// No description provided for @workItemsAddPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a photo'**
+  String get workItemsAddPhoto;
 }
 
 class _AppLocalizationsDelegate
