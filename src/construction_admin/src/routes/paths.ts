@@ -49,6 +49,8 @@ export const paths = {
 
   expiringDocuments: '/documents/expiring',
 
+  notifications: '/notifications',
+
   users: '/users',
   userNew: '/users/new',
   userEdit: (id: string) => `/users/${id}/edit`,

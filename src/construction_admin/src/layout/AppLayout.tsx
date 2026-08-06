@@ -16,12 +16,14 @@ import {
   SwapVertOutlined,
   RequestQuoteOutlined,
   MenuOutlined,
+  NotificationsNoneOutlined,
   PasswordOutlined,
   PeopleOutlined,
 } from '@mui/icons-material';
 import {
   AppBar,
   Avatar,
+  Badge,
   Box,
   Divider,
   Drawer,
@@ -48,6 +50,7 @@ import {
 } from '../auth/authHelpers';
 import { useAuth } from '../auth/useAuth';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { useUnreadCountQuery } from '../features/notifications/useNotifications';
 import { useEnumLabel } from '../i18n/enumLabels';
 import { useT } from '../i18n/useI18n';
 import { paths } from '../routes/paths';
@@ -72,6 +75,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const t = useT();
   const enumLabel = useEnumLabel();
+  const { data: unreadCount } = useUnreadCountQuery();
 
   if (!user) {
     return null;
@@ -171,6 +175,18 @@ export function AppLayout({ children }: { children: ReactNode }) {
           )}
           <Box sx={{ flex: 1 }} />
           <LanguageSwitcher />
+          {/* In the bar rather than the drawer: an inbox is personal, it is
+              the same on every screen, and the count has to be visible from
+              wherever the operator happens to be. */}
+          <IconButton
+            component={Link}
+            to={paths.notifications}
+            aria-label={t('notifications.title')}
+          >
+            <Badge badgeContent={unreadCount ?? 0} color="error" max={99}>
+              <NotificationsNoneOutlined />
+            </Badge>
+          </IconButton>
           <IconButton onClick={(event) => setMenuAnchor(event.currentTarget)}>
             <Avatar sx={{ width: 34, height: 34, bgcolor: 'primary.main', fontSize: 14 }}>
               {initialsOf(user.firstName, user.lastName, user.email)}

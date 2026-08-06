@@ -672,3 +672,38 @@ export interface VehicleCostReport {
   totalFuelCost: number;
   totalLitres: number;
 }
+
+export const notificationTypes = [
+  'ProjectAssigned',
+  'EmployeeAssigned',
+  'VehicleAssigned',
+  'ToolAssigned',
+  'GeneralAnnouncement',
+  'DocumentExpiring',
+  'TaskAssigned',
+  'DefectAssigned',
+  'WorkItemDue',
+] as const;
+
+export type NotificationType = (typeof notificationTypes)[number];
+
+export interface Notification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  /** Deep-link payload the mobile app uses; the panel only shows the text. */
+  dataJson: string | null;
+  isRead: boolean;
+  readAt: string | null;
+  createdAt: string;
+}
+
+export interface AnnouncementInput {
+  title: string;
+  body: string;
+  /** Narrows the audience to one role. */
+  role?: Role | null;
+  /** Narrows it to the crew of one site. */
+  projectId?: string | null;
+}

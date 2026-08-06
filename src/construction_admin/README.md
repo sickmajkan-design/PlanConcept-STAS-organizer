@@ -135,6 +135,26 @@ filter. Without `VITE_GOOGLE_MAPS_API_KEY` configured, the page explains
 what is missing instead of crashing — the rest of the app is fully usable
 without a Maps key.
 
+## Notifications
+
+`/notifications` is the signed-in operator's own inbox — the same rows the
+mobile app reads, since a notification is stored per recipient rather than per
+device. It is reachable from the bell in the top bar rather than from the
+navigation drawer, because it is personal and its unread count has to be
+visible from any screen.
+
+The browser has no push channel, so the badge polls
+`GET /api/notifications/unread-count` once a minute and on window focus. That
+is one integer over the wire; the alternative is a count that only moves on a
+page reload.
+
+Admin and above additionally get "Send an announcement", which posts to
+`POST /api/notifications/announce` with optional role and project-crew
+filters — they narrow together, so "the foremen on the Danube job" is one
+send. The endpoint answers with the number of people reached and the screen
+shows it: an announcement whose filters matched nobody otherwise looks exactly
+like one that reached the whole company.
+
 ## Verification
 
 Type-checked with `tsc -b` (part of `npm run build`), linted with `oxlint`,

@@ -492,6 +492,7 @@ for its structure and the client-side auth behaviour.
 | Tools (paged grid, search, status filter, CRUD, dual employee + project assignment) | ✅ done |
 | Materials (paged grid, search, warehouse-only filter, CRUD, stock adjustment) | ✅ done |
 | Live map (Google Maps, project filter, 30 s refresh) | ✅ done |
+| Notifications (inbox, unread badge, announcements) | ✅ done |
 
 Same authorization-mirroring approach as the mobile app: the navigation
 drawer and route guards withhold the directory from a `Worker`, matching the
@@ -556,3 +557,12 @@ unnoticed. CI runs all of it on every push.
   EmployeeAssigned to foremen/PMs already on that crew), vehicle assignment
   (VehicleAssigned), tool hand-out (ToolAssigned), and admin-sent
   GeneralAnnouncement with optional role / project-crew audience filters.
+- Both clients read the same inbox. The phone is woken by FCM; the browser has
+  no such channel, so the panel's badge polls `unread-count` once a minute and
+  on window focus. One integer a minute is cheaper than the alternative — a
+  count that only moves on a page reload is a badge nobody trusts.
+- `POST /api/notifications/announce` is called from the panel's inbox screen,
+  gated to Admin and above to match the endpoint's policy. It answers with the
+  recipient count, which the screen shows: an announcement whose audience
+  filter matched nobody is otherwise indistinguishable from one that reached
+  the whole company.

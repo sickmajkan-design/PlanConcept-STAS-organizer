@@ -651,6 +651,39 @@ export const en = {
   'exports.languageEn': 'English',
   'exports.failed': 'The export could not be produced.',
   'exports.working': 'Preparing…',
+
+  // --- Notifications --------------------------------------------------------
+  'notifications.title': 'Notifications',
+  'notifications.subtitle': 'The same messages your phone receives.',
+  'notifications.unreadOnly': 'Unread only',
+  'notifications.markAllRead': 'Mark all as read',
+  'notifications.empty': 'Nothing here yet.',
+  'notifications.noUnread': 'Everything has been read.',
+  'notifications.announce': 'Send an announcement',
+  'notifications.announceTitle': 'Send an announcement',
+  'notifications.subject': 'Subject',
+  'notifications.message': 'Message',
+  'notifications.audienceRole': 'To role',
+  'notifications.everyRole': 'Everyone',
+  'notifications.audienceProject': 'On site',
+  'notifications.everyProject': 'Any site',
+  'notifications.announceHint':
+    'It goes to every active account that matches, on the phone as well as here, and it cannot be recalled.',
+  'notifications.send': 'Send',
+  'notifications.sentTo': {
+    one: 'Sent to {count} person.',
+    other: 'Sent to {count} people.',
+  },
+
+  'notificationType.ProjectAssigned': 'Site',
+  'notificationType.EmployeeAssigned': 'Crew',
+  'notificationType.VehicleAssigned': 'Vehicle',
+  'notificationType.ToolAssigned': 'Tool',
+  'notificationType.GeneralAnnouncement': 'Announcement',
+  'notificationType.DocumentExpiring': 'Document',
+  'notificationType.TaskAssigned': 'Task',
+  'notificationType.DefectAssigned': 'Defect',
+  'notificationType.WorkItemDue': 'Due',
 } as const;
 
 export type MessageKey = keyof typeof en;

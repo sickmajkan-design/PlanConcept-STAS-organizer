@@ -138,6 +138,11 @@ const TimeEntrySummaryPage = lazy(() =>
     default: m.TimeEntrySummaryPage,
   })),
 );
+const NotificationsPage = lazy(() =>
+  import('./pages/notifications/NotificationsPage').then((m) => ({
+    default: m.NotificationsPage,
+  })),
+);
 const MaterialsListPage = lazy(() =>
   import('./pages/materials/MaterialsListPage').then((m) => ({
     default: m.MaterialsListPage,
@@ -170,6 +175,9 @@ function Layout() {
           <Route path={paths.home} element={<HomePage />} />
           <Route path={paths.map} element={<LiveMapPage />} />
           <Route path={paths.changePassword} element={<ChangePasswordPage />} />
+          {/* Everyone with an account has an inbox, including a worker who
+              only ever signs in to read one. */}
+          <Route path={paths.notifications} element={<NotificationsPage />} />
 
           <Route element={<RequireDirectoryAccess />}>
             <Route path={paths.employees} element={<EmployeesListPage />} />

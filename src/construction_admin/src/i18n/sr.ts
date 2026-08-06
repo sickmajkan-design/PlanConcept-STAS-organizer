@@ -661,4 +661,38 @@ export const sr: Record<MessageKey, Message> = {
   'exports.languageEn': 'engleskom',
   'exports.failed': 'Izvoz nije mogao da se napravi.',
   'exports.working': 'Priprema…',
+
+  // --- Obaveštenja ----------------------------------------------------------
+  'notifications.title': 'Obaveštenja',
+  'notifications.subtitle': 'Iste poruke koje stižu i na telefon.',
+  'notifications.unreadOnly': 'Samo nepročitana',
+  'notifications.markAllRead': 'Označi sve kao pročitano',
+  'notifications.empty': 'Ovde još nema ničega.',
+  'notifications.noUnread': 'Sve je pročitano.',
+  'notifications.announce': 'Pošalji obaveštenje',
+  'notifications.announceTitle': 'Slanje obaveštenja',
+  'notifications.subject': 'Naslov',
+  'notifications.message': 'Poruka',
+  'notifications.audienceRole': 'Kome (uloga)',
+  'notifications.everyRole': 'Svima',
+  'notifications.audienceProject': 'Gradilište',
+  'notifications.everyProject': 'Sva gradilišta',
+  'notifications.announceHint':
+    'Ide svakom aktivnom nalogu koji odgovara izboru, i na telefon i ovde, i ne može da se povuče.',
+  'notifications.send': 'Pošalji',
+  'notifications.sentTo': {
+    one: 'Poslato za {count} osobu.',
+    few: 'Poslato za {count} osobe.',
+    other: 'Poslato za {count} osoba.',
+  },
+
+  'notificationType.ProjectAssigned': 'Gradilište',
+  'notificationType.EmployeeAssigned': 'Radnici',
+  'notificationType.VehicleAssigned': 'Vozilo',
+  'notificationType.ToolAssigned': 'Alat',
+  'notificationType.GeneralAnnouncement': 'Obaveštenje',
+  'notificationType.DocumentExpiring': 'Dokument',
+  'notificationType.TaskAssigned': 'Zadatak',
+  'notificationType.DefectAssigned': 'Nedostatak',
+  'notificationType.WorkItemDue': 'Rok',
 };

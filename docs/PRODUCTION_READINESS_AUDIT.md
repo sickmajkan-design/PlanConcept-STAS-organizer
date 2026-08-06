@@ -278,9 +278,9 @@ proves stock cannot be oversold.
    `docs/ARCHITECTURE.md:352` describe them as part of the admin suite — the
    documentation currently overstates what is committed.
 
-Integration coverage is also missing for Employees, Projects, Vehicles,
-Locations and Notifications — four of the eight modules have no handler-level
-tests.
+Integration coverage is also missing for Employees, Projects, Vehicles and
+Locations. Notifications has since been covered (`NotificationTests`: the
+announcement audience filters, the per-user inbox, mark-read ownership).
 
 ---
 
@@ -466,8 +466,8 @@ projects. Currently they see everything.
 - **M2.** Move email and push out of the request path onto a queue with retry.
 - **M3.** Validate `EmailSettings`, `FirebaseSettings` and CORS origins at
   startup, the way `JwtSettings` already is.
-- **M4.** Integration tests for the four uncovered modules (Employees,
-  Projects, Vehicles, Locations, Notifications).
+- **M4.** Integration tests for the still-uncovered modules (Employees,
+  Projects, Vehicles, Locations). Notifications is done.
 - **M5.** Audit trail — who changed what and when. Expected in workforce
   systems and hard to add retroactively.
 - **M6.** Security headers (CSP, `X-Content-Type-Options`, `Referrer-Policy`),
