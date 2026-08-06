@@ -101,7 +101,7 @@ cd src/construction_admin && npm run build     # admin: type-check + bundle
 | Suite | Covers |
 |---|---|
 | `tests/Construction.UnitTests` | Password hashing, JWT claims and expiry, token hashing, every module's validation rules, pagination arithmetic, and which failures reach the error log. No database. |
-| `tests/Construction.IntegrationTests` | Real handlers over a throwaway PostgreSQL database: refresh-token rotation and reuse detection, soft delete with identifier reuse, atomic stock adjustment under concurrency, tool assignment. |
+| `tests/Construction.IntegrationTests` | Real handlers over a throwaway PostgreSQL database: refresh-token rotation and reuse detection, soft delete with identifier reuse, atomic stock adjustment under concurrency, tool assignment. Also hosts the real API in-process and drives every endpoint over HTTP as each of the five roles, so the `[Authorize]` policies are asserted rather than assumed. |
 | `src/construction_mobile/test` | Validators, error mapping, model parsing, the exact requests each repository puts on the wire, and widget tests driving the real router. |
 | `src/construction_admin` | `tsc -b` type-checking and `oxlint`. **No automated tests yet** — see the gap noted below. |
 

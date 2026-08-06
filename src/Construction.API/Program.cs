@@ -135,3 +135,16 @@ finally
 {
     await Log.CloseAndFlushAsync();
 }
+
+/// <summary>
+/// Named so the tests can host this exact application.
+/// </summary>
+/// <remarks>
+/// A file of top-level statements compiles to an internal <c>Program</c> class,
+/// which <c>WebApplicationFactory&lt;T&gt;</c> cannot reach. Declaring it here
+/// makes it public without changing a line of the startup above — and the
+/// point of the HTTP tests is that they run the real pipeline, authentication
+/// and authorization included, rather than a second copy of it assembled in a
+/// test.
+/// </remarks>
+public partial class Program;

@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="ClosedXML" Version="0.105.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.7" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.7" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="xunit" Version="2.9.3" />
@@ -19,6 +20,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Construction.Application\Construction.Application.csproj" />
     <ProjectReference Include="..\..\src\Construction.Infrastructure\Construction.Infrastructure.csproj" />
+    <!-- The HTTP tests host the real API, policies and middleware included. -->
+    <ProjectReference Include="..\..\src\Construction.API\Construction.API.csproj" />
   </ItemGroup>
 
   <ItemGroup>

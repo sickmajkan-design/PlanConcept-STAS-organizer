@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Npgsql;
 
 namespace Construction.IntegrationTests;
 
@@ -14,33 +13,16 @@ namespace Construction.IntegrationTests;
 /// Spins up a throwaway PostgreSQL database for the test run, applies the real
 /// migrations to it, and builds the same dependency graph the API uses.
 ///
-/// PostgreSQL rather than an in-memory provider on purpose: the behaviour worth
-/// testing here is PostgreSQL-specific — filtered unique indexes that let a
-/// soft-deleted identifier be reused, a check constraint on stock quantity, and
-/// a conditional UPDATE that must be atomic under concurrency. An in-memory
-/// provider would pass these tests while the real database failed.
-///
-/// Point it at a server with <c>ConstructionTests__Postgres</c>, e.g.
-/// <c>Host=localhost;Port=5432;Username=postgres;Password=postgres</c>.
+/// The handlers are reached through MediatR rather than over HTTP, so this
+/// fixture stops at the application layer. What sits above it — the
+/// <c>[Authorize]</c> policies, model binding, the exception middleware's
+/// status codes — is covered by <see cref="ApiFixture"/> instead.
 /// </summary>
 public sealed class DatabaseFixture : IAsyncLifetime
 {
-    private const string EnvironmentVariable = "ConstructionTests__Postgres";
-
-    private const string DefaultAdminConnectionString =
-        "Host=localhost;Port=5432;Username=postgres;Password=postgres";
-
-    private readonly string _databaseName =
-        $"construction_test_{Guid.NewGuid():N}";
+    private readonly TestDatabase _database = new();
 
     private ServiceProvider _services = null!;
-
-    public string AdminConnectionString { get; } =
-        Environment.GetEnvironmentVariable(EnvironmentVariable) ?? DefaultAdminConnectionString;
-
-    private string TestConnectionString =>
-        new NpgsqlConnectionStringBuilder(AdminConnectionString) { Database = _databaseName }
-            .ConnectionString;
 
     /// <summary>Throwaway directory backing file storage for this run.</summary>
     public string StorageRoot { get; } = Path.Combine(
@@ -48,7 +30,7 @@ public sealed class DatabaseFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        await CreateDatabaseAsync();
+        await _database.CreateAsync();
 
         _services = BuildServiceProvider();
 
@@ -66,15 +48,7 @@ public sealed class DatabaseFixture : IAsyncLifetime
             Directory.Delete(StorageRoot, recursive: true);
         }
 
-        // Pooled connections would keep the database busy and block the drop.
-        NpgsqlConnection.ClearAllPools();
-
-        await using var connection = new NpgsqlConnection(MaintenanceConnectionString());
-        await connection.OpenAsync();
-
-        await using var drop = new NpgsqlCommand(
-            $"DROP DATABASE IF EXISTS \"{_databaseName}\" WITH (FORCE)", connection);
-        await drop.ExecuteNonQueryAsync();
+        await _database.DropAsync();
     }
 
     /// <summary>
@@ -82,38 +56,12 @@ public sealed class DatabaseFixture : IAsyncLifetime
     /// </summary>
     public TestScope CreateScope() => new(_services.CreateScope());
 
-    private string MaintenanceConnectionString() =>
-        new NpgsqlConnectionStringBuilder(AdminConnectionString) { Database = "postgres" }
-            .ConnectionString;
-
-    private async Task CreateDatabaseAsync()
-    {
-        try
-        {
-            await using var connection = new NpgsqlConnection(MaintenanceConnectionString());
-            await connection.OpenAsync();
-
-            await using var create = new NpgsqlCommand(
-                $"CREATE DATABASE \"{_databaseName}\"", connection);
-            await create.ExecuteNonQueryAsync();
-        }
-        catch (NpgsqlException exception)
-        {
-            throw new InvalidOperationException(
-                "These integration tests need a reachable PostgreSQL server. Start one " +
-                "(docker compose up postgres) or point the tests at another server with " +
-                $"the {EnvironmentVariable} environment variable. Tried: " +
-                $"{new NpgsqlConnectionStringBuilder(AdminConnectionString) { Password = "***" }.ConnectionString}",
-                exception);
-        }
-    }
-
     private ServiceProvider BuildServiceProvider()
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:DefaultConnection"] = TestConnectionString,
+                ["ConnectionStrings:DefaultConnection"] = _database.ConnectionString,
                 ["JwtSettings:Issuer"] = "construction-api-tests",
                 ["JwtSettings:Audience"] = "construction-clients-tests",
                 ["JwtSettings:SecretKey"] = "integration-test-signing-key-at-least-32-chars",

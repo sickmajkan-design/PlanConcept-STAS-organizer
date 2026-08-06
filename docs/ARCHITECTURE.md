@@ -530,6 +530,17 @@ one earns its cost:
   database that actually serialises writers. An in-memory suite would report
   green while production broke.
 
+  Those tests reach handlers through MediatR with the current user set
+  directly, which proves what a handler does but never that it was allowed to
+  run. So the same project also hosts the real API in-process
+  (`ApiFixture`/`ApiAuthorizationTests`) and drives every endpoint over HTTP
+  with a real bearer token for each of the five roles. Refused roles must get
+  403, admitted roles must not be refused, anonymous must get 401 — a table of
+  around ninety endpoints, kept affordable by the fact that authorization
+  answers before validation does, so no request needs a valid body or a real
+  id. Without it, an action that lost its `[Authorize]` attribute in a merge
+  would ship green.
+
 The clients are not covered equally. The mobile app has a real suite
 (`flutter test`); the admin app has only `tsc -b` and `oxlint` — its behaviour
 has been verified end to end with a Playwright script run against a live API,

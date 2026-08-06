@@ -409,9 +409,21 @@ not in the repository. Commit the Playwright suite, add it to CI, add
 component tests for the five CRUD sections and the auth flow. Correct the two
 documentation claims that currently overstate coverage.
 
-**H2. No authorization tests.** Add HTTP-level tests
-(`WebApplicationFactory`) asserting every endpoint's role policy, plus the
-401/403/429 paths. The security model is currently unverified by CI.
+**H2. No authorization tests.** — **done.** `ApiAuthorizationTests` hosts the
+real API through `WebApplicationFactory` and drives every endpoint with a real
+bearer token for each of the five roles: refused roles must get 403, admitted
+roles must not be refused, and anonymous must get 401. Bodies are deliberately
+invalid, because authorization answers before validation does — which is what
+makes covering the whole surface affordable.
+
+Two gaps remain, both deliberate and both recorded in the test file. The
+credential-throttled endpoints (login, forgot-password, reset-password) are out
+of the matrix, since the rate limiter runs before authentication and would
+answer 429 to the very requests under test; they stay with
+`LoginHardeningTests`. And a deactivated account keeps its access token until
+it expires — up to fifteen minutes — because nothing re-checks the account per
+request. That is now asserted rather than assumed, so it is a decision instead
+of a surprise.
 
 **H3. Centralised logging, metrics and alerting.** File logs in an ephemeral
 container are effectively no logs. Ship to an aggregator, expose metrics,
