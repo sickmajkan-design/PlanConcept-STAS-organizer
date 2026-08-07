@@ -68,7 +68,7 @@ the repository:
 | `EmailSettings__Host`, `__Port`, `__Username`, `__Password` | SMTP for password-reset emails |
 | `Firebase__CredentialsPath` or `Firebase__CredentialsJson` | FCM service-account for push notifications |
 | `ClientApp__PasswordResetUrl` | Admin-app page that completes password reset |
-| `Cors__AllowedOrigins__0…` | Allowed browser origins |
+| `Cors__AllowedOrigins__0…` | Allowed browser origins, written `https://host` — no trailing slash. Validated on start. |
 | `Auth__RefreshCookie__SameSite` | `Strict` (default), `Lax` or `None`. See below. |
 | `Auth__RefreshCookie__Domain` | Blank scopes the cookie to the API host; set it to share across subdomains. |
 | `Retention__LocationRecordDays` | Days of GPS history kept (default 180; `0` keeps everything) |

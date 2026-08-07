@@ -214,7 +214,7 @@ administrator can lock everyone out and the only repair is database access.
 - [ ] `.env` present and git-ignored; confirm `.env.example` contains no real secret
 - [ ] `ASPNETCORE_ENVIRONMENT=Production` (this is what enables the startup checks, HSTS and HTTPS redirection, and disables Swagger)
 - [ ] `Database__ApplyMigrationsOnStartup=false`; migrations run as a deploy step
-- [ ] `Cors__AllowedOrigins__0` set to the admin panel's real origin — never `*`
+- [ ] `Cors__AllowedOrigins__0` set to the admin panel's real origin — never `*`, and written exactly as the browser sends it: `https://admin.example.com`, with no trailing slash and no path. The API refuses to start on anything else, and says what to write instead.
 - [ ] `ClientApp__PasswordResetUrl` is an HTTPS URL on the real domain
 - [ ] SMTP configured, or `EmailSettings__AllowUnconfigured=true` set as a conscious decision
 - [ ] `Network__TrustedProxies` set to the reverse proxy's address — and **left empty if there is no proxy**

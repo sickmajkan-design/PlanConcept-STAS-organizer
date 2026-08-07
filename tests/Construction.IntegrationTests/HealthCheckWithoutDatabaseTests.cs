@@ -26,6 +26,7 @@ namespace Construction.IntegrationTests;
 /// restart loop.
 /// </para>
 /// </remarks>
+[Collection(StandaloneHostCollection.Name)]
 public class HealthCheckWithoutDatabaseTests : IAsyncLifetime
 {
     private WebApplicationFactory<Program> _factory = null!;

@@ -86,9 +86,10 @@ try
 
     builder.Services.AddApplicationHealthChecks();
 
-    var corsOrigins = builder.Configuration
-        .GetSection("Cors:AllowedOrigins")
-        .Get<string[]>() ?? [];
+    // Throws on an origin the browser could never match — a trailing slash is
+    // the usual one, and it fails invisibly: the policy loads, the panel is
+    // refused, and the server log says nothing.
+    var corsOrigins = CorsOrigins.ReadAndValidate(builder.Configuration);
 
     builder.Services.AddCors(options =>
     {

@@ -126,11 +126,13 @@ The strongest part of the project.
 - ~~**Email is sent inside the HTTP request.**~~ `ForgotPasswordCommand` now
   queues it. Push was moved off the request path at the same time. Neither had
   any retry before; both now back off and eventually dead-letter.
-- **`EmailSettings` and `FirebaseSettings` are bound without validation**
-  (`DependencyInjection.cs:74-79`), unlike `JwtSettings` which uses
-  `ValidateOnStart`. Misconfiguration is silent. See Critical #2.
-- Empty-string connection string passes the null guard and fails later with an
-  opaque Npgsql error.
+- ~~**`EmailSettings` and `FirebaseSettings` are bound without validation**~~
+  Both now use `AddOptions().Validate().ValidateOnStart()`, like `JwtSettings`.
+  The checks are gated on the feature being configured at all, so a machine
+  with no SMTP still starts.
+- ~~Empty-string connection string passes the null guard and fails later with an
+  opaque Npgsql error.~~ Guarded with `IsNullOrWhiteSpace`, and the message
+  names `ConnectionStrings__DefaultConnection`.
 
 ---
 
@@ -559,7 +561,15 @@ projects. Currently they see everything.
   lease, so replicas cannot double-send and a worker that dies mid-send strands
   nothing.
 - **M3.** Validate `EmailSettings`, `FirebaseSettings` and CORS origins at
-  startup, the way `JwtSettings` already is.
+  startup, the way `JwtSettings` already is — **done.** Email and Firebase now
+  validate on start (port range, sender address, credentials given one way not
+  two, path exists, JSON parses), gated on the feature being configured so a
+  developer machine is unaffected. The connection string is checked for
+  whitespace rather than null. CORS origins are checked for *shape*: a trailing
+  slash, a path or an explicitly written default port makes an origin that can
+  never match the browser's `Origin` header, and the old behaviour was to load
+  the policy, refuse the admin panel, and log nothing. The rules are asserted
+  against `CorsService` itself rather than against a restatement of it.
 - **M4.** Integration tests for the still-uncovered modules (Employees,
   Projects, Vehicles, Locations). Notifications is done.
 - **M5.** Audit trail — who changed what and when. Expected in workforce

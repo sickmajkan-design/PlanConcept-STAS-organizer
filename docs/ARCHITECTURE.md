@@ -548,6 +548,16 @@ one earns its cost:
   id. Without it, an action that lost its `[Authorize]` attribute in a merge
   would ship green.
 
+  A few tests are about startup itself rather than about a running
+  application — an unreachable database, a malformed CORS origin — so they host
+  their own copy of the API instead of sharing `ApiFixture`. They sit in the
+  `standalone-host` collection with parallelization disabled, because
+  `WebApplicationFactory` catches a top-level-statements `Program` through a
+  process-wide diagnostic listener: two of them building at once can each pick
+  up the other's host, which surfaces as "The entry point exited without ever
+  building an IHost" in whichever one lost, with nothing wrong in the code under
+  test.
+
 Both clients now have suites, drawn along the same line: the layer where a
 mistake is silent.
 
@@ -828,3 +838,59 @@ success and be wrong in whatever way v9 was meant to differ.
 The health probes are deliberately outside all of this. An orchestrator's probe
 URL should not change when the API does, and a probe is not part of the
 contract a client codes against.
+
+## Configuration that fails fast
+
+The rule: a setting that is wrong should stop the process at startup, with a
+message naming the setting and what to put in it. The alternative is not "it
+works anyway" — it is a failure that surfaces later, somewhere unrelated, to
+somebody who has no reason to suspect configuration.
+
+`JwtSettings` has always validated this way. Three more now do.
+
+**Email and Firebase** are bound through `AddOptions().Validate().ValidateOnStart()`
+rather than `Configure()`. SMTP port must be a port; `FromAddress` must parse as
+an address, because a rejected envelope sender means every message bounces while
+the outbox records the send as attempted. Firebase credentials may be given as a
+path or as raw JSON but not both — which one wins is an implementation detail
+nobody should have to know, and the loser is usually the one just changed — the
+path must exist, and the JSON must parse as an object, since a service-account
+key pasted into an environment variable is easily truncated or shell-mangled.
+
+Every one of these checks is gated on the feature being configured at all.
+Leaving SMTP unset is the normal case on a developer machine; validation that
+fired on an unset feature would become something to work around rather than
+something to keep. A deployment that needs email is caught separately, by
+`ValidateProductionConfiguration`.
+
+**The connection string** is checked with `IsNullOrWhiteSpace`, not against
+null. An empty environment variable is set as far as the binder is concerned,
+and the failure then arrives from inside Npgsql as a complaint about a missing
+host — which sends whoever is reading it to look at the database rather than at
+the variable nobody set.
+
+**CORS origins** are checked for shape, and this is the one worth explaining.
+An origin is matched against the browser's `Origin` header by string
+comparison, and that header is always exactly `scheme://host[:port]`. A
+configured `https://admin.example.com/` — with the trailing slash the address
+bar shows, and that every other URL setting in the file wants — does not throw
+and does not warn. It simply never matches. The symptom is an admin panel that
+cannot reach the API, an error in the browser console, and nothing at all in
+the server log, because as far as the server is concerned the policy loaded
+fine. `CorsOrigins.Describe` rejects a trailing slash, a path, a query, a
+fragment, an explicitly written default port, credentials in the URL, and a
+wildcard (which cannot be combined with `AllowCredentials`), and the message
+names the exact string that would have worked.
+
+Two deliberate exceptions. A host in capitals is accepted, because `Uri`
+lowercases it and it genuinely does match — rejecting it would be a startup
+failure with nothing behind it. And an empty origin list is a warning, not a
+failure: an API with no browser client in front of it is a real deployment.
+Empty is different from malformed.
+
+This one validates in every environment, not only outside development. A
+malformed origin is never intentional, and finding out locally is the point.
+
+The rules are tested against `CorsService` itself rather than against a
+restatement of what it is believed to do, so if ASP.NET Core ever starts
+normalising these away the test fails and the validator can be relaxed.

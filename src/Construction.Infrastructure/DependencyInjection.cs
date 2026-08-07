@@ -29,9 +29,18 @@ public static class DependencyInjection
 
     private static void AddPersistence(IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException(
-                "Connection string 'DefaultConnection' is not configured.");
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+        // Whitespace, not just null. An empty string passes a null guard and
+        // then fails somewhere inside Npgsql with a message about a missing
+        // host — which sends whoever is reading it looking at the database
+        // rather than at the environment variable nobody set.
+        if (string.IsNullOrWhiteSpace(connectionString))
+        {
+            throw new InvalidOperationException(
+                "Connection string 'DefaultConnection' is not configured. Set "
+                + "ConnectionStrings__DefaultConnection.");
+        }
 
         services.AddSingleton<AuditableEntityInterceptor>();
         services.AddSingleton<SoftDeleteInterceptor>();
@@ -76,13 +85,69 @@ public static class DependencyInjection
         // Stateless: it turns a value object into bytes and holds nothing.
         services.AddSingleton<ISpreadsheetWriter, ClosedXmlSpreadsheetWriter>();
 
-        services.Configure<EmailSettings>(configuration.GetSection(EmailSettings.SectionName));
+        // Validated on start, like JwtSettings. These used to be bound and
+        // forgotten, so a wrong port or an unreadable credential file was
+        // discovered at the moment somebody needed the feature — which for
+        // email means a password reset that is accepted, logged as sent, and
+        // never delivered.
+        //
+        // The checks only fire when the feature is configured at all. Leaving
+        // SMTP unset is the normal case on a developer machine, and is caught
+        // separately at startup for a deployment.
+        services.AddOptions<EmailSettings>()
+            .Bind(configuration.GetSection(EmailSettings.SectionName))
+            .Validate(
+                s => !s.IsConfigured || s.Port is > 0 and <= 65535,
+                "EmailSettings:Port must be between 1 and 65535.")
+            .Validate(
+                s => !s.IsConfigured || IsEmailAddress(s.FromAddress),
+                "EmailSettings:FromAddress must be a valid email address; mail servers reject the message otherwise.")
+            .ValidateOnStart();
+
         services.AddScoped<IEmailSender, SmtpEmailSender>();
 
-        services.Configure<FirebaseSettings>(configuration.GetSection(FirebaseSettings.SectionName));
+        services.AddOptions<FirebaseSettings>()
+            .Bind(configuration.GetSection(FirebaseSettings.SectionName))
+            .Validate(
+                s => string.IsNullOrWhiteSpace(s.CredentialsPath)
+                    || string.IsNullOrWhiteSpace(s.CredentialsJson),
+                "Firebase:CredentialsPath and Firebase:CredentialsJson are alternatives; set one, not both.")
+            .Validate(
+                s => string.IsNullOrWhiteSpace(s.CredentialsPath) || File.Exists(s.CredentialsPath),
+                "Firebase:CredentialsPath points at a file that does not exist.")
+            .Validate(
+                s => string.IsNullOrWhiteSpace(s.CredentialsJson) || IsJsonObject(s.CredentialsJson),
+                "Firebase:CredentialsJson is not valid JSON. A service-account key pasted into an environment variable is easily truncated or shell-mangled.")
+            .ValidateOnStart();
+
         services.AddSingleton<IPushSender, FcmPushSender>();
 
         AddFileStorage(services, configuration);
+    }
+
+    /// <summary>
+    /// Good enough to catch a typo, not an attempt at RFC 5321.
+    /// </summary>
+    /// <remarks>
+    /// The point is to fail on "no-reply" or "no-reply@" at startup rather
+    /// than on the first password reset. Anything stricter rejects addresses
+    /// that are legal and in use.
+    /// </remarks>
+    private static bool IsEmailAddress(string? value) =>
+        !string.IsNullOrWhiteSpace(value)
+        && System.Net.Mail.MailAddress.TryCreate(value, out _);
+
+    private static bool IsJsonObject(string value)
+    {
+        try
+        {
+            using var document = System.Text.Json.JsonDocument.Parse(value);
+            return document.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object;
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            return false;
+        }
     }
 
     /// <summary>
