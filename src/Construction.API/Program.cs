@@ -45,9 +45,14 @@ try
 
     builder.Services.AddTrustedProxyForwarding(builder.Configuration);
 
-    // The product's recurring job. Safe to run on every replica — each sweep
-    // claims a row before notifying, so nobody is told twice.
+    // The product's recurring jobs. Both are safe to run on every replica: the
+    // reminder sweep claims a row before notifying, so nobody is told twice,
+    // and a deleted row cannot be deleted again.
     builder.Services.AddHostedService<DailyReminderService>();
+
+    builder.Services.Configure<RetentionSettings>(
+        builder.Configuration.GetSection(RetentionSettings.SectionName));
+    builder.Services.AddHostedService<DataRetentionService>();
 
     builder.Services
         .AddHealthChecks()

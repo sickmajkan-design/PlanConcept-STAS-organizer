@@ -57,6 +57,14 @@ the repository:
 | `Firebase__CredentialsPath` or `Firebase__CredentialsJson` | FCM service-account for push notifications |
 | `ClientApp__PasswordResetUrl` | Admin-app page that completes password reset |
 | `Cors__AllowedOrigins__0…` | Allowed browser origins |
+| `Retention__LocationRecordDays` | Days of GPS history kept (default 180; `0` keeps everything) |
+
+The retention defaults purge, so a deployment that sets none of the `Retention`
+values still bounds its own growth. `Retention__LocationRecordDays` is the one
+worth a decision: a minute-by-minute record of where an employee was is
+personal data, and at one ping a minute per person the table grows by roughly a
+million rows a month per hundred workers. Setting it to `0` keeps everything
+and logs a warning at startup saying so.
 
 Note: AutoMapper ≥ 15 is dual-licensed (free for smaller organizations,
 commercial license otherwise) — review licensing for your deployment, or pin

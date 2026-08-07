@@ -75,16 +75,18 @@ public sealed class ApiFixture : IAsyncLifetime
 
                 builder.ConfigureServices(services =>
                 {
-                    // Just this one, not every hosted service: the web host
-                    // itself is registered as one, and removing the lot would
-                    // leave nothing listening. A reminder sweep firing
-                    // mid-test would write rows no test asked for.
-                    var reminders = services.SingleOrDefault(descriptor =>
-                        descriptor.ImplementationType == typeof(DailyReminderService));
-
-                    if (reminders is not null)
+                    // The product's own timers, not every hosted service: the
+                    // web host itself is registered as one, and removing the
+                    // lot would leave nothing listening. A reminder sweep
+                    // firing mid-test would write rows no test asked for, and
+                    // a retention sweep would delete rows one was using.
+                    foreach (var timer in services
+                        .Where(descriptor =>
+                            descriptor.ImplementationType == typeof(DailyReminderService) ||
+                            descriptor.ImplementationType == typeof(DataRetentionService))
+                        .ToList())
                     {
-                        services.Remove(reminders);
+                        services.Remove(timer);
                     }
 
                     services.AddLogging(logging => logging.SetMinimumLevel(LogLevel.Warning));

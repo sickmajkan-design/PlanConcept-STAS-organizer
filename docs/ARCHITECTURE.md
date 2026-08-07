@@ -591,3 +591,37 @@ CI runs all of it on every push.
   recipient count, which the screen shows: an announcement whose audience
   filter matched nobody is otherwise indistinguishable from one that reached
   the whole company.
+
+## Recurring jobs
+
+Two `BackgroundService` timers in the API, and deliberately no job framework:
+the product has two recurring jobs, and a scheduler would bring a schema, a
+dashboard and an operational surface that together outweigh the jobs it runs.
+Both are safe on every replica, which is the property that makes the simple
+option viable.
+
+- **`DailyReminderService`** — documents about to lapse, work about to fall
+  due. Each sweep claims a row with a conditional update before notifying, so
+  a second instance finds nothing left to claim rather than telling anyone
+  twice.
+
+- **`DataRetentionService`** — deletes what the system has finished with, every
+  six hours. Nothing to claim: a deleted row cannot be deleted again, so
+  concurrent sweeps either take disjoint sets or find the rows already gone.
+
+  Each batch is one `DELETE` bounded by `LIMIT` (`Take` before
+  `ExecuteDelete`), capped at twenty per table per sweep. The bound is the
+  whole design. An unbounded delete over a year of GPS pings would hold locks
+  and a transaction open for minutes, block autovacuum on the table it was
+  bloating, and roll everything back if interrupted; batched, an interrupted
+  sweep has still made progress and the next one carries on. That `Take`
+  actually reaches PostgreSQL as a `LIMIT` rather than being ignored is
+  asserted by a test, because the failure would be silent and total.
+
+  Retention windows come from the `Retention` configuration section.
+  `LocationRecordDays` defaults to 180; setting it to 0 keeps everything and
+  logs a warning at startup saying so. Refresh tokens are kept for a grace
+  period *past their own expiry* rather than deleted when revoked — rotation
+  leaves the old row behind on purpose, because presenting it again is how a
+  stolen token is detected, and deleting it would turn that signal into an
+  ordinary unknown token.

@@ -115,9 +115,12 @@ The strongest part of the project.
   Once the mobile app is in an app store you cannot force everyone to update,
   so the first breaking change has nowhere to go. This is cheap now and
   expensive later — it belongs in 1.0.
-- **No background jobs at all.** No `IHostedService` anywhere. Consequences:
-  expired refresh tokens and password-reset tokens are never purged;
-  `location_records` is never pruned; email and push have no retry.
+- ~~**No background jobs at all.**~~ Two now exist: `DailyReminderService`
+  (documents about to lapse, work about to fall due) and
+  `DataRetentionService` (spent tokens, old GPS pings). Both are plain
+  `BackgroundService` timers rather than a job framework, and both are safe on
+  every replica — the reminder sweep claims each row before notifying, and a
+  deleted row cannot be deleted twice. Email and push still have no retry (M2).
 - **Email is sent inside the HTTP request** (`ForgotPasswordCommand`). A slow
   or hung SMTP server blocks a request thread — MailKit's default timeout is
   two minutes.
@@ -140,11 +143,12 @@ foreign key and every filtered/sorted column.
 
 **Issues:**
 
-- **`location_records` grows without bound.** One ping per employee per minute
-  is ~1M rows/month for 100 workers, ~12M/year. Reads stay fast; backups,
-  restore time, disk and vacuum do not. Needs a retention window or monthly
-  partitioning **before** go-live, because retrofitting partitioning onto a
-  large live table is a maintenance window, not a migration.
+- ~~**`location_records` grows without bound.**~~ It now has a retention
+  window: 180 days by default, swept every six hours in `LIMIT`-bounded
+  batches. At one ping a minute per person that holds the table to roughly six
+  million rows for a hundred workers rather than growing by twelve million a
+  year. Monthly partitioning is still the answer an order of magnitude further
+  out, and is still cheaper to adopt before the table is large than after.
 - **One migration in the entire history** (`InitialCreate`). The schema has
   never been evolved incrementally, so the team has never exercised the
   process that every future change depends on. No down-migration has been
@@ -444,8 +448,17 @@ add uptime and error-rate alerts, and add error tracking to both clients.
 **H4. Split `/health` into liveness and readiness.** A database blip should
 not cause a restart loop.
 
-**H5. `location_records` retention or partitioning.** Must land before
-production data accumulates. Ties directly to C7.
+**H5. `location_records` retention or partitioning.** — **retention done,
+partitioning still open.** `DataRetentionService` sweeps every six hours and
+deletes pings older than `Retention:LocationRecordDays`, which ships at 180.
+Deletes are batched (`LIMIT`-bounded statements, capped per sweep) so one run
+cannot hold a lock over a year of rows, and an interrupted run has still made
+progress. Setting the value to 0 keeps everything and logs a warning at startup
+saying so.
+
+Partitioning remains the answer at a much larger scale, and is still cheaper to
+adopt before the table is large than after. Retention removes the immediate
+backup, restore-time and disk problem, and the data-protection one behind it.
 
 **H6. Account lockout / progressive delays** on repeated failed logins, and
 **close the login timing oracle** (`LoginCommand.cs:60-66` short-circuits
@@ -485,8 +498,11 @@ projects. Currently they see everything.
 
 ## MEDIUM PRIORITY — maintainability and robustness
 
-- **M1.** Background service for cleanup: expired refresh tokens, used reset
-  tokens, old location records.
+- **M1.** Background service for cleanup — **done.** `DataRetentionService`
+  purges all three. Refresh tokens are kept for a grace period *past their own
+  expiry* rather than deleted when revoked: rotation leaves the old row behind
+  on purpose, because presenting it again is how a stolen token is detected,
+  and deleting it would turn a theft signal into an ordinary unknown token.
 - **M2.** Move email and push out of the request path onto a queue with retry.
 - **M3.** Validate `EmailSettings`, `FirebaseSettings` and CORS origins at
   startup, the way `JwtSettings` already is.
