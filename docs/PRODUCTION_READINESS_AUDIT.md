@@ -73,10 +73,11 @@ onto shared `useListQueryState` / `ResourceDataGrid` / `useDeleteWithConfirm`.
   Testing Library, no Playwright. `npm run lint` is oxlint only. CI runs lint +
   build. A regression in any of the 5 CRUD sections, the login flow, or the
   role gating would reach the client.
-- **Session in `localStorage`** (`src/api/session.ts:16`). The 7-day refresh
-  token is readable by any script on the page. One XSS — from a dependency, a
-  future rich-text field, an injected map widget — is a persistent account
-  takeover, not a session-length one.
+- ~~**Session in `localStorage`.**~~ The refresh token is now an `HttpOnly`,
+  `SameSite=Strict` cookie scoped to `/api/auth`, and the API omits it from the
+  response body when the client asks for cookie delivery — so it never passes
+  through anything script can read. Only the access token remains in
+  `localStorage`, which is accepted: fifteen minutes, rotated on every refresh.
 - **Bundle: 409 kB main chunk + 471 kB shared chunk** (127/138 kB gzipped).
   Acceptable on office broadband, sluggish on a site tablet over 4G.
 - **No error boundary** — a render error in one page blanks the whole app.
@@ -488,8 +489,24 @@ backup, restore-time and disk problem, and the data-protection one behind it.
 **close the login timing oracle** (`LoginCommand.cs:60-66` short-circuits
 password verification for unknown emails, making them measurably faster).
 
-**H7. Move the admin refresh token out of `localStorage`** to an httpOnly,
-`Secure`, `SameSite` cookie.
+**H7. Move the admin refresh token out of `localStorage`** — **done.** A client
+sends `X-Auth-Mode: cookie` on sign-in and refresh; the API replies with an
+`HttpOnly`, `SameSite=Strict` cookie scoped to `/api/auth`, `Secure` when the
+request arrived over HTTPS, and an **empty** `refreshToken` in the body. That
+last part is the point — a cookie that merely duplicates something already
+readable by script is not a mitigation.
+
+The mobile app sends no such header and still receives the token in the body:
+it has platform secure storage and no cookie jar, and the delivery is chosen
+per request rather than guessed from a user agent.
+
+`SameSite=Strict` makes the cookie its own CSRF defence and works when the API
+and the panel share a registrable domain — `api.example.com` and
+`admin.example.com` are same-site though not same-origin. A genuinely
+cross-domain deployment needs `SameSite=None`, which requires HTTPS, re-opens
+CSRF, and is being blocked by browsers as a third-party cookie; putting the two
+on one domain is the better fix. Configurable under `Auth:RefreshCookie` and
+documented there.
 
 **H8. API versioning** (`/api/v1/…`). Cheap now; a breaking change against
 installed mobile apps is very expensive later.

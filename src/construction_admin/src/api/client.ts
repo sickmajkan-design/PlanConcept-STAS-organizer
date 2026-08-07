@@ -25,18 +25,34 @@ const isAnonymous = (url = ''): boolean =>
   ANONYMOUS_PATHS.some((path) => url.includes(path));
 
 /**
+ * Sent on sign-in and refresh to ask the API for a cookie.
+ *
+ * The API answers by setting an `HttpOnly` refresh cookie and returning an
+ * empty `refreshToken` in the body, so the credential never passes through
+ * anything a script on this page can read. The mobile app sends no such
+ * header and keeps receiving the token in the body, where its platform secure
+ * storage can hold it.
+ */
+export const cookieAuthHeaders = { 'X-Auth-Mode': 'cookie' } as const;
+
+/**
+ * `withCredentials` on both clients: without it the browser neither stores the
+ * refresh cookie nor sends it back on a cross-origin call, and the session
+ * would silently end after fifteen minutes with no way to renew it.
+ */
+const clientOptions = {
+  baseURL: config.apiBaseUrl,
+  timeout: 20_000,
+  withCredentials: true,
+};
+
+/**
  * Plain client used for refreshing and for replaying a request afterwards,
  * so neither can re-enter the auth interceptor.
  */
-const plainClient = axios.create({
-  baseURL: config.apiBaseUrl,
-  timeout: 20_000,
-});
+const plainClient = axios.create(clientOptions);
 
-export const apiClient = axios.create({
-  baseURL: config.apiBaseUrl,
-  timeout: 20_000,
-});
+export const apiClient = axios.create(clientOptions);
 
 /** Notified when the session cannot be recovered, so the app can sign out. */
 let onSessionLost: (() => void) | undefined;
@@ -59,9 +75,13 @@ async function performRefresh(): Promise<Session | null> {
   }
 
   try {
-    const { data } = await plainClient.post<AuthResponse>('/api/auth/refresh', {
-      refreshToken: current.refreshToken,
-    });
+    // No token in the body — the browser holds it in a cookie it cannot read,
+    // and sends it because of `withCredentials`.
+    const { data } = await plainClient.post<AuthResponse>(
+      '/api/auth/refresh',
+      {},
+      { headers: cookieAuthHeaders },
+    );
 
     const refreshed = sessionFromAuthResponse(data);
     sessionStore.write(refreshed);

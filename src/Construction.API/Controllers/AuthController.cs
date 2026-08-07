@@ -6,6 +6,7 @@ using Construction.Application.Features.Authentication.Commands.RefreshToken;
 using Construction.Application.Features.Authentication.Commands.ResetPassword;
 using Construction.Application.Features.Authentication.Models;
 using Construction.Application.Features.Authentication.Queries.GetCurrentUser;
+using Construction.API.Authentication;
 using Construction.API.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,6 +16,9 @@ namespace Construction.API.Controllers;
 
 public class AuthController : ApiControllerBase
 {
+    private RefreshTokenCookie Cookie =>
+        HttpContext.RequestServices.GetRequiredService<RefreshTokenCookie>();
+
     /// <summary>Authenticates a user and returns an access/refresh token pair.</summary>
     [HttpPost("login")]
     [EnableRateLimiting(RateLimitingExtensions.CredentialsPolicy)]
@@ -27,7 +31,8 @@ public class AuthController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         var response = await Mediator.Send(command with { IpAddress = ClientIpAddress }, cancellationToken);
-        return Ok(response);
+
+        return Ok(IssueCookieIfAsked(response));
     }
 
     /// <summary>Rotates the refresh token and returns a fresh token pair.</summary>
@@ -36,11 +41,20 @@ public class AuthController : ApiControllerBase
     [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<AuthResponse>> Refresh(
-        RefreshTokenCommand command,
+        TokenRequest? request,
         CancellationToken cancellationToken)
     {
-        var response = await Mediator.Send(command with { IpAddress = ClientIpAddress }, cancellationToken);
-        return Ok(response);
+        var response = await Mediator.Send(
+            new RefreshTokenCommand
+            {
+                // A browser sends nothing in the body; the token it holds is
+                // in a cookie it cannot read.
+                RefreshToken = Cookie.Read(HttpContext, request?.RefreshToken)!,
+                IpAddress = ClientIpAddress,
+            },
+            cancellationToken);
+
+        return Ok(IssueCookieIfAsked(response));
     }
 
     /// <summary>Revokes the presented refresh token, ending the session.</summary>
@@ -48,10 +62,22 @@ public class AuthController : ApiControllerBase
     [Authorize]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Logout(
-        LogoutCommand command,
+        TokenRequest? request,
         CancellationToken cancellationToken)
     {
-        await Mediator.Send(command with { IpAddress = ClientIpAddress }, cancellationToken);
+        await Mediator.Send(
+            new LogoutCommand
+            {
+                RefreshToken = Cookie.Read(HttpContext, request?.RefreshToken)!,
+                IpAddress = ClientIpAddress,
+            },
+            cancellationToken);
+
+        // Unconditionally, not only in cookie mode: signing out has to leave
+        // nothing behind, and a client that switched modes mid-session would
+        // otherwise keep a cookie nobody clears.
+        Cookie.Clear(HttpContext);
+
         return NoContent();
     }
 
@@ -67,6 +93,12 @@ public class AuthController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         await Mediator.Send(command, cancellationToken);
+
+        // Every session is revoked by the command, so the cookie now carries a
+        // token the API will refuse. Leaving it would mean the browser keeps
+        // presenting a dead credential until it expires.
+        Cookie.Clear(HttpContext);
+
         return NoContent();
     }
 
@@ -101,6 +133,14 @@ public class AuthController : ApiControllerBase
         await Mediator.Send(command, cancellationToken);
         return NoContent();
     }
+
+    /// <summary>
+    /// Moves the refresh token into a cookie when the caller asked for one.
+    /// </summary>
+    private AuthResponse IssueCookieIfAsked(AuthResponse response) =>
+        RefreshTokenCookie.WantsCookie(HttpContext)
+            ? Cookie.Issue(HttpContext, response)
+            : response;
 
     /// <summary>Returns the authenticated user's profile.</summary>
     [HttpGet("me")]

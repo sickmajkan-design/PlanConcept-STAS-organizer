@@ -1,3 +1,4 @@
+using Construction.API.Authentication;
 using Construction.API.Authorization;
 using Construction.API.BackgroundServices;
 using Construction.API.Extensions;
@@ -37,6 +38,10 @@ try
             options.JsonSerializerOptions.Converters.Add(
                 new System.Text.Json.Serialization.JsonStringEnumConverter());
         });
+
+    builder.Services.Configure<RefreshTokenCookieSettings>(
+        builder.Configuration.GetSection(RefreshTokenCookieSettings.SectionName));
+    builder.Services.AddSingleton<RefreshTokenCookie>();
 
     builder.Services.AddJwtBearerAuthentication(builder.Configuration);
     builder.Services.AddAuthorizationPolicies();
@@ -89,6 +94,11 @@ try
             .WithOrigins(corsOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
+            // Required for the browser to send and receive the refresh
+            // cookie cross-origin. Safe here because the origins are named
+            // rather than wildcarded — AllowCredentials with AllowAnyOrigin
+            // is the combination ASP.NET Core refuses outright, and rightly.
+            .AllowCredentials()
             // Response headers are hidden from cross-origin JavaScript unless
             // named here. Without this the admin panel cannot read the file
             // name off an export and every download arrives called

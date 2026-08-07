@@ -749,3 +749,49 @@ The compose file deliberately defines no container healthcheck for the API: the
 report unhealthy forever, and adding an HTTP client to a production image to
 fetch a URL from inside it is a poor trade. An orchestrator fetches the probes
 over the network and needs nothing installed.
+
+## Where the refresh token lives
+
+Two clients, two answers, chosen by the client rather than guessed from a user
+agent.
+
+The mobile app keeps it in platform secure storage — Keychain,
+EncryptedSharedPreferences — and receives it in the response body as before.
+
+The browser cannot do that. `localStorage` is readable by any script on the
+origin, so a seven-day refresh token there turns one XSS — from a dependency, a
+future rich-text field, an embedded map widget — into a persistent account
+takeover rather than a session-length one: the attacker walks away with a
+credential that keeps minting access tokens for a week, from anywhere, after
+the tab is closed.
+
+So the admin panel sends `X-Auth-Mode: cookie` on sign-in and refresh, and the
+API replies with an `HttpOnly`, `SameSite=Strict` cookie scoped to `/api/auth`,
+`Secure` when the request arrived over HTTPS — and an **empty** `refreshToken`
+in the body. Both halves matter: a cookie that merely duplicates something
+already readable by script is not a mitigation, it is a second copy. The
+browser then holds a credential no script can reach; an attacker with XSS can
+still act *through* the open page, which is a much smaller and much more
+recoverable problem.
+
+Three details that are easy to get wrong and are pinned down by tests:
+
+- **The refresh endpoint's body must be optional.** `RefreshTokenCommand`
+  declares the token non-nullable because a handler cannot rotate nothing, and
+  `[ApiController]` reads that as a required field — so a browser sending `{}`
+  plus a cookie was rejected during model binding, before the cookie was ever
+  looked at. The HTTP surface takes its own `TokenRequest` where the field is
+  optional, and the controller assembles the command from whichever source had
+  the token.
+- **A blank `Domain` in configuration is not the same as no domain.** It binds
+  to an empty string, reaches the wire as `Domain=`, and every browser rejects
+  the cookie — so the operator would be signed out on the next refresh, with
+  nothing in the logs. Read through `EffectiveDomain`, which maps blank to null.
+- **Deleting a cookie requires the same attributes it was written with.**
+  Otherwise the browser treats it as a different cookie and keeps the original:
+  a sign-out that leaves the credential in place.
+
+`SameSite=Strict` is what makes the cookie its own CSRF defence: another site
+cannot cause the browser to send it at all. It works when the API and the panel
+share a registrable domain, which is a deployment constraint worth knowing
+about — see `Auth:RefreshCookie` in `appsettings.json`.

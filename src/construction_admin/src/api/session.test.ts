@@ -18,7 +18,6 @@ function sessionWith(overrides: Partial<Session> = {}): Session {
   return {
     accessToken: 'access',
     accessTokenExpiresAt: inMinutes(15),
-    refreshToken: 'refresh',
     refreshTokenExpiresAt: inMinutes(60 * 24 * 7),
     user: {
       id: '1',
@@ -79,7 +78,7 @@ describe('sessionStore', () => {
 });
 
 describe('sessionFromAuthResponse', () => {
-  it('keeps the tokens and the user, and nothing else', () => {
+  it('keeps the access token and the user, and nothing else', () => {
     const response = {
       accessToken: 'a',
       accessTokenExpiresAt: '2026-08-03T10:15:00Z',
@@ -93,10 +92,41 @@ describe('sessionFromAuthResponse', () => {
     expect(sessionFromAuthResponse(response)).toEqual({
       accessToken: 'a',
       accessTokenExpiresAt: '2026-08-03T10:15:00Z',
-      refreshToken: 'r',
       refreshTokenExpiresAt: '2026-08-10T10:00:00Z',
       user: response.user,
     });
+  });
+
+  it('never stores a refresh token, even when the API sends one', () => {
+    // The assertion the whole change exists for. The API returns it empty in
+    // cookie mode, but a response that carried one — a changed header, an
+    // older API, a proxy that rewrote the request — must not put a seven-day
+    // credential somewhere any script on the page can read it.
+    const stored = sessionFromAuthResponse({
+      accessToken: 'a',
+      accessTokenExpiresAt: '2026-08-03T10:15:00Z',
+      refreshToken: 'a-real-refresh-token',
+      refreshTokenExpiresAt: '2026-08-10T10:00:00Z',
+      user: sessionWith().user,
+    });
+
+    expect(JSON.stringify(stored)).not.toContain('a-real-refresh-token');
+  });
+
+  it('leaves nothing in storage that looks like a refresh credential', () => {
+    sessionStore.write(
+      sessionFromAuthResponse({
+        accessToken: 'a',
+        accessTokenExpiresAt: '2026-08-03T10:15:00Z',
+        refreshToken: 'a-real-refresh-token',
+        refreshTokenExpiresAt: '2026-08-10T10:00:00Z',
+        user: sessionWith().user,
+      }),
+    );
+
+    const raw = window.localStorage.getItem('construction.admin.session') ?? '';
+
+    expect(raw).not.toContain('a-real-refresh-token');
   });
 });
 

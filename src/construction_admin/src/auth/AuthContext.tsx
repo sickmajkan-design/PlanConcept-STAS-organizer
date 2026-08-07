@@ -25,14 +25,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
-    const current = sessionStore.read();
-
-    if (current) {
-      try {
-        await authApi.logout(current.refreshToken);
-      } catch {
-        // Local sign-out must always succeed; the token expires on its own.
-      }
+    try {
+      // No token to pass: the API reads the refresh cookie and clears it.
+      // Called unconditionally, because a cookie can outlive the stored
+      // access token — a tab left open past fifteen minutes has no session
+      // here and still has a live credential at the API.
+      await authApi.logout();
+    } catch {
+      // Local sign-out must always succeed; the token expires on its own.
     }
 
     sessionStore.clear();

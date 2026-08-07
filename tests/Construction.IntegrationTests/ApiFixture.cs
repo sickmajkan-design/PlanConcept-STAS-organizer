@@ -118,6 +118,19 @@ public sealed class ApiFixture : IAsyncLifetime
     /// <summary>A client carrying no credentials at all.</summary>
     public HttpClient AnonymousClient() => _factory.CreateClient();
 
+    /// <summary>
+    /// A client that does not manage cookies, so a test can set the
+    /// <c>Cookie</c> header itself.
+    /// </summary>
+    /// <remarks>
+    /// The default client keeps a cookie container and rewrites the header
+    /// from it, which silently discards anything a test set by hand — so a
+    /// test of "what happens with this exact cookie" would really be testing
+    /// whatever the container decided to send.
+    /// </remarks>
+    public HttpClient ClientWithoutCookieJar() =>
+        _factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
+
     /// <summary>A client signed in as the seeded account for <paramref name="role"/>.</summary>
     public HttpClient ClientAs(UserRole role)
     {

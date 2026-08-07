@@ -1,9 +1,17 @@
 import type { AuthResponse, User } from './types';
 
+/**
+ * What the browser keeps.
+ *
+ * No refresh token. It lives in an `HttpOnly` cookie the API sets, which no
+ * script on this page can read — which is the point: a seven-day credential in
+ * `localStorage` turns one XSS into a persistent account takeover rather than
+ * a session-length one. `refreshTokenExpiresAt` stays because the app needs to
+ * know when the session is beyond reviving, and a date is not a credential.
+ */
 export interface Session {
   accessToken: string;
   accessTokenExpiresAt: string;
-  refreshToken: string;
   refreshTokenExpiresAt: string;
   user: User;
 }
@@ -13,10 +21,11 @@ const STORAGE_KEY = 'construction.admin.session';
 /**
  * Session persistence for the admin SPA.
  *
- * The tokens live in localStorage so a page reload keeps the operator signed
- * in. That is the usual trade-off for a browser SPA: it survives reloads but
- * is readable by any script running on the origin, so the access token is
- * deliberately short-lived (15 minutes) and rotated on every refresh.
+ * The access token lives in localStorage so a page reload keeps the operator
+ * signed in without a round trip. It is readable by any script on the origin,
+ * which is accepted: it lasts fifteen minutes and is rotated on every refresh.
+ * The refresh token is not here at all — it is an `HttpOnly` cookie, out of
+ * reach of script entirely.
  */
 export const sessionStore = {
   read(): Session | null {
@@ -51,11 +60,18 @@ export const sessionStore = {
   },
 };
 
+/**
+ * Keeps what the browser is allowed to keep.
+ *
+ * `response.refreshToken` is deliberately dropped even though the field still
+ * exists on the type — the API sends it empty in cookie mode, and copying it
+ * anyway would put a credential back in localStorage the moment somebody
+ * changed a header.
+ */
 export function sessionFromAuthResponse(response: AuthResponse): Session {
   return {
     accessToken: response.accessToken,
     accessTokenExpiresAt: response.accessTokenExpiresAt,
-    refreshToken: response.refreshToken,
     refreshTokenExpiresAt: response.refreshTokenExpiresAt,
     user: response.user,
   };

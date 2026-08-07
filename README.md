@@ -69,6 +69,8 @@ the repository:
 | `Firebase__CredentialsPath` or `Firebase__CredentialsJson` | FCM service-account for push notifications |
 | `ClientApp__PasswordResetUrl` | Admin-app page that completes password reset |
 | `Cors__AllowedOrigins__0…` | Allowed browser origins |
+| `Auth__RefreshCookie__SameSite` | `Strict` (default), `Lax` or `None`. See below. |
+| `Auth__RefreshCookie__Domain` | Blank scopes the cookie to the API host; set it to share across subdomains. |
 | `Retention__LocationRecordDays` | Days of GPS history kept (default 180; `0` keeps everything) |
 | `Retention__SentOutboxMessageDays` | Days a delivered email/push record is kept (default 14) |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | Where to send metrics and traces. Unset means none are exported. |
@@ -79,6 +81,16 @@ worth a decision: a minute-by-minute record of where an employee was is
 personal data, and at one ping a minute per person the table grows by roughly a
 million rows a month per hundred workers. Setting it to `0` keeps everything
 and logs a warning at startup saying so.
+
+The browser's refresh token is an `HttpOnly` cookie rather than anything in
+`localStorage`, so no script on the page can read it. `SameSite=Strict` makes it
+its own CSRF defence, and it works when the API and the admin panel share a
+registrable domain — `api.example.com` and `admin.example.com` are same-site
+even though they are different origins. **If they are on different domains, put
+them on one**; the alternative is `SameSite=None`, which requires HTTPS,
+re-opens CSRF, and is being blocked by browsers as a third-party cookie. The
+mobile app is unaffected: it keeps using platform secure storage and receives
+the token in the response body.
 
 Note: AutoMapper ≥ 15 is dual-licensed (free for smaller organizations,
 commercial license otherwise) — review licensing for your deployment, or pin

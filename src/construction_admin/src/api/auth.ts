@@ -1,4 +1,4 @@
-import { anonymousRequest, request } from './client';
+import { anonymousRequest, cookieAuthHeaders, request } from './client';
 import type { AuthResponse, User } from './types';
 
 export const authApi = {
@@ -7,14 +7,14 @@ export const authApi = {
       method: 'POST',
       url: '/api/auth/login',
       data: { email: email.trim(), password },
+      // Asks the API to put the refresh token in a cookie and leave it out of
+      // the response body, so it never passes through anything script reads.
+      headers: cookieAuthHeaders,
     }),
 
-  logout: (refreshToken: string) =>
-    request<void>({
-      method: 'POST',
-      url: '/api/auth/logout',
-      data: { refreshToken },
-    }),
+  // No token in the body: the API reads the cookie, and clears it.
+  logout: () =>
+    request<void>({ method: 'POST', url: '/api/auth/logout', data: {} }),
 
   currentUser: () => request<User>({ method: 'GET', url: '/api/auth/me' }),
 

@@ -107,7 +107,6 @@ function storedSession(overrides: Partial<Session> = {}): Session {
   const session: Session = {
     accessToken: 'old-access',
     accessTokenExpiresAt: inMinutes(15),
-    refreshToken: 'old-refresh',
     refreshTokenExpiresAt: inMinutes(60 * 24 * 7),
     user,
     ...overrides,
@@ -187,7 +186,10 @@ describe('refreshing before the token dies', () => {
     expect(network.calls[1]?.headers.authorization).toBe('Bearer new-access');
   });
 
-  it('stores the rotated pair, so the next refresh does not replay the old one', async () => {
+  it('sends no refresh token in the body and asks for a cookie', async () => {
+    // The browser holds its token in an HttpOnly cookie it cannot read. If
+    // this call carried one in the body, the token would be in reach of
+    // script again and the cookie would be decoration.
     storedSession({ accessTokenExpiresAt: inMinutes(-1) });
     network.reply('/api/auth/refresh', 200, freshTokens);
 
@@ -195,7 +197,30 @@ describe('refreshing before the token dies', () => {
 
     await request({ method: 'GET', url: '/api/employees' });
 
-    expect(sessionStore.read()?.refreshToken).toBe('new-refresh');
+    const refresh = network.calls.find((call) => call.url.includes('/api/auth/refresh'))!;
+
+    expect(refresh.body).toEqual({});
+    expect(refresh.headers['x-auth-mode']).toBe('cookie');
+  });
+
+  it('never writes a refresh token to storage, whatever the API returns', async () => {
+    storedSession({ accessTokenExpiresAt: inMinutes(-1) });
+    network.reply('/api/auth/refresh', 200, {
+      ...freshTokens,
+      refreshToken: 'a-real-refresh-token',
+    });
+
+    const { request } = await loadClient();
+
+    await request({ method: 'GET', url: '/api/employees' });
+
+    const raw = window.localStorage.getItem('construction.admin.session') ?? '';
+
+    expect(raw).not.toContain('a-real-refresh-token');
+
+    // The access token is still rotated and stored — that part has to keep
+    // working, or the session ends every fifteen minutes.
+    expect(sessionStore.read()?.accessToken).toBe('new-access');
   });
 
   it('refreshes once for however many requests are waiting', async () => {
