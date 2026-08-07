@@ -126,7 +126,6 @@ export const sr: Record<MessageKey, Message> = {
   'employees.address': 'Adresa',
   'employees.dateOfBirth': 'Datum rođenja',
   'employees.employmentDate': 'Datum zaposlenja',
-  'employees.photoUrl': 'URL fotografije',
   'employees.deleteTitle': 'Obrisati zaposlenog?',
   'employees.deleteBody':
     '{name} ({number}) će biti uklonjen iz aktivnih zapisa. Podrška ovo može poništiti ako zatreba.',

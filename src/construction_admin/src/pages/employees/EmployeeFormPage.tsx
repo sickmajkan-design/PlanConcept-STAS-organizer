@@ -38,7 +38,6 @@ const emptyValues: EmployeeFormValues = {
   employmentDate: '',
   position: '',
   status: 'Active',
-  photoUrl: '',
 };
 
 export function EmployeeFormPage() {
@@ -76,7 +75,6 @@ export function EmployeeFormPage() {
         employmentDate: existing.employmentDate.slice(0, 10),
         position: existing.position,
         status: existing.status,
-        photoUrl: existing.photoUrl ?? '',
       });
     }
   }, [existing, reset]);
@@ -101,7 +99,6 @@ export function EmployeeFormPage() {
       employmentDate: values.employmentDate,
       position: values.position.trim(),
       status: values.status,
-      photoUrl: values.photoUrl || null,
     };
 
     try {

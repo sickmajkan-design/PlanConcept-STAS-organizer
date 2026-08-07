@@ -32,8 +32,7 @@ public class EmployeeValidatorTests
             Phone = null,
             Email = null,
             Address = null,
-            DateOfBirth = null,
-            PhotoUrl = null
+            DateOfBirth = null
         });
     }
 

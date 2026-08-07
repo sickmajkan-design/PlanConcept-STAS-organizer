@@ -25,9 +25,6 @@ public class Employee : BaseEntity, ISoftDeletable
 
     public EmployeeStatus Status { get; set; } = EmployeeStatus.Active;
 
-    /// <summary>URL (or storage key) of the employee photo.</summary>
-    public string? PhotoUrl { get; set; }
-
     public bool IsDeleted { get; set; }
 
     public DateTime? DeletedAt { get; set; }

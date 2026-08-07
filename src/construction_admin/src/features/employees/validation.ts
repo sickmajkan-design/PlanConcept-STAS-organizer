@@ -23,7 +23,6 @@ export const employeeFormSchema = z
     employmentDate: z.string().min(1, 'Employment date is required.'),
     position: z.string().trim().min(1, 'Position is required.').max(128),
     status: z.enum(employeeStatuses),
-    photoUrl: z.string().trim().max(1024).optional().or(z.literal('')),
   })
   .refine(
     (values) => {

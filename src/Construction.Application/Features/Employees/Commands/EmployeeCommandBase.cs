@@ -28,8 +28,6 @@ public abstract record EmployeeCommandBase
     public string Position { get; init; } = null!;
 
     public EmployeeStatus Status { get; init; } = EmployeeStatus.Active;
-
-    public string? PhotoUrl { get; init; }
 }
 
 public abstract class EmployeeCommandBaseValidator<T> : AbstractValidator<T>
@@ -75,8 +73,5 @@ public abstract class EmployeeCommandBaseValidator<T> : AbstractValidator<T>
 
         RuleFor(x => x.Status)
             .IsInEnum().WithMessage("Status is not a valid employee status.");
-
-        RuleFor(x => x.PhotoUrl)
-            .MaximumLength(1024);
     }
 }

@@ -118,7 +118,6 @@ export const en = {
   'employees.address': 'Address',
   'employees.dateOfBirth': 'Date of birth',
   'employees.employmentDate': 'Employment date',
-  'employees.photoUrl': 'Photo URL',
   'employees.deleteTitle': 'Delete employee?',
   'employees.deleteBody':
     '{name} ({number}) will be removed from active records. This can be reversed by support if needed.',

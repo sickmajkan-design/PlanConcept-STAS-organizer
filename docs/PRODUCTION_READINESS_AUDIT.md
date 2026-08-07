@@ -506,8 +506,10 @@ projects. Currently they see everything.
 - **M11.** Idempotency keys on stock adjustments and assignment actions.
 - **M12.** Pagination on `/api/locations/current`.
 - **M13.** Load test the login path (PBKDF2 CPU cost at shift change).
-- **M14.** Align app display names — "Construction Organizer" (Android) vs
-  "Construction Mobile" (iOS).
+- **M14.** Align app display names — **done.** iOS `CFBundleDisplayName` said
+  "Construction Mobile" while the Android label, `CFBundleName`, the Flutter
+  `MaterialApp` title and both admin titles said "Construction Organizer". All
+  six now agree.
 
 ---
 
@@ -521,8 +523,18 @@ projects. Currently they see everything.
 - **L6.** Export to CSV/Excel — commonly requested in this product category.
 - **L7.** Bulk operations (assign several employees at once).
 - **L8.** Code coverage reporting and a CI threshold.
-- **L9.** Photo upload for employees — `PhotoUrl` exists on the entity but
-  nothing populates it.
+- **L9.** Photo upload for employees — **resolved by removal.** `PhotoUrl` was
+  a free-text URL that no screen displayed and no client set: the admin panel
+  carried a form value and a translated label but never rendered an input.
+  Attachments already store an employee photograph properly — the bytes, who
+  may see them, and when a document lapses — so the column has been dropped
+  rather than given a second implementation. If a photo is wanted on the
+  employee screen, it should come from the newest `Photo` attachment.
+
+  One leftover: `photoUrl` remains on the Flutter `Employee` model. It is a
+  nullable field that now always parses as null, and removing it means
+  regenerating Freezed output, which needs a Flutter toolchain this repository
+  does not build in.
 - **L10.** Architecture decision records for the choices already made well.
 
 ---

@@ -45,9 +45,6 @@ public class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
             .HasMaxLength(128)
             .IsRequired();
 
-        builder.Property(e => e.PhotoUrl)
-            .HasMaxLength(1024);
-
         builder.Ignore(e => e.FullName);
 
         builder.HasIndex(e => e.LastName);

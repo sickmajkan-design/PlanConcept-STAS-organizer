@@ -48,8 +48,7 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
             DateOfBirth = request.DateOfBirth,
             EmploymentDate = request.EmploymentDate,
             Position = request.Position.Trim(),
-            Status = request.Status,
-            PhotoUrl = request.PhotoUrl?.Trim()
+            Status = request.Status
         };
 
         _context.Employees.Add(employee);

@@ -69,7 +69,6 @@ export interface Employee {
   employmentDate: string;
   position: string;
   status: EmployeeStatus;
-  photoUrl: string | null;
   createdAt: string;
   updatedAt: string | null;
 }
@@ -97,7 +96,6 @@ export interface EmployeeInput {
   employmentDate: string;
   position: string;
   status: EmployeeStatus;
-  photoUrl?: string | null;
 }
 
 export interface Project {

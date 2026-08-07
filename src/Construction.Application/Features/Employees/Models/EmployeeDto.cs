@@ -29,8 +29,6 @@ public class EmployeeDto
 
     public string Status { get; init; } = null!;
 
-    public string? PhotoUrl { get; init; }
-
     public DateTime CreatedAt { get; init; }
 
     public DateTime? UpdatedAt { get; init; }
