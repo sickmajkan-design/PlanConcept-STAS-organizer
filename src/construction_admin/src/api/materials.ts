@@ -17,13 +17,13 @@ export interface AdjustMaterialInput {
 
 export const materialsApi = {
   ...createCrudApi<Material, Material, MaterialInput, MaterialListQuery>(
-    '/api/materials',
+    '/api/v1/materials',
   ),
 
   adjust: (id: string, input: AdjustMaterialInput) =>
     request<Material>({
       method: 'POST',
-      url: `/api/materials/${id}/adjust`,
+      url: `/api/v1/materials/${id}/adjust`,
       data: input,
     }),
 };

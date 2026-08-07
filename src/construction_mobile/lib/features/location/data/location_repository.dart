@@ -68,7 +68,7 @@ class LocationRepository extends ApiRepository {
     }
 
     return postVoid(
-      '/api/locations',
+      '/api/v1/locations',
       data: {'pings': pings.map((ping) => ping.toJson()).toList()},
     );
   }

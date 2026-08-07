@@ -43,6 +43,8 @@ try
         builder.Configuration.GetSection(RefreshTokenCookieSettings.SectionName));
     builder.Services.AddSingleton<RefreshTokenCookie>();
 
+    builder.Services.AddApplicationApiVersioning();
+
     builder.Services.AddJwtBearerAuthentication(builder.Configuration);
     builder.Services.AddAuthorizationPolicies();
     builder.Services.AddSwaggerWithJwt();

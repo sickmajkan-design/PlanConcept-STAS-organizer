@@ -15,18 +15,18 @@ export interface EmployeeListQuery extends ListQuery {
 
 export const employeesApi = {
   ...createCrudApi<Employee, EmployeeDetail, EmployeeInput, EmployeeListQuery>(
-    '/api/employees',
+    '/api/v1/employees',
   ),
 
   assignToProject: (employeeId: string, projectId: string) =>
     request<void>({
       method: 'POST',
-      url: `/api/employees/${employeeId}/projects/${projectId}`,
+      url: `/api/v1/employees/${employeeId}/projects/${projectId}`,
     }),
 
   removeFromProject: (employeeId: string, projectId: string) =>
     request<void>({
       method: 'DELETE',
-      url: `/api/employees/${employeeId}/projects/${projectId}`,
+      url: `/api/v1/employees/${employeeId}/projects/${projectId}`,
     }),
 };

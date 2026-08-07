@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 DioException _responseError(int statusCode, Object? body) {
-  final options = RequestOptions(path: '/api/auth/login');
+  final options = RequestOptions(path: '/api/v1/auth/login');
 
   return DioException(
     requestOptions: options,
@@ -71,7 +71,7 @@ void main() {
     test('explains a connection failure without leaking transport detail', () {
       final exception = ApiException.fromDioException(
         DioException(
-          requestOptions: RequestOptions(path: '/api/auth/login'),
+          requestOptions: RequestOptions(path: '/api/v1/auth/login'),
           type: DioExceptionType.connectionError,
         ),
       );
@@ -86,7 +86,7 @@ void main() {
     test('explains a timeout', () {
       final exception = ApiException.fromDioException(
         DioException(
-          requestOptions: RequestOptions(path: '/api/auth/me'),
+          requestOptions: RequestOptions(path: '/api/v1/auth/me'),
           type: DioExceptionType.receiveTimeout,
         ),
       );

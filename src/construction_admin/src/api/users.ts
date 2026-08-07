@@ -16,12 +16,12 @@ export interface UserListQuery extends ListQuery {
 
 export const usersApi = {
   ...createCrudApi<UserAccount, UserAccount, UserAccountInput, UserListQuery>(
-    '/api/users',
+    '/api/v1/users',
   ),
 
   // Create takes a password, which the shared input type does not carry.
   create: (input: CreateUserAccountInput) =>
-    request<UserAccount>({ method: 'POST', url: '/api/users', data: input }),
+    request<UserAccount>({ method: 'POST', url: '/api/v1/users', data: input }),
 
   /**
    * Offboards the account. The API revokes every session, invalidates any
@@ -29,15 +29,15 @@ export const usersApi = {
    * the same as editing an "active" field.
    */
   deactivate: (id: string) =>
-    request<void>({ method: 'POST', url: `/api/users/${id}/deactivate` }),
+    request<void>({ method: 'POST', url: `/api/v1/users/${id}/deactivate` }),
 
   activate: (id: string) =>
-    request<UserAccount>({ method: 'POST', url: `/api/users/${id}/activate` }),
+    request<UserAccount>({ method: 'POST', url: `/api/v1/users/${id}/activate` }),
 
   setPassword: (id: string, newPassword: string) =>
     request<void>({
       method: 'POST',
-      url: `/api/users/${id}/password`,
+      url: `/api/v1/users/${id}/password`,
       data: { newPassword },
     }),
 };

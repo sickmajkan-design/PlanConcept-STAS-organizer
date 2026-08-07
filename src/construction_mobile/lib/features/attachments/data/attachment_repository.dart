@@ -19,7 +19,7 @@ class AttachmentRepository extends ApiRepository {
   }) {
     return guard(() async {
       final response = await dio.get<List<dynamic>>(
-        '/api/attachments',
+        '/api/v1/attachments',
         queryParameters: <String, dynamic>{
           'ownerType': ownerType,
           'ownerId': ownerId,
@@ -41,7 +41,7 @@ class AttachmentRepository extends ApiRepository {
   Future<Uint8List> fetchContent(String id) {
     return guard(() async {
       final response = await dio.get<List<int>>(
-        '/api/attachments/$id/content',
+        '/api/v1/attachments/$id/content',
         options: Options(responseType: ResponseType.bytes),
       );
 
@@ -71,7 +71,7 @@ class AttachmentRepository extends ApiRepository {
       });
 
       final response = await dio.post<Map<String, dynamic>>(
-        '/api/attachments',
+        '/api/v1/attachments',
         data: form,
       );
 

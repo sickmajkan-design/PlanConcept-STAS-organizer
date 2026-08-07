@@ -116,7 +116,7 @@ class AuthSessionManager {
 
     try {
       final response = await _refreshClient.post<Map<String, dynamic>>(
-        '/api/auth/refresh',
+        '/api/v1/auth/refresh',
         data: {'refreshToken': current.refreshToken},
       );
 

@@ -82,7 +82,7 @@ void main() {
         sortDescending: true,
       );
 
-      expect(client.adapter.lastRequest!.path, '/api/vehicles');
+      expect(client.adapter.lastRequest!.path, '/api/v1/vehicles');
       expect(client.adapter.lastRequest!.queryParameters, {
         'pageNumber': 3,
         'pageSize': 50,
@@ -203,7 +203,7 @@ void main() {
         // The canned body is not a full vehicle; only the path matters here.
       }
 
-      expect(client.adapter.lastRequest!.path, '/api/vehicles/v-1');
+      expect(client.adapter.lastRequest!.path, '/api/v1/vehicles/v-1');
     });
 
     test('a QR code is escaped before it goes into the path', () async {
@@ -214,7 +214,7 @@ void main() {
         // Same: the canned body is not a full tool.
       }
 
-      expect(client.adapter.lastRequest!.path, '/api/tools/by-qr/TL%20001%2FA');
+      expect(client.adapter.lastRequest!.path, '/api/v1/tools/by-qr/TL%20001%2FA');
     });
   });
 
@@ -228,7 +228,7 @@ void main() {
         // The canned body is not a full auth response.
       }
 
-      expect(client.adapter.lastRequest!.path, '/api/auth/login');
+      expect(client.adapter.lastRequest!.path, '/api/v1/auth/login');
       expect(client.adapter.lastRequest!.method, 'POST');
       expect(client.adapter.lastRequest!.data,
           {'email': 'a@b.com', 'password': 'secret'});
@@ -239,7 +239,7 @@ void main() {
 
       await AuthRepository(client.dio).logout('refresh-token');
 
-      expect(client.adapter.lastRequest!.path, '/api/auth/logout');
+      expect(client.adapter.lastRequest!.path, '/api/v1/auth/logout');
       expect(client.adapter.lastRequest!.data, {'refreshToken': 'refresh-token'});
     });
 
@@ -250,7 +250,7 @@ void main() {
           .registerDeviceToken(token: 'tok', platform: 'Android');
 
       expect(client.adapter.lastRequest!.path,
-          '/api/notifications/device-tokens');
+          '/api/v1/notifications/device-tokens');
       expect(client.adapter.lastRequest!.data,
           {'token': 'tok', 'platform': 'Android'});
     });
@@ -268,7 +268,7 @@ void main() {
       ]);
 
       final data = client.adapter.lastRequest!.data as Map<String, dynamic>;
-      expect(client.adapter.lastRequest!.path, '/api/locations');
+      expect(client.adapter.lastRequest!.path, '/api/v1/locations');
       expect(data['pings'], [
         {
           'latitude': 45.81,

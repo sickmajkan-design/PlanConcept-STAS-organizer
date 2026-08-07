@@ -32,6 +32,7 @@ public class CostsController : ApiControllerBase
     // ---- pay rates -------------------------------------------------------
 
     /// <summary>Lists pay rates. Refused below Project Manager.</summary>
+    [HttpGet("/api/v{version:apiVersion}/employee-rates")]
     [HttpGet("/api/employee-rates")]
     [ProducesResponseType(typeof(PagedList<EmployeeRateDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
@@ -44,6 +45,7 @@ public class CostsController : ApiControllerBase
     }
 
     /// <summary>Puts a new rate in force, closing off the one before it.</summary>
+    [HttpPost("/api/v{version:apiVersion}/employee-rates")]
     [HttpPost("/api/employee-rates")]
     [ProducesResponseType(typeof(EmployeeRateDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
@@ -60,6 +62,7 @@ public class CostsController : ApiControllerBase
     }
 
     /// <summary>Removes a rate. Admin and above.</summary>
+    [HttpDelete("/api/v{version:apiVersion}/employee-rates/{id:guid}")]
     [HttpDelete("/api/employee-rates/{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
@@ -73,6 +76,7 @@ public class CostsController : ApiControllerBase
     // ---- stock movements -------------------------------------------------
 
     /// <summary>Lists deliveries, issues and corrections.</summary>
+    [HttpGet("/api/v{version:apiVersion}/material-movements")]
     [HttpGet("/api/material-movements")]
     [ProducesResponseType(typeof(PagedList<MaterialMovementDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
@@ -85,6 +89,7 @@ public class CostsController : ApiControllerBase
     }
 
     /// <summary>Records a delivery, an issue to site, or a correction.</summary>
+    [HttpPost("/api/v{version:apiVersion}/material-movements")]
     [HttpPost("/api/material-movements")]
     [ProducesResponseType(typeof(MaterialMovementDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
@@ -101,6 +106,7 @@ public class CostsController : ApiControllerBase
     }
 
     /// <summary>Removes a movement and puts the stock back.</summary>
+    [HttpDelete("/api/v{version:apiVersion}/material-movements/{id:guid}")]
     [HttpDelete("/api/material-movements/{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
@@ -115,6 +121,7 @@ public class CostsController : ApiControllerBase
     // ---- vehicle expenses ------------------------------------------------
 
     /// <summary>Lists fuel, servicing and everything else a vehicle costs.</summary>
+    [HttpGet("/api/v{version:apiVersion}/vehicle-expenses")]
     [HttpGet("/api/vehicle-expenses")]
     [ProducesResponseType(typeof(PagedList<VehicleExpenseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
@@ -127,6 +134,7 @@ public class CostsController : ApiControllerBase
     }
 
     /// <summary>Records a tank of fuel, a service, or another cost.</summary>
+    [HttpPost("/api/v{version:apiVersion}/vehicle-expenses")]
     [HttpPost("/api/vehicle-expenses")]
     [ProducesResponseType(typeof(VehicleExpenseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
@@ -142,6 +150,7 @@ public class CostsController : ApiControllerBase
     }
 
     /// <summary>Removes a recorded cost.</summary>
+    [HttpDelete("/api/v{version:apiVersion}/vehicle-expenses/{id:guid}")]
     [HttpDelete("/api/vehicle-expenses/{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
@@ -160,6 +169,7 @@ public class CostsController : ApiControllerBase
     /// What each site cost. Below Project Manager the labour half comes back
     /// as zero rather than the whole report being refused.
     /// </summary>
+    [HttpGet("/api/v{version:apiVersion}/costs/projects")]
     [HttpGet("/api/costs/projects")]
     [ProducesResponseType(typeof(ProjectCostReportDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
@@ -172,6 +182,7 @@ public class CostsController : ApiControllerBase
     }
 
     /// <summary>What the fleet cost, and what it drank.</summary>
+    [HttpGet("/api/v{version:apiVersion}/costs/vehicles")]
     [HttpGet("/api/costs/vehicles")]
     [ProducesResponseType(typeof(VehicleCostReportDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]

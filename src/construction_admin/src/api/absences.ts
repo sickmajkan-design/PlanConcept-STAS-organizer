@@ -43,27 +43,27 @@ export const absencesApi = {
   list: (query: AbsenceListQuery) =>
     request<PagedList<Absence>>({
       method: 'GET',
-      url: '/api/absences',
+      url: '/api/v1/absences',
       params: listParams(query),
     }),
 
   book: (input: AbsenceInput) =>
-    request<Absence>({ method: 'POST', url: '/api/absences', data: input }),
+    request<Absence>({ method: 'POST', url: '/api/v1/absences', data: input }),
 
   review: (id: string, input: ReviewAbsenceInput) =>
     request<Absence>({
       method: 'POST',
-      url: `/api/absences/${id}/review`,
+      url: `/api/v1/absences/${id}/review`,
       data: input,
     }),
 
   remove: (id: string) =>
-    request<void>({ method: 'DELETE', url: `/api/absences/${id}` }),
+    request<void>({ method: 'DELETE', url: `/api/v1/absences/${id}` }),
 
   schedule: (query: ScheduleQuery) =>
     request<Schedule>({
       method: 'GET',
-      url: '/api/schedule',
+      url: '/api/v1/schedule',
       params: listParams(query),
     }),
 };

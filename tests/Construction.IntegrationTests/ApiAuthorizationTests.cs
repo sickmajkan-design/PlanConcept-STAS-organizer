@@ -69,11 +69,21 @@ public class ApiAuthorizationTests
         var endpoints = new Endpoint[]
         {
             // ---- authentication ------------------------------------------
-            // Login, forgot-password and reset-password are deliberately
-            // absent: they sit behind the credentials rate limiter, which runs
-            // before authentication, so hammering them from this table would
-            // start answering 429 and hide the very statuses under test. They
-            // are covered by LoginHardeningTests instead.
+            // Every endpoint behind the credentials rate limiter is absent
+            // from this table: login, forgot-password, reset-password,
+            // change-password and users/{id}/password. The limiter runs before
+            // authentication and allows twenty requests a minute across all
+            // callers — a test server has no remote address, so everything
+            // shares one partition. Six requests per endpoint would spend the
+            // window and start answering 429 in place of the statuses under
+            // test.
+            //
+            // That is not hypothetical. `users/{id}/password` was in this
+            // table and passed for weeks, until adding a suite elsewhere
+            // pushed the run past twenty and it began failing with 429 where
+            // it expected 403 — a test whose result depended on how many other
+            // tests had run first. Each of these now has its own case below,
+            // costing one or two requests instead of six.
             new("POST", "/api/auth/refresh", null),
             new("POST", "/api/auth/logout", UserRole.Worker),
             new("GET", "/api/auth/me", UserRole.Worker),
@@ -189,7 +199,6 @@ public class ApiAuthorizationTests
             new("PUT", $"/api/users/{Id}", UserRole.Admin),
             new("POST", $"/api/users/{Id}/deactivate", UserRole.Admin),
             new("POST", $"/api/users/{Id}/activate", UserRole.Admin),
-            new("POST", $"/api/users/{Id}/password", UserRole.Admin),
 
             // ---- vehicles ------------------------------------------------------
             new("GET", "/api/vehicles", UserRole.Foreman),
@@ -264,6 +273,31 @@ public class ApiAuthorizationTests
         Assert.True(
             failures.Count == 0,
             $"{endpoint}:{Environment.NewLine} - {string.Join(Environment.NewLine + " - ", failures)}");
+    }
+
+    /// <summary>
+    /// Setting another account's password is Admin and above.
+    /// </summary>
+    /// <remarks>
+    /// Asked twice rather than six times, because it sits behind the
+    /// credentials rate limiter. Two requests are enough: one role that must
+    /// be refused, and one that must not.
+    /// </remarks>
+    [Fact]
+    public async Task Setting_somebody_elses_password_is_for_administrators()
+    {
+        using var worker = _api.ClientAs(UserRole.Worker);
+
+        var refused = await worker.PostAsync($"/api/users/{Id}/password", EmptyBody());
+
+        Assert.Equal(HttpStatusCode.Forbidden, refused.StatusCode);
+
+        using var admin = _api.ClientAs(UserRole.Admin);
+
+        var admitted = await admin.PostAsync($"/api/users/{Id}/password", EmptyBody());
+
+        Assert.NotEqual(HttpStatusCode.Forbidden, admitted.StatusCode);
+        Assert.NotEqual(HttpStatusCode.Unauthorized, admitted.StatusCode);
     }
 
     /// <summary>

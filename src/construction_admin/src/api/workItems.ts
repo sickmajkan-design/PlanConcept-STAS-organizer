@@ -22,13 +22,13 @@ export interface WorkItemListQuery extends ListQuery {
 
 export const workItemsApi = {
   ...createCrudApi<WorkItem, WorkItem, WorkItemInput, WorkItemListQuery>(
-    '/api/workitems',
+    '/api/v1/workitems',
   ),
 
   changeStatus: (id: string, status: WorkItemStatus) =>
     request<WorkItem>({
       method: 'POST',
-      url: `/api/workitems/${id}/status`,
+      url: `/api/v1/workitems/${id}/status`,
       data: { status },
     }),
 };

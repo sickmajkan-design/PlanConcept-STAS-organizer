@@ -20,6 +20,7 @@ namespace Construction.API.Controllers;
 public class ExportsController : ApiControllerBase
 {
     /// <summary>The hours, row by row. Refused to workers.</summary>
+    [HttpGet("/api/v{version:apiVersion}/exports/time-entries")]
     [HttpGet("/api/exports/time-entries")]
     [Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -36,6 +37,7 @@ public class ExportsController : ApiControllerBase
     /// What each site cost. Below Project Manager the labour columns are
     /// absent, exactly as they are on screen.
     /// </summary>
+    [HttpGet("/api/v{version:apiVersion}/exports/project-costs")]
     [HttpGet("/api/exports/project-costs")]
     [Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -49,6 +51,7 @@ public class ExportsController : ApiControllerBase
     }
 
     /// <summary>What the fleet cost, and what it drank.</summary>
+    [HttpGet("/api/v{version:apiVersion}/exports/vehicle-costs")]
     [HttpGet("/api/exports/vehicle-costs")]
     [Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -62,6 +65,7 @@ public class ExportsController : ApiControllerBase
     }
 
     /// <summary>Deliveries, issues and corrections over a period.</summary>
+    [HttpGet("/api/v{version:apiVersion}/exports/material-movements")]
     [HttpGet("/api/exports/material-movements")]
     [Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
     [ProducesResponseType(StatusCodes.Status200OK)]

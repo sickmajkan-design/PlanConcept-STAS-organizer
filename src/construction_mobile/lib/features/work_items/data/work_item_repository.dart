@@ -17,7 +17,7 @@ class WorkItemRepository extends ApiRepository {
     bool openOnly = true,
   }) {
     return getPaged(
-      '/api/workitems',
+      '/api/v1/workitems',
       WorkItem.fromJson,
       query: pagedQuery(
         pageNumber: pageNumber,
@@ -30,7 +30,7 @@ class WorkItemRepository extends ApiRepository {
 
   Future<WorkItem> changeStatus(String id, String status) {
     return postJson(
-      '/api/workitems/$id/status',
+      '/api/v1/workitems/$id/status',
       WorkItem.fromJson,
       data: <String, dynamic>{'status': status},
     );
@@ -45,7 +45,7 @@ class WorkItemRepository extends ApiRepository {
     double? longitude,
   }) {
     return postJson(
-      '/api/workitems',
+      '/api/v1/workitems',
       WorkItem.fromJson,
       data: <String, dynamic>{
         'kind': 'Defect',

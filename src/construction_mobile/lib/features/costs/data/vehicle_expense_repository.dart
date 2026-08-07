@@ -15,7 +15,7 @@ class VehicleExpenseRepository extends ApiRepository {
     String? kind,
   }) {
     return getPaged(
-      '/api/vehicle-expenses',
+      '/api/v1/vehicle-expenses',
       VehicleExpense.fromJson,
       query: pagedQuery(
         pageNumber: pageNumber,
@@ -39,7 +39,7 @@ class VehicleExpenseRepository extends ApiRepository {
     String? note,
   }) {
     return postJson(
-      '/api/vehicle-expenses',
+      '/api/v1/vehicle-expenses',
       VehicleExpense.fromJson,
       data: <String, dynamic>{
         'vehicleId': vehicleId,

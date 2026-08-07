@@ -17,7 +17,7 @@ class AbsenceRepository extends ApiRepository {
     String? status,
   }) {
     return getPaged(
-      '/api/absences',
+      '/api/v1/absences',
       Absence.fromJson,
       query: pagedQuery(
         pageNumber: pageNumber,
@@ -38,7 +38,7 @@ class AbsenceRepository extends ApiRepository {
     required DateTime to,
   }) {
     return getJson(
-      '/api/schedule',
+      '/api/v1/schedule',
       Schedule.fromJson,
       query: <String, dynamic>{
         'from': _asDate(from),
@@ -56,7 +56,7 @@ class AbsenceRepository extends ApiRepository {
     String? reason,
   }) {
     return postJson(
-      '/api/absences',
+      '/api/v1/absences',
       Absence.fromJson,
       data: <String, dynamic>{
         'type': type,
@@ -68,7 +68,7 @@ class AbsenceRepository extends ApiRepository {
   }
 
   /// Takes back an unanswered request.
-  Future<void> withdraw(String id) => deleteVoid('/api/absences/$id');
+  Future<void> withdraw(String id) => deleteVoid('/api/v1/absences/$id');
 
   /// The API speaks `DateOnly`; sending an instant would put a time and a zone
   /// on a value that has neither.

@@ -16,15 +16,15 @@ export interface VehicleListQuery extends ListQuery {
 
 export const vehiclesApi = {
   ...createCrudApi<Vehicle, Vehicle, VehicleInput, VehicleListQuery>(
-    '/api/vehicles',
+    '/api/v1/vehicles',
   ),
 
   assign: (id: string, employeeId: string) =>
     request<Vehicle>({
       method: 'POST',
-      url: `/api/vehicles/${id}/assign/${employeeId}`,
+      url: `/api/v1/vehicles/${id}/assign/${employeeId}`,
     }),
 
   unassign: (id: string) =>
-    request<Vehicle>({ method: 'POST', url: `/api/vehicles/${id}/unassign` }),
+    request<Vehicle>({ method: 'POST', url: `/api/v1/vehicles/${id}/unassign` }),
 };

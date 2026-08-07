@@ -18,7 +18,7 @@ class EmployeeRepository extends ApiRepository {
     bool sortDescending = false,
   }) {
     return getPaged(
-      '/api/employees',
+      '/api/v1/employees',
       Employee.fromJson,
       query: pagedQuery(
         pageNumber: pageNumber,
@@ -32,7 +32,7 @@ class EmployeeRepository extends ApiRepository {
   }
 
   Future<EmployeeDetail> fetchEmployee(String id) {
-    return getJson('/api/employees/$id', EmployeeDetail.fromJson);
+    return getJson('/api/v1/employees/$id', EmployeeDetail.fromJson);
   }
 }
 

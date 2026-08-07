@@ -11,29 +11,29 @@ export interface ToolListQuery extends ListQuery {
 }
 
 export const toolsApi = {
-  ...createCrudApi<Tool, Tool, ToolInput, ToolListQuery>('/api/tools'),
+  ...createCrudApi<Tool, Tool, ToolInput, ToolListQuery>('/api/v1/tools'),
 
   getByQrCode: (qrCode: string) =>
     request<Tool>({
       method: 'GET',
-      url: `/api/tools/by-qr/${encodeURIComponent(qrCode)}`,
+      url: `/api/v1/tools/by-qr/${encodeURIComponent(qrCode)}`,
     }),
 
   assignEmployee: (id: string, employeeId: string) =>
     request<Tool>({
       method: 'POST',
-      url: `/api/tools/${id}/assign-employee/${employeeId}`,
+      url: `/api/v1/tools/${id}/assign-employee/${employeeId}`,
     }),
 
   unassignEmployee: (id: string) =>
-    request<Tool>({ method: 'POST', url: `/api/tools/${id}/unassign-employee` }),
+    request<Tool>({ method: 'POST', url: `/api/v1/tools/${id}/unassign-employee` }),
 
   assignProject: (id: string, projectId: string) =>
     request<Tool>({
       method: 'POST',
-      url: `/api/tools/${id}/assign-project/${projectId}`,
+      url: `/api/v1/tools/${id}/assign-project/${projectId}`,
     }),
 
   unassignProject: (id: string) =>
-    request<Tool>({ method: 'POST', url: `/api/tools/${id}/unassign-project` }),
+    request<Tool>({ method: 'POST', url: `/api/v1/tools/${id}/unassign-project` }),
 };

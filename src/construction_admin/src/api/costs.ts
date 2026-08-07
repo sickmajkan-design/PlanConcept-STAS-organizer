@@ -54,70 +54,70 @@ export const costsApi = {
     list: (query: EmployeeRateListQuery) =>
       request<PagedList<EmployeeRate>>({
         method: 'GET',
-        url: '/api/employee-rates',
+        url: '/api/v1/employee-rates',
         params: listParams(query),
       }),
 
     set: (input: EmployeeRateInput) =>
       request<EmployeeRate>({
         method: 'POST',
-        url: '/api/employee-rates',
+        url: '/api/v1/employee-rates',
         data: input,
       }),
 
     remove: (id: string) =>
-      request<void>({ method: 'DELETE', url: `/api/employee-rates/${id}` }),
+      request<void>({ method: 'DELETE', url: `/api/v1/employee-rates/${id}` }),
   },
 
   movements: {
     list: (query: MaterialMovementListQuery) =>
       request<PagedList<MaterialMovement>>({
         method: 'GET',
-        url: '/api/material-movements',
+        url: '/api/v1/material-movements',
         params: listParams(query),
       }),
 
     record: (input: MaterialMovementInput) =>
       request<MaterialMovement>({
         method: 'POST',
-        url: '/api/material-movements',
+        url: '/api/v1/material-movements',
         data: input,
       }),
 
     remove: (id: string) =>
-      request<void>({ method: 'DELETE', url: `/api/material-movements/${id}` }),
+      request<void>({ method: 'DELETE', url: `/api/v1/material-movements/${id}` }),
   },
 
   vehicleExpenses: {
     list: (query: VehicleExpenseListQuery) =>
       request<PagedList<VehicleExpense>>({
         method: 'GET',
-        url: '/api/vehicle-expenses',
+        url: '/api/v1/vehicle-expenses',
         params: listParams(query),
       }),
 
     record: (input: VehicleExpenseInput) =>
       request<VehicleExpense>({
         method: 'POST',
-        url: '/api/vehicle-expenses',
+        url: '/api/v1/vehicle-expenses',
         data: input,
       }),
 
     remove: (id: string) =>
-      request<void>({ method: 'DELETE', url: `/api/vehicle-expenses/${id}` }),
+      request<void>({ method: 'DELETE', url: `/api/v1/vehicle-expenses/${id}` }),
   },
 
   projectReport: (query: CostReportQuery & { projectId?: string }) =>
     request<ProjectCostReport>({
       method: 'GET',
-      url: '/api/costs/projects',
+      url: '/api/v1/costs/projects',
       params: listParams(query),
     }),
 
   vehicleReport: (query: CostReportQuery & { vehicleId?: string }) =>
     request<VehicleCostReport>({
       method: 'GET',
-      url: '/api/costs/vehicles',
+      url: '/api/v1/costs/vehicles',
       params: listParams(query),
     }),
 };

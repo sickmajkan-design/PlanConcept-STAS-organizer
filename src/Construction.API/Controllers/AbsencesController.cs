@@ -37,6 +37,7 @@ public class AbsencesController : ApiControllerBase
     /// Who is posted where, and who is away, over a window. A worker gets
     /// their own line, which is what the phone shows.
     /// </summary>
+    [HttpGet("/api/v{version:apiVersion}/schedule")]
     [HttpGet("/api/schedule")]
     [Authorize(Policy = Policies.AllEmployees)]
     [ProducesResponseType(typeof(ScheduleDto), StatusCodes.Status200OK)]

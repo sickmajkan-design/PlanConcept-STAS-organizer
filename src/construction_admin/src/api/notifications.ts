@@ -22,25 +22,25 @@ export const notificationsApi = {
   list: (query: NotificationListQuery) =>
     request<PagedList<Notification>>({
       method: 'GET',
-      url: '/api/notifications',
+      url: '/api/v1/notifications',
       params: listParams(query),
     }),
 
   unreadCount: () =>
-    request<number>({ method: 'GET', url: '/api/notifications/unread-count' }),
+    request<number>({ method: 'GET', url: '/api/v1/notifications/unread-count' }),
 
   markRead: (id: string) =>
-    request<void>({ method: 'POST', url: `/api/notifications/${id}/read` }),
+    request<void>({ method: 'POST', url: `/api/v1/notifications/${id}/read` }),
 
   /** Returns how many were still unread. */
   markAllRead: () =>
-    request<number>({ method: 'POST', url: '/api/notifications/read-all' }),
+    request<number>({ method: 'POST', url: '/api/v1/notifications/read-all' }),
 
   /** Returns the number of people it reached. */
   announce: (input: AnnouncementInput) =>
     request<number>({
       method: 'POST',
-      url: '/api/notifications/announce',
+      url: '/api/v1/notifications/announce',
       data: input,
     }),
 };

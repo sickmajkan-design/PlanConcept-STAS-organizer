@@ -18,7 +18,7 @@ class TimeEntryRepository extends ApiRepository {
     bool sortDescending = true,
   }) {
     return getPaged(
-      '/api/timeentries',
+      '/api/v1/timeentries',
       TimeEntry.fromJson,
       query: pagedQuery(
         pageNumber: pageNumber,
@@ -37,7 +37,7 @@ class TimeEntryRepository extends ApiRepository {
   Future<TimeEntry?> fetchCurrent() {
     return guard(() async {
       final response =
-          await dio.get<Map<String, dynamic>>('/api/timeentries/current');
+          await dio.get<Map<String, dynamic>>('/api/v1/timeentries/current');
 
       final data = response.data;
 
@@ -53,7 +53,7 @@ class TimeEntryRepository extends ApiRepository {
     double? longitude,
   }) {
     return postJson(
-      '/api/timeentries/clock-in',
+      '/api/v1/timeentries/clock-in',
       TimeEntry.fromJson,
       data: <String, dynamic>{
         'workType': workType,
@@ -76,7 +76,7 @@ class TimeEntryRepository extends ApiRepository {
     double? longitude,
   }) {
     return postJson(
-      '/api/timeentries/clock-out',
+      '/api/v1/timeentries/clock-out',
       TimeEntry.fromJson,
       data: <String, dynamic>{
         'breakMinutes': breakMinutes,

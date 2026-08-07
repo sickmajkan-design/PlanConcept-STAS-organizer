@@ -17,7 +17,7 @@ class VehicleRepository extends ApiRepository {
     bool sortDescending = false,
   }) {
     return getPaged(
-      '/api/vehicles',
+      '/api/v1/vehicles',
       Vehicle.fromJson,
       query: pagedQuery(
         pageNumber: pageNumber,
@@ -31,7 +31,7 @@ class VehicleRepository extends ApiRepository {
   }
 
   Future<Vehicle> fetchVehicle(String id) {
-    return getJson('/api/vehicles/$id', Vehicle.fromJson);
+    return getJson('/api/v1/vehicles/$id', Vehicle.fromJson);
   }
 }
 

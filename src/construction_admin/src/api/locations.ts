@@ -12,7 +12,7 @@ export const locationsApi = {
   current: (query: CurrentLocationsQuery = {}) =>
     request<EmployeeLocation[]>({
       method: 'GET',
-      url: '/api/locations/current',
+      url: '/api/v1/locations/current',
       params: {
         projectId: query.projectId || undefined,
         maxAgeMinutes: query.maxAgeMinutes || undefined,
@@ -23,6 +23,6 @@ export const locationsApi = {
   lastForEmployee: (employeeId: string) =>
     request<EmployeeLocation>({
       method: 'GET',
-      url: `/api/locations/employees/${employeeId}/last`,
+      url: `/api/v1/locations/employees/${employeeId}/last`,
     }),
 };

@@ -112,10 +112,9 @@ The strongest part of the project.
 
 **Issues:**
 
-- **No API versioning.** Routes are `/api/employees`, not `/api/v1/employees`.
-  Once the mobile app is in an app store you cannot force everyone to update,
-  so the first breaking change has nowhere to go. This is cheap now and
-  expensive later — it belongs in 1.0.
+- ~~**No API versioning.**~~ Routes are now `/api/v1/employees`, with
+  `/api/employees` kept as a permanent alias for version 1. Both clients call
+  the versioned form.
 - ~~**No background jobs at all.**~~ Three now exist: `DailyReminderService`
   (documents about to lapse, work about to fall due),
   `DataRetentionService` (spent tokens, old GPS pings, delivered messages) and
@@ -508,8 +507,17 @@ CSRF, and is being blocked by browsers as a third-party cookie; putting the two
 on one domain is the better fix. Configurable under `Auth:RefreshCookie` and
 documented there.
 
-**H8. API versioning** (`/api/v1/…`). Cheap now; a breaking change against
-installed mobile apps is very expensive later.
+**H8. API versioning** — **done.** Every controller answers on
+`/api/v1/[controller]` and, as a permanent alias, on `/api/[controller]`. Both
+clients now call the versioned form; the unversioned one stays so nothing
+already written breaks, and the default version is pinned at 1.0 with a test
+guarding it — letting the default float would silently move an un-updated
+client onto a version it was never written for, which is the exact failure
+versioning exists to prevent.
+
+The sixteen actions that declare absolute routes (`/api/schedule`,
+`/api/employee-rates`, the exports) each needed a second attribute, which is
+the kind of thing missed one at a time; a theory drives both forms of each.
 
 **H9. Localisation. — DONE.** Both apps ship Serbian and English and default
 to Serbian; an unknown device language falls back to Serbian rather than

@@ -17,7 +17,7 @@ class ToolRepository extends ApiRepository {
     bool sortDescending = false,
   }) {
     return getPaged(
-      '/api/tools',
+      '/api/v1/tools',
       Tool.fromJson,
       query: pagedQuery(
         pageNumber: pageNumber,
@@ -31,14 +31,14 @@ class ToolRepository extends ApiRepository {
   }
 
   Future<Tool> fetchTool(String id) {
-    return getJson('/api/tools/$id', Tool.fromJson);
+    return getJson('/api/v1/tools/$id', Tool.fromJson);
   }
 
   /// Looks a tool up by its QR label. Open to every authenticated employee,
   /// including roles without directory access.
   Future<Tool> fetchToolByQrCode(String qrCode) {
     return getJson(
-      '/api/tools/by-qr/${Uri.encodeComponent(qrCode)}',
+      '/api/v1/tools/by-qr/${Uri.encodeComponent(qrCode)}',
       Tool.fromJson,
     );
   }

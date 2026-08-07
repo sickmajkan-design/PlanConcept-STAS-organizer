@@ -15,18 +15,18 @@ class AuthRepository extends ApiRepository {
     required String password,
   }) {
     return postJson(
-      '/api/auth/login',
+      '/api/v1/auth/login',
       AuthResponse.fromJson,
       data: {'email': email, 'password': password},
     );
   }
 
   Future<void> logout(String refreshToken) {
-    return postVoid('/api/auth/logout', data: {'refreshToken': refreshToken});
+    return postVoid('/api/v1/auth/logout', data: {'refreshToken': refreshToken});
   }
 
   Future<User> currentUser() {
-    return getJson('/api/auth/me', User.fromJson);
+    return getJson('/api/v1/auth/me', User.fromJson);
   }
 
   Future<void> changePassword({
@@ -34,7 +34,7 @@ class AuthRepository extends ApiRepository {
     required String newPassword,
   }) {
     return postVoid(
-      '/api/auth/change-password',
+      '/api/v1/auth/change-password',
       data: {
         'currentPassword': currentPassword,
         'newPassword': newPassword,
@@ -43,7 +43,7 @@ class AuthRepository extends ApiRepository {
   }
 
   Future<void> requestPasswordReset(String email) {
-    return postVoid('/api/auth/forgot-password', data: {'email': email});
+    return postVoid('/api/v1/auth/forgot-password', data: {'email': email});
   }
 
   Future<void> resetPassword({
@@ -52,7 +52,7 @@ class AuthRepository extends ApiRepository {
     required String newPassword,
   }) {
     return postVoid(
-      '/api/auth/reset-password',
+      '/api/v1/auth/reset-password',
       data: {
         'email': email,
         'token': token,

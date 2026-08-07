@@ -795,3 +795,36 @@ Three details that are easy to get wrong and are pinned down by tests:
 cannot cause the browser to send it at all. It works when the API and the panel
 share a registrable domain, which is a deployment constraint worth knowing
 about — see `Auth:RefreshCookie` in `appsettings.json`.
+
+## API versioning
+
+Every controller answers on two paths: `/api/v1/employees`, which is what a
+client should call, and `/api/employees`, which is a permanent alias for
+version 1.
+
+The reason to do this before release rather than after: once the mobile app is
+in an app store there is no way to make everyone update. A phone on a site runs
+whatever its owner last installed, and the first change that alters a response
+shape breaks it silently — a screen that stops filling in, reported weeks later
+as "the app is broken". With versioned routes the old build keeps calling v1,
+which keeps behaving the way it did the day it shipped.
+
+Two decisions worth stating:
+
+**The unversioned routes are an alias, not a deprecation.** Everything written
+before versioning existed calls them, removing them would break clients to no
+benefit, and `ApiVersioningExtensions.Default` is pinned at 1.0 so they can
+never come to mean something else. Letting the default float would move an
+un-updated client onto a version it was never written for — arriving as changed
+behaviour rather than as an error, which is worse than a 404. A test guards the
+constant.
+
+**An unknown version is refused rather than served as v1.** `/api/v9/employees`
+answers 404 — nothing claims that route, so routing finds no candidate before
+version negotiation is reached. The status is less important than the absence
+of a silent fallback: answering a v9 client with v1 data would look like
+success and be wrong in whatever way v9 was meant to differ.
+
+The health probes are deliberately outside all of this. An orchestrator's probe
+URL should not change when the API does, and a probe is not part of the
+contract a client codes against.

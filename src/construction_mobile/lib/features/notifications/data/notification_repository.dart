@@ -14,7 +14,7 @@ class NotificationRepository extends ApiRepository {
     bool unreadOnly = false,
   }) {
     return getPaged(
-      '/api/notifications',
+      '/api/v1/notifications',
       AppNotification.fromJson,
       query: pagedQuery(
         pageNumber: pageNumber,
@@ -26,19 +26,19 @@ class NotificationRepository extends ApiRepository {
 
   Future<int> fetchUnreadCount() {
     return guard(() async {
-      final response = await dio.get<int>('/api/notifications/unread-count');
+      final response = await dio.get<int>('/api/v1/notifications/unread-count');
 
       return response.data ?? 0;
     });
   }
 
   Future<void> markRead(String id) {
-    return postVoid('/api/notifications/$id/read');
+    return postVoid('/api/v1/notifications/$id/read');
   }
 
   Future<int> markAllRead() {
     return guard(() async {
-      final response = await dio.post<int>('/api/notifications/read-all');
+      final response = await dio.post<int>('/api/v1/notifications/read-all');
 
       return response.data ?? 0;
     });
@@ -49,14 +49,14 @@ class NotificationRepository extends ApiRepository {
     required String platform,
   }) {
     return postVoid(
-      '/api/notifications/device-tokens',
+      '/api/v1/notifications/device-tokens',
       data: {'token': token, 'platform': platform},
     );
   }
 
   Future<void> unregisterDeviceToken(String token) {
     return postVoid(
-      '/api/notifications/device-tokens/unregister',
+      '/api/v1/notifications/device-tokens/unregister',
       data: {'token': token},
     );
   }

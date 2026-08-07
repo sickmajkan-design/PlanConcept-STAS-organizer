@@ -70,14 +70,14 @@ function fileNameFrom(header: unknown): string | null {
 
 export const exportsApi = {
   timeEntries: (query: TimeEntryExportQuery) =>
-    download('/api/exports/time-entries', query),
+    download('/api/v1/exports/time-entries', query),
 
   projectCosts: (query: ExportQuery & { projectId?: string }) =>
-    download('/api/exports/project-costs', query),
+    download('/api/v1/exports/project-costs', query),
 
   vehicleCosts: (query: ExportQuery & { vehicleId?: string }) =>
-    download('/api/exports/vehicle-costs', query),
+    download('/api/v1/exports/vehicle-costs', query),
 
   materialMovements: (query: ExportQuery & { materialId?: string; projectId?: string }) =>
-    download('/api/exports/material-movements', query),
+    download('/api/v1/exports/material-movements', query),
 };

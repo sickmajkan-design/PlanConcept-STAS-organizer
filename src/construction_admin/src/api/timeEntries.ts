@@ -36,20 +36,20 @@ export interface ReviewTimeEntryInput {
 
 export const timeEntriesApi = {
   ...createCrudApi<TimeEntry, TimeEntry, TimeEntryInput, TimeEntryListQuery>(
-    '/api/timeentries',
+    '/api/v1/timeentries',
   ),
 
   review: (id: string, input: ReviewTimeEntryInput) =>
     request<TimeEntry>({
       method: 'POST',
-      url: `/api/timeentries/${id}/review`,
+      url: `/api/v1/timeentries/${id}/review`,
       data: input,
     }),
 
   summary: (query: TimeEntrySummaryQuery) =>
     request<TimeEntrySummary>({
       method: 'GET',
-      url: '/api/timeentries/summary',
+      url: '/api/v1/timeentries/summary',
       params: listParams(query),
     }),
 };

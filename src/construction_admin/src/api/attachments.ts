@@ -32,14 +32,14 @@ export const attachmentsApi = {
   list: (query: AttachmentListQuery) =>
     request<Attachment[]>({
       method: 'GET',
-      url: '/api/attachments',
+      url: '/api/v1/attachments',
       params: listParams(query),
     }),
 
   expiring: (withinDays: number) =>
     request<Attachment[]>({
       method: 'GET',
-      url: '/api/attachments/expiring',
+      url: '/api/v1/attachments/expiring',
       params: { withinDays },
     }),
 
@@ -63,13 +63,13 @@ export const attachmentsApi = {
     // knows the multipart boundary it generated.
     return request<Attachment>({
       method: 'POST',
-      url: '/api/attachments',
+      url: '/api/v1/attachments',
       data: form,
     });
   },
 
   remove: (id: string) =>
-    request<void>({ method: 'DELETE', url: `/api/attachments/${id}` }),
+    request<void>({ method: 'DELETE', url: `/api/v1/attachments/${id}` }),
 
   /**
    * Fetches an attachment's bytes as an object URL.
@@ -86,7 +86,7 @@ export const attachmentsApi = {
   objectUrl: async (id: string): Promise<string> => {
     const response = await apiClient.request<Blob>({
       method: 'GET',
-      url: `/api/attachments/${id}/content`,
+      url: `/api/v1/attachments/${id}/content`,
       responseType: 'blob',
     });
 

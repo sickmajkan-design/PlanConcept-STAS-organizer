@@ -163,6 +163,16 @@ dotnet ef migrations add <Name> \
   --output-dir Persistence/Migrations
 ```
 
+## API versioning
+
+Routes are `/api/v1/…`. The unversioned form (`/api/employees`) is kept as a
+permanent alias for version 1 so nothing written before versioning breaks, and
+the default is pinned — unversioned means v1, always. A version the server does
+not have is refused rather than quietly served as v1.
+
+The endpoint tables below list paths without the version prefix; both forms
+work.
+
 ## API modules (Phase 1)
 
 | Module | Endpoints |

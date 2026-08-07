@@ -255,7 +255,7 @@ export interface MaterialInput {
  * An account as the user-administration screens see it.
  *
  * Distinct from `User`, which is the signed-in operator's own profile from
- * `/api/auth/me`. Keeping them apart stops "the current user" and "a row in
+ * `/api/v1/auth/me`. Keeping them apart stops "the current user" and "a row in
  * the accounts table" drifting into one type that is right for neither.
  */
 export interface UserAccount {

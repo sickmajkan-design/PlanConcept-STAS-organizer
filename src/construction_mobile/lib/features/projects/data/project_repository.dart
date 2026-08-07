@@ -18,7 +18,7 @@ class ProjectRepository extends ApiRepository {
     bool sortDescending = false,
   }) {
     return getPaged(
-      '/api/projects',
+      '/api/v1/projects',
       Project.fromJson,
       query: pagedQuery(
         pageNumber: pageNumber,
@@ -32,7 +32,7 @@ class ProjectRepository extends ApiRepository {
   }
 
   Future<ProjectDetail> fetchProject(String id) {
-    return getJson('/api/projects/$id', ProjectDetail.fromJson);
+    return getJson('/api/v1/projects/$id', ProjectDetail.fromJson);
   }
 }
 

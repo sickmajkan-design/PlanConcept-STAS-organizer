@@ -17,4 +17,4 @@ export const projectsApi = createCrudApi<
   ProjectDetail,
   ProjectInput,
   ProjectListQuery
->('/api/projects');
+>('/api/v1/projects');

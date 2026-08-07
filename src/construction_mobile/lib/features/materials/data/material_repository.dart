@@ -17,7 +17,7 @@ class MaterialRepository extends ApiRepository {
     bool sortDescending = false,
   }) {
     return getPaged(
-      '/api/materials',
+      '/api/v1/materials',
       MaterialItem.fromJson,
       query: pagedQuery(
         pageNumber: pageNumber,
@@ -33,7 +33,7 @@ class MaterialRepository extends ApiRepository {
   }
 
   Future<MaterialItem> fetchMaterial(String id) {
-    return getJson('/api/materials/$id', MaterialItem.fromJson);
+    return getJson('/api/v1/materials/$id', MaterialItem.fromJson);
   }
 }
 

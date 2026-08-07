@@ -144,7 +144,7 @@ describe('the bearer token', () => {
 
     const { request } = await loadClient();
 
-    await request({ method: 'GET', url: '/api/employees' });
+    await request({ method: 'GET', url: '/api/v1/employees' });
 
     expect(network.calls[0]?.headers.authorization).toBe('Bearer old-access');
   });
@@ -156,7 +156,7 @@ describe('the bearer token', () => {
 
     const { request } = await loadClient();
 
-    await request({ method: 'POST', url: '/api/auth/login', data: {} });
+    await request({ method: 'POST', url: '/api/v1/auth/login', data: {} });
 
     expect(network.calls[0]?.headers.authorization).toBeUndefined();
   });
@@ -164,7 +164,7 @@ describe('the bearer token', () => {
   it('is left off when nobody is signed in', async () => {
     const { request } = await loadClient();
 
-    await request({ method: 'GET', url: '/api/employees' });
+    await request({ method: 'GET', url: '/api/v1/employees' });
 
     expect(network.calls[0]?.headers.authorization).toBeUndefined();
   });
@@ -173,15 +173,15 @@ describe('the bearer token', () => {
 describe('refreshing before the token dies', () => {
   it('renews an expired token and sends the new one', async () => {
     storedSession({ accessToken: 'old-access', accessTokenExpiresAt: inMinutes(-1) });
-    network.reply('/api/auth/refresh', 200, freshTokens);
+    network.reply('/api/v1/auth/refresh', 200, freshTokens);
 
     const { request } = await loadClient();
 
-    await request({ method: 'GET', url: '/api/employees' });
+    await request({ method: 'GET', url: '/api/v1/employees' });
 
     expect(network.calls.map((call) => call.url)).toEqual([
-      '/api/auth/refresh',
-      '/api/employees',
+      '/api/v1/auth/refresh',
+      '/api/v1/employees',
     ]);
     expect(network.calls[1]?.headers.authorization).toBe('Bearer new-access');
   });
@@ -191,13 +191,13 @@ describe('refreshing before the token dies', () => {
     // this call carried one in the body, the token would be in reach of
     // script again and the cookie would be decoration.
     storedSession({ accessTokenExpiresAt: inMinutes(-1) });
-    network.reply('/api/auth/refresh', 200, freshTokens);
+    network.reply('/api/v1/auth/refresh', 200, freshTokens);
 
     const { request } = await loadClient();
 
-    await request({ method: 'GET', url: '/api/employees' });
+    await request({ method: 'GET', url: '/api/v1/employees' });
 
-    const refresh = network.calls.find((call) => call.url.includes('/api/auth/refresh'))!;
+    const refresh = network.calls.find((call) => call.url.includes('/api/v1/auth/refresh'))!;
 
     expect(refresh.body).toEqual({});
     expect(refresh.headers['x-auth-mode']).toBe('cookie');
@@ -205,14 +205,14 @@ describe('refreshing before the token dies', () => {
 
   it('never writes a refresh token to storage, whatever the API returns', async () => {
     storedSession({ accessTokenExpiresAt: inMinutes(-1) });
-    network.reply('/api/auth/refresh', 200, {
+    network.reply('/api/v1/auth/refresh', 200, {
       ...freshTokens,
       refreshToken: 'a-real-refresh-token',
     });
 
     const { request } = await loadClient();
 
-    await request({ method: 'GET', url: '/api/employees' });
+    await request({ method: 'GET', url: '/api/v1/employees' });
 
     const raw = window.localStorage.getItem('construction.admin.session') ?? '';
 
@@ -229,18 +229,18 @@ describe('refreshing before the token dies', () => {
     // for the account — so a second refresh does not merely waste a call, it
     // signs the operator out.
     storedSession({ accessTokenExpiresAt: inMinutes(-1) });
-    network.reply('/api/auth/refresh', 200, freshTokens);
+    network.reply('/api/v1/auth/refresh', 200, freshTokens);
 
     const { request } = await loadClient();
 
     await Promise.all([
-      request({ method: 'GET', url: '/api/employees' }),
-      request({ method: 'GET', url: '/api/projects' }),
-      request({ method: 'GET', url: '/api/vehicles' }),
+      request({ method: 'GET', url: '/api/v1/employees' }),
+      request({ method: 'GET', url: '/api/v1/projects' }),
+      request({ method: 'GET', url: '/api/v1/vehicles' }),
     ]);
 
     const refreshes = network.calls.filter((call) =>
-      call.url.includes('/api/auth/refresh'),
+      call.url.includes('/api/v1/auth/refresh'),
     );
 
     expect(refreshes).toHaveLength(1);
@@ -250,19 +250,19 @@ describe('refreshing before the token dies', () => {
 describe('refreshing after a 401', () => {
   it('renews and replays the request once', async () => {
     storedSession();
-    network.reply('/api/employees', 401);
-    network.reply('/api/auth/refresh', 200, freshTokens);
-    network.reply('/api/employees', 200, { items: [] });
+    network.reply('/api/v1/employees', 401);
+    network.reply('/api/v1/auth/refresh', 200, freshTokens);
+    network.reply('/api/v1/employees', 200, { items: [] });
 
     const { request } = await loadClient();
 
-    const result = await request({ method: 'GET', url: '/api/employees' });
+    const result = await request({ method: 'GET', url: '/api/v1/employees' });
 
     expect(result).toEqual({ items: [] });
     expect(network.calls.map((call) => call.url)).toEqual([
-      '/api/employees',
-      '/api/auth/refresh',
-      '/api/employees',
+      '/api/v1/employees',
+      '/api/v1/auth/refresh',
+      '/api/v1/employees',
     ]);
     expect(network.calls[2]?.headers.authorization).toBe('Bearer new-access');
   });
@@ -275,16 +275,16 @@ describe('refreshing after a 401', () => {
     // removing the flag alone does not reintroduce the loop — so this asserts
     // the outcome rather than either mechanism.
     storedSession();
-    network.reply('/api/employees', 401);
-    network.reply('/api/auth/refresh', 200, freshTokens);
-    network.reply('/api/employees', 401);
+    network.reply('/api/v1/employees', 401);
+    network.reply('/api/v1/auth/refresh', 200, freshTokens);
+    network.reply('/api/v1/employees', 401);
 
     const { request } = await loadClient();
 
-    await expect(request({ method: 'GET', url: '/api/employees' })).rejects.toThrow();
+    await expect(request({ method: 'GET', url: '/api/v1/employees' })).rejects.toThrow();
 
     expect(
-      network.calls.filter((call) => call.url.includes('/api/auth/refresh')),
+      network.calls.filter((call) => call.url.includes('/api/v1/auth/refresh')),
     ).toHaveLength(1);
   });
 });
@@ -292,14 +292,14 @@ describe('refreshing after a 401', () => {
 describe('when the session cannot be recovered', () => {
   it('clears it and says so, on a rejected refresh token', async () => {
     storedSession({ accessTokenExpiresAt: inMinutes(-1) });
-    network.reply('/api/auth/refresh', 401);
+    network.reply('/api/v1/auth/refresh', 401);
 
     const { request, setSessionLostHandler } = await loadClient();
 
     const lost = vi.fn();
     setSessionLostHandler(lost);
 
-    await request({ method: 'GET', url: '/api/employees' });
+    await request({ method: 'GET', url: '/api/v1/employees' });
 
     expect(sessionStore.read()).toBeNull();
     expect(lost).toHaveBeenCalledOnce();
@@ -309,14 +309,14 @@ describe('when the session cannot be recovered', () => {
     // A rejected token is unrecoverable; a network blip is not, and signing
     // somebody out over a dropped connection loses whatever they were typing.
     storedSession({ accessTokenExpiresAt: inMinutes(-1) });
-    network.reply('/api/auth/refresh', 503);
+    network.reply('/api/v1/auth/refresh', 503);
 
     const { request, setSessionLostHandler } = await loadClient();
 
     const lost = vi.fn();
     setSessionLostHandler(lost);
 
-    await expect(request({ method: 'GET', url: '/api/employees' })).rejects.toThrow();
+    await expect(request({ method: 'GET', url: '/api/v1/employees' })).rejects.toThrow();
 
     expect(sessionStore.read()).not.toBeNull();
     expect(lost).not.toHaveBeenCalled();
@@ -325,28 +325,28 @@ describe('when the session cannot be recovered', () => {
   it('does not try to refresh a 401 on the login call itself', async () => {
     // Wrong credentials are a 401 that no refresh can fix, and attempting one
     // would replace "that password is wrong" with a spurious sign-out.
-    network.reply('/api/auth/login', 401);
+    network.reply('/api/v1/auth/login', 401);
 
     const { request } = await loadClient();
 
     await expect(
-      request({ method: 'POST', url: '/api/auth/login', data: {} }),
+      request({ method: 'POST', url: '/api/v1/auth/login', data: {} }),
     ).rejects.toThrow();
 
-    expect(network.calls.map((call) => call.url)).toEqual(['/api/auth/login']);
+    expect(network.calls.map((call) => call.url)).toEqual(['/api/v1/auth/login']);
   });
 });
 
 describe('errors', () => {
   it('come back as an ApiError, whatever axios threw', async () => {
     storedSession();
-    network.reply('/api/employees', 409, { detail: 'Stock would go negative.' });
+    network.reply('/api/v1/employees', 409, { detail: 'Stock would go negative.' });
 
     const { request } = await loadClient();
     const { ApiError } = await import('./apiError');
 
     await expect(
-      request({ method: 'GET', url: '/api/employees' }),
+      request({ method: 'GET', url: '/api/v1/employees' }),
     ).rejects.toBeInstanceOf(ApiError);
   });
 });
