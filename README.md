@@ -22,8 +22,20 @@ cp .env.example .env      # required: compose has no built-in secrets
 docker compose up --build
 ```
 
-API: http://localhost:8080 — Swagger UI at `/swagger` (Development only),
-health check at `/health`.
+API: http://localhost:8080 — Swagger UI at `/swagger` (Development only).
+
+Two health probes, answering different questions:
+
+| Path | Question | What to do when it fails |
+|---|---|---|
+| `/health/live` | Is the process running? | Restart the container. |
+| `/health/ready` | Can this instance serve traffic? | Take it out of the load balancer. |
+| `/health` | Alias of readiness, kept for what already points at it. | |
+
+Liveness deliberately runs no checks. A liveness probe that depends on the
+database is a way of asking a third party for permission to stay alive: a
+thirty-second failover would restart every replica, several times, during the
+one incident when losing them all is least affordable.
 
 `.env.example` carries local development values only, and signing in with them
 gives you `admin@construction.local` / `Admin123!`. Compose deliberately has no

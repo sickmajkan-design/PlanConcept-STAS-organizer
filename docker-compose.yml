@@ -55,6 +55,13 @@ services:
       FileStorage__RootPath: /var/lib/construction/storage
     ports:
       - "8080:8080"
+    # No container healthcheck here on purpose. The .NET runtime image ships
+    # without curl or wget, so the usual one-liner would report unhealthy
+    # forever, and adding an HTTP client to a production image to check a URL
+    # from inside it is a poor trade. An orchestrator does not need one: it
+    # fetches the probes over the network, and the two to point at are
+    # /health/live (restart this container) and /health/ready (take it out of
+    # the load balancer).
     volumes:
       # Without this, every container restart loses the uploaded files.
       - attachment-data:/var/lib/construction/storage

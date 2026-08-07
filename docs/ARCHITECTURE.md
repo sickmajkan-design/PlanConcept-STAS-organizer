@@ -77,8 +77,8 @@ Thin HTTP shell: controllers only build commands and delegate to MediatR.
 - `Authorization/Policies` — role-hierarchy policies (`SuperAdminOnly`,
   `AdminAndAbove`, `ProjectManagerAndAbove`, `ForemanAndAbove`, `AllEmployees`)
 - Serilog request logging + console/file sinks, Swagger with JWT security scheme,
-  health check at `/health`, CORS for the admin app, HSTS + HTTPS redirection in
-  production
+  liveness and readiness probes (`/health/live`, `/health/ready`), CORS for the
+  admin app, HSTS + HTTPS redirection in production
 
 ## Repository layout
 
@@ -723,3 +723,29 @@ to the console (plain text for a developer; point
 `Serilog:WriteTo:0:Args:formatter` at `CompactJsonFormatter` for a deployment)
 and to a file that, in a container, is written to a layer that disappears with
 the container.
+
+## Health probes
+
+`/health/live` answers whether the process is running, and runs no checks to do
+it. `/health/ready` checks the database. `/health` is an alias of readiness,
+kept for what already points at it.
+
+The split is the whole point. One endpoint that checked the database conflated
+"this process is broken, restart it" with "this instance cannot serve traffic
+right now", and an orchestrator acts on the first by killing the container — so
+a thirty-second database failover restarted every replica, repeatedly, during
+the one incident when losing them all is least affordable. Restarting an API
+because PostgreSQL is briefly away fixes nothing and costs the warm connection
+pools.
+
+Both responses are JSON naming each check, its status and its duration, and no
+more. The exception is left out on purpose: these endpoints are
+unauthenticated, and a failed database check carries an Npgsql message naming
+the host, the database and the user it tried to connect as. That belongs in the
+log, where it already is.
+
+The compose file deliberately defines no container healthcheck for the API: the
+.NET runtime image ships without curl or wget, so the usual one-liner would
+report unhealthy forever, and adding an HTTP client to a production image to
+fetch a URL from inside it is a poor trade. An orchestrator fetches the probes
+over the network and needs nothing installed.

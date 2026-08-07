@@ -461,8 +461,16 @@ the dashboards, writing the alert rules, and adding error tracking to the two
 clients. Until a collector exists the file sink is still a container layer that
 disappears with the container.
 
-**H4. Split `/health` into liveness and readiness.** A database blip should
-not cause a restart loop.
+**H4. Split `/health` into liveness and readiness.** — **done.**
+`/health/live` runs no checks at all; `/health/ready` checks the database.
+`/health` stays as an alias of readiness so nothing already pointing at it
+breaks. Both responses are JSON naming each check and its duration, and
+deliberately carry no exception text — these endpoints are unauthenticated, and
+a failed Npgsql check names the host, database and user it tried to connect as.
+
+Asserted by hosting the API against a connection string pointing at a port
+nobody listens on: liveness stays 200, readiness goes 503. Making liveness
+check the database fails both of those tests.
 
 **H5. `location_records` retention or partitioning.** — **retention done,
 partitioning still open.** `DataRetentionService` sweeps every six hours and

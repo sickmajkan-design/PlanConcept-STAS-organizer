@@ -77,9 +77,7 @@ try
     // finds it no longer due.
     builder.Services.AddHostedService<OutboxService>();
 
-    builder.Services
-        .AddHealthChecks()
-        .AddDbContextCheck<ApplicationDbContext>("database");
+    builder.Services.AddApplicationHealthChecks();
 
     var corsOrigins = builder.Configuration
         .GetSection("Cors:AllowedOrigins")
@@ -167,7 +165,7 @@ try
     app.UseAuthorization();
 
     app.MapControllers();
-    app.MapHealthChecks("/health");
+    app.MapApplicationHealthChecks();
 
     await app.RunAsync();
 }
