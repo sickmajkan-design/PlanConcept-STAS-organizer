@@ -6,9 +6,14 @@ using Microsoft.EntityFrameworkCore;
 namespace Construction.Application.Features.Maintenance.Commands.PurgeExpiredData;
 
 /// <summary>What one sweep removed.</summary>
-public record PurgeResult(int RefreshTokens, int PasswordResetTokens, int LocationRecords)
+public record PurgeResult(
+    int RefreshTokens,
+    int PasswordResetTokens,
+    int LocationRecords,
+    int OutboxMessages)
 {
-    public int Total => RefreshTokens + PasswordResetTokens + LocationRecords;
+    public int Total =>
+        RefreshTokens + PasswordResetTokens + LocationRecords + OutboxMessages;
 }
 
 /// <summary>
@@ -62,6 +67,18 @@ public record PurgeExpiredDataCommand : IRequest<PurgeResult>
     public TimeSpan? LocationRecordRetention { get; init; } = TimeSpan.FromDays(180);
 
     /// <summary>
+    /// How long a delivered outbox message is kept.
+    /// </summary>
+    /// <remarks>
+    /// Long enough to answer "was that email actually sent, and when?" for a
+    /// week or two after somebody asks. Abandoned messages are never purged
+    /// here: there are few of them and each one is a delivery that failed for
+    /// good, which is exactly the thing somebody will eventually need to look
+    /// at.
+    /// </remarks>
+    public TimeSpan SentOutboxMessageRetention { get; init; } = TimeSpan.FromDays(14);
+
+    /// <summary>
     /// Rows deleted per statement.
     /// </summary>
     /// <remarks>
@@ -101,6 +118,10 @@ public class PurgeExpiredDataCommandValidator : AbstractValidator<PurgeExpiredDa
         RuleFor(x => x.LocationRecordRetention)
             .Must(retention => retention is null || retention > TimeSpan.Zero)
             .WithMessage("Location retention must be a positive period, or unset to keep everything.");
+
+        RuleFor(x => x.SentOutboxMessageRetention)
+            .Must(retention => retention >= TimeSpan.Zero)
+            .WithMessage("The outbox retention period cannot be negative.");
 
         RuleFor(x => x.BatchSize).InclusiveBetween(1, 100_000);
 
@@ -153,7 +174,17 @@ public class PurgeExpiredDataCommandHandler
                 cancellationToken);
         }
 
-        return new PurgeResult(refreshTokens, resetTokens, locations);
+        // Sent only. An abandoned message is the record of a delivery that
+        // failed for good, and deleting those would leave the question
+        // "why did they never get the email?" with nothing to answer it.
+        var outbox = await DeleteInBatchesAsync(
+            _context.OutboxMessages
+                .Where(m => m.SentAt != null
+                    && m.SentAt < utcNow - request.SentOutboxMessageRetention),
+            request,
+            cancellationToken);
+
+        return new PurgeResult(refreshTokens, resetTokens, locations, outbox);
     }
 
     /// <summary>

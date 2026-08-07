@@ -69,6 +69,7 @@ public class RetentionSettingsTests
         Assert.Equal(TimeSpan.FromDays(180), settings.LocationRetention);
         Assert.Equal(30, settings.RefreshTokenGraceDays);
         Assert.Equal(7, settings.PasswordResetTokenGraceDays);
+        Assert.Equal(14, settings.SentOutboxMessageDays);
         Assert.Equal(5_000, settings.BatchSize);
         Assert.Equal(6, settings.IntervalHours);
     }

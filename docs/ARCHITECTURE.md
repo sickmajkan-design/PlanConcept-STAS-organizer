@@ -37,9 +37,10 @@ No dependencies at all. Contains:
 
 - **Entities**: `User`, `RefreshToken`, `PasswordResetToken`, `Employee`, `Project`,
   `EmployeeProject` (explicit many-to-many join), `Vehicle`, `Tool`, `Material`,
-  `LocationRecord`, `DeviceToken`, `Notification`
+  `LocationRecord`, `DeviceToken`, `Notification`, `OutboxMessage`
 - **Enums**: `UserRole`, `EmployeeStatus`, `ProjectStatus`, `VehicleStatus`,
-  `FuelType`, `ToolStatus`, `NotificationType`, `DevicePlatform`
+  `FuelType`, `ToolStatus`, `NotificationType`, `DevicePlatform`,
+  `OutboxMessageType`
 - **Common**: `BaseEntity` (Guid id + audit timestamps), `ISoftDeletable`
 
 ### Construction.Application
@@ -147,6 +148,12 @@ Key decisions:
   refresh or reset tokens; both have unique hash indexes for O(log n) lookup.
 - `materials.Quantity` is `numeric(18,3)` with a `>= 0` check constraint.
 - `notifications.DataJson` is `jsonb` for deep-link payloads.
+- **`outbox_messages`** carries queued email and push. Its due index is
+  filtered on `SentAt IS NULL AND AbandonedAt IS NULL`, so a table that has
+  delivered a million messages and owes nothing has an empty index to scan. A
+  check constraint refuses a row that is both sent and abandoned — the two are
+  set by different paths, and a row carrying both would leave nobody able to
+  say what happened to it.
 
 ## A half-built feature, and how it stayed hidden
 
@@ -605,6 +612,9 @@ option viable.
   a second instance finds nothing left to claim rather than telling anyone
   twice.
 
+- **`OutboxService`** — sends what the request path queued, every ten seconds.
+  See below.
+
 - **`DataRetentionService`** — deletes what the system has finished with, every
   six hours. Nothing to claim: a deleted row cannot be deleted again, so
   concurrent sweeps either take disjoint sets or find the rows already gone.
@@ -618,6 +628,10 @@ option viable.
   actually reaches PostgreSQL as a `LIMIT` rather than being ignored is
   asserted by a test, because the failure would be silent and total.
 
+  Delivered outbox messages are purged after a fortnight. Abandoned ones never
+  are: each is a delivery that failed for good, and it is the only thing that
+  can answer "why did they never get the email?".
+
   Retention windows come from the `Retention` configuration section.
   `LocationRecordDays` defaults to 180; setting it to 0 keeps everything and
   logs a warning at startup saying so. Refresh tokens are kept for a grace
@@ -625,3 +639,46 @@ option viable.
   leaves the old row behind on purpose, because presenting it again is how a
   stolen token is detected, and deleting it would turn that signal into an
   ordinary unknown token.
+
+## The outbox
+
+Email and push used to be sent inside the request that caused them.
+`ForgotPasswordCommand` waited on SMTP — MailKit's default timeout is two
+minutes — on an endpoint anyone can call without authenticating, and a mail
+server that was down lost the email while keeping the reset token, leaving
+somebody waiting for a link nobody was going to send. Push had the same shape:
+an FCM round trip inside "assign this employee to that site", with no retry.
+
+Both now write a row to `outbox_messages` instead, and `OutboxService` sends
+it.
+
+**Enqueuing joins the caller's unit of work.** `IOutbox.Enqueue` is
+synchronous and does not save — it adds to the same change tracker the handler
+is already using, so the message commits in the caller's own transaction. The
+reset token and the email carrying it are one write. A handler that throws
+before saving queues nothing, which is right: the thing the message was about
+did not happen either.
+
+**Claiming is what makes replicas safe.** One `UPDATE` stamps a claim token,
+increments the attempt count and pushes `NextAttemptAt` a lease beyond now; the
+worker then reads its rows back by that token. A second worker starting in the
+middle re-checks its predicate after taking the row lock, finds the message no
+longer due, and takes nothing. That is asserted by a test that runs the second
+sweep *from inside the first one's send*, because two sweeps started together
+may never overlap — an earlier version of the test passed against a broken
+claim for exactly that reason.
+
+`NextAttemptAt` doubling as the lease means a worker that dies mid-send strands
+nothing: the message becomes due again by itself. And the attempt count is
+incremented when claimed rather than after a failure, so a message that kills
+the process still counts towards its limit instead of being retried for ever.
+
+**Failure backs off and then stops.** Half a minute, doubling, six attempts —
+roughly half an hour, long enough to outlast a mail server restart and short
+enough that a permanently wrong address is not retried indefinitely. After that
+the message is abandoned, with the last error on the row.
+
+The payload is `jsonb` rather than columns because an email and a push share
+no fields, and a table with both sets half-null has to be read with a rule in
+mind. The cost is that string operations on it need a cast — which only tests
+ever want, since the processor selects on the columns beside it.

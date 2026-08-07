@@ -43,6 +43,8 @@ public interface IApplicationDbContext
 
     DbSet<VehicleExpense> VehicleExpenses { get; }
 
+    DbSet<OutboxMessage> OutboxMessages { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
     /// <summary>

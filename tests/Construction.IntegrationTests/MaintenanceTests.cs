@@ -34,6 +34,7 @@ public class MaintenanceTests : IntegrationTestBase
             RefreshTokenGrace = TimeSpan.FromDays(3_650),
             PasswordResetTokenGrace = TimeSpan.FromDays(3_650),
             LocationRecordRetention = locations ?? TimeSpan.FromDays(3_650),
+            SentOutboxMessageRetention = TimeSpan.FromDays(3_650),
             BatchSize = batchSize,
             MaxBatchesPerTable = maxBatches,
         };
@@ -78,6 +79,7 @@ public class MaintenanceTests : IntegrationTestBase
             RefreshTokenGrace = TimeSpan.FromDays(30),
             PasswordResetTokenGrace = TimeSpan.FromDays(3_650),
             LocationRecordRetention = TimeSpan.FromDays(3_650),
+            SentOutboxMessageRetention = TimeSpan.FromDays(3_650),
         }));
 
         Assert.False(await StillThereAsync(stale.Id));
@@ -95,6 +97,7 @@ public class MaintenanceTests : IntegrationTestBase
             RefreshTokenGrace = TimeSpan.Zero,
             PasswordResetTokenGrace = TimeSpan.FromDays(3_650),
             LocationRecordRetention = TimeSpan.FromDays(3_650),
+            SentOutboxMessageRetention = TimeSpan.FromDays(3_650),
         }));
 
         Assert.True(await StillThereAsync(live.Id));
@@ -120,6 +123,7 @@ public class MaintenanceTests : IntegrationTestBase
             RefreshTokenGrace = TimeSpan.Zero,
             PasswordResetTokenGrace = TimeSpan.FromDays(3_650),
             LocationRecordRetention = TimeSpan.FromDays(3_650),
+            SentOutboxMessageRetention = TimeSpan.FromDays(3_650),
         }));
 
         Assert.True(await StillThereAsync(rotated.Id));
@@ -151,6 +155,7 @@ public class MaintenanceTests : IntegrationTestBase
             RefreshTokenGrace = TimeSpan.FromDays(3_650),
             PasswordResetTokenGrace = TimeSpan.FromDays(7),
             LocationRecordRetention = TimeSpan.FromDays(3_650),
+            SentOutboxMessageRetention = TimeSpan.FromDays(3_650),
         }));
 
         var gone = await InScope(scope =>
@@ -179,6 +184,7 @@ public class MaintenanceTests : IntegrationTestBase
             RefreshTokenGrace = TimeSpan.FromDays(3_650),
             PasswordResetTokenGrace = TimeSpan.FromDays(3_650),
             LocationRecordRetention = TimeSpan.FromDays(180),
+            SentOutboxMessageRetention = TimeSpan.FromDays(3_650),
             MaxBatchesPerTable = 1_000,
         }));
 
@@ -242,6 +248,7 @@ public class MaintenanceTests : IntegrationTestBase
                 RefreshTokenGrace = TimeSpan.FromDays(3_650),
                 PasswordResetTokenGrace = TimeSpan.FromDays(3_650),
                 LocationRecordRetention = null,
+                SentOutboxMessageRetention = TimeSpan.FromDays(3_650),
             }));
 
         Assert.Equal(0, result.LocationRecords);
@@ -298,6 +305,58 @@ public class MaintenanceTests : IntegrationTestBase
 
         Assert.Equal(0, second.LocationRecords);
         Assert.Equal(1, await PingCountAsync(employee.Id));
+    }
+
+    // ---- delivered messages ----------------------------------------------
+
+    [Fact]
+    public async Task A_delivered_message_goes_once_its_window_passes_and_an_abandoned_one_stays()
+    {
+        var (sent, abandoned) = await InScope(async scope =>
+        {
+            var delivered = new Domain.Entities.OutboxMessage
+            {
+                Id = Guid.NewGuid(),
+                Type = Domain.Enums.OutboxMessageType.Email,
+                PayloadJson = """{"To":"a@b.test","Subject":"old","HtmlBody":"x"}""",
+                CreatedAt = DateTime.UtcNow.AddDays(-90),
+                NextAttemptAt = DateTime.UtcNow.AddDays(-90),
+                SentAt = DateTime.UtcNow.AddDays(-90),
+            };
+
+            var deadLettered = new Domain.Entities.OutboxMessage
+            {
+                Id = Guid.NewGuid(),
+                Type = Domain.Enums.OutboxMessageType.Email,
+                PayloadJson = """{"To":"c@d.test","Subject":"failed","HtmlBody":"x"}""",
+                CreatedAt = DateTime.UtcNow.AddDays(-90),
+                NextAttemptAt = DateTime.UtcNow.AddDays(-90),
+                AbandonedAt = DateTime.UtcNow.AddDays(-90),
+            };
+
+            scope.Db.OutboxMessages.AddRange(delivered, deadLettered);
+            await scope.Db.SaveChangesAsync();
+
+            return (delivered, deadLettered);
+        });
+
+        await InScope(scope => scope.Send(new PurgeExpiredDataCommand
+        {
+            RefreshTokenGrace = TimeSpan.FromDays(3_650),
+            PasswordResetTokenGrace = TimeSpan.FromDays(3_650),
+            LocationRecordRetention = TimeSpan.FromDays(3_650),
+            SentOutboxMessageRetention = TimeSpan.FromDays(14),
+        }));
+
+        var stillThere = await InScope(scope => scope.Db.OutboxMessages
+            .Where(m => m.Id == sent.Id || m.Id == abandoned.Id)
+            .Select(m => m.Id)
+            .ToListAsync());
+
+        // The dead letter stays: it is the record of a delivery that failed
+        // for good, and deleting it leaves "why did they never get the email?"
+        // with nothing to answer it.
+        Assert.Equal([abandoned.Id], stillThere);
     }
 
     // ---- what it refuses --------------------------------------------------

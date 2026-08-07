@@ -53,6 +53,14 @@ public class RetentionSettings
     public TimeSpan? LocationRetention =>
         LocationRecordDays > 0 ? TimeSpan.FromDays(LocationRecordDays) : null;
 
+    /// <summary>Days a delivered outbox message is kept.</summary>
+    /// <remarks>
+    /// Enough to answer "was that email sent, and when?" after somebody asks.
+    /// Messages that were given up on are never purged — each one is a
+    /// delivery that failed for good, and that is the thing worth keeping.
+    /// </remarks>
+    public int SentOutboxMessageDays { get; set; } = 14;
+
     /// <summary>Rows deleted per statement.</summary>
     public int BatchSize { get; set; } = 5_000;
 

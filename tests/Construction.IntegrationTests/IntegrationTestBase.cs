@@ -30,6 +30,12 @@ public abstract class IntegrationTestBase : IDisposable
         using var scope = Fixture.CreateScope();
         scope.Clock.Reset();
 
+        // Same reasoning as the clock: the senders are singletons on the
+        // fixture, so a test that made one fail and forgot to clear it would
+        // fail an unrelated test somewhere else entirely.
+        scope.Emails.Reset();
+        scope.Pushes.Reset();
+
         GC.SuppressFinalize(this);
     }
 

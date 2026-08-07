@@ -1,3 +1,4 @@
+using Construction.Application.Common.Interfaces;
 using Construction.Infrastructure.Persistence;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,6 +28,14 @@ public sealed class TestScope : IDisposable
 
     public MutableDateTimeProvider Clock =>
         _scope.ServiceProvider.GetRequiredService<MutableDateTimeProvider>();
+
+    public RecordingEmailSender Emails =>
+        _scope.ServiceProvider.GetRequiredService<RecordingEmailSender>();
+
+    public RecordingPushSender Pushes =>
+        _scope.ServiceProvider.GetRequiredService<RecordingPushSender>();
+
+    public IOutbox Outbox => _scope.ServiceProvider.GetRequiredService<IOutbox>();
 
     public Task<TResponse> Send<TResponse>(IRequest<TResponse> request) =>
         Mediator.Send(request);

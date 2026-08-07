@@ -54,6 +54,11 @@ try
         builder.Configuration.GetSection(RetentionSettings.SectionName));
     builder.Services.AddHostedService<DataRetentionService>();
 
+    // Sends what the request path queued. Nothing to claim first here either:
+    // claiming a message moves it beyond its own lease, so a second worker
+    // finds it no longer due.
+    builder.Services.AddHostedService<OutboxService>();
+
     builder.Services
         .AddHealthChecks()
         .AddDbContextCheck<ApplicationDbContext>("database");

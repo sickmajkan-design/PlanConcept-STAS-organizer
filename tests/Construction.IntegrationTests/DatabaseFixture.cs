@@ -67,8 +67,8 @@ public sealed class DatabaseFixture : IAsyncLifetime
                 ["JwtSettings:SecretKey"] = "integration-test-signing-key-at-least-32-chars",
                 ["JwtSettings:AccessTokenLifetimeMinutes"] = "15",
                 ["JwtSettings:RefreshTokenLifetimeDays"] = "7",
-                // Left unconfigured on purpose: the email and push senders log
-                // instead of reaching the network, so no test touches either.
+                // SMTP and Firebase are left unconfigured, and the senders are
+                // replaced below anyway, so nothing here reaches a network.
                 ["ClientApp:PasswordResetUrl"] = "https://admin.example.test/reset-password",
                 // The real filesystem storage, pointed at a throwaway
                 // directory. A fake would let an upload test pass while the
@@ -78,6 +78,13 @@ public sealed class DatabaseFixture : IAsyncLifetime
             .Build();
 
         var services = new ServiceCollection();
+
+        // The API host registers this for free; a hand-built provider does
+        // not. Some Infrastructure services read configuration directly
+        // (ResetLinkBuilder needs the client URL), so without it they cannot
+        // be constructed — which stayed invisible until a test first exercised
+        // the password-reset flow.
+        services.AddSingleton<IConfiguration>(configuration);
 
         services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.Warning));
         services.AddApplication();
@@ -90,6 +97,15 @@ public sealed class DatabaseFixture : IAsyncLifetime
         // Replaces Infrastructure's real clock so expiry paths are reachable.
         services.AddSingleton<MutableDateTimeProvider>();
         services.AddSingleton<IDateTimeProvider>(sp => sp.GetRequiredService<MutableDateTimeProvider>());
+
+        // Replaces the SMTP and FCM senders. Theirs log instead of reaching
+        // the network when unconfigured, which never fails — so the outbox's
+        // retry and dead-letter paths would have nothing to exercise them.
+        services.AddSingleton<RecordingEmailSender>();
+        services.AddSingleton<IEmailSender>(sp => sp.GetRequiredService<RecordingEmailSender>());
+
+        services.AddSingleton<RecordingPushSender>();
+        services.AddSingleton<IPushSender>(sp => sp.GetRequiredService<RecordingPushSender>());
 
         return services.BuildServiceProvider();
     }

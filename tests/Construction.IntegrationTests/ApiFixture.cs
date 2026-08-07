@@ -83,7 +83,8 @@ public sealed class ApiFixture : IAsyncLifetime
                     foreach (var timer in services
                         .Where(descriptor =>
                             descriptor.ImplementationType == typeof(DailyReminderService) ||
-                            descriptor.ImplementationType == typeof(DataRetentionService))
+                            descriptor.ImplementationType == typeof(DataRetentionService) ||
+                            descriptor.ImplementationType == typeof(OutboxService))
                         .ToList())
                     {
                         services.Remove(timer);

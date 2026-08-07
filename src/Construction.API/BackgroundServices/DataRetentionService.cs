@@ -95,6 +95,8 @@ public class DataRetentionService : BackgroundService
                     PasswordResetTokenGrace =
                         TimeSpan.FromDays(_settings.PasswordResetTokenGraceDays),
                     LocationRecordRetention = _settings.LocationRetention,
+                    SentOutboxMessageRetention =
+                        TimeSpan.FromDays(_settings.SentOutboxMessageDays),
                     BatchSize = _settings.BatchSize,
                     MaxBatchesPerTable = _settings.MaxBatchesPerTable,
                 },
@@ -107,10 +109,12 @@ public class DataRetentionService : BackgroundService
             {
                 _logger.LogInformation(
                     "Retention sweep removed {RefreshTokens} refresh token(s), "
-                    + "{ResetTokens} reset token(s) and {Locations} location record(s).",
+                    + "{ResetTokens} reset token(s), {Locations} location record(s) "
+                    + "and {OutboxMessages} delivered message(s).",
                     result.RefreshTokens,
                     result.PasswordResetTokens,
-                    result.LocationRecords);
+                    result.LocationRecords,
+                    result.OutboxMessages);
             }
         }
         catch (OperationCanceledException)

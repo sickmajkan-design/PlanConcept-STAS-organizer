@@ -49,6 +49,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<VehicleExpense> VehicleExpenses => Set<VehicleExpense>();
 
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+
     public async Task ExecuteInTransactionAsync(
         Func<CancellationToken, Task> action,
         CancellationToken cancellationToken = default)

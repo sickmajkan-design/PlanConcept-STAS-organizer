@@ -1,11 +1,11 @@
 using System.Security.Cryptography;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Security;
+using Construction.Application.Features.Outbox;
 using Construction.Domain.Entities;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Construction.Application.Features.Authentication.Commands.ForgotPassword;
 
@@ -33,23 +33,20 @@ public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordComman
     private static readonly TimeSpan TokenLifetime = TimeSpan.FromHours(1);
 
     private readonly IApplicationDbContext _context;
-    private readonly IEmailSender _emailSender;
+    private readonly IOutbox _outbox;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IResetLinkBuilder _resetLinkBuilder;
-    private readonly ILogger<ForgotPasswordCommandHandler> _logger;
 
     public ForgotPasswordCommandHandler(
         IApplicationDbContext context,
-        IEmailSender emailSender,
+        IOutbox outbox,
         IDateTimeProvider dateTimeProvider,
-        IResetLinkBuilder resetLinkBuilder,
-        ILogger<ForgotPasswordCommandHandler> logger)
+        IResetLinkBuilder resetLinkBuilder)
     {
         _context = context;
-        _emailSender = emailSender;
+        _outbox = outbox;
         _dateTimeProvider = dateTimeProvider;
         _resetLinkBuilder = resetLinkBuilder;
-        _logger = logger;
     }
 
     public async Task Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
@@ -86,24 +83,19 @@ public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordComman
             ExpiresAt = utcNow.Add(TokenLifetime)
         });
 
+        // Queued rather than sent, and queued before the save so it commits
+        // with the token in one transaction. Sending here used to mean an
+        // unauthenticated request waiting on SMTP — MailKit's default timeout
+        // is two minutes — and a mail server that was down lost the email
+        // while keeping the token, leaving somebody waiting for a link nobody
+        // was going to send. Now the token and the email land together or not
+        // at all, and the sending is somebody else's problem, with retries.
+        _outbox.Enqueue(new EmailPayload(
+            user.Email,
+            "Password reset request",
+            BuildEmailBody(_resetLinkBuilder.Build(user.Email, rawToken))));
+
         await _context.SaveChangesAsync(cancellationToken);
-
-        var resetLink = _resetLinkBuilder.Build(user.Email, rawToken);
-
-        try
-        {
-            await _emailSender.SendAsync(
-                user.Email,
-                "Password reset request",
-                BuildEmailBody(resetLink),
-                cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            // The token is stored, so support can still resend; never surface
-            // SMTP problems to an unauthenticated caller.
-            _logger.LogError(ex, "Failed to send password reset email to {Email}", user.Email);
-        }
     }
 
     private static string BuildEmailBody(string resetLink) =>

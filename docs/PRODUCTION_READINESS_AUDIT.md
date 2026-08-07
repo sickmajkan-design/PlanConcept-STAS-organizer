@@ -115,15 +115,17 @@ The strongest part of the project.
   Once the mobile app is in an app store you cannot force everyone to update,
   so the first breaking change has nowhere to go. This is cheap now and
   expensive later — it belongs in 1.0.
-- ~~**No background jobs at all.**~~ Two now exist: `DailyReminderService`
-  (documents about to lapse, work about to fall due) and
-  `DataRetentionService` (spent tokens, old GPS pings). Both are plain
-  `BackgroundService` timers rather than a job framework, and both are safe on
-  every replica — the reminder sweep claims each row before notifying, and a
-  deleted row cannot be deleted twice. Email and push still have no retry (M2).
-- **Email is sent inside the HTTP request** (`ForgotPasswordCommand`). A slow
-  or hung SMTP server blocks a request thread — MailKit's default timeout is
-  two minutes.
+- ~~**No background jobs at all.**~~ Three now exist: `DailyReminderService`
+  (documents about to lapse, work about to fall due),
+  `DataRetentionService` (spent tokens, old GPS pings, delivered messages) and
+  `OutboxService` (queued email and push). All three are plain
+  `BackgroundService` timers rather than a job framework, and all three are safe
+  on every replica — the reminder sweep claims each row before notifying, a
+  deleted row cannot be deleted twice, and an outbox claim moves the message
+  past its own lease.
+- ~~**Email is sent inside the HTTP request.**~~ `ForgotPasswordCommand` now
+  queues it. Push was moved off the request path at the same time. Neither had
+  any retry before; both now back off and eventually dead-letter.
 - **`EmailSettings` and `FirebaseSettings` are bound without validation**
   (`DependencyInjection.cs:74-79`), unlike `JwtSettings` which uses
   `ValidateOnStart`. Misconfiguration is silent. See Critical #2.
@@ -503,7 +505,12 @@ projects. Currently they see everything.
   expiry* rather than deleted when revoked: rotation leaves the old row behind
   on purpose, because presenting it again is how a stolen token is detected,
   and deleting it would turn a theft signal into an ordinary unknown token.
-- **M2.** Move email and push out of the request path onto a queue with retry.
+- **M2.** Move email and push out of the request path — **done.** Both write to
+  an `outbox_messages` row in the same transaction as the work that caused
+  them; `OutboxService` sends every ten seconds with exponential backoff and a
+  dead-letter state. Claiming stamps a token and pushes the message past a
+  lease, so replicas cannot double-send and a worker that dies mid-send strands
+  nothing.
 - **M3.** Validate `EmailSettings`, `FirebaseSettings` and CORS origins at
   startup, the way `JwtSettings` already is.
 - **M4.** Integration tests for the still-uncovered modules (Employees,
