@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 
 import { I18nContext, type I18nContextValue, type Translate, type TranslateValues } from './context';
 import { en } from './en';
@@ -79,11 +79,18 @@ function interpolate(template: string, values: TranslateValues | undefined): str
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>(initialLocale);
 
+  // On the chosen locale rather than only on a change, because most operators
+  // never change it: the app opens in Serbian and `index.html` says `lang="en"`,
+  // so without this the page stays mislabelled for exactly the readers it was
+  // localised for. Screen readers pronounce the text from this attribute, and
+  // the browser's translate prompt reads it too.
+  useEffect(() => {
+    document.documentElement.lang = locale === 'sr' ? 'sr-Latn' : 'en';
+  }, [locale]);
+
   const setLocale = useCallback((next: Locale) => {
     setLocaleState(next);
     window.localStorage.setItem(STORAGE_KEY, next);
-    // Screen readers and the browser's own UI read this.
-    document.documentElement.lang = next === 'sr' ? 'sr-Latn' : 'en';
   }, []);
 
   const t = useCallback<Translate>(

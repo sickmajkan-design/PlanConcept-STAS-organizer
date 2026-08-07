@@ -103,14 +103,13 @@ cd src/construction_admin && npm run build     # admin: type-check + bundle
 | `tests/Construction.UnitTests` | Password hashing, JWT claims and expiry, token hashing, every module's validation rules, pagination arithmetic, and which failures reach the error log. No database. |
 | `tests/Construction.IntegrationTests` | Real handlers over a throwaway PostgreSQL database: refresh-token rotation and reuse detection, soft delete with identifier reuse, atomic stock adjustment under concurrency, tool assignment. Also hosts the real API in-process and drives every endpoint over HTTP as each of the five roles, so the `[Authorize]` policies are asserted rather than assumed. |
 | `src/construction_mobile/test` | Validators, error mapping, model parsing, the exact requests each repository puts on the wire, and widget tests driving the real router. |
-| `src/construction_admin` | `tsc -b` type-checking and `oxlint`. **No automated tests yet** — see the gap noted below. |
+| `src/construction_admin` | Vitest: the session and token-refresh machinery against a fake network, the route guards for every role, i18n plurals and dictionary parity, query-param normalisation, and the date arithmetic behind the schedule board and the cost report. Plus `tsc -b` type-checking and `oxlint`. |
 
-> **Known gap.** The admin panel has no test suite. Its CRUD, assignment and
-> role-gated navigation have been verified end to end with a Playwright script
-> run against a live API, but that script is not in the repository and does not
-> run in CI, so nothing here guards against a regression in the admin app.
-> Closing this is the first item in
-> [the readiness audit](docs/PRODUCTION_READINESS_AUDIT.md#high-priority--before-releasing-to-users).
+> **Known gap.** The admin suite covers logic and guards, not whole screens.
+> Its CRUD and assignment flows have been verified end to end with a Playwright
+> script run against a live API, but that script is not in the repository and
+> does not run in CI, so a regression in a form or a grid would still get
+> through.
 
 The integration tests need a reachable PostgreSQL server. They create and drop
 their own database, so point them at one with `ConstructionTests__Postgres`

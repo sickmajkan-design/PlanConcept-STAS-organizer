@@ -541,16 +541,30 @@ one earns its cost:
   id. Without it, an action that lost its `[Authorize]` attribute in a merge
   would ship green.
 
-The clients are not covered equally. The mobile app has a real suite
-(`flutter test`); the admin app has only `tsc -b` and `oxlint` — its behaviour
-has been verified end to end with a Playwright script run against a live API,
-but that script is not committed and does not run in CI, so the admin panel is
-currently unguarded against regressions. On the mobile side the suite
-includes
-repository tests that assert the exact path, query map and body each call puts
-on the wire, using a recording `HttpClientAdapter` instead of a server — the
-layer where a silently dropped filter would otherwise reach production
-unnoticed. CI runs all of it on every push.
+Both clients now have suites, drawn along the same line: the layer where a
+mistake is silent.
+
+- **`src/construction_admin/src`** (Vitest, alongside the code) — the session
+  and token-refresh machinery driven through a fake axios adapter, the route
+  guards for every role, i18n plural selection and dictionary parity, query
+  parameter normalisation, and the date arithmetic behind the schedule board
+  and the cost report. The refresh tests earn their keep: the API rotates
+  refresh tokens and treats a replayed one as theft, so a refresh that stopped
+  being single-flight would sign the operator out mid-task, and nothing about
+  that shows up in a type check. Files that need a DOM say so with a
+  `@vitest-environment jsdom` docblock; the rest run without one.
+
+  Not covered: whole screens. The CRUD forms and grids are still only
+  exercised by an uncommitted Playwright script, which is the remaining half
+  of audit item H1.
+
+- **`src/construction_mobile/test`** (`flutter test`) — validators, error
+  mapping, model parsing, widget tests driving the real router, and repository
+  tests that assert the exact path, query map and body each call puts on the
+  wire, using a recording `HttpClientAdapter` instead of a server — the layer
+  where a silently dropped filter would otherwise reach production unnoticed.
+
+CI runs all of it on every push.
 
 ## Push notification design (module 8)
 

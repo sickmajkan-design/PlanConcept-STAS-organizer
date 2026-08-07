@@ -404,10 +404,22 @@ data model (retention), so it must be decided before the schema is frozen.
 
 ## HIGH PRIORITY — before releasing to users
 
-**H1. Admin panel has zero automated tests** and the 46 end-to-end checks are
-not in the repository. Commit the Playwright suite, add it to CI, add
-component tests for the five CRUD sections and the auth flow. Correct the two
-documentation claims that currently overstate coverage.
+**H1. Admin panel has zero automated tests** — **partly done.** It now has a
+Vitest suite (148 cases) running in CI, covering the pieces whose failure is
+silent: the token-refresh machinery against a fake network, including the
+single-flight property that stops a rotated refresh token being replayed and
+signing the operator out; the route guards for all five roles and the
+still-loading third state; i18n plural selection and dictionary parity; query
+parameter normalisation; and the date arithmetic behind the schedule board and
+the cost report. It found one real bug — `<html lang>` stayed `"en"` until the
+operator changed language by hand, so the page was mislabelled for exactly the
+readers it was localised for.
+
+Still open: whole-screen coverage. The five CRUD sections and the assignment
+flows are exercised only by a Playwright script that is not in the repository
+and does not run in CI, so a regression in a form or a grid would still reach
+production. The documentation claims that overstated coverage have been
+corrected.
 
 **H2. No authorization tests.** — **done.** `ApiAuthorizationTests` hosts the
 real API through `WebApplicationFactory` and drives every endpoint with a real

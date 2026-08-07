@@ -155,11 +155,40 @@ send. The endpoint answers with the number of people reached and the screen
 shows it: an announcement whose filters matched nobody otherwise looks exactly
 like one that reached the whole company.
 
+## Tests
+
+```bash
+npm test          # Vitest, once
+npm run test:watch
+```
+
+Tests sit next to the code they cover, as `*.test.ts(x)`. They run in Node by
+default; a file that needs a DOM opens with a `@vitest-environment jsdom`
+docblock, so the pure-logic majority does not pay for one.
+
+What is covered, chosen by where a mistake would be silent rather than by
+counting files:
+
+| Area | Why it is here |
+|---|---|
+| `api/client` | Token refresh against a fake axios adapter: the bearer header, the pre-emptive renewal, the 401-and-replay, and the single-flight property. The API rotates refresh tokens and treats a replayed one as theft, so a refresh that fired once per in-flight request would sign the operator out mid-task. |
+| `api/session` | What survives a reload, and the 30-second skew that stops a request being sent with a token that dies in flight. |
+| `api/apiError` | Which message wins. The API's own explanation must beat the generic fallback, or every conflict reads "The action conflicts with the current data". |
+| `routes/RequireAuth` | Every guard against every role, plus the still-loading third state — treating it as signed-out bounces a returning operator to the login screen on each reload. |
+| `i18n` | Serbian's three plural forms, interpolation, which language the app opens in, and a parity check that no translation lost a `{placeholder}`. |
+| `api/resource` | Query-parameter normalisation. A dropped filter is a screen that quietly returns the wrong rows. |
+| `pages/schedule`, `pages/costs` | Date arithmetic in `YYYY-MM-DD` strings, including the timezone and daylight-saving cases that would shift a bar or a report by a day. |
+
+Not covered: whole screens. The CRUD forms and grids have been driven
+end-to-end with Playwright scripts covering sign-in, employee and project CRUD,
+project assignment, vehicle/tool/material CRUD, tool dual assignment, material
+stock adjustment (including the 409 over-consumption case), role-gated
+navigation and the live map's graceful no-API-key state — but those scripts are
+not in this repository and do not run in CI.
+
 ## Verification
 
-Type-checked with `tsc -b` (part of `npm run build`), linted with `oxlint`,
-and driven end-to-end with Playwright scripts covering sign-in, employee and
-project CRUD, project assignment, vehicle/tool/material CRUD, tool dual
-assignment, material stock adjustment (including the 409 over-consumption
-case), role-gated navigation, and the live map's graceful no-API-key state —
-against both the dev server and the production build.
+`npm run lint` (oxlint), `npm test` (Vitest) and `npm run build`, which
+type-checks with `tsc -b` before bundling. `tsconfig.app.json` includes the
+whole of `src`, so the tests are type-checked with everything else. CI runs all
+three on every push.
