@@ -45,6 +45,24 @@ try
 
     builder.Services.AddTrustedProxyForwarding(builder.Configuration);
 
+    builder.Services.AddTelemetry(builder.Configuration, builder.Environment);
+
+    // Gives a body to the responses the framework writes itself. A 401 from
+    // the authentication handler or a 403 from a policy never reaches
+    // ExceptionHandlingMiddleware — they are status codes with nothing in
+    // them, so the operator sees a generic message and has no id to quote.
+    // This is the half of the correlation id that would otherwise only work
+    // for failures a handler threw.
+    builder.Services.AddProblemDetails(options =>
+        options.CustomizeProblemDetails = context =>
+        {
+            if (context.HttpContext.Items.TryGetValue(
+                    CorrelationIdMiddleware.ItemKey, out var correlationId))
+            {
+                context.ProblemDetails.Extensions["correlationId"] = correlationId;
+            }
+        });
+
     // The product's recurring jobs. Both are safe to run on every replica: the
     // reminder sweep claims a row before notifying, so nobody is told twice,
     // and a deleted row cannot be deleted again.
@@ -96,6 +114,10 @@ try
     // limiter partitions on it and the refresh-token audit trail records it.
     app.UseTrustedProxyForwarding();
 
+    // First of the application middleware, so every line logged for a request
+    // carries its id — including Serilog's own request-completed line below.
+    app.UseMiddleware<CorrelationIdMiddleware>();
+
     app.UseSecurityHeaders();
 
     // Request logging wraps the exception handler, not the other way round.
@@ -103,9 +125,25 @@ try
     // and record a 500 — so a duplicate employee number the client correctly
     // received as 409, or a page the user navigated away from, would land in
     // the log as a server fault and drive false alerts.
-    app.UseSerilogRequestLogging();
+    app.UseSerilogRequestLogging(options =>
+    {
+        // The health endpoint is polled every few seconds by the orchestrator.
+        // Logged at Information it is most of the log by volume and none of it
+        // by value; at Debug it is there when somebody is looking for it.
+        options.GetLevel = (context, _, exception) =>
+            exception is not null
+                ? Serilog.Events.LogEventLevel.Error
+                : context.Request.Path.StartsWithSegments("/health")
+                    ? Serilog.Events.LogEventLevel.Debug
+                    : Serilog.Events.LogEventLevel.Information;
+    });
 
     app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+    // Only fills in a body where there is none, so every response written by
+    // a controller or by the exception middleware above passes through
+    // untouched.
+    app.UseStatusCodePages();
 
     if (app.Environment.IsDevelopment())
     {

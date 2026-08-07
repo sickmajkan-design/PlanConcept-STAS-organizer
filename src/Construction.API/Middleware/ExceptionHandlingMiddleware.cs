@@ -136,6 +136,15 @@ public class ExceptionHandlingMiddleware
         problemDetails.Extensions["traceId"] =
             System.Diagnostics.Activity.Current?.Id ?? context.TraceIdentifier;
 
+        // The one a person can actually quote. `traceId` is a W3C trace
+        // identifier meant for a tracing backend; this is the short token that
+        // is also on the response header and in every log line for the
+        // request, so "it said 7f3a…" is enough to find it.
+        if (context.Items.TryGetValue(CorrelationIdMiddleware.ItemKey, out var correlationId))
+        {
+            problemDetails.Extensions["correlationId"] = correlationId;
+        }
+
         context.Response.StatusCode = problemDetails.Status!.Value;
         context.Response.ContentType = "application/problem+json";
 

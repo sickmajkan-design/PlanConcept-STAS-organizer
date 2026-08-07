@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using Construction.API.Observability;
 using Construction.Application.Features.Outbox.Commands.ProcessOutbox;
 using MediatR;
 
@@ -32,11 +34,16 @@ public class OutboxService : BackgroundService
     private static readonly TimeSpan StartupDelay = TimeSpan.FromSeconds(15);
 
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly JobMetrics _metrics;
     private readonly ILogger<OutboxService> _logger;
 
-    public OutboxService(IServiceScopeFactory scopeFactory, ILogger<OutboxService> logger)
+    public OutboxService(
+        IServiceScopeFactory scopeFactory,
+        JobMetrics metrics,
+        ILogger<OutboxService> logger)
     {
         _scopeFactory = scopeFactory;
+        _metrics = metrics;
         _logger = logger;
     }
 
@@ -63,6 +70,8 @@ public class OutboxService : BackgroundService
 
     private async Task RunOnceAsync(CancellationToken cancellationToken)
     {
+        var started = Stopwatch.GetTimestamp();
+
         try
         {
             using var scope = _scopeFactory.CreateScope();
@@ -70,6 +79,8 @@ public class OutboxService : BackgroundService
             var mediator = scope.ServiceProvider.GetRequiredService<ISender>();
 
             var result = await mediator.Send(new ProcessOutboxCommand(), cancellationToken);
+
+            _metrics.OutboxRun(result.Sent, result.Retrying, result.Abandoned);
 
             // Failures are already logged per message, with the reason. This
             // line is for the shape of a run, and only when there was one —
@@ -93,7 +104,13 @@ public class OutboxService : BackgroundService
             // A failed pass must not take the host down. Claimed messages
             // return when their lease expires; unclaimed ones were never
             // touched.
+            _metrics.JobFailed("outbox");
+
             _logger.LogError(exception, "The outbox pass failed; it will run again.");
+        }
+        finally
+        {
+            _metrics.JobFinished("outbox", Stopwatch.GetElapsedTime(started));
         }
     }
 }

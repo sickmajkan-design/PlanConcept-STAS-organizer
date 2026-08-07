@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using Construction.API.Observability;
 using Construction.Application.Features.Attachments.Commands.SendExpiryReminders;
 using Construction.Application.Features.WorkItems.Commands.SendDueReminders;
 using MediatR;
@@ -30,13 +32,16 @@ public class DailyReminderService : BackgroundService
     private static readonly TimeSpan StartupDelay = TimeSpan.FromMinutes(2);
 
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly JobMetrics _metrics;
     private readonly ILogger<DailyReminderService> _logger;
 
     public DailyReminderService(
         IServiceScopeFactory scopeFactory,
+        JobMetrics metrics,
         ILogger<DailyReminderService> logger)
     {
         _scopeFactory = scopeFactory;
+        _metrics = metrics;
         _logger = logger;
     }
 
@@ -62,6 +67,8 @@ public class DailyReminderService : BackgroundService
 
     private async Task RunOnceAsync(CancellationToken cancellationToken)
     {
+        var started = Stopwatch.GetTimestamp();
+
         try
         {
             using var scope = _scopeFactory.CreateScope();
@@ -71,6 +78,8 @@ public class DailyReminderService : BackgroundService
             var documents = await mediator.Send(
                 new SendExpiryRemindersCommand(), cancellationToken);
 
+            _metrics.RemindersSent("document-expiry", documents);
+
             if (documents > 0)
             {
                 _logger.LogInformation(
@@ -79,6 +88,8 @@ public class DailyReminderService : BackgroundService
 
             var work = await mediator.Send(
                 new SendDueRemindersCommand(), cancellationToken);
+
+            _metrics.RemindersSent("work-item-due", work);
 
             if (work > 0)
             {
@@ -95,8 +106,14 @@ public class DailyReminderService : BackgroundService
             // A failed sweep must not take the host down with it — the rows
             // are still there and tomorrow's run will find them, because
             // nothing that was not sent got marked as sent.
+            _metrics.JobFailed("reminders");
+
             _logger.LogError(
                 exception, "The daily reminder sweep failed; it will run again.");
+        }
+        finally
+        {
+            _metrics.JobFinished("reminders", Stopwatch.GetElapsedTime(started));
         }
     }
 }

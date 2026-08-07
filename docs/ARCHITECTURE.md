@@ -682,3 +682,44 @@ The payload is `jsonb` rather than columns because an email and a push share
 no fields, and a table with both sets half-null has to be read with a rule in
 mind. The cost is that string operations on it need a cast — which only tests
 ever want, since the processor selects on the columns beside it.
+
+## Observability
+
+Three things, of which only the first two are code.
+
+**A correlation id per request.** `CorrelationIdMiddleware` runs first, before
+the request logger and before anything that can start a response. It takes
+`X-Correlation-Id` from the caller so a chain of calls shares one, and returns
+it on every response — including the ones the framework writes itself, because
+`AddProblemDetails` puts it in the body of a 401 or a 403 that no handler ever
+saw. Every log line written while handling the request carries it. A user
+quotes one string and the log query is exact.
+
+The header is validated rather than trusted: at most 64 characters of
+`[A-Za-z0-9_-]`, anything else replaced. A value straight from a request into a
+log file is a log-injection vector — a newline forges entries that look
+authentic to whatever reads them — and a few kilobytes of junk per line is a
+slow denial of service against whoever pays per gigabyte ingested.
+
+**Metrics and traces over OTLP**, off unless `OTEL_EXPORTER_OTLP_ENDPOINT` is
+set. Vendor-neutral on purpose: every aggregator worth using speaks it, so the
+choice of backend stays a deployment decision. Alongside the standard ASP.NET
+Core, HTTP-client and runtime instrumentation, `JobMetrics` reports what the
+background jobs did. That distinction matters more than it looks — request
+metrics say the API is up, and an outbox that cannot reach the mail server
+still serves 200s all day while nobody receives a password-reset email. The two
+worth an alert are `outbox.abandoned` above zero, which means somebody
+definitely did not get something, and `job.failures`, which means a sweep is
+not running at all.
+
+Instrument names are asserted by tests. A renamed counter breaks a dashboard
+and an alert rule silently — the query returns no data, which looks exactly
+like a system with nothing to report.
+
+**What is not code.** Running an aggregator, building the dashboards, and
+writing the alert rules live in the deployment. Shipping the signal is what
+makes them possible, not what replaces them. Until a collector exists, logs go
+to the console (plain text for a developer; point
+`Serilog:WriteTo:0:Args:formatter` at `CompactJsonFormatter` for a deployment)
+and to a file that, in a container, is written to a layer that disappears with
+the container.

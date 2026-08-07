@@ -59,6 +59,7 @@ the repository:
 | `Cors__AllowedOrigins__0…` | Allowed browser origins |
 | `Retention__LocationRecordDays` | Days of GPS history kept (default 180; `0` keeps everything) |
 | `Retention__SentOutboxMessageDays` | Days a delivered email/push record is kept (default 14) |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | Where to send metrics and traces. Unset means none are exported. |
 
 The retention defaults purge, so a deployment that sets none of the `Retention`
 values still bounds its own growth. `Retention__LocationRecordDays` is the one

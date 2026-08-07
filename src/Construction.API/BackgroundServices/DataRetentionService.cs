@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using Construction.API.Observability;
 using Construction.Application.Features.Maintenance.Commands.PurgeExpiredData;
 using MediatR;
 using Microsoft.Extensions.Options;
@@ -33,15 +35,18 @@ public class DataRetentionService : BackgroundService
 
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly RetentionSettings _settings;
+    private readonly JobMetrics _metrics;
     private readonly ILogger<DataRetentionService> _logger;
 
     public DataRetentionService(
         IServiceScopeFactory scopeFactory,
         IOptions<RetentionSettings> settings,
+        JobMetrics metrics,
         ILogger<DataRetentionService> logger)
     {
         _scopeFactory = scopeFactory;
         _settings = settings.Value;
+        _metrics = metrics;
         _logger = logger;
     }
 
@@ -82,6 +87,8 @@ public class DataRetentionService : BackgroundService
 
     private async Task RunOnceAsync(CancellationToken cancellationToken)
     {
+        var started = Stopwatch.GetTimestamp();
+
         try
         {
             using var scope = _scopeFactory.CreateScope();
@@ -101,6 +108,11 @@ public class DataRetentionService : BackgroundService
                     MaxBatchesPerTable = _settings.MaxBatchesPerTable,
                 },
                 cancellationToken);
+
+            _metrics.Purged("refresh_tokens", result.RefreshTokens);
+            _metrics.Purged("password_reset_tokens", result.PasswordResetTokens);
+            _metrics.Purged("location_records", result.LocationRecords);
+            _metrics.Purged("outbox_messages", result.OutboxMessages);
 
             // Only when it did something. A line every six hours saying
             // "removed nothing" is noise that trains people to skip the ones
@@ -126,8 +138,14 @@ public class DataRetentionService : BackgroundService
             // A failed sweep must not take the host down. Nothing was half
             // done — each batch is its own statement — so the next run simply
             // finds the same rows still waiting.
+            _metrics.JobFailed("retention");
+
             _logger.LogError(
                 exception, "The retention sweep failed; it will run again.");
+        }
+        finally
+        {
+            _metrics.JobFinished("retention", Stopwatch.GetElapsedTime(started));
         }
     }
 }

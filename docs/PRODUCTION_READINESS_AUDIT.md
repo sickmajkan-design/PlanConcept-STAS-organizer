@@ -443,9 +443,23 @@ it expires — up to fifteen minutes — because nothing re-checks the account p
 request. That is now asserted rather than assumed, so it is a decision instead
 of a surprise.
 
-**H3. Centralised logging, metrics and alerting.** File logs in an ephemeral
-container are effectively no logs. Ship to an aggregator, expose metrics,
-add uptime and error-rate alerts, and add error tracking to both clients.
+**H3. Centralised logging, metrics and alerting.** — **the code half is done;
+the deployment half is not.**
+
+Done: a correlation id on every request, in every log line for it, on the
+response header, and in the problem-details body — including the 401s and 403s
+the framework writes itself, which previously had no body at all and left an
+operator with nothing to quote. Serilog enriched with machine and environment
+and ready to emit compact JSON. OpenTelemetry metrics and traces over OTLP,
+switched on by `OTEL_EXPORTER_OTLP_ENDPOINT`, with `JobMetrics` reporting what
+the three background jobs actually did — `outbox.abandoned` and `job.failures`
+are the two an alert should watch, because an outbox failing every message
+still serves 200s.
+
+Not done, and not doable from the repository: running the aggregator, building
+the dashboards, writing the alert rules, and adding error tracking to the two
+clients. Until a collector exists the file sink is still a container layer that
+disappears with the container.
 
 **H4. Split `/health` into liveness and readiness.** A database blip should
 not cause a restart loop.

@@ -92,8 +92,7 @@ public class OutboxTests : IntegrationTestBase
             .Where(m => m.Type == OutboxMessageType.Email)
             .ToListAsync());
 
-        var message = Assert.Single(
-            emails.Where(m => m.PayloadJson.Contains(user.Email)));
+        var message = Assert.Single(emails, m => m.PayloadJson.Contains(user.Email));
 
         Assert.True(message.IsPending);
         Assert.Equal(0, message.Attempts);
@@ -117,7 +116,7 @@ public class OutboxTests : IntegrationTestBase
             scope.Db.OutboxMessages.AsNoTracking().ToListAsync());
 
         Assert.Equal(1, tokens);
-        Assert.Single(all.Where(m => m.PayloadJson.Contains(user.Email)));
+        Assert.Single(all, m => m.PayloadJson.Contains(user.Email));
     }
 
     [Fact]
@@ -188,7 +187,7 @@ public class OutboxTests : IntegrationTestBase
 
         var sent = await InScope(scope => Task.FromResult(scope.Emails.Sent));
 
-        Assert.Single(sent.Where(email => email.Subject == subject));
+        Assert.Single(sent, email => email.Subject == subject);
     }
 
     [Fact]
@@ -229,7 +228,7 @@ public class OutboxTests : IntegrationTestBase
         await InScope(scope => scope.Send(Sweep()));
 
         var pushes = await InScope(scope => Task.FromResult(scope.Pushes.Sent));
-        var push = Assert.Single(pushes.Where(p => p.Title == title));
+        var push = Assert.Single(pushes, p => p.Title == title);
 
         // Resolved at send time, not frozen at enqueue time: on a retry an
         // hour later a stored token list could be devices that no longer exist.
@@ -430,7 +429,7 @@ public class OutboxTests : IntegrationTestBase
 
         var sent = await InScope(scope => Task.FromResult(scope.Emails.Sent));
 
-        Assert.Single(sent.Where(email => email.Subject == subject));
+        Assert.Single(sent, email => email.Subject == subject);
     }
 
     [Fact]
@@ -458,7 +457,7 @@ public class OutboxTests : IntegrationTestBase
         {
             // Exactly once. Twice would be two password-reset emails for one
             // request, or the same announcement on somebody's phone twice.
-            Assert.Single(sent.Where(email => email.Subject == subject));
+            Assert.Single(sent, email => email.Subject == subject);
         }
     }
 
