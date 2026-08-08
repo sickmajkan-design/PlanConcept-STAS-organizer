@@ -135,3 +135,94 @@ posao — namerno nije uzeto u Fazi 0. / The permanent fix for the first two is 
 separate background-service package running a second Flutter engine,
 independent of the activity. That is a new dependency and its own piece of
 work — deliberately not taken on in Phase 0.
+
+---
+
+## 4. Backup i restore / Backup and restore
+
+**SR** — Skripte su u `scripts/`. Restore je *isproban*, ne samo napisan:
+rezultat provere je na kraju ovog odeljka.
+
+**EN** — The scripts are in `scripts/`. The restore has been *performed*, not
+merely written: the verification result is at the end of this section.
+
+### 4.1 Skripte / The scripts
+
+| Skripta / Script | Radi / Does |
+|---|---|
+| `backup.sh` | Jedan dump (`-Fc`) + SHA-256, pa briše starije od `BACKUP_RETENTION_DAYS`. Ispisuje putanju na stdout. / One custom-format dump + SHA-256, then prunes older than `BACKUP_RETENTION_DAYS`. Prints the path on stdout. |
+| `restore.sh` | Vraća dump u bazu. Odbija da pregazi bazu koja ima tabele bez `--force`. / Restores into a database. Refuses to overwrite one that has tables unless `--force`. |
+| `verify-restore.sh` | Ceo krug: backup → restore u privremenu bazu → poređenje broja redova po tabeli → brisanje privremene. / The whole round trip: back up, restore into a scratch database, compare per-table row counts, drop the scratch. |
+
+Sve tri koriste standardne `PG*` promenljive, pa `~/.pgpass` i `PGSERVICE`
+rade kao i inače. / All three use the standard `PG*` variables, so `~/.pgpass`
+and `PGSERVICE` keep working.
+
+```bash
+# ručno / by hand
+PGDATABASE=construction BACKUP_DIR=/mnt/backups ./scripts/backup.sh
+
+# vežba oporavka — pokrenuti posle svake promene šeme
+# restore rehearsal — run after any schema change
+./scripts/verify-restore.sh
+```
+
+### 4.2 Zakazivanje / Scheduling
+
+```bash
+docker compose --profile backup up -d
+```
+
+Servis je opt-in namerno: razvojni stack ga ne treba, a produkcija ne sme da
+se oslanja na podrazumevanu vrednost. / The service is opt-in on purpose: a
+development stack does not need it, and a deployment should not rely on a
+default.
+
+### 4.3 Šta ovo NE rešava / What this does NOT solve
+
+**SR** — Dump na volumenu pored baze preživljava obrisanu tabelu i lošu
+migraciju. Ne preživljava gubitak mašine. Kopirajte dump-ove van servera
+(S3, drugi provajder, druga lokacija) — to je jedini korak koji pretvara ovo u
+pravi backup, i jedini koji ne mogu da uradim umesto vas jer traži nalog koji
+je vaš.
+
+**EN** — A dump on a volume beside the database survives a dropped table and a
+bad migration. It does not survive losing the host. Copy the dumps off the
+machine — S3, another provider, another site. That is the step that turns this
+into a real backup, and the one step code cannot do for you because it needs an
+account that is yours.
+
+Isto važi za `attachment-data` volumen: baza čuva metapodatke o prilozima, a
+sami fajlovi su odvojeni. Backup baze bez fajlova vraća spisak dokumenata koji
+ne postoje. / The same goes for the `attachment-data` volume: the database
+holds attachment metadata, the files sit apart. Restoring the database without
+them gives you a list of documents that are not there.
+
+### 4.4 Rezultat provere / Verification result
+
+**SR** — Pokrenuto protiv baze sa realnom šemom (svih 10 migracija) i podacima:
+
+**EN** — Run against a database with the real schema (all ten migrations) and
+data in it:
+
+```
+Restore verification PASSED: 22 table(s), 10522 row(s) matched.
+```
+
+Provereno je i da provera **ume da padne**, jer „PASSED" inače ne znači ništa —
+sve tri greške su izazvane namerno i sve tri su uhvaćene: /
+The check was also proven able to **fail**, since "PASSED" means nothing
+otherwise — all three faults were induced deliberately and all three were
+caught:
+
+| Greška / Fault | Ishod / Outcome |
+|---|---|
+| Dump stariji od baze (7 redova dodato posle) / Dump older than the database | `FAILED`, uz `diff` koji pokazuje `projects 19 → 12` |
+| Dump ne odgovara svom checksum-u / Dump does not match its checksum | Odbijeno pre dodirivanja baze / Refused before touching the database |
+| Restore preko pune baze bez `--force` / Restore over a populated database | Odbijeno, uz broj tabela koje bi bile pregažene / Refused, naming the tables at risk |
+
+**Šta i dalje nije provereno / Still unverified:** oporavak na *drugoj* mašini,
+i vreme potrebno za restore na produkcionoj količini podataka. Prvo traži drugi
+server, drugo traži produkcione podatke. / Recovery onto a *different* host, and
+how long a restore takes at production data volume. The first needs a second
+server; the second needs production-sized data.

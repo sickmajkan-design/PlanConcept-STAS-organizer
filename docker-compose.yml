@@ -66,6 +66,44 @@ services:
       # Without this, every container restart loses the uploaded files.
       - attachment-data:/var/lib/construction/storage
 
+  # Nightly backup. Opt-in, so `docker compose up` stays a two-container
+  # development stack: enable it with `--profile backup`, or in the deployment
+  # compose file where it belongs.
+  #
+  # The dumps land on their own volume. That is the minimum, not the goal — a
+  # volume on the same host as the database survives a dropped table and a bad
+  # migration, and does not survive the host. Ship them off the machine; see
+  # the runbook in docs/PROVISIONING.md.
+  backup:
+    image: postgres:16-alpine
+    container_name: construction-backup
+    profiles: ["backup"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGUSER: postgres
+      PGPASSWORD: ${POSTGRES_PASSWORD:?copy .env.example to .env first}
+      PGDATABASE: construction
+      BACKUP_DIR: /backups
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+    volumes:
+      - ./scripts:/scripts:ro
+      - backup-data:/backups
+    # bash, because the scripts use arrays and process substitution that the
+    # alpine image's default shell does not have.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        apk add --no-cache bash coreutils findutils >/dev/null
+        while true; do
+          bash /scripts/backup.sh || echo "backup failed" >&2
+          sleep 86400
+        done
+    restart: unless-stopped
+
 volumes:
   postgres-data:
   attachment-data:
+  backup-data:

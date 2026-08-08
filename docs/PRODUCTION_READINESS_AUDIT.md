@@ -37,9 +37,11 @@ guards rather than whole screens (H1).
 
 Both are operational rather than functional, and both are invisible from a demo:
 
-1. **There is no backup, and therefore no tested restore** (C6). The system
-   holds payroll-relevant hours, cost records and an audit trail; none of it
-   survives a lost volume.
+1. **Backups exist and a restore has been rehearsed, but the dumps never leave
+   the host** (C6). The scripts and the nightly are in place, and the round trip
+   has been run and verified — 22 tables, 10,522 rows. What is missing is the
+   copy off the machine, which needs an account belonging to the organisation.
+   Until that exists, a lost host is still a lost system.
 2. **Location tracking has no privacy documentation** (C7). The system records
    where employees were, minute by minute, and now also keeps an audit trail of
    who changed what. Both are lawful to hold and neither is documented — no
@@ -444,9 +446,37 @@ the service account are the owner's steps (`PROVISIONING.md` §1). Until then
 the mobile app reports `unconfigured` and the API logs pushes instead of
 sending them — visibly, not silently.
 
-**C6. No backup or restore procedure.**
-Nothing is backed up; nothing has been restored. Highest-probability
+**C6. No backup or restore procedure.** — **CODE CLOSED, OFF-SITE COPY
+OUTSTANDING**
+Nothing was backed up; nothing had been restored. Highest-probability
 unrecoverable incident.
+
+**Done.** `scripts/backup.sh` writes a custom-format dump with a SHA-256
+alongside it and prunes on a retention window; `scripts/restore.sh` restores
+one, refusing to overwrite a populated database without `--force`; an opt-in
+compose service (`--profile backup`) runs the nightly.
+
+The part that matters is `scripts/verify-restore.sh`, which rehearses the whole
+round trip — back up, restore into a scratch database, compare every table's
+row count against the source, drop the scratch — and it has been run:
+**22 tables, 10,522 rows matched**, against a database carrying all ten
+migrations and seeded data.
+
+"We have backups" and "we can restore" are different claims and only the second
+one matters, so the checker was also proven able to fail. Three faults were
+induced deliberately and all three were caught: a dump older than the database
+(reported with a row-count diff), a dump that no longer matches its checksum
+(refused before the database was touched), and a restore over a populated
+database without `--force` (refused, naming what was at risk).
+
+**Outstanding, and it is the half that makes this a real backup:** the dumps
+land on a volume beside the database. That survives a dropped table and a bad
+migration; it does not survive losing the host. Copying them off the machine
+needs an account belonging to the organisation, so it is a provisioning step —
+see docs/PROVISIONING.md §4. Also unverified: recovery onto a *different* host,
+and how long a restore takes at production data volume. The `attachment-data`
+volume is not covered by a database dump either; restoring without it gives a
+list of documents that are not there.
 
 **C7. GDPR/privacy compliance for location tracking is absent.**
 No privacy notice, lawful basis, DPIA, retention limit or erasure path for
@@ -763,7 +793,7 @@ Blocks everything else.
 - C1 secrets, C2 email/reset-link, C5 Firebase validation
 - H6 lockout + timing, H7 cookie-based refresh token
 - H4 liveness/readiness split
-- C6 backups: script, schedule, **and a tested restore**
+- ~~C6 backups: script, schedule, **and a tested restore**~~ — done; off-site copy still outstanding
 - M3 startup validation, M6 security headers, M7 CI scanning
 
 **Exit:** a fresh deploy with no environment variables set refuses to start

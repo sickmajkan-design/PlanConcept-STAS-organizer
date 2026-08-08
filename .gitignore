@@ -44,3 +44,11 @@ android/.gradle/
 # OS
 .DS_Store
 Thumbs.db
+
+# Database dumps. BACKUP_DIR defaults to ./backups, so without this the first
+# run of scripts/backup.sh puts every employee record, GPS track and audit
+# entry into the repository — and a dump is not something a .gitignore added
+# later can take back out of the history.
+/backups/
+*.dump
+*.dump.sha256
