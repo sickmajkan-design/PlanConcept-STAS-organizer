@@ -234,6 +234,8 @@ export const en = {
   'map.lastFix': 'Last position',
   'map.noPositions': 'No positions reported yet.',
   'map.onlyActive': 'Only recently active',
+  'map.truncated':
+    'Showing {shown} of {total} people. Narrow by project to see the rest — the map cannot draw them all at once.',
 
   // --- User accounts --------------------------------------------------------
   'users.title': 'User accounts',

@@ -242,6 +242,8 @@ export const sr: Record<MessageKey, Message> = {
   'map.lastFix': 'Poslednja pozicija',
   'map.noPositions': 'Još nema prijavljenih pozicija.',
   'map.onlyActive': 'Samo skoro aktivni',
+  'map.truncated':
+    'Prikazano {shown} od {total} radnika. Suzite izbor po projektu da vidite ostale — mapa ne može da prikaže sve odjednom.',
 
   // --- User accounts --------------------------------------------------------
   'users.title': 'Korisnički nalozi',

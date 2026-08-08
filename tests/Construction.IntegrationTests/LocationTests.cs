@@ -29,11 +29,9 @@ namespace Construction.IntegrationTests;
 /// and the map query is a lateral join picking the newest row per employee.
 /// </para>
 /// <para>
-/// <c>GetCurrentLocations</c> reads across the whole table with no paging or
-/// project scope of its own, so every assertion here names the employees it
-/// seeded rather than counting rows — other tests' data is in there too. That
-/// the query has no bound at all is audit item M12, not something these tests
-/// can fix.
+/// <c>GetCurrentLocations</c> reads across the whole table, so every assertion
+/// here names the employees it seeded rather than counting rows — other tests'
+/// data is in there too.
 /// </para>
 /// </remarks>
 [Collection(DatabaseCollection.Name)]
@@ -58,6 +56,25 @@ public class LocationTests : IntegrationTestBase
             var user = await TestData.SeedUserAsync(scope, UserRole.Worker, employee.Id);
             return (employee, user);
         });
+    }
+
+    /// <summary>
+    /// The markers on the map, with the page envelope unwrapped.
+    /// </summary>
+    /// <remarks>
+    /// The query is paged now, but every test below is about which employees
+    /// appear rather than about paging, and a page of 1000 is more than this
+    /// suite ever seeds. The paging itself is asserted separately at the end.
+    /// </remarks>
+    private async Task<IReadOnlyCollection<Construction.Application.Features.Locations.Models.EmployeeLocationDto>> MapAsync(
+        GetCurrentLocationsQuery query)
+    {
+        var page = await InScope(scope => scope.Send(query with
+        {
+            PageSize = GetCurrentLocationsQuery.MaxPageSize
+        }));
+
+        return page.Items;
     }
 
     private static void ActAs(TestScope scope, User user, Guid? employeeId) =>
@@ -205,7 +222,7 @@ public class LocationTests : IntegrationTestBase
             Ping(Noon.AddMinutes(30), lat: 45.30),
             Ping(Noon.AddMinutes(20), lat: 45.20));
 
-        var map = await InScope(scope => scope.Send(new GetCurrentLocationsQuery()));
+        var map = await MapAsync(new GetCurrentLocationsQuery());
 
         var mine = Assert.Single(map, l => l.EmployeeId == employee.Id);
 
@@ -220,7 +237,7 @@ public class LocationTests : IntegrationTestBase
         // than an absent one, because somebody has to work out it is fake.
         var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
 
-        var map = await InScope(scope => scope.Send(new GetCurrentLocationsQuery()));
+        var map = await MapAsync(new GetCurrentLocationsQuery());
 
         Assert.DoesNotContain(map, l => l.EmployeeId == employee.Id);
     }
@@ -238,10 +255,17 @@ public class LocationTests : IntegrationTestBase
         await ReportAsync(staleUser, stale.Id, Ping(Noon.AddHours(-3)));
         await ReportAsync(freshUser, fresh.Id, Ping(Noon.AddMinutes(-5)));
 
-        var map = await InScope(scope =>
+        var map = await InScope(async scope =>
         {
             scope.Clock.FreezeAt(Noon);
-            return scope.Send(new GetCurrentLocationsQuery { MaxAgeMinutes = 30 });
+
+            var page = await scope.Send(new GetCurrentLocationsQuery
+            {
+                MaxAgeMinutes = 30,
+                PageSize = GetCurrentLocationsQuery.MaxPageSize
+            });
+
+            return page.Items;
         });
 
         Assert.Contains(map, l => l.EmployeeId == fresh.Id);
@@ -262,10 +286,17 @@ public class LocationTests : IntegrationTestBase
             Ping(Noon.AddHours(-3), lat: 44.00),
             Ping(Noon.AddMinutes(-5), lat: 46.00));
 
-        var map = await InScope(scope =>
+        var map = await InScope(async scope =>
         {
             scope.Clock.FreezeAt(Noon);
-            return scope.Send(new GetCurrentLocationsQuery { MaxAgeMinutes = 30 });
+
+            var page = await scope.Send(new GetCurrentLocationsQuery
+            {
+                MaxAgeMinutes = 30,
+                PageSize = GetCurrentLocationsQuery.MaxPageSize
+            });
+
+            return page.Items;
         });
 
         var mine = Assert.Single(map, l => l.EmployeeId == employee.Id);
@@ -281,13 +312,12 @@ public class LocationTests : IntegrationTestBase
         await ReportAsync(activeUser, active.Id, Ping(Noon));
         await ReportAsync(formerUser, former.Id, Ping(Noon));
 
-        var normal = await InScope(scope => scope.Send(new GetCurrentLocationsQuery()));
+        var normal = await MapAsync(new GetCurrentLocationsQuery());
 
         Assert.Contains(normal, l => l.EmployeeId == active.Id);
         Assert.DoesNotContain(normal, l => l.EmployeeId == former.Id);
 
-        var everyone = await InScope(scope =>
-            scope.Send(new GetCurrentLocationsQuery { IncludeInactive = true }));
+        var everyone = await MapAsync(new GetCurrentLocationsQuery { IncludeInactive = true });
 
         Assert.Contains(everyone, l => l.EmployeeId == former.Id);
     }
@@ -306,8 +336,7 @@ public class LocationTests : IntegrationTestBase
         await ReportAsync(onSiteUser, onSite.Id, Ping(Noon));
         await ReportAsync(elsewhereUser, elsewhere.Id, Ping(Noon));
 
-        var crew = await InScope(scope =>
-            scope.Send(new GetCurrentLocationsQuery { ProjectId = project.Id }));
+        var crew = await MapAsync(new GetCurrentLocationsQuery { ProjectId = project.Id });
 
         Assert.Contains(crew, l => l.EmployeeId == onSite.Id);
         Assert.DoesNotContain(crew, l => l.EmployeeId == elsewhere.Id);
@@ -331,7 +360,7 @@ public class LocationTests : IntegrationTestBase
 
         await InScope(scope => scope.Send(new DeleteEmployeeCommand(employee.Id)));
 
-        var map = await InScope(scope => scope.Send(new GetCurrentLocationsQuery()));
+        var map = await MapAsync(new GetCurrentLocationsQuery());
         Assert.DoesNotContain(map, l => l.EmployeeId == employee.Id);
 
         var visible = await InScope(scope => scope.Db.LocationRecords
@@ -354,12 +383,132 @@ public class LocationTests : IntegrationTestBase
 
         await ReportAsync(user, employee.Id, Ping(Noon));
 
-        var map = await InScope(scope => scope.Send(new GetCurrentLocationsQuery()));
+        var map = await MapAsync(new GetCurrentLocationsQuery());
         var mine = Assert.Single(map, l => l.EmployeeId == employee.Id);
 
         Assert.Equal(employee.EmployeeNumber, mine.EmployeeNumber);
         Assert.Equal($"{employee.FirstName} {employee.LastName}", mine.FullName);
         Assert.Equal(employee.Position, mine.Position);
+    }
+
+    // ---- the map is bounded ----------------------------------------------
+
+    [Fact]
+    public async Task The_map_is_bounded_even_when_nobody_asks_for_a_page()
+    {
+        // The point of M12. This used to return every active employee who had
+        // ever reported, with no limit — fine at the stated scale and a
+        // response that grows without bound for anybody larger.
+        var page = await InScope(scope => scope.Send(new GetCurrentLocationsQuery()));
+
+        Assert.Equal(1, page.PageNumber);
+        Assert.Equal(250, page.PageSize);
+        Assert.True(page.Items.Count <= 250);
+    }
+
+    [Fact]
+    public async Task The_map_says_how_many_there_are_so_a_partial_one_can_be_spotted()
+    {
+        // A grid has a scrollbar; a map has nothing to hint that a marker is
+        // missing. TotalCount is what lets the client say "showing 250 of 400"
+        // instead of quietly drawing the wrong picture.
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+
+        for (var i = 0; i < 3; i++)
+        {
+            var (employee, user) = await SeedWorkerAsync();
+
+            await InScope(scope =>
+                scope.Send(new AssignEmployeeToProjectCommand(employee.Id, project.Id)));
+
+            await ReportAsync(user, employee.Id, Ping(Noon));
+        }
+
+        var firstOfThree = await InScope(scope => scope.Send(new GetCurrentLocationsQuery
+        {
+            ProjectId = project.Id,
+            PageSize = 1
+        }));
+
+        Assert.Single(firstOfThree.Items);
+        Assert.Equal(3, firstOfThree.TotalCount);
+        Assert.True(firstOfThree.HasNextPage);
+    }
+
+    [Fact]
+    public async Task Paging_the_map_neither_repeats_nor_drops_a_marker()
+    {
+        // What this proves: the paging arithmetic. Three pages of two plus a
+        // remainder cover all seven exactly once, with no off-by-one at either
+        // end and nothing lost in the last partial page.
+        //
+        // What it does not prove, despite the shape of it: that the query's
+        // unique tiebreaker is present. Removing `.ThenBy(EmployeeId)` leaves
+        // this green — three runs out of three — because PostgreSQL returns
+        // seven rows in a stable order regardless, and the instability the
+        // tiebreaker exists for only appears once the planner has a reason to
+        // choose differently between two queries. Said plainly here rather
+        // than left to look like a guard it is not.
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+
+        var seeded = new List<Guid>();
+
+        for (var i = 0; i < 7; i++)
+        {
+            // Same name for all of them, so they sort equally and only the
+            // tiebreaker separates them.
+            var employee = await InScope(scope =>
+                TestData.SeedEmployeeAsync(scope, firstName: "Same", lastName: "Mapname"));
+            var user = await InScope(scope =>
+                TestData.SeedUserAsync(scope, UserRole.Worker, employee.Id));
+
+            await InScope(scope =>
+                scope.Send(new AssignEmployeeToProjectCommand(employee.Id, project.Id)));
+
+            await ReportAsync(user, employee.Id, Ping(Noon));
+
+            seeded.Add(employee.Id);
+        }
+
+        var seen = new List<Guid>();
+
+        for (var page = 1; page <= 4; page++)
+        {
+            var result = await InScope(scope => scope.Send(new GetCurrentLocationsQuery
+            {
+                ProjectId = project.Id,
+                PageNumber = page,
+                PageSize = 2
+            }));
+
+            seen.AddRange(result.Items.Select(i => i.EmployeeId));
+        }
+
+        Assert.Equal(7, seen.Count);
+        Assert.Equal(7, seen.Distinct().Count());
+        Assert.All(seeded, id => Assert.Contains(id, seen));
+    }
+
+    [Fact]
+    public async Task A_page_larger_than_the_ceiling_is_refused()
+    {
+        // Otherwise the bound is advisory: a client that wants everything
+        // simply asks for everything, and the endpoint is unbounded again with
+        // extra steps.
+        await Assert.ThrowsAsync<ValidationException>(() => InScope(scope =>
+            scope.Send(new GetCurrentLocationsQuery
+            {
+                PageSize = GetCurrentLocationsQuery.MaxPageSize + 1
+            })));
+    }
+
+    [Fact]
+    public async Task The_ceiling_is_high_enough_to_draw_a_whole_site_in_one_request()
+    {
+        // A guard on the decision rather than on behaviour. Dropping this to a
+        // grid's twenty would make the map take dozens of round trips, and the
+        // temptation would then be to remove the bound rather than raise it.
+        Assert.True(GetCurrentLocationsQuery.MaxPageSize >= 1_000);
     }
 
     // ---- one employee ----------------------------------------------------

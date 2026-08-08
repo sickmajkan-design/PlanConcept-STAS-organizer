@@ -604,7 +604,16 @@ projects. Currently they see everything.
 - **M10.** Practise an incremental migration and a rollback before the first
   schema change under load.
 - **M11.** Idempotency keys on stock adjustments and assignment actions.
-- **M12.** Pagination on `/api/locations/current`.
+- **M12.** Pagination on `/api/locations/current` — **done.** It used to return
+  every active employee who had ever reported, unbounded. Now paged, with a
+  250-row default and a 1,000 ceiling — much larger than a grid's, because the
+  caller is drawing markers and a map that takes four round trips to fill in is
+  a worse map. The envelope's `totalCount` matters more here than on a grid: a
+  truncated map has no scrollbar to hint that somebody is missing, so the panel
+  compares the two numbers and says "showing 250 of 400, narrow by project"
+  rather than quietly drawing a partial picture. A backend test pins the client
+  constant against the server ceiling, since the two are written in different
+  languages and drift either way fails silently.
 - **M13.** Load test the login path (PBKDF2 CPU cost at shift change).
 - **M14.** Align app display names — **done.** iOS `CFBundleDisplayName` said
   "Construction Mobile" while the Android label, `CFBundleName`, the Flutter

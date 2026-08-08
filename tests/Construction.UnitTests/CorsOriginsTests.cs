@@ -177,6 +177,26 @@ public class CorsOriginsTests
         return service.EvaluatePolicy(context, policy).IsOriginAllowed;
     }
 
+    internal static string FindRepositoryFile(params string[] segments)
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+
+        while (directory is not null)
+        {
+            var candidate = Path.Combine([directory.FullName, .. segments]);
+
+            if (File.Exists(candidate))
+            {
+                return candidate;
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new FileNotFoundException(
+            $"Could not find {Path.Combine(segments)} from {AppContext.BaseDirectory}");
+    }
+
     private static string FindApiDirectory()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

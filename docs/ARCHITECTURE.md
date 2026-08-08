@@ -434,6 +434,13 @@ problems, and neither is specific to a module.
   `(EmployeeId, Timestamp DESC)` index — but history queries, backups and disk
   will degrade over a year. A retention window or monthly partitioning is the
   fix; it is a schema decision, not a code cleanup.
+- **The live map is paged rather than unbounded.** `/locations/current` returns
+  at most 1,000 markers (250 by default). The number is high because the caller
+  is drawing a map, not a grid, and the response carries `totalCount` so a
+  truncated map can be labelled as one — the screen has no scrollbar to imply
+  it. Beyond that ceiling the answer is to narrow by project, which the panel
+  says in as many words. A bounding-box filter would be the next step if a
+  deployment ever needs more than a thousand people on one screen.
 - **Search cannot use an index.** Every list filters with
   `LIKE '%term%'` over `lower(column)`, which forces a sequential scan. At the
   stated scale (hundreds of employees) this is irrelevant. If the data grows an

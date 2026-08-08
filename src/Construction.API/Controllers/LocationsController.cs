@@ -30,12 +30,19 @@ public class LocationsController : ApiControllerBase
         return Accepted(value: stored);
     }
 
-    /// <summary>Latest known position of every employee, for the live map.</summary>
+    /// <summary>
+    /// Latest known position of every employee, for the live map.
+    /// </summary>
+    /// <remarks>
+    /// Paged, with a much larger page than a grid uses because the caller is
+    /// drawing markers. Compare <c>totalCount</c> against the items returned: a
+    /// truncated map has no scrollbar to hint that somebody is missing.
+    /// </remarks>
     [HttpGet("current")]
     [Authorize(Policy = Policies.ForemanAndAbove)]
-    [ProducesResponseType(typeof(IReadOnlyList<EmployeeLocationDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PagedList<EmployeeLocationDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<IReadOnlyList<EmployeeLocationDto>>> Current(
+    public async Task<ActionResult<PagedList<EmployeeLocationDto>>> Current(
         [FromQuery] GetCurrentLocationsQuery query,
         CancellationToken cancellationToken)
     {

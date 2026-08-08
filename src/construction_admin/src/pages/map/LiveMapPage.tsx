@@ -45,7 +45,7 @@ export function LiveMapPage() {
   const { data: projects } = useAllProjectsQuery();
 
   const {
-    data: locations,
+    data: page,
     isLoading,
     isError,
     error,
@@ -56,6 +56,17 @@ export function LiveMapPage() {
     queryFn: () => locationsApi.current({ projectId: projectId || undefined }),
     refetchInterval: config.liveMapRefreshMs,
   });
+
+  const locations = page?.items;
+
+  /**
+   * The map has no scrollbar, so a truncated one looks exactly like a complete
+   * one with fewer people on site. The banner below is the only thing that
+   * distinguishes them.
+   */
+  const shown = locations?.length ?? 0;
+  const total = page?.totalCount ?? 0;
+  const truncated = total > shown;
 
   const selected = locations?.find((l) => l.employeeId === selectedEmployeeId);
 
@@ -89,6 +100,12 @@ export function LiveMapPage() {
             ))}
           </Select>
         </FormControl>
+      )}
+
+      {truncated && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          {t('map.truncated', { shown, total })}
+        </Alert>
       )}
 
       <Paper sx={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
