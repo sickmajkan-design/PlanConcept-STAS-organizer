@@ -204,7 +204,7 @@ remains:
 | 6 | No resource-scoped authorization: any Foreman reads every employee's GPS history | High |
 | 7 | Deactivating a user leaves their access token valid up to 15 min | Medium |
 | 8 | No dependency/secret scanning in CI | Medium |
-| 9 | `AllowedHosts: "*"`, no security headers (HSTS only in non-dev, no CSP) | Medium |
+| 9 | ~~`AllowedHosts: "*"`, no security headers (HSTS only in non-dev, no CSP)~~ Headers added (M6); `AllowedHosts` left to the reverse proxy by decision | Medium |
 | 10 | No audit trail of who changed what | Medium |
 
 Positives worth recording: PBKDF2-HMAC-SHA256 at 100k iterations, refresh and
@@ -325,22 +325,33 @@ Beyond code, nothing exists for:
 
 ## CRITICAL — must be fixed before production
 
-**C1. Compose ships working production-capable secrets.**
-`docker-compose.yml:30-32` defaults `JwtSettings__SecretKey` to
-`dev-only-secret-key-change-me-…` (which is ≥32 chars, so it *passes* startup
-validation) and `Seed__SuperAdmin__Password` to `Admin123!`. Anyone who runs
-the documented command gets a system with a publicly known signing key —
-tokens can be forged for any role — and a known admin password. Compose also
-forces `ApplyMigrationsOnStartup: "true"`, overriding the safe default.
-*Fix: remove the fallbacks so startup fails loudly when they are unset.*
+**C1. Compose ships working production-capable secrets.** — **CLOSED**
+`docker-compose.yml` defaulted `JwtSettings__SecretKey` to
+`dev-only-secret-key-change-me-…` (which is ≥32 chars, so it *passed* startup
+validation) and `Seed__SuperAdmin__Password` to `Admin123!`. Anyone who ran
+the documented command got a system with a publicly known signing key —
+tokens forgeable for any role — and a known admin password. Compose also
+forced `ApplyMigrationsOnStartup: "true"`, overriding the safe default.
+
+**Fixed.** Every secret is now `${VAR:?message}`, so compose refuses to start
+until it is set rather than starting with a known one; `.env.example` keeps
+local development one `cp` away, and `APPLY_MIGRATIONS_ON_STARTUP` defaults to
+false. See SECURITY.md §1.
 
 **C2. Password-reset links are written to the log when SMTP is unconfigured.**
-`SmtpEmailSender.cs:28-34` logs the full email body — containing the reset
-link and token — at Warning, then returns as if sent. `EmailSettings` has no
-`ValidateOnStart`, so a production deploy with a missing SMTP host silently
-enters this path: users never receive resets, and anyone with log access can
-take over any account.
-*Fix: validate email configuration at startup in non-development; never log the body.*
+— **CLOSED**
+`SmtpEmailSender` logged the full email body — containing the reset link and
+token — at Warning, then returned as if sent. `EmailSettings` had no
+`ValidateOnStart`, so a production deploy with a missing SMTP host entered
+this path silently: users never received resets, and anyone with log access
+could take over any account.
+
+**Fixed.** The body is no longer logged. `EmailSettings` validates on start
+(port range, sender address), and `ValidateProductionConfiguration` refuses to
+start outside Development when SMTP is unset — unless
+`EmailSettings:AllowUnconfigured` is set, which makes running without password
+recovery a recorded decision rather than an accident. See SECURITY.md §2 and
+the "Configuration that fails fast" section of ARCHITECTURE.md.
 
 **C3. GPS tracking does not run in the background.** — **MOSTLY CLOSED**
 `location_tracking_controller.dart:105` used `Timer.periodic` in the Flutter
@@ -621,7 +632,18 @@ change, in one place.
   Retention defaults to keeping everything, alone among the retention settings.
   See ARCHITECTURE.md.
 - **M6.** Security headers (CSP, `X-Content-Type-Options`, `Referrer-Policy`),
-  restrict `AllowedHosts`.
+  restrict `AllowedHosts` — **headers done; `AllowedHosts` deliberately not.**
+  `SecurityHeadersMiddleware` sets all five: `Content-Security-Policy`,
+  `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` and
+  `Permissions-Policy`. The API serves JSON and never markup, so its policy is
+  `default-src 'none'`; Swagger UI gets a looser one on its own path and is
+  only mapped in Development.
+
+  `AllowedHosts` stays `"*"` on purpose. Host filtering belongs at the reverse
+  proxy for this deployment shape — the API is not exposed directly — and
+  putting it in two places invites the two disagreeing. It is a line in the
+  deployment checklist in SECURITY.md instead. Reopen this if the API is ever
+  fronted by something that does not filter.
 - **M7.** Dependency and secret scanning in CI (Dependabot, CodeQL, `npm audit`,
   `dotnet list package --vulnerable`).
 - **M8.** React error boundaries; friendly offline/failure states in both clients.
