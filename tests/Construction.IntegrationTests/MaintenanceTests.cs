@@ -391,4 +391,89 @@ public class MaintenanceTests : IntegrationTestBase
         await Assert.ThrowsAsync<Construction.Application.Common.Exceptions.ValidationException>(
             () => InScope(scope => scope.Send(new PurgeExpiredDataCommand { BatchSize = 0 })));
     }
+
+    // ---- the audit trail -------------------------------------------------
+
+    [Fact]
+    public async Task The_audit_trail_is_kept_by_default()
+    {
+        // The one table the sweep leaves alone unless told otherwise. A trail
+        // that had quietly aged out the month somebody asks about is worse
+        // than no trail, because everybody believed it was there.
+        var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+
+        var before = await InScope(scope => scope.Db.AuditEntries
+            .CountAsync(a => a.EntityId == employee.Id));
+
+        Assert.True(before > 0);
+
+        // Sweep() leaves AuditEntryRetention unset, which is the shipped
+        // default.
+        await InScope(scope => scope.Send(Sweep()));
+
+        var after = await InScope(scope => scope.Db.AuditEntries
+            .CountAsync(a => a.EntityId == employee.Id));
+
+        Assert.Equal(before, after);
+    }
+
+    [Fact]
+    public async Task The_audit_trail_can_be_aged_out_when_a_deployment_must()
+    {
+        // Some deployments are obliged to delete on a schedule. The option
+        // exists; it is just not what happens by accident.
+        var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+
+        await InScope(async scope =>
+        {
+            var stale = await scope.Db.AuditEntries
+                .Where(a => a.EntityId == employee.Id)
+                .ToListAsync();
+
+            foreach (var entry in stale)
+            {
+                entry.OccurredAt = DateTime.UtcNow.AddDays(-400);
+            }
+
+            await scope.Db.SaveChangesAsync();
+        });
+
+        await InScope(scope => scope.Send(Sweep() with
+        {
+            AuditEntryRetention = TimeSpan.FromDays(365),
+        }));
+
+        var left = await InScope(scope => scope.Db.AuditEntries
+            .CountAsync(a => a.EntityId == employee.Id));
+
+        Assert.Equal(0, left);
+    }
+
+    [Fact]
+    public async Task A_recent_audit_entry_survives_an_aging_sweep()
+    {
+        var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+
+        await InScope(scope => scope.Send(Sweep() with
+        {
+            AuditEntryRetention = TimeSpan.FromDays(365),
+        }));
+
+        var left = await InScope(scope => scope.Db.AuditEntries
+            .CountAsync(a => a.EntityId == employee.Id));
+
+        Assert.True(left > 0);
+    }
+
+    [Fact]
+    public async Task An_audit_retention_of_zero_is_refused()
+    {
+        // Zero would delete the entry that was just written, which is
+        // indistinguishable from the trail being broken.
+        await Assert.ThrowsAsync<Construction.Application.Common.Exceptions.ValidationException>(
+            () => InScope(scope => scope.Send(new PurgeExpiredDataCommand
+            {
+                AuditEntryRetention = TimeSpan.Zero,
+            })));
+    }
 }

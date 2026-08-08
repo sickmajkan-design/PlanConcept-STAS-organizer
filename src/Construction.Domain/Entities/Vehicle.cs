@@ -3,7 +3,7 @@ using Construction.Domain.Enums;
 
 namespace Construction.Domain.Entities;
 
-public class Vehicle : BaseEntity, ISoftDeletable
+public class Vehicle : BaseEntity, ISoftDeletable, IAuditable
 {
     public string Brand { get; set; } = null!;
 

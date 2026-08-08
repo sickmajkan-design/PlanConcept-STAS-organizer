@@ -13,7 +13,7 @@ namespace Construction.Domain.Entities;
 /// move between tables — and a shift can never exist in both places at once.
 /// The database enforces at most one such row per employee.
 /// </remarks>
-public class TimeEntry : BaseEntity, ISoftDeletable
+public class TimeEntry : BaseEntity, ISoftDeletable, IAuditable
 {
     public Guid EmployeeId { get; set; }
 

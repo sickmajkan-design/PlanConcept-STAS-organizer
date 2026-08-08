@@ -95,6 +95,14 @@ public class ApiAuthorizationTests
             new("POST", $"/api/absences/{Id}/review", UserRole.Foreman),
             new("DELETE", $"/api/absences/{Id}", UserRole.Worker),
 
+            // ---- the audit trail -----------------------------------------
+            // Admin and above. The trail spans every module at once — where
+            // people were, what they are paid, who changed it — so it is a
+            // wider view than any single screen gives, and a foreman who may
+            // see one employee's hours has no reason to see every
+            // administrator's actions.
+            new("GET", "/api/audit", UserRole.Admin),
+
             // ---- attachments ---------------------------------------------
             new("GET", "/api/attachments", UserRole.Worker),
             new("GET", "/api/attachments/expiring", UserRole.Admin),

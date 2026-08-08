@@ -10,10 +10,11 @@ public record PurgeResult(
     int RefreshTokens,
     int PasswordResetTokens,
     int LocationRecords,
-    int OutboxMessages)
+    int OutboxMessages,
+    int AuditEntries)
 {
     public int Total =>
-        RefreshTokens + PasswordResetTokens + LocationRecords + OutboxMessages;
+        RefreshTokens + PasswordResetTokens + LocationRecords + OutboxMessages + AuditEntries;
 }
 
 /// <summary>
@@ -79,6 +80,18 @@ public record PurgeExpiredDataCommand : IRequest<PurgeResult>
     public TimeSpan SentOutboxMessageRetention { get; init; } = TimeSpan.FromDays(14);
 
     /// <summary>
+    /// How long an audit entry is kept. Null — the default — keeps them
+    /// forever.
+    /// </summary>
+    /// <remarks>
+    /// The only retention here that defaults to keeping, because the trail
+    /// exists for the dispute that surfaces years later. Setting a number is
+    /// a decision to delete evidence on a schedule, which some deployments
+    /// are obliged to make and none should make by accident.
+    /// </remarks>
+    public TimeSpan? AuditEntryRetention { get; init; }
+
+    /// <summary>
     /// Rows deleted per statement.
     /// </summary>
     /// <remarks>
@@ -118,6 +131,10 @@ public class PurgeExpiredDataCommandValidator : AbstractValidator<PurgeExpiredDa
         RuleFor(x => x.LocationRecordRetention)
             .Must(retention => retention is null || retention > TimeSpan.Zero)
             .WithMessage("Location retention must be a positive period, or unset to keep everything.");
+
+        RuleFor(x => x.AuditEntryRetention)
+            .Must(retention => retention is null || retention > TimeSpan.Zero)
+            .WithMessage("Audit retention must be a positive period, or unset to keep everything.");
 
         RuleFor(x => x.SentOutboxMessageRetention)
             .Must(retention => retention >= TimeSpan.Zero)
@@ -184,7 +201,17 @@ public class PurgeExpiredDataCommandHandler
             request,
             cancellationToken);
 
-        return new PurgeResult(refreshTokens, resetTokens, locations, outbox);
+        var audit = 0;
+
+        if (request.AuditEntryRetention is { } auditRetention)
+        {
+            audit = await DeleteInBatchesAsync(
+                _context.AuditEntries.Where(a => a.OccurredAt < utcNow - auditRetention),
+                request,
+                cancellationToken);
+        }
+
+        return new PurgeResult(refreshTokens, resetTokens, locations, outbox, audit);
     }
 
     /// <summary>

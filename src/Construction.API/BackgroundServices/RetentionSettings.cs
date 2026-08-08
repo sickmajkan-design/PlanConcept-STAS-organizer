@@ -61,6 +61,36 @@ public class RetentionSettings
     /// </remarks>
     public int SentOutboxMessageDays { get; set; } = 14;
 
+    /// <summary>
+    /// Days an audit entry is kept. Zero or less — the default — keeps them
+    /// forever.
+    /// </summary>
+    /// <remarks>
+    /// The one retention default that keeps rather than purges, and the
+    /// exception is the point of the table. An audit trail exists for the
+    /// dispute, the investigation or the claim that surfaces long after the
+    /// change did, and those arrive on their own schedule: employment claims
+    /// run to years in most jurisdictions. A trail that had quietly aged out
+    /// the month somebody asks about is worse than no trail, because everybody
+    /// believed it was there.
+    ///
+    /// Growth is bounded by what it records instead: only the entities under
+    /// <c>IAuditable</c>, and only when a value actually changed. The
+    /// machine-generated traffic — GPS, notifications, outbox — is not audited
+    /// at all.
+    ///
+    /// Set a number here if a retention obligation requires one. Deleting
+    /// evidence should be a decision somebody made.
+    /// </remarks>
+    public int AuditEntryDays { get; set; }
+
+    /// <summary>
+    /// <see cref="AuditEntryDays"/> as a period, or null for "keep
+    /// everything". Same reasoning as <see cref="LocationRetention"/>.
+    /// </summary>
+    public TimeSpan? AuditRetention =>
+        AuditEntryDays > 0 ? TimeSpan.FromDays(AuditEntryDays) : null;
+
     /// <summary>Rows deleted per statement.</summary>
     public int BatchSize { get; set; } = 5_000;
 

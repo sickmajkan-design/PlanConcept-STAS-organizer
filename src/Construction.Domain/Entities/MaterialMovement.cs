@@ -18,7 +18,7 @@ namespace Construction.Domain.Entities;
 /// shelf" is read on every stock screen and summing the whole history to draw
 /// a list would be paid for on every page.
 /// </remarks>
-public class MaterialMovement : BaseEntity
+public class MaterialMovement : BaseEntity, IAuditable
 {
     public Guid MaterialId { get; set; }
 

@@ -28,6 +28,31 @@ public class RetentionSettingsTests
         Assert.Equal(7, settings.PasswordResetTokenGraceDays);
     }
 
+    [Fact]
+    public void The_audit_trail_is_the_one_thing_kept_forever_by_default()
+    {
+        // Deliberately the opposite of every other default here. The trail
+        // exists for the dispute that surfaces years after the change, and
+        // employment claims run to years in most jurisdictions — so one that
+        // had quietly aged out is worse than none, because everybody believed
+        // it was there. Deleting evidence on a schedule should be a decision
+        // somebody made.
+        var settings = new RetentionSettings();
+
+        Assert.Equal(0, settings.AuditEntryDays);
+        Assert.Null(settings.AuditRetention);
+    }
+
+    [Theory]
+    [InlineData(365)]
+    [InlineData(2555)]
+    public void An_audit_retention_can_still_be_set_where_one_is_required(int days)
+    {
+        var settings = new RetentionSettings { AuditEntryDays = days };
+
+        Assert.Equal(TimeSpan.FromDays(days), settings.AuditRetention);
+    }
+
     [Theory]
     [InlineData(1)]
     [InlineData(30)]
@@ -72,6 +97,10 @@ public class RetentionSettingsTests
         Assert.Equal(14, settings.SentOutboxMessageDays);
         Assert.Equal(5_000, settings.BatchSize);
         Assert.Equal(6, settings.IntervalHours);
+
+        // Absent from the shipped file on purpose, so it binds to "keep
+        // everything". A number here would be a silent policy decision.
+        Assert.Null(settings.AuditRetention);
     }
 
     private static string FindApiDirectory()

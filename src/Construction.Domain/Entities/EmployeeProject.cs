@@ -17,7 +17,7 @@ namespace Construction.Domain.Entities;
 /// person on the same site twice over the same days, which is always a
 /// data-entry mistake.
 /// </remarks>
-public class EmployeeProject : BaseEntity
+public class EmployeeProject : BaseEntity, IAuditable
 {
     public Guid EmployeeId { get; set; }
 

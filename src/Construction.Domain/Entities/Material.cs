@@ -2,7 +2,7 @@ using Construction.Domain.Common;
 
 namespace Construction.Domain.Entities;
 
-public class Material : BaseEntity, ISoftDeletable
+public class Material : BaseEntity, ISoftDeletable, IAuditable
 {
     public string Name { get; set; } = null!;
 

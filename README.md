@@ -73,6 +73,7 @@ the repository:
 | `Auth__RefreshCookie__Domain` | Blank scopes the cookie to the API host; set it to share across subdomains. |
 | `Retention__LocationRecordDays` | Days of GPS history kept (default 180; `0` keeps everything) |
 | `Retention__SentOutboxMessageDays` | Days a delivered email/push record is kept (default 14) |
+| `Retention__AuditEntryDays` | Days an audit entry is kept. Default `0` = keep forever. |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | Where to send metrics and traces. Unset means none are exported. |
 
 The retention defaults purge, so a deployment that sets none of the `Retention`

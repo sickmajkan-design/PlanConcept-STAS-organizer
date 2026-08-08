@@ -37,11 +37,13 @@ No dependencies at all. Contains:
 
 - **Entities**: `User`, `RefreshToken`, `PasswordResetToken`, `Employee`, `Project`,
   `EmployeeProject` (explicit many-to-many join), `Vehicle`, `Tool`, `Material`,
-  `LocationRecord`, `DeviceToken`, `Notification`, `OutboxMessage`
+  `LocationRecord`, `DeviceToken`, `Notification`, `OutboxMessage`, `AuditEntry`
 - **Enums**: `UserRole`, `EmployeeStatus`, `ProjectStatus`, `VehicleStatus`,
   `FuelType`, `ToolStatus`, `NotificationType`, `DevicePlatform`,
   `OutboxMessageType`
-- **Common**: `BaseEntity` (Guid id + audit timestamps), `ISoftDeletable`
+- **Common**: `BaseEntity` (Guid id + audit timestamps), `ISoftDeletable`,
+  `IAuditable` (marks an entity whose changes are recorded), `NotAuditedAttribute`
+  (keeps a property's value out of the trail)
 
 ### Construction.Application
 The CQRS core. One folder per feature under `Features/`, each operation a vertical
@@ -62,7 +64,9 @@ Implements the Application ports:
 
 - **Persistence** — `ApplicationDbContext`, per-entity `IEntityTypeConfiguration`s,
   `AuditableEntityInterceptor` (CreatedAt/UpdatedAt), `SoftDeleteInterceptor`
-  (converts deletes to `IsDeleted = true`), EF Core migrations, `DbInitializer`
+  (converts deletes to `IsDeleted = true`), `AuditTrailInterceptor` (who changed
+  what, from the change tracker — order matters, see below), EF Core migrations,
+  `DbInitializer`
   (migrate-on-startup + Super Admin seeding), design-time factory for the EF CLI
 - **Authentication** — `JwtProvider` (HMAC-SHA256 JWTs), `PasswordHasher`
   (PBKDF2-HMAC-SHA256, 100k iterations, per-password salt, constant-time compare),
@@ -904,3 +908,81 @@ malformed origin is never intentional, and finding out locally is the point.
 The rules are tested against `CorsService` itself rather than against a
 restatement of what it is believed to do, so if ASP.NET Core ever starts
 normalising these away the test fails and the validator can be relaxed.
+
+## The audit trail
+
+`audit_entries` records who changed what, when, and what the value was before
+and after. It is written by `AuditTrailInterceptor` from the EF change tracker,
+not by any handler.
+
+That is the whole design decision. A trail that depends on being remembered has
+holes in it, and the holes are wherever somebody was in a hurry — which
+correlates uncomfortably well with the changes an investigation cares about.
+Written from the change tracker, there is nothing to remember: a handler cannot
+modify an audited entity without leaving a row, and neither can a test helper.
+
+**Opt-in, via `IAuditable`.** Auditing everything would add a row per GPS ping —
+about a million a month for a hundred-person crew — plus one per notification
+and outbox message, to record machine chatter nobody will ask about. The test
+for whether an entity belongs: would somebody, in a pay dispute, a workplace
+investigation or an insurance claim, need to know who changed this? That covers
+people, their postings, their hours and absences, and anything with money
+attached. Fourteen entities carry the marker; GPS, notifications, device tokens
+and the outbox do not.
+
+**Secrets are kept out twice.** `[NotAudited]` marks a property — `PasswordHash`
+carries it — and the recorder additionally refuses, unconditionally, any
+property whose name contains "password", "hash", "token" or "secret". The
+attribute states intent; the name check is the safety net for a field added
+later by somebody who did not read the file. Both are tested, the second across
+every row the suite has written. This matters more here than elsewhere: the
+trail is a long-lived, administrator-readable copy of every field that changed,
+and it outlives the account.
+
+**Bookkeeping columns are stripped.** The key is the row's `EntityId`, the
+timestamps are its `OccurredAt`, and the delete flags are its `Action`, so `Id`,
+`CreatedAt`, `UpdatedAt`, `IsDeleted` and `DeletedAt` are not recorded again.
+Without that, every entry carries "UpdatedAt: null → 2026-08-08T…" in the column
+where a reader is looking for what a person did.
+
+**Only real changes.** EF marks a property modified when it has been *assigned*,
+not when the value differs — and the handlers write every field from the command
+— so the recorder compares before and after and drops the rest. An update with
+nothing left writes no row at all. Creations and deletions are always recorded,
+because they are worth knowing about even with an empty payload.
+
+**Interceptor order is load-bearing, though not in the obvious way.** The audit
+interceptor runs after the soft-delete one, so a soft delete arrives as a
+modification with `IsDeleted` freshly set. Reversing the registration would
+still produce `Deleted` — the other branch handles it — but the *payload* would
+change: a hard delete records the whole row as `value → null`, being the last
+chance to say what was lost, and a soft delete deliberately does not, because
+nothing was lost and the row is still there under its flag. Reversed, every soft
+delete would carry a snapshot implying the data was destroyed. Two tests hold
+that distinction, added after the reversal mutation survived a test that
+asserted only the action.
+
+**The rows join the caller's transaction.** They go into the same change tracker
+and are written by the same `SaveChanges`, so a change that rolls back leaves no
+trail of having happened, and an entry cannot outlive the change it describes.
+
+**The actor is copied in, not joined to.** Email and role are stored as they
+were at the time, and there is no foreign key to `users`. The account may be
+renamed, promoted or deleted afterwards, and an account removed during an
+investigation would otherwise take its own history with it — or block its own
+deletion.
+
+Reading it back: `GET /api/audit`, Admin and above, filtered by
+`entityName`+`entityId` ("what happened to this record") or by `userId` ("what
+did this person do"). Both have an index. There is no write or delete endpoint —
+an audit trail with one answers a different question from the one it was built
+for.
+
+**Retention defaults to keeping everything**, alone among the retention
+settings, because the dispute surfaces on its own schedule and employment claims
+run to years. `Retention__AuditEntryDays` sets a window where a deployment is
+obliged to have one.
+
+Measured cost: on the write-heavy integration suite, paired runs with the
+interceptor on and off differed by about a second on a forty-second baseline.
+Small, but not free — it is one extra INSERT per changed entity per save.

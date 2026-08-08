@@ -51,6 +51,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
+    public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
+
     public async Task ExecuteInTransactionAsync(
         Func<CancellationToken, Task> action,
         CancellationToken cancellationToken = default)

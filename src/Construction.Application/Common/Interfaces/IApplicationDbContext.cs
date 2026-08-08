@@ -45,6 +45,8 @@ public interface IApplicationDbContext
 
     DbSet<OutboxMessage> OutboxMessages { get; }
 
+    DbSet<AuditEntry> AuditEntries { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
     /// <summary>

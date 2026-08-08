@@ -11,7 +11,7 @@ namespace Construction.Domain.Entities;
 /// with <see cref="System.Threading.Tasks.Task"/> in every async method in the
 /// codebase, and it also covers both kinds honestly.
 /// </remarks>
-public class WorkItem : BaseEntity, ISoftDeletable
+public class WorkItem : BaseEntity, ISoftDeletable, IAuditable
 {
     public WorkItemKind Kind { get; set; } = WorkItemKind.Task;
 

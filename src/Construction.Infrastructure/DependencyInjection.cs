@@ -45,14 +45,26 @@ public static class DependencyInjection
         services.AddSingleton<AuditableEntityInterceptor>();
         services.AddSingleton<SoftDeleteInterceptor>();
 
+        // Scoped, unlike the other two, because it records who made the change
+        // and the acting identity is per-request. The provider handed to the
+        // options callback below is the DbContext's own scope, so this
+        // resolves correctly rather than capturing one request's user for the
+        // lifetime of the process.
+        services.AddScoped<AuditTrailInterceptor>();
+
         services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
         {
             options.UseNpgsql(connectionString, npgsql =>
                 npgsql.EnableRetryOnFailure(maxRetryCount: 3));
 
+            // Order is load-bearing. The soft-delete interceptor rewrites a
+            // delete into a modification, and the audit interceptor reads the
+            // result — so it sees a deletion as a deletion. Reversed, every
+            // soft delete would be recorded as a hard one.
             options.AddInterceptors(
                 serviceProvider.GetRequiredService<AuditableEntityInterceptor>(),
-                serviceProvider.GetRequiredService<SoftDeleteInterceptor>());
+                serviceProvider.GetRequiredService<SoftDeleteInterceptor>(),
+                serviceProvider.GetRequiredService<AuditTrailInterceptor>());
         });
 
         services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<ApplicationDbContext>());

@@ -17,7 +17,7 @@ namespace Construction.Domain.Entities;
 /// for pricing a job is what the hour costs once contributions are included.
 /// What goes into it is the office's decision; the model only stores it.
 /// </remarks>
-public class EmployeeRate : BaseEntity
+public class EmployeeRate : BaseEntity, IAuditable
 {
     public Guid EmployeeId { get; set; }
 

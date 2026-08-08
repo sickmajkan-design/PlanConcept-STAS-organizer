@@ -19,7 +19,7 @@ namespace Construction.Domain.Entities;
 /// discriminator there would have given up foreign keys. Here there is one
 /// owner and nothing to give up.
 /// </remarks>
-public class VehicleExpense : BaseEntity
+public class VehicleExpense : BaseEntity, IAuditable
 {
     public Guid VehicleId { get; set; }
 

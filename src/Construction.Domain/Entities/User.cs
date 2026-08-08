@@ -7,10 +7,11 @@ namespace Construction.Domain.Entities;
 /// Application account used for authentication and authorization.
 /// A user may optionally be linked to an <see cref="Employee"/> record.
 /// </summary>
-public class User : BaseEntity
+public class User : BaseEntity, IAuditable
 {
     public string Email { get; set; } = null!;
 
+    [NotAudited]
     public string PasswordHash { get; set; } = null!;
 
     public UserRole Role { get; set; }

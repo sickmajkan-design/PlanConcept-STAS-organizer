@@ -16,7 +16,7 @@ namespace Construction.Domain.Entities;
 /// unavailable. A request that has not been answered is a question, not a
 /// fact, and the schedule must not act on it.
 /// </remarks>
-public class Absence : BaseEntity, ISoftDeletable
+public class Absence : BaseEntity, ISoftDeletable, IAuditable
 {
     public Guid EmployeeId { get; set; }
 

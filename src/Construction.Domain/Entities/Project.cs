@@ -3,7 +3,7 @@ using Construction.Domain.Enums;
 
 namespace Construction.Domain.Entities;
 
-public class Project : BaseEntity, ISoftDeletable
+public class Project : BaseEntity, ISoftDeletable, IAuditable
 {
     public string Name { get; set; } = null!;
 

@@ -582,8 +582,18 @@ projects. Currently they see everything.
   matched as literal characters and any search containing `%`, `_` or `\`
   quietly returned nothing. Four secondary filters were not escaping at all. See
   SECURITY.md §7.
-- **M5.** Audit trail — who changed what and when. Expected in workforce
-  systems and hard to add retroactively.
+- **M5.** Audit trail — who changed what and when — **done.**
+  `AuditTrailInterceptor` writes an `audit_entries` row from the EF change
+  tracker for every change to an `IAuditable` entity, so there is no code path
+  that modifies one without leaving a record. Fourteen entities are marked;
+  GPS, notifications and the outbox deliberately are not, because auditing them
+  would add roughly a million rows a month to record machine chatter. Secrets
+  are excluded twice over — a `[NotAudited]` attribute and an unconditional
+  refusal of any property named like a credential — because the trail is a
+  long-lived administrator-readable copy that outlives the account. Readable at
+  `GET /api/audit` (Admin and above); there is no write or delete endpoint.
+  Retention defaults to keeping everything, alone among the retention settings.
+  See ARCHITECTURE.md.
 - **M6.** Security headers (CSP, `X-Content-Type-Options`, `Referrer-Policy`),
   restrict `AllowedHosts`.
 - **M7.** Dependency and secret scanning in CI (Dependabot, CodeQL, `npm audit`,

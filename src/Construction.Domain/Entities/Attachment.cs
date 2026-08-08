@@ -21,7 +21,7 @@ namespace Construction.Domain.Entities;
 /// value someone passes in. <see cref="WorkItem"/> was the fifth, so a defect
 /// photograph disappears with the defect rather than outliving it.
 /// </remarks>
-public class Attachment : BaseEntity, ISoftDeletable
+public class Attachment : BaseEntity, ISoftDeletable, IAuditable
 {
     /// <summary>Name as uploaded, shown to people. Never used as a path.</summary>
     public string FileName { get; set; } = null!;

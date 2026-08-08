@@ -102,6 +102,7 @@ public class DataRetentionService : BackgroundService
                     PasswordResetTokenGrace =
                         TimeSpan.FromDays(_settings.PasswordResetTokenGraceDays),
                     LocationRecordRetention = _settings.LocationRetention,
+                    AuditEntryRetention = _settings.AuditRetention,
                     SentOutboxMessageRetention =
                         TimeSpan.FromDays(_settings.SentOutboxMessageDays),
                     BatchSize = _settings.BatchSize,
@@ -113,6 +114,7 @@ public class DataRetentionService : BackgroundService
             _metrics.Purged("password_reset_tokens", result.PasswordResetTokens);
             _metrics.Purged("location_records", result.LocationRecords);
             _metrics.Purged("outbox_messages", result.OutboxMessages);
+            _metrics.Purged("audit_entries", result.AuditEntries);
 
             // Only when it did something. A line every six hours saying
             // "removed nothing" is noise that trains people to skip the ones
@@ -121,12 +123,13 @@ public class DataRetentionService : BackgroundService
             {
                 _logger.LogInformation(
                     "Retention sweep removed {RefreshTokens} refresh token(s), "
-                    + "{ResetTokens} reset token(s), {Locations} location record(s) "
-                    + "and {OutboxMessages} delivered message(s).",
+                    + "{ResetTokens} reset token(s), {Locations} location record(s), "
+                    + "{OutboxMessages} delivered message(s) and {AuditEntries} audit entry(s).",
                     result.RefreshTokens,
                     result.PasswordResetTokens,
                     result.LocationRecords,
-                    result.OutboxMessages);
+                    result.OutboxMessages,
+                    result.AuditEntries);
             }
         }
         catch (OperationCanceledException)
