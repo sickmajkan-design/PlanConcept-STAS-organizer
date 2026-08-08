@@ -30,8 +30,9 @@ built"* and *"real people can be given this"*.
 3. ~~**The Android release build is signed with the debug key.**~~ **Closed.**
    Release signing reads an out-of-repo keystore (C4).
 
-The admin panel now has a Vitest suite in CI, though it still covers logic and
-guards rather than whole screens (H1).
+The admin panel's Vitest suite now covers whole screens as well as logic and
+guards — which immediately turned up a delete button that navigated instead of
+deleting, on five list screens (H1).
 
 ### What now stands out instead
 
@@ -535,10 +536,28 @@ the cost report. It found one real bug — `<html lang>` stayed `"en"` until the
 operator changed language by hand, so the page was mislabelled for exactly the
 readers it was localised for.
 
-Still open: whole-screen coverage. The five CRUD sections and the assignment
-flows are exercised only by a Playwright script that is not in the repository
-and does not run in CI, so a regression in a form or a grid would still reach
-production. The documentation claims that overstated coverage have been
+~~Still open: whole-screen coverage.~~ **Now done, and it paid for itself on the
+first try.** `src/test/renderScreen.tsx` renders a screen under the same
+provider stack `main.tsx` wires, over a fake axios adapter. The employee form
+and the employee list are covered: what validation refuses and that nothing is
+sent when it does, the payload actually put on the wire, a server-side field
+error landing on the input that caused it, the edit-load, grid rows, search, and
+both halves of the delete confirmation.
+
+**The first list-page test found a real bug on five screens.** Every grid gives
+the row an `onRowClick` that navigates to the detail page, and the action
+buttons sit inside that row. Nothing stopped the click, so pressing **Delete**
+opened the confirmation dialog and navigated away in the same tick: the dialog
+was mounted and unmounted before it could be seen, and nothing was ever
+deleted. View and Edit hid it by going roughly where the row click was going
+anyway, so only Delete was broken — and only for somebody who tried it.
+`RowActions` now stops the click at the cell; reverting it fails the two delete
+tests.
+
+Still not covered: anything needing a real browser. These run in jsdom, where
+every element has zero height, so layout, scrolling and the grid's
+virtualisation are outside what they can see. The Playwright script remains
+uncommitted. The documentation claims that overstated coverage have been
 corrected.
 
 **H2. No authorization tests.** — **done.** `ApiAuthorizationTests` hosts the
@@ -837,7 +856,7 @@ Blocks everything else.
 rather than starting insecurely; a restore has actually been performed.
 
 ### Milestone 2 — Make it verifiable (1.5 weeks)
-- H1 commit the Playwright suite, add it to CI, add admin component tests
+- ~~H1 add admin component tests~~ — done; committing a Playwright suite is still open
 - ~~H2 HTTP-level authorization tests for every endpoint~~ — done
 - ~~M4 integration tests for the uncovered modules~~ — done
 - ~~Fix the two documentation claims about test coverage~~ — done

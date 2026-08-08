@@ -17,6 +17,7 @@ import type { Material } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
+import { RowActions } from '../../components/RowActions';
 import { SearchField } from '../../components/SearchField';
 import { useDeleteMaterial, useMaterialsQuery } from '../../features/materials/useMaterials';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
@@ -74,7 +75,7 @@ export function MaterialsListPage() {
         align: 'right',
         headerAlign: 'right',
         renderCell: (params) => (
-          <Stack direction="row" spacing={0.5}>
+          <RowActions>
             <Tooltip title={t('common.view')}>
               <IconButton size="small" onClick={() => navigate(paths.materialDetail(params.row.id))}>
                 <VisibilityOutlined fontSize="small" />
@@ -90,7 +91,7 @@ export function MaterialsListPage() {
                 <DeleteOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
-          </Stack>
+          </RowActions>
         ),
       },
     ],

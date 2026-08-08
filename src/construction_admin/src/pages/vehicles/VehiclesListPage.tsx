@@ -20,6 +20,7 @@ import { vehicleStatuses } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
+import { RowActions } from '../../components/RowActions';
 import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
 import { useDeleteVehicle, useVehiclesQuery } from '../../features/vehicles/useVehicles';
@@ -84,7 +85,7 @@ export function VehiclesListPage() {
         align: 'right',
         headerAlign: 'right',
         renderCell: (params) => (
-          <Stack direction="row" spacing={0.5}>
+          <RowActions>
             <Tooltip title={t('common.view')}>
               <IconButton size="small" onClick={() => navigate(paths.vehicleDetail(params.row.id))}>
                 <VisibilityOutlined fontSize="small" />
@@ -100,7 +101,7 @@ export function VehiclesListPage() {
                 <DeleteOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
-          </Stack>
+          </RowActions>
         ),
       },
     ],

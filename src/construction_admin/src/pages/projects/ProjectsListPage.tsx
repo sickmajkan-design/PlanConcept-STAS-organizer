@@ -20,6 +20,7 @@ import { projectStatuses } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
+import { RowActions } from '../../components/RowActions';
 import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
 import { useDeleteProject, useProjectsQuery } from '../../features/projects/useProjects';
@@ -78,7 +79,7 @@ export function ProjectsListPage() {
         align: 'right',
         headerAlign: 'right',
         renderCell: (params) => (
-          <Stack direction="row" spacing={0.5}>
+          <RowActions>
             <Tooltip title={t('common.view')}>
               <IconButton size="small" onClick={() => navigate(paths.projectDetail(params.row.id))}>
                 <VisibilityOutlined fontSize="small" />
@@ -94,7 +95,7 @@ export function ProjectsListPage() {
                 <DeleteOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
-          </Stack>
+          </RowActions>
         ),
       },
     ],

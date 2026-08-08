@@ -592,9 +592,22 @@ mistake is silent.
   that shows up in a type check. Files that need a DOM say so with a
   `@vitest-environment jsdom` docblock; the rest run without one.
 
-  Not covered: whole screens. The CRUD forms and grids are still only
-  exercised by an uncommitted Playwright script, which is the remaining half
-  of audit item H1.
+  Whole screens are covered too, through `src/test/renderScreen.tsx`: the same
+  provider stack `main.tsx` wires, over a fake axios adapter. A form test
+  asserts what validation refuses, what payload actually goes out, and that a
+  server-side field error lands on the input that caused it; a list test
+  asserts rows, search and the delete confirmation.
+
+  That harness earned itself back on its first list page. Every grid gives the
+  row an `onRowClick` that navigates to the detail page, and the action buttons
+  sit inside that row — so pressing **Delete** opened the confirmation and
+  navigated away in the same tick. Nothing was ever deleted, on five screens.
+  View and Edit hid it by going roughly where the row click was going anyway.
+  `RowActions` now stops the click at the cell.
+
+  Still not covered: anything needing a real browser. jsdom gives every element
+  zero height, so layout, scrolling and the grid's virtualisation are outside
+  what these can see.
 
 - **`src/construction_mobile/test`** (`flutter test`) — validators, error
   mapping, model parsing, widget tests driving the real router, and repository

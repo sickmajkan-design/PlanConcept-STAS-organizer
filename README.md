@@ -141,11 +141,16 @@ cd src/construction_admin && npm run build     # admin: type-check + bundle
 | `src/construction_mobile/test` | Validators, error mapping, model parsing, the exact requests each repository puts on the wire, and widget tests driving the real router. |
 | `src/construction_admin` | Vitest: the session and token-refresh machinery against a fake network, the route guards for every role, i18n plurals and dictionary parity, query-param normalisation, and the date arithmetic behind the schedule board and the cost report. Plus `tsc -b` type-checking and `oxlint`. |
 
-> **Known gap.** The admin suite covers logic and guards, not whole screens.
-> Its CRUD and assignment flows have been verified end to end with a Playwright
-> script run against a live API, but that script is not in the repository and
-> does not run in CI, so a regression in a form or a grid would still get
-> through.
+The admin suite now includes whole-screen tests: a CRUD form and a list page
+rendered under the real providers against a fake network, covering validation,
+the payload actually sent, field-error routing, the edit-load, grid rows,
+search, and the delete confirmation.
+
+> **Known gap.** No browser-level end-to-end run. The screen tests use jsdom,
+> where every element has zero height — enough for the assertions above, but it
+> cannot catch anything about layout, real scrolling, or a grid's
+> virtualisation. The Playwright script that covered those is still not in the
+> repository.
 
 The integration tests need a reachable PostgreSQL server. They create and drop
 their own database, so point them at one with `ConstructionTests__Postgres`
