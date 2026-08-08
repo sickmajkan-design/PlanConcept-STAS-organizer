@@ -103,6 +103,7 @@ public class DataRetentionService : BackgroundService
                         TimeSpan.FromDays(_settings.PasswordResetTokenGraceDays),
                     LocationRecordRetention = _settings.LocationRetention,
                     AuditEntryRetention = _settings.AuditRetention,
+                    TimeEntryCoordinateRetention = _settings.TimeEntryCoordinateRetention,
                     SentOutboxMessageRetention =
                         TimeSpan.FromDays(_settings.SentOutboxMessageDays),
                     BatchSize = _settings.BatchSize,
@@ -115,6 +116,7 @@ public class DataRetentionService : BackgroundService
             _metrics.Purged("location_records", result.LocationRecords);
             _metrics.Purged("outbox_messages", result.OutboxMessages);
             _metrics.Purged("audit_entries", result.AuditEntries);
+            _metrics.Purged("time_entry_coordinates", result.TimeEntryCoordinates);
 
             // Only when it did something. A line every six hours saying
             // "removed nothing" is noise that trains people to skip the ones

@@ -103,6 +103,13 @@ public class ApiAuthorizationTests
             // administrator's actions.
             new("GET", "/api/audit", UserRole.Admin),
 
+            // ---- privacy ---------------------------------------------------
+            // Super Admin only, and narrower than the rest of account
+            // administration on purpose: erasure is irreversible and it is not
+            // an ordinary day's work. Offboarding — the reversible operation
+            // that gets used weekly — stays with Admin.
+            new("POST", $"/api/privacy/employees/{Id}/erase", UserRole.SuperAdmin),
+
             // ---- attachments ---------------------------------------------
             new("GET", "/api/attachments", UserRole.Worker),
             new("GET", "/api/attachments/expiring", UserRole.Admin),

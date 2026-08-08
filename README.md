@@ -74,6 +74,7 @@ the repository:
 | `Retention__LocationRecordDays` | Days of GPS history kept (default 180; `0` keeps everything) |
 | `Retention__SentOutboxMessageDays` | Days a delivered email/push record is kept (default 14) |
 | `Retention__AuditEntryDays` | Days an audit entry is kept. Default `0` = keep forever. |
+| `Retention__TimeEntryCoordinateDays` | Days a shift's clock-in/out coordinates are kept. Default `0` = keep them with the shift. See docs/PRIVACY.md. |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | Where to send metrics and traces. Unset means none are exported. |
 
 The retention defaults purge, so a deployment that sets none of the `Retention`

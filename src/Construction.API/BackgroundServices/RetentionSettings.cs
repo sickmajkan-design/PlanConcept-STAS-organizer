@@ -62,6 +62,32 @@ public class RetentionSettings
     public int SentOutboxMessageDays { get; set; } = 14;
 
     /// <summary>
+    /// Days a time entry's clock-in and clock-out coordinates are kept. Zero
+    /// or less — the default — keeps them for as long as the shift.
+    /// </summary>
+    /// <remarks>
+    /// A deliberate exception to <see cref="LocationRecordDays"/>, and the
+    /// reason it needs its own setting rather than inheriting that one. The
+    /// two coordinates on a shift are recorded on the entry precisely so they
+    /// outlive the GPS sweep: an approved timesheet is payroll evidence, and
+    /// "where was this shift started" is part of it.
+    ///
+    /// That is defensible and it is still location data about a person, kept
+    /// indefinitely. A deployment under a stricter regime — or one that
+    /// decides the coordinates stop being evidence once the wage is paid — sets
+    /// a number here. The default keeps the behaviour the design chose, rather
+    /// than changing it quietly on somebody's behalf.
+    /// </remarks>
+    public int TimeEntryCoordinateDays { get; set; }
+
+    /// <summary>
+    /// <see cref="TimeEntryCoordinateDays"/> as a period, or null for "keep
+    /// them with the shift".
+    /// </summary>
+    public TimeSpan? TimeEntryCoordinateRetention =>
+        TimeEntryCoordinateDays > 0 ? TimeSpan.FromDays(TimeEntryCoordinateDays) : null;
+
+    /// <summary>
     /// Days an audit entry is kept. Zero or less — the default — keeps them
     /// forever.
     /// </summary>

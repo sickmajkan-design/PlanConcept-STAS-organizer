@@ -1,5 +1,6 @@
 using Construction.Application.Features.Maintenance.Commands.PurgeExpiredData;
 using Construction.Domain.Entities;
+using Construction.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace Construction.IntegrationTests;
@@ -475,5 +476,118 @@ public class MaintenanceTests : IntegrationTestBase
             {
                 AuditEntryRetention = TimeSpan.Zero,
             })));
+    }
+
+    // ---- clock-in coordinates --------------------------------------------
+
+    [Fact]
+    public async Task Clock_in_coordinates_are_kept_with_the_shift_by_default()
+    {
+        // The deliberate exception to the GPS window: an approved timesheet is
+        // payroll evidence and where the shift started is part of it. The
+        // default keeps the behaviour the design chose.
+        var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+
+        await InScope(async scope =>
+        {
+            scope.Db.TimeEntries.Add(new TimeEntry
+            {
+                EmployeeId = employee.Id,
+                StartedAt = DateTime.UtcNow.AddDays(-500),
+                EndedAt = DateTime.UtcNow.AddDays(-500).AddHours(8),
+                Status = TimeEntryStatus.Approved,
+                StartLatitude = 44.81,
+                StartLongitude = 20.41
+            });
+
+            await scope.Db.SaveChangesAsync();
+        });
+
+        await InScope(scope => scope.Send(Sweep()));
+
+        var entry = await InScope(scope => scope.Db.TimeEntries
+            .IgnoreQueryFilters()
+            .AsNoTracking()
+            .SingleAsync(t => t.EmployeeId == employee.Id));
+
+        Assert.NotNull(entry.StartLatitude);
+    }
+
+    [Fact]
+    public async Task Clock_in_coordinates_can_be_aged_out_without_losing_the_hours()
+    {
+        // What the setting is for. The coordinates go; the shift stays payable.
+        var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var started = DateTime.UtcNow.AddDays(-500);
+
+        await InScope(async scope =>
+        {
+            scope.Db.TimeEntries.Add(new TimeEntry
+            {
+                EmployeeId = employee.Id,
+                StartedAt = started,
+                EndedAt = started.AddHours(8),
+                Status = TimeEntryStatus.Approved,
+                StartLatitude = 44.81,
+                StartLongitude = 20.41,
+                EndLatitude = 44.82,
+                EndLongitude = 20.42
+            });
+
+            await scope.Db.SaveChangesAsync();
+        });
+
+        var result = await InScope(scope => scope.Send(Sweep() with
+        {
+            TimeEntryCoordinateRetention = TimeSpan.FromDays(365),
+        }));
+
+        Assert.True(result.TimeEntryCoordinates >= 1);
+
+        var entry = await InScope(scope => scope.Db.TimeEntries
+            .IgnoreQueryFilters()
+            .AsNoTracking()
+            .SingleAsync(t => t.EmployeeId == employee.Id));
+
+        Assert.Null(entry.StartLatitude);
+        Assert.Null(entry.EndLongitude);
+
+        // Still a payable shift.
+        Assert.Equal(TimeEntryStatus.Approved, entry.Status);
+        Assert.Equal(started.Date, entry.StartedAt.Date);
+        Assert.NotNull(entry.EndedAt);
+    }
+
+    [Fact]
+    public async Task A_recent_shift_keeps_its_coordinates_through_an_aging_sweep()
+    {
+        var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+
+        await InScope(async scope =>
+        {
+            scope.Db.TimeEntries.Add(new TimeEntry
+            {
+                EmployeeId = employee.Id,
+                StartedAt = DateTime.UtcNow.AddDays(-2),
+                EndedAt = DateTime.UtcNow.AddDays(-2).AddHours(8),
+                Status = TimeEntryStatus.Approved,
+                StartLatitude = 45.11,
+                StartLongitude = 19.81
+            });
+
+            await scope.Db.SaveChangesAsync();
+        });
+
+        await InScope(scope => scope.Send(Sweep() with
+        {
+            TimeEntryCoordinateRetention = TimeSpan.FromDays(365),
+        }));
+
+        var entry = await InScope(scope => scope.Db.TimeEntries
+            .IgnoreQueryFilters()
+            .AsNoTracking()
+            .SingleAsync(t => t.EmployeeId == employee.Id));
+
+        Assert.Equal(45.11, entry.StartLatitude!.Value, 2);
     }
 }

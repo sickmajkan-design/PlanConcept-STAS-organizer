@@ -42,11 +42,11 @@ Both are operational rather than functional, and both are invisible from a demo:
    has been run and verified — 22 tables, 10,522 rows. What is missing is the
    copy off the machine, which needs an account belonging to the organisation.
    Until that exists, a lost host is still a lost system.
-2. **Location tracking has no privacy documentation** (C7). The system records
-   where employees were, minute by minute, and now also keeps an audit trail of
-   who changed what. Both are lawful to hold and neither is documented — no
-   stated purpose, retention rationale, or route by which a worker can ask what
-   is held about them.
+2. **Location tracking has no lawful basis on record** (C7). The engineering is
+   done — inventory, retention, role-scoped access, a tested erasure path — but
+   the decisions that make continuous employee tracking lawful are not code and
+   have not been made: the basis itself, the notice to the workforce, and a
+   DPIA. See PRIVACY.md §6.
 
 **Maturity: ~85%.** The remaining work is almost entirely operational, legal and
 verification — not features. That is a better position than the reverse, and it
@@ -478,10 +478,47 @@ and how long a restore takes at production data volume. The `attachment-data`
 volume is not covered by a database dump either; restoring without it gives a
 list of documents that are not there.
 
-**C7. GDPR/privacy compliance for location tracking is absent.**
+**C7. GDPR/privacy compliance for location tracking is absent.** — **ENGINEERING
+DONE, LEGAL DECISIONS OUTSTANDING**
 No privacy notice, lawful basis, DPIA, retention limit or erasure path for
-continuous employee location data. A legal precondition, and it constrains the
-data model (retention), so it must be decided before the schema is frozen.
+continuous employee location data.
+
+**Done.** `docs/PRIVACY.md` (bilingual) carries a data inventory derived from
+the schema rather than from a template, the retention table, who sees what, and
+what the owner must still decide. Retention was already enforced; the erasure
+path is new: `POST /api/v1/privacy/employees/{id}/erase`, Super Admin only,
+irreversible, reason required and recorded.
+
+Erasure separates the person from the employment record, because "delete
+everything" is the wrong shape for a workforce system — an employer must retain
+hours and pay for statutory periods, and a command that removed those would
+trade a privacy failure for a bookkeeping one. Out: the GPS track, clock-in
+coordinates, absence reasons, contact details, date of birth, notifications,
+device tokens, sessions. In: hours, project, rates, employee number, the fact of
+employment. Nineteen tests, and five mutations — including an unscoped delete —
+each caught.
+
+**Two findings came out of deriving the inventory rather than writing one:**
+
+- `absences.Reason` is free text on a record that may be sick leave, so in
+  practice it holds health data — Article 9 special category, a higher bar than
+  the rest of that table. Erasure clears it; the documentation flags it.
+- Clock-in and clock-out coordinates outlive the GPS retention window. That was
+  deliberate (an approved timesheet is payroll evidence), but it made "location
+  is kept 180 days" incomplete. Now disclosed, and bounded by a new
+  `Retention__TimeEntryCoordinateDays` which defaults to the existing behaviour
+  rather than silently changing a decision somebody made.
+
+**Outstanding, and none of it is code:** lawful basis for tracking (consent is
+weak in an employment relationship), the notice to the workforce, a DPIA,
+whether tracking may run outside working hours — the system has no concept of a
+shift window, so that would be an app change — and processor agreements for
+Firebase and object storage. There is also no self-service data export yet; a
+subject request is a manual query today. See PRIVACY.md §6 and §7.
+
+One decision is flagged for a lawyer rather than taken quietly: erasure leaves
+the audit trail intact, on the position that it is retained to demonstrate
+compliance. A test pins that, so overruling it fails visibly.
 
 ---
 

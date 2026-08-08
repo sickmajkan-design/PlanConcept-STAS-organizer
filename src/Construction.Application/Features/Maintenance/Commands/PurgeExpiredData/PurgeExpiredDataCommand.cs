@@ -11,10 +11,12 @@ public record PurgeResult(
     int PasswordResetTokens,
     int LocationRecords,
     int OutboxMessages,
-    int AuditEntries)
+    int AuditEntries,
+    int TimeEntryCoordinates)
 {
     public int Total =>
-        RefreshTokens + PasswordResetTokens + LocationRecords + OutboxMessages + AuditEntries;
+        RefreshTokens + PasswordResetTokens + LocationRecords + OutboxMessages
+        + AuditEntries + TimeEntryCoordinates;
 }
 
 /// <summary>
@@ -92,6 +94,19 @@ public record PurgeExpiredDataCommand : IRequest<PurgeResult>
     public TimeSpan? AuditEntryRetention { get; init; }
 
     /// <summary>
+    /// How long a shift's clock-in and clock-out coordinates are kept. Null —
+    /// the default — keeps them for as long as the shift itself.
+    /// </summary>
+    /// <remarks>
+    /// The coordinates deliberately outlive the GPS sweep, because an approved
+    /// timesheet is payroll evidence and where the shift started is part of it.
+    /// This is the way to bound that for a deployment that needs to: the
+    /// coordinates are cleared and the shift is left alone, so the hours still
+    /// add up.
+    /// </remarks>
+    public TimeSpan? TimeEntryCoordinateRetention { get; init; }
+
+    /// <summary>
     /// Rows deleted per statement.
     /// </summary>
     /// <remarks>
@@ -131,6 +146,10 @@ public class PurgeExpiredDataCommandValidator : AbstractValidator<PurgeExpiredDa
         RuleFor(x => x.LocationRecordRetention)
             .Must(retention => retention is null || retention > TimeSpan.Zero)
             .WithMessage("Location retention must be a positive period, or unset to keep everything.");
+
+        RuleFor(x => x.TimeEntryCoordinateRetention)
+            .Must(retention => retention is null || retention > TimeSpan.Zero)
+            .WithMessage("Time-entry coordinate retention must be a positive period, or unset to keep them.");
 
         RuleFor(x => x.AuditEntryRetention)
             .Must(retention => retention is null || retention > TimeSpan.Zero)
@@ -211,7 +230,25 @@ public class PurgeExpiredDataCommandHandler
                 cancellationToken);
         }
 
-        return new PurgeResult(refreshTokens, resetTokens, locations, outbox, audit);
+        var coordinates = 0;
+
+        if (request.TimeEntryCoordinateRetention is { } coordinateRetention)
+        {
+            // Cleared, not deleted: the shift is payroll and stays. Only the
+            // two coordinates hanging off it go.
+            coordinates = await _context.TimeEntries
+                .IgnoreQueryFilters()
+                .Where(t => t.StartedAt < utcNow - coordinateRetention
+                    && (t.StartLatitude != null || t.EndLatitude != null))
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(t => t.StartLatitude, (double?)null)
+                    .SetProperty(t => t.StartLongitude, (double?)null)
+                    .SetProperty(t => t.EndLatitude, (double?)null)
+                    .SetProperty(t => t.EndLongitude, (double?)null), cancellationToken);
+        }
+
+        return new PurgeResult(
+            refreshTokens, resetTokens, locations, outbox, audit, coordinates);
     }
 
     /// <summary>
