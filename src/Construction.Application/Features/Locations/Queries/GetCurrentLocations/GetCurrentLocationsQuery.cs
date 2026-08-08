@@ -1,5 +1,6 @@
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
+using Construction.Application.Common.Security;
 using Construction.Application.Features.Locations.Models;
 using Construction.Domain.Enums;
 using FluentValidation;
@@ -69,13 +70,16 @@ public class GetCurrentLocationsQueryHandler
     : IRequestHandler<GetCurrentLocationsQuery, PagedList<EmployeeLocationDto>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
 
     public GetCurrentLocationsQueryHandler(
         IApplicationDbContext context,
+        ICurrentUserService currentUserService,
         IDateTimeProvider dateTimeProvider)
     {
         _context = context;
+        _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
     }
 
@@ -83,7 +87,15 @@ public class GetCurrentLocationsQueryHandler
         GetCurrentLocationsQuery request,
         CancellationToken cancellationToken)
     {
-        var employees = _context.Employees.AsNoTracking();
+        var utcNow = _dateTimeProvider.UtcNow;
+
+        // Before any of the caller's own filters: a foreman narrowing by
+        // project must not be able to widen past their own crews.
+        var employees = CrewVisibility.Restrict(
+            _context.Employees.AsNoTracking(),
+            _context.EmployeeProjects,
+            _currentUserService,
+            DateOnly.FromDateTime(utcNow));
 
         if (!request.IncludeInactive)
         {
@@ -97,7 +109,7 @@ public class GetCurrentLocationsQueryHandler
         }
 
         var cutoff = request.MaxAgeMinutes is { } maxAge
-            ? _dateTimeProvider.UtcNow.AddMinutes(-maxAge)
+            ? utcNow.AddMinutes(-maxAge)
             : (DateTime?)null;
 
         // One lateral-join query: newest ping per employee, filtered server-side.

@@ -69,13 +69,34 @@ public class LocationTests : IntegrationTestBase
     private async Task<IReadOnlyCollection<Construction.Application.Features.Locations.Models.EmployeeLocationDto>> MapAsync(
         GetCurrentLocationsQuery query)
     {
-        var page = await InScope(scope => scope.Send(query with
+        var page = await InScope(scope =>
         {
-            PageSize = GetCurrentLocationsQuery.MaxPageSize
-        }));
+            AsOffice(scope);
+
+            return scope.Send(query with
+            {
+                PageSize = GetCurrentLocationsQuery.MaxPageSize
+            });
+        });
 
         return page.Items;
     }
+
+    /// <summary>
+    /// Acts as an administrator, who sees every employee.
+    /// </summary>
+    /// <remarks>
+    /// These endpoints are behind <c>ForemanAndAbove</c>, so a real caller
+    /// always has a role; the test fixture's default identity has none, and
+    /// the visibility rule fails closed on that — correctly, but it makes a
+    /// test about "which employees are on the map" into a test about the
+    /// scoping rule. The scoping rule has its own section.
+    ///
+    /// No user row is seeded because none is read: an administrator is
+    /// admitted on the role alone, before the employee link is looked at.
+    /// </remarks>
+    private static void AsOffice(TestScope scope) =>
+        scope.CurrentUser.SignInAs(Guid.NewGuid(), UserRole.Admin, null, "office@construction.test");
 
     private static void ActAs(TestScope scope, User user, Guid? employeeId) =>
         scope.CurrentUser.SignInAs(user.Id, user.Role, employeeId, user.Email);
@@ -257,6 +278,7 @@ public class LocationTests : IntegrationTestBase
 
         var map = await InScope(async scope =>
         {
+            AsOffice(scope);
             scope.Clock.FreezeAt(Noon);
 
             var page = await scope.Send(new GetCurrentLocationsQuery
@@ -288,6 +310,7 @@ public class LocationTests : IntegrationTestBase
 
         var map = await InScope(async scope =>
         {
+            AsOffice(scope);
             scope.Clock.FreezeAt(Noon);
 
             var page = await scope.Send(new GetCurrentLocationsQuery
@@ -391,6 +414,279 @@ public class LocationTests : IntegrationTestBase
         Assert.Equal(employee.Position, mine.Position);
     }
 
+    // ---- whose movements a caller may see ---------------------------------
+
+    /// <summary>
+    /// A foreman posted to <paramref name="project"/>, and an account for them.
+    /// </summary>
+    private async Task<(Employee Employee, User User)> SeedForemanOnAsync(Guid project)
+    {
+        var (employee, user) = await InScope(async scope =>
+        {
+            var employee = await TestData.SeedEmployeeAsync(scope);
+            var user = await TestData.SeedUserAsync(scope, UserRole.Foreman, employee.Id);
+            return (employee, user);
+        });
+
+        await InScope(scope =>
+            scope.Send(new AssignEmployeeToProjectCommand(employee.Id, project)));
+
+        return (employee, user);
+    }
+
+    private async Task<Employee> SeedCrewMemberOnAsync(Guid project)
+    {
+        var (employee, user) = await SeedWorkerAsync();
+
+        await InScope(scope =>
+            scope.Send(new AssignEmployeeToProjectCommand(employee.Id, project)));
+
+        await ReportAsync(user, employee.Id, Ping(Noon));
+
+        return employee;
+    }
+
+    [Fact]
+    public async Task A_foreman_sees_their_own_crew_on_the_map()
+    {
+        var site = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var (_, foremanUser) = await SeedForemanOnAsync(site.Id);
+        var crew = await SeedCrewMemberOnAsync(site.Id);
+
+        var map = await InScope(async scope =>
+        {
+            ActAs(scope, foremanUser, foremanUser.EmployeeId);
+
+            var page = await scope.Send(new GetCurrentLocationsQuery
+            {
+                PageSize = GetCurrentLocationsQuery.MaxPageSize
+            });
+
+            return page.Items;
+        });
+
+        Assert.Contains(map, l => l.EmployeeId == crew.Id);
+    }
+
+    [Fact]
+    public async Task A_foreman_does_not_see_somebody_else_s_site_on_the_map()
+    {
+        // The finding this closes. The role policy lets a foreman open the
+        // live map, and nothing underneath it said whose positions the map
+        // should contain — so one site's supervisor could watch the whole
+        // company.
+        var mySite = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var otherSite = await InScope(scope => TestData.SeedProjectAsync(scope));
+
+        var (_, foremanUser) = await SeedForemanOnAsync(mySite.Id);
+
+        var mine = await SeedCrewMemberOnAsync(mySite.Id);
+        var theirs = await SeedCrewMemberOnAsync(otherSite.Id);
+
+        var map = await InScope(async scope =>
+        {
+            ActAs(scope, foremanUser, foremanUser.EmployeeId);
+
+            var page = await scope.Send(new GetCurrentLocationsQuery
+            {
+                PageSize = GetCurrentLocationsQuery.MaxPageSize
+            });
+
+            return page.Items;
+        });
+
+        Assert.Contains(map, l => l.EmployeeId == mine.Id);
+        Assert.DoesNotContain(map, l => l.EmployeeId == theirs.Id);
+    }
+
+    [Fact]
+    public async Task A_foreman_cannot_widen_the_map_by_naming_another_project()
+    {
+        // The scope has to be applied before the caller's own filters. Applied
+        // after, asking for a project you are not on would hand back exactly
+        // the crew you were not supposed to see.
+        var mySite = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var otherSite = await InScope(scope => TestData.SeedProjectAsync(scope));
+
+        var (_, foremanUser) = await SeedForemanOnAsync(mySite.Id);
+        var theirs = await SeedCrewMemberOnAsync(otherSite.Id);
+
+        var map = await InScope(async scope =>
+        {
+            ActAs(scope, foremanUser, foremanUser.EmployeeId);
+
+            var page = await scope.Send(new GetCurrentLocationsQuery
+            {
+                ProjectId = otherSite.Id,
+                PageSize = GetCurrentLocationsQuery.MaxPageSize
+            });
+
+            return page.Items;
+        });
+
+        Assert.DoesNotContain(map, l => l.EmployeeId == theirs.Id);
+    }
+
+    [Fact]
+    public async Task A_foreman_can_always_see_their_own_track()
+    {
+        // Whatever else is scoped away, the one record somebody is entitled to
+        // under any reading is their own.
+        var site = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var (foreman, foremanUser) = await SeedForemanOnAsync(site.Id);
+
+        await ReportAsync(foremanUser, foreman.Id, Ping(Noon));
+
+        var last = await InScope(scope =>
+        {
+            ActAs(scope, foremanUser, foreman.Id);
+            return scope.Send(new GetEmployeeLastLocationQuery(foreman.Id));
+        });
+
+        Assert.Equal(foreman.Id, last.EmployeeId);
+    }
+
+    [Fact]
+    public async Task A_foreman_asking_where_another_site_s_worker_is_gets_not_found()
+    {
+        // Not "forbidden". A refusal that distinguishes "exists but not yours"
+        // from "does not exist" confirms the employee exists, which is most of
+        // what somebody probing for a colleague's whereabouts wanted.
+        var mySite = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var otherSite = await InScope(scope => TestData.SeedProjectAsync(scope));
+
+        var (_, foremanUser) = await SeedForemanOnAsync(mySite.Id);
+        var theirs = await SeedCrewMemberOnAsync(otherSite.Id);
+
+        await Assert.ThrowsAsync<NotFoundException>(() => InScope(scope =>
+        {
+            ActAs(scope, foremanUser, foremanUser.EmployeeId);
+            return scope.Send(new GetEmployeeLastLocationQuery(theirs.Id));
+        }));
+    }
+
+    [Fact]
+    public async Task A_foreman_cannot_pull_another_site_s_worker_s_history()
+    {
+        // The most sensitive read in the API: a week of somebody's
+        // minute-by-minute movements.
+        var mySite = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var otherSite = await InScope(scope => TestData.SeedProjectAsync(scope));
+
+        var (_, foremanUser) = await SeedForemanOnAsync(mySite.Id);
+        var theirs = await SeedCrewMemberOnAsync(otherSite.Id);
+
+        await Assert.ThrowsAsync<NotFoundException>(() => InScope(scope =>
+        {
+            ActAs(scope, foremanUser, foremanUser.EmployeeId);
+            return scope.Send(new GetLocationHistoryQuery { EmployeeId = theirs.Id });
+        }));
+    }
+
+    [Fact]
+    public async Task A_foreman_can_pull_their_own_crew_s_history()
+    {
+        var site = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var (_, foremanUser) = await SeedForemanOnAsync(site.Id);
+        var crew = await SeedCrewMemberOnAsync(site.Id);
+
+        var history = await InScope(scope =>
+        {
+            ActAs(scope, foremanUser, foremanUser.EmployeeId);
+            return scope.Send(new GetLocationHistoryQuery { EmployeeId = crew.Id });
+        });
+
+        Assert.NotEmpty(history.Items);
+    }
+
+    [Fact]
+    public async Task A_foreman_whose_posting_has_ended_no_longer_sees_that_crew()
+    {
+        // Scope follows the current posting, not history. A foreman who moved
+        // on last month keeps no standing access to the site they left.
+        var site = await InScope(scope => TestData.SeedProjectAsync(scope));
+
+        var (foreman, foremanUser) = await InScope(async scope =>
+        {
+            var employee = await TestData.SeedEmployeeAsync(scope);
+            var user = await TestData.SeedUserAsync(scope, UserRole.Foreman, employee.Id);
+            return (employee, user);
+        });
+
+        var yesterday = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
+
+        await InScope(scope => scope.Send(
+            new AssignEmployeeToProjectCommand(foreman.Id, site.Id)
+            {
+                StartDate = yesterday.AddDays(-30),
+                EndDate = yesterday
+            }));
+
+        var crew = await SeedCrewMemberOnAsync(site.Id);
+
+        await Assert.ThrowsAsync<NotFoundException>(() => InScope(scope =>
+        {
+            ActAs(scope, foremanUser, foreman.Id);
+            return scope.Send(new GetEmployeeLastLocationQuery(crew.Id));
+        }));
+    }
+
+    [Fact]
+    public async Task A_foreman_account_with_no_employee_behind_it_sees_nobody()
+    {
+        // Fails closed. An account that supervises nothing supervises nothing,
+        // rather than falling through to "no restriction applies".
+        var site = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var crew = await SeedCrewMemberOnAsync(site.Id);
+
+        var orphan = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Foreman));
+
+        var map = await InScope(async scope =>
+        {
+            scope.CurrentUser.SignInAs(orphan.Id, UserRole.Foreman, null, orphan.Email);
+
+            var page = await scope.Send(new GetCurrentLocationsQuery
+            {
+                PageSize = GetCurrentLocationsQuery.MaxPageSize
+            });
+
+            return page.Items;
+        });
+
+        Assert.Empty(map);
+        Assert.DoesNotContain(map, l => l.EmployeeId == crew.Id);
+    }
+
+    [Theory]
+    [InlineData(UserRole.ProjectManager)]
+    [InlineData(UserRole.Admin)]
+    [InlineData(UserRole.SuperAdmin)]
+    public async Task Everyone_above_a_foreman_still_sees_the_whole_company(UserRole role)
+    {
+        // The deliberate limit of this rule. A project manager is an office
+        // role that may hold no postings at all, so scoping them the same way
+        // would show them an empty map — and a rule that breaks the people it
+        // applies to gets removed rather than obeyed.
+        var site = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var crew = await SeedCrewMemberOnAsync(site.Id);
+
+        var office = await InScope(scope => TestData.SeedUserAsync(scope, role));
+
+        var map = await InScope(async scope =>
+        {
+            scope.CurrentUser.SignInAs(office.Id, role, null, office.Email);
+
+            var page = await scope.Send(new GetCurrentLocationsQuery
+            {
+                PageSize = GetCurrentLocationsQuery.MaxPageSize
+            });
+
+            return page.Items;
+        });
+
+        Assert.Contains(map, l => l.EmployeeId == crew.Id);
+    }
+
     // ---- the map is bounded ----------------------------------------------
 
     [Fact]
@@ -399,7 +695,11 @@ public class LocationTests : IntegrationTestBase
         // The point of M12. This used to return every active employee who had
         // ever reported, with no limit — fine at the stated scale and a
         // response that grows without bound for anybody larger.
-        var page = await InScope(scope => scope.Send(new GetCurrentLocationsQuery()));
+        var page = await InScope(scope =>
+        {
+            AsOffice(scope);
+            return scope.Send(new GetCurrentLocationsQuery());
+        });
 
         Assert.Equal(1, page.PageNumber);
         Assert.Equal(250, page.PageSize);
@@ -424,11 +724,15 @@ public class LocationTests : IntegrationTestBase
             await ReportAsync(user, employee.Id, Ping(Noon));
         }
 
-        var firstOfThree = await InScope(scope => scope.Send(new GetCurrentLocationsQuery
+        var firstOfThree = await InScope(scope =>
         {
-            ProjectId = project.Id,
-            PageSize = 1
-        }));
+            AsOffice(scope);
+            return scope.Send(new GetCurrentLocationsQuery
+            {
+                ProjectId = project.Id,
+                PageSize = 1
+            });
+        });
 
         Assert.Single(firstOfThree.Items);
         Assert.Equal(3, firstOfThree.TotalCount);
@@ -474,12 +778,16 @@ public class LocationTests : IntegrationTestBase
 
         for (var page = 1; page <= 4; page++)
         {
-            var result = await InScope(scope => scope.Send(new GetCurrentLocationsQuery
+            var result = await InScope(scope =>
             {
-                ProjectId = project.Id,
-                PageNumber = page,
-                PageSize = 2
-            }));
+                AsOffice(scope);
+                return scope.Send(new GetCurrentLocationsQuery
+                {
+                    ProjectId = project.Id,
+                    PageNumber = page,
+                    PageSize = 2
+                });
+            });
 
             seen.AddRange(result.Items.Select(i => i.EmployeeId));
         }
@@ -496,10 +804,13 @@ public class LocationTests : IntegrationTestBase
         // simply asks for everything, and the endpoint is unbounded again with
         // extra steps.
         await Assert.ThrowsAsync<ValidationException>(() => InScope(scope =>
-            scope.Send(new GetCurrentLocationsQuery
+        {
+            AsOffice(scope);
+            return scope.Send(new GetCurrentLocationsQuery
             {
                 PageSize = GetCurrentLocationsQuery.MaxPageSize + 1
-            })));
+            });
+        }));
     }
 
     [Fact]
@@ -526,7 +837,10 @@ public class LocationTests : IntegrationTestBase
             Ping(Noon.AddMinutes(25), lat: 45.25));
 
         var last = await InScope(scope =>
-            scope.Send(new GetEmployeeLastLocationQuery(employee.Id)));
+        {
+            AsOffice(scope);
+            return scope.Send(new GetEmployeeLastLocationQuery(employee.Id));
+        });
 
         Assert.Equal(45.45, last.Latitude, 5);
         Assert.Equal(Noon.AddMinutes(45), last.Timestamp);
@@ -536,7 +850,11 @@ public class LocationTests : IntegrationTestBase
     public async Task Asking_where_a_stranger_is_reports_not_found()
     {
         await Assert.ThrowsAsync<NotFoundException>(() =>
-            InScope(scope => scope.Send(new GetEmployeeLastLocationQuery(Guid.NewGuid()))));
+            InScope(scope =>
+            {
+                AsOffice(scope);
+                return scope.Send(new GetEmployeeLastLocationQuery(Guid.NewGuid()));
+            }));
     }
 
     [Fact]
@@ -548,7 +866,11 @@ public class LocationTests : IntegrationTestBase
         var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
 
         var error = await Assert.ThrowsAsync<NotFoundException>(() =>
-            InScope(scope => scope.Send(new GetEmployeeLastLocationQuery(employee.Id))));
+            InScope(scope =>
+            {
+                AsOffice(scope);
+                return scope.Send(new GetEmployeeLastLocationQuery(employee.Id));
+            }));
 
         Assert.Contains(employee.Id.ToString(), error.Message);
         Assert.Contains("location", error.Message, StringComparison.OrdinalIgnoreCase);
@@ -569,7 +891,10 @@ public class LocationTests : IntegrationTestBase
             Ping(Noon.AddMinutes(10)));
 
         var history = await InScope(scope =>
-            scope.Send(new GetLocationHistoryQuery { EmployeeId = employee.Id }));
+        {
+            AsOffice(scope);
+            return scope.Send(new GetLocationHistoryQuery { EmployeeId = employee.Id });
+        });
 
         Assert.Equal(
             [Noon.AddMinutes(20), Noon.AddMinutes(10), Noon],
@@ -592,12 +917,16 @@ public class LocationTests : IntegrationTestBase
             Ping(Noon.AddHours(1)),
             Ping(Noon.AddHours(2)));
 
-        var window = await InScope(scope => scope.Send(new GetLocationHistoryQuery
+        var window = await InScope(scope =>
         {
-            EmployeeId = employee.Id,
-            From = Noon,
-            To = Noon.AddHours(1)
-        }));
+            AsOffice(scope);
+            return scope.Send(new GetLocationHistoryQuery
+            {
+                EmployeeId = employee.Id,
+                From = Noon,
+                To = Noon.AddHours(1)
+            });
+        });
 
         Assert.Equal(
             [Noon.AddHours(1), Noon],
@@ -615,26 +944,38 @@ public class LocationTests : IntegrationTestBase
 
         await ReportAsync(user, employee.Id, batch);
 
-        var first = await InScope(scope => scope.Send(new GetLocationHistoryQuery
+        var first = await InScope(scope =>
         {
-            EmployeeId = employee.Id,
-            PageNumber = 1,
-            PageSize = 10
-        }));
+            AsOffice(scope);
+            return scope.Send(new GetLocationHistoryQuery
+            {
+                EmployeeId = employee.Id,
+                PageNumber = 1,
+                PageSize = 10
+            });
+        });
 
-        var second = await InScope(scope => scope.Send(new GetLocationHistoryQuery
+        var second = await InScope(scope =>
         {
-            EmployeeId = employee.Id,
-            PageNumber = 2,
-            PageSize = 10
-        }));
+            AsOffice(scope);
+            return scope.Send(new GetLocationHistoryQuery
+            {
+                EmployeeId = employee.Id,
+                PageNumber = 2,
+                PageSize = 10
+            });
+        });
 
-        var third = await InScope(scope => scope.Send(new GetLocationHistoryQuery
+        var third = await InScope(scope =>
         {
-            EmployeeId = employee.Id,
-            PageNumber = 3,
-            PageSize = 10
-        }));
+            AsOffice(scope);
+            return scope.Send(new GetLocationHistoryQuery
+            {
+                EmployeeId = employee.Id,
+                PageNumber = 3,
+                PageSize = 10
+            });
+        });
 
         Assert.Equal(25, first.TotalCount);
         Assert.Equal(5, third.Items.Count);
@@ -656,7 +997,10 @@ public class LocationTests : IntegrationTestBase
         await ReportAsync(theirUser, theirs.Id, Ping(Noon));
 
         var history = await InScope(scope =>
-            scope.Send(new GetLocationHistoryQuery { EmployeeId = mine.Id }));
+        {
+            AsOffice(scope);
+            return scope.Send(new GetLocationHistoryQuery { EmployeeId = mine.Id });
+        });
 
         Assert.All(history.Items, item => Assert.Equal(mine.Id, item.EmployeeId));
     }
@@ -667,6 +1011,9 @@ public class LocationTests : IntegrationTestBase
         // Rather than an empty page, which reads as "this employee went
         // nowhere" instead of "there is no such employee".
         await Assert.ThrowsAsync<NotFoundException>(() => InScope(scope =>
-            scope.Send(new GetLocationHistoryQuery { EmployeeId = Guid.NewGuid() })));
+        {
+            AsOffice(scope);
+            return scope.Send(new GetLocationHistoryQuery { EmployeeId = Guid.NewGuid() });
+        }));
     }
 }

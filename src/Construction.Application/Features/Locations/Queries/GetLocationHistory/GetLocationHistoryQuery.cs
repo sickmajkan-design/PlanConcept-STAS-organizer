@@ -3,6 +3,7 @@ using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
+using Construction.Application.Common.Security;
 using Construction.Application.Features.Locations.Models;
 using Construction.Domain.Entities;
 using FluentValidation;
@@ -45,11 +46,19 @@ public class GetLocationHistoryQueryHandler
     : IRequestHandler<GetLocationHistoryQuery, PagedList<LocationRecordDto>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IMapper _mapper;
 
-    public GetLocationHistoryQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetLocationHistoryQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider,
+        IMapper mapper)
     {
         _context = context;
+        _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
         _mapper = mapper;
     }
 
@@ -57,10 +66,21 @@ public class GetLocationHistoryQueryHandler
         GetLocationHistoryQuery request,
         CancellationToken cancellationToken)
     {
-        var employeeExists = await _context.Employees
-            .AnyAsync(e => e.Id == request.EmployeeId, cancellationToken);
+        // A week of somebody's minute-by-minute movements is the most
+        // sensitive thing this API serves, so the scope check comes first.
+        // Same answer as "not there" on purpose. Telling a foreman that an
+        // employee exists but is not theirs to look at confirms the employee
+        // exists, which is most of what somebody probing for a colleague's
+        // whereabouts wants to learn.
+        var visible = await CrewVisibility.CanSeeAsync(
+            _context.Employees,
+            _context.EmployeeProjects,
+            _currentUserService,
+            request.EmployeeId,
+            DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+            cancellationToken);
 
-        if (!employeeExists)
+        if (!visible)
         {
             throw new NotFoundException(nameof(Employee), request.EmployeeId);
         }

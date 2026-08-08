@@ -273,6 +273,8 @@ administrator can lock everyone out and the only repair is database access.
 | Successful sign-in and password reset clear a lockout | `LoginHardeningTests` |
 | `DummyHash` is a real 100,000-iteration hash | `LoginHardeningTests` |
 | LIKE wildcard escaping (`%`, `_`, `\`), against a real database | `EmployeeTests`, `ProjectTests` |
+| A foreman sees only their own crews' positions and movement history | `LocationTests` |
+| An out-of-scope employee is 404, not 403, so existence is not confirmed | `LocationTests` |
 | Password hashes and anything credential-shaped stay out of the audit trail | `AuditTrailTests` |
 | The audit trail records who acted, as they were at the time, and outlives the record | `AuditTrailTests` |
 | Empty proxy configuration yields no trusted proxy; invalid entries fail loudly | `TrustedProxyConfigurationTests` |

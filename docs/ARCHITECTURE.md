@@ -993,3 +993,55 @@ obliged to have one.
 Measured cost: on the write-heavy integration suite, paired runs with the
 interceptor on and off differed by about a second on a forty-second baseline.
 Small, but not free — it is one extra INSERT per changed entity per save.
+
+## Who may look at whom
+
+The role policies decide who may call an endpoint. They say nothing about
+*which rows* the caller may have back, and for most of this system that is
+fine — a foreman who may read the tool register may read all of it.
+
+Location is the exception, and `CrewVisibility` is the rule that covers it.
+
+**The decision:** a foreman sees the crews on the projects they are themselves
+currently posted to, and nobody else. Project manager and above see everyone.
+
+Before this, a foreman running one site could open the live map and watch every
+employee in the company, or pull a week of somebody's minute-by-minute
+movements from a site they had nothing to do with. That was never a role
+failure — the foreman is meant to use the map — it was the absence of anything
+underneath it.
+
+The line falls between foreman and project manager rather than one rung higher
+because a foreman is definitionally on a site with a crew, and that crew is
+already in the data as their own current postings. A project manager is an
+office role that may hold no postings at all, so scoping them the same way
+would show them an empty map — and a rule that breaks the people it applies to
+gets removed rather than obeyed. Scoping project managers honestly needs a
+"manages this project" relationship the schema does not have.
+
+Four properties worth stating, each with a test:
+
+- **The restriction is part of the query, not a filter over its results.**
+  `Restrict` returns an `IQueryable`, so the narrowing reaches PostgreSQL in the
+  same statement. Filtering afterwards would be correct and would still have
+  fetched every row first, which is the wrong shape for a rule whose point is
+  that the data does not leave the database.
+- **It is applied before the caller's own filters.** Applied after, a foreman
+  asking for a project they are not on would be handed exactly the crew they
+  were not supposed to see.
+- **An out-of-scope employee answers 404, not 403.** "Exists but not yours"
+  confirms the employee exists, which is most of what somebody probing for a
+  colleague's whereabouts wanted to learn.
+- **It fails closed.** A foreman account with no employee record behind it
+  supervises nobody, so it sees nobody. Guessing the other way turns a
+  misconfigured account into the leak this exists to prevent.
+
+Scope follows the *current* posting, so a foreman who moved on last month keeps
+no standing access to the site they left.
+
+Deliberately not scoped: the staff directory. A continuous record of where
+somebody has been is a different kind of thing from their name, position and
+work number, which a company shares internally anyway — and narrowing the
+directory would stop a foreman looking up the number of the person they need on
+site in ten minutes. That is a judgement rather than a certainty; it is one
+call site if a customer needs the other answer.

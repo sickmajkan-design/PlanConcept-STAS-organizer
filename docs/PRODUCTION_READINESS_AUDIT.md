@@ -541,9 +541,35 @@ contract) and is not done.
 images, deploy automatically, and have somewhere to verify a release that is
 not production.
 
-**H11. Resource-scoped authorization.** Decide and enforce whether a Foreman
+**H11. Resource-scoped authorization.** ~~Decide and enforce whether a Foreman
 should see the whole company's employees and GPS history, or only their own
-projects. Currently they see everything.
+projects. Currently they see everything.~~ **Decided and enforced for location
+data.**
+
+*The decision:* a foreman sees the crews on the projects they are themselves
+currently posted to, and nobody else. Project manager and above see everyone.
+
+*Why the line falls there.* A foreman is definitionally on a site with a crew,
+and that crew is already in the data as their own current postings. A project
+manager is an office role that may hold no postings at all, so scoping them the
+same way would show them an empty map — and a rule that breaks the people it
+applies to gets removed rather than obeyed. Scoping project managers properly
+needs a "manages this project" relationship the schema does not have yet.
+
+*What is scoped:* the live map, last-known position, and movement history —
+`CrewVisibility` narrows the employee set inside the same SQL statement, before
+the caller's own filters, so naming another project cannot widen it. Out-of-scope
+employees answer 404 rather than 403, because "exists but not yours" confirms
+the employee exists, which is most of what somebody probing for a colleague's
+whereabouts wanted. A foreman account with no employee record behind it sees
+nobody — it fails closed.
+
+*What is deliberately not scoped:* the staff directory. A continuous record of
+where somebody has been is a different kind of thing from their name, position
+and work number, which a company shares internally anyway; narrowing it would
+stop a foreman looking up the number of the person they need on site in ten
+minutes. If that judgement is wrong for a particular customer it is a small
+change, in one place.
 
 ---
 
