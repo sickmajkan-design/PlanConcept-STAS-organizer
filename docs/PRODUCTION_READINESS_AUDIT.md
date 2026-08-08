@@ -1,58 +1,84 @@
 # Production readiness audit — STAS Organizer
 
-**Date:** 2026-08-01
+**Date:** 2026-08-01, kept current — findings are struck through as they close
 **Scope:** full solution — ASP.NET Core 9 API, Flutter mobile app, React admin panel, database, CI, deployment
 **Method:** static review of the whole tree plus a live instance exercised end to end
-**Status:** analysis only. No code was changed.
+**Status:** the original review changed no code. It has since become the tracker
+for the work it prompted, so each finding carries its own outcome. Numbers below
+are re-measured, not carried over from the first pass.
 
 ---
 
 ## Executive summary
 
 The engineering is genuinely good. Clean Architecture is applied consistently
-rather than decoratively, the domain model is sound, the database schema is
-better than most projects at this stage, and 245 automated tests pass. Nothing
-in this report is a rewrite.
+rather than decoratively, the domain model is sound, and the database schema is
+better than most projects at this stage. Nothing in this report is a rewrite.
 
 The gap is not code quality — it is the distance between *"the features are
-built"* and *"real people can be given this"*. Three findings stand out
-because they are invisible from the demo that has been shown to the client:
+built"* and *"real people can be given this"*.
 
-1. **`docker compose up` produces a system anyone can sign into as SuperAdmin
-   and forge tokens for.** Every secret has a working development default.
-2. **GPS tracking — the flagship feature — stops when the phone is locked or
-   pocketed.** It runs on a foreground timer. In a demo it works perfectly; on
-   a site it records almost nothing.
-3. **The Android release build is signed with the debug key**, so it cannot be
-   published to the Play Store at all.
+### Where the original three findings stand
 
-Alongside those: the admin panel (7,000 lines, the client's primary interface)
-has **zero automated tests in the repository**. *(The English-only finding
-below is now closed — both apps ship Serbian and English, Serbian by default.)*
+1. ~~**`docker compose up` produces a system anyone can sign into as SuperAdmin
+   and forge tokens for.**~~ **Closed.** Compose refuses to start without real
+   secrets (C1).
+2. ~~**GPS tracking stops when the phone is locked or pocketed.**~~ **Closed in
+   code, unverified on hardware.** A foreground service and a disk-backed queue
+   replaced the timer; nobody has yet pocketed a real phone for a shift and
+   checked what arrived (C3).
+3. ~~**The Android release build is signed with the debug key.**~~ **Closed.**
+   Release signing reads an out-of-repo keystore (C4).
 
-**Maturity: ~65%.** A strong Phase 1 build. Roughly 6–8 weeks of focused work
-from a defensible 1.0.
+The admin panel now has a Vitest suite in CI, though it still covers logic and
+guards rather than whole screens (H1).
+
+### What now stands out instead
+
+Both are operational rather than functional, and both are invisible from a demo:
+
+1. **There is no backup, and therefore no tested restore** (C6). The system
+   holds payroll-relevant hours, cost records and an audit trail; none of it
+   survives a lost volume.
+2. **Location tracking has no privacy documentation** (C7). The system records
+   where employees were, minute by minute, and now also keeps an audit trail of
+   who changed what. Both are lawful to hold and neither is documented — no
+   stated purpose, retention rationale, or route by which a worker can ask what
+   is held about them.
+
+**Maturity: ~85%.** The remaining work is almost entirely operational, legal and
+verification — not features. That is a better position than the reverse, and it
+is why the estimate is weeks rather than months.
 
 ---
 
 ## 1. Codebase structure
 
+Re-measured, with the first pass's figures in brackets where they have moved.
+
 | Area | Lines | Assessment |
 |---|---|---|
-| `Construction.Domain` | 444 | Clean. 12 entities, 8 enums, no framework leakage. |
-| `Construction.Application` | 5,223 | CQRS via MediatR, feature-foldered, consistent. |
-| `Construction.Infrastructure` | 3,296 | EF Core, JWT issuing, SMTP, FCM. |
-| `Construction.API` | 1,381 | 53 endpoints across 8 controllers. Thin. |
-| `tests` | 2,252 | 128 backend tests (93 unit + 35 integration). |
-| `construction_admin/src` | 6,997 | React 19 + MUI 9 + TanStack Query 5. |
-| `construction_mobile/lib` | 6,447 | Flutter, feature-first, Riverpod. |
-| `construction_mobile/test` | 1,473 | 100 tests. |
+| `Construction.Domain` | 1,393 (444) | Clean. 21 entities, 20 enums, no framework leakage. |
+| `Construction.Application` | 14,116 (5,223) | CQRS via MediatR, 98 handlers, feature-foldered. |
+| `Construction.Infrastructure` | 2,676 (3,296) | EF Core, JWT issuing, SMTP, FCM. Shrank as logic moved inwards. |
+| `Construction.API` | 4,057 (1,381) | 118 endpoints across 17 controllers. Still thin. |
+| `tests` | 15,342 (2,252) | **902 backend tests** (378 unit + 524 integration). |
+| `construction_admin/src` | 18,779 (6,997) | React 19 + MUI 9 + TanStack Query 5. 155 Vitest cases. |
+| `construction_mobile/lib` | 22,114 (6,447) | Flutter, feature-first, Riverpod. |
+| `construction_mobile/test` | 2,339 (1,473) | 168 tests. |
 
-**~27,500 lines total.** Layer boundaries are respected — no reference cycles,
-no EF types in Domain, no ASP.NET types below the API. Feature folders are
-consistent across all three codebases, which makes the project navigable by a
-developer who has never seen it. Zero TODO/FIXME markers outside the one
-deliberate Android signing note.
+**~78,500 lines total, ~1,225 automated tests** (up from ~27,500 and 245). Ten
+migrations rather than the one the first pass found.
+
+Layer boundaries are still respected — no reference cycles, no EF types in
+Domain, no ASP.NET types below the API. Feature folders are consistent across
+all three codebases, which makes the project navigable by a developer who has
+never seen it. Zero TODO/FIXME markers outside the one deliberate Android
+signing note.
+
+The test ratio is worth noting: tests are now roughly two thirds the size of the
+backend they cover, and the integration half runs against a real PostgreSQL
+database rather than an in-memory substitute.
 
 This is above-average structure and should be preserved as-is.
 
@@ -69,10 +95,12 @@ onto shared `useListQueryState` / `ResourceDataGrid` / `useDeleteWithConfirm`.
 
 **Issues:**
 
-- **No tests at all.** `package.json` has no test runner — no Vitest, no
-  Testing Library, no Playwright. `npm run lint` is oxlint only. CI runs lint +
-  build. A regression in any of the 5 CRUD sections, the login flow, or the
-  role gating would reach the client.
+- ~~**No tests at all.**~~ There is now a Vitest suite (155 cases) running in
+  CI alongside `tsc -b` and oxlint. It covers the pieces whose failure is
+  silent — token refresh, route guards for all five roles, i18n plurals and
+  dictionary parity, query-parameter normalisation, the live map's page
+  request. **Still uncovered: whole screens.** A regression in a CRUD form or
+  a grid would reach the client, which is the remaining half of H1.
 - ~~**Session in `localStorage`.**~~ The refresh token is now an `HttpOnly`,
   `SameSite=Strict` cookie scoped to `/api/auth`, and the API omits it from the
   response body when the client asks for cookie delivery — so it never passes
@@ -153,10 +181,11 @@ foreign key and every filtered/sorted column.
   million rows for a hundred workers rather than growing by twelve million a
   year. Monthly partitioning is still the answer an order of magnitude further
   out, and is still cheaper to adopt before the table is large than after.
-- **One migration in the entire history** (`InitialCreate`). The schema has
-  never been evolved incrementally, so the team has never exercised the
-  process that every future change depends on. No down-migration has been
-  tested.
+- ~~**One migration in the entire history** (`InitialCreate`).~~ Ten now, each
+  written for a real change and applied by the integration suite on every run,
+  so the forward path is exercised continuously. **No down-migration has been
+  tested, and no rollback has been rehearsed against data** — which is what
+  M10 is still about.
 - **No backup or restore procedure exists or is documented.** Nothing has ever
   been restored. For a system holding payroll-adjacent employee records, this
   is the single most likely source of an unrecoverable incident.
@@ -169,22 +198,27 @@ foreign key and every filtered/sorted column.
 
 ## 5. API structure
 
-53 endpoints, consistently RESTful, correct verbs and status codes, RFC 7807
-problem details with a `traceId`, `JsonStringEnumConverter` so clients see
-names rather than integers, Swagger documented with JWT support (dev only —
-correct).
+118 endpoints (53 at the first pass), consistently RESTful, correct verbs and
+status codes, RFC 7807
+problem details with a `traceId` and a correlation id, `JsonStringEnumConverter`
+so clients see names rather than integers, Swagger documented with JWT support
+(dev only — correct).
 
 **Issues:**
 
-- No versioning (above).
-- **No HTTP-level tests.** No `WebApplicationFactory`. Authentication,
-  authorization policies, rate limiting, CORS and exception→status mapping are
-  exercised by no automated test — only by the ad-hoc Playwright script.
-- No pagination on `GET /api/locations/current` — returns every employee's
-  latest position in one response. Fine at 100, not at 1,000.
+- ~~No versioning~~ — `/api/v1/…`, with the unversioned paths kept as
+  permanent aliases (H8).
+- ~~**No HTTP-level tests.**~~ `ApiFixture` hosts the real application and
+  drives every endpoint over HTTP as each of the five roles; authorization,
+  versioning, CORS, correlation ids, health probes and the refresh cookie are
+  all asserted against a running pipeline rather than assumed (H2).
+- ~~No pagination on `GET /api/locations/current`~~ — paged, 250 by default and
+  1,000 at most, with `totalCount` so a truncated map can be labelled as one
+  (M12).
 - No `ETag` / conditional requests; no response compression configured.
-- No idempotency keys on POSTs — a retried "adjust stock" double-applies.
-- `AllowedHosts: "*"` — host header not restricted.
+- No idempotency keys on POSTs — a retried "adjust stock" double-applies (M11).
+- `AllowedHosts: "*"` — host header not restricted. Left to the reverse proxy
+  by decision; see M6.
 
 ---
 
@@ -196,16 +230,16 @@ remains:
 
 | # | Risk | Severity |
 |---|---|---|
-| 1 | Compose ships working defaults for JWT secret and SuperAdmin password | **Critical** |
-| 2 | Password-reset link written to logs when SMTP unconfigured | **Critical** |
-| 3 | Login timing reveals whether an email is registered | High |
-| 4 | Refresh token in `localStorage` (XSS → persistent takeover) | High |
-| 5 | No account lockout — unlimited guesses at 20/min per IP | High |
-| 6 | No resource-scoped authorization: any Foreman reads every employee's GPS history | High |
+| 1 | ~~Compose ships working defaults for JWT secret and SuperAdmin password~~ Closed (C1) | **Critical** |
+| 2 | ~~Password-reset link written to logs when SMTP unconfigured~~ Closed (C2) | **Critical** |
+| 3 | ~~Login timing reveals whether an email is registered~~ Closed — 13.3× gap measured, 0.98× after (H6) | High |
+| 4 | ~~Refresh token in `localStorage` (XSS → persistent takeover)~~ Closed — HttpOnly cookie (H7) | High |
+| 5 | ~~No account lockout — unlimited guesses at 20/min per IP~~ Closed (H6) | High |
+| 6 | ~~No resource-scoped authorization: any Foreman reads every employee's GPS history~~ Closed for location data (H11) | High |
 | 7 | Deactivating a user leaves their access token valid up to 15 min | Medium |
 | 8 | No dependency/secret scanning in CI | Medium |
 | 9 | ~~`AllowedHosts: "*"`, no security headers (HSTS only in non-dev, no CSP)~~ Headers added (M6); `AllowedHosts` left to the reverse proxy by decision | Medium |
-| 10 | No audit trail of who changed what | Medium |
+| 10 | ~~No audit trail of who changed what~~ Closed — `audit_entries`, written from the change tracker (M5) | Medium |
 
 Positives worth recording: PBKDF2-HMAC-SHA256 at 100k iterations, refresh and
 reset tokens stored SHA-256 hashed only, refresh rotation with reuse detection
@@ -737,9 +771,9 @@ rather than starting insecurely; a restore has actually been performed.
 
 ### Milestone 2 — Make it verifiable (1.5 weeks)
 - H1 commit the Playwright suite, add it to CI, add admin component tests
-- H2 HTTP-level authorization tests for all 53 endpoints
-- M4 integration tests for the uncovered modules
-- Fix the two documentation claims about test coverage
+- ~~H2 HTTP-level authorization tests for every endpoint~~ — done
+- ~~M4 integration tests for the uncovered modules~~ — done
+- ~~Fix the two documentation claims about test coverage~~ — done
 
 **Exit:** CI failure is a credible signal that something is broken; every role
 boundary is asserted by a test.
