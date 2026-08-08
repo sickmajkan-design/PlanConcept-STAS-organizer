@@ -73,8 +73,8 @@ public class GetMaterialsQueryHandler : IRequestHandler<GetMaterialsQuery, Paged
             var pattern = SearchPattern.Contains(request.Search);
 
             query = query.Where(m =>
-                EF.Functions.Like(m.Name.ToLower(), pattern) ||
-                (m.Warehouse != null && EF.Functions.Like(m.Warehouse.ToLower(), pattern)));
+                EF.Functions.Like(m.Name.ToLower(), pattern, SearchPattern.Escape) ||
+                (m.Warehouse != null && EF.Functions.Like(m.Warehouse.ToLower(), pattern, SearchPattern.Escape)));
         }
 
         if (request.ProjectId is { } projectId)
@@ -84,8 +84,10 @@ public class GetMaterialsQueryHandler : IRequestHandler<GetMaterialsQuery, Paged
 
         if (!string.IsNullOrWhiteSpace(request.Warehouse))
         {
+            var warehousePattern = SearchPattern.Contains(request.Warehouse);
+
             query = query.Where(m => m.Warehouse != null && EF.Functions.Like(
-                m.Warehouse.ToLower(), $"%{request.Warehouse.Trim().ToLowerInvariant()}%"));
+                m.Warehouse.ToLower(), warehousePattern, SearchPattern.Escape));
         }
 
         if (request.UnassignedOnly == true)

@@ -146,10 +146,29 @@ syntax: searching for `%` returned every row regardless of intent, and a term
 of many wildcards turns an already-sequential scan into a far more expensive
 one.
 
-**Fixed.** `SearchPattern.Contains` escapes `\`, `%` and `_` (backslash first,
-or the escape characters would themselves be escaped). Verified live:
-`?search=%` now returns 0 rows instead of the whole table, while ordinary
-searches are unchanged.
+**Fixed, then fixed properly.** `SearchPattern.Contains` escapes `\`, `%` and
+`_` (backslash first, or the escape characters would themselves be escaped).
+
+The first fix was incomplete in a way the original check could not see. EF
+Core's two-argument `EF.Functions.Like` translates to
+`LIKE @pattern ESCAPE ''` — an empty escape clause, which turns escaping
+*off*. Every backslash the helper added reached PostgreSQL as an ordinary
+character to be matched literally. `?search=%` did return 0 rows instead of the
+whole table, which is what was checked at the time and why this passed as
+done — but it returned 0 because the pattern had become "contains a
+backslash", not because the `%` was escaped. Legitimate searches for a term
+containing `%`, `_` or `\` returned nothing at all.
+
+The call sites now pass `SearchPattern.Escape` explicitly, so the SQL reads
+`ESCAPE '\'`. Four secondary filters — project client, tool category, employee
+position, material warehouse — were also building patterns inline without
+escaping anything, and now go through the same helper.
+
+Verified against a real database rather than by reading the pattern: a search
+for `%` matches only rows containing a literal `%`, a search for `A_B` does not
+match `AXB`, and a plain term is unchanged. The observable symptom of the
+regression was a search that quietly found nothing, so a test that only checked
+"fewer rows than everything" would have kept passing.
 
 ---
 
@@ -253,7 +272,7 @@ administrator can lock everyone out and the only repair is database access.
 | Lockout and unknown-address responses are indistinguishable from a wrong password | `LoginHardeningTests` |
 | Successful sign-in and password reset clear a lockout | `LoginHardeningTests` |
 | `DummyHash` is a real 100,000-iteration hash | `LoginHardeningTests` |
-| LIKE wildcard escaping, including escape ordering | `SearchPatternTests` |
+| LIKE wildcard escaping (`%`, `_`, `\`), against a real database | `EmployeeTests`, `ProjectTests` |
 | Empty proxy configuration yields no trusted proxy; invalid entries fail loudly | `TrustedProxyConfigurationTests` |
 | Refresh rotation, reuse detection, session revocation | `AuthenticationTests` |
 | The role matrix for who may administer whom | `RoleAdministrationTests` |

@@ -68,9 +68,9 @@ public class GetProjectsQueryHandler : IRequestHandler<GetProjectsQuery, PagedLi
             var pattern = SearchPattern.Contains(request.Search);
 
             query = query.Where(p =>
-                EF.Functions.Like(p.Name.ToLower(), pattern) ||
-                (p.Client != null && EF.Functions.Like(p.Client.ToLower(), pattern)) ||
-                (p.Address != null && EF.Functions.Like(p.Address.ToLower(), pattern)));
+                EF.Functions.Like(p.Name.ToLower(), pattern, SearchPattern.Escape) ||
+                (p.Client != null && EF.Functions.Like(p.Client.ToLower(), pattern, SearchPattern.Escape)) ||
+                (p.Address != null && EF.Functions.Like(p.Address.ToLower(), pattern, SearchPattern.Escape)));
         }
 
         if (request.Status is { } status)
@@ -80,8 +80,10 @@ public class GetProjectsQueryHandler : IRequestHandler<GetProjectsQuery, PagedLi
 
         if (!string.IsNullOrWhiteSpace(request.Client))
         {
+            var clientPattern = SearchPattern.Contains(request.Client);
+
             query = query.Where(p => p.Client != null && EF.Functions.Like(
-                p.Client.ToLower(), $"%{request.Client.Trim().ToLowerInvariant()}%"));
+                p.Client.ToLower(), clientPattern, SearchPattern.Escape));
         }
 
         if (request.EmployeeId is { } employeeId)

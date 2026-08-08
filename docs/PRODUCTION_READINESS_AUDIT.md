@@ -571,7 +571,17 @@ projects. Currently they see everything.
   the policy, refuse the admin panel, and log nothing. The rules are asserted
   against `CorsService` itself rather than against a restatement of it.
 - **M4.** Integration tests for the still-uncovered modules (Employees,
-  Projects, Vehicles, Locations). Notifications is done.
+  Projects, Vehicles, Locations) — **done.** Eleven of these modules' twenty-one
+  handlers had never been executed by a test. The new files cover GPS ingest and
+  its three queries, employee update and detail, project create/update/detail,
+  and vehicle assign/unassign/update.
+
+  It found a live bug. The `LIKE` wildcard escaping added under the security
+  review was not working: EF Core's two-argument `EF.Functions.Like` emits
+  `ESCAPE ''`, which disables escaping, so the backslashes the helper added were
+  matched as literal characters and any search containing `%`, `_` or `\`
+  quietly returned nothing. Four secondary filters were not escaping at all. See
+  SECURITY.md §7.
 - **M5.** Audit trail — who changed what and when. Expected in workforce
   systems and hard to add retroactively.
 - **M6.** Security headers (CSP, `X-Content-Type-Options`, `Referrer-Policy`),

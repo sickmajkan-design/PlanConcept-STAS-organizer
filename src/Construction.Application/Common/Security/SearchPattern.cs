@@ -6,6 +6,28 @@ namespace Construction.Application.Common.Security;
 public static class SearchPattern
 {
     /// <summary>
+    /// The escape character the patterns are built with.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <strong>It has to be passed to <c>EF.Functions.Like</c> explicitly.</strong>
+    /// The two-argument overload translates to <c>LIKE @pattern ESCAPE ''</c>
+    /// — an empty escape clause, which turns escaping <em>off</em>. Every
+    /// backslash <see cref="Contains"/> adds then reaches PostgreSQL as an
+    /// ordinary character that has to be matched literally, so a search for
+    /// <c>50%</c> looks for a backslash and finds nothing.
+    /// </para>
+    /// <para>
+    /// That is not visible in the C# — both overloads read the same at the
+    /// call site, and a plain search term contains none of these characters,
+    /// so the common case works and only terms with <c>%</c>, <c>_</c> or a
+    /// backslash come back empty. A test asserts the pattern against a real
+    /// database for exactly this reason.
+    /// </para>
+    /// </remarks>
+    public const string Escape = "\\";
+
+    /// <summary>
     /// Wraps a user's search term in wildcards, escaping the wildcard
     /// characters inside it first.
     ///

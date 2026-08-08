@@ -68,10 +68,10 @@ public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, Paged
             var pattern = SearchPattern.Contains(request.Search);
 
             query = query.Where(e =>
-                EF.Functions.Like((e.FirstName + " " + e.LastName).ToLower(), pattern) ||
-                EF.Functions.Like(e.EmployeeNumber.ToLower(), pattern) ||
-                EF.Functions.Like(e.Position.ToLower(), pattern) ||
-                (e.Email != null && EF.Functions.Like(e.Email.ToLower(), pattern)));
+                EF.Functions.Like((e.FirstName + " " + e.LastName).ToLower(), pattern, SearchPattern.Escape) ||
+                EF.Functions.Like(e.EmployeeNumber.ToLower(), pattern, SearchPattern.Escape) ||
+                EF.Functions.Like(e.Position.ToLower(), pattern, SearchPattern.Escape) ||
+                (e.Email != null && EF.Functions.Like(e.Email.ToLower(), pattern, SearchPattern.Escape)));
         }
 
         if (request.Status is { } status)
@@ -81,8 +81,10 @@ public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, Paged
 
         if (!string.IsNullOrWhiteSpace(request.Position))
         {
+            var positionPattern = SearchPattern.Contains(request.Position);
+
             query = query.Where(e => EF.Functions.Like(
-                e.Position.ToLower(), $"%{request.Position.Trim().ToLowerInvariant()}%"));
+                e.Position.ToLower(), positionPattern, SearchPattern.Escape));
         }
 
         if (request.ProjectId is { } projectId)

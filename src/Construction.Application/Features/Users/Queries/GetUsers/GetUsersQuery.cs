@@ -69,9 +69,9 @@ public class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, PagedList<Use
             var pattern = SearchPattern.Contains(request.Search);
 
             query = query.Where(u =>
-                EF.Functions.Like(u.Email.ToLower(), pattern) ||
+                EF.Functions.Like(u.Email.ToLower(), pattern, SearchPattern.Escape) ||
                 (u.Employee != null && EF.Functions.Like(
-                    (u.Employee.FirstName + " " + u.Employee.LastName).ToLower(), pattern)));
+                    (u.Employee.FirstName + " " + u.Employee.LastName).ToLower(), pattern, SearchPattern.Escape)));
         }
 
         if (request.Role is { } role)

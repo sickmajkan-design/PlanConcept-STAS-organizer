@@ -108,9 +108,9 @@ public class GetWorkItemsQueryHandler
             var pattern = SearchPattern.Contains(request.Search);
 
             query = query.Where(w =>
-                EF.Functions.Like(w.Title.ToLower(), pattern) ||
+                EF.Functions.Like(w.Title.ToLower(), pattern, SearchPattern.Escape) ||
                 (w.Description != null &&
-                 EF.Functions.Like(w.Description.ToLower(), pattern)));
+                 EF.Functions.Like(w.Description.ToLower(), pattern, SearchPattern.Escape)));
         }
 
         if (request.Kind is { } kind)

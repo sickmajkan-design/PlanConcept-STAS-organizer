@@ -70,9 +70,9 @@ public class GetVehiclesQueryHandler : IRequestHandler<GetVehiclesQuery, PagedLi
             var pattern = SearchPattern.Contains(request.Search);
 
             query = query.Where(v =>
-                EF.Functions.Like((v.Brand + " " + v.Model).ToLower(), pattern) ||
-                EF.Functions.Like(v.RegistrationNumber.ToLower(), pattern) ||
-                (v.Vin != null && EF.Functions.Like(v.Vin.ToLower(), pattern)));
+                EF.Functions.Like((v.Brand + " " + v.Model).ToLower(), pattern, SearchPattern.Escape) ||
+                EF.Functions.Like(v.RegistrationNumber.ToLower(), pattern, SearchPattern.Escape) ||
+                (v.Vin != null && EF.Functions.Like(v.Vin.ToLower(), pattern, SearchPattern.Escape)));
         }
 
         if (request.Status is { } status)

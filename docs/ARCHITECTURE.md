@@ -548,6 +548,16 @@ one earns its cost:
   id. Without it, an action that lost its `[Authorize]` attribute in a merge
   would ship green.
 
+  The four modules that had gone uncovered — Employees, Projects, Vehicles and
+  Locations — now have handler-level tests too. The GPS module is the one worth
+  singling out: its ingest handler had only a validator test, which checks the
+  shape of a batch and nothing about where the pings end up, so the property
+  that the employee identity comes from the token and never from the payload
+  was a comment rather than a fact. Writing those tests is also what found the
+  broken `LIKE` escaping described in SECURITY.md §7 — the search worked for
+  every term without a wildcard in it, which is almost every term, so nothing
+  short of executing it against PostgreSQL would have shown the problem.
+
   A few tests are about startup itself rather than about a running
   application — an unreachable database, a malformed CORS origin — so they host
   their own copy of the API instead of sharing `ApiFixture`. They sit in the

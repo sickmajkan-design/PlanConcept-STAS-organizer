@@ -72,10 +72,10 @@ public class GetToolsQueryHandler : IRequestHandler<GetToolsQuery, PagedList<Too
             var pattern = SearchPattern.Contains(request.Search);
 
             query = query.Where(t =>
-                EF.Functions.Like(t.Name.ToLower(), pattern) ||
-                (t.Category != null && EF.Functions.Like(t.Category.ToLower(), pattern)) ||
-                (t.SerialNumber != null && EF.Functions.Like(t.SerialNumber.ToLower(), pattern)) ||
-                (t.QrCode != null && EF.Functions.Like(t.QrCode.ToLower(), pattern)));
+                EF.Functions.Like(t.Name.ToLower(), pattern, SearchPattern.Escape) ||
+                (t.Category != null && EF.Functions.Like(t.Category.ToLower(), pattern, SearchPattern.Escape)) ||
+                (t.SerialNumber != null && EF.Functions.Like(t.SerialNumber.ToLower(), pattern, SearchPattern.Escape)) ||
+                (t.QrCode != null && EF.Functions.Like(t.QrCode.ToLower(), pattern, SearchPattern.Escape)));
         }
 
         if (request.Status is { } status)
@@ -85,8 +85,10 @@ public class GetToolsQueryHandler : IRequestHandler<GetToolsQuery, PagedList<Too
 
         if (!string.IsNullOrWhiteSpace(request.Category))
         {
+            var categoryPattern = SearchPattern.Contains(request.Category);
+
             query = query.Where(t => t.Category != null && EF.Functions.Like(
-                t.Category.ToLower(), $"%{request.Category.Trim().ToLowerInvariant()}%"));
+                t.Category.ToLower(), categoryPattern, SearchPattern.Escape));
         }
 
         if (request.AssignedEmployeeId is { } employeeId)
