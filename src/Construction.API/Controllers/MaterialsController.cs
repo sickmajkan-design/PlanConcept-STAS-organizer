@@ -1,4 +1,5 @@
 using Construction.API.Authorization;
+using Construction.API.Filters;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.Materials.Commands.AdjustMaterialQuantity;
 using Construction.Application.Features.Materials.Commands.CreateMaterial;
@@ -70,6 +71,7 @@ public class MaterialsController : ApiControllerBase
     /// consumed). Refused with 409 when the stock would go negative.
     /// </summary>
     [HttpPost("{id:guid}/adjust")]
+    [Idempotent]
     [Authorize(Policy = Policies.ForemanAndAbove)]
     [ProducesResponseType(typeof(MaterialDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]

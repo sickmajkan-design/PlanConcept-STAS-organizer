@@ -94,6 +94,10 @@ public static class DependencyInjection
     {
         services.AddSingleton<IDateTimeProvider, DateTimeProvider>();
 
+        // Scoped: it writes through the request's own DbContext, so the
+        // reservation and the work it guards share a connection.
+        services.AddScoped<IIdempotencyStore, IdempotencyStore>();
+
         // Stateless: it turns a value object into bytes and holds nothing.
         services.AddSingleton<ISpreadsheetWriter, ClosedXmlSpreadsheetWriter>();
 

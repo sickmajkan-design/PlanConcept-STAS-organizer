@@ -1,4 +1,5 @@
 import { request } from './client';
+import { idempotencyHeaders } from './idempotency';
 import { listParams } from './resource';
 import type {
   EmployeeRate,
@@ -58,11 +59,12 @@ export const costsApi = {
         params: listParams(query),
       }),
 
-    set: (input: EmployeeRateInput) =>
+    set: (input: EmployeeRateInput, idempotencyKey?: string) =>
       request<EmployeeRate>({
         method: 'POST',
         url: '/api/v1/employee-rates',
         data: input,
+        headers: idempotencyHeaders(idempotencyKey),
       }),
 
     remove: (id: string) =>
@@ -77,11 +79,12 @@ export const costsApi = {
         params: listParams(query),
       }),
 
-    record: (input: MaterialMovementInput) =>
+    record: (input: MaterialMovementInput, idempotencyKey?: string) =>
       request<MaterialMovement>({
         method: 'POST',
         url: '/api/v1/material-movements',
         data: input,
+        headers: idempotencyHeaders(idempotencyKey),
       }),
 
     remove: (id: string) =>
@@ -96,11 +99,12 @@ export const costsApi = {
         params: listParams(query),
       }),
 
-    record: (input: VehicleExpenseInput) =>
+    record: (input: VehicleExpenseInput, idempotencyKey?: string) =>
       request<VehicleExpense>({
         method: 'POST',
         url: '/api/v1/vehicle-expenses',
         data: input,
+        headers: idempotencyHeaders(idempotencyKey),
       }),
 
     remove: (id: string) =>

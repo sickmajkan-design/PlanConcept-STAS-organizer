@@ -106,6 +106,7 @@ public class DataRetentionService : BackgroundService
                     TimeEntryCoordinateRetention = _settings.TimeEntryCoordinateRetention,
                     SentOutboxMessageRetention =
                         TimeSpan.FromDays(_settings.SentOutboxMessageDays),
+                    IdempotencyRetention = _settings.IdempotencyRetention,
                     BatchSize = _settings.BatchSize,
                     MaxBatchesPerTable = _settings.MaxBatchesPerTable,
                 },
@@ -117,6 +118,7 @@ public class DataRetentionService : BackgroundService
             _metrics.Purged("outbox_messages", result.OutboxMessages);
             _metrics.Purged("audit_entries", result.AuditEntries);
             _metrics.Purged("time_entry_coordinates", result.TimeEntryCoordinates);
+            _metrics.Purged("idempotency_records", result.IdempotencyRecords);
 
             // Only when it did something. A line every six hours saying
             // "removed nothing" is noise that trains people to skip the ones
@@ -126,12 +128,14 @@ public class DataRetentionService : BackgroundService
                 _logger.LogInformation(
                     "Retention sweep removed {RefreshTokens} refresh token(s), "
                     + "{ResetTokens} reset token(s), {Locations} location record(s), "
-                    + "{OutboxMessages} delivered message(s) and {AuditEntries} audit entry(s).",
+                    + "{OutboxMessages} delivered message(s), {AuditEntries} audit entry(s) "
+                    + "and {IdempotencyRecords} idempotency key(s).",
                     result.RefreshTokens,
                     result.PasswordResetTokens,
                     result.LocationRecords,
                     result.OutboxMessages,
-                    result.AuditEntries);
+                    result.AuditEntries,
+                    result.IdempotencyRecords);
             }
         }
         catch (OperationCanceledException)

@@ -32,7 +32,7 @@ export function useEmployeeRatesQuery(query: EmployeeRateListQuery) {
 
 export function useSetEmployeeRate() {
   return useResourceMutation(
-    (input: EmployeeRateInput) => costsApi.rates.set(input),
+    (input: EmployeeRateInput, key: string) => costsApi.rates.set(input, key),
     // A new rate changes both the rate list and every report that prices
     // hours with it.
     [rateKeys.all, costReportKeys.all],
@@ -61,7 +61,8 @@ const movementCaches = [movementKeys.all, materialKeys.all, costReportKeys.all];
 
 export function useRecordMaterialMovement() {
   return useResourceMutation(
-    (input: MaterialMovementInput) => costsApi.movements.record(input),
+    (input: MaterialMovementInput, key: string) =>
+      costsApi.movements.record(input, key),
     movementCaches,
   );
 }
@@ -81,7 +82,8 @@ export function useVehicleExpensesQuery(query: VehicleExpenseListQuery) {
 
 export function useRecordVehicleExpense() {
   return useResourceMutation(
-    (input: VehicleExpenseInput) => costsApi.vehicleExpenses.record(input),
+    (input: VehicleExpenseInput, key: string) =>
+      costsApi.vehicleExpenses.record(input, key),
     [vehicleExpenseKeys.all, costReportKeys.all],
   );
 }

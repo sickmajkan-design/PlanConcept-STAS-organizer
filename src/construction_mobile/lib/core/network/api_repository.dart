@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 
 import '../models/paged_list.dart';
 import 'api_exception.dart';
+import 'idempotency.dart';
 
 /// Base for every repository that talks to the API.
 ///
@@ -60,9 +61,13 @@ abstract class ApiRepository {
 
   /// POSTs and discards the response body.
   @protected
-  Future<void> postVoid(String path, {Object? data}) {
+  Future<void> postVoid(String path, {Object? data, String? idempotencyKey}) {
     return guard(() async {
-      await dio.post<void>(path, data: data);
+      await dio.post<void>(
+        path,
+        data: data,
+        options: _idempotent(idempotencyKey),
+      );
     });
   }
 
@@ -75,18 +80,35 @@ abstract class ApiRepository {
   }
 
   /// POSTs and maps the JSON body of the response.
+  ///
+  /// [idempotencyKey] names the attempt. Pass one wherever running the request
+  /// twice would mean two of something — a cost row, a stock movement — and
+  /// keep the same value across retries of that attempt; see
+  /// `newIdempotencyKey`.
   @protected
   Future<T> postJson<T>(
     String path,
     T Function(Map<String, dynamic> json) fromJson, {
     Object? data,
+    String? idempotencyKey,
   }) {
     return guard(() async {
-      final response = await dio.post<Map<String, dynamic>>(path, data: data);
+      final response = await dio.post<Map<String, dynamic>>(
+        path,
+        data: data,
+        options: _idempotent(idempotencyKey),
+      );
 
       return fromJson(response.data!);
     });
   }
+
+  /// Request options carrying the key, or null when there is none — Dio
+  /// treats a null `options` as "use the defaults", so this stays out of the
+  /// way of every call that does not need it.
+  static Options? _idempotent(String? key) => key == null
+      ? null
+      : Options(headers: <String, String>{idempotencyHeader: key});
 
   /// Builds the query map the paged list endpoints accept. [filters] carries
   /// the parameters specific to one endpoint; an entry with a null value is

@@ -1007,6 +1007,57 @@ Measured cost: on the write-heavy integration suite, paired runs with the
 interceptor on and off differed by about a second on a forty-second baseline.
 Small, but not free — it is one extra INSERT per changed entity per save.
 
+## Retrying a write without doing it twice
+
+`materials/{id}/adjust` is a *relative* change. Run it twice and the stock
+moves twice, and nothing about HTTP prevents that: a foreman at the edge of
+coverage taps "consume 40 bags", the response is lost on the way back, the app
+retries, and eighty bags are gone. The second request is indistinguishable from
+a genuine second consumption unless the client names the attempt and the server
+remembers the name.
+
+So eleven endpoints — the stock adjustment, the three cost ledgers, the seven
+assign/unassign actions — accept an `Idempotency-Key` header, handled by an
+`[Idempotent]` action filter. Everything else is unchanged; a `PUT` that sets
+absolute values is already idempotent by construction.
+
+**The claim is an insert, not a check.** `idempotency_records` has a unique
+index on `(UserId, Key)` and the filter's first act is to insert a row. Two
+retries that arrive together both look, both find nothing, and both try — and
+the database refuses the second. Written as read-then-write it would be a race,
+which is precisely the situation a retry creates.
+
+**Scoped by user, not by key alone.** Keys are chosen by clients and two
+clients can pick the same one. Keyed on the key alone, the second caller would
+be handed a stored response describing a record they may not be allowed to see,
+and their own request would silently not happen.
+
+**The stored response is replayed, not recomputed.** The point of a replay is
+that the retry sees what the first attempt would have seen. Re-running the
+query would report the stock as it is *now*, which may have moved on — a retry
+that reports a number it did not cause is worse than no idempotency at all.
+
+**Only successes are remembered.** A failed attempt frees its key. Storing
+failures would hand the retry back the failure for ever, including the
+transient 500 that prompted the retry in the first place.
+
+Two limits, stated rather than papered over:
+
+- The header is **optional**. Requiring it would reject every client written
+  before this existed — including integrations we do not control — so a client
+  that sends none is simply not protected. Both of our own clients send one.
+- The reservation and the work are **not in one transaction**, and cannot be
+  without two-phase commit: the reservation has to be durable *before* the work
+  starts. A process that dies in between leaves a key answering `409 Request in
+  progress` until the retention sweep clears it (`Retention__IdempotencyKeyHours`,
+  24 by default).
+
+The client half is where this is easiest to get wrong. A key minted per request
+protects nothing — two presses of "Save" after a lost response carry two keys
+and read as two actions. The key has to live as long as the *attempt*: the
+admin panel's shared `useResourceMutation` holds one until the write succeeds,
+and the mobile expense sheet holds one for the life of the sheet.
+
 ## Who may look at whom
 
 The role policies decide who may call an endpoint. They say nothing about

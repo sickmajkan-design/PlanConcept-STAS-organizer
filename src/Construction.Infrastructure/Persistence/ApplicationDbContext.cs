@@ -53,6 +53,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
 
+    public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
+
     public async Task ExecuteInTransactionAsync(
         Func<CancellationToken, Task> action,
         CancellationToken cancellationToken = default)

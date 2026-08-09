@@ -1,4 +1,5 @@
 using Construction.API.Authorization;
+using Construction.API.Filters;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.Costs;
 using Construction.Application.Features.Costs.Commands.DeleteCostRecord;
@@ -47,6 +48,7 @@ public class CostsController : ApiControllerBase
     /// <summary>Puts a new rate in force, closing off the one before it.</summary>
     [HttpPost("/api/v{version:apiVersion}/employee-rates")]
     [HttpPost("/api/employee-rates")]
+    [Idempotent]
     [ProducesResponseType(typeof(EmployeeRateDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
@@ -91,6 +93,7 @@ public class CostsController : ApiControllerBase
     /// <summary>Records a delivery, an issue to site, or a correction.</summary>
     [HttpPost("/api/v{version:apiVersion}/material-movements")]
     [HttpPost("/api/material-movements")]
+    [Idempotent]
     [ProducesResponseType(typeof(MaterialMovementDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
@@ -136,6 +139,7 @@ public class CostsController : ApiControllerBase
     /// <summary>Records a tank of fuel, a service, or another cost.</summary>
     [HttpPost("/api/v{version:apiVersion}/vehicle-expenses")]
     [HttpPost("/api/vehicle-expenses")]
+    [Idempotent]
     [ProducesResponseType(typeof(VehicleExpenseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]

@@ -1,4 +1,5 @@
 import { request } from './client';
+import { idempotencyHeaders } from './idempotency';
 import { createCrudApi } from './resource';
 import type { ListQuery, Material, MaterialInput } from './types';
 
@@ -20,10 +21,15 @@ export const materialsApi = {
     '/api/v1/materials',
   ),
 
-  adjust: (id: string, input: AdjustMaterialInput) =>
+  /**
+   * A relative movement, and the reason the idempotency key exists at all: run
+   * twice, it takes the stock down twice.
+   */
+  adjust: (id: string, input: AdjustMaterialInput, idempotencyKey?: string) =>
     request<Material>({
       method: 'POST',
       url: `/api/v1/materials/${id}/adjust`,
       data: input,
+      headers: idempotencyHeaders(idempotencyKey),
     }),
 };

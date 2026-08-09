@@ -59,7 +59,7 @@ export function useUpdateMaterial(id: string) {
 
 export function useAdjustMaterial(id: string) {
   return useResourceMutation(
-    (input: AdjustMaterialInput) => materialsApi.adjust(id, input),
+    (input: AdjustMaterialInput, key: string) => materialsApi.adjust(id, input, key),
     [materialKeys.all],
   );
 }

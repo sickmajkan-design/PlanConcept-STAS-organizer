@@ -117,6 +117,22 @@ public class RetentionSettings
     public TimeSpan? AuditRetention =>
         AuditEntryDays > 0 ? TimeSpan.FromDays(AuditEntryDays) : null;
 
+    /// <summary>
+    /// Hours an idempotency key is remembered, so a retry within the window
+    /// is answered rather than carried out again.
+    /// </summary>
+    /// <remarks>
+    /// In hours rather than days because this is the one retention here
+    /// measured in less than a day. It has to outlast every retry a client
+    /// could plausibly make — including a phone that queued a stock movement
+    /// in a basement and sent it on the way home — and no longer, because
+    /// after that the row only holds a copy of a response nobody will ask for.
+    /// </remarks>
+    public int IdempotencyKeyHours { get; set; } = 24;
+
+    /// <summary><see cref="IdempotencyKeyHours"/> as a period.</summary>
+    public TimeSpan IdempotencyRetention => TimeSpan.FromHours(IdempotencyKeyHours);
+
     /// <summary>Rows deleted per statement.</summary>
     public int BatchSize { get; set; } = 5_000;
 

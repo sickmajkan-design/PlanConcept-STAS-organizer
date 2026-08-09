@@ -227,7 +227,8 @@ so clients see names rather than integers, Swagger documented with JWT support
   1,000 at most, with `totalCount` so a truncated map can be labelled as one
   (M12).
 - No `ETag` / conditional requests; no response compression configured.
-- No idempotency keys on POSTs — a retried "adjust stock" double-applies (M11).
+- ~~No idempotency keys on POSTs~~ — `Idempotency-Key` is accepted on the
+  stock adjustment, the cost ledgers and the assignment actions (M11).
 - `AllowedHosts: "*"` — host header not restricted. Left to the reverse proxy
   by decision; see M6.
 
@@ -809,7 +810,36 @@ change, in one place.
   coverage and the app is currently unusable without a connection.
 - **M10.** Practise an incremental migration and a rollback before the first
   schema change under load.
-- **M11.** Idempotency keys on stock adjustments and assignment actions.
+- **M11.** Idempotency keys on stock adjustments and assignment actions —
+  **done.** An `Idempotency-Key` header on eleven endpoints: the stock
+  adjustment, the three cost ledgers, and the seven assign/unassign actions. A
+  repeat with the same key is answered with the first attempt's stored
+  response, marked `Idempotent-Replay: true`.
+
+  The mechanism is a unique index on `(user_id, key)`, not a read followed by a
+  write: two retries that arrive together both find nothing, and only the
+  database can decide which proceeds. Scoped by user because keys are chosen by
+  clients — two clients can pick the same one, and a replay across accounts
+  would hand somebody else's response to whoever guessed it. Only successes are
+  remembered; a failure frees its key so the retry a transient error prompted is
+  allowed to run.
+
+  The clients matter as much as the server. A key minted per request would
+  protect nothing — two presses of "Save" after a lost response would carry two
+  keys and the stock would move twice — so the admin panel's shared mutation
+  hook holds one key until the write succeeds, and the mobile expense sheet
+  holds one for the life of the sheet.
+
+  Nine HTTP-level tests, mutation-checked: dropping the request-fingerprint
+  check, remembering failures, and unscoping the key from the user each fail
+  the test that covers them.
+
+  Known limits, both stated rather than hidden: the header is **optional**, so
+  a client that does not send one is not protected (requiring it would reject
+  every integration written before this existed); and a process that dies
+  between claiming a key and finishing the work leaves that key answering `409`
+  until the retention sweep clears it — the reservation and the work cannot
+  share a transaction.
 - **M12.** Pagination on `/api/locations/current` — **done.** It used to return
   every active employee who had ever reported, unbounded. Now paged, with a
   250-row default and a 1,000 ceiling — much larger than a grid's, because the

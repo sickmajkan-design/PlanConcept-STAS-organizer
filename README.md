@@ -74,6 +74,7 @@ the repository:
 | `Retention__LocationRecordDays` | Days of GPS history kept (default 180; `0` keeps everything) |
 | `Retention__SentOutboxMessageDays` | Days a delivered email/push record is kept (default 14) |
 | `Retention__AuditEntryDays` | Days an audit entry is kept. Default `0` = keep forever. |
+| `Retention__IdempotencyKeyHours` | Hours a retried write is remembered by its `Idempotency-Key` (default 24). |
 | `Retention__TimeEntryCoordinateDays` | Days a shift's clock-in/out coordinates are kept. Default `0` = keep them with the shift. See docs/PRIVACY.md. |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | Where to send metrics and traces. Unset means none are exported. |
 
@@ -173,6 +174,40 @@ dotnet ef migrations add <Name> \
   --output-dir Persistence/Migrations
 ```
 
+## Retrying a write safely
+
+Endpoints whose effect is relative or additive — a stock adjustment, a cost
+row, an assignment — accept an `Idempotency-Key` header. Send the same key
+again and the API answers with the first attempt's response instead of doing
+the work twice; the reply carries `Idempotent-Replay: true` so a client can
+tell.
+
+```bash
+curl -X POST https://api.example.com/api/v1/materials/$ID/adjust \
+  -H "Idempotency-Key: 6f1c0b9a4d2e4f0b8c3a7e5d1b9f2a40" \
+  -H "Content-Type: application/json" \
+  -d '{"change": -40, "reason": "site count"}'
+```
+
+Rules worth knowing before writing a client:
+
+- **Generate one key per action, not per request.** The key has to stay the
+  same across every retry of the same attempt — that is the only way the server
+  can tell a retry from a second stock movement. Both of our clients hold a key
+  until the write succeeds.
+- Reusing a key for a *different* request is refused with `422`, rather than
+  being answered with the first response and silently dropping the second.
+- A key still being processed answers `409`; retry shortly.
+- Only successes are remembered. A failed attempt frees its key, so the retry
+  a transient error prompted is allowed to run.
+- Keys are scoped to the account that sent them, and forgotten after
+  `Retention__IdempotencyKeyHours` (24 by default).
+
+The header is optional: a request without one behaves exactly as it did
+before. That is deliberate — requiring it would reject every client written
+before this existed — and it means a client that does not send one is not
+protected.
+
 ## API versioning
 
 Routes are `/api/v1/…`. The unversioned form (`/api/employees`) is kept as a
@@ -193,6 +228,6 @@ work.
 | Projects | `GET /api/projects` (pagination, `search`, `status`, `client`, `employeeId` filters, `sortBy`/`sortDescending`), `GET /api/projects/{id}` (with employee roster), `POST /api/projects`, `PUT /api/projects/{id}`, `DELETE /api/projects/{id}` (soft, releases tool assignments) |
 | Vehicles | `GET /api/vehicles` (pagination, `search`, `status`, `fuelType`, `assignedEmployeeId`, `unassigned` filters, `sortBy`/`sortDescending`), `GET /api/vehicles/{id}`, `POST /api/vehicles`, `PUT /api/vehicles/{id}`, `DELETE /api/vehicles/{id}` (soft), `POST /api/vehicles/{id}/assign/{employeeId}`, `POST /api/vehicles/{id}/unassign` |
 | Tools | `GET /api/tools` (pagination, `search`, `status`, `category`, `assignedEmployeeId`, `assignedProjectId`, `unassigned` filters, `sortBy`/`sortDescending`), `GET /api/tools/{id}`, `GET /api/tools/by-qr/{qrCode}`, `POST /api/tools`, `PUT /api/tools/{id}`, `DELETE /api/tools/{id}` (soft), `POST /api/tools/{id}/assign-employee/{employeeId}`, `/unassign-employee`, `/assign-project/{projectId}`, `/unassign-project` |
-| Materials | `GET /api/materials` (pagination, `search`, `projectId`, `warehouse`, `unassignedOnly`, `maxQuantity` filters, `sortBy`/`sortDescending`), `GET /api/materials/{id}`, `POST /api/materials`, `PUT /api/materials/{id}`, `POST /api/materials/{id}/adjust` (atomic relative stock movement), `DELETE /api/materials/{id}` (soft) |
+| Materials | `GET /api/materials` (pagination, `search`, `projectId`, `warehouse`, `unassignedOnly`, `maxQuantity` filters, `sortBy`/`sortDescending`), `GET /api/materials/{id}`, `POST /api/materials`, `PUT /api/materials/{id}`, `POST /api/materials/{id}/adjust` (atomic relative stock movement, accepts `Idempotency-Key`), `DELETE /api/materials/{id}` (soft) |
 | GPS Tracking | `POST /api/locations` (batched pings from the mobile app, identity from JWT), `GET /api/locations/current` (`projectId`, `maxAgeMinutes`, `includeInactive` filters), `GET /api/locations/employees/{id}/last`, `GET /api/locations/employees/{id}/history` (`from`/`to`, paged) |
 | Push Notifications | `GET /api/notifications` (`unreadOnly`, paged), `GET /api/notifications/unread-count`, `POST /api/notifications/{id}/read`, `POST /api/notifications/read-all`, `POST /api/notifications/device-tokens`, `POST /api/notifications/device-tokens/unregister`, `POST /api/notifications/announce` (role/project audience filters) |

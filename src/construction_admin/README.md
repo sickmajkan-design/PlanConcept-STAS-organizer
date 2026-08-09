@@ -181,6 +181,7 @@ counting files:
 | `pages/employees` | Two whole screens — a form and a list — rendered under the real providers against a fake network: validation, the payload actually sent, a server field error reaching the right input, the edit-load, grid rows, debounced search, and the delete confirmation. This is what found the delete button that navigated instead of deleting. |
 | `components/ErrorBoundary` | A component that throws on purpose, to prove the boundary shows the fallback, that the children are gone, that a reset re-renders them, and that a changed route clears the error. |
 | `components/OfflineBanner` | `navigator.onLine` flipped under the component: the banner appears on a drop, appears when the screen opens already offline, confirms the reconnect, and does not congratulate a connection that never dropped. |
+| `features/idempotency` | The lifetime of an idempotency key — the same one across failures, a new one after a success — and that it reaches the wire. A key minted per call would compile, pass a smoke test, and protect nothing. |
 
 Not covered: anything only a browser can show. The screen tests run in jsdom,
 where every element has zero height — enough for the assertions above, but

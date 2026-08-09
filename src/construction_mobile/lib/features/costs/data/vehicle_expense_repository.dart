@@ -37,10 +37,12 @@ class VehicleExpenseRepository extends ApiRepository {
     int? odometerKm,
     String? supplier,
     String? note,
+    String? idempotencyKey,
   }) {
     return postJson(
       '/api/v1/vehicle-expenses',
       VehicleExpense.fromJson,
+      idempotencyKey: idempotencyKey,
       data: <String, dynamic>{
         'vehicleId': vehicleId,
         'kind': kind,

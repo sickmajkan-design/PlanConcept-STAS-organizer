@@ -1,4 +1,5 @@
 using Construction.API.Authorization;
+using Construction.API.Filters;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.Employees.Commands.AssignEmployeeToProject;
 using Construction.Application.Features.Employees.Commands.CreateEmployee;
@@ -82,6 +83,7 @@ public class EmployeesController : ApiControllerBase
 
     /// <summary>Assigns the employee to a project.</summary>
     [HttpPost("{id:guid}/projects/{projectId:guid}")]
+    [Idempotent]
     [Authorize(Policy = Policies.ProjectManagerAndAbove)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]

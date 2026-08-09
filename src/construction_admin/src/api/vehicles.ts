@@ -1,4 +1,5 @@
 import { request } from './client';
+import { idempotencyHeaders } from './idempotency';
 import { createCrudApi } from './resource';
 import type {
   FuelType,
@@ -19,12 +20,17 @@ export const vehiclesApi = {
     '/api/v1/vehicles',
   ),
 
-  assign: (id: string, employeeId: string) =>
+  assign: (id: string, employeeId: string, idempotencyKey?: string) =>
     request<Vehicle>({
       method: 'POST',
       url: `/api/v1/vehicles/${id}/assign/${employeeId}`,
+      headers: idempotencyHeaders(idempotencyKey),
     }),
 
-  unassign: (id: string) =>
-    request<Vehicle>({ method: 'POST', url: `/api/v1/vehicles/${id}/unassign` }),
+  unassign: (id: string, idempotencyKey?: string) =>
+    request<Vehicle>({
+      method: 'POST',
+      url: `/api/v1/vehicles/${id}/unassign`,
+      headers: idempotencyHeaders(idempotencyKey),
+    }),
 };

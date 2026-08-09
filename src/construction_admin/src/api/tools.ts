@@ -1,4 +1,5 @@
 import { request } from './client';
+import { idempotencyHeaders } from './idempotency';
 import { createCrudApi } from './resource';
 import type { ListQuery, Tool, ToolInput, ToolStatus } from './types';
 
@@ -19,21 +20,31 @@ export const toolsApi = {
       url: `/api/v1/tools/by-qr/${encodeURIComponent(qrCode)}`,
     }),
 
-  assignEmployee: (id: string, employeeId: string) =>
+  assignEmployee: (id: string, employeeId: string, idempotencyKey?: string) =>
     request<Tool>({
       method: 'POST',
       url: `/api/v1/tools/${id}/assign-employee/${employeeId}`,
+      headers: idempotencyHeaders(idempotencyKey),
     }),
 
-  unassignEmployee: (id: string) =>
-    request<Tool>({ method: 'POST', url: `/api/v1/tools/${id}/unassign-employee` }),
+  unassignEmployee: (id: string, idempotencyKey?: string) =>
+    request<Tool>({
+      method: 'POST',
+      url: `/api/v1/tools/${id}/unassign-employee`,
+      headers: idempotencyHeaders(idempotencyKey),
+    }),
 
-  assignProject: (id: string, projectId: string) =>
+  assignProject: (id: string, projectId: string, idempotencyKey?: string) =>
     request<Tool>({
       method: 'POST',
       url: `/api/v1/tools/${id}/assign-project/${projectId}`,
+      headers: idempotencyHeaders(idempotencyKey),
     }),
 
-  unassignProject: (id: string) =>
-    request<Tool>({ method: 'POST', url: `/api/v1/tools/${id}/unassign-project` }),
+  unassignProject: (id: string, idempotencyKey?: string) =>
+    request<Tool>({
+      method: 'POST',
+      url: `/api/v1/tools/${id}/unassign-project`,
+      headers: idempotencyHeaders(idempotencyKey),
+    }),
 };

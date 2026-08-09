@@ -47,6 +47,8 @@ public interface IApplicationDbContext
 
     DbSet<AuditEntry> AuditEntries { get; }
 
+    DbSet<IdempotencyRecord> IdempotencyRecords { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
     /// <summary>

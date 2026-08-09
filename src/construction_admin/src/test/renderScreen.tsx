@@ -34,6 +34,8 @@ export type Call = {
   url: string;
   params: Record<string, unknown>;
   body: unknown;
+  /** Lower-cased, so a test does not have to guess the casing axios used. */
+  headers: Record<string, string>;
 };
 
 export interface FakeNetwork {
@@ -92,6 +94,11 @@ export function installFakeNetwork(): FakeNetwork {
       url,
       params: (config.params ?? {}) as Record<string, unknown>,
       body: typeof config.data === 'string' ? JSON.parse(config.data) : config.data,
+      headers: Object.fromEntries(
+        Object.entries(config.headers ?? {})
+          .filter(([, value]) => typeof value === 'string' || typeof value === 'number')
+          .map(([name, value]) => [name.toLowerCase(), String(value)]),
+      ),
     });
 
     // Longest match first, so a queue for '/employees/123' is not consumed by

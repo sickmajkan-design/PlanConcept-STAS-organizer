@@ -1,4 +1,5 @@
 import { request } from './client';
+import { idempotencyHeaders } from './idempotency';
 import { createCrudApi } from './resource';
 import type {
   Employee,
@@ -18,10 +19,15 @@ export const employeesApi = {
     '/api/v1/employees',
   ),
 
-  assignToProject: (employeeId: string, projectId: string) =>
+  assignToProject: (
+    employeeId: string,
+    projectId: string,
+    idempotencyKey?: string,
+  ) =>
     request<void>({
       method: 'POST',
       url: `/api/v1/employees/${employeeId}/projects/${projectId}`,
+      headers: idempotencyHeaders(idempotencyKey),
     }),
 
   removeFromProject: (employeeId: string, projectId: string) =>

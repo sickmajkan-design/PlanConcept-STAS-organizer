@@ -1,4 +1,5 @@
 using Construction.API.Authorization;
+using Construction.API.Filters;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.Tools.Commands.AssignTool;
 using Construction.Application.Features.Tools.Commands.CreateTool;
@@ -96,6 +97,7 @@ public class ToolsController : ApiControllerBase
 
     /// <summary>Hands the tool to an employee (reassignment allowed).</summary>
     [HttpPost("{id:guid}/assign-employee/{employeeId:guid}")]
+    [Idempotent]
     [Authorize(Policy = Policies.ForemanAndAbove)]
     [ProducesResponseType(typeof(ToolDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
@@ -110,6 +112,7 @@ public class ToolsController : ApiControllerBase
 
     /// <summary>Releases the tool from its employee.</summary>
     [HttpPost("{id:guid}/unassign-employee")]
+    [Idempotent]
     [Authorize(Policy = Policies.ForemanAndAbove)]
     [ProducesResponseType(typeof(ToolDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
@@ -124,6 +127,7 @@ public class ToolsController : ApiControllerBase
 
     /// <summary>Places the tool on a project (reassignment allowed).</summary>
     [HttpPost("{id:guid}/assign-project/{projectId:guid}")]
+    [Idempotent]
     [Authorize(Policy = Policies.ForemanAndAbove)]
     [ProducesResponseType(typeof(ToolDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
@@ -138,6 +142,7 @@ public class ToolsController : ApiControllerBase
 
     /// <summary>Releases the tool from its project.</summary>
     [HttpPost("{id:guid}/unassign-project")]
+    [Idempotent]
     [Authorize(Policy = Policies.ForemanAndAbove)]
     [ProducesResponseType(typeof(ToolDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]

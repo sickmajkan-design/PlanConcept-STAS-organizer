@@ -66,7 +66,8 @@ export function useDeleteEmployee() {
 // employee collection — the list columns do not show project membership.
 export function useAssignEmployeeToProject(employeeId: string) {
   return useResourceMutation(
-    (projectId: string) => employeesApi.assignToProject(employeeId, projectId),
+    (projectId: string, key: string) =>
+      employeesApi.assignToProject(employeeId, projectId, key),
     [employeeKeys.detail(employeeId), projectKeys.all],
   );
 }

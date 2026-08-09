@@ -57,7 +57,7 @@ export function useDeleteVehicle() {
 
 export function useAssignVehicle(id: string) {
   return useResourceMutation(
-    (employeeId: string) => vehiclesApi.assign(id, employeeId),
+    (employeeId: string, key: string) => vehiclesApi.assign(id, employeeId, key),
     [vehicleKeys.all],
   );
 }
@@ -65,7 +65,7 @@ export function useAssignVehicle(id: string) {
 // `void` is explicit: the callback takes no argument, so there is nothing for
 // the variables type to be inferred from, and the call site invokes `mutate()`.
 export function useUnassignVehicle(id: string) {
-  return useResourceMutation<void, Vehicle>(() => vehiclesApi.unassign(id), [
+  return useResourceMutation<void, Vehicle>((_, key) => vehiclesApi.unassign(id, key), [
     vehicleKeys.all,
   ]);
 }

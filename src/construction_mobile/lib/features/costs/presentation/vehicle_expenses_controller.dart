@@ -35,6 +35,7 @@ class VehicleExpensesController extends FilteredPagedListNotifier<VehicleExpense
     int? odometerKm,
     String? supplier,
     String? note,
+    required String idempotencyKey,
   }) async {
     await ref.read(vehicleExpenseRepositoryProvider).record(
           vehicleId: vehicleId,
@@ -44,6 +45,7 @@ class VehicleExpensesController extends FilteredPagedListNotifier<VehicleExpense
           odometerKm: odometerKm,
           supplier: supplier,
           note: note,
+          idempotencyKey: idempotencyKey,
         );
 
     await refresh();

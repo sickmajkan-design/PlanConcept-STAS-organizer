@@ -1,4 +1,5 @@
 using Construction.API.Authorization;
+using Construction.API.Filters;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.Vehicles.Commands.AssignVehicle;
 using Construction.Application.Features.Vehicles.Commands.CreateVehicle;
@@ -80,6 +81,7 @@ public class VehiclesController : ApiControllerBase
 
     /// <summary>Assigns (or reassigns) the vehicle to an employee.</summary>
     [HttpPost("{id:guid}/assign/{employeeId:guid}")]
+    [Idempotent]
     [Authorize(Policy = Policies.ProjectManagerAndAbove)]
     [ProducesResponseType(typeof(VehicleDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
@@ -94,6 +96,7 @@ public class VehiclesController : ApiControllerBase
 
     /// <summary>Removes the vehicle's employee assignment.</summary>
     [HttpPost("{id:guid}/unassign")]
+    [Idempotent]
     [Authorize(Policy = Policies.ProjectManagerAndAbove)]
     [ProducesResponseType(typeof(VehicleDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]

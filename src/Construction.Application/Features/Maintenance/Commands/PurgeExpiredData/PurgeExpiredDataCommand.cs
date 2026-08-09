@@ -12,11 +12,12 @@ public record PurgeResult(
     int LocationRecords,
     int OutboxMessages,
     int AuditEntries,
-    int TimeEntryCoordinates)
+    int TimeEntryCoordinates,
+    int IdempotencyRecords)
 {
     public int Total =>
         RefreshTokens + PasswordResetTokens + LocationRecords + OutboxMessages
-        + AuditEntries + TimeEntryCoordinates;
+        + AuditEntries + TimeEntryCoordinates + IdempotencyRecords;
 }
 
 /// <summary>
@@ -107,6 +108,18 @@ public record PurgeExpiredDataCommand : IRequest<PurgeResult>
     public TimeSpan? TimeEntryCoordinateRetention { get; init; }
 
     /// <summary>
+    /// How long an idempotency key is remembered.
+    /// </summary>
+    /// <remarks>
+    /// This one is a window, not an archive. It has to outlast every retry a
+    /// client could plausibly make — a phone that queued a stock movement in a
+    /// basement and sent it when it came back up — and no longer, because
+    /// after that the row is only holding a copy of a response nobody will ask
+    /// for. A day covers a shift and the journey home.
+    /// </remarks>
+    public TimeSpan IdempotencyRetention { get; init; } = TimeSpan.FromDays(1);
+
+    /// <summary>
     /// Rows deleted per statement.
     /// </summary>
     /// <remarks>
@@ -158,6 +171,12 @@ public class PurgeExpiredDataCommandValidator : AbstractValidator<PurgeExpiredDa
         RuleFor(x => x.SentOutboxMessageRetention)
             .Must(retention => retention >= TimeSpan.Zero)
             .WithMessage("The outbox retention period cannot be negative.");
+
+        // Zero would delete a key as fast as it was written, which turns the
+        // idempotency guarantee off without saying so.
+        RuleFor(x => x.IdempotencyRetention)
+            .Must(retention => retention > TimeSpan.Zero)
+            .WithMessage("Idempotency retention must be a positive period.");
 
         RuleFor(x => x.BatchSize).InclusiveBetween(1, 100_000);
 
@@ -247,8 +266,17 @@ public class PurgeExpiredDataCommandHandler
                     .SetProperty(t => t.EndLongitude, (double?)null), cancellationToken);
         }
 
+        // Both the completed ones and the abandoned in-flight ones. An
+        // in-flight row whose process died would otherwise refuse that key for
+        // ever, and refusing a retry for ever is its own kind of data loss.
+        var idempotency = await DeleteInBatchesAsync(
+            _context.IdempotencyRecords
+                .Where(r => r.CreatedAt < utcNow - request.IdempotencyRetention),
+            request,
+            cancellationToken);
+
         return new PurgeResult(
-            refreshTokens, resetTokens, locations, outbox, audit, coordinates);
+            refreshTokens, resetTokens, locations, outbox, audit, coordinates, idempotency);
     }
 
     /// <summary>

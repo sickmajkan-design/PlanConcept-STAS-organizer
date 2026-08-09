@@ -5,6 +5,7 @@ import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/network/idempotency.dart';
 import '../../vehicles/data/models/vehicle.dart';
 import '../../vehicles/data/vehicle_repository.dart';
 import 'vehicle_expenses_controller.dart';
@@ -51,6 +52,15 @@ class _RecordExpenseSheetState extends ConsumerState<_RecordExpenseSheet> {
   String _kind = 'Fuel';
   String? _vehicleId;
   bool _busy = false;
+
+  /// Names this attempt at recording the expense.
+  ///
+  /// Created once, with the sheet, and deliberately not regenerated on a
+  /// retry: a failed send may well have reached the server and lost its answer
+  /// on the way back, and pressing the button again with a fresh key would
+  /// book the fuel twice. The sheet closes on success, so the key never
+  /// outlives the expense it named.
+  final String _idempotencyKey = newIdempotencyKey();
 
   @override
   void dispose() {
@@ -236,6 +246,7 @@ class _RecordExpenseSheetState extends ConsumerState<_RecordExpenseSheet> {
             odometerKm: int.tryParse(_odometerController.text.trim()),
             supplier: supplier.isEmpty ? null : supplier,
             note: note.isEmpty ? null : note,
+            idempotencyKey: _idempotencyKey,
           );
 
       navigator.pop();

@@ -144,6 +144,19 @@ The contract check covers authentication, employees, projects, vehicles,
 tools (including the QR lookup), materials, role gating, notifications and
 GPS reporting against a live API instance.
 
+## Writes that must not happen twice
+
+Recording a vehicle expense sends an `Idempotency-Key`. The key is created with
+the sheet and kept until the send succeeds, deliberately not regenerated on a
+retry: a failed send may well have reached the server and lost its answer on
+the way back, and pressing the button again with a fresh key would book the
+fuel twice.
+
+`newIdempotencyKey()` in `core/network/idempotency.dart` produces one;
+`postJson`/`postVoid` take it as an optional argument. Add it to any write
+whose effect is additive. See the README at the repository root for what the
+API does with it.
+
 ## Failure states
 
 A failure carries an `ApiFailureKind` — offline, timeout, forbidden, conflict
