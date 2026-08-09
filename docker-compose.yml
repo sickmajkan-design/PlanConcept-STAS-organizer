@@ -70,10 +70,14 @@ services:
   # development stack: enable it with `--profile backup`, or in the deployment
   # compose file where it belongs.
   #
-  # The dumps land on their own volume. That is the minimum, not the goal — a
-  # volume on the same host as the database survives a dropped table and a bad
-  # migration, and does not survive the host. Ship them off the machine; see
-  # the runbook in docs/PROVISIONING.md.
+  # It takes both halves: the database dump and the attachment files, which are
+  # a set — a dump restored without them gives a complete list of documents,
+  # none of which exist.
+  #
+  # Set the OFFSITE_* variables and each backup is copied off the machine and
+  # verified there. Without them the dumps land on a volume beside the database,
+  # which survives a dropped table and does not survive the host. See the
+  # runbook in docs/PROVISIONING.md §4.
   backup:
     image: postgres:16-alpine
     container_name: construction-backup
@@ -88,15 +92,31 @@ services:
       PGDATABASE: construction
       BACKUP_DIR: /backups
       BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+      # Read-only mount of the same volume the API writes attachments to.
+      ATTACHMENT_DIR: /var/lib/construction/storage
+      # Off-site copy. Empty means "no copy leaves this host", and the backup
+      # says so on every run rather than letting it pass unnoticed.
+      OFFSITE_ENDPOINT: ${OFFSITE_ENDPOINT:-}
+      OFFSITE_BUCKET: ${OFFSITE_BUCKET:-}
+      OFFSITE_PREFIX: ${OFFSITE_PREFIX:-construction/}
+      OFFSITE_REGION: ${OFFSITE_REGION:-us-east-1}
+      OFFSITE_PATH_STYLE: ${OFFSITE_PATH_STYLE:-0}
+      OFFSITE_AGE_RECIPIENT: ${OFFSITE_AGE_RECIPIENT:-}
+      AWS_ACCESS_KEY_ID: ${OFFSITE_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${OFFSITE_SECRET_ACCESS_KEY:-}
     volumes:
       - ./scripts:/scripts:ro
       - backup-data:/backups
+      # Read-only: this container backs the files up and must never be the
+      # thing that changes them.
+      - attachment-data:/var/lib/construction/storage:ro
     # bash, because the scripts use arrays and process substitution that the
-    # alpine image's default shell does not have.
+    # alpine image's default shell does not have. curl and openssl are for the
+    # off-site copy — no aws-cli, which would be a Python runtime in here.
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
-        apk add --no-cache bash coreutils findutils >/dev/null
+        apk add --no-cache bash coreutils findutils tar curl openssl age >/dev/null
         while true; do
           bash /scripts/backup.sh || echo "backup failed" >&2
           sleep 86400

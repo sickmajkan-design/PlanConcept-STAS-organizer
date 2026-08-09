@@ -36,18 +36,27 @@ deleting, on five list screens (H1).
 
 ### What now stands out instead
 
-Both are operational rather than functional, and both are invisible from a demo:
+Both were operational rather than functional, and both were invisible from a
+demo:
 
-1. **Backups exist and a restore has been rehearsed, but the dumps never leave
-   the host** (C6). The scripts and the nightly are in place, and the round trip
-   has been run and verified — 22 tables, 10,522 rows. What is missing is the
-   copy off the machine, which needs an account belonging to the organisation.
-   Until that exists, a lost host is still a lost system.
+1. ~~**Backups never leave the host.**~~ **Closed** (C6). The backup now takes
+   both halves — the dump and the attachment files, which are a set — copies
+   them to any S3-compatible provider, and verifies they arrived. It refuses to
+   prune a local copy that has no confirmed remote one, which is the failure a
+   retention window quietly creates. The recovery drill was performed for real:
+   upload, delete the local copies, restore from the remote alone. It found a
+   bug on the first attempt — checksums recorded the absolute path of the
+   machine that wrote them, so recovery onto a different host failed on an
+   intact file. What is left needs an account: nobody has run the transport
+   against real AWS.
 2. **Location tracking has no lawful basis on record** (C7). The engineering is
    done — inventory, retention, role-scoped access, a tested erasure path — but
    the decisions that make continuous employee tracking lawful are not code and
    have not been made: the basis itself, the notice to the workforce, and a
    DPIA. See PRIVACY.md §6.
+
+That leaves **C7 as the only critical finding still open**, and none of what
+remains in it is code.
 
 **Maturity: ~85%.** The remaining work is almost entirely operational, legal and
 verification — not features. That is a better position than the reverse, and it
@@ -456,8 +465,7 @@ the service account are the owner's steps (`PROVISIONING.md` §1). Until then
 the mobile app reports `unconfigured` and the API logs pushes instead of
 sending them — visibly, not silently.
 
-**C6. No backup or restore procedure.** — **CODE CLOSED, OFF-SITE COPY
-OUTSTANDING**
+**C6. No backup or restore procedure.** — **CLOSED**
 Nothing was backed up; nothing had been restored. Highest-probability
 unrecoverable incident.
 
@@ -479,14 +487,52 @@ induced deliberately and all three were caught: a dump older than the database
 (refused before the database was touched), and a restore over a populated
 database without `--force` (refused, naming what was at risk).
 
-**Outstanding, and it is the half that makes this a real backup:** the dumps
-land on a volume beside the database. That survives a dropped table and a bad
-migration; it does not survive losing the host. Copying them off the machine
-needs an account belonging to the organisation, so it is a provisioning step —
-see docs/PROVISIONING.md §4. Also unverified: recovery onto a *different* host,
-and how long a restore takes at production data volume. The `attachment-data`
-volume is not covered by a database dump either; restoring without it gives a
-list of documents that are not there.
+**Since closed — the backup now includes the documents and leaves the host.**
+
+*The documents.* A dump restored on its own produced a complete, correct,
+browsable list of attachments, every one of which 404s: the metadata is in the
+database, the bytes are on a volume nothing was backing up. `backup.sh` now
+archives them alongside the dump under the same timestamp, `restore.sh --files`
+unpacks them, and `verify-restore.sh` takes the storage keys out of the
+*restored* database and checks each one against the archive — the check the row
+counts structurally cannot make, since `attachments` restores perfectly either
+way. When `ATTACHMENT_DIR` is unset the backup asks the database how many
+attachments exist and says what it is leaving out.
+
+*The host.* `offsite.sh` copies each artefact to any S3-compatible provider and
+**verifies it arrived** by comparing the provider's checksum with what was
+sent, then writes a receipt. `backup.sh` refuses to prune a local copy that has
+no receipt — which is the failure a retention window quietly creates: uploads
+start failing on the 1st, nobody is watching, and on the 15th the sweep deletes
+the local copies of everything that was never sent. `offsite.sh status` answers
+the question a monitor should ask, which is not "did the backup run" but "when
+did a copy last reach somewhere else".
+
+Transport is curl plus SigV4 signed with openssl, because the backup container
+is a `postgres:16-alpine` with no room for aws-cli, and `OFFSITE_COMMAND` takes
+over entirely for anyone who would rather use their own uploader. Client-side
+encryption with `age` is supported and the backup warns when it is not
+configured — a dump of this database holds contact details, dates of birth and
+location history, and handing that to a provider in the clear makes them a
+processor of it.
+
+**Proven, not asserted.** Three new faults induced and all three caught
+(attachments recorded with no archive; two files missing from the archive; a
+corrupted archive). The signing is covered by a round trip against a local S3
+that verifies signatures with an independent implementation and refuses a wrong
+secret — mutating the canonical request fails nine of its thirteen checks.
+
+And the recovery drill was actually performed: upload, **delete the local
+copies**, restore from the remote alone into a different directory and a
+different database. It found a real bug on the first attempt — the checksum
+files recorded the absolute path of the machine that wrote them, so the first
+step of a recovery onto a different host failed on a file that was perfectly
+intact. They now record the basename.
+
+**Still outstanding:** the transport has never run against real AWS (that needs
+an account, and it is the one part of this that is genuinely somebody else's to
+do — see PROVISIONING.md §4.4); recovery onto a different *physical* host; and
+how long a restore takes at production data volume.
 
 **C7. GDPR/privacy compliance for location tracking is absent.** — **ENGINEERING
 DONE, LEGAL DECISIONS OUTSTANDING**
@@ -917,7 +963,8 @@ Blocks everything else.
 - C1 secrets, C2 email/reset-link, C5 Firebase validation
 - H6 lockout + timing, H7 cookie-based refresh token
 - H4 liveness/readiness split
-- ~~C6 backups: script, schedule, **and a tested restore**~~ — done; off-site copy still outstanding
+- ~~C6 backups: script, schedule, a tested restore, the attachment files, and
+  a verified off-site copy~~ — done; only a run against real AWS is outstanding
 - M3 startup validation, M6 security headers, M7 CI scanning
 
 **Exit:** a fresh deploy with no environment variables set refuses to start

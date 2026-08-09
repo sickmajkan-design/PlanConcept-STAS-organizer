@@ -174,6 +174,27 @@ dotnet ef migrations add <Name> \
   --output-dir Persistence/Migrations
 ```
 
+## Backups
+
+```bash
+./scripts/backup.sh          # dump + attachment files + checksums, then off-site
+./scripts/verify-restore.sh  # rehearse the whole recovery and check the result
+./scripts/offsite.sh status  # how long since a copy last left this machine
+```
+
+A backup is two things, and the scripts treat them as one set: the database
+dump and the attachment files. The dump alone restores a complete, browsable
+list of documents that are not there.
+
+Set `OFFSITE_ENDPOINT`, `OFFSITE_BUCKET` and a key pair (see `.env.example`)
+and every backup is copied to object storage and verified there. Until that is
+configured the nightly says so on every run, because a backup that has never
+left the machine is not one. `scripts/test-offsite.sh` exercises the upload
+path against a local S3 that checks the signature.
+
+Full runbook, including what to do when the host is gone:
+[`docs/PROVISIONING.md`](docs/PROVISIONING.md) §4.
+
 ## Retrying a write safely
 
 Endpoints whose effect is relative or additive — a stock adjustment, a cost

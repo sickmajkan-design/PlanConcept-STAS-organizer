@@ -150,9 +150,11 @@ merely written: the verification result is at the end of this section.
 
 | Skripta / Script | Radi / Does |
 |---|---|
-| `backup.sh` | Jedan dump (`-Fc`) + SHA-256, pa briše starije od `BACKUP_RETENTION_DAYS`. Ispisuje putanju na stdout. / One custom-format dump + SHA-256, then prunes older than `BACKUP_RETENTION_DAYS`. Prints the path on stdout. |
-| `restore.sh` | Vraća dump u bazu. Odbija da pregazi bazu koja ima tabele bez `--force`. / Restores into a database. Refuses to overwrite one that has tables unless `--force`. |
-| `verify-restore.sh` | Ceo krug: backup → restore u privremenu bazu → poređenje broja redova po tabeli → brisanje privremene. / The whole round trip: back up, restore into a scratch database, compare per-table row counts, drop the scratch. |
+| `backup.sh` | Dump (`-Fc`) + arhiva priloga + SHA-256 za oba, pa kopija van servera ako je podešena, pa brisanje starijih od `BACKUP_RETENTION_DAYS`. / A custom-format dump, the attachment archive, a SHA-256 for each, then the off-site copy if configured, then the prune. |
+| `restore.sh` | Vraća dump u bazu; sa `--files <dir>` raspakuje i priloge. Odbija da pregazi bazu koja ima tabele bez `--force`. / Restores into a database; with `--files <dir>` unpacks the attachments too. Refuses to overwrite a populated database unless `--force`. |
+| `verify-restore.sh` | Ceo krug: backup → restore u privremenu bazu → poređenje broja redova → **provera da svaki prilog u bazi ima svoj fajl** → brisanje privremene. / The whole round trip, including the check that every attachment row has its file. |
+| `offsite.sh` | `push` (šalje i proverava), `pull` (vraća sa udaljene lokacije), `status` (koliko je stara najnovija potvrđena kopija). / `push` uploads and verifies, `pull` fetches back, `status` reports how old the newest confirmed copy is. |
+| `test-offsite.sh` | Testira potpisivanje i ceo krug prema lokalnom S3 serveru koji proverava potpis. / Exercises the signing and the round trip against a local S3 that checks the signature. |
 
 Sve tri koriste standardne `PG*` promenljive, pa `~/.pgpass` i `PGSERVICE`
 rade kao i inače. / All three use the standard `PG*` variables, so `~/.pgpass`
@@ -178,27 +180,70 @@ se oslanja na podrazumevanu vrednost. / The service is opt-in on purpose: a
 development stack does not need it, and a deployment should not rely on a
 default.
 
-### 4.3 Šta ovo NE rešava / What this does NOT solve
+### 4.3 Kopija van servera / The off-site copy
 
 **SR** — Dump na volumenu pored baze preživljava obrisanu tabelu i lošu
-migraciju. Ne preživljava gubitak mašine. Kopirajte dump-ove van servera
-(S3, drugi provajder, druga lokacija) — to je jedini korak koji pretvara ovo u
-pravi backup, i jedini koji ne mogu da uradim umesto vas jer traži nalog koji
-je vaš.
+migraciju. Ne preživljava gubitak mašine. Ovo je korak koji to menja, i sada
+je automatizovan — potrebni su samo nalog i ključevi, jer su oni vaši.
 
 **EN** — A dump on a volume beside the database survives a dropped table and a
-bad migration. It does not survive losing the host. Copy the dumps off the
-machine — S3, another provider, another site. That is the step that turns this
-into a real backup, and the one step code cannot do for you because it needs an
-account that is yours.
+bad migration. It does not survive losing the host. This is the step that
+changes that, and it is automated now — what it needs is an account and a key
+pair, because those are yours.
 
-Isto važi za `attachment-data` volumen: baza čuva metapodatke o prilozima, a
-sami fajlovi su odvojeni. Backup baze bez fajlova vraća spisak dokumenata koji
-ne postoje. / The same goes for the `attachment-data` volume: the database
-holds attachment metadata, the files sit apart. Restoring the database without
-them gives you a list of documents that are not there.
+1. Napravite bucket kod bilo kog S3-kompatibilnog provajdera (AWS, Backblaze
+   B2, Wasabi, Cloudflare R2, tuđi MinIO). / Create a bucket at any
+   S3-compatible provider.
+2. Napravite ključ sa pravom pisanja **samo u taj bucket**. Uključite
+   versioning ili object-lock: nalog koji sme i da briše je meta za
+   ransomware. / Create a key with write access to **that bucket only**. Turn
+   on versioning or object-lock — an uploader that can also delete is a
+   ransomware target.
+3. Napravite ključ za šifrovanje i **čuvajte ga negde drugde**:
+   `age-keygen -o backup-key.txt`. Backup šifrovan ključem koji je izgoreo
+   zajedno sa serverom nije backup. / Generate an encryption key and **keep it
+   somewhere else**. A backup encrypted to a key that burned with the server
+   is not a backup.
+4. Upišite u `.env`: `OFFSITE_ENDPOINT`, `OFFSITE_BUCKET`, `OFFSITE_REGION`,
+   `OFFSITE_ACCESS_KEY_ID`, `OFFSITE_SECRET_ACCESS_KEY`,
+   `OFFSITE_AGE_RECIPIENT`. / Put these in `.env`.
 
-### 4.4 Rezultat provere / Verification result
+Od tada svaki backup ide gore i **proverava se** — poredi se kontrolna suma
+onoga što provajder kaže da drži sa onim što je poslato. Sve dok kopija nije
+potvrđena, `backup.sh` odbija da obriše lokalnu, ma koliko bila stara. / From
+then on every backup is uploaded and **verified** — the provider's checksum is
+compared with what was sent — and `backup.sh` refuses to prune a local copy
+that has no confirmed off-site one, however old it is.
+
+```bash
+# koliko je stara najnovija potvrđena kopija (za monitoring)
+# how old is the newest confirmed copy — point a monitor at this
+./scripts/offsite.sh status 26
+
+# oporavak kad servera više nema / recovery when the host is gone
+./scripts/offsite.sh pull construction-20260809T152401Z.dump      /tmp/r.dump
+./scripts/offsite.sh pull construction-20260809T152401Z.dump.sha256 /tmp/r.dump.sha256
+./scripts/offsite.sh pull construction-20260809T152401Z-files.tar.gz /tmp/r-files.tar.gz
+./scripts/offsite.sh pull construction-20260809T152401Z-files.tar.gz.sha256 /tmp/r-files.tar.gz.sha256
+./scripts/restore.sh /tmp/r.dump construction --files /var/lib/construction/storage
+```
+
+### 4.4 Šta ovo i dalje NE rešava / What this still does NOT solve
+
+**SR** — Prenos je testiran prema lokalnom S3 serveru koji proverava potpis,
+ali **nikad prema pravom AWS-u**. To traži nalog. Prvi put kad podesite ovo,
+pokrenite `./scripts/offsite.sh push` ručno i pogledajte izlaz pre nego što se
+oslonite na noćni posao.
+
+**EN** — The transport is tested against a local S3 that verifies the
+signature, but **never against real AWS**. That needs an account. The first
+time you configure this, run `./scripts/offsite.sh push` by hand and read the
+output before trusting the nightly.
+
+Takođe nije mereno: koliko restore traje na produkcionoj količini podataka. /
+Also unmeasured: how long a restore takes at production data volume.
+
+### 4.5 Rezultat provere / Verification result
 
 **SR** — Pokrenuto protiv baze sa realnom šemom (svih 10 migracija) i podacima:
 
@@ -221,8 +266,48 @@ caught:
 | Dump ne odgovara svom checksum-u / Dump does not match its checksum | Odbijeno pre dodirivanja baze / Refused before touching the database |
 | Restore preko pune baze bez `--force` / Restore over a populated database | Odbijeno, uz broj tabela koje bi bile pregažene / Refused, naming the tables at risk |
 
-**Šta i dalje nije provereno / Still unverified:** oporavak na *drugoj* mašini,
-i vreme potrebno za restore na produkcionoj količini podataka. Prvo traži drugi
-server, drugo traži produkcione podatke. / Recovery onto a *different* host, and
-how long a restore takes at production data volume. The first needs a second
-server; the second needs production-sized data.
+#### Prilozi i kopija van servera / Attachments and the off-site copy
+
+**SR** — Isti postupak, ponovljen za dva dela koja su ranije nedostajala. Baza
+sa 12 priloga i 12 fajlova na disku:
+
+**EN** — The same exercise, repeated for the two halves that were missing. A
+database with 12 attachments and their 12 files on disk:
+
+```
+Checking 12 attachment(s) against the archive
+All 12 attachment(s) have their file.
+Restore verification PASSED: 23 table(s), 24 row(s) matched.
+```
+
+I ovde je provereno da **ume da padne** / Proven able to **fail** here too:
+
+| Greška / Fault | Ishod / Outcome |
+|---|---|
+| Baza ima priloge, `ATTACHMENT_DIR` nije podešen / Attachments recorded, `ATTACHMENT_DIR` unset | Upozorenje pri backup-u, pa `FAILED` pri proveri: „the restore would give a list of documents that are not there" |
+| Dva fajla nedostaju u arhivi / Two files missing from the archive | `FAILED`, uz imena oba ključa / `FAILED`, naming both keys |
+| Arhiva oštećena posle checksum-a / Archive corrupted after the checksum | Odbijeno pre raspakivanja / Refused before unpacking |
+
+**Oporavak sa udaljene lokacije, izveden / Recovery from off-site, performed.**
+Backup je poslat na S3 endpoint, lokalna kopija je zatim **obrisana**, i sistem
+je vraćen samo sa udaljene lokacije, u drugi direktorijum i drugu bazu: 12
+redova, 12 fajlova, svaki red ima svoj fajl. / The backup was uploaded, the
+local copy was then **deleted**, and the system was restored from the remote
+copy alone, into a different directory and a different database: 12 rows, 12
+files, every row with its file.
+
+Ta vežba je odmah našla i pravu grešku: `sha256sum putanja > putanja.sha256`
+upisuje apsolutnu putanju, pa se checksum napisan na mašini koja je crkla
+proverava prema putanji koje na novoj mašini nema — prvi korak pravog oporavka
+je pao na fajlu koji je bio potpuno ispravan. Sada se upisuje samo ime fajla. /
+That drill immediately found a real bug: the checksum files recorded the
+absolute path of the machine that wrote them, so the first step of a recovery
+onto a different host failed on a file that was perfectly intact. They now
+record the basename.
+
+**Šta i dalje nije provereno / Still unverified:** prenos prema *pravom* AWS-u
+(testiran je prema lokalnom S3 serveru koji proverava potpis), oporavak na
+drugom *fizičkom* serveru, i vreme potrebno za restore na produkcionoj količini
+podataka. / The transport against *real* AWS (it is tested against a local S3
+that verifies the signature), recovery onto a different *physical* host, and
+how long a restore takes at production data volume.

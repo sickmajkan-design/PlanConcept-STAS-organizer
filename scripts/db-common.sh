@@ -26,6 +26,45 @@ export PGHOST PGPORT PGUSER PGDATABASE
 # How long a dump is kept before the sweep removes it.
 : "${BACKUP_RETENTION_DAYS:=14}"
 
+# Where the attachment files live, when file storage is the local disk.
+#
+# Empty means "not backed up", and that is a loud condition rather than a
+# quiet default: a database dump on its own restores a complete list of
+# documents none of which exist. `backup.sh` asks the database how many
+# attachments it holds and refuses to be silent about the gap.
+#
+# A deployment on object storage sets this to nothing and relies on the
+# bucket's own versioning instead — see docs/PROVISIONING.md §4.
+: "${ATTACHMENT_DIR:=}"
+
+# Writes <file>.sha256 recording the *basename*, never the path it happens to
+# have today.
+#
+# Found by doing the drill rather than by reading the code: `sha256sum path >
+# path.sha256` records whatever path it was given, so a checksum written at
+# /mnt/backups on the machine that died is checked against /mnt/backups on the
+# machine that replaced it — where the file is not. The first step of a real
+# recovery failed, on a file that was perfectly intact.
+write_checksum() {
+    local file="$1"
+    ( cd "$(dirname "$file")" && sha256sum "$(basename "$file")" > "$(basename "$file").sha256" )
+}
+
+# Verifies <file>.sha256 from inside the file's own directory, which is the
+# other half of the same fix.
+check_checksum() {
+    local file="$1"
+    ( cd "$(dirname "$file")" && sha256sum --check --status "$(basename "$file").sha256" )
+}
+
+# The archive that belongs to a dump. One stamp, two files: they are a set,
+# and restoring one without the other is the failure this naming is meant to
+# make obvious.
+files_archive_for() {
+    local dump="$1"
+    printf '%s' "${dump%.dump}-files.tar.gz"
+}
+
 log() {
     # To stderr, so a script whose stdout is a file path stays pipeable.
     printf '%s  %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*" >&2

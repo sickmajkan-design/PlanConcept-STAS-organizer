@@ -34,10 +34,18 @@ assert_safe_identifier "$scratch"
 [[ "$scratch" != "$PGDATABASE" ]] \
     || die "The scratch database must not be the source database."
 
+# Where the archive is unpacked for the check, and thrown away afterwards.
+files_scratch="$(mktemp -d)"
+
+drop_scratch_db() {
+    psql -q -c "DROP DATABASE IF EXISTS \"${scratch}\" WITH (FORCE)" postgres 2>/dev/null || true
+}
+
 cleanup() {
     # Always, including on failure. A rehearsal that leaves debris behind
     # stops being run.
-    psql -q -c "DROP DATABASE IF EXISTS \"${scratch}\" WITH (FORCE)" postgres 2>/dev/null || true
+    drop_scratch_db
+    rm -rf -- "$files_scratch"
 }
 trap cleanup EXIT
 
@@ -51,8 +59,15 @@ else
     log "Rehearsing from ${dump}"
 fi
 
-cleanup
-"${here}/restore.sh" "$dump" "$scratch"
+archive="$(files_archive_for "$dump")"
+
+drop_scratch_db
+
+if [[ -f "$archive" ]]; then
+    "${here}/restore.sh" "$dump" "$scratch" --files "$files_scratch"
+else
+    "${here}/restore.sh" "$dump" "$scratch"
+fi
 
 # ---- compare -------------------------------------------------------------
 #
@@ -91,6 +106,45 @@ rows="$(echo "$source_counts" | awk -F'|' '{ total += $2 } END { print total + 0
 # rather than reporting a pass.
 if [[ "$tables" -eq 0 ]]; then
     die "The source database has no tables — there is nothing to verify."
+fi
+
+# ---- the documents ------------------------------------------------------
+#
+# The check the row counts cannot make. `attachments` restores perfectly from
+# the dump alone — same rows, same count, comparison passes — and every one of
+# them points at a file that is not there. The only way to catch it is to take
+# the storage keys out of the restored database and look for them.
+
+attachment_count="$(psql -tAc \
+    'SELECT count(*) FROM attachments WHERE "IsDeleted" = false' "$scratch")"
+
+if [[ "$attachment_count" -eq 0 ]]; then
+    log "No attachments in the backup; nothing to cross-check."
+elif [[ ! -f "$archive" ]]; then
+    log "The restored database records ${attachment_count} attachment(s)."
+    die "No attachment archive beside this dump — the restore would give a list of documents that are not there. Set ATTACHMENT_DIR when backing up."
+else
+    log "Checking ${attachment_count} attachment(s) against the archive"
+
+    missing=0
+    checked=0
+
+    while IFS= read -r key; do
+        [[ -n "$key" ]] || continue
+
+        checked=$((checked + 1))
+
+        if [[ ! -f "${files_scratch}/${key}" ]]; then
+            missing=$((missing + 1))
+            [[ "$missing" -le 10 ]] && log "  missing: ${key}"
+        fi
+    done < <(psql -tAc 'SELECT "StorageKey" FROM attachments WHERE "IsDeleted" = false' "$scratch")
+
+    if [[ "$missing" -gt 0 ]]; then
+        die "${missing} of ${checked} attachment(s) have no file in the archive."
+    fi
+
+    log "All ${checked} attachment(s) have their file."
 fi
 
 log "Restore verification PASSED: ${tables} table(s), ${rows} row(s) matched."
