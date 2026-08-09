@@ -114,3 +114,65 @@ jobs:
       # files are type-checked too.
       - name: Build
         run: npm run build
+
+  # The browser suite is its own job because it needs what the others do not:
+  # a database, the .NET SDK to run the real API, and a browser. Kept separate
+  # so a failure here is legible as "the whole system disagreed" rather than
+  # hiding inside the admin job's lint output.
+  e2e:
+    name: End to end (browser)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/construction_admin
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The suite starts the API itself — see `webServer` in
+      # playwright.config.ts — so the SDK has to be here even though this job
+      # builds no C# of its own.
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: src/construction_admin/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Chromium only. The suite asserts behaviour and layout, not rendering
+      # differences between engines, so three browsers would triple the run
+      # for no extra finding.
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end tests
+        run: npm run test:e2e
+
+      # Only on a failure, and only then is it worth anything: the trace
+      # replays the run step by step, which is the difference between fixing a
+      # CI-only failure and guessing at it.
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-trace
+          path: src/construction_admin/test-results/
+          retention-days: 7

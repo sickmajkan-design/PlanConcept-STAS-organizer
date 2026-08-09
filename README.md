@@ -150,11 +150,13 @@ M8 — a component that throws on purpose, to prove the error boundary shows its
 fallback and clears on navigation, and `navigator.onLine` flipped underneath
 the offline banner.
 
-> **Known gap.** No browser-level end-to-end run. The screen tests use jsdom,
-> where every element has zero height — enough for the assertions above, but it
-> cannot catch anything about layout, real scrolling, or a grid's
-> virtualisation. The Playwright script that covered those is still not in the
-> repository.
+There is also a browser-level suite (`npm run test:e2e` in
+`src/construction_admin`), which starts the real API and the panel itself and
+drives Chromium against them. It covers what jsdom cannot see — a grid that
+paints rows with a real height, a dialog that stays open long enough to click,
+a tablet layout with nothing off the edge — and the seam no fake network
+reaches: that the client and the server still agree about a request. It found
+two real bugs on its first run; see docs/PRODUCTION_READINESS_AUDIT.md (H1).
 
 The integration tests need a reachable PostgreSQL server. They create and drop
 their own database, so point them at one with `ConstructionTests__Postgres`

@@ -183,14 +183,36 @@ counting files:
 | `components/OfflineBanner` | `navigator.onLine` flipped under the component: the banner appears on a drop, appears when the screen opens already offline, confirms the reconnect, and does not congratulate a connection that never dropped. |
 | `features/idempotency` | The lifetime of an idempotency key — the same one across failures, a new one after a success — and that it reaches the wire. A key minted per call would compile, pass a smoke test, and protect nothing. |
 
-Not covered: anything only a browser can show. The screen tests run in jsdom,
-where every element has zero height — enough for the assertions above, but
-blind to layout, real scrolling and the grid's virtualisation. The CRUD forms
-and grids have been driven end-to-end with Playwright scripts covering sign-in,
-employee and project CRUD, project assignment, vehicle/tool/material CRUD, tool
-dual assignment, material stock adjustment (including the 409 over-consumption
-case), role-gated navigation and the live map's graceful no-API-key state — but
-those scripts are not in this repository and do not run in CI.
+## Browser tests
+
+```bash
+npm run test:e2e        # starts the API and the panel itself, then drives Chromium
+npm run test:e2e:ui     # the same, with Playwright's inspector
+```
+
+The jsdom suite above is blind by construction: every element has zero height,
+so layout, scrolling and the grid's virtualisation are outside what it can see.
+This suite covers only those, plus the seam no fake network reaches — that the
+client and the server still agree about the shape of a request. It runs against
+the real API over its own database (`construction_e2e`), which
+`playwright.config.ts` starts along with the dev server, so the whole thing is
+one command rather than three terminals in the right order.
+
+| File | What only a browser can prove |
+|---|---|
+| `e2e/session.spec.ts` | The refresh token is an `HttpOnly`, `SameSite=Strict` cookie that `document.cookie` cannot see; a reload keeps the operator where they were; signing out cannot be undone with the back button. |
+| `e2e/employees.spec.ts` | A record created here really reaches the server and comes back; grid rows have a real height and width; Delete opens a dialog that stays open and does not navigate away; a duplicate number is refused by a real unique index. |
+| `e2e/layout.spec.ts` | At a tablet's 834&nbsp;px: the drawer is reachable once hidden, the submit button can be scrolled to, and no page scrolls sideways. |
+| `e2e/bilingual.spec.ts` | The `lang` attribute a screen reader pronounces from; the language switch without a reload and across one; and that no screen has a hardcoded English string. |
+
+Two findings on its first run: the employee form's submit button was hardcoded
+`'Create employee'` (Serbian UI, English button, translation unused), now fixed;
+and the API's error text reaches the operator in English, which is not fixed and
+is asserted as-is with a note to delete that assertion when the API is
+localised.
+
+Set `PLAYWRIGHT_CHROMIUM_PATH` if your machine already has a Chromium that
+Playwright did not install.
 
 ## Verification
 

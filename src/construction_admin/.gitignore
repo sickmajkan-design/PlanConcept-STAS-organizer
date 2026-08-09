@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright output. Traces and screenshots from a failed run — useful for an
+# hour, never worth committing.
+/test-results/
+/playwright-report/
+/blob-report/

@@ -304,7 +304,7 @@ export function EmployeeFormPage() {
                 {t('common.cancel')}
               </Button>
               <Button type="submit" variant="contained" loading={isSubmitting}>
-                {isEdit ? t('common.save') : 'Create employee'}
+                {isEdit ? t('common.save') : t('employees.create')}
               </Button>
             </Stack>
           </Stack>

@@ -75,7 +75,7 @@ Re-measured, with the first pass's figures in brackets where they have moved.
 | `Construction.Infrastructure` | 2,676 (3,296) | EF Core, JWT issuing, SMTP, FCM. Shrank as logic moved inwards. |
 | `Construction.API` | 4,057 (1,381) | 118 endpoints across 17 controllers. Still thin. |
 | `tests` | 15,342 (2,252) | **902 backend tests** (378 unit + 524 integration). |
-| `construction_admin/src` | 18,779 (6,997) | React 19 + MUI 9 + TanStack Query 5. 184 Vitest cases. |
+| `construction_admin/src` | 18,779 (6,997) | React 19 + MUI 9 + TanStack Query 5. 189 Vitest cases + 15 browser tests. |
 | `construction_mobile/lib` | 22,114 (6,447) | Flutter, feature-first, Riverpod. |
 | `construction_mobile/test` | 2,339 (1,473) | 168 tests. |
 
@@ -112,9 +112,9 @@ onto shared `useListQueryState` / `ResourceDataGrid` / `useDeleteWithConfirm`.
   silent — token refresh, route guards for all five roles, i18n plurals and
   dictionary parity, query-parameter normalisation, the live map's page
   request — and, since H1's second half, whole screens: a CRUD form and a list
-  page rendered under the real providers against a fake network. What remains
-  uncovered is anything only a browser can show: layout, real scrolling, the
-  grid's virtualisation. See H1.
+  page rendered under the real providers against a fake network — and, since
+  H1's last half, a Playwright suite that drives a real browser against the
+  real API for the things jsdom cannot see at all. See H1.
 - ~~**Session in `localStorage`.**~~ The refresh token is now an `HttpOnly`,
   `SameSite=Strict` cookie scoped to `/api/auth`, and the API omits it from the
   response body when the client asks for cookie delivery — so it never passes
@@ -609,11 +609,31 @@ anyway, so only Delete was broken — and only for somebody who tried it.
 `RowActions` now stops the click at the cell; reverting it fails the two delete
 tests.
 
-Still not covered: anything needing a real browser. These run in jsdom, where
-every element has zero height, so layout, scrolling and the grid's
-virtualisation are outside what they can see. The Playwright script remains
-uncommitted. The documentation claims that overstated coverage have been
-corrected.
+~~Still not covered: anything needing a real browser.~~ **Now done, and it also
+paid for itself on the first run.** `src/construction_admin/e2e` drives
+Chromium against the real API over a real database; `playwright.config.ts`
+starts both servers itself, so the whole suite is one command. Fifteen tests
+across four files, three consecutive clean runs, and a CI job of its own.
+
+It is deliberately not a second copy of the jsdom suite. It covers only what
+jsdom structurally cannot: a grid row with a real height and width, a
+confirmation dialog that stays clickable rather than merely mounted, an
+`HttpOnly` cookie that script cannot read (a claim only a browser can check),
+the `lang` attribute a screen reader pronounces from, a tablet viewport with
+nothing off the edge and no sideways scroll — and the seam neither other suite
+reaches, that the client and the server still agree about the shape of a
+request.
+
+**Two real findings on the first run.** The employee form's submit button was
+a hardcoded `'Create employee'`, so the Serbian UI showed an English button
+with the correct translation sitting unused in the dictionary — invisible to
+the dictionary-parity test, because the key was present and nothing was calling
+it. Fixed. And the API's own error text reaches the operator in English: a
+failed sign-in says "Invalid email or password." under an otherwise Serbian
+screen. That one is not fixed — the client shows the server's specific
+sentence in preference to a vague translated one, the same trade-off the mobile
+app makes — so the test asserts the English text and says in a comment that it
+should be deleted when the API is localised.
 
 **H2. No authorization tests.** — **done.** `ApiAuthorizationTests` hosts the
 real API through `WebApplicationFactory` and drives every endpoint with a real
