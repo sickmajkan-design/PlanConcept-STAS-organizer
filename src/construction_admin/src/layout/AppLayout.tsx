@@ -50,6 +50,7 @@ import {
 } from '../auth/authHelpers';
 import { useAuth } from '../auth/useAuth';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { OfflineBanner } from '../components/OfflineBanner';
 import { useUnreadCountQuery } from '../features/notifications/useNotifications';
 import { useEnumLabel } from '../i18n/enumLabels';
 import { useT } from '../i18n/useI18n';
@@ -266,6 +267,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
         }}
       >
         <Toolbar />
+        {/* Above the screen rather than inside it: the reason the numbers on
+            every page have stopped moving is the same reason, and it should be
+            stated once, in the same place, wherever the operator is. */}
+        <OfflineBanner />
         {children}
       </Box>
     </Box>

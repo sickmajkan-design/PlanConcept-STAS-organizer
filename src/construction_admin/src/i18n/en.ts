@@ -29,6 +29,16 @@ export const en = {
   'common.somethingWentWrong': 'Something went wrong.',
   'common.noResults': 'Nothing matches your search.',
 
+  // --- Failure states -------------------------------------------------------
+  'error.pageTitle': 'This page could not be displayed',
+  'error.pageBody':
+    'Something on this screen failed while it was being drawn. The rest of the app still works.',
+  'error.backHome': 'Back to the start',
+  'offline.title': 'No connection',
+  'offline.body':
+    'You are offline. What is already on screen stays, but nothing will refresh and anything you save will wait until the connection returns.',
+  'offline.restored': 'Connection restored. The screen is up to date again.',
+
   // --- Time -----------------------------------------------------------------
   'time.never': 'never',
   'time.justNow': 'just now',

@@ -1,7 +1,9 @@
 import { CircularProgress } from '@mui/material';
 import { lazy, Suspense } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { RouteErrorFallback } from './components/RouteErrorFallback';
 import { AppLayout } from './layout/AppLayout';
 import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
@@ -168,83 +170,94 @@ function RouteFallback() {
 }
 
 function Layout() {
+  const location = useLocation();
+
   return (
     <AppLayout>
-      <Suspense fallback={<RouteFallback />}>
-        <Routes>
-          <Route path={paths.home} element={<HomePage />} />
-          <Route path={paths.map} element={<LiveMapPage />} />
-          <Route path={paths.changePassword} element={<ChangePasswordPage />} />
-          {/* Everyone with an account has an inbox, including a worker who
-              only ever signs in to read one. */}
-          <Route path={paths.notifications} element={<NotificationsPage />} />
+      {/* Inside the layout, so a screen that throws leaves the drawer and the
+          app bar standing and the operator can navigate away from it. Keyed on
+          the path so that navigating away *is* the recovery — otherwise React
+          keeps the fallback mounted no matter where they go next. */}
+      <ErrorBoundary
+        resetKey={location.pathname}
+        fallback={(props) => <RouteErrorFallback {...props} />}
+      >
+        <Suspense fallback={<RouteFallback />}>
+          <Routes>
+            <Route path={paths.home} element={<HomePage />} />
+            <Route path={paths.map} element={<LiveMapPage />} />
+            <Route path={paths.changePassword} element={<ChangePasswordPage />} />
+            {/* Everyone with an account has an inbox, including a worker who
+                only ever signs in to read one. */}
+            <Route path={paths.notifications} element={<NotificationsPage />} />
 
-          <Route element={<RequireDirectoryAccess />}>
-            <Route path={paths.employees} element={<EmployeesListPage />} />
-            <Route path={paths.employeeNew} element={<EmployeeFormPage />} />
-            <Route path={`${paths.employees}/:id`} element={<EmployeeDetailPage />} />
-            <Route path={`${paths.employees}/:id/edit`} element={<EmployeeFormPage />} />
+            <Route element={<RequireDirectoryAccess />}>
+              <Route path={paths.employees} element={<EmployeesListPage />} />
+              <Route path={paths.employeeNew} element={<EmployeeFormPage />} />
+              <Route path={`${paths.employees}/:id`} element={<EmployeeDetailPage />} />
+              <Route path={`${paths.employees}/:id/edit`} element={<EmployeeFormPage />} />
 
-            <Route path={paths.projects} element={<ProjectsListPage />} />
-            <Route path={paths.projectNew} element={<ProjectFormPage />} />
-            <Route path={`${paths.projects}/:id`} element={<ProjectDetailPage />} />
-            <Route path={`${paths.projects}/:id/edit`} element={<ProjectFormPage />} />
+              <Route path={paths.projects} element={<ProjectsListPage />} />
+              <Route path={paths.projectNew} element={<ProjectFormPage />} />
+              <Route path={`${paths.projects}/:id`} element={<ProjectDetailPage />} />
+              <Route path={`${paths.projects}/:id/edit`} element={<ProjectFormPage />} />
 
-            <Route path={paths.vehicles} element={<VehiclesListPage />} />
-            <Route path={paths.vehicleNew} element={<VehicleFormPage />} />
-            <Route path={`${paths.vehicles}/:id`} element={<VehicleDetailPage />} />
-            <Route path={`${paths.vehicles}/:id/edit`} element={<VehicleFormPage />} />
+              <Route path={paths.vehicles} element={<VehiclesListPage />} />
+              <Route path={paths.vehicleNew} element={<VehicleFormPage />} />
+              <Route path={`${paths.vehicles}/:id`} element={<VehicleDetailPage />} />
+              <Route path={`${paths.vehicles}/:id/edit`} element={<VehicleFormPage />} />
 
-            <Route path={paths.tools} element={<ToolsListPage />} />
-            <Route path={paths.toolNew} element={<ToolFormPage />} />
-            <Route path={`${paths.tools}/:id`} element={<ToolDetailPage />} />
-            <Route path={`${paths.tools}/:id/edit`} element={<ToolFormPage />} />
+              <Route path={paths.tools} element={<ToolsListPage />} />
+              <Route path={paths.toolNew} element={<ToolFormPage />} />
+              <Route path={`${paths.tools}/:id`} element={<ToolDetailPage />} />
+              <Route path={`${paths.tools}/:id/edit`} element={<ToolFormPage />} />
 
-            <Route path={paths.materials} element={<MaterialsListPage />} />
-            <Route path={paths.materialNew} element={<MaterialFormPage />} />
-            <Route path={`${paths.materials}/:id`} element={<MaterialDetailPage />} />
-            <Route path={`${paths.materials}/:id/edit`} element={<MaterialFormPage />} />
+              <Route path={paths.materials} element={<MaterialsListPage />} />
+              <Route path={paths.materialNew} element={<MaterialFormPage />} />
+              <Route path={`${paths.materials}/:id`} element={<MaterialDetailPage />} />
+              <Route path={`${paths.materials}/:id/edit`} element={<MaterialFormPage />} />
 
-            {/* `summary` is declared before the `:id` routes so it is matched
-                as a page rather than as an entry id. */}
-            <Route path={paths.workItems} element={<WorkItemsListPage />} />
-            <Route path={paths.workItemNew} element={<WorkItemFormPage />} />
-            <Route path={`${paths.workItems}/:id/edit`} element={<WorkItemFormPage />} />
+              {/* `summary` is declared before the `:id` routes so it is matched
+                  as a page rather than as an entry id. */}
+              <Route path={paths.workItems} element={<WorkItemsListPage />} />
+              <Route path={paths.workItemNew} element={<WorkItemFormPage />} />
+              <Route path={`${paths.workItems}/:id/edit`} element={<WorkItemFormPage />} />
 
-            <Route path={paths.costs} element={<CostsPage />} />
-            <Route path={paths.stockMovements} element={<StockMovementsPage />} />
-            <Route path={paths.vehicleExpenses} element={<VehicleExpensesPage />} />
+              <Route path={paths.costs} element={<CostsPage />} />
+              <Route path={paths.stockMovements} element={<StockMovementsPage />} />
+              <Route path={paths.vehicleExpenses} element={<VehicleExpensesPage />} />
 
-            <Route path={paths.schedule} element={<SchedulePage />} />
-            <Route path={paths.absences} element={<AbsencesListPage />} />
+              <Route path={paths.schedule} element={<SchedulePage />} />
+              <Route path={paths.absences} element={<AbsencesListPage />} />
 
-            <Route path={paths.timeEntrySummary} element={<TimeEntrySummaryPage />} />
-            <Route path={paths.timeEntries} element={<TimeEntriesListPage />} />
-            <Route path={paths.timeEntryNew} element={<TimeEntryFormPage />} />
-            <Route path={`${paths.timeEntries}/:id/edit`} element={<TimeEntryFormPage />} />
-          </Route>
+              <Route path={paths.timeEntrySummary} element={<TimeEntrySummaryPage />} />
+              <Route path={paths.timeEntries} element={<TimeEntriesListPage />} />
+              <Route path={paths.timeEntryNew} element={<TimeEntryFormPage />} />
+              <Route path={`${paths.timeEntries}/:id/edit`} element={<TimeEntryFormPage />} />
+            </Route>
 
-          {/* Pay rates are narrower than the directory screens but wider
-              than account administration: project managers price jobs. */}
-          <Route element={<RequireLabourCostAccess />}>
-            <Route path={paths.rates} element={<RatesPage />} />
-          </Route>
+            {/* Pay rates are narrower than the directory screens but wider
+                than account administration: project managers price jobs. */}
+            <Route element={<RequireLabourCostAccess />}>
+              <Route path={paths.rates} element={<RatesPage />} />
+            </Route>
 
-          {/* Account administration is Admin and above, a narrower set than
-              the directory screens above. */}
-          <Route element={<RequireAccountAdmin />}>
-            {/* Expiry spans every record type and includes employee
-                documents, so it sits with account administration rather than
-                with the directory screens. */}
-            <Route path={paths.expiringDocuments} element={<ExpiringDocumentsPage />} />
-            <Route path={paths.users} element={<UsersListPage />} />
-            <Route path={paths.userNew} element={<UserFormPage />} />
-            <Route path={`${paths.users}/:id/edit`} element={<UserFormPage />} />
-          </Route>
+            {/* Account administration is Admin and above, a narrower set than
+                the directory screens above. */}
+            <Route element={<RequireAccountAdmin />}>
+              {/* Expiry spans every record type and includes employee
+                  documents, so it sits with account administration rather than
+                  with the directory screens. */}
+              <Route path={paths.expiringDocuments} element={<ExpiringDocumentsPage />} />
+              <Route path={paths.users} element={<UsersListPage />} />
+              <Route path={paths.userNew} element={<UserFormPage />} />
+              <Route path={`${paths.users}/:id/edit`} element={<UserFormPage />} />
+            </Route>
 
-          <Route path="*" element={<Navigate to={paths.home} replace />} />
-        </Routes>
-      </Suspense>
+            <Route path="*" element={<Navigate to={paths.home} replace />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
     </AppLayout>
   );
 }

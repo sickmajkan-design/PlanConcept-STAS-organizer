@@ -2,6 +2,7 @@ import { EngineeringOutlined } from '@mui/icons-material';
 import { Box, Paper, Stack, Typography } from '@mui/material';
 
 import { LanguageSwitcher } from './LanguageSwitcher';
+import { OfflineBanner } from './OfflineBanner';
 import type { ReactNode } from 'react';
 
 /** Centered card frame shared by every anonymous auth screen. */
@@ -30,6 +31,9 @@ export function AuthCard({
         sx={{ p: { xs: 3, sm: 5 }, width: '100%', maxWidth: 440, border: '1px solid #e0e0e0' }}
       >
         <Stack spacing={3}>
+          {/* Sign-in needs it as much as anything behind it: without this, a
+              failed login on a dead connection reads as a wrong password. */}
+          <OfflineBanner />
           <Stack spacing={1} sx={{ alignItems: 'center', textAlign: 'center' }}>
             <EngineeringOutlined sx={{ fontSize: 44, color: 'primary.main' }} />
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>

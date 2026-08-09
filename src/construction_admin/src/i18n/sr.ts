@@ -38,6 +38,16 @@ export const sr: Record<MessageKey, Message> = {
   'common.somethingWentWrong': 'Došlo je do greške.',
   'common.noResults': 'Nema rezultata za vašu pretragu.',
 
+  // --- Failure states -------------------------------------------------------
+  'error.pageTitle': 'Ova stranica ne može da se prikaže',
+  'error.pageBody':
+    'Nešto na ovom ekranu je otkazalo pri iscrtavanju. Ostatak aplikacije i dalje radi.',
+  'error.backHome': 'Nazad na početak',
+  'offline.title': 'Nema veze sa internetom',
+  'offline.body':
+    'Van mreže ste. Ono što je već prikazano ostaje, ali se ništa neće osvežiti, a sve što sačuvate čeka da se veza vrati.',
+  'offline.restored': 'Veza je uspostavljena. Prikaz je ponovo ažuran.',
+
   // --- Time -----------------------------------------------------------------
   'time.never': 'nikad',
   'time.justNow': 'upravo sada',
