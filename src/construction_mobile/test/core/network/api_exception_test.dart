@@ -50,6 +50,10 @@ void main() {
       expect(exception.message, 'Invalid email or password.');
       expect(exception.isUnauthorized, isTrue);
       expect(exception.isValidationError, isFalse);
+      // The server wrote this sentence, so the UI shows it rather than
+      // replacing it with a translated generality.
+      expect(exception.isFromServer, isTrue);
+      expect(exception.kind, ApiFailureKind.unauthorized);
     });
 
     test('falls back to a status-specific message for an unparsable body', () {
@@ -57,6 +61,10 @@ void main() {
 
       expect(exception.statusCode, 409);
       expect(exception.message, 'The action conflicts with the current data.');
+      // Nothing usable came back, so the text is ours — and therefore
+      // translatable.
+      expect(exception.isFromServer, isFalse);
+      expect(exception.kind, ApiFailureKind.conflict);
     });
 
     test('reports server errors for any 5xx status', () {
@@ -66,6 +74,7 @@ void main() {
         exception.message,
         'The server encountered an error. Please try again later.',
       );
+      expect(exception.kind, ApiFailureKind.server);
     });
 
     test('explains a connection failure without leaking transport detail', () {
@@ -81,6 +90,10 @@ void main() {
         'No connection to the server. Check your network and try again.',
       );
       expect(exception.statusCode, isNull);
+      // The distinction the screens are built on: offline is not "something
+      // went wrong", it is "walk twenty metres and try again".
+      expect(exception.kind, ApiFailureKind.offline);
+      expect(exception.isFromServer, isFalse);
     });
 
     test('explains a timeout', () {
@@ -95,6 +108,38 @@ void main() {
         exception.message,
         'The server took too long to respond. Please try again.',
       );
+      expect(exception.kind, ApiFailureKind.timeout);
+    });
+
+    test('treats a socket that failed before any response as being offline',
+        () {
+      // Dio reports this as `unknown` with no response — a DNS failure, or a
+      // radio that dropped mid-request. Calling it "something went wrong"
+      // sends a foreman looking for a fault that is not there.
+      final exception = ApiException.fromDioException(
+        DioException(
+          requestOptions: RequestOptions(path: '/api/v1/employees'),
+          type: DioExceptionType.unknown,
+        ),
+      );
+
+      expect(exception.kind, ApiFailureKind.offline);
+    });
+
+    test('keeps a field error as the message and marks it as the server\'s',
+        () {
+      final exception = ApiException.fromDioException(
+        _responseError(400, {
+          'title': 'One or more validation errors occurred.',
+          'errors': {
+            'StartedAt': ['A shift is already running.'],
+          },
+        }),
+      );
+
+      expect(exception.message, 'A shift is already running.');
+      expect(exception.isFromServer, isTrue);
+      expect(exception.kind, ApiFailureKind.badRequest);
     });
   });
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/network/api_exception.dart';
 import '../../attachments/data/attachment_repository.dart';
@@ -96,7 +97,7 @@ class _ReportDefectButtonState extends ConsumerState<ReportDefectButton> {
             : l10n.workItemsDefectSent),
       ));
     } on ApiException catch (exception) {
-      messenger.showSnackBar(SnackBar(content: Text(exception.message)));
+      messenger.showSnackBar(SnackBar(content: Text(exception.describe(l10n))));
     } finally {
       if (mounted) {
         setState(() => _busy = false);

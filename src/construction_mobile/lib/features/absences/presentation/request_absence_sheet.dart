@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/network/api_exception.dart';
@@ -185,7 +186,7 @@ class _RequestAbsenceSheetState extends ConsumerState<_RequestAbsenceSheet> {
       navigator.pop();
       messenger.showSnackBar(SnackBar(content: Text(l10n.absencesSent)));
     } on ApiException catch (exception) {
-      messenger.showSnackBar(SnackBar(content: Text(exception.message)));
+      messenger.showSnackBar(SnackBar(content: Text(exception.describe(l10n))));
 
       if (mounted) {
         setState(() => _busy = false);

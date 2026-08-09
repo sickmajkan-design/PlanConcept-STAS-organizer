@@ -1,4 +1,5 @@
 import 'package:construction_mobile/core/models/paged_list.dart';
+import 'package:construction_mobile/core/network/api_exception.dart';
 import 'package:construction_mobile/core/pagination/paged_state.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -87,21 +88,23 @@ void main() {
     test('keeps loaded rows when appending fails', () {
       final state = PagedState<String>.fromPage(_page(['a', 'b']))
           .appending()
-          .failedToAppend('No connection to the server.');
+          .failedToAppend(ApiException('offline', kind: ApiFailureKind.offline));
 
       expect(state.items, ['a', 'b']);
       expect(state.isLoadingMore, isFalse);
-      expect(state.loadMoreError, 'No connection to the server.');
+      // The failure itself, so the footer can say it in the reader's language
+      // and pick the icon that goes with being out of signal.
+      expect(state.loadMoreFailure?.kind, ApiFailureKind.offline);
       // The user can still retry, so the list is not marked as finished.
       expect(state.hasMore, isTrue);
     });
 
     test('clears a previous error when retrying', () {
       final state = PagedState<String>.fromPage(_page(['a', 'b']))
-          .failedToAppend('boom')
+          .failedToAppend(ApiException('boom'))
           .appending();
 
-      expect(state.loadMoreError, isNull);
+      expect(state.loadMoreFailure, isNull);
       expect(state.isLoadingMore, isTrue);
     });
   });

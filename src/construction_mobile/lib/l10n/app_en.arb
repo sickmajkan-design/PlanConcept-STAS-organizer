@@ -376,5 +376,20 @@
   "workItemsDefectPhotoAdded": "Photo attached",
   "workItemsDefectPhotoHint": "The picture is usually the whole report.",
   "workItemsDefectPhotoFailed": "The defect was reported, but the photo could not be attached.",
-  "workItemsAddPhoto": "Add a photo"
+  "workItemsAddPhoto": "Add a photo",
+
+  "failureOffline": "No connection to the server. Check your network and try again.",
+  "failureTimeout": "The server took too long to respond. Please try again.",
+  "failureCancelled": "The request was cancelled.",
+  "failureCertificate": "The server certificate could not be verified.",
+  "failureBadRequest": "The request was rejected. Please check the entered data.",
+  "failureUnauthorized": "Your session has expired. Please sign in again.",
+  "failureForbidden": "You do not have permission to perform this action.",
+  "failureNotFound": "The requested item could not be found.",
+  "failureConflict": "The action conflicts with the current data.",
+  "failureServer": "The server encountered an error. Please try again later.",
+  "failureUnknown": "Something went wrong. Please try again.",
+  "crashTitle": "This screen could not be displayed",
+  "crashBody": "Something on this screen failed while it was being drawn. Go back and try again.",
+  "toolLookUpHint": "Enter the QR code printed on the tool's tag."
 }

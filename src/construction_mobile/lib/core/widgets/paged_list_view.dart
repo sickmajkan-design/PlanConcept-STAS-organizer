@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/api_failure_text.dart';
 import '../l10n/app_locales.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -155,13 +156,15 @@ class _Footer<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    if (state.loadMoreError != null) {
+    final failure = state.loadMoreFailure;
+
+    if (failure != null) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 16),
         child: Column(
           children: [
             Text(
-              state.loadMoreError!,
+              failure.describe(context.l10n),
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall,
             ),

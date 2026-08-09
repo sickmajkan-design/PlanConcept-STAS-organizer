@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/validation/validators.dart';
@@ -126,7 +127,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                     ),
                     const SizedBox(height: 24),
                     if (error != null) ...[
-                      MessageBanner(message: error.message),
+                      MessageBanner(message: error.describe(context.l10n)),
                       const SizedBox(height: 16),
                     ],
                     PasswordField(

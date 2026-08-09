@@ -1054,4 +1054,46 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get workItemsAddPhoto => 'Dodaj fotografiju';
+
+  @override
+  String get failureOffline => 'Nema veze sa serverom. Proverite mrežu i pokušajte ponovo.';
+
+  @override
+  String get failureTimeout => 'Server predugo ne odgovara. Pokušajte ponovo.';
+
+  @override
+  String get failureCancelled => 'Zahtev je otkazan.';
+
+  @override
+  String get failureCertificate => 'Sertifikat servera nije mogao da se proveri.';
+
+  @override
+  String get failureBadRequest => 'Zahtev je odbijen. Proverite unete podatke.';
+
+  @override
+  String get failureUnauthorized => 'Sesija je istekla. Prijavite se ponovo.';
+
+  @override
+  String get failureForbidden => 'Nemate dozvolu za ovu radnju.';
+
+  @override
+  String get failureNotFound => 'Traženi podatak nije pronađen.';
+
+  @override
+  String get failureConflict => 'Radnja je u sukobu sa trenutnim podacima.';
+
+  @override
+  String get failureServer => 'Greška na serveru. Pokušajte kasnije.';
+
+  @override
+  String get failureUnknown => 'Došlo je do greške. Pokušajte ponovo.';
+
+  @override
+  String get crashTitle => 'Ovaj ekran ne može da se prikaže';
+
+  @override
+  String get crashBody => 'Nešto na ovom ekranu je otkazalo pri iscrtavanju. Vratite se nazad i pokušajte ponovo.';
+
+  @override
+  String get toolLookUpHint => 'Unesite QR kod odštampan na pločici alata.';
 }

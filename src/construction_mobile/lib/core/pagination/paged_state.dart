@@ -1,4 +1,5 @@
 import '../models/paged_list.dart';
+import '../network/api_exception.dart';
 
 /// Accumulated state of an infinitely scrolling list.
 class PagedState<T> {
@@ -8,7 +9,7 @@ class PagedState<T> {
     required this.lastLoadedPage,
     required this.hasMore,
     this.isLoadingMore = false,
-    this.loadMoreError,
+    this.loadMoreFailure,
   });
 
   final List<T> items;
@@ -22,7 +23,11 @@ class PagedState<T> {
 
   /// Set when appending a page failed; the list shows a retry footer and the
   /// rows already loaded stay usable.
-  final String? loadMoreError;
+  ///
+  /// The failure rather than a sentence about it: this state outlives the
+  /// frame it was created in, and a sentence would keep the language the
+  /// device was set to when the request failed.
+  final ApiException? loadMoreFailure;
 
   bool get isEmpty => items.isEmpty;
 
@@ -42,8 +47,8 @@ class PagedState<T> {
         hasMore: page.hasNextPage,
       );
 
-  PagedState<T> failedToAppend(String message) =>
-      copyWith(isLoadingMore: false, loadMoreError: message);
+  PagedState<T> failedToAppend(ApiException failure) =>
+      copyWith(isLoadingMore: false, loadMoreFailure: failure);
 
   PagedState<T> copyWith({
     List<T>? items,
@@ -51,7 +56,7 @@ class PagedState<T> {
     int? lastLoadedPage,
     bool? hasMore,
     bool? isLoadingMore,
-    String? loadMoreError,
+    ApiException? loadMoreFailure,
     bool clearError = false,
   }) {
     return PagedState<T>(
@@ -60,7 +65,8 @@ class PagedState<T> {
       lastLoadedPage: lastLoadedPage ?? this.lastLoadedPage,
       hasMore: hasMore ?? this.hasMore,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
-      loadMoreError: clearError ? null : (loadMoreError ?? this.loadMoreError),
+      loadMoreFailure:
+          clearError ? null : (loadMoreFailure ?? this.loadMoreFailure),
     );
   }
 }

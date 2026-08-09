@@ -25,14 +25,26 @@ enum PushStatus {
 }
 
 class PushState {
-  const PushState({required this.status, this.token, this.message, this.detail});
+  const PushState({
+    required this.status,
+    this.token,
+    this.message,
+    this.failure,
+    this.detail,
+  });
 
   final PushStatus status;
   final String? token;
   /// A translatable app message; resolved by the widget that shows it.
   final AppMessage? message;
 
-  /// Server text, which cannot be translated client-side.
+  /// An API failure, kept whole so the widget can say it in the reader's
+  /// language.
+  final ApiException? failure;
+
+  /// Firebase's own text. This one really cannot be translated — it comes out
+  /// of the SDK — so it is shown as it arrives, and only when there is nothing
+  /// better.
   final String? detail;
 
   bool get isRegistered => status == PushStatus.registered;
@@ -108,7 +120,7 @@ class PushController extends Notifier<PushState> {
         ref.invalidate(notificationsControllerProvider);
       });
     } on ApiException catch (exception) {
-      state = PushState(status: PushStatus.error, detail: exception.message);
+      state = PushState(status: PushStatus.error, failure: exception);
     } on FirebaseException catch (exception) {
       state = PushState(
         status: PushStatus.error,

@@ -178,13 +178,18 @@ counting files:
 | `i18n` | Serbian's three plural forms, interpolation, which language the app opens in, and a parity check that no translation lost a `{placeholder}`. |
 | `api/resource` | Query-parameter normalisation. A dropped filter is a screen that quietly returns the wrong rows. |
 | `pages/schedule`, `pages/costs` | Date arithmetic in `YYYY-MM-DD` strings, including the timezone and daylight-saving cases that would shift a bar or a report by a day. |
+| `pages/employees` | Two whole screens — a form and a list — rendered under the real providers against a fake network: validation, the payload actually sent, a server field error reaching the right input, the edit-load, grid rows, debounced search, and the delete confirmation. This is what found the delete button that navigated instead of deleting. |
+| `components/ErrorBoundary` | A component that throws on purpose, to prove the boundary shows the fallback, that the children are gone, that a reset re-renders them, and that a changed route clears the error. |
+| `components/OfflineBanner` | `navigator.onLine` flipped under the component: the banner appears on a drop, appears when the screen opens already offline, confirms the reconnect, and does not congratulate a connection that never dropped. |
 
-Not covered: whole screens. The CRUD forms and grids have been driven
-end-to-end with Playwright scripts covering sign-in, employee and project CRUD,
-project assignment, vehicle/tool/material CRUD, tool dual assignment, material
-stock adjustment (including the 409 over-consumption case), role-gated
-navigation and the live map's graceful no-API-key state — but those scripts are
-not in this repository and do not run in CI.
+Not covered: anything only a browser can show. The screen tests run in jsdom,
+where every element has zero height — enough for the assertions above, but
+blind to layout, real scrolling and the grid's virtualisation. The CRUD forms
+and grids have been driven end-to-end with Playwright scripts covering sign-in,
+employee and project CRUD, project assignment, vehicle/tool/material CRUD, tool
+dual assignment, material stock adjustment (including the 409 over-consumption
+case), role-gated navigation and the live map's graceful no-API-key state — but
+those scripts are not in this repository and do not run in CI.
 
 ## Verification
 

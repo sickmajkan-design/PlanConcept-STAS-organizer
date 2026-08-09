@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/network/api_exception.dart';
 import '../data/attachment_repository.dart';
@@ -82,7 +83,9 @@ class _ImageBodyState extends ConsumerState<_ImageBody> {
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Text(
-                error is ApiException ? error.message : l10n.attachmentsOpenFailed,
+                error is ApiException
+                    ? error.describe(l10n)
+                    : l10n.attachmentsOpenFailed,
                 textAlign: TextAlign.center,
               ),
             ),

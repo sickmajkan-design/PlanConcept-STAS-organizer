@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/utils/formatting.dart';
@@ -145,10 +146,10 @@ class _ShiftCardState extends ConsumerState<_ShiftCard> {
                   ),
                 ),
             ],
-            if (state.error != null) ...[
+            if (state.failure != null) ...[
               const SizedBox(height: 8),
               Text(
-                state.error!,
+                state.failure!.describe(l10n),
                 style: theme.textTheme.bodySmall
                     ?.copyWith(color: theme.colorScheme.error),
               ),

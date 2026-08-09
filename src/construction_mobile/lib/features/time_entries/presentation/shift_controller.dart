@@ -15,12 +15,16 @@ import '../data/time_entry_repository.dart';
 /// can try again, and an `AsyncError` would blank it. The error rides
 /// alongside the shift instead of replacing it.
 class ShiftState {
-  const ShiftState({this.shift, this.error, this.isBusy = false});
+  const ShiftState({this.shift, this.failure, this.isBusy = false});
 
   final TimeEntry? shift;
 
-  /// Server text for a refused clock-in or clock-out, already a sentence.
-  final String? error;
+  /// Why a clock-in or clock-out was refused.
+  ///
+  /// The failure rather than its text: this controller has no locale, and a
+  /// worker who is out of signal should be told that in their own language
+  /// rather than in whichever one the network layer writes its defaults in.
+  final ApiException? failure;
 
   /// A clock action is in flight, so the button is disabled — otherwise a
   /// double tap opens two shifts.
@@ -30,14 +34,14 @@ class ShiftState {
 
   ShiftState copyWith({
     TimeEntry? shift,
-    String? error,
+    ApiException? failure,
     bool? isBusy,
     bool clearShift = false,
     bool clearError = false,
   }) {
     return ShiftState(
       shift: clearShift ? null : (shift ?? this.shift),
-      error: clearError ? null : (error ?? this.error),
+      failure: clearError ? null : (failure ?? this.failure),
       isBusy: isBusy ?? this.isBusy,
     );
   }
@@ -106,7 +110,7 @@ class ShiftController extends AsyncNotifier<ShiftState> {
       );
     } on ApiException catch (exception) {
       state = AsyncData(
-        current.copyWith(isBusy: false, error: exception.message),
+        current.copyWith(isBusy: false, failure: exception),
       );
     }
   }

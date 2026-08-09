@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/utils/formatting.dart';
@@ -66,11 +67,12 @@ class NotificationsScreen extends ConsumerWidget {
 
   Future<void> _markAllRead(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
 
     try {
       await ref.read(notificationsControllerProvider.notifier).markAllRead();
     } on ApiException catch (exception) {
-      messenger.showSnackBar(SnackBar(content: Text(exception.message)));
+      messenger.showSnackBar(SnackBar(content: Text(exception.describe(l10n))));
     }
   }
 
@@ -80,6 +82,7 @@ class NotificationsScreen extends ConsumerWidget {
     AppNotification notification,
   ) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
     final target = deepLinkFor(
       notification,
       canViewDirectory: ref.read(currentUserProvider)?.canViewDirectory ?? false,
@@ -90,7 +93,7 @@ class NotificationsScreen extends ConsumerWidget {
           .read(notificationsControllerProvider.notifier)
           .markRead(notification);
     } on ApiException catch (exception) {
-      messenger.showSnackBar(SnackBar(content: Text(exception.message)));
+      messenger.showSnackBar(SnackBar(content: Text(exception.describe(l10n))));
     }
 
     if (target != null && context.mounted) {

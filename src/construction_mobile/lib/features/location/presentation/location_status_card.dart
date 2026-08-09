@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
+import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../l10n/app_localizations.dart';
@@ -19,11 +20,12 @@ class LocationStatusCard extends ConsumerWidget {
     final state = ref.watch(locationTrackingProvider);
     final theme = Theme.of(context);
 
-    // Either an app message we can translate, or server text we cannot.
+    // Both halves are named rather than written out, so both come back in
+    // the operator's language.
+    final queued = state.queuedFailure;
+
     final detail = state.message?.resolve(l10n) ??
-        (state.queuedReason == null
-            ? null
-            : l10n.locationQueued(state.queuedReason!));
+        (queued == null ? null : l10n.locationQueued(queued.describe(l10n)));
 
     if (state.status == LocationTrackingStatus.off) {
       return const SizedBox.shrink();

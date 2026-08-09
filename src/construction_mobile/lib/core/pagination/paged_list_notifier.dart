@@ -79,7 +79,7 @@ abstract class PagedListNotifier<T> extends AsyncNotifier<PagedState<T>> {
 
       state = AsyncData((state.value ?? current).appended(page));
     } on ApiException catch (exception) {
-      state = AsyncData((state.value ?? current).failedToAppend(exception.message));
+      state = AsyncData((state.value ?? current).failedToAppend(exception));
     }
   }
 }

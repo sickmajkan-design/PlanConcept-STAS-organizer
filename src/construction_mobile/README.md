@@ -143,3 +143,23 @@ dart run tool/api_contract_check.dart
 The contract check covers authentication, employees, projects, vehicles,
 tools (including the QR lookup), materials, role gating, notifications and
 GPS reporting against a live API instance.
+
+## Failure states
+
+A failure carries an `ApiFailureKind` — offline, timeout, forbidden, conflict
+and the rest — rather than a finished sentence. The network layer has no
+`BuildContext` and no locale, so anything it wrote would be English in front of
+a Serbian foreman; `describe(l10n)` in `core/l10n/api_failure_text.dart` turns
+the kind into a sentence where the language is known, and a failure sitting in
+a controller's state re-reads in the new language if the operator switches it.
+
+Two rules follow the kind. The icon: being out of signal looks like being out
+of signal, which is the state a site phone spends most of its day in. And
+whether "try again" appears at all — it does not for a 403, because the same
+request will be refused again and a button that does nothing twice is worse
+than no button.
+
+The one exception is text the server wrote itself. A `detail` naming the
+employee number that clashed is worth more than a translated generality, so it
+survives; a `title` ("Conflict", "An unexpected error occurred") is a status
+phrase and does not count as the server having said anything.

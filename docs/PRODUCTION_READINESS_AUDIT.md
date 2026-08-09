@@ -66,7 +66,7 @@ Re-measured, with the first pass's figures in brackets where they have moved.
 | `Construction.Infrastructure` | 2,676 (3,296) | EF Core, JWT issuing, SMTP, FCM. Shrank as logic moved inwards. |
 | `Construction.API` | 4,057 (1,381) | 118 endpoints across 17 controllers. Still thin. |
 | `tests` | 15,342 (2,252) | **902 backend tests** (378 unit + 524 integration). |
-| `construction_admin/src` | 18,779 (6,997) | React 19 + MUI 9 + TanStack Query 5. 155 Vitest cases. |
+| `construction_admin/src` | 18,779 (6,997) | React 19 + MUI 9 + TanStack Query 5. 184 Vitest cases. |
 | `construction_mobile/lib` | 22,114 (6,447) | Flutter, feature-first, Riverpod. |
 | `construction_mobile/test` | 2,339 (1,473) | 168 tests. |
 
@@ -98,12 +98,14 @@ onto shared `useListQueryState` / `ResourceDataGrid` / `useDeleteWithConfirm`.
 
 **Issues:**
 
-- ~~**No tests at all.**~~ There is now a Vitest suite (155 cases) running in
+- ~~**No tests at all.**~~ There is now a Vitest suite (184 cases) running in
   CI alongside `tsc -b` and oxlint. It covers the pieces whose failure is
   silent — token refresh, route guards for all five roles, i18n plurals and
   dictionary parity, query-parameter normalisation, the live map's page
-  request. **Still uncovered: whole screens.** A regression in a CRUD form or
-  a grid would reach the client, which is the remaining half of H1.
+  request — and, since H1's second half, whole screens: a CRUD form and a list
+  page rendered under the real providers against a fake network. What remains
+  uncovered is anything only a browser can show: layout, real scrolling, the
+  grid's virtualisation. See H1.
 - ~~**Session in `localStorage`.**~~ The refresh token is now an `HttpOnly`,
   `SameSite=Strict` cookie scoped to `/api/auth`, and the API omits it from the
   response body when the client asks for cookie delivery — so it never passes
@@ -111,8 +113,14 @@ onto shared `useListQueryState` / `ResourceDataGrid` / `useDeleteWithConfirm`.
   `localStorage`, which is accepted: fifteen minutes, rotated on every refresh.
 - **Bundle: 409 kB main chunk + 471 kB shared chunk** (127/138 kB gzipped).
   Acceptable on office broadband, sluggish on a site tablet over 4G.
-- **No error boundary** — a render error in one page blanks the whole app.
-- **No optimistic updates or offline tolerance**; every action needs a round trip.
+- ~~**No error boundary**~~ — two now: a per-route one inside the layout, keyed
+  on the pathname so leaving the broken screen is the recovery, and a
+  provider-level one whose fallback imports nothing (M8).
+- ~~**No offline tolerance**~~ *(partly)* — a banner now says the machine is
+  offline and why the screen has stopped moving, which is the gap that mattered:
+  React Query pauses rather than fails without a network, so the app used to
+  look slow instead of disconnected. Still no optimistic updates and no cache;
+  every action needs a round trip.
 
 ### Flutter mobile app
 
@@ -766,7 +774,37 @@ change, in one place.
   fronted by something that does not filter.
 - **M7.** Dependency and secret scanning in CI (Dependabot, CodeQL, `npm audit`,
   `dotnet list package --vulnerable`).
-- **M8.** React error boundaries; friendly offline/failure states in both clients.
+- **M8.** React error boundaries; friendly offline/failure states in both
+  clients — **done.**
+
+  *Admin.* Two boundaries. The per-route one sits inside the layout and is
+  keyed on the pathname, so a screen that throws leaves the drawer and app bar
+  standing and navigating away is the recovery; before it, a render error
+  unmounted the whole tree and left a white page with no navigation. The root
+  one wraps the providers and so cannot use any of them — no MUI, no i18n, no
+  router — and says it in both languages at once, because choosing one would
+  mean asking the provider that may have just thrown.
+
+  An offline banner sits above every screen and above the sign-in card. It is
+  there because of React Query's default `networkMode`: without a network a
+  query is *paused*, not failed, so the screen showed a spinner that never
+  resolved and no error state ever appeared. It also confirms the reconnect,
+  which is the moment paused queries resume and stale figures start moving
+  again.
+
+  *Mobile.* `ApiException` now carries an `ApiFailureKind` — offline, timeout,
+  forbidden, conflict and so on — separately from its English text, and
+  `describe(l10n)` turns it into a sentence where the language is known.
+  Failure text used to be written in the network layer, which has no locale, so
+  every transport failure reached a Serbian foreman in English. The kind also
+  chooses the icon and decides whether "try again" is honest (it is not, for a
+  403). `ErrorWidget.builder` replaces Flutter's release-mode grey rectangle
+  with a panel that says what happened; debug keeps the red screen, which is
+  the one place a stack trace is worth reading.
+
+  Not done: neither client detects "connected to a captive portal that goes
+  nowhere", which is a site wireless's favourite state. `navigator.onLine`
+  reports `true` for it and Dio finds out only by timing out.
 - **M9.** Offline cache in the mobile app — construction sites have poor
   coverage and the app is currently unusable without a connection.
 - **M10.** Practise an incremental migration and a rollback before the first

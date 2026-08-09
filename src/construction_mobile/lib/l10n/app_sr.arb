@@ -376,5 +376,20 @@
   "workItemsDefectPhotoAdded": "Fotografija priložena",
   "workItemsDefectPhotoHint": "Slika je obično ceo izveštaj.",
   "workItemsDefectPhotoFailed": "Nedostatak je prijavljen, ali fotografija nije priložena.",
-  "workItemsAddPhoto": "Dodaj fotografiju"
+  "workItemsAddPhoto": "Dodaj fotografiju",
+
+  "failureOffline": "Nema veze sa serverom. Proverite mrežu i pokušajte ponovo.",
+  "failureTimeout": "Server predugo ne odgovara. Pokušajte ponovo.",
+  "failureCancelled": "Zahtev je otkazan.",
+  "failureCertificate": "Sertifikat servera nije mogao da se proveri.",
+  "failureBadRequest": "Zahtev je odbijen. Proverite unete podatke.",
+  "failureUnauthorized": "Sesija je istekla. Prijavite se ponovo.",
+  "failureForbidden": "Nemate dozvolu za ovu radnju.",
+  "failureNotFound": "Traženi podatak nije pronađen.",
+  "failureConflict": "Radnja je u sukobu sa trenutnim podacima.",
+  "failureServer": "Greška na serveru. Pokušajte kasnije.",
+  "failureUnknown": "Došlo je do greške. Pokušajte ponovo.",
+  "crashTitle": "Ovaj ekran ne može da se prikaže",
+  "crashBody": "Nešto na ovom ekranu je otkazalo pri iscrtavanju. Vratite se nazad i pokušajte ponovo.",
+  "toolLookUpHint": "Unesite QR kod odštampan na pločici alata."
 }

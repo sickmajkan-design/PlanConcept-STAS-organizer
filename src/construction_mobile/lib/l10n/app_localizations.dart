@@ -2017,6 +2017,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add a photo'**
   String get workItemsAddPhoto;
+
+  /// No description provided for @failureOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection to the server. Check your network and try again.'**
+  String get failureOffline;
+
+  /// No description provided for @failureTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'The server took too long to respond. Please try again.'**
+  String get failureTimeout;
+
+  /// No description provided for @failureCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'The request was cancelled.'**
+  String get failureCancelled;
+
+  /// No description provided for @failureCertificate.
+  ///
+  /// In en, this message translates to:
+  /// **'The server certificate could not be verified.'**
+  String get failureCertificate;
+
+  /// No description provided for @failureBadRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'The request was rejected. Please check the entered data.'**
+  String get failureBadRequest;
+
+  /// No description provided for @failureUnauthorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session has expired. Please sign in again.'**
+  String get failureUnauthorized;
+
+  /// No description provided for @failureForbidden.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have permission to perform this action.'**
+  String get failureForbidden;
+
+  /// No description provided for @failureNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'The requested item could not be found.'**
+  String get failureNotFound;
+
+  /// No description provided for @failureConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'The action conflicts with the current data.'**
+  String get failureConflict;
+
+  /// No description provided for @failureServer.
+  ///
+  /// In en, this message translates to:
+  /// **'The server encountered an error. Please try again later.'**
+  String get failureServer;
+
+  /// No description provided for @failureUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get failureUnknown;
+
+  /// No description provided for @crashTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'This screen could not be displayed'**
+  String get crashTitle;
+
+  /// No description provided for @crashBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Something on this screen failed while it was being drawn. Go back and try again.'**
+  String get crashBody;
+
+  /// No description provided for @toolLookUpHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the QR code printed on the tool\'s tag.'**
+  String get toolLookUpHint;
 }
 
 class _AppLocalizationsDelegate

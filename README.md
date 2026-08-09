@@ -144,7 +144,10 @@ cd src/construction_admin && npm run build     # admin: type-check + bundle
 The admin suite now includes whole-screen tests: a CRUD form and a list page
 rendered under the real providers against a fake network, covering validation,
 the payload actually sent, field-error routing, the edit-load, grid rows,
-search, and the delete confirmation.
+search, and the delete confirmation. It also covers the failure paths added in
+M8 — a component that throws on purpose, to prove the error boundary shows its
+fallback and clears on navigation, and `navigator.onLine` flipped underneath
+the offline banner.
 
 > **Known gap.** No browser-level end-to-end run. The screen tests use jsdom,
 > where every element has zero height — enough for the assertions above, but it

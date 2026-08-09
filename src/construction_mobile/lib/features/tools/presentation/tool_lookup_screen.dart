@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/l10n/enum_labels.dart';
@@ -26,7 +27,9 @@ class ToolLookupScreen extends ConsumerStatefulWidget {
 class _ToolLookupScreenState extends ConsumerState<ToolLookupScreen> {
   final _controller = TextEditingController();
   bool _isLoading = false;
-  String? _errorMessage;
+  /// The failure itself, not a sentence about it, so it re-reads in the
+  /// operator's language if they switch it while the message is on screen.
+  ApiException? _failure;
   Tool? _result;
 
   @override
@@ -44,7 +47,7 @@ class _ToolLookupScreenState extends ConsumerState<ToolLookupScreen> {
 
     setState(() {
       _isLoading = true;
-      _errorMessage = null;
+      _failure = null;
       _result = null;
     });
 
@@ -55,7 +58,7 @@ class _ToolLookupScreenState extends ConsumerState<ToolLookupScreen> {
       setState(() => _result = tool);
     } on ApiException catch (exception) {
       if (!mounted) return;
-      setState(() => _errorMessage = exception.message);
+      setState(() => _failure = exception);
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -72,7 +75,7 @@ class _ToolLookupScreenState extends ConsumerState<ToolLookupScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             Text(
-              'Enter the QR code printed on the tool\'s tag.',
+              context.l10n.toolLookUpHint,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
@@ -99,13 +102,13 @@ class _ToolLookupScreenState extends ConsumerState<ToolLookupScreen> {
               label: Text(context.l10n.toolLookUpAction),
             ),
             const SizedBox(height: 24),
-            if (_errorMessage != null)
+            if (_failure != null)
               Card(
                 color: Theme.of(context).colorScheme.errorContainer,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
-                    _errorMessage!,
+                    _failure!.describe(context.l10n),
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onErrorContainer,
                     ),

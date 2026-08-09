@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/network/api_exception.dart';
@@ -106,7 +107,9 @@ class _RecordExpenseSheetState extends ConsumerState<_RecordExpenseSheet> {
             vehicles.when(
               loading: () => const LinearProgressIndicator(),
               error: (error, _) => Text(
-                error is ApiException ? error.message : l10n.errorUnknown,
+                error is ApiException
+                    ? error.describe(l10n)
+                    : l10n.errorUnknown,
                 style: TextStyle(color: theme.colorScheme.error),
               ),
               data: (options) => DropdownButtonFormField<String>(
@@ -238,7 +241,7 @@ class _RecordExpenseSheetState extends ConsumerState<_RecordExpenseSheet> {
       navigator.pop();
       messenger.showSnackBar(SnackBar(content: Text(l10n.vehicleExpensesSent)));
     } on ApiException catch (exception) {
-      messenger.showSnackBar(SnackBar(content: Text(exception.message)));
+      messenger.showSnackBar(SnackBar(content: Text(exception.describe(l10n))));
 
       if (mounted) {
         setState(() => _busy = false);

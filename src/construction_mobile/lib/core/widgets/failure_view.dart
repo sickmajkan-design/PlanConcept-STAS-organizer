@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/api_failure_text.dart';
 import '../l10n/app_locales.dart';
 
 import '../network/api_exception.dart';
 
 /// Full-screen failure state with a retry action.
+///
+/// Every list and detail screen ends up here when a load fails, so it is the
+/// one place worth getting right: it is what a foreman sees when the signal
+/// drops halfway up a building.
 class FailureView extends StatelessWidget {
   const FailureView({super.key, required this.error, this.onRetry});
 
@@ -14,13 +19,15 @@ class FailureView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = context.l10n;
 
-    final message = error is ApiException
-        ? (error as ApiException).message
-        : 'Something went wrong. Please try again.';
+    // Anything that is not an ApiException came from our own code rather than
+    // from the wire, and there is nothing useful to say about it beyond that
+    // it happened.
+    final failure = error is ApiException ? error as ApiException : null;
+    final kind = failure?.kind ?? ApiFailureKind.unknown;
 
-    final isPermission =
-        error is ApiException && (error as ApiException).statusCode == 403;
+    final message = failure?.describe(l10n) ?? l10n.failureUnknown;
 
     return Center(
       child: Padding(
@@ -29,7 +36,7 @@ class FailureView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              isPermission ? Icons.lock_outline : Icons.cloud_off,
+              kind.icon,
               size: 48,
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -39,7 +46,7 @@ class FailureView extends StatelessWidget {
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyLarge,
             ),
-            if (onRetry != null && !isPermission) ...[
+            if (onRetry != null && kind.isRetryable) ...[
               const SizedBox(height: 24),
               OutlinedButton.icon(
                 onPressed: onRetry,

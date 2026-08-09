@@ -34,7 +34,7 @@ class LocationTrackingState {
     this.lastReportedAt,
     this.pendingCount = 0,
     this.message,
-    this.queuedReason,
+    this.queuedFailure,
   });
 
   final LocationTrackingStatus status;
@@ -46,8 +46,12 @@ class LocationTrackingState {
   /// A translatable app message; resolved by the widget that shows it.
   final AppMessage? message;
 
-  /// Server text for a queued batch, which cannot be translated client-side.
-  final String? queuedReason;
+  /// Why a batch of pings is still sitting in the queue.
+  ///
+  /// The failure, not a sentence: this is the state a phone sits in for an
+  /// hour at a time on a site with no signal, and it should be readable in the
+  /// operator's language for all of it.
+  final ApiException? queuedFailure;
 
   bool get isTracking =>
       status == LocationTrackingStatus.active ||
@@ -58,7 +62,7 @@ class LocationTrackingState {
     DateTime? lastReportedAt,
     int? pendingCount,
     AppMessage? message,
-    String? queuedReason,
+    ApiException? queuedFailure,
     bool clearMessage = false,
   }) {
     return LocationTrackingState(
@@ -66,7 +70,8 @@ class LocationTrackingState {
       lastReportedAt: lastReportedAt ?? this.lastReportedAt,
       pendingCount: pendingCount ?? this.pendingCount,
       message: clearMessage ? null : (message ?? this.message),
-      queuedReason: clearMessage ? null : (queuedReason ?? this.queuedReason),
+      queuedFailure:
+          clearMessage ? null : (queuedFailure ?? this.queuedFailure),
     );
   }
 }
@@ -259,7 +264,7 @@ class LocationTrackingController extends Notifier<LocationTrackingState> {
 
       state = state.copyWith(
         pendingCount: queue.length,
-        queuedReason: exception.message,
+        queuedFailure: exception,
       );
     } finally {
       _busy = false;

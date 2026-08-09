@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/network/api_exception.dart';
@@ -199,17 +200,18 @@ class _WorkItemCard extends ConsumerWidget {
 
       messenger.showSnackBar(SnackBar(content: Text(l10n.attachmentsUploaded)));
     } on ApiException catch (exception) {
-      messenger.showSnackBar(SnackBar(content: Text(exception.message)));
+      messenger.showSnackBar(SnackBar(content: Text(exception.describe(l10n))));
     }
   }
 
   Future<void> _move(BuildContext context, WidgetRef ref, String status) async {
     final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
 
     try {
       await ref.read(myWorkControllerProvider.notifier).changeStatus(item, status);
     } on ApiException catch (exception) {
-      messenger.showSnackBar(SnackBar(content: Text(exception.message)));
+      messenger.showSnackBar(SnackBar(content: Text(exception.describe(l10n))));
     }
   }
 }

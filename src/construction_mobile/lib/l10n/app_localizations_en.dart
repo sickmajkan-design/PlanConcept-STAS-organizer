@@ -1064,4 +1064,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get workItemsAddPhoto => 'Add a photo';
+
+  @override
+  String get failureOffline => 'No connection to the server. Check your network and try again.';
+
+  @override
+  String get failureTimeout => 'The server took too long to respond. Please try again.';
+
+  @override
+  String get failureCancelled => 'The request was cancelled.';
+
+  @override
+  String get failureCertificate => 'The server certificate could not be verified.';
+
+  @override
+  String get failureBadRequest => 'The request was rejected. Please check the entered data.';
+
+  @override
+  String get failureUnauthorized => 'Your session has expired. Please sign in again.';
+
+  @override
+  String get failureForbidden => 'You do not have permission to perform this action.';
+
+  @override
+  String get failureNotFound => 'The requested item could not be found.';
+
+  @override
+  String get failureConflict => 'The action conflicts with the current data.';
+
+  @override
+  String get failureServer => 'The server encountered an error. Please try again later.';
+
+  @override
+  String get failureUnknown => 'Something went wrong. Please try again.';
+
+  @override
+  String get crashTitle => 'This screen could not be displayed';
+
+  @override
+  String get crashBody => 'Something on this screen failed while it was being drawn. Go back and try again.';
+
+  @override
+  String get toolLookUpHint => 'Enter the QR code printed on the tool\'s tag.';
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/l10n/locale_controller.dart';
 import '../../../core/network/api_exception.dart';
@@ -133,11 +134,14 @@ class HomeScreen extends ConsumerWidget {
 
   Future<void> _refreshProfile(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
+    // Read before the await, with the messenger and for the same reason: the
+    // context may be gone by the time the request fails.
+    final l10n = context.l10n;
 
     try {
       await ref.read(authControllerProvider.notifier).refreshProfile();
     } on ApiException catch (exception) {
-      messenger.showSnackBar(SnackBar(content: Text(exception.message)));
+      messenger.showSnackBar(SnackBar(content: Text(exception.describe(l10n))));
     }
   }
 
@@ -176,9 +180,7 @@ class HomeScreen extends ConsumerWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(context.l10n.commonSignOutQuestion),
-        content: const Text(
-          'You will need to sign in again to use the app.',
-        ),
+        content: Text(context.l10n.commonSignOutBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
@@ -286,7 +288,8 @@ class _PushStatusNotice extends ConsumerWidget {
       PushStatus.permissionDenied => l10n.notificationsBlockedBody,
       PushStatus.unconfigured => l10n.notificationsNotConfiguredBody,
       // Either a message of ours or, failing that, whatever the platform said.
-      PushStatus.error => push.message?.resolve(l10n) ?? push.detail,
+      PushStatus.error =>
+        push.message?.resolve(l10n) ?? push.failure?.describe(l10n) ?? push.detail,
       _ => null,
     };
 
