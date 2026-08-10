@@ -120,27 +120,34 @@ if (( build )); then
 fi
 
 echo
-echo '--- pulling the base images'
+echo '--- pulling the third-party images'
 
-# Retried, because Docker Hub is somebody else's server and it fails. The
-# third run of this in CI died on a plain HTTP 500 from the registry, with
-# nothing wrong on this side at all. A check that goes red on another
-# company's bad minute is a check people learn to re-run without reading, and
-# then they re-run the real failures without reading too.
+# Named explicitly, and this matters: `compose pull` with no arguments tries
+# to pull *every* service, including the two images built a moment ago and
+# tagged locally. Those exist nowhere but this machine, so the registry
+# answers "pull access denied" and the whole run dies on images that are
+# already present. Only postgres and caddy come from outside; `backup` reuses
+# the postgres image.
+#
+# Retried, because Docker Hub is somebody else's server and it fails: the
+# previous run of this died on a plain HTTP 500 from the registry with nothing
+# wrong on this side. A check that goes red on another company's bad minute is
+# one people learn to re-run without reading, and then they re-run the real
+# failures without reading either.
 pulled=0
 for attempt in 1 2 3; do
-    if compose pull --quiet; then
+    if compose pull --quiet postgres caddy; then
         pulled=1
         break
     fi
 
-    echo "registry pull failed (attempt ${attempt}); retrying" >&2
+    echo "pulling postgres and caddy failed (attempt ${attempt}); retrying" >&2
     sleep $((attempt * 10))
 done
 
 if (( ! pulled )); then
-    printf '%sCould not pull the base images after three attempts.%s\n' "$RED" "$RESET"
-    printf 'This is the registry, not the stack. Try again later.\n'
+    printf '%sCould not pull postgres and caddy after three attempts.%s\n' "$RED" "$RESET"
+    printf 'Check the registry is reachable before looking at the stack.\n'
     exit 1
 fi
 
