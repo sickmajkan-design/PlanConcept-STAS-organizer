@@ -15,17 +15,23 @@ public class DbInitializer
 {
     private readonly ApplicationDbContext _context;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly ILocationPartitions _locationPartitions;
+    private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IConfiguration _configuration;
     private readonly ILogger<DbInitializer> _logger;
 
     public DbInitializer(
         ApplicationDbContext context,
         IPasswordHasher passwordHasher,
+        ILocationPartitions locationPartitions,
+        IDateTimeProvider dateTimeProvider,
         IConfiguration configuration,
         ILogger<DbInitializer> logger)
     {
         _context = context;
         _passwordHasher = passwordHasher;
+        _locationPartitions = locationPartitions;
+        _dateTimeProvider = dateTimeProvider;
         _configuration = configuration;
         _logger = logger;
     }
@@ -43,8 +49,26 @@ public class DbInitializer
             await _context.Database.MigrateAsync(cancellationToken);
         }
 
+        // Before anything can be written, not on a timer. The retention sweep
+        // keeps them topped up afterwards, but it first runs hours from now,
+        // and location_records refuses a row whose month has no partition —
+        // an instance that came up without them would drop every ping into the
+        // DEFAULT partition until the first sweep.
+        await _locationPartitions.EnsureAsync(
+            _dateTimeProvider.UtcNow, MonthsOfPartitionsAhead, cancellationToken);
+
         await SeedSuperAdminAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// How far ahead monthly partitions are created.
+    /// </summary>
+    /// <remarks>
+    /// Three months, so a deployment that is not restarted and whose retention
+    /// sweep is broken still has somewhere to put a ping for a full quarter
+    /// before the DEFAULT partition starts catching them.
+    /// </remarks>
+    public const int MonthsOfPartitionsAhead = 3;
 
     private async Task SeedSuperAdminAsync(CancellationToken cancellationToken)
     {

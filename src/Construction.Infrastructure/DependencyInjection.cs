@@ -68,6 +68,7 @@ public static class DependencyInjection
         });
 
         services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<ApplicationDbContext>());
+        services.AddScoped<ILocationPartitions, LocationPartitions>();
         services.AddScoped<DbInitializer>();
     }
 

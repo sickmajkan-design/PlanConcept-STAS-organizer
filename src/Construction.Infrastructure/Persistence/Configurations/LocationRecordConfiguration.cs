@@ -10,7 +10,18 @@ public class LocationRecordConfiguration : IEntityTypeConfiguration<LocationReco
     {
         builder.ToTable("location_records");
 
-        builder.HasKey(l => l.Id);
+        // (Id, Timestamp), not Id.
+        //
+        // The table is partitioned by month on Timestamp, and PostgreSQL
+        // requires the partition key to be part of every unique constraint —
+        // it cannot enforce uniqueness across partitions it would have to scan
+        // all of. Id alone is still unique in practice because it comes from
+        // one identity sequence shared by every partition; the composite key
+        // is what makes that enforceable.
+        //
+        // Nothing loads a ping by its id — they are written once and read by
+        // employee and time range — so this costs no call site.
+        builder.HasKey(l => new { l.Id, l.Timestamp });
 
         builder.Property(l => l.Id)
             .UseIdentityAlwaysColumn();

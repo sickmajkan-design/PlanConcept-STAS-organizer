@@ -787,17 +787,50 @@ Asserted by hosting the API against a connection string pointing at a port
 nobody listens on: liveness stays 200, readiness goes 503. Making liveness
 check the database fails both of those tests.
 
-**H5. `location_records` retention or partitioning.** — **retention done,
-partitioning still open.** `DataRetentionService` sweeps every six hours and
+**H5. `location_records` retention or partitioning.** — **both done.**
+
+`DataRetentionService` sweeps every six hours and
 deletes pings older than `Retention:LocationRecordDays`, which ships at 180.
 Deletes are batched (`LIMIT`-bounded statements, capped per sweep) so one run
 cannot hold a lock over a year of rows, and an interrupted run has still made
 progress. Setting the value to 0 keeps everything and logs a warning at startup
 saying so.
 
-Partitioning remains the answer at a much larger scale, and is still cheaper to
-adopt before the table is large than after. Retention removes the immediate
-backup, restore-time and disk problem, and the data-protection one behind it.
+**Partitioning is now done too**, on the argument that it is cheaper to adopt
+before the table is large than after. `location_records` is range-partitioned
+by month on `Timestamp`, and retention drops whole expired months as a
+catalogue change instead of deleting them row by row — the same data gone in
+milliseconds, with the space returned immediately rather than left behind for
+autovacuum. The straddling month and anything else left over are still deleted
+by row, so the two mechanisms cover each other.
+
+*What it costs, and why that is the interesting part.* A partitioned table
+**refuses** a row whose month has no partition, so a maintenance job nobody
+noticed had stopped would become rejected GPS pings on the busiest write path
+in the system. Three things stop that:
+
+- partitions are created three months ahead, at every start-up **and** on every
+  retention sweep, so neither a long-running instance nor a fresh one is
+  waiting on the other;
+- a DEFAULT partition sits underneath and catches anything unforeseen — the row
+  is stored, readable, and still purged by row; only its ability to be dropped
+  as part of a month is lost;
+- the drop reads each partition's real upper bound from the catalogue rather
+  than parsing its name, and anything it cannot read is left alone. DEFAULT has
+  no bound, so it can never be dropped.
+
+*Verified rather than reasoned about.* The migration was applied to a database
+seeded with 4,554 pings across five months: row count, id sum and coordinate
+sum were byte-identical afterwards, the rows landed in the right monthly
+partitions, and the identity sequence continued at 4,555 instead of colliding
+from 1. `Down` was run too and preserved every row. Twelve tests cover the
+behaviour, including the one that matters most — a ping for a month with no
+partition is still stored — which was checked by deleting the DEFAULT partition
+and confirming it fails with PostgreSQL's own `no partition of relation
+"location_records" found for row`.
+
+Operator notes, including what to do if the DEFAULT partition is ever
+non-empty, are in PROVISIONING.md §5.4a.
 
 **H6. Account lockout / progressive delays** on repeated failed logins, and
 **close the login timing oracle** (`LoginCommand.cs:60-66` short-circuits
@@ -1350,7 +1383,8 @@ boundary is asserted by a test.
 ### Milestone 4 — Make it lawful and usable (2 weeks, runs parallel to 3)
 - C7 privacy notice, lawful basis, DPIA, retention policy, subject-access and
   erasure paths — with the client's legal counsel
-- H5 implement the retention decision (partitioning/pruning)
+- ~~H5 implement the retention decision (partitioning/pruning)~~ — done; monthly
+  partitions, dropped whole when they expire
 - ~~H9 localisation~~ — done
 - H11 decide and enforce resource-scoped authorization
 - User documentation and a support runbook

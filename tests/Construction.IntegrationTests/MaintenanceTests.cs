@@ -1,6 +1,7 @@
 using Construction.Application.Features.Maintenance.Commands.PurgeExpiredData;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
+using Construction.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace Construction.IntegrationTests;
@@ -225,6 +226,98 @@ public class MaintenanceTests : IntegrationTestBase
 
     private Task<int> PingCountAsync(Guid employeeId) =>
         InScope(scope => scope.Db.LocationRecords.CountAsync(r => r.EmployeeId == employeeId));
+
+    /// <summary>
+    /// A month that is entirely expired is dropped, not deleted row by row.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This is the whole point of partitioning the table. A month of pings for
+    /// a hundred people is well over a million rows; deleting them writes as
+    /// much WAL as inserting them did and leaves the space behind until
+    /// autovacuum catches up, while dropping the partition is a catalogue
+    /// change that returns it at once.
+    /// </para>
+    /// <para>
+    /// The dropped rows are deliberately absent from <c>LocationRecords</c>,
+    /// which counts rows deleted. Counting the rows in a partition means
+    /// scanning it — the work the drop exists to avoid — so the result reports
+    /// partitions dropped separately rather than paying for a tidier number.
+    /// </para>
+    /// <para>
+    /// The month used here is far older than any other test's, because
+    /// partitions are shared state in one database: creating one for a month
+    /// another test seeds into would change whether that test's rows are
+    /// dropped or deleted, and its assertion counts deletions.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public async Task An_entirely_expired_month_is_dropped_rather_than_deleted()
+    {
+        var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+
+        // Years back, so the whole month sits well before any cutoff these
+        // tests use, and far from the months the other cases seed into.
+        var ancient = DateTime.UtcNow.AddDays(-2_000);
+        var partition = LocationPartitions.NameFor(ancient);
+
+        await InScope(async scope =>
+        {
+            await scope.LocationPartitions.EnsureAsync(
+                ancient, monthsAhead: 0, CancellationToken.None);
+
+            for (var i = 0; i < 20; i++)
+            {
+                scope.Db.LocationRecords.Add(new LocationRecord
+                {
+                    EmployeeId = employee.Id,
+                    Latitude = 44.8,
+                    Longitude = 20.4,
+                    Timestamp = ancient.AddMinutes(i),
+                    ReceivedAt = ancient.AddMinutes(i),
+                });
+            }
+
+            await scope.Db.SaveChangesAsync();
+        });
+
+        Assert.Equal(20, await PingCountAsync(employee.Id));
+
+        var result = await InScope(scope =>
+            scope.Send(Sweep(locations: TimeSpan.FromDays(180))));
+
+        Assert.True(
+            result.LocationPartitionsDropped >= 1,
+            "the expired month should have been dropped as a partition");
+
+        // Gone from the catalogue, and gone from the table.
+        Assert.False(await RelationExistsAsync(partition));
+        Assert.Equal(0, await PingCountAsync(employee.Id));
+    }
+
+    /// <summary>Does a table or partition of this name exist?</summary>
+    private Task<bool> RelationExistsAsync(string name) =>
+        InScope(async scope =>
+        {
+            await using var command = scope.Db.Database.GetDbConnection().CreateCommand();
+            command.CommandText = "SELECT to_regclass(@name) IS NOT NULL";
+
+            var parameter = command.CreateParameter();
+            parameter.ParameterName = "name";
+            parameter.Value = name;
+            command.Parameters.Add(parameter);
+
+            await scope.Db.Database.OpenConnectionAsync();
+
+            try
+            {
+                return await command.ExecuteScalarAsync() is true;
+            }
+            finally
+            {
+                await scope.Db.Database.CloseConnectionAsync();
+            }
+        });
 
     [Fact]
     public async Task Pings_older_than_the_window_go_and_the_rest_stay()

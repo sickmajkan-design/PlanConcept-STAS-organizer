@@ -376,6 +376,49 @@ gasi i migracije se puštaju kao zaseban korak pre rolovanja. /
 one API container. Two replicas would race. If a second replica is ever added,
 turn this off and run migrations as their own step.
 
+### 5.4a GPS particije / The GPS partitions
+
+**SR** — `location_records` je podeljena na mesečne particije. Retencija tako
+briše ceo mesec jednom DDL naredbom umesto milion redova, ali particionisana
+tabela odbija red za mesec koji nema particiju — a to bi bio izgubljen GPS
+ping. Zato:
+
+- particije se prave **unapred**, tri meseca, pri svakom pokretanju API-ja i
+  pri svakom prolasku retencije;
+- ispod svega stoji `location_records_unpartitioned` (DEFAULT particija), koja
+  hvata sve nepredviđeno. Redovi u njoj su potpuno ispravni i čitljivi.
+
+**Ta particija treba da bude prazna.** Ako nije, održavanje je negde stalo:
+
+```sql
+SELECT count(*) FROM location_records_unpartitioned;
+```
+
+Ako ima redova, API to prijavljuje kao grešku pri sledećem pokušaju pravljenja
+tog meseca — PostgreSQL neće da izdvoji opseg ispod redova koji već postoje.
+Ništa nije izgubljeno; taj mesec se samo ne može obrisati kao celina dok se
+redovi ne presele. Postupak je u dokumentaciji PostgreSQL-a pod „attaching a
+partition"; u praksi: napravi tabelu iste strukture, prebaci redove tog meseca
+iz DEFAULT-a u nju, obriši ih iz DEFAULT-a, pa je zakači kao particiju — sve u
+jednoj transakciji. /
+
+**EN** — `location_records` is partitioned by month. Retention drops a whole
+month as one DDL statement instead of deleting a million rows, but a
+partitioned table refuses a row whose month has no partition — and that row is
+a lost GPS ping. So:
+
+- partitions are created **ahead**, three months out, at every API start and on
+  every retention sweep;
+- underneath sits `location_records_unpartitioned`, the DEFAULT partition,
+  catching anything unforeseen. Rows in it are perfectly valid and readable.
+
+**It should be empty.** If it is not, maintenance stopped somewhere. The API
+logs an error the next time it tries to create that month, because PostgreSQL
+will not carve a range out from under existing rows. Nothing is lost; that
+month simply cannot be dropped as a unit until the rows are moved — create a
+like-structured table, move that month's rows into it, delete them from
+DEFAULT, and attach it as a partition, all in one transaction.
+
 ### 5.5 Provera da stack stvarno radi / Proving the stack works
 
 ```

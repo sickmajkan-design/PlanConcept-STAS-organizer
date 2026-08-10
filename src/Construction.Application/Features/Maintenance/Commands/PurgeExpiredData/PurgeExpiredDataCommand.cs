@@ -15,6 +15,18 @@ public record PurgeResult(
     int TimeEntryCoordinates,
     int IdempotencyRecords)
 {
+    /// <summary>
+    /// Whole monthly partitions of <c>location_records</c> dropped this sweep.
+    /// </summary>
+    /// <remarks>
+    /// Deliberately not folded into <see cref="Total"/>, and not counted in
+    /// rows. Counting the rows in a partition means scanning it, which is the
+    /// work the drop exists to avoid — so what gets reported is the honest
+    /// thing that was done, rather than an expensive number that looks tidier
+    /// beside the others.
+    /// </remarks>
+    public int LocationPartitionsDropped { get; init; }
+
     public int Total =>
         RefreshTokens + PasswordResetTokens + LocationRecords + OutboxMessages
         + AuditEntries + TimeEntryCoordinates + IdempotencyRecords;
@@ -189,14 +201,20 @@ public class PurgeExpiredDataCommandHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ILocationPartitions _locationPartitions;
 
     public PurgeExpiredDataCommandHandler(
         IApplicationDbContext context,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        ILocationPartitions locationPartitions)
     {
         _context = context;
         _dateTimeProvider = dateTimeProvider;
+        _locationPartitions = locationPartitions;
     }
+
+    /// <summary>How far ahead monthly partitions are kept, matching start-up.</summary>
+    public const int MonthsOfPartitionsAhead = 3;
 
     public async Task<PurgeResult> Handle(
         PurgeExpiredDataCommand request,
@@ -217,16 +235,37 @@ public class PurgeExpiredDataCommandHandler
             cancellationToken);
 
         var locations = 0;
+        var partitionsDropped = 0;
 
         if (request.LocationRecordRetention is { } retention)
         {
             // On Timestamp, the moment the device says it was there, rather
             // than ReceivedAt: a phone that was offline for a week uploads a
             // week-old ping, and the age that matters is the age of the fact.
+            var cutoff = utcNow - retention;
+
+            // Whole months first, as a catalogue change. This is the reason
+            // the table is partitioned: a month of pings for a hundred people
+            // is well over a million rows, and dropping the partition returns
+            // the space immediately instead of writing as much WAL as the
+            // inserts did and leaving the table bloated until autovacuum
+            // catches up.
+            partitionsDropped =
+                (await _locationPartitions.DropExpiredAsync(cutoff, cancellationToken)).Count;
+
+            // Then by row, for what a drop cannot take: the month that
+            // straddles the cutoff, and anything the DEFAULT partition caught.
+            // Usually a few thousand rows rather than a few million.
             locations = await DeleteInBatchesAsync(
-                _context.LocationRecords.Where(r => r.Timestamp < utcNow - retention),
+                _context.LocationRecords.Where(r => r.Timestamp < cutoff),
                 request,
                 cancellationToken);
+
+            // Topped up here as well as at start-up. A deployment that stays
+            // up for a quarter would otherwise run past the last partition it
+            // was given, and every ping after that would land in DEFAULT.
+            await _locationPartitions.EnsureAsync(
+                utcNow, MonthsOfPartitionsAhead, cancellationToken);
         }
 
         // Sent only. An abandoned message is the record of a delivery that
@@ -276,7 +315,10 @@ public class PurgeExpiredDataCommandHandler
             cancellationToken);
 
         return new PurgeResult(
-            refreshTokens, resetTokens, locations, outbox, audit, coordinates, idempotency);
+            refreshTokens, resetTokens, locations, outbox, audit, coordinates, idempotency)
+        {
+            LocationPartitionsDropped = partitionsDropped,
+        };
     }
 
     /// <summary>

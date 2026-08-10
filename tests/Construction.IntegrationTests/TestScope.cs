@@ -37,6 +37,9 @@ public sealed class TestScope : IDisposable
 
     public IOutbox Outbox => _scope.ServiceProvider.GetRequiredService<IOutbox>();
 
+    public ILocationPartitions LocationPartitions =>
+        _scope.ServiceProvider.GetRequiredService<ILocationPartitions>();
+
     public Task<TResponse> Send<TResponse>(IRequest<TResponse> request) =>
         Mediator.Send(request);
 
