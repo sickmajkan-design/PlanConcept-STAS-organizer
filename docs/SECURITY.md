@@ -256,11 +256,72 @@ administrator can lock everyone out and the only repair is database access.
 ### Ongoing
 
 - [ ] Database backups running, and a restore actually tested
-- [ ] Dependency scanning in CI (`dotnet list package --vulnerable`, `npm audit`, Dependabot)
+- [x] Dependency scanning in CI (`dotnet list package --vulnerable`, `npm audit`, Dependabot) — see *Scanning in CI* below
+- [ ] Turn on GitHub secret scanning and **push protection** in the repository settings — the scanner in this repository catches what it knows to look for; GitHub's catches what a hundred vendors have registered, and push protection refuses the push instead of reporting it afterwards. Free on a public repository; part of Advanced Security on a private one.
 - [ ] Log aggregation with alerting on the 5xx rate and on repeated lockouts
 - [ ] Secret rotation procedure written down, including what breaks when the JWT key rotates (all sessions)
 - [ ] GDPR obligations for continuous location tracking addressed — lawful basis, privacy notice, retention limit, erasure path (see the readiness audit)
 - [ ] Offboarding procedure written down: deactivate in **User accounts**, which revokes sessions, reset links and device registrations (an already-issued access token still lasts up to 15 minutes)
+
+---
+
+## Scanning in CI
+
+Three checks, in `.github/workflows/security.yml`, on every push.
+
+**Dependencies** — `scripts/check-dependencies.sh`. `dotnet list package
+--vulnerable --include-transitive` for NuGet and `npm audit --audit-level=high`
+for the admin panel. The NuGet half parses the JSON output rather than reading
+the exit code, because `dotnet list package` exits 0 whether or not it found
+anything: it reports, it does not judge, and a workflow step that trusts its
+exit code passes for ever while printing the advisory into a log nobody opens.
+Adding this found one live high-severity advisory (`nanoid` below 3.3.17,
+transitively via Vite's PostCSS), which is fixed.
+
+**Secrets** — `scripts/check-secrets.sh`. Forbidden file names (keystores,
+`key.properties`, `google-services.json`, `.env`, private keys) and the shapes
+real credentials have (PEM blocks, AWS key ids, Google API keys, GitHub and
+Slack tokens, signed JWTs). It scans the working tree *and* the patches in the
+push, because the accident that matters most — a key committed and deleted a
+commit later — is invisible in the tree and permanent in the history.
+
+Two decisions about it are worth knowing:
+
+* It is narrow on purpose. A scanner that flagged the word "password" would
+  fire on the CI service's `postgres/postgres`, on the browser suite's seeded
+  account and on half the test fixtures, and a check that cries wolf is a check
+  somebody silences. When it produced a false positive during development the
+  rule was narrowed rather than allowlisted — AWS's published example key ids
+  end in `EXAMPLE`, and matching `"type": "service_account"` was dropped because
+  it matches the *shape* of a service-account file rather than the secret in it.
+* It self-tests before every run. The failure mode of a scanner is silence: a
+  pattern that stops matching goes on reporting success for ever. Each rule
+  carries a sample it must catch and the run fails if it does not, and nine real
+  lines from this repository are asserted to trip nothing.
+
+It also guards one invariant specific to this repository: `appsettings.json`
+ships with every secret empty, so a deployment that forgets an environment
+variable fails to start rather than starting on a key from the repository. A
+value creeping back into that file would look innocent in a diff and undo the
+first fix in this document.
+
+**CodeQL** — `security-extended` queries for C# and TypeScript. It needs a
+public repository or GitHub Advanced Security, so it runs on the default branch
+and on a weekly schedule rather than on every feature branch: a branch should
+not go red over a repository setting. If the licence is not there, delete the
+job rather than leaving it failing — a permanently red check teaches everyone to
+ignore red checks. **Dart is not covered**: CodeQL does not support it, so a
+third of the codebase gets no static security analysis at all.
+
+`.github/dependabot.yml` watches NuGet, npm, pub and the workflow actions
+themselves, weekly and grouped. Grouping is what keeps it useful — ungrouped, a
+Monday produces eleven pull requests for packages that move together, and by
+the third week nobody opens any of them. Security updates still arrive on their
+own, because those are meant to interrupt.
+
+**The gap:** pub has no vulnerability database and no audit command, so nothing
+checks the Flutter tree for advisories. Dependabot reports how old its
+dependencies are, which is a different question.
 
 ---
 

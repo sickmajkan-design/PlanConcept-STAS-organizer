@@ -839,8 +839,45 @@ change, in one place.
   putting it in two places invites the two disagreeing. It is a line in the
   deployment checklist in SECURITY.md instead. Reopen this if the API is ever
   fronted by something that does not filter.
-- **M7.** Dependency and secret scanning in CI (Dependabot, CodeQL, `npm audit`,
-  `dotnet list package --vulnerable`).
+- **M7.** Dependency and secret scanning in CI — **done, with one gap named
+  below.** `.github/workflows/security.yml` runs three checks on every push, and
+  `.github/dependabot.yml` watches NuGet, npm, pub and the workflow actions
+  weekly, grouped so that a Monday produces three pull requests rather than
+  eleven nobody opens.
+
+  Adding the dependency gate immediately found a live high-severity advisory —
+  `nanoid` below 3.3.17, transitively via Vite's PostCSS — which is fixed in the
+  same change. That is the argument for the gate in one line: it was there, it
+  had been there, and nothing was looking.
+
+  Two details are the difference between a check and the appearance of one.
+  `dotnet list package --vulnerable` exits 0 whatever it finds, so the script
+  parses its JSON instead of trusting the exit code; a workflow step that runs
+  the command and reads `$?` passes for ever while printing advisories into a
+  log nobody opens. And the secret scan self-tests before every run — each rule
+  carries a sample it must catch, and nine real lines from this repository are
+  asserted to trip nothing — because the failure mode of a scanner is silence,
+  not noise.
+
+  The secret scan is deliberately narrow, and was narrowed further during
+  development rather than allowlisted: `AKIA…EXAMPLE` is AWS's own published
+  example, and matching `"type": "service_account"` was dropped because it
+  matches the shape of a service-account file rather than the secret inside it.
+  Both rules had fired on documentation and unit-test fixtures. It scans the
+  push's patches as well as the tree, since a key committed and deleted a commit
+  later is gone from one and permanent in the other.
+
+  **Gaps, both real.** CodeQL does not support Dart, so the Flutter app — a
+  third of the codebase — gets no static security analysis. And pub has no
+  vulnerability database and no audit command, so nothing checks its
+  dependencies for advisories at all; Dependabot reports their age, which is a
+  different question. Neither is fixable from this repository.
+
+  CodeQL also needs a public repository or GitHub Advanced Security, so it runs
+  on the default branch and weekly rather than on feature branches. If the
+  licence is absent the job should be deleted rather than left failing.
+  GitHub's own secret scanning and push protection are repository settings, not
+  files, and are on the checklist in SECURITY.md.
 - **M8.** React error boundaries; friendly offline/failure states in both
   clients — **done.**
 
@@ -1018,7 +1055,7 @@ Blocks everything else.
 - H4 liveness/readiness split
 - ~~C6 backups: script, schedule, a tested restore, the attachment files, and
   a verified off-site copy~~ — done; only a run against real AWS is outstanding
-- M3 startup validation, M6 security headers, M7 CI scanning
+- M3 startup validation, M6 security headers, ~~M7 CI scanning~~ — done
 
 **Exit:** a fresh deploy with no environment variables set refuses to start
 rather than starting insecurely; a restore has actually been performed.

@@ -1,0 +1,143 @@
+name: Security
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  # Weekly, because an advisory is published against code that has not changed.
+  # A repository with no commits for a fortnight is not a repository with no new
+  # vulnerabilities, and a check that only runs on push would say nothing.
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: Secrets
+    runs-on: ubuntu-latest
+
+    steps:
+      # The whole history, not the default shallow clone: a credential that was
+      # committed and then removed is still a credential that leaked, and the
+      # tip of the branch says nothing about it.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Fast, and it runs on every push, so it is the one that actually stops
+      # something. See the header of the script for why it is this narrow.
+      - name: Scan tracked files
+        run: scripts/check-secrets.sh
+
+      # The scan above reads the working tree, which cannot see the accident
+      # that matters most: a key committed and then deleted a commit later. It
+      # is gone from the tree and still in the history, which is the only place
+      # it needs to be to have leaked. So the patches in this push get scanned
+      # too.
+      - name: Scan the commits in this push
+        if: github.event_name == 'push'
+        shell: bash
+        run: |
+          before='${{ github.event.before }}'
+          zero='0000000000000000000000000000000000000000'
+
+          if [[ -z "$before" || "$before" == "$zero" ]]; then
+            echo 'New branch: no range to diff against, and the tree scan covers the tip.'
+            exit 0
+          fi
+
+          if ! git cat-file -e "${before}^{commit}" 2>/dev/null; then
+            echo 'Force push or rewritten history: the previous tip is gone.'
+            exit 0
+          fi
+
+          git log --format= --patch "${before}..${{ github.sha }}" \
+            | scripts/check-secrets.sh --stdin
+
+  dependencies:
+    name: Dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: src/construction_admin/package-lock.json
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Install admin dependencies
+        working-directory: src/construction_admin
+        run: npm ci
+
+      # `dotnet list package --vulnerable` exits 0 whatever it finds, so the
+      # script parses its JSON rather than trusting the exit code. See the
+      # header of scripts/check-dependencies.sh.
+      - name: Known vulnerabilities
+        run: scripts/check-dependencies.sh
+
+  # CodeQL needs either a public repository or GitHub Advanced Security. On a
+  # private repository without it, this job fails with a licensing error and
+  # nothing else — which is why it is kept out of the branch-push path: a
+  # feature branch should not go red over a repository setting. Delete this job
+  # if the licence is not there, rather than leaving it failing on a schedule;
+  # a permanently red check trains everyone to ignore red checks.
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    if: github.event_name != 'push' || github.ref_name == github.event.repository.default_branch
+
+    permissions:
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Dart is absent because CodeQL does not support it. The Flutter app is
+        # a third of the codebase and nothing here analyses it, which is worth
+        # knowing rather than assuming otherwise.
+        language: ['csharp', 'javascript-typescript']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        if: matrix.language == 'csharp'
+        with:
+          dotnet-version: '9.0.x'
+
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          # The default query pack misses most injection and authorisation
+          # patterns; security-extended is the one worth the extra minutes on a
+          # codebase that handles payroll-adjacent records.
+          queries: security-extended
+
+      # C# needs a real build for CodeQL to see anything; JS/TS does not.
+      - name: Build
+        if: matrix.language == 'csharp'
+        run: dotnet build --configuration Release
+
+      - uses: github/codeql-action/autobuild@v3
+        if: matrix.language != 'csharp'
+
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:${{ matrix.language }}

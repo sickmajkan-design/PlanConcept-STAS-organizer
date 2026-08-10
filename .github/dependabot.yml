@@ -1,0 +1,94 @@
+version: 2
+
+# Weekly, on Monday morning, and grouped.
+#
+# Grouping is the whole difference between this being useful and being noise.
+# Ungrouped, a Monday produces eleven pull requests — one per Microsoft.* package
+# that moved together anyway — and by the third week nobody opens any of them. A
+# security update still gets its own pull request, because that one is meant to
+# interrupt.
+updates:
+  - package-ecosystem: nuget
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+    open-pull-requests-limit: 5
+    groups:
+      # These ship as a set and are version-locked to each other; splitting them
+      # produces pull requests that cannot build on their own.
+      aspnetcore-and-ef:
+        patterns:
+          - 'Microsoft.AspNetCore.*'
+          - 'Microsoft.EntityFrameworkCore*'
+          - 'Microsoft.Extensions.*'
+          - 'Npgsql.EntityFrameworkCore.*'
+      observability:
+        patterns:
+          - 'OpenTelemetry*'
+          - 'Serilog*'
+      test-tooling:
+        patterns:
+          - 'xunit*'
+          - 'Microsoft.NET.Test.Sdk'
+          - 'Microsoft.AspNetCore.Mvc.Testing'
+
+  - package-ecosystem: npm
+    directory: /src/construction_admin
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+    open-pull-requests-limit: 5
+    groups:
+      react:
+        patterns:
+          - 'react'
+          - 'react-dom'
+          - '@types/react*'
+      mui:
+        patterns:
+          - '@mui/*'
+          - '@emotion/*'
+      tooling:
+        patterns:
+          - 'vite'
+          - '@vitejs/*'
+          - 'vitest'
+          - '@testing-library/*'
+          - 'typescript'
+          - 'oxlint'
+          - '@playwright/test'
+
+  # pub has no vulnerability database, so this is the only thing watching the
+  # Flutter tree at all — it reports age, not advisories. See
+  # scripts/check-dependencies.sh.
+  - package-ecosystem: pub
+    directory: /src/construction_mobile
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+    open-pull-requests-limit: 5
+    groups:
+      firebase:
+        patterns:
+          - 'firebase_*'
+      riverpod-and-codegen:
+        patterns:
+          - 'flutter_riverpod'
+          - 'riverpod*'
+          - 'freezed*'
+          - 'json_*'
+          - 'build_runner'
+
+  # The actions in .github/workflows are dependencies too, and a pinned action
+  # that goes unmaintained is exactly the kind of thing nobody notices.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+    open-pull-requests-limit: 3
