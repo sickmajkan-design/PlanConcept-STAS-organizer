@@ -47,21 +47,28 @@ void main() {
     // test of the builder assignment.
     final previous = ErrorWidget.builder;
     ErrorWidget.builder = (_) => const CrashPanel();
-    addTearDown(() => ErrorWidget.builder = previous);
 
-    await tester.pumpWidget(MaterialApp(
-      locale: const Locale('en'),
-      supportedLocales: supportedLocales,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      home: Builder(builder: (_) => throw StateError('render exploded')),
-    ));
+    // Restored here rather than in `addTearDown`: the framework checks that
+    // the builder is back to its default at the end of the test *body*, and
+    // tear-downs run after that check. Registering the restore as a tear-down
+    // fails the test on the assertion instead of on anything it asserts.
+    try {
+      await tester.pumpWidget(MaterialApp(
+        locale: const Locale('en'),
+        supportedLocales: supportedLocales,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        home: Builder(builder: (_) => throw StateError('render exploded')),
+      ));
 
-    final en = await AppLocalizations.delegate.load(const Locale('en'));
+      final en = await AppLocalizations.delegate.load(const Locale('en'));
 
-    expect(find.text(en.crashTitle), findsOneWidget);
+      expect(find.text(en.crashTitle), findsOneWidget);
 
-    // The error still gets reported — the panel changes what is shown, not
-    // what is known.
-    expect(tester.takeException(), isA<StateError>());
+      // The error still gets reported — the panel changes what is shown, not
+      // what is known.
+      expect(tester.takeException(), isA<StateError>());
+    } finally {
+      ErrorWidget.builder = previous;
+    }
   });
 }

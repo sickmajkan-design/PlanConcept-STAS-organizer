@@ -16,7 +16,17 @@ class AuthSessionManager {
   AuthSessionManager({
     required this._storage,
     required this._refreshClient,
+    this.onIdentityChanged,
   });
+
+  /// Called when the person signed in stops being the person signed in —
+  /// signing out, being signed out by a rejected refresh, or a different
+  /// account signing in on the same device.
+  ///
+  /// Not called when a token is refreshed: that is the same person, and
+  /// treating it as a change would throw away the offline cache several times
+  /// a shift, which on a site is exactly when it is needed.
+  final Future<void> Function()? onIdentityChanged;
 
   final SecureSessionStorage _storage;
 
@@ -47,7 +57,12 @@ class AuthSessionManager {
     }
 
     if (stored.isRefreshTokenExpired) {
-      await _storage.clear();
+      // Through `clear` rather than straight to storage: a session that
+      // expired while the app was closed still ends a session, and anything
+      // hanging off that session — the offline cache above all — has to go
+      // with it. Nothing is listening to `changes` this early, so the emitted
+      // null costs nothing.
+      await clear();
       return null;
     }
 
@@ -57,6 +72,12 @@ class AuthSessionManager {
   }
 
   Future<void> start(AuthSession session) async {
+    // A refresh calls this too, with the same person's new tokens. Only a
+    // different person is a change.
+    if (_session?.user.id != session.user.id) {
+      await onIdentityChanged?.call();
+    }
+
     _session = session;
     await _storage.write(session);
     _changes.add(session);
@@ -78,6 +99,7 @@ class AuthSessionManager {
   Future<void> clear() async {
     _session = null;
     await _storage.clear();
+    await onIdentityChanged?.call();
     _changes.add(null);
   }
 

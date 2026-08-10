@@ -2096,6 +2096,24 @@ abstract class AppLocalizations {
   /// **'Something on this screen failed while it was being drawn. Go back and try again.'**
   String get crashBody;
 
+  /// No description provided for @offlineDataNoticeTime.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection — showing data saved at {time}.'**
+  String offlineDataNoticeTime(String time);
+
+  /// No description provided for @offlineDataNoticeDate.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection — showing data saved on {date}.'**
+  String offlineDataNoticeDate(String date);
+
+  /// No description provided for @offlineDataRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try again'**
+  String get offlineDataRetry;
+
   /// No description provided for @toolLookUpHint.
   ///
   /// In en, this message translates to:

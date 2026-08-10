@@ -1,5 +1,6 @@
 import 'package:construction_mobile/app.dart';
 import 'package:construction_mobile/core/network/network_providers.dart';
+import 'package:construction_mobile/core/network/offline_cache.dart';
 import 'package:construction_mobile/core/storage/secure_session_storage.dart';
 import 'package:construction_mobile/features/auth/data/models/auth_session.dart';
 import 'package:construction_mobile/features/auth/data/models/user.dart';
@@ -45,14 +46,26 @@ AuthSession _storedSession() {
 Future<void> _pumpApp(WidgetTester tester, SecureSessionStorage storage) async {
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [sessionStorageProvider.overrideWithValue(storage)],
+      overrides: [
+        sessionStorageProvider.overrideWithValue(storage),
+        // Same reason as the keystore above: the offline cache lives in a
+        // directory only the platform can name, and there is no platform
+        // here. Without this the app waits out the open timeout before it
+        // decides where to route.
+        offlineCacheProvider.overrideWithValue(Future<OfflineCache?>.value(null)),
+      ],
       child: const ConstructionApp(),
     ),
   );
 
   // The splash screen animates forever, so settle explicitly instead of
   // waiting for the frame queue to drain.
+  //
+  // Three pumps, not two: restoring a session that has already expired ends
+  // it, and ending a session empties the offline cache, which is one more
+  // await before the router knows where to send anybody.
   await tester.pump();
+  await tester.pump(const Duration(milliseconds: 50));
   await tester.pump(const Duration(milliseconds: 50));
 }
 

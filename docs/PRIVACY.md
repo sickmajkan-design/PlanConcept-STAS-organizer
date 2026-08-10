@@ -66,6 +66,46 @@ Derived from the schema (21 tables). Only person-related data is listed.
 
 ---
 
+### 1.2 Kopija na telefonu / The copy on the phone
+
+**SR** — Mobilna aplikacija od sada čuva poslednji uspešan odgovor na svaki
+ekran, da bi radila i tamo gde nema signala. To znači da lični podaci — imena,
+pozicije, rasporedi, poslednje poznate lokacije — postoje i na uređaju, ne samo
+na serveru. Pravila su:
+
+**EN** — The mobile app now keeps the last successful answer to each screen so
+that it works where there is no signal. That means personal data — names,
+positions, schedules, last known locations — exists on the handset as well as on
+the server. The rules are:
+
+| Pitanje / Question | Odgovor / Answer |
+|---|---|
+| Gde / Where | Privatni direktorijum aplikacije (`ApplicationSupport/api_cache`). Nedostupan drugim aplikacijama na neizmenjenom uređaju. / The app's private directory. Not readable by other apps on an unmodified device. |
+| Koliko dugo / For how long | Najviše 7 dana; starije se briše pri prvom čitanju, ne prikazuje se. / At most 7 days; older entries are deleted on read rather than shown. |
+| Koliko / How much | Najviše 200 odgovora, najviše 512 KB po odgovoru. / At most 200 answers, at most 512 KB each. |
+| Kad se briše / When it is cleared | Pri svakoj promeni korisnika: odjava, istek sesije, prijava drugog naloga. / On every change of user: sign-out, session expiry, a different account signing in. |
+| Rezervne kopije / Device backup | `android:allowBackup="false"` — Android ne kopira ovo na Google nalog. / Android does not copy this into the user's Google account. |
+| Šta se ne čuva / What is never kept | Tokeni i `/auth/*` odgovori, sadržaj priloga (fotografije), i sve što nije GET. / Tokens and `/auth/*` responses, attachment content (photographs), and anything that is not a GET. |
+
+**SR** — Korisniku se uvek kaže kada gleda kopiju, i od kada je: traka na vrhu
+ekrana piše vreme kada je odgovor sačuvan. Kopija se koristi **samo** kad
+zahtev ne stigne do servera. Odbijanje sa servera (403, 404, 500) se nikad ne
+zaobilazi kopijom — oduzeta dozvola ostaje oduzeta. /
+**EN** — The user is always told when they are looking at a copy and how old it
+is: a strip at the top of the screen carries the time it was saved. A copy is
+served **only** when the request never reached the server. A refusal from the
+server (403, 404, 500) is never worked around from cache — a permission that has
+been withdrawn stays withdrawn.
+
+**SR** — Brisanje po §4 briše podatke na serveru. Kopija na telefonu nestaje
+sama, najkasnije za 7 dana, a odmah po odjavi tog korisnika. Ako je potrebno
+brisanje istog trenutka, odjavite uređaj. /
+**EN** — Erasure under §4 removes the data on the server. The copy on a handset
+expires by itself within 7 days, and immediately when that user signs out. If
+immediate removal is required, sign the device out.
+
+---
+
 ## 2. Ko šta vidi / Who sees what
 
 | Uloga / Role | Lokacije / Location |
@@ -220,6 +260,7 @@ employees' location has no basis.
 | Ograničenje pristupa lokacijama po ulozi / Role-scoped access to location | **urađeno / done** (§2) |
 | Put za brisanje, sa testovima / Erasure path, with tests | **urađeno / done** (§4) |
 | Audit trag ko je šta menjao / Audit trail of who changed what | **urađeno / done** |
+| Kopija podataka na telefonu, ograničena i objavljena / Device-side copy, bounded and documented | **urađeno / done** (§1.2) |
 | Pravni osnov, obaveštenje, DPIA / Lawful basis, notice, DPIA | **nije — traži vlasnika i pravnika / not done — needs the owner and a lawyer** (§6) |
 | Izvoz podataka na zahtev lica / Data export on a subject request | **nije / not done** — trenutno se radi ručno iz baze / currently a manual database query |
 | Ograničenje praćenja na radno vreme / Tracking limited to working hours | **nije / not done** (§6.4) |

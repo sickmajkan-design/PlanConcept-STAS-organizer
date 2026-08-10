@@ -1056,7 +1056,8 @@ class AppLocalizationsSr extends AppLocalizations {
   String get workItemsAddPhoto => 'Dodaj fotografiju';
 
   @override
-  String get failureOffline => 'Nema veze sa serverom. Proverite mrežu i pokušajte ponovo.';
+  String get failureOffline =>
+      'Nema veze sa serverom. Proverite mrežu i pokušajte ponovo.';
 
   @override
   String get failureTimeout => 'Server predugo ne odgovara. Pokušajte ponovo.';
@@ -1065,7 +1066,8 @@ class AppLocalizationsSr extends AppLocalizations {
   String get failureCancelled => 'Zahtev je otkazan.';
 
   @override
-  String get failureCertificate => 'Sertifikat servera nije mogao da se proveri.';
+  String get failureCertificate =>
+      'Sertifikat servera nije mogao da se proveri.';
 
   @override
   String get failureBadRequest => 'Zahtev je odbijen. Proverite unete podatke.';
@@ -1092,7 +1094,21 @@ class AppLocalizationsSr extends AppLocalizations {
   String get crashTitle => 'Ovaj ekran ne može da se prikaže';
 
   @override
-  String get crashBody => 'Nešto na ovom ekranu je otkazalo pri iscrtavanju. Vratite se nazad i pokušajte ponovo.';
+  String get crashBody =>
+      'Nešto na ovom ekranu je otkazalo pri iscrtavanju. Vratite se nazad i pokušajte ponovo.';
+
+  @override
+  String offlineDataNoticeTime(String time) {
+    return 'Nema veze — prikazani su podaci sačuvani u $time.';
+  }
+
+  @override
+  String offlineDataNoticeDate(String date) {
+    return 'Nema veze — prikazani su podaci sačuvani $date.';
+  }
+
+  @override
+  String get offlineDataRetry => 'Pokušaj ponovo';
 
   @override
   String get toolLookUpHint => 'Unesite QR kod odštampan na pločici alata.';

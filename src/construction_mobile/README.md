@@ -51,7 +51,7 @@ lib/
 ├── app.dart                  MaterialApp.router
 ├── core/
 │   ├── config/               compile-time settings (--dart-define)
-│   ├── network/              Dio setup, auth interceptor, session manager, error mapping
+│   ├── network/              Dio setup, auth interceptor, session manager, error mapping, offline cache
 │   ├── router/               GoRouter and route constants
 │   ├── storage/              secure session persistence
 │   ├── theme/                Material 3 theme
@@ -176,3 +176,41 @@ The one exception is text the server wrote itself. A `detail` naming the
 employee number that clashed is worth more than a translated generality, so it
 survives; a `title` ("Conflict", "An unexpected error occurred") is a status
 phrase and does not count as the server having said anything.
+
+## Working without a signal
+
+Sites have holes in their coverage — a lift shaft, a retaining wall, half the
+villages the crew drives through. `OfflineCacheInterceptor` keeps the last good
+answer to every read and serves it when the phone cannot reach the server, so
+"which four people are on my crew today" still has an answer in a place where
+nothing else does.
+
+It sits **below** the repositories and **after** the auth interceptor. Below,
+because there are twelve repositories and one rule about what a screen may show
+with no signal, and a rule repeated twelve times is a rule forgotten on the
+thirteenth. After, because a 401 is the auth interceptor's business — it
+refreshes and replays, and a request about to succeed must not be answered from
+a file.
+
+Four rules keep it honest:
+
+* **Only connectivity failures fall back.** A 403 is not a coverage hole, it is
+  the server saying no; answering it from a copy taken while the permission
+  still applied would be a way of ignoring that. Same for 404 after a deletion
+  and for 500.
+* **Reads only, and not all of them.** GET, never `/auth/*` — who is signed in
+  is not a question a file gets to answer — and never attachment content, which
+  is bytes and would evict every list in one photograph.
+* **The user is told.** `OfflineDataBanner` shows the moment the oldest thing on
+  screen was saved. "Offline" alone leaves a foreman guessing whether a roster
+  is from the yard this morning or from Tuesday.
+* **It belongs to a session.** Site phones get handed around, so the cache is
+  emptied on every change of user — sign-out, expiry, a different account. A
+  token refresh is not a change of user and does not empty it; doing so would
+  throw the cache away several times a shift, which is exactly when a phone in
+  poor coverage needs it.
+
+Bounds: 7 days, 200 entries, 512 KB each; personal data is discussed in
+`docs/PRIVACY.md` §1.2. If the platform will not hand over a directory — or
+does not answer within five seconds — the app runs with no cache rather than
+not at all.

@@ -391,5 +391,10 @@
   "failureUnknown": "Something went wrong. Please try again.",
   "crashTitle": "This screen could not be displayed",
   "crashBody": "Something on this screen failed while it was being drawn. Go back and try again.",
+  "offlineDataNoticeTime": "No connection \u2014 showing data saved at {time}.",
+  "@offlineDataNoticeTime": { "placeholders": { "time": { "type": "String" } } },
+  "offlineDataNoticeDate": "No connection \u2014 showing data saved on {date}.",
+  "@offlineDataNoticeDate": { "placeholders": { "date": { "type": "String" } } },
+  "offlineDataRetry": "Try again",
   "toolLookUpHint": "Enter the QR code printed on the tool's tag."
 }

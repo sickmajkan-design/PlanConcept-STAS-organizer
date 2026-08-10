@@ -76,10 +76,10 @@ Re-measured, with the first pass's figures in brackets where they have moved.
 | `Construction.API` | 4,057 (1,381) | 118 endpoints across 17 controllers. Still thin. |
 | `tests` | 15,342 (2,252) | **902 backend tests** (378 unit + 524 integration). |
 | `construction_admin/src` | 18,779 (6,997) | React 19 + MUI 9 + TanStack Query 5. 189 Vitest cases + 15 browser tests. |
-| `construction_mobile/lib` | 22,114 (6,447) | Flutter, feature-first, Riverpod. |
-| `construction_mobile/test` | 2,339 (1,473) | 168 tests. |
+| `construction_mobile/lib` | 23,412 (6,447) | Flutter, feature-first, Riverpod. |
+| `construction_mobile/test` | 3,594 (1,473) | **233 tests**, all of them run. |
 
-**~78,500 lines total, ~1,225 automated tests** (up from ~27,500 and 245). Ten
+**~80,000 lines total, ~1,290 automated tests** (up from ~27,500 and 245). Ten
 migrations rather than the one the first pass found.
 
 Layer boundaries are still respected — no reference cycles, no EF types in
@@ -872,8 +872,41 @@ change, in one place.
   Not done: neither client detects "connected to a captive portal that goes
   nowhere", which is a site wireless's favourite state. `navigator.onLine`
   reports `true` for it and Dio finds out only by timing out.
-- **M9.** Offline cache in the mobile app — construction sites have poor
-  coverage and the app is currently unusable without a connection.
+
+  **Corrected since.** The mobile half of M8 was committed without ever being
+  compiled or run — the Flutter toolchain was believed to be unavailable in the
+  working environment and the code was reviewed by reading instead. It was
+  available. Running it turned up two real defects that had been sitting in the
+  branch: `lib/main.dart` did not compile at all (`kDebugMode` used without its
+  import, so the crash panel was never installed in any build), and
+  `crash_panel_test.dart` failed every run (`ErrorWidget.builder` restored in a
+  tear-down, which runs *after* the framework's check that it was restored).
+  Both are fixed. The lesson is the ordinary one: a claim that something works
+  is worth what it cost to check, and reading is not running.
+- **M9.** Offline cache in the mobile app — **done.** `OfflineCacheInterceptor`
+  keeps the last successful answer to every read and serves it when the request
+  never reaches the server, so a phone in a coverage hole still answers "who is
+  on my crew today". It sits below the twelve repositories and after the auth
+  interceptor, which is what keeps the rule in one place and keeps it away from
+  a 401 that is about to be refreshed and replayed.
+
+  What it deliberately does **not** do is as much of the design as what it does.
+  Only connectivity failures fall back — a 403 is the server saying no, and a
+  404 after a deletion is an answer, so neither is worked around from a copy.
+  Reads only, never `/auth/*`, never attachment bytes. Bounded to 7 days, 200
+  entries and 512 KB apiece. And it is emptied on every change of user, because
+  site phones get handed around; a token refresh is explicitly not a change of
+  user, since treating it as one would drop the cache several times a shift.
+
+  The banner is the other half: it names the moment the oldest thing on screen
+  was saved, so nobody mistakes Tuesday's roster for this morning's. Personal
+  data now living on the handset is documented in PRIVACY.md §1.2, and
+  `android:allowBackup="false"` keeps it out of the user's Google account.
+
+  Still open: writes made offline are not queued. A worker with no signal can
+  read, but cannot clock in — the clock-in fails as it did before, with the
+  friendly offline message from M8. That is a separate piece of work and a
+  larger one, because it needs conflict rules rather than a cache.
 - **M10.** Practise an incremental migration and a rollback before the first
   schema change under load.
 - **M11.** Idempotency keys on stock adjustments and assignment actions —
@@ -1004,7 +1037,8 @@ boundary is asserted by a test.
   (iOS), permission flows and rationale UI, persistent offline buffer
 - C4 release keystore and signing in CI
 - C5 provision Firebase for both platforms and verify push end to end
-- M9 offline cache; M14 naming
+- ~~M9 offline cache~~ — done for reads; offline *writes* (clock-in with no
+  signal) remain open. M14 naming
 - **Field-test on real devices**, on a real site, for a full shift
 
 **Exit:** a phone in a pocket for eight hours produces a complete track.

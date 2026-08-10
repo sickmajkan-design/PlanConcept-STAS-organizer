@@ -391,5 +391,10 @@
   "failureUnknown": "Došlo je do greške. Pokušajte ponovo.",
   "crashTitle": "Ovaj ekran ne može da se prikaže",
   "crashBody": "Nešto na ovom ekranu je otkazalo pri iscrtavanju. Vratite se nazad i pokušajte ponovo.",
+  "offlineDataNoticeTime": "Nema veze \u2014 prikazani su podaci sačuvani u {time}.",
+  "@offlineDataNoticeTime": { "placeholders": { "time": { "type": "String" } } },
+  "offlineDataNoticeDate": "Nema veze \u2014 prikazani su podaci sačuvani {date}.",
+  "@offlineDataNoticeDate": { "placeholders": { "date": { "type": "String" } } },
+  "offlineDataRetry": "Pokušaj ponovo",
   "toolLookUpHint": "Unesite QR kod odštampan na pločici alata."
 }

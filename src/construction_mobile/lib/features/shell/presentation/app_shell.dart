@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/l10n/app_locales.dart';
+import '../../../core/widgets/offline_data_banner.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -38,7 +39,15 @@ class AppShell extends ConsumerWidget {
     final selected = branches.indexOf(navigationShell.currentIndex);
 
     return Scaffold(
-      body: navigationShell,
+      // Above the branches rather than inside each screen: the notice is about
+      // the phone, not about the page, and a screen that forgot to include it
+      // would be the one showing yesterday's numbers without saying so.
+      body: Column(
+        children: [
+          const OfflineDataBanner(),
+          Expanded(child: navigationShell),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: selected < 0 ? 0 : selected,
         onDestinationSelected: (index) {
