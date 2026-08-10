@@ -40,11 +40,17 @@ updates:
         patterns:
           - 'OpenTelemetry*'
           - 'Serilog*'
+      # `Microsoft.AspNetCore.Mvc.Testing` is deliberately NOT here, though it
+      # looks like test tooling. It pulls in `Microsoft.Extensions.Hosting`,
+      # which requires a matching `Microsoft.Extensions.Configuration.Json` —
+      # a package the integration tests reference directly. Listing it here
+      # separated it from the group those siblings live in, and the result was
+      # the same NU1605 downgrade as the JWT pair above, on a different pair.
+      # It belongs to `aspnetcore-and-ef` via `Microsoft.AspNetCore.*`.
       test-tooling:
         patterns:
           - 'xunit*'
           - 'Microsoft.NET.Test.Sdk'
-          - 'Microsoft.AspNetCore.Mvc.Testing'
 
   - package-ecosystem: npm
     directory: /src/construction_admin
