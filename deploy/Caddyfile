@@ -1,0 +1,64 @@
+# The edge. One name, two upstreams, TLS that renews itself.
+#
+# Caddy obtains a certificate from Let's Encrypt on first start and renews it
+# without being asked, which is the whole reason it is here rather than nginx:
+# a certificate nobody has to remember to renew is a certificate that does not
+# expire on a Sunday.
+#
+# For a host without a public name — a staging box on a private network, or a
+# smoke test — set `DOMAIN` to something like `localhost` and Caddy issues its
+# own internally-trusted certificate instead of asking Let's Encrypt. That is
+# what the compose smoke test in docs/PROVISIONING.md §6.5 does.
+
+{
+	email {$TLS_EMAIL}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	# The API and the panel share an origin on purpose. The refresh token is a
+	# `SameSite=Strict` cookie: served from a different origin than the one the
+	# browser is on, it would not be sent at all, and the panel would sign the
+	# operator out on every reload. Same origin also means no CORS to
+	# misconfigure.
+	handle /api/* {
+		reverse_proxy api:8080
+	}
+
+	# The probes, reachable for an uptime check without exposing the whole API
+	# on another port. /health/live says the process is up; /health/ready says
+	# it can reach the database.
+	handle /health/* {
+		reverse_proxy api:8080
+	}
+
+	# Swagger is served only outside Production by the API itself, so this
+	# route exists for staging and answers 404 in production. Routing it here
+	# rather than leaving it unrouted means the answer comes from the API,
+	# which is the thing that knows.
+	handle /swagger/* {
+		reverse_proxy api:8080
+	}
+
+	handle {
+		reverse_proxy admin:8080
+	}
+
+	header {
+		# HSTS. Not set by the API, because the API does not know whether it is
+		# behind TLS — the proxy does, and this is the only place that can say
+		# it truthfully.
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+
+		# Removed rather than set: the upstreams' own names are not the
+		# client's business.
+		-Server
+		-X-Powered-By
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}

@@ -1,0 +1,106 @@
+name: Release
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  # The images, and proof they compose into something that runs.
+  #
+  # This is the job that would have caught every deployment mistake this
+  # repository has made: a compose file that parses and cannot start, an image
+  # built with one installation's API address baked in, a proxy address the API
+  # does not trust so the refresh cookie arrives without `Secure` and the panel
+  # signs everybody out on reload. None of those are visible to a linter.
+  stack:
+    name: Deployment stack
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Builds both images and brings the whole stack up behind TLS, then asks
+      # it the questions in the header of the script. Roughly four minutes.
+      - name: Build the images and smoke-test the stack
+        run: scripts/smoke-deploy.sh
+
+  # Publishing is separate, and deliberately narrow about when it happens.
+  #
+  # A branch push builds images in the job above and throws them away; only the
+  # default branch and a tag publish. An image in a registry is something
+  # somebody can deploy by accident, so a half-finished branch should not put
+  # one there.
+  publish:
+    name: Publish images
+    runs-on: ubuntu-latest
+    needs: stack
+    if: >-
+      github.event_name == 'push' &&
+      (github.ref_name == github.event.repository.default_branch ||
+       startsWith(github.ref, 'refs/tags/v'))
+
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      matrix:
+        include:
+          - name: api
+            context: .
+            dockerfile: src/Construction.API/Dockerfile
+          - name: admin
+            context: src/construction_admin
+            dockerfile: src/construction_admin/Dockerfile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Lowercased, because a registry path must be lowercase and this
+      # repository's owner is not.
+      - name: Work out the image name
+        id: image
+        run: echo "name=${REGISTRY}/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')/${{ matrix.name }}" >> "$GITHUB_OUTPUT"
+
+      # `latest` moves with the default branch; a tag gets its own immutable
+      # name, and the commit SHA is always there. A deployment worth
+      # reproducing pins the SHA or the tag — see deploy/.env.example.
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ${{ steps.image.outputs.name }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=tag
+            type=sha,format=long
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

@@ -311,3 +311,121 @@ drugom *fizičkom* serveru, i vreme potrebno za restore na produkcionoj količin
 podataka. / The transport against *real* AWS (it is tested against a local S3
 that verifies the signature), recovery onto a different *physical* host, and
 how long a restore takes at production data volume.
+
+---
+
+## 5. Puštanje u rad / Deploying
+
+**SR** — Sve što je potrebno je u `deploy/`. Jedan host, četiri kontejnera,
+TLS na ivici. /
+**EN** — Everything needed is in `deploy/`. One host, four containers, TLS at
+the edge.
+
+```
+docker compose -f deploy/docker-compose.prod.yml up -d
+```
+
+| Kontejner / Container | Šta radi / What it does |
+|---|---|
+| `caddy` | Jedini koji objavljuje portove (80, 443). Sam pribavlja i obnavlja sertifikat. / The only one publishing ports. Obtains and renews the certificate itself. |
+| `admin` | React panel iza nginx-a, na 8080 unutar mreže. / The React panel behind nginx, on 8080 inside the network. |
+| `api` | ASP.NET Core, nedostupan spolja. / Unreachable from outside. |
+| `postgres` | Baza, nedostupna spolja. / The database, unreachable from outside. |
+| `backup` | Noćni backup, upaljen po podrazumevanom — vidi §4. / Nightly backup, on by default — see §4. |
+
+### 5.1 Pre prvog pokretanja / Before the first start
+
+1. **`DOMAIN` mora već da pokazuje na ovaj host.** Caddy dokazuje kontrolu nad
+   imenom preko porta 80; ime koje još ne pokazuje ovamo obara tu proveru i
+   troši Let's Encrypt kvotu. /
+   **`DOMAIN` must already resolve here.** Caddy proves control over port 80;
+   a name that does not yet point here fails that check and burns quota.
+2. `cp deploy/.env.example deploy/.env` i popuniti. Lozinke se **generišu**:
+   `openssl rand -base64 32`. / and fill it in. Generate the passwords.
+3. Portovi 80 i 443 otvoreni prema internetu; **5432 i 8080 nisu.** /
+   Ports 80 and 443 open; **5432 and 8080 are not.**
+
+### 5.2 Zašto je API i panel na istom imenu / Why the API and the panel share a name
+
+**SR** — Refresh token je `HttpOnly; Secure; SameSite=Strict` kolačić. Sa
+drugog porekla browser ga ne bi ni slao, pa bi se operater odjavljivao pri
+svakom osvežavanju — bez ijedne greške bilo gde. Zato proxy šalje `/api/*` na
+API, a sve ostalo na panel. /
+**EN** — The refresh token is a `SameSite=Strict` cookie. From a different
+origin the browser would not send it at all, and the operator would be signed
+out on every reload with nothing in any log. So the proxy routes `/api/*` to
+the API and everything else to the panel.
+
+### 5.3 Jedna slika, više instalacija / One image, many installations
+
+**SR** — `vite build` peče `VITE_*` u bundle, što bi značilo posebnu sliku po
+klijentu i novi build zbog pogrešno otkucanog imena hosta. Umesto toga slika
+piše `config.js` pri pokretanju iz `API_BASE_URL` i `GOOGLE_MAPS_API_KEY`.
+Ista slika radi svuda; adresa je stvar deploymenta, ne builda. /
+**EN** — A Vite build bakes `VITE_*` into the bundle, which would mean one
+image per customer and a release to fix a hostname. Instead the image writes
+`config.js` at start-up. The same image runs anywhere.
+
+### 5.4 Migracije / Migrations
+
+**SR** — `Database__ApplyMigrationsOnStartup` je `true` ovde, i to je bezbedno
+iz jednog razloga: ovaj fajl pokreće **tačno jedan** API kontejner. Dve replike
+bi se trkale oko iste migracije. Ako stack ikad dobije drugu repliku, ovo se
+gasi i migracije se puštaju kao zaseban korak pre rolovanja. /
+**EN** — It is `true` here, safe for exactly one reason: this file runs exactly
+one API container. Two replicas would race. If a second replica is ever added,
+turn this off and run migrations as their own step.
+
+### 5.5 Provera da stack stvarno radi / Proving the stack works
+
+```
+scripts/smoke-deploy.sh
+```
+
+**SR** — Podiže pravi stack sa `DOMAIN=localhost` (Caddy tada izdaje sopstveni
+sertifikat, bez Let's Encrypt) i proverava ono što YAML ne može: da TLS radi i
+da HTTP preusmerava na njega, da panel dobija adresu *ove* instalacije a ne
+build-a, da prijava kroz proxy vraća kolačić koji je i `HttpOnly` i `Secure`, i
+da baza i API nisu dostupni spolja. Briše sve za sobom. /
+**EN** — Brings the real stack up and checks what YAML cannot: that TLS works
+and HTTP redirects to it, that the panel got *this* installation's address
+rather than the build's, that a sign-in through the proxy returns a cookie that
+is both `HttpOnly` and `Secure`, and that the database and API are unreachable
+from outside. Cleans up after itself.
+
+**SR** — Provera kolačića je najvrednija: `Secure` se postavlja iz
+`Request.IsHttps`, što je tačno onda kad API veruje proxyju
+(`Network__TrustedProxies`). Pogrešna adresa proxyja → kolačić bez `Secure` →
+browser ga odbacuje → operater se odjavljuje pri svakom osvežavanju. Ta greška
+se ne vidi ni u jednom logu. /
+**EN** — The cookie check is the valuable one: `Secure` follows
+`Request.IsHttps`, which is true only when the API trusts the proxy. A wrong
+proxy address means a cookie without `Secure`, which the browser discards — and
+that failure appears in no log at all.
+
+Isti skript pokreće i CI, na svaki push (`.github/workflows/release.yml`). /
+CI runs the same script on every push.
+
+### 5.6 Objavljivanje slika / Publishing images
+
+**SR** — `release.yml` gradi obe slike na svaki push, a **objavljuje** ih u
+GHCR samo sa podrazumevane grane i sa `v*` taga. Slika u registru je nešto što
+neko može greškom da pusti u rad, pa polugotova grana nema šta da je ostavlja
+tamo. Za deployment koji treba da bude ponovljiv, pinuj tag ili SHA umesto
+`latest`. /
+**EN** — `release.yml` builds both images on every push and **publishes** only
+from the default branch and from a `v*` tag. An image in a registry is
+something somebody can deploy by accident. Pin a tag or a SHA rather than
+`latest` for a deployment you intend to reproduce.
+
+### 5.7 Šta ovde još ne postoji / What is still missing here
+
+**SR** — Automatski deployment na server i staging okruženje. Oba traže host
+kojeg nema: pipeline gradi i objavljuje slike, ali ih niko ne pušta u rad —
+to je i dalje `docker compose pull && up -d` na mašini. Kad host postoji,
+nedostaje jedan job sa SSH ključem u tajnama. /
+**EN** — Automatic deployment to a server, and a staging environment. Both need
+a host that does not exist: the pipeline builds and publishes images, but
+nothing rolls them out — that is still `docker compose pull && up -d` on the
+machine. When a host exists, what is missing is one job with an SSH key in
+secrets.

@@ -768,9 +768,50 @@ Still English: text the **API** produces — validation details, conflict
 messages. Translating those is an API-side decision (an `Accept-Language`
 contract) and is not done.
 
-**H10. Deployment pipeline and a staging environment.** Build and publish
-images, deploy automatically, and have somewhere to verify a release that is
-not production.
+**H10. Deployment pipeline and a staging environment.** — **mostly done; the
+half that needs a host is not.**
+
+Done: a deployment stack in `deploy/` — Postgres, the API, the admin panel and
+Caddy, with TLS obtained and renewed automatically and nothing but the proxy
+publishing a port. An image for the admin panel, which did not exist. A
+`release.yml` that builds both images on every push and publishes them to GHCR
+from the default branch and from `v*` tags. Documented in PROVISIONING.md §5.
+
+Two of those were more than plumbing.
+
+*The admin image would have been one per customer.* `vite build` bakes
+`import.meta.env.VITE_*` into the bundle, so the API address was fixed at build
+time — a separate image for every construction firm, and a release to correct a
+hostname typed wrong. The image now writes `config.js` at container start from
+`API_BASE_URL`; the app reads it before its bundle and falls back to the build
+value. One image runs anywhere, which is what the per-client model in the
+commercial proposal actually requires.
+
+*The proxy address is not a detail.* The refresh cookie's `Secure` flag follows
+`Request.IsHttps`, which behind a proxy is true only when the API trusts that
+proxy's address. Get it wrong and the browser discards the cookie, the operator
+is signed out on every reload, and **nothing appears in any log**. So the
+compose file pins the proxy to a fixed address on a fixed subnet rather than
+letting Docker allocate one, and `scripts/smoke-deploy.sh` asserts the flag.
+
+That script is the point of the whole item. It brings the real stack up behind
+TLS and asks what YAML cannot answer: does HTTP redirect to HTTPS, does the
+panel carry *this* installation's API address, does a sign-in through the proxy
+return a cookie that is both `HttpOnly` and `Secure`, are the database and API
+unreachable from outside. CI runs it on every push, so the deployment artefacts
+are exercised rather than reviewed.
+
+**Not done, and not doable from a repository:** automatic deployment to a
+server, and a staging environment. Both need a host. The pipeline builds and
+publishes; nothing rolls out — that is still `docker compose pull && up -d` on
+the machine. When a host exists, what is missing is one job with an SSH key in
+secrets.
+
+**A limit of the verification worth stating:** none of the container work could
+be run in the environment this was written in. The API image builds there, but
+Docker Hub's blob CDN is blocked by that sandbox's proxy, so `postgres`,
+`caddy` and `nginx` cannot be pulled and the stack has never been started
+locally. CI is its first real run.
 
 **H11. Resource-scoped authorization.** ~~Decide and enforce whether a Foreman
 should see the whole company's employees and GPS history, or only their own
@@ -1143,7 +1184,8 @@ them and how to have it removed.
 
 ### Milestone 5 — Make it operable (1 week)
 - H3 log aggregation, metrics, dashboards, alerting, client error tracking
-- H10 CD pipeline, staging environment, production compose/Kubernetes, TLS
+- ~~H10 production compose, TLS, image publishing~~ — done; CD onto a host
+  and a staging environment still need a host
 - H8 API versioning
 - M1 cleanup jobs, M2 email/push queue
 - M13 load test

@@ -5,6 +5,12 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Construction Organizer</title>
+    <!--
+      Runtime configuration, before the bundle so it is there when the app
+      reads it. Overwritten inside the container from environment variables;
+      see public/config.js. Not a module, and deliberately not deferred.
+    -->
+    <script src="/config.js"></script>
   </head>
   <body>
     <div id="root"></div>

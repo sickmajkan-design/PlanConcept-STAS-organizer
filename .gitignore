@@ -52,3 +52,6 @@ Thumbs.db
 /backups/
 *.dump
 *.dump.sha256
+
+# Deployment environment, filled in per host. Never committed.
+deploy/.env
