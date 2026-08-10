@@ -218,11 +218,11 @@ public sealed class ApiFixture : IAsyncLifetime
     /// fail every real login. Going through the endpoint means the token these
     /// tests carry is the token a client gets.
     ///
-    /// Sign-in sits behind the credentials rate limiter (twenty a minute, and
-    /// every caller shares one partition because a test server has no remote
-    /// address). One login per role at start-up leaves plenty of room, but a
-    /// test that logs in per case would spend the window and start reading
-    /// 429 as a refusal.
+    /// Sign-in sits behind the credentials rate limiter — `Auth:RateLimit`,
+    /// 120 a minute by default, and every caller here shares one partition
+    /// because a test server has no remote address. One login per role at
+    /// start-up leaves plenty of room, but a test that logs in per case would
+    /// spend the window and start reading 429 as a refusal.
     /// </remarks>
     public async Task<string> SignInAsync(string email)
     {

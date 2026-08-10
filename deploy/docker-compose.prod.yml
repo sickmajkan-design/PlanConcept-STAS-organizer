@@ -56,6 +56,11 @@ services:
       Seed__SuperAdmin__Email: ${SUPERADMIN_EMAIL:?set SUPERADMIN_EMAIL}
       Seed__SuperAdmin__Password: ${SUPERADMIN_PASSWORD:?set SUPERADMIN_PASSWORD}
 
+      # Sign-in attempts allowed from one client address per minute. Everyone
+      # behind a shared connection shares this, which is what a shift change
+      # looks like from the server. See .env.example.
+      Auth__RateLimit__PermitLimit: ${AUTH_RATE_LIMIT:-120}
+
       # True here, unlike development, and it is safe for exactly one reason:
       # this file runs a single API container. Two replicas starting together
       # would race to apply the same migration. If this stack ever grows a

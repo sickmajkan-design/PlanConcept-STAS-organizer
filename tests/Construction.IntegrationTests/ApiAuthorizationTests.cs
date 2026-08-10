@@ -72,18 +72,20 @@ public class ApiAuthorizationTests
             // Every endpoint behind the credentials rate limiter is absent
             // from this table: login, forgot-password, reset-password,
             // change-password and users/{id}/password. The limiter runs before
-            // authentication and allows twenty requests a minute across all
-            // callers — a test server has no remote address, so everything
-            // shares one partition. Six requests per endpoint would spend the
-            // window and start answering 429 in place of the statuses under
-            // test.
+            // authentication and allows `Auth:RateLimit:PermitLimit` requests
+            // per window across all callers here — a test server has no remote
+            // address, so everything shares one partition. Six requests per
+            // endpoint would eventually spend the window and start answering
+            // 429 in place of the statuses under test.
             //
             // That is not hypothetical. `users/{id}/password` was in this
             // table and passed for weeks, until adding a suite elsewhere
-            // pushed the run past twenty and it began failing with 429 where
-            // it expected 403 — a test whose result depended on how many other
-            // tests had run first. Each of these now has its own case below,
-            // costing one or two requests instead of six.
+            // pushed the run past the limit — then twenty — and it began
+            // failing with 429 where it expected 403: a test whose result
+            // depended on how many other tests had run first. The default is
+            // 120 now, which is more room, but the failure mode is unchanged
+            // and so is the rule. Each of these has its own case below, costing
+            // one or two requests instead of six.
             new("POST", "/api/auth/refresh", null),
             new("POST", "/api/auth/logout", UserRole.Worker),
             new("GET", "/api/auth/me", UserRole.Worker),
@@ -321,10 +323,9 @@ public class ApiAuthorizationTests
     /// </summary>
     /// <remarks>
     /// The limiter runs before authentication in the pipeline. Put this
-    /// endpoint in the table above and the twenty-per-minute window would be
-    /// spent, after which every answer is 429 and the test proves nothing —
-    /// including, quietly, the case where the endpoint had no
-    /// <c>[Authorize]</c> at all.
+    /// endpoint in the table above and the window would be spent, after which
+    /// every answer is 429 and the test proves nothing — including, quietly,
+    /// the case where the endpoint had no <c>[Authorize]</c> at all.
     /// </remarks>
     [Fact]
     public async Task Changing_a_password_requires_signing_in_first()

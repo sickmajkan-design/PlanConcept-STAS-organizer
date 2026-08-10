@@ -3,6 +3,38 @@ using Microsoft.AspNetCore.RateLimiting;
 
 namespace Construction.API.Extensions;
 
+/// <summary>How many credential attempts one address gets, and over what window.</summary>
+/// <remarks>
+/// <para>
+/// Configurable because the right number depends on how the people using it
+/// reach the API, and that is not knowable from here. It was a constant 20, and
+/// <c>scripts/loadtest-login.sh --one-address</c> showed what that means for a
+/// crew sharing one address: 20 sign in, the rest are refused, and the refusal
+/// reads like a wrong password to somebody who typed the right one.
+/// </para>
+/// <para>
+/// The default is now 120 a minute. The reasoning, from the same measurements:
+/// the CPU ceiling on four cores is about 80 sign-ins a second — near 5,000 a
+/// minute — so 120 is nowhere near a denial-of-service risk, and it covers a
+/// hundred-person shift change arriving through one router. Against guessing it
+/// gives up little that matters at this size: an installation has hundreds of
+/// accounts, not millions, so a sprayer at either 20 or 120 a minute walks the
+/// whole list quickly, and what actually stops them is password strength and
+/// the per-account lockout after ten failures.
+/// </para>
+/// <para>
+/// A deployment where every client has its own address can safely lower it.
+/// </para>
+/// </remarks>
+public class AuthRateLimitSettings
+{
+    public const string SectionName = "Auth:RateLimit";
+
+    public int PermitLimit { get; set; } = 120;
+
+    public int WindowSeconds { get; set; } = 60;
+}
+
 public static class RateLimitingExtensions
 {
     /// <summary>Applied to the endpoints where a secret can be guessed.</summary>
@@ -23,8 +55,21 @@ public static class RateLimitingExtensions
     /// Partitioned by client address, which is why UseForwardedHeaders has to
     /// run first — otherwise every caller shares the proxy's single partition.
     /// </summary>
-    public static IServiceCollection AddAuthRateLimiting(this IServiceCollection services)
+    public static IServiceCollection AddAuthRateLimiting(
+        this IServiceCollection services,
+        IConfiguration configuration)
     {
+        var settings = configuration.GetSection(AuthRateLimitSettings.SectionName)
+            .Get<AuthRateLimitSettings>() ?? new AuthRateLimitSettings();
+
+        var permitLimit = settings.PermitLimit > 0
+            ? settings.PermitLimit
+            : new AuthRateLimitSettings().PermitLimit;
+
+        var window = settings.WindowSeconds > 0
+            ? TimeSpan.FromSeconds(settings.WindowSeconds)
+            : TimeSpan.FromMinutes(1);
+
         services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -33,13 +78,8 @@ public static class RateLimitingExtensions
                 partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                 factory: _ => new FixedWindowRateLimiterOptions
                 {
-                    // Sized to stop guessing without breaking a shared address:
-                    // a whole office behind one NAT address, or a CI run driving
-                    // several end-to-end suites, both stay comfortably inside it.
-                    // Guessing a password at 20 tries a minute gets nowhere, and
-                    // PBKDF2 is the real cost to an attacker either way.
-                    PermitLimit = 20,
-                    Window = TimeSpan.FromMinutes(1),
+                    PermitLimit = permitLimit,
+                    Window = window,
                     QueueLimit = 0
                 }));
 
@@ -52,7 +92,14 @@ public static class RateLimitingExtensions
                     type = "https://tools.ietf.org/html/rfc6585#section-4",
                     title = "Too many requests",
                     status = StatusCodes.Status429TooManyRequests,
-                    detail = "Too many attempts. Please wait a minute and try again."
+                    // Says what happened rather than blaming the reader. The
+                    // limit counts every attempt from an address, so on a site
+                    // where everyone shares one connection this can arrive on a
+                    // perfectly correct password — and being told "too many
+                    // attempts" then sends people hunting for a mistake they
+                    // did not make.
+                    detail = "This connection has made too many sign-in attempts in a short "
+                        + "time. If several people share it, wait a minute and try again."
                 }, cancellationToken);
             };
         });

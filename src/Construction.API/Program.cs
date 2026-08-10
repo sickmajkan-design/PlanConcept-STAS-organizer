@@ -48,7 +48,7 @@ try
     builder.Services.AddJwtBearerAuthentication(builder.Configuration);
     builder.Services.AddAuthorizationPolicies();
     builder.Services.AddSwaggerWithJwt();
-    builder.Services.AddAuthRateLimiting();
+    builder.Services.AddAuthRateLimiting(builder.Configuration);
 
     builder.Services.AddTrustedProxyForwarding(builder.Configuration);
 

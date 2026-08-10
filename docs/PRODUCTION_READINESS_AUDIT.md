@@ -1198,7 +1198,62 @@ change, in one place.
   rather than quietly drawing a partial picture. A backend test pins the client
   constant against the server ceiling, since the two are written in different
   languages and drift either way fails silently.
-- **M13.** Load test the login path (PBKDF2 CPU cost at shift change).
+- **M13.** Load test the login path (PBKDF2 CPU cost at shift change). —
+  **done, and it found the wrong wall.**
+
+  `scripts/loadtest-login.sh` brings the real endpoint under real concurrency
+  and measures two ceilings, because they are nowhere near each other. Measured
+  on four cores against PostgreSQL:
+
+  | Load | Result |
+  |---|---|
+  | one derivation, PBKDF2 100k | 27 ms |
+  | 100 sign-ins, 25 at a time | 1.3 s, p99 1.1 s, all accepted |
+  | 200 sign-ins, 50 at a time | 2.0 s, ~98/s, p99 1.9 s |
+  | 300 sign-ins, 100 at a time | 4.0 s, ~75/s, p99 3.8 s |
+  | 400 sign-ins, 200 at a time | 4.7 s, ~85/s, p99 4.4 s |
+
+  Throughput plateaus around 80–100 sign-ins a second and latency grows with
+  concurrency, which is what a CPU-bound endpoint looks like. `/health/live`
+  stayed under 400 ms throughout, so sign-in saturating every core does not
+  take the rest of the API down with it. **The CPU was never the problem:** a
+  hundred-person shift change costs about a second of it.
+
+  *The rate limiter was.* It allowed 20 attempts per minute **per client
+  address**, and it counts every attempt rather than only failures. Sixty
+  sign-ins from one address: 20 accepted, 40 refused — with the correct
+  password. That is not a contrived case. It is a site office behind one
+  router, and it is also a mobile carrier putting subscribers behind one CGNAT
+  address. The refusal read *"Too many attempts. Please wait a minute and try
+  again"*, which sends somebody who typed their password correctly looking for
+  a mistake they did not make.
+
+  Fixed: the limit is now `Auth:RateLimit` in configuration rather than a
+  constant, defaulting to 120 a minute — chosen against the measurement above,
+  since the CPU ceiling is near 5,000 a minute and 120 covers a full shift
+  arriving through one connection. What it gives up against guessing is small
+  at this size: an installation has hundreds of accounts, so a sprayer walks
+  the list quickly at either number, and what actually stops them is password
+  strength and the ten-failure account lockout. A deployment where every client
+  has its own address can lower it. The refusal now describes the shared
+  connection instead of blaming the reader.
+
+  Both are held by `AuthRateLimitConfigurationTests`, checked by making the
+  code ignore the setting and confirming they fail.
+
+  *A note on the test that nearly shipped.* Its first version sent a
+  well-formed sign-in, which waits on a database that is not there. It passed
+  alone and failed intermittently in the full suite — under load the requests
+  sat on connection timeouts long enough for the sixty-second window to roll
+  over mid-test and refill the allowance being counted. It now sends a request
+  that fails validation before any handler runs. Four consecutive full runs.
+
+  **Still open, and the better fix:** the limit counts *every* attempt, not
+  only failed ones, so a successful sign-in spends allowance that exists to
+  stop guessing. Counting failures per address instead — checked before hashing,
+  recorded after a failure — would let a shift change of any size through while
+  tightening the response to actual guessing. It is a change to a security
+  control and wants its own review rather than being folded into a load test.
 - **M14.** Align app display names — **done.** iOS `CFBundleDisplayName` said
   "Construction Mobile" while the Android label, `CFBundleName`, the Flutter
   `MaterialApp` title and both admin titles said "Construction Organizer". All
@@ -1310,7 +1365,8 @@ them and how to have it removed.
   still need a host
 - H8 API versioning
 - M1 cleanup jobs, M2 email/push queue
-- M13 load test
+- ~~M13 load test~~ — done; found and fixed a per-address sign-in ceiling that
+  would have refused most of a shift change
 
 **Exit:** a release goes out without anyone touching a server, and a failure
 pages someone.
