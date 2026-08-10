@@ -80,8 +80,20 @@ cleanup() {
 password=$(openssl rand -hex 24)
 admin_password="Smoke-$(openssl rand -hex 8)!"
 
+# High ports, not 80 and 443. A CI runner or a developer's laptop may well
+# have something on those already, and the first run of this script found
+# exactly that: the proxy could not bind and the stack never came up. The
+# production defaults are unchanged; this run just does not assume the machine
+# is empty.
+http_port=${SMOKE_HTTP_PORT:-8080}
+https_port=${SMOKE_HTTPS_PORT:-8443}
+origin="https://localhost:${https_port}"
+
 cat > "$ENV_FILE" <<EOF
 DOMAIN=localhost
+HTTP_PORT=${http_port}
+HTTPS_PORT=${https_port}
+PUBLIC_ORIGIN=${origin}
 TLS_EMAIL=smoke@example.invalid
 POSTGRES_PASSWORD=${password}
 JWT_SECRET_KEY=$(openssl rand -base64 48 | tr -d '\n')
@@ -109,7 +121,7 @@ echo '--- waiting for the API to become ready through the proxy'
 
 ready=0
 for _ in $(seq 1 60); do
-    if curl -ksf --max-time 5 https://localhost/health/ready >/dev/null 2>&1; then
+    if curl -ksf --max-time 5 ${origin}/health/ready >/dev/null 2>&1; then
         ready=1
         break
     fi
@@ -125,43 +137,54 @@ fi
 echo
 echo '--- checks'
 
+# The checks run in `bash -c` subshells, so the addresses have to be exported
+# rather than merely set — a single-quoted subshell does not inherit a plain
+# shell variable, and every check would quietly test the empty string.
+export origin http_port https_port
+
 # TLS, and the redirect onto it. Caddy issues its own certificate for
 # `localhost`, so `-k` accepts it; that it is a certificate at all is the point.
 check 'HTTPS answers' \
-    bash -c 'curl -ksf --max-time 10 https://localhost/health/live >/dev/null'
+    bash -c 'curl -ksf --max-time 10 "$origin/health/live" >/dev/null'
 
 check 'plain HTTP redirects to HTTPS' \
-    bash -c '[[ "$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 http://localhost/health/live)" =~ ^30[18]$ ]]'
+    bash -c '[[ "$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "http://localhost:$http_port/health/live")" =~ ^30[18]$ ]]'
 
 check 'HSTS is set at the edge' \
-    bash -c 'curl -ksI --max-time 10 https://localhost/ | grep -qi "^strict-transport-security:"'
+    bash -c 'curl -ksI --max-time 10 "$origin/" | grep -qi "^strict-transport-security:"'
 
 # The panel, and the file that tells it where its API is.
 check 'the admin panel is served' \
-    bash -c 'curl -ksf --max-time 10 https://localhost/ | grep -q "<div id=\"root\">"'
+    bash -c 'curl -ksf --max-time 10 "$origin/" | grep -q "<div id=\"root\">"'
 
 check 'the SPA fallback serves a client-side route' \
-    bash -c 'curl -ksf --max-time 10 https://localhost/employees/new | grep -q "<div id=\"root\">"'
+    bash -c 'curl -ksf --max-time 10 "$origin/employees/new" | grep -q "<div id=\"root\">"'
 
 # The whole reason config.js exists: this image was built without an API
-# address, and got one at start-up.
-check 'the panel was given this installation'"'"'s API address' \
-    bash -c 'curl -ksf --max-time 10 https://localhost/config.js | grep -q "apiBaseUrl: \"https://localhost\""'
+# address and got one at start-up. If this check ever passes against a value
+# baked at build time, the runtime layer has stopped doing anything.
+check "the panel was given this installation's API address" \
+    bash -c 'curl -ksf --max-time 10 "$origin/config.js" | grep -qF "apiBaseUrl: \"$origin\""'
 
 check 'config.js is not cacheable' \
-    bash -c 'curl -ksI --max-time 10 https://localhost/config.js | grep -qi "cache-control:.*no-store"'
+    bash -c 'curl -ksI --max-time 10 "$origin/config.js" | grep -qi "cache-control:.*no-store"'
 
 # Sign-in through the proxy, which is where a broken TLS or cookie setup shows.
 login=$(curl -ks --max-time 15 -D /tmp/smoke-headers.txt \
     -H 'Content-Type: application/json' \
     -d "{\"email\":\"smoke@construction.local\",\"password\":\"${admin_password}\"}" \
-    https://localhost/api/v1/auth/login)
+    "$origin/api/v1/auth/login")
 
 check 'the seeded administrator can sign in through the proxy' \
-    bash -c '[[ -n "'"$login"'" ]] && grep -q accessToken <<< "'"$login"'"'
+    bash -c 'grep -q accessToken <<< "$1"' _ "$login"
 
+# The linchpin. `Secure` follows `Request.IsHttps`, which behind a proxy is
+# true only when the API trusts that proxy's address. Get Network__TrustedProxies
+# wrong and the cookie arrives without `Secure`, the browser discards it, the
+# operator is signed out on every reload — and nothing appears in any log.
 check 'the refresh cookie is HttpOnly and Secure' \
-    bash -c 'grep -i "^set-cookie:" /tmp/smoke-headers.txt | grep -qi "httponly" && grep -i "^set-cookie:" /tmp/smoke-headers.txt | grep -qi "secure"'
+    bash -c 'grep -i "^set-cookie:" /tmp/smoke-headers.txt | grep -qi httponly &&
+             grep -i "^set-cookie:" /tmp/smoke-headers.txt | grep -qi secure'
 
 # Nothing but the proxy should be reachable. These are the ports the
 # development compose publishes and this one must not.
@@ -174,7 +197,7 @@ check 'the API is not published to the host' \
 # The correlation id every log line and problem-details body carries. If the
 # proxy strips it, an operator quoting an error has nothing to quote.
 check 'a correlation id survives the proxy' \
-    bash -c 'curl -ksI --max-time 10 https://localhost/api/v1/auth/me | grep -qi "^x-correlation-id:"'
+    bash -c 'curl -ksI --max-time 10 "$origin/api/v1/auth/me" | grep -qi "^x-correlation-id:"'
 
 rm -f /tmp/smoke-headers.txt
 

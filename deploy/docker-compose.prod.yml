@@ -71,7 +71,7 @@ services:
       # Where password-reset links point. Wrong here means an email nobody can
       # use, and the API refuses to start in Production if it still says
       # localhost.
-      ClientApp__PasswordResetUrl: "https://${DOMAIN:?set DOMAIN in .env}/reset-password"
+      ClientApp__PasswordResetUrl: "${PUBLIC_ORIGIN:-https://${DOMAIN:?set DOMAIN in .env}}/reset-password"
 
       EmailSettings__Host: ${SMTP_HOST:-}
       EmailSettings__Port: ${SMTP_PORT:-587}
@@ -105,7 +105,11 @@ services:
     environment:
       # Same origin as the panel itself, so the browser sends the refresh
       # cookie without any CORS involved. The proxy routes /api to the API.
-      API_BASE_URL: "https://${DOMAIN:?set DOMAIN in .env}"
+      #
+      # PUBLIC_ORIGIN is what people type, which is only `https://DOMAIN` when
+      # the stack owns ports 80 and 443. On any other port it has to say so —
+      # this string is handed to the browser, and a browser cannot guess a port.
+      API_BASE_URL: "${PUBLIC_ORIGIN:-https://${DOMAIN:?set DOMAIN in .env}}"
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
     networks:
       - internal
@@ -116,10 +120,15 @@ services:
     depends_on:
       - api
       - admin
+    # Configurable, because a host that already runs something on 80 is an
+    # ordinary situation, and because the smoke test has to share a machine
+    # with whatever else is on it. The defaults are what a dedicated host
+    # wants; anything else needs PUBLIC_ORIGIN set to match, or the panel will
+    # be handed an address nobody can reach.
     ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+      - "${HTTPS_PORT:-443}:443/udp"
     environment:
       DOMAIN: ${DOMAIN:?set DOMAIN in .env}
       # Let's Encrypt uses this only to warn about expiry it could not renew.
