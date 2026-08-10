@@ -46,8 +46,8 @@ dependencies:
   json_annotation: ^4.12.0
   flutter_secure_storage: ^10.3.1
   geolocator: ^14.0.3
-  firebase_core: ^4.12.1
-  firebase_messaging: ^16.4.3
+  firebase_core: ^4.13.0
+  firebase_messaging: ^16.5.0
   image_picker: ^1.2.3
 
   # The offline cache: somewhere app-private to put it, a stable file name for
