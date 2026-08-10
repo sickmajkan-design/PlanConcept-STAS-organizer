@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Attachments.Models;
 using FluentValidation;
@@ -42,16 +40,13 @@ public class GetExpiringDocumentsQueryHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTimeProvider;
-    private readonly IMapper _mapper;
 
     public GetExpiringDocumentsQueryHandler(
         IApplicationDbContext context,
-        IDateTimeProvider dateTimeProvider,
-        IMapper mapper)
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _dateTimeProvider = dateTimeProvider;
-        _mapper = mapper;
     }
 
     public async Task<IReadOnlyList<AttachmentDto>> Handle(
@@ -67,7 +62,7 @@ public class GetExpiringDocumentsQueryHandler
             .Where(a => a.ExpiresAt != null && a.ExpiresAt <= cutoff)
             // Soonest — which means most-overdue — first.
             .OrderBy(a => a.ExpiresAt)
-            .ProjectTo<AttachmentDto>(_mapper.ConfigurationProvider)
+            .Select(AttachmentMapping.Projection)
             .ToListAsync(cancellationToken);
     }
 }

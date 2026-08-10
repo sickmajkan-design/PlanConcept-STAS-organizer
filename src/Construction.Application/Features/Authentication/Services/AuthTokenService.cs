@@ -1,4 +1,3 @@
-using AutoMapper;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Security;
 using Construction.Application.Features.Authentication.Models;
@@ -11,18 +10,15 @@ public class AuthTokenService : IAuthTokenService
     private readonly IApplicationDbContext _context;
     private readonly IJwtProvider _jwtProvider;
     private readonly IDateTimeProvider _dateTimeProvider;
-    private readonly IMapper _mapper;
 
     public AuthTokenService(
         IApplicationDbContext context,
         IJwtProvider jwtProvider,
-        IDateTimeProvider dateTimeProvider,
-        IMapper mapper)
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _jwtProvider = jwtProvider;
         _dateTimeProvider = dateTimeProvider;
-        _mapper = mapper;
     }
 
     public AuthResponse IssueTokens(User user, string? ipAddress, out RefreshToken issuedRefreshToken)
@@ -47,7 +43,7 @@ public class AuthTokenService : IAuthTokenService
             AccessTokenExpiresAt = accessToken.ExpiresAtUtc,
             RefreshToken = rawRefreshToken,
             RefreshTokenExpiresAt = refreshTokenExpiresAt,
-            User = _mapper.Map<UserDto>(user)
+            User = UserMapping.ToDto(user)
         };
     }
 }

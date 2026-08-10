@@ -1,4 +1,3 @@
-using AutoMapper;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Tools.Models;
@@ -20,12 +19,10 @@ public class UpdateToolCommandValidator : ToolCommandBaseValidator<UpdateToolCom
 public class UpdateToolCommandHandler : IRequestHandler<UpdateToolCommand, ToolDto>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public UpdateToolCommandHandler(IApplicationDbContext context, IMapper mapper)
+    public UpdateToolCommandHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<ToolDto> Handle(UpdateToolCommand request, CancellationToken cancellationToken)
@@ -59,6 +56,6 @@ public class UpdateToolCommandHandler : IRequestHandler<UpdateToolCommand, ToolD
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return _mapper.Map<ToolDto>(tool);
+        return ToolMapping.ToDto(tool);
     }
 }

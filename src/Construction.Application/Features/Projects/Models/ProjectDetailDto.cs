@@ -1,4 +1,4 @@
-using AutoMapper;
+using System.Linq.Expressions;
 using Construction.Domain.Entities;
 
 namespace Construction.Application.Features.Projects.Models;
@@ -24,18 +24,48 @@ public class ProjectEmployeeDto
     public DateTime AssignedAt { get; init; }
 }
 
-public class ProjectDetailDtoMappingProfile : Profile
+/// <summary>
+/// How a <see cref="Project"/> becomes an <see cref="ProjectDetailDto"/>.
+/// </summary>
+/// <remarks>
+/// One expression, used two ways: EF Core translates <see cref="Projection"/>
+/// into the SELECT list of a query, and <see cref="ToDto"/> runs the same
+/// expression compiled, in memory. See <c>EmployeeMapping</c> for why this
+/// replaced AutoMapper.
+/// </remarks>
+public static class ProjectDetailMapping
 {
-    public ProjectDetailDtoMappingProfile()
-    {
-        CreateMap<Project, ProjectDetailDto>()
-            .IncludeBase<Project, ProjectDto>()
-            .ForMember(d => d.Employees, opt => opt.MapFrom(s => s.EmployeeAssignments));
+    public static readonly Expression<Func<Project, ProjectDetailDto>> Projection = project =>
+        new ProjectDetailDto
+        {
+            Id = project.Id,
+            Name = project.Name,
+            Description = project.Description,
+            Client = project.Client,
+            Address = project.Address,
+            Latitude = project.Latitude,
+            Longitude = project.Longitude,
+            StartDate = project.StartDate,
+            EndDate = project.EndDate,
+            Status = project.Status.ToString(),
+            EmployeeCount = project.EmployeeAssignments.Count,
+            CreatedAt = project.CreatedAt,
+            UpdatedAt = project.UpdatedAt,
+            Employees = project.EmployeeAssignments
+                .Select(assignment => new ProjectEmployeeDto
+                {
+                    EmployeeId = assignment.EmployeeId,
+                    EmployeeNumber = assignment.Employee.EmployeeNumber,
+                    FullName = assignment.Employee.FirstName + " " + assignment.Employee.LastName,
+                    Position = assignment.Employee.Position,
+                    Status = assignment.Employee.Status.ToString(),
+                    AssignedAt = assignment.AssignedAt,
+                })
+                .ToList(),
+        };
 
-        CreateMap<EmployeeProject, ProjectEmployeeDto>()
-            .ForMember(d => d.EmployeeNumber, opt => opt.MapFrom(s => s.Employee.EmployeeNumber))
-            .ForMember(d => d.FullName, opt => opt.MapFrom(s => s.Employee.FirstName + " " + s.Employee.LastName))
-            .ForMember(d => d.Position, opt => opt.MapFrom(s => s.Employee.Position))
-            .ForMember(d => d.Status, opt => opt.MapFrom(s => s.Employee.Status.ToString()));
-    }
+    private static readonly Func<Project, ProjectDetailDto> Compiled = Projection.Compile();
+
+    /// <summary>Maps a record already in memory.</summary>
+    public static ProjectDetailDto ToDto(Project project) => Compiled(project);
 }

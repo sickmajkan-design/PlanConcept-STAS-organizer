@@ -1,4 +1,4 @@
-using AutoMapper;
+using System.Linq.Expressions;
 using Construction.Domain.Entities;
 
 namespace Construction.Application.Features.Users.Models;
@@ -32,13 +32,35 @@ public class UserDto
     public DateTime CreatedAt { get; init; }
 }
 
-public class UserDtoMappingProfile : Profile
+/// <summary>
+/// How a <see cref="User"/> becomes an <see cref="UserDto"/>.
+/// </summary>
+/// <remarks>
+/// One expression, used two ways: EF Core translates <see cref="Projection"/>
+/// into the SELECT list of a query, and <see cref="ToDto"/> runs the same
+/// expression compiled, in memory. See <c>EmployeeMapping</c> for why this
+/// replaced AutoMapper.
+/// </remarks>
+public static class UserMapping
 {
-    public UserDtoMappingProfile()
-    {
-        CreateMap<User, UserDto>()
-            .ForMember(d => d.Role, opt => opt.MapFrom(s => s.Role.ToString()))
-            .ForMember(d => d.EmployeeName, opt => opt.MapFrom(s =>
-                s.Employee != null ? s.Employee.FirstName + " " + s.Employee.LastName : null));
-    }
+    public static readonly Expression<Func<User, UserDto>> Projection = user =>
+        new UserDto
+        {
+            Id = user.Id,
+            Email = user.Email,
+            Role = user.Role.ToString(),
+            IsActive = user.IsActive,
+            LastLoginAt = user.LastLoginAt,
+            LockoutEndsAt = user.LockoutEndsAt,
+            EmployeeId = user.EmployeeId,
+            EmployeeName = user.Employee != null
+                ? user.Employee.FirstName + " " + user.Employee.LastName
+                : null,
+            CreatedAt = user.CreatedAt,
+        };
+
+    private static readonly Func<User, UserDto> Compiled = Projection.Compile();
+
+    /// <summary>Maps a record already in memory.</summary>
+    public static UserDto ToDto(User user) => Compiled(user);
 }

@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Security;
@@ -19,18 +17,15 @@ public class GetEmployeeLastLocationQueryHandler
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
-    private readonly IMapper _mapper;
 
     public GetEmployeeLastLocationQueryHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider,
-        IMapper mapper)
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
-        _mapper = mapper;
     }
 
     public async Task<EmployeeLocationDto> Handle(
@@ -61,7 +56,7 @@ public class GetEmployeeLastLocationQueryHandler
             .AsNoTracking()
             .Where(l => l.EmployeeId == request.EmployeeId)
             .OrderByDescending(l => l.Timestamp)
-            .ProjectTo<EmployeeLocationDto>(_mapper.ConfigurationProvider)
+            .Select(EmployeeLocationMapping.Projection)
             .FirstOrDefaultAsync(cancellationToken);
 
         return location

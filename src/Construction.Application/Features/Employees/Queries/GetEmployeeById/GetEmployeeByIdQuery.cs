@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Employees.Models;
@@ -14,12 +12,10 @@ public record GetEmployeeByIdQuery(Guid Id) : IRequest<EmployeeDetailDto>;
 public class GetEmployeeByIdQueryHandler : IRequestHandler<GetEmployeeByIdQuery, EmployeeDetailDto>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetEmployeeByIdQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetEmployeeByIdQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<EmployeeDetailDto> Handle(
@@ -29,7 +25,7 @@ public class GetEmployeeByIdQueryHandler : IRequestHandler<GetEmployeeByIdQuery,
         var employee = await _context.Employees
             .AsNoTracking()
             .Where(e => e.Id == request.Id)
-            .ProjectTo<EmployeeDetailDto>(_mapper.ConfigurationProvider)
+            .Select(EmployeeDetailMapping.Projection)
             .FirstOrDefaultAsync(cancellationToken);
 
         return employee ?? throw new NotFoundException(nameof(Employee), request.Id);

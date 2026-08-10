@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.Absences.Models;
@@ -49,16 +47,13 @@ public class GetAbsencesQueryHandler : IRequestHandler<GetAbsencesQuery, PagedLi
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
-    private readonly IMapper _mapper;
 
     public GetAbsencesQueryHandler(
         IApplicationDbContext context,
-        ICurrentUserService currentUserService,
-        IMapper mapper)
+        ICurrentUserService currentUserService)
     {
         _context = context;
         _currentUserService = currentUserService;
-        _mapper = mapper;
     }
 
     public async Task<PagedList<AbsenceDto>> Handle(
@@ -109,7 +104,7 @@ public class GetAbsencesQueryHandler : IRequestHandler<GetAbsencesQuery, PagedLi
         query = ApplySorting(query, request.SortBy, request.SortDescending);
 
         return await PagedList<AbsenceDto>.CreateAsync(
-            query.ProjectTo<AbsenceDto>(_mapper.ConfigurationProvider),
+            query.Select(AbsenceMapping.Projection),
             request.PageNumber,
             request.PageSize,
             cancellationToken);

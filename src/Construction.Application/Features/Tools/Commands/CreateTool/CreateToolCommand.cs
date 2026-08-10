@@ -1,4 +1,3 @@
-using AutoMapper;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Tools.Models;
 using Construction.Domain.Entities;
@@ -13,12 +12,10 @@ public class CreateToolCommandValidator : ToolCommandBaseValidator<CreateToolCom
 public class CreateToolCommandHandler : IRequestHandler<CreateToolCommand, ToolDto>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public CreateToolCommandHandler(IApplicationDbContext context, IMapper mapper)
+    public CreateToolCommandHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<ToolDto> Handle(CreateToolCommand request, CancellationToken cancellationToken)
@@ -44,6 +41,6 @@ public class CreateToolCommandHandler : IRequestHandler<CreateToolCommand, ToolD
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return _mapper.Map<ToolDto>(tool);
+        return ToolMapping.ToDto(tool);
     }
 }

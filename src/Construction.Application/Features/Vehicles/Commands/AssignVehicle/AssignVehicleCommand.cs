@@ -1,4 +1,3 @@
-using AutoMapper;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Vehicles.Models;
@@ -19,16 +18,13 @@ public class AssignVehicleCommandHandler : IRequestHandler<AssignVehicleCommand,
 {
     private readonly IApplicationDbContext _context;
     private readonly INotificationService _notificationService;
-    private readonly IMapper _mapper;
 
     public AssignVehicleCommandHandler(
         IApplicationDbContext context,
-        INotificationService notificationService,
-        IMapper mapper)
+        INotificationService notificationService)
     {
         _context = context;
         _notificationService = notificationService;
-        _mapper = mapper;
     }
 
     public async Task<VehicleDto> Handle(
@@ -72,6 +68,6 @@ public class AssignVehicleCommandHandler : IRequestHandler<AssignVehicleCommand,
                 cancellationToken);
         }
 
-        return _mapper.Map<VehicleDto>(vehicle);
+        return VehicleMapping.ToDto(vehicle);
     }
 }

@@ -1,6 +1,6 @@
+using System.Linq.Expressions;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using AutoMapper;
 using Construction.Domain.Entities;
 
 namespace Construction.Application.Features.Audit.Models;
@@ -48,20 +48,36 @@ public class AuditChangeDto
     public string? To { get; init; }
 }
 
-public class AuditEntryMappingProfile : Profile
+/// <summary>How an <see cref="AuditEntry"/> becomes an <see cref="AuditEntryDto"/>.</summary>
+/// <remarks>
+/// See <c>EmployeeMapping</c> for the convention these all follow. The one
+/// thing this projection does that the others do not is call a method —
+/// <see cref="Parse"/>. EF cannot translate that, and does not have to: a call
+/// in the outermost <c>Select</c> is evaluated on the client, on rows already
+/// fetched. It must stay in the outermost projection for that to hold.
+/// </remarks>
+public static class AuditEntryMapping
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
-    public AuditEntryMappingProfile()
-    {
-        CreateMap<AuditEntry, AuditEntryDto>()
-            .ForMember(d => d.Action, opt => opt.MapFrom(s => s.Action.ToString()))
-            .ForMember(d => d.UserRole, opt => opt.MapFrom(s =>
-                s.UserRole == null ? null : s.UserRole.ToString()))
-            // Deserialised after the query rather than inside it: this cannot
-            // be translated to SQL, so it runs on the materialised rows.
-            .ForMember(d => d.Changes, opt => opt.MapFrom(s => Parse(s.ChangesJson)));
-    }
+    public static readonly Expression<Func<AuditEntry, AuditEntryDto>> Projection = entry =>
+        new AuditEntryDto
+        {
+            Id = entry.Id,
+            OccurredAt = entry.OccurredAt,
+            Action = entry.Action.ToString(),
+            EntityName = entry.EntityName,
+            EntityId = entry.EntityId,
+            UserId = entry.UserId,
+            UserEmail = entry.UserEmail,
+            UserRole = entry.UserRole == null ? null : entry.UserRole.ToString(),
+            IpAddress = entry.IpAddress,
+            Changes = Parse(entry.ChangesJson),
+        };
+
+    private static readonly Func<AuditEntry, AuditEntryDto> Compiled = Projection.Compile();
+
+    public static AuditEntryDto ToDto(AuditEntry entry) => Compiled(entry);
 
     /// <summary>
     /// Never throws. A trail entry with unreadable JSON is still evidence that

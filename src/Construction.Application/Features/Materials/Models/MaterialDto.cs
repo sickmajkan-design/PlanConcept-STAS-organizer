@@ -1,4 +1,4 @@
-using AutoMapper;
+using System.Linq.Expressions;
 using Construction.Domain.Entities;
 
 namespace Construction.Application.Features.Materials.Models;
@@ -26,12 +26,34 @@ public class MaterialDto
     public DateTime? UpdatedAt { get; init; }
 }
 
-public class MaterialDtoMappingProfile : Profile
+/// <summary>
+/// How a <see cref="Material"/> becomes an <see cref="MaterialDto"/>.
+/// </summary>
+/// <remarks>
+/// One expression, used two ways: EF Core translates <see cref="Projection"/>
+/// into the SELECT list of a query, and <see cref="ToDto"/> runs the same
+/// expression compiled, in memory. See <c>EmployeeMapping</c> for why this
+/// replaced AutoMapper.
+/// </remarks>
+public static class MaterialMapping
 {
-    public MaterialDtoMappingProfile()
-    {
-        CreateMap<Material, MaterialDto>()
-            .ForMember(d => d.ProjectName, opt => opt.MapFrom(s =>
-                s.Project != null ? s.Project.Name : null));
-    }
+    public static readonly Expression<Func<Material, MaterialDto>> Projection = material =>
+        new MaterialDto
+        {
+            Id = material.Id,
+            Name = material.Name,
+            Unit = material.Unit,
+            Quantity = material.Quantity,
+            Warehouse = material.Warehouse,
+            ProjectId = material.ProjectId,
+            ProjectName = material.Project != null ? material.Project.Name : null,
+            LastUpdated = material.LastUpdated,
+            CreatedAt = material.CreatedAt,
+            UpdatedAt = material.UpdatedAt,
+        };
+
+    private static readonly Func<Material, MaterialDto> Compiled = Projection.Compile();
+
+    /// <summary>Maps a record already in memory.</summary>
+    public static MaterialDto ToDto(Material material) => Compiled(material);
 }

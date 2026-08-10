@@ -95,10 +95,23 @@ re-opens CSRF, and is being blocked by browsers as a third-party cookie. The
 mobile app is unaffected: it keeps using platform secure storage and receives
 the token in the response body.
 
-Note: AutoMapper ≥ 15 is dual-licensed (free for smaller organizations,
-commercial license otherwise) — review licensing for your deployment, or pin
-an earlier version and accept its security advisory. The pinned 15.1.3 is the
-patched line.
+### Object mapping, and why there is no mapping library
+
+Each DTO owns its projection, as a static `Expression` beside the type it
+produces — `EmployeeMapping.Projection` and the rest. EF Core turns that
+expression into the SELECT list of the query; the same expression, compiled
+once, maps an entity already in memory. Nothing is registered, nothing is
+scanned at start-up, and `ProjectionCompletenessTests` fails the build if a DTO
+property has no assignment.
+
+This replaced AutoMapper, and the reason is licensing rather than taste. An
+earlier version of this note claimed AutoMapper ≥ 15 was "free for smaller
+organizations" — that is not what its `LICENSE.md` says. It offers the
+**Reciprocal Public License 1.5**, which obliges publishing the source of
+software you deploy to users, *or* a commercial licence. There was also no
+version to retreat to: every MIT-licensed release carries an unfixed
+high-severity advisory (GHSA-rvv3-g6hj-g44x), and every release without it is
+licensed. See the audit, C8.
 
 ## Mobile app
 

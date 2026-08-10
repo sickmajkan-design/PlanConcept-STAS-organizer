@@ -1,4 +1,3 @@
-using AutoMapper;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Tools.Models;
@@ -23,12 +22,10 @@ public record UnassignToolCommand(Guid ToolId, ToolAssignmentTarget Target) : IR
 public class UnassignToolCommandHandler : IRequestHandler<UnassignToolCommand, ToolDto>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public UnassignToolCommandHandler(IApplicationDbContext context, IMapper mapper)
+    public UnassignToolCommandHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<ToolDto> Handle(UnassignToolCommand request, CancellationToken cancellationToken)
@@ -65,6 +62,6 @@ public class UnassignToolCommandHandler : IRequestHandler<UnassignToolCommand, T
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return _mapper.Map<ToolDto>(tool);
+        return ToolMapping.ToDto(tool);
     }
 }

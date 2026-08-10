@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Costs.Models;
@@ -57,18 +55,15 @@ public class SetEmployeeRateCommandHandler
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
-    private readonly IMapper _mapper;
 
     public SetEmployeeRateCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider,
-        IMapper mapper)
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
-        _mapper = mapper;
     }
 
     public async Task<EmployeeRateDto> Handle(
@@ -142,7 +137,7 @@ public class SetEmployeeRateCommandHandler
         return await _context.EmployeeRates
             .AsNoTracking()
             .Where(r => r.Id == rate.Id)
-            .ProjectTo<EmployeeRateDto>(_mapper.ConfigurationProvider)
+            .Select(EmployeeRateMapping.Projection)
             .FirstAsync(cancellationToken);
     }
 }

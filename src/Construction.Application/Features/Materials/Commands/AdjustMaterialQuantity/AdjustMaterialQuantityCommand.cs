@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Materials.Models;
@@ -56,20 +54,17 @@ public class AdjustMaterialQuantityCommandHandler
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly ICurrentUserService _currentUserService;
-    private readonly IMapper _mapper;
     private readonly ILogger<AdjustMaterialQuantityCommandHandler> _logger;
 
     public AdjustMaterialQuantityCommandHandler(
         IApplicationDbContext context,
         IDateTimeProvider dateTimeProvider,
         ICurrentUserService currentUserService,
-        IMapper mapper,
         ILogger<AdjustMaterialQuantityCommandHandler> logger)
     {
         _context = context;
         _dateTimeProvider = dateTimeProvider;
         _currentUserService = currentUserService;
-        _mapper = mapper;
         _logger = logger;
     }
 
@@ -123,7 +118,7 @@ public class AdjustMaterialQuantityCommandHandler
         var material = await _context.Materials
             .AsNoTracking()
             .Where(m => m.Id == request.Id)
-            .ProjectTo<MaterialDto>(_mapper.ConfigurationProvider)
+            .Select(MaterialMapping.Projection)
             .FirstAsync(cancellationToken);
 
         _logger.LogInformation(

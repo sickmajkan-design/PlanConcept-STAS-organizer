@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.TimeEntries.Models;
@@ -29,12 +27,10 @@ public class UpdateTimeEntryCommandHandler
     : IRequestHandler<UpdateTimeEntryCommand, TimeEntryDto>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public UpdateTimeEntryCommandHandler(IApplicationDbContext context, IMapper mapper)
+    public UpdateTimeEntryCommandHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<TimeEntryDto> Handle(
@@ -99,7 +95,7 @@ public class UpdateTimeEntryCommandHandler
         return await _context.TimeEntries
             .AsNoTracking()
             .Where(t => t.Id == entry.Id)
-            .ProjectTo<TimeEntryDto>(_mapper.ConfigurationProvider)
+            .Select(TimeEntryMapping.Projection)
             .FirstAsync(cancellationToken);
     }
 }

@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
 using Construction.Application.Common.Security;
@@ -54,12 +52,10 @@ public class GetMaterialsQueryValidator : SortablePagedQueryValidator<GetMateria
 public class GetMaterialsQueryHandler : IRequestHandler<GetMaterialsQuery, PagedList<MaterialDto>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetMaterialsQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetMaterialsQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<PagedList<MaterialDto>> Handle(
@@ -103,7 +99,7 @@ public class GetMaterialsQueryHandler : IRequestHandler<GetMaterialsQuery, Paged
         query = ApplySorting(query, request.SortBy, request.SortDescending);
 
         return await PagedList<MaterialDto>.CreateAsync(
-            query.ProjectTo<MaterialDto>(_mapper.ConfigurationProvider),
+            query.Select(MaterialMapping.Projection),
             request.PageNumber,
             request.PageSize,
             cancellationToken);

@@ -1,4 +1,4 @@
-using AutoMapper;
+using System.Linq.Expressions;
 using Construction.Domain.Entities;
 
 namespace Construction.Application.Features.Tools.Models;
@@ -32,19 +32,41 @@ public class ToolDto
     public DateTime? UpdatedAt { get; init; }
 }
 
-public class ToolDtoMappingProfile : Profile
+/// <summary>
+/// How a <see cref="Tool"/> becomes an <see cref="ToolDto"/>.
+/// </summary>
+/// <remarks>
+/// One expression, used two ways: EF Core translates <see cref="Projection"/>
+/// into the SELECT list of a query, and <see cref="ToDto"/> runs the same
+/// expression compiled, in memory. See <c>EmployeeMapping</c> for why this
+/// replaced AutoMapper.
+/// </remarks>
+public static class ToolMapping
 {
-    public ToolDtoMappingProfile()
-    {
-        CreateMap<Tool, ToolDto>()
-            .ForMember(d => d.Status, opt => opt.MapFrom(s => s.Status.ToString()))
-            .ForMember(d => d.AssignedEmployeeName, opt => opt.MapFrom(s =>
-                s.AssignedEmployee != null
-                    ? s.AssignedEmployee.FirstName + " " + s.AssignedEmployee.LastName
-                    : null))
-            .ForMember(d => d.AssignedEmployeeNumber, opt => opt.MapFrom(s =>
-                s.AssignedEmployee != null ? s.AssignedEmployee.EmployeeNumber : null))
-            .ForMember(d => d.AssignedProjectName, opt => opt.MapFrom(s =>
-                s.AssignedProject != null ? s.AssignedProject.Name : null));
-    }
+    public static readonly Expression<Func<Tool, ToolDto>> Projection = tool =>
+        new ToolDto
+        {
+            Id = tool.Id,
+            Name = tool.Name,
+            Category = tool.Category,
+            SerialNumber = tool.SerialNumber,
+            QrCode = tool.QrCode,
+            Status = tool.Status.ToString(),
+            AssignedEmployeeId = tool.AssignedEmployeeId,
+            AssignedEmployeeName = tool.AssignedEmployee != null
+                ? tool.AssignedEmployee.FirstName + " " + tool.AssignedEmployee.LastName
+                : null,
+            AssignedEmployeeNumber = tool.AssignedEmployee != null
+                ? tool.AssignedEmployee.EmployeeNumber
+                : null,
+            AssignedProjectId = tool.AssignedProjectId,
+            AssignedProjectName = tool.AssignedProject != null ? tool.AssignedProject.Name : null,
+            CreatedAt = tool.CreatedAt,
+            UpdatedAt = tool.UpdatedAt,
+        };
+
+    private static readonly Func<Tool, ToolDto> Compiled = Projection.Compile();
+
+    /// <summary>Maps a record already in memory.</summary>
+    public static ToolDto ToDto(Tool tool) => Compiled(tool);
 }

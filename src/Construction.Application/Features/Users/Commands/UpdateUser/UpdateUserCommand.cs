@@ -1,4 +1,3 @@
-using AutoMapper;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Security;
@@ -48,18 +47,15 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserD
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
-    private readonly IMapper _mapper;
 
     public UpdateUserCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider,
-        IMapper mapper)
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
-        _mapper = mapper;
     }
 
     public async Task<UserDto> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
@@ -113,7 +109,7 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserD
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return _mapper.Map<UserDto>(user);
+        return UserMapping.ToDto(user);
     }
 
     private async Task<Employee?> ResolveEmployeeAsync(

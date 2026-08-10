@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Projects.Models;
@@ -14,12 +12,10 @@ public record GetProjectByIdQuery(Guid Id) : IRequest<ProjectDetailDto>;
 public class GetProjectByIdQueryHandler : IRequestHandler<GetProjectByIdQuery, ProjectDetailDto>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetProjectByIdQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetProjectByIdQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<ProjectDetailDto> Handle(
@@ -29,7 +25,7 @@ public class GetProjectByIdQueryHandler : IRequestHandler<GetProjectByIdQuery, P
         var project = await _context.Projects
             .AsNoTracking()
             .Where(p => p.Id == request.Id)
-            .ProjectTo<ProjectDetailDto>(_mapper.ConfigurationProvider)
+            .Select(ProjectDetailMapping.Projection)
             .FirstOrDefaultAsync(cancellationToken);
 
         return project ?? throw new NotFoundException(nameof(Project), request.Id);

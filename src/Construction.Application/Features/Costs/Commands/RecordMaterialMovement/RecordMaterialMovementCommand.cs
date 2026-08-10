@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Costs.Models;
@@ -83,18 +81,15 @@ public class RecordMaterialMovementCommandHandler
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
-    private readonly IMapper _mapper;
 
     public RecordMaterialMovementCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider,
-        IMapper mapper)
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
-        _mapper = mapper;
     }
 
     public async Task<MaterialMovementDto> Handle(
@@ -165,7 +160,7 @@ public class RecordMaterialMovementCommandHandler
         return await _context.MaterialMovements
             .AsNoTracking()
             .Where(m => m.Id == movement.Id)
-            .ProjectTo<MaterialMovementDto>(_mapper.ConfigurationProvider)
+            .Select(MaterialMovementMapping.Projection)
             .FirstAsync(cancellationToken);
     }
 

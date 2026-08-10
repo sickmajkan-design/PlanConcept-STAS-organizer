@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.TimeEntries.Models;
@@ -66,18 +64,15 @@ public class ClockInCommandHandler : IRequestHandler<ClockInCommand, TimeEntryDt
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
-    private readonly IMapper _mapper;
 
     public ClockInCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider,
-        IMapper mapper)
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
-        _mapper = mapper;
     }
 
     public async Task<TimeEntryDto> Handle(
@@ -134,7 +129,7 @@ public class ClockInCommandHandler : IRequestHandler<ClockInCommand, TimeEntryDt
         return await _context.TimeEntries
             .AsNoTracking()
             .Where(t => t.Id == entry.Id)
-            .ProjectTo<TimeEntryDto>(_mapper.ConfigurationProvider)
+            .Select(TimeEntryMapping.Projection)
             .FirstAsync(cancellationToken);
     }
 }

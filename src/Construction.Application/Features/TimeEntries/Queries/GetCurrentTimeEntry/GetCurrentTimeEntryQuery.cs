@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.TimeEntries.Models;
@@ -23,16 +21,13 @@ public class GetCurrentTimeEntryQueryHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
-    private readonly IMapper _mapper;
 
     public GetCurrentTimeEntryQueryHandler(
         IApplicationDbContext context,
-        ICurrentUserService currentUserService,
-        IMapper mapper)
+        ICurrentUserService currentUserService)
     {
         _context = context;
         _currentUserService = currentUserService;
-        _mapper = mapper;
     }
 
     public async Task<TimeEntryDto?> Handle(
@@ -46,7 +41,7 @@ public class GetCurrentTimeEntryQueryHandler
         return await _context.TimeEntries
             .AsNoTracking()
             .Where(t => t.EmployeeId == employeeId && t.EndedAt == null)
-            .ProjectTo<TimeEntryDto>(_mapper.ConfigurationProvider)
+            .Select(TimeEntryMapping.Projection)
             .FirstOrDefaultAsync(cancellationToken);
     }
 }

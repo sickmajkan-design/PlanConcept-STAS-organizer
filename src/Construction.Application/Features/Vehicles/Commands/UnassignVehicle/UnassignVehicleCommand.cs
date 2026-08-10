@@ -1,4 +1,3 @@
-using AutoMapper;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Vehicles.Models;
@@ -17,12 +16,10 @@ public record UnassignVehicleCommand(Guid VehicleId) : IRequest<VehicleDto>;
 public class UnassignVehicleCommandHandler : IRequestHandler<UnassignVehicleCommand, VehicleDto>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public UnassignVehicleCommandHandler(IApplicationDbContext context, IMapper mapper)
+    public UnassignVehicleCommandHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<VehicleDto> Handle(
@@ -48,6 +45,6 @@ public class UnassignVehicleCommandHandler : IRequestHandler<UnassignVehicleComm
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return _mapper.Map<VehicleDto>(vehicle);
+        return VehicleMapping.ToDto(vehicle);
     }
 }

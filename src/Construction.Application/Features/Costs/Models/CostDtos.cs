@@ -1,4 +1,4 @@
-using AutoMapper;
+using System.Linq.Expressions;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
 
@@ -85,36 +85,86 @@ public class VehicleExpenseDto
     public DateTime CreatedAt { get; init; }
 }
 
-public class CostMappingProfile : Profile
+/// <summary>How an <see cref="EmployeeRate"/> becomes an <see cref="EmployeeRateDto"/>.</summary>
+/// <remarks>See <c>EmployeeMapping</c> for the convention these all follow.</remarks>
+public static class EmployeeRateMapping
 {
-    public CostMappingProfile()
-    {
-        CreateMap<EmployeeRate, EmployeeRateDto>()
-            .ForMember(d => d.EmployeeName, opt => opt.MapFrom(s =>
-                s.Employee.FirstName + " " + s.Employee.LastName))
-            .ForMember(d => d.SetByName, opt => opt.MapFrom(s =>
-                s.SetByUser != null ? s.SetByUser.Email : null));
+    public static readonly Expression<Func<EmployeeRate, EmployeeRateDto>> Projection = rate =>
+        new EmployeeRateDto
+        {
+            Id = rate.Id,
+            EmployeeId = rate.EmployeeId,
+            EmployeeName = rate.Employee.FirstName + " " + rate.Employee.LastName,
+            HourlyRate = rate.HourlyRate,
+            StartDate = rate.StartDate,
+            EndDate = rate.EndDate,
+            Note = rate.Note,
+            SetByName = rate.SetByUser != null ? rate.SetByUser.Email : null,
+            CreatedAt = rate.CreatedAt,
+        };
 
-        CreateMap<MaterialMovement, MaterialMovementDto>()
-            .ForMember(d => d.MaterialName, opt => opt.MapFrom(s => s.Material.Name))
-            .ForMember(d => d.Unit, opt => opt.MapFrom(s => s.Material.Unit))
+    private static readonly Func<EmployeeRate, EmployeeRateDto> Compiled = Projection.Compile();
+
+    public static EmployeeRateDto ToDto(EmployeeRate rate) => Compiled(rate);
+}
+
+/// <summary>How a <see cref="MaterialMovement"/> becomes a <see cref="MaterialMovementDto"/>.</summary>
+public static class MaterialMovementMapping
+{
+    public static readonly Expression<Func<MaterialMovement, MaterialMovementDto>> Projection =
+        movement => new MaterialMovementDto
+        {
+            Id = movement.Id,
+            MaterialId = movement.MaterialId,
+            MaterialName = movement.Material.Name,
+            Unit = movement.Material.Unit,
+            Kind = movement.Kind,
+            Quantity = movement.Quantity,
+            UnitPrice = movement.UnitPrice,
             // Spelled out rather than taken from the entity's computed
-            // property, which ProjectTo cannot turn into SQL.
-            .ForMember(d => d.TotalCost, opt => opt.MapFrom(s =>
-                s.UnitPrice != null
-                    ? s.UnitPrice * (s.Quantity < 0 ? -s.Quantity : s.Quantity)
-                    : (decimal?)null))
-            .ForMember(d => d.ProjectName, opt => opt.MapFrom(s =>
-                s.Project != null ? s.Project.Name : null))
-            .ForMember(d => d.RecordedByName, opt => opt.MapFrom(s =>
-                s.RecordedByUser != null ? s.RecordedByUser.Email : null));
+            // property, which cannot be turned into SQL.
+            TotalCost = movement.UnitPrice != null
+                ? movement.UnitPrice * (movement.Quantity < 0 ? -movement.Quantity : movement.Quantity)
+                : (decimal?)null,
+            ProjectId = movement.ProjectId,
+            ProjectName = movement.Project != null ? movement.Project.Name : null,
+            OccurredOn = movement.OccurredOn,
+            Note = movement.Note,
+            RecordedByName = movement.RecordedByUser != null ? movement.RecordedByUser.Email : null,
+            CreatedAt = movement.CreatedAt,
+        };
 
-        CreateMap<VehicleExpense, VehicleExpenseDto>()
-            .ForMember(d => d.VehicleName, opt => opt.MapFrom(s =>
-                s.Vehicle.Brand + " " + s.Vehicle.Model + " (" + s.Vehicle.RegistrationNumber + ")"))
-            .ForMember(d => d.PricePerLitre, opt => opt.MapFrom(s =>
-                s.Litres != null && s.Litres > 0 ? s.Amount / s.Litres : (decimal?)null))
-            .ForMember(d => d.RecordedByName, opt => opt.MapFrom(s =>
-                s.RecordedByUser != null ? s.RecordedByUser.Email : null));
-    }
+    private static readonly Func<MaterialMovement, MaterialMovementDto> Compiled =
+        Projection.Compile();
+
+    public static MaterialMovementDto ToDto(MaterialMovement movement) => Compiled(movement);
+}
+
+/// <summary>How a <see cref="VehicleExpense"/> becomes a <see cref="VehicleExpenseDto"/>.</summary>
+public static class VehicleExpenseMapping
+{
+    public static readonly Expression<Func<VehicleExpense, VehicleExpenseDto>> Projection =
+        expense => new VehicleExpenseDto
+        {
+            Id = expense.Id,
+            VehicleId = expense.VehicleId,
+            VehicleName = expense.Vehicle.Brand + " " + expense.Vehicle.Model
+                + " (" + expense.Vehicle.RegistrationNumber + ")",
+            Kind = expense.Kind,
+            Amount = expense.Amount,
+            OccurredOn = expense.OccurredOn,
+            Litres = expense.Litres,
+            PricePerLitre = expense.Litres != null && expense.Litres > 0
+                ? expense.Amount / expense.Litres
+                : (decimal?)null,
+            OdometerKm = expense.OdometerKm,
+            Supplier = expense.Supplier,
+            Note = expense.Note,
+            RecordedByName = expense.RecordedByUser != null ? expense.RecordedByUser.Email : null,
+            CreatedAt = expense.CreatedAt,
+        };
+
+    private static readonly Func<VehicleExpense, VehicleExpenseDto> Compiled = Projection.Compile();
+
+    public static VehicleExpenseDto ToDto(VehicleExpense expense) => Compiled(expense);
 }

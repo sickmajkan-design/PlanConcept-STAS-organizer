@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
 using Construction.Application.Common.Security;
@@ -53,12 +51,10 @@ public class GetToolsQueryValidator : SortablePagedQueryValidator<GetToolsQuery>
 public class GetToolsQueryHandler : IRequestHandler<GetToolsQuery, PagedList<ToolDto>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetToolsQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetToolsQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<PagedList<ToolDto>> Handle(
@@ -109,7 +105,7 @@ public class GetToolsQueryHandler : IRequestHandler<GetToolsQuery, PagedList<Too
         query = ApplySorting(query, request.SortBy, request.SortDescending);
 
         return await PagedList<ToolDto>.CreateAsync(
-            query.ProjectTo<ToolDto>(_mapper.ConfigurationProvider),
+            query.Select(ToolMapping.Projection),
             request.PageNumber,
             request.PageSize,
             cancellationToken);

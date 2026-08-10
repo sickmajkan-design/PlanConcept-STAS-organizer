@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Materials.Models;
@@ -17,16 +15,13 @@ public class CreateMaterialCommandHandler : IRequestHandler<CreateMaterialComman
 {
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTimeProvider;
-    private readonly IMapper _mapper;
 
     public CreateMaterialCommandHandler(
         IApplicationDbContext context,
-        IDateTimeProvider dateTimeProvider,
-        IMapper mapper)
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _dateTimeProvider = dateTimeProvider;
-        _mapper = mapper;
     }
 
     public async Task<MaterialDto> Handle(
@@ -62,7 +57,7 @@ public class CreateMaterialCommandHandler : IRequestHandler<CreateMaterialComman
         return await _context.Materials
             .AsNoTracking()
             .Where(m => m.Id == material.Id)
-            .ProjectTo<MaterialDto>(_mapper.ConfigurationProvider)
+            .Select(MaterialMapping.Projection)
             .FirstAsync(cancellationToken);
     }
 }

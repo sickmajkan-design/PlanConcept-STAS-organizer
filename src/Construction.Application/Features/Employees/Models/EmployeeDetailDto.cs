@@ -1,4 +1,4 @@
-using AutoMapper;
+using System.Linq.Expressions;
 using Construction.Domain.Entities;
 
 namespace Construction.Application.Features.Employees.Models;
@@ -22,17 +22,49 @@ public class EmployeeProjectAssignmentDto
     public DateTime AssignedAt { get; init; }
 }
 
-public class EmployeeDetailDtoMappingProfile : Profile
+/// <summary>
+/// The single-employee view: everything the list carries, plus the assignments.
+/// </summary>
+/// <remarks>
+/// The base columns are repeated rather than inherited from
+/// <see cref="EmployeeMapping.Projection"/>. EF composes a projection from one
+/// expression tree it can read end to end; a call to another expression is a
+/// method call to it, and it will not translate one. The duplication is the
+/// price of the query staying a single round trip, and
+/// <c>EmployeeProjectionTests</c> holds the two shapes to the same values.
+/// </remarks>
+public static class EmployeeDetailMapping
 {
-    public EmployeeDetailDtoMappingProfile()
-    {
-        CreateMap<Employee, EmployeeDetailDto>()
-            .IncludeBase<Employee, EmployeeDto>()
-            .ForMember(d => d.HasUserAccount, opt => opt.MapFrom(s => s.User != null))
-            .ForMember(d => d.Projects, opt => opt.MapFrom(s => s.ProjectAssignments));
+    public static readonly Expression<Func<Employee, EmployeeDetailDto>> Projection = employee =>
+        new EmployeeDetailDto
+        {
+            Id = employee.Id,
+            EmployeeNumber = employee.EmployeeNumber,
+            FirstName = employee.FirstName,
+            LastName = employee.LastName,
+            FullName = employee.FirstName + " " + employee.LastName,
+            Phone = employee.Phone,
+            Email = employee.Email,
+            Address = employee.Address,
+            DateOfBirth = employee.DateOfBirth,
+            EmploymentDate = employee.EmploymentDate,
+            Position = employee.Position,
+            Status = employee.Status.ToString(),
+            CreatedAt = employee.CreatedAt,
+            UpdatedAt = employee.UpdatedAt,
+            HasUserAccount = employee.User != null,
+            Projects = employee.ProjectAssignments
+                .Select(assignment => new EmployeeProjectAssignmentDto
+                {
+                    ProjectId = assignment.ProjectId,
+                    ProjectName = assignment.Project.Name,
+                    ProjectStatus = assignment.Project.Status.ToString(),
+                    AssignedAt = assignment.AssignedAt,
+                })
+                .ToList(),
+        };
 
-        CreateMap<EmployeeProject, EmployeeProjectAssignmentDto>()
-            .ForMember(d => d.ProjectName, opt => opt.MapFrom(s => s.Project.Name))
-            .ForMember(d => d.ProjectStatus, opt => opt.MapFrom(s => s.Project.Status.ToString()));
-    }
+    private static readonly Func<Employee, EmployeeDetailDto> Compiled = Projection.Compile();
+
+    public static EmployeeDetailDto ToDto(Employee employee) => Compiled(employee);
 }

@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
@@ -32,16 +30,13 @@ public class GetMyNotificationsQueryHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
-    private readonly IMapper _mapper;
 
     public GetMyNotificationsQueryHandler(
         IApplicationDbContext context,
-        ICurrentUserService currentUserService,
-        IMapper mapper)
+        ICurrentUserService currentUserService)
     {
         _context = context;
         _currentUserService = currentUserService;
-        _mapper = mapper;
     }
 
     public async Task<PagedList<NotificationDto>> Handle(
@@ -63,7 +58,7 @@ public class GetMyNotificationsQueryHandler
             query
                 .OrderByDescending(n => n.CreatedAt)
                 .ThenByDescending(n => n.Id)
-                .ProjectTo<NotificationDto>(_mapper.ConfigurationProvider),
+                .Select(NotificationMapping.Projection),
             request.PageNumber,
             request.PageSize,
             cancellationToken);

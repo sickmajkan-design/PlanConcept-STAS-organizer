@@ -15,7 +15,13 @@ public static class DependencyInjection
     {
         var assembly = Assembly.GetExecutingAssembly();
 
-        services.AddAutoMapper(cfg => cfg.AddMaps(assembly));
+        // Nothing registers mapping any more. Each DTO carries its own
+        // projection expression as a static field — see EmployeeMapping — so
+        // there is no configuration to scan at start-up and no service to
+        // inject. AutoMapper is gone: it is licensed under RPL-1.5, which
+        // obliges publishing the source of software deployed to users, and its
+        // only permissively licensed releases carry an unfixed high-severity
+        // advisory. See the audit, C8.
         services.AddValidatorsFromAssembly(assembly);
 
         services.AddMediatR(cfg =>

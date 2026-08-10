@@ -1,4 +1,3 @@
-using AutoMapper;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Employees.Models;
@@ -15,12 +14,10 @@ public class CreateEmployeeCommandValidator : EmployeeCommandBaseValidator<Creat
 public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeCommand, EmployeeDto>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public CreateEmployeeCommandHandler(IApplicationDbContext context, IMapper mapper)
+    public CreateEmployeeCommandHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<EmployeeDto> Handle(
@@ -55,6 +52,6 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return _mapper.Map<EmployeeDto>(employee);
+        return EmployeeMapping.ToDto(employee);
     }
 }

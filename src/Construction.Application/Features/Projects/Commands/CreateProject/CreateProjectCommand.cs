@@ -1,4 +1,3 @@
-using AutoMapper;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Projects.Models;
 using Construction.Domain.Entities;
@@ -13,12 +12,10 @@ public class CreateProjectCommandValidator : ProjectCommandBaseValidator<CreateP
 public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand, ProjectDto>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public CreateProjectCommandHandler(IApplicationDbContext context, IMapper mapper)
+    public CreateProjectCommandHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<ProjectDto> Handle(
@@ -42,6 +39,6 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return _mapper.Map<ProjectDto>(project);
+        return ProjectMapping.ToDto(project);
     }
 }

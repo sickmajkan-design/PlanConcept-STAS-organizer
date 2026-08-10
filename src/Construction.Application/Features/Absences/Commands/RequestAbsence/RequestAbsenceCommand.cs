@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Absences.Models;
@@ -70,18 +68,15 @@ public class RequestAbsenceCommandHandler : IRequestHandler<RequestAbsenceComman
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
-    private readonly IMapper _mapper;
 
     public RequestAbsenceCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider,
-        IMapper mapper)
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
-        _mapper = mapper;
     }
 
     public async Task<AbsenceDto> Handle(
@@ -145,7 +140,7 @@ public class RequestAbsenceCommandHandler : IRequestHandler<RequestAbsenceComman
         return await _context.Absences
             .AsNoTracking()
             .Where(a => a.Id == absence.Id)
-            .ProjectTo<AbsenceDto>(_mapper.ConfigurationProvider)
+            .Select(AbsenceMapping.Projection)
             .FirstAsync(cancellationToken);
     }
 

@@ -1,4 +1,4 @@
-using AutoMapper;
+using System.Linq.Expressions;
 using Construction.Domain.Entities;
 
 namespace Construction.Application.Features.Projects.Models;
@@ -32,12 +32,37 @@ public class ProjectDto
     public DateTime? UpdatedAt { get; init; }
 }
 
-public class ProjectDtoMappingProfile : Profile
+/// <summary>
+/// How a <see cref="Project"/> becomes an <see cref="ProjectDto"/>.
+/// </summary>
+/// <remarks>
+/// One expression, used two ways: EF Core translates <see cref="Projection"/>
+/// into the SELECT list of a query, and <see cref="ToDto"/> runs the same
+/// expression compiled, in memory. See <c>EmployeeMapping</c> for why this
+/// replaced AutoMapper.
+/// </remarks>
+public static class ProjectMapping
 {
-    public ProjectDtoMappingProfile()
-    {
-        CreateMap<Project, ProjectDto>()
-            .ForMember(d => d.Status, opt => opt.MapFrom(s => s.Status.ToString()))
-            .ForMember(d => d.EmployeeCount, opt => opt.MapFrom(s => s.EmployeeAssignments.Count));
-    }
+    public static readonly Expression<Func<Project, ProjectDto>> Projection = project =>
+        new ProjectDto
+        {
+            Id = project.Id,
+            Name = project.Name,
+            Description = project.Description,
+            Client = project.Client,
+            Address = project.Address,
+            Latitude = project.Latitude,
+            Longitude = project.Longitude,
+            StartDate = project.StartDate,
+            EndDate = project.EndDate,
+            Status = project.Status.ToString(),
+            EmployeeCount = project.EmployeeAssignments.Count,
+            CreatedAt = project.CreatedAt,
+            UpdatedAt = project.UpdatedAt,
+        };
+
+    private static readonly Func<Project, ProjectDto> Compiled = Projection.Compile();
+
+    /// <summary>Maps a record already in memory.</summary>
+    public static ProjectDto ToDto(Project project) => Compiled(project);
 }

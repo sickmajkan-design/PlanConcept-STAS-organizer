@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.WorkItems.Models;
@@ -15,16 +13,13 @@ public class GetWorkItemByIdQueryHandler : IRequestHandler<GetWorkItemByIdQuery,
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
-    private readonly IMapper _mapper;
 
     public GetWorkItemByIdQueryHandler(
         IApplicationDbContext context,
-        ICurrentUserService currentUserService,
-        IMapper mapper)
+        ICurrentUserService currentUserService)
     {
         _context = context;
         _currentUserService = currentUserService;
-        _mapper = mapper;
     }
 
     public async Task<WorkItemDto> Handle(
@@ -46,7 +41,7 @@ public class GetWorkItemByIdQueryHandler : IRequestHandler<GetWorkItemByIdQuery,
         }
 
         return await query
-            .ProjectTo<WorkItemDto>(_mapper.ConfigurationProvider)
+            .Select(WorkItemMapping.Projection)
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException(nameof(WorkItem), request.Id);
     }

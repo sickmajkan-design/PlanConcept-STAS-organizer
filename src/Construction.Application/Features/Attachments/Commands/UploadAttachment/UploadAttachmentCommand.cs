@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Attachments.Models;
@@ -75,18 +73,15 @@ public class UploadAttachmentCommandHandler
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IFileStorage _storage;
-    private readonly IMapper _mapper;
 
     public UploadAttachmentCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IFileStorage storage,
-        IMapper mapper)
+        IFileStorage storage)
     {
         _context = context;
         _currentUserService = currentUserService;
         _storage = storage;
-        _mapper = mapper;
     }
 
     public async Task<AttachmentDto> Handle(
@@ -151,7 +146,7 @@ public class UploadAttachmentCommandHandler
         return await _context.Attachments
             .AsNoTracking()
             .Where(a => a.Id == attachment.Id)
-            .ProjectTo<AttachmentDto>(_mapper.ConfigurationProvider)
+            .Select(AttachmentMapping.Projection)
             .FirstAsync(cancellationToken);
     }
 

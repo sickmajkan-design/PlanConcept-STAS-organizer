@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
 using Construction.Application.Common.Security;
@@ -50,12 +48,10 @@ public class GetUsersQueryValidator : SortablePagedQueryValidator<GetUsersQuery>
 public class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, PagedList<UserDto>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetUsersQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetUsersQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<PagedList<UserDto>> Handle(
@@ -87,7 +83,7 @@ public class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, PagedList<Use
         query = ApplySorting(query, request.SortBy, request.SortDescending);
 
         return await PagedList<UserDto>.CreateAsync(
-            query.ProjectTo<UserDto>(_mapper.ConfigurationProvider),
+            query.Select(UserMapping.Projection),
             request.PageNumber,
             request.PageSize,
             cancellationToken);

@@ -1,4 +1,4 @@
-using AutoMapper;
+using System.Linq.Expressions;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
 
@@ -58,16 +58,44 @@ public class TimeEntryDto
     public DateTime? UpdatedAt { get; init; }
 }
 
-public class TimeEntryDtoMappingProfile : Profile
+/// <summary>
+/// How a <see cref="TimeEntry"/> becomes an <see cref="TimeEntryDto"/>.
+/// </summary>
+/// <remarks>
+/// One expression, used two ways: EF Core translates <see cref="Projection"/>
+/// into the SELECT list of a query, and <see cref="ToDto"/> runs the same
+/// expression compiled, in memory. See <c>EmployeeMapping</c> for why this
+/// replaced AutoMapper.
+/// </remarks>
+public static class TimeEntryMapping
 {
-    public TimeEntryDtoMappingProfile()
-    {
-        CreateMap<TimeEntry, TimeEntryDto>()
-            .ForMember(d => d.EmployeeName, opt => opt.MapFrom(s =>
-                s.Employee.FirstName + " " + s.Employee.LastName))
-            .ForMember(d => d.ProjectName, opt => opt.MapFrom(s =>
-                s.Project != null ? s.Project.Name : null))
-            .ForMember(d => d.ReviewedByName, opt => opt.MapFrom(s =>
-                s.ReviewedByUser != null ? s.ReviewedByUser.Email : null));
-    }
+    public static readonly Expression<Func<TimeEntry, TimeEntryDto>> Projection = entry =>
+        new TimeEntryDto
+        {
+            Id = entry.Id,
+            EmployeeId = entry.EmployeeId,
+            EmployeeName = entry.Employee.FirstName + " " + entry.Employee.LastName,
+            ProjectId = entry.ProjectId,
+            ProjectName = entry.Project != null ? entry.Project.Name : null,
+            StartedAt = entry.StartedAt,
+            EndedAt = entry.EndedAt,
+            BreakMinutes = entry.BreakMinutes,
+            WorkType = entry.WorkType,
+            Status = entry.Status,
+            Note = entry.Note,
+            StartLatitude = entry.StartLatitude,
+            StartLongitude = entry.StartLongitude,
+            EndLatitude = entry.EndLatitude,
+            EndLongitude = entry.EndLongitude,
+            ReviewedByName = entry.ReviewedByUser != null ? entry.ReviewedByUser.Email : null,
+            ReviewedAt = entry.ReviewedAt,
+            ReviewNote = entry.ReviewNote,
+            CreatedAt = entry.CreatedAt,
+            UpdatedAt = entry.UpdatedAt,
+        };
+
+    private static readonly Func<TimeEntry, TimeEntryDto> Compiled = Projection.Compile();
+
+    /// <summary>Maps a record already in memory.</summary>
+    public static TimeEntryDto ToDto(TimeEntry entry) => Compiled(entry);
 }

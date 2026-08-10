@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
 using Construction.Application.Common.Security;
@@ -49,12 +47,10 @@ public class GetProjectsQueryValidator : SortablePagedQueryValidator<GetProjects
 public class GetProjectsQueryHandler : IRequestHandler<GetProjectsQuery, PagedList<ProjectDto>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetProjectsQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetProjectsQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<PagedList<ProjectDto>> Handle(
@@ -94,7 +90,7 @@ public class GetProjectsQueryHandler : IRequestHandler<GetProjectsQuery, PagedLi
         query = ApplySorting(query, request.SortBy, request.SortDescending);
 
         return await PagedList<ProjectDto>.CreateAsync(
-            query.ProjectTo<ProjectDto>(_mapper.ConfigurationProvider),
+            query.Select(ProjectMapping.Projection),
             request.PageNumber,
             request.PageSize,
             cancellationToken);

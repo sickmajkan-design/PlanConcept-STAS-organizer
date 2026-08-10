@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Vehicles.Models;
@@ -14,12 +12,10 @@ public record GetVehicleByIdQuery(Guid Id) : IRequest<VehicleDto>;
 public class GetVehicleByIdQueryHandler : IRequestHandler<GetVehicleByIdQuery, VehicleDto>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetVehicleByIdQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetVehicleByIdQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<VehicleDto> Handle(
@@ -29,7 +25,7 @@ public class GetVehicleByIdQueryHandler : IRequestHandler<GetVehicleByIdQuery, V
         var vehicle = await _context.Vehicles
             .AsNoTracking()
             .Where(v => v.Id == request.Id)
-            .ProjectTo<VehicleDto>(_mapper.ConfigurationProvider)
+            .Select(VehicleMapping.Projection)
             .FirstOrDefaultAsync(cancellationToken);
 
         return vehicle ?? throw new NotFoundException(nameof(Vehicle), request.Id);

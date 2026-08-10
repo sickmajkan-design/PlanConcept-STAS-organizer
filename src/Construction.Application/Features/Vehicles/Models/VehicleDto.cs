@@ -1,4 +1,4 @@
-using AutoMapper;
+using System.Linq.Expressions;
 using Construction.Domain.Entities;
 
 namespace Construction.Application.Features.Vehicles.Models;
@@ -30,18 +30,40 @@ public class VehicleDto
     public DateTime? UpdatedAt { get; init; }
 }
 
-public class VehicleDtoMappingProfile : Profile
+/// <summary>
+/// How a <see cref="Vehicle"/> becomes an <see cref="VehicleDto"/>.
+/// </summary>
+/// <remarks>
+/// One expression, used two ways: EF Core translates <see cref="Projection"/>
+/// into the SELECT list of a query, and <see cref="ToDto"/> runs the same
+/// expression compiled, in memory. See <c>EmployeeMapping</c> for why this
+/// replaced AutoMapper.
+/// </remarks>
+public static class VehicleMapping
 {
-    public VehicleDtoMappingProfile()
-    {
-        CreateMap<Vehicle, VehicleDto>()
-            .ForMember(d => d.FuelType, opt => opt.MapFrom(s => s.FuelType.ToString()))
-            .ForMember(d => d.Status, opt => opt.MapFrom(s => s.Status.ToString()))
-            .ForMember(d => d.AssignedEmployeeName, opt => opt.MapFrom(s =>
-                s.AssignedEmployee != null
-                    ? s.AssignedEmployee.FirstName + " " + s.AssignedEmployee.LastName
-                    : null))
-            .ForMember(d => d.AssignedEmployeeNumber, opt => opt.MapFrom(s =>
-                s.AssignedEmployee != null ? s.AssignedEmployee.EmployeeNumber : null));
-    }
+    public static readonly Expression<Func<Vehicle, VehicleDto>> Projection = vehicle =>
+        new VehicleDto
+        {
+            Id = vehicle.Id,
+            Brand = vehicle.Brand,
+            Model = vehicle.Model,
+            RegistrationNumber = vehicle.RegistrationNumber,
+            Vin = vehicle.Vin,
+            FuelType = vehicle.FuelType.ToString(),
+            Status = vehicle.Status.ToString(),
+            AssignedEmployeeId = vehicle.AssignedEmployeeId,
+            AssignedEmployeeName = vehicle.AssignedEmployee != null
+                ? vehicle.AssignedEmployee.FirstName + " " + vehicle.AssignedEmployee.LastName
+                : null,
+            AssignedEmployeeNumber = vehicle.AssignedEmployee != null
+                ? vehicle.AssignedEmployee.EmployeeNumber
+                : null,
+            CreatedAt = vehicle.CreatedAt,
+            UpdatedAt = vehicle.UpdatedAt,
+        };
+
+    private static readonly Func<Vehicle, VehicleDto> Compiled = Projection.Compile();
+
+    /// <summary>Maps a record already in memory.</summary>
+    public static VehicleDto ToDto(Vehicle vehicle) => Compiled(vehicle);
 }

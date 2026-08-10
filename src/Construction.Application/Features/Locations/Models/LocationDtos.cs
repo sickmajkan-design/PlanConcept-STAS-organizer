@@ -1,4 +1,4 @@
-using AutoMapper;
+using System.Linq.Expressions;
 using Construction.Domain.Entities;
 
 namespace Construction.Application.Features.Locations.Models;
@@ -43,15 +43,45 @@ public class EmployeeLocationDto
     public DateTime Timestamp { get; init; }
 }
 
-public class LocationMappingProfile : Profile
+/// <summary>How a <see cref="LocationRecord"/> becomes a <see cref="LocationRecordDto"/>.</summary>
+/// <remarks>See <c>EmployeeMapping</c> for the convention these all follow.</remarks>
+public static class LocationRecordMapping
 {
-    public LocationMappingProfile()
-    {
-        CreateMap<LocationRecord, LocationRecordDto>();
+    public static readonly Expression<Func<LocationRecord, LocationRecordDto>> Projection =
+        record => new LocationRecordDto
+        {
+            Id = record.Id,
+            EmployeeId = record.EmployeeId,
+            Latitude = record.Latitude,
+            Longitude = record.Longitude,
+            Accuracy = record.Accuracy,
+            Timestamp = record.Timestamp,
+            ReceivedAt = record.ReceivedAt,
+        };
 
-        CreateMap<LocationRecord, EmployeeLocationDto>()
-            .ForMember(d => d.EmployeeNumber, opt => opt.MapFrom(s => s.Employee.EmployeeNumber))
-            .ForMember(d => d.FullName, opt => opt.MapFrom(s => s.Employee.FirstName + " " + s.Employee.LastName))
-            .ForMember(d => d.Position, opt => opt.MapFrom(s => s.Employee.Position));
-    }
+    private static readonly Func<LocationRecord, LocationRecordDto> Compiled = Projection.Compile();
+
+    public static LocationRecordDto ToDto(LocationRecord record) => Compiled(record);
+}
+
+/// <summary>How a <see cref="LocationRecord"/> becomes an <see cref="EmployeeLocationDto"/>.</summary>
+public static class EmployeeLocationMapping
+{
+    public static readonly Expression<Func<LocationRecord, EmployeeLocationDto>> Projection =
+        record => new EmployeeLocationDto
+        {
+            EmployeeId = record.EmployeeId,
+            EmployeeNumber = record.Employee.EmployeeNumber,
+            FullName = record.Employee.FirstName + " " + record.Employee.LastName,
+            Position = record.Employee.Position,
+            Latitude = record.Latitude,
+            Longitude = record.Longitude,
+            Accuracy = record.Accuracy,
+            Timestamp = record.Timestamp,
+        };
+
+    private static readonly Func<LocationRecord, EmployeeLocationDto> Compiled =
+        Projection.Compile();
+
+    public static EmployeeLocationDto ToDto(LocationRecord record) => Compiled(record);
 }

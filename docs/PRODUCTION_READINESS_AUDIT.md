@@ -380,8 +380,8 @@ Beyond code, nothing exists for:
 
 ## CRITICAL — must be fixed before production
 
-**C8. AutoMapper's licence does not permit selling this closed-source.** —
-**OPEN, and it needs a commercial decision rather than a code change.**
+**C8. AutoMapper's licence did not permit selling this closed-source.** —
+**CLOSED. AutoMapper is gone.**
 
 The Production deployment says so itself, in its own log, on the first sign-in
 of every smoke run:
@@ -425,9 +425,42 @@ this repository's own dependency gate in `security.yml`.
 3. **Publish the source under RPL-1.5.** Free, and incompatible with selling
    this as a closed product.
 
-Nothing has been changed for this yet: option 1 is a day's work and option 2 is
-somebody's budget, and picking between them is not a decision to make quietly
-inside a refactor.
+**Option 1 was chosen and is done.** Every DTO now carries its own projection
+as a static expression:
+
+```csharp
+public static readonly Expression<Func<Employee, EmployeeDto>> Projection =
+    employee => new EmployeeDto { … };
+
+private static readonly Func<Employee, EmployeeDto> Compiled = Projection.Compile();
+
+public static EmployeeDto ToDto(Employee employee) => Compiled(employee);
+```
+
+One expression serves both paths — EF translates it into a SELECT list, and
+the compiled copy maps an entity already in memory — so the two cannot drift
+apart the way two hand-written mappings eventually would.
+`.ProjectTo<EmployeeDto>(_mapper.ConfigurationProvider)` became
+`.Select(EmployeeMapping.Projection)`; 126 `IMapper` injections went with it.
+20 mappings, 79 files, and `dotnet list package` no longer finds AutoMapper
+directly or transitively.
+
+*What replaced the one thing AutoMapper was doing for us.* Its configuration
+validation caught an unmapped property; hand-written projections have no such
+check, and a forgotten property is invisible — it arrives as null or zero and
+reads as missing data rather than a missing mapping. So
+`ProjectionCompletenessTests` reads each projection's **expression tree** and
+compares the properties it binds against the properties the DTO declares. It
+discovers the mappings by reflection, so one added later is covered without
+anyone remembering, and a second test asserts the discovery still finds all 20
+— a guard that would otherwise pass while testing nothing. Verified by deleting
+a binding: it names the property and fails.
+
+406 unit and 557 integration tests pass.
+
+*What this is worth beyond the licence.* No reflection at start-up, no
+configuration to scan, no service to inject, and a mapping mistake is now
+mostly a compile error rather than a runtime one.
 
 **C1. Compose ships working production-capable secrets.** — **CLOSED**
 `docker-compose.yml` defaulted `JwtSettings__SecretKey` to

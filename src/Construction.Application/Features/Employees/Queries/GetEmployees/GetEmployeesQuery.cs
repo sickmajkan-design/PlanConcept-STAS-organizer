@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
 using Construction.Application.Common.Security;
@@ -49,12 +47,10 @@ public class GetEmployeesQueryValidator : SortablePagedQueryValidator<GetEmploye
 public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, PagedList<EmployeeDto>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetEmployeesQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetEmployeesQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<PagedList<EmployeeDto>> Handle(
@@ -95,7 +91,7 @@ public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, Paged
         query = ApplySorting(query, request.SortBy, request.SortDescending);
 
         return await PagedList<EmployeeDto>.CreateAsync(
-            query.ProjectTo<EmployeeDto>(_mapper.ConfigurationProvider),
+            query.Select(EmployeeMapping.Projection),
             request.PageNumber,
             request.PageSize,
             cancellationToken);

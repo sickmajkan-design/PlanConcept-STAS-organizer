@@ -1,4 +1,3 @@
-using AutoMapper;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Vehicles.Models;
 using Construction.Domain.Entities;
@@ -13,12 +12,10 @@ public class CreateVehicleCommandValidator : VehicleCommandBaseValidator<CreateV
 public class CreateVehicleCommandHandler : IRequestHandler<CreateVehicleCommand, VehicleDto>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public CreateVehicleCommandHandler(IApplicationDbContext context, IMapper mapper)
+    public CreateVehicleCommandHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<VehicleDto> Handle(
@@ -47,6 +44,6 @@ public class CreateVehicleCommandHandler : IRequestHandler<CreateVehicleCommand,
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return _mapper.Map<VehicleDto>(vehicle);
+        return VehicleMapping.ToDto(vehicle);
     }
 }

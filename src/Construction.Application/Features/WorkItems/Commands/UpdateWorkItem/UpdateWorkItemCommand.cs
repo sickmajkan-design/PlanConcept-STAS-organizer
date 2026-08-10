@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.WorkItems.Models;
@@ -30,18 +28,15 @@ public class UpdateWorkItemCommandHandler
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly INotificationService _notifications;
-    private readonly IMapper _mapper;
 
     public UpdateWorkItemCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        INotificationService notifications,
-        IMapper mapper)
+        INotificationService notifications)
     {
         _context = context;
         _currentUserService = currentUserService;
         _notifications = notifications;
-        _mapper = mapper;
     }
 
     public async Task<WorkItemDto> Handle(
@@ -120,7 +115,7 @@ public class UpdateWorkItemCommandHandler
         return await _context.WorkItems
             .AsNoTracking()
             .Where(w => w.Id == item.Id)
-            .ProjectTo<WorkItemDto>(_mapper.ConfigurationProvider)
+            .Select(WorkItemMapping.Projection)
             .FirstAsync(cancellationToken);
     }
 }

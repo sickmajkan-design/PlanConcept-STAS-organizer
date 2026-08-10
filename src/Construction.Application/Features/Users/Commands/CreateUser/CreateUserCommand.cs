@@ -1,4 +1,3 @@
-using AutoMapper;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Security;
@@ -50,18 +49,15 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserD
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IPasswordHasher _passwordHasher;
-    private readonly IMapper _mapper;
 
     public CreateUserCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IPasswordHasher passwordHasher,
-        IMapper mapper)
+        IPasswordHasher passwordHasher)
     {
         _context = context;
         _currentUserService = currentUserService;
         _passwordHasher = passwordHasher;
-        _mapper = mapper;
     }
 
     public async Task<UserDto> Handle(CreateUserCommand request, CancellationToken cancellationToken)
@@ -94,7 +90,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserD
 
         user.Employee = employee;
 
-        return _mapper.Map<UserDto>(user);
+        return UserMapping.ToDto(user);
     }
 
     private async Task<Employee?> ResolveEmployeeAsync(Guid? employeeId, CancellationToken cancellationToken)

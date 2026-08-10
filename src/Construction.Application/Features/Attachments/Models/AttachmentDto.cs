@@ -1,4 +1,4 @@
-using AutoMapper;
+using System.Linq.Expressions;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
 
@@ -32,40 +32,59 @@ public class AttachmentDto
     public DateTime CreatedAt { get; init; }
 }
 
-public class AttachmentDtoMappingProfile : Profile
+/// <summary>
+/// How a <see cref="Attachment"/> becomes an <see cref="AttachmentDto"/>.
+/// </summary>
+/// <remarks>
+/// One expression, used two ways: EF Core translates <see cref="Projection"/>
+/// into the SELECT list of a query, and <see cref="ToDto"/> runs the same
+/// expression compiled, in memory. See <c>EmployeeMapping</c> for why this
+/// replaced AutoMapper.
+/// </remarks>
+public static class AttachmentMapping
 {
-    public AttachmentDtoMappingProfile()
-    {
-        CreateMap<Attachment, AttachmentDto>()
+    public static readonly Expression<Func<Attachment, AttachmentDto>> Projection = attachment =>
+        new AttachmentDto
+        {
+            Id = attachment.Id,
+            FileName = attachment.FileName,
+            ContentType = attachment.ContentType,
+            SizeBytes = attachment.SizeBytes,
+            Category = attachment.Category,
+            Description = attachment.Description,
+            ExpiresAt = attachment.ExpiresAt,
             // Spelled out as a conditional chain rather than through
-            // AttachmentOwner.Of, because this has to become SQL: ProjectTo
-            // cannot translate a method call, and loading every row to ask it
-            // in memory is what a list endpoint must not do.
+            // AttachmentOwner.Of, because this has to become SQL: a method call
+            // cannot be translated, and loading every row to ask it in memory is
+            // what a list endpoint must not do.
             // Every branch ends on an explicit column rather than falling
             // through to the last one. The chain used to end at Tool, so a row
             // owned by anything the chain had not been taught reported itself
             // as a tool with a null id — which threw on projection, and would
             // have been worse if it had not.
-            .ForMember(d => d.OwnerType, opt => opt.MapFrom(s =>
-                s.EmployeeId != null ? AttachmentOwnerType.Employee
-                : s.ProjectId != null ? AttachmentOwnerType.Project
-                : s.VehicleId != null ? AttachmentOwnerType.Vehicle
-                : s.ToolId != null ? AttachmentOwnerType.Tool
-                : AttachmentOwnerType.WorkItem))
-            .ForMember(d => d.OwnerId, opt => opt.MapFrom(s =>
-                s.EmployeeId != null ? s.EmployeeId.Value
-                : s.ProjectId != null ? s.ProjectId.Value
-                : s.VehicleId != null ? s.VehicleId.Value
-                : s.ToolId != null ? s.ToolId.Value
-                : s.WorkItemId!.Value))
-            .ForMember(d => d.OwnerName, opt => opt.MapFrom(s =>
-                s.Employee != null ? s.Employee.FirstName + " " + s.Employee.LastName
-                : s.Project != null ? s.Project.Name
-                : s.Vehicle != null ? s.Vehicle.Brand + " " + s.Vehicle.Model
-                : s.Tool != null ? s.Tool.Name
-                : s.WorkItem != null ? s.WorkItem.Title
-                : null))
-            .ForMember(d => d.UploadedByName, opt => opt.MapFrom(s =>
-                s.UploadedByUser != null ? s.UploadedByUser.Email : null));
-    }
+            OwnerType = attachment.EmployeeId != null ? AttachmentOwnerType.Employee
+                : attachment.ProjectId != null ? AttachmentOwnerType.Project
+                : attachment.VehicleId != null ? AttachmentOwnerType.Vehicle
+                : attachment.ToolId != null ? AttachmentOwnerType.Tool
+                : AttachmentOwnerType.WorkItem,
+            OwnerId = attachment.EmployeeId != null ? attachment.EmployeeId.Value
+                : attachment.ProjectId != null ? attachment.ProjectId.Value
+                : attachment.VehicleId != null ? attachment.VehicleId.Value
+                : attachment.ToolId != null ? attachment.ToolId.Value
+                : attachment.WorkItemId!.Value,
+            OwnerName = attachment.Employee != null
+                ? attachment.Employee.FirstName + " " + attachment.Employee.LastName
+                : attachment.Project != null ? attachment.Project.Name
+                : attachment.Vehicle != null ? attachment.Vehicle.Brand + " " + attachment.Vehicle.Model
+                : attachment.Tool != null ? attachment.Tool.Name
+                : attachment.WorkItem != null ? attachment.WorkItem.Title
+                : null,
+            UploadedByName = attachment.UploadedByUser != null ? attachment.UploadedByUser.Email : null,
+            CreatedAt = attachment.CreatedAt,
+        };
+
+    private static readonly Func<Attachment, AttachmentDto> Compiled = Projection.Compile();
+
+    /// <summary>Maps a record already in memory.</summary>
+    public static AttachmentDto ToDto(Attachment attachment) => Compiled(attachment);
 }

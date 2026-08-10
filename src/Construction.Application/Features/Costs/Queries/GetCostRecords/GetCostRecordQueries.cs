@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
@@ -42,18 +40,15 @@ public class GetEmployeeRatesQueryHandler
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
-    private readonly IMapper _mapper;
 
     public GetEmployeeRatesQueryHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider,
-        IMapper mapper)
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
-        _mapper = mapper;
     }
 
     public async Task<PagedList<EmployeeRateDto>> Handle(
@@ -84,7 +79,7 @@ public class GetEmployeeRatesQueryHandler
         return await PagedList<EmployeeRateDto>.CreateAsync(
             query
                 .OrderByDescending(r => r.StartDate)
-                .ProjectTo<EmployeeRateDto>(_mapper.ConfigurationProvider),
+                .Select(EmployeeRateMapping.Projection),
             request.PageNumber,
             request.PageSize,
             cancellationToken);
@@ -126,16 +121,13 @@ public class GetMaterialMovementsQueryHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
-    private readonly IMapper _mapper;
 
     public GetMaterialMovementsQueryHandler(
         IApplicationDbContext context,
-        ICurrentUserService currentUserService,
-        IMapper mapper)
+        ICurrentUserService currentUserService)
     {
         _context = context;
         _currentUserService = currentUserService;
-        _mapper = mapper;
     }
 
     public async Task<PagedList<MaterialMovementDto>> Handle(
@@ -178,7 +170,7 @@ public class GetMaterialMovementsQueryHandler
             query
                 .OrderByDescending(m => m.OccurredOn)
                 .ThenByDescending(m => m.CreatedAt)
-                .ProjectTo<MaterialMovementDto>(_mapper.ConfigurationProvider),
+                .Select(MaterialMovementMapping.Projection),
             request.PageNumber,
             request.PageSize,
             cancellationToken);
@@ -218,16 +210,13 @@ public class GetVehicleExpensesQueryHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
-    private readonly IMapper _mapper;
 
     public GetVehicleExpensesQueryHandler(
         IApplicationDbContext context,
-        ICurrentUserService currentUserService,
-        IMapper mapper)
+        ICurrentUserService currentUserService)
     {
         _context = context;
         _currentUserService = currentUserService;
-        _mapper = mapper;
     }
 
     public async Task<PagedList<VehicleExpenseDto>> Handle(
@@ -265,7 +254,7 @@ public class GetVehicleExpensesQueryHandler
             query
                 .OrderByDescending(e => e.OccurredOn)
                 .ThenByDescending(e => e.CreatedAt)
-                .ProjectTo<VehicleExpenseDto>(_mapper.ConfigurationProvider),
+                .Select(VehicleExpenseMapping.Projection),
             request.PageNumber,
             request.PageSize,
             cancellationToken);

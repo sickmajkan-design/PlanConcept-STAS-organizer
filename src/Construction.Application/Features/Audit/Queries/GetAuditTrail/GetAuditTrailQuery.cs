@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.Audit.Models;
@@ -66,12 +64,10 @@ public class GetAuditTrailQueryHandler
     : IRequestHandler<GetAuditTrailQuery, PagedList<AuditEntryDto>>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetAuditTrailQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetAuditTrailQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<PagedList<AuditEntryDto>> Handle(
@@ -121,7 +117,7 @@ public class GetAuditTrailQueryHandler
                 // with the same clock reading — so without a tiebreaker the
                 // order between them is undefined and paging can repeat a row.
                 .ThenByDescending(a => a.Id)
-                .ProjectTo<AuditEntryDto>(_mapper.ConfigurationProvider),
+                .Select(AuditEntryMapping.Projection),
             request.PageNumber,
             request.PageSize,
             cancellationToken);

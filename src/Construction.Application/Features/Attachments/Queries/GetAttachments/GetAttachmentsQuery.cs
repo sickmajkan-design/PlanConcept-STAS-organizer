@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Attachments.Models;
@@ -39,16 +37,13 @@ public class GetAttachmentsQueryHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
-    private readonly IMapper _mapper;
 
     public GetAttachmentsQueryHandler(
         IApplicationDbContext context,
-        ICurrentUserService currentUserService,
-        IMapper mapper)
+        ICurrentUserService currentUserService)
     {
         _context = context;
         _currentUserService = currentUserService;
-        _mapper = mapper;
     }
 
     public async Task<IReadOnlyList<AttachmentDto>> Handle(
@@ -104,7 +99,7 @@ public class GetAttachmentsQueryHandler
             .OrderBy(a => a.ExpiresAt == null)
             .ThenBy(a => a.ExpiresAt)
             .ThenByDescending(a => a.CreatedAt)
-            .ProjectTo<AttachmentDto>(_mapper.ConfigurationProvider)
+            .Select(AttachmentMapping.Projection)
             .ToListAsync(cancellationToken);
     }
 

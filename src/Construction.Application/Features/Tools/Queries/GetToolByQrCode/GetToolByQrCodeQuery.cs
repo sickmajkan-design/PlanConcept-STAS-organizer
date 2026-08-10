@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Tools.Models;
@@ -28,12 +26,10 @@ public class GetToolByQrCodeQueryValidator : AbstractValidator<GetToolByQrCodeQu
 public class GetToolByQrCodeQueryHandler : IRequestHandler<GetToolByQrCodeQuery, ToolDto>
 {
     private readonly IApplicationDbContext _context;
-    private readonly IMapper _mapper;
 
-    public GetToolByQrCodeQueryHandler(IApplicationDbContext context, IMapper mapper)
+    public GetToolByQrCodeQueryHandler(IApplicationDbContext context)
     {
         _context = context;
-        _mapper = mapper;
     }
 
     public async Task<ToolDto> Handle(GetToolByQrCodeQuery request, CancellationToken cancellationToken)
@@ -43,7 +39,7 @@ public class GetToolByQrCodeQueryHandler : IRequestHandler<GetToolByQrCodeQuery,
         var tool = await _context.Tools
             .AsNoTracking()
             .Where(t => t.QrCode == qrCode)
-            .ProjectTo<ToolDto>(_mapper.ConfigurationProvider)
+            .Select(ToolMapping.Projection)
             .FirstOrDefaultAsync(cancellationToken);
 
         return tool ?? throw new NotFoundException($"No tool found for QR code '{qrCode}'.");

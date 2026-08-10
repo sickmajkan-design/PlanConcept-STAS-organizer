@@ -1,5 +1,3 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Absences.Commands.RequestAbsence;
@@ -43,18 +41,15 @@ public class ReviewAbsenceCommandHandler : IRequestHandler<ReviewAbsenceCommand,
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
-    private readonly IMapper _mapper;
 
     public ReviewAbsenceCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider,
-        IMapper mapper)
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
-        _mapper = mapper;
     }
 
     public async Task<AbsenceDto> Handle(
@@ -106,7 +101,7 @@ public class ReviewAbsenceCommandHandler : IRequestHandler<ReviewAbsenceCommand,
         return await _context.Absences
             .AsNoTracking()
             .Where(a => a.Id == absence.Id)
-            .ProjectTo<AbsenceDto>(_mapper.ConfigurationProvider)
+            .Select(AbsenceMapping.Projection)
             .FirstAsync(cancellationToken);
     }
 }

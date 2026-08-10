@@ -1,4 +1,4 @@
-using AutoMapper;
+using System.Linq.Expressions;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
 
@@ -50,24 +50,47 @@ public class WorkItemDto
         Status is WorkItemStatus.Closed or WorkItemStatus.Cancelled;
 }
 
-public class WorkItemDtoMappingProfile : Profile
+/// <summary>
+/// How a <see cref="WorkItem"/> becomes an <see cref="WorkItemDto"/>.
+/// </summary>
+/// <remarks>
+/// One expression, used two ways: EF Core translates <see cref="Projection"/>
+/// into the SELECT list of a query, and <see cref="ToDto"/> runs the same
+/// expression compiled, in memory. See <c>EmployeeMapping</c> for why this
+/// replaced AutoMapper.
+/// </remarks>
+public static class WorkItemMapping
 {
-    public WorkItemDtoMappingProfile()
-    {
-        CreateMap<WorkItem, WorkItemDto>()
-            .ForMember(d => d.ProjectName, opt => opt.MapFrom(s =>
-                s.Project != null ? s.Project.Name : null))
-            .ForMember(d => d.AssignedEmployeeName, opt => opt.MapFrom(s =>
-                s.AssignedEmployee != null
-                    ? s.AssignedEmployee.FirstName + " " + s.AssignedEmployee.LastName
-                    : null))
-            .ForMember(d => d.CreatedByName, opt => opt.MapFrom(s =>
-                s.CreatedByUser != null ? s.CreatedByUser.Email : null))
-            .ForMember(d => d.ResolvedByName, opt => opt.MapFrom(s =>
-                s.ResolvedByUser != null ? s.ResolvedByUser.Email : null))
+    public static readonly Expression<Func<WorkItem, WorkItemDto>> Projection = item =>
+        new WorkItemDto
+        {
+            Id = item.Id,
+            Kind = item.Kind,
+            Title = item.Title,
+            Description = item.Description,
+            ProjectId = item.ProjectId,
+            ProjectName = item.Project != null ? item.Project.Name : null,
+            AssignedEmployeeId = item.AssignedEmployeeId,
+            AssignedEmployeeName = item.AssignedEmployee != null
+                ? item.AssignedEmployee.FirstName + " " + item.AssignedEmployee.LastName
+                : null,
+            Priority = item.Priority,
+            Status = item.Status,
+            DueDate = item.DueDate,
+            Latitude = item.Latitude,
+            Longitude = item.Longitude,
+            CreatedByName = item.CreatedByUser != null ? item.CreatedByUser.Email : null,
+            ResolvedByName = item.ResolvedByUser != null ? item.ResolvedByUser.Email : null,
+            ResolvedAt = item.ResolvedAt,
             // Counted in the same query rather than loading the rows: a board
             // showing fifty items would otherwise make fifty-one round trips.
-            .ForMember(d => d.AttachmentCount, opt => opt.MapFrom(s =>
-                s.Attachments.Count));
-    }
+            AttachmentCount = item.Attachments.Count,
+            CreatedAt = item.CreatedAt,
+            UpdatedAt = item.UpdatedAt,
+        };
+
+    private static readonly Func<WorkItem, WorkItemDto> Compiled = Projection.Compile();
+
+    /// <summary>Maps a record already in memory.</summary>
+    public static WorkItemDto ToDto(WorkItem item) => Compiled(item);
 }
