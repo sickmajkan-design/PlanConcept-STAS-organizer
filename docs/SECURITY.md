@@ -310,8 +310,12 @@ public repository or GitHub Advanced Security, so it runs on the default branch
 and on a weekly schedule rather than on every feature branch: a branch should
 not go red over a repository setting. If the licence is not there, delete the
 job rather than leaving it failing — a permanently red check teaches everyone to
-ignore red checks. **Dart is not covered**: CodeQL does not support it, so a
-third of the codebase gets no static security analysis at all.
+ignore red checks. On this repository the licence *is* there: both language jobs
+have run green. Note what that does and does not mean — a passing CodeQL job
+says the analysis ran, not that it found nothing. **Findings land in the
+repository's Security tab**, and that is where to look for them. **Dart is not
+covered**: CodeQL does not support it, so a third of the codebase gets no static
+security analysis at all.
 
 `.github/dependabot.yml` watches NuGet, npm, pub and the workflow actions
 themselves, weekly and grouped. Grouping is what keeps it useful — ungrouped, a
