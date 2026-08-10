@@ -875,7 +875,11 @@ change, in one place.
 
   CodeQL also needs a public repository or GitHub Advanced Security, so it runs
   on the default branch and weekly rather than on feature branches. If the
-  licence is absent the job should be deleted rather than left failing.
+  licence is absent the job should be deleted rather than left failing — **on
+  this repository it is not absent**: both language jobs completed green on
+  run 31364915006, so CodeQL is genuinely analysing C# and TypeScript here.
+  Findings appear in the repository's Security tab rather than as a failed
+  build; the job passing means it ran, not that it found nothing.
   GitHub's own secret scanning and push protection are repository settings, not
   files, and are on the checklist in SECURITY.md.
 
