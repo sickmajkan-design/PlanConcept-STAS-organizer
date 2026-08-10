@@ -63,10 +63,18 @@ services:
       # before the rollout — see docs/PROVISIONING.md §6.4.
       Database__ApplyMigrationsOnStartup: "true"
 
-      # The proxy's address on the internal network, pinned below. Not a range
-      # and not "trust everything": the whole point of the setting is that an
-      # attacker able to reach the API directly cannot forge a client address.
-      Network__TrustedProxies: "172.28.0.2"
+      # The internal network, not a fixed address.
+      #
+      # The first version pinned the proxy to 172.28.0.2 on a fixed subnet so
+      # this could name it exactly. That is stricter on paper and worse in
+      # practice: it collided with something already on the host and the proxy
+      # would not start at all. Trusting the network is also the truer
+      # statement — the API publishes no port, so the only things that can
+      # reach it are the containers on this network.
+      #
+      # One variable, used twice: whatever subnet the network gets is what the
+      # API trusts, so the two cannot drift apart.
+      Network__TrustedProxies: "${INTERNAL_SUBNET:-172.28.0.0/16}"
 
       # Where password-reset links point. Wrong here means an email nobody can
       # use, and the API refuses to start in Production if it still says
@@ -140,8 +148,7 @@ services:
       - caddy-data:/data
       - caddy-config:/config
     networks:
-      internal:
-        ipv4_address: 172.28.0.2
+      - internal
 
   # Nightly backup, on by default here — unlike development, where it is behind
   # a profile. A deployment without backups is the failure this whole section
@@ -184,14 +191,15 @@ services:
       - internal
 
 networks:
-  # A fixed subnet so the proxy can have a fixed address, which is what the
-  # API's trusted-proxy list needs. Docker's default pool would give Caddy a
-  # different address after a recreate, and the API would silently stop
-  # trusting the forwarded client IP.
+  # Pinned so the API can be told what to trust, and configurable so a host
+  # that already uses this range can move it. Change INTERNAL_SUBNET and the
+  # trusted-proxy setting above follows automatically — they read the same
+  # variable, because a deployment where those two disagree looks healthy and
+  # silently stops trusting the forwarded client address.
   internal:
     ipam:
       config:
-        - subnet: 172.28.0.0/16
+        - subnet: ${INTERNAL_SUBNET:-172.28.0.0/16}
 
 volumes:
   postgres-data:

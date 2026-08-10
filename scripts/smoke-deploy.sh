@@ -89,8 +89,15 @@ http_port=${SMOKE_HTTP_PORT:-8080}
 https_port=${SMOKE_HTTPS_PORT:-8443}
 origin="https://localhost:${https_port}"
 
+# A subnet unlikely to be taken. The first run of this in CI died on
+# "Address already in use" while setting up container networking, with the
+# default range colliding with something already on the runner — so the test
+# picks its own rather than assuming the machine is empty here either.
+subnet=${SMOKE_SUBNET:-10.83.0.0/16}
+
 cat > "$ENV_FILE" <<EOF
 DOMAIN=localhost
+INTERNAL_SUBNET=${subnet}
 HTTP_PORT=${http_port}
 HTTPS_PORT=${https_port}
 PUBLIC_ORIGIN=${origin}

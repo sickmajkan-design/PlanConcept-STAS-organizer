@@ -789,10 +789,18 @@ commercial proposal actually requires.
 
 *The proxy address is not a detail.* The refresh cookie's `Secure` flag follows
 `Request.IsHttps`, which behind a proxy is true only when the API trusts that
-proxy's address. Get it wrong and the browser discards the cookie, the operator
-is signed out on every reload, and **nothing appears in any log**. So the
-compose file pins the proxy to a fixed address on a fixed subnet rather than
-letting Docker allocate one, and `scripts/smoke-deploy.sh` asserts the flag.
+proxy. Get it wrong and the browser discards the cookie, the operator is signed
+out on every reload, and **nothing appears in any log**. `scripts/smoke-deploy.sh`
+asserts the flag, which makes that one check the linchpin of the whole file.
+
+The first attempt named the proxy by a fixed IP on a fixed subnet, which is
+stricter on paper and worse in practice: the range collided with something
+already on the CI runner and the proxy would not start at all — twice, because
+the first fix was aimed at the wrong cause. `Network:TrustedProxies` now accepts
+a CIDR range as well as an address, and the compose file uses one variable for
+both the network's subnet and what the API trusts, so the two cannot drift.
+Trusting the network is also the truer statement: the API publishes no port, so
+the only things that can reach it are the containers beside it.
 
 That script is the point of the whole item. It brings the real stack up behind
 TLS and asks what YAML cannot answer: does HTTP redirect to HTTPS, does the

@@ -1,5 +1,11 @@
 using System.Net;
+using System.Net.Sockets;
 using Microsoft.AspNetCore.HttpOverrides;
+
+// `IPNetwork` exists in both namespaces and they are not the same type:
+// `KnownNetworks` holds the ASP.NET one. Aliased rather than fully qualified
+// everywhere, so the wrong one cannot be picked up by accident later.
+using IPNetwork = Microsoft.AspNetCore.HttpOverrides.IPNetwork;
 
 namespace Construction.API.Extensions;
 
@@ -52,9 +58,14 @@ public static class ForwardedHeadersExtensions
             options.KnownNetworks.Clear();
             options.KnownProxies.Clear();
 
-            foreach (var proxy in trusted)
+            foreach (var proxy in trusted.Addresses)
             {
                 options.KnownProxies.Add(proxy);
+            }
+
+            foreach (var network in trusted.Networks)
+            {
+                options.KnownNetworks.Add(network);
             }
 
             // One hop by default. A larger value would let a trusted proxy's
@@ -76,7 +87,7 @@ public static class ForwardedHeadersExtensions
         var logger = app.Services.GetRequiredService<ILoggerFactory>()
             .CreateLogger(typeof(ForwardedHeadersExtensions).FullName!);
 
-        if (trusted.Count == 0)
+        if (trusted.IsEmpty)
         {
             logger.LogInformation(
                 "No trusted proxies configured ({Key} is empty): X-Forwarded-For is ignored and " +
@@ -87,8 +98,9 @@ public static class ForwardedHeadersExtensions
         }
 
         logger.LogInformation(
-            "Trusting X-Forwarded-For from {Count} configured proxy address(es).",
-            trusted.Count);
+            "Trusting X-Forwarded-For from {Addresses} proxy address(es) and {Networks} network(s).",
+            trusted.Addresses.Count,
+            trusted.Networks.Count);
 
         app.UseForwardedHeaders();
 
@@ -97,15 +109,26 @@ public static class ForwardedHeadersExtensions
 
     /// <summary>
     /// Reads the trusted proxy list. Accepts a comma-separated string or an
-    /// array, so it can come from one environment variable or from JSON.
+    /// array, so it can come from one environment variable or from JSON, and
+    /// accepts either a single address or a CIDR range.
     /// </summary>
-    public static IReadOnlyList<IPAddress> ParseTrustedProxies(IConfiguration configuration)
+    /// <remarks>
+    /// The range form exists because a container has no stable address. The
+    /// first deployment stack pinned the proxy to a fixed IP on a fixed subnet
+    /// so this setting could name it — which worked until the subnet collided
+    /// with something already on the host, and then nothing started at all.
+    /// Naming the network instead is both more robust and closer to what is
+    /// actually meant: trust whatever is on the internal network, because
+    /// nothing else can reach the API at all.
+    /// </remarks>
+    public static TrustedProxySet ParseTrustedProxies(IConfiguration configuration)
     {
         var values = configuration.GetSection(TrustedProxiesKey).Get<string[]>()
             ?? (configuration[TrustedProxiesKey] ?? string.Empty)
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
         var addresses = new List<IPAddress>();
+        var networks = new List<IPNetwork>();
 
         foreach (var value in values)
         {
@@ -116,17 +139,65 @@ public static class ForwardedHeadersExtensions
                 continue;
             }
 
+            if (trimmed.Contains('/'))
+            {
+                networks.Add(ParseNetwork(trimmed));
+                continue;
+            }
+
             if (!IPAddress.TryParse(trimmed, out var address))
             {
                 throw new InvalidOperationException(
-                    $"'{TrustedProxiesKey}' contains '{trimmed}', which is not an IP address. " +
-                    "List the addresses of the reverse proxies in front of the API, or leave it " +
-                    "empty when there are none.");
+                    $"'{TrustedProxiesKey}' contains '{trimmed}', which is neither an IP address " +
+                    "nor a CIDR range. List the addresses of the reverse proxies in front of the " +
+                    "API, or the network they are on, or leave it empty when there are none.");
             }
 
             addresses.Add(address);
         }
 
-        return addresses;
+        return new TrustedProxySet(addresses, networks);
     }
+
+    private static IPNetwork ParseNetwork(string value)
+    {
+        var slash = value.IndexOf('/');
+        var addressPart = value[..slash];
+        var prefixPart = value[(slash + 1)..];
+
+        // Rejected rather than clamped. A prefix length that does not fit the
+        // address family is a typo, and silently widening or narrowing the
+        // trusted range is exactly the mistake this setting exists to prevent.
+        if (!IPAddress.TryParse(addressPart, out var address)
+            || !int.TryParse(prefixPart, out var prefixLength)
+            || prefixLength < 0
+            || prefixLength > (address.AddressFamily == AddressFamily.InterNetworkV6 ? 128 : 32))
+        {
+            throw new InvalidOperationException(
+                $"'{TrustedProxiesKey}' contains '{value}', which is not a valid CIDR range. " +
+                "Write it as an address and a prefix length, such as 172.28.0.0/16.");
+        }
+
+        return new IPNetwork(address, prefixLength);
+    }
+}
+
+/// <summary>
+/// The two shapes a trusted proxy can take: an exact address, or the network
+/// it sits on.
+/// </summary>
+/// <remarks>
+/// Kept as one type rather than two out-parameters so that "is anything
+/// trusted at all" is a single question. The answer decides whether the
+/// forwarding middleware is added to the pipeline, and getting that wrong in
+/// the empty direction means trusting every caller's claim about its own
+/// address.
+/// </remarks>
+public sealed record TrustedProxySet(
+    IReadOnlyList<IPAddress> Addresses,
+    IReadOnlyList<IPNetwork> Networks)
+{
+    public bool IsEmpty => Addresses.Count == 0 && Networks.Count == 0;
+
+    public int Count => Addresses.Count + Networks.Count;
 }
