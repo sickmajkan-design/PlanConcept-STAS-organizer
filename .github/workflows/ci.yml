@@ -84,6 +84,55 @@ jobs:
       - name: Test
         run: flutter test
 
+  # The Android build, which nothing else here does.
+  #
+  # `flutter analyze` and `flutter test` run entirely on the Dart side: they
+  # never invoke Gradle, never resolve an Android dependency and never see the
+  # manifest. So a plugin that raises its `compileSdk`, an AndroidX conflict, or
+  # a permission that no longer merges is invisible to both — and stays
+  # invisible until somebody builds a release by hand, which on this project
+  # would be shortly before handing an APK to a site.
+  #
+  # It is its own job rather than two more steps in `mobile`, because it is the
+  # slow one (a cold Gradle build is minutes, the Dart checks are seconds) and
+  # because a failure here means something quite different: not "the code is
+  # wrong" but "the app cannot be packaged".
+  android:
+    name: Mobile (Android build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/construction_mobile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Gradle needs a JDK of its own; the runner's default is not guaranteed
+      # to be the one the Android Gradle Plugin supports.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.x'
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Debug, not release. Release signing reads `android/key.properties` and
+      # a keystore that are both git-ignored and deliberately absent from CI —
+      # see the comment in android/app/build.gradle.kts. A debug build resolves
+      # every Android dependency, runs the manifest merger and compiles the
+      # Kotlin and Java sources, which is the whole of what this job is for.
+      # Whether the release *signs* is a separate question, and one only the
+      # holder of the keystore can answer.
+      - name: Build the debug APK
+        run: flutter build apk --debug
+
   admin:
     name: Admin (React)
     runs-on: ubuntu-latest

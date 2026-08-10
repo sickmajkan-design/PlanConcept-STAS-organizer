@@ -635,6 +635,31 @@ sentence in preference to a vague translated one, the same trade-off the mobile
 app makes — so the test asserts the English text and says in a comment that it
 should be deleted when the API is localised.
 
+**Two gaps in the pipeline itself, found later and now closed.**
+
+*The browser suite was flaky under parallel workers.* One test asked for the
+first row of whatever the employee directory happened to hold, while another
+test in the same file deletes a record — and `fullyParallel` puts no order
+between them. It failed about one run in six locally and never in CI, because
+CI pins `workers: 1`. That setting hid the race rather than removing it, and
+would have gone on hiding it until somebody ran the suite on their own machine
+and did not believe the failure. The test now creates the row it inspects, so
+there is no shared subject to race over; verified by three consecutive
+fully-parallel runs and by running the contended file with three copies of
+every test at once.
+
+*Nothing built the Android app.* `flutter analyze` and `flutter test` run
+entirely on the Dart side — they never invoke Gradle, never resolve an Android
+dependency and never see the manifest. A plugin raising its `compileSdk`, an
+AndroidX conflict or a permission that stops merging was invisible to CI and
+would have stayed invisible until a release was built by hand. CI now has an
+`android` job that runs `flutter build apk --debug`. Debug rather than release
+because release signing needs the out-of-repo keystore (C4), which CI
+deliberately does not have; the debug build still resolves every Android
+dependency, runs the manifest merger and compiles the Kotlin and Java sources.
+A side effect worth having: the `flutter_secure_storage` 11 upgrade, which
+raises `compileSdk` to 37, can now be judged by CI instead of by hand.
+
 **H2. No authorization tests.** — **done.** `ApiAuthorizationTests` hosts the
 real API through `WebApplicationFactory` and drives every endpoint with a real
 bearer token for each of the five roles: refused roles must get 403, admitted

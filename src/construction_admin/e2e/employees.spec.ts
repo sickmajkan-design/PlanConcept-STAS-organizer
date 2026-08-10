@@ -44,13 +44,32 @@ test.describe('the employee directory', () => {
     // the strongest thing that suite can say. Here it has to be on screen and
     // have a size, which is what catches a grid whose container collapsed —
     // rows present, page apparently empty.
+    //
+    // The row is created here rather than assumed. The first version asked for
+    // the first row of whatever the directory happened to hold, which made it
+    // depend on the other tests in this file: one of them deletes a record,
+    // and with `fullyParallel` there is no order between them. It failed about
+    // one run in six locally and never in CI, because CI pins `workers: 1` —
+    // which hid the race rather than removing it. A test that builds its own
+    // subject has no race to lose.
+    const number = unique('GRID');
+
+    await page.goto('/employees/new');
+    await page.getByLabel('Employee number').fill(number);
+    await page.getByLabel('Position').fill('Zidar');
+    await page.getByLabel('First name').fill('Luka');
+    await page.getByLabel('Last name').fill('Kovač');
+    await page.getByLabel('Employment date').fill('2024-04-10');
+    await submitButton(page).click();
+
     await page.goto('/employees');
+    await page.getByRole('textbox').first().fill(number);
 
-    const firstCell = page.locator('.MuiDataGrid-row').first();
+    const row = page.locator('.MuiDataGrid-row', { hasText: number });
 
-    await expect(firstCell).toBeVisible();
+    await expect(row).toBeVisible();
 
-    const box = await firstCell.boundingBox();
+    const box = await row.boundingBox();
 
     expect(box).not.toBeNull();
     expect(box!.height).toBeGreaterThan(10);
