@@ -380,6 +380,55 @@ Beyond code, nothing exists for:
 
 ## CRITICAL — must be fixed before production
 
+**C8. AutoMapper's licence does not permit selling this closed-source.** —
+**OPEN, and it needs a commercial decision rather than a code change.**
+
+The Production deployment says so itself, in its own log, on the first sign-in
+of every smoke run:
+
+> You do not have a valid license key for the Lucky Penny software AutoMapper.
+> This is allowed for development and testing scenarios. If you are running in
+> production you are required to have a licensed version.
+
+`AutoMapper` 15.1.3 ships `LICENSE.md` placing it under the **Reciprocal
+Public License 1.5**, with a commercial licence as the alternative. RPL-1.5 is
+reciprocal *and* closes the network loophole: deploying software built on it to
+users obliges you to publish that software's source under the same terms. This
+product is sold to a client as a closed system, so the two options the licence
+itself offers are: publish all of this under RPL-1.5, or buy a licence.
+
+**There is no free-and-safe version to fall back to.** Checked against the
+NuGet vulnerability database rather than from memory — every version, restored
+and inspected:
+
+| Version | Licence | Known vulnerabilities |
+|---|---|---|
+| 13.0.1 | MIT | GHSA-rvv3-g6hj-g44x (high) |
+| 14.0.0 | MIT | GHSA-rvv3-g6hj-g44x (high) |
+| 15.1.3 | RPL-1.5 / commercial | none |
+| 16.2.0 | RPL-1.5 / commercial | none |
+
+The last MIT release carries an unfixed high-severity advisory — uncontrolled
+recursion on cyclic object graphs, fixed in 16.1.1, which is licensed. So
+pinning to MIT means shipping a known high-severity vulnerability *and* failing
+this repository's own dependency gate in `security.yml`.
+
+**The three real options**, in the order they would be chosen:
+
+1. **Remove AutoMapper.** Free, permanent, and the only one that ends the
+   question. 46 `ProjectTo` calls, 126 `IMapper` injections and 17 profiles
+   across 79 files, replaced by hand-written `Select` projections — mechanical
+   work, well covered by 942 backend tests, and arguably better than what it
+   replaces: compile-time checked, no reflection, no start-up scan.
+2. **Buy the commercial licence.** Fastest, costs money per developer per year,
+   and the cost recurs for as long as the product ships.
+3. **Publish the source under RPL-1.5.** Free, and incompatible with selling
+   this as a closed product.
+
+Nothing has been changed for this yet: option 1 is a day's work and option 2 is
+somebody's budget, and picking between them is not a decision to make quietly
+inside a refactor.
+
 **C1. Compose ships working production-capable secrets.** — **CLOSED**
 `docker-compose.yml` defaulted `JwtSettings__SecretKey` to
 `dev-only-secret-key-change-me-…` (which is ≥32 chars, so it *passed* startup
@@ -821,6 +870,37 @@ Docker Hub's blob CDN is blocked by that sandbox's proxy, so `postgres`,
 `caddy` and `nginx` cannot be pulled and the stack has never been started
 locally. CI is its first real run.
 
+**It took seven runs, and the last three found faults worth the trouble.**
+Caddy now issues its own certificate, the API applies all eleven migrations,
+seeds the administrator, logs `Trusting X-Forwarded-For from 0 proxy
+address(es) and 1 network(s)`, and signs that administrator in through the
+proxy. `The deployment stack works.`
+
+Getting there cost two wrong diagnoses, both stated here because the pattern is
+the lesson: an "Address already in use" was read as a port collision when it was
+the fixed subnet, and a retry added for a registry outage then broke the run by
+pulling images that only exist locally.
+
+Three of the checks were not testing what they claimed, and finding that out is
+most of what this item was worth:
+
+- The sign-in never sent `X-Auth-Mode: cookie`, and the API issues the cookie
+  only to a caller that asks for one — so the linchpin check had never once
+  exercised the linchpin.
+- "The API is not published to the host" opened a socket to `127.0.0.1:8080`,
+  which is the port the test itself gives the proxy. It was finding Caddy and
+  calling the API exposed. It now asks compose which services publish anything.
+- Fixing the first of those exposed a real fault, described under the cookie in
+  §"Where the refresh token lives": the cookie was scoped to `/api/auth` while
+  both clients call `/api/v1/auth/refresh`, so a browser stored it and never
+  sent it back. Every reload would have signed the operator out, holding a
+  valid seven-day token it could not use, with nothing in any log.
+
+That last one is the argument for this item in one sentence: 942 backend tests
+and a browser-level admin suite all passed while the shipped configuration
+could not keep an operator signed in, because every one of them attached the
+cookie by hand.
+
 **H11. Resource-scoped authorization.** ~~Decide and enforce whether a Foreman
 should see the whole company's employees and GPS history, or only their own
 projects. Currently they see everything.~~ **Decided and enforced for location
@@ -1192,8 +1272,9 @@ them and how to have it removed.
 
 ### Milestone 5 — Make it operable (1 week)
 - H3 log aggregation, metrics, dashboards, alerting, client error tracking
-- ~~H10 production compose, TLS, image publishing~~ — done; CD onto a host
-  and a staging environment still need a host
+- ~~H10 production compose, TLS, image publishing~~ — done, and the stack is
+  proven to start and serve in CI; CD onto a host and a staging environment
+  still need a host
 - H8 API versioning
 - M1 cleanup jobs, M2 email/push queue
 - M13 load test
