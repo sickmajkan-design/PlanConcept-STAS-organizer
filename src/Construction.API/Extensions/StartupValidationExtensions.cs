@@ -75,11 +75,21 @@ public static class StartupValidationExtensions
 
         // Warnings, not failures: these degrade a feature rather than a
         // security control, and some deployments legitimately go without them.
-        if (configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() is not { Length: > 0 })
+        if (configuration.GetSection(CorsOrigins.ConfigurationKey).Get<string[]>() is not { Length: > 0 })
         {
+            // Deliberately not phrased as "the admin panel cannot reach the
+            // API". It said that, and the deployment stack proved it wrong on
+            // its first successful run: deploy/docker-compose.prod.yml serves
+            // the panel and the API from one origin behind one proxy, so no
+            // request is cross-origin and no CORS policy is consulted. An
+            // operator reading the old sentence would go looking for a fault
+            // that is not there, and the obvious way to silence it — listing
+            // the installation's own origin — widens the policy for nothing.
             logger.LogWarning(
-                "'Cors:AllowedOrigins' is empty, so browsers will refuse every cross-origin " +
-                "request. The admin panel cannot reach the API until this is set.");
+                "'{Key}' is empty, so any cross-origin browser request will be refused. That is " +
+                "correct when the admin panel is served from this same origin, which is what the " +
+                "deployment stack does. Set it only if the panel is served from its own name.",
+                CorsOrigins.ConfigurationKey);
         }
 
         var firebase = app.Services.GetRequiredService<IOptions<FirebaseSettings>>().Value;

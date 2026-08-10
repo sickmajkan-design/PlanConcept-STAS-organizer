@@ -43,7 +43,7 @@ public class RefreshTokenCookieTests
         string email,
         bool wantCookie)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/login")
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/login")
         {
             Content = JsonContent.Create(new { email, password = TestData.Password }),
         };
@@ -100,7 +100,53 @@ public class RefreshTokenCookieTests
         Assert.Contains("samesite=strict", cookie, StringComparison.OrdinalIgnoreCase);
 
         // Scoped, so it is not attached to every call the page makes.
-        Assert.Contains("path=/api/auth", cookie, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("path=/api/v1/auth", cookie, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// The cookie reaches the endpoint the clients actually call.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Every other test here puts the cookie on the request by hand, which
+    /// skips the one rule a browser applies and a test client does not: a
+    /// cookie is only sent to paths under its <c>Path</c>. That gap hid a real
+    /// fault. The cookie was scoped to <c>/api/auth</c>, both clients call
+    /// <c>/api/v1/auth/refresh</c>, and the tests called the unversioned route
+    /// the controller also answers — so the suite agreed with itself while a
+    /// browser would have stored the cookie and never sent it, signing the
+    /// operator out on every reload.
+    /// </para>
+    /// <para>
+    /// <see cref="CookieContainer"/> is the point: it applies the RFC 6265
+    /// matching rules to the real <c>Set-Cookie</c> header, so this asserts
+    /// what a browser would do rather than what the string looks like.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public async Task The_cookie_is_sent_to_the_refresh_endpoint_the_clients_call()
+    {
+        var (email, _) = await _api.SeedSignInAccountAsync(UserRole.Worker);
+
+        using var client = _api.ClientWithoutCookieJar();
+
+        var (response, _) = await SignInAsync(client, email, wantCookie: true);
+
+        var origin = new Uri("https://organizer.example.com");
+        var container = new CookieContainer();
+        container.SetCookies(origin, SetCookieHeader(response)!);
+
+        // The URL in src/construction_admin/src/api/client.ts and in
+        // src/construction_mobile/lib/core/network/auth_session_manager.dart.
+        var sent = container.GetCookies(new Uri(origin, "/api/v1/auth/refresh"));
+
+        Assert.Contains(sent.Cast<Cookie>(), c => c.Name == "construction.refresh");
+
+        // And still not on the rest of the API, which is why it is scoped at
+        // all: a seven-day credential should not ride along on every request.
+        var elsewhere = container.GetCookies(new Uri(origin, "/api/v1/employees"));
+
+        Assert.DoesNotContain(elsewhere.Cast<Cookie>(), c => c.Name == "construction.refresh");
     }
 
     [Fact]
@@ -129,7 +175,7 @@ public class RefreshTokenCookieTests
 
         var cookieValue = SetCookieHeader(loginResponse)!.Split(';')[0];
 
-        using var refresh = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh")
+        using var refresh = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/refresh")
         {
             Content = JsonContent.Create(new { }),
         };
@@ -157,7 +203,7 @@ public class RefreshTokenCookieTests
     {
         using var client = _api.ClientWithoutCookieJar();
 
-        var response = await client.PostAsJsonAsync("/api/auth/refresh", new { });
+        var response = await client.PostAsJsonAsync("/api/v1/auth/refresh", new { });
 
         // A validation failure, not a 500. The command requires a token and
         // there is nowhere left to find one.
@@ -175,7 +221,7 @@ public class RefreshTokenCookieTests
 
         var cookieValue = SetCookieHeader(loginResponse)!.Split(';')[0];
 
-        using var logout = new HttpRequestMessage(HttpMethod.Post, "/api/auth/logout")
+        using var logout = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/logout")
         {
             Content = JsonContent.Create(new { }),
         };
@@ -197,7 +243,7 @@ public class RefreshTokenCookieTests
         // treats this as a different cookie and keeps the original — a
         // sign-out that leaves the credential in place.
         Assert.Contains("expires=Thu, 01 Jan 1970", cleared!, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("path=/api/auth", cleared, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("path=/api/v1/auth", cleared, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -216,7 +262,7 @@ public class RefreshTokenCookieTests
 
         async Task<HttpStatusCode> RefreshAsync()
         {
-            using var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh")
+            using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/refresh")
             {
                 Content = JsonContent.Create(new { }),
             };
@@ -245,7 +291,7 @@ public class RefreshTokenCookieTests
 
         var bodyToken = bodyLogin.GetProperty("refreshToken").GetString();
 
-        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh")
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/refresh")
         {
             Content = JsonContent.Create(new { refreshToken = bodyToken }),
         };

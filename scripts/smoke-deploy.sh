@@ -229,13 +229,28 @@ check 'config.js is not cacheable' \
     bash -c 'curl -ksI --max-time 10 "$origin/config.js" | grep -qi "cache-control:.*no-store"'
 
 # Sign-in through the proxy, which is where a broken TLS or cookie setup shows.
-login=$(curl -ks --max-time 15 -D /tmp/smoke-headers.txt \
+#
+# `X-Auth-Mode: cookie` is not decoration — it is the whole contract. The API
+# issues the refresh cookie only to a caller that asks for one, because the
+# same API serves a browser and a phone and it refuses to guess which is
+# calling. The first version of this test omitted the header, so no cookie was
+# ever issued and the cookie check below failed for a reason that had nothing
+# to do with the cookie. It is exactly what the admin panel sends; see
+# `cookieAuthHeaders` in src/construction_admin/src/api/client.ts.
+login=$(curl -ks --max-time 15 -D /tmp/smoke-headers.txt -c /tmp/smoke-jar.txt \
     -H 'Content-Type: application/json' \
+    -H 'X-Auth-Mode: cookie' \
     -d "{\"email\":\"smoke@construction.local\",\"password\":\"${admin_password}\"}" \
     "$origin/api/v1/auth/login")
 
 check 'the seeded administrator can sign in through the proxy' \
     bash -c 'grep -q accessToken <<< "$1"' _ "$login"
+
+# The point of cookie mode. Leaving the token in the body as well would make
+# the cookie a second copy rather than a safer place, and a script on the page
+# could still read it out of the login response.
+check 'the refresh token is kept out of the response body' \
+    bash -c 'grep -q "\"refreshToken\":\"\"" <<< "$1"' _ "$login"
 
 # The linchpin. `Secure` follows `Request.IsHttps`, which behind a proxy is
 # true only when the API trusts that proxy's address. Get Network__TrustedProxies
@@ -245,13 +260,58 @@ check 'the refresh cookie is HttpOnly and Secure' \
     bash -c 'grep -i "^set-cookie:" /tmp/smoke-headers.txt | grep -qi httponly &&
              grep -i "^set-cookie:" /tmp/smoke-headers.txt | grep -qi secure'
 
-# Nothing but the proxy should be reachable. These are the ports the
-# development compose publishes and this one must not.
-check 'Postgres is not published to the host' \
-    bash -c '! timeout 3 bash -c "</dev/tcp/127.0.0.1/5432" 2>/dev/null'
+# The round trip, through a real cookie jar, because the attribute checks above
+# cannot see the rule that actually bites: a browser only sends a cookie to
+# paths under its `Path`. The cookie was scoped to `/api/auth` while both
+# clients call `/api/v1/auth/refresh` — set, stored, and never sent back, which
+# is an operator signed out on every reload with a valid token in the jar and
+# nothing in any log. curl applies the same RFC 6265 matching a browser does,
+# so this is the check that would have caught it, and the one that catches the
+# same drift when a second API version arrives.
+check 'the browser can refresh with the cookie it was given' \
+    bash -c 'code=$(curl -ks --max-time 15 -b /tmp/smoke-jar.txt -o /tmp/smoke-refresh.json \
+                        -w "%{http_code}" \
+                        -H "Content-Type: application/json" \
+                        -H "X-Auth-Mode: cookie" \
+                        -d "{}" "$origin/api/v1/auth/refresh")
+             [[ "$code" == 200 ]] && grep -q accessToken /tmp/smoke-refresh.json'
 
-check 'the API is not published to the host' \
-    bash -c '! timeout 3 bash -c "</dev/tcp/127.0.0.1/8080" 2>/dev/null'
+# Nothing but the proxy should be reachable.
+#
+# Asked of compose rather than by opening a socket. The first version connected
+# to 127.0.0.1:8080 and called a refusal proof that the API was unpublished —
+# but 8080 is the port *this test* gives the proxy, so it was finding Caddy and
+# reporting the API as exposed. A port probe cannot tell which process
+# answered; the container runtime can say whether a service publishes anything
+# at all, and that is the actual claim.
+published_port_count() {
+    compose ps --format json "$1" | python3 -c '
+import sys, json
+
+count = 0
+for line in sys.stdin:
+    line = line.strip()
+    if not line:
+        continue
+    # One JSON object per line on some versions, one array on others.
+    records = json.loads(line)
+    for container in (records if isinstance(records, list) else [records]):
+        count += sum(
+            1 for p in (container.get("Publishers") or []) if p.get("PublishedPort")
+        )
+print(count)'
+}
+
+# Called through `check` directly rather than wrapped in `bash -c`: a shell
+# function is not inherited by a child shell, and a check that runs
+# "command not found" reports the service as safely unpublished.
+publishes_nothing() {
+    [[ "$(published_port_count "$1")" == 0 ]]
+}
+
+check 'Postgres is not published to the host' publishes_nothing postgres
+check 'the API is not published to the host' publishes_nothing api
+check 'the admin container is not published to the host' publishes_nothing admin
 
 # The correlation id every log line and problem-details body carries. If the
 # proxy strips it, an operator quoting an error has nothing to quote.
@@ -264,7 +324,7 @@ check 'the API is not published to the host' \
 check 'a correlation id survives the proxy' \
     bash -c 'curl -ks --max-time 10 -o /dev/null -D - "$origin/api/v1/auth/me" | grep -qi "^x-correlation-id:"'
 
-rm -f /tmp/smoke-headers.txt
+rm -f /tmp/smoke-headers.txt /tmp/smoke-jar.txt /tmp/smoke-refresh.json
 
 echo
 if (( failures )); then

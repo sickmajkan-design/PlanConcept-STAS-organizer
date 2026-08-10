@@ -116,7 +116,7 @@ onto shared `useListQueryState` / `ResourceDataGrid` / `useDeleteWithConfirm`.
   H1's last half, a Playwright suite that drives a real browser against the
   real API for the things jsdom cannot see at all. See H1.
 - ~~**Session in `localStorage`.**~~ The refresh token is now an `HttpOnly`,
-  `SameSite=Strict` cookie scoped to `/api/auth`, and the API omits it from the
+  `SameSite=Strict` cookie scoped to `/api/v1/auth`, and the API omits it from the
   response body when the client asks for cookie delivery — so it never passes
   through anything script can read. Only the access token remains in
   `localStorage`, which is accepted: fifteen minutes, rotated on every refresh.
@@ -723,7 +723,7 @@ password verification for unknown emails, making them measurably faster).
 
 **H7. Move the admin refresh token out of `localStorage`** — **done.** A client
 sends `X-Auth-Mode: cookie` on sign-in and refresh; the API replies with an
-`HttpOnly`, `SameSite=Strict` cookie scoped to `/api/auth`, `Secure` when the
+`HttpOnly`, `SameSite=Strict` cookie scoped to `/api/v1/auth`, `Secure` when the
 request arrived over HTTPS, and an **empty** `refreshToken` in the body. That
 last part is the point — a cookie that merely duplicates something already
 readable by script is not a mitigation.

@@ -810,7 +810,7 @@ credential that keeps minting access tokens for a week, from anywhere, after
 the tab is closed.
 
 So the admin panel sends `X-Auth-Mode: cookie` on sign-in and refresh, and the
-API replies with an `HttpOnly`, `SameSite=Strict` cookie scoped to `/api/auth`,
+API replies with an `HttpOnly`, `SameSite=Strict` cookie scoped to `/api/v1/auth`,
 `Secure` when the request arrived over HTTPS — and an **empty** `refreshToken`
 in the body. Both halves matter: a cookie that merely duplicates something
 already readable by script is not a mitigation, it is a second copy. The

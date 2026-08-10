@@ -32,11 +32,32 @@ public class RefreshTokenCookieSettings
     /// Where the cookie is sent. Only the endpoints that need it.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// Scoped rather than site-wide so it is not attached to every image and
     /// API call the page makes — fewer places for it to be logged by a proxy,
     /// and nothing else can be tricked into acting on it.
+    /// </para>
+    /// <para>
+    /// The version is in the path because it is in the route the clients call.
+    /// This said <c>/api/auth</c> and both clients call
+    /// <c>/api/v1/auth/refresh</c>, which a browser will not match: a cookie
+    /// path is a prefix, and <c>/api/v1/auth/refresh</c> does not begin with
+    /// <c>/api/auth</c>. So the cookie was set, stored, and never sent back —
+    /// every reload would have signed the operator out, with a valid token in
+    /// the jar and nothing in any log. The controller also answers on the
+    /// unversioned <c>/api/auth</c>, which is what the tests used, which is why
+    /// they agreed with each other and not with reality.
+    /// </para>
+    /// <para>
+    /// Widening this to <c>/api</c> would cover every route shape at once and
+    /// is the wrong trade: it puts a seven-day credential on every API request
+    /// the page makes, which is the exact exposure the paragraph above is about.
+    /// A second API version needs this changed, and the deployment smoke test
+    /// signs in and refreshes through a real cookie jar so that lands as a red
+    /// build rather than as an operator who cannot stay signed in.
+    /// </para>
     /// </remarks>
-    public string Path { get; set; } = "/api/auth";
+    public string Path { get; set; } = "/api/v1/auth";
 
     /// <summary>
     /// <c>Strict</c>, <c>Lax</c> or <c>None</c>.
