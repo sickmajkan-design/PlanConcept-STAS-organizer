@@ -35,7 +35,17 @@ namespace Construction.IntegrationTests;
 /// is immediate and the window cannot move underneath it. The window is also
 /// set far longer than any plausible run.
 /// </para>
+/// <para>
+/// In <see cref="StandaloneHostCollection"/> because it hosts its own copy of
+/// the API. Leaving it out is what broke CI: three classes building a host at
+/// once instead of two, and <c>HostFactoryResolver</c> hands the wrong host to
+/// whichever loses the race. It surfaced as 161 unrelated tests failing with
+/// "The entry point exited without ever building an IHost", none of which had
+/// anything to do with rate limiting — and it never reproduced on this
+/// four-core machine across nine runs, including on one core.
+/// </para>
 /// </remarks>
+[Collection(StandaloneHostCollection.Name)]
 public class AuthRateLimitConfigurationTests
 {
     private const int Limit = 3;

@@ -47,17 +47,23 @@ jobs:
       - name: Build
         run: dotnet build --no-restore --configuration Release
 
+      # `minimal`, not `normal`. At `normal` every passing test prints a line,
+      # and with 559 of them a single failure is pushed thousands of lines up
+      # the log — which is exactly where it went the first time one happened,
+      # leaving a red build whose reason had to be guessed at. At `minimal`
+      # only failures and the summary are printed, so the reason is the last
+      # thing in the log.
       - name: Unit tests
         run: >-
           dotnet test tests/Construction.UnitTests
-          --no-build --configuration Release --verbosity normal
+          --no-build --configuration Release --verbosity minimal
 
       - name: Integration tests
         env:
           ConstructionTests__Postgres: Host=localhost;Port=5432;Username=postgres;Password=postgres
         run: >-
           dotnet test tests/Construction.IntegrationTests
-          --no-build --configuration Release --verbosity normal
+          --no-build --configuration Release --verbosity minimal
 
   mobile:
     name: Mobile (Flutter)

@@ -21,6 +21,15 @@ namespace Construction.IntegrationTests;
 /// whichever test lost, with nothing wrong in the code under test — and it was
 /// reproducible three runs out of three before these were serialised.
 /// </para>
+/// <para>
+/// <b>Any new class that builds its own <c>WebApplicationFactory</c> must join
+/// this collection.</b> One that does not will very likely still pass locally:
+/// a class added without it went green nine times on a four-core machine — and
+/// on one core — and failed on CI both times, taking 161 unrelated tests with
+/// it because the fixture the rest of the suite shares was the one that lost
+/// the race. The symptom names no culprit, so the rule has to be remembered
+/// here rather than discovered there.
+/// </para>
 /// </remarks>
 [CollectionDefinition(Name, DisableParallelization = true)]
 public class StandaloneHostCollection
