@@ -37,7 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '9.0.x'
 
@@ -94,7 +94,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
@@ -145,11 +145,11 @@ jobs:
       # The suite starts the API itself — see `webServer` in
       # playwright.config.ts — so the SDK has to be here even though this job
       # builds no C# of its own.
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '9.0.x'
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: '22'
           cache: npm
