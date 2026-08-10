@@ -95,9 +95,16 @@ origin="https://localhost:${https_port}"
 # picks its own rather than assuming the machine is empty here either.
 subnet=${SMOKE_SUBNET:-10.83.0.0/16}
 
+# The one value that cannot be this installation's own origin. The API
+# refuses to start in Production when the password-reset URL is loopback —
+# correctly, since it is a link emailed to a person — and this whole stack
+# runs on `localhost`. Nothing here sends mail, so pointing it at a name that
+# does not exist costs the test nothing and lets the API's own guard stay on
+# for every other field it checks.
 cat > "$ENV_FILE" <<EOF
 DOMAIN=localhost
 INTERNAL_SUBNET=${subnet}
+PASSWORD_RESET_URL=https://smoke.invalid/reset-password
 HTTP_PORT=${http_port}
 HTTPS_PORT=${https_port}
 PUBLIC_ORIGIN=${origin}
@@ -168,8 +175,21 @@ for _ in $(seq 1 60); do
 done
 
 if (( ! ready )); then
-    printf '%sThe stack never became ready.%s Recent logs:\n' "$RED" "$RESET"
-    compose logs --tail 60
+    printf '%sThe stack never became ready.%s\n\n' "$RED" "$RESET"
+
+    # What is running, first. A container that exited is the answer most of
+    # the time, and `ps` says so in one line.
+    compose ps --all
+
+    # Then each service on its own. A combined tail is useless here: the proxy
+    # answers every failed poll with a 502 and its log drowns out the one
+    # container that actually said why it stopped — which is exactly what
+    # happened the first time this failed for a real reason.
+    for service in api admin postgres caddy; do
+        printf '\n--- %s\n' "$service"
+        compose logs --tail 30 --no-log-prefix "$service" 2>&1 || true
+    done
+
     exit 1
 fi
 

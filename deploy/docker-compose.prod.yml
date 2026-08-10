@@ -77,9 +77,15 @@ services:
       Network__TrustedProxies: "${INTERNAL_SUBNET:-172.28.0.0/16}"
 
       # Where password-reset links point. Wrong here means an email nobody can
-      # use, and the API refuses to start in Production if it still says
-      # localhost.
-      ClientApp__PasswordResetUrl: "${PUBLIC_ORIGIN:-https://${DOMAIN:?set DOMAIN in .env}}/reset-password"
+      # use, so the API refuses to start in Production when this is not https
+      # or when it resolves to loopback.
+      #
+      # Separable from PUBLIC_ORIGIN only because of that loopback rule: a
+      # smoke test runs the whole stack on `localhost`, which the API is right
+      # to reject for a link it would email to somebody. Overriding just this
+      # one value lets the test exercise everything else. A real deployment
+      # leaves it alone.
+      ClientApp__PasswordResetUrl: "${PASSWORD_RESET_URL:-${PUBLIC_ORIGIN:-https://${DOMAIN:?set DOMAIN in .env}}/reset-password}"
 
       EmailSettings__Host: ${SMTP_HOST:-}
       EmailSettings__Port: ${SMTP_PORT:-587}
