@@ -18,11 +18,23 @@ updates:
     groups:
       # These ship as a set and are version-locked to each other; splitting them
       # produces pull requests that cannot build on their own.
+      #
+      # `System.IdentityModel.Tokens.Jwt` and the `Microsoft.IdentityModel.*`
+      # family belong in here and were missing from the first version of this
+      # file. `Microsoft.AspNetCore.Authentication.JwtBearer` depends on
+      # `Microsoft.IdentityModel.Protocols.OpenIdConnect`, which requires a
+      # matching `System.IdentityModel.Tokens.Jwt`; this project references that
+      # one directly, so moving JwtBearer on its own produced NU1605 — "detected
+      # package downgrade" — and a pull request that could not restore, let
+      # alone build. Grouping them means the whole set moves at once or not at
+      # all.
       aspnetcore-and-ef:
         patterns:
           - 'Microsoft.AspNetCore.*'
           - 'Microsoft.EntityFrameworkCore*'
           - 'Microsoft.Extensions.*'
+          - 'Microsoft.IdentityModel.*'
+          - 'System.IdentityModel.Tokens.Jwt'
           - 'Npgsql.EntityFrameworkCore.*'
       observability:
         patterns:

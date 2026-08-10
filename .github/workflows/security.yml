@@ -58,8 +58,12 @@ jobs:
             exit 0
           fi
 
-          git log --format= --patch "${before}..${{ github.sha }}" \
-            | scripts/check-secrets.sh --stdin
+          # --range, not a `git log | --stdin` pipeline: the script owns the
+          # plumbing so that its own source is excluded from the patch scan
+          # exactly as it is from the tree scan. The first version put the
+          # pipeline here, the exclusion was missing from it, and the commit
+          # that added the scanner tripped all seven of its own rules.
+          scripts/check-secrets.sh --range "${before}..${{ github.sha }}"
 
   dependencies:
     name: Dependencies

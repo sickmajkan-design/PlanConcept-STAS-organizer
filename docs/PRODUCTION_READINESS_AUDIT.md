@@ -74,12 +74,12 @@ Re-measured, with the first pass's figures in brackets where they have moved.
 | `Construction.Application` | 14,116 (5,223) | CQRS via MediatR, 98 handlers, feature-foldered. |
 | `Construction.Infrastructure` | 2,676 (3,296) | EF Core, JWT issuing, SMTP, FCM. Shrank as logic moved inwards. |
 | `Construction.API` | 4,057 (1,381) | 118 endpoints across 17 controllers. Still thin. |
-| `tests` | 15,342 (2,252) | **902 backend tests** (378 unit + 524 integration). |
+| `tests` | 15,342 (2,252) | **934 backend tests** (378 unit + 556 integration). |
 | `construction_admin/src` | 18,779 (6,997) | React 19 + MUI 9 + TanStack Query 5. 189 Vitest cases + 15 browser tests. |
 | `construction_mobile/lib` | 23,412 (6,447) | Flutter, feature-first, Riverpod. |
 | `construction_mobile/test` | 3,594 (1,473) | **233 tests**, all of them run. |
 
-**~80,000 lines total, ~1,290 automated tests** (up from ~27,500 and 245). Ten
+**~80,000 lines total, ~1,320 automated tests** (up from ~27,500 and 245). Ten
 migrations rather than the one the first pass found.
 
 Layer boundaries are still respected — no reference cycles, no EF types in
@@ -878,6 +878,27 @@ change, in one place.
   licence is absent the job should be deleted rather than left failing.
   GitHub's own secret scanning and push protection are repository settings, not
   files, and are on the checklist in SECURITY.md.
+
+  **What the first run found, including in itself.** The secret job failed on
+  the very commit that added it: the tree scan skips the scanner's own source —
+  it necessarily contains every pattern it looks for — but the patch scan did
+  not, so the diff introducing the file tripped all seven of its rules. The
+  exclusion now lives in one variable used by both scans, and the git plumbing
+  moved into the script so a caller cannot forget it. Fixing that surfaced a
+  worse bug in the fix: piping the patch into a shell function runs it in a
+  subshell, where the failure flag is discarded on exit — the scan printed the
+  finding and then reported success, which is the most dangerous way for a
+  scanner to be wrong. It reads from a file now.
+
+  Dependabot's first run also failed, and usefully. Bumping
+  `Microsoft.AspNetCore.Authentication.JwtBearer` on its own produced NU1605,
+  "detected package downgrade": it pulls in
+  `Microsoft.IdentityModel.Protocols.OpenIdConnect`, which requires a matching
+  `System.IdentityModel.Tokens.Jwt`, and this project pins that one directly at
+  an older version. Both are now in the same Dependabot group so the set moves
+  together, and both were bumped here (JwtBearer 9.0.7 → 9.0.18,
+  System.IdentityModel.Tokens.Jwt 8.3.0 → 8.19.2) against the full backend
+  suite.
 - **M8.** React error boundaries; friendly offline/failure states in both
   clients — **done.**
 

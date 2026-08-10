@@ -16,14 +16,19 @@
 # and it would look entirely innocent in a diff.
 #
 # Usage:
-#   scripts/check-secrets.sh              scan the tracked files
-#   scripts/check-secrets.sh --stdin      scan piped text (a diff, a patch)
-#   scripts/check-secrets.sh --self-test  prove the patterns still catch things
+#   scripts/check-secrets.sh                 scan the tracked files
+#   scripts/check-secrets.sh --range A..B    scan the patches in a commit range
+#   scripts/check-secrets.sh --stdin         scan piped text
+#   scripts/check-secrets.sh --self-test     prove the patterns still catch things
 #
-# `--stdin` exists for the case the tree scan cannot see: a credential that was
-# committed and then deleted in the same push. It is gone from the working tree
+# `--range` exists for the case the tree scan cannot see: a credential that was
+# committed and then deleted a commit later. It is gone from the working tree
 # and still in the history, which is the only place it needs to be to have
-# leaked.
+# leaked. It does the git plumbing itself rather than leaving it to a caller,
+# so that the exclusion below is applied to both scans from one place — the
+# first version put the pipeline in the workflow, the exclusion was missing
+# from it, and the commit that added this file tripped all seven of its own
+# rules.
 #
 # The self-test exists because the failure mode of a scanner is silence. A
 # regex that stops matching goes on reporting success for ever, and nobody
@@ -65,6 +70,14 @@ FORBIDDEN_PATHS=(
 #
 # ERE, not PCRE: `grep -E` has no lookahead, which is why "AKIA but not the
 # example one" is a second field rather than a cleverer regex.
+# This file is the one place in the repository that necessarily contains every
+# pattern it looks for, so both scans skip it.
+#
+# That is a hole, and a small one worth naming: a real credential hidden inside
+# this file would not be caught. It is short, it is reviewed, and GitHub's own
+# secret scanning — recommended in SECURITY.md — has no such exemption.
+SELF_PATH='scripts/check-secrets.sh'
+
 CONTENT_RULES=(
   # A leaked service-account or Firebase key always carries one of these, so
   # this single rule covers that whole family. The tempting alternatives —
@@ -136,9 +149,8 @@ scan_paths() {
 scan_content() {
   local rule rule_name rule_pattern rule_except hits filtered
 
-  # This file necessarily contains every pattern it looks for.
   local -a files
-  mapfile -t files < <(git ls-files | grep -v '^scripts/check-secrets\.sh$')
+  mapfile -t files < <(git ls-files | grep -vxF "$SELF_PATH")
 
   for rule in "${CONTENT_RULES[@]}"; do
     parse_rule "$rule"
@@ -289,10 +301,38 @@ scan_stdin() {
   done
 }
 
+# Scans the patches introduced by a commit range, with this file excluded — the
+# same exclusion the tree scan uses, from the same variable, so the two cannot
+# drift apart again.
+scan_range() {
+  local range=$1
+
+  if [[ -z "$range" ]]; then
+    printf 'Usage: %s --range <before>..<after>\n' "$0" >&2
+    exit 2
+  fi
+
+  # Through a file rather than a pipe. `git log ... | scan_stdin` runs the
+  # function in a subshell, where the `fail` flag it sets is discarded when the
+  # subshell exits — the scan prints the finding and then reports success,
+  # which is the worst way for a scanner to be wrong. Redirection keeps it in
+  # this shell.
+  local patch
+  patch=$(mktemp)
+
+  git log --format= --patch "$range" -- . ":(exclude)$SELF_PATH" > "$patch"
+  scan_stdin < "$patch"
+  rm -f "$patch"
+}
+
 case "${1:-}" in
   --self-test)
     self_test
     exit $?
+    ;;
+  --range)
+    self_test
+    scan_range "${2:-}"
     ;;
   --stdin)
     self_test
