@@ -65,6 +65,20 @@ jobs:
           dotnet test tests/Construction.IntegrationTests
           --no-build --configuration Release --verbosity minimal
 
+      # The suite applies every migration forward on every run, so the forward
+      # path is exercised continuously and the backward path was not exercised
+      # at all — which is the state a rollback is discovered to be broken in,
+      # during an incident, on the only copy of the data that matters. This
+      # rolls the newest migration back with data in the tables and compares,
+      # then walks the whole history down and up again. Around a minute.
+      - name: Rehearse a rollback
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGPASSWORD: postgres
+        run: scripts/rehearse-migrations.sh
+
   mobile:
     name: Mobile (Flutter)
     runs-on: ubuntu-latest

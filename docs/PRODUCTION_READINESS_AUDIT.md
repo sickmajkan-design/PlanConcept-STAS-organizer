@@ -201,11 +201,11 @@ foreign key and every filtered/sorted column.
   million rows for a hundred workers rather than growing by twelve million a
   year. Monthly partitioning is still the answer an order of magnitude further
   out, and is still cheaper to adopt before the table is large than after.
-- ~~**One migration in the entire history** (`InitialCreate`).~~ Ten now, each
-  written for a real change and applied by the integration suite on every run,
-  so the forward path is exercised continuously. **No down-migration has been
-  tested, and no rollback has been rehearsed against data** — which is what
-  M10 is still about.
+- ~~**One migration in the entire history** (`InitialCreate`).~~ Twelve now,
+  each written for a real change and applied by the integration suite on every
+  run, so the forward path is exercised continuously. ~~No down-migration has
+  been tested, and no rollback has been rehearsed against data.~~ **Both are
+  now rehearsed on every push** by `scripts/rehearse-migrations.sh` — see M10.
 - **No backup or restore procedure exists or is documented.** Nothing has ever
   been restored. For a system holding payroll-adjacent employee records, this
   is the single most likely source of an unrecoverable incident.
@@ -1190,7 +1190,31 @@ change, in one place.
   friendly offline message from M8. That is a separate piece of work and a
   larger one, because it needs conflict rules rather than a cache.
 - **M10.** Practise an incremental migration and a rollback before the first
-  schema change under load.
+  schema change under load. — **done, and now rehearsed on every push.**
+
+  `scripts/rehearse-migrations.sh` runs the two rehearsals that fail
+  differently:
+
+  1. *One step back, with data in the tables.* Seeds an employee, a project and
+     five months of GPS history at HEAD, rolls back the newest migration, rolls
+     forward again, and compares a fingerprint that carries sums as well as
+     counts — so a `Down` that keeps the right number of rows while mangling
+     their contents is still caught. This is the actual emergency: you go back
+     one step, not to nothing.
+  2. *Every `Down` in the history runs.* HEAD to an empty database and back.
+     No data assertions, deliberately — rolling back far enough destroys some
+     legitimately, since a migration that dropped a column cannot invent its
+     contents again. What is under test is whether each `Down` executes at all.
+
+  Both passed on the first run, including every one of the twelve `Down`
+  migrations that had never been executed. That is a better result than
+  expected and not a reason to stop checking: the script is now a CI step, so
+  the next migration cannot ship with a rollback nobody tried.
+
+  Verified by breaking it on purpose — a `Down` that forgets to carry the rows
+  across turns 613 pings into 0, and the rehearsal fails on the fingerprint
+  rather than on anything the database complains about. That is precisely the
+  failure that would otherwise be discovered at 2am, after the rollback.
 - **M11.** Idempotency keys on stock adjustments and assignment actions —
   **done.** An `Idempotency-Key` header on eleven endpoints: the stock
   adjustment, the three cost ledgers, and the seven assign/unassign actions. A

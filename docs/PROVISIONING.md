@@ -419,6 +419,50 @@ month simply cannot be dropped as a unit until the rows are moved — create a
 like-structured table, move that month's rows into it, delete them from
 DEFAULT, and attach it as a partition, all in one transaction.
 
+### 5.4b Vraćanje migracije unazad / Rolling a migration back
+
+**SR** — Pre nego što zatreba, probano je: `scripts/rehearse-migrations.sh`
+pravi svoju bazu, ubaci podatke, vrati poslednju migraciju unazad, pusti je
+ponovo unapred i uporedi — a zatim prođe celu istoriju do prazne baze i nazad.
+Isto se izvršava na svakom `push`-u u CI-ju, pa nova migracija ne može da prođe
+sa `Down` koji niko nije pokušao.
+
+Kada stvarno zatreba, na serveru:
+
+```bash
+# 1. Napravi kopiju PRE svega ostalog. Vraćanje unazad ume da obriše kolonu.
+scripts/backup.sh
+
+# 2. Nazad za jedan korak (ime pretposlednje migracije, ne poslednje).
+dotnet ef database update <PretposlednjaMigracija> --project src/Construction.Infrastructure
+
+# 3. Vrati staru sliku kontejnera i podigni stack.
+```
+
+Redosled nije proizvoljan: kopija ide prva, jer `Down` koji uklanja kolonu
+uklanja i ono što je u njoj. /
+
+**EN** — Rehearsed before it is needed: `scripts/rehearse-migrations.sh` builds
+its own database, seeds it, rolls the newest migration back, rolls it forward
+again and compares — then walks the whole history down to an empty database and
+back up. The same script runs on every push in CI, so a new migration cannot
+ship with a `Down` nobody tried.
+
+When it is needed for real, on the host:
+
+```bash
+# 1. Take a backup before anything else. Rolling back can drop a column.
+scripts/backup.sh
+
+# 2. One step back — the name of the migration BEFORE the newest one.
+dotnet ef database update <PreviousMigration> --project src/Construction.Infrastructure
+
+# 3. Redeploy the previous image and bring the stack up.
+```
+
+The order is not arbitrary: the backup comes first, because a `Down` that
+removes a column removes what was in it.
+
 ### 5.5 Provera da stack stvarno radi / Proving the stack works
 
 ```
