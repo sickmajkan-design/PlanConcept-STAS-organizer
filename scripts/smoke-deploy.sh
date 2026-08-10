@@ -255,8 +255,14 @@ check 'the API is not published to the host' \
 
 # The correlation id every log line and problem-details body carries. If the
 # proxy strips it, an operator quoting an error has nothing to quote.
+#
+# A GET, not `curl -I`. The first version issued HEAD and the endpoint answered
+# `405 Allow: GET` — so the check failed on the request method rather than on
+# anything about correlation ids. `-o /dev/null -D -` keeps the headers and
+# throws the body away. Unauthenticated on purpose: the header has to be there
+# on the 401 too, because an error is exactly when somebody needs to quote it.
 check 'a correlation id survives the proxy' \
-    bash -c 'curl -ksI --max-time 10 "$origin/api/v1/auth/me" | grep -qi "^x-correlation-id:"'
+    bash -c 'curl -ks --max-time 10 -o /dev/null -D - "$origin/api/v1/auth/me" | grep -qi "^x-correlation-id:"'
 
 rm -f /tmp/smoke-headers.txt
 
