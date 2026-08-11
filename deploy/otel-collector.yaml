@@ -1,0 +1,60 @@
+# Where the API's traces and metrics arrive.
+#
+# The API exports OTLP whenever OTEL_EXPORTER_OTLP_ENDPOINT is set, and until
+# now there was nothing on the other end of that variable — so "observability
+# is configured" meant "the exporter has somewhere to fail to send to".
+#
+# This collector is deliberately modest: it receives, batches, and writes what
+# it received to its own log. That is enough to answer the question an operator
+# actually has first — *is anything coming out of the API at all?* — without
+# committing the deployment to a particular backend.
+#
+# It is the file to edit when a real one exists. Add an exporter beside
+# `debug`, list it in the pipeline, and nothing about the API changes.
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        # Every interface *inside the compose network*. The collector publishes
+        # no port, so this is reachable from the API and from nothing else.
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  # Without this every span is its own write. With it the collector spends a
+  # little memory to stop being the noisy neighbour of the thing it is
+  # watching.
+  batch:
+    timeout: 10s
+
+  # A collector that runs out of memory takes the telemetry down at exactly
+  # the moment there is something to see.
+  memory_limiter:
+    check_interval: 5s
+    limit_percentage: 75
+    spike_limit_percentage: 15
+
+exporters:
+  # Prints what arrives. `basic` rather than `detailed`: this is a workforce
+  # system, and a span carries route parameters — employee ids among them —
+  # so the default verbosity would put personal data in a second log nobody
+  # decided to keep.
+  debug:
+    verbosity: basic
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug]
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [debug]
+
+  telemetry:
+    logs:
+      level: info

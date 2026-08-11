@@ -3,12 +3,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app.dart';
+import 'core/telemetry/client_error_reporter.dart';
 import 'core/widgets/crash_panel.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
 
   installCrashPanel();
+
+  // Before runApp, so a crash while the first screen is being built is
+  // reported too — that is the one that leaves a worker with an app that
+  // never opens and nobody any the wiser.
+  installClientErrorReporting();
 
   runApp(
     const ProviderScope(

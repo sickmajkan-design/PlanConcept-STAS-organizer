@@ -758,8 +758,8 @@ it expires — up to fifteen minutes — because nothing re-checks the account p
 request. That is now asserted rather than assumed, so it is a decision instead
 of a surprise.
 
-**H3. Centralised logging, metrics and alerting.** — **the code half is done;
-the deployment half is not.**
+**H3. Centralised logging, metrics and alerting.** — **the code half is done,
+including both clients; running an aggregator still needs a host.**
 
 Done: a correlation id on every request, in every log line for it, on the
 response header, and in the problem-details body — including the 401s and 403s
@@ -771,10 +771,47 @@ the three background jobs actually did — `outbox.abandoned` and `job.failures`
 are the two an alert should watch, because an outbox failing every message
 still serves 200s.
 
-Not done, and not doable from the repository: running the aggregator, building
-the dashboards, writing the alert rules, and adding error tracking to the two
-clients. Until a collector exists the file sink is still a container layer that
-disappears with the container.
+**Client error tracking is now done**, which was the half of this that did not
+need a host. Both clients had a way to fail and no way to say so: the panel
+showed "something went wrong" and printed to a console nobody has open, the app
+showed a crash panel one worker looked at and dismissed. Both now post to
+`POST /api/v1/client-errors`, which logs the report through the same Serilog
+pipeline as everything else and answers with the correlation id — so the person
+reading the message on screen and the person reading the log are quoting the
+same string.
+
+*Not a third-party error service, deliberately.* Stack traces and route names
+from a workforce tracker describe where employees were and what they were
+doing; a route can carry an employee id. Sending that to somebody else's
+servers is a data-transfer decision belonging to the operator, not a monitoring
+default belonging to a library. PRIVACY.md §1.3 says so in both languages.
+
+*The endpoint is unauthenticated on purpose and bounded because of it.* The
+report worth having most comes from a sign-in screen that will not load, and a
+client that cannot authenticate cannot report that it cannot authenticate. So
+it is anonymous — and every field is length-capped, and it is rate-limited to
+30 a minute per address, because an open endpoint whose job is writing to the
+log is otherwise a way to fill a disk with a POST. Both clients also throttle
+themselves: identical consecutive faults are sent once, and at most ten per
+session, since a render loop throws the same stack sixty times a second.
+
+Eighteen tests across the three codebases, including the loop that would
+otherwise matter most — a report that fails to send must not itself be
+reported, or an unreachable API becomes a hung client.
+
+**A collector now exists to point at**, behind a `telemetry` profile in
+`deploy/docker-compose.prod.yml` with its config in `deploy/otel-collector.yaml`.
+It receives OTLP and writes what it received to its own log. That is
+scaffolding rather than monitoring, and it is labelled as such: it answers the
+question an operator has first — *is anything coming out of the API at all?* —
+and is the file to edit when a real backend exists. It publishes no port, and
+its exporter verbosity is `basic` on purpose, since a span carries route
+parameters and `detailed` would put employee ids in a second log nobody decided
+to keep.
+
+Still not done, and still not doable from the repository: running a real
+aggregator, building the dashboards, and writing the alert rules. Until one
+exists the file sink is a container layer that disappears with the container.
 
 **H4. Split `/health` into liveness and readiness.** — **done.**
 `/health/live` runs no checks at all; `/health/ready` checks the database.
@@ -1417,7 +1454,8 @@ boundary is asserted by a test.
 them and how to have it removed.
 
 ### Milestone 5 — Make it operable (1 week)
-- H3 log aggregation, metrics, dashboards, alerting, client error tracking
+- H3 log aggregation, dashboards, alerting — ~~client error tracking~~ done,
+  and a collector to point at ships behind a profile; the aggregator needs a host
 - ~~H10 production compose, TLS, image publishing~~ — done, and the stack is
   proven to start and serve in CI; CD onto a host and a staging environment
   still need a host

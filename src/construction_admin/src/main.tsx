@@ -11,7 +11,12 @@ import { RootErrorFallback } from './components/RootErrorFallback';
 import { I18nProvider } from './i18n/I18nProvider';
 import './index.css';
 import { queryClient } from './queryClient';
+import { installGlobalErrorReporting, reportClientError } from './telemetry/reportClientError';
 import { theme } from './theme';
+
+// Before anything renders, so a crash during the first render is reported
+// too — that is the one that leaves an operator looking at nothing at all.
+installGlobalErrorReporting();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -20,7 +25,12 @@ createRoot(document.getElementById('root')!).render(
         The per-screen boundary in App.tsx handles the ordinary case; this one
         exists so that the worst case is a page with a message on it rather
         than a white rectangle. */}
-    <ErrorBoundary fallback={() => <RootErrorFallback />}>
+    <ErrorBoundary
+      fallback={() => <RootErrorFallback />}
+      onError={(error, info) =>
+        void reportClientError(error, { detail: info.componentStack ?? undefined })
+      }
+    >
       {/* Outermost of the app providers: sign-in and error screens need
           translating too, and they render before there is a session. */}
       <I18nProvider>

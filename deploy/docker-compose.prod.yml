@@ -161,6 +161,26 @@ services:
     networks:
       - internal
 
+  # Somewhere for the API's traces and metrics to go.
+  #
+  # Behind a profile, and off by default, because a collector that exports to
+  # its own log is scaffolding rather than monitoring: it answers "is anything
+  # coming out of the API", which is the question before the real one. Start it
+  # with `--profile telemetry`, point OTEL_EXPORTER_OTLP_ENDPOINT at it, and
+  # edit deploy/otel-collector.yaml when a real backend exists.
+  #
+  # Publishes no port. Telemetry is internal traffic and a receiver open to the
+  # internet is somewhere to post whatever you like.
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.115.1
+    profiles: ["telemetry"]
+    restart: unless-stopped
+    command: ["--config=/etc/otel/config.yaml"]
+    volumes:
+      - ./otel-collector.yaml:/etc/otel/config.yaml:ro
+    networks:
+      - internal
+
   # Nightly backup, on by default here — unlike development, where it is behind
   # a profile. A deployment without backups is the failure this whole section
   # exists to prevent.

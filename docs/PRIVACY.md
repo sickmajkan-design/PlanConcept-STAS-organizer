@@ -104,6 +104,41 @@ brisanje istog trenutka, odjavite uređaj. /
 expires by itself within 7 days, and immediately when that user signs out. If
 immediate removal is required, sign the device out.
 
+### 1.3 Prijave grešaka iz aplikacija / Crash reports from the clients
+
+**SR** — Kad se admin panel ili mobilna aplikacija sruše, šalju izveštaj na
+`POST /api/v1/client-errors`: poruka greške, tip, stack trace, ekran na kome se
+desilo, verzija aplikacije i opis uređaja. Izveštaj **ne sadrži** ime, e-mail
+ni identifikator korisnika — šalje se bez prijave, jer je najvažniji izveštaj
+onaj sa ekrana za prijavu koji neće da se učita.
+
+Ipak, ovo jesu lični podaci u jednom smislu koji treba reći naglas: putanja
+ekrana može sadržati identifikator zaposlenog (`/employees/<id>`), a stack
+trace može uhvatiti vrednost koja je bila u obradi. Izveštaji idu u isti log
+kao i sve ostalo — na vaš server, pod vašim rokom čuvanja — i **ne šalju se
+nijednom trećem servisu.** To je bila namerna odluka: gde odlaze podaci o
+kretanju i radu vaših zaposlenih nije stvar podrazumevane vrednosti neke
+biblioteke.
+
+Ako log ide u agregator, on nasleđuje ovo isto — pa rok čuvanja logova treba
+da bude odluka, a ne slučajnost. /
+
+**EN** — When the admin panel or the mobile app crashes, it posts a report to
+`POST /api/v1/client-errors`: the error message, its type, the stack trace, the
+screen it happened on, the app version and a device description. The report
+carries **no** name, e-mail or user id — it is sent unauthenticated, because
+the report worth having most is from a sign-in screen that will not load.
+
+It is still personal data in one respect worth saying plainly: a route can
+contain an employee id (`/employees/<id>`), and a stack trace can capture a
+value that was being handled. Reports go into the same log as everything else —
+on your server, under your retention — and are **sent to no third-party
+service.** That was a deliberate decision: where data about your employees'
+movements and work ends up is not a library's default to make.
+
+If the log is shipped to an aggregator, this goes with it — so log retention
+should be a decision rather than an accident.
+
 ---
 
 ## 2. Ko šta vidi / Who sees what

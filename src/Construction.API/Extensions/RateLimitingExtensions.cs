@@ -40,6 +40,21 @@ public static class RateLimitingExtensions
     /// <summary>Applied to the endpoints where a secret can be guessed.</summary>
     public const string CredentialsPolicy = "auth-credentials";
 
+    /// <summary>Applied to the unauthenticated client-error endpoint.</summary>
+    public const string ClientErrorPolicy = "client-errors";
+
+    /// <summary>
+    /// Reports allowed from one address per minute.
+    /// </summary>
+    /// <remarks>
+    /// Generous enough for a genuinely broken screen — a render loop can throw
+    /// a dozen times before anybody's finger leaves the glass — and small
+    /// enough that a client stuck in a crash loop cannot write the disk full.
+    /// The reports that follow the first few say nothing new anyway: it is the
+    /// same stack.
+    /// </remarks>
+    public const int ClientErrorsPerMinute = 30;
+
     /// <summary>
     /// Throttles only the endpoints that accept a guessable secret — sign-in
     /// and the password-reset pair. Verifying a password is deliberately slow,
@@ -80,6 +95,15 @@ public static class RateLimitingExtensions
                 {
                     PermitLimit = permitLimit,
                     Window = window,
+                    QueueLimit = 0
+                }));
+
+            options.AddPolicy(ClientErrorPolicy, context => RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                factory: _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = ClientErrorsPerMinute,
+                    Window = TimeSpan.FromMinutes(1),
                     QueueLimit = 0
                 }));
 
