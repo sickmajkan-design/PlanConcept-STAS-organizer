@@ -396,5 +396,10 @@
   "offlineDataNoticeDate": "Nema veze \u2014 prikazani su podaci sačuvani {date}.",
   "@offlineDataNoticeDate": { "placeholders": { "date": { "type": "String" } } },
   "offlineDataRetry": "Pokušaj ponovo",
-  "toolLookUpHint": "Unesite QR kod odštampan na pločici alata."
+  "toolLookUpHint": "Unesite QR kod odštampan na pločici alata.",
+  "serverAddressTitle": "Adresa servera",
+  "serverAddressHint": "Adresa servera vaše firme. Pitajte onoga ko ga je postavio; na istom Wi-Fi-ju kao server obično izgleda kao http://192.168.1.20:5000.",
+  "serverAddressLabel": "Adresa",
+  "serverAddressInvalid": "Unesite punu adresu, koja počinje sa http:// ili https://",
+  "commonSave": "Sačuvaj"
 }

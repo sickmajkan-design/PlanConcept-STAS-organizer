@@ -1127,4 +1127,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get toolLookUpHint => 'Enter the QR code printed on the tool\'s tag.';
+
+  @override
+  String get serverAddressTitle => 'Server address';
+
+  @override
+  String get serverAddressHint =>
+      'The address of your organisation\'s server. Ask whoever set it up; on the same Wi-Fi as the server it usually looks like http://192.168.1.20:5000.';
+
+  @override
+  String get serverAddressLabel => 'Address';
+
+  @override
+  String get serverAddressInvalid =>
+      'Enter a full address, starting with http:// or https://';
+
+  @override
+  String get commonSave => 'Save';
 }

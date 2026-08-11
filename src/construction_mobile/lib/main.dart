@@ -2,11 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 import 'app.dart';
+import 'core/config/server_address.dart';
 import 'core/telemetry/client_error_reporter.dart';
 import 'core/widgets/crash_panel.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   installCrashPanel();
@@ -16,9 +19,18 @@ void main() {
   // never opens and nobody any the wiser.
   installClientErrorReporting();
 
+  // Read before the first provider is built, because every HTTP client needs
+  // the address synchronously and reading a keystore is not synchronous. A
+  // device that has never been told one falls back to the compiled default.
+  const storage = FlutterSecureStorage();
+  final stored = await ServerAddress.read(storage);
+
   runApp(
-    const ProviderScope(
-      child: ConstructionApp(),
+    ProviderScope(
+      overrides: [
+        if (stored != null) initialServerAddressProvider.overrideWithValue(stored),
+      ],
+      child: const ConstructionApp(),
     ),
   );
 }

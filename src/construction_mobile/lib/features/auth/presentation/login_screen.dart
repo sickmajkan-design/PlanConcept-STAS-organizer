@@ -6,6 +6,7 @@ import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/router/app_routes.dart';
+import 'server_address_sheet.dart';
 import '../../../core/validation/validators.dart';
 import '../../../core/widgets/message_banner.dart';
 import '../../../core/widgets/password_field.dart';
@@ -144,6 +145,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ? null
                           : () => context.push(AppRoutes.forgotPassword),
                       child: Text(context.l10n.authForgotPassword),
+                    ),
+                    // The only place this belongs. An app pointed at the wrong
+                    // server cannot sign in, so anything behind sign-in would
+                    // be behind the very thing that is broken.
+                    TextButton.icon(
+                      onPressed: _submitting
+                          ? null
+                          : () => ServerAddressSheet.show(context),
+                      icon: const Icon(Icons.dns_outlined, size: 18),
+                      label: Text(context.l10n.serverAddressTitle),
                     ),
                   ],
                 ),

@@ -153,6 +153,23 @@ jobs:
       - name: Build the debug APK
         run: flutter build apk --debug
 
+      # Kept, not thrown away. The job already produces the exact file somebody
+      # needs to put the app on a phone, and without this it is deleted when
+      # the runner shuts down — leaving "build a test APK" as a task requiring
+      # an Android SDK that most people asking for one do not have.
+      #
+      # Debug-signed, so it installs from a file manager after allowing
+      # unknown sources, and it cannot be published to Play. The server address
+      # is not baked in: the app asks for one on its sign-in screen, so this
+      # single file works against any installation.
+      - name: Keep the APK so it can be installed
+        uses: actions/upload-artifact@v4
+        with:
+          name: construction-organizer-debug-apk
+          path: src/construction_mobile/build/app/outputs/flutter-apk/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30
+
   admin:
     name: Admin (React)
     runs-on: ubuntu-latest

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../config/app_config.dart';
+import '../config/server_address.dart';
 import '../storage/secure_session_storage.dart';
 import 'auth_interceptor.dart';
 import 'auth_session_manager.dart';
@@ -59,8 +60,8 @@ final sessionStorageProvider = Provider<SecureSessionStorage>((ref) {
   return SecureSessionStorage(ref.watch(secureStorageProvider));
 });
 
-BaseOptions _baseOptions() => BaseOptions(
-      baseUrl: AppConfig.apiBaseUrl,
+BaseOptions _baseOptions(String baseUrl) => BaseOptions(
+      baseUrl: baseUrl,
       connectTimeout: AppConfig.connectTimeout,
       receiveTimeout: AppConfig.receiveTimeout,
       contentType: Headers.jsonContentType,
@@ -73,7 +74,9 @@ BaseOptions _baseOptions() => BaseOptions(
 /// Client without the auth interceptor. Used for token refresh and for
 /// replaying a request after refresh, so neither can recurse.
 final plainClientProvider = Provider<Dio>((ref) {
-  final dio = Dio(_baseOptions());
+  // Watched, not read: changing the server address rebuilds every client with
+  // the new base URL, so nothing has to be restarted.
+  final dio = Dio(_baseOptions(ref.watch(serverAddressProvider)));
   ref.onDispose(dio.close);
   return dio;
 });
@@ -96,7 +99,7 @@ final authSessionManagerProvider = Provider<AuthSessionManager>((ref) {
 
 /// The authenticated client every feature repository uses.
 final apiClientProvider = Provider<Dio>((ref) {
-  final dio = Dio(_baseOptions());
+  final dio = Dio(_baseOptions(ref.watch(serverAddressProvider)));
 
   dio.interceptors.add(
     AuthInterceptor(

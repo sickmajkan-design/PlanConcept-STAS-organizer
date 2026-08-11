@@ -396,5 +396,10 @@
   "offlineDataNoticeDate": "No connection \u2014 showing data saved on {date}.",
   "@offlineDataNoticeDate": { "placeholders": { "date": { "type": "String" } } },
   "offlineDataRetry": "Try again",
-  "toolLookUpHint": "Enter the QR code printed on the tool's tag."
+  "toolLookUpHint": "Enter the QR code printed on the tool's tag.",
+  "serverAddressTitle": "Server address",
+  "serverAddressHint": "The address of your organisation's server. Ask whoever set it up; on the same Wi-Fi as the server it usually looks like http://192.168.1.20:5000.",
+  "serverAddressLabel": "Address",
+  "serverAddressInvalid": "Enter a full address, starting with http:// or https://",
+  "commonSave": "Save"
 }

@@ -1112,4 +1112,21 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get toolLookUpHint => 'Unesite QR kod odštampan na pločici alata.';
+
+  @override
+  String get serverAddressTitle => 'Adresa servera';
+
+  @override
+  String get serverAddressHint =>
+      'Adresa servera vaše firme. Pitajte onoga ko ga je postavio; na istom Wi-Fi-ju kao server obično izgleda kao http://192.168.1.20:5000.';
+
+  @override
+  String get serverAddressLabel => 'Adresa';
+
+  @override
+  String get serverAddressInvalid =>
+      'Unesite punu adresu, koja počinje sa http:// ili https://';
+
+  @override
+  String get commonSave => 'Sačuvaj';
 }

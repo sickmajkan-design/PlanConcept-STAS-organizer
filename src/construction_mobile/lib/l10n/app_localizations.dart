@@ -2119,6 +2119,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter the QR code printed on the tool\'s tag.'**
   String get toolLookUpHint;
+
+  /// No description provided for @serverAddressTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Server address'**
+  String get serverAddressTitle;
+
+  /// No description provided for @serverAddressHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The address of your organisation\'s server. Ask whoever set it up; on the same Wi-Fi as the server it usually looks like http://192.168.1.20:5000.'**
+  String get serverAddressHint;
+
+  /// No description provided for @serverAddressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get serverAddressLabel;
+
+  /// No description provided for @serverAddressInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a full address, starting with http:// or https://'**
+  String get serverAddressInvalid;
+
+  /// No description provided for @commonSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get commonSave;
 }
 
 class _AppLocalizationsDelegate
