@@ -92,11 +92,27 @@ class LocationTrackingController extends Notifier<LocationTrackingState> {
   StreamSubscription<Position>? _subscription;
   bool _busy = false;
 
+  /// Set once this notifier has been thrown away.
+  ///
+  /// Which happens on every sign-out, because [build] watches who is signed
+  /// in. Starting is a sequence of awaits — restoring the queue, asking for
+  /// permission, loading the notification's wording — and the session can end
+  /// at any point in it. `onDispose` alone does not cover that: it cancels a
+  /// subscription that does not exist yet, and the one attached a moment later
+  /// belongs to an object nobody holds a reference to any more. On Android
+  /// that is a foreground service, its permanent notification and a GPS fix
+  /// still running for somebody who has signed out, with nothing left alive to
+  /// stop them.
+  bool _abandoned = false;
+
   @override
   LocationTrackingState build() {
     final user = ref.watch(currentUserProvider);
 
-    ref.onDispose(_stopStream);
+    ref.onDispose(() {
+      _abandoned = true;
+      _stopStream();
+    });
 
     // Admin accounts are not linked to an employee; the API would reject
     // their pings with 403, so the app does not ask for location at all.
@@ -114,7 +130,15 @@ class LocationTrackingController extends Notifier<LocationTrackingState> {
     // Anything the previous run captured but could not deliver.
     await queue.restore();
 
+    if (_abandoned) {
+      return;
+    }
+
     final permission = await _ensurePermission();
+
+    if (_abandoned) {
+      return;
+    }
 
     if (permission != LocationTrackingStatus.active) {
       state = state.copyWith(
@@ -148,6 +172,12 @@ class LocationTrackingController extends Notifier<LocationTrackingState> {
     // The service notification is text the worker reads all day, so it is
     // resolved in the language they picked rather than the build's default.
     final l10n = await _localisations();
+
+    // Reading the chosen language is one more await the session can end
+    // during, and the last one before a stream exists to leak.
+    if (_abandoned) {
+      return;
+    }
 
     _subscription = Geolocator.getPositionStream(
       locationSettings: backgroundLocationSettings(l10n),
@@ -226,7 +256,9 @@ class LocationTrackingController extends Notifier<LocationTrackingState> {
   }
 
   Future<void> _flush() async {
-    if (_busy) {
+    if (_busy || _abandoned) {
+      // Abandoned means signed out, and a batch posted then carries a token
+      // the API has already been asked to revoke.
       return;
     }
 

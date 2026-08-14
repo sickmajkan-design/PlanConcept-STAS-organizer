@@ -21,8 +21,17 @@ class AuthRepository extends ApiRepository {
     );
   }
 
-  Future<void> logout(String refreshToken) {
-    return postVoid('/api/v1/auth/logout', data: {'refreshToken': refreshToken});
+  /// Revokes [refreshToken] server-side.
+  ///
+  /// [accessToken] is passed explicitly because sign-out ends the local
+  /// session before making this call — there is nothing left for the auth
+  /// interceptor to attach by the time it runs.
+  Future<void> logout(String refreshToken, {String? accessToken}) {
+    return postVoid(
+      '/api/v1/auth/logout',
+      data: {'refreshToken': refreshToken},
+      accessToken: accessToken,
+    );
   }
 
   Future<User> currentUser() {

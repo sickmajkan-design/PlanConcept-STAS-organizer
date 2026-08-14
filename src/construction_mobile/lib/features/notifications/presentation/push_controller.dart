@@ -9,6 +9,7 @@ import '../../../core/l10n/app_message.dart';
 import '../../../core/network/api_exception.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/notification_repository.dart';
+import 'device_token.dart';
 import 'notifications_controller.dart';
 
 enum PushStatus {
@@ -154,26 +155,11 @@ class PushController extends Notifier<PushState> {
           platform: _platform,
         );
 
+    // Published where sign-out can reach it without depending on this
+    // controller, which depends on who is signed in. See [deviceTokenProvider].
+    ref.read(deviceTokenProvider.notifier).remember(token);
+
     state = PushState(status: PushStatus.registered, token: token);
-  }
-
-  /// Removes this device's token. Called during sign-out, while the session
-  /// is still valid — afterwards the API would reject the call.
-  Future<void> unregisterCurrentDevice() async {
-    final token = state.token;
-
-    if (token == null) {
-      return;
-    }
-
-    try {
-      await ref.read(notificationRepositoryProvider).unregisterDeviceToken(token);
-    } on ApiException {
-      // Signing out must not fail because the token could not be removed;
-      // the server prunes tokens FCM reports as dead anyway.
-    }
-
-    state = const PushState(status: PushStatus.off);
   }
 }
 

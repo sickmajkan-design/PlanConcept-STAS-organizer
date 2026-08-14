@@ -23,10 +23,11 @@ built"* and *"real people can be given this"*.
 1. ~~**`docker compose up` produces a system anyone can sign into as SuperAdmin
    and forge tokens for.**~~ **Closed.** Compose refuses to start without real
    secrets (C1).
-2. ~~**GPS tracking stops when the phone is locked or pocketed.**~~ **Closed in
-   code, unverified on hardware.** A foreground service and a disk-backed queue
-   replaced the timer; nobody has yet pocketed a real phone for a shift and
-   checked what arrived (C3).
+2. ~~**GPS tracking stops when the phone is locked or pocketed.**~~ **Closed,
+   and now confirmed on a real handset.** A foreground service and a disk-backed
+   queue replaced the timer, and a debug APK installed on an Android phone
+   against a live server captured and delivered positions (C3). A full shift in
+   a pocket is still untested.
 3. ~~**The Android release build is signed with the debug key.**~~ **Closed.**
    Release signing reads an out-of-repo keystore (C4).
 
@@ -506,11 +507,54 @@ to `LocationQueue`, which persists to the platform keystore and survives the
 process being reclaimed. Pinned by 18 tests; the foreground-service assertions
 were mutation-checked (removing the config fails three of them).
 
+*Verified on hardware.* A debug APK from CI was installed on a real Android
+handset and pointed at a server on the same network: permissions are asked for,
+positions are captured and the office receives them. Until then this rested
+entirely on unit tests and a reading of the plugin's source.
+
 *Residual:* geolocator's foreground service is tied to the activity, so
 tracking still stops if the user swipes the app away or reboots the phone.
 Queued fixes survive both and go out on next launch. Closing that needs a
 background-service package running a second Flutter engine — a new dependency,
 deliberately deferred. Recorded in `PROVISIONING.md` §3.
+
+**C8. Signing out did nothing.** — **CLOSED**
+Found by the first person to use the app on a real handset, which is the only
+place it could have been found: pressing Sign out left the operator signed in,
+with no error, no spinner and nothing in the logs.
+
+`AuthController.signOut` began by asking the push controller for this device's
+Firebase token. The push controller watches who is signed in, so the auth
+controller was asking for a value that depended on the auth controller, and
+Riverpod refused the cycle with a `CircularDependencyError` — thrown on the
+first line, before the session was cleared and before anything was revoked,
+into an `await` in a button handler that caught nothing. Every automated test
+in the suite passed, because no test had ever pressed the button.
+
+*Fixed:* the token moved to `deviceTokenProvider`, which depends on nothing —
+it is a fact about the handset, not about the person holding it. Sign-out was
+also reordered while it was open: the session is now cleared locally *first*
+and the server told afterwards, so a phone that cannot reach its server signs
+out instantly instead of waiting out two fifteen-second connect timeouts behind
+a button with no spinner on it. The revoke that follows carries the tokens
+captured on the way out, refreshing the access token first if it had already
+expired, so the refresh token is still revoked server-side.
+
+Three more failures on the same path were closed with it, each of which would
+have produced the same symptom on some handset: `AuthSessionManager.clear` now
+cannot be stopped by a keystore that refuses to forget or a cache that cannot
+be emptied; `SecureSessionStorage` treats an unreadable keystore as nobody
+being signed in rather than throwing during startup, where the router would
+have waited on the splash screen for good; and location tracking can no longer
+attach a GPS stream *after* a sign-out disposed the controller, which on
+Android left a foreground service, its permanent notification and a wake lock
+running for somebody who had signed out.
+
+Pinned by 12 tests across `sign_out_flow_test.dart`,
+`secure_session_storage_test.dart`, `session_cache_boundary_test.dart` and
+`tracking_stops_on_sign_out_test.dart`. Mutation-checked: restoring the old
+ordering fails three of them, dropping the revoke fails two, and removing the
+tracking guards leaks the stream the fourth file counts.
 
 **C4. Android release builds are signed with the debug key.** — **CLOSED**
 `android/app/build.gradle.kts` now reads signing credentials from a git-ignored

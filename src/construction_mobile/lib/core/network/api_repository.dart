@@ -60,13 +60,24 @@ abstract class ApiRepository {
   }
 
   /// POSTs and discards the response body.
+  ///
+  /// [accessToken] authorises the call with a token the caller is holding
+  /// rather than the one the session manager would attach. Sign-out is the
+  /// only caller: it ends the session first, so that by the time it tells the
+  /// API to revoke anything there is no session left to authenticate with.
   @protected
-  Future<void> postVoid(String path, {Object? data, String? idempotencyKey}) {
+  Future<void> postVoid(
+    String path, {
+    Object? data,
+    String? idempotencyKey,
+    String? accessToken,
+  }) {
     return guard(() async {
       await dio.post<void>(
         path,
         data: data,
-        options: _idempotent(idempotencyKey),
+        options:
+            _options(idempotencyKey: idempotencyKey, accessToken: accessToken),
       );
     });
   }
@@ -96,19 +107,28 @@ abstract class ApiRepository {
       final response = await dio.post<Map<String, dynamic>>(
         path,
         data: data,
-        options: _idempotent(idempotencyKey),
+        options: _options(idempotencyKey: idempotencyKey),
       );
 
       return fromJson(response.data!);
     });
   }
 
-  /// Request options carrying the key, or null when there is none — Dio
-  /// treats a null `options` as "use the defaults", so this stays out of the
-  /// way of every call that does not need it.
-  static Options? _idempotent(String? key) => key == null
-      ? null
-      : Options(headers: <String, String>{idempotencyHeader: key});
+  /// Request options carrying whichever headers were asked for, or null when
+  /// none were — Dio treats a null `options` as "use the defaults", so this
+  /// stays out of the way of every call that needs neither.
+  static Options? _options({String? idempotencyKey, String? accessToken}) {
+    if (idempotencyKey == null && accessToken == null) {
+      return null;
+    }
+
+    return Options(
+      headers: <String, String>{
+        idempotencyHeader: ?idempotencyKey,
+        if (accessToken != null) 'Authorization': 'Bearer $accessToken',
+      },
+    );
+  }
 
   /// Builds the query map the paged list endpoints accept. [filters] carries
   /// the parameters specific to one endpoint; an entry with a null value is
