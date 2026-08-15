@@ -48,10 +48,16 @@ public static class ProjectDetailMapping
             StartDate = project.StartDate,
             EndDate = project.EndDate,
             Status = project.Status.ToString(),
-            EmployeeCount = project.EmployeeAssignments.Count,
+            // Open-ended assignments only — see the matching note in
+            // EmployeeDetailMapping.Projection. Without this, a project's
+            // roster and count never shrank: everyone ever taken off the
+            // project stayed listed, and "remove from project" looked like
+            // it silently did nothing from this side too.
+            EmployeeCount = project.EmployeeAssignments.Count(a => a.EndDate == null),
             CreatedAt = project.CreatedAt,
             UpdatedAt = project.UpdatedAt,
             Employees = project.EmployeeAssignments
+                .Where(assignment => assignment.EndDate == null)
                 .Select(assignment => new ProjectEmployeeDto
                 {
                     EmployeeId = assignment.EmployeeId,

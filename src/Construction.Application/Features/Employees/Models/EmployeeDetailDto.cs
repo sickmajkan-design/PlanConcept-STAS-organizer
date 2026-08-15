@@ -53,7 +53,19 @@ public static class EmployeeDetailMapping
             CreatedAt = employee.CreatedAt,
             UpdatedAt = employee.UpdatedAt,
             HasUserAccount = employee.User != null,
+            // Open-ended postings only — deliberately EndDate == null, not
+            // "EndDate is today or later". RemoveEmployeeFromProjectCommand
+            // doesn't delete an already-started assignment; it closes it with
+            // EndDate = today so the timesheets it sits next to still agree
+            // with the schedule. A `>= today` filter here (the same one that
+            // command uses to *find* the posting to close) would count that
+            // still-current-through-today record, so the project an admin
+            // just removed someone from kept showing up here for the rest of
+            // the day — "remove from project" looked like it silently did
+            // nothing. This DTO answers "who is on this project right now",
+            // which any EndDate — even today's — already answers "no" to.
             Projects = employee.ProjectAssignments
+                .Where(assignment => assignment.EndDate == null)
                 .Select(assignment => new EmployeeProjectAssignmentDto
                 {
                     ProjectId = assignment.ProjectId,
