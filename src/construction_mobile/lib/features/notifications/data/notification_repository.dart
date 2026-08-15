@@ -54,10 +54,15 @@ class NotificationRepository extends ApiRepository {
     );
   }
 
-  Future<void> unregisterDeviceToken(String token) {
+  /// Removes this handset's push token.
+  ///
+  /// [accessToken] is passed explicitly by sign-out, which has already ended
+  /// the local session by the time it gets here — see `AuthController.signOut`.
+  Future<void> unregisterDeviceToken(String token, {String? accessToken}) {
     return postVoid(
       '/api/v1/notifications/device-tokens/unregister',
       data: {'token': token},
+      accessToken: accessToken,
     );
   }
 }

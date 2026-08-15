@@ -18,6 +18,9 @@ import 'package:flutter_test/flutter_test.dart';
 class _FakeStorage implements SecureSessionStorage {
   AuthSession? stored;
 
+  /// What a platform keystore whose key has been invalidated does.
+  bool refuseToForget = false;
+
   @override
   Future<AuthSession?> read() async => stored;
 
@@ -25,7 +28,13 @@ class _FakeStorage implements SecureSessionStorage {
   Future<void> write(AuthSession session) async => stored = session;
 
   @override
-  Future<void> clear() async => stored = null;
+  Future<void> clear() async {
+    if (refuseToForget) {
+      throw StateError('keystore unavailable');
+    }
+
+    stored = null;
+  }
 }
 
 User _user(String id) => User(
@@ -119,5 +128,46 @@ void main() {
 
     expect(restored, isNotNull);
     expect(wipes, 0, reason: 'the cache is this user\'s and they are back');
+  });
+
+  /// Ending the session is the one thing here that is not allowed to fail.
+  ///
+  /// Everything it touches belongs to somebody else — a platform keystore, a
+  /// directory on disk — and on some handset, some day, one of them refuses.
+  /// None of that is a reason to leave the app signed in, and the halfway
+  /// state is the worst of the three: the session cleared from memory, nobody
+  /// told, and a home screen whose every request now answers 401.
+  group('signing out cannot be stopped', () {
+    test('by a keystore that will not forget', () async {
+      await manager.start(_session('ivan'));
+      storage.refuseToForget = true;
+
+      AuthSession? last = _session('ivan');
+      manager.changes.listen((session) => last = session);
+
+      await manager.clear();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(manager.isAuthenticated, isFalse);
+      expect(last, isNull, reason: 'the app has to be told, or it stays put');
+    });
+
+    test('by a cache that cannot be emptied', () async {
+      final failing = AuthSessionManager(
+        storage: storage,
+        refreshClient: Dio(),
+        onIdentityChanged: () async => throw StateError('no directory'),
+      );
+
+      AuthSession? last = _session('ivan');
+      failing.changes.listen((session) => last = session);
+
+      await failing.start(_session('ivan'));
+      await failing.clear();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(failing.isAuthenticated, isFalse);
+      expect(last, isNull);
+    });
   });
 }

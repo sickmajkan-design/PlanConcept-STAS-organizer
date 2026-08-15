@@ -75,7 +75,16 @@ class AuthSessionManager {
     // A refresh calls this too, with the same person's new tokens. Only a
     // different person is a change.
     if (_session?.user.id != session.user.id) {
-      await onIdentityChanged?.call();
+      try {
+        await onIdentityChanged?.call();
+      } catch (_) {
+        // Guarded for the same reason as in `clear`, and with the same
+        // reasoning about what is actually being risked: the wipe itself
+        // swallows filesystem failures, so the only way to arrive here is a
+        // cache that could not be opened at all — which is a session with
+        // nothing cached to leak into it. Refusing the sign-in over it would
+        // strand somebody on the sign-in screen to protect an empty directory.
+      }
     }
 
     _session = session;
@@ -96,11 +105,36 @@ class AuthSessionManager {
     _changes.add(updated);
   }
 
+  /// Ends the session on this device.
+  ///
+  /// The one method here that is not allowed to fail. Everything it touches is
+  /// somebody else's — a platform keystore, a directory on disk — and any of
+  /// it can refuse on a given handset. None of that is a reason to leave the
+  /// app signed in: a sign-out that threw halfway used to clear the session
+  /// from memory and then stop before telling anybody, which left the operator
+  /// looking at a home screen belonging to a session that no longer existed,
+  /// every request on it answering 401.
   Future<void> clear() async {
     _session = null;
-    await _storage.clear();
-    await onIdentityChanged?.call();
-    _changes.add(null);
+
+    try {
+      await _storage.clear();
+    } catch (_) {
+      // The keystore would not forget. [SecureSessionStorage.clear] has
+      // already tried its fallback, and there is nothing further to attempt
+      // from here — but the app still signs out.
+    }
+
+    try {
+      await onIdentityChanged?.call();
+    } catch (_) {
+      // Emptying the offline cache is a courtesy to whoever picks the phone up
+      // next, not a precondition for signing the current user out.
+    }
+
+    if (!_changes.isClosed) {
+      _changes.add(null);
+    }
   }
 
   /// Returns a session with a usable access token, refreshing it first when
@@ -137,14 +171,7 @@ class AuthSessionManager {
     }
 
     try {
-      final response = await _refreshClient.post<Map<String, dynamic>>(
-        '/api/v1/auth/refresh',
-        data: {'refreshToken': current.refreshToken},
-      );
-
-      final refreshed = AuthSession.fromResponse(
-        AuthResponse.fromJson(response.data!),
-      );
+      final refreshed = await _exchange(current.refreshToken);
 
       await start(refreshed);
       return refreshed;
@@ -162,6 +189,42 @@ class AuthSessionManager {
       // network recovers.
       rethrow;
     }
+  }
+
+  /// Trades a captured refresh token for a usable pair, without adopting the
+  /// result as this device's session.
+  ///
+  /// For sign-out, which ends the session locally before telling the API — so
+  /// by the time it does, there is nothing here left to authenticate with, and
+  /// the access token it captured on the way out may already have expired. A
+  /// worker who opens the app after lunch and signs out immediately is holding
+  /// one that died an hour ago; without this the revoke would be refused and
+  /// the refresh token would stay live for a week on a handset whose owner
+  /// believes they have signed out of it.
+  ///
+  /// Returns null when there is nothing left to revoke with, which is not an
+  /// error: the session had already ended by itself.
+  Future<AuthSession?> refreshDetached(AuthSession captured) async {
+    if (captured.isRefreshTokenExpired) {
+      return null;
+    }
+
+    try {
+      return await _exchange(captured.refreshToken);
+    } on DioException {
+      return null;
+    }
+  }
+
+  /// The refresh call itself, in one place: both the session's own refresh and
+  /// [refreshDetached] go through here.
+  Future<AuthSession> _exchange(String refreshToken) async {
+    final response = await _refreshClient.post<Map<String, dynamic>>(
+      '/api/v1/auth/refresh',
+      data: {'refreshToken': refreshToken},
+    );
+
+    return AuthSession.fromResponse(AuthResponse.fromJson(response.data!));
   }
 
   Future<void> dispose() async {
