@@ -19,6 +19,14 @@ RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
 COPY --from=build /app/publish .
 
 RUN mkdir -p /app/logs && chown -R appuser:appgroup /app
+
+# Pre-create the local-disk attachment store, owned by appuser, so a fresh
+# named volume mounted here (docker-compose.yml's attachment-data) inherits
+# this ownership when Docker seeds it from the image on first mount — rather
+# than the root:root the volume would otherwise start with, which the app
+# (running as appuser below) cannot write into.
+RUN mkdir -p /var/lib/construction/storage && chown -R appuser:appgroup /var/lib/construction/storage
+
 USER appuser
 
 EXPOSE 8080
