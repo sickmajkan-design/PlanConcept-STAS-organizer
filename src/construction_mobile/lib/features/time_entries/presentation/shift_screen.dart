@@ -185,9 +185,16 @@ class _ShiftCardState extends ConsumerState<_ShiftCard> {
   }
 
   Future<void> _clockOut(BuildContext context) async {
+    // Not dismissible by a tap outside or a swipe/back gesture: those read as
+    // an accidental close, not a decision, and previously produced the exact
+    // same silent "nothing happened" result as pressing Cancel — the only way
+    // out is the explicit Cancel button, so a dismissal is never mistaken for
+    // "clock out didn't work."
     final breakMinutes = await showModalBottomSheet<int>(
       context: context,
       isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
       builder: (_) => const _ClockOutSheet(),
     );
 

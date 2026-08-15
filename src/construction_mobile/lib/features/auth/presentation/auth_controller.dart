@@ -66,7 +66,15 @@ class AuthController extends AsyncNotifier<AuthState> {
   /// its own and the device must not stay stuck in a signed-in state.
   Future<void> signOut() async {
     // Remove this device's push token while the session is still valid.
-    await ref.read(pushControllerProvider.notifier).unregisterCurrentDevice();
+    // Unguarded, this could throw for reasons that have nothing to do with
+    // signing out (push never configured, a stale token, a transport error
+    // the repository doesn't wrap) and leave the user stuck on this screen
+    // with no feedback, since the actual sign-out below never runs.
+    try {
+      await ref.read(pushControllerProvider.notifier).unregisterCurrentDevice();
+    } catch (_) {
+      // Ignored on purpose: local sign-out must always succeed.
+    }
 
     final manager = ref.read(authSessionManagerProvider);
     final refreshToken = manager.session?.refreshToken;
