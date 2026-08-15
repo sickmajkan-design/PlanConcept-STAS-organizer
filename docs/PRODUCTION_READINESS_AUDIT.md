@@ -512,6 +512,10 @@ handset and pointed at a server on the same network: permissions are asked for,
 positions are captured and the office receives them. Until then this rested
 entirely on unit tests and a reading of the plugin's source.
 
+That same session found four defects nothing else had (C9 through C12), which
+is the argument for doing it deliberately rather than once by accident.
+`DEVICE_TEST_CHECKLIST.md` is the rest of that pass, written out.
+
 *Residual:* geolocator's foreground service is tied to the activity, so
 tracking still stops if the user swipes the app away or reboots the phone.
 Queued fixes survive both and go out on next launch. Closing that needs a
@@ -555,6 +559,38 @@ Pinned by 12 tests across `sign_out_flow_test.dart`,
 `tracking_stops_on_sign_out_test.dart`. Mutation-checked: restoring the old
 ordering fails three of them, dropping the revoke fails two, and removing the
 tracking guards leaks the stream the fourth file counts.
+
+**C10–C12. Three more, found the same way.** — **ALL CLOSED**
+Fixed in the same round of live device testing that produced C9, and worth
+recording together because of what they have in common: every one of them was
+invisible to the whole test suite, and two of the three presented as a button
+that did nothing.
+
+- **C10. Clocking out could not be completed.** The bottom sheet asking for
+  break minutes was dismissible by a tap outside or a back gesture, and a
+  dismissal resolves to the same `null` as pressing Cancel. From the operator's
+  side there was no difference between "I cancelled" and "the button is
+  broken". The sheet is now `isDismissible: false, enableDrag: false`, so only
+  the two buttons can close it.
+
+- **C11. Attachment uploads failed with `Permission denied` on every fresh
+  deployment.** `/var/lib/construction/storage` is a named Docker volume, and
+  Docker seeds a named volume from whatever the image has at that path on first
+  mount. Nothing had ever created or `chown`ed it, so the volume came up owned
+  by root while the API runs as `appuser`. Uploads worked in no environment
+  that had not been fixed by hand. The Dockerfile now pre-creates and chowns
+  the directory so the volume inherits the ownership.
+
+- **C12. "Remove from project" appeared to do nothing.**
+  `RemoveEmployeeFromProjectCommand` deliberately closes a started posting with
+  `EndDate = today` rather than deleting it, so timesheets still agree with the
+  schedule. But neither the employee's project list nor the project's roster
+  and head count filtered on `EndDate` at all, so a removed assignment kept
+  appearing on both sides forever. Both now filter to `EndDate == null`, and
+  deliberately not to the `>= today` the removal command uses to *find* the
+  posting: that comparison is right for "which posting do I close" and wrong
+  for "who is on this roster right now", which any end date — today's included
+  — already answers no to.
 
 **C4. Android release builds are signed with the debug key.** — **CLOSED**
 `android/app/build.gradle.kts` now reads signing credentials from a git-ignored

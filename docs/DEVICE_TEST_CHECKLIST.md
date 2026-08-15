@@ -139,7 +139,11 @@ Nalog: **Worker**. Ovo je putanja koju će pravi ljudi koristiti dva puta dnevno
       dalje u toku.
 - [ ] Ubij aplikaciju, otvori je, otvori Radno vreme. *Očekivano:* i dalje u
       toku — stanje je na serveru, ne u aplikaciji.
-- [ ] Odjavi smenu. *Očekivano:* trajanje je izračunato i tačno.
+- [ ] Odjavi smenu. *Očekivano:* otvara se list za pauzu; **dodirni izvan
+      lista i povuci nadole** — *očekivano:* list se **ne zatvara**, jedino
+      Otkaži i Potvrdi rade. Potvrdi; trajanje je izračunato i tačno.
+      *(Ispravka `C10` — zatvaranje dodirom izvan lista je izgledalo kao da
+      dugme ne radi.)*
 - [ ] Pokušaj **dva puta zaredom** prijaviti dolazak. *Očekivano:* drugi put
       je odbijeno sa razumljivom porukom, ne sa greškom 500.
 - [ ] **Moji zadaci** → otvori zadatak, promeni status.
@@ -164,7 +168,17 @@ Nalog: **Foreman**.
 
 - [ ] Donja navigacija sada ima i **Zaposleni** i **Projekti**.
 - [ ] Zaposleni → pretraga po imenu; otvori nekoga; vide se prilozi (dokumenti).
+- [ ] **Dodaj prilog** (dokument ili sliku) zaposlenom, pa ga otvori.
+      *Očekivano:* otprema uspeva. Ovo je ispravka `C11` i **mora se probati na
+      sveže podignutom okruženju** (`docker compose down -v` pa `up`) — greška
+      je bila u vlasništvu Docker volumena pri prvom montiranju, pa je na
+      ručno popravljenom okruženju nevidljiva. / Must be tried on a freshly
+      created environment; the bug was in volume ownership at first mount.
 - [ ] Projekti → otvori projekat; vidi se ekipa i rok.
+- [ ] **Skini nekoga sa projekta** (iz admin panela), pa osveži i projekat i
+      karton tog zaposlenog. *Očekivano:* nestaje sa spiska **odmah**, i
+      brojač ekipe se smanji. *(Ispravka `C12` — raspored se zatvara datumom
+      umesto da se briše, a spiskovi taj datum nisu gledali.)*
 - [ ] **Vozila / Alat / Materijal** — liste se otvaraju, pretraga radi.
 - [ ] Materijal → **izmeni stanje** (dodaj ili skini količinu). *Očekivano:*
       novo stanje je odmah tačno.
