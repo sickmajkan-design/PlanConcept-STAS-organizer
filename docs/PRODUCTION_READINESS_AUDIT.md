@@ -518,7 +518,7 @@ Queued fixes survive both and go out on next launch. Closing that needs a
 background-service package running a second Flutter engine — a new dependency,
 deliberately deferred. Recorded in `PROVISIONING.md` §3.
 
-**C8. Signing out did nothing.** — **CLOSED**
+**C9. Signing out did nothing.** — **CLOSED**
 Found by the first person to use the app on a real handset, which is the only
 place it could have been found: pressing Sign out left the operator signed in,
 with no error, no spinner and nothing in the logs.
