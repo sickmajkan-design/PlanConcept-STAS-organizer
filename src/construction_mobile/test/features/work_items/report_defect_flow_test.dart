@@ -143,6 +143,43 @@ void main() {
     );
   });
 
+  /// The same shape as `C10` on the clock-out sheet, and the same reasoning.
+  ///
+  /// A dismissal and a Cancel both come back as null, so what would be thrown
+  /// away here — a typed description and a photograph taken in front of the
+  /// defect — would go without a word, in front of somebody standing on
+  /// scaffolding who is not going to type it again.
+  testWidgets('the sheet ignores a tap outside it', (tester) async {
+    final repository = _FakeWorkItems();
+
+    await _pumpButton(tester, repository);
+    await _openSheet(tester);
+
+    await tester.enterText(
+      find.widgetWithText(TextField, 'What is wrong'),
+      'Crack in the retaining wall',
+    );
+
+    await tester.tapAt(const Offset(400, 40));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.widgetWithText(FilledButton, 'Report'), findsOneWidget);
+    expect(
+      find.text('Crack in the retaining wall'),
+      findsOneWidget,
+      reason: 'what was typed is still there',
+    );
+
+    // Cancel still closes it, or the reporter would be trapped in the sheet.
+    await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.widgetWithText(FilledButton, 'Report'), findsNothing);
+    expect(repository.reported, isEmpty);
+  });
+
   testWidgets('a blank description is sent as nothing, not as empty',
       (tester) async {
     final repository = _FakeWorkItems();

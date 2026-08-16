@@ -41,6 +41,15 @@ class _ReportDefectButtonState extends ConsumerState<ReportDefectButton> {
         await showModalBottomSheet<({String title, String? description, XFile? photo})>(
       context: context,
       isScrollControlled: true,
+      // Not dismissible by a tap outside or a swipe, for the same reason as
+      // the clock-out sheet: a dismissal resolves to the same null as pressing
+      // Cancel, so the screen cannot tell "I changed my mind" from "my thumb
+      // caught the edge". Here the cost is a typed description and a
+      // photograph taken in front of the defect, silently discarded — and the
+      // reporter is standing on scaffolding, not about to type it twice. The
+      // way out is Cancel, which says what it does.
+      isDismissible: false,
+      enableDrag: false,
       builder: (_) => const _DefectSheet(),
     );
 
