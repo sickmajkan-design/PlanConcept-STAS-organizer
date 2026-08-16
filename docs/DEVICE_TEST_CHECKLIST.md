@@ -204,9 +204,16 @@ Ovo je gradilište. Uključi **avionski režim** za svaku stavku.
       ista poruka, bez rušenja.
 - [ ] Vrati mrežu, pritisni „Pokušaj ponovo". *Očekivano:* sveži podaci, traka
       o starim podacima nestaje.
-- [ ] **Prijavi dolazak bez signala.** *Očekivano:* **ne uspeva**, sa
-      razumljivom porukom. Ovo je poznata rupa (`M9`) — ne prijavljuj kao
-      grešku, samo potvrdi da poruka ima smisla.
+- [ ] **Prijavi dolazak bez signala.** *Očekivano:* **uspeva** — kartica
+      pokazuje da je smena u toku i piše „Zabeleženo na ovom telefonu. Biće
+      poslato kad bude signala." *(Ovo je `M9`, novo.)*
+- [ ] Zabeleži tačno vreme kad si pritisnuo. Ubij aplikaciju, vrati signal,
+      otvori je ponovo. *Očekivano:* smena je otišla na server **sa tim
+      vremenom**, ne sa vremenom kad si otvorio aplikaciju. Proveri u admin
+      panelu.
+- [ ] Isto i za **odjavu smene bez signala**, uključujući minute pauze.
+- [ ] Cela smena bez signala: prijava, pa odjava, pa tek onda vrati mrežu.
+      *Očekivano:* obe idu, u redosledu, i trajanje je tačno.
 - [ ] Odjavi se bez signala. *Očekivano:* trenutno, kao u prolazu 1.
 
 ## 6. Prolaz 5 — GPS u pozadini / Background GPS
@@ -284,7 +291,7 @@ Ne troši vreme na prijavljivanje ovoga. / Do not spend time reporting these.
 | Stavka / Item | Zašto / Why |
 |---|---|
 | Push u status bar / Push to the status bar | Firebase projekat ne postoji (`C5`). Lista obaveštenja u aplikaciji radi. |
-| Prijava dolaska bez signala / Clock-in with no signal | Pisanje van mreže nije u redu čekanja (`M9`). Čitanje radi. |
+| Ostala pisanja bez signala — defekat, odsustvo, stanje materijala / Other offline writes | Nisu u redu čekanja. Samo prijava i odjava smene jesu (`M9`), jer su jedine kod kojih je **vreme** ono što se ne može rekonstruisati posle. |
 | GPS posle uklanjanja iz „recents" ili restarta telefona | Servis je vezan za aktivnost (`C3`). Sačuvane pozicije odlaze pri sledećem pokretanju. |
 | Skeniranje QR koda kamerom / Scanning a QR code with the camera | Nije ugrađeno — kod se kuca. Fotografisanje defekta **jeste** ugrađeno (kamera i galerija). / Not wired in; the code is typed. Photographing a defect **is** wired in. |
 | iOS | Nikad građen ni pokrenut. |
