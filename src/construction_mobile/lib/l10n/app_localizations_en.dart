@@ -1144,4 +1144,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get commonSave => 'Save';
+
+  @override
+  String get shiftWaitingToSend =>
+      'Recorded on this phone. It will be sent when there is signal.';
 }

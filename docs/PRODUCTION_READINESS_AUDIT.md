@@ -1302,10 +1302,28 @@ change, in one place.
   data now living on the handset is documented in PRIVACY.md §1.2, and
   `android:allowBackup="false"` keeps it out of the user's Google account.
 
-  Still open: writes made offline are not queued. A worker with no signal can
-  read, but cannot clock in — the clock-in fails as it did before, with the
-  friendly offline message from M8. That is a separate piece of work and a
-  larger one, because it needs conflict rules rather than a cache.
+  Writes made offline are now queued, for clocking in and out — **done**, and
+  scoped deliberately to those two. They are the ones that cannot wait: a
+  defect or a leave request is just as true an hour later, but a shift that
+  started at seven and is recorded at half past nine is wrong by an hour and a
+  half, and nothing downstream can tell.
+
+  `ClockQueue` mirrors the location queue — on disk, because Android reclaims
+  the process during a shift — and carries the moment the button was pressed
+  plus an idempotency key minted once and reused on every attempt. The API
+  takes that moment as `OccurredAt`, bounded to five minutes ahead of itself
+  and a day behind, and both clock endpoints are idempotent so a reply lost on
+  the way back cannot open a second shift.
+
+  The distinction the queue turns on is between no signal and no. Only a
+  transport failure is queued; a refusal — already clocked in, break longer
+  than the shift, no employee record — is shown, because queueing it would
+  move the same refusal to later. A queued action refused on replay is dropped
+  and the refusal surfaced rather than retried for ever.
+
+  Still open: every other write. A defect reported with no signal still fails
+  with the offline message from M8, which is the right trade for now — those
+  need conflict rules, and the shift does not.
 - **M10.** Practise an incremental migration and a rollback before the first
   schema change under load. — **done, and now rehearsed on every push.**
 

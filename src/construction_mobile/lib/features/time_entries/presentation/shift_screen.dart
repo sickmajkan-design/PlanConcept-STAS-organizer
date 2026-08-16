@@ -125,26 +125,50 @@ class _ShiftCardState extends ConsumerState<_ShiftCard> {
                 ),
               ],
             ),
-            if (running) ...[
+            if (running && state.startedAt != null) ...[
               const SizedBox(height: 12),
               Text(
-                _elapsedLabel(l10n, shift!),
+                _elapsedLabel(l10n, state.startedAt!),
                 style: theme.textTheme.headlineMedium
                     ?.copyWith(fontWeight: FontWeight.w700),
               ),
               Text(
-                l10n.shiftSince(formatTime(shift.startedAt)),
+                l10n.shiftSince(formatTime(state.startedAt!)),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              if (shift.projectName != null)
+              if (shift?.projectName != null)
                 Text(
-                  shift.projectName!,
+                  shift!.projectName!,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
+            ],
+            // Said before any failure, because it is not one: the worker did
+            // clock in, the office simply does not know yet.
+            if (state.isWaitingToSend) ...[
+              const SizedBox(height: 8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.cloud_off_outlined,
+                    size: 16,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      l10n.shiftWaitingToSend,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ],
             if (state.failure != null) ...[
               const SizedBox(height: 8),
@@ -173,8 +197,16 @@ class _ShiftCardState extends ConsumerState<_ShiftCard> {
     );
   }
 
-  String _elapsedLabel(AppLocalizations l10n, TimeEntry shift) {
-    final elapsed = shift.elapsedAt(DateTime.now());
+  /// Measured from whichever start this handset knows about — the server's,
+  /// or the one recorded here while there was no signal.
+  String _elapsedLabel(AppLocalizations l10n, DateTime startedAt) {
+    var elapsed = DateTime.now().toUtc().difference(startedAt.toUtc());
+
+    // A phone whose clock is behind the server's would otherwise count
+    // backwards.
+    if (elapsed.isNegative) {
+      elapsed = Duration.zero;
+    }
 
     return l10n.shiftElapsed(elapsed.inHours, elapsed.inMinutes % 60);
   }

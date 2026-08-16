@@ -2,6 +2,7 @@ import 'package:construction_mobile/core/models/paged_list.dart';
 import 'package:construction_mobile/core/network/api_exception.dart';
 import 'package:construction_mobile/features/auth/data/models/user.dart';
 import 'package:construction_mobile/features/auth/presentation/auth_controller.dart';
+import 'package:construction_mobile/features/time_entries/data/clock_queue.dart';
 import 'package:construction_mobile/features/time_entries/data/models/time_entry.dart';
 import 'package:construction_mobile/features/time_entries/data/time_entry_repository.dart';
 import 'package:construction_mobile/features/time_entries/presentation/shift_screen.dart';
@@ -35,6 +36,20 @@ class _NoPosition extends GeolocatorPlatform {
       LocationPermission.denied;
 }
 
+/// The disk the offline queue survives on, without a platform channel.
+class _MemoryClockStore implements ClockQueueStore {
+  String? value;
+
+  @override
+  Future<String?> read() async => value;
+
+  @override
+  Future<void> write(String written) async => value = written;
+
+  @override
+  Future<void> clear() async => value = null;
+}
+
 class _FakeTimeEntries implements TimeEntryRepository {
   _FakeTimeEntries({this.current, this.refuseWith});
 
@@ -44,6 +59,11 @@ class _FakeTimeEntries implements TimeEntryRepository {
   ApiException? refuseWith;
 
   final List<int> clockOutBreaks = <int>[];
+
+  /// The handset's own moment, when one was sent. Null on an online call.
+  final List<DateTime?> clockInTimes = <DateTime?>[];
+  final List<DateTime?> clockOutTimes = <DateTime?>[];
+
   int clockIns = 0;
 
   @override
@@ -74,8 +94,11 @@ class _FakeTimeEntries implements TimeEntryRepository {
     String? note,
     double? latitude,
     double? longitude,
+    DateTime? occurredAt,
+    String? idempotencyKey,
   }) async {
     clockIns++;
+    clockInTimes.add(occurredAt);
 
     if (refuseWith != null) {
       throw refuseWith!;
@@ -90,8 +113,11 @@ class _FakeTimeEntries implements TimeEntryRepository {
     String? note,
     double? latitude,
     double? longitude,
+    DateTime? occurredAt,
+    String? idempotencyKey,
   }) async {
     clockOutBreaks.add(breakMinutes);
+    clockOutTimes.add(occurredAt);
 
     if (refuseWith != null) {
       throw refuseWith!;
@@ -133,13 +159,16 @@ const _worker = User(
 
 Future<void> _pumpShiftScreen(
   WidgetTester tester,
-  _FakeTimeEntries repository,
-) async {
+  _FakeTimeEntries repository, {
+  ClockQueue? queue,
+}) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         currentUserProvider.overrideWithValue(_worker),
         timeEntryRepositoryProvider.overrideWithValue(repository),
+        clockQueueProvider
+            .overrideWithValue(queue ?? ClockQueue(_MemoryClockStore())),
       ],
       child: const MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -152,9 +181,37 @@ Future<void> _pumpShiftScreen(
 
   // The card and the list load from separate providers; both are awaited
   // before anything on this screen is pressable.
-  await tester.pump();
-  await tester.pump(const Duration(milliseconds: 100));
+  // The card restores the offline queue, tries to send what is in it, and
+  // only then asks the server for the running shift — three awaits deep, so
+  // this pumps well past the point any of them could still be in flight.
+  for (var i = 0; i < 6; i++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
 }
+
+/// Closes the app and opens it again.
+///
+/// Pumping a second `ProviderScope` on its own does not do this: Riverpod
+/// keeps the container across a rebuild of the same widget type, so the shift
+/// controller would never run `build` again — and `build` is where the queue
+/// is restored and sent. Tearing the tree down first is what a worker walking
+/// out of the basement and reopening the app actually does.
+Future<void> _reopen(
+  WidgetTester tester,
+  _FakeTimeEntries repository,
+  ClockQueueStore store,
+) async {
+  await tester.pumpWidget(const SizedBox.shrink());
+  await tester.pump();
+
+  await _pumpShiftScreen(tester, repository, queue: ClockQueue(store));
+}
+
+/// xunit-style tolerance, which `flutter_test` has no matcher for.
+Matcher _within(DateTime expected, Duration tolerance) => predicate<DateTime>(
+      (actual) => actual.difference(expected).abs() <= tolerance,
+      'within $tolerance of $expected',
+    );
 
 void main() {
   setUp(() => GeolocatorPlatform.instance = _NoPosition());
@@ -257,8 +314,9 @@ void main() {
       (tester) async {
     final repository = _FakeTimeEntries(
       refuseWith: ApiException(
-        'offline',
-        kind: ApiFailureKind.offline,
+        'You are already clocked in.',
+        kind: ApiFailureKind.conflict,
+        isFromServer: true,
       ),
     );
 
@@ -268,18 +326,141 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(
-      find.text('No connection to the server. Check your network and try again.'),
-      findsOneWidget,
-    );
+    expect(find.text('You are already clocked in.'), findsOneWidget);
 
-    // Still off shift, and still able to try again once there is signal.
+    // Still off shift, and still able to try again.
     expect(find.text('You are not clocked in'), findsOneWidget);
 
     final button = tester.widget<FilledButton>(
       find.widgetWithText(FilledButton, 'Clock in'),
     );
     expect(button.onPressed, isNotNull);
+  });
+
+  /// M9, the whole point of it.
+  ///
+  /// A worker starts at seven in a basement. Before this, clocking in simply
+  /// failed and the hours were somebody else's problem to reconstruct.
+  group('with no signal', () {
+    testWidgets('clocking in is recorded on the handset and says so',
+        (tester) async {
+      final repository = _FakeTimeEntries(
+        refuseWith: ApiException('offline', kind: ApiFailureKind.offline),
+      );
+      final store = _MemoryClockStore();
+
+      await _pumpShiftScreen(tester, repository, queue: ClockQueue(store));
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Clock in'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      // The worker is on shift as far as this phone is concerned, which is the
+      // only thing they can see and the thing that turns out to be true.
+      expect(find.text('You are clocked in'), findsOneWidget);
+      expect(
+        find.text('Recorded on this phone. It will be sent when there is signal.'),
+        findsOneWidget,
+      );
+
+      // And it is on disk, not just in a variable that dies with the process.
+      expect(store.value, isNotNull);
+    });
+
+    testWidgets('what was recorded is sent, with its own moment, once there '
+        'is signal', (tester) async {
+      final repository = _FakeTimeEntries(
+        refuseWith: ApiException('offline', kind: ApiFailureKind.offline),
+      );
+      final store = _MemoryClockStore();
+
+      await _pumpShiftScreen(tester, repository, queue: ClockQueue(store));
+
+      final pressedAt = DateTime.now().toUtc();
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Clock in'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      // Signal comes back, and the app is opened again.
+      repository.refuseWith = null;
+
+      await _reopen(tester, repository, store);
+
+      expect(repository.clockInTimes.last, isNotNull);
+      expect(
+        repository.clockInTimes.last!,
+        _within(pressedAt, const Duration(seconds: 5)),
+        reason: 'the shift began when the button was pressed, not when the '
+            'phone found a bar',
+      );
+
+      expect(store.value, isNull, reason: 'and it is off the queue');
+      expect(
+        find.text('Recorded on this phone. It will be sent when there is signal.'),
+        findsNothing,
+      );
+    });
+
+    testWidgets('a whole shift can be recorded and sent as a pair',
+        (tester) async {
+      final repository = _FakeTimeEntries(
+        refuseWith: ApiException('offline', kind: ApiFailureKind.offline),
+      );
+      final store = _MemoryClockStore();
+
+      await _pumpShiftScreen(tester, repository, queue: ClockQueue(store));
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Clock in'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Clock out'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.enterText(find.byType(TextField), '30');
+      await tester.tap(find.widgetWithText(FilledButton, 'Confirm'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('You are not clocked in'), findsOneWidget);
+
+      repository.refuseWith = null;
+      await _reopen(tester, repository, store);
+
+      expect(repository.clockIns, 2, reason: 'the queued one, then the replay');
+      expect(repository.clockOutBreaks.last, 30);
+      expect(store.value, isNull);
+    });
+
+    testWidgets('something the server will never take is dropped, not retried '
+        'for ever', (tester) async {
+      final store = _MemoryClockStore();
+
+      final repository = _FakeTimeEntries(
+        refuseWith: ApiException('offline', kind: ApiFailureKind.offline),
+      );
+
+      await _pumpShiftScreen(tester, repository, queue: ClockQueue(store));
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Clock in'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      // Signal returns, and the server refuses it — a supervisor opened the
+      // shift by hand in the meantime. Keeping it would be an app that never
+      // records anything again.
+      repository.refuseWith = ApiException(
+        'You are already clocked in.',
+        kind: ApiFailureKind.conflict,
+        isFromServer: true,
+      );
+
+      await _reopen(tester, repository, store);
+
+      expect(store.value, isNull);
+      expect(find.text('You are already clocked in.'), findsOneWidget);
+    });
   });
 
   testWidgets('an admin account is told instead of being shown 403s',
