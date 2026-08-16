@@ -26,12 +26,32 @@ public record ClockOutCommand : IRequest<TimeEntryDto>
     public double? Latitude { get; init; }
 
     public double? Longitude { get; init; }
+
+    /// <summary>
+    /// When the handset says the shift ended (UTC). Null means now.
+    /// </summary>
+    /// <remarks>
+    /// The other half of the offline pair — see the remarks on
+    /// <c>ClockInCommand.OccurredAt</c>. Clocking out is the more common of
+    /// the two to happen without signal, because the end of a shift is when
+    /// people are furthest inside a building and in the most hurry to leave.
+    /// </remarks>
+    public DateTime? OccurredAt { get; init; }
 }
 
 public class ClockOutCommandValidator : AbstractValidator<ClockOutCommand>
 {
-    public ClockOutCommandValidator()
+    public ClockOutCommandValidator(IDateTimeProvider dateTimeProvider)
     {
+        RuleFor(x => x.OccurredAt!.Value)
+            .Must(t => TimeEntryRules.IsAcceptableDeviceTime(t, dateTimeProvider.UtcNow))
+            .WithMessage(
+                "The time this shift ended is either in the future or more than " +
+                $"{TimeEntryRules.MaxOfflineDelay.TotalHours:0} hours ago. " +
+                "A supervisor has to record it.")
+            .OverridePropertyName(nameof(ClockOutCommand.OccurredAt))
+            .When(x => x.OccurredAt is not null);
+
         RuleFor(x => x.BreakMinutes)
             .GreaterThanOrEqualTo(0).WithMessage("Break must not be negative.")
             .LessThanOrEqualTo((int)TimeEntryRules.MaxShiftDuration.TotalMinutes)
@@ -86,7 +106,22 @@ public class ClockOutCommandHandler : IRequestHandler<ClockOutCommand, TimeEntry
                 cancellationToken)
             ?? throw new ConflictException("You are not clocked in.");
 
-        var endedAt = _dateTimeProvider.UtcNow;
+        var endedAt = request.OccurredAt is { } occurred
+            ? TimeEntryRules.AsUtc(occurred)
+            : _dateTimeProvider.UtcNow;
+
+        if (endedAt <= entry.StartedAt)
+        {
+            // Only reachable from a handset stamping its own time: a phone
+            // whose clock is behind the server's, or a queued clock-out being
+            // replayed against a shift that was started later by other means.
+            // Storing it would give the entry a negative length, which every
+            // hours total downstream would then carry.
+            throw new ConflictException(
+                "This shift cannot end before it started. " +
+                "A supervisor has to record the correct end time.");
+        }
+
         var elapsed = endedAt - entry.StartedAt;
 
         if (elapsed > TimeEntryRules.MaxShiftDuration)

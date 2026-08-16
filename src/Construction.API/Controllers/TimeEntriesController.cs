@@ -1,4 +1,5 @@
 using Construction.API.Authorization;
+using Construction.API.Filters;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.TimeEntries.Commands.ClockIn;
 using Construction.Application.Features.TimeEntries.Commands.ClockOut;
@@ -74,7 +75,14 @@ public class TimeEntriesController : ApiControllerBase
     }
 
     /// <summary>Starts the caller's shift.</summary>
+    /// <remarks>
+    /// Idempotent, because the phone may be replaying one it recorded with no
+    /// signal: a reply lost on the way back would otherwise have the app send
+    /// it again, and a second shift opened at the same moment is a correction
+    /// somebody has to make by hand.
+    /// </remarks>
     [HttpPost("clock-in")]
+    [Idempotent]
     [Authorize(Policy = Policies.AllEmployees)]
     [ProducesResponseType(typeof(TimeEntryDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
@@ -90,7 +98,9 @@ public class TimeEntriesController : ApiControllerBase
     }
 
     /// <summary>Ends the caller's running shift and submits it for review.</summary>
+    /// <remarks>Idempotent, for the same reason as clocking in.</remarks>
     [HttpPost("clock-out")]
+    [Idempotent]
     [Authorize(Policy = Policies.AllEmployees)]
     [ProducesResponseType(typeof(TimeEntryDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
