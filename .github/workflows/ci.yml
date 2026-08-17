@@ -163,7 +163,7 @@ jobs:
       # is not baked in: the app asks for one on its sign-in screen, so this
       # single file works against any installation.
       - name: Keep the APK so it can be installed
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: construction-organizer-debug-apk
           path: src/construction_mobile/build/app/outputs/flutter-apk/app-debug.apk
@@ -256,7 +256,7 @@ jobs:
       # Only on a failure, and only then is it worth anything: the trace
       # replays the run step by step, which is the difference between fixing a
       # CI-only failure and guessing at it.
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-trace
