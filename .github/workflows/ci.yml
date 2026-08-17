@@ -35,7 +35,7 @@ jobs:
           --health-retries 10
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-dotnet@v6
         with:
@@ -87,7 +87,7 @@ jobs:
         working-directory: src/construction_mobile
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: subosito/flutter-action@v2
         with:
@@ -125,7 +125,7 @@ jobs:
         working-directory: src/construction_mobile
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Gradle needs a JDK of its own; the runner's default is not guaranteed
       # to be the one the Android Gradle Plugin supports.
@@ -178,7 +178,7 @@ jobs:
         working-directory: src/construction_admin
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-node@v7
         with:
@@ -226,7 +226,7 @@ jobs:
           - 5432:5432
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # The suite starts the API itself — see `webServer` in
       # playwright.config.ts — so the SDK has to be here even though this job
