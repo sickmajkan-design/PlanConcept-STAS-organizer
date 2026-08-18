@@ -17,7 +17,9 @@ import { useNavigate } from 'react-router-dom';
 import type { ProjectListQuery } from '../../api/projects';
 import type { Project, ProjectStatus } from '../../api/types';
 import { projectStatuses } from '../../api/types';
+import { exportsApi } from '../../api/exports';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { RowActions } from '../../components/RowActions';
@@ -140,6 +142,12 @@ export function ProjectsListPage() {
           </Select>
         </FormControl>
         <StatusLegend kind="projectStatus" values={projectStatuses} />
+
+        <ExportButton
+          onExport={(language) =>
+            exportsApi.projects({ search: list.search, status: list.filter, language })
+          }
+        />
       </Stack>
 
       <ResourceDataGrid

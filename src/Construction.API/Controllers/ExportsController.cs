@@ -106,6 +106,58 @@ public class ExportsController : ApiControllerBase
         return Download(await Mediator.Send(query, cancellationToken));
     }
 
+    /// <summary>The employee directory as it stands right now.</summary>
+    [HttpGet("/api/v{version:apiVersion}/exports/employees")]
+    [HttpGet("/api/exports/employees")]
+    [Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> ExportEmployees(
+        [FromQuery] ExportEmployeesQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Download(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>The project directory as it stands right now.</summary>
+    [HttpGet("/api/v{version:apiVersion}/exports/projects")]
+    [HttpGet("/api/exports/projects")]
+    [Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> ExportProjects(
+        [FromQuery] ExportProjectsQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Download(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>The fleet as it stands right now.</summary>
+    [HttpGet("/api/v{version:apiVersion}/exports/vehicles")]
+    [HttpGet("/api/exports/vehicles")]
+    [Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> ExportVehicles(
+        [FromQuery] ExportVehiclesQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Download(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>The tool inventory as it stands right now.</summary>
+    [HttpGet("/api/v{version:apiVersion}/exports/tools")]
+    [HttpGet("/api/exports/tools")]
+    [Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> ExportTools(
+        [FromQuery] ExportToolsQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Download(await Mediator.Send(query, cancellationToken));
+    }
+
     /// <remarks>
     /// The file name is built by the handler and is already ASCII, so it needs
     /// no RFC 5987 encoding — a name with Serbian diacritics would otherwise

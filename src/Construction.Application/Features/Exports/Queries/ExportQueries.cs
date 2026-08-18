@@ -1,5 +1,6 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Common.Security;
 using Construction.Application.Common.Spreadsheets;
 using Construction.Application.Features.Costs;
 using Construction.Application.Features.Costs.Queries.GetProjectCosts;
@@ -207,6 +208,371 @@ internal static class ExportFileFactory
             fileName,
             writer.ContentType,
             writer.Write(Spreadsheet.Of(sheet)));
+    }
+
+    /// <summary>
+    /// Names a directory export after the day it was taken, not a period —
+    /// these are a snapshot of what is in the system now, not a report over a
+    /// stretch of time.
+    /// </summary>
+    public static ExportFile RenderSnapshot(
+        this ISpreadsheetWriter writer,
+        SpreadsheetSheet sheet,
+        string prefix,
+        DateOnly takenOn)
+    {
+        var fileName = $"{prefix}-{takenOn:yyyy-MM-dd}.xlsx";
+
+        return new ExportFile(
+            fileName,
+            writer.ContentType,
+            writer.Write(Spreadsheet.Of(sheet)));
+    }
+}
+
+// ---- directories -----------------------------------------------------------
+
+/// <summary>
+/// Shared shape for a directory export: the same narrow filter the list
+/// screen offers, and the language the headings should be in.
+/// </summary>
+/// <remarks>
+/// No period: a directory is a roster of what exists right now, not a log of
+/// events over a stretch of time, so there is nothing to bound it by. Every
+/// matching row goes in the file — these lists run to the hundreds for a
+/// construction firm, not the tens of thousands a date range would guard
+/// against.
+/// </remarks>
+public abstract record DirectoryExportQueryBase
+{
+    public string? Search { get; init; }
+
+    /// <summary>`sr` or `en`. Serbian when unset.</summary>
+    public string? Language { get; init; }
+}
+
+public sealed record ExportEmployeesQuery : DirectoryExportQueryBase, IRequest<ExportFile>
+{
+    public EmployeeStatus? Status { get; init; }
+}
+
+public class ExportEmployeesQueryHandler : IRequestHandler<ExportEmployeesQuery, ExportFile>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ISpreadsheetWriter _writer;
+
+    public ExportEmployeesQueryHandler(
+        IApplicationDbContext context,
+        IDateTimeProvider dateTimeProvider,
+        ISpreadsheetWriter writer)
+    {
+        _context = context;
+        _dateTimeProvider = dateTimeProvider;
+        _writer = writer;
+    }
+
+    public async Task<ExportFile> Handle(ExportEmployeesQuery request, CancellationToken cancellationToken)
+    {
+        var english = ExportLabels.IsEnglish(request.Language);
+
+        var query = _context.Employees.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var pattern = SearchPattern.Contains(request.Search);
+
+            query = query.Where(e =>
+                EF.Functions.Like((e.FirstName + " " + e.LastName).ToLower(), pattern, SearchPattern.Escape) ||
+                EF.Functions.Like(e.EmployeeNumber.ToLower(), pattern, SearchPattern.Escape) ||
+                EF.Functions.Like(e.Position.ToLower(), pattern, SearchPattern.Escape));
+        }
+
+        if (request.Status is { } status)
+        {
+            query = query.Where(e => e.Status == status);
+        }
+
+        var rows = await query
+            .OrderBy(e => e.LastName).ThenBy(e => e.FirstName)
+            .Select(e => new
+            {
+                e.EmployeeNumber,
+                Name = e.FirstName + " " + e.LastName,
+                e.Position,
+                e.Status,
+                e.Phone,
+                e.Email,
+                e.EmploymentDate
+            })
+            .ToListAsync(cancellationToken);
+
+        var sheet = new SpreadsheetSheet(
+            ExportLabels.Get("sheet.employees", english),
+            [
+                new(ExportLabels.Get("employeeNumber", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("employee", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("position", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("status", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("phone", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("email", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("employedOn", english), SpreadsheetValueKind.Date)
+            ],
+            rows.Select(r => (IReadOnlyList<object?>)
+            [
+                r.EmployeeNumber,
+                r.Name,
+                r.Position,
+                r.Status.ToString(),
+                r.Phone,
+                r.Email,
+                r.EmploymentDate
+            ]).ToList());
+
+        return _writer.RenderSnapshot(
+            sheet, "employees", DateOnly.FromDateTime(_dateTimeProvider.UtcNow));
+    }
+}
+
+public sealed record ExportProjectsQuery : DirectoryExportQueryBase, IRequest<ExportFile>
+{
+    public ProjectStatus? Status { get; init; }
+}
+
+public class ExportProjectsQueryHandler : IRequestHandler<ExportProjectsQuery, ExportFile>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ISpreadsheetWriter _writer;
+
+    public ExportProjectsQueryHandler(
+        IApplicationDbContext context,
+        IDateTimeProvider dateTimeProvider,
+        ISpreadsheetWriter writer)
+    {
+        _context = context;
+        _dateTimeProvider = dateTimeProvider;
+        _writer = writer;
+    }
+
+    public async Task<ExportFile> Handle(ExportProjectsQuery request, CancellationToken cancellationToken)
+    {
+        var english = ExportLabels.IsEnglish(request.Language);
+
+        var query = _context.Projects.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var pattern = SearchPattern.Contains(request.Search);
+
+            query = query.Where(p =>
+                EF.Functions.Like(p.Name.ToLower(), pattern, SearchPattern.Escape) ||
+                (p.Client != null && EF.Functions.Like(p.Client.ToLower(), pattern, SearchPattern.Escape)) ||
+                (p.Address != null && EF.Functions.Like(p.Address.ToLower(), pattern, SearchPattern.Escape)));
+        }
+
+        if (request.Status is { } status)
+        {
+            query = query.Where(p => p.Status == status);
+        }
+
+        var rows = await query
+            .OrderBy(p => p.Name)
+            .Select(p => new
+            {
+                p.Name,
+                p.Client,
+                p.Status,
+                p.Address,
+                p.StartDate,
+                p.EndDate,
+                EmployeeCount = p.EmployeeAssignments.Count(a => a.EndDate == null)
+            })
+            .ToListAsync(cancellationToken);
+
+        var sheet = new SpreadsheetSheet(
+            ExportLabels.Get("sheet.projects", english),
+            [
+                new(ExportLabels.Get("project", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("client", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("status", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("address", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("startDate", english), SpreadsheetValueKind.Date),
+                new(ExportLabels.Get("endDate", english), SpreadsheetValueKind.Date),
+                new(ExportLabels.Get("crew", english), SpreadsheetValueKind.Integer)
+            ],
+            rows.Select(r => (IReadOnlyList<object?>)
+            [
+                r.Name,
+                r.Client,
+                r.Status.ToString(),
+                r.Address,
+                r.StartDate,
+                r.EndDate,
+                r.EmployeeCount
+            ]).ToList());
+
+        return _writer.RenderSnapshot(
+            sheet, "projects", DateOnly.FromDateTime(_dateTimeProvider.UtcNow));
+    }
+}
+
+public sealed record ExportVehiclesQuery : DirectoryExportQueryBase, IRequest<ExportFile>
+{
+    public VehicleStatus? Status { get; init; }
+}
+
+public class ExportVehiclesQueryHandler : IRequestHandler<ExportVehiclesQuery, ExportFile>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ISpreadsheetWriter _writer;
+
+    public ExportVehiclesQueryHandler(
+        IApplicationDbContext context,
+        IDateTimeProvider dateTimeProvider,
+        ISpreadsheetWriter writer)
+    {
+        _context = context;
+        _dateTimeProvider = dateTimeProvider;
+        _writer = writer;
+    }
+
+    public async Task<ExportFile> Handle(ExportVehiclesQuery request, CancellationToken cancellationToken)
+    {
+        var english = ExportLabels.IsEnglish(request.Language);
+
+        var query = _context.Vehicles.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var pattern = SearchPattern.Contains(request.Search);
+
+            query = query.Where(v =>
+                EF.Functions.Like(v.Brand.ToLower(), pattern, SearchPattern.Escape) ||
+                EF.Functions.Like(v.Model.ToLower(), pattern, SearchPattern.Escape) ||
+                EF.Functions.Like(v.RegistrationNumber.ToLower(), pattern, SearchPattern.Escape));
+        }
+
+        if (request.Status is { } status)
+        {
+            query = query.Where(v => v.Status == status);
+        }
+
+        var rows = await query
+            .OrderBy(v => v.Brand).ThenBy(v => v.Model)
+            .Select(v => new
+            {
+                v.Brand,
+                v.Model,
+                v.RegistrationNumber,
+                v.FuelType,
+                v.Status,
+                AssignedTo = v.AssignedEmployee != null
+                    ? v.AssignedEmployee.FirstName + " " + v.AssignedEmployee.LastName
+                    : null
+            })
+            .ToListAsync(cancellationToken);
+
+        var sheet = new SpreadsheetSheet(
+            ExportLabels.Get("sheet.vehicles", english),
+            [
+                new(ExportLabels.Get("vehicle", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("registration", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("fuelType", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("status", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("assignedTo", english), SpreadsheetValueKind.Text)
+            ],
+            rows.Select(r => (IReadOnlyList<object?>)
+            [
+                $"{r.Brand} {r.Model}",
+                r.RegistrationNumber,
+                r.FuelType.ToString(),
+                r.Status.ToString(),
+                r.AssignedTo
+            ]).ToList());
+
+        return _writer.RenderSnapshot(
+            sheet, "vehicles", DateOnly.FromDateTime(_dateTimeProvider.UtcNow));
+    }
+}
+
+public sealed record ExportToolsQuery : DirectoryExportQueryBase, IRequest<ExportFile>
+{
+    public ToolStatus? Status { get; init; }
+}
+
+public class ExportToolsQueryHandler : IRequestHandler<ExportToolsQuery, ExportFile>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ISpreadsheetWriter _writer;
+
+    public ExportToolsQueryHandler(
+        IApplicationDbContext context,
+        IDateTimeProvider dateTimeProvider,
+        ISpreadsheetWriter writer)
+    {
+        _context = context;
+        _dateTimeProvider = dateTimeProvider;
+        _writer = writer;
+    }
+
+    public async Task<ExportFile> Handle(ExportToolsQuery request, CancellationToken cancellationToken)
+    {
+        var english = ExportLabels.IsEnglish(request.Language);
+
+        var query = _context.Tools.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var pattern = SearchPattern.Contains(request.Search);
+
+            query = query.Where(tool =>
+                EF.Functions.Like(tool.Name.ToLower(), pattern, SearchPattern.Escape) ||
+                (tool.Category != null && EF.Functions.Like(tool.Category.ToLower(), pattern, SearchPattern.Escape)) ||
+                (tool.SerialNumber != null && EF.Functions.Like(tool.SerialNumber.ToLower(), pattern, SearchPattern.Escape)));
+        }
+
+        if (request.Status is { } status)
+        {
+            query = query.Where(tool => tool.Status == status);
+        }
+
+        var rows = await query
+            .OrderBy(tool => tool.Name)
+            .Select(tool => new
+            {
+                tool.Name,
+                tool.Category,
+                tool.SerialNumber,
+                tool.Status,
+                AssignedTo = tool.AssignedEmployee != null
+                    ? tool.AssignedEmployee.FirstName + " " + tool.AssignedEmployee.LastName
+                    : tool.AssignedProject != null ? tool.AssignedProject.Name : null
+            })
+            .ToListAsync(cancellationToken);
+
+        var sheet = new SpreadsheetSheet(
+            ExportLabels.Get("sheet.tools", english),
+            [
+                new(ExportLabels.Get("tool", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("category", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("serialNumber", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("status", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("heldBy", english), SpreadsheetValueKind.Text)
+            ],
+            rows.Select(r => (IReadOnlyList<object?>)
+            [
+                r.Name,
+                r.Category,
+                r.SerialNumber,
+                r.Status.ToString(),
+                r.AssignedTo
+            ]).ToList());
+
+        return _writer.RenderSnapshot(
+            sheet, "tools", DateOnly.FromDateTime(_dateTimeProvider.UtcNow));
     }
 }
 

@@ -28,6 +28,13 @@ export interface FinanceEntryExportQuery extends ExportQuery {
   kind?: string;
 }
 
+/** A snapshot of a directory as it stands now — no period, just its own filter. */
+export interface DirectoryExportQuery {
+  search?: string;
+  status?: string;
+  language?: ExportLanguage;
+}
+
 /**
  * Fetches a spreadsheet and hands it to the browser as a download.
  *
@@ -97,4 +104,12 @@ export const exportsApi = {
 
   financeEntries: (query: FinanceEntryExportQuery) =>
     download('/api/v1/exports/finance-entries', query),
+
+  employees: (query: DirectoryExportQuery) => download('/api/v1/exports/employees', query),
+
+  projects: (query: DirectoryExportQuery) => download('/api/v1/exports/projects', query),
+
+  vehicles: (query: DirectoryExportQuery) => download('/api/v1/exports/vehicles', query),
+
+  tools: (query: DirectoryExportQuery) => download('/api/v1/exports/tools', query),
 };

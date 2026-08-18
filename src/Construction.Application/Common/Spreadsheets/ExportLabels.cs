@@ -35,6 +35,10 @@ public static class ExportLabels
         ["sheet.materialMovements"] = ("Promet materijala", "Stock movements"),
         ["sheet.absences"] = ("Odsustva", "Absences"),
         ["sheet.financeEntries"] = ("Finansijski unosi", "Finance entries"),
+        ["sheet.employees"] = ("Radnici", "Employees"),
+        ["sheet.projects"] = ("Projekti", "Projects"),
+        ["sheet.vehicles"] = ("Vozila", "Vehicles"),
+        ["sheet.tools"] = ("Alati", "Tools"),
 
         ["employee"] = ("Radnik", "Employee"),
         ["project"] = ("Gradilište", "Site"),
@@ -73,7 +77,22 @@ public static class ExportLabels
         ["days"] = ("Dana", "Days"),
         ["reason"] = ("Razlog", "Reason"),
         ["reviewedBy"] = ("Odobrio", "Reviewed by"),
-        ["amount"] = ("Iznos", "Amount")
+        ["amount"] = ("Iznos", "Amount"),
+        ["employeeNumber"] = ("Broj radnika", "Employee no."),
+        ["position"] = ("Pozicija", "Position"),
+        ["phone"] = ("Telefon", "Phone"),
+        ["email"] = ("Email", "Email"),
+        ["employedOn"] = ("Zaposlen od", "Employed since"),
+        ["client"] = ("Klijent", "Client"),
+        ["address"] = ("Adresa", "Address"),
+        ["crew"] = ("Ekipa", "Crew"),
+        ["registration"] = ("Registracija", "Registration"),
+        ["fuelType"] = ("Gorivo", "Fuel"),
+        ["assignedTo"] = ("Dodeljeno", "Assigned to"),
+        ["tool"] = ("Alat", "Tool"),
+        ["category"] = ("Kategorija", "Category"),
+        ["serialNumber"] = ("Serijski broj", "Serial no."),
+        ["heldBy"] = ("Kod koga je", "Held by")
     };
 
     public static string Get(string key, bool english)

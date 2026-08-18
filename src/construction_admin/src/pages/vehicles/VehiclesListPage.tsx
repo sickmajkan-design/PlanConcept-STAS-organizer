@@ -17,7 +17,9 @@ import { useNavigate } from 'react-router-dom';
 import type { VehicleListQuery } from '../../api/vehicles';
 import type { Vehicle, VehicleStatus } from '../../api/types';
 import { vehicleStatuses } from '../../api/types';
+import { exportsApi } from '../../api/exports';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { RowActions } from '../../components/RowActions';
@@ -146,6 +148,12 @@ export function VehiclesListPage() {
           </Select>
         </FormControl>
         <StatusLegend kind="vehicleStatus" values={vehicleStatuses} />
+
+        <ExportButton
+          onExport={(language) =>
+            exportsApi.vehicles({ search: list.search, status: list.filter, language })
+          }
+        />
       </Stack>
 
       <ResourceDataGrid

@@ -17,7 +17,9 @@ import { useNavigate } from 'react-router-dom';
 import type { ToolListQuery } from '../../api/tools';
 import type { Tool, ToolStatus } from '../../api/types';
 import { toolStatuses } from '../../api/types';
+import { exportsApi } from '../../api/exports';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { RowActions } from '../../components/RowActions';
@@ -138,6 +140,12 @@ export function ToolsListPage() {
           </Select>
         </FormControl>
         <StatusLegend kind="toolStatus" values={toolStatuses} />
+
+        <ExportButton
+          onExport={(language) =>
+            exportsApi.tools({ search: list.search, status: list.filter, language })
+          }
+        />
       </Stack>
 
       <ResourceDataGrid

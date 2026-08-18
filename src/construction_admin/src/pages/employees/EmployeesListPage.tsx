@@ -15,9 +15,11 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type { EmployeeListQuery } from '../../api/employees';
+import { exportsApi } from '../../api/exports';
 import type { Employee, EmployeeStatus } from '../../api/types';
 import { employeeStatuses } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { RowActions } from '../../components/RowActions';
@@ -135,6 +137,12 @@ export function EmployeesListPage() {
           </Select>
         </FormControl>
         <StatusLegend kind="employeeStatus" values={employeeStatuses} />
+
+        <ExportButton
+          onExport={(language) =>
+            exportsApi.employees({ search: list.search, status: list.filter, language })
+          }
+        />
       </Stack>
 
       <ResourceDataGrid
