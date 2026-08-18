@@ -31,6 +31,7 @@ import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { StatusChip } from '../../components/StatusChip';
 import {
+  useAbsenceBalanceQuery,
   useAbsencesQuery,
   useDeleteAbsence,
   useReviewAbsence,
@@ -292,6 +293,26 @@ function RowActions({
   );
 }
 
+/** Only annual leave draws down a balance — the other kinds don't have one. */
+function useAbsenceBalanceLine(absence: Absence | null): string | null {
+  const t = useT();
+  const year = absence ? Number(absence.startDate.slice(0, 4)) : undefined;
+  const balance = useAbsenceBalanceQuery(
+    absence?.type === 'AnnualLeave' ? absence.employeeId : undefined,
+    year,
+  );
+
+  if (absence?.type !== 'AnnualLeave' || !balance.data) return null;
+
+  const { allowanceDays, usedDays, remainingDays } = balance.data;
+
+  return t(remainingDays < 0 ? 'absences.balanceOver' : 'absences.balance', {
+    used: usedDays,
+    allowance: allowanceDays,
+    remaining: Math.abs(remainingDays),
+  });
+}
+
 function ApproveDialog({
   absence,
   onClose,
@@ -301,12 +322,15 @@ function ApproveDialog({
 }) {
   const t = useT();
   const review = useReviewAbsence();
+  const balanceLine = useAbsenceBalanceLine(absence);
 
   return (
     <ConfirmDialog
       open={!!absence}
       title={t('absences.approveTitle')}
-      description={t('absences.approveBody')}
+      description={
+        balanceLine ? `${t('absences.approveBody')} ${balanceLine}.` : t('absences.approveBody')
+      }
       confirmLabel={t('absences.approve')}
       loading={review.isPending}
       onConfirm={() => {
@@ -332,6 +356,7 @@ function RefuseDialog({
 }) {
   const t = useT();
   const review = useReviewAbsence();
+  const balanceLine = useAbsenceBalanceLine(absence);
   const [note, setNote] = useState('');
 
   const close = () => {
@@ -343,9 +368,14 @@ function RefuseDialog({
     <Dialog open={!!absence} onClose={close} fullWidth maxWidth="sm">
       <DialogTitle>{t('absences.rejectTitle')}</DialogTitle>
       <DialogContent>
-        <DialogContentText sx={{ mb: 2 }}>
+        <DialogContentText sx={{ mb: balanceLine ? 0.5 : 2 }}>
           {t('absences.rejectHint')}
         </DialogContentText>
+        {balanceLine && (
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {balanceLine}
+          </Typography>
+        )}
         <TextField
           autoFocus
           fullWidth

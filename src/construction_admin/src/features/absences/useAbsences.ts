@@ -27,6 +27,15 @@ export function useScheduleQuery(query: ScheduleQuery, enabled = true) {
   });
 }
 
+/** The balance line shown alongside an approve/refuse decision. */
+export function useAbsenceBalanceQuery(employeeId: string | undefined, year?: number) {
+  return useQuery({
+    queryKey: ['absences', 'balance', employeeId, year] as const,
+    queryFn: () => absencesApi.balance(employeeId!, year),
+    enabled: !!employeeId,
+  });
+}
+
 /**
  * Every absence write invalidates the board as well as the list. Granting
  * leave puts a bar on the schedule, so a board left on screen from before the

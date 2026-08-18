@@ -25,6 +25,12 @@ public class Employee : BaseEntity, ISoftDeletable, IAuditable
 
     public EmployeeStatus Status { get; set; } = EmployeeStatus.Active;
 
+    /// <summary>
+    /// Annual leave days granted per calendar year. Compared against approved
+    /// <see cref="AbsenceType.AnnualLeave"/> days taken to compute a balance.
+    /// </summary>
+    public int AnnualLeaveDaysAllowance { get; set; } = 20;
+
     public bool IsDeleted { get; set; }
 
     public DateTime? DeletedAt { get; set; }

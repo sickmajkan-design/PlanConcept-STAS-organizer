@@ -4,6 +4,7 @@ using Construction.Application.Features.Absences.Commands.DeleteAbsence;
 using Construction.Application.Features.Absences.Commands.RequestAbsence;
 using Construction.Application.Features.Absences.Commands.ReviewAbsence;
 using Construction.Application.Features.Absences.Models;
+using Construction.Application.Features.Absences.Queries.GetAbsenceBalance;
 using Construction.Application.Features.Absences.Queries.GetAbsences;
 using Construction.Application.Features.Absences.Queries.GetSchedule;
 using Microsoft.AspNetCore.Authorization;
@@ -28,6 +29,22 @@ public class AbsencesController : ApiControllerBase
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<PagedList<AbsenceDto>>> GetList(
         [FromQuery] GetAbsencesQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>
+    /// Annual leave days left this year. What a reviewer needs before
+    /// granting or refusing a request.
+    /// </summary>
+    [HttpGet("balance")]
+    [Authorize(Policy = Policies.AllEmployees)]
+    [ProducesResponseType(typeof(AbsenceBalanceDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<AbsenceBalanceDto>> GetBalance(
+        [FromQuery] GetAbsenceBalanceQuery query,
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(query, cancellationToken));

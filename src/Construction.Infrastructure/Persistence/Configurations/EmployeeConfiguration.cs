@@ -45,6 +45,9 @@ public class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
             .HasMaxLength(128)
             .IsRequired();
 
+        builder.Property(e => e.AnnualLeaveDaysAllowance)
+            .HasDefaultValue(20);
+
         builder.Ignore(e => e.FullName);
 
         builder.HasIndex(e => e.LastName);

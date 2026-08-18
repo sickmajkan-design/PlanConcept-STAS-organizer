@@ -549,6 +549,8 @@ export const sr: Record<MessageKey, Message> = {
   'absences.answered': 'Već odgovoreno',
   'absences.grantedLocked': 'Odobreno odsustvo ne može da se povuče — mora da se odbije.',
   'absences.empty': 'Nema evidentiranih odsustava.',
+  'absences.balance': 'Iskorišćeno {used} od {allowance} dana godišnjeg odmora ove godine — preostalo {remaining}',
+  'absences.balanceOver': 'Iskorišćeno {used} od {allowance} dana godišnjeg odmora ove godine — prekoračeno za {remaining}',
 
   'absenceType.AnnualLeave': 'Godišnji odmor',
   'absenceType.SickLeave': 'Bolovanje',

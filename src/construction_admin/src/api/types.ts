@@ -485,6 +485,14 @@ export interface Absence {
   createdAt: string;
 }
 
+export interface AbsenceBalance {
+  employeeId: string;
+  year: number;
+  allowanceDays: number;
+  usedDays: number;
+  remainingDays: number;
+}
+
 export interface AbsenceInput {
   /** Omitted books the caller's own leave. */
   employeeId?: string | null;

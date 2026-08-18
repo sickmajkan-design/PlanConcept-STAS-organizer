@@ -540,6 +540,8 @@ export const en = {
   'absences.answered': 'Already answered',
   'absences.grantedLocked': 'Granted leave cannot be withdrawn — refuse it instead.',
   'absences.empty': 'No time off recorded.',
+  'absences.balance': '{used} of {allowance} annual leave days used this year — {remaining} left',
+  'absences.balanceOver': '{used} of {allowance} annual leave days used this year — {remaining} over the allowance',
 
   'absenceType.AnnualLeave': 'Annual leave',
   'absenceType.SickLeave': 'Sick leave',

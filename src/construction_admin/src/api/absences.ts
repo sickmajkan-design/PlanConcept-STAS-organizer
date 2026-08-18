@@ -2,6 +2,7 @@ import { request } from './client';
 import { listParams } from './resource';
 import type {
   Absence,
+  AbsenceBalance,
   AbsenceInput,
   AbsenceStatus,
   AbsenceType,
@@ -65,5 +66,12 @@ export const absencesApi = {
       method: 'GET',
       url: '/api/v1/schedule',
       params: listParams(query),
+    }),
+
+  balance: (employeeId: string, year?: number) =>
+    request<AbsenceBalance>({
+      method: 'GET',
+      url: '/api/v1/absences/balance',
+      params: { employeeId, year },
     }),
 };
