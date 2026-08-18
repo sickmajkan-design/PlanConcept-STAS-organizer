@@ -82,6 +82,12 @@ export interface EmployeeProjectAssignment {
   /** `YYYY-MM-DD`, or null while the posting is still open. */
   endDate: string | null;
   assignedAt: string;
+  /** Hours paid for on this posting, from hourly finance entries. */
+  workedHours: number;
+  /** Days paid for on this posting, from daily finance entries. */
+  workedDays: number;
+  /** Null for a role the API doesn't show pay to. */
+  totalPay: number | null;
 }
 
 export interface EmployeeDetail extends Employee {
@@ -132,6 +138,12 @@ export interface ProjectEmployee {
   /** `YYYY-MM-DD`, or null while the posting is still open. */
   endDate: string | null;
   assignedAt: string;
+  /** Hours paid for on this posting, from hourly finance entries. */
+  workedHours: number;
+  /** Days paid for on this posting, from daily finance entries. */
+  workedDays: number;
+  /** Null for a role the API doesn't show pay to. */
+  totalPay: number | null;
 }
 
 export interface ProjectDetail extends Project {

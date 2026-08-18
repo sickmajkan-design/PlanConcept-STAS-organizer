@@ -29,6 +29,25 @@ public class EmployeeProjectAssignmentDto
     public DateOnly? EndDate { get; init; }
 
     public DateTime AssignedAt { get; init; }
+
+    // Filled in by the handler after the projection runs, from finance
+    // entries — a second query the single-expression projection above cannot
+    // itself join in and stay translatable. Settable rather than init for
+    // exactly that reason: these are the only three fields on this DTO a
+    // caller other than the mapping ever assigns.
+
+    /// <summary>Hours paid for on this posting, from hourly finance entries.</summary>
+    public decimal WorkedHours { get; set; }
+
+    /// <summary>Days paid for on this posting, from daily finance entries.</summary>
+    public int WorkedDays { get; set; }
+
+    /// <summary>
+    /// What this posting has been paid so far, across every kind of finance
+    /// entry recorded against it. Null rather than zero for a role the API
+    /// does not show pay to — a foreman sees no figure here, not a wrong one.
+    /// </summary>
+    public decimal? TotalPay { get; set; }
 }
 
 /// <summary>

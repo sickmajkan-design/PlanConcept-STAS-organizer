@@ -40,16 +40,19 @@ import {
   useRemoveEmployeeFromProject,
 } from '../../features/employees/useEmployees';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
-import { useT } from '../../i18n/useI18n';
+import { useI18n, useT } from '../../i18n/useI18n';
 import { canAdministerAccounts } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { paths } from '../../routes/paths';
-import { formatDate, initialsOf } from '../../utils/formatting';
+import { formatDate, formatMoney, formatQuantity, initialsOf } from '../../utils/formatting';
+import type { EmployeeProjectAssignment } from '../../api/types';
+import type { Translate } from '../../i18n/context';
 
 export function EmployeeDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const t = useT();
+  const { locale } = useI18n();
   const { user } = useAuth();
 
   const { data: employee, isLoading, isError, error, refetch } = useEmployeeQuery(id);
@@ -216,7 +219,14 @@ export function EmployeeDetailPage() {
                       </ListItemAvatar>
                       <ListItemText
                         primary={assignment.projectName}
-                        secondary={`${t('projects.assignedOn')} ${formatDate(assignment.assignedAt)}`}
+                        secondary={
+                          [
+                            `${t('projects.assignedOn')} ${formatDate(assignment.assignedAt)}`,
+                            workedSummary(assignment, t, locale),
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')
+                        }
                       />
                       <StatusChip status={assignment.projectStatus} kind="projectStatus" />
                     </ListItem>
@@ -285,7 +295,14 @@ export function EmployeeDetailPage() {
                       </ListItemAvatar>
                       <ListItemText
                         primary={assignment.projectName}
-                        secondary={`${formatDate(assignment.startDate)} – ${formatDate(assignment.endDate)}`}
+                        secondary={
+                          [
+                            `${formatDate(assignment.startDate)} – ${formatDate(assignment.endDate)}`,
+                            workedSummary(assignment, t, locale),
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')
+                        }
                       />
                     </ListItem>
                   ))}
@@ -339,6 +356,33 @@ export function EmployeeDetailPage() {
       />
     </Box>
   );
+}
+
+/** "12.5 h · 3 days · 4,200.00", built only from whichever parts are non-zero. */
+function workedSummary(
+  assignment: EmployeeProjectAssignment,
+  t: Translate,
+  locale: string,
+): string | null {
+  const parts: string[] = [];
+
+  if (assignment.workedHours > 0) {
+    // "h" reads the same abbreviation in both languages, so this skips the
+    // translation table rather than smuggling a pre-formatted string through
+    // a placeholder meant for a plural-selecting number.
+    parts.push(`${formatQuantity(assignment.workedHours, locale)} h`);
+  }
+  if (assignment.workedDays > 0) {
+    parts.push(t('common.days', { count: assignment.workedDays }));
+  }
+  // Not "!== null": a nothing-recorded posting should read as nothing
+  // recorded, not as a pointed "0.00" sitting next to postings that earned
+  // real money.
+  if (assignment.totalPay) {
+    parts.push(formatMoney(assignment.totalPay, locale));
+  }
+
+  return parts.length > 0 ? parts.join(' · ') : null;
 }
 
 function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {

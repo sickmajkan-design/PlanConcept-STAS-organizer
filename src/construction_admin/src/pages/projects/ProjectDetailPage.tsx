@@ -21,16 +21,19 @@ import { ErrorState } from '../../components/ErrorState';
 import { AttachmentList } from '../../components/AttachmentList';
 import { StatusChip } from '../../components/StatusChip';
 import { useDeleteProject, useProjectQuery } from '../../features/projects/useProjects';
-import { useT } from '../../i18n/useI18n';
+import { useI18n, useT } from '../../i18n/useI18n';
 import { canAdministerAccounts } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { paths } from '../../routes/paths';
-import { formatDate, initialsOf } from '../../utils/formatting';
+import { formatDate, formatMoney, formatQuantity, initialsOf } from '../../utils/formatting';
+import type { ProjectEmployee } from '../../api/types';
+import type { Translate } from '../../i18n/context';
 
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const t = useT();
+  const { locale } = useI18n();
   const { user } = useAuth();
 
   const { data: project, isLoading, isError, error, refetch } = useProjectQuery(id);
@@ -151,7 +154,11 @@ export function ProjectDetailPage() {
                       </ListItemAvatar>
                       <ListItemText
                         primary={member.fullName}
-                        secondary={`${member.position} · ${member.employeeNumber}`}
+                        secondary={
+                          [`${member.position} · ${member.employeeNumber}`, workedSummary(member, t, locale)]
+                            .filter(Boolean)
+                            .join(' · ')
+                        }
                       />
                       <StatusChip status={member.status} kind="employeeStatus" />
                     </ListItem>
@@ -184,7 +191,14 @@ export function ProjectDetailPage() {
                       </ListItemAvatar>
                       <ListItemText
                         primary={member.fullName}
-                        secondary={`${member.position} · ${formatDate(member.startDate)} – ${formatDate(member.endDate)}`}
+                        secondary={
+                          [
+                            `${member.position} · ${formatDate(member.startDate)} – ${formatDate(member.endDate)}`,
+                            workedSummary(member, t, locale),
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')
+                        }
                       />
                     </ListItem>
                   ))}
@@ -226,6 +240,25 @@ export function ProjectDetailPage() {
 function crewInitials(fullName: string): string {
   const [first, last] = fullName.trim().split(/\s+/);
   return initialsOf(first, last, fullName);
+}
+
+/** "12.5 h · 3 days · 4,200.00", built only from whichever parts are non-zero. */
+function workedSummary(member: ProjectEmployee, t: Translate, locale: string): string | null {
+  const parts: string[] = [];
+
+  if (member.workedHours > 0) {
+    parts.push(`${formatQuantity(member.workedHours, locale)} h`);
+  }
+  if (member.workedDays > 0) {
+    parts.push(t('common.days', { count: member.workedDays }));
+  }
+  // Not "!== null": a nothing-recorded posting should read as nothing
+  // recorded, not as a pointed "0.00" next to postings that earned real money.
+  if (member.totalPay) {
+    parts.push(formatMoney(member.totalPay, locale));
+  }
+
+  return parts.length > 0 ? parts.join(' · ') : null;
 }
 
 function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {

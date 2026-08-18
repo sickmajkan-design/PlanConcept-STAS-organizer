@@ -37,6 +37,11 @@ export const sr: Record<MessageKey, Message> = {
   'common.language': 'Jezik',
   'common.somethingWentWrong': 'Došlo je do greške.',
   'common.noResults': 'Nema rezultata za vašu pretragu.',
+  'common.days': {
+    one: '{count} dan',
+    few: '{count} dana',
+    other: '{count} dana',
+  },
   'statusLegend.title': 'Šta boje znače',
   'dateFilter.yesterday': 'Juče',
   'dateFilter.today': 'Danas',

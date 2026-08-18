@@ -31,6 +31,22 @@ public class ProjectEmployeeDto
     public DateOnly? EndDate { get; init; }
 
     public DateTime AssignedAt { get; init; }
+
+    // Filled in by the handler after the projection runs — see the matching
+    // note on EmployeeProjectAssignmentDto.
+
+    /// <summary>Hours paid for on this posting, from hourly finance entries.</summary>
+    public decimal WorkedHours { get; set; }
+
+    /// <summary>Days paid for on this posting, from daily finance entries.</summary>
+    public int WorkedDays { get; set; }
+
+    /// <summary>
+    /// What this posting has been paid so far, across every kind of finance
+    /// entry recorded against it. Null rather than zero for a role the API
+    /// does not show pay to.
+    /// </summary>
+    public decimal? TotalPay { get; set; }
 }
 
 /// <summary>

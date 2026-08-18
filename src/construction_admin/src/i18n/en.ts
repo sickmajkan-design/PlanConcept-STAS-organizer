@@ -28,6 +28,10 @@ export const en = {
   'common.language': 'Language',
   'common.somethingWentWrong': 'Something went wrong.',
   'common.noResults': 'Nothing matches your search.',
+  'common.days': {
+    one: '{count} day',
+    other: '{count} days',
+  },
   'statusLegend.title': 'What the colours mean',
   'dateFilter.yesterday': 'Yesterday',
   'dateFilter.today': 'Today',
