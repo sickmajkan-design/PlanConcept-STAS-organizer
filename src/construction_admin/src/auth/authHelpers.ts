@@ -20,6 +20,19 @@ export function canAdministerAccounts(user: User | null | undefined): boolean {
 }
 
 /**
+ * Roles the API lets move people between sites (its `ProjectManagerAndAbove`
+ * policy on the assignment endpoints).
+ *
+ * Tighter than {@link canViewDirectory}: a foreman reads the roster, but
+ * staffing a site is a call made above them.
+ */
+const ASSIGNMENT_ROLES = new Set(['SuperAdmin', 'Admin', 'ProjectManager']);
+
+export function canManageAssignments(user: User | null | undefined): boolean {
+  return !!user && ASSIGNMENT_ROLES.has(user.role);
+}
+
+/**
  * Roles the API shows pay rates to (its `CostRules.CanSeeLabourCost`).
  *
  * Deliberately tighter than {@link canViewDirectory}: a rate is effectively

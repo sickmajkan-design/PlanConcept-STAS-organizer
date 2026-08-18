@@ -16,6 +16,7 @@ import {
   RequireAuth,
   RequireDirectoryAccess,
   RequireLabourCostAccess,
+  RequireProjectManagerAccess,
   RequireGuest,
 } from './routes/RequireAuth';
 
@@ -128,6 +129,11 @@ const FinanceEntriesPage = lazy(() =>
 const AnnualRealizationPlanPage = lazy(() =>
   import('./pages/projects/AnnualRealizationPlanPage').then((m) => ({
     default: m.AnnualRealizationPlanPage,
+  })),
+);
+const AssignmentBoardPage = lazy(() =>
+  import('./pages/assignments/AssignmentBoardPage').then((m) => ({
+    default: m.AssignmentBoardPage,
   })),
 );
 const ExpiringDocumentsPage = lazy(() =>
@@ -248,6 +254,12 @@ function Layout() {
 
             {/* Pay rates are narrower than the directory screens but wider
                 than account administration: project managers price jobs. */}
+            {/* Reading the roster is directory access; moving people between
+                sites is a staffing call, so it gets its own narrower gate. */}
+            <Route element={<RequireProjectManagerAccess />}>
+              <Route path={paths.assignmentBoard} element={<AssignmentBoardPage />} />
+            </Route>
+
             <Route element={<RequireLabourCostAccess />}>
               <Route path={paths.rates} element={<RatesPage />} />
               <Route path={paths.financeEntries} element={<FinanceEntriesPage />} />

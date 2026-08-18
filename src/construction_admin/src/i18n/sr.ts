@@ -497,6 +497,7 @@ export const sr: Record<MessageKey, Message> = {
   // --- Raspored i odsustva --------------------------------------------------
   'nav.schedule': 'Raspored',
   'nav.absences': 'Odsustva',
+  'nav.assignmentBoard': 'Tabla raspoređivanja',
 
   'schedule.title': 'Raspored',
   'schedule.subtitle': 'Ko je na kom gradilištu, a ko je odsutan.',
@@ -510,6 +511,19 @@ export const sr: Record<MessageKey, Message> = {
   'schedule.free': 'Bez rasporeda',
   'schedule.continues': 'Traje i posle ove nedelje',
   'schedule.empty': 'Nema koga prikazati za ovu nedelju.',
+
+  'assignmentBoard.title': 'Tabla raspoređivanja',
+  'assignmentBoard.subtitle': 'Prevuci radnika na gradilište da ga tamo rasporediš — na više njih, ako radi na više gradilišta.',
+  'assignmentBoard.workforce': 'Radna snaga',
+  'assignmentBoard.sites': 'Gradilišta',
+  'assignmentBoard.searchPlaceholder': 'Ime, broj, pozicija…',
+  'assignmentBoard.siteCount': {
+    one: 'na {count} gradilištu',
+    few: 'na {count} gradilišta',
+    other: 'na {count} gradilišta',
+  },
+  'assignmentBoard.dropHere': 'Prevuci nekoga ovde da ga rasporediš na ovo gradilište.',
+  'assignmentBoard.noOpenSites': 'Trenutno nema otvorenih gradilišta za raspoređivanje.',
   'schedule.legendAssigned': 'Na gradilištu',
   'schedule.legendAway': 'Odsutan',
   'schedule.bookLeave': 'Prijavi odsustvo',

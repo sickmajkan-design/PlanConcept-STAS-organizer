@@ -181,6 +181,26 @@ export interface AnnualRealizationPlan {
   percentRealized: number | null;
 }
 
+export interface AssignmentBoardEmployee {
+  id: string;
+  fullName: string;
+  employeeNumber: string;
+  position: string;
+  /** Every project this employee is posted to today — never just one. */
+  projectIds: string[];
+}
+
+export interface AssignmentBoardProject {
+  id: string;
+  name: string;
+  status: ProjectStatus;
+}
+
+export interface AssignmentBoard {
+  employees: AssignmentBoardEmployee[];
+  projects: AssignmentBoardProject[];
+}
+
 export interface EmployeeLocation {
   employeeId: string;
   employeeNumber: string;

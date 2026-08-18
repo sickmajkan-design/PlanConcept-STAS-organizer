@@ -88,6 +88,29 @@ export function RequireDirectoryAccess() {
 }
 
 /**
+ * Restricts a route to the roles the API lets assign and remove crew
+ * (its `ProjectManagerAndAbove` policy on the assignment endpoints).
+ *
+ * Tighter than {@link RequireDirectoryAccess}: a foreman reads the roster,
+ * but moving people between sites is a staffing decision made above them.
+ */
+export function RequireProjectManagerAccess() {
+  const { user } = useAuth();
+
+  if (user === undefined) {
+    return null;
+  }
+
+  const allowed = new Set(['SuperAdmin', 'Admin', 'ProjectManager']);
+
+  if (!user || !allowed.has(user.role)) {
+    return <Navigate to={paths.home} replace />;
+  }
+
+  return <Outlet />;
+}
+
+/**
  * Restricts a route to the roles the API shows pay rates to.
  *
  * Tighter than {@link RequireDirectoryAccess} on purpose: a rate is

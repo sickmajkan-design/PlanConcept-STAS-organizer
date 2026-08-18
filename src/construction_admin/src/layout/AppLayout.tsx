@@ -17,6 +17,7 @@ import {
   RequestQuoteOutlined,
   ReceiptLongOutlined,
   TrendingUpOutlined,
+  DashboardCustomizeOutlined,
   MenuOutlined,
   NotificationsNoneOutlined,
   PasswordOutlined,
@@ -46,6 +47,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import {
   canAdministerAccounts,
+  canManageAssignments,
   canSeeLabourCost,
   canViewDirectory,
   displayName,
@@ -97,6 +99,15 @@ export function AppLayout({ children }: { children: ReactNode }) {
           { label: t('nav.workItems'), path: paths.workItems, icon: <ChecklistOutlined /> },
           { label: t('nav.schedule'), path: paths.schedule, icon: <CalendarMonthOutlined /> },
           { label: t('nav.absences'), path: paths.absences, icon: <EventBusyOutlined /> },
+          ...(canManageAssignments(user)
+            ? [
+                {
+                  label: t('nav.assignmentBoard'),
+                  path: paths.assignmentBoard,
+                  icon: <DashboardCustomizeOutlined />,
+                },
+              ]
+            : []),
           { label: t('nav.costs'), path: paths.costs, icon: <PaidOutlined /> },
           {
             label: t('nav.stockMovements'),
