@@ -48,10 +48,15 @@ public class GetAssignmentBoardQueryHandler
                 FullName = e.FirstName + " " + e.LastName,
                 EmployeeNumber = e.EmployeeNumber,
                 Position = e.Position,
-                // Today, not "open-ended": a posting that ended yesterday, or
-                // has not started yet, is not where this person is right now.
+                // Open-ended, not "covers today": removing someone closes
+                // their posting off as of today rather than deleting it, so
+                // it still legitimately covers today's date — but the board
+                // is a staffing tool, not a timesheet, and a posting the
+                // office just closed has to disappear from it immediately,
+                // not tomorrow. EndDate == null is exactly "still posted
+                // there with no removal recorded."
                 ProjectIds = e.ProjectAssignments
-                    .Where(a => a.StartDate <= today && (a.EndDate == null || a.EndDate >= today))
+                    .Where(a => a.StartDate <= today && a.EndDate == null)
                     .Select(a => a.ProjectId)
                     .ToList()
             })
