@@ -37,6 +37,7 @@ const emptyValues: ProjectFormValues = {
   startDate: '',
   endDate: '',
   status: 'Planned',
+  contractValue: '',
 };
 
 export function ProjectFormPage() {
@@ -73,6 +74,7 @@ export function ProjectFormPage() {
         startDate: existing.startDate?.slice(0, 10) ?? '',
         endDate: existing.endDate?.slice(0, 10) ?? '',
         status: existing.status,
+        contractValue: existing.contractValue?.toString() ?? '',
       });
     }
   }, [existing, reset]);
@@ -96,6 +98,7 @@ export function ProjectFormPage() {
       startDate: values.startDate || null,
       endDate: values.endDate || null,
       status: values.status,
+      contractValue: values.contractValue ? Number(values.contractValue) : null,
     };
 
     try {
@@ -272,6 +275,22 @@ export function ProjectFormPage() {
                       type="date"
                       fullWidth
                       slotProps={{ inputLabel: { shrink: true } }}
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Controller
+                  name="contractValue"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      {...field}
+                      type="number"
+                      label={t('projects.contractValue')}
+                      fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
                     />

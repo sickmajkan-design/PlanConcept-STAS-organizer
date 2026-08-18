@@ -51,6 +51,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<FinanceEntry> FinanceEntries => Set<FinanceEntry>();
 
+    public DbSet<ProjectRevenue> ProjectRevenues => Set<ProjectRevenue>();
+
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();

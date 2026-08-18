@@ -25,6 +25,8 @@ public class ProjectDto
 
     public string Status { get; init; } = null!;
 
+    public decimal? ContractValue { get; init; }
+
     public int EmployeeCount { get; init; }
 
     public DateTime CreatedAt { get; init; }
@@ -56,6 +58,7 @@ public static class ProjectMapping
             StartDate = project.StartDate,
             EndDate = project.EndDate,
             Status = project.Status.ToString(),
+            ContractValue = project.ContractValue,
             // Open-ended assignments only — see the note in
             // EmployeeDetailMapping.Projection (Features/Employees/Models).
             EmployeeCount = project.EmployeeAssignments.Count(a => a.EndDate == null),

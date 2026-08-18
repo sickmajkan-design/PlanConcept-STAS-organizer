@@ -45,6 +45,8 @@ public interface IApplicationDbContext
 
     DbSet<FinanceEntry> FinanceEntries { get; }
 
+    DbSet<ProjectRevenue> ProjectRevenues { get; }
+
     DbSet<OutboxMessage> OutboxMessages { get; }
 
     DbSet<AuditEntry> AuditEntries { get; }

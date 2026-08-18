@@ -99,6 +99,6 @@ public class ProjectionCompletenessTests
     [Fact]
     public void The_projections_are_found()
     {
-        Assert.Equal(21, MappingTypes().Count());
+        Assert.Equal(22, MappingTypes().Count());
     }
 }

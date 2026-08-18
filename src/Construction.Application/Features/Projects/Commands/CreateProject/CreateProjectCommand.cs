@@ -32,7 +32,8 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
             Longitude = request.Longitude,
             StartDate = request.StartDate,
             EndDate = request.EndDate,
-            Status = request.Status
+            Status = request.Status,
+            ContractValue = request.ContractValue
         };
 
         _context.Projects.Add(project);

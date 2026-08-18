@@ -14,6 +14,7 @@ export const paths = {
   projectDetail: (id: string) => `/projects/${id}`,
   projectNew: '/projects/new',
   projectEdit: (id: string) => `/projects/${id}/edit`,
+  annualRealization: '/projects/annual-realization',
 
   vehicles: '/vehicles',
   vehicleDetail: (id: string) => `/vehicles/${id}`,

@@ -26,6 +26,9 @@ public abstract record ProjectCommandBase
     public DateOnly? EndDate { get; init; }
 
     public ProjectStatus Status { get; init; } = ProjectStatus.Planned;
+
+    /// <summary>The total agreed value of the contract, if one has been set.</summary>
+    public decimal? ContractValue { get; init; }
 }
 
 public abstract class ProjectCommandBaseValidator<T> : AbstractValidator<T>
@@ -66,5 +69,9 @@ public abstract class ProjectCommandBaseValidator<T> : AbstractValidator<T>
 
         RuleFor(x => x.Status)
             .IsInEnum().WithMessage("Status is not a valid project status.");
+
+        RuleFor(x => x.ContractValue)
+            .GreaterThanOrEqualTo(0).WithMessage("Contract value cannot be negative.")
+            .When(x => x.ContractValue is not null);
     }
 }

@@ -48,6 +48,7 @@ public static class ProjectDetailMapping
             StartDate = project.StartDate,
             EndDate = project.EndDate,
             Status = project.Status.ToString(),
+            ContractValue = project.ContractValue,
             // Open-ended assignments only — see the matching note in
             // EmployeeDetailMapping.Projection. Without this, a project's
             // roster and count never shrank: everyone ever taken off the

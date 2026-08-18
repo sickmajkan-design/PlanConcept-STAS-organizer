@@ -23,6 +23,9 @@ public class Project : BaseEntity, ISoftDeletable, IAuditable
 
     public ProjectStatus Status { get; set; } = ProjectStatus.Planned;
 
+    /// <summary>The total agreed value of the contract, in the system's single currency.</summary>
+    public decimal? ContractValue { get; set; }
+
     public bool IsDeleted { get; set; }
 
     public DateTime? DeletedAt { get; set; }
@@ -42,4 +45,6 @@ public class Project : BaseEntity, ISoftDeletable, IAuditable
     public ICollection<MaterialMovement> MaterialMovements { get; set; } = new List<MaterialMovement>();
 
     public ICollection<FinanceEntry> FinanceEntries { get; set; } = new List<FinanceEntry>();
+
+    public ICollection<ProjectRevenue> Revenues { get; set; } = new List<ProjectRevenue>();
 }

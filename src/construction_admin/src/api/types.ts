@@ -109,6 +109,7 @@ export interface Project {
   startDate: string | null;
   endDate: string | null;
   status: ProjectStatus;
+  contractValue: number | null;
   employeeCount: number;
   createdAt: string;
   updatedAt: string | null;
@@ -137,6 +138,47 @@ export interface ProjectInput {
   startDate?: string | null;
   endDate?: string | null;
   status: ProjectStatus;
+  contractValue?: number | null;
+}
+
+export interface ProjectRevenue {
+  id: string;
+  projectId: string;
+  projectName: string;
+  amount: number;
+  /** `YYYY-MM-DD`. */
+  occurredOn: string;
+  note: string | null;
+  recordedByName: string | null;
+  createdAt: string;
+}
+
+export interface ProjectRevenueInput {
+  projectId: string;
+  amount: number;
+  occurredOn?: string | null;
+  note?: string | null;
+}
+
+export interface AnnualRealizationRow {
+  projectId: string;
+  projectName: string;
+  status: ProjectStatus;
+  contractValue: number;
+  realizedThisYear: number;
+  realizedToDate: number;
+  remaining: number;
+  percentOfContract: number | null;
+}
+
+export interface AnnualRealizationPlan {
+  year: number;
+  rows: AnnualRealizationRow[];
+  totalContractValue: number;
+  totalRealizedThisYear: number;
+  totalRealizedToDate: number;
+  totalRemaining: number;
+  percentRealized: number | null;
 }
 
 export interface EmployeeLocation {

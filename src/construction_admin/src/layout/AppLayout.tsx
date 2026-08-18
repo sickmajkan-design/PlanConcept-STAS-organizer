@@ -16,6 +16,7 @@ import {
   SwapVertOutlined,
   RequestQuoteOutlined,
   ReceiptLongOutlined,
+  TrendingUpOutlined,
   MenuOutlined,
   NotificationsNoneOutlined,
   PasswordOutlined,
@@ -116,6 +117,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
             label: t('nav.financeEntries'),
             path: paths.financeEntries,
             icon: <ReceiptLongOutlined />,
+          },
+          {
+            label: t('nav.annualRealization'),
+            path: paths.annualRealization,
+            icon: <TrendingUpOutlined />,
           },
         ]
       : []),

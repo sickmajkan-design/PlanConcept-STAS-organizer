@@ -41,6 +41,7 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
         project.StartDate = request.StartDate;
         project.EndDate = request.EndDate;
         project.Status = request.Status;
+        project.ContractValue = request.ContractValue;
 
         await _context.SaveChangesAsync(cancellationToken);
 

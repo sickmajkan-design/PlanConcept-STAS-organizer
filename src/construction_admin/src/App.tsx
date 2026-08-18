@@ -125,6 +125,11 @@ const FinanceEntriesPage = lazy(() =>
     default: m.FinanceEntriesPage,
   })),
 );
+const AnnualRealizationPlanPage = lazy(() =>
+  import('./pages/projects/AnnualRealizationPlanPage').then((m) => ({
+    default: m.AnnualRealizationPlanPage,
+  })),
+);
 const ExpiringDocumentsPage = lazy(() =>
   import('./pages/documents/ExpiringDocumentsPage').then((m) => ({
     default: m.ExpiringDocumentsPage,
@@ -246,6 +251,10 @@ function Layout() {
             <Route element={<RequireLabourCostAccess />}>
               <Route path={paths.rates} element={<RatesPage />} />
               <Route path={paths.financeEntries} element={<FinanceEntriesPage />} />
+              <Route
+                path={paths.annualRealization}
+                element={<AnnualRealizationPlanPage />}
+              />
             </Route>
 
             {/* Account administration is Admin and above, a narrower set than

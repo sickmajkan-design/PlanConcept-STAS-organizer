@@ -10,6 +10,14 @@ const optionalCoordinate = z
     message: 'Must be a number.',
   });
 
+const optionalNonNegativeAmount = z
+  .string()
+  .optional()
+  .or(z.literal(''))
+  .refine((value) => !value || (!Number.isNaN(Number(value)) && Number(value) >= 0), {
+    message: 'Contract value cannot be negative.',
+  });
+
 /** Mirrors the API's ProjectCommandBaseValidator so the form catches errors early. */
 export const projectFormSchema = z
   .object({
@@ -22,6 +30,7 @@ export const projectFormSchema = z
     startDate: z.string().optional().or(z.literal('')),
     endDate: z.string().optional().or(z.literal('')),
     status: z.enum(projectStatuses),
+    contractValue: optionalNonNegativeAmount,
   })
   .refine((values) => Boolean(values.latitude) === Boolean(values.longitude), {
     message: 'Latitude and longitude must be provided together.',
