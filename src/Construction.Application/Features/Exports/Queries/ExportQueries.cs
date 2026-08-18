@@ -509,3 +509,217 @@ public class ExportMaterialMovementsQueryHandler
         return _writer.Render(sheet, "stock-movements", request);
     }
 }
+
+// ---- absences ----------------------------------------------------------
+
+/// <summary>
+/// Time off over a period, row by row.
+/// </summary>
+/// <remarks>
+/// No extra role check: the route already requires <c>ForemanAndAbove</c>,
+/// and every one of those roles sees every employee's leave on the list
+/// screen too — only a worker is narrowed to their own, and a worker cannot
+/// reach this endpoint at all.
+/// </remarks>
+public sealed record ExportAbsencesQuery : ExportQueryBase, IRequest<ExportFile>
+{
+    public Guid? EmployeeId { get; init; }
+
+    public AbsenceStatus? Status { get; init; }
+
+    public AbsenceType? Type { get; init; }
+}
+
+public class ExportAbsencesQueryValidator : ExportQueryValidator<ExportAbsencesQuery>;
+
+public class ExportAbsencesQueryHandler : IRequestHandler<ExportAbsencesQuery, ExportFile>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ISpreadsheetWriter _writer;
+
+    public ExportAbsencesQueryHandler(IApplicationDbContext context, ISpreadsheetWriter writer)
+    {
+        _context = context;
+        _writer = writer;
+    }
+
+    public async Task<ExportFile> Handle(
+        ExportAbsencesQuery request,
+        CancellationToken cancellationToken)
+    {
+        var english = ExportLabels.IsEnglish(request.Language);
+
+        // Overlap, not containment, matching the list screen: a stretch of
+        // leave that started before the window but runs into it belongs here.
+        var query = _context.Absences
+            .AsNoTracking()
+            .Where(a => a.EndDate >= request.From && a.StartDate <= request.To);
+
+        if (request.EmployeeId is { } employeeId)
+        {
+            query = query.Where(a => a.EmployeeId == employeeId);
+        }
+
+        if (request.Status is { } status)
+        {
+            query = query.Where(a => a.Status == status);
+        }
+
+        if (request.Type is { } type)
+        {
+            query = query.Where(a => a.Type == type);
+        }
+
+        var rows = await query
+            .OrderBy(a => a.StartDate)
+            .Select(a => new
+            {
+                Employee = a.Employee.FirstName + " " + a.Employee.LastName,
+                a.Type,
+                a.Status,
+                a.StartDate,
+                a.EndDate,
+                DayCount = a.EndDate.DayNumber - a.StartDate.DayNumber + 1,
+                a.Reason,
+                RequestedBy = a.RequestedByUser != null ? a.RequestedByUser.Email : null,
+                ReviewedBy = a.ReviewedByUser != null ? a.ReviewedByUser.Email : null,
+                a.ReviewNote
+            })
+            .ToListAsync(cancellationToken);
+
+        var sheet = new SpreadsheetSheet(
+            ExportLabels.Get("sheet.absences", english),
+            [
+                new(ExportLabels.Get("employee", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("absenceType", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("status", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("startDate", english), SpreadsheetValueKind.Date),
+                new(ExportLabels.Get("endDate", english), SpreadsheetValueKind.Date),
+                new(ExportLabels.Get("days", english), SpreadsheetValueKind.Integer),
+                new(ExportLabels.Get("reason", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("requestedBy", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("reviewedBy", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("note", english), SpreadsheetValueKind.Text)
+            ],
+            rows.Select(r => (IReadOnlyList<object?>)
+            [
+                r.Employee,
+                r.Type.ToString(),
+                r.Status.ToString(),
+                r.StartDate,
+                r.EndDate,
+                r.DayCount,
+                r.Reason,
+                r.RequestedBy,
+                r.ReviewedBy,
+                r.ReviewNote
+            ]).ToList());
+
+        return _writer.Render(sheet, "absences", request);
+    }
+}
+
+// ---- finance entries -----------------------------------------------------
+
+public sealed record ExportFinanceEntriesQuery : ExportQueryBase, IRequest<ExportFile>
+{
+    public Guid? EmployeeId { get; init; }
+
+    public Guid? ProjectId { get; init; }
+
+    public FinanceEntryKind? Kind { get; init; }
+}
+
+public class ExportFinanceEntriesQueryValidator : ExportQueryValidator<ExportFinanceEntriesQuery>;
+
+public class ExportFinanceEntriesQueryHandler
+    : IRequestHandler<ExportFinanceEntriesQuery, ExportFile>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly ISpreadsheetWriter _writer;
+
+    public ExportFinanceEntriesQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        ISpreadsheetWriter writer)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+        _writer = writer;
+    }
+
+    public async Task<ExportFile> Handle(
+        ExportFinanceEntriesQuery request,
+        CancellationToken cancellationToken)
+    {
+        // Same tier as pay rates: this is somebody's wage, not site spending.
+        if (!CostRules.CanSeeLabourCost(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not export pay entries.");
+        }
+
+        var english = ExportLabels.IsEnglish(request.Language);
+
+        var query = _context.FinanceEntries
+            .AsNoTracking()
+            .Where(e => e.OccurredOn >= request.From && e.OccurredOn <= request.To);
+
+        if (request.EmployeeId is { } employeeId)
+        {
+            query = query.Where(e => e.EmployeeId == employeeId);
+        }
+
+        if (request.ProjectId is { } projectId)
+        {
+            query = query.Where(e => e.ProjectId == projectId);
+        }
+
+        if (request.Kind is { } kind)
+        {
+            query = query.Where(e => e.Kind == kind);
+        }
+
+        var rows = await query
+            .OrderBy(e => e.OccurredOn)
+            .ThenBy(e => e.CreatedAt)
+            .Select(e => new
+            {
+                Employee = e.Employee.FirstName + " " + e.Employee.LastName,
+                e.Kind,
+                e.Amount,
+                e.OccurredOn,
+                Project = e.Project != null ? e.Project.Name : null,
+                e.HoursWorked,
+                e.Note,
+                RecordedBy = e.RecordedByUser != null ? e.RecordedByUser.Email : null
+            })
+            .ToListAsync(cancellationToken);
+
+        var sheet = new SpreadsheetSheet(
+            ExportLabels.Get("sheet.financeEntries", english),
+            [
+                new(ExportLabels.Get("employee", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("kind", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("amount", english), SpreadsheetValueKind.Money),
+                new(ExportLabels.Get("date", english), SpreadsheetValueKind.Date),
+                new(ExportLabels.Get("project", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("hours", english), SpreadsheetValueKind.Quantity),
+                new(ExportLabels.Get("note", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("recordedBy", english), SpreadsheetValueKind.Text)
+            ],
+            rows.Select(r => (IReadOnlyList<object?>)
+            [
+                r.Employee,
+                r.Kind.ToString(),
+                r.Amount,
+                r.OccurredOn,
+                r.Project,
+                r.HoursWorked,
+                r.Note,
+                r.RecordedBy
+            ]).ToList());
+
+        return _writer.Render(sheet, "finance-entries", request);
+    }
+}

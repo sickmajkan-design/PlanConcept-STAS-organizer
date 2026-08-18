@@ -40,23 +40,7 @@ import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
-import { formatDate, formatMoney, formatQuantity } from '../../utils/formatting';
-
-/**
- * The period an export covers when the screen itself has no date filter.
- *
- * A year back to today. Long enough to be the document somebody actually
- * wants, short enough to stay inside the API's own two-year bound.
- */
-function lastYear(): { from: string; to: string } {
-  const today = new Date();
-  const start = new Date(today);
-  start.setFullYear(start.getFullYear() - 1);
-
-  const iso = (date: Date) => date.toISOString().slice(0, 10);
-
-  return { from: iso(start), to: iso(today) };
-}
+import { formatDate, formatMoney, formatQuantity, lastYearRange } from '../../utils/formatting';
 
 export function StockMovementsPage() {
   const t = useT();
@@ -188,7 +172,7 @@ export function StockMovementsPage() {
             of twenty rows is not what anyone opens this for. */}
         <ExportButton
           onExport={(language) =>
-            exportsApi.materialMovements({ ...lastYear(), language })
+            exportsApi.materialMovements({ ...lastYearRange(), language })
           }
         />
       </Stack>

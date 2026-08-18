@@ -25,9 +25,11 @@ import type { GridColDef } from '@mui/x-data-grid';
 import { useMemo, useState } from 'react';
 
 import type { AbsenceListQuery } from '../../api/absences';
+import { exportsApi } from '../../api/exports';
 import { absenceStatuses, absenceTypes, type Absence, type AbsenceType } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { DateQuickFilters } from '../../components/DateQuickFilters';
+import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { StatusChip } from '../../components/StatusChip';
@@ -42,7 +44,7 @@ import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
-import { formatDate } from '../../utils/formatting';
+import { formatDate, lastYearRange } from '../../utils/formatting';
 import { BookAbsenceDialog } from './BookAbsenceDialog';
 
 export function AbsencesListPage() {
@@ -195,6 +197,12 @@ export function AbsencesListPage() {
           }}
         />
         <StatusLegend kind="absenceStatus" values={absenceStatuses} />
+
+        {/* Exports the last year rather than whatever's on screen: a
+            spreadsheet of one day's leave is not what anyone opens this for. */}
+        <ExportButton
+          onExport={(language) => exportsApi.absences({ ...lastYearRange(), language })}
+        />
       </Stack>
 
       <ResourceDataGrid

@@ -25,6 +25,16 @@ export function dateOnlyOffset(days: number): string {
   return `${date.getFullYear()}-${month}-${day}`;
 }
 
+/**
+ * The period an export covers when the screen itself has no date filter.
+ *
+ * A year back to today. Long enough to be the document somebody actually
+ * wants, short enough to stay inside the API's own two-year bound.
+ */
+export function lastYearRange(): { from: string; to: string } {
+  return { from: dateOnlyOffset(-365), to: dateOnlyOffset(0) };
+}
+
 export function formatDateTime(value: string | null | undefined): string {
   if (!value) return '—';
 

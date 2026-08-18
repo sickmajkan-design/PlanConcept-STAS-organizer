@@ -19,8 +19,10 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { toApiError } from '../../api/apiError';
 import type { FinanceEntryListQuery } from '../../api/costs';
+import { exportsApi } from '../../api/exports';
 import { financeEntryKinds, type FinanceEntry, type FinanceEntryKind } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import {
@@ -34,7 +36,7 @@ import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
-import { formatDate, formatMoney } from '../../utils/formatting';
+import { formatDate, formatMoney, lastYearRange } from '../../utils/formatting';
 
 export function FinanceEntriesPage() {
   const t = useT();
@@ -149,6 +151,14 @@ export function FinanceEntriesPage() {
             </MenuItem>
           ))}
         </TextField>
+
+        {/* Exports the last year rather than whatever's on screen: a
+            spreadsheet of one page's rows is not what anyone opens this for. */}
+        <ExportButton
+          onExport={(language) =>
+            exportsApi.financeEntries({ ...lastYearRange(), language })
+          }
+        />
       </Stack>
 
       <ResourceDataGrid

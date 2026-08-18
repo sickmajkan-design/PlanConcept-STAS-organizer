@@ -33,6 +33,8 @@ public static class ExportLabels
         ["sheet.projectCosts"] = ("Troškovi po gradilištu", "Costs by site"),
         ["sheet.vehicleCosts"] = ("Troškovi vozila", "Vehicle costs"),
         ["sheet.materialMovements"] = ("Promet materijala", "Stock movements"),
+        ["sheet.absences"] = ("Odsustva", "Absences"),
+        ["sheet.financeEntries"] = ("Finansijski unosi", "Finance entries"),
 
         ["employee"] = ("Radnik", "Employee"),
         ["project"] = ("Gradilište", "Site"),
@@ -64,7 +66,14 @@ public static class ExportLabels
         ["unitPrice"] = ("Cena po jedinici", "Unit price"),
         ["value"] = ("Vrednost", "Value"),
         ["recordedBy"] = ("Evidentirao", "Recorded by"),
-        ["period"] = ("Period", "Period")
+        ["period"] = ("Period", "Period"),
+        ["absenceType"] = ("Vrsta odsustva", "Absence type"),
+        ["startDate"] = ("Od", "From"),
+        ["endDate"] = ("Do", "To"),
+        ["days"] = ("Dana", "Days"),
+        ["reason"] = ("Razlog", "Reason"),
+        ["reviewedBy"] = ("Odobrio", "Reviewed by"),
+        ["amount"] = ("Iznos", "Amount")
     };
 
     public static string Get(string key, bool english)

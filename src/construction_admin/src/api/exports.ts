@@ -16,6 +16,18 @@ export interface TimeEntryExportQuery extends ExportQuery {
   approvedOnly?: boolean;
 }
 
+export interface AbsenceExportQuery extends ExportQuery {
+  employeeId?: string;
+  status?: string;
+  type?: string;
+}
+
+export interface FinanceEntryExportQuery extends ExportQuery {
+  employeeId?: string;
+  projectId?: string;
+  kind?: string;
+}
+
 /**
  * Fetches a spreadsheet and hands it to the browser as a download.
  *
@@ -80,4 +92,9 @@ export const exportsApi = {
 
   materialMovements: (query: ExportQuery & { materialId?: string; projectId?: string }) =>
     download('/api/v1/exports/material-movements', query),
+
+  absences: (query: AbsenceExportQuery) => download('/api/v1/exports/absences', query),
+
+  financeEntries: (query: FinanceEntryExportQuery) =>
+    download('/api/v1/exports/finance-entries', query),
 };

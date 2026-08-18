@@ -78,6 +78,34 @@ public class ExportsController : ApiControllerBase
         return Download(await Mediator.Send(query, cancellationToken));
     }
 
+    /// <summary>Time off over a period, row by row.</summary>
+    [HttpGet("/api/v{version:apiVersion}/exports/absences")]
+    [HttpGet("/api/exports/absences")]
+    [Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> ExportAbsences(
+        [FromQuery] ExportAbsencesQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Download(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>What was paid, row by row. Refused below Project Manager.</summary>
+    [HttpGet("/api/v{version:apiVersion}/exports/finance-entries")]
+    [HttpGet("/api/exports/finance-entries")]
+    [Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> ExportFinanceEntries(
+        [FromQuery] ExportFinanceEntriesQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Download(await Mediator.Send(query, cancellationToken));
+    }
+
     /// <remarks>
     /// The file name is built by the handler and is already ASCII, so it needs
     /// no RFC 5987 encoding — a name with Serbian diacritics would otherwise
