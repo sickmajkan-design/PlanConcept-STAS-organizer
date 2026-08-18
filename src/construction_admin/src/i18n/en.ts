@@ -28,6 +28,10 @@ export const en = {
   'common.language': 'Language',
   'common.somethingWentWrong': 'Something went wrong.',
   'common.noResults': 'Nothing matches your search.',
+  'statusLegend.title': 'What the colours mean',
+  'dateFilter.yesterday': 'Yesterday',
+  'dateFilter.today': 'Today',
+  'dateFilter.tomorrow': 'Tomorrow',
 
   // --- Failure states -------------------------------------------------------
   'error.pageTitle': 'This page could not be displayed',

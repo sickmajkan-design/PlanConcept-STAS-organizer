@@ -21,10 +21,13 @@ import { useNavigate } from 'react-router-dom';
 
 import type { TimeEntryListQuery } from '../../api/timeEntries';
 import type { TimeEntry } from '../../api/types';
+import { timeEntryStatuses } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { DateQuickFilters } from '../../components/DateQuickFilters';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { StatusChip } from '../../components/StatusChip';
+import { StatusLegend } from '../../components/StatusLegend';
 import {
   useDeleteTimeEntry,
   useReviewTimeEntry,
@@ -38,6 +41,14 @@ import { paths } from '../../routes/paths';
 import { formatDate, formatTimeOfDay, splitMinutes } from '../../utils/formatting';
 import { ReviewButtons } from './ReviewButtons';
 
+/** The instant just after the given local day ends. */
+function endOfLocalDay(date: string): string {
+  const next = new Date(`${date}T00:00`);
+  next.setDate(next.getDate() + 1);
+
+  return next.toISOString();
+}
+
 export function TimeEntriesListPage() {
   const navigate = useNavigate();
   const t = useT();
@@ -49,6 +60,7 @@ export function TimeEntriesListPage() {
   // what is waiting on me.
   const [openOnly, setOpenOnly] = useState(false);
   const [pendingOnly, setPendingOnly] = useState(false);
+  const [quickDate, setQuickDate] = useState<string | null>(null);
 
   const query: TimeEntryListQuery = useMemo(
     () => ({
@@ -58,8 +70,10 @@ export function TimeEntriesListPage() {
       search: undefined,
       openOnly: openOnly || undefined,
       status: pendingOnly ? 'Submitted' : undefined,
+      from: quickDate ? new Date(`${quickDate}T00:00`).toISOString() : undefined,
+      to: quickDate ? endOfLocalDay(quickDate) : undefined,
     }),
-    [list.query, openOnly, pendingOnly],
+    [list.query, openOnly, pendingOnly, quickDate],
   );
 
   const { data, isLoading, isError, error, refetch } = useTimeEntriesQuery(query);
@@ -222,9 +236,17 @@ export function TimeEntriesListPage() {
           }
           label={t('timeEntries.openOnly')}
         />
+        <DateQuickFilters
+          value={quickDate}
+          onChange={(date) => {
+            setQuickDate(date);
+            list.resetToFirstPage();
+          }}
+        />
         <Button size="small" onClick={() => navigate(paths.timeEntrySummary)}>
           {t('timeEntries.summary')}
         </Button>
+        <StatusLegend kind="timeEntryStatus" values={timeEntryStatuses} />
       </Stack>
 
       <ResourceDataGrid

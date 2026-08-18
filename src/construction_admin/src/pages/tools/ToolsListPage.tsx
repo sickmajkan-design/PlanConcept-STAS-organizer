@@ -23,6 +23,7 @@ import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { RowActions } from '../../components/RowActions';
 import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
+import { StatusLegend } from '../../components/StatusLegend';
 import { useDeleteTool, useToolsQuery } from '../../features/tools/useTools';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useEnumLabel } from '../../i18n/enumLabels';
@@ -136,6 +137,7 @@ export function ToolsListPage() {
             ))}
           </Select>
         </FormControl>
+        <StatusLegend kind="toolStatus" values={toolStatuses} />
       </Stack>
 
       <ResourceDataGrid

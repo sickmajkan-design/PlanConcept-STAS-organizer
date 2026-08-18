@@ -23,6 +23,7 @@ import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { RowActions } from '../../components/RowActions';
 import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
+import { StatusLegend } from '../../components/StatusLegend';
 import { useDeleteProject, useProjectsQuery } from '../../features/projects/useProjects';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useEnumLabel } from '../../i18n/enumLabels';
@@ -138,6 +139,7 @@ export function ProjectsListPage() {
             ))}
           </Select>
         </FormControl>
+        <StatusLegend kind="projectStatus" values={projectStatuses} />
       </Stack>
 
       <ResourceDataGrid

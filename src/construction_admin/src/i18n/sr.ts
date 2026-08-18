@@ -37,6 +37,10 @@ export const sr: Record<MessageKey, Message> = {
   'common.language': 'Jezik',
   'common.somethingWentWrong': 'Došlo je do greške.',
   'common.noResults': 'Nema rezultata za vašu pretragu.',
+  'statusLegend.title': 'Šta boje znače',
+  'dateFilter.yesterday': 'Juče',
+  'dateFilter.today': 'Danas',
+  'dateFilter.tomorrow': 'Sutra',
 
   // --- Failure states -------------------------------------------------------
   'error.pageTitle': 'Ova stranica ne može da se prikaže',

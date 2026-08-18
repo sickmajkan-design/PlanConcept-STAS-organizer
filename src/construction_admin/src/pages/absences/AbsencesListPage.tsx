@@ -25,11 +25,13 @@ import type { GridColDef } from '@mui/x-data-grid';
 import { useMemo, useState } from 'react';
 
 import type { AbsenceListQuery } from '../../api/absences';
-import { absenceTypes, type Absence, type AbsenceType } from '../../api/types';
+import { absenceStatuses, absenceTypes, type Absence, type AbsenceType } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { DateQuickFilters } from '../../components/DateQuickFilters';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { StatusChip } from '../../components/StatusChip';
+import { StatusLegend } from '../../components/StatusLegend';
 import {
   useAbsenceBalanceQuery,
   useAbsencesQuery,
@@ -52,6 +54,7 @@ export function AbsencesListPage() {
   const [pendingOnly, setPendingOnly] = useState(false);
   const [type, setType] = useState<AbsenceType | ''>('');
   const [booking, setBooking] = useState(false);
+  const [quickDate, setQuickDate] = useState<string | null>(null);
 
   const query: AbsenceListQuery = useMemo(
     () => ({
@@ -61,8 +64,12 @@ export function AbsencesListPage() {
       search: undefined,
       status: pendingOnly ? 'Requested' : undefined,
       type: type || undefined,
+      // Overlap, not containment: whoever is away on that day, not only leave
+      // that starts on it.
+      from: quickDate ?? undefined,
+      to: quickDate ?? undefined,
     }),
-    [list.query, pendingOnly, type],
+    [list.query, pendingOnly, quickDate, type],
   );
 
   const { data, isLoading, isError, error, refetch } = useAbsencesQuery(query);
@@ -180,6 +187,14 @@ export function AbsencesListPage() {
             </MenuItem>
           ))}
         </TextField>
+        <DateQuickFilters
+          value={quickDate}
+          onChange={(date) => {
+            setQuickDate(date);
+            list.resetToFirstPage();
+          }}
+        />
+        <StatusLegend kind="absenceStatus" values={absenceStatuses} />
       </Stack>
 
       <ResourceDataGrid

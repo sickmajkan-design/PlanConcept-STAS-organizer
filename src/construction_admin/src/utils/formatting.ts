@@ -15,6 +15,16 @@ export function formatDate(value: string | null | undefined): string {
   return `${day}.${month}.${date.getFullYear()}.`;
 }
 
+/** `YYYY-MM-DD` for a day offset from today, in the browser's local time. */
+export function dateOnlyOffset(days: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
 export function formatDateTime(value: string | null | undefined): string {
   if (!value) return '—';
 

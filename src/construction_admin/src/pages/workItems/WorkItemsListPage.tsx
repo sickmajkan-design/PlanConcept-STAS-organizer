@@ -17,11 +17,13 @@ import { useNavigate } from 'react-router-dom';
 
 import type { WorkItemListQuery } from '../../api/workItems';
 import type { WorkItem, WorkItemStatus } from '../../api/types';
+import { workItemStatuses } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
+import { StatusLegend } from '../../components/StatusLegend';
 import {
   useChangeWorkItemStatus,
   useDeleteWorkItem,
@@ -225,6 +227,7 @@ export function WorkItemsListPage() {
           }
           label={t('workItems.defectsOnly')}
         />
+        <StatusLegend kind="workItemStatus" values={workItemStatuses} />
       </Stack>
 
       <ResourceDataGrid
