@@ -176,6 +176,7 @@ export const sr: Record<MessageKey, Message> = {
     '{name} će biti uklonjen iz aktivnih zapisa. Alat zadužen samo na ovaj projekat biće razdužen.',
   'projects.assignedCrew': 'Dodeljena ekipa',
   'projects.noCrew': 'Na ovaj projekat još niko nije dodeljen.',
+  'projects.crewHistory': 'Istorija posade',
   'projects.assignedOn': 'Dodeljen',
 
   // --- Vehicles -------------------------------------------------------------
@@ -442,6 +443,7 @@ export const sr: Record<MessageKey, Message> = {
   'materials.warehouseStock': 'Zalihe u magacinu',
   'employees.projectsCount': 'Projekti ({count})',
   'employees.notOnAnyProject': 'Nije dodeljen ni na jedan projekat.',
+  'employees.projectHistory': 'Istorija projekata',
   'common.selectProject': 'Izaberite projekat…',
   'map.empty': 'Još nema prijavljenih lokacija zaposlenih.',
   'materials.absoluteQuantityNotice': 'Ova forma postavlja apsolutnu količinu. Za svakodnevni promet zaliha koristite „Izmeni stanje" na stranici materijala.',

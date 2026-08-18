@@ -7,6 +7,10 @@ public class ProjectDetailDto : ProjectDto
 {
     public IReadOnlyCollection<ProjectEmployeeDto> Employees { get; init; } =
         Array.Empty<ProjectEmployeeDto>();
+
+    /// <summary>Crew whose posting here has ended, most recently closed first.</summary>
+    public IReadOnlyCollection<ProjectEmployeeDto> PastEmployees { get; init; } =
+        Array.Empty<ProjectEmployeeDto>();
 }
 
 public class ProjectEmployeeDto
@@ -20,6 +24,11 @@ public class ProjectEmployeeDto
     public string Position { get; init; } = null!;
 
     public string Status { get; init; } = null!;
+
+    public DateOnly StartDate { get; init; }
+
+    /// <summary>Null while the posting is still open.</summary>
+    public DateOnly? EndDate { get; init; }
 
     public DateTime AssignedAt { get; init; }
 }
@@ -66,6 +75,23 @@ public static class ProjectDetailMapping
                     FullName = assignment.Employee.FirstName + " " + assignment.Employee.LastName,
                     Position = assignment.Employee.Position,
                     Status = assignment.Employee.Status.ToString(),
+                    StartDate = assignment.StartDate,
+                    EndDate = assignment.EndDate,
+                    AssignedAt = assignment.AssignedAt,
+                })
+                .ToList(),
+            PastEmployees = project.EmployeeAssignments
+                .Where(assignment => assignment.EndDate != null)
+                .OrderByDescending(assignment => assignment.EndDate)
+                .Select(assignment => new ProjectEmployeeDto
+                {
+                    EmployeeId = assignment.EmployeeId,
+                    EmployeeNumber = assignment.Employee.EmployeeNumber,
+                    FullName = assignment.Employee.FirstName + " " + assignment.Employee.LastName,
+                    Position = assignment.Employee.Position,
+                    Status = assignment.Employee.Status.ToString(),
+                    StartDate = assignment.StartDate,
+                    EndDate = assignment.EndDate,
                     AssignedAt = assignment.AssignedAt,
                 })
                 .ToList(),

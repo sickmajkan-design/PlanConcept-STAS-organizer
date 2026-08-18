@@ -72,22 +72,36 @@ public class AssignEmployeeToProjectCommandHandler : IRequestHandler<AssignEmplo
             ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
         var endDate = request.EndDate;
 
-        // Overlapping postings to the same site are always a mistake. The
-        // database refuses them too — this exists so the answer is a sentence
-        // rather than a constraint violation, and the database exists so two
-        // requests racing each other cannot both slip through.
-        var overlaps = await _context.EmployeeProjects
-            .AnyAsync(
+        // At most one posting can ever overlap — this same check is what
+        // stops a second one existing — so finding it, rather than just
+        // asking whether it exists, costs nothing extra.
+        var overlapping = await _context.EmployeeProjects
+            .FirstOrDefaultAsync(
                 ep => ep.EmployeeId == request.EmployeeId
                     && ep.ProjectId == request.ProjectId
                     && ep.StartDate <= (endDate ?? DateOnly.MaxValue)
                     && (ep.EndDate == null || ep.EndDate >= startDate),
                 cancellationToken);
 
-        if (overlaps)
+        if (overlapping is not null)
         {
-            throw new ConflictException(
-                "The employee is already posted to this project over those dates.");
+            // A day is the smallest unit a posting has, so "removed this
+            // morning, needs to go back on this afternoon" and "assigning
+            // them again by mistake" look identical at this resolution —
+            // both are a request that overlaps a posting already there. The
+            // office almost never means "refuse this," they mean "keep them
+            // on," so this extends the existing posting to cover the request
+            // instead of rejecting it. A closed posting reopens; an
+            // open-ended one already covers whatever was asked.
+            if (startDate < overlapping.StartDate)
+            {
+                overlapping.StartDate = startDate;
+            }
+
+            overlapping.EndDate = endDate;
+            await _context.SaveChangesAsync(cancellationToken);
+
+            return;
         }
 
         _context.EmployeeProjects.Add(new EmployeeProject

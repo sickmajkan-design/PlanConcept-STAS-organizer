@@ -263,6 +263,38 @@ export function EmployeeDetailPage() {
           </Card>
         </Grid>
 
+        {employee.pastProjects.length > 0 && (
+          <Grid size={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700 }}>
+                  {t('employees.projectHistory')}
+                </Typography>
+                <List disablePadding>
+                  {employee.pastProjects.map((assignment, index) => (
+                    <ListItem
+                      key={`${assignment.projectId}-${assignment.startDate}-${index}`}
+                      divider={index < employee.pastProjects.length - 1}
+                      sx={{ cursor: 'pointer', px: 0 }}
+                      onClick={() => navigate(paths.projectDetail(assignment.projectId))}
+                    >
+                      <ListItemAvatar>
+                        <Avatar sx={{ bgcolor: 'action.selected' }}>
+                          <ApartmentOutlined color="disabled" />
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={assignment.projectName}
+                        secondary={`${formatDate(assignment.startDate)} – ${formatDate(assignment.endDate)}`}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
         <Grid size={12}>
           <Card>
             <CardContent>

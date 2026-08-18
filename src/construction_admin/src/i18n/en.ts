@@ -168,6 +168,7 @@ export const en = {
     '{name} will be removed from active records. Any tools assigned only to this project will be released.',
   'projects.assignedCrew': 'Assigned crew',
   'projects.noCrew': 'Nobody is assigned to this project yet.',
+  'projects.crewHistory': 'Crew history',
   'projects.assignedOn': 'Assigned',
 
   // --- Vehicles -------------------------------------------------------------
@@ -434,6 +435,7 @@ export const en = {
   'materials.warehouseStock': 'Warehouse stock',
   'employees.projectsCount': 'Projects ({count})',
   'employees.notOnAnyProject': 'Not assigned to any project.',
+  'employees.projectHistory': 'Project history',
   'common.selectProject': 'Select a project…',
   'map.empty': 'No employee locations reported yet.',
   'materials.absoluteQuantityNotice': 'This form sets an absolute quantity. For day-to-day stock movements, use "Adjust stock" on the material\u2019s detail page instead.',

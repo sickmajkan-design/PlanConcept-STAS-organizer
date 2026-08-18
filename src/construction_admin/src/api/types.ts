@@ -77,12 +77,18 @@ export interface EmployeeProjectAssignment {
   projectId: string;
   projectName: string;
   projectStatus: ProjectStatus;
+  /** `YYYY-MM-DD`. */
+  startDate: string;
+  /** `YYYY-MM-DD`, or null while the posting is still open. */
+  endDate: string | null;
   assignedAt: string;
 }
 
 export interface EmployeeDetail extends Employee {
   hasUserAccount: boolean;
   projects: EmployeeProjectAssignment[];
+  /** Postings that have ended, most recently closed first. */
+  pastProjects: EmployeeProjectAssignment[];
 }
 
 export interface EmployeeInput {
@@ -121,11 +127,17 @@ export interface ProjectEmployee {
   fullName: string;
   position: string;
   status: EmployeeStatus;
+  /** `YYYY-MM-DD`. */
+  startDate: string;
+  /** `YYYY-MM-DD`, or null while the posting is still open. */
+  endDate: string | null;
   assignedAt: string;
 }
 
 export interface ProjectDetail extends Project {
   employees: ProjectEmployee[];
+  /** Crew whose posting here has ended, most recently closed first. */
+  pastEmployees: ProjectEmployee[];
 }
 
 export interface ProjectInput {

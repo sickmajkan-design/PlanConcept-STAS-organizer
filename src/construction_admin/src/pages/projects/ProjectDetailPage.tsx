@@ -162,6 +162,38 @@ export function ProjectDetailPage() {
           </Card>
         </Grid>
 
+        {project.pastEmployees.length > 0 && (
+          <Grid size={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700 }}>
+                  {t('projects.crewHistory')}
+                </Typography>
+                <List disablePadding>
+                  {project.pastEmployees.map((member, index) => (
+                    <ListItem
+                      key={`${member.employeeId}-${member.startDate}-${index}`}
+                      divider={index < project.pastEmployees.length - 1}
+                      sx={{ cursor: 'pointer', px: 0 }}
+                      onClick={() => navigate(paths.employeeDetail(member.employeeId))}
+                    >
+                      <ListItemAvatar>
+                        <Avatar sx={{ bgcolor: 'action.selected' }}>
+                          {crewInitials(member.fullName)}
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={member.fullName}
+                        secondary={`${member.position} · ${formatDate(member.startDate)} – ${formatDate(member.endDate)}`}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
         <Grid size={12}>
           <Card>
             <CardContent>

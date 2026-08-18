@@ -9,6 +9,10 @@ public class EmployeeDetailDto : EmployeeDto
 
     public IReadOnlyCollection<EmployeeProjectAssignmentDto> Projects { get; init; } =
         Array.Empty<EmployeeProjectAssignmentDto>();
+
+    /// <summary>Postings that have ended, most recently closed first.</summary>
+    public IReadOnlyCollection<EmployeeProjectAssignmentDto> PastProjects { get; init; } =
+        Array.Empty<EmployeeProjectAssignmentDto>();
 }
 
 public class EmployeeProjectAssignmentDto
@@ -18,6 +22,11 @@ public class EmployeeProjectAssignmentDto
     public string ProjectName { get; init; } = null!;
 
     public string ProjectStatus { get; init; } = null!;
+
+    public DateOnly StartDate { get; init; }
+
+    /// <summary>Null while the posting is still open.</summary>
+    public DateOnly? EndDate { get; init; }
 
     public DateTime AssignedAt { get; init; }
 }
@@ -71,6 +80,25 @@ public static class EmployeeDetailMapping
                     ProjectId = assignment.ProjectId,
                     ProjectName = assignment.Project.Name,
                     ProjectStatus = assignment.Project.Status.ToString(),
+                    StartDate = assignment.StartDate,
+                    EndDate = assignment.EndDate,
+                    AssignedAt = assignment.AssignedAt,
+                })
+                .ToList(),
+            // The other half of the same collection: everything the filter
+            // above leaves out. Kept on the same DTO rather than a separate
+            // endpoint, since a screen showing where someone works now is the
+            // same screen anyone asks "and before that?" on.
+            PastProjects = employee.ProjectAssignments
+                .Where(assignment => assignment.EndDate != null)
+                .OrderByDescending(assignment => assignment.EndDate)
+                .Select(assignment => new EmployeeProjectAssignmentDto
+                {
+                    ProjectId = assignment.ProjectId,
+                    ProjectName = assignment.Project.Name,
+                    ProjectStatus = assignment.Project.Status.ToString(),
+                    StartDate = assignment.StartDate,
+                    EndDate = assignment.EndDate,
                     AssignedAt = assignment.AssignedAt,
                 })
                 .ToList(),
