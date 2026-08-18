@@ -53,6 +53,41 @@ public static class TimeEntryRules
     public static readonly TimeSpan MaxBackdating = TimeSpan.FromDays(31);
 
     /// <summary>
+    /// How far ahead of this server a handset's own clock may be and still be
+    /// believed. Matches the allowance location reporting already makes, so a
+    /// device is not trusted for one thing and doubted for another.
+    /// </summary>
+    public static readonly TimeSpan AllowedClockSkew = TimeSpan.FromMinutes(5);
+
+    /// <summary>
+    /// How long a clock action captured on a handset stays worth replaying.
+    /// </summary>
+    /// <remarks>
+    /// A worker starts at seven in a basement with no signal. The moment they
+    /// started is the one thing this system cannot reconstruct afterwards, so
+    /// the handset stamps it and sends it when the signal returns — which is
+    /// why <c>OccurredAt</c> exists at all, and why it is believed.
+    ///
+    /// It is believed only within a day. Past that the shift being described
+    /// is over, whoever worked it has gone home, and what the office needs is
+    /// a correction somebody signs off — not a week-old timestamp arriving
+    /// unannounced from a phone that has been in a drawer.
+    /// </remarks>
+    public static readonly TimeSpan MaxOfflineDelay = TimeSpan.FromHours(24);
+
+    /// <summary>
+    /// Whether a time the handset stamped itself is close enough to now to be
+    /// taken at face value.
+    /// </summary>
+    public static bool IsAcceptableDeviceTime(DateTime occurredAt, DateTime now)
+    {
+        var moment = AsUtc(occurredAt);
+
+        return moment <= now.Add(AllowedClockSkew)
+            && moment >= now.Subtract(MaxOfflineDelay);
+    }
+
+    /// <summary>
     /// Reads an incoming time as UTC.
     /// </summary>
     /// <remarks>

@@ -1,8 +1,6 @@
 {
   "@@locale": "sr",
-
   "appName": "Construction Organizer",
-
   "commonCancel": "Otkaži",
   "commonRetry": "Pokušaj ponovo",
   "commonLoadMore": "Učitaj još",
@@ -18,7 +16,6 @@
   "commonAccount": "Nalog",
   "commonResources": "Resursi",
   "commonAlerts": "Obaveštenja",
-
   "authSignInSubtitle": "Prijavite se na svoj radni nalog",
   "authEmail": "E-mail",
   "authPassword": "Lozinka",
@@ -38,7 +35,6 @@
   "authPasswordChangedBody": "Vaša lozinka je izmenjena. Radi bezbednosti, svi vaši prijavljeni uređaji su odjavljeni.",
   "authSignInAgain": "Prijavi se ponovo",
   "authSessionExpired": "Sesija je istekla. Prijavite se ponovo.",
-
   "validationEmailRequired": "E-mail je obavezan.",
   "validationEmailInvalid": "Unesite ispravnu e-mail adresu.",
   "validationPasswordRequired": "Lozinka je obavezna.",
@@ -47,7 +43,6 @@
   "validationPasswordDigit": "Lozinka mora sadržati cifru.",
   "validationPasswordsDiffer": "Lozinke se ne poklapaju.",
   "validationConfirmPassword": "Potvrdite novu lozinku.",
-
   "errorNoConnection": "Nema veze sa serverom. Proverite internet i pokušajte ponovo.",
   "errorTimeout": "Server predugo ne odgovara. Pokušajte ponovo.",
   "errorCancelled": "Zahtev je otkazan.",
@@ -58,14 +53,12 @@
   "errorBadRequest": "Zahtev je odbijen. Proverite unete podatke.",
   "errorConflict": "Radnja je u sukobu sa trenutnim podacima.",
   "errorUnknown": "Došlo je do greške. Pokušajte ponovo.",
-
   "navEmployees": "Zaposleni",
   "navProjects": "Projekti",
   "navVehicles": "Vozila",
   "navTools": "Alat",
   "navMaterials": "Materijal",
   "navNotifications": "Obaveštenja",
-
   "employeesSearchHint": "Ime, broj, radno mesto…",
   "employeesEmpty": "Nema zaposlenih za vašu pretragu.",
   "employeeNumber": "Matični broj",
@@ -77,7 +70,6 @@
   "employeeEmployedSince": "Zaposlen od",
   "employeeAppAccount": "Nalog u aplikaciji",
   "employeeNoProjects": "Nije dodeljen ni na jedan projekat",
-
   "projectsSearchHint": "Naziv, klijent, adresa…",
   "projectsEmpty": "Nema projekata za vašu pretragu.",
   "projectClient": "Klijent",
@@ -87,18 +79,29 @@
   "projectCoordinates": "Koordinate",
   "projectCrewEmpty": "Još niko nije dodeljen",
   "projectAssignedOn": "Dodeljen {date}",
-  "@projectAssignedOn": { "placeholders": { "date": { "type": "String" } } },
+  "@projectAssignedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "projectMemberSubtitle": "{position} · {number}",
   "@projectMemberSubtitle": {
-    "placeholders": { "position": { "type": "String" }, "number": { "type": "String" } }
+    "placeholders": {
+      "position": {
+        "type": "String"
+      },
+      "number": {
+        "type": "String"
+      }
+    }
   },
-
   "vehiclesSearchHint": "Marka, model, registracija…",
   "vehiclesEmpty": "Nema vozila za vašu pretragu.",
   "vehicleRegistration": "Registarski broj",
   "vehicleFuelType": "Vrsta goriva",
   "vehicleUnassigned": "Nije zaduženo ni na koga",
-
   "toolsSearchHint": "Naziv, kategorija, serijski broj…",
   "toolsEmpty": "Nema alata za vašu pretragu.",
   "toolSerialNumber": "Serijski broj",
@@ -111,10 +114,21 @@
   "toolLookUpByQr": "Pronađi po QR kodu",
   "toolByQrCode": "Po QR kodu",
   "toolCategoryLine": "Kategorija: {category}",
-  "@toolCategoryLine": { "placeholders": { "category": { "type": "String" } } },
+  "@toolCategoryLine": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
   "toolSerialLine": "Serijski broj: {serial}",
-  "@toolSerialLine": { "placeholders": { "serial": { "type": "String" } } },
-
+  "@toolSerialLine": {
+    "placeholders": {
+      "serial": {
+        "type": "String"
+      }
+    }
+  },
   "materialsSearchHint": "Naziv, magacin…",
   "materialsEmpty": "Nema materijala za vašu pretragu.",
   "materialStock": "Stanje",
@@ -124,7 +138,6 @@
   "materialWarehouseNote": "Zalihe u magacinu, nisu vezane za projekat",
   "materialLastUpdated": "Poslednja izmena",
   "materialNoAssignment": "Nije zaduženo",
-
   "notificationsEmpty": "Još nema obaveštenja.",
   "notificationsUnreadEmpty": "Nema nepročitanih.",
   "notificationsUnread": "Nepročitano",
@@ -136,7 +149,6 @@
   "notificationsOpenSettings": "Otvori podešavanja aplikacije",
   "notificationsTokenFailed": "Nije moguće dobiti token uređaja.",
   "notificationsFirebaseFailed": "Firebase poruke nisu uspele.",
-
   "locationSharingOn": "Deljenje lokacije je uključeno",
   "locationSharingOnBody": "Vaša pozicija se šalje kancelariji svakog minuta dok ste prijavljeni.",
   "locationStarting": "Pokretanje deljenja lokacije…",
@@ -150,56 +162,66 @@
   "locationNoFix": "Još nema GPS signala.",
   "locationReadFailed": "Nije moguće očitati lokaciju uređaja.",
   "locationQueued": "Na čekanju — {reason}",
-  "@locationQueued": { "placeholders": { "reason": { "type": "String" } } },
+  "@locationQueued": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "locationServiceNotificationTitle": "Deljenje lokacije je u toku",
   "locationServiceNotificationBody": "Kancelarija vidi na kom ste gradilištu. Odjavite se da prekinete.",
   "locationServiceChannelName": "Deljenje lokacije",
   "locationPending": "{count, plural, =0{Sve je poslato} one{{count} očitavanje čeka slanje} few{{count} očitavanja čekaju slanje} other{{count} očitavanja čeka slanje}}",
-  "@locationPending": { "placeholders": { "count": { "type": "int" } } },
+  "@locationPending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "locationLastSent": "Poslednji put poslato {when}.",
-  "@locationLastSent": { "placeholders": { "when": { "type": "String" } } },
+  "@locationLastSent": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "locationOpenAppSettings": "Otvori podešavanja aplikacije",
-
   "roleSuperAdmin": "Super administrator",
   "roleAdmin": "Administrator",
   "roleProjectManager": "Rukovodilac projekta",
   "roleForeman": "Poslovođa",
   "roleWorker": "Radnik",
-
   "employeeStatusActive": "Aktivan",
   "employeeStatusOnLeave": "Na odsustvu",
   "employeeStatusSuspended": "Suspendovan",
   "employeeStatusTerminated": "Raskinut ugovor",
-
   "projectStatusPlanned": "Planiran",
   "projectStatusActive": "Aktivan",
   "projectStatusOnHold": "Pauziran",
   "projectStatusCompleted": "Završen",
   "projectStatusCancelled": "Otkazan",
-
   "vehicleStatusAvailable": "Slobodno",
   "vehicleStatusAssigned": "Zaduženo",
   "vehicleStatusInService": "Na servisu",
   "vehicleStatusOutOfService": "Van upotrebe",
-
   "toolStatusAvailable": "Slobodan",
   "toolStatusAssigned": "Zadužen",
   "toolStatusUnderRepair": "Na popravci",
   "toolStatusLost": "Izgubljen",
   "toolStatusRetired": "Rashodovan",
-
   "fuelPetrol": "Benzin",
   "fuelDiesel": "Dizel",
   "fuelElectric": "Električno",
   "fuelHybrid": "Hibrid",
   "fuelLpg": "LPG",
-
   "notificationTypeEmployeeAssigned": "Zaposleni dodeljen",
   "notificationTypeProjectAssigned": "Projekat dodeljen",
   "notificationTypeToolAssigned": "Alat zadužen",
   "notificationTypeVehicleAssigned": "Vozilo zaduženo",
   "notificationTypeAnnouncement": "Obaveštenje",
-
   "settingsLanguage": "Jezik",
   "settingsLanguageSerbian": "Srpski",
   "settingsLanguageEnglish": "English",
@@ -208,9 +230,24 @@
   "shiftRunning": "Prijavljeni ste na smenu",
   "shiftOff": "Niste prijavljeni na smenu",
   "shiftSince": "Od {time}",
-  "@shiftSince": { "placeholders": { "time": { "type": "String" } } },
+  "@shiftSince": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "shiftElapsed": "{hours} h {minutes} min",
-  "@shiftElapsed": { "placeholders": { "hours": { "type": "int" }, "minutes": { "type": "int" } } },
+  "@shiftElapsed": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "shiftClockIn": "Prijavi se na smenu",
   "shiftClockOut": "Odjavi se sa smene",
   "shiftClockOutTitle": "Završetak smene",
@@ -225,16 +262,26 @@
   "shiftWorked": "Odrađeno",
   "shiftBreak": "Pauza",
   "shiftBreakMinutes": "{count, plural, =0{Bez pauze} one{{count} minut} few{{count} minuta} other{{count} minuta}}",
-  "@shiftBreakMinutes": { "placeholders": { "count": { "type": "int" } } },
+  "@shiftBreakMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "shiftSentBack": "Vraćeno: {reason}",
-  "@shiftSentBack": { "placeholders": { "reason": { "type": "String" } } },
+  "@shiftSentBack": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "shiftNotAnEmployee": "Ovaj nalog nije povezan sa zaposlenim, pa ne može da evidentira radno vreme.",
-
   "timeEntryStatusInProgress": "U toku",
   "timeEntryStatusSubmitted": "Čeka pregled",
   "timeEntryStatusApproved": "Odobreno",
   "timeEntryStatusRejected": "Vraćeno na doradu",
-
   "workTypeRegular": "Redovan rad",
   "workTypeOvertime": "Prekovremeni",
   "workTypeWeekend": "Vikend",
@@ -244,7 +291,13 @@
   "attachmentsEmpty": "Na ovom zapisu nema dokumenata.",
   "attachmentsExpired": "Isteklo",
   "attachmentsExpiresOn": "Važi do {date}",
-  "@attachmentsExpiresOn": { "placeholders": { "date": { "type": "String" } } },
+  "@attachmentsExpiresOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "attachmentsOpenFailed": "Fajl nije moguće otvoriti.",
   "attachmentsAddPhoto": "Dodaj fotografiju",
   "attachmentsTakePhoto": "Slikaj",
@@ -253,9 +306,14 @@
   "attachmentsUploading": "Otpremanje…",
   "attachmentsUploaded": "Fotografija je dodata.",
   "attachmentsTooLarge": "Fotografija je veća od ograničenja od {limit} MB.",
-  "@attachmentsTooLarge": { "placeholders": { "limit": { "type": "int" } } },
+  "@attachmentsTooLarge": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
   "attachmentsNotAnImage": "Moguće je priložiti samo dokument ili sliku.",
-
   "attachmentCategoryContract": "Ugovor",
   "attachmentCategoryCertificate": "Sertifikat",
   "attachmentCategoryMedicalCheck": "Lekarski pregled",
@@ -268,7 +326,13 @@
   "workItemsEmpty": "Nemate ništa na spisku.",
   "workItemsIncludeFinished": "Prikaži i završeno",
   "workItemsDue": "Rok {date}",
-  "@workItemsDue": { "placeholders": { "date": { "type": "String" } } },
+  "@workItemsDue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "workItemsOverdue": "Kasni",
   "workItemsNoDueDate": "Bez roka",
   "workItemsNoProject": "Bez gradilišta",
@@ -279,25 +343,26 @@
   "workItemsDefectSent": "Nedostatak je prijavljen.",
   "workItemsDefectNeedsTitle": "Opišite problem u par reči.",
   "workItemsPhotoCount": "{count, plural, =0{Bez fotografija} one{{count} fotografija} few{{count} fotografije} other{{count} fotografija}}",
-  "@workItemsPhotoCount": { "placeholders": { "count": { "type": "int" } } },
-
+  "@workItemsPhotoCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "workItemKindTask": "Zadatak",
   "workItemKindDefect": "Nedostatak",
-
   "workItemStatusOpen": "Otvoreno",
   "workItemStatusInProgress": "U toku",
   "workItemStatusResolved": "Urađeno, za proveru",
   "workItemStatusClosed": "Zatvoreno",
   "workItemStatusCancelled": "Otkazano",
-
   "workItemPriorityLow": "Nizak",
   "workItemPriorityNormal": "Normalan",
   "workItemPriorityHigh": "Visok",
   "workItemPriorityUrgent": "Hitno",
-
   "navSchedule": "Moj raspored",
   "navAbsences": "Odsustva",
-
   "scheduleTitle": "Moj raspored",
   "scheduleEmpty": "Nema rasporeda za naredne dve nedelje.",
   "scheduleToday": "Danas",
@@ -305,10 +370,18 @@
   "scheduleContinues": "Traje dalje",
   "scheduleUpcoming": "Naredne dve nedelje",
   "scheduleDateRange": "{from} – {to}",
-  "@scheduleDateRange": { "placeholders": { "from": { "type": "String" }, "to": { "type": "String" } } },
+  "@scheduleDateRange": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
   "scheduleAway": "Odsutan",
   "scheduleOnSite": "Na gradilištu",
-
   "absencesTitle": "Odsustva",
   "absencesEmpty": "Nisi tražio nijedno odsustvo.",
   "absencesPendingOnly": "Čeka odgovor",
@@ -322,29 +395,37 @@
   "absencesPickDates": "Izaberi prvi i poslednji dan odsustva.",
   "absencesEndsBeforeStart": "Poslednji dan ne može biti pre prvog.",
   "absencesDayCount": "{count, plural, one{{count} dan} few{{count} dana} other{{count} dana}}",
-  "@absencesDayCount": { "placeholders": { "count": { "type": "int" } } },
+  "@absencesDayCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "absencesWithdraw": "Povuci",
   "absencesWithdrawTitle": "Povući ovaj zahtev?",
   "absencesWithdrawBody": "Nadređeni više neće videti da tražiš te dane.",
   "absencesWithdrawn": "Zahtev je povučen.",
   "absencesGrantedLocked": "Odobreno odsustvo može da otkaže samo nadređeni.",
   "absencesAnsweredBy": "Odgovorio {name}",
-  "@absencesAnsweredBy": { "placeholders": { "name": { "type": "String" } } },
-
+  "@absencesAnsweredBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "absenceTypeAnnualLeave": "Godišnji odmor",
   "absenceTypeSickLeave": "Bolovanje",
   "absenceTypeUnpaidLeave": "Neplaćeno odsustvo",
   "absenceTypePaidSpecialLeave": "Plaćeno odsustvo",
   "absenceTypeTraining": "Obuka",
   "absenceTypeOther": "Ostalo",
-
   "absenceStatusRequested": "Na čekanju",
   "absenceStatusApproved": "Odobreno",
   "absenceStatusRejected": "Odbijeno",
   "absenceStatusCancelled": "Povučeno",
-
   "navVehicleExpenses": "Troškovi vozila",
-
   "vehicleExpensesTitle": "Troškovi vozila",
   "vehicleExpensesEmpty": "Još nema evidentiranih troškova.",
   "vehicleExpensesFuelOnly": "Samo točenja",
@@ -363,21 +444,24 @@
   "vehicleExpensesFuelNeedsLitres": "Upiši koliko je litara sipano.",
   "vehicleExpensesOdometerHint": "Nije obavezno, ali dva stanja daju potrošnju.",
   "vehicleExpensesPerLitre": "{price} po litru",
-  "@vehicleExpensesPerLitre": { "placeholders": { "price": { "type": "String" } } },
-
+  "@vehicleExpensesPerLitre": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "vehicleExpenseKindFuel": "Gorivo",
   "vehicleExpenseKindService": "Servis",
   "vehicleExpenseKindRepair": "Popravka",
   "vehicleExpenseKindInsurance": "Osiguranje",
   "vehicleExpenseKindRegistration": "Registracija",
   "vehicleExpenseKindOther": "Ostalo",
-
   "workItemsDefectPhoto": "Fotografija",
   "workItemsDefectPhotoAdded": "Fotografija priložena",
   "workItemsDefectPhotoHint": "Slika je obično ceo izveštaj.",
   "workItemsDefectPhotoFailed": "Nedostatak je prijavljen, ali fotografija nije priložena.",
   "workItemsAddPhoto": "Dodaj fotografiju",
-
   "failureOffline": "Nema veze sa serverom. Proverite mrežu i pokušajte ponovo.",
   "failureTimeout": "Server predugo ne odgovara. Pokušajte ponovo.",
   "failureCancelled": "Zahtev je otkazan.",
@@ -391,15 +475,31 @@
   "failureUnknown": "Došlo je do greške. Pokušajte ponovo.",
   "crashTitle": "Ovaj ekran ne može da se prikaže",
   "crashBody": "Nešto na ovom ekranu je otkazalo pri iscrtavanju. Vratite se nazad i pokušajte ponovo.",
-  "offlineDataNoticeTime": "Nema veze \u2014 prikazani su podaci sačuvani u {time}.",
-  "@offlineDataNoticeTime": { "placeholders": { "time": { "type": "String" } } },
-  "offlineDataNoticeDate": "Nema veze \u2014 prikazani su podaci sačuvani {date}.",
-  "@offlineDataNoticeDate": { "placeholders": { "date": { "type": "String" } } },
+  "offlineDataNoticeTime": "Nema veze — prikazani su podaci sačuvani u {time}.",
+  "@offlineDataNoticeTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineDataNoticeDate": "Nema veze — prikazani su podaci sačuvani {date}.",
+  "@offlineDataNoticeDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "offlineDataRetry": "Pokušaj ponovo",
   "toolLookUpHint": "Unesite QR kod odštampan na pločici alata.",
   "serverAddressTitle": "Adresa servera",
   "serverAddressHint": "Adresa servera vaše firme. Pitajte onoga ko ga je postavio; na istom Wi-Fi-ju kao server obično izgleda kao http://192.168.1.20:5000.",
   "serverAddressLabel": "Adresa",
   "serverAddressInvalid": "Unesite punu adresu, koja počinje sa http:// ili https://",
-  "commonSave": "Sačuvaj"
+  "commonSave": "Sačuvaj",
+  "shiftWaitingToSend": "Zabeleženo na ovom telefonu. Biće poslato kad bude signala.",
+  "@shiftWaitingToSend": {
+    "description": "Shown on the shift card when a clock action is queued offline."
+  }
 }

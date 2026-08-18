@@ -1,4 +1,5 @@
 using Construction.Application.Features.TimeEntries;
+using Construction.Application.Features.TimeEntries.Commands.ClockIn;
 using Construction.Application.Features.TimeEntries.Commands.ClockOut;
 using Construction.Application.Features.TimeEntries.Commands.CreateTimeEntry;
 using Construction.Application.Features.TimeEntries.Commands.ReviewTimeEntry;
@@ -160,7 +161,13 @@ public class TimeEntryValidatorTests
 
 public class ClockOutValidatorTests
 {
-    private readonly ClockOutCommandValidator _validator = new();
+    private readonly FixedDateTimeProvider _clock = new();
+    private readonly ClockOutCommandValidator _validator;
+
+    public ClockOutValidatorTests()
+    {
+        _validator = new ClockOutCommandValidator(_clock);
+    }
 
     [Fact]
     public void Accepts_a_plain_clock_out()
@@ -204,6 +211,112 @@ public class ClockOutValidatorTests
             _validator,
             new ClockOutCommand { Latitude = 120, Longitude = 20.4 },
             nameof(ClockOutCommand.Latitude));
+    }
+}
+
+/// <summary>
+/// What the API will believe when a handset stamps its own time.
+/// </summary>
+/// <remarks>
+/// This is the offline half of clocking in and out, and it is the one place
+/// in the system where a phone tells the server when something happened
+/// rather than the other way round. It has to be believed — the moment a
+/// worker started in a basement is not recoverable afterwards — and it has to
+/// be bounded, because what it feeds is what somebody gets paid.
+///
+/// The two edges below are the whole of that bargain: near enough to now that
+/// a wrong clock cannot move a shift, and recent enough that a phone found in
+/// a drawer cannot post last week.
+/// </remarks>
+public class OfflineClockValidatorTests
+{
+    private readonly FixedDateTimeProvider _clock = new();
+
+    private ClockInCommandValidator ClockIn => new(_clock);
+
+    private ClockOutCommandValidator ClockOut => new(_clock);
+
+    [Fact]
+    public void A_clock_in_without_a_time_is_the_ordinary_one()
+    {
+        // Null means "now, by the server's clock", which is every online
+        // client and was the only behaviour before offline queueing.
+        ValidationAssert.Valid(ClockIn, new ClockInCommand());
+    }
+
+    [Fact]
+    public void A_shift_that_started_this_morning_is_accepted()
+    {
+        ValidationAssert.Valid(
+            ClockIn,
+            new ClockInCommand
+            {
+                OccurredAt = _clock.UtcNow.AddHours(-3),
+            });
+    }
+
+    [Fact]
+    public void A_handset_a_few_minutes_fast_is_still_believed()
+    {
+        // Phone clocks drift, and a worker whose handset is two minutes ahead
+        // has not done anything wrong.
+        ValidationAssert.Valid(
+            ClockIn,
+            new ClockInCommand
+            {
+                OccurredAt = _clock.UtcNow.AddMinutes(2),
+            });
+    }
+
+    [Fact]
+    public void A_shift_starting_tomorrow_is_refused()
+    {
+        ValidationAssert.Invalid(
+            ClockIn,
+            new ClockInCommand { OccurredAt = _clock.UtcNow.AddDays(1) },
+            nameof(ClockInCommand.OccurredAt));
+    }
+
+    [Fact]
+    public void A_shift_from_the_week_before_is_refused()
+    {
+        // Past a day the shift is over and everyone has gone home. What the
+        // office needs then is a correction somebody signs off, not a
+        // timestamp arriving unannounced from a phone.
+        ValidationAssert.Invalid(
+            ClockIn,
+            new ClockInCommand { OccurredAt = _clock.UtcNow.AddDays(-7) },
+            nameof(ClockInCommand.OccurredAt));
+    }
+
+    [Fact]
+    public void The_same_two_edges_hold_for_clocking_out()
+    {
+        ValidationAssert.Valid(
+            ClockOut,
+            new ClockOutCommand { OccurredAt = _clock.UtcNow.AddHours(-1) });
+
+        ValidationAssert.Invalid(
+            ClockOut,
+            new ClockOutCommand { OccurredAt = _clock.UtcNow.AddDays(1) },
+            nameof(ClockOutCommand.OccurredAt));
+
+        ValidationAssert.Invalid(
+            ClockOut,
+            new ClockOutCommand { OccurredAt = _clock.UtcNow.AddDays(-7) },
+            nameof(ClockOutCommand.OccurredAt));
+    }
+
+    [Fact]
+    public void A_time_with_no_offset_is_read_as_UTC_rather_than_the_servers_zone()
+    {
+        // Otherwise the same request means different instants depending on
+        // which region the container happens to run in.
+        var unspecified = DateTime.SpecifyKind(
+            _clock.UtcNow.AddHours(-1),
+            DateTimeKind.Unspecified);
+
+        ValidationAssert.Valid(ClockIn, new ClockInCommand { OccurredAt = unspecified });
     }
 }
 

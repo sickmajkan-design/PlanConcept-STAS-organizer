@@ -45,20 +45,31 @@ class TimeEntryRepository extends ApiRepository {
     });
   }
 
+  /// Starts a shift.
+  ///
+  /// [occurredAt] is for a shift that began with no signal: the handset's own
+  /// moment, sent when the network comes back, because the server's clock read
+  /// on arrival would say whenever the phone found a bar rather than when the
+  /// worker started. [idempotencyKey] rides along with it so a reply lost on
+  /// the way back cannot open the shift twice.
   Future<TimeEntry> clockIn({
     String? projectId,
     String workType = 'Regular',
     String? note,
     double? latitude,
     double? longitude,
+    DateTime? occurredAt,
+    String? idempotencyKey,
   }) {
     return postJson(
       '/api/v1/timeentries/clock-in',
       TimeEntry.fromJson,
+      idempotencyKey: idempotencyKey,
       data: <String, dynamic>{
         'workType': workType,
         'projectId': ?projectId,
         'note': ?note,
+        'occurredAt': ?occurredAt?.toUtc().toIso8601String(),
         // Sent only as a pair: the API rejects half a position, and a
         // basement with no fix must still be able to start a shift.
         if (latitude != null && longitude != null) ...<String, dynamic>{
@@ -69,18 +80,26 @@ class TimeEntryRepository extends ApiRepository {
     );
   }
 
+  /// Ends the running shift. See [clockIn] for [occurredAt] and
+  /// [idempotencyKey] — the end of a shift is the more common of the two to
+  /// happen without signal, because that is when people are furthest inside a
+  /// building and in the most hurry to leave.
   Future<TimeEntry> clockOut({
     int breakMinutes = 0,
     String? note,
     double? latitude,
     double? longitude,
+    DateTime? occurredAt,
+    String? idempotencyKey,
   }) {
     return postJson(
       '/api/v1/timeentries/clock-out',
       TimeEntry.fromJson,
+      idempotencyKey: idempotencyKey,
       data: <String, dynamic>{
         'breakMinutes': breakMinutes,
         'note': ?note,
+        'occurredAt': ?occurredAt?.toUtc().toIso8601String(),
         if (latitude != null && longitude != null) ...<String, dynamic>{
           'latitude': latitude,
           'longitude': longitude,

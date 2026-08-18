@@ -2149,6 +2149,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save'**
   String get commonSave;
+
+  /// Shown on the shift card when a clock action is queued offline.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded on this phone. It will be sent when there is signal.'**
+  String get shiftWaitingToSend;
 }
 
 class _AppLocalizationsDelegate

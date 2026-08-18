@@ -1,8 +1,6 @@
 {
   "@@locale": "en",
-
   "appName": "Construction Organizer",
-
   "commonCancel": "Cancel",
   "commonRetry": "Try again",
   "commonLoadMore": "Load more",
@@ -18,7 +16,6 @@
   "commonAccount": "Account",
   "commonResources": "Resources",
   "commonAlerts": "Alerts",
-
   "authSignInSubtitle": "Sign in to your work account",
   "authEmail": "Email",
   "authPassword": "Password",
@@ -38,7 +35,6 @@
   "authPasswordChangedBody": "Your password has been updated. For security, all your signed-in devices have been signed out.",
   "authSignInAgain": "Sign in again",
   "authSessionExpired": "Your session has expired. Please sign in again.",
-
   "validationEmailRequired": "Email is required.",
   "validationEmailInvalid": "Enter a valid email address.",
   "validationPasswordRequired": "Password is required.",
@@ -47,7 +43,6 @@
   "validationPasswordDigit": "Password must contain a digit.",
   "validationPasswordsDiffer": "The passwords do not match.",
   "validationConfirmPassword": "Confirm the new password.",
-
   "errorNoConnection": "No connection to the server. Check your network and try again.",
   "errorTimeout": "The server took too long to respond. Please try again.",
   "errorCancelled": "The request was cancelled.",
@@ -58,14 +53,12 @@
   "errorBadRequest": "The request was rejected. Please check the entered data.",
   "errorConflict": "The action conflicts with the current data.",
   "errorUnknown": "Something went wrong. Please try again.",
-
   "navEmployees": "Employees",
   "navProjects": "Projects",
   "navVehicles": "Vehicles",
   "navTools": "Tools",
   "navMaterials": "Materials",
   "navNotifications": "Notifications",
-
   "employeesSearchHint": "Name, number, position…",
   "employeesEmpty": "No employees match your search.",
   "employeeNumber": "Employee number",
@@ -77,7 +70,6 @@
   "employeeEmployedSince": "Employed since",
   "employeeAppAccount": "App account",
   "employeeNoProjects": "Not assigned to any project",
-
   "projectsSearchHint": "Name, client, address…",
   "projectsEmpty": "No projects match your search.",
   "projectClient": "Client",
@@ -87,18 +79,29 @@
   "projectCoordinates": "Coordinates",
   "projectCrewEmpty": "Nobody assigned yet",
   "projectAssignedOn": "Assigned {date}",
-  "@projectAssignedOn": { "placeholders": { "date": { "type": "String" } } },
+  "@projectAssignedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "projectMemberSubtitle": "{position} · {number}",
   "@projectMemberSubtitle": {
-    "placeholders": { "position": { "type": "String" }, "number": { "type": "String" } }
+    "placeholders": {
+      "position": {
+        "type": "String"
+      },
+      "number": {
+        "type": "String"
+      }
+    }
   },
-
   "vehiclesSearchHint": "Brand, model, registration…",
   "vehiclesEmpty": "No vehicles match your search.",
   "vehicleRegistration": "Registration number",
   "vehicleFuelType": "Fuel type",
   "vehicleUnassigned": "Not assigned to any employee",
-
   "toolsSearchHint": "Name, category, serial number…",
   "toolsEmpty": "No tools match your search.",
   "toolSerialNumber": "Serial number",
@@ -111,10 +114,21 @@
   "toolLookUpByQr": "Look up by QR code",
   "toolByQrCode": "By QR code",
   "toolCategoryLine": "Category: {category}",
-  "@toolCategoryLine": { "placeholders": { "category": { "type": "String" } } },
+  "@toolCategoryLine": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
   "toolSerialLine": "Serial number: {serial}",
-  "@toolSerialLine": { "placeholders": { "serial": { "type": "String" } } },
-
+  "@toolSerialLine": {
+    "placeholders": {
+      "serial": {
+        "type": "String"
+      }
+    }
+  },
   "materialsSearchHint": "Name, warehouse…",
   "materialsEmpty": "No materials match your search.",
   "materialStock": "Stock",
@@ -124,7 +138,6 @@
   "materialWarehouseNote": "Warehouse stock, not tied to a project",
   "materialLastUpdated": "Last updated",
   "materialNoAssignment": "No assignment",
-
   "notificationsEmpty": "No notifications yet.",
   "notificationsUnreadEmpty": "Nothing unread.",
   "notificationsUnread": "Unread",
@@ -136,7 +149,6 @@
   "notificationsOpenSettings": "Open app settings",
   "notificationsTokenFailed": "Could not obtain a device token.",
   "notificationsFirebaseFailed": "Firebase messaging failed.",
-
   "locationSharingOn": "Location sharing is on",
   "locationSharingOnBody": "Your position is sent to the office every minute while you are signed in.",
   "locationStarting": "Starting location sharing…",
@@ -150,56 +162,66 @@
   "locationNoFix": "No GPS fix yet.",
   "locationReadFailed": "Could not read the device location.",
   "locationQueued": "Queued — {reason}",
-  "@locationQueued": { "placeholders": { "reason": { "type": "String" } } },
+  "@locationQueued": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "locationServiceNotificationTitle": "Sharing your location",
   "locationServiceNotificationBody": "The office can see which site you are on. Sign out to stop.",
   "locationServiceChannelName": "Location sharing",
   "locationPending": "{count, plural, =0{Everything sent} one{{count} reading waiting to be sent} other{{count} readings waiting to be sent}}",
-  "@locationPending": { "placeholders": { "count": { "type": "int" } } },
+  "@locationPending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "locationLastSent": "Last sent {when}.",
-  "@locationLastSent": { "placeholders": { "when": { "type": "String" } } },
+  "@locationLastSent": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
   "locationOpenAppSettings": "Open app settings",
-
   "roleSuperAdmin": "Super Admin",
   "roleAdmin": "Admin",
   "roleProjectManager": "Project Manager",
   "roleForeman": "Foreman",
   "roleWorker": "Worker",
-
   "employeeStatusActive": "Active",
   "employeeStatusOnLeave": "On leave",
   "employeeStatusSuspended": "Suspended",
   "employeeStatusTerminated": "Terminated",
-
   "projectStatusPlanned": "Planned",
   "projectStatusActive": "Active",
   "projectStatusOnHold": "On hold",
   "projectStatusCompleted": "Completed",
   "projectStatusCancelled": "Cancelled",
-
   "vehicleStatusAvailable": "Available",
   "vehicleStatusAssigned": "Assigned",
   "vehicleStatusInService": "In service",
   "vehicleStatusOutOfService": "Out of service",
-
   "toolStatusAvailable": "Available",
   "toolStatusAssigned": "Assigned",
   "toolStatusUnderRepair": "Under repair",
   "toolStatusLost": "Lost",
   "toolStatusRetired": "Retired",
-
   "fuelPetrol": "Petrol",
   "fuelDiesel": "Diesel",
   "fuelElectric": "Electric",
   "fuelHybrid": "Hybrid",
   "fuelLpg": "LPG",
-
   "notificationTypeEmployeeAssigned": "Employee assigned",
   "notificationTypeProjectAssigned": "Project assigned",
   "notificationTypeToolAssigned": "Tool assigned",
   "notificationTypeVehicleAssigned": "Vehicle assigned",
   "notificationTypeAnnouncement": "Announcement",
-
   "settingsLanguage": "Language",
   "settingsLanguageSerbian": "Srpski",
   "settingsLanguageEnglish": "English",
@@ -208,9 +230,24 @@
   "shiftRunning": "You are clocked in",
   "shiftOff": "You are not clocked in",
   "shiftSince": "Since {time}",
-  "@shiftSince": { "placeholders": { "time": { "type": "String" } } },
+  "@shiftSince": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "shiftElapsed": "{hours} h {minutes} min",
-  "@shiftElapsed": { "placeholders": { "hours": { "type": "int" }, "minutes": { "type": "int" } } },
+  "@shiftElapsed": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "shiftClockIn": "Clock in",
   "shiftClockOut": "Clock out",
   "shiftClockOutTitle": "End the shift",
@@ -225,16 +262,26 @@
   "shiftWorked": "Worked",
   "shiftBreak": "Break",
   "shiftBreakMinutes": "{count, plural, =0{No break} one{{count} minute} few{{count} minutes} other{{count} minutes}}",
-  "@shiftBreakMinutes": { "placeholders": { "count": { "type": "int" } } },
+  "@shiftBreakMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "shiftSentBack": "Sent back: {reason}",
-  "@shiftSentBack": { "placeholders": { "reason": { "type": "String" } } },
+  "@shiftSentBack": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "shiftNotAnEmployee": "This account is not linked to an employee, so it cannot record work time.",
-
   "timeEntryStatusInProgress": "Running",
   "timeEntryStatusSubmitted": "Awaiting review",
   "timeEntryStatusApproved": "Approved",
   "timeEntryStatusRejected": "Sent back",
-
   "workTypeRegular": "Regular",
   "workTypeOvertime": "Overtime",
   "workTypeWeekend": "Weekend",
@@ -244,7 +291,13 @@
   "attachmentsEmpty": "No documents on this record.",
   "attachmentsExpired": "Expired",
   "attachmentsExpiresOn": "Valid until {date}",
-  "@attachmentsExpiresOn": { "placeholders": { "date": { "type": "String" } } },
+  "@attachmentsExpiresOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "attachmentsOpenFailed": "The file could not be opened.",
   "attachmentsAddPhoto": "Add a photo",
   "attachmentsTakePhoto": "Take a photo",
@@ -253,9 +306,14 @@
   "attachmentsUploading": "Uploading…",
   "attachmentsUploaded": "Photo added.",
   "attachmentsTooLarge": "The photo is larger than the {limit} MB limit.",
-  "@attachmentsTooLarge": { "placeholders": { "limit": { "type": "int" } } },
+  "@attachmentsTooLarge": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
   "attachmentsNotAnImage": "Only a document or image can be attached.",
-
   "attachmentCategoryContract": "Contract",
   "attachmentCategoryCertificate": "Certificate",
   "attachmentCategoryMedicalCheck": "Medical check",
@@ -268,7 +326,13 @@
   "workItemsEmpty": "Nothing on your list.",
   "workItemsIncludeFinished": "Include finished",
   "workItemsDue": "Due {date}",
-  "@workItemsDue": { "placeholders": { "date": { "type": "String" } } },
+  "@workItemsDue": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "workItemsOverdue": "Overdue",
   "workItemsNoDueDate": "No deadline",
   "workItemsNoProject": "No site",
@@ -279,25 +343,26 @@
   "workItemsDefectSent": "Defect reported.",
   "workItemsDefectNeedsTitle": "Describe the problem in a few words.",
   "workItemsPhotoCount": "{count, plural, =0{No photos} one{{count} photo} other{{count} photos}}",
-  "@workItemsPhotoCount": { "placeholders": { "count": { "type": "int" } } },
-
+  "@workItemsPhotoCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "workItemKindTask": "Task",
   "workItemKindDefect": "Defect",
-
   "workItemStatusOpen": "Open",
   "workItemStatusInProgress": "In progress",
   "workItemStatusResolved": "Done, to check",
   "workItemStatusClosed": "Closed",
   "workItemStatusCancelled": "Cancelled",
-
   "workItemPriorityLow": "Low",
   "workItemPriorityNormal": "Normal",
   "workItemPriorityHigh": "High",
   "workItemPriorityUrgent": "Urgent",
-
   "navSchedule": "My schedule",
   "navAbsences": "Time off",
-
   "scheduleTitle": "My schedule",
   "scheduleEmpty": "Nothing scheduled for the next two weeks.",
   "scheduleToday": "Today",
@@ -305,10 +370,18 @@
   "scheduleContinues": "Runs on",
   "scheduleUpcoming": "Next two weeks",
   "scheduleDateRange": "{from} – {to}",
-  "@scheduleDateRange": { "placeholders": { "from": { "type": "String" }, "to": { "type": "String" } } },
+  "@scheduleDateRange": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
   "scheduleAway": "Away",
   "scheduleOnSite": "On site",
-
   "absencesTitle": "Time off",
   "absencesEmpty": "You have not asked for any time off.",
   "absencesPendingOnly": "Waiting for an answer",
@@ -322,29 +395,37 @@
   "absencesPickDates": "Pick the first and last day you will be away.",
   "absencesEndsBeforeStart": "The last day cannot be before the first.",
   "absencesDayCount": "{count, plural, one{{count} day} few{{count} days} other{{count} days}}",
-  "@absencesDayCount": { "placeholders": { "count": { "type": "int" } } },
+  "@absencesDayCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "absencesWithdraw": "Withdraw",
   "absencesWithdrawTitle": "Withdraw this request?",
   "absencesWithdrawBody": "Your supervisor will no longer see you asking for these days.",
   "absencesWithdrawn": "Request withdrawn.",
   "absencesGrantedLocked": "Granted time off has to be cancelled by your supervisor.",
   "absencesAnsweredBy": "Answered by {name}",
-  "@absencesAnsweredBy": { "placeholders": { "name": { "type": "String" } } },
-
+  "@absencesAnsweredBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "absenceTypeAnnualLeave": "Annual leave",
   "absenceTypeSickLeave": "Sick leave",
   "absenceTypeUnpaidLeave": "Unpaid leave",
   "absenceTypePaidSpecialLeave": "Paid special leave",
   "absenceTypeTraining": "Training",
   "absenceTypeOther": "Other",
-
   "absenceStatusRequested": "Waiting",
   "absenceStatusApproved": "Granted",
   "absenceStatusRejected": "Refused",
   "absenceStatusCancelled": "Withdrawn",
-
   "navVehicleExpenses": "Vehicle costs",
-
   "vehicleExpensesTitle": "Vehicle costs",
   "vehicleExpensesEmpty": "No costs recorded yet.",
   "vehicleExpensesFuelOnly": "Fill-ups only",
@@ -363,21 +444,24 @@
   "vehicleExpensesFuelNeedsLitres": "Say how many litres went in.",
   "vehicleExpensesOdometerHint": "Optional, but two readings are what give you consumption.",
   "vehicleExpensesPerLitre": "{price} per litre",
-  "@vehicleExpensesPerLitre": { "placeholders": { "price": { "type": "String" } } },
-
+  "@vehicleExpensesPerLitre": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "vehicleExpenseKindFuel": "Fuel",
   "vehicleExpenseKindService": "Service",
   "vehicleExpenseKindRepair": "Repair",
   "vehicleExpenseKindInsurance": "Insurance",
   "vehicleExpenseKindRegistration": "Registration",
   "vehicleExpenseKindOther": "Other",
-
   "workItemsDefectPhoto": "Photo",
   "workItemsDefectPhotoAdded": "Photo attached",
   "workItemsDefectPhotoHint": "The picture is usually the whole report.",
   "workItemsDefectPhotoFailed": "The defect was reported, but the photo could not be attached.",
   "workItemsAddPhoto": "Add a photo",
-
   "failureOffline": "No connection to the server. Check your network and try again.",
   "failureTimeout": "The server took too long to respond. Please try again.",
   "failureCancelled": "The request was cancelled.",
@@ -391,15 +475,31 @@
   "failureUnknown": "Something went wrong. Please try again.",
   "crashTitle": "This screen could not be displayed",
   "crashBody": "Something on this screen failed while it was being drawn. Go back and try again.",
-  "offlineDataNoticeTime": "No connection \u2014 showing data saved at {time}.",
-  "@offlineDataNoticeTime": { "placeholders": { "time": { "type": "String" } } },
-  "offlineDataNoticeDate": "No connection \u2014 showing data saved on {date}.",
-  "@offlineDataNoticeDate": { "placeholders": { "date": { "type": "String" } } },
+  "offlineDataNoticeTime": "No connection — showing data saved at {time}.",
+  "@offlineDataNoticeTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineDataNoticeDate": "No connection — showing data saved on {date}.",
+  "@offlineDataNoticeDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "offlineDataRetry": "Try again",
   "toolLookUpHint": "Enter the QR code printed on the tool's tag.",
   "serverAddressTitle": "Server address",
   "serverAddressHint": "The address of your organisation's server. Ask whoever set it up; on the same Wi-Fi as the server it usually looks like http://192.168.1.20:5000.",
   "serverAddressLabel": "Address",
   "serverAddressInvalid": "Enter a full address, starting with http:// or https://",
-  "commonSave": "Save"
+  "commonSave": "Save",
+  "shiftWaitingToSend": "Recorded on this phone. It will be sent when there is signal.",
+  "@shiftWaitingToSend": {
+    "description": "Shown on the shift card when a clock action is queued offline."
+  }
 }

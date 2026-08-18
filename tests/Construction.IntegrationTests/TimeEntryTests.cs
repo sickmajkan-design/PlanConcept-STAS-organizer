@@ -156,6 +156,162 @@ public class TimeEntryTests : IntegrationTestBase
         }));
     }
 
+    // ---- clocking in and out with no signal ----------------------------
+    //
+    // A worker starts at seven in a basement, or finishes in a lift shaft with
+    // one bar. The moment they started or stopped is the one thing this system
+    // cannot work out afterwards, so the handset stamps it and sends it when
+    // the signal comes back. These assert that the moment survives the journey
+    // — the whole point of the feature — and that it is bounded on arrival.
+
+    [Fact]
+    public async Task A_shift_started_with_no_signal_keeps_the_moment_it_started()
+    {
+        var (employee, user) = await InScope(SeedWorkerAsync);
+        var startedInTheBasement = DateTime.UtcNow.AddHours(-2);
+
+        var entry = await InScope(scope =>
+        {
+            ActAs(scope, user, employee.Id);
+
+            // The request arrives two hours late, when the phone found signal.
+            scope.Clock.FreezeAt(DateTime.UtcNow);
+
+            return scope.Send(new ClockInCommand
+            {
+                OccurredAt = startedInTheBasement,
+            });
+        });
+
+        // Not "now". If this recorded the arrival time instead, every shift
+        // begun out of signal would be short by however long the outage was.
+        Assert.Equal(
+            startedInTheBasement,
+            entry.StartedAt,
+            TimeSpan.FromSeconds(1));
+    }
+
+    [Fact]
+    public async Task A_whole_shift_recorded_offline_is_measured_by_the_handset()
+    {
+        var (employee, user) = await InScope(SeedWorkerAsync);
+        var start = DateTime.UtcNow.AddHours(-9);
+        var end = DateTime.UtcNow.AddHours(-1);
+
+        await InScope(scope =>
+        {
+            ActAs(scope, user, employee.Id);
+            scope.Clock.FreezeAt(DateTime.UtcNow);
+            return scope.Send(new ClockInCommand { OccurredAt = start });
+        });
+
+        var entry = await InScope(scope =>
+        {
+            ActAs(scope, user, employee.Id);
+            scope.Clock.FreezeAt(DateTime.UtcNow);
+            return scope.Send(new ClockOutCommand
+            {
+                OccurredAt = end,
+                BreakMinutes = 30,
+            });
+        });
+
+        // Eight hours between the handset's two stamps, less the break — and
+        // nothing to do with when either request reached the server.
+        Assert.Equal(450, entry.WorkedMinutes);
+    }
+
+    [Fact]
+    public async Task A_shift_cannot_be_ended_before_it_began()
+    {
+        var (employee, user) = await InScope(SeedWorkerAsync);
+
+        await InScope(scope =>
+        {
+            ActAs(scope, user, employee.Id);
+            return scope.Send(new ClockInCommand());
+        });
+
+        // A handset whose clock is behind the server's, or a queued clock-out
+        // replayed against a shift somebody else opened later. Storing it
+        // would give the entry a negative length that every hours total
+        // downstream would then carry.
+        await Assert.ThrowsAsync<ConflictException>(() => InScope(scope =>
+        {
+            ActAs(scope, user, employee.Id);
+            return scope.Send(new ClockOutCommand
+            {
+                OccurredAt = DateTime.UtcNow.AddHours(-3),
+            });
+        }));
+    }
+
+    [Fact]
+    public async Task A_shift_stamped_last_week_is_refused()
+    {
+        var (employee, user) = await InScope(SeedWorkerAsync);
+
+        // Past a day, the shift is over and everyone has gone home. What the
+        // office needs is a correction somebody signs off, not a stale
+        // timestamp arriving from a phone that was in a drawer.
+        await Assert.ThrowsAsync<ValidationException>(() => InScope(scope =>
+        {
+            ActAs(scope, user, employee.Id);
+            return scope.Send(new ClockInCommand
+            {
+                OccurredAt = DateTime.UtcNow.AddDays(-7),
+            });
+        }));
+    }
+
+    [Fact]
+    public async Task A_shift_stamped_in_the_future_is_refused()
+    {
+        var (employee, user) = await InScope(SeedWorkerAsync);
+
+        await Assert.ThrowsAsync<ValidationException>(() => InScope(scope =>
+        {
+            ActAs(scope, user, employee.Id);
+            return scope.Send(new ClockInCommand
+            {
+                OccurredAt = DateTime.UtcNow.AddHours(2),
+            });
+        }));
+    }
+
+    [Fact]
+    public async Task An_offline_shift_still_cannot_overlap_one_already_recorded()
+    {
+        var (employee, user) = await InScope(SeedWorkerAsync);
+        var start = DateTime.UtcNow.AddHours(-6);
+
+        await InScope(scope =>
+        {
+            ActAs(scope, user, employee.Id);
+            scope.Clock.FreezeAt(start);
+            return scope.Send(new ClockInCommand());
+        });
+
+        await InScope(scope =>
+        {
+            ActAs(scope, user, employee.Id);
+            scope.Clock.FreezeAt(start.AddHours(4));
+            return scope.Send(new ClockOutCommand());
+        });
+
+        // Backdating past a shift that is already on record is exactly the
+        // case the overlap rule exists for, and being offline is not a reason
+        // to be let through it.
+        await Assert.ThrowsAsync<ConflictException>(() => InScope(scope =>
+        {
+            ActAs(scope, user, employee.Id);
+            return scope.Send(new ClockInCommand
+            {
+                OccurredAt = start.AddHours(1),
+            });
+        }));
+    }
+
     [Fact]
     public async Task An_account_with_no_employee_record_cannot_record_time()
     {

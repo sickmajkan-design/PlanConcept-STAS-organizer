@@ -30,13 +30,38 @@ public record ClockInCommand : IRequest<TimeEntryDto>
     public double? Latitude { get; init; }
 
     public double? Longitude { get; init; }
+
+    /// <summary>
+    /// When the handset says the shift began (UTC). Null means now.
+    /// </summary>
+    /// <remarks>
+    /// For the phone that had no signal at seven. The app records the moment
+    /// locally and sends it when the network comes back, which is the only way
+    /// the start of that shift can be right: the server's own clock, read at
+    /// the moment the request finally arrives, would say half past nine.
+    ///
+    /// It is a claim by a device, so it is bounded rather than believed
+    /// outright — see <see cref="TimeEntryRules.IsAcceptableDeviceTime"/> —
+    /// and the entry records the gap between the two clocks, so a supervisor
+    /// reviewing the timesheet can see which rows the handset stamped.
+    /// </remarks>
+    public DateTime? OccurredAt { get; init; }
 }
 
 public class ClockInCommandValidator : AbstractValidator<ClockInCommand>
 {
-    public ClockInCommandValidator()
+    public ClockInCommandValidator(IDateTimeProvider dateTimeProvider)
     {
         RuleFor(x => x.WorkType).IsInEnum();
+
+        RuleFor(x => x.OccurredAt!.Value)
+            .Must(t => TimeEntryRules.IsAcceptableDeviceTime(t, dateTimeProvider.UtcNow))
+            .WithMessage(
+                "The time this shift started is either in the future or more than " +
+                $"{TimeEntryRules.MaxOfflineDelay.TotalHours:0} hours ago. " +
+                "A supervisor has to record it.")
+            .OverridePropertyName(nameof(ClockInCommand.OccurredAt))
+            .When(x => x.OccurredAt is not null);
 
         RuleFor(x => x.Note).MaximumLength(1000);
 
@@ -105,7 +130,12 @@ public class ClockInCommandHandler : IRequestHandler<ClockInCommand, TimeEntryDt
             }
         }
 
-        var startedAt = _dateTimeProvider.UtcNow;
+        // The handset's moment when it sent one, this server's otherwise. The
+        // validator has already refused anything outside the window, so what
+        // arrives here is either now or a shift that started within the day.
+        var startedAt = request.OccurredAt is { } occurred
+            ? TimeEntryRules.AsUtc(occurred)
+            : _dateTimeProvider.UtcNow;
 
         await TimeEntryRules.EnsureNoOverlapAsync(
             _context, employeeId, startedAt, null, null, cancellationToken);

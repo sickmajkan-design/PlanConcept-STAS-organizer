@@ -1129,4 +1129,8 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get commonSave => 'Sačuvaj';
+
+  @override
+  String get shiftWaitingToSend =>
+      'Zabeleženo na ovom telefonu. Biće poslato kad bude signala.';
 }
