@@ -9,9 +9,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Construction.Application.Features.Costs.Queries.GetCostRecords;
 
-// The three ledgers behind the reports. Grouped in one file because they are
-// the same query three times over — filter by owner and date, page, project —
-// and splitting them would spread one shape across three folders.
+// The four ledgers behind the reports. Grouped in one file because they are
+// the same query several times over — filter by owner and date, page,
+// project — and splitting them would spread one shape across several folders.
 
 public record GetEmployeeRatesQuery : IRequest<PagedList<EmployeeRateDto>>
 {
@@ -255,6 +255,99 @@ public class GetVehicleExpensesQueryHandler
                 .OrderByDescending(e => e.OccurredOn)
                 .ThenByDescending(e => e.CreatedAt)
                 .Select(VehicleExpenseMapping.Projection),
+            request.PageNumber,
+            request.PageSize,
+            cancellationToken);
+    }
+}
+
+public record GetFinanceEntriesQuery : IRequest<PagedList<FinanceEntryDto>>
+{
+    public int PageNumber { get; init; } = 1;
+
+    public int PageSize { get; init; } = 20;
+
+    public Guid? EmployeeId { get; init; }
+
+    public Guid? ProjectId { get; init; }
+
+    public FinanceEntryKind? Kind { get; init; }
+
+    public DateOnly? From { get; init; }
+
+    public DateOnly? To { get; init; }
+}
+
+public class GetFinanceEntriesQueryValidator : AbstractValidator<GetFinanceEntriesQuery>
+{
+    public GetFinanceEntriesQueryValidator()
+    {
+        RuleFor(x => x.PageNumber).GreaterThan(0);
+        RuleFor(x => x.PageSize).InclusiveBetween(1, 200);
+
+        RuleFor(x => x.To)
+            .GreaterThanOrEqualTo(x => x.From!.Value)
+            .When(x => x.From is not null && x.To is not null);
+    }
+}
+
+public class GetFinanceEntriesQueryHandler
+    : IRequestHandler<GetFinanceEntriesQuery, PagedList<FinanceEntryDto>>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+
+    public GetFinanceEntriesQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+    }
+
+    public async Task<PagedList<FinanceEntryDto>> Handle(
+        GetFinanceEntriesQuery request,
+        CancellationToken cancellationToken)
+    {
+        // Refused rather than narrowed, like pay rates: there is no useful
+        // subset of "everyone's pay" to hand a foreman.
+        if (!CostRules.CanSeeLabourCost(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not see pay entries.");
+        }
+
+        var query = _context.FinanceEntries.AsNoTracking();
+
+        if (request.EmployeeId is { } employeeId)
+        {
+            query = query.Where(e => e.EmployeeId == employeeId);
+        }
+
+        if (request.ProjectId is { } projectId)
+        {
+            query = query.Where(e => e.ProjectId == projectId);
+        }
+
+        if (request.Kind is { } kind)
+        {
+            query = query.Where(e => e.Kind == kind);
+        }
+
+        if (request.From is { } from)
+        {
+            query = query.Where(e => e.OccurredOn >= from);
+        }
+
+        if (request.To is { } to)
+        {
+            query = query.Where(e => e.OccurredOn <= to);
+        }
+
+        return await PagedList<FinanceEntryDto>.CreateAsync(
+            query
+                .OrderByDescending(e => e.OccurredOn)
+                .ThenByDescending(e => e.CreatedAt)
+                .Select(FinanceEntryMapping.Projection),
             request.PageNumber,
             request.PageSize,
             cancellationToken);

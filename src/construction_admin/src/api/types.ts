@@ -635,6 +635,41 @@ export interface VehicleExpenseInput {
   note?: string | null;
 }
 
+export const financeEntryKinds = [
+  'WorkerPaymentHourly',
+  'WorkerPaymentFixed',
+  'WorkerPaymentDaily',
+] as const;
+
+export type FinanceEntryKind = (typeof financeEntryKinds)[number];
+
+export interface FinanceEntry {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  kind: FinanceEntryKind;
+  amount: number;
+  /** `YYYY-MM-DD`. */
+  occurredOn: string;
+  projectId: string | null;
+  projectName: string | null;
+  /** Only ever set for `WorkerPaymentHourly`. */
+  hoursWorked: number | null;
+  note: string | null;
+  recordedByName: string | null;
+  createdAt: string;
+}
+
+export interface FinanceEntryInput {
+  employeeId: string;
+  kind: FinanceEntryKind;
+  amount: number;
+  occurredOn?: string | null;
+  projectId?: string | null;
+  hoursWorked?: number | null;
+  note?: string | null;
+}
+
 export interface ProjectCostRow {
   projectId: string;
   projectName: string;

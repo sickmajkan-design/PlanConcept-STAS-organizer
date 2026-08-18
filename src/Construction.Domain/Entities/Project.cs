@@ -40,4 +40,6 @@ public class Project : BaseEntity, ISoftDeletable, IAuditable
     public ICollection<WorkItem> WorkItems { get; set; } = new List<WorkItem>();
 
     public ICollection<MaterialMovement> MaterialMovements { get; set; } = new List<MaterialMovement>();
+
+    public ICollection<FinanceEntry> FinanceEntries { get; set; } = new List<FinanceEntry>();
 }

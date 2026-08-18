@@ -120,6 +120,11 @@ const VehicleExpensesPage = lazy(() =>
 const RatesPage = lazy(() =>
   import('./pages/costs/RatesPage').then((m) => ({ default: m.RatesPage })),
 );
+const FinanceEntriesPage = lazy(() =>
+  import('./pages/costs/FinanceEntriesPage').then((m) => ({
+    default: m.FinanceEntriesPage,
+  })),
+);
 const ExpiringDocumentsPage = lazy(() =>
   import('./pages/documents/ExpiringDocumentsPage').then((m) => ({
     default: m.ExpiringDocumentsPage,
@@ -240,6 +245,7 @@ function Layout() {
                 than account administration: project managers price jobs. */}
             <Route element={<RequireLabourCostAccess />}>
               <Route path={paths.rates} element={<RatesPage />} />
+              <Route path={paths.financeEntries} element={<FinanceEntriesPage />} />
             </Route>
 
             {/* Account administration is Admin and above, a narrower set than

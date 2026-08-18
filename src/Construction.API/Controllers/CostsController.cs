@@ -3,6 +3,7 @@ using Construction.API.Filters;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.Costs;
 using Construction.Application.Features.Costs.Commands.DeleteCostRecord;
+using Construction.Application.Features.Costs.Commands.RecordFinanceEntry;
 using Construction.Application.Features.Costs.Commands.RecordMaterialMovement;
 using Construction.Application.Features.Costs.Commands.RecordVehicleExpense;
 using Construction.Application.Features.Costs.Commands.SetEmployeeRate;
@@ -164,6 +165,52 @@ public class CostsController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         await Mediator.Send(new DeleteVehicleExpenseCommand(id), cancellationToken);
+        return NoContent();
+    }
+
+    // ---- finance entries ---------------------------------------------------
+
+    /// <summary>Lists pay entries. Refused below Project Manager.</summary>
+    [HttpGet("/api/v{version:apiVersion}/finance-entries")]
+    [HttpGet("/api/finance-entries")]
+    [ProducesResponseType(typeof(PagedList<FinanceEntryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<PagedList<FinanceEntryDto>>> GetFinanceEntries(
+        [FromQuery] GetFinanceEntriesQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>Records what an employee is owed for a stretch of work.</summary>
+    [HttpPost("/api/v{version:apiVersion}/finance-entries")]
+    [HttpPost("/api/finance-entries")]
+    [Idempotent]
+    [ProducesResponseType(typeof(FinanceEntryDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<FinanceEntryDto>> RecordFinanceEntry(
+        RecordFinanceEntryCommand command,
+        CancellationToken cancellationToken)
+    {
+        var entry = await Mediator.Send(command, cancellationToken);
+
+        return CreatedAtAction(nameof(GetFinanceEntries), new { id = entry.Id }, entry);
+    }
+
+    /// <summary>Removes a pay entry.</summary>
+    [HttpDelete("/api/v{version:apiVersion}/finance-entries/{id:guid}")]
+    [HttpDelete("/api/finance-entries/{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteFinanceEntry(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new DeleteFinanceEntryCommand(id), cancellationToken);
         return NoContent();
     }
 

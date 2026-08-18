@@ -4,6 +4,9 @@ import { listParams } from './resource';
 import type {
   EmployeeRate,
   EmployeeRateInput,
+  FinanceEntry,
+  FinanceEntryInput,
+  FinanceEntryKind,
   ListQuery,
   MaterialMovement,
   MaterialMovementInput,
@@ -41,6 +44,15 @@ export interface VehicleExpenseListQuery extends ListQuery {
 export interface CostReportQuery {
   from: string;
   to: string;
+}
+
+export interface FinanceEntryListQuery extends ListQuery {
+  employeeId?: string;
+  projectId?: string;
+  kind?: FinanceEntryKind;
+  /** `YYYY-MM-DD`. */
+  from?: string;
+  to?: string;
 }
 
 /**
@@ -109,6 +121,26 @@ export const costsApi = {
 
     remove: (id: string) =>
       request<void>({ method: 'DELETE', url: `/api/v1/vehicle-expenses/${id}` }),
+  },
+
+  financeEntries: {
+    list: (query: FinanceEntryListQuery) =>
+      request<PagedList<FinanceEntry>>({
+        method: 'GET',
+        url: '/api/v1/finance-entries',
+        params: listParams(query),
+      }),
+
+    record: (input: FinanceEntryInput, idempotencyKey?: string) =>
+      request<FinanceEntry>({
+        method: 'POST',
+        url: '/api/v1/finance-entries',
+        data: input,
+        headers: idempotencyHeaders(idempotencyKey),
+      }),
+
+    remove: (id: string) =>
+      request<void>({ method: 'DELETE', url: `/api/v1/finance-entries/${id}` }),
   },
 
   projectReport: (query: CostReportQuery & { projectId?: string }) =>

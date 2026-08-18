@@ -56,4 +56,6 @@ public class Employee : BaseEntity, ISoftDeletable, IAuditable
     public ICollection<Absence> Absences { get; set; } = new List<Absence>();
 
     public ICollection<EmployeeRate> Rates { get; set; } = new List<EmployeeRate>();
+
+    public ICollection<FinanceEntry> FinanceEntries { get; set; } = new List<FinanceEntry>();
 }

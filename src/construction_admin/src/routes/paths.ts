@@ -46,6 +46,7 @@ export const paths = {
   stockMovements: '/stock-movements',
   vehicleExpenses: '/vehicle-expenses',
   rates: '/rates',
+  financeEntries: '/finance-entries',
 
   expiringDocuments: '/documents/expiring',
 

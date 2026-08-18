@@ -15,6 +15,7 @@ import {
   LocalGasStationOutlined,
   SwapVertOutlined,
   RequestQuoteOutlined,
+  ReceiptLongOutlined,
   MenuOutlined,
   NotificationsNoneOutlined,
   PasswordOutlined,
@@ -111,6 +112,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
     ...(canSeeLabourCost(user)
       ? [
           { label: t('nav.rates'), path: paths.rates, icon: <RequestQuoteOutlined /> },
+          {
+            label: t('nav.financeEntries'),
+            path: paths.financeEntries,
+            icon: <ReceiptLongOutlined />,
+          },
         ]
       : []),
     ...(canAdministerAccounts(user)

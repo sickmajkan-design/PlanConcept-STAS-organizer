@@ -3,11 +3,13 @@ import {
   costsApi,
   type CostReportQuery,
   type EmployeeRateListQuery,
+  type FinanceEntryListQuery,
   type MaterialMovementListQuery,
   type VehicleExpenseListQuery,
 } from '../../api/costs';
 import type {
   EmployeeRateInput,
+  FinanceEntryInput,
   MaterialMovementInput,
   VehicleExpenseInput,
 } from '../../api/types';
@@ -17,6 +19,7 @@ import { materialKeys } from '../materials/useMaterials';
 export const rateKeys = createResourceKeys<EmployeeRateListQuery>('employeeRates');
 export const movementKeys = createResourceKeys<MaterialMovementListQuery>('materialMovements');
 export const vehicleExpenseKeys = createResourceKeys<VehicleExpenseListQuery>('vehicleExpenses');
+export const financeEntryKeys = createResourceKeys<FinanceEntryListQuery>('financeEntries');
 
 export const costReportKeys = {
   all: ['costReports'] as const,
@@ -91,6 +94,26 @@ export function useRecordVehicleExpense() {
 export function useDeleteVehicleExpense() {
   return useResourceMutation((id: string) => costsApi.vehicleExpenses.remove(id), [
     vehicleExpenseKeys.all,
+    costReportKeys.all,
+  ]);
+}
+
+// ---- finance entries --------------------------------------------------------
+
+export function useFinanceEntriesQuery(query: FinanceEntryListQuery) {
+  return useResourceList(financeEntryKeys, costsApi.financeEntries.list, query);
+}
+
+export function useRecordFinanceEntry() {
+  return useResourceMutation(
+    (input: FinanceEntryInput, key: string) => costsApi.financeEntries.record(input, key),
+    [financeEntryKeys.all, costReportKeys.all],
+  );
+}
+
+export function useDeleteFinanceEntry() {
+  return useResourceMutation((id: string) => costsApi.financeEntries.remove(id), [
+    financeEntryKeys.all,
     costReportKeys.all,
   ]);
 }

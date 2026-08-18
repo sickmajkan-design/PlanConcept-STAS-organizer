@@ -85,6 +85,33 @@ public class VehicleExpenseDto
     public DateTime CreatedAt { get; init; }
 }
 
+public class FinanceEntryDto
+{
+    public Guid Id { get; init; }
+
+    public Guid EmployeeId { get; init; }
+
+    public string EmployeeName { get; init; } = null!;
+
+    public FinanceEntryKind Kind { get; init; }
+
+    public decimal Amount { get; init; }
+
+    public DateOnly OccurredOn { get; init; }
+
+    public Guid? ProjectId { get; init; }
+
+    public string? ProjectName { get; init; }
+
+    public decimal? HoursWorked { get; init; }
+
+    public string? Note { get; init; }
+
+    public string? RecordedByName { get; init; }
+
+    public DateTime CreatedAt { get; init; }
+}
+
 /// <summary>How an <see cref="EmployeeRate"/> becomes an <see cref="EmployeeRateDto"/>.</summary>
 /// <remarks>See <c>EmployeeMapping</c> for the convention these all follow.</remarks>
 public static class EmployeeRateMapping
@@ -167,4 +194,29 @@ public static class VehicleExpenseMapping
     private static readonly Func<VehicleExpense, VehicleExpenseDto> Compiled = Projection.Compile();
 
     public static VehicleExpenseDto ToDto(VehicleExpense expense) => Compiled(expense);
+}
+
+/// <summary>How a <see cref="FinanceEntry"/> becomes a <see cref="FinanceEntryDto"/>.</summary>
+public static class FinanceEntryMapping
+{
+    public static readonly Expression<Func<FinanceEntry, FinanceEntryDto>> Projection =
+        entry => new FinanceEntryDto
+        {
+            Id = entry.Id,
+            EmployeeId = entry.EmployeeId,
+            EmployeeName = entry.Employee.FirstName + " " + entry.Employee.LastName,
+            Kind = entry.Kind,
+            Amount = entry.Amount,
+            OccurredOn = entry.OccurredOn,
+            ProjectId = entry.ProjectId,
+            ProjectName = entry.Project != null ? entry.Project.Name : null,
+            HoursWorked = entry.HoursWorked,
+            Note = entry.Note,
+            RecordedByName = entry.RecordedByUser != null ? entry.RecordedByUser.Email : null,
+            CreatedAt = entry.CreatedAt,
+        };
+
+    private static readonly Func<FinanceEntry, FinanceEntryDto> Compiled = Projection.Compile();
+
+    public static FinanceEntryDto ToDto(FinanceEntry entry) => Compiled(entry);
 }

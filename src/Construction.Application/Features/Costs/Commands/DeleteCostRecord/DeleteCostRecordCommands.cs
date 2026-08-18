@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Construction.Application.Features.Costs.Commands.DeleteCostRecord;
 
-// Removing a recorded amount, for the three ledgers. Each narrows the query
+// Removing a recorded amount, for the four ledgers. Each narrows the query
 // before reading, so a record belonging to something the caller cannot see
 // answers 404 rather than 403 — a 403 would confirm that a guessed id is real.
 
@@ -147,5 +147,38 @@ public class DeleteMaterialMovementCommandHandler
                 await _context.SaveChangesAsync(token);
             },
             cancellationToken);
+    }
+}
+
+public record DeleteFinanceEntryCommand(Guid Id) : IRequest;
+
+public class DeleteFinanceEntryCommandHandler : IRequestHandler<DeleteFinanceEntryCommand>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+
+    public DeleteFinanceEntryCommandHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+    }
+
+    public async Task Handle(
+        DeleteFinanceEntryCommand request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanSetLabourRate(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not remove pay entries.");
+        }
+
+        var entry = await _context.FinanceEntries
+            .FirstOrDefaultAsync(e => e.Id == request.Id, cancellationToken)
+            ?? throw new NotFoundException(nameof(FinanceEntry), request.Id);
+
+        _context.FinanceEntries.Remove(entry);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 }
