@@ -105,9 +105,15 @@ public class ScheduleTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task The_same_person_twice_on_one_site_over_the_same_days_is_refused()
+    public async Task Posting_someone_to_a_site_they_are_already_on_extends_it()
     {
-        // Always a data-entry mistake.
+        // This used to be refused as a data-entry mistake, and refusing it was
+        // wrong. A day is the smallest unit a posting has, so "taken off this
+        // morning, needs to go back on this afternoon" and "assigned twice by
+        // accident" are the same request at this resolution — and the office
+        // almost always means keep them on. So the posting already there is
+        // stretched to cover what was asked, rather than a second one being
+        // created beside it.
         var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
         var project = await InScope(scope => TestData.SeedProjectAsync(scope));
 
@@ -118,12 +124,49 @@ public class ScheduleTests : IntegrationTestBase
                 EndDate = Monday.AddDays(4)
             }));
 
-        await Assert.ThrowsAsync<ConflictException>(() => InScope(scope => scope.Send(
+        await InScope(scope => scope.Send(
             new AssignEmployeeToProjectCommand(employee.Id, project.Id)
             {
                 StartDate = Monday.AddDays(2),
                 EndDate = Monday.AddDays(6)
-            })));
+            }));
+
+        var postings = await InScope(scope => scope.Db.EmployeeProjects
+            .Where(ep => ep.EmployeeId == employee.Id && ep.ProjectId == project.Id)
+            .ToListAsync());
+
+        var posting = Assert.Single(postings);
+
+        // The start is not dragged forward. Somebody has been on this site
+        // since Monday and the second request does not unsay that.
+        Assert.Equal(Monday, posting.StartDate);
+        Assert.Equal(Monday.AddDays(6), posting.EndDate);
+    }
+
+    [Fact]
+    public async Task An_earlier_start_on_a_posting_already_there_moves_it_back()
+    {
+        var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+
+        await InScope(scope => scope.Send(
+            new AssignEmployeeToProjectCommand(employee.Id, project.Id)
+            {
+                StartDate = Monday.AddDays(2),
+                EndDate = Monday.AddDays(4)
+            }));
+
+        await InScope(scope => scope.Send(
+            new AssignEmployeeToProjectCommand(employee.Id, project.Id)
+            {
+                StartDate = Monday,
+                EndDate = Monday.AddDays(4)
+            }));
+
+        var posting = await InScope(scope => scope.Db.EmployeeProjects
+            .SingleAsync(ep => ep.EmployeeId == employee.Id && ep.ProjectId == project.Id));
+
+        Assert.Equal(Monday, posting.StartDate);
     }
 
     [Fact]
