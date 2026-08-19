@@ -48,16 +48,22 @@ public class GetAssignmentBoardQueryHandler
                 FullName = e.FirstName + " " + e.LastName,
                 EmployeeNumber = e.EmployeeNumber,
                 Position = e.Position,
-                // Open-ended, not "covers today": removing someone closes
-                // their posting off as of today rather than deleting it, so
-                // it still legitimately covers today's date — but the board
-                // is a staffing tool, not a timesheet, and a posting the
-                // office just closed has to disappear from it immediately,
-                // not tomorrow. EndDate == null is exactly "still posted
-                // there with no removal recorded."
-                ProjectIds = e.ProjectAssignments
-                    .Where(a => a.StartDate <= today && a.EndDate == null)
-                    .Select(a => a.ProjectId)
+                // Not yet ended, as of right now — null covers the usual
+                // open-ended posting, and > today covers one the office
+                // planned an end date for that just hasn't arrived. What this
+                // excludes is a posting closed today or earlier: removing
+                // someone sets EndDate = today rather than deleting the row,
+                // so ">= today" would still count something the office just
+                // closed, and the board would keep showing them there until
+                // tomorrow.
+                Postings = e.ProjectAssignments
+                    .Where(a => a.StartDate <= today && (a.EndDate == null || a.EndDate > today))
+                    .Select(a => new AssignmentBoardPostingDto
+                    {
+                        ProjectId = a.ProjectId,
+                        StartDate = a.StartDate,
+                        EndDate = a.EndDate
+                    })
                     .ToList()
             })
             .ToListAsync(cancellationToken);

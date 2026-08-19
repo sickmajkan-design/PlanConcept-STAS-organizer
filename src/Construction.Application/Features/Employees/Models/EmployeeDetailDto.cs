@@ -7,11 +7,15 @@ public class EmployeeDetailDto : EmployeeDto
 {
     public bool HasUserAccount { get; init; }
 
-    public IReadOnlyCollection<EmployeeProjectAssignmentDto> Projects { get; init; } =
+    // Settable rather than init: the handler re-splits these after the
+    // projection runs, to fix up a posting with a future end date that the
+    // SQL-level split (no request-scoped "today" to compare against) cannot
+    // place correctly. See GetEmployeeByIdQueryHandler.
+    public IReadOnlyCollection<EmployeeProjectAssignmentDto> Projects { get; set; } =
         Array.Empty<EmployeeProjectAssignmentDto>();
 
     /// <summary>Postings that have ended, most recently closed first.</summary>
-    public IReadOnlyCollection<EmployeeProjectAssignmentDto> PastProjects { get; init; } =
+    public IReadOnlyCollection<EmployeeProjectAssignmentDto> PastProjects { get; set; } =
         Array.Empty<EmployeeProjectAssignmentDto>();
 }
 

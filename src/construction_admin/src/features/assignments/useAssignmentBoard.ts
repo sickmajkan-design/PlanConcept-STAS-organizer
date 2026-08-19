@@ -24,12 +24,17 @@ export function useAssignmentBoardQuery() {
  */
 const boardCaches = [assignmentBoardKeys.all, employeeKeys.all, projectKeys.all];
 
+export interface AssignOnBoardInput {
+  employeeId: string;
+  projectId: string;
+  startDate?: string | null;
+  endDate?: string | null;
+}
+
 export function useAssignOnBoard() {
   return useResourceMutation(
-    (
-      { employeeId, projectId }: { employeeId: string; projectId: string },
-      key: string,
-    ) => employeesApi.assignToProject(employeeId, projectId, key),
+    ({ employeeId, projectId, startDate, endDate }: AssignOnBoardInput, key: string) =>
+      employeesApi.assignToProject(employeeId, projectId, key, { startDate, endDate }),
     boardCaches,
   );
 }

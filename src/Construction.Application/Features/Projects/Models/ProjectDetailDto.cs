@@ -5,11 +5,13 @@ namespace Construction.Application.Features.Projects.Models;
 
 public class ProjectDetailDto : ProjectDto
 {
-    public IReadOnlyCollection<ProjectEmployeeDto> Employees { get; init; } =
+    // Settable rather than init — see the matching note on
+    // EmployeeDetailDto.Projects.
+    public IReadOnlyCollection<ProjectEmployeeDto> Employees { get; set; } =
         Array.Empty<ProjectEmployeeDto>();
 
     /// <summary>Crew whose posting here has ended, most recently closed first.</summary>
-    public IReadOnlyCollection<ProjectEmployeeDto> PastEmployees { get; init; } =
+    public IReadOnlyCollection<ProjectEmployeeDto> PastEmployees { get; set; } =
         Array.Empty<ProjectEmployeeDto>();
 }
 

@@ -24,8 +24,20 @@ public class AssignmentBoardEmployeeDto
 
     public string Position { get; init; } = null!;
 
-    /// <summary>Every project this employee is currently posted to — never just one.</summary>
-    public IReadOnlyList<Guid> ProjectIds { get; init; } = Array.Empty<Guid>();
+    /// <summary>Every posting this employee currently holds — never just one.</summary>
+    public IReadOnlyList<AssignmentBoardPostingDto> Postings { get; init; } =
+        Array.Empty<AssignmentBoardPostingDto>();
+}
+
+/// <summary>One employee's posting to one site, dated.</summary>
+public class AssignmentBoardPostingDto
+{
+    public Guid ProjectId { get; init; }
+
+    public DateOnly StartDate { get; init; }
+
+    /// <summary>Null while the posting is open-ended.</summary>
+    public DateOnly? EndDate { get; init; }
 }
 
 public class AssignmentBoardProjectDto

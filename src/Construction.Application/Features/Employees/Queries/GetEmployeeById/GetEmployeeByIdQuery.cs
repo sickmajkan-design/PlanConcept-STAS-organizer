@@ -47,6 +47,19 @@ public class GetEmployeeByIdQueryHandler : IRequestHandler<GetEmployeeByIdQuery,
         var includesPay = CostRules.CanSeeLabourCost(_currentUserService.Role);
         var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
 
+        // The projection's own split is coarse — "has an EndDate at all" —
+        // because a static expression tree has no request-scoped "today" to
+        // compare against. A posting the office gave a planned future end
+        // date lands in PastProjects there even though it has not ended yet;
+        // this puts it back where it belongs before either list reaches the
+        // caller.
+        var notYetEnded = employee.PastProjects.Where(p => p.EndDate > today).ToList();
+        if (notYetEnded.Count > 0)
+        {
+            employee.Projects = employee.Projects.Concat(notYetEnded).ToList();
+            employee.PastProjects = employee.PastProjects.Except(notYetEnded).ToList();
+        }
+
         var entriesByProject = (await _context.FinanceEntries
             .AsNoTracking()
             .Where(f => f.EmployeeId == request.Id && f.ProjectId != null)

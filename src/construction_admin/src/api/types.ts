@@ -205,13 +205,21 @@ export interface AnnualRealizationPlan {
   percentRealized: number | null;
 }
 
+export interface AssignmentBoardPosting {
+  projectId: string;
+  /** `YYYY-MM-DD`. */
+  startDate: string;
+  /** `YYYY-MM-DD`, or null while the posting is open-ended. */
+  endDate: string | null;
+}
+
 export interface AssignmentBoardEmployee {
   id: string;
   fullName: string;
   employeeNumber: string;
   position: string;
-  /** Every project this employee is posted to today — never just one. */
-  projectIds: string[];
+  /** Every posting this employee currently holds — never just one. */
+  postings: AssignmentBoardPosting[];
 }
 
 export interface AssignmentBoardProject {

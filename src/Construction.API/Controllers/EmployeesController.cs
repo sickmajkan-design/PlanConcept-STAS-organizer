@@ -81,19 +81,24 @@ public class EmployeesController : ApiControllerBase
         return NoContent();
     }
 
-    /// <summary>Assigns the employee to a project.</summary>
+    /// <summary>
+    /// Assigns the employee to a project. Dates are optional in the body —
+    /// omitted, a posting starts today and runs open-ended.
+    /// </summary>
     [HttpPost("{id:guid}/projects/{projectId:guid}")]
     [Idempotent]
     [Authorize(Policy = Policies.ProjectManagerAndAbove)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> AssignToProject(
         Guid id,
         Guid projectId,
+        AssignEmployeeToProjectCommand command,
         CancellationToken cancellationToken)
     {
-        await Mediator.Send(new AssignEmployeeToProjectCommand(id, projectId), cancellationToken);
+        await Mediator.Send(command with { EmployeeId = id, ProjectId = projectId }, cancellationToken);
         return NoContent();
     }
 

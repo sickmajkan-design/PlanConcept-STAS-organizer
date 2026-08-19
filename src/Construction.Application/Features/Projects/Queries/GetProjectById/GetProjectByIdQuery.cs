@@ -46,6 +46,17 @@ public class GetProjectByIdQueryHandler : IRequestHandler<GetProjectByIdQuery, P
         var includesPay = CostRules.CanSeeLabourCost(_currentUserService.Role);
         var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
 
+        // See the matching note in GetEmployeeByIdQueryHandler: a posting
+        // with a planned future end date lands in PastEmployees by the
+        // projection's coarse split and belongs back in Employees until that
+        // date actually arrives.
+        var notYetEnded = project.PastEmployees.Where(m => m.EndDate > today).ToList();
+        if (notYetEnded.Count > 0)
+        {
+            project.Employees = project.Employees.Concat(notYetEnded).ToList();
+            project.PastEmployees = project.PastEmployees.Except(notYetEnded).ToList();
+        }
+
         var entriesByEmployee = (await _context.FinanceEntries
             .AsNoTracking()
             .Where(f => f.ProjectId == request.Id)

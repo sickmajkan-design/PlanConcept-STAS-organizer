@@ -23,10 +23,12 @@ export const employeesApi = {
     employeeId: string,
     projectId: string,
     idempotencyKey?: string,
+    dates?: { startDate?: string | null; endDate?: string | null },
   ) =>
     request<void>({
       method: 'POST',
       url: `/api/v1/employees/${employeeId}/projects/${projectId}`,
+      data: dates,
       headers: idempotencyHeaders(idempotencyKey),
     }),
 
