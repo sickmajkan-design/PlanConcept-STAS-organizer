@@ -25,9 +25,8 @@ import { useI18n, useT } from '../../i18n/useI18n';
 import { canAdministerAccounts } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { paths } from '../../routes/paths';
-import { formatDate, formatMoney, formatQuantity, initialsOf } from '../../utils/formatting';
-import type { ProjectEmployee } from '../../api/types';
-import type { Translate } from '../../i18n/context';
+import { formatDate, initialsOf } from '../../utils/formatting';
+import { postingRange, workedSummary } from '../../utils/postings';
 
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -155,7 +154,11 @@ export function ProjectDetailPage() {
                       <ListItemText
                         primary={member.fullName}
                         secondary={
-                          [`${member.position} · ${member.employeeNumber}`, workedSummary(member, t, locale)]
+                          [
+                            `${member.position} · ${member.employeeNumber}`,
+                            postingRange(member, t),
+                            workedSummary(member, t, locale),
+                          ]
                             .filter(Boolean)
                             .join(' · ')
                         }
@@ -193,7 +196,7 @@ export function ProjectDetailPage() {
                         primary={member.fullName}
                         secondary={
                           [
-                            `${member.position} · ${formatDate(member.startDate)} – ${formatDate(member.endDate)}`,
+                            `${member.position} · ${postingRange(member, t)}`,
                             workedSummary(member, t, locale),
                           ]
                             .filter(Boolean)
@@ -240,25 +243,6 @@ export function ProjectDetailPage() {
 function crewInitials(fullName: string): string {
   const [first, last] = fullName.trim().split(/\s+/);
   return initialsOf(first, last, fullName);
-}
-
-/** "12.5 h · 3 days · 4,200.00", built only from whichever parts are non-zero. */
-function workedSummary(member: ProjectEmployee, t: Translate, locale: string): string | null {
-  const parts: string[] = [];
-
-  if (member.workedHours > 0) {
-    parts.push(`${formatQuantity(member.workedHours, locale)} h`);
-  }
-  if (member.workedDays > 0) {
-    parts.push(t('common.days', { count: member.workedDays }));
-  }
-  // Not "!== null": a nothing-recorded posting should read as nothing
-  // recorded, not as a pointed "0.00" next to postings that earned real money.
-  if (member.totalPay) {
-    parts.push(formatMoney(member.totalPay, locale));
-  }
-
-  return parts.length > 0 ? parts.join(' · ') : null;
 }
 
 function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {

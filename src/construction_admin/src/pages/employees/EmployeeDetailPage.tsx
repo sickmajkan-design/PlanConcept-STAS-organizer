@@ -44,9 +44,8 @@ import { useI18n, useT } from '../../i18n/useI18n';
 import { canAdministerAccounts } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { paths } from '../../routes/paths';
-import { formatDate, formatMoney, formatQuantity, initialsOf } from '../../utils/formatting';
-import type { EmployeeProjectAssignment } from '../../api/types';
-import type { Translate } from '../../i18n/context';
+import { formatDate, initialsOf } from '../../utils/formatting';
+import { postingRange, workedSummary } from '../../utils/postings';
 
 export function EmployeeDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -220,10 +219,7 @@ export function EmployeeDetailPage() {
                       <ListItemText
                         primary={assignment.projectName}
                         secondary={
-                          [
-                            `${t('projects.assignedOn')} ${formatDate(assignment.assignedAt)}`,
-                            workedSummary(assignment, t, locale),
-                          ]
+                          [postingRange(assignment, t), workedSummary(assignment, t, locale)]
                             .filter(Boolean)
                             .join(' · ')
                         }
@@ -296,10 +292,7 @@ export function EmployeeDetailPage() {
                       <ListItemText
                         primary={assignment.projectName}
                         secondary={
-                          [
-                            `${formatDate(assignment.startDate)} – ${formatDate(assignment.endDate)}`,
-                            workedSummary(assignment, t, locale),
-                          ]
+                          [postingRange(assignment, t), workedSummary(assignment, t, locale)]
                             .filter(Boolean)
                             .join(' · ')
                         }
@@ -356,33 +349,6 @@ export function EmployeeDetailPage() {
       />
     </Box>
   );
-}
-
-/** "12.5 h · 3 days · 4,200.00", built only from whichever parts are non-zero. */
-function workedSummary(
-  assignment: EmployeeProjectAssignment,
-  t: Translate,
-  locale: string,
-): string | null {
-  const parts: string[] = [];
-
-  if (assignment.workedHours > 0) {
-    // "h" reads the same abbreviation in both languages, so this skips the
-    // translation table rather than smuggling a pre-formatted string through
-    // a placeholder meant for a plural-selecting number.
-    parts.push(`${formatQuantity(assignment.workedHours, locale)} h`);
-  }
-  if (assignment.workedDays > 0) {
-    parts.push(t('common.days', { count: assignment.workedDays }));
-  }
-  // Not "!== null": a nothing-recorded posting should read as nothing
-  // recorded, not as a pointed "0.00" sitting next to postings that earned
-  // real money.
-  if (assignment.totalPay) {
-    parts.push(formatMoney(assignment.totalPay, locale));
-  }
-
-  return parts.length > 0 ? parts.join(' · ') : null;
 }
 
 function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {

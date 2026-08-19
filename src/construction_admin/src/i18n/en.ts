@@ -32,6 +32,7 @@ export const en = {
     one: '{count} day',
     other: '{count} days',
   },
+  'common.since': 'Since',
   'statusLegend.title': 'What the colours mean',
   'dateFilter.yesterday': 'Yesterday',
   'dateFilter.today': 'Today',
@@ -173,7 +174,6 @@ export const en = {
   'projects.assignedCrew': 'Assigned crew',
   'projects.noCrew': 'Nobody is assigned to this project yet.',
   'projects.crewHistory': 'Crew history',
-  'projects.assignedOn': 'Assigned',
 
   // --- Vehicles -------------------------------------------------------------
   'vehicles.title': 'Vehicles',
@@ -520,7 +520,6 @@ export const en = {
   },
   'assignmentBoard.dropHere': 'Drop someone here to post them to this site.',
   'assignmentBoard.noOpenSites': 'No open sites to staff right now.',
-  'assignmentBoard.since': 'Since',
   'assignmentBoard.assignTitle': 'Post to this site',
   'assignmentBoard.assignBody': 'When should {employee} start on {project}?',
   'assignmentBoard.startDate': 'From',

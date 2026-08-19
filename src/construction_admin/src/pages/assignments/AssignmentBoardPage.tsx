@@ -40,7 +40,8 @@ import {
   useRemoveOnBoard,
 } from '../../features/assignments/useAssignmentBoard';
 import { useT } from '../../i18n/useI18n';
-import { dateOnlyOffset, formatDate } from '../../utils/formatting';
+import { dateOnlyOffset } from '../../utils/formatting';
+import { postingRange } from '../../utils/postings';
 
 interface PendingDrop {
   employeeId: string;
@@ -336,13 +337,6 @@ function EmployeeCard({
       )}
     </Paper>
   );
-}
-
-/** "Since 18.08.2026." or, once an end is set, "18.08.2026. – 22.08.2026.". */
-function postingRange(posting: AssignmentBoardPosting, t: ReturnType<typeof useT>): string {
-  return posting.endDate
-    ? `${formatDate(posting.startDate)} – ${formatDate(posting.endDate)}`
-    : `${t('assignmentBoard.since')} ${formatDate(posting.startDate)}`;
 }
 
 function ProjectLane({

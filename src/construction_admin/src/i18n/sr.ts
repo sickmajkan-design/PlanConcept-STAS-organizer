@@ -42,6 +42,7 @@ export const sr: Record<MessageKey, Message> = {
     few: '{count} dana',
     other: '{count} dana',
   },
+  'common.since': 'Od',
   'statusLegend.title': 'Šta boje znače',
   'dateFilter.yesterday': 'Juče',
   'dateFilter.today': 'Danas',
@@ -182,7 +183,6 @@ export const sr: Record<MessageKey, Message> = {
   'projects.assignedCrew': 'Dodeljena ekipa',
   'projects.noCrew': 'Na ovaj projekat još niko nije dodeljen.',
   'projects.crewHistory': 'Istorija posade',
-  'projects.assignedOn': 'Dodeljen',
 
   // --- Vehicles -------------------------------------------------------------
   'vehicles.title': 'Vozila',
@@ -531,7 +531,6 @@ export const sr: Record<MessageKey, Message> = {
   },
   'assignmentBoard.dropHere': 'Prevuci nekoga ovde da ga rasporediš na ovo gradilište.',
   'assignmentBoard.noOpenSites': 'Trenutno nema otvorenih gradilišta za raspoređivanje.',
-  'assignmentBoard.since': 'Od',
   'assignmentBoard.assignTitle': 'Raspoređivanje na gradilište',
   'assignmentBoard.assignBody': 'Kada {employee} počinje na {project}?',
   'assignmentBoard.startDate': 'Od',
