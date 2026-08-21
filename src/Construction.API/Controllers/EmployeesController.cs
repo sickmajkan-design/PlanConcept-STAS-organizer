@@ -11,6 +11,7 @@ using Construction.Application.Features.Employees.Queries.GetEmployeeById;
 using Construction.Application.Features.Employees.Queries.GetEmployees;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace Construction.API.Controllers;
 
@@ -95,9 +96,17 @@ public class EmployeesController : ApiControllerBase
     public async Task<IActionResult> AssignToProject(
         Guid id,
         Guid projectId,
-        AssignEmployeeToProjectCommand command,
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)]
+        AssignEmployeeToProjectCommand? command,
         CancellationToken cancellationToken)
     {
+        // The dates are optional, and so is the body that would have carried
+        // them. Without this, MVC answers 415 before the handler is reached
+        // for any POST with no body at all — which is what every caller sent
+        // before postings had dates, and what the employee detail page still
+        // sends when somebody is put on a site with no end in mind.
+        command ??= new AssignEmployeeToProjectCommand(id, projectId);
+
         await Mediator.Send(command with { EmployeeId = id, ProjectId = projectId }, cancellationToken);
         return NoContent();
     }

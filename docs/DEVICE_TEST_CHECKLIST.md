@@ -154,9 +154,17 @@ Nalog: **Worker**. Ovo je putanja koju će pravi ljudi koristiti dva puta dnevno
 - [ ] **Odsustva** → zatraži godišnji odmor. Probaj i datum „do" **pre** datuma
       „od". *Očekivano:* odbijeno pre slanja.
 - [ ] Povuci zahtev koji čeka odgovor. *Očekivano:* uspeva.
-- [ ] **Traži alat po kodu** — kod se **kuca ili nalepi, ne skenira** (nema
-      kamere u ovom buildu). Uzmi kod sa nalepnice i ukucaj ga.
-      / The code is typed or pasted, not scanned.
+- [ ] **Skeniraj** — kamera pročita QR nalepnicu sa alata ili vozila.
+      *Očekivano:* traži dozvolu za kameru prvi put; posle skeniranja prikaže
+      predmet i ko ga je zadužio. / The camera reads the QR label.
+- [ ] Isto, ali **ukucaj kod ručno** umesto skeniranja. *Očekivano:* isti
+      rezultat — nalepnica koja se ne da pročitati ne sme da blokira posao.
+- [ ] **Zaduži na mene**, pa **Razduži**. *Očekivano:* stanje se menja odmah i
+      vidi se u admin panelu.
+- [ ] Skeniraj nešto što **već drži neko drugi**. *Očekivano:* piše čije je, ne
+      dozvoljava tiho preuzimanje.
+- [ ] **Odbij dozvolu za kameru**, pa probaj ponovo. *Očekivano:* razumljiva
+      poruka i ručni unos i dalje radi, aplikacija ne puca.
 - [ ] **Obaveštenja** — lista se otvara; označi jedno kao pročitano; brojač na
       donjoj navigaciji se smanji.
 - [ ] **Promena lozinke** (Nalog → Promeni lozinku). *Očekivano:* posle
@@ -293,7 +301,6 @@ Ne troši vreme na prijavljivanje ovoga. / Do not spend time reporting these.
 | Push u status bar / Push to the status bar | Firebase projekat ne postoji (`C5`). Lista obaveštenja u aplikaciji radi. |
 | Ostala pisanja bez signala — defekat, odsustvo, stanje materijala / Other offline writes | Nisu u redu čekanja. Samo prijava i odjava smene jesu (`M9`), jer su jedine kod kojih je **vreme** ono što se ne može rekonstruisati posle. |
 | GPS posle uklanjanja iz „recents" ili restarta telefona | Servis je vezan za aktivnost (`C3`). Sačuvane pozicije odlaze pri sledećem pokretanju. |
-| Skeniranje QR koda kamerom / Scanning a QR code with the camera | Nije ugrađeno — kod se kuca. Fotografisanje defekta **jeste** ugrađeno (kamera i galerija). / Not wired in; the code is typed. Photographing a defect **is** wired in. |
 | iOS | Nikad građen ni pokrenut. |
 | Release (potpisan) Android build | Konfiguracija napisana, nikad izvršena sa pravim keystore-om (`C4`). |
 

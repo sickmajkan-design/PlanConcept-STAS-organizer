@@ -306,6 +306,55 @@ class AppLocalizationsSr extends AppLocalizations {
   String get toolByQrCode => 'Po QR kodu';
 
   @override
+  String get vehicleQrCode => 'QR kod';
+
+  @override
+  String get scanTitle => 'Skeniraj ili pronađi';
+
+  @override
+  String get scanHint =>
+      'Skenirajte QR nalepnicu na alatu ili vozilu, ili unesite kod ispod.';
+
+  @override
+  String get scanAction => 'Skeniraj QR kod';
+
+  @override
+  String get scanCodeLabel => 'QR kod';
+
+  @override
+  String get scanToolFound => 'Alat';
+
+  @override
+  String get scanVehicleFound => 'Vozilo';
+
+  @override
+  String get scanCheckOutToMe => 'Zaduži na mene';
+
+  @override
+  String get scanReturn => 'Razduži';
+
+  @override
+  String get scanCheckedOutToYou => 'Zaduženo na vas';
+
+  @override
+  String scanCheckedOutToOther(String name) {
+    return 'Zaduženo na $name';
+  }
+
+  @override
+  String get scanNotCheckedOut => 'Trenutno nije zaduženo';
+
+  @override
+  String get scanCheckOutSuccess => 'Zaduženo na vas.';
+
+  @override
+  String get scanReturnSuccess => 'Razduženo.';
+
+  @override
+  String get scanCameraPermissionDenied =>
+      'Potrebna je dozvola za kameru radi skeniranja QR koda.';
+
+  @override
   String toolCategoryLine(String category) {
     return 'Kategorija: $category';
   }

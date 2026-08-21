@@ -314,6 +314,55 @@ class AppLocalizationsEn extends AppLocalizations {
   String get toolByQrCode => 'By QR code';
 
   @override
+  String get vehicleQrCode => 'QR code';
+
+  @override
+  String get scanTitle => 'Scan or look up';
+
+  @override
+  String get scanHint =>
+      'Scan the QR label on the tool or vehicle, or enter its code below.';
+
+  @override
+  String get scanAction => 'Scan QR code';
+
+  @override
+  String get scanCodeLabel => 'QR code';
+
+  @override
+  String get scanToolFound => 'Tool';
+
+  @override
+  String get scanVehicleFound => 'Vehicle';
+
+  @override
+  String get scanCheckOutToMe => 'Check out to me';
+
+  @override
+  String get scanReturn => 'Return';
+
+  @override
+  String get scanCheckedOutToYou => 'Checked out to you';
+
+  @override
+  String scanCheckedOutToOther(String name) {
+    return 'Checked out to $name';
+  }
+
+  @override
+  String get scanNotCheckedOut => 'Not currently checked out';
+
+  @override
+  String get scanCheckOutSuccess => 'Checked out to you.';
+
+  @override
+  String get scanReturnSuccess => 'Returned.';
+
+  @override
+  String get scanCameraPermissionDenied =>
+      'Camera permission is required to scan a QR code.';
+
+  @override
   String toolCategoryLine(String category) {
     return 'Category: $category';
   }

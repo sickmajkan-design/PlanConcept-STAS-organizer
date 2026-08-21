@@ -674,6 +674,96 @@ abstract class AppLocalizations {
   /// **'By QR code'**
   String get toolByQrCode;
 
+  /// No description provided for @vehicleQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code'**
+  String get vehicleQrCode;
+
+  /// No description provided for @scanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan or look up'**
+  String get scanTitle;
+
+  /// No description provided for @scanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan the QR label on the tool or vehicle, or enter its code below.'**
+  String get scanHint;
+
+  /// No description provided for @scanAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR code'**
+  String get scanAction;
+
+  /// No description provided for @scanCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code'**
+  String get scanCodeLabel;
+
+  /// No description provided for @scanToolFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Tool'**
+  String get scanToolFound;
+
+  /// No description provided for @scanVehicleFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle'**
+  String get scanVehicleFound;
+
+  /// No description provided for @scanCheckOutToMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Check out to me'**
+  String get scanCheckOutToMe;
+
+  /// No description provided for @scanReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'Return'**
+  String get scanReturn;
+
+  /// No description provided for @scanCheckedOutToYou.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked out to you'**
+  String get scanCheckedOutToYou;
+
+  /// No description provided for @scanCheckedOutToOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked out to {name}'**
+  String scanCheckedOutToOther(String name);
+
+  /// No description provided for @scanNotCheckedOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Not currently checked out'**
+  String get scanNotCheckedOut;
+
+  /// No description provided for @scanCheckOutSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked out to you.'**
+  String get scanCheckOutSuccess;
+
+  /// No description provided for @scanReturnSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Returned.'**
+  String get scanReturnSuccess;
+
+  /// No description provided for @scanCameraPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera permission is required to scan a QR code.'**
+  String get scanCameraPermissionDenied;
+
   /// No description provided for @toolCategoryLine.
   ///
   /// In en, this message translates to:

@@ -124,7 +124,7 @@ void main() {
     expect(find.text('Vehicles'), findsOneWidget);
     expect(find.text('Tools'), findsOneWidget);
     expect(find.text('Materials'), findsOneWidget);
-    expect(find.text('Look up a tool'), findsOneWidget);
+    expect(find.text('Scan or look up'), findsOneWidget);
   });
 
   testWidgets('offers vehicle costs to a Foreman but not to a Worker',
@@ -164,7 +164,7 @@ void main() {
   });
 
   testWidgets(
-      'hides vehicles, tools and materials from a Worker, but keeps tool lookup',
+      'hides vehicles, tools and materials from a Worker, but keeps scanning',
       (tester) async {
     // The API answers 403 for the directory-gated list endpoints, but
     // `by-qr` is intentionally open to every employee.
@@ -173,6 +173,10 @@ void main() {
     expect(find.text('Vehicles'), findsNothing);
     expect(find.text('Tools'), findsNothing);
     expect(find.text('Materials'), findsNothing);
-    expect(find.text('Look up a tool'), findsOneWidget);
+
+    // Scanning replaced the typed-code lookup, and stays open to everyone for
+    // the same reason that did: the API's `by-qr` serves any employee, and a
+    // worker holding a tool is exactly who needs to ask what it is.
+    expect(find.text('Scan or look up'), findsOneWidget);
   });
 }
