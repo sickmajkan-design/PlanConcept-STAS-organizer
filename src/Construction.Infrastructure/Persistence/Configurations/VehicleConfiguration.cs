@@ -37,6 +37,13 @@ public class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
             .IsUnique()
             .HasFilter("\"Vin\" IS NOT NULL AND \"IsDeleted\" = false");
 
+        builder.Property(v => v.QrCode)
+            .HasMaxLength(256);
+
+        builder.HasIndex(v => v.QrCode)
+            .IsUnique()
+            .HasFilter("\"QrCode\" IS NOT NULL AND \"IsDeleted\" = false");
+
         builder.HasOne(v => v.AssignedEmployee)
             .WithMany(e => e.AssignedVehicles)
             .HasForeignKey(v => v.AssignedEmployeeId)

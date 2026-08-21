@@ -175,6 +175,7 @@ export function ToolFormPage() {
                     <TextField
                       {...field}
                       label={t('tools.qrCode')}
+                      placeholder={t('tools.qrCodeHint')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}

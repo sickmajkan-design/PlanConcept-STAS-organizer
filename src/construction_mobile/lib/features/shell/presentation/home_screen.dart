@@ -260,10 +260,10 @@ class _ResourcesSection extends StatelessWidget {
               ],
               ListTile(
                 leading: const Icon(Icons.qr_code_scanner_outlined),
-                title: Text(context.l10n.toolLookUp),
+                title: Text(context.l10n.scanTitle),
                 subtitle: Text(context.l10n.toolByQrCode),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.push(AppRoutes.toolLookup),
+                onTap: () => context.push(AppRoutes.scan),
               ),
             ],
           ),

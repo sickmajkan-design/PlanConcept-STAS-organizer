@@ -38,9 +38,10 @@ public class UpdateVehicleCommandHandler : IRequestHandler<UpdateVehicleCommand,
         var vin = string.IsNullOrWhiteSpace(request.Vin)
             ? null
             : request.Vin.Trim().ToUpperInvariant();
+        var qrCode = string.IsNullOrWhiteSpace(request.QrCode) ? null : request.QrCode.Trim();
 
         await VehicleUniqueness.EnsureUniqueAsync(
-            _context, registrationNumber, vin, request.Id, cancellationToken);
+            _context, registrationNumber, vin, qrCode, request.Id, cancellationToken);
 
         if (request.Status != VehicleStatus.Assigned && vehicle.AssignedEmployeeId is not null)
         {
@@ -52,6 +53,7 @@ public class UpdateVehicleCommandHandler : IRequestHandler<UpdateVehicleCommand,
         vehicle.Model = request.Model.Trim();
         vehicle.RegistrationNumber = registrationNumber;
         vehicle.Vin = vin;
+        vehicle.QrCode = qrCode;
         vehicle.FuelType = request.FuelType;
         vehicle.Status = request.Status;
 

@@ -33,6 +33,34 @@ class VehicleRepository extends ApiRepository {
   Future<Vehicle> fetchVehicle(String id) {
     return getJson('/api/v1/vehicles/$id', Vehicle.fromJson);
   }
+
+  /// Looks a vehicle up by its QR label. Open to every authenticated
+  /// employee, including roles without directory access.
+  Future<Vehicle> fetchVehicleByQrCode(String qrCode) {
+    return getJson(
+      '/api/v1/vehicles/by-qr/${Uri.encodeComponent(qrCode)}',
+      Vehicle.fromJson,
+    );
+  }
+
+  /// Checks the vehicle out to the caller. Self-service only — the API
+  /// always resolves the target employee from the caller's own session.
+  Future<Vehicle> checkOutToMe(String id, {required String idempotencyKey}) {
+    return postJson(
+      '/api/v1/vehicles/$id/check-out-to-me',
+      Vehicle.fromJson,
+      idempotencyKey: idempotencyKey,
+    );
+  }
+
+  /// Returns a vehicle that is currently checked out to the caller.
+  Future<Vehicle> returnVehicle(String id, {required String idempotencyKey}) {
+    return postJson(
+      '/api/v1/vehicles/$id/return',
+      Vehicle.fromJson,
+      idempotencyKey: idempotencyKey,
+    );
+  }
 }
 
 final vehicleRepositoryProvider = Provider<VehicleRepository>((ref) {

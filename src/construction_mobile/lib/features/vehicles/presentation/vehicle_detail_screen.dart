@@ -9,6 +9,7 @@ import '../../../core/widgets/failure_view.dart';
 import '../../../core/widgets/info_tile.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
+import '../../attachments/presentation/attachment_section.dart';
 import '../data/models/vehicle.dart';
 import 'vehicles_controller.dart';
 
@@ -52,6 +53,11 @@ class VehicleDetailScreen extends ConsumerWidget {
                       value: vehicle.vin,
                     ),
                     InfoTile(
+                      icon: Icons.qr_code_outlined,
+                      label: context.l10n.vehicleQrCode,
+                      value: vehicle.qrCode,
+                    ),
+                    InfoTile(
                       icon: Icons.local_gas_station_outlined,
                       label: context.l10n.vehicleFuelType,
                       value: humanizeEnum(vehicle.fuelType),
@@ -76,6 +82,13 @@ class VehicleDetailScreen extends ConsumerWidget {
                         leading: Icon(Icons.person_off_outlined),
                         title: Text(context.l10n.vehicleUnassigned),
                       ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                _Section(
+                  title: context.l10n.attachmentsTitle,
+                  children: [
+                    AttachmentSection(ownerType: 'Vehicle', ownerId: vehicle.id),
                   ],
                 ),
               ],

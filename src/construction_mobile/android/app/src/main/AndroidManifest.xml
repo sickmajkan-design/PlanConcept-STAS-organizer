@@ -2,6 +2,9 @@
     <!-- Talking to the API. -->
     <uses-permission android:name="android.permission.INTERNET"/>
 
+    <!-- Live camera preview for scanning a QR label on a tool or vehicle. -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+
     <!-- Position reporting while the user is signed in. -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>

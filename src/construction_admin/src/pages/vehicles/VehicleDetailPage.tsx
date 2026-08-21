@@ -1,4 +1,10 @@
-import { DeleteOutlined, EditOutlined, LocalShippingOutlined, PersonOffOutlined } from '@mui/icons-material';
+import {
+  DeleteOutlined,
+  EditOutlined,
+  LocalShippingOutlined,
+  PersonOffOutlined,
+  QrCode2Outlined,
+} from '@mui/icons-material';
 import {
   Alert,
   Avatar,
@@ -21,7 +27,9 @@ import { toApiError } from '../../api/apiError';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
 import { AttachmentList } from '../../components/AttachmentList';
+import { QrLabelDialog } from '../../components/QrLabelDialog';
 import { StatusChip } from '../../components/StatusChip';
+import { useCoverPhoto } from '../../features/attachments/useAttachments';
 import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
 import {
   useAssignVehicle,
@@ -44,6 +52,7 @@ export function VehicleDetailPage() {
 
   const { data: vehicle, isLoading, isError, error, refetch } = useVehicleQuery(id);
   const { data: allEmployees } = useAllEmployeesQuery();
+  const coverPhoto = useCoverPhoto('Vehicle', id ?? '');
 
   const assign = useAssignVehicle(id ?? '');
   const unassign = useUnassignVehicle(id ?? '');
@@ -52,6 +61,7 @@ export function VehicleDetailPage() {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmUnassign, setConfirmUnassign] = useState(false);
+  const [qrLabelOpen, setQrLabelOpen] = useState(false);
 
   if (isLoading) return null;
   if (isError || !vehicle) {
@@ -83,7 +93,10 @@ export function VehicleDetailPage() {
             spacing={3}
             sx={{ alignItems: 'flex-start' }}
           >
-            <Avatar sx={{ width: 64, height: 64, bgcolor: 'primary.main' }}>
+            <Avatar
+              src={coverPhoto ?? undefined}
+              sx={{ width: 64, height: 64, bgcolor: 'primary.main' }}
+            >
               <LocalShippingOutlined />
             </Avatar>
             <Box sx={{ flex: 1 }}>
@@ -96,6 +109,13 @@ export function VehicleDetailPage() {
               </Stack>
             </Box>
             <Stack direction="row" spacing={1}>
+              <Button
+                variant="outlined"
+                startIcon={<QrCode2Outlined />}
+                onClick={() => setQrLabelOpen(true)}
+              >
+                {t('common.printLabel')}
+              </Button>
               <Button
                 variant="outlined"
                 startIcon={<EditOutlined />}
@@ -125,6 +145,7 @@ export function VehicleDetailPage() {
               </Typography>
               <Stack spacing={1.5} sx={{ mt: 1 }}>
                 <InfoRow label={t('vehicles.vin')} value={vehicle.vin} />
+                <InfoRow label={t('vehicles.qrCode')} value={vehicle.qrCode} />
                 <InfoRow label={t('vehicles.fuelType')} value={enumLabel('fuelType', vehicle.fuelType)} />
               </Stack>
             </CardContent>
@@ -236,6 +257,13 @@ export function VehicleDetailPage() {
         loading={deleteVehicle.isPending}
         onConfirm={handleDelete}
         onCancel={() => setConfirmDelete(false)}
+      />
+
+      <QrLabelDialog
+        open={qrLabelOpen}
+        onClose={() => setQrLabelOpen(false)}
+        title={`${vehicle.brand} ${vehicle.model}`}
+        qrCode={vehicle.qrCode}
       />
     </Box>
   );

@@ -4,6 +4,7 @@ import {
   EditOutlined,
   HandymanOutlined,
   PersonOffOutlined,
+  QrCode2Outlined,
 } from '@mui/icons-material';
 import {
   Alert,
@@ -27,7 +28,9 @@ import { toApiError } from '../../api/apiError';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
 import { AttachmentList } from '../../components/AttachmentList';
+import { QrLabelDialog } from '../../components/QrLabelDialog';
 import { StatusChip } from '../../components/StatusChip';
+import { useCoverPhoto } from '../../features/attachments/useAttachments';
 import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
 import {
@@ -52,6 +55,7 @@ export function ToolDetailPage() {
   const { data: tool, isLoading, isError, error, refetch } = useToolQuery(id);
   const { data: allEmployees } = useAllEmployeesQuery();
   const { data: allProjects } = useAllProjectsQuery();
+  const coverPhoto = useCoverPhoto('Tool', id ?? '');
 
   const assignEmployee = useAssignToolEmployee(id ?? '');
   const unassignEmployee = useUnassignToolEmployee(id ?? '');
@@ -64,6 +68,7 @@ export function ToolDetailPage() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmUnassignEmployee, setConfirmUnassignEmployee] = useState(false);
   const [confirmUnassignProject, setConfirmUnassignProject] = useState(false);
+  const [qrLabelOpen, setQrLabelOpen] = useState(false);
 
   if (isLoading) return null;
   if (isError || !tool) {
@@ -106,7 +111,10 @@ export function ToolDetailPage() {
             spacing={3}
             sx={{ alignItems: 'flex-start' }}
           >
-            <Avatar sx={{ width: 64, height: 64, bgcolor: 'primary.main' }}>
+            <Avatar
+              src={coverPhoto ?? undefined}
+              sx={{ width: 64, height: 64, bgcolor: 'primary.main' }}
+            >
               <HandymanOutlined />
             </Avatar>
             <Box sx={{ flex: 1 }}>
@@ -119,6 +127,13 @@ export function ToolDetailPage() {
               </Stack>
             </Box>
             <Stack direction="row" spacing={1}>
+              <Button
+                variant="outlined"
+                startIcon={<QrCode2Outlined />}
+                onClick={() => setQrLabelOpen(true)}
+              >
+                {t('common.printLabel')}
+              </Button>
               <Button
                 variant="outlined"
                 startIcon={<EditOutlined />}
@@ -340,6 +355,13 @@ export function ToolDetailPage() {
         loading={deleteTool.isPending}
         onConfirm={handleDelete}
         onCancel={() => setConfirmDelete(false)}
+      />
+
+      <QrLabelDialog
+        open={qrLabelOpen}
+        onClose={() => setQrLabelOpen(false)}
+        title={tool.name}
+        qrCode={tool.qrCode}
       />
     </Box>
   );

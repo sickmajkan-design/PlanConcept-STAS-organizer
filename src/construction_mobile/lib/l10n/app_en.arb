@@ -113,6 +113,28 @@
   "toolLookUpAction": "Look up",
   "toolLookUpByQr": "Look up by QR code",
   "toolByQrCode": "By QR code",
+  "vehicleQrCode": "QR code",
+  "scanTitle": "Scan or look up",
+  "scanHint": "Scan the QR label on the tool or vehicle, or enter its code below.",
+  "scanAction": "Scan QR code",
+  "scanCodeLabel": "QR code",
+  "scanToolFound": "Tool",
+  "scanVehicleFound": "Vehicle",
+  "scanCheckOutToMe": "Check out to me",
+  "scanReturn": "Return",
+  "scanCheckedOutToYou": "Checked out to you",
+  "scanCheckedOutToOther": "Checked out to {name}",
+  "@scanCheckedOutToOther": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "scanNotCheckedOut": "Not currently checked out",
+  "scanCheckOutSuccess": "Checked out to you.",
+  "scanReturnSuccess": "Returned.",
+  "scanCameraPermissionDenied": "Camera permission is required to scan a QR code.",
   "toolCategoryLine": "Category: {category}",
   "@toolCategoryLine": {
     "placeholders": {

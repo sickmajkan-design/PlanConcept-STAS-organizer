@@ -15,6 +15,8 @@ public class VehicleDto
 
     public string? Vin { get; init; }
 
+    public string? QrCode { get; init; }
+
     public string FuelType { get; init; } = null!;
 
     public string Status { get; init; } = null!;
@@ -49,6 +51,7 @@ public static class VehicleMapping
             Model = vehicle.Model,
             RegistrationNumber = vehicle.RegistrationNumber,
             Vin = vehicle.Vin,
+            QrCode = vehicle.QrCode,
             FuelType = vehicle.FuelType.ToString(),
             Status = vehicle.Status.ToString(),
             AssignedEmployeeId = vehicle.AssignedEmployeeId,

@@ -1,4 +1,10 @@
-import { AddOutlined, DeleteOutlined, EditOutlined, VisibilityOutlined } from '@mui/icons-material';
+import {
+  AddOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  LocalShippingOutlined,
+  VisibilityOutlined,
+} from '@mui/icons-material';
 import {
   Box,
   FormControl,
@@ -23,6 +29,7 @@ import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { RowActions } from '../../components/RowActions';
+import { RowPhotoCell } from '../../components/RowPhotoCell';
 import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
 import { StatusLegend } from '../../components/StatusLegend';
@@ -52,6 +59,20 @@ export function VehiclesListPage() {
   // every render, which is wasted work.
   const columns: GridColDef<Vehicle>[] = useMemo(
     () => [
+      {
+        field: 'photo',
+        headerName: '',
+        width: 56,
+        sortable: false,
+        filterable: false,
+        renderCell: (params) => (
+          <RowPhotoCell
+            ownerType="Vehicle"
+            ownerId={params.row.id}
+            icon={<LocalShippingOutlined fontSize="small" />}
+          />
+        ),
+      },
       {
         field: 'brand',
         headerName: t('vehicles.vehicle'),

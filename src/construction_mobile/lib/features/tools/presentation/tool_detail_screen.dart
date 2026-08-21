@@ -8,6 +8,7 @@ import '../../../core/widgets/failure_view.dart';
 import '../../../core/widgets/info_tile.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
+import '../../attachments/presentation/attachment_section.dart';
 import '../data/models/tool.dart';
 import 'tools_controller.dart';
 
@@ -39,6 +40,13 @@ class ToolDetailScreen extends ConsumerWidget {
                 _ToolInfo(tool: tool),
                 const SizedBox(height: 20),
                 _AssignmentSection(tool: tool),
+                const SizedBox(height: 20),
+                _Section(
+                  title: context.l10n.attachmentsTitle,
+                  children: [
+                    AttachmentSection(ownerType: 'Tool', ownerId: tool.id),
+                  ],
+                ),
               ],
             ),
           ),

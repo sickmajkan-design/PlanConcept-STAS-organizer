@@ -13,6 +13,7 @@ abstract class Vehicle with _$Vehicle {
     required String model,
     required String registrationNumber,
     String? vin,
+    String? qrCode,
     required String fuelType,
     required String status,
     String? assignedEmployeeId,

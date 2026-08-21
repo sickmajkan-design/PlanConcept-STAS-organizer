@@ -32,6 +32,7 @@ const emptyValues: VehicleFormValues = {
   model: '',
   registrationNumber: '',
   vin: '',
+  qrCode: '',
   fuelType: 'Diesel',
   status: 'Available',
 };
@@ -65,6 +66,7 @@ export function VehicleFormPage() {
         model: existing.model,
         registrationNumber: existing.registrationNumber,
         vin: existing.vin ?? '',
+        qrCode: existing.qrCode ?? '',
         fuelType: existing.fuelType,
         status: existing.status,
       });
@@ -85,6 +87,7 @@ export function VehicleFormPage() {
       model: values.model.trim(),
       registrationNumber: values.registrationNumber.trim(),
       vin: values.vin || null,
+      qrCode: values.qrCode || null,
       fuelType: values.fuelType,
       status: values.status,
     };
@@ -178,6 +181,22 @@ export function VehicleFormPage() {
                     <TextField
                       {...field}
                       label={t('vehicles.vin')}
+                      fullWidth
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Controller
+                  name="qrCode"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      {...field}
+                      label={t('vehicles.qrCode')}
+                      placeholder={t('vehicles.qrCodeHint')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}

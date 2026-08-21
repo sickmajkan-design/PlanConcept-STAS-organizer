@@ -4,6 +4,8 @@ using Construction.Application.Common.Models;
 using Construction.Application.Features.Tools.Commands.AssignTool;
 using Construction.Application.Features.Tools.Commands.CreateTool;
 using Construction.Application.Features.Tools.Commands.DeleteTool;
+using Construction.Application.Features.Tools.Commands.SelfCheckOutTool;
+using Construction.Application.Features.Tools.Commands.SelfReturnTool;
 using Construction.Application.Features.Tools.Commands.UnassignTool;
 using Construction.Application.Features.Tools.Commands.UpdateTool;
 using Construction.Application.Features.Tools.Models;
@@ -153,5 +155,37 @@ public class ToolsController : ApiControllerBase
     {
         return Ok(await Mediator.Send(
             new UnassignToolCommand(id, ToolAssignmentTarget.Project), cancellationToken));
+    }
+
+    /// <summary>
+    /// Checks the tool out to the calling employee. Used by the mobile app
+    /// after scanning the tool's QR label. Available to every authenticated
+    /// employee — self-checkout only, never on behalf of someone else.
+    /// </summary>
+    [HttpPost("{id:guid}/check-out-to-me")]
+    [Idempotent]
+    [Authorize(Policy = Policies.AllEmployees)]
+    [ProducesResponseType(typeof(ToolDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ToolDto>> CheckOutToMe(Guid id, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new SelfCheckOutToolCommand(id), cancellationToken));
+    }
+
+    /// <summary>
+    /// Returns a tool that is checked out to the calling employee. Available
+    /// to every authenticated employee — only releases the caller's own
+    /// checkout, never someone else's.
+    /// </summary>
+    [HttpPost("{id:guid}/return")]
+    [Idempotent]
+    [Authorize(Policy = Policies.AllEmployees)]
+    [ProducesResponseType(typeof(ToolDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ToolDto>> Return(Guid id, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new SelfReturnToolCommand(id), cancellationToken));
     }
 }

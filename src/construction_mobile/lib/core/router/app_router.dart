@@ -21,8 +21,8 @@ import '../../features/projects/presentation/projects_screen.dart';
 import '../../features/shell/presentation/app_shell.dart';
 import '../../features/shell/presentation/home_screen.dart';
 import '../../features/shell/presentation/splash_screen.dart';
+import '../../features/scan/presentation/scan_screen.dart';
 import '../../features/tools/presentation/tool_detail_screen.dart';
-import '../../features/tools/presentation/tool_lookup_screen.dart';
 import '../../features/tools/presentation/tools_screen.dart';
 import '../../features/vehicles/presentation/vehicle_detail_screen.dart';
 import '../../features/vehicles/presentation/vehicles_screen.dart';
@@ -125,8 +125,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
-        path: AppRoutes.toolLookup,
-        builder: (context, state) => const ToolLookupScreen(),
+        path: AppRoutes.scan,
+        builder: (context, state) => const ScanScreen(),
       ),
       GoRoute(
         path: AppRoutes.timeEntries,

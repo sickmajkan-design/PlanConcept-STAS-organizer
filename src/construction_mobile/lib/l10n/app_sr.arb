@@ -113,6 +113,28 @@
   "toolLookUpAction": "Pronađi",
   "toolLookUpByQr": "Pronađi po QR kodu",
   "toolByQrCode": "Po QR kodu",
+  "vehicleQrCode": "QR kod",
+  "scanTitle": "Skeniraj ili pronađi",
+  "scanHint": "Skenirajte QR nalepnicu na alatu ili vozilu, ili unesite kod ispod.",
+  "scanAction": "Skeniraj QR kod",
+  "scanCodeLabel": "QR kod",
+  "scanToolFound": "Alat",
+  "scanVehicleFound": "Vozilo",
+  "scanCheckOutToMe": "Zaduži na mene",
+  "scanReturn": "Razduži",
+  "scanCheckedOutToYou": "Zaduženo na vas",
+  "scanCheckedOutToOther": "Zaduženo na {name}",
+  "@scanCheckedOutToOther": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "scanNotCheckedOut": "Trenutno nije zaduženo",
+  "scanCheckOutSuccess": "Zaduženo na vas.",
+  "scanReturnSuccess": "Razduženo.",
+  "scanCameraPermissionDenied": "Potrebna je dozvola za kameru radi skeniranja QR koda.",
   "toolCategoryLine": "Kategorija: {category}",
   "@toolCategoryLine": {
     "placeholders": {

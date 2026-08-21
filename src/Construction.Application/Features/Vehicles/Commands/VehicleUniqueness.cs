@@ -15,6 +15,7 @@ internal static class VehicleUniqueness
         IApplicationDbContext context,
         string registrationNumber,
         string? vin,
+        string? qrCode,
         Guid? excludeVehicleId,
         CancellationToken cancellationToken)
     {
@@ -29,18 +30,28 @@ internal static class VehicleUniqueness
                 $"Registration number '{registrationNumber}' is already in use.");
         }
 
-        if (vin is null)
+        if (vin is not null)
         {
-            return;
+            var vinTaken = await context.Vehicles.AnyAsync(
+                v => v.Vin == vin && (excludeVehicleId == null || v.Id != excludeVehicleId),
+                cancellationToken);
+
+            if (vinTaken)
+            {
+                throw new ConflictException($"VIN '{vin}' is already in use.");
+            }
         }
 
-        var vinTaken = await context.Vehicles.AnyAsync(
-            v => v.Vin == vin && (excludeVehicleId == null || v.Id != excludeVehicleId),
-            cancellationToken);
-
-        if (vinTaken)
+        if (qrCode is not null)
         {
-            throw new ConflictException($"VIN '{vin}' is already in use.");
+            var qrTaken = await context.Vehicles.AnyAsync(
+                v => v.QrCode == qrCode && (excludeVehicleId == null || v.Id != excludeVehicleId),
+                cancellationToken);
+
+            if (qrTaken)
+            {
+                throw new ConflictException($"QR code '{qrCode}' is already in use.");
+            }
         }
     }
 }

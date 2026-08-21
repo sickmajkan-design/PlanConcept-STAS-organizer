@@ -17,7 +17,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { attachmentsApi } from '../api/attachments';
 import type {
@@ -138,7 +138,11 @@ export function AttachmentList({
               }
             >
               <ListItemIcon sx={{ minWidth: 36 }}>
-                <DescriptionOutlined fontSize="small" />
+                {attachment.contentType.startsWith('image/') ? (
+                  <AttachmentThumbnail attachment={attachment} />
+                ) : (
+                  <DescriptionOutlined fontSize="small" />
+                )}
               </ListItemIcon>
               <ListItemText
                 primary={
@@ -189,6 +193,52 @@ export function AttachmentList({
         </Typography>
       )}
     </Box>
+  );
+}
+
+/** Small preview for an image attachment, fetched through the authenticated blob-URL path. */
+function AttachmentThumbnail({ attachment }: { attachment: Attachment }) {
+  const [url, setUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    let objectUrl: string | undefined;
+
+    void attachmentsApi.objectUrl(attachment.id).then((resolved) => {
+      if (cancelled) {
+        URL.revokeObjectURL(resolved);
+        return;
+      }
+
+      objectUrl = resolved;
+      setUrl(resolved);
+    });
+
+    return () => {
+      cancelled = true;
+
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [attachment.id]);
+
+  if (!url) {
+    return <DescriptionOutlined fontSize="small" />;
+  }
+
+  return (
+    <Box
+      component="img"
+      src={url}
+      alt={attachment.fileName}
+      sx={{
+        width: 32,
+        height: 32,
+        borderRadius: 0.5,
+        objectFit: 'cover',
+      }}
+    />
   );
 }
 

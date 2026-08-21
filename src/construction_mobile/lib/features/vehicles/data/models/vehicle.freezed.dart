@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Vehicle {
 
- String get id; String get brand; String get model; String get registrationNumber; String? get vin; String get fuelType; String get status; String? get assignedEmployeeId; String? get assignedEmployeeName; String? get assignedEmployeeNumber; DateTime get createdAt; DateTime? get updatedAt;
+ String get id; String get brand; String get model; String get registrationNumber; String? get vin; String? get qrCode; String get fuelType; String get status; String? get assignedEmployeeId; String? get assignedEmployeeName; String? get assignedEmployeeNumber; DateTime get createdAt; DateTime? get updatedAt;
 /// Create a copy of Vehicle
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $VehicleCopyWith<Vehicle> get copyWith => _$VehicleCopyWithImpl<Vehicle>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Vehicle&&(identical(other.id, id) || other.id == id)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.model, model) || other.model == model)&&(identical(other.registrationNumber, registrationNumber) || other.registrationNumber == registrationNumber)&&(identical(other.vin, vin) || other.vin == vin)&&(identical(other.fuelType, fuelType) || other.fuelType == fuelType)&&(identical(other.status, status) || other.status == status)&&(identical(other.assignedEmployeeId, assignedEmployeeId) || other.assignedEmployeeId == assignedEmployeeId)&&(identical(other.assignedEmployeeName, assignedEmployeeName) || other.assignedEmployeeName == assignedEmployeeName)&&(identical(other.assignedEmployeeNumber, assignedEmployeeNumber) || other.assignedEmployeeNumber == assignedEmployeeNumber)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Vehicle&&(identical(other.id, id) || other.id == id)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.model, model) || other.model == model)&&(identical(other.registrationNumber, registrationNumber) || other.registrationNumber == registrationNumber)&&(identical(other.vin, vin) || other.vin == vin)&&(identical(other.qrCode, qrCode) || other.qrCode == qrCode)&&(identical(other.fuelType, fuelType) || other.fuelType == fuelType)&&(identical(other.status, status) || other.status == status)&&(identical(other.assignedEmployeeId, assignedEmployeeId) || other.assignedEmployeeId == assignedEmployeeId)&&(identical(other.assignedEmployeeName, assignedEmployeeName) || other.assignedEmployeeName == assignedEmployeeName)&&(identical(other.assignedEmployeeNumber, assignedEmployeeNumber) || other.assignedEmployeeNumber == assignedEmployeeNumber)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,brand,model,registrationNumber,vin,fuelType,status,assignedEmployeeId,assignedEmployeeName,assignedEmployeeNumber,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,brand,model,registrationNumber,vin,qrCode,fuelType,status,assignedEmployeeId,assignedEmployeeName,assignedEmployeeNumber,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'Vehicle(id: $id, brand: $brand, model: $model, registrationNumber: $registrationNumber, vin: $vin, fuelType: $fuelType, status: $status, assignedEmployeeId: $assignedEmployeeId, assignedEmployeeName: $assignedEmployeeName, assignedEmployeeNumber: $assignedEmployeeNumber, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Vehicle(id: $id, brand: $brand, model: $model, registrationNumber: $registrationNumber, vin: $vin, qrCode: $qrCode, fuelType: $fuelType, status: $status, assignedEmployeeId: $assignedEmployeeId, assignedEmployeeName: $assignedEmployeeName, assignedEmployeeNumber: $assignedEmployeeNumber, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $VehicleCopyWith<$Res>  {
   factory $VehicleCopyWith(Vehicle value, $Res Function(Vehicle) _then) = _$VehicleCopyWithImpl;
 @useResult
 $Res call({
- String id, String brand, String model, String registrationNumber, String? vin, String fuelType, String status, String? assignedEmployeeId, String? assignedEmployeeName, String? assignedEmployeeNumber, DateTime createdAt, DateTime? updatedAt
+ String id, String brand, String model, String registrationNumber, String? vin, String? qrCode, String fuelType, String status, String? assignedEmployeeId, String? assignedEmployeeName, String? assignedEmployeeNumber, DateTime createdAt, DateTime? updatedAt
 });
 
 
@@ -65,13 +65,14 @@ class _$VehicleCopyWithImpl<$Res>
 
 /// Create a copy of Vehicle
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? brand = null,Object? model = null,Object? registrationNumber = null,Object? vin = freezed,Object? fuelType = null,Object? status = null,Object? assignedEmployeeId = freezed,Object? assignedEmployeeName = freezed,Object? assignedEmployeeNumber = freezed,Object? createdAt = null,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? brand = null,Object? model = null,Object? registrationNumber = null,Object? vin = freezed,Object? qrCode = freezed,Object? fuelType = null,Object? status = null,Object? assignedEmployeeId = freezed,Object? assignedEmployeeName = freezed,Object? assignedEmployeeNumber = freezed,Object? createdAt = null,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,brand: null == brand ? _self.brand : brand // ignore: cast_nullable_to_non_nullable
 as String,model: null == model ? _self.model : model // ignore: cast_nullable_to_non_nullable
 as String,registrationNumber: null == registrationNumber ? _self.registrationNumber : registrationNumber // ignore: cast_nullable_to_non_nullable
 as String,vin: freezed == vin ? _self.vin : vin // ignore: cast_nullable_to_non_nullable
+as String?,qrCode: freezed == qrCode ? _self.qrCode : qrCode // ignore: cast_nullable_to_non_nullable
 as String?,fuelType: null == fuelType ? _self.fuelType : fuelType // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,assignedEmployeeId: freezed == assignedEmployeeId ? _self.assignedEmployeeId : assignedEmployeeId // ignore: cast_nullable_to_non_nullable
@@ -164,10 +165,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String brand,  String model,  String registrationNumber,  String? vin,  String fuelType,  String status,  String? assignedEmployeeId,  String? assignedEmployeeName,  String? assignedEmployeeNumber,  DateTime createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String brand,  String model,  String registrationNumber,  String? vin,  String? qrCode,  String fuelType, String status,  String? assignedEmployeeId,  String? assignedEmployeeName,  String? assignedEmployeeNumber,  DateTime createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Vehicle() when $default != null:
-return $default(_that.id,_that.brand,_that.model,_that.registrationNumber,_that.vin,_that.fuelType,_that.status,_that.assignedEmployeeId,_that.assignedEmployeeName,_that.assignedEmployeeNumber,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.brand,_that.model,_that.registrationNumber,_that.vin,_that.qrCode,_that.fuelType,_that.status,_that.assignedEmployeeId,_that.assignedEmployeeName,_that.assignedEmployeeNumber,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -185,10 +186,10 @@ return $default(_that.id,_that.brand,_that.model,_that.registrationNumber,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String brand,  String model,  String registrationNumber,  String? vin,  String fuelType,  String status,  String? assignedEmployeeId,  String? assignedEmployeeName,  String? assignedEmployeeNumber,  DateTime createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String brand,  String model,  String registrationNumber,  String? vin,  String? qrCode,  String fuelType, String status,  String? assignedEmployeeId,  String? assignedEmployeeName,  String? assignedEmployeeNumber,  DateTime createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Vehicle():
-return $default(_that.id,_that.brand,_that.model,_that.registrationNumber,_that.vin,_that.fuelType,_that.status,_that.assignedEmployeeId,_that.assignedEmployeeName,_that.assignedEmployeeNumber,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.brand,_that.model,_that.registrationNumber,_that.vin,_that.qrCode,_that.fuelType,_that.status,_that.assignedEmployeeId,_that.assignedEmployeeName,_that.assignedEmployeeNumber,_that.createdAt,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -205,10 +206,10 @@ return $default(_that.id,_that.brand,_that.model,_that.registrationNumber,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String brand,  String model,  String registrationNumber,  String? vin,  String fuelType,  String status,  String? assignedEmployeeId,  String? assignedEmployeeName,  String? assignedEmployeeNumber,  DateTime createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String brand,  String model,  String registrationNumber,  String? vin,  String? qrCode,  String fuelType, String status,  String? assignedEmployeeId,  String? assignedEmployeeName,  String? assignedEmployeeNumber,  DateTime createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Vehicle() when $default != null:
-return $default(_that.id,_that.brand,_that.model,_that.registrationNumber,_that.vin,_that.fuelType,_that.status,_that.assignedEmployeeId,_that.assignedEmployeeName,_that.assignedEmployeeNumber,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.brand,_that.model,_that.registrationNumber,_that.vin,_that.qrCode,_that.fuelType,_that.status,_that.assignedEmployeeId,_that.assignedEmployeeName,_that.assignedEmployeeNumber,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -220,7 +221,7 @@ return $default(_that.id,_that.brand,_that.model,_that.registrationNumber,_that.
 @JsonSerializable()
 
 class _Vehicle extends Vehicle {
-  const _Vehicle({required this.id, required this.brand, required this.model, required this.registrationNumber, this.vin, required this.fuelType, required this.status, this.assignedEmployeeId, this.assignedEmployeeName, this.assignedEmployeeNumber, required this.createdAt, this.updatedAt}): super._();
+  const _Vehicle({required this.id, required this.brand, required this.model, required this.registrationNumber, this.vin, this.qrCode, required this.fuelType, required this.status, this.assignedEmployeeId, this.assignedEmployeeName, this.assignedEmployeeNumber, required this.createdAt, this.updatedAt}): super._();
   factory _Vehicle.fromJson(Map<String, dynamic> json) => _$VehicleFromJson(json);
 
 @override final  String id;
@@ -228,6 +229,7 @@ class _Vehicle extends Vehicle {
 @override final  String model;
 @override final  String registrationNumber;
 @override final  String? vin;
+@override final  String? qrCode;
 @override final  String fuelType;
 @override final  String status;
 @override final  String? assignedEmployeeId;
@@ -249,16 +251,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Vehicle&&(identical(other.id, id) || other.id == id)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.model, model) || other.model == model)&&(identical(other.registrationNumber, registrationNumber) || other.registrationNumber == registrationNumber)&&(identical(other.vin, vin) || other.vin == vin)&&(identical(other.fuelType, fuelType) || other.fuelType == fuelType)&&(identical(other.status, status) || other.status == status)&&(identical(other.assignedEmployeeId, assignedEmployeeId) || other.assignedEmployeeId == assignedEmployeeId)&&(identical(other.assignedEmployeeName, assignedEmployeeName) || other.assignedEmployeeName == assignedEmployeeName)&&(identical(other.assignedEmployeeNumber, assignedEmployeeNumber) || other.assignedEmployeeNumber == assignedEmployeeNumber)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Vehicle&&(identical(other.id, id) || other.id == id)&&(identical(other.brand, brand) || other.brand == brand)&&(identical(other.model, model) || other.model == model)&&(identical(other.registrationNumber, registrationNumber) || other.registrationNumber == registrationNumber)&&(identical(other.vin, vin) || other.vin == vin)&&(identical(other.qrCode, qrCode) || other.qrCode == qrCode)&&(identical(other.fuelType, fuelType) || other.fuelType == fuelType)&&(identical(other.status, status) || other.status == status)&&(identical(other.assignedEmployeeId, assignedEmployeeId) || other.assignedEmployeeId == assignedEmployeeId)&&(identical(other.assignedEmployeeName, assignedEmployeeName) || other.assignedEmployeeName == assignedEmployeeName)&&(identical(other.assignedEmployeeNumber, assignedEmployeeNumber) || other.assignedEmployeeNumber == assignedEmployeeNumber)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,brand,model,registrationNumber,vin,fuelType,status,assignedEmployeeId,assignedEmployeeName,assignedEmployeeNumber,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,brand,model,registrationNumber,vin,qrCode,fuelType,status,assignedEmployeeId,assignedEmployeeName,assignedEmployeeNumber,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'Vehicle(id: $id, brand: $brand, model: $model, registrationNumber: $registrationNumber, vin: $vin, fuelType: $fuelType, status: $status, assignedEmployeeId: $assignedEmployeeId, assignedEmployeeName: $assignedEmployeeName, assignedEmployeeNumber: $assignedEmployeeNumber, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Vehicle(id: $id, brand: $brand, model: $model, registrationNumber: $registrationNumber, vin: $vin, qrCode: $qrCode, fuelType: $fuelType, status: $status, assignedEmployeeId: $assignedEmployeeId, assignedEmployeeName: $assignedEmployeeName, assignedEmployeeNumber: $assignedEmployeeNumber, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -269,7 +271,7 @@ abstract mixin class _$VehicleCopyWith<$Res> implements $VehicleCopyWith<$Res> {
   factory _$VehicleCopyWith(_Vehicle value, $Res Function(_Vehicle) _then) = __$VehicleCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String brand, String model, String registrationNumber, String? vin, String fuelType, String status, String? assignedEmployeeId, String? assignedEmployeeName, String? assignedEmployeeNumber, DateTime createdAt, DateTime? updatedAt
+ String id, String brand, String model, String registrationNumber, String? vin, String? qrCode, String fuelType, String status, String? assignedEmployeeId, String? assignedEmployeeName, String? assignedEmployeeNumber, DateTime createdAt, DateTime? updatedAt
 });
 
 
@@ -286,13 +288,14 @@ class __$VehicleCopyWithImpl<$Res>
 
 /// Create a copy of Vehicle
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? brand = null,Object? model = null,Object? registrationNumber = null,Object? vin = freezed,Object? fuelType = null,Object? status = null,Object? assignedEmployeeId = freezed,Object? assignedEmployeeName = freezed,Object? assignedEmployeeNumber = freezed,Object? createdAt = null,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? brand = null,Object? model = null,Object? registrationNumber = null,Object? vin = freezed,Object? qrCode = freezed,Object? fuelType = null,Object? status = null,Object? assignedEmployeeId = freezed,Object? assignedEmployeeName = freezed,Object? assignedEmployeeNumber = freezed,Object? createdAt = null,Object? updatedAt = freezed,}) {
   return _then(_Vehicle(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,brand: null == brand ? _self.brand : brand // ignore: cast_nullable_to_non_nullable
 as String,model: null == model ? _self.model : model // ignore: cast_nullable_to_non_nullable
 as String,registrationNumber: null == registrationNumber ? _self.registrationNumber : registrationNumber // ignore: cast_nullable_to_non_nullable
 as String,vin: freezed == vin ? _self.vin : vin // ignore: cast_nullable_to_non_nullable
+as String?,qrCode: freezed == qrCode ? _self.qrCode : qrCode // ignore: cast_nullable_to_non_nullable
 as String?,fuelType: null == fuelType ? _self.fuelType : fuelType // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,assignedEmployeeId: freezed == assignedEmployeeId ? _self.assignedEmployeeId : assignedEmployeeId // ignore: cast_nullable_to_non_nullable

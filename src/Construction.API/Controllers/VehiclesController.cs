@@ -4,10 +4,13 @@ using Construction.Application.Common.Models;
 using Construction.Application.Features.Vehicles.Commands.AssignVehicle;
 using Construction.Application.Features.Vehicles.Commands.CreateVehicle;
 using Construction.Application.Features.Vehicles.Commands.DeleteVehicle;
+using Construction.Application.Features.Vehicles.Commands.SelfCheckOutVehicle;
+using Construction.Application.Features.Vehicles.Commands.SelfReturnVehicle;
 using Construction.Application.Features.Vehicles.Commands.UnassignVehicle;
 using Construction.Application.Features.Vehicles.Commands.UpdateVehicle;
 using Construction.Application.Features.Vehicles.Models;
 using Construction.Application.Features.Vehicles.Queries.GetVehicleById;
+using Construction.Application.Features.Vehicles.Queries.GetVehicleByQrCode;
 using Construction.Application.Features.Vehicles.Queries.GetVehicles;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -36,6 +39,21 @@ public class VehiclesController : ApiControllerBase
     public async Task<ActionResult<VehicleDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(new GetVehicleByIdQuery(id), cancellationToken));
+    }
+
+    /// <summary>
+    /// Looks a vehicle up by its QR label — used by the mobile app after
+    /// scanning. Available to every authenticated employee.
+    /// </summary>
+    [HttpGet("by-qr/{qrCode}")]
+    [Authorize(Policy = Policies.AllEmployees)]
+    [ProducesResponseType(typeof(VehicleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<VehicleDto>> GetByQrCode(
+        string qrCode,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetVehicleByQrCodeQuery(qrCode), cancellationToken));
     }
 
     /// <summary>Creates a new vehicle.</summary>
@@ -104,5 +122,38 @@ public class VehiclesController : ApiControllerBase
     public async Task<ActionResult<VehicleDto>> Unassign(Guid id, CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(new UnassignVehicleCommand(id), cancellationToken));
+    }
+
+    /// <summary>
+    /// Checks the vehicle out to the calling employee. Used by the mobile app
+    /// after scanning the vehicle's QR label. Available to every
+    /// authenticated employee — self-checkout only, never on behalf of
+    /// someone else.
+    /// </summary>
+    [HttpPost("{id:guid}/check-out-to-me")]
+    [Idempotent]
+    [Authorize(Policy = Policies.AllEmployees)]
+    [ProducesResponseType(typeof(VehicleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<VehicleDto>> CheckOutToMe(Guid id, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new SelfCheckOutVehicleCommand(id), cancellationToken));
+    }
+
+    /// <summary>
+    /// Returns a vehicle that is checked out to the calling employee.
+    /// Available to every authenticated employee — only releases the
+    /// caller's own checkout, never someone else's.
+    /// </summary>
+    [HttpPost("{id:guid}/return")]
+    [Idempotent]
+    [Authorize(Policy = Policies.AllEmployees)]
+    [ProducesResponseType(typeof(VehicleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<VehicleDto>> Return(Guid id, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new SelfReturnVehicleCommand(id), cancellationToken));
     }
 }

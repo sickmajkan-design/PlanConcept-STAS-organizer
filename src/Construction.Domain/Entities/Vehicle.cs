@@ -13,6 +13,9 @@ public class Vehicle : BaseEntity, ISoftDeletable, IAuditable
 
     public string? Vin { get; set; }
 
+    /// <summary>Value encoded in the QR label attached to the physical vehicle.</summary>
+    public string? QrCode { get; set; }
+
     public FuelType FuelType { get; set; }
 
     public VehicleStatus Status { get; set; } = VehicleStatus.Available;

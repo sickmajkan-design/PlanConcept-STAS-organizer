@@ -1,4 +1,10 @@
-import { AddOutlined, DeleteOutlined, EditOutlined, VisibilityOutlined } from '@mui/icons-material';
+import {
+  AddOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  HandymanOutlined,
+  VisibilityOutlined,
+} from '@mui/icons-material';
 import {
   Box,
   FormControl,
@@ -23,6 +29,7 @@ import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { RowActions } from '../../components/RowActions';
+import { RowPhotoCell } from '../../components/RowPhotoCell';
 import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
 import { StatusLegend } from '../../components/StatusLegend';
@@ -49,6 +56,20 @@ export function ToolsListPage() {
 
   const columns: GridColDef<Tool>[] = useMemo(
     () => [
+      {
+        field: 'photo',
+        headerName: '',
+        width: 56,
+        sortable: false,
+        filterable: false,
+        renderCell: (params) => (
+          <RowPhotoCell
+            ownerType="Tool"
+            ownerId={params.row.id}
+            icon={<HandymanOutlined fontSize="small" />}
+          />
+        ),
+      },
       { field: 'name', headerName: t('tools.tool'), flex: 1, minWidth: 180 },
       {
         field: 'category',

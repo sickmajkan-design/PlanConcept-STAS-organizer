@@ -12,6 +12,7 @@ export const vehicleFormSchema = z.object({
     .min(1, 'Registration number is required.')
     .max(32),
   vin: z.string().trim().max(32).optional().or(z.literal('')),
+  qrCode: z.string().trim().max(256).optional().or(z.literal('')),
   fuelType: z.enum(fuelTypes, { message: 'Fuel type is required.' }),
   status: z.enum(vehicleStatuses),
 });

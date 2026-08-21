@@ -35,9 +35,9 @@ class AppRoutes {
   static const vehicleExpenses = '/vehicle-expenses';
 
   /// Open to every authenticated employee (mirrors the API's `by-qr`
-  /// endpoint), so it must not sit under [tools] or it would be swept into
-  /// [isDirectoryLocation].
-  static const toolLookup = '/tool-lookup';
+  /// endpoints for tools and vehicles), so it must not sit under [tools] or
+  /// [vehicles] or it would be swept into [isDirectoryLocation].
+  static const scan = '/scan';
 
   static String employeeDetail(String id) => '$employees/$id';
 

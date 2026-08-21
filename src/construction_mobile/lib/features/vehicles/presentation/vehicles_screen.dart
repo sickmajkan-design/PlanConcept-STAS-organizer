@@ -19,7 +19,16 @@ class VehiclesScreen extends ConsumerWidget {
     final state = ref.watch(vehiclesControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.navVehicles)),
+      appBar: AppBar(
+        title: Text(context.l10n.navVehicles),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner_outlined),
+            tooltip: context.l10n.toolLookUpByQr,
+            onPressed: () => context.push(AppRoutes.scan),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: PagedListView<Vehicle>(
           state: state,

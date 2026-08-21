@@ -272,6 +272,7 @@ export interface Vehicle {
   model: string;
   registrationNumber: string;
   vin: string | null;
+  qrCode: string | null;
   fuelType: FuelType;
   status: VehicleStatus;
   assignedEmployeeId: string | null;
@@ -286,6 +287,7 @@ export interface VehicleInput {
   model: string;
   registrationNumber: string;
   vin?: string | null;
+  qrCode?: string | null;
   fuelType: FuelType;
   status: VehicleStatus;
 }

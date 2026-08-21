@@ -18,6 +18,8 @@ public abstract record VehicleCommandBase
 
     public string? Vin { get; init; }
 
+    public string? QrCode { get; init; }
+
     public FuelType FuelType { get; init; }
 
     public VehicleStatus Status { get; init; } = VehicleStatus.Available;
@@ -42,6 +44,9 @@ public abstract class VehicleCommandBaseValidator<T> : AbstractValidator<T>
 
         RuleFor(x => x.Vin)
             .MaximumLength(32);
+
+        RuleFor(x => x.QrCode)
+            .MaximumLength(256);
 
         RuleFor(x => x.FuelType)
             .IsInEnum().WithMessage("Fuel type is required and must be a valid value.");

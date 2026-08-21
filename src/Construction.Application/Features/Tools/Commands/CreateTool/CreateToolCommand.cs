@@ -1,7 +1,9 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Tools.Models;
 using Construction.Domain.Entities;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Construction.Application.Features.Tools.Commands.CreateTool;
 
@@ -23,7 +25,12 @@ public class CreateToolCommandHandler : IRequestHandler<CreateToolCommand, ToolD
         var serialNumber = string.IsNullOrWhiteSpace(request.SerialNumber)
             ? null
             : request.SerialNumber.Trim();
-        var qrCode = string.IsNullOrWhiteSpace(request.QrCode) ? null : request.QrCode.Trim();
+        var qrCode = string.IsNullOrWhiteSpace(request.QrCode)
+            ? await QrCodeGenerator.GenerateUniqueAsync(
+                "TL",
+                (candidate, ct) => _context.Tools.AnyAsync(t => t.QrCode == candidate, ct),
+                cancellationToken)
+            : request.QrCode.Trim();
 
         await ToolRules.EnsureUniqueAsync(
             _context, serialNumber, qrCode, excludeToolId: null, cancellationToken);

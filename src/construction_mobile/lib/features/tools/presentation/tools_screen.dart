@@ -25,7 +25,7 @@ class ToolsScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.qr_code_scanner_outlined),
             tooltip: context.l10n.toolLookUpByQr,
-            onPressed: () => context.push(AppRoutes.toolLookup),
+            onPressed: () => context.push(AppRoutes.scan),
           ),
         ],
       ),

@@ -42,6 +42,25 @@ class ToolRepository extends ApiRepository {
       Tool.fromJson,
     );
   }
+
+  /// Checks the tool out to the caller. Self-service only — the API always
+  /// resolves the target employee from the caller's own session.
+  Future<Tool> checkOutToMe(String id, {required String idempotencyKey}) {
+    return postJson(
+      '/api/v1/tools/$id/check-out-to-me',
+      Tool.fromJson,
+      idempotencyKey: idempotencyKey,
+    );
+  }
+
+  /// Returns a tool that is currently checked out to the caller.
+  Future<Tool> returnTool(String id, {required String idempotencyKey}) {
+    return postJson(
+      '/api/v1/tools/$id/return',
+      Tool.fromJson,
+      idempotencyKey: idempotencyKey,
+    );
+  }
 }
 
 final toolRepositoryProvider = Provider<ToolRepository>((ref) {
