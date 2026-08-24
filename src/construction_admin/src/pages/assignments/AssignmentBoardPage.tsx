@@ -599,21 +599,31 @@ function CrewRow({
   return (
     <Box
       ref={setNodeRef}
-      {...listeners}
-      {...attributes}
       sx={{
         px: 1,
         py: 0.5,
         borderRadius: 1,
         bgcolor: 'action.hover',
-        cursor: 'grab',
         opacity: isDragging ? 0.4 : 1,
-        userSelect: 'none',
       }}
     >
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
         <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', minWidth: 0 }}>
-          <DragIndicatorOutlined fontSize="small" color="disabled" />
+          {/* Only the handle picks up drag gestures — the whole row did
+              before, and it swallowed clicks on the delete button below,
+              since the tiniest pointer jitter during a click reads as a
+              drag start. */}
+          <Box
+            {...listeners}
+            {...attributes}
+            sx={{
+              display: 'flex',
+              cursor: 'grab',
+              touchAction: 'none',
+            }}
+          >
+            <DragIndicatorOutlined fontSize="small" color="disabled" />
+          </Box>
           <Box sx={{ minWidth: 0 }}>
             <Typography variant="body2" noWrap>
               {employee.fullName}
