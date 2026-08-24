@@ -20,6 +20,12 @@ export const vehiclesApi = {
     '/api/v1/vehicles',
   ),
 
+  getByQrCode: (qrCode: string) =>
+    request<Vehicle>({
+      method: 'GET',
+      url: `/api/v1/vehicles/by-qr/${encodeURIComponent(qrCode)}`,
+    }),
+
   assign: (id: string, employeeId: string, idempotencyKey?: string) =>
     request<Vehicle>({
       method: 'POST',

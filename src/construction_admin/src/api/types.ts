@@ -880,3 +880,22 @@ export interface NotificationGroupInput {
   name: string;
   employeeIds: string[];
 }
+
+export interface AuditChange {
+  from: string | null;
+  to: string | null;
+}
+
+/** One recorded change to a record — who, when, and which fields moved. */
+export interface AuditEntry {
+  id: number;
+  occurredAt: string;
+  action: string;
+  entityName: string;
+  entityId: string;
+  userId: string | null;
+  userEmail: string | null;
+  userRole: string | null;
+  ipAddress: string | null;
+  changes: Record<string, AuditChange>;
+}

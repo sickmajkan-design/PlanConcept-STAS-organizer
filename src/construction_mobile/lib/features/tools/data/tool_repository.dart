@@ -61,6 +61,33 @@ class ToolRepository extends ApiRepository {
       idempotencyKey: idempotencyKey,
     );
   }
+
+  /// Hands the tool to another employee. Foreman and above — the same rule
+  /// the admin panel's assign action already enforces.
+  Future<Tool> assignToEmployee(
+    String id,
+    String employeeId, {
+    required String idempotencyKey,
+  }) {
+    return postJson(
+      '/api/v1/tools/$id/assign-employee/$employeeId',
+      Tool.fromJson,
+      idempotencyKey: idempotencyKey,
+    );
+  }
+
+  /// Places the tool on a project. Any employee holding it keeps holding it.
+  Future<Tool> assignToProject(
+    String id,
+    String projectId, {
+    required String idempotencyKey,
+  }) {
+    return postJson(
+      '/api/v1/tools/$id/assign-project/$projectId',
+      Tool.fromJson,
+      idempotencyKey: idempotencyKey,
+    );
+  }
 }
 
 final toolRepositoryProvider = Provider<ToolRepository>((ref) {

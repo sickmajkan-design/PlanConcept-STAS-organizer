@@ -3,10 +3,12 @@ import {
   DeleteOutlined,
   EditOutlined,
   LocalShippingOutlined,
+  QrCodeScannerOutlined,
   VisibilityOutlined,
 } from '@mui/icons-material';
 import {
   Box,
+  Button,
   FormControl,
   IconButton,
   InputLabel,
@@ -17,7 +19,7 @@ import {
   Typography,
 } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type { VehicleListQuery } from '../../api/vehicles';
@@ -26,6 +28,7 @@ import { vehicleStatuses } from '../../api/types';
 import { exportsApi } from '../../api/exports';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ExportButton } from '../../components/ExportButton';
+import { FindByQrPhotoDialog } from '../../components/FindByQrPhotoDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { RowActions } from '../../components/RowActions';
@@ -54,6 +57,7 @@ export function VehiclesListPage() {
 
   const { data, isLoading, isError, error, refetch } = useVehiclesQuery(query);
   const remove = useDeleteWithConfirm<Vehicle>(useDeleteVehicle());
+  const [qrPhotoOpen, setQrPhotoOpen] = useState(false);
 
   // Memoized: DataGrid treats a new columns array as a structural change on
   // every render, which is wasted work.
@@ -170,6 +174,14 @@ export function VehiclesListPage() {
         </FormControl>
         <StatusLegend kind="vehicleStatus" values={vehicleStatuses} />
 
+        <Button
+          variant="outlined"
+          startIcon={<QrCodeScannerOutlined />}
+          onClick={() => setQrPhotoOpen(true)}
+        >
+          {t('qrPhoto.findAction')}
+        </Button>
+
         <ExportButton
           onExport={(language) =>
             exportsApi.vehicles({ search: list.search, status: list.filter, language })
@@ -215,6 +227,8 @@ export function VehiclesListPage() {
           </Typography>
         </Box>
       )}
+
+      <FindByQrPhotoDialog open={qrPhotoOpen} onClose={() => setQrPhotoOpen(false)} />
     </Box>
   );
 }

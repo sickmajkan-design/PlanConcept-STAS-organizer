@@ -25,6 +25,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
+import { AuditHistoryCard } from '../../components/AuditHistoryCard';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
 import { AttachmentList } from '../../components/AttachmentList';
@@ -309,6 +310,12 @@ export function VehicleDetailPage() {
             </CardContent>
           </Card>
         </Grid>
+
+        {canAdministerAccounts(user) && (
+          <Grid size={12}>
+            <AuditHistoryCard entityName="Vehicle" entityId={vehicle.id} />
+          </Grid>
+        )}
 
         <Grid size={12}>
           <Card>

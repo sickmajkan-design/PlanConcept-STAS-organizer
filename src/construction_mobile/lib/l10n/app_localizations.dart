@@ -764,6 +764,48 @@ abstract class AppLocalizations {
   /// **'Camera permission is required to scan a QR code.'**
   String get scanCameraPermissionDenied;
 
+  /// No description provided for @scanTransferToEmployee.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer to employee'**
+  String get scanTransferToEmployee;
+
+  /// No description provided for @scanTransferToProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer to site'**
+  String get scanTransferToProject;
+
+  /// No description provided for @scanPickEmployee.
+  ///
+  /// In en, this message translates to:
+  /// **'Employee'**
+  String get scanPickEmployee;
+
+  /// No description provided for @scanPickProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Site'**
+  String get scanPickProject;
+
+  /// No description provided for @scanTransferConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get scanTransferConfirm;
+
+  /// No description provided for @scanTransferSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Transferred to {name}.'**
+  String scanTransferSuccess(String name);
+
+  /// No description provided for @scanTransferProjectSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Placed on {name}.'**
+  String scanTransferProjectSuccess(String name);
+
   /// No description provided for @toolCategoryLine.
   ///
   /// In en, this message translates to:

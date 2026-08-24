@@ -532,6 +532,23 @@ export const en = {
   'assignmentBoard.sortLabel': 'Sort',
   'assignmentBoard.sortByName': 'Name',
   'assignmentBoard.sortBySites': 'Site count',
+  'assignmentBoard.colSite': 'Site',
+  'assignmentBoard.colCrew': 'Crew',
+  'assignmentBoard.colTools': 'Tools',
+  'assignmentBoard.colVehicles': 'Vehicles',
+
+  // --- Audit history -----------------------------------------------------
+  'audit.title': 'History',
+  'audit.empty': 'No recorded changes yet.',
+  'audit.systemActor': 'System',
+
+  // --- Find by QR photo ---------------------------------------------------
+  'qrPhoto.findAction': 'Find by QR photo',
+  'qrPhoto.title': 'Find by QR photo',
+  'qrPhoto.hint': 'Choose a photo of a printed QR label — the tool or vehicle it belongs to opens automatically.',
+  'qrPhoto.choosePhoto': 'Choose photo…',
+  'qrPhoto.notFound': "Couldn't read a QR code in that photo. Try a clearer, closer photo.",
+  'qrPhoto.noMatch': 'That QR code does not match any tool or vehicle.',
   'assignmentBoard.siteCount': {
     one: 'on {count} site',
     other: 'on {count} sites',

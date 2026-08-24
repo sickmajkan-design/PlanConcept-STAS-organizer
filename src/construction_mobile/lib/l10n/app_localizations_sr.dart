@@ -355,6 +355,31 @@ class AppLocalizationsSr extends AppLocalizations {
       'Potrebna je dozvola za kameru radi skeniranja QR koda.';
 
   @override
+  String get scanTransferToEmployee => 'Prebaci na radnika';
+
+  @override
+  String get scanTransferToProject => 'Prebaci na gradilište';
+
+  @override
+  String get scanPickEmployee => 'Radnik';
+
+  @override
+  String get scanPickProject => 'Gradilište';
+
+  @override
+  String get scanTransferConfirm => 'Prebaci';
+
+  @override
+  String scanTransferSuccess(String name) {
+    return 'Prebačeno na $name.';
+  }
+
+  @override
+  String scanTransferProjectSuccess(String name) {
+    return 'Postavljeno na $name.';
+  }
+
+  @override
   String toolCategoryLine(String category) {
     return 'Kategorija: $category';
   }

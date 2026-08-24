@@ -3,10 +3,12 @@ import {
   DeleteOutlined,
   EditOutlined,
   HandymanOutlined,
+  QrCodeScannerOutlined,
   VisibilityOutlined,
 } from '@mui/icons-material';
 import {
   Box,
+  Button,
   FormControl,
   IconButton,
   InputLabel,
@@ -17,7 +19,7 @@ import {
   Typography,
 } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type { ToolListQuery } from '../../api/tools';
@@ -26,6 +28,7 @@ import { toolStatuses } from '../../api/types';
 import { exportsApi } from '../../api/exports';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ExportButton } from '../../components/ExportButton';
+import { FindByQrPhotoDialog } from '../../components/FindByQrPhotoDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { RowActions } from '../../components/RowActions';
@@ -53,6 +56,7 @@ export function ToolsListPage() {
 
   const { data, isLoading, isError, error, refetch } = useToolsQuery(query);
   const remove = useDeleteWithConfirm<Tool>(useDeleteTool());
+  const [qrPhotoOpen, setQrPhotoOpen] = useState(false);
 
   const columns: GridColDef<Tool>[] = useMemo(
     () => [
@@ -162,6 +166,14 @@ export function ToolsListPage() {
         </FormControl>
         <StatusLegend kind="toolStatus" values={toolStatuses} />
 
+        <Button
+          variant="outlined"
+          startIcon={<QrCodeScannerOutlined />}
+          onClick={() => setQrPhotoOpen(true)}
+        >
+          {t('qrPhoto.findAction')}
+        </Button>
+
         <ExportButton
           onExport={(language) =>
             exportsApi.tools({ search: list.search, status: list.filter, language })
@@ -203,6 +215,8 @@ export function ToolsListPage() {
           </Typography>
         </Box>
       )}
+
+      <FindByQrPhotoDialog open={qrPhotoOpen} onClose={() => setQrPhotoOpen(false)} />
     </Box>
   );
 }

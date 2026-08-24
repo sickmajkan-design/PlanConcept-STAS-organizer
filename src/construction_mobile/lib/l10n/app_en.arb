@@ -135,6 +135,27 @@
   "scanCheckOutSuccess": "Checked out to you.",
   "scanReturnSuccess": "Returned.",
   "scanCameraPermissionDenied": "Camera permission is required to scan a QR code.",
+  "scanTransferToEmployee": "Transfer to employee",
+  "scanTransferToProject": "Transfer to site",
+  "scanPickEmployee": "Employee",
+  "scanPickProject": "Site",
+  "scanTransferConfirm": "Transfer",
+  "scanTransferSuccess": "Transferred to {name}.",
+  "@scanTransferSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "scanTransferProjectSuccess": "Placed on {name}.",
+  "@scanTransferProjectSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "toolCategoryLine": "Category: {category}",
   "@toolCategoryLine": {
     "placeholders": {

@@ -61,6 +61,33 @@ class VehicleRepository extends ApiRepository {
       idempotencyKey: idempotencyKey,
     );
   }
+
+  /// Hands the vehicle to another employee. Project Manager and above — the
+  /// same rule the admin panel's assign action already enforces.
+  Future<Vehicle> assignToEmployee(
+    String id,
+    String employeeId, {
+    required String idempotencyKey,
+  }) {
+    return postJson(
+      '/api/v1/vehicles/$id/assign/$employeeId',
+      Vehicle.fromJson,
+      idempotencyKey: idempotencyKey,
+    );
+  }
+
+  /// Places the vehicle on a project. Any employee holding it keeps holding it.
+  Future<Vehicle> assignToProject(
+    String id,
+    String projectId, {
+    required String idempotencyKey,
+  }) {
+    return postJson(
+      '/api/v1/vehicles/$id/assign-project/$projectId',
+      Vehicle.fromJson,
+      idempotencyKey: idempotencyKey,
+    );
+  }
 }
 
 final vehicleRepositoryProvider = Provider<VehicleRepository>((ref) {

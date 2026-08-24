@@ -542,6 +542,23 @@ export const sr: Record<MessageKey, Message> = {
   'assignmentBoard.sortLabel': 'Sortiraj',
   'assignmentBoard.sortByName': 'Ime',
   'assignmentBoard.sortBySites': 'Broj gradilišta',
+  'assignmentBoard.colSite': 'Gradilište',
+  'assignmentBoard.colCrew': 'Ekipa',
+  'assignmentBoard.colTools': 'Alat',
+  'assignmentBoard.colVehicles': 'Vozila',
+
+  // --- Istorija promena ----------------------------------------------------
+  'audit.title': 'Istorija',
+  'audit.empty': 'Još nema zabeleženih promena.',
+  'audit.systemActor': 'Sistem',
+
+  // --- Pronađi po QR slici ---------------------------------------------------
+  'qrPhoto.findAction': 'Pronađi po QR slici',
+  'qrPhoto.title': 'Pronađi po QR slici',
+  'qrPhoto.hint': 'Izaberi fotografiju odštampane QR nalepnice — alat ili vozilo kome pripada se otvara automatski.',
+  'qrPhoto.choosePhoto': 'Izaberi sliku…',
+  'qrPhoto.notFound': 'Nije moguće pročitati QR kod na toj slici. Probaj jasniju, bližu fotografiju.',
+  'qrPhoto.noMatch': 'Taj QR kod ne odgovara nijednom alatu ili vozilu.',
   'assignmentBoard.siteCount': {
     one: 'na {count} gradilištu',
     few: 'na {count} gradilišta',

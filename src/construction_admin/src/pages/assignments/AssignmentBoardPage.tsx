@@ -1,6 +1,8 @@
 import {
   CloseOutlined,
   DragIndicatorOutlined,
+  ExpandLessOutlined,
+  ExpandMoreOutlined,
   HandymanOutlined,
   LocalShippingOutlined,
 } from '@mui/icons-material';
@@ -10,6 +12,7 @@ import {
   Button,
   Chip,
   CircularProgress,
+  Collapse,
   Dialog,
   DialogActions,
   DialogContent,
@@ -24,6 +27,12 @@ import {
   Select,
   Snackbar,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   TextField,
   Tooltip,
   Typography,
@@ -81,6 +90,7 @@ export function AssignmentBoardPage() {
   const [activeEmployee, setActiveEmployee] = useState<AssignmentBoardEmployee | null>(null);
   const [conflict, setConflict] = useState<string | null>(null);
   const [pendingDrop, setPendingDrop] = useState<PendingDrop | null>(null);
+  const [expandedProjectId, setExpandedProjectId] = useState<string | null>(null);
 
   const employeesById = useMemo(
     () => new Map((data?.employees ?? []).map((employee) => [employee.id, employee])),
@@ -176,39 +186,34 @@ export function AssignmentBoardPage() {
                   onChange={setSearch}
                   placeholder={t('assignmentBoard.searchPlaceholder')}
                 />
-                <Stack direction="row" spacing={1}>
-                  <FormControl size="small" fullWidth>
-                    <InputLabel id="ab-filter-label">
-                      {t('assignmentBoard.filterLabel')}
-                    </InputLabel>
-                    <Select
-                      labelId="ab-filter-label"
-                      label={t('assignmentBoard.filterLabel')}
-                      value={employeeFilter}
-                      onChange={(event) =>
-                        setEmployeeFilter(event.target.value as EmployeeFilter)
-                      }
-                    >
-                      <MenuItem value="all">{t('assignmentBoard.filterAll')}</MenuItem>
-                      <MenuItem value="unassigned">
-                        {t('assignmentBoard.filterUnassigned')}
-                      </MenuItem>
-                      <MenuItem value="assigned">{t('assignmentBoard.filterAssigned')}</MenuItem>
-                    </Select>
-                  </FormControl>
-                  <FormControl size="small" fullWidth>
-                    <InputLabel id="ab-sort-label">{t('assignmentBoard.sortLabel')}</InputLabel>
-                    <Select
-                      labelId="ab-sort-label"
-                      label={t('assignmentBoard.sortLabel')}
-                      value={employeeSort}
-                      onChange={(event) => setEmployeeSort(event.target.value as EmployeeSort)}
-                    >
-                      <MenuItem value="name">{t('assignmentBoard.sortByName')}</MenuItem>
-                      <MenuItem value="siteCount">{t('assignmentBoard.sortBySites')}</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Stack>
+                {/* Stacked, not side by side — two half-width selects in this
+                    narrow column left no room for the label and the chosen
+                    value at once. */}
+                <FormControl size="small" fullWidth>
+                  <InputLabel id="ab-filter-label">{t('assignmentBoard.filterLabel')}</InputLabel>
+                  <Select
+                    labelId="ab-filter-label"
+                    label={t('assignmentBoard.filterLabel')}
+                    value={employeeFilter}
+                    onChange={(event) => setEmployeeFilter(event.target.value as EmployeeFilter)}
+                  >
+                    <MenuItem value="all">{t('assignmentBoard.filterAll')}</MenuItem>
+                    <MenuItem value="unassigned">{t('assignmentBoard.filterUnassigned')}</MenuItem>
+                    <MenuItem value="assigned">{t('assignmentBoard.filterAssigned')}</MenuItem>
+                  </Select>
+                </FormControl>
+                <FormControl size="small" fullWidth>
+                  <InputLabel id="ab-sort-label">{t('assignmentBoard.sortLabel')}</InputLabel>
+                  <Select
+                    labelId="ab-sort-label"
+                    label={t('assignmentBoard.sortLabel')}
+                    value={employeeSort}
+                    onChange={(event) => setEmployeeSort(event.target.value as EmployeeSort)}
+                  >
+                    <MenuItem value="name">{t('assignmentBoard.sortByName')}</MenuItem>
+                    <MenuItem value="siteCount">{t('assignmentBoard.sortBySites')}</MenuItem>
+                  </Select>
+                </FormControl>
               </Stack>
               <Stack spacing={1} sx={{ mt: 1.5, maxHeight: '70vh', overflowY: 'auto', pr: 0.5 }}>
                 {filteredEmployees.length === 0 && (
@@ -226,34 +231,51 @@ export function AssignmentBoardPage() {
               <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
                 {t('assignmentBoard.sites')}
               </Typography>
-              <Grid container spacing={2}>
-                {(data?.projects ?? []).map((project) => (
-                  <Grid key={project.id} size={{ xs: 12, sm: 6, lg: 4 }}>
-                    <ProjectLane
-                      project={project}
-                      employees={(data?.employees ?? []).filter((employee) =>
-                        employee.postings.some((posting) => posting.projectId === project.id),
-                      )}
-                      postingFor={(employee) =>
-                        employee.postings.find((posting) => posting.projectId === project.id)!
-                      }
-                      onRemove={(employeeId) =>
-                        remove.mutate(
-                          { employeeId, projectId: project.id },
-                          { onError: (err) => setConflict(toApiError(err).message) },
-                        )
-                      }
-                    />
-                  </Grid>
-                ))}
-                {(data?.projects.length ?? 0) === 0 && (
-                  <Grid size={12}>
-                    <Typography color="text.secondary">
-                      {t('assignmentBoard.noOpenSites')}
-                    </Typography>
-                  </Grid>
-                )}
-              </Grid>
+              {(data?.projects.length ?? 0) === 0 ? (
+                <Typography color="text.secondary">{t('assignmentBoard.noOpenSites')}</Typography>
+              ) : (
+                <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: '75vh' }}>
+                  <Table stickyHeader size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell padding="checkbox" />
+                        <TableCell>{t('assignmentBoard.colSite')}</TableCell>
+                        <TableCell align="right">{t('assignmentBoard.colCrew')}</TableCell>
+                        <TableCell align="right">{t('assignmentBoard.colTools')}</TableCell>
+                        <TableCell align="right">{t('assignmentBoard.colVehicles')}</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {(data?.projects ?? []).map((project) => (
+                        <ProjectRow
+                          key={project.id}
+                          project={project}
+                          expanded={expandedProjectId === project.id}
+                          onToggle={() =>
+                            setExpandedProjectId((current) =>
+                              current === project.id ? null : project.id,
+                            )
+                          }
+                          employees={(data?.employees ?? []).filter((employee) =>
+                            employee.postings.some((posting) => posting.projectId === project.id),
+                          )}
+                          postingFor={(employee) =>
+                            employee.postings.find(
+                              (posting) => posting.projectId === project.id,
+                            )!
+                          }
+                          onRemove={(employeeId) =>
+                            remove.mutate(
+                              { employeeId, projectId: project.id },
+                              { onError: (err) => setConflict(toApiError(err).message) },
+                            )
+                          }
+                        />
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
             </Grid>
           </Grid>
 
@@ -437,107 +459,117 @@ function EmployeeCard({
   );
 }
 
-function ProjectLane({
+function ProjectRow({
   project,
   employees,
   postingFor,
   onRemove,
+  expanded,
+  onToggle,
 }: {
   project: AssignmentBoardProject;
   employees: AssignmentBoardEmployee[];
   postingFor: (employee: AssignmentBoardEmployee) => AssignmentBoardPosting;
   onRemove: (employeeId: string) => void;
+  expanded: boolean;
+  onToggle: () => void;
 }) {
   const t = useT();
   const { setNodeRef, isOver } = useDroppable({ id: project.id });
   const coverPhoto = useCoverPhoto('Project', project.id);
 
   return (
-    <Paper
-      ref={setNodeRef}
-      variant="outlined"
-      sx={{
-        p: 1.5,
-        minHeight: 160,
-        height: '100%',
-        borderColor: isOver ? 'primary.main' : undefined,
-        borderWidth: isOver ? 2 : 1,
-        bgcolor: isOver ? 'action.hover' : undefined,
-        transition: 'background-color 120ms, border-color 120ms',
-      }}
-    >
-      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
-        <Avatar src={coverPhoto ?? undefined} variant="rounded" sx={{ width: 28, height: 28 }}>
-          {project.name.charAt(0)}
-        </Avatar>
-        <Typography variant="subtitle2" sx={{ fontWeight: 700, flex: 1 }} noWrap>
-          {project.name}
-        </Typography>
-        <StatusChip status={project.status} kind="projectStatus" size="small" />
-      </Stack>
+    <>
+      <TableRow
+        ref={setNodeRef}
+        hover
+        sx={{
+          cursor: 'pointer',
+          bgcolor: isOver ? 'action.hover' : undefined,
+          outline: isOver ? '2px solid' : undefined,
+          outlineColor: isOver ? 'primary.main' : undefined,
+          outlineOffset: -2,
+          '& > td': { borderBottom: expanded ? 'none' : undefined },
+        }}
+        onClick={onToggle}
+      >
+        <TableCell padding="checkbox">
+          <IconButton
+            size="small"
+            onClick={(event) => {
+              event.stopPropagation();
+              onToggle();
+            }}
+          >
+            {expanded ? <ExpandLessOutlined fontSize="small" /> : <ExpandMoreOutlined fontSize="small" />}
+          </IconButton>
+        </TableCell>
+        <TableCell>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            <Avatar src={coverPhoto ?? undefined} variant="rounded" sx={{ width: 28, height: 28 }}>
+              {project.name.charAt(0)}
+            </Avatar>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              {project.name}
+            </Typography>
+            <StatusChip status={project.status} kind="projectStatus" size="small" />
+          </Stack>
+        </TableCell>
+        <TableCell align="right">{employees.length || '—'}</TableCell>
+        <TableCell align="right">{project.toolCount || '—'}</TableCell>
+        <TableCell align="right">{project.vehicleCount || '—'}</TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell colSpan={5} sx={{ py: 0, border: expanded ? undefined : 'none' }}>
+          <Collapse in={expanded} timeout="auto" unmountOnExit>
+            <Box sx={{ py: 1.5, px: 1 }}>
+              {employees.length === 0 ? (
+                <Typography variant="caption" color="text.secondary">
+                  {t('assignmentBoard.dropHere')}
+                </Typography>
+              ) : (
+                <Stack spacing={0.75}>
+                  {employees.map((employee) => {
+                    const posting = postingFor(employee);
 
-      {(project.toolCount > 0 || project.vehicleCount > 0) && (
-        <Stack direction="row" spacing={0.5} sx={{ mb: 1 }}>
-          {project.toolCount > 0 && (
-            <Chip
-              size="small"
-              icon={<HandymanOutlined />}
-              label={project.toolCount}
-              variant="outlined"
-            />
-          )}
-          {project.vehicleCount > 0 && (
-            <Chip
-              size="small"
-              icon={<LocalShippingOutlined />}
-              label={project.vehicleCount}
-              variant="outlined"
-            />
-          )}
-        </Stack>
-      )}
-
-      {employees.length === 0 ? (
-        <Typography variant="caption" color="text.secondary">
-          {t('assignmentBoard.dropHere')}
-        </Typography>
-      ) : (
-        <Stack spacing={0.75}>
-          {employees.map((employee) => {
-            const posting = postingFor(employee);
-
-            return (
-              <Box
-                key={employee.id}
-                sx={{
-                  px: 1,
-                  py: 0.5,
-                  borderRadius: 1,
-                  bgcolor: 'action.hover',
-                }}
-              >
-                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Box sx={{ minWidth: 0 }}>
-                    <Typography variant="body2" noWrap>
-                      {employee.fullName}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" noWrap>
-                      {postingRange(posting, t)}
-                    </Typography>
-                  </Box>
-                  <Tooltip title={t('common.delete')}>
-                    <IconButton size="small" onClick={() => onRemove(employee.id)}>
-                      <CloseOutlined fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
+                    return (
+                      <Box
+                        key={employee.id}
+                        sx={{ px: 1, py: 0.5, borderRadius: 1, bgcolor: 'action.hover' }}
+                      >
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+                        >
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography variant="body2" noWrap>
+                              {employee.fullName}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary" noWrap>
+                              {postingRange(posting, t)}
+                            </Typography>
+                          </Box>
+                          <Tooltip title={t('common.delete')}>
+                            <IconButton size="small" onClick={() => onRemove(employee.id)}>
+                              <CloseOutlined fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                        <EquipmentChips items={employee.assignedTools} icon={<HandymanOutlined />} />
+                        <EquipmentChips
+                          items={employee.assignedVehicles}
+                          icon={<LocalShippingOutlined />}
+                        />
+                      </Box>
+                    );
+                  })}
                 </Stack>
-                <EquipmentChips items={employee.assignedTools} icon={<HandymanOutlined />} />
-                <EquipmentChips items={employee.assignedVehicles} icon={<LocalShippingOutlined />} />
-              </Box>
-            );
-          })}
-        </Stack>
-      )}
-    </Paper>
+              )}
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </>
   );
 }

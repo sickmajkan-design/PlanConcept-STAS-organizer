@@ -135,6 +135,27 @@
   "scanCheckOutSuccess": "Zaduženo na vas.",
   "scanReturnSuccess": "Razduženo.",
   "scanCameraPermissionDenied": "Potrebna je dozvola za kameru radi skeniranja QR koda.",
+  "scanTransferToEmployee": "Prebaci na radnika",
+  "scanTransferToProject": "Prebaci na gradilište",
+  "scanPickEmployee": "Radnik",
+  "scanPickProject": "Gradilište",
+  "scanTransferConfirm": "Prebaci",
+  "scanTransferSuccess": "Prebačeno na {name}.",
+  "@scanTransferSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "scanTransferProjectSuccess": "Postavljeno na {name}.",
+  "@scanTransferProjectSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "toolCategoryLine": "Kategorija: {category}",
   "@toolCategoryLine": {
     "placeholders": {

@@ -12,7 +12,11 @@ import '../../../core/network/idempotency.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../employees/data/employee_repository.dart';
+import '../../employees/data/models/employee.dart';
 import '../../notifications/presentation/acknowledgment_gate.dart';
+import '../../projects/data/models/project.dart';
+import '../../projects/data/project_repository.dart';
 import '../../tools/data/models/tool.dart';
 import '../../tools/data/tool_repository.dart';
 import '../../vehicles/data/models/vehicle.dart';
@@ -34,12 +38,24 @@ class _VehicleResult extends _ScanResult {
   final Vehicle vehicle;
 }
 
+/// Roles the API lets hand a tool to someone else — mirrors
+/// `Policies.ForemanAndAbove`, the policy on the tool assign endpoints.
+const _toolTransferRoles = <String>{'SuperAdmin', 'Admin', 'ProjectManager', 'Foreman'};
+
+/// Roles the API lets hand a vehicle to someone else — mirrors
+/// `Policies.ProjectManagerAndAbove`, the policy on the vehicle assign
+/// endpoints. Narrower than tools: a foreman may move a wrench, not a truck.
+const _vehicleTransferRoles = <String>{'SuperAdmin', 'Admin', 'ProjectManager'};
+
 /// Looks a tool or vehicle up by its QR label — scanned with the camera or
-/// typed in — and lets the operator check it out to themselves or return it.
+/// typed in — and lets the operator check it out to themselves, return it,
+/// or (Foreman and above for tools, Project Manager and above for vehicles)
+/// hand it straight to another employee or site.
 ///
-/// Self-service only: the API always resolves the target employee from the
-/// caller's own session, so this screen never lets anyone act for someone
-/// else. Available to every signed-in employee, Worker included.
+/// Self-checkout/-return stays self-service only: the API always resolves
+/// the target employee from the caller's own session. Transfer is different
+/// — it names someone else — so it is gated to the same roles the admin
+/// panel's own assign buttons already require.
 class ScanScreen extends ConsumerStatefulWidget {
   const ScanScreen({super.key});
 
@@ -202,6 +218,106 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
     }
   }
 
+  Future<void> _transferToEmployee() async {
+    final result = _result;
+    if (result == null) return;
+    if (blockedByPendingAcknowledgment(context, ref)) return;
+
+    final employee = await _pickEmployee();
+    if (employee == null || !mounted) return;
+
+    final key = newIdempotencyKey();
+    setState(() {
+      _actionBusy = true;
+      _failure = null;
+    });
+
+    try {
+      switch (result) {
+        case _ToolResult(:final tool):
+          final updated = await ref
+              .read(toolRepositoryProvider)
+              .assignToEmployee(tool.id, employee.id, idempotencyKey: key);
+          if (!mounted) return;
+          setState(() => _result = _ToolResult(updated));
+        case _VehicleResult(:final vehicle):
+          final updated = await ref
+              .read(vehicleRepositoryProvider)
+              .assignToEmployee(vehicle.id, employee.id, idempotencyKey: key);
+          if (!mounted) return;
+          setState(() => _result = _VehicleResult(updated));
+      }
+
+      if (!mounted) return;
+      _showSnackBar(context.l10n.scanTransferSuccess(employee.fullName));
+    } on ApiException catch (exception) {
+      if (!mounted) return;
+      setState(() => _failure = exception);
+    } finally {
+      if (mounted) {
+        setState(() => _actionBusy = false);
+      }
+    }
+  }
+
+  Future<void> _transferToProjectAction() async {
+    final result = _result;
+    if (result == null) return;
+    if (blockedByPendingAcknowledgment(context, ref)) return;
+
+    final project = await _pickProject();
+    if (project == null || !mounted) return;
+
+    final key = newIdempotencyKey();
+    setState(() {
+      _actionBusy = true;
+      _failure = null;
+    });
+
+    try {
+      switch (result) {
+        case _ToolResult(:final tool):
+          final updated = await ref
+              .read(toolRepositoryProvider)
+              .assignToProject(tool.id, project.id, idempotencyKey: key);
+          if (!mounted) return;
+          setState(() => _result = _ToolResult(updated));
+        case _VehicleResult(:final vehicle):
+          final updated = await ref
+              .read(vehicleRepositoryProvider)
+              .assignToProject(vehicle.id, project.id, idempotencyKey: key);
+          if (!mounted) return;
+          setState(() => _result = _VehicleResult(updated));
+      }
+
+      if (!mounted) return;
+      _showSnackBar(context.l10n.scanTransferProjectSuccess(project.name));
+    } on ApiException catch (exception) {
+      if (!mounted) return;
+      setState(() => _failure = exception);
+    } finally {
+      if (mounted) {
+        setState(() => _actionBusy = false);
+      }
+    }
+  }
+
+  Future<Employee?> _pickEmployee() {
+    return showModalBottomSheet<Employee>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => const _EmployeePickerSheet(),
+    );
+  }
+
+  Future<Project?> _pickProject() {
+    return showModalBottomSheet<Project>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => const _ProjectPickerSheet(),
+    );
+  }
+
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -210,6 +326,8 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final role = ref.watch(currentUserProvider)?.role;
+
     return Scaffold(
       appBar: AppBar(title: Text(context.l10n.scanTitle)),
       body: SafeArea(
@@ -266,8 +384,14 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
               _ScanResultCard(
                 result: result,
                 busy: _actionBusy,
+                canTransfer: switch (result) {
+                  _ToolResult() => role != null && _toolTransferRoles.contains(role),
+                  _VehicleResult() => role != null && _vehicleTransferRoles.contains(role),
+                },
                 onCheckOutToMe: _checkOutToMe,
                 onReturn: _returnItem,
+                onTransferToEmployee: _transferToEmployee,
+                onTransferToProject: _transferToProjectAction,
               ),
           ],
         ),
@@ -280,14 +404,20 @@ class _ScanResultCard extends ConsumerWidget {
   const _ScanResultCard({
     required this.result,
     required this.busy,
+    required this.canTransfer,
     required this.onCheckOutToMe,
     required this.onReturn,
+    required this.onTransferToEmployee,
+    required this.onTransferToProject,
   });
 
   final _ScanResult result;
   final bool busy;
+  final bool canTransfer;
   final VoidCallback onCheckOutToMe;
   final VoidCallback onReturn;
+  final VoidCallback onTransferToEmployee;
+  final VoidCallback onTransferToProject;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -369,7 +499,9 @@ class _ScanResultCard extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Row(
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
                 if (isMine)
                   FilledButton.icon(
@@ -395,7 +527,18 @@ class _ScanResultCard extends ConsumerWidget {
                         : const Icon(Icons.check_circle_outline),
                     label: Text(l10n.scanCheckOutToMe),
                   ),
-                const Spacer(),
+                if (canTransfer) ...[
+                  OutlinedButton.icon(
+                    onPressed: busy ? null : onTransferToEmployee,
+                    icon: const Icon(Icons.person_outline),
+                    label: Text(l10n.scanTransferToEmployee),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: busy ? null : onTransferToProject,
+                    icon: const Icon(Icons.apartment_outlined),
+                    label: Text(l10n.scanTransferToProject),
+                  ),
+                ],
                 TextButton(
                   onPressed: () => context.push(detailPath),
                   child: Text(l10n.commonDetails),
@@ -404,6 +547,179 @@ class _ScanResultCard extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The employees a caller with transfer rights can pick from. Cached for the
+/// session, like the vehicle picker in the expense sheet.
+final _employeeOptionsProvider = FutureProvider<List<Employee>>((ref) async {
+  final page = await ref
+      .read(employeeRepositoryProvider)
+      .fetchEmployees(pageSize: 200, sortBy: 'lastName');
+
+  return page.items;
+});
+
+final _projectOptionsProvider = FutureProvider<List<Project>>((ref) async {
+  final page = await ref
+      .read(projectRepositoryProvider)
+      .fetchProjects(pageSize: 200, sortBy: 'name');
+
+  return page.items;
+});
+
+class _EmployeePickerSheet extends ConsumerStatefulWidget {
+  const _EmployeePickerSheet();
+
+  @override
+  ConsumerState<_EmployeePickerSheet> createState() => _EmployeePickerSheetState();
+}
+
+class _EmployeePickerSheetState extends ConsumerState<_EmployeePickerSheet> {
+  String? _employeeId;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final options = ref.watch(_employeeOptionsProvider);
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: MediaQuery.viewInsetsOf(context).bottom + 20,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.scanTransferToEmployee,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 16),
+          options.when(
+            loading: () => const LinearProgressIndicator(),
+            error: (error, _) => Text(
+              error is ApiException ? error.describe(l10n) : l10n.errorUnknown,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+            data: (employees) => DropdownButtonFormField<String>(
+              initialValue: _employeeId,
+              decoration: InputDecoration(labelText: l10n.scanPickEmployee),
+              items: [
+                for (final employee in employees)
+                  DropdownMenuItem(
+                    value: employee.id,
+                    child: Text(
+                      '${employee.fullName} · ${employee.employeeNumber}',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+              ],
+              onChanged: (value) => setState(() => _employeeId = value),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(l10n.commonCancel),
+              ),
+              const Spacer(),
+              FilledButton(
+                onPressed: _employeeId == null
+                    ? null
+                    : () {
+                        final employee = options.value!
+                            .firstWhere((employee) => employee.id == _employeeId);
+                        Navigator.of(context).pop(employee);
+                      },
+                child: Text(l10n.scanTransferConfirm),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ProjectPickerSheet extends ConsumerStatefulWidget {
+  const _ProjectPickerSheet();
+
+  @override
+  ConsumerState<_ProjectPickerSheet> createState() => _ProjectPickerSheetState();
+}
+
+class _ProjectPickerSheetState extends ConsumerState<_ProjectPickerSheet> {
+  String? _projectId;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final options = ref.watch(_projectOptionsProvider);
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: MediaQuery.viewInsetsOf(context).bottom + 20,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.scanTransferToProject,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 16),
+          options.when(
+            loading: () => const LinearProgressIndicator(),
+            error: (error, _) => Text(
+              error is ApiException ? error.describe(l10n) : l10n.errorUnknown,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+            data: (projects) => DropdownButtonFormField<String>(
+              initialValue: _projectId,
+              decoration: InputDecoration(labelText: l10n.scanPickProject),
+              items: [
+                for (final project in projects)
+                  DropdownMenuItem(
+                    value: project.id,
+                    child: Text(project.name, overflow: TextOverflow.ellipsis),
+                  ),
+              ],
+              onChanged: (value) => setState(() => _projectId = value),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(l10n.commonCancel),
+              ),
+              const Spacer(),
+              FilledButton(
+                onPressed: _projectId == null
+                    ? null
+                    : () {
+                        final project = options.value!
+                            .firstWhere((project) => project.id == _projectId);
+                        Navigator.of(context).pop(project);
+                      },
+                child: Text(l10n.scanTransferConfirm),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

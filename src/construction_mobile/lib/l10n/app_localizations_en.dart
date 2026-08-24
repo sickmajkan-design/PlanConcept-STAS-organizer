@@ -363,6 +363,31 @@ class AppLocalizationsEn extends AppLocalizations {
       'Camera permission is required to scan a QR code.';
 
   @override
+  String get scanTransferToEmployee => 'Transfer to employee';
+
+  @override
+  String get scanTransferToProject => 'Transfer to site';
+
+  @override
+  String get scanPickEmployee => 'Employee';
+
+  @override
+  String get scanPickProject => 'Site';
+
+  @override
+  String get scanTransferConfirm => 'Transfer';
+
+  @override
+  String scanTransferSuccess(String name) {
+    return 'Transferred to $name.';
+  }
+
+  @override
+  String scanTransferProjectSuccess(String name) {
+    return 'Placed on $name.';
+  }
+
+  @override
   String toolCategoryLine(String category) {
     return 'Category: $category';
   }
