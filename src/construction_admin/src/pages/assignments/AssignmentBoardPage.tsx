@@ -73,6 +73,8 @@ interface PendingDrop {
   employeeName: string;
   projectId: string;
   projectName: string;
+  /** Set when the drag started from another site's row — a move, not just an addition. */
+  sourceProjectId?: string;
 }
 
 type EmployeeFilter = 'all' | 'unassigned' | 'assigned';
@@ -155,11 +157,20 @@ export function AssignmentBoardPage() {
     // shows an error for something that was never wrong.
     if (employee.postings.some((posting) => posting.projectId === projectId)) return;
 
+    // Set only when the card was picked up from another site's own row
+    // (see the crew list inside ProjectRow) rather than the workforce list —
+    // that is what tells the confirm step to move them instead of just
+    // adding a second posting.
+    const sourceProjectId = dragEvent.active.data.current?.sourceProjectId as
+      | string
+      | undefined;
+
     setPendingDrop({
       employeeId,
       employeeName: employee.fullName,
       projectId,
       projectName: project.name,
+      sourceProjectId,
     });
   };
 
@@ -290,11 +301,25 @@ export function AssignmentBoardPage() {
         onClose={() => setPendingDrop(null)}
         onConfirm={(startDate, endDate) => {
           if (!pendingDrop) return;
+          const { employeeId, projectId, sourceProjectId } = pendingDrop;
 
           assign.mutate(
-            { employeeId: pendingDrop.employeeId, projectId: pendingDrop.projectId, startDate, endDate },
+            { employeeId, projectId, startDate, endDate },
             {
-              onSuccess: () => setPendingDrop(null),
+              onSuccess: () => {
+                setPendingDrop(null);
+
+                // A move, not an addition — drop the old site now that the
+                // new posting is in. Left alone on error: an employee
+                // dropped by mistake mid-move on both sites is a smaller
+                // problem than one dropped from both.
+                if (sourceProjectId) {
+                  remove.mutate(
+                    { employeeId, projectId: sourceProjectId },
+                    { onError: (err) => setConflict(toApiError(err).message) },
+                  );
+                }
+              },
               onError: (err) => {
                 setConflict(toApiError(err).message);
                 setPendingDrop(null);
@@ -529,41 +554,15 @@ function ProjectRow({
                 </Typography>
               ) : (
                 <Stack spacing={0.75}>
-                  {employees.map((employee) => {
-                    const posting = postingFor(employee);
-
-                    return (
-                      <Box
-                        key={employee.id}
-                        sx={{ px: 1, py: 0.5, borderRadius: 1, bgcolor: 'action.hover' }}
-                      >
-                        <Stack
-                          direction="row"
-                          spacing={1}
-                          sx={{ alignItems: 'center', justifyContent: 'space-between' }}
-                        >
-                          <Box sx={{ minWidth: 0 }}>
-                            <Typography variant="body2" noWrap>
-                              {employee.fullName}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary" noWrap>
-                              {postingRange(posting, t)}
-                            </Typography>
-                          </Box>
-                          <Tooltip title={t('common.delete')}>
-                            <IconButton size="small" onClick={() => onRemove(employee.id)}>
-                              <CloseOutlined fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
-                        <EquipmentChips items={employee.assignedTools} icon={<HandymanOutlined />} />
-                        <EquipmentChips
-                          items={employee.assignedVehicles}
-                          icon={<LocalShippingOutlined />}
-                        />
-                      </Box>
-                    );
-                  })}
+                  {employees.map((employee) => (
+                    <CrewRow
+                      key={employee.id}
+                      employee={employee}
+                      posting={postingFor(employee)}
+                      sourceProjectId={project.id}
+                      onRemove={() => onRemove(employee.id)}
+                    />
+                  ))}
                 </Stack>
               )}
             </Box>
@@ -571,5 +570,73 @@ function ProjectRow({
         </TableCell>
       </TableRow>
     </>
+  );
+}
+
+/**
+ * One employee inside a site's expanded crew list — draggable onto another
+ * site's row, same as a card from the workforce list, except this one
+ * carries where it started so dropping it elsewhere reads as a move rather
+ * than a second posting.
+ */
+function CrewRow({
+  employee,
+  posting,
+  sourceProjectId,
+  onRemove,
+}: {
+  employee: AssignmentBoardEmployee;
+  posting: AssignmentBoardPosting;
+  sourceProjectId: string;
+  onRemove: () => void;
+}) {
+  const t = useT();
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: employee.id,
+    data: { sourceProjectId },
+  });
+
+  return (
+    <Box
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      sx={{
+        px: 1,
+        py: 0.5,
+        borderRadius: 1,
+        bgcolor: 'action.hover',
+        cursor: 'grab',
+        opacity: isDragging ? 0.4 : 1,
+        userSelect: 'none',
+      }}
+    >
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+        <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', minWidth: 0 }}>
+          <DragIndicatorOutlined fontSize="small" color="disabled" />
+          <Box sx={{ minWidth: 0 }}>
+            <Typography variant="body2" noWrap>
+              {employee.fullName}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" noWrap>
+              {postingRange(posting, t)}
+            </Typography>
+          </Box>
+        </Stack>
+        <Tooltip title={t('common.delete')}>
+          <IconButton
+            size="small"
+            onClick={(event) => {
+              event.stopPropagation();
+              onRemove();
+            }}
+          >
+            <CloseOutlined fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Stack>
+      <EquipmentChips items={employee.assignedTools} icon={<HandymanOutlined />} />
+      <EquipmentChips items={employee.assignedVehicles} icon={<LocalShippingOutlined />} />
+    </Box>
   );
 }
