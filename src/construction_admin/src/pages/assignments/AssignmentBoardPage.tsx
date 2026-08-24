@@ -71,6 +71,15 @@ import { useT } from '../../i18n/useI18n';
 import { dateOnlyOffset } from '../../utils/formatting';
 import { postingRange } from '../../utils/postings';
 
+// Module scope, not inside the component: `useSensor`/`useSensors` only
+// return a stable sensor array when the options object they're given is
+// referentially stable across renders. A literal created inline is a new
+// object every render, so DndContext saw a "new" sensors array on every
+// re-render — including the one right after a successful assign/remove —
+// and re-subscribing its pointer listeners at exactly that moment is what
+// left every drag and click unresponsive afterwards.
+const POINTER_ACTIVATION_CONSTRAINT = { activationConstraint: { distance: 8 } };
+
 interface PendingDrop {
   employeeId: string;
   employeeName: string;
@@ -102,9 +111,7 @@ export function AssignmentBoardPage() {
   // few-pixel move before a drag activates is what tells the two apart;
   // without it, the sensor reads a click's own tiny jitter as a drag start
   // and the button never sees its click.
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-  );
+  const sensors = useSensors(useSensor(PointerSensor, POINTER_ACTIVATION_CONSTRAINT));
 
   const employeesById = useMemo(
     () => new Map((data?.employees ?? []).map((employee) => [employee.id, employee])),

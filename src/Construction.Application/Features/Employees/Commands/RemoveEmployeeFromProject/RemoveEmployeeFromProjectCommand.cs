@@ -61,11 +61,18 @@ public class RemoveEmployeeFromProjectCommandHandler
 
         // Their gear either follows them to wherever else they are currently
         // posted, or comes back off this project if nowhere else claims it.
+        // An employee can be posted to more than one site at once — a
+        // supervisor covering two jobs is a real case the board already
+        // allows — so when several other postings are still active, the one
+        // most recently assigned wins. That is the site the office most
+        // recently decided they belong to, and it is the only ordering that
+        // does not depend on how the database happened to hand rows back.
         var otherActiveProjectId = await _context.EmployeeProjects
             .Where(ep => ep.EmployeeId == request.EmployeeId
                 && ep.ProjectId != request.ProjectId
                 && ep.StartDate <= today
                 && (ep.EndDate == null || ep.EndDate >= today))
+            .OrderByDescending(ep => ep.AssignedAt)
             .Select(ep => (Guid?)ep.ProjectId)
             .FirstOrDefaultAsync(cancellationToken);
 
