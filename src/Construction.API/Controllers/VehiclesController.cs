@@ -2,11 +2,13 @@ using Construction.API.Authorization;
 using Construction.API.Filters;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.Vehicles.Commands.AssignVehicle;
+using Construction.Application.Features.Vehicles.Commands.AssignVehicleToProject;
 using Construction.Application.Features.Vehicles.Commands.CreateVehicle;
 using Construction.Application.Features.Vehicles.Commands.DeleteVehicle;
 using Construction.Application.Features.Vehicles.Commands.SelfCheckOutVehicle;
 using Construction.Application.Features.Vehicles.Commands.SelfReturnVehicle;
 using Construction.Application.Features.Vehicles.Commands.UnassignVehicle;
+using Construction.Application.Features.Vehicles.Commands.UnassignVehicleFromProject;
 using Construction.Application.Features.Vehicles.Commands.UpdateVehicle;
 using Construction.Application.Features.Vehicles.Models;
 using Construction.Application.Features.Vehicles.Queries.GetVehicleById;
@@ -122,6 +124,34 @@ public class VehiclesController : ApiControllerBase
     public async Task<ActionResult<VehicleDto>> Unassign(Guid id, CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(new UnassignVehicleCommand(id), cancellationToken));
+    }
+
+    /// <summary>Places (or moves) the vehicle onto a project. Any employee assignment is kept.</summary>
+    [HttpPost("{id:guid}/assign-project/{projectId:guid}")]
+    [Idempotent]
+    [Authorize(Policy = Policies.ProjectManagerAndAbove)]
+    [ProducesResponseType(typeof(VehicleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<VehicleDto>> AssignProject(
+        Guid id,
+        Guid projectId,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(
+            new AssignVehicleToProjectCommand(id, projectId), cancellationToken));
+    }
+
+    /// <summary>Removes the vehicle's project assignment.</summary>
+    [HttpPost("{id:guid}/unassign-project")]
+    [Idempotent]
+    [Authorize(Policy = Policies.ProjectManagerAndAbove)]
+    [ProducesResponseType(typeof(VehicleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<VehicleDto>> UnassignProject(Guid id, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new UnassignVehicleFromProjectCommand(id), cancellationToken));
     }
 
     /// <summary>

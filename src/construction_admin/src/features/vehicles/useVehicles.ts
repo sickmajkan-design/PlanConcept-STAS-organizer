@@ -69,3 +69,16 @@ export function useUnassignVehicle(id: string) {
     vehicleKeys.all,
   ]);
 }
+
+export function useAssignVehicleProject(id: string) {
+  return useResourceMutation(
+    (projectId: string, key: string) => vehiclesApi.assignProject(id, projectId, key),
+    [vehicleKeys.all],
+  );
+}
+
+export function useUnassignVehicleProject(id: string) {
+  return useResourceMutation<void, Vehicle>((_, key) => vehiclesApi.unassignProject(id, key), [
+    vehicleKeys.all,
+  ]);
+}

@@ -1,5 +1,11 @@
-import { CloseOutlined, DragIndicatorOutlined } from '@mui/icons-material';
 import {
+  CloseOutlined,
+  DragIndicatorOutlined,
+  HandymanOutlined,
+  LocalShippingOutlined,
+} from '@mui/icons-material';
+import {
+  Avatar,
   Box,
   Button,
   Chip,
@@ -9,9 +15,13 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControl,
   Grid,
   IconButton,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   Snackbar,
   Stack,
   TextField,
@@ -26,14 +36,20 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactElement } from 'react';
 
 import { toApiError } from '../../api/apiError';
-import type { AssignmentBoardEmployee, AssignmentBoardPosting, AssignmentBoardProject } from '../../api/types';
+import type {
+  AssignmentBoardEmployee,
+  AssignmentBoardEquipment,
+  AssignmentBoardPosting,
+  AssignmentBoardProject,
+} from '../../api/types';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
 import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
+import { useCoverPhoto } from '../../features/attachments/useAttachments';
 import {
   useAssignOnBoard,
   useAssignmentBoardQuery,
@@ -50,6 +66,9 @@ interface PendingDrop {
   projectName: string;
 }
 
+type EmployeeFilter = 'all' | 'unassigned' | 'assigned';
+type EmployeeSort = 'name' | 'siteCount';
+
 export function AssignmentBoardPage() {
   const t = useT();
   const { data, isLoading, isError, error, refetch } = useAssignmentBoardQuery();
@@ -57,6 +76,8 @@ export function AssignmentBoardPage() {
   const remove = useRemoveOnBoard();
 
   const [search, setSearch] = useState('');
+  const [employeeFilter, setEmployeeFilter] = useState<EmployeeFilter>('all');
+  const [employeeSort, setEmployeeSort] = useState<EmployeeSort>('name');
   const [activeEmployee, setActiveEmployee] = useState<AssignmentBoardEmployee | null>(null);
   const [conflict, setConflict] = useState<string | null>(null);
   const [pendingDrop, setPendingDrop] = useState<PendingDrop | null>(null);
@@ -72,17 +93,37 @@ export function AssignmentBoardPage() {
   );
 
   const filteredEmployees = useMemo(() => {
-    const employees = data?.employees ?? [];
-    const term = search.trim().toLowerCase();
-    if (!term) return employees;
+    let employees = data?.employees ?? [];
 
-    return employees.filter(
-      (employee) =>
-        employee.fullName.toLowerCase().includes(term) ||
-        employee.employeeNumber.toLowerCase().includes(term) ||
-        employee.position.toLowerCase().includes(term),
-    );
-  }, [data, search]);
+    if (employeeFilter === 'unassigned') {
+      employees = employees.filter((employee) => employee.postings.length === 0);
+    } else if (employeeFilter === 'assigned') {
+      employees = employees.filter((employee) => employee.postings.length > 0);
+    }
+
+    const term = search.trim().toLowerCase();
+    if (term) {
+      employees = employees.filter(
+        (employee) =>
+          employee.fullName.toLowerCase().includes(term) ||
+          employee.employeeNumber.toLowerCase().includes(term) ||
+          employee.position.toLowerCase().includes(term) ||
+          employee.assignedTools.some((tool) => tool.name.toLowerCase().includes(term)) ||
+          employee.assignedVehicles.some((vehicle) =>
+            vehicle.name.toLowerCase().includes(term),
+          ),
+      );
+    }
+
+    employees = [...employees];
+    if (employeeSort === 'siteCount') {
+      employees.sort((a, b) => b.postings.length - a.postings.length);
+    } else {
+      employees.sort((a, b) => a.fullName.localeCompare(b.fullName));
+    }
+
+    return employees;
+  }, [data, search, employeeFilter, employeeSort]);
 
   const handleDragStart = (dragEvent: DragStartEvent) => {
     setActiveEmployee(employeesById.get(String(dragEvent.active.id)) ?? null);
@@ -129,11 +170,46 @@ export function AssignmentBoardPage() {
               <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
                 {t('assignmentBoard.workforce')}
               </Typography>
-              <SearchField
-                value={search}
-                onChange={setSearch}
-                placeholder={t('assignmentBoard.searchPlaceholder')}
-              />
+              <Stack spacing={1}>
+                <SearchField
+                  value={search}
+                  onChange={setSearch}
+                  placeholder={t('assignmentBoard.searchPlaceholder')}
+                />
+                <Stack direction="row" spacing={1}>
+                  <FormControl size="small" fullWidth>
+                    <InputLabel id="ab-filter-label">
+                      {t('assignmentBoard.filterLabel')}
+                    </InputLabel>
+                    <Select
+                      labelId="ab-filter-label"
+                      label={t('assignmentBoard.filterLabel')}
+                      value={employeeFilter}
+                      onChange={(event) =>
+                        setEmployeeFilter(event.target.value as EmployeeFilter)
+                      }
+                    >
+                      <MenuItem value="all">{t('assignmentBoard.filterAll')}</MenuItem>
+                      <MenuItem value="unassigned">
+                        {t('assignmentBoard.filterUnassigned')}
+                      </MenuItem>
+                      <MenuItem value="assigned">{t('assignmentBoard.filterAssigned')}</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <FormControl size="small" fullWidth>
+                    <InputLabel id="ab-sort-label">{t('assignmentBoard.sortLabel')}</InputLabel>
+                    <Select
+                      labelId="ab-sort-label"
+                      label={t('assignmentBoard.sortLabel')}
+                      value={employeeSort}
+                      onChange={(event) => setEmployeeSort(event.target.value as EmployeeSort)}
+                    >
+                      <MenuItem value="name">{t('assignmentBoard.sortByName')}</MenuItem>
+                      <MenuItem value="siteCount">{t('assignmentBoard.sortBySites')}</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Stack>
+              </Stack>
               <Stack spacing={1} sx={{ mt: 1.5, maxHeight: '70vh', overflowY: 'auto', pr: 0.5 }}>
                 {filteredEmployees.length === 0 && (
                   <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
@@ -290,6 +366,27 @@ function AssignDatesDialog({
   );
 }
 
+/** Small outlined chips for a short equipment list, collapsing past three with a tooltip for the rest. */
+function EquipmentChips({ items, icon }: { items: AssignmentBoardEquipment[]; icon: ReactElement }) {
+  if (items.length === 0) return null;
+
+  const shown = items.slice(0, 3);
+  const rest = items.slice(3);
+
+  return (
+    <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+      {shown.map((item) => (
+        <Chip key={item.id} size="small" variant="outlined" icon={icon} label={item.name} />
+      ))}
+      {rest.length > 0 && (
+        <Tooltip title={rest.map((item) => item.name).join(', ')}>
+          <Chip size="small" variant="outlined" label={`+${rest.length}`} />
+        </Tooltip>
+      )}
+    </Stack>
+  );
+}
+
 function EmployeeCard({
   employee,
   overlay = false,
@@ -310,31 +407,32 @@ function EmployeeCard({
       variant="outlined"
       sx={{
         p: 1.25,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 1,
         cursor: overlay ? 'grabbing' : 'grab',
         opacity: !overlay && isDragging ? 0.4 : 1,
         userSelect: 'none',
         ...(overlay && { boxShadow: 4 }),
       }}
     >
-      <DragIndicatorOutlined fontSize="small" color="disabled" />
-      <Box sx={{ minWidth: 0, flex: 1 }}>
-        <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
-          {employee.fullName}
-        </Typography>
-        <Typography variant="caption" color="text.secondary" noWrap>
-          {employee.position}
-        </Typography>
-      </Box>
-      {employee.postings.length > 0 && (
-        <Chip
-          size="small"
-          label={t('assignmentBoard.siteCount', { count: employee.postings.length })}
-          variant="outlined"
-        />
-      )}
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+        <DragIndicatorOutlined fontSize="small" color="disabled" />
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
+            {employee.fullName}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" noWrap>
+            {employee.position}
+          </Typography>
+        </Box>
+        {employee.postings.length > 0 && (
+          <Chip
+            size="small"
+            label={t('assignmentBoard.siteCount', { count: employee.postings.length })}
+            variant="outlined"
+          />
+        )}
+      </Stack>
+      <EquipmentChips items={employee.assignedTools} icon={<HandymanOutlined />} />
+      <EquipmentChips items={employee.assignedVehicles} icon={<LocalShippingOutlined />} />
     </Paper>
   );
 }
@@ -352,6 +450,7 @@ function ProjectLane({
 }) {
   const t = useT();
   const { setNodeRef, isOver } = useDroppable({ id: project.id });
+  const coverPhoto = useCoverPhoto('Project', project.id);
 
   return (
     <Paper
@@ -368,11 +467,35 @@ function ProjectLane({
       }}
     >
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
+        <Avatar src={coverPhoto ?? undefined} variant="rounded" sx={{ width: 28, height: 28 }}>
+          {project.name.charAt(0)}
+        </Avatar>
         <Typography variant="subtitle2" sx={{ fontWeight: 700, flex: 1 }} noWrap>
           {project.name}
         </Typography>
         <StatusChip status={project.status} kind="projectStatus" size="small" />
       </Stack>
+
+      {(project.toolCount > 0 || project.vehicleCount > 0) && (
+        <Stack direction="row" spacing={0.5} sx={{ mb: 1 }}>
+          {project.toolCount > 0 && (
+            <Chip
+              size="small"
+              icon={<HandymanOutlined />}
+              label={project.toolCount}
+              variant="outlined"
+            />
+          )}
+          {project.vehicleCount > 0 && (
+            <Chip
+              size="small"
+              icon={<LocalShippingOutlined />}
+              label={project.vehicleCount}
+              variant="outlined"
+            />
+          )}
+        </Stack>
+      )}
 
       {employees.length === 0 ? (
         <Typography variant="caption" color="text.secondary">
@@ -384,33 +507,33 @@ function ProjectLane({
             const posting = postingFor(employee);
 
             return (
-              <Stack
+              <Box
                 key={employee.id}
-                direction="row"
-                spacing={1}
                 sx={{
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
                   px: 1,
                   py: 0.5,
                   borderRadius: 1,
                   bgcolor: 'action.hover',
                 }}
               >
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography variant="body2" noWrap>
-                    {employee.fullName}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" noWrap>
-                    {postingRange(posting, t)}
-                  </Typography>
-                </Box>
-                <Tooltip title={t('common.delete')}>
-                  <IconButton size="small" onClick={() => onRemove(employee.id)}>
-                    <CloseOutlined fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-              </Stack>
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="body2" noWrap>
+                      {employee.fullName}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" noWrap>
+                      {postingRange(posting, t)}
+                    </Typography>
+                  </Box>
+                  <Tooltip title={t('common.delete')}>
+                    <IconButton size="small" onClick={() => onRemove(employee.id)}>
+                      <CloseOutlined fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Stack>
+                <EquipmentChips items={employee.assignedTools} icon={<HandymanOutlined />} />
+                <EquipmentChips items={employee.assignedVehicles} icon={<LocalShippingOutlined />} />
+              </Box>
             );
           })}
         </Stack>

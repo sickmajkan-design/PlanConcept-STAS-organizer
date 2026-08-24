@@ -1,5 +1,6 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Employees;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
 using FluentValidation;
@@ -99,6 +100,10 @@ public class AssignEmployeeToProjectCommandHandler : IRequestHandler<AssignEmplo
             }
 
             overlapping.EndDate = endDate;
+
+            await EmployeeEquipmentSync.FollowEmployeeAsync(
+                _context, request.EmployeeId, request.ProjectId, cancellationToken);
+
             await _context.SaveChangesAsync(cancellationToken);
 
             return;
@@ -113,6 +118,9 @@ public class AssignEmployeeToProjectCommandHandler : IRequestHandler<AssignEmplo
             AssignedAt = _dateTimeProvider.UtcNow,
             AssignedByUserId = _currentUserService.UserId
         });
+
+        await EmployeeEquipmentSync.FollowEmployeeAsync(
+            _context, request.EmployeeId, request.ProjectId, cancellationToken);
 
         await _context.SaveChangesAsync(cancellationToken);
 

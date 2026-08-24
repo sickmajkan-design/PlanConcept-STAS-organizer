@@ -27,6 +27,10 @@ public class VehicleDto
 
     public string? AssignedEmployeeNumber { get; init; }
 
+    public Guid? AssignedProjectId { get; init; }
+
+    public string? AssignedProjectName { get; init; }
+
     public DateTime CreatedAt { get; init; }
 
     public DateTime? UpdatedAt { get; init; }
@@ -61,6 +65,8 @@ public static class VehicleMapping
             AssignedEmployeeNumber = vehicle.AssignedEmployee != null
                 ? vehicle.AssignedEmployee.EmployeeNumber
                 : null,
+            AssignedProjectId = vehicle.AssignedProjectId,
+            AssignedProjectName = vehicle.AssignedProject != null ? vehicle.AssignedProject.Name : null,
             CreatedAt = vehicle.CreatedAt,
             UpdatedAt = vehicle.UpdatedAt,
         };

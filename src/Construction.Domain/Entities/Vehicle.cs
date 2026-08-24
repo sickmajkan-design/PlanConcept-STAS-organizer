@@ -24,6 +24,17 @@ public class Vehicle : BaseEntity, ISoftDeletable, IAuditable
 
     public Employee? AssignedEmployee { get; set; }
 
+    /// <summary>
+    /// Independent of <see cref="AssignedEmployeeId"/> — a vehicle can sit on a
+    /// project and be held by an employee at the same time. Kept in sync with
+    /// wherever the assigned employee is currently posted; see
+    /// <c>AssignEmployeeToProjectCommand</c> and
+    /// <c>RemoveEmployeeFromProjectCommand</c>.
+    /// </summary>
+    public Guid? AssignedProjectId { get; set; }
+
+    public Project? AssignedProject { get; set; }
+
     public ICollection<Attachment> Attachments { get; set; } = new List<Attachment>();
 
     public ICollection<VehicleExpense> Expenses { get; set; } = new List<VehicleExpense>();

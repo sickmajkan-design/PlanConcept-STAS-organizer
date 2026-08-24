@@ -213,6 +213,11 @@ export interface AssignmentBoardPosting {
   endDate: string | null;
 }
 
+export interface AssignmentBoardEquipment {
+  id: string;
+  name: string;
+}
+
 export interface AssignmentBoardEmployee {
   id: string;
   fullName: string;
@@ -220,12 +225,16 @@ export interface AssignmentBoardEmployee {
   position: string;
   /** Every posting this employee currently holds — never just one. */
   postings: AssignmentBoardPosting[];
+  assignedTools: AssignmentBoardEquipment[];
+  assignedVehicles: AssignmentBoardEquipment[];
 }
 
 export interface AssignmentBoardProject {
   id: string;
   name: string;
   status: ProjectStatus;
+  toolCount: number;
+  vehicleCount: number;
 }
 
 export interface AssignmentBoard {
@@ -278,6 +287,8 @@ export interface Vehicle {
   assignedEmployeeId: string | null;
   assignedEmployeeName: string | null;
   assignedEmployeeNumber: string | null;
+  assignedProjectId: string | null;
+  assignedProjectName: string | null;
   createdAt: string;
   updatedAt: string | null;
 }

@@ -27,6 +27,22 @@ public class AssignmentBoardEmployeeDto
     /// <summary>Every posting this employee currently holds — never just one.</summary>
     public IReadOnlyList<AssignmentBoardPostingDto> Postings { get; init; } =
         Array.Empty<AssignmentBoardPostingDto>();
+
+    /// <summary>Tools currently held by this employee.</summary>
+    public IReadOnlyList<AssignmentBoardEquipmentDto> AssignedTools { get; init; } =
+        Array.Empty<AssignmentBoardEquipmentDto>();
+
+    /// <summary>Vehicles currently held by this employee.</summary>
+    public IReadOnlyList<AssignmentBoardEquipmentDto> AssignedVehicles { get; init; } =
+        Array.Empty<AssignmentBoardEquipmentDto>();
+}
+
+/// <summary>One tool or vehicle, named for a chip on the board — not the full record.</summary>
+public class AssignmentBoardEquipmentDto
+{
+    public Guid Id { get; init; }
+
+    public string Name { get; init; } = null!;
 }
 
 /// <summary>One employee's posting to one site, dated.</summary>
@@ -47,4 +63,10 @@ public class AssignmentBoardProjectDto
     public string Name { get; init; } = null!;
 
     public string Status { get; init; } = null!;
+
+    /// <summary>Tools currently assigned to this project, directly or via an employee on it.</summary>
+    public int ToolCount { get; init; }
+
+    /// <summary>Vehicles currently assigned to this project, directly or via an employee on it.</summary>
+    public int VehicleCount { get; init; }
 }

@@ -64,6 +64,16 @@ public class GetAssignmentBoardQueryHandler
                         StartDate = a.StartDate,
                         EndDate = a.EndDate
                     })
+                    .ToList(),
+                AssignedTools = e.AssignedTools
+                    .Select(t => new AssignmentBoardEquipmentDto { Id = t.Id, Name = t.Name })
+                    .ToList(),
+                AssignedVehicles = e.AssignedVehicles
+                    .Select(v => new AssignmentBoardEquipmentDto
+                    {
+                        Id = v.Id,
+                        Name = v.Brand + " " + v.Model + " (" + v.RegistrationNumber + ")"
+                    })
                     .ToList()
             })
             .ToListAsync(cancellationToken);
@@ -78,7 +88,9 @@ public class GetAssignmentBoardQueryHandler
             {
                 Id = p.Id,
                 Name = p.Name,
-                Status = p.Status.ToString()
+                Status = p.Status.ToString(),
+                ToolCount = p.AssignedTools.Count,
+                VehicleCount = p.AssignedVehicles.Count
             })
             .ToListAsync(cancellationToken);
 

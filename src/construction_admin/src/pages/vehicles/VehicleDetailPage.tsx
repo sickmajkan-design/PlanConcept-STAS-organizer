@@ -1,4 +1,5 @@
 import {
+  ApartmentOutlined,
   DeleteOutlined,
   EditOutlined,
   LocalShippingOutlined,
@@ -31,10 +32,13 @@ import { QrLabelDialog } from '../../components/QrLabelDialog';
 import { StatusChip } from '../../components/StatusChip';
 import { useCoverPhoto } from '../../features/attachments/useAttachments';
 import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
+import { useAllProjectsQuery } from '../../features/projects/useProjects';
 import {
   useAssignVehicle,
+  useAssignVehicleProject,
   useDeleteVehicle,
   useUnassignVehicle,
+  useUnassignVehicleProject,
   useVehicleQuery,
 } from '../../features/vehicles/useVehicles';
 import { useEnumLabel } from '../../i18n/enumLabels';
@@ -52,15 +56,20 @@ export function VehicleDetailPage() {
 
   const { data: vehicle, isLoading, isError, error, refetch } = useVehicleQuery(id);
   const { data: allEmployees } = useAllEmployeesQuery();
+  const { data: allProjects } = useAllProjectsQuery();
   const coverPhoto = useCoverPhoto('Vehicle', id ?? '');
 
   const assign = useAssignVehicle(id ?? '');
   const unassign = useUnassignVehicle(id ?? '');
+  const assignProject = useAssignVehicleProject(id ?? '');
+  const unassignProject = useUnassignVehicleProject(id ?? '');
   const deleteVehicle = useDeleteVehicle();
 
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
+  const [selectedProjectId, setSelectedProjectId] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmUnassign, setConfirmUnassign] = useState(false);
+  const [confirmUnassignProject, setConfirmUnassignProject] = useState(false);
   const [qrLabelOpen, setQrLabelOpen] = useState(false);
 
   if (isLoading) return null;
@@ -77,6 +86,17 @@ export function VehicleDetailPage() {
   const handleUnassign = async () => {
     await unassign.mutateAsync();
     setConfirmUnassign(false);
+  };
+
+  const handleAssignProject = async () => {
+    if (!selectedProjectId) return;
+    await assignProject.mutateAsync(selectedProjectId);
+    setSelectedProjectId('');
+  };
+
+  const handleUnassignProject = async () => {
+    await unassignProject.mutateAsync();
+    setConfirmUnassignProject(false);
   };
 
   const handleDelete = async () => {
@@ -221,6 +241,78 @@ export function VehicleDetailPage() {
         <Grid size={12}>
           <Card>
             <CardContent>
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700 }}>
+                Project
+              </Typography>
+
+              {vehicle.assignedProjectId ? (
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  spacing={1.5}
+                  sx={{ mt: 1, alignItems: { sm: 'center' } }}
+                >
+                  <Avatar sx={{ bgcolor: 'action.selected' }}>
+                    <ApartmentOutlined />
+                  </Avatar>
+                  <Typography
+                    sx={{ flex: 1, cursor: 'pointer' }}
+                    onClick={() => navigate(paths.projectDetail(vehicle.assignedProjectId!))}
+                  >
+                    {vehicle.assignedProjectName}
+                  </Typography>
+                  <Button
+                    size="small"
+                    color="error"
+                    variant="outlined"
+                    onClick={() => setConfirmUnassignProject(true)}
+                  >
+                    Remove from project
+                  </Button>
+                </Stack>
+              ) : (
+                <Stack spacing={2} sx={{ mt: 1 }}>
+                  <Typography color="text.secondary">{t('vehicles.notPlacedSentence')}</Typography>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                    <FormControl size="small" sx={{ minWidth: 260 }}>
+                      <Select
+                        displayEmpty
+                        value={selectedProjectId}
+                        onChange={(event) => setSelectedProjectId(event.target.value)}
+                      >
+                        <MenuItem value="">
+                          <em>{t('common.selectProject')}</em>
+                        </MenuItem>
+                        {(allProjects?.items ?? []).map((project) => (
+                          <MenuItem key={project.id} value={project.id}>
+                            {project.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <Button
+                      variant="outlined"
+                      disabled={!selectedProjectId}
+                      loading={assignProject.isPending}
+                      onClick={handleAssignProject}
+                    >
+                      Place on project
+                    </Button>
+                  </Stack>
+                </Stack>
+              )}
+
+              {(assignProject.isError || unassignProject.isError) && (
+                <Alert severity="error" sx={{ mt: 2 }}>
+                  {toApiError(assignProject.error ?? unassignProject.error).message}
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid size={12}>
+          <Card>
+            <CardContent>
               <AttachmentList
                 ownerType="Vehicle"
                 ownerId={vehicle.id}
@@ -244,6 +336,17 @@ export function VehicleDetailPage() {
         loading={unassign.isPending}
         onConfirm={handleUnassign}
         onCancel={() => setConfirmUnassign(false)}
+      />
+
+      <ConfirmDialog
+        open={confirmUnassignProject}
+        title={t('vehicles.unassignProject')}
+        description={`${vehicle.brand} ${vehicle.model} will no longer be placed at ${vehicle.assignedProjectName ?? 'this project'}.`}
+        confirmLabel={t('employees.removeFromProject')}
+        destructive
+        loading={unassignProject.isPending}
+        onConfirm={handleUnassignProject}
+        onCancel={() => setConfirmUnassignProject(false)}
       />
 
       <ConfirmDialog

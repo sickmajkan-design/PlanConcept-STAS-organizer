@@ -49,7 +49,13 @@ public class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
             .HasForeignKey(v => v.AssignedEmployeeId)
             .OnDelete(DeleteBehavior.SetNull);
 
+        builder.HasOne(v => v.AssignedProject)
+            .WithMany(p => p.AssignedVehicles)
+            .HasForeignKey(v => v.AssignedProjectId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(v => v.AssignedEmployeeId);
+        builder.HasIndex(v => v.AssignedProjectId);
         builder.HasIndex(v => v.Status);
     }
 }

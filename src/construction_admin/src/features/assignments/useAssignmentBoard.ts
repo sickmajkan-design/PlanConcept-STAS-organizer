@@ -4,6 +4,8 @@ import { assignmentsApi } from '../../api/assignments';
 import { employeesApi } from '../../api/employees';
 import { employeeKeys } from '../employees/useEmployees';
 import { projectKeys } from '../projects/useProjects';
+import { toolKeys } from '../tools/useTools';
+import { vehicleKeys } from '../vehicles/useVehicles';
 import { useResourceMutation } from '../resourceQueries';
 
 export const assignmentBoardKeys = {
@@ -18,11 +20,20 @@ export function useAssignmentBoardQuery() {
 }
 
 /**
- * A drop onto a lane and a chip's remove button both touch the same three
- * caches: the board itself, and the employee/project detail screens a person
- * might have open elsewhere, which show the same postings a different way.
+ * A drop onto a lane and a chip's remove button both touch the same caches:
+ * the board itself, the employee/project detail screens a person might have
+ * open elsewhere, and Tools/Vehicles — the API moves an employee's held
+ * equipment onto their new project as part of the same operation, so those
+ * lists would otherwise show a stale project until something else refreshed
+ * them.
  */
-const boardCaches = [assignmentBoardKeys.all, employeeKeys.all, projectKeys.all];
+const boardCaches = [
+  assignmentBoardKeys.all,
+  employeeKeys.all,
+  projectKeys.all,
+  toolKeys.all,
+  vehicleKeys.all,
+];
 
 export interface AssignOnBoardInput {
   employeeId: string;

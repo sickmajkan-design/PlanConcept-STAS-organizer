@@ -1,5 +1,6 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Employees;
 using Construction.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -56,6 +57,27 @@ public class RemoveEmployeeFromProjectCommandHandler
         else
         {
             assignment.EndDate = today;
+        }
+
+        // Their gear either follows them to wherever else they are currently
+        // posted, or comes back off this project if nowhere else claims it.
+        var otherActiveProjectId = await _context.EmployeeProjects
+            .Where(ep => ep.EmployeeId == request.EmployeeId
+                && ep.ProjectId != request.ProjectId
+                && ep.StartDate <= today
+                && (ep.EndDate == null || ep.EndDate >= today))
+            .Select(ep => (Guid?)ep.ProjectId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (otherActiveProjectId is { } otherProjectId)
+        {
+            await EmployeeEquipmentSync.FollowEmployeeAsync(
+                _context, request.EmployeeId, otherProjectId, cancellationToken);
+        }
+        else
+        {
+            await EmployeeEquipmentSync.ReleaseFromProjectAsync(
+                _context, request.EmployeeId, request.ProjectId, cancellationToken);
         }
 
         await _context.SaveChangesAsync(cancellationToken);
