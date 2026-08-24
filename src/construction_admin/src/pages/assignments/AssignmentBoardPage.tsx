@@ -40,8 +40,11 @@ import {
 import {
   DndContext,
   DragOverlay,
+  PointerSensor,
   useDraggable,
   useDroppable,
+  useSensor,
+  useSensors,
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core';
@@ -93,6 +96,15 @@ export function AssignmentBoardPage() {
   const [conflict, setConflict] = useState<string | null>(null);
   const [pendingDrop, setPendingDrop] = useState<PendingDrop | null>(null);
   const [expandedProjectId, setExpandedProjectId] = useState<string | null>(null);
+
+  // A plain click has to survive being wrapped in a draggable row — the
+  // crew list's delete button sits inside one. Requiring a deliberate
+  // few-pixel move before a drag activates is what tells the two apart;
+  // without it, the sensor reads a click's own tiny jitter as a drag start
+  // and the button never sees its click.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+  );
 
   const employeesById = useMemo(
     () => new Map((data?.employees ?? []).map((employee) => [employee.id, employee])),
@@ -185,7 +197,7 @@ export function AssignmentBoardPage() {
           <CircularProgress />
         </Box>
       ) : (
-        <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, md: 3 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
@@ -599,31 +611,22 @@ function CrewRow({
   return (
     <Box
       ref={setNodeRef}
+      {...listeners}
+      {...attributes}
       sx={{
         px: 1,
         py: 0.5,
         borderRadius: 1,
         bgcolor: 'action.hover',
+        cursor: 'grab',
         opacity: isDragging ? 0.4 : 1,
+        touchAction: 'none',
+        userSelect: 'none',
       }}
     >
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
         <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', minWidth: 0 }}>
-          {/* Only the handle picks up drag gestures — the whole row did
-              before, and it swallowed clicks on the delete button below,
-              since the tiniest pointer jitter during a click reads as a
-              drag start. */}
-          <Box
-            {...listeners}
-            {...attributes}
-            sx={{
-              display: 'flex',
-              cursor: 'grab',
-              touchAction: 'none',
-            }}
-          >
-            <DragIndicatorOutlined fontSize="small" color="disabled" />
-          </Box>
+          <DragIndicatorOutlined fontSize="small" color="disabled" />
           <Box sx={{ minWidth: 0 }}>
             <Typography variant="body2" noWrap>
               {employee.fullName}
