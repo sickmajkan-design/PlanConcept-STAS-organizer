@@ -1,5 +1,6 @@
 using Construction.API.Authorization;
 using Construction.Application.Common.Models;
+using Construction.Application.Features.Notifications.Commands.AcknowledgeNotification;
 using Construction.Application.Features.Notifications.Commands.MarkAllNotificationsRead;
 using Construction.Application.Features.Notifications.Commands.MarkNotificationRead;
 using Construction.Application.Features.Notifications.Commands.RegisterDeviceToken;
@@ -7,6 +8,7 @@ using Construction.Application.Features.Notifications.Commands.SendAnnouncement;
 using Construction.Application.Features.Notifications.Commands.UnregisterDeviceToken;
 using Construction.Application.Features.Notifications.Models;
 using Construction.Application.Features.Notifications.Queries.GetMyNotifications;
+using Construction.Application.Features.Notifications.Queries.GetPendingAcknowledgments;
 using Construction.Application.Features.Notifications.Queries.GetUnreadCount;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -54,6 +56,31 @@ public class NotificationsController : ApiControllerBase
     public async Task<ActionResult<int>> MarkAllRead(CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(new MarkAllNotificationsReadCommand(), cancellationToken));
+    }
+
+    /// <summary>
+    /// The current user's notifications that require explicit confirmation and
+    /// have not received it. The mobile app blocks mutating actions while this
+    /// is non-empty.
+    /// </summary>
+    [HttpGet("pending-acknowledgments")]
+    [Authorize(Policy = Policies.AllEmployees)]
+    [ProducesResponseType(typeof(List<NotificationDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<NotificationDto>>> PendingAcknowledgments(
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetPendingAcknowledgmentsQuery(), cancellationToken));
+    }
+
+    /// <summary>Confirms the current user saw one notification that required it.</summary>
+    [HttpPost("{id:guid}/acknowledge")]
+    [Authorize(Policy = Policies.AllEmployees)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Acknowledge(Guid id, CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new AcknowledgeNotificationCommand(id), cancellationToken);
+        return NoContent();
     }
 
     /// <summary>Registers (or refreshes) an FCM device token for the current user.</summary>

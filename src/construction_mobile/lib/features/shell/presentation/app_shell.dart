@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../auth/presentation/auth_controller.dart';
+import '../../notifications/presentation/acknowledgment_banner.dart';
 import '../../notifications/presentation/notifications_controller.dart';
 
 /// Bottom-navigation frame around the signed-in sections.
@@ -45,6 +46,7 @@ class AppShell extends ConsumerWidget {
       body: Column(
         children: [
           const OfflineDataBanner(),
+          const AcknowledgmentBanner(),
           Expanded(child: navigationShell),
         ],
       ),

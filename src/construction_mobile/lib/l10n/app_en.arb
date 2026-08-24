@@ -523,5 +523,11 @@
   "shiftWaitingToSend": "Recorded on this phone. It will be sent when there is signal.",
   "@shiftWaitingToSend": {
     "description": "Shown on the shift card when a clock action is queued offline."
+  },
+  "ackBannerHeading": "Confirmation needed",
+  "ackConfirmButton": "I've seen this",
+  "ackGatedMessage": "Confirm the pending notification first",
+  "@ackGatedMessage": {
+    "description": "Shown when a mutating action is blocked by an unconfirmed required notification."
   }
 }

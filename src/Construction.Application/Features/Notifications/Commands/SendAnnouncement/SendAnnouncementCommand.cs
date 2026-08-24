@@ -21,6 +21,15 @@ public record SendAnnouncementCommand : IRequest<int>
 
     /// <summary>Limit the audience to users whose employee is assigned to this project.</summary>
     public Guid? ProjectId { get; init; }
+
+    /// <summary>Limit the audience to members of this notification group.</summary>
+    public Guid? GroupId { get; init; }
+
+    /// <summary>
+    /// When true, recipients cannot act on anything else in the app until
+    /// they explicitly confirm they saw this.
+    /// </summary>
+    public bool RequiresAcknowledgment { get; init; }
 }
 
 public class SendAnnouncementCommandValidator : AbstractValidator<SendAnnouncementCommand>
@@ -71,6 +80,14 @@ public class SendAnnouncementCommandHandler : IRequestHandler<SendAnnouncementCo
                     ep.ProjectId == projectId && ep.EmployeeId == u.EmployeeId));
         }
 
+        if (request.GroupId is { } groupId)
+        {
+            users = users.Where(u =>
+                u.EmployeeId != null &&
+                _context.NotificationGroupMembers.Any(m =>
+                    m.NotificationGroupId == groupId && m.EmployeeId == u.EmployeeId));
+        }
+
         var userIds = await users.Select(u => u.Id).ToListAsync(cancellationToken);
 
         return await _notificationService.NotifyUsersAsync(
@@ -79,6 +96,7 @@ public class SendAnnouncementCommandHandler : IRequestHandler<SendAnnouncementCo
             request.Title.Trim(),
             request.Body.Trim(),
             data: null,
+            request.RequiresAcknowledgment,
             cancellationToken);
     }
 }

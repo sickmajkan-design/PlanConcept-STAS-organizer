@@ -523,5 +523,11 @@
   "shiftWaitingToSend": "Zabeleženo na ovom telefonu. Biće poslato kad bude signala.",
   "@shiftWaitingToSend": {
     "description": "Shown on the shift card when a clock action is queued offline."
+  },
+  "ackBannerHeading": "Potrebna potvrda",
+  "ackConfirmButton": "Vidio sam",
+  "ackGatedMessage": "Prvo potvrdite obavještenje koje čeka",
+  "@ackGatedMessage": {
+    "description": "Shown when a mutating action is blocked by an unconfirmed required notification."
   }
 }

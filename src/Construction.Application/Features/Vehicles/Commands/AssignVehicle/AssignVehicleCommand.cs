@@ -65,7 +65,7 @@ public class AssignVehicleCommandHandler : IRequestHandler<AssignVehicleCommand,
                 "Vehicle assigned",
                 $"Vehicle {vehicle.Brand} {vehicle.Model} ({vehicle.RegistrationNumber}) has been assigned to you.",
                 new Dictionary<string, string> { ["vehicleId"] = vehicle.Id.ToString() },
-                cancellationToken);
+                cancellationToken: cancellationToken);
         }
 
         return VehicleMapping.ToDto(vehicle);

@@ -26,6 +26,12 @@ public abstract record WorkItemCommandBase
     public double? Latitude { get; init; }
 
     public double? Longitude { get; init; }
+
+    /// <summary>
+    /// When true, the assignee cannot act on anything else in the app until
+    /// they explicitly confirm they saw this.
+    /// </summary>
+    public bool RequiresAcknowledgment { get; init; }
 }
 
 public abstract class WorkItemCommandBaseValidator<T> : AbstractValidator<T>

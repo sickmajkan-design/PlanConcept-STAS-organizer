@@ -103,7 +103,7 @@ public class SendDueRemindersCommandHandler
                     ["workItemId"] = item.Id.ToString(),
                     ["kind"] = item.Kind.ToString()
                 },
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
             sent++;
         }

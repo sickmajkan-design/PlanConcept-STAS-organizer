@@ -36,6 +36,23 @@ class NotificationRepository extends ApiRepository {
     return postVoid('/api/v1/notifications/$id/read');
   }
 
+  /// Notifications the signed-in user must confirm before doing anything else.
+  Future<List<AppNotification>> fetchPendingAcknowledgments() {
+    return guard(() async {
+      final response = await dio.get<List<dynamic>>(
+        '/api/v1/notifications/pending-acknowledgments',
+      );
+
+      return (response.data ?? [])
+          .map((json) => AppNotification.fromJson(json as Map<String, dynamic>))
+          .toList();
+    });
+  }
+
+  Future<void> acknowledge(String id) {
+    return postVoid('/api/v1/notifications/$id/acknowledge');
+  }
+
   Future<int> markAllRead() {
     return guard(() async {
       final response = await dio.post<int>('/api/v1/notifications/read-all');

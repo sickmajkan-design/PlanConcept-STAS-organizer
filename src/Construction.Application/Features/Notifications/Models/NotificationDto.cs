@@ -20,6 +20,10 @@ public class NotificationDto
 
     public DateTime? ReadAt { get; init; }
 
+    public bool RequiresAcknowledgment { get; init; }
+
+    public DateTime? AcknowledgedAt { get; init; }
+
     public DateTime CreatedAt { get; init; }
 }
 
@@ -44,6 +48,8 @@ public static class NotificationMapping
             DataJson = notification.DataJson,
             IsRead = notification.IsRead,
             ReadAt = notification.ReadAt,
+            RequiresAcknowledgment = notification.RequiresAcknowledgment,
+            AcknowledgedAt = notification.AcknowledgedAt,
             CreatedAt = notification.CreatedAt,
         };
 

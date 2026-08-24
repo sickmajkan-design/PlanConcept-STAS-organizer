@@ -58,6 +58,16 @@ const UsersListPage = lazy(() =>
 const UserFormPage = lazy(() =>
   import('./pages/users/UserFormPage').then((m) => ({ default: m.UserFormPage })),
 );
+const NotificationGroupsListPage = lazy(() =>
+  import('./pages/notificationGroups/NotificationGroupsListPage').then((m) => ({
+    default: m.NotificationGroupsListPage,
+  })),
+);
+const NotificationGroupFormPage = lazy(() =>
+  import('./pages/notificationGroups/NotificationGroupFormPage').then((m) => ({
+    default: m.NotificationGroupFormPage,
+  })),
+);
 const LiveMapPage = lazy(() =>
   import('./pages/map/LiveMapPage').then((m) => ({ default: m.LiveMapPage })),
 );
@@ -279,6 +289,12 @@ function Layout() {
               <Route path={paths.users} element={<UsersListPage />} />
               <Route path={paths.userNew} element={<UserFormPage />} />
               <Route path={`${paths.users}/:id/edit`} element={<UserFormPage />} />
+              <Route path={paths.notificationGroups} element={<NotificationGroupsListPage />} />
+              <Route path={paths.notificationGroupNew} element={<NotificationGroupFormPage />} />
+              <Route
+                path={`${paths.notificationGroups}/:id/edit`}
+                element={<NotificationGroupFormPage />}
+              />
             </Route>
 
             <Route path="*" element={<Navigate to={paths.home} replace />} />

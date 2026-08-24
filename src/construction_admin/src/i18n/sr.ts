@@ -77,6 +77,7 @@ export const sr: Record<MessageKey, Message> = {
   'nav.tools': 'Alat',
   'nav.materials': 'Materijal',
   'nav.users': 'Korisnički nalozi',
+  'nav.notificationGroups': 'Grupe za notifikacije',
 
   // --- Authentication -------------------------------------------------------
   'auth.signIn': 'Prijavi se',
@@ -477,6 +478,8 @@ export const sr: Record<MessageKey, Message> = {
   'workItems.status': 'Status',
   'workItems.dueDate': 'Rok',
   'workItems.noDueDate': 'Bez roka',
+  'workItems.requiresAcknowledgment':
+    'Zahtijeva potvrdu — zaduženi ne može ništa drugo da radi u aplikaciji dok ne potvrdi da je vidio ovo',
   'workItems.overdue': 'Kasni',
   'workItems.searchPlaceholder': 'Naslov ili opis…',
   'workItems.openOnly': 'Još za uraditi',
@@ -772,6 +775,10 @@ export const sr: Record<MessageKey, Message> = {
   'notifications.everyRole': 'Svima',
   'notifications.audienceProject': 'Gradilište',
   'notifications.everyProject': 'Sva gradilišta',
+  'notifications.audienceGroup': 'Grupa',
+  'notifications.everyGroup': 'Sve grupe',
+  'notifications.requiresAcknowledgment':
+    'Zahtijeva potvrdu — primaoci ne mogu ništa drugo da rade u aplikaciji dok ne potvrde da su vidjeli ovo',
   'notifications.announceHint':
     'Ide svakom aktivnom nalogu koji odgovara izboru, i na telefon i ovde, i ne može da se povuče.',
   'notifications.send': 'Pošalji',
@@ -780,6 +787,20 @@ export const sr: Record<MessageKey, Message> = {
     few: 'Poslato za {count} osobe.',
     other: 'Poslato za {count} osoba.',
   },
+
+  // --- Grupe za notifikacije --------------------------------------------------
+  'notificationGroups.title': 'Grupe za notifikacije',
+  'notificationGroups.add': 'Nova grupa',
+  'notificationGroups.create': 'Kreiraj grupu',
+  'notificationGroups.name': 'Naziv',
+  'notificationGroups.members': 'Članovi',
+  'notificationGroups.membersHint':
+    'Koristi se samo za sužavanje kome objava stiže — nema drugi efekat.',
+  'notificationGroups.searchPlaceholder': 'Naziv grupe…',
+  'notificationGroups.newTitle': 'Nova grupa za notifikacije',
+  'notificationGroups.editTitle': 'Izmena grupe za notifikacije',
+  'notificationGroups.deleteTitle': 'Obrisati ovu grupu?',
+  'notificationGroups.deleteBody': '"{name}" više neće biti dostupna kao ciljna grupa.',
 
   'notificationType.ProjectAssigned': 'Gradilište',
   'notificationType.EmployeeAssigned': 'Radnici',

@@ -1197,4 +1197,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get shiftWaitingToSend =>
       'Recorded on this phone. It will be sent when there is signal.';
+
+  @override
+  String get ackBannerHeading => 'Confirmation needed';
+
+  @override
+  String get ackConfirmButton => 'I\'ve seen this';
+
+  @override
+  String get ackGatedMessage => 'Confirm the pending notification first';
 }

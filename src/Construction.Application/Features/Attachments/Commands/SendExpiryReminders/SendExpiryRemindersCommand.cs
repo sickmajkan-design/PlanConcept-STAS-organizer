@@ -123,7 +123,7 @@ public class SendExpiryRemindersCommandHandler
                     ["attachmentId"] = document.Id.ToString(),
                     ["category"] = document.Category.ToString()
                 },
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
             sent++;
         }

@@ -12,6 +12,7 @@ export const workItemFormSchema = z
     assignedEmployeeId: z.string().optional().or(z.literal('')),
     priority: z.enum(workItemPriorities),
     dueDate: z.string().optional().or(z.literal('')),
+    requiresAcknowledgment: z.boolean(),
   })
   .superRefine((values, ctx) => {
     // Mirrors the database's check constraint, so the message lands on the

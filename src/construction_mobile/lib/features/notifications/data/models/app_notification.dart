@@ -14,6 +14,8 @@ abstract class AppNotification with _$AppNotification {
     String? dataJson,
     @Default(false) bool isRead,
     DateTime? readAt,
+    @Default(false) bool requiresAcknowledgment,
+    DateTime? acknowledgedAt,
     required DateTime createdAt,
   }) = _AppNotification;
 

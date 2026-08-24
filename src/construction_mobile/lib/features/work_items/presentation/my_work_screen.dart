@@ -10,6 +10,7 @@ import '../../../core/widgets/paged_list_view.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../attachments/data/attachment_repository.dart';
+import '../../notifications/presentation/acknowledgment_gate.dart';
 import '../data/models/work_item.dart';
 import 'my_work_controller.dart';
 
@@ -163,6 +164,8 @@ class _WorkItemCard extends ConsumerWidget {
 
   /// Photographs this item. The camera first, the gallery as a fallback.
   Future<void> _addPhoto(BuildContext context, WidgetRef ref) async {
+    if (blockedByPendingAcknowledgment(context, ref)) return;
+
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final picker = ImagePicker();
@@ -205,6 +208,8 @@ class _WorkItemCard extends ConsumerWidget {
   }
 
   Future<void> _move(BuildContext context, WidgetRef ref, String status) async {
+    if (blockedByPendingAcknowledgment(context, ref)) return;
+
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
 

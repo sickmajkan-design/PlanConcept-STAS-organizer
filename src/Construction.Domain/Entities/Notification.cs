@@ -25,4 +25,13 @@ public class Notification : BaseEntity
     public bool IsRead { get; set; }
 
     public DateTime? ReadAt { get; set; }
+
+    /// <summary>
+    /// Set by the sender when the recipient must explicitly confirm they saw
+    /// this before doing anything else — a hazard notice, a safety recall.
+    /// Distinct from <see cref="IsRead"/>, which just means it was opened.
+    /// </summary>
+    public bool RequiresAcknowledgment { get; set; }
+
+    public DateTime? AcknowledgedAt { get; set; }
 }

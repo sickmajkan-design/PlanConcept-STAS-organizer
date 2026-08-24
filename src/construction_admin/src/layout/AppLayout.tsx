@@ -19,6 +19,7 @@ import {
   TrendingUpOutlined,
   DashboardCustomizeOutlined,
   MenuOutlined,
+  GroupsOutlined,
   NotificationsNoneOutlined,
   PasswordOutlined,
   PeopleOutlined,
@@ -144,6 +145,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
             icon: <FolderOutlined />,
           },
           { label: t('nav.users'), path: paths.users, icon: <ManageAccountsOutlined /> },
+          {
+            label: t('nav.notificationGroups'),
+            path: paths.notificationGroups,
+            icon: <GroupsOutlined />,
+          },
         ]
       : []),
   ];

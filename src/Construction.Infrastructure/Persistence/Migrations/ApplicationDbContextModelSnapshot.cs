@@ -692,6 +692,9 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("AcknowledgedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Body")
                         .IsRequired()
                         .HasMaxLength(4000)
@@ -708,6 +711,9 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime?>("ReadAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("RequiresAcknowledgment")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -730,6 +736,66 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId", "IsRead");
 
                     b.ToTable("notifications", (string)null);
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.NotificationGroup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasFilter("\"IsDeleted\" = false");
+
+                    b.ToTable("notification_groups", (string)null);
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.NotificationGroupMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("NotificationGroupId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("NotificationGroupId", "EmployeeId")
+                        .IsUnique();
+
+                    b.ToTable("notification_group_members", (string)null);
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.OutboxMessage", b =>
@@ -1360,6 +1426,9 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("ProjectId")
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("RequiresAcknowledgment")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTime?>("ResolvedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1599,6 +1668,25 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.NotificationGroupMember", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Construction.Domain.Entities.NotificationGroup", "NotificationGroup")
+                        .WithMany("Members")
+                        .HasForeignKey("NotificationGroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("NotificationGroup");
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.PasswordResetToken", b =>
                 {
                     b.HasOne("Construction.Domain.Entities.User", "User")
@@ -1778,6 +1866,11 @@ namespace Construction.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Construction.Domain.Entities.Material", b =>
                 {
                     b.Navigation("Movements");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.NotificationGroup", b =>
+                {
+                    b.Navigation("Members");
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.Project", b =>

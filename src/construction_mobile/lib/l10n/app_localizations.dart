@@ -2245,6 +2245,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recorded on this phone. It will be sent when there is signal.'**
   String get shiftWaitingToSend;
+
+  /// No description provided for @ackBannerHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmation needed'**
+  String get ackBannerHeading;
+
+  /// No description provided for @ackConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'I\'ve seen this'**
+  String get ackConfirmButton;
+
+  /// Shown when a mutating action is blocked by an unconfirmed required notification.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm the pending notification first'**
+  String get ackGatedMessage;
 }
 
 class _AppLocalizationsDelegate

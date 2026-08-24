@@ -67,6 +67,7 @@ export const en = {
   'nav.tools': 'Tools',
   'nav.materials': 'Materials',
   'nav.users': 'User accounts',
+  'nav.notificationGroups': 'Notification groups',
 
   // --- Authentication -------------------------------------------------------
   'auth.signIn': 'Sign in',
@@ -468,6 +469,8 @@ export const en = {
   'workItems.status': 'Status',
   'workItems.dueDate': 'Due',
   'workItems.noDueDate': 'No deadline',
+  'workItems.requiresAcknowledgment':
+    'Requires confirmation — the assignee cannot do anything else in the app until they confirm they saw this',
   'workItems.overdue': 'Overdue',
   'workItems.searchPlaceholder': 'Title or description…',
   'workItems.openOnly': 'Still to do',
@@ -760,6 +763,10 @@ export const en = {
   'notifications.everyRole': 'Everyone',
   'notifications.audienceProject': 'On site',
   'notifications.everyProject': 'Any site',
+  'notifications.audienceGroup': 'In group',
+  'notifications.everyGroup': 'Any group',
+  'notifications.requiresAcknowledgment':
+    'Requires confirmation — recipients cannot do anything else in the app until they confirm they saw this',
   'notifications.announceHint':
     'It goes to every active account that matches, on the phone as well as here, and it cannot be recalled.',
   'notifications.send': 'Send',
@@ -767,6 +774,20 @@ export const en = {
     one: 'Sent to {count} person.',
     other: 'Sent to {count} people.',
   },
+
+  // --- Notification groups ---------------------------------------------------
+  'notificationGroups.title': 'Notification groups',
+  'notificationGroups.add': 'New group',
+  'notificationGroups.create': 'Create group',
+  'notificationGroups.name': 'Name',
+  'notificationGroups.members': 'Members',
+  'notificationGroups.membersHint':
+    'Only used to narrow who an announcement reaches — it has no other effect.',
+  'notificationGroups.searchPlaceholder': 'Group name…',
+  'notificationGroups.newTitle': 'New notification group',
+  'notificationGroups.editTitle': 'Edit notification group',
+  'notificationGroups.deleteTitle': 'Delete this group?',
+  'notificationGroups.deleteBody': '"{name}" will no longer be available as an audience.',
 
   'notificationType.ProjectAssigned': 'Site',
   'notificationType.EmployeeAssigned': 'Crew',

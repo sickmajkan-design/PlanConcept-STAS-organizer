@@ -5,7 +5,9 @@ import {
   Button,
   Card,
   CardContent,
+  Checkbox,
   FormControl,
+  FormControlLabel,
   Grid,
   InputLabel,
   MenuItem,
@@ -50,6 +52,7 @@ const emptyValues: WorkItemFormValues = {
   assignedEmployeeId: '',
   priority: 'Normal',
   dueDate: '',
+  requiresAcknowledgment: false,
 };
 
 export function WorkItemFormPage() {
@@ -90,6 +93,7 @@ export function WorkItemFormPage() {
         assignedEmployeeId: existing.assignedEmployeeId ?? '',
         priority: existing.priority,
         dueDate: existing.dueDate ?? '',
+        requiresAcknowledgment: existing.requiresAcknowledgment,
       });
     }
   }, [existing, reset]);
@@ -111,6 +115,7 @@ export function WorkItemFormPage() {
       assignedEmployeeId: values.assignedEmployeeId || null,
       priority: values.priority,
       dueDate: values.dueDate || null,
+      requiresAcknowledgment: values.requiresAcknowledgment,
     };
 
     try {
@@ -304,6 +309,19 @@ export function WorkItemFormPage() {
                       slotProps={{ inputLabel: { shrink: true } }}
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message ?? t('workItems.noDueDate')}
+                    />
+                  )}
+                />
+              </Grid>
+
+              <Grid size={12}>
+                <Controller
+                  name="requiresAcknowledgment"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControlLabel
+                      control={<Checkbox {...field} checked={field.value} />}
+                      label={t('workItems.requiresAcknowledgment')}
                     />
                   )}
                 />

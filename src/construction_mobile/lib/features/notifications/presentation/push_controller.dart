@@ -11,6 +11,7 @@ import '../../auth/presentation/auth_controller.dart';
 import '../data/notification_repository.dart';
 import 'device_token.dart';
 import 'notifications_controller.dart';
+import 'pending_acknowledgments_controller.dart';
 
 enum PushStatus {
   /// Nobody signed in.
@@ -119,6 +120,7 @@ class PushController extends Notifier<PushState> {
       _foregroundSubscription ??= FirebaseMessaging.onMessage.listen((_) {
         ref.invalidate(unreadNotificationCountProvider);
         ref.invalidate(notificationsControllerProvider);
+        ref.invalidate(pendingAcknowledgmentsProvider);
       });
     } on ApiException catch (exception) {
       state = PushState(status: PushStatus.error, failure: exception);

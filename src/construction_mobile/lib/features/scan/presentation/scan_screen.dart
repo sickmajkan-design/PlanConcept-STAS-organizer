@@ -12,6 +12,7 @@ import '../../../core/network/idempotency.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../notifications/presentation/acknowledgment_gate.dart';
 import '../../tools/data/models/tool.dart';
 import '../../tools/data/tool_repository.dart';
 import '../../vehicles/data/models/vehicle.dart';
@@ -124,6 +125,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
   Future<void> _checkOutToMe() async {
     final result = _result;
     if (result == null) return;
+    if (blockedByPendingAcknowledgment(context, ref)) return;
 
     _actionKey ??= newIdempotencyKey();
     setState(() {
@@ -163,6 +165,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
   Future<void> _returnItem() async {
     final result = _result;
     if (result == null) return;
+    if (blockedByPendingAcknowledgment(context, ref)) return;
 
     _actionKey ??= newIdempotencyKey();
     setState(() {

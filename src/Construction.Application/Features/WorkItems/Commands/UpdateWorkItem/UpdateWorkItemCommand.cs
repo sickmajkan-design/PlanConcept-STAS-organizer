@@ -96,6 +96,7 @@ public class UpdateWorkItemCommandHandler
         item.Priority = request.Priority;
         item.Latitude = request.Latitude;
         item.Longitude = request.Longitude;
+        item.RequiresAcknowledgment = request.RequiresAcknowledgment;
 
         // A moved deadline is a new deadline, so the reminder is owed again.
         if (item.DueDate != request.DueDate)

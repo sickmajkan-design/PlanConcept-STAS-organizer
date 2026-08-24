@@ -15,6 +15,7 @@ public interface INotificationService
         string title,
         string body,
         IReadOnlyDictionary<string, string>? data = null,
+        bool requiresAcknowledgment = false,
         CancellationToken cancellationToken = default);
 
     /// <returns>The number of recipients that were persisted.</returns>
@@ -24,5 +25,6 @@ public interface INotificationService
         string title,
         string body,
         IReadOnlyDictionary<string, string>? data = null,
+        bool requiresAcknowledgment = false,
         CancellationToken cancellationToken = default);
 }

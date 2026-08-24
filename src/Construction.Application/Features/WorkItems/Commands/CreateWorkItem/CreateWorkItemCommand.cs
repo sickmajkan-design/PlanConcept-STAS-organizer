@@ -87,6 +87,7 @@ public class CreateWorkItemCommandHandler
             DueDate = request.DueDate,
             Latitude = request.Latitude,
             Longitude = request.Longitude,
+            RequiresAcknowledgment = request.RequiresAcknowledgment,
             CreatedByUserId = _currentUserService.UserId
         };
 

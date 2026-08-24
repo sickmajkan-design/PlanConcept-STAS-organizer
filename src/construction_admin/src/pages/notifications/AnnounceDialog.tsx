@@ -2,10 +2,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Alert,
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControlLabel,
   Grid,
   MenuItem,
   TextField,
@@ -15,6 +17,7 @@ import { Controller, useForm } from 'react-hook-form';
 
 import { toApiError } from '../../api/apiError';
 import { roles } from '../../api/types';
+import { useAllNotificationGroupsQuery } from '../../features/notificationGroups/useNotificationGroups';
 import { useSendAnnouncement } from '../../features/notifications/useNotifications';
 import {
   announcementFormSchema,
@@ -29,6 +32,8 @@ const emptyValues: AnnouncementFormValues = {
   body: '',
   role: '',
   projectId: '',
+  groupId: '',
+  requiresAcknowledgment: false,
 };
 
 /**
@@ -50,6 +55,7 @@ export function AnnounceDialog({
   const t = useT();
   const enumLabel = useEnumLabel();
   const { data: allProjects } = useAllProjectsQuery();
+  const { data: allGroups } = useAllNotificationGroupsQuery();
   const send = useSendAnnouncement();
 
   const {
@@ -80,6 +86,8 @@ export function AnnounceDialog({
         body: values.body,
         role: values.role === '' ? null : values.role,
         projectId: values.projectId === '' ? null : values.projectId,
+        groupId: values.groupId === '' ? null : values.groupId,
+        requiresAcknowledgment: values.requiresAcknowledgment,
       },
       {
         onSuccess: (recipients) => {
@@ -178,6 +186,41 @@ export function AnnounceDialog({
                     </MenuItem>
                   ))}
                 </TextField>
+              )}
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <Controller
+              name="groupId"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  select
+                  fullWidth
+                  label={t('notifications.audienceGroup')}
+                >
+                  <MenuItem value="">{t('notifications.everyGroup')}</MenuItem>
+                  {allGroups?.items.map((group) => (
+                    <MenuItem key={group.id} value={group.id}>
+                      {group.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              )}
+            />
+          </Grid>
+
+          <Grid size={12}>
+            <Controller
+              name="requiresAcknowledgment"
+              control={control}
+              render={({ field }) => (
+                <FormControlLabel
+                  control={<Checkbox {...field} checked={field.value} />}
+                  label={t('notifications.requiresAcknowledgment')}
+                />
               )}
             />
           </Grid>

@@ -6,6 +6,7 @@ import '../../../core/l10n/app_locales.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/utils/formatting.dart';
+import '../../notifications/presentation/acknowledgment_gate.dart';
 import 'my_absences_controller.dart';
 import 'my_schedule_controller.dart';
 
@@ -162,6 +163,8 @@ class _RequestAbsenceSheetState extends ConsumerState<_RequestAbsenceSheet> {
     if (range == null) {
       return;
     }
+
+    if (blockedByPendingAcknowledgment(context, ref)) return;
 
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);

@@ -35,6 +35,10 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<Notification> Notifications => Set<Notification>();
 
+    public DbSet<NotificationGroup> NotificationGroups => Set<NotificationGroup>();
+
+    public DbSet<NotificationGroupMember> NotificationGroupMembers => Set<NotificationGroupMember>();
+
     public DbSet<TimeEntry> TimeEntries => Set<TimeEntry>();
 
     public DbSet<Attachment> Attachments => Set<Attachment>();

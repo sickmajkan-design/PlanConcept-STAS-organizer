@@ -520,6 +520,7 @@ export interface WorkItem {
   dueDate: string | null;
   latitude: number | null;
   longitude: number | null;
+  requiresAcknowledgment: boolean;
   createdByName: string | null;
   resolvedByName: string | null;
   resolvedAt: string | null;
@@ -539,6 +540,7 @@ export interface WorkItemInput {
   dueDate?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  requiresAcknowledgment?: boolean;
 }
 
 export const absenceTypes = [
@@ -833,6 +835,8 @@ export interface Notification {
   dataJson: string | null;
   isRead: boolean;
   readAt: string | null;
+  requiresAcknowledgment: boolean;
+  acknowledgedAt: string | null;
   createdAt: string;
 }
 
@@ -843,4 +847,25 @@ export interface AnnouncementInput {
   role?: Role | null;
   /** Narrows it to the crew of one site. */
   projectId?: string | null;
+  /** Narrows it to the members of one notification group. */
+  groupId?: string | null;
+  /** Recipients must confirm they saw it before doing anything else in the app. */
+  requiresAcknowledgment?: boolean;
+}
+
+export interface NotificationGroup {
+  id: string;
+  name: string;
+  memberCount: number;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface NotificationGroupDetail extends NotificationGroup {
+  memberEmployeeIds: string[];
+}
+
+export interface NotificationGroupInput {
+  name: string;
+  employeeIds: string[];
 }

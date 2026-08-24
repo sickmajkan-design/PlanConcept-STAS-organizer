@@ -53,6 +53,7 @@ public static class WorkItemNotifier
                 ["workItemId"] = item.Id.ToString(),
                 ["kind"] = item.Kind.ToString()
             },
+            item.RequiresAcknowledgment,
             cancellationToken);
     }
 }

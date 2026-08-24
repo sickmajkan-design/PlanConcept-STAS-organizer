@@ -7,6 +7,7 @@ import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/network/api_exception.dart';
 import '../../attachments/data/attachment_repository.dart';
+import '../../notifications/presentation/acknowledgment_gate.dart';
 import '../data/work_item_repository.dart';
 import 'my_work_controller.dart';
 
@@ -37,6 +38,8 @@ class _ReportDefectButtonState extends ConsumerState<ReportDefectButton> {
   }
 
   Future<void> _open() async {
+    if (blockedByPendingAcknowledgment(context, ref)) return;
+
     final result =
         await showModalBottomSheet<({String title, String? description, XFile? photo})>(
       context: context,

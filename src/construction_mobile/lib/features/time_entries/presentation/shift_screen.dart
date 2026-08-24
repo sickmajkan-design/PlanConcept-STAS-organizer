@@ -10,6 +10,7 @@ import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/paged_list_view.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../notifications/presentation/acknowledgment_gate.dart';
 import '../data/models/time_entry.dart';
 import 'my_time_entries_controller.dart';
 import 'shift_controller.dart';
@@ -212,11 +213,15 @@ class _ShiftCardState extends ConsumerState<_ShiftCard> {
   }
 
   Future<void> _clockIn() async {
+    if (blockedByPendingAcknowledgment(context, ref)) return;
+
     await ref.read(shiftControllerProvider.notifier).clockIn();
     ref.read(myTimeEntriesControllerProvider.notifier).refresh();
   }
 
   Future<void> _clockOut(BuildContext context) async {
+    if (blockedByPendingAcknowledgment(context, ref)) return;
+
     // Not dismissible by a tap outside or a swipe/back gesture: those read as
     // an accidental close, not a decision, and previously produced the exact
     // same silent "nothing happened" result as pressing Cancel — the only way

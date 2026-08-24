@@ -32,6 +32,8 @@ public class WorkItemDto
 
     public double? Longitude { get; init; }
 
+    public bool RequiresAcknowledgment { get; init; }
+
     public string? CreatedByName { get; init; }
 
     public string? ResolvedByName { get; init; }
@@ -79,6 +81,7 @@ public static class WorkItemMapping
             DueDate = item.DueDate,
             Latitude = item.Latitude,
             Longitude = item.Longitude,
+            RequiresAcknowledgment = item.RequiresAcknowledgment,
             CreatedByName = item.CreatedByUser != null ? item.CreatedByUser.Email : null,
             ResolvedByName = item.ResolvedByUser != null ? item.ResolvedByUser.Email : null,
             ResolvedAt = item.ResolvedAt,

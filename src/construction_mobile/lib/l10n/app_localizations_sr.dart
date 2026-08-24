@@ -1182,4 +1182,13 @@ class AppLocalizationsSr extends AppLocalizations {
   @override
   String get shiftWaitingToSend =>
       'Zabeleženo na ovom telefonu. Biće poslato kad bude signala.';
+
+  @override
+  String get ackBannerHeading => 'Potrebna potvrda';
+
+  @override
+  String get ackConfirmButton => 'Vidio sam';
+
+  @override
+  String get ackGatedMessage => 'Prvo potvrdite obavještenje koje čeka';
 }

@@ -29,8 +29,10 @@ public class NotificationService : INotificationService
         string title,
         string body,
         IReadOnlyDictionary<string, string>? data = null,
+        bool requiresAcknowledgment = false,
         CancellationToken cancellationToken = default)
-        => NotifyUsersAsync([userId], type, title, body, data, cancellationToken);
+        => NotifyUsersAsync(
+            [userId], type, title, body, data, requiresAcknowledgment, cancellationToken);
 
     public async Task<int> NotifyUsersAsync(
         IReadOnlyCollection<Guid> userIds,
@@ -38,6 +40,7 @@ public class NotificationService : INotificationService
         string title,
         string body,
         IReadOnlyDictionary<string, string>? data = null,
+        bool requiresAcknowledgment = false,
         CancellationToken cancellationToken = default)
     {
         if (userIds.Count == 0)
@@ -60,7 +63,8 @@ public class NotificationService : INotificationService
                     Type = type,
                     Title = title,
                     Body = body,
-                    DataJson = dataJson
+                    DataJson = dataJson,
+                    RequiresAcknowledgment = requiresAcknowledgment
                 });
             }
 

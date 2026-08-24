@@ -29,6 +29,10 @@ public interface IApplicationDbContext
 
     DbSet<Notification> Notifications { get; }
 
+    DbSet<NotificationGroup> NotificationGroups { get; }
+
+    DbSet<NotificationGroupMember> NotificationGroupMembers { get; }
+
     DbSet<TimeEntry> TimeEntries { get; }
 
     DbSet<Attachment> Attachments { get; }

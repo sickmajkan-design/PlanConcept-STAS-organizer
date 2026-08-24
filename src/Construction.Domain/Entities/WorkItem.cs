@@ -39,6 +39,13 @@ public class WorkItem : BaseEntity, ISoftDeletable, IAuditable
     public DateOnly? DueDate { get; set; }
 
     /// <summary>
+    /// The assignee must confirm they saw this before they can act on
+    /// anything else in the app — for work urgent or hazardous enough that it
+    /// cannot just sit unread in the inbox.
+    /// </summary>
+    public bool RequiresAcknowledgment { get; set; }
+
+    /// <summary>
     /// Where on site the defect is, when the phone had a fix. A site is
     /// hundreds of metres across and "crack in the wall" does not locate it.
     /// </summary>

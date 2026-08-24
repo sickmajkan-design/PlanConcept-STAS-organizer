@@ -136,7 +136,7 @@ public class AssignEmployeeToProjectCommandHandler : IRequestHandler<AssignEmplo
                 "New project assigned",
                 $"You have been assigned to project '{project.Name}'.",
                 data,
-                cancellationToken);
+                cancellationToken: cancellationToken);
         }
 
         // Foremen and project managers already on the crew learn about the newcomer.
@@ -156,6 +156,6 @@ public class AssignEmployeeToProjectCommandHandler : IRequestHandler<AssignEmplo
             "Employee assigned to your project",
             $"{employee.FullName} has been assigned to project '{project.Name}'.",
             data,
-            cancellationToken);
+            cancellationToken: cancellationToken);
     }
 }

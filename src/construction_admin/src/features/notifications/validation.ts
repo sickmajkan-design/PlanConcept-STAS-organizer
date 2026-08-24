@@ -12,6 +12,8 @@ export const announcementFormSchema = z.object({
    */
   role: z.union([z.enum(roles), z.literal('')]),
   projectId: z.string(),
+  groupId: z.string(),
+  requiresAcknowledgment: z.boolean(),
 });
 
 export type AnnouncementFormValues = z.infer<typeof announcementFormSchema>;

@@ -53,6 +53,9 @@ export const paths = {
   expiringDocuments: '/documents/expiring',
 
   notifications: '/notifications',
+  notificationGroups: '/notification-groups',
+  notificationGroupNew: '/notification-groups/new',
+  notificationGroupEdit: (id: string) => `/notification-groups/${id}/edit`,
 
   users: '/users',
   userNew: '/users/new',
