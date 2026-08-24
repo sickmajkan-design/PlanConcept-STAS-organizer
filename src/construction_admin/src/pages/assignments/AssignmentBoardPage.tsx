@@ -33,6 +33,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TableSortLabel,
   TextField,
   Tooltip,
   Typography,
@@ -91,6 +92,8 @@ interface PendingDrop {
 
 type EmployeeFilter = 'all' | 'unassigned' | 'assigned';
 type EmployeeSort = 'name' | 'siteCount';
+type SiteSortField = 'name' | 'crew' | 'tools' | 'vehicles';
+type SortDirection = 'asc' | 'desc';
 
 export function AssignmentBoardPage() {
   const t = useT();
@@ -105,6 +108,8 @@ export function AssignmentBoardPage() {
   const [conflict, setConflict] = useState<string | null>(null);
   const [pendingDrop, setPendingDrop] = useState<PendingDrop | null>(null);
   const [expandedProjectId, setExpandedProjectId] = useState<string | null>(null);
+  const [siteSortBy, setSiteSortBy] = useState<SiteSortField>('name');
+  const [siteSortDirection, setSiteSortDirection] = useState<SortDirection>('asc');
 
   // A plain click has to survive being wrapped in a draggable row — the
   // crew list's delete button sits inside one. Requiring a deliberate
@@ -155,6 +160,47 @@ export function AssignmentBoardPage() {
 
     return employees;
   }, [data, search, employeeFilter, employeeSort]);
+
+  const crewCountByProject = useMemo(() => {
+    const counts = new Map<string, number>();
+
+    for (const employee of data?.employees ?? []) {
+      for (const posting of employee.postings) {
+        counts.set(posting.projectId, (counts.get(posting.projectId) ?? 0) + 1);
+      }
+    }
+
+    return counts;
+  }, [data]);
+
+  const sortedProjects = useMemo(() => {
+    const projects = [...(data?.projects ?? [])];
+    const direction = siteSortDirection === 'asc' ? 1 : -1;
+
+    projects.sort((a, b) => {
+      switch (siteSortBy) {
+        case 'crew':
+          return direction * ((crewCountByProject.get(a.id) ?? 0) - (crewCountByProject.get(b.id) ?? 0));
+        case 'tools':
+          return direction * (a.toolCount - b.toolCount);
+        case 'vehicles':
+          return direction * (a.vehicleCount - b.vehicleCount);
+        default:
+          return direction * a.name.localeCompare(b.name);
+      }
+    });
+
+    return projects;
+  }, [data, siteSortBy, siteSortDirection, crewCountByProject]);
+
+  const toggleSiteSort = (field: SiteSortField) => {
+    if (siteSortBy === field) {
+      setSiteSortDirection((current) => (current === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSiteSortBy(field);
+      setSiteSortDirection('asc');
+    }
+  };
 
   const handleDragStart = (dragEvent: DragStartEvent) => {
     setActiveEmployee(employeesById.get(String(dragEvent.active.id)) ?? null);
@@ -269,14 +315,49 @@ export function AssignmentBoardPage() {
                     <TableHead>
                       <TableRow>
                         <TableCell padding="checkbox" />
-                        <TableCell>{t('assignmentBoard.colSite')}</TableCell>
-                        <TableCell align="right">{t('assignmentBoard.colCrew')}</TableCell>
-                        <TableCell align="right">{t('assignmentBoard.colTools')}</TableCell>
-                        <TableCell align="right">{t('assignmentBoard.colVehicles')}</TableCell>
+                        <TableCell sortDirection={siteSortBy === 'name' ? siteSortDirection : false}>
+                          <TableSortLabel
+                            active={siteSortBy === 'name'}
+                            direction={siteSortBy === 'name' ? siteSortDirection : 'asc'}
+                            onClick={() => toggleSiteSort('name')}
+                          >
+                            {t('assignmentBoard.colSite')}
+                          </TableSortLabel>
+                        </TableCell>
+                        <TableCell align="right" sortDirection={siteSortBy === 'crew' ? siteSortDirection : false}>
+                          <TableSortLabel
+                            active={siteSortBy === 'crew'}
+                            direction={siteSortBy === 'crew' ? siteSortDirection : 'asc'}
+                            onClick={() => toggleSiteSort('crew')}
+                          >
+                            {t('assignmentBoard.colCrew')}
+                          </TableSortLabel>
+                        </TableCell>
+                        <TableCell align="right" sortDirection={siteSortBy === 'tools' ? siteSortDirection : false}>
+                          <TableSortLabel
+                            active={siteSortBy === 'tools'}
+                            direction={siteSortBy === 'tools' ? siteSortDirection : 'asc'}
+                            onClick={() => toggleSiteSort('tools')}
+                          >
+                            {t('assignmentBoard.colTools')}
+                          </TableSortLabel>
+                        </TableCell>
+                        <TableCell
+                          align="right"
+                          sortDirection={siteSortBy === 'vehicles' ? siteSortDirection : false}
+                        >
+                          <TableSortLabel
+                            active={siteSortBy === 'vehicles'}
+                            direction={siteSortBy === 'vehicles' ? siteSortDirection : 'asc'}
+                            onClick={() => toggleSiteSort('vehicles')}
+                          >
+                            {t('assignmentBoard.colVehicles')}
+                          </TableSortLabel>
+                        </TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {(data?.projects ?? []).map((project) => (
+                      {sortedProjects.map((project) => (
                         <ProjectRow
                           key={project.id}
                           project={project}
