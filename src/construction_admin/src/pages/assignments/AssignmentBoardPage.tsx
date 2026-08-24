@@ -202,14 +202,23 @@ export function AssignmentBoardPage() {
     }
   };
 
+  // The draggable `id` itself is not necessarily the employee id — see
+  // CrewRow, which needs one unique per (site, employee) pair since the same
+  // employee can legitimately be dragged from more than one place at once
+  // (their sidebar card and, when a site they're on is expanded, their row
+  // in that site's crew list). The real employee id always travels in `data`
+  // instead, which is what both handlers read.
+  const resolveEmployeeId = (active: DragStartEvent['active'] | DragEndEvent['active']) =>
+    String(active.data.current?.employeeId ?? active.id);
+
   const handleDragStart = (dragEvent: DragStartEvent) => {
-    setActiveEmployee(employeesById.get(String(dragEvent.active.id)) ?? null);
+    setActiveEmployee(employeesById.get(resolveEmployeeId(dragEvent.active)) ?? null);
   };
 
   const handleDragEnd = (dragEvent: DragEndEvent) => {
     setActiveEmployee(null);
 
-    const employeeId = String(dragEvent.active.id);
+    const employeeId = resolveEmployeeId(dragEvent.active);
     const projectId = dragEvent.over?.id ? String(dragEvent.over.id) : null;
     if (!projectId) return;
 
@@ -543,7 +552,8 @@ function EmployeeCard({
 }) {
   const t = useT();
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: employee.id,
+    id: `sidebar-${employee.id}`,
+    data: { employeeId: employee.id },
   });
 
   return (
@@ -691,9 +701,15 @@ function CrewRow({
   onRemove: () => void;
 }) {
   const t = useT();
+  // Unique per (site, employee), not just per employee — the same person can
+  // be visible as a draggable in more than one place at once (their sidebar
+  // card, and their row in every expanded site they're posted to), and
+  // dnd-kit requires every simultaneously-mounted draggable id to be unique.
+  // Reusing the bare employee id here was exactly that collision, and it
+  // crashed the board as soon as two of them were on screen together.
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: employee.id,
-    data: { sourceProjectId },
+    id: `crew-${sourceProjectId}-${employee.id}`,
+    data: { employeeId: employee.id, sourceProjectId },
   });
 
   return (
