@@ -8,18 +8,22 @@ namespace Construction.Domain.Entities;
 /// project's drawing, a vehicle's insurance, a tool's calibration sheet.
 /// </summary>
 /// <remarks>
-/// The owner is four nullable foreign keys with a check constraint allowing
-/// exactly one, rather than the usual pair of `OwnerType` + `OwnerId`. The
-/// discriminator pair is shorter to write and gives up everything the database
-/// is for: no foreign key, so an attachment can outlive its owner and point at
-/// nothing; no cascade, so deleting an employee leaves their medical records
-/// behind. Here, removing an employee removes their documents with them, which
-/// is also what a data-erasure request needs.
+/// The owner is a set of nullable foreign keys with a check constraint
+/// allowing exactly one, rather than the usual pair of `OwnerType` + `OwnerId`.
+/// The discriminator pair is shorter to write and gives up everything the
+/// database is for: no foreign key, so an attachment can outlive its owner and
+/// point at nothing; no cascade, so deleting an employee leaves their medical
+/// records behind. Here, removing an employee removes their documents with
+/// them, which is also what a data-erasure request needs.
 ///
-/// A fifth owner type means a fifth column and an updated constraint. That is
-/// a migration, which is the point — adding one should be a decision, not a
+/// A new owner type means a new column and an updated constraint. That is a
+/// migration, which is the point — adding one should be a decision, not a
 /// value someone passes in. <see cref="WorkItem"/> was the fifth, so a defect
-/// photograph disappears with the defect rather than outliving it.
+/// photograph disappears with the defect rather than outliving it;
+/// <see cref="VehicleExpense"/>, <see cref="MaterialMovement"/>,
+/// <see cref="EmployeeRate"/> and <see cref="FinanceEntry"/> were the sixth
+/// through ninth, so a receipt photo disappears with the cost record it
+/// documents.
 /// </remarks>
 public class Attachment : BaseEntity, ISoftDeletable, IAuditable
 {
@@ -71,6 +75,22 @@ public class Attachment : BaseEntity, ISoftDeletable, IAuditable
     public Guid? WorkItemId { get; set; }
 
     public WorkItem? WorkItem { get; set; }
+
+    public Guid? VehicleExpenseId { get; set; }
+
+    public VehicleExpense? VehicleExpense { get; set; }
+
+    public Guid? MaterialMovementId { get; set; }
+
+    public MaterialMovement? MaterialMovement { get; set; }
+
+    public Guid? EmployeeRateId { get; set; }
+
+    public EmployeeRate? EmployeeRate { get; set; }
+
+    public Guid? FinanceEntryId { get; set; }
+
+    public FinanceEntry? FinanceEntry { get; set; }
 
     public Guid? UploadedByUserId { get; set; }
 

@@ -11,7 +11,19 @@ public enum AttachmentOwnerType
     Tool = 4,
 
     /// <summary>A task or a defect. The photograph of the crack.</summary>
-    WorkItem = 5
+    WorkItem = 5,
+
+    /// <summary>The receipt for a tank of fuel, a service, or another vehicle cost.</summary>
+    VehicleExpense = 6,
+
+    /// <summary>The delivery note or issue slip behind a stock movement.</summary>
+    MaterialMovement = 7,
+
+    /// <summary>A signed contract or annex backing a pay rate.</summary>
+    EmployeeRate = 8,
+
+    /// <summary>The payslip or receipt behind a recorded pay entry.</summary>
+    FinanceEntry = 9
 }
 
 /// <summary>
@@ -39,6 +51,10 @@ public static class AttachmentOwner
         attachment.VehicleId = type == AttachmentOwnerType.Vehicle ? id : null;
         attachment.ToolId = type == AttachmentOwnerType.Tool ? id : null;
         attachment.WorkItemId = type == AttachmentOwnerType.WorkItem ? id : null;
+        attachment.VehicleExpenseId = type == AttachmentOwnerType.VehicleExpense ? id : null;
+        attachment.MaterialMovementId = type == AttachmentOwnerType.MaterialMovement ? id : null;
+        attachment.EmployeeRateId = type == AttachmentOwnerType.EmployeeRate ? id : null;
+        attachment.FinanceEntryId = type == AttachmentOwnerType.FinanceEntry ? id : null;
     }
 
     /// <summary>Reads the owner back off a stored row.</summary>
@@ -69,6 +85,26 @@ public static class AttachmentOwner
             return (AttachmentOwnerType.WorkItem, workItemId);
         }
 
+        if (attachment.VehicleExpenseId is { } vehicleExpenseId)
+        {
+            return (AttachmentOwnerType.VehicleExpense, vehicleExpenseId);
+        }
+
+        if (attachment.MaterialMovementId is { } materialMovementId)
+        {
+            return (AttachmentOwnerType.MaterialMovement, materialMovementId);
+        }
+
+        if (attachment.EmployeeRateId is { } employeeRateId)
+        {
+            return (AttachmentOwnerType.EmployeeRate, employeeRateId);
+        }
+
+        if (attachment.FinanceEntryId is { } financeEntryId)
+        {
+            return (AttachmentOwnerType.FinanceEntry, financeEntryId);
+        }
+
         // The table's check constraint makes this unreachable; if it is ever
         // reached, something has bypassed the database and guessing an owner
         // would hide it.
@@ -84,6 +120,10 @@ public static class AttachmentOwner
         AttachmentOwnerType.Vehicle => "vehicles",
         AttachmentOwnerType.Tool => "tools",
         AttachmentOwnerType.WorkItem => "work-items",
+        AttachmentOwnerType.VehicleExpense => "vehicle-expenses",
+        AttachmentOwnerType.MaterialMovement => "material-movements",
+        AttachmentOwnerType.EmployeeRate => "employee-rates",
+        AttachmentOwnerType.FinanceEntry => "finance-entries",
         _ => "other"
     };
 }

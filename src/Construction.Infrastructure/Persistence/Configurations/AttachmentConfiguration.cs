@@ -59,6 +59,30 @@ public class AttachmentConfiguration : IEntityTypeConfiguration<Attachment>
             .HasForeignKey(a => a.WorkItemId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // These four have no reciprocal `Attachments` collection on the ledger
+        // entity itself — a receipt is always reached by asking "what's filed
+        // against this record", never the other way round, so there is nothing
+        // for a navigation property to serve.
+        builder.HasOne(a => a.VehicleExpense)
+            .WithMany()
+            .HasForeignKey(a => a.VehicleExpenseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(a => a.MaterialMovement)
+            .WithMany()
+            .HasForeignKey(a => a.MaterialMovementId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(a => a.EmployeeRate)
+            .WithMany()
+            .HasForeignKey(a => a.EmployeeRateId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(a => a.FinanceEntry)
+            .WithMany()
+            .HasForeignKey(a => a.FinanceEntryId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // Uploader accounts are not hard-deleted, but the file must survive
         // losing the name of who put it there.
         builder.HasOne(a => a.UploadedByUser)
@@ -76,7 +100,11 @@ public class AttachmentConfiguration : IEntityTypeConfiguration<Attachment>
             + CASE WHEN "ProjectId" IS NULL THEN 0 ELSE 1 END
             + CASE WHEN "VehicleId" IS NULL THEN 0 ELSE 1 END
             + CASE WHEN "ToolId" IS NULL THEN 0 ELSE 1 END
-            + CASE WHEN "WorkItemId" IS NULL THEN 0 ELSE 1 END) = 1
+            + CASE WHEN "WorkItemId" IS NULL THEN 0 ELSE 1 END
+            + CASE WHEN "VehicleExpenseId" IS NULL THEN 0 ELSE 1 END
+            + CASE WHEN "MaterialMovementId" IS NULL THEN 0 ELSE 1 END
+            + CASE WHEN "EmployeeRateId" IS NULL THEN 0 ELSE 1 END
+            + CASE WHEN "FinanceEntryId" IS NULL THEN 0 ELSE 1 END) = 1
             """));
 
         builder.ToTable(t => t.HasCheckConstraint(
@@ -88,6 +116,10 @@ public class AttachmentConfiguration : IEntityTypeConfiguration<Attachment>
         builder.HasIndex(a => a.VehicleId);
         builder.HasIndex(a => a.ToolId);
         builder.HasIndex(a => a.WorkItemId);
+        builder.HasIndex(a => a.VehicleExpenseId);
+        builder.HasIndex(a => a.MaterialMovementId);
+        builder.HasIndex(a => a.EmployeeRateId);
+        builder.HasIndex(a => a.FinanceEntryId);
 
         // The expiry sweep: everything lapsing soon that nobody has been told
         // about. Partial, because rows without an expiry are most of the table

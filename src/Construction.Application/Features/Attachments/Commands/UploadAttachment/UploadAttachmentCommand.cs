@@ -202,6 +202,14 @@ public class UploadAttachmentCommandHandler
                 await _context.Tools.AnyAsync(t => t.Id == id, cancellationToken),
             AttachmentOwnerType.WorkItem =>
                 await _context.WorkItems.AnyAsync(w => w.Id == id, cancellationToken),
+            AttachmentOwnerType.VehicleExpense =>
+                await _context.VehicleExpenses.AnyAsync(e => e.Id == id, cancellationToken),
+            AttachmentOwnerType.MaterialMovement =>
+                await _context.MaterialMovements.AnyAsync(m => m.Id == id, cancellationToken),
+            AttachmentOwnerType.EmployeeRate =>
+                await _context.EmployeeRates.AnyAsync(r => r.Id == id, cancellationToken),
+            AttachmentOwnerType.FinanceEntry =>
+                await _context.FinanceEntries.AnyAsync(f => f.Id == id, cancellationToken),
             _ => false
         };
 

@@ -66,18 +66,33 @@ public static class AttachmentMapping
                 : attachment.ProjectId != null ? AttachmentOwnerType.Project
                 : attachment.VehicleId != null ? AttachmentOwnerType.Vehicle
                 : attachment.ToolId != null ? AttachmentOwnerType.Tool
-                : AttachmentOwnerType.WorkItem,
+                : attachment.WorkItemId != null ? AttachmentOwnerType.WorkItem
+                : attachment.VehicleExpenseId != null ? AttachmentOwnerType.VehicleExpense
+                : attachment.MaterialMovementId != null ? AttachmentOwnerType.MaterialMovement
+                : attachment.EmployeeRateId != null ? AttachmentOwnerType.EmployeeRate
+                : AttachmentOwnerType.FinanceEntry,
             OwnerId = attachment.EmployeeId != null ? attachment.EmployeeId.Value
                 : attachment.ProjectId != null ? attachment.ProjectId.Value
                 : attachment.VehicleId != null ? attachment.VehicleId.Value
                 : attachment.ToolId != null ? attachment.ToolId.Value
-                : attachment.WorkItemId!.Value,
+                : attachment.WorkItemId != null ? attachment.WorkItemId.Value
+                : attachment.VehicleExpenseId != null ? attachment.VehicleExpenseId.Value
+                : attachment.MaterialMovementId != null ? attachment.MaterialMovementId.Value
+                : attachment.EmployeeRateId != null ? attachment.EmployeeRateId.Value
+                : attachment.FinanceEntryId!.Value,
             OwnerName = attachment.Employee != null
                 ? attachment.Employee.FirstName + " " + attachment.Employee.LastName
                 : attachment.Project != null ? attachment.Project.Name
                 : attachment.Vehicle != null ? attachment.Vehicle.Brand + " " + attachment.Vehicle.Model
                 : attachment.Tool != null ? attachment.Tool.Name
                 : attachment.WorkItem != null ? attachment.WorkItem.Title
+                : attachment.VehicleExpense != null
+                    ? attachment.VehicleExpense.Vehicle.Brand + " " + attachment.VehicleExpense.Vehicle.Model
+                : attachment.MaterialMovement != null ? attachment.MaterialMovement.Material.Name
+                : attachment.EmployeeRate != null
+                    ? attachment.EmployeeRate.Employee.FirstName + " " + attachment.EmployeeRate.Employee.LastName
+                : attachment.FinanceEntry != null
+                    ? attachment.FinanceEntry.Employee.FirstName + " " + attachment.FinanceEntry.Employee.LastName
                 : null,
             UploadedByName = attachment.UploadedByUser != null ? attachment.UploadedByUser.Email : null,
             CreatedAt = attachment.CreatedAt,

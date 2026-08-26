@@ -118,11 +118,18 @@ public static class AttachmentRules
     /// medical certificate, which is theirs, without being able to read
     /// anybody else's.
     /// </remarks>
-    public static bool CanRead(UserRole? role, AttachmentOwnerType ownerType) =>
-        ownerType == AttachmentOwnerType.Employee
-            ? role is UserRole.SuperAdmin or UserRole.Admin
-            : role is UserRole.SuperAdmin or UserRole.Admin
-                or UserRole.ProjectManager or UserRole.Foreman;
+    public static bool CanRead(UserRole? role, AttachmentOwnerType ownerType) => ownerType switch
+    {
+        AttachmentOwnerType.Employee => role is UserRole.SuperAdmin or UserRole.Admin,
+        // Pay data: matches CostRules.CanSeeLabourCost. A Foreman may read the
+        // receipt behind a fuel fill-up but not the contract behind a colleague's
+        // hourly rate — the file is only ever as sensitive as the record it
+        // documents.
+        AttachmentOwnerType.EmployeeRate or AttachmentOwnerType.FinanceEntry =>
+            role is UserRole.SuperAdmin or UserRole.Admin or UserRole.ProjectManager,
+        _ => role is UserRole.SuperAdmin or UserRole.Admin
+            or UserRole.ProjectManager or UserRole.Foreman
+    };
 
     /// <summary>
     /// An employee may always read what is filed against them.
@@ -158,6 +165,14 @@ public static class AttachmentRules
         AttachmentOwnerType ownerType,
         AttachmentCategory category)
     {
+        // Pay data: matches CostRules.CanSetLabourRate, narrower than every
+        // other owner type here — a Foreman may attach a fuel receipt but not
+        // the paperwork behind somebody's wage.
+        if (ownerType is AttachmentOwnerType.EmployeeRate or AttachmentOwnerType.FinanceEntry)
+        {
+            return role is UserRole.SuperAdmin or UserRole.Admin;
+        }
+
         if (role is UserRole.SuperAdmin or UserRole.Admin
             or UserRole.ProjectManager or UserRole.Foreman)
         {
