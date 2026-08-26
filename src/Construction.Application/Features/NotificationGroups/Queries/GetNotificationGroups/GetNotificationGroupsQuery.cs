@@ -2,6 +2,7 @@ using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
 using Construction.Application.Common.Security;
 using Construction.Application.Features.NotificationGroups.Models;
+using Construction.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using MediatR;
 
@@ -9,7 +10,7 @@ namespace Construction.Application.Features.NotificationGroups.Queries.GetNotifi
 
 public record GetNotificationGroupsQuery : ISortablePagedQuery, IRequest<PagedList<NotificationGroupDto>>
 {
-    public static readonly string[] AllowedSortFields = ["name", "createdAt"];
+    public static readonly string[] AllowedSortFields = ["name", "memberCount", "createdAt"];
 
     public int PageNumber { get; init; } = 1;
 
@@ -54,18 +55,32 @@ public class GetNotificationGroupsQueryHandler
                 EF.Functions.Like(g.Name.ToLower(), pattern, SearchPattern.Escape));
         }
 
-        query = request.SortDescending
-            ? (request.SortBy?.ToLowerInvariant() == "name"
-                ? query.OrderByDescending(g => g.Name)
-                : query.OrderByDescending(g => g.CreatedAt))
-            : (request.SortBy?.ToLowerInvariant() == "name"
-                ? query.OrderBy(g => g.Name)
-                : query.OrderBy(g => g.CreatedAt));
+        query = ApplySorting(query, request.SortBy, request.SortDescending);
 
         return await PagedList<NotificationGroupDto>.CreateAsync(
             query.Select(NotificationGroupMapping.Projection),
             request.PageNumber,
             request.PageSize,
             cancellationToken);
+    }
+
+    private static IQueryable<NotificationGroup> ApplySorting(
+        IQueryable<NotificationGroup> query,
+        string? sortBy,
+        bool descending)
+    {
+        IOrderedQueryable<NotificationGroup> ordered = (sortBy?.ToLowerInvariant(), descending) switch
+        {
+            ("name", true) => query.OrderByDescending(g => g.Name),
+            ("membercount", false) => query.OrderBy(g => g.Members.Count),
+            ("membercount", true) => query.OrderByDescending(g => g.Members.Count),
+            ("createdat", false) => query.OrderBy(g => g.CreatedAt),
+            ("createdat", true) => query.OrderByDescending(g => g.CreatedAt),
+            (_, true) => query.OrderByDescending(g => g.CreatedAt),
+            _ => query.OrderBy(g => g.Name)
+        };
+
+        // Stable tiebreaker so pagination never skips or duplicates rows.
+        return ordered.ThenBy(g => g.Id);
     }
 }

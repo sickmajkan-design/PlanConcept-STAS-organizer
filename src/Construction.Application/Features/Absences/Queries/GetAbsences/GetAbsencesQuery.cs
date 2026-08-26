@@ -12,7 +12,7 @@ public record GetAbsencesQuery : ISortablePagedQuery, IRequest<PagedList<Absence
 {
     public static readonly string[] AllowedSortFields =
     [
-        "startDate", "endDate", "employeeName", "status", "createdAt"
+        "startDate", "endDate", "employeeName", "status", "type", "createdAt"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -126,6 +126,8 @@ public class GetAbsencesQueryHandler : IRequestHandler<GetAbsencesQuery, PagedLi
                 .ThenByDescending(a => a.Employee.FirstName),
             ("status", false) => query.OrderBy(a => a.Status),
             ("status", true) => query.OrderByDescending(a => a.Status),
+            ("type", false) => query.OrderBy(a => a.Type),
+            ("type", true) => query.OrderByDescending(a => a.Type),
             ("createdat", false) => query.OrderBy(a => a.CreatedAt),
             ("createdat", true) => query.OrderByDescending(a => a.CreatedAt),
             (_, false) => query.OrderBy(a => a.StartDate),

@@ -14,7 +14,7 @@ public record GetProjectsQuery : ISortablePagedQuery, IRequest<PagedList<Project
 {
     public static readonly string[] AllowedSortFields =
     [
-        "name", "client", "status", "startDate", "endDate", "createdAt"
+        "name", "client", "status", "employeeCount", "startDate", "endDate", "createdAt"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -107,6 +107,10 @@ public class GetProjectsQueryHandler : IRequestHandler<GetProjectsQuery, PagedLi
             ("client", true) => query.OrderByDescending(p => p.Client),
             ("status", false) => query.OrderBy(p => p.Status),
             ("status", true) => query.OrderByDescending(p => p.Status),
+            ("employeecount", false) => query
+                .OrderBy(p => p.EmployeeAssignments.Count(a => a.EndDate == null)),
+            ("employeecount", true) => query
+                .OrderByDescending(p => p.EmployeeAssignments.Count(a => a.EndDate == null)),
             ("startdate", false) => query.OrderBy(p => p.StartDate),
             ("startdate", true) => query.OrderByDescending(p => p.StartDate),
             ("enddate", false) => query.OrderBy(p => p.EndDate),

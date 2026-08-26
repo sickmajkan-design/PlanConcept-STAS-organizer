@@ -13,7 +13,7 @@ public record GetTimeEntriesQuery : ISortablePagedQuery, IRequest<PagedList<Time
 {
     public static readonly string[] AllowedSortFields =
     [
-        "startedAt", "endedAt", "employeeName", "status", "createdAt"
+        "startedAt", "endedAt", "employeeName", "status", "projectName", "workType", "createdAt"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -157,6 +157,12 @@ public class GetTimeEntriesQueryHandler
                 .ThenByDescending(t => t.Employee.FirstName),
             ("status", false) => query.OrderBy(t => t.Status),
             ("status", true) => query.OrderByDescending(t => t.Status),
+            ("projectname", false) => query
+                .OrderBy(t => t.Project != null ? t.Project.Name : null),
+            ("projectname", true) => query
+                .OrderByDescending(t => t.Project != null ? t.Project.Name : null),
+            ("worktype", false) => query.OrderBy(t => t.WorkType),
+            ("worktype", true) => query.OrderByDescending(t => t.WorkType),
             ("createdat", false) => query.OrderBy(t => t.CreatedAt),
             ("createdat", true) => query.OrderByDescending(t => t.CreatedAt),
             (_, false) => query.OrderBy(t => t.StartedAt),

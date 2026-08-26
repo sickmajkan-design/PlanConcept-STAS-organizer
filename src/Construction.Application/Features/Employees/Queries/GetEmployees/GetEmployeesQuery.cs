@@ -14,7 +14,7 @@ public record GetEmployeesQuery : ISortablePagedQuery, IRequest<PagedList<Employ
 {
     public static readonly string[] AllowedSortFields =
     [
-        "employeeNumber", "firstName", "lastName", "position", "status", "employmentDate", "createdAt"
+        "employeeNumber", "firstName", "lastName", "fullName", "position", "status", "employmentDate", "phone", "createdAt"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -108,12 +108,19 @@ public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, Paged
             ("employeenumber", true) => query.OrderByDescending(e => e.EmployeeNumber),
             ("firstname", false) => query.OrderBy(e => e.FirstName),
             ("firstname", true) => query.OrderByDescending(e => e.FirstName),
+            ("lastname", false) => query.OrderBy(e => e.LastName),
+            ("lastname", true) => query.OrderByDescending(e => e.LastName),
+            ("fullname", false) => query.OrderBy(e => e.LastName).ThenBy(e => e.FirstName),
+            ("fullname", true) => query
+                .OrderByDescending(e => e.LastName).ThenByDescending(e => e.FirstName),
             ("position", false) => query.OrderBy(e => e.Position),
             ("position", true) => query.OrderByDescending(e => e.Position),
             ("status", false) => query.OrderBy(e => e.Status),
             ("status", true) => query.OrderByDescending(e => e.Status),
             ("employmentdate", false) => query.OrderBy(e => e.EmploymentDate),
             ("employmentdate", true) => query.OrderByDescending(e => e.EmploymentDate),
+            ("phone", false) => query.OrderBy(e => e.Phone == null).ThenBy(e => e.Phone),
+            ("phone", true) => query.OrderByDescending(e => e.Phone == null).ThenByDescending(e => e.Phone),
             ("createdat", false) => query.OrderBy(e => e.CreatedAt),
             ("createdat", true) => query.OrderByDescending(e => e.CreatedAt),
             (_, true) => query.OrderByDescending(e => e.LastName).ThenByDescending(e => e.FirstName),
