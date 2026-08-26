@@ -19,12 +19,8 @@ import type { GridColDef } from '@mui/x-data-grid';
 import { useEffect, useMemo, useState } from 'react';
 
 import { toApiError } from '../../api/apiError';
-import type { VehicleExpenseListQuery } from '../../api/costs';
-import {
-  vehicleExpenseKinds,
-  type VehicleExpense,
-  type VehicleExpenseKind,
-} from '../../api/types';
+import type { ToolExpenseListQuery } from '../../api/costs';
+import { toolExpenseKinds, type ToolExpense, type ToolExpenseKind } from '../../api/types';
 import { canAdministerAccounts } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { AttachmentList } from '../../components/AttachmentList';
@@ -33,31 +29,31 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import {
-  useDeleteVehicleExpense,
-  useRecordVehicleExpense,
-  useUpdateVehicleExpense,
-  useVehicleExpensesQuery,
-  useVehicleExpensesSummaryQuery,
+  useDeleteToolExpense,
+  useRecordToolExpense,
+  useToolExpensesQuery,
+  useToolExpensesSummaryQuery,
+  useUpdateToolExpense,
 } from '../../features/costs/useCosts';
-import { useAllVehiclesQuery } from '../../features/vehicles/useVehicles';
+import { useAllToolsQuery } from '../../features/tools/useTools';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
-import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../utils/formatting';
+import { formatDate, formatDateTime, formatMoney } from '../../utils/formatting';
 
-export function VehicleExpensesPage() {
+export function ToolExpensesPage() {
   const t = useT();
   const { locale } = useI18n();
   const { user } = useAuth();
   const enumLabel = useEnumLabel();
   const list = useListQueryState('occurredOn', 'desc');
 
-  const [kind, setKind] = useState<VehicleExpenseKind | ''>('');
+  const [kind, setKind] = useState<ToolExpenseKind | ''>('');
   const [recording, setRecording] = useState(false);
-  const [editing, setEditing] = useState<VehicleExpense | null>(null);
+  const [editing, setEditing] = useState<ToolExpense | null>(null);
 
-  const query: VehicleExpenseListQuery = useMemo(
+  const query: ToolExpenseListQuery = useMemo(
     () => ({
       ...list.query,
       search: undefined,
@@ -66,75 +62,56 @@ export function VehicleExpensesPage() {
     [kind, list.query],
   );
 
-  const { data, isLoading, isError, error, refetch } = useVehicleExpensesQuery(query);
-  const { data: summary } = useVehicleExpensesSummaryQuery(query);
-  const remove = useDeleteWithConfirm<VehicleExpense>(useDeleteVehicleExpense());
+  const { data, isLoading, isError, error, refetch } = useToolExpensesQuery(query);
+  const { data: summary } = useToolExpensesSummaryQuery(query);
+  const remove = useDeleteWithConfirm<ToolExpense>(useDeleteToolExpense());
 
-  const columns: GridColDef<VehicleExpense>[] = useMemo(
+  const columns: GridColDef<ToolExpense>[] = useMemo(
     () => [
       {
         field: 'occurredOn',
-        headerName: t('vehicleExpenses.occurredOn'),
+        headerName: t('toolExpenses.occurredOn'),
         width: 120,
         valueGetter: (value) => formatDate(value),
       },
       {
-        field: 'vehicleName',
-        headerName: t('vehicleExpenses.vehicle'),
+        field: 'toolName',
+        headerName: t('toolExpenses.tool'),
         flex: 1,
         minWidth: 200,
       },
       {
         field: 'kind',
-        headerName: t('vehicleExpenses.kind'),
+        headerName: t('toolExpenses.kind'),
         width: 130,
-        valueGetter: (_value, row) => enumLabel('vehicleExpenseKind', row.kind),
+        valueGetter: (_value, row) => enumLabel('toolExpenseKind', row.kind),
       },
       {
         field: 'amount',
-        headerName: t('vehicleExpenses.amount'),
+        headerName: t('toolExpenses.amount'),
         width: 130,
         align: 'right',
         headerAlign: 'right',
         valueGetter: (value) => formatMoney(value as number, locale),
       },
       {
-        field: 'litres',
-        headerName: t('vehicleExpenses.litres'),
-        width: 100,
-        align: 'right',
-        headerAlign: 'right',
-        valueGetter: (value) =>
-          value === null ? '—' : formatQuantity(value as number, locale),
-      },
-      {
-        field: 'pricePerLitre',
-        headerName: t('vehicleExpenses.pricePerLitre'),
-        width: 120,
-        align: 'right',
-        headerAlign: 'right',
+        field: 'supplier',
+        headerName: t('toolExpenses.supplier'),
+        flex: 1,
+        minWidth: 160,
         sortable: false,
-        valueGetter: (value) => formatMoney(value as number | null, locale),
-      },
-      {
-        field: 'odometerKm',
-        headerName: t('vehicleExpenses.odometer'),
-        width: 130,
-        align: 'right',
-        headerAlign: 'right',
-        valueGetter: (value) =>
-          value === null ? '—' : formatQuantity(value as number, locale),
+        valueGetter: (value) => value || '—',
       },
       {
         field: 'recordedByName',
-        headerName: t('vehicleExpenses.recordedBy'),
+        headerName: t('toolExpenses.recordedBy'),
         flex: 1,
         minWidth: 160,
         valueGetter: (value) => value || '—',
       },
       {
         field: 'createdAt',
-        headerName: t('vehicleExpenses.createdAt'),
+        headerName: t('toolExpenses.createdAt'),
         width: 160,
         valueGetter: (value) => formatDateTime(value as string),
       },
@@ -165,10 +142,10 @@ export function VehicleExpensesPage() {
   return (
     <Box>
       <PageHeader
-        title={t('vehicleExpenses.title')}
+        title={t('toolExpenses.title')}
         subtitle={data ? t('common.total', { count: data.totalCount }) : undefined}
         action={{
-          label: t('vehicleExpenses.add'),
+          label: t('toolExpenses.add'),
           icon: <AddOutlined />,
           onClick: () => setRecording(true),
         }}
@@ -178,18 +155,18 @@ export function VehicleExpensesPage() {
         <TextField
           select
           size="small"
-          label={t('vehicleExpenses.kind')}
+          label={t('toolExpenses.kind')}
           value={kind}
           onChange={(event) => {
-            setKind(event.target.value as VehicleExpenseKind | '');
+            setKind(event.target.value as ToolExpenseKind | '');
             list.resetToFirstPage();
           }}
           sx={{ minWidth: 200 }}
         >
-          <MenuItem value="">{t('vehicleExpenses.allKinds')}</MenuItem>
-          {vehicleExpenseKinds.map((value) => (
+          <MenuItem value="">{t('toolExpenses.allKinds')}</MenuItem>
+          {toolExpenseKinds.map((value) => (
             <MenuItem key={value} value={value}>
-              {enumLabel('vehicleExpenseKind', value)}
+              {enumLabel('toolExpenseKind', value)}
             </MenuItem>
           ))}
         </TextField>
@@ -197,16 +174,10 @@ export function VehicleExpensesPage() {
 
       {summary && (
         <Paper variant="outlined" sx={{ px: 2, py: 1, mb: 2 }}>
-          <Stack direction="row" spacing={3}>
-            <Typography variant="body2" color="text.secondary">
-              {t('vehicleExpenses.summaryTotal')}:{' '}
-              <strong>{formatMoney(summary.totalAmount, locale)}</strong>
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {t('vehicleExpenses.summaryLitres')}:{' '}
-              <strong>{formatQuantity(summary.totalLitres, locale)}</strong>
-            </Typography>
-          </Stack>
+          <Typography variant="body2" color="text.secondary">
+            {t('toolExpenses.summaryTotal')}:{' '}
+            <strong>{formatMoney(summary.totalAmount, locale)}</strong>
+          </Typography>
         </Paper>
       )}
 
@@ -224,8 +195,8 @@ export function VehicleExpensesPage() {
         onRowDoubleClick={(row) => setEditing(row)}
       />
 
-      <VehicleExpenseDialog open={recording} onClose={() => setRecording(false)} />
-      <VehicleExpenseDialog
+      <ToolExpenseDialog open={recording} onClose={() => setRecording(false)} />
+      <ToolExpenseDialog
         open={!!editing}
         editingExpense={editing}
         onClose={() => setEditing(null)}
@@ -234,8 +205,8 @@ export function VehicleExpensesPage() {
 
       <ConfirmDialog
         open={!!remove.pending}
-        title={t('vehicleExpenses.deleteTitle')}
-        description={t('vehicleExpenses.deleteBody')}
+        title={t('toolExpenses.deleteTitle')}
+        description={t('toolExpenses.deleteBody')}
         confirmLabel={t('common.delete')}
         destructive
         loading={remove.isDeleting}
@@ -254,29 +225,27 @@ export function VehicleExpensesPage() {
   );
 }
 
-function VehicleExpenseDialog({
+function ToolExpenseDialog({
   open,
   editingExpense,
   onClose,
   canAdminister,
 }: {
   open: boolean;
-  editingExpense?: VehicleExpense | null;
+  editingExpense?: ToolExpense | null;
   onClose: () => void;
   canAdminister?: boolean;
 }) {
   const t = useT();
   const enumLabel = useEnumLabel();
-  const { data: vehicles } = useAllVehiclesQuery();
-  const record = useRecordVehicleExpense();
-  const update = useUpdateVehicleExpense();
+  const { data: tools } = useAllToolsQuery();
+  const record = useRecordToolExpense();
+  const update = useUpdateToolExpense();
   const isEditing = !!editingExpense;
 
-  const [vehicleId, setVehicleId] = useState('');
-  const [kind, setKind] = useState<VehicleExpenseKind>('Fuel');
+  const [toolId, setToolId] = useState('');
+  const [kind, setKind] = useState<ToolExpenseKind>('Repair');
   const [amount, setAmount] = useState('');
-  const [litres, setLitres] = useState('');
-  const [odometerKm, setOdometerKm] = useState('');
   const [occurredOn, setOccurredOn] = useState('');
   const [supplier, setSupplier] = useState('');
   const [note, setNote] = useState('');
@@ -291,46 +260,35 @@ function VehicleExpenseDialog({
     resetUpdate();
 
     if (editingExpense) {
-      setVehicleId(editingExpense.vehicleId);
+      setToolId(editingExpense.toolId);
       setKind(editingExpense.kind);
       setAmount(String(editingExpense.amount));
-      setLitres(editingExpense.litres === null ? '' : String(editingExpense.litres));
-      setOdometerKm(editingExpense.odometerKm === null ? '' : String(editingExpense.odometerKm));
       setOccurredOn(editingExpense.occurredOn);
       setSupplier(editingExpense.supplier ?? '');
       setNote(editingExpense.note ?? '');
     } else {
-      setVehicleId('');
-      setKind('Fuel');
+      setToolId('');
+      setKind('Repair');
       setAmount('');
-      setLitres('');
-      setOdometerKm('');
       setOccurredOn('');
       setSupplier('');
       setNote('');
     }
   }, [open, editingExpense, resetRecord, resetUpdate]);
 
-  const isFuel = kind === 'Fuel';
   const parsedAmount = Number(amount);
-  const parsedLitres = Number(litres);
   const amountIsValid =
     amount.trim() !== '' && !Number.isNaN(parsedAmount) && parsedAmount >= 0;
-  const litresAreValid =
-    !isFuel || (litres.trim() !== '' && !Number.isNaN(parsedLitres) && parsedLitres > 0);
 
-  const canSubmit =
-    vehicleId !== '' && amountIsValid && litresAreValid && (!isEditing || occurredOn !== '');
+  const canSubmit = toolId !== '' && amountIsValid && (!isEditing || occurredOn !== '');
   const mutation = isEditing ? update : record;
   const error = mutation.isError ? toApiError(mutation.error) : null;
 
   const submit = () => {
     const input = {
-      vehicleId,
+      toolId,
       kind,
       amount: parsedAmount,
-      litres: isFuel ? parsedLitres : null,
-      odometerKm: odometerKm.trim() === '' ? null : Number(odometerKm),
       occurredOn: occurredOn || null,
       supplier: supplier.trim() || null,
       note: note.trim() || null,
@@ -349,7 +307,7 @@ function VehicleExpenseDialog({
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>
-        {isEditing ? t('vehicleExpenses.editTitle') : t('vehicleExpenses.add')}
+        {isEditing ? t('toolExpenses.editTitle') : t('toolExpenses.add')}
       </DialogTitle>
       <DialogContent>
         {error && (
@@ -363,13 +321,13 @@ function VehicleExpenseDialog({
             <TextField
               select
               fullWidth
-              label={t('vehicleExpenses.vehicle')}
-              value={vehicleId}
-              onChange={(event) => setVehicleId(event.target.value)}
+              label={t('toolExpenses.tool')}
+              value={toolId}
+              onChange={(event) => setToolId(event.target.value)}
             >
-              {vehicles?.items.map((vehicle) => (
-                <MenuItem key={vehicle.id} value={vehicle.id}>
-                  {vehicle.brand} {vehicle.model} ({vehicle.registrationNumber})
+              {tools?.items.map((tool) => (
+                <MenuItem key={tool.id} value={tool.id}>
+                  {tool.name}
                 </MenuItem>
               ))}
             </TextField>
@@ -379,13 +337,13 @@ function VehicleExpenseDialog({
             <TextField
               select
               fullWidth
-              label={t('vehicleExpenses.kind')}
+              label={t('toolExpenses.kind')}
               value={kind}
-              onChange={(event) => setKind(event.target.value as VehicleExpenseKind)}
+              onChange={(event) => setKind(event.target.value as ToolExpenseKind)}
             >
-              {vehicleExpenseKinds.map((value) => (
+              {toolExpenseKinds.map((value) => (
                 <MenuItem key={value} value={value}>
-                  {enumLabel('vehicleExpenseKind', value)}
+                  {enumLabel('toolExpenseKind', value)}
                 </MenuItem>
               ))}
             </TextField>
@@ -395,38 +353,10 @@ function VehicleExpenseDialog({
             <TextField
               type="number"
               fullWidth
-              label={t('vehicleExpenses.amount')}
+              label={t('toolExpenses.amount')}
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
               error={amount.trim() !== '' && !amountIsValid}
-            />
-          </Grid>
-
-          {isFuel && (
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField
-                type="number"
-                fullWidth
-                required
-                label={t('vehicleExpenses.litres')}
-                value={litres}
-                onChange={(event) => setLitres(event.target.value)}
-                error={litres.trim() !== '' && !litresAreValid}
-                helperText={
-                  litres.trim() === '' ? t('vehicleExpenses.fuelNeedsLitres') : undefined
-                }
-              />
-            </Grid>
-          )}
-
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
-              type="number"
-              fullWidth
-              label={t('vehicleExpenses.odometer')}
-              value={odometerKm}
-              onChange={(event) => setOdometerKm(event.target.value)}
-              helperText={t('vehicleExpenses.odometerHint')}
             />
           </Grid>
 
@@ -435,7 +365,7 @@ function VehicleExpenseDialog({
               type="date"
               fullWidth
               required={isEditing}
-              label={t('vehicleExpenses.occurredOn')}
+              label={t('toolExpenses.occurredOn')}
               value={occurredOn}
               onChange={(event) => setOccurredOn(event.target.value)}
               slotProps={{ inputLabel: { shrink: true } }}
@@ -445,7 +375,7 @@ function VehicleExpenseDialog({
           <Grid size={{ xs: 12, sm: 6 }}>
             <TextField
               fullWidth
-              label={t('vehicleExpenses.supplier')}
+              label={t('toolExpenses.supplier')}
               value={supplier}
               onChange={(event) => setSupplier(event.target.value)}
             />
@@ -456,7 +386,7 @@ function VehicleExpenseDialog({
               fullWidth
               multiline
               minRows={2}
-              label={t('vehicleExpenses.note')}
+              label={t('toolExpenses.note')}
               value={note}
               onChange={(event) => setNote(event.target.value)}
             />
@@ -466,7 +396,7 @@ function VehicleExpenseDialog({
             <>
               <Grid size={12}>
                 <AttachmentList
-                  ownerType="VehicleExpense"
+                  ownerType="ToolExpense"
                   ownerId={editingExpense.id}
                   categories={['Other']}
                   canUpload={canAdminister}
@@ -475,7 +405,7 @@ function VehicleExpenseDialog({
               </Grid>
               {canAdminister && (
                 <Grid size={12}>
-                  <AuditHistoryCard entityName="VehicleExpense" entityId={editingExpense.id} />
+                  <AuditHistoryCard entityName="ToolExpense" entityId={editingExpense.id} />
                 </Grid>
               )}
             </>

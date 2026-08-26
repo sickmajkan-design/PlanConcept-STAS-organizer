@@ -658,6 +658,33 @@ export const materialMovementKinds = ['In', 'Out', 'Adjustment'] as const;
 
 export type MaterialMovementKind = (typeof materialMovementKinds)[number];
 
+export const toolExpenseKinds = ['Repair', 'Maintenance', 'Calibration', 'Other'] as const;
+
+export type ToolExpenseKind = (typeof toolExpenseKinds)[number];
+
+export interface ToolExpense {
+  id: string;
+  toolId: string;
+  toolName: string;
+  kind: ToolExpenseKind;
+  amount: number;
+  /** `YYYY-MM-DD`. */
+  occurredOn: string;
+  supplier: string | null;
+  note: string | null;
+  recordedByName: string | null;
+  createdAt: string;
+}
+
+export interface ToolExpenseInput {
+  toolId: string;
+  kind: ToolExpenseKind;
+  amount: number;
+  occurredOn?: string | null;
+  supplier?: string | null;
+  note?: string | null;
+}
+
 export const vehicleExpenseKinds = [
   'Fuel',
   'Service',
@@ -826,6 +853,50 @@ export interface VehicleCostReport {
   total: number;
   totalFuelCost: number;
   totalLitres: number;
+}
+
+export interface ToolCostRow {
+  toolId: string;
+  toolName: string;
+  repairCost: number;
+  maintenanceCost: number;
+  otherCost: number;
+  total: number;
+}
+
+export interface ToolCostReport {
+  from: string;
+  to: string;
+  rows: ToolCostRow[];
+  total: number;
+}
+
+/** The totals for whatever filter is currently applied to the list, not just the page on screen. */
+export interface EmployeeRateSummary {
+  count: number;
+  averageHourlyRate: number | null;
+}
+
+export interface MaterialMovementSummary {
+  count: number;
+  totalCost: number;
+}
+
+export interface VehicleExpenseSummary {
+  count: number;
+  totalAmount: number;
+  totalLitres: number;
+}
+
+export interface FinanceEntrySummary {
+  count: number;
+  totalAmount: number;
+  totalHoursWorked: number;
+}
+
+export interface ToolExpenseSummary {
+  count: number;
+  totalAmount: number;
 }
 
 export const notificationTypes = [

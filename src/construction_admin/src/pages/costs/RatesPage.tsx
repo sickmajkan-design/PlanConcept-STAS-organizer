@@ -12,6 +12,7 @@ import {
   Grid,
   IconButton,
   MenuItem,
+  Paper,
   Stack,
   Switch,
   TextField,
@@ -23,27 +24,35 @@ import { useEffect, useMemo, useState } from 'react';
 import { toApiError } from '../../api/apiError';
 import type { EmployeeRateListQuery } from '../../api/costs';
 import type { EmployeeRate } from '../../api/types';
+import { canAdministerAccounts } from '../../auth/authHelpers';
+import { useAuth } from '../../auth/useAuth';
+import { AttachmentList } from '../../components/AttachmentList';
+import { AuditHistoryCard } from '../../components/AuditHistoryCard';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import {
   useDeleteEmployeeRate,
   useEmployeeRatesQuery,
+  useEmployeeRatesSummaryQuery,
   useSetEmployeeRate,
+  useUpdateEmployeeRate,
 } from '../../features/costs/useCosts';
 import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { useI18n, useT } from '../../i18n/useI18n';
-import { formatDate, formatMoney } from '../../utils/formatting';
+import { formatDate, formatDateTime, formatMoney } from '../../utils/formatting';
 
 export function RatesPage() {
   const t = useT();
   const { locale } = useI18n();
+  const { user } = useAuth();
   const list = useListQueryState('startDate', 'desc');
 
   const [currentOnly, setCurrentOnly] = useState(true);
   const [setting, setSetting] = useState(false);
+  const [editing, setEditing] = useState<EmployeeRate | null>(null);
 
   const query: EmployeeRateListQuery = useMemo(
     () => ({
@@ -55,6 +64,7 @@ export function RatesPage() {
   );
 
   const { data, isLoading, isError, error, refetch } = useEmployeeRatesQuery(query);
+  const { data: summary } = useEmployeeRatesSummaryQuery(query);
   const remove = useDeleteWithConfirm<EmployeeRate>(useDeleteEmployeeRate());
 
   const columns: GridColDef<EmployeeRate>[] = useMemo(
@@ -98,6 +108,12 @@ export function RatesPage() {
         valueGetter: (value) => value || '—',
       },
       {
+        field: 'createdAt',
+        headerName: t('rates.createdAt'),
+        width: 160,
+        valueGetter: (value) => formatDateTime(value as string),
+      },
+      {
         field: 'actions',
         headerName: '',
         width: 60,
@@ -106,7 +122,13 @@ export function RatesPage() {
         align: 'right',
         headerAlign: 'right',
         renderCell: (params) => (
-          <IconButton size="small" onClick={() => remove.request(params.row)}>
+          <IconButton
+            size="small"
+            onClick={(event) => {
+              event.stopPropagation();
+              remove.request(params.row);
+            }}
+          >
             <DeleteOutlined fontSize="small" />
           </IconButton>
         ),
@@ -142,6 +164,19 @@ export function RatesPage() {
         />
       </Stack>
 
+      {summary && (
+        <Paper variant="outlined" sx={{ px: 2, py: 1, mb: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            {t('rates.summaryAverage')}:{' '}
+            <strong>
+              {summary.averageHourlyRate === null
+                ? '—'
+                : formatMoney(summary.averageHourlyRate, locale)}
+            </strong>
+          </Typography>
+        </Paper>
+      )}
+
       <ResourceDataGrid
         data={data}
         columns={columns}
@@ -153,9 +188,16 @@ export function RatesPage() {
         onPaginationModelChange={list.setPaginationModel}
         sortModel={list.sortModel}
         onSortModelChange={list.setSortModel}
+        onRowDoubleClick={(row) => setEditing(row)}
       />
 
-      <SetRateDialog open={setting} onClose={() => setSetting(false)} />
+      <RateDialog open={setting} onClose={() => setSetting(false)} />
+      <RateDialog
+        open={!!editing}
+        editingRate={editing}
+        onClose={() => setEditing(null)}
+        canAdminister={canAdministerAccounts(user)}
+      />
 
       <ConfirmDialog
         open={!!remove.pending}
@@ -179,10 +221,22 @@ export function RatesPage() {
   );
 }
 
-function SetRateDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+function RateDialog({
+  open,
+  editingRate,
+  onClose,
+  canAdminister,
+}: {
+  open: boolean;
+  editingRate?: EmployeeRate | null;
+  onClose: () => void;
+  canAdminister?: boolean;
+}) {
   const t = useT();
   const { data: employees } = useAllEmployeesQuery();
   const set = useSetEmployeeRate();
+  const update = useUpdateEmployeeRate();
+  const isEditing = !!editingRate;
 
   const [employeeId, setEmployeeId] = useState('');
   const [hourlyRate, setHourlyRate] = useState('');
@@ -190,18 +244,29 @@ function SetRateDialog({ open, onClose }: { open: boolean; onClose: () => void }
   const [endDate, setEndDate] = useState('');
   const [note, setNote] = useState('');
 
-  const reset = set.reset;
+  const resetSet = set.reset;
+  const resetUpdate = update.reset;
 
   useEffect(() => {
-    if (open) {
+    if (!open) return;
+
+    resetSet();
+    resetUpdate();
+
+    if (editingRate) {
+      setEmployeeId(editingRate.employeeId);
+      setHourlyRate(String(editingRate.hourlyRate));
+      setStartDate(editingRate.startDate);
+      setEndDate(editingRate.endDate ?? '');
+      setNote(editingRate.note ?? '');
+    } else {
       setEmployeeId('');
       setHourlyRate('');
       setStartDate('');
       setEndDate('');
       setNote('');
-      reset();
     }
-  }, [open, reset]);
+  }, [open, editingRate, resetSet, resetUpdate]);
 
   const parsedRate = Number(hourlyRate);
   const rateIsValid =
@@ -209,11 +274,41 @@ function SetRateDialog({ open, onClose }: { open: boolean; onClose: () => void }
   const datesAreValid = !startDate || !endDate || endDate >= startDate;
 
   const canSubmit = employeeId !== '' && rateIsValid && datesAreValid;
-  const error = set.isError ? toApiError(set.error) : null;
+  const mutation = isEditing ? update : set;
+  const error = mutation.isError ? toApiError(mutation.error) : null;
+
+  const submit = () => {
+    if (isEditing) {
+      update.mutate(
+        {
+          id: editingRate.id,
+          input: {
+            employeeId,
+            hourlyRate: parsedRate,
+            startDate,
+            endDate: endDate || null,
+            note: note.trim() || null,
+          },
+        },
+        { onSuccess: onClose },
+      );
+    } else {
+      set.mutate(
+        {
+          employeeId,
+          hourlyRate: parsedRate,
+          startDate: startDate || null,
+          endDate: endDate || null,
+          note: note.trim() || null,
+        },
+        { onSuccess: onClose },
+      );
+    }
+  };
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>{t('rates.add')}</DialogTitle>
+      <DialogTitle>{isEditing ? t('rates.editTitle') : t('rates.add')}</DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -287,32 +382,40 @@ function SetRateDialog({ open, onClose }: { open: boolean; onClose: () => void }
             />
           </Grid>
 
-          {/* Says what setting a rate actually does, because the answer is not
-              obvious and it is not undoable by editing. */}
           <Grid size={12}>
-            <Alert severity="info">{t('rates.supersedeHint')}</Alert>
+            <Alert severity="info">
+              {isEditing ? t('rates.editHint') : t('rates.supersedeHint')}
+            </Alert>
           </Grid>
+
+          {isEditing && (
+            <>
+              <Grid size={12}>
+                <AttachmentList
+                  ownerType="EmployeeRate"
+                  ownerId={editingRate.id}
+                  categories={['Contract', 'Other']}
+                  canUpload={canAdminister}
+                  canDelete={canAdminister}
+                />
+              </Grid>
+              {canAdminister && (
+                <Grid size={12}>
+                  <AuditHistoryCard entityName="EmployeeRate" entityId={editingRate.id} />
+                </Grid>
+              )}
+            </>
+          )}
         </Grid>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>{t('common.cancel')}</Button>
         <Button
           variant="contained"
-          disabled={!canSubmit || set.isPending}
-          onClick={() =>
-            set.mutate(
-              {
-                employeeId,
-                hourlyRate: parsedRate,
-                startDate: startDate || null,
-                endDate: endDate || null,
-                note: note.trim() || null,
-              },
-              { onSuccess: onClose },
-            )
-          }
+          disabled={!canSubmit || mutation.isPending}
+          onClick={submit}
         >
-          {t('common.create')}
+          {isEditing ? t('common.save') : t('common.create')}
         </Button>
       </DialogActions>
     </Dialog>

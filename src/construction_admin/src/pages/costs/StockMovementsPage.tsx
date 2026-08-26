@@ -10,6 +10,7 @@ import {
   Grid,
   IconButton,
   MenuItem,
+  Paper,
   Stack,
   TextField,
   Typography,
@@ -25,6 +26,10 @@ import {
   type MaterialMovementKind,
 } from '../../api/types';
 import { exportsApi } from '../../api/exports';
+import { canAdministerAccounts } from '../../auth/authHelpers';
+import { useAuth } from '../../auth/useAuth';
+import { AttachmentList } from '../../components/AttachmentList';
+import { AuditHistoryCard } from '../../components/AuditHistoryCard';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
@@ -32,7 +37,9 @@ import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import {
   useDeleteMaterialMovement,
   useMaterialMovementsQuery,
+  useMaterialMovementsSummaryQuery,
   useRecordMaterialMovement,
+  useUpdateMaterialMovement,
 } from '../../features/costs/useCosts';
 import { useAllMaterialsQuery } from '../../features/materials/useMaterials';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
@@ -40,16 +47,18 @@ import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
-import { formatDate, formatMoney, formatQuantity, lastYearRange } from '../../utils/formatting';
+import { formatDate, formatDateTime, formatMoney, formatQuantity, lastYearRange } from '../../utils/formatting';
 
 export function StockMovementsPage() {
   const t = useT();
   const { locale } = useI18n();
+  const { user } = useAuth();
   const enumLabel = useEnumLabel();
   const list = useListQueryState('occurredOn', 'desc');
 
   const [kind, setKind] = useState<MaterialMovementKind | ''>('');
   const [recording, setRecording] = useState(false);
+  const [editing, setEditing] = useState<MaterialMovement | null>(null);
 
   const query: MaterialMovementListQuery = useMemo(
     () => ({
@@ -63,6 +72,7 @@ export function StockMovementsPage() {
   );
 
   const { data, isLoading, isError, error, refetch } = useMaterialMovementsQuery(query);
+  const { data: summary } = useMaterialMovementsSummaryQuery(query);
   const remove = useDeleteWithConfirm<MaterialMovement>(useDeleteMaterialMovement());
 
   const columns: GridColDef<MaterialMovement>[] = useMemo(
@@ -119,6 +129,19 @@ export function StockMovementsPage() {
         valueGetter: (value) => value || t('movements.noProject'),
       },
       {
+        field: 'recordedByName',
+        headerName: t('movements.recordedBy'),
+        flex: 1,
+        minWidth: 160,
+        valueGetter: (value) => value || '—',
+      },
+      {
+        field: 'createdAt',
+        headerName: t('movements.createdAt'),
+        width: 160,
+        valueGetter: (value) => formatDateTime(value as string),
+      },
+      {
         field: 'actions',
         headerName: '',
         width: 60,
@@ -127,7 +150,13 @@ export function StockMovementsPage() {
         align: 'right',
         headerAlign: 'right',
         renderCell: (params) => (
-          <IconButton size="small" onClick={() => remove.request(params.row)}>
+          <IconButton
+            size="small"
+            onClick={(event) => {
+              event.stopPropagation();
+              remove.request(params.row);
+            }}
+          >
             <DeleteOutlined fontSize="small" />
           </IconButton>
         ),
@@ -177,6 +206,15 @@ export function StockMovementsPage() {
         />
       </Stack>
 
+      {summary && (
+        <Paper variant="outlined" sx={{ px: 2, py: 1, mb: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            {t('movements.summaryValue')}:{' '}
+            <strong>{formatMoney(summary.totalCost, locale)}</strong>
+          </Typography>
+        </Paper>
+      )}
+
       <ResourceDataGrid
         data={data}
         columns={columns}
@@ -188,9 +226,16 @@ export function StockMovementsPage() {
         onPaginationModelChange={list.setPaginationModel}
         sortModel={list.sortModel}
         onSortModelChange={list.setSortModel}
+        onRowDoubleClick={(row) => setEditing(row)}
       />
 
-      <RecordMovementDialog open={recording} onClose={() => setRecording(false)} />
+      <MovementDialog open={recording} onClose={() => setRecording(false)} />
+      <MovementDialog
+        open={!!editing}
+        editingMovement={editing}
+        onClose={() => setEditing(null)}
+        canAdminister={canAdministerAccounts(user)}
+      />
 
       <ConfirmDialog
         open={!!remove.pending}
@@ -214,18 +259,24 @@ export function StockMovementsPage() {
   );
 }
 
-function RecordMovementDialog({
+function MovementDialog({
   open,
+  editingMovement,
   onClose,
+  canAdminister,
 }: {
   open: boolean;
+  editingMovement?: MaterialMovement | null;
   onClose: () => void;
+  canAdminister?: boolean;
 }) {
   const t = useT();
   const enumLabel = useEnumLabel();
   const { data: materials } = useAllMaterialsQuery();
   const { data: projects } = useAllProjectsQuery();
   const record = useRecordMaterialMovement();
+  const update = useUpdateMaterialMovement();
+  const isEditing = !!editingMovement;
 
   const [materialId, setMaterialId] = useState('');
   const [kind, setKind] = useState<MaterialMovementKind>('In');
@@ -235,12 +286,26 @@ function RecordMovementDialog({
   const [occurredOn, setOccurredOn] = useState('');
   const [note, setNote] = useState('');
 
-  const reset = record.reset;
+  const resetRecord = record.reset;
+  const resetUpdate = update.reset;
 
   // Reopening with the last entry still in the fields is how a delivery gets
   // recorded twice.
   useEffect(() => {
-    if (open) {
+    if (!open) return;
+
+    resetRecord();
+    resetUpdate();
+
+    if (editingMovement) {
+      setMaterialId(editingMovement.materialId);
+      setKind(editingMovement.kind);
+      setQuantity(String(editingMovement.quantity));
+      setUnitPrice(editingMovement.unitPrice === null ? '' : String(editingMovement.unitPrice));
+      setProjectId(editingMovement.projectId ?? '');
+      setOccurredOn(editingMovement.occurredOn);
+      setNote(editingMovement.note ?? '');
+    } else {
       setMaterialId('');
       setKind('In');
       setQuantity('');
@@ -248,9 +313,8 @@ function RecordMovementDialog({
       setProjectId('');
       setOccurredOn('');
       setNote('');
-      reset();
     }
-  }, [open, reset]);
+  }, [open, editingMovement, resetRecord, resetUpdate]);
 
   const isIssue = kind === 'Out';
   const isAdjustment = kind === 'Adjustment';
@@ -261,28 +325,35 @@ function RecordMovementDialog({
     (isAdjustment ? parsedQuantity !== 0 : parsedQuantity > 0);
 
   const canSubmit =
-    materialId !== '' && quantityIsValid && (!isIssue || projectId !== '');
-
-  const error = record.isError ? toApiError(record.error) : null;
+    materialId !== '' && quantityIsValid && (!isIssue || projectId !== '')
+    && (!isEditing || occurredOn !== '');
+  const mutation = isEditing ? update : record;
+  const error = mutation.isError ? toApiError(mutation.error) : null;
 
   const submit = () => {
-    record.mutate(
-      {
-        materialId,
-        kind,
-        quantity: parsedQuantity,
-        unitPrice: unitPrice.trim() === '' ? null : Number(unitPrice),
-        projectId: projectId || null,
-        occurredOn: occurredOn || null,
-        note: note.trim() || null,
-      },
-      { onSuccess: onClose },
-    );
+    const input = {
+      materialId,
+      kind,
+      quantity: parsedQuantity,
+      unitPrice: unitPrice.trim() === '' ? null : Number(unitPrice),
+      projectId: projectId || null,
+      occurredOn: occurredOn || null,
+      note: note.trim() || null,
+    };
+
+    if (isEditing) {
+      update.mutate(
+        { id: editingMovement.id, input: { ...input, occurredOn } },
+        { onSuccess: onClose },
+      );
+    } else {
+      record.mutate(input, { onSuccess: onClose });
+    }
   };
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>{t('movements.add')}</DialogTitle>
+      <DialogTitle>{isEditing ? t('movements.editTitle') : t('movements.add')}</DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -355,6 +426,7 @@ function RecordMovementDialog({
             <TextField
               type="date"
               fullWidth
+              required={isEditing}
               label={t('movements.occurredOn')}
               value={occurredOn}
               onChange={(event) => setOccurredOn(event.target.value)}
@@ -403,16 +475,35 @@ function RecordMovementDialog({
               <Alert severity="info">{t('movements.adjustmentHint')}</Alert>
             </Grid>
           )}
+
+          {isEditing && (
+            <>
+              <Grid size={12}>
+                <AttachmentList
+                  ownerType="MaterialMovement"
+                  ownerId={editingMovement.id}
+                  categories={['Other']}
+                  canUpload={canAdminister}
+                  canDelete={canAdminister}
+                />
+              </Grid>
+              {canAdminister && (
+                <Grid size={12}>
+                  <AuditHistoryCard entityName="MaterialMovement" entityId={editingMovement.id} />
+                </Grid>
+              )}
+            </>
+          )}
         </Grid>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>{t('common.cancel')}</Button>
         <Button
           variant="contained"
-          disabled={!canSubmit || record.isPending}
+          disabled={!canSubmit || mutation.isPending}
           onClick={submit}
         >
-          {t('common.create')}
+          {isEditing ? t('common.save') : t('common.create')}
         </Button>
       </DialogActions>
     </Dialog>

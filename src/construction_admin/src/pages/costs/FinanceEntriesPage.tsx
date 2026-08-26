@@ -10,6 +10,7 @@ import {
   Grid,
   IconButton,
   MenuItem,
+  Paper,
   Stack,
   TextField,
   Typography,
@@ -21,6 +22,10 @@ import { toApiError } from '../../api/apiError';
 import type { FinanceEntryListQuery } from '../../api/costs';
 import { exportsApi } from '../../api/exports';
 import { financeEntryKinds, type FinanceEntry, type FinanceEntryKind } from '../../api/types';
+import { canAdministerAccounts } from '../../auth/authHelpers';
+import { useAuth } from '../../auth/useAuth';
+import { AttachmentList } from '../../components/AttachmentList';
+import { AuditHistoryCard } from '../../components/AuditHistoryCard';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
@@ -28,7 +33,9 @@ import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import {
   useDeleteFinanceEntry,
   useFinanceEntriesQuery,
+  useFinanceEntriesSummaryQuery,
   useRecordFinanceEntry,
+  useUpdateFinanceEntry,
 } from '../../features/costs/useCosts';
 import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
@@ -36,16 +43,18 @@ import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
-import { formatDate, formatMoney, lastYearRange } from '../../utils/formatting';
+import { formatDate, formatDateTime, formatMoney, lastYearRange } from '../../utils/formatting';
 
 export function FinanceEntriesPage() {
   const t = useT();
   const enumLabel = useEnumLabel();
   const { locale } = useI18n();
+  const { user } = useAuth();
   const list = useListQueryState('occurredOn', 'desc');
 
   const [kind, setKind] = useState<FinanceEntryKind | ''>('');
   const [recording, setRecording] = useState(false);
+  const [editing, setEditing] = useState<FinanceEntry | null>(null);
 
   const query: FinanceEntryListQuery = useMemo(
     () => ({
@@ -57,6 +66,7 @@ export function FinanceEntriesPage() {
   );
 
   const { data, isLoading, isError, error, refetch } = useFinanceEntriesQuery(query);
+  const { data: summary } = useFinanceEntriesSummaryQuery(query);
   const remove = useDeleteWithConfirm<FinanceEntry>(useDeleteFinanceEntry());
 
   const columns: GridColDef<FinanceEntry>[] = useMemo(
@@ -103,6 +113,19 @@ export function FinanceEntriesPage() {
         valueGetter: (value) => value || t('financeEntries.noProject'),
       },
       {
+        field: 'recordedByName',
+        headerName: t('financeEntries.recordedBy'),
+        flex: 1,
+        minWidth: 160,
+        valueGetter: (value) => value || '—',
+      },
+      {
+        field: 'createdAt',
+        headerName: t('financeEntries.createdAt'),
+        width: 160,
+        valueGetter: (value) => formatDateTime(value as string),
+      },
+      {
         field: 'actions',
         headerName: '',
         width: 60,
@@ -111,7 +134,13 @@ export function FinanceEntriesPage() {
         align: 'right',
         headerAlign: 'right',
         renderCell: (params) => (
-          <IconButton size="small" onClick={() => remove.request(params.row)}>
+          <IconButton
+            size="small"
+            onClick={(event) => {
+              event.stopPropagation();
+              remove.request(params.row);
+            }}
+          >
             <DeleteOutlined fontSize="small" />
           </IconButton>
         ),
@@ -161,6 +190,21 @@ export function FinanceEntriesPage() {
         />
       </Stack>
 
+      {summary && (
+        <Paper variant="outlined" sx={{ px: 2, py: 1, mb: 2 }}>
+          <Stack direction="row" spacing={3}>
+            <Typography variant="body2" color="text.secondary">
+              {t('financeEntries.summaryTotal')}:{' '}
+              <strong>{formatMoney(summary.totalAmount, locale)}</strong>
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {t('financeEntries.summaryHours')}:{' '}
+              <strong>{summary.totalHoursWorked}</strong>
+            </Typography>
+          </Stack>
+        </Paper>
+      )}
+
       <ResourceDataGrid
         data={data}
         columns={columns}
@@ -172,9 +216,16 @@ export function FinanceEntriesPage() {
         onPaginationModelChange={list.setPaginationModel}
         sortModel={list.sortModel}
         onSortModelChange={list.setSortModel}
+        onRowDoubleClick={(row) => setEditing(row)}
       />
 
       <RecordFinanceEntryDialog open={recording} onClose={() => setRecording(false)} />
+      <RecordFinanceEntryDialog
+        open={!!editing}
+        editingEntry={editing}
+        onClose={() => setEditing(null)}
+        canAdminister={canAdministerAccounts(user)}
+      />
 
       <ConfirmDialog
         open={!!remove.pending}
@@ -200,16 +251,22 @@ export function FinanceEntriesPage() {
 
 function RecordFinanceEntryDialog({
   open,
+  editingEntry,
   onClose,
+  canAdminister,
 }: {
   open: boolean;
+  editingEntry?: FinanceEntry | null;
   onClose: () => void;
+  canAdminister?: boolean;
 }) {
   const t = useT();
   const enumLabel = useEnumLabel();
   const { data: employees } = useAllEmployeesQuery();
   const { data: projects } = useAllProjectsQuery();
   const record = useRecordFinanceEntry();
+  const update = useUpdateFinanceEntry();
+  const isEditing = !!editingEntry;
 
   const [employeeId, setEmployeeId] = useState('');
   const [kind, setKind] = useState<FinanceEntryKind>('WorkerPaymentHourly');
@@ -219,10 +276,24 @@ function RecordFinanceEntryDialog({
   const [hoursWorked, setHoursWorked] = useState('');
   const [note, setNote] = useState('');
 
-  const reset = record.reset;
+  const resetRecord = record.reset;
+  const resetUpdate = update.reset;
 
   useEffect(() => {
-    if (open) {
+    if (!open) return;
+
+    resetRecord();
+    resetUpdate();
+
+    if (editingEntry) {
+      setEmployeeId(editingEntry.employeeId);
+      setKind(editingEntry.kind);
+      setAmount(String(editingEntry.amount));
+      setOccurredOn(editingEntry.occurredOn);
+      setProjectId(editingEntry.projectId ?? '');
+      setHoursWorked(editingEntry.hoursWorked === null ? '' : String(editingEntry.hoursWorked));
+      setNote(editingEntry.note ?? '');
+    } else {
       setEmployeeId('');
       setKind('WorkerPaymentHourly');
       setAmount('');
@@ -230,9 +301,8 @@ function RecordFinanceEntryDialog({
       setProjectId('');
       setHoursWorked('');
       setNote('');
-      reset();
     }
-  }, [open, reset]);
+  }, [open, editingEntry, resetRecord, resetUpdate]);
 
   const isHourly = kind === 'WorkerPaymentHourly';
 
@@ -243,12 +313,37 @@ function RecordFinanceEntryDialog({
   const hoursAreValid =
     !isHourly || (hoursWorked.trim() !== '' && !Number.isNaN(parsedHours) && parsedHours >= 0);
 
-  const canSubmit = employeeId !== '' && amountIsValid && hoursAreValid;
-  const error = record.isError ? toApiError(record.error) : null;
+  const canSubmit =
+    employeeId !== '' && amountIsValid && hoursAreValid && (!isEditing || occurredOn !== '');
+  const mutation = isEditing ? update : record;
+  const error = mutation.isError ? toApiError(mutation.error) : null;
+
+  const submit = () => {
+    const input = {
+      employeeId,
+      kind,
+      amount: parsedAmount,
+      occurredOn: occurredOn || null,
+      projectId: projectId || null,
+      hoursWorked: isHourly ? parsedHours : null,
+      note: note.trim() || null,
+    };
+
+    if (isEditing) {
+      update.mutate(
+        { id: editingEntry.id, input: { ...input, occurredOn } },
+        { onSuccess: onClose },
+      );
+    } else {
+      record.mutate(input, { onSuccess: onClose });
+    }
+  };
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>{t('financeEntries.add')}</DialogTitle>
+      <DialogTitle>
+        {isEditing ? t('financeEntries.editTitle') : t('financeEntries.add')}
+      </DialogTitle>
       <DialogContent>
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -320,6 +415,7 @@ function RecordFinanceEntryDialog({
             <TextField
               type="date"
               fullWidth
+              required={isEditing}
               label={t('financeEntries.occurredOn')}
               value={occurredOn}
               onChange={(event) => setOccurredOn(event.target.value)}
@@ -352,29 +448,35 @@ function RecordFinanceEntryDialog({
               onChange={(event) => setNote(event.target.value)}
             />
           </Grid>
+
+          {isEditing && (
+            <>
+              <Grid size={12}>
+                <AttachmentList
+                  ownerType="FinanceEntry"
+                  ownerId={editingEntry.id}
+                  categories={['Other']}
+                  canUpload={canAdminister}
+                  canDelete={canAdminister}
+                />
+              </Grid>
+              {canAdminister && (
+                <Grid size={12}>
+                  <AuditHistoryCard entityName="FinanceEntry" entityId={editingEntry.id} />
+                </Grid>
+              )}
+            </>
+          )}
         </Grid>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>{t('common.cancel')}</Button>
         <Button
           variant="contained"
-          disabled={!canSubmit || record.isPending}
-          onClick={() =>
-            record.mutate(
-              {
-                employeeId,
-                kind,
-                amount: parsedAmount,
-                occurredOn: occurredOn || null,
-                projectId: projectId || null,
-                hoursWorked: isHourly ? parsedHours : null,
-                note: note.trim() || null,
-              },
-              { onSuccess: onClose },
-            )
-          }
+          disabled={!canSubmit || mutation.isPending}
+          onClick={submit}
         >
-          {t('common.create')}
+          {isEditing ? t('common.save') : t('common.create')}
         </Button>
       </DialogActions>
     </Dialog>

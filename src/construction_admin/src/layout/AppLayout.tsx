@@ -1,5 +1,6 @@
 import {
   ApartmentOutlined,
+  BuildCircleOutlined,
   HandymanOutlined,
   Inventory2Outlined,
   LocalShippingOutlined,
@@ -119,6 +120,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
             label: t('nav.vehicleExpenses'),
             path: paths.vehicleExpenses,
             icon: <LocalGasStationOutlined />,
+          },
+          {
+            label: t('nav.toolExpenses'),
+            path: paths.toolExpenses,
+            icon: <BuildCircleOutlined />,
           },
         ]
       : []),

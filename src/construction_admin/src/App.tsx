@@ -128,6 +128,11 @@ const VehicleExpensesPage = lazy(() =>
     default: m.VehicleExpensesPage,
   })),
 );
+const ToolExpensesPage = lazy(() =>
+  import('./pages/costs/ToolExpensesPage').then((m) => ({
+    default: m.ToolExpensesPage,
+  })),
+);
 const RatesPage = lazy(() =>
   import('./pages/costs/RatesPage').then((m) => ({ default: m.RatesPage })),
 );
@@ -252,6 +257,7 @@ function Layout() {
               <Route path={paths.costs} element={<CostsPage />} />
               <Route path={paths.stockMovements} element={<StockMovementsPage />} />
               <Route path={paths.vehicleExpenses} element={<VehicleExpensesPage />} />
+              <Route path={paths.toolExpenses} element={<ToolExpensesPage />} />
 
               <Route path={paths.schedule} element={<SchedulePage />} />
               <Route path={paths.absences} element={<AbsencesListPage />} />

@@ -4,19 +4,28 @@ import { listParams } from './resource';
 import type {
   EmployeeRate,
   EmployeeRateInput,
+  EmployeeRateSummary,
   FinanceEntry,
   FinanceEntryInput,
   FinanceEntryKind,
+  FinanceEntrySummary,
   ListQuery,
   MaterialMovement,
   MaterialMovementInput,
   MaterialMovementKind,
+  MaterialMovementSummary,
   PagedList,
   ProjectCostReport,
+  ToolCostReport,
+  ToolExpense,
+  ToolExpenseInput,
+  ToolExpenseKind,
+  ToolExpenseSummary,
   VehicleCostReport,
   VehicleExpense,
   VehicleExpenseInput,
   VehicleExpenseKind,
+  VehicleExpenseSummary,
 } from './types';
 
 export interface EmployeeRateListQuery extends ListQuery {
@@ -41,6 +50,13 @@ export interface VehicleExpenseListQuery extends ListQuery {
   to?: string;
 }
 
+export interface ToolExpenseListQuery extends ListQuery {
+  toolId?: string;
+  kind?: ToolExpenseKind;
+  from?: string;
+  to?: string;
+}
+
 export interface CostReportQuery {
   from: string;
   to: string;
@@ -55,13 +71,7 @@ export interface FinanceEntryListQuery extends ListQuery {
   to?: string;
 }
 
-/**
- * The three ledgers and the two reports.
- *
- * Written out rather than built from `createCrudApi`: nothing here is updated
- * in place. A rate is superseded by a new one, and a movement is reversed
- * rather than edited, so there is no `PUT` to wrap.
- */
+/** The five ledgers and the three reports. */
 export const costsApi = {
   rates: {
     list: (query: EmployeeRateListQuery) =>
@@ -71,10 +81,25 @@ export const costsApi = {
         params: listParams(query),
       }),
 
+    summary: (query: Omit<EmployeeRateListQuery, keyof ListQuery>) =>
+      request<EmployeeRateSummary>({
+        method: 'GET',
+        url: '/api/v1/employee-rates/summary',
+        params: listParams(query),
+      }),
+
     set: (input: EmployeeRateInput, idempotencyKey?: string) =>
       request<EmployeeRate>({
         method: 'POST',
         url: '/api/v1/employee-rates',
+        data: input,
+        headers: idempotencyHeaders(idempotencyKey),
+      }),
+
+    update: (id: string, input: EmployeeRateInput, idempotencyKey?: string) =>
+      request<EmployeeRate>({
+        method: 'PUT',
+        url: `/api/v1/employee-rates/${id}`,
         data: input,
         headers: idempotencyHeaders(idempotencyKey),
       }),
@@ -91,10 +116,25 @@ export const costsApi = {
         params: listParams(query),
       }),
 
+    summary: (query: Omit<MaterialMovementListQuery, keyof ListQuery>) =>
+      request<MaterialMovementSummary>({
+        method: 'GET',
+        url: '/api/v1/material-movements/summary',
+        params: listParams(query),
+      }),
+
     record: (input: MaterialMovementInput, idempotencyKey?: string) =>
       request<MaterialMovement>({
         method: 'POST',
         url: '/api/v1/material-movements',
+        data: input,
+        headers: idempotencyHeaders(idempotencyKey),
+      }),
+
+    update: (id: string, input: MaterialMovementInput, idempotencyKey?: string) =>
+      request<MaterialMovement>({
+        method: 'PUT',
+        url: `/api/v1/material-movements/${id}`,
         data: input,
         headers: idempotencyHeaders(idempotencyKey),
       }),
@@ -111,6 +151,13 @@ export const costsApi = {
         params: listParams(query),
       }),
 
+    summary: (query: Omit<VehicleExpenseListQuery, keyof ListQuery>) =>
+      request<VehicleExpenseSummary>({
+        method: 'GET',
+        url: '/api/v1/vehicle-expenses/summary',
+        params: listParams(query),
+      }),
+
     record: (input: VehicleExpenseInput, idempotencyKey?: string) =>
       request<VehicleExpense>({
         method: 'POST',
@@ -119,8 +166,51 @@ export const costsApi = {
         headers: idempotencyHeaders(idempotencyKey),
       }),
 
+    update: (id: string, input: VehicleExpenseInput, idempotencyKey?: string) =>
+      request<VehicleExpense>({
+        method: 'PUT',
+        url: `/api/v1/vehicle-expenses/${id}`,
+        data: input,
+        headers: idempotencyHeaders(idempotencyKey),
+      }),
+
     remove: (id: string) =>
       request<void>({ method: 'DELETE', url: `/api/v1/vehicle-expenses/${id}` }),
+  },
+
+  toolExpenses: {
+    list: (query: ToolExpenseListQuery) =>
+      request<PagedList<ToolExpense>>({
+        method: 'GET',
+        url: '/api/v1/tool-expenses',
+        params: listParams(query),
+      }),
+
+    summary: (query: Omit<ToolExpenseListQuery, keyof ListQuery>) =>
+      request<ToolExpenseSummary>({
+        method: 'GET',
+        url: '/api/v1/tool-expenses/summary',
+        params: listParams(query),
+      }),
+
+    record: (input: ToolExpenseInput, idempotencyKey?: string) =>
+      request<ToolExpense>({
+        method: 'POST',
+        url: '/api/v1/tool-expenses',
+        data: input,
+        headers: idempotencyHeaders(idempotencyKey),
+      }),
+
+    update: (id: string, input: ToolExpenseInput, idempotencyKey?: string) =>
+      request<ToolExpense>({
+        method: 'PUT',
+        url: `/api/v1/tool-expenses/${id}`,
+        data: input,
+        headers: idempotencyHeaders(idempotencyKey),
+      }),
+
+    remove: (id: string) =>
+      request<void>({ method: 'DELETE', url: `/api/v1/tool-expenses/${id}` }),
   },
 
   financeEntries: {
@@ -131,10 +221,25 @@ export const costsApi = {
         params: listParams(query),
       }),
 
+    summary: (query: Omit<FinanceEntryListQuery, keyof ListQuery>) =>
+      request<FinanceEntrySummary>({
+        method: 'GET',
+        url: '/api/v1/finance-entries/summary',
+        params: listParams(query),
+      }),
+
     record: (input: FinanceEntryInput, idempotencyKey?: string) =>
       request<FinanceEntry>({
         method: 'POST',
         url: '/api/v1/finance-entries',
+        data: input,
+        headers: idempotencyHeaders(idempotencyKey),
+      }),
+
+    update: (id: string, input: FinanceEntryInput, idempotencyKey?: string) =>
+      request<FinanceEntry>({
+        method: 'PUT',
+        url: `/api/v1/finance-entries/${id}`,
         data: input,
         headers: idempotencyHeaders(idempotencyKey),
       }),
@@ -154,6 +259,13 @@ export const costsApi = {
     request<VehicleCostReport>({
       method: 'GET',
       url: '/api/v1/costs/vehicles',
+      params: listParams(query),
+    }),
+
+  toolReport: (query: CostReportQuery & { toolId?: string }) =>
+    request<ToolCostReport>({
+      method: 'GET',
+      url: '/api/v1/costs/tools',
       params: listParams(query),
     }),
 };

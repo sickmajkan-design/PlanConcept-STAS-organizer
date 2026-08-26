@@ -1,3 +1,5 @@
+import { useQuery } from '@tanstack/react-query';
+
 import { toolsApi, type ToolListQuery } from '../../api/tools';
 import type { Tool, ToolInput } from '../../api/types';
 import {
@@ -9,12 +11,27 @@ import {
 
 export const toolKeys = createResourceKeys<ToolListQuery>('tools');
 
+/** The largest page the API will serve, used by the picker query below. */
+const PICKER_QUERY: ToolListQuery = {
+  pageNumber: 1,
+  pageSize: 100,
+};
+
 export function useToolsQuery(query: ToolListQuery) {
   return useResourceList(toolKeys, toolsApi.list, query);
 }
 
 export function useToolQuery(id: string | undefined) {
   return useResourceDetail(toolKeys, toolsApi.get, id);
+}
+
+/** All tools for the expense picker. Cached like the other pickers. */
+export function useAllToolsQuery() {
+  return useQuery({
+    queryKey: toolKeys.list(PICKER_QUERY),
+    queryFn: () => toolsApi.list(PICKER_QUERY),
+    staleTime: 60_000,
+  });
 }
 
 export function useCreateTool() {

@@ -22,13 +22,14 @@ import {
 import { useMemo, useState } from 'react';
 
 import { exportsApi } from '../../api/exports';
-import type { ProjectCostRow, VehicleCostRow } from '../../api/types';
+import type { ProjectCostRow, ToolCostRow, VehicleCostRow } from '../../api/types';
 import { EmptyState } from '../../components/EmptyState';
 import { ExportButton } from '../../components/ExportButton';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
 import {
   useProjectCostReport,
+  useToolCostReport,
   useVehicleCostReport,
 } from '../../features/costs/useCosts';
 import { useI18n, useT } from '../../i18n/useI18n';
@@ -45,10 +46,11 @@ type VehicleCostSortField =
   | 'serviceCost'
   | 'otherCost'
   | 'total';
+type ToolCostSortField = 'toolName' | 'repairCost' | 'maintenanceCost' | 'otherCost' | 'total';
 
 export function CostsPage() {
   const t = useT();
-  const [tab, setTab] = useState<'projects' | 'vehicles'>('projects');
+  const [tab, setTab] = useState<'projects' | 'vehicles' | 'tools'>('projects');
   const [period, setPeriod] = useState<Period>(() => monthOf(new Date()));
 
   return (
@@ -64,13 +66,12 @@ export function CostsPage() {
       >
         <Tab value="projects" label={t('costs.projects')} />
         <Tab value="vehicles" label={t('costs.vehicles')} />
+        <Tab value="tools" label={t('costs.tools')} />
       </Tabs>
 
-      {tab === 'projects' ? (
-        <ProjectCosts period={period} />
-      ) : (
-        <VehicleCosts period={period} />
-      )}
+      {tab === 'projects' && <ProjectCosts period={period} />}
+      {tab === 'vehicles' && <VehicleCosts period={period} />}
+      {tab === 'tools' && <ToolCosts period={period} />}
     </Box>
   );
 }
@@ -478,6 +479,134 @@ function VehicleCosts({ period }: { period: Period }) {
           </TableRow>
         </TableFooter>
       </Table>
+      </TableContainer>
+    </Stack>
+  );
+}
+
+function ToolCosts({ period }: { period: Period }) {
+  const t = useT();
+  const { locale } = useI18n();
+  const { data, isLoading, isError, error, refetch } = useToolCostReport(period);
+
+  const [sortBy, setSortBy] = useState<ToolCostSortField>('total');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+  const toggleSort = (field: ToolCostSortField) => {
+    if (sortBy === field) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedRows = useMemo(() => {
+    if (!data) return [];
+
+    const factor = sortDirection === 'asc' ? 1 : -1;
+
+    const compare = (a: ToolCostRow, b: ToolCostRow): number => {
+      switch (sortBy) {
+        case 'toolName':
+          return a.toolName.localeCompare(b.toolName) * factor;
+        case 'repairCost':
+          return (a.repairCost - b.repairCost) * factor;
+        case 'maintenanceCost':
+          return (a.maintenanceCost - b.maintenanceCost) * factor;
+        case 'otherCost':
+          return (a.otherCost - b.otherCost) * factor;
+        case 'total':
+          return (a.total - b.total) * factor;
+        default:
+          return 0;
+      }
+    };
+
+    return [...data.rows].sort(compare);
+  }, [data, sortBy, sortDirection]);
+
+  if (isError) return <ErrorState error={error} onRetry={() => void refetch()} />;
+  if (isLoading) return <Loading />;
+  if (!data || data.rows.length === 0) return <EmptyState message={t('costs.empty')} />;
+
+  return (
+    <Stack spacing={2}>
+      <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell sortDirection={sortBy === 'toolName' ? sortDirection : false}>
+                <TableSortLabel
+                  active={sortBy === 'toolName'}
+                  direction={sortBy === 'toolName' ? sortDirection : 'asc'}
+                  onClick={() => toggleSort('toolName')}
+                >
+                  {t('costs.tool')}
+                </TableSortLabel>
+              </TableCell>
+              <TableCell align="right" sortDirection={sortBy === 'repairCost' ? sortDirection : false}>
+                <TableSortLabel
+                  active={sortBy === 'repairCost'}
+                  direction={sortBy === 'repairCost' ? sortDirection : 'asc'}
+                  onClick={() => toggleSort('repairCost')}
+                >
+                  {t('costs.repair')}
+                </TableSortLabel>
+              </TableCell>
+              <TableCell align="right" sortDirection={sortBy === 'maintenanceCost' ? sortDirection : false}>
+                <TableSortLabel
+                  active={sortBy === 'maintenanceCost'}
+                  direction={sortBy === 'maintenanceCost' ? sortDirection : 'asc'}
+                  onClick={() => toggleSort('maintenanceCost')}
+                >
+                  {t('costs.maintenance')}
+                </TableSortLabel>
+              </TableCell>
+              <TableCell align="right" sortDirection={sortBy === 'otherCost' ? sortDirection : false}>
+                <TableSortLabel
+                  active={sortBy === 'otherCost'}
+                  direction={sortBy === 'otherCost' ? sortDirection : 'asc'}
+                  onClick={() => toggleSort('otherCost')}
+                >
+                  {t('costs.other')}
+                </TableSortLabel>
+              </TableCell>
+              <TableCell align="right" sortDirection={sortBy === 'total' ? sortDirection : false}>
+                <TableSortLabel
+                  active={sortBy === 'total'}
+                  direction={sortBy === 'total' ? sortDirection : 'asc'}
+                  onClick={() => toggleSort('total')}
+                >
+                  {t('costs.total')}
+                </TableSortLabel>
+              </TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {sortedRows.map((row) => (
+              <TableRow key={row.toolId} hover>
+                <TableCell>{row.toolName}</TableCell>
+                <TableCell align="right">{formatMoney(row.repairCost, locale)}</TableCell>
+                <TableCell align="right">{formatMoney(row.maintenanceCost, locale)}</TableCell>
+                <TableCell align="right">{formatMoney(row.otherCost, locale)}</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 600 }}>
+                  {formatMoney(row.total, locale)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+          <TableFooter>
+            <TableRow>
+              <TableCell sx={{ fontWeight: 700 }} colSpan={4}>
+                {t('costs.grandTotal')}
+              </TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700 }}>
+                {formatMoney(data.total, locale)}
+              </TableCell>
+            </TableRow>
+          </TableFooter>
+        </Table>
       </TableContainer>
     </Stack>
   );

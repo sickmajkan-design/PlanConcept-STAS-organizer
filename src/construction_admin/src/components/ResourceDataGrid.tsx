@@ -29,6 +29,7 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
   sortModel,
   onSortModelChange,
   onRowClick,
+  onRowDoubleClick,
   height = 600,
 }: {
   data: PagedList<T> | undefined;
@@ -43,6 +44,8 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
   onSortModelChange: (model: GridSortModel) => void;
   /** Omit for lists with no drill-down, such as user accounts. */
   onRowClick?: (row: T) => void;
+  /** Opens an edit dialog in place, for ledgers with no detail page of their own. */
+  onRowDoubleClick?: (row: T) => void;
   height?: number;
 }) {
   const t = useT();
@@ -81,8 +84,14 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
           disableColumnMenu
           disableRowSelectionOnClick
           onRowClick={onRowClick ? (params) => onRowClick(params.row) : undefined}
+          onRowDoubleClick={
+            onRowDoubleClick ? (params) => onRowDoubleClick(params.row) : undefined
+          }
           // Only offer the affordance when a click actually goes somewhere.
-          sx={{ border: 'none', cursor: onRowClick ? 'pointer' : 'default' }}
+          sx={{
+            border: 'none',
+            cursor: onRowClick || onRowDoubleClick ? 'pointer' : 'default',
+          }}
         />
       )}
     </Paper>

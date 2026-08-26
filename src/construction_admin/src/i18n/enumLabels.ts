@@ -29,6 +29,7 @@ export type EnumKind =
   | 'absenceStatus'
   | 'materialMovementKind'
   | 'vehicleExpenseKind'
+  | 'toolExpenseKind'
   | 'financeEntryKind'
   | 'notificationType';
 

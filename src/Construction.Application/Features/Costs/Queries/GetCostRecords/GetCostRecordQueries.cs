@@ -18,7 +18,7 @@ public record GetEmployeeRatesQuery : ISortablePagedQuery, IRequest<PagedList<Em
 {
     public static readonly string[] AllowedSortFields =
     [
-        "employeeName", "hourlyRate", "startDate", "endDate", "setByName"
+        "employeeName", "hourlyRate", "startDate", "endDate", "setByName", "createdAt"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -116,6 +116,8 @@ public class GetEmployeeRatesQueryHandler
                 .OrderBy(r => r.SetByUser != null ? r.SetByUser.Email : null),
             ("setbyname", true) => query
                 .OrderByDescending(r => r.SetByUser != null ? r.SetByUser.Email : null),
+            ("createdat", false) => query.OrderBy(r => r.CreatedAt),
+            ("createdat", true) => query.OrderByDescending(r => r.CreatedAt),
             // Default and explicit "startDate desc" both land here: the most
             // recently set rate first, which is what "current pay" means.
             _ => query.OrderByDescending(r => r.StartDate)
@@ -188,7 +190,8 @@ public record GetMaterialMovementsQuery : ISortablePagedQuery, IRequest<PagedLis
 {
     public static readonly string[] AllowedSortFields =
     [
-        "occurredOn", "materialName", "kind", "quantity", "unitPrice", "projectName"
+        "occurredOn", "materialName", "kind", "quantity", "unitPrice", "projectName",
+        "recordedByName", "createdAt"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -300,6 +303,12 @@ public class GetMaterialMovementsQueryHandler
                 .OrderBy(m => m.Project != null ? m.Project.Name : null),
             ("projectname", true) => query
                 .OrderByDescending(m => m.Project != null ? m.Project.Name : null),
+            ("recordedbyname", false) => query
+                .OrderBy(m => m.RecordedByUser != null ? m.RecordedByUser.Email : null),
+            ("recordedbyname", true) => query
+                .OrderByDescending(m => m.RecordedByUser != null ? m.RecordedByUser.Email : null),
+            ("createdat", false) => query.OrderBy(m => m.CreatedAt),
+            ("createdat", true) => query.OrderByDescending(m => m.CreatedAt),
             // Default and explicit "occurredOn desc" both land here: newest
             // movement first, which is what a running ledger reads as.
             _ => query.OrderByDescending(m => m.OccurredOn)
@@ -387,7 +396,8 @@ public record GetVehicleExpensesQuery : ISortablePagedQuery, IRequest<PagedList<
 {
     public static readonly string[] AllowedSortFields =
     [
-        "occurredOn", "vehicleName", "kind", "amount", "litres", "odometerKm"
+        "occurredOn", "vehicleName", "kind", "amount", "litres", "odometerKm",
+        "recordedByName", "createdAt"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -492,6 +502,12 @@ public class GetVehicleExpensesQueryHandler
             ("litres", true) => query.OrderByDescending(e => e.Litres == null).ThenByDescending(e => e.Litres),
             ("odometerkm", false) => query.OrderBy(e => e.OdometerKm == null).ThenBy(e => e.OdometerKm),
             ("odometerkm", true) => query.OrderByDescending(e => e.OdometerKm == null).ThenByDescending(e => e.OdometerKm),
+            ("recordedbyname", false) => query
+                .OrderBy(e => e.RecordedByUser != null ? e.RecordedByUser.Email : null),
+            ("recordedbyname", true) => query
+                .OrderByDescending(e => e.RecordedByUser != null ? e.RecordedByUser.Email : null),
+            ("createdat", false) => query.OrderBy(e => e.CreatedAt),
+            ("createdat", true) => query.OrderByDescending(e => e.CreatedAt),
             // Default and explicit "occurredOn desc" both land here: newest
             // expense first, which is what a running ledger reads as.
             _ => query.OrderByDescending(e => e.OccurredOn)
@@ -578,7 +594,8 @@ public record GetFinanceEntriesQuery : ISortablePagedQuery, IRequest<PagedList<F
 {
     public static readonly string[] AllowedSortFields =
     [
-        "employeeName", "kind", "amount", "hoursWorked", "occurredOn", "projectName"
+        "employeeName", "kind", "amount", "hoursWorked", "occurredOn", "projectName",
+        "recordedByName", "createdAt"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -694,6 +711,12 @@ public class GetFinanceEntriesQueryHandler
                 .OrderBy(e => e.Project != null ? e.Project.Name : null),
             ("projectname", true) => query
                 .OrderByDescending(e => e.Project != null ? e.Project.Name : null),
+            ("recordedbyname", false) => query
+                .OrderBy(e => e.RecordedByUser != null ? e.RecordedByUser.Email : null),
+            ("recordedbyname", true) => query
+                .OrderByDescending(e => e.RecordedByUser != null ? e.RecordedByUser.Email : null),
+            ("createdat", false) => query.OrderBy(e => e.CreatedAt),
+            ("createdat", true) => query.OrderByDescending(e => e.CreatedAt),
             // Default and explicit "occurredOn desc" both land here: newest
             // entry first, which is what a running ledger reads as.
             _ => query.OrderByDescending(e => e.OccurredOn)
@@ -787,7 +810,7 @@ public record GetToolExpensesQuery : ISortablePagedQuery, IRequest<PagedList<Too
 {
     public static readonly string[] AllowedSortFields =
     [
-        "occurredOn", "toolName", "kind", "amount"
+        "occurredOn", "toolName", "kind", "amount", "recordedByName", "createdAt"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -886,6 +909,12 @@ public class GetToolExpensesQueryHandler
             ("kind", true) => query.OrderByDescending(e => e.Kind),
             ("amount", false) => query.OrderBy(e => e.Amount),
             ("amount", true) => query.OrderByDescending(e => e.Amount),
+            ("recordedbyname", false) => query
+                .OrderBy(e => e.RecordedByUser != null ? e.RecordedByUser.Email : null),
+            ("recordedbyname", true) => query
+                .OrderByDescending(e => e.RecordedByUser != null ? e.RecordedByUser.Email : null),
+            ("createdat", false) => query.OrderBy(e => e.CreatedAt),
+            ("createdat", true) => query.OrderByDescending(e => e.CreatedAt),
             // Default and explicit "occurredOn desc" both land here: newest
             // expense first, which is what a running ledger reads as.
             _ => query.OrderByDescending(e => e.OccurredOn)
