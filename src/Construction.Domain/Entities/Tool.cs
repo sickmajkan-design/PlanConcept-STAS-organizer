@@ -26,6 +26,8 @@ public class Tool : BaseEntity, ISoftDeletable, IAuditable
 
     public ICollection<Attachment> Attachments { get; set; } = new List<Attachment>();
 
+    public ICollection<ToolExpense> Expenses { get; set; } = new List<ToolExpense>();
+
     public bool IsDeleted { get; set; }
 
     public DateTime? DeletedAt { get; set; }

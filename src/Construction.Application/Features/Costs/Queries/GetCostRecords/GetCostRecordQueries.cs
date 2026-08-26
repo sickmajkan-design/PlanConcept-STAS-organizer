@@ -782,3 +782,180 @@ public class GetFinanceEntriesSummaryQueryHandler
         };
     }
 }
+
+public record GetToolExpensesQuery : ISortablePagedQuery, IRequest<PagedList<ToolExpenseDto>>
+{
+    public static readonly string[] AllowedSortFields =
+    [
+        "occurredOn", "toolName", "kind", "amount"
+    ];
+
+    public int PageNumber { get; init; } = 1;
+
+    public int PageSize { get; init; } = 20;
+
+    public Guid? ToolId { get; init; }
+
+    public ToolExpenseKind? Kind { get; init; }
+
+    public DateOnly? From { get; init; }
+
+    public DateOnly? To { get; init; }
+
+    public string? SortBy { get; init; }
+
+    public bool SortDescending { get; init; }
+}
+
+public class GetToolExpensesQueryValidator : SortablePagedQueryValidator<GetToolExpensesQuery>
+{
+    public GetToolExpensesQueryValidator()
+        : base(GetToolExpensesQuery.AllowedSortFields, maxPageSize: 200)
+    {
+        RuleFor(x => x.To)
+            .GreaterThanOrEqualTo(x => x.From!.Value)
+            .When(x => x.From is not null && x.To is not null);
+    }
+}
+
+public class GetToolExpensesQueryHandler
+    : IRequestHandler<GetToolExpensesQuery, PagedList<ToolExpenseDto>>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+
+    public GetToolExpensesQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+    }
+
+    public async Task<PagedList<ToolExpenseDto>> Handle(
+        GetToolExpensesQuery request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not see tool costs.");
+        }
+
+        var query = _context.ToolExpenses.AsNoTracking();
+
+        if (request.ToolId is { } toolId)
+        {
+            query = query.Where(e => e.ToolId == toolId);
+        }
+
+        if (request.Kind is { } kind)
+        {
+            query = query.Where(e => e.Kind == kind);
+        }
+
+        if (request.From is { } from)
+        {
+            query = query.Where(e => e.OccurredOn >= from);
+        }
+
+        if (request.To is { } to)
+        {
+            query = query.Where(e => e.OccurredOn <= to);
+        }
+
+        query = ApplySorting(query, request.SortBy, request.SortDescending);
+
+        return await PagedList<ToolExpenseDto>.CreateAsync(
+            query.Select(ToolExpenseMapping.Projection),
+            request.PageNumber,
+            request.PageSize,
+            cancellationToken);
+    }
+
+    private static IQueryable<ToolExpense> ApplySorting(
+        IQueryable<ToolExpense> query,
+        string? sortBy,
+        bool descending)
+    {
+        IOrderedQueryable<ToolExpense> ordered = (sortBy?.ToLowerInvariant(), descending) switch
+        {
+            ("occurredon", false) => query.OrderBy(e => e.OccurredOn),
+            ("toolname", false) => query.OrderBy(e => e.Tool.Name),
+            ("toolname", true) => query.OrderByDescending(e => e.Tool.Name),
+            ("kind", false) => query.OrderBy(e => e.Kind),
+            ("kind", true) => query.OrderByDescending(e => e.Kind),
+            ("amount", false) => query.OrderBy(e => e.Amount),
+            ("amount", true) => query.OrderByDescending(e => e.Amount),
+            // Default and explicit "occurredOn desc" both land here: newest
+            // expense first, which is what a running ledger reads as.
+            _ => query.OrderByDescending(e => e.OccurredOn)
+        };
+
+        // Stable tiebreaker so pagination never skips or duplicates rows.
+        return ordered.ThenByDescending(e => e.CreatedAt).ThenBy(e => e.Id);
+    }
+}
+
+/// <summary>The count and total of whatever the tool-expense list is currently filtered to.</summary>
+public record GetToolExpensesSummaryQuery : IRequest<ToolExpenseSummaryDto>
+{
+    public Guid? ToolId { get; init; }
+
+    public ToolExpenseKind? Kind { get; init; }
+
+    public DateOnly? From { get; init; }
+
+    public DateOnly? To { get; init; }
+}
+
+public class GetToolExpensesSummaryQueryHandler
+    : IRequestHandler<GetToolExpensesSummaryQuery, ToolExpenseSummaryDto>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+
+    public GetToolExpensesSummaryQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+    }
+
+    public async Task<ToolExpenseSummaryDto> Handle(
+        GetToolExpensesSummaryQuery request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not see tool costs.");
+        }
+
+        var query = _context.ToolExpenses.AsNoTracking();
+
+        if (request.ToolId is { } toolId)
+        {
+            query = query.Where(e => e.ToolId == toolId);
+        }
+
+        if (request.Kind is { } kind)
+        {
+            query = query.Where(e => e.Kind == kind);
+        }
+
+        if (request.From is { } from)
+        {
+            query = query.Where(e => e.OccurredOn >= from);
+        }
+
+        if (request.To is { } to)
+        {
+            query = query.Where(e => e.OccurredOn <= to);
+        }
+
+        var count = await query.CountAsync(cancellationToken);
+        var totalAmount = await query.SumAsync(e => e.Amount, cancellationToken);
+
+        return new ToolExpenseSummaryDto { Count = count, TotalAmount = totalAmount };
+    }
+}

@@ -7,13 +7,16 @@ using Construction.Application.Features.Costs.Commands.RecordFinanceEntry;
 using Construction.Application.Features.Costs.Commands.RecordMaterialMovement;
 using Construction.Application.Features.Costs.Commands.RecordVehicleExpense;
 using Construction.Application.Features.Costs.Commands.SetEmployeeRate;
+using Construction.Application.Features.Costs.Commands.RecordToolExpense;
 using Construction.Application.Features.Costs.Commands.UpdateEmployeeRate;
 using Construction.Application.Features.Costs.Commands.UpdateFinanceEntry;
 using Construction.Application.Features.Costs.Commands.UpdateMaterialMovement;
+using Construction.Application.Features.Costs.Commands.UpdateToolExpense;
 using Construction.Application.Features.Costs.Commands.UpdateVehicleExpense;
 using Construction.Application.Features.Costs.Models;
 using Construction.Application.Features.Costs.Queries.GetCostRecords;
 using Construction.Application.Features.Costs.Queries.GetProjectCosts;
+using Construction.Application.Features.Costs.Queries.GetToolCosts;
 using Construction.Application.Features.Costs.Queries.GetVehicleCosts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -255,6 +258,79 @@ public class CostsController : ApiControllerBase
         return NoContent();
     }
 
+    // ---- tool expenses -----------------------------------------------------
+
+    /// <summary>Lists repairs, servicing and everything else a tool costs.</summary>
+    [HttpGet("/api/v{version:apiVersion}/tool-expenses")]
+    [HttpGet("/api/tool-expenses")]
+    [ProducesResponseType(typeof(PagedList<ToolExpenseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<PagedList<ToolExpenseDto>>> GetToolExpenses(
+        [FromQuery] GetToolExpensesQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>The count and total of whatever the tool-expense list is currently filtered to.</summary>
+    [HttpGet("/api/v{version:apiVersion}/tool-expenses/summary")]
+    [HttpGet("/api/tool-expenses/summary")]
+    [ProducesResponseType(typeof(ToolExpenseSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<ToolExpenseSummaryDto>> GetToolExpensesSummary(
+        [FromQuery] GetToolExpensesSummaryQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>Records a repair, a service, or another cost of a tool.</summary>
+    [HttpPost("/api/v{version:apiVersion}/tool-expenses")]
+    [HttpPost("/api/tool-expenses")]
+    [Idempotent]
+    [ProducesResponseType(typeof(ToolExpenseDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ToolExpenseDto>> RecordToolExpense(
+        RecordToolExpenseCommand command,
+        CancellationToken cancellationToken)
+    {
+        var expense = await Mediator.Send(command, cancellationToken);
+
+        return CreatedAtAction(nameof(GetToolExpenses), new { id = expense.Id }, expense);
+    }
+
+    /// <summary>Corrects a tool cost that was typed in wrong.</summary>
+    [HttpPut("/api/v{version:apiVersion}/tool-expenses/{id:guid}")]
+    [HttpPut("/api/tool-expenses/{id:guid}")]
+    [ProducesResponseType(typeof(ToolExpenseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ToolExpenseDto>> UpdateToolExpense(
+        Guid id,
+        UpdateToolExpenseCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
+    }
+
+    /// <summary>Removes a recorded cost.</summary>
+    [HttpDelete("/api/v{version:apiVersion}/tool-expenses/{id:guid}")]
+    [HttpDelete("/api/tool-expenses/{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteToolExpense(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new DeleteToolExpenseCommand(id), cancellationToken);
+        return NoContent();
+    }
+
     // ---- finance entries ---------------------------------------------------
 
     /// <summary>Lists pay entries. Refused below Project Manager.</summary>
@@ -354,6 +430,19 @@ public class CostsController : ApiControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<VehicleCostReportDto>> GetVehicleCosts(
         [FromQuery] GetVehicleCostsQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>What the tool fleet cost.</summary>
+    [HttpGet("/api/v{version:apiVersion}/costs/tools")]
+    [HttpGet("/api/costs/tools")]
+    [ProducesResponseType(typeof(ToolCostReportDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<ToolCostReportDto>> GetToolCosts(
+        [FromQuery] GetToolCostsQuery query,
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(query, cancellationToken));

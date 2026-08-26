@@ -146,6 +146,36 @@ public class FinanceEntrySummaryDto
     public decimal TotalHoursWorked { get; init; }
 }
 
+public class ToolExpenseDto
+{
+    public Guid Id { get; init; }
+
+    public Guid ToolId { get; init; }
+
+    public string ToolName { get; init; } = null!;
+
+    public ToolExpenseKind Kind { get; init; }
+
+    public decimal Amount { get; init; }
+
+    public DateOnly OccurredOn { get; init; }
+
+    public string? Supplier { get; init; }
+
+    public string? Note { get; init; }
+
+    public string? RecordedByName { get; init; }
+
+    public DateTime CreatedAt { get; init; }
+}
+
+public class ToolExpenseSummaryDto
+{
+    public int Count { get; init; }
+
+    public decimal TotalAmount { get; init; }
+}
+
 /// <summary>How an <see cref="EmployeeRate"/> becomes an <see cref="EmployeeRateDto"/>.</summary>
 /// <remarks>See <c>EmployeeMapping</c> for the convention these all follow.</remarks>
 public static class EmployeeRateMapping
@@ -253,4 +283,27 @@ public static class FinanceEntryMapping
     private static readonly Func<FinanceEntry, FinanceEntryDto> Compiled = Projection.Compile();
 
     public static FinanceEntryDto ToDto(FinanceEntry entry) => Compiled(entry);
+}
+
+/// <summary>How a <see cref="ToolExpense"/> becomes a <see cref="ToolExpenseDto"/>.</summary>
+public static class ToolExpenseMapping
+{
+    public static readonly Expression<Func<ToolExpense, ToolExpenseDto>> Projection =
+        expense => new ToolExpenseDto
+        {
+            Id = expense.Id,
+            ToolId = expense.ToolId,
+            ToolName = expense.Tool.Name,
+            Kind = expense.Kind,
+            Amount = expense.Amount,
+            OccurredOn = expense.OccurredOn,
+            Supplier = expense.Supplier,
+            Note = expense.Note,
+            RecordedByName = expense.RecordedByUser != null ? expense.RecordedByUser.Email : null,
+            CreatedAt = expense.CreatedAt,
+        };
+
+    private static readonly Func<ToolExpense, ToolExpenseDto> Compiled = Projection.Compile();
+
+    public static ToolExpenseDto ToDto(ToolExpense expense) => Compiled(expense);
 }

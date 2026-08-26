@@ -22,8 +22,8 @@ namespace Construction.Domain.Entities;
 /// photograph disappears with the defect rather than outliving it;
 /// <see cref="VehicleExpense"/>, <see cref="MaterialMovement"/>,
 /// <see cref="EmployeeRate"/> and <see cref="FinanceEntry"/> were the sixth
-/// through ninth, so a receipt photo disappears with the cost record it
-/// documents.
+/// through ninth, and <see cref="ToolExpense"/> the tenth, so a receipt photo
+/// disappears with the cost record it documents.
 /// </remarks>
 public class Attachment : BaseEntity, ISoftDeletable, IAuditable
 {
@@ -91,6 +91,10 @@ public class Attachment : BaseEntity, ISoftDeletable, IAuditable
     public Guid? FinanceEntryId { get; set; }
 
     public FinanceEntry? FinanceEntry { get; set; }
+
+    public Guid? ToolExpenseId { get; set; }
+
+    public ToolExpense? ToolExpense { get; set; }
 
     public Guid? UploadedByUserId { get; set; }
 

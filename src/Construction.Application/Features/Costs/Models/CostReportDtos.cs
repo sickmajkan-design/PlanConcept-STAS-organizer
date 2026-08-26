@@ -100,3 +100,32 @@ public class VehicleCostRowDto
     /// </remarks>
     public decimal? LitresPer100Km { get; init; }
 }
+
+/// <summary>What the tool fleet cost over a period.</summary>
+public class ToolCostReportDto
+{
+    public DateOnly From { get; init; }
+
+    public DateOnly To { get; init; }
+
+    public IReadOnlyCollection<ToolCostRowDto> Rows { get; init; } =
+        Array.Empty<ToolCostRowDto>();
+
+    public decimal Total { get; init; }
+}
+
+public class ToolCostRowDto
+{
+    public Guid ToolId { get; init; }
+
+    public string ToolName { get; init; } = null!;
+
+    public decimal RepairCost { get; init; }
+
+    public decimal MaintenanceCost { get; init; }
+
+    /// <summary>Calibration and everything else.</summary>
+    public decimal OtherCost { get; init; }
+
+    public decimal Total { get; init; }
+}

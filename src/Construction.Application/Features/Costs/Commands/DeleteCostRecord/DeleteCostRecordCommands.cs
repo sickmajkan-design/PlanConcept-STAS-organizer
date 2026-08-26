@@ -209,3 +209,37 @@ public class DeleteFinanceEntryCommandHandler : IRequestHandler<DeleteFinanceEnt
         await _context.SaveChangesAsync(cancellationToken);
     }
 }
+
+public record DeleteToolExpenseCommand(Guid Id) : IRequest;
+
+public class DeleteToolExpenseCommandHandler
+    : IRequestHandler<DeleteToolExpenseCommand>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+
+    public DeleteToolExpenseCommandHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+    }
+
+    public async Task Handle(
+        DeleteToolExpenseCommand request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanDeleteSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not remove recorded costs.");
+        }
+
+        var expense = await _context.ToolExpenses
+            .FirstOrDefaultAsync(e => e.Id == request.Id, cancellationToken)
+            ?? throw new NotFoundException(nameof(ToolExpense), request.Id);
+
+        _context.ToolExpenses.Remove(expense);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+}

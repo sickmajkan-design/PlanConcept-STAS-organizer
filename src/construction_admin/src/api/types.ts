@@ -469,6 +469,7 @@ export const attachmentOwnerTypes = [
   'MaterialMovement',
   'EmployeeRate',
   'FinanceEntry',
+  'ToolExpense',
 ] as const;
 
 export type AttachmentOwnerType = (typeof attachmentOwnerTypes)[number];

@@ -89,6 +89,8 @@ public class GetAttachmentsQueryHandler
                 query.Where(a => a.EmployeeRateId == request.OwnerId),
             AttachmentOwnerType.FinanceEntry =>
                 query.Where(a => a.FinanceEntryId == request.OwnerId),
+            AttachmentOwnerType.ToolExpense =>
+                query.Where(a => a.ToolExpenseId == request.OwnerId),
             _ => throw new ArgumentOutOfRangeException(
                 nameof(request),
                 request.OwnerType,

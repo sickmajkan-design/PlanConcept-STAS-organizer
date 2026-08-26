@@ -23,7 +23,10 @@ public enum AttachmentOwnerType
     EmployeeRate = 8,
 
     /// <summary>The payslip or receipt behind a recorded pay entry.</summary>
-    FinanceEntry = 9
+    FinanceEntry = 9,
+
+    /// <summary>The receipt for a tool's repair, service, or calibration.</summary>
+    ToolExpense = 10
 }
 
 /// <summary>
@@ -55,6 +58,7 @@ public static class AttachmentOwner
         attachment.MaterialMovementId = type == AttachmentOwnerType.MaterialMovement ? id : null;
         attachment.EmployeeRateId = type == AttachmentOwnerType.EmployeeRate ? id : null;
         attachment.FinanceEntryId = type == AttachmentOwnerType.FinanceEntry ? id : null;
+        attachment.ToolExpenseId = type == AttachmentOwnerType.ToolExpense ? id : null;
     }
 
     /// <summary>Reads the owner back off a stored row.</summary>
@@ -105,6 +109,11 @@ public static class AttachmentOwner
             return (AttachmentOwnerType.FinanceEntry, financeEntryId);
         }
 
+        if (attachment.ToolExpenseId is { } toolExpenseId)
+        {
+            return (AttachmentOwnerType.ToolExpense, toolExpenseId);
+        }
+
         // The table's check constraint makes this unreachable; if it is ever
         // reached, something has bypassed the database and guessing an owner
         // would hide it.
@@ -124,6 +133,7 @@ public static class AttachmentOwner
         AttachmentOwnerType.MaterialMovement => "material-movements",
         AttachmentOwnerType.EmployeeRate => "employee-rates",
         AttachmentOwnerType.FinanceEntry => "finance-entries",
+        AttachmentOwnerType.ToolExpense => "tool-expenses",
         _ => "other"
     };
 }

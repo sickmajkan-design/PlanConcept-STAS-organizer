@@ -47,6 +47,8 @@ public interface IApplicationDbContext
 
     DbSet<VehicleExpense> VehicleExpenses { get; }
 
+    DbSet<ToolExpense> ToolExpenses { get; }
+
     DbSet<FinanceEntry> FinanceEntries { get; }
 
     DbSet<ProjectRevenue> ProjectRevenues { get; }
