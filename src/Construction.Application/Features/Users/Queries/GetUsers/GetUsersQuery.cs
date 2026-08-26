@@ -13,7 +13,7 @@ public record GetUsersQuery : ISortablePagedQuery, IRequest<PagedList<UserDto>>
 {
     public static readonly string[] AllowedSortFields =
     [
-        "email", "role", "isActive", "lastLoginAt", "createdAt"
+        "email", "role", "isActive", "employeeName", "lastLoginAt", "createdAt"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -102,6 +102,12 @@ public class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, PagedList<Use
             ("role", false) => query.OrderBy(u => u.Role),
             ("isactive", true) => query.OrderByDescending(u => u.IsActive),
             ("isactive", false) => query.OrderBy(u => u.IsActive),
+            ("employeename", false) => query
+                .OrderBy(u => u.Employee != null ? u.Employee.LastName : null)
+                .ThenBy(u => u.Employee != null ? u.Employee.FirstName : null),
+            ("employeename", true) => query
+                .OrderByDescending(u => u.Employee != null ? u.Employee.LastName : null)
+                .ThenByDescending(u => u.Employee != null ? u.Employee.FirstName : null),
             ("lastloginat", true) => query.OrderByDescending(u => u.LastLoginAt),
             ("lastloginat", false) => query.OrderBy(u => u.LastLoginAt),
             ("createdat", true) => query.OrderByDescending(u => u.CreatedAt),

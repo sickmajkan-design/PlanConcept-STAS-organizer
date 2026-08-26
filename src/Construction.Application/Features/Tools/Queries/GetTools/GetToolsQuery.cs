@@ -14,7 +14,7 @@ public record GetToolsQuery : ISortablePagedQuery, IRequest<PagedList<ToolDto>>
 {
     public static readonly string[] AllowedSortFields =
     [
-        "name", "category", "serialNumber", "status", "createdAt"
+        "name", "category", "serialNumber", "status", "assignedEmployeeName", "createdAt"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -124,6 +124,12 @@ public class GetToolsQueryHandler : IRequestHandler<GetToolsQuery, PagedList<Too
             ("serialnumber", true) => query.OrderByDescending(t => t.SerialNumber),
             ("status", false) => query.OrderBy(t => t.Status),
             ("status", true) => query.OrderByDescending(t => t.Status),
+            ("assignedemployeename", false) => query
+                .OrderBy(t => t.AssignedEmployee != null ? t.AssignedEmployee.LastName : null)
+                .ThenBy(t => t.AssignedEmployee != null ? t.AssignedEmployee.FirstName : null),
+            ("assignedemployeename", true) => query
+                .OrderByDescending(t => t.AssignedEmployee != null ? t.AssignedEmployee.LastName : null)
+                .ThenByDescending(t => t.AssignedEmployee != null ? t.AssignedEmployee.FirstName : null),
             ("createdat", false) => query.OrderBy(t => t.CreatedAt),
             ("createdat", true) => query.OrderByDescending(t => t.CreatedAt),
             (_, true) => query.OrderByDescending(t => t.Name),
