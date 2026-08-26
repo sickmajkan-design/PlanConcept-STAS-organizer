@@ -14,6 +14,7 @@ import {
   TableFooter,
   TableHead,
   TableRow,
+  TableSortLabel,
   Tabs,
   TextField,
   Typography,
@@ -21,6 +22,7 @@ import {
 import { useMemo, useState } from 'react';
 
 import { exportsApi } from '../../api/exports';
+import type { ProjectCostRow, VehicleCostRow } from '../../api/types';
 import { EmptyState } from '../../components/EmptyState';
 import { ExportButton } from '../../components/ExportButton';
 import { ErrorState } from '../../components/ErrorState';
@@ -32,6 +34,17 @@ import {
 import { useI18n, useT } from '../../i18n/useI18n';
 import { formatMoney, formatQuantity } from '../../utils/formatting';
 import { monthOf, splitHours, yearOf, type Period } from './monthWindow';
+
+type SortDirection = 'asc' | 'desc';
+type ProjectCostSortField = 'projectName' | 'labourMinutes' | 'labourCost' | 'materialCost' | 'total';
+type VehicleCostSortField =
+  | 'vehicleName'
+  | 'fuelCost'
+  | 'litres'
+  | 'litresPer100Km'
+  | 'serviceCost'
+  | 'otherCost'
+  | 'total';
 
 export function CostsPage() {
   const t = useT();
@@ -122,6 +135,43 @@ function ProjectCosts({ period }: { period: Period }) {
     [data],
   );
 
+  const [sortBy, setSortBy] = useState<ProjectCostSortField>('total');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+  const toggleSort = (field: ProjectCostSortField) => {
+    if (sortBy === field) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedRows = useMemo(() => {
+    if (!data) return [];
+
+    const factor = sortDirection === 'asc' ? 1 : -1;
+
+    const compare = (a: ProjectCostRow, b: ProjectCostRow): number => {
+      switch (sortBy) {
+        case 'projectName':
+          return a.projectName.localeCompare(b.projectName) * factor;
+        case 'labourMinutes':
+          return (a.labourMinutes - b.labourMinutes) * factor;
+        case 'labourCost':
+          return (a.labourCost - b.labourCost) * factor;
+        case 'materialCost':
+          return (a.materialCost - b.materialCost) * factor;
+        case 'total':
+          return (a.total - b.total) * factor;
+        default:
+          return 0;
+      }
+    };
+
+    return [...data.rows].sort(compare);
+  }, [data, sortBy, sortDirection]);
+
   if (isError) return <ErrorState error={error} onRetry={() => void refetch()} />;
   if (isLoading) return <Loading />;
   if (!data || data.rows.length === 0) return <EmptyState message={t('costs.empty')} />;
@@ -157,19 +207,59 @@ function ProjectCosts({ period }: { period: Period }) {
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>{t('costs.project')}</TableCell>
+              <TableCell sortDirection={sortBy === 'projectName' ? sortDirection : false}>
+                <TableSortLabel
+                  active={sortBy === 'projectName'}
+                  direction={sortBy === 'projectName' ? sortDirection : 'asc'}
+                  onClick={() => toggleSort('projectName')}
+                >
+                  {t('costs.project')}
+                </TableSortLabel>
+              </TableCell>
               {data.includesLabour && (
                 <>
-                  <TableCell align="right">{t('costs.hours')}</TableCell>
-                  <TableCell align="right">{t('costs.labour')}</TableCell>
+                  <TableCell align="right" sortDirection={sortBy === 'labourMinutes' ? sortDirection : false}>
+                    <TableSortLabel
+                      active={sortBy === 'labourMinutes'}
+                      direction={sortBy === 'labourMinutes' ? sortDirection : 'asc'}
+                      onClick={() => toggleSort('labourMinutes')}
+                    >
+                      {t('costs.hours')}
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell align="right" sortDirection={sortBy === 'labourCost' ? sortDirection : false}>
+                    <TableSortLabel
+                      active={sortBy === 'labourCost'}
+                      direction={sortBy === 'labourCost' ? sortDirection : 'asc'}
+                      onClick={() => toggleSort('labourCost')}
+                    >
+                      {t('costs.labour')}
+                    </TableSortLabel>
+                  </TableCell>
                 </>
               )}
-              <TableCell align="right">{t('costs.material')}</TableCell>
-              <TableCell align="right">{t('costs.total')}</TableCell>
+              <TableCell align="right" sortDirection={sortBy === 'materialCost' ? sortDirection : false}>
+                <TableSortLabel
+                  active={sortBy === 'materialCost'}
+                  direction={sortBy === 'materialCost' ? sortDirection : 'asc'}
+                  onClick={() => toggleSort('materialCost')}
+                >
+                  {t('costs.material')}
+                </TableSortLabel>
+              </TableCell>
+              <TableCell align="right" sortDirection={sortBy === 'total' ? sortDirection : false}>
+                <TableSortLabel
+                  active={sortBy === 'total'}
+                  direction={sortBy === 'total' ? sortDirection : 'asc'}
+                  onClick={() => toggleSort('total')}
+                >
+                  {t('costs.total')}
+                </TableSortLabel>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {data.rows.map((row) => (
+            {sortedRows.map((row) => (
               <TableRow key={row.projectId} hover>
                 <TableCell>{row.projectName}</TableCell>
                 {data.includesLabour && (
@@ -221,6 +311,47 @@ function VehicleCosts({ period }: { period: Period }) {
   const { locale } = useI18n();
   const { data, isLoading, isError, error, refetch } = useVehicleCostReport(period);
 
+  const [sortBy, setSortBy] = useState<VehicleCostSortField>('total');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+  const toggleSort = (field: VehicleCostSortField) => {
+    if (sortBy === field) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedRows = useMemo(() => {
+    if (!data) return [];
+
+    const factor = sortDirection === 'asc' ? 1 : -1;
+
+    const compare = (a: VehicleCostRow, b: VehicleCostRow): number => {
+      switch (sortBy) {
+        case 'vehicleName':
+          return a.vehicleName.localeCompare(b.vehicleName) * factor;
+        case 'fuelCost':
+          return (a.fuelCost - b.fuelCost) * factor;
+        case 'litres':
+          return (a.litres - b.litres) * factor;
+        case 'litresPer100Km':
+          return ((a.litresPer100Km ?? -1) - (b.litresPer100Km ?? -1)) * factor;
+        case 'serviceCost':
+          return (a.serviceCost - b.serviceCost) * factor;
+        case 'otherCost':
+          return (a.otherCost - b.otherCost) * factor;
+        case 'total':
+          return (a.total - b.total) * factor;
+        default:
+          return 0;
+      }
+    };
+
+    return [...data.rows].sort(compare);
+  }, [data, sortBy, sortDirection]);
+
   if (isError) return <ErrorState error={error} onRetry={() => void refetch()} />;
   if (isLoading) return <Loading />;
   if (!data || data.rows.length === 0) return <EmptyState message={t('costs.empty')} />;
@@ -239,17 +370,73 @@ function VehicleCosts({ period }: { period: Period }) {
       <Table size="small">
         <TableHead>
           <TableRow>
-            <TableCell>{t('costs.vehicle')}</TableCell>
-            <TableCell align="right">{t('costs.fuel')}</TableCell>
-            <TableCell align="right">{t('costs.litres')}</TableCell>
-            <TableCell align="right">{t('costs.consumption')}</TableCell>
-            <TableCell align="right">{t('costs.service')}</TableCell>
-            <TableCell align="right">{t('costs.other')}</TableCell>
-            <TableCell align="right">{t('costs.total')}</TableCell>
+            <TableCell sortDirection={sortBy === 'vehicleName' ? sortDirection : false}>
+              <TableSortLabel
+                active={sortBy === 'vehicleName'}
+                direction={sortBy === 'vehicleName' ? sortDirection : 'asc'}
+                onClick={() => toggleSort('vehicleName')}
+              >
+                {t('costs.vehicle')}
+              </TableSortLabel>
+            </TableCell>
+            <TableCell align="right" sortDirection={sortBy === 'fuelCost' ? sortDirection : false}>
+              <TableSortLabel
+                active={sortBy === 'fuelCost'}
+                direction={sortBy === 'fuelCost' ? sortDirection : 'asc'}
+                onClick={() => toggleSort('fuelCost')}
+              >
+                {t('costs.fuel')}
+              </TableSortLabel>
+            </TableCell>
+            <TableCell align="right" sortDirection={sortBy === 'litres' ? sortDirection : false}>
+              <TableSortLabel
+                active={sortBy === 'litres'}
+                direction={sortBy === 'litres' ? sortDirection : 'asc'}
+                onClick={() => toggleSort('litres')}
+              >
+                {t('costs.litres')}
+              </TableSortLabel>
+            </TableCell>
+            <TableCell align="right" sortDirection={sortBy === 'litresPer100Km' ? sortDirection : false}>
+              <TableSortLabel
+                active={sortBy === 'litresPer100Km'}
+                direction={sortBy === 'litresPer100Km' ? sortDirection : 'asc'}
+                onClick={() => toggleSort('litresPer100Km')}
+              >
+                {t('costs.consumption')}
+              </TableSortLabel>
+            </TableCell>
+            <TableCell align="right" sortDirection={sortBy === 'serviceCost' ? sortDirection : false}>
+              <TableSortLabel
+                active={sortBy === 'serviceCost'}
+                direction={sortBy === 'serviceCost' ? sortDirection : 'asc'}
+                onClick={() => toggleSort('serviceCost')}
+              >
+                {t('costs.service')}
+              </TableSortLabel>
+            </TableCell>
+            <TableCell align="right" sortDirection={sortBy === 'otherCost' ? sortDirection : false}>
+              <TableSortLabel
+                active={sortBy === 'otherCost'}
+                direction={sortBy === 'otherCost' ? sortDirection : 'asc'}
+                onClick={() => toggleSort('otherCost')}
+              >
+                {t('costs.other')}
+              </TableSortLabel>
+            </TableCell>
+            <TableCell align="right" sortDirection={sortBy === 'total' ? sortDirection : false}>
+              <TableSortLabel
+                active={sortBy === 'total'}
+                direction={sortBy === 'total' ? sortDirection : 'asc'}
+                onClick={() => toggleSort('total')}
+              >
+                {t('costs.total')}
+              </TableSortLabel>
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.rows.map((row) => (
+          {sortedRows.map((row) => (
             <TableRow key={row.vehicleId} hover>
               <TableCell>{row.vehicleName}</TableCell>
               <TableCell align="right">{formatMoney(row.fuelCost, locale)}</TableCell>

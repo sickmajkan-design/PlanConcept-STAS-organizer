@@ -112,7 +112,6 @@ export function WorkItemsListPage() {
         headerName: t('workItems.assignee'),
         flex: 1,
         minWidth: 150,
-        sortable: false,
         valueGetter: (v) => v || t('workItems.unassigned'),
       },
       {

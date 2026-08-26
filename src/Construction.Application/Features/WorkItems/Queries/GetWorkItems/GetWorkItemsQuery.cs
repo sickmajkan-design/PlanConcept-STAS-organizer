@@ -13,7 +13,7 @@ public record GetWorkItemsQuery : ISortablePagedQuery, IRequest<PagedList<WorkIt
 {
     public static readonly string[] AllowedSortFields =
     [
-        "title", "dueDate", "priority", "status", "assignedEmployeeName", "createdAt"
+        "title", "dueDate", "priority", "status", "assignedEmployeeName", "projectName", "createdAt"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -178,6 +178,10 @@ public class GetWorkItemsQueryHandler
             ("assignedemployeename", true) => query
                 .OrderByDescending(w => w.AssignedEmployee != null ? w.AssignedEmployee.LastName : null)
                 .ThenByDescending(w => w.AssignedEmployee != null ? w.AssignedEmployee.FirstName : null),
+            ("projectname", false) => query
+                .OrderBy(w => w.Project != null ? w.Project.Name : null),
+            ("projectname", true) => query
+                .OrderByDescending(w => w.Project != null ? w.Project.Name : null),
             ("createdat", false) => query.OrderBy(w => w.CreatedAt),
             ("createdat", true) => query.OrderByDescending(w => w.CreatedAt),
             ("duedate", true) => query.OrderByDescending(w => w.DueDate),

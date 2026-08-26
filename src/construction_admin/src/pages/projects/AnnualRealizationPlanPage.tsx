@@ -20,6 +20,7 @@ import {
   TableFooter,
   TableHead,
   TableRow,
+  TableSortLabel,
   TextField,
   Tooltip,
   Typography,
@@ -29,7 +30,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { toApiError } from '../../api/apiError';
 import type { ProjectRevenueListQuery } from '../../api/projects';
-import type { ProjectRevenue } from '../../api/types';
+import type { AnnualRealizationRow, ProjectRevenue } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
@@ -48,6 +49,16 @@ import { useListQueryState } from '../../hooks/useListQueryState';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { formatDate, formatMoney } from '../../utils/formatting';
 
+type RealizationSortField =
+  | 'projectName'
+  | 'status'
+  | 'contractValue'
+  | 'realizedThisYear'
+  | 'realizedToDate'
+  | 'remaining'
+  | 'percentOfContract';
+type SortDirection = 'asc' | 'desc';
+
 /** The years STAS's own picker offers: a handful back, one ahead. */
 function yearOptions(): number[] {
   const current = new Date().getFullYear();
@@ -61,6 +72,47 @@ export function AnnualRealizationPlanPage() {
   const [recording, setRecording] = useState(false);
 
   const { data, isLoading, isError, error, refetch } = useAnnualRealizationPlanQuery(year);
+
+  const [sortBy, setSortBy] = useState<RealizationSortField>('projectName');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+  const toggleSort = (field: RealizationSortField) => {
+    if (sortBy === field) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedRows = useMemo(() => {
+    if (!data) return [];
+
+    const factor = sortDirection === 'asc' ? 1 : -1;
+
+    const compare = (a: AnnualRealizationRow, b: AnnualRealizationRow): number => {
+      switch (sortBy) {
+        case 'projectName':
+          return a.projectName.localeCompare(b.projectName) * factor;
+        case 'status':
+          return a.status.localeCompare(b.status) * factor;
+        case 'contractValue':
+          return (a.contractValue - b.contractValue) * factor;
+        case 'realizedThisYear':
+          return (a.realizedThisYear - b.realizedThisYear) * factor;
+        case 'realizedToDate':
+          return (a.realizedToDate - b.realizedToDate) * factor;
+        case 'remaining':
+          return (a.remaining - b.remaining) * factor;
+        case 'percentOfContract':
+          return ((a.percentOfContract ?? -1) - (b.percentOfContract ?? -1)) * factor;
+        default:
+          return 0;
+      }
+    };
+
+    return [...data.rows].sort(compare);
+  }, [data, sortBy, sortDirection]);
 
   return (
     <Box>
@@ -111,17 +163,73 @@ export function AnnualRealizationPlanPage() {
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>{t('realization.project')}</TableCell>
-                  <TableCell>{t('realization.status')}</TableCell>
-                  <TableCell align="right">{t('realization.contracted')}</TableCell>
-                  <TableCell align="right">{t('realization.realizedThisYear')}</TableCell>
-                  <TableCell align="right">{t('realization.realizedToDate')}</TableCell>
-                  <TableCell align="right">{t('realization.remaining')}</TableCell>
-                  <TableCell align="right">{t('realization.percentOfContract')}</TableCell>
+                  <TableCell sortDirection={sortBy === 'projectName' ? sortDirection : false}>
+                    <TableSortLabel
+                      active={sortBy === 'projectName'}
+                      direction={sortBy === 'projectName' ? sortDirection : 'asc'}
+                      onClick={() => toggleSort('projectName')}
+                    >
+                      {t('realization.project')}
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell sortDirection={sortBy === 'status' ? sortDirection : false}>
+                    <TableSortLabel
+                      active={sortBy === 'status'}
+                      direction={sortBy === 'status' ? sortDirection : 'asc'}
+                      onClick={() => toggleSort('status')}
+                    >
+                      {t('realization.status')}
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell align="right" sortDirection={sortBy === 'contractValue' ? sortDirection : false}>
+                    <TableSortLabel
+                      active={sortBy === 'contractValue'}
+                      direction={sortBy === 'contractValue' ? sortDirection : 'asc'}
+                      onClick={() => toggleSort('contractValue')}
+                    >
+                      {t('realization.contracted')}
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell align="right" sortDirection={sortBy === 'realizedThisYear' ? sortDirection : false}>
+                    <TableSortLabel
+                      active={sortBy === 'realizedThisYear'}
+                      direction={sortBy === 'realizedThisYear' ? sortDirection : 'asc'}
+                      onClick={() => toggleSort('realizedThisYear')}
+                    >
+                      {t('realization.realizedThisYear')}
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell align="right" sortDirection={sortBy === 'realizedToDate' ? sortDirection : false}>
+                    <TableSortLabel
+                      active={sortBy === 'realizedToDate'}
+                      direction={sortBy === 'realizedToDate' ? sortDirection : 'asc'}
+                      onClick={() => toggleSort('realizedToDate')}
+                    >
+                      {t('realization.realizedToDate')}
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell align="right" sortDirection={sortBy === 'remaining' ? sortDirection : false}>
+                    <TableSortLabel
+                      active={sortBy === 'remaining'}
+                      direction={sortBy === 'remaining' ? sortDirection : 'asc'}
+                      onClick={() => toggleSort('remaining')}
+                    >
+                      {t('realization.remaining')}
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell align="right" sortDirection={sortBy === 'percentOfContract' ? sortDirection : false}>
+                    <TableSortLabel
+                      active={sortBy === 'percentOfContract'}
+                      direction={sortBy === 'percentOfContract' ? sortDirection : 'asc'}
+                      onClick={() => toggleSort('percentOfContract')}
+                    >
+                      {t('realization.percentOfContract')}
+                    </TableSortLabel>
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {data.rows.map((row) => (
+                {sortedRows.map((row) => (
                   <TableRow key={row.projectId} hover>
                     <TableCell>{row.projectName}</TableCell>
                     <TableCell>

@@ -12,18 +12,23 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  TableSortLabel,
   TextField,
   Typography,
 } from '@mui/material';
 import { useMemo, useState } from 'react';
 
 import { exportsApi } from '../../api/exports';
+import type { TimeEntrySummaryRow } from '../../api/types';
 import { ErrorState } from '../../components/ErrorState';
 import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
 import { useTimeEntrySummaryQuery } from '../../features/timeEntries/useTimeEntries';
 import { useT } from '../../i18n/useI18n';
 import { splitMinutes } from '../../utils/formatting';
+
+type SortField = 'employeeName' | 'entryCount' | 'totalMinutes' | 'approvedMinutes' | 'pendingCount';
+type SortDirection = 'asc' | 'desc';
 
 /** `YYYY-MM-DD` for a date input, in local time rather than UTC. */
 function toDateInput(date: Date): string {
@@ -72,6 +77,43 @@ export function TimeEntrySummaryPage() {
   );
 
   const hours = (minutes: number) => t('timeEntries.hoursShort', splitMinutes(minutes));
+
+  const [sortBy, setSortBy] = useState<SortField>('employeeName');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+  const toggleSort = (field: SortField) => {
+    if (sortBy === field) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedRows = useMemo(() => {
+    if (!data) return [];
+
+    const factor = sortDirection === 'asc' ? 1 : -1;
+
+    const compare = (a: TimeEntrySummaryRow, b: TimeEntrySummaryRow): number => {
+      switch (sortBy) {
+        case 'employeeName':
+          return a.employeeName.localeCompare(b.employeeName) * factor;
+        case 'entryCount':
+          return (a.entryCount - b.entryCount) * factor;
+        case 'totalMinutes':
+          return (a.totalMinutes - b.totalMinutes) * factor;
+        case 'approvedMinutes':
+          return (a.approvedMinutes - b.approvedMinutes) * factor;
+        case 'pendingCount':
+          return (a.pendingCount - b.pendingCount) * factor;
+        default:
+          return 0;
+      }
+    };
+
+    return [...data.rows].sort(compare);
+  }, [data, sortBy, sortDirection]);
 
   return (
     <Box>
@@ -142,15 +184,55 @@ export function TimeEntrySummaryPage() {
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>{t('timeEntries.employee')}</TableCell>
-                  <TableCell align="right">{t('timeEntries.summaryEntries')}</TableCell>
-                  <TableCell align="right">{t('timeEntries.summaryTotal')}</TableCell>
-                  <TableCell align="right">{t('timeEntries.summaryApproved')}</TableCell>
-                  <TableCell align="right">{t('timeEntries.summaryPending')}</TableCell>
+                  <TableCell sortDirection={sortBy === 'employeeName' ? sortDirection : false}>
+                    <TableSortLabel
+                      active={sortBy === 'employeeName'}
+                      direction={sortBy === 'employeeName' ? sortDirection : 'asc'}
+                      onClick={() => toggleSort('employeeName')}
+                    >
+                      {t('timeEntries.employee')}
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell align="right" sortDirection={sortBy === 'entryCount' ? sortDirection : false}>
+                    <TableSortLabel
+                      active={sortBy === 'entryCount'}
+                      direction={sortBy === 'entryCount' ? sortDirection : 'asc'}
+                      onClick={() => toggleSort('entryCount')}
+                    >
+                      {t('timeEntries.summaryEntries')}
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell align="right" sortDirection={sortBy === 'totalMinutes' ? sortDirection : false}>
+                    <TableSortLabel
+                      active={sortBy === 'totalMinutes'}
+                      direction={sortBy === 'totalMinutes' ? sortDirection : 'asc'}
+                      onClick={() => toggleSort('totalMinutes')}
+                    >
+                      {t('timeEntries.summaryTotal')}
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell align="right" sortDirection={sortBy === 'approvedMinutes' ? sortDirection : false}>
+                    <TableSortLabel
+                      active={sortBy === 'approvedMinutes'}
+                      direction={sortBy === 'approvedMinutes' ? sortDirection : 'asc'}
+                      onClick={() => toggleSort('approvedMinutes')}
+                    >
+                      {t('timeEntries.summaryApproved')}
+                    </TableSortLabel>
+                  </TableCell>
+                  <TableCell align="right" sortDirection={sortBy === 'pendingCount' ? sortDirection : false}>
+                    <TableSortLabel
+                      active={sortBy === 'pendingCount'}
+                      direction={sortBy === 'pendingCount' ? sortDirection : 'asc'}
+                      onClick={() => toggleSort('pendingCount')}
+                    >
+                      {t('timeEntries.summaryPending')}
+                    </TableSortLabel>
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {data.rows.map((row) => (
+                {sortedRows.map((row) => (
                   <TableRow key={row.employeeId} hover>
                     <TableCell>{row.employeeName}</TableCell>
                     <TableCell align="right">{row.entryCount}</TableCell>
@@ -166,7 +248,7 @@ export function TimeEntrySummaryPage() {
                   </TableRow>
                 ))}
 
-                {data.rows.length === 0 && !isLoading && (
+                {sortedRows.length === 0 && !isLoading && (
                   <TableRow>
                     <TableCell colSpan={5}>
                       <Typography variant="body2" color="text.secondary">
