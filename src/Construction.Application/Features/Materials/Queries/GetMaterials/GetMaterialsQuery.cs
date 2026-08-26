@@ -13,7 +13,7 @@ public record GetMaterialsQuery : ISortablePagedQuery, IRequest<PagedList<Materi
 {
     public static readonly string[] AllowedSortFields =
     [
-        "name", "unit", "quantity", "warehouse", "lastUpdated", "createdAt"
+        "name", "unit", "quantity", "warehouse", "projectName", "lastUpdated", "createdAt"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -118,6 +118,8 @@ public class GetMaterialsQueryHandler : IRequestHandler<GetMaterialsQuery, Paged
             ("quantity", true) => query.OrderByDescending(m => m.Quantity),
             ("warehouse", false) => query.OrderBy(m => m.Warehouse),
             ("warehouse", true) => query.OrderByDescending(m => m.Warehouse),
+            ("projectname", false) => query.OrderBy(m => m.Project != null ? m.Project.Name : null),
+            ("projectname", true) => query.OrderByDescending(m => m.Project != null ? m.Project.Name : null),
             ("lastupdated", false) => query.OrderBy(m => m.LastUpdated),
             ("lastupdated", true) => query.OrderByDescending(m => m.LastUpdated),
             ("createdat", false) => query.OrderBy(m => m.CreatedAt),

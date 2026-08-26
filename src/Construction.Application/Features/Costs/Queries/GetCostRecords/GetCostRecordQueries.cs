@@ -2,6 +2,7 @@ using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.Costs.Models;
+using Construction.Domain.Entities;
 using Construction.Domain.Enums;
 using FluentValidation;
 using MediatR;
@@ -13,8 +14,13 @@ namespace Construction.Application.Features.Costs.Queries.GetCostRecords;
 // the same query several times over — filter by owner and date, page,
 // project — and splitting them would spread one shape across several folders.
 
-public record GetEmployeeRatesQuery : IRequest<PagedList<EmployeeRateDto>>
+public record GetEmployeeRatesQuery : ISortablePagedQuery, IRequest<PagedList<EmployeeRateDto>>
 {
+    public static readonly string[] AllowedSortFields =
+    [
+        "employeeName", "hourlyRate", "startDate", "endDate", "setByName"
+    ];
+
     public int PageNumber { get; init; } = 1;
 
     public int PageSize { get; init; } = 20;
@@ -23,14 +29,17 @@ public record GetEmployeeRatesQuery : IRequest<PagedList<EmployeeRateDto>>
 
     /// <summary>Only the rate in force today.</summary>
     public bool CurrentOnly { get; init; }
+
+    public string? SortBy { get; init; }
+
+    public bool SortDescending { get; init; }
 }
 
-public class GetEmployeeRatesQueryValidator : AbstractValidator<GetEmployeeRatesQuery>
+public class GetEmployeeRatesQueryValidator : SortablePagedQueryValidator<GetEmployeeRatesQuery>
 {
     public GetEmployeeRatesQueryValidator()
+        : base(GetEmployeeRatesQuery.AllowedSortFields, maxPageSize: 200)
     {
-        RuleFor(x => x.PageNumber).GreaterThan(0);
-        RuleFor(x => x.PageSize).InclusiveBetween(1, 200);
     }
 }
 
@@ -76,18 +85,54 @@ public class GetEmployeeRatesQueryHandler
                 r.StartDate <= today && (r.EndDate == null || r.EndDate >= today));
         }
 
+        query = ApplySorting(query, request.SortBy, request.SortDescending);
+
         return await PagedList<EmployeeRateDto>.CreateAsync(
-            query
-                .OrderByDescending(r => r.StartDate)
-                .Select(EmployeeRateMapping.Projection),
+            query.Select(EmployeeRateMapping.Projection),
             request.PageNumber,
             request.PageSize,
             cancellationToken);
     }
+
+    private static IQueryable<EmployeeRate> ApplySorting(
+        IQueryable<EmployeeRate> query,
+        string? sortBy,
+        bool descending)
+    {
+        IOrderedQueryable<EmployeeRate> ordered = (sortBy?.ToLowerInvariant(), descending) switch
+        {
+            ("employeename", false) => query
+                .OrderBy(r => r.Employee.LastName)
+                .ThenBy(r => r.Employee.FirstName),
+            ("employeename", true) => query
+                .OrderByDescending(r => r.Employee.LastName)
+                .ThenByDescending(r => r.Employee.FirstName),
+            ("hourlyrate", false) => query.OrderBy(r => r.HourlyRate),
+            ("hourlyrate", true) => query.OrderByDescending(r => r.HourlyRate),
+            ("startdate", false) => query.OrderBy(r => r.StartDate),
+            ("enddate", false) => query.OrderBy(r => r.EndDate == null).ThenBy(r => r.EndDate),
+            ("enddate", true) => query.OrderByDescending(r => r.EndDate == null).ThenByDescending(r => r.EndDate),
+            ("setbyname", false) => query
+                .OrderBy(r => r.SetByUser != null ? r.SetByUser.Email : null),
+            ("setbyname", true) => query
+                .OrderByDescending(r => r.SetByUser != null ? r.SetByUser.Email : null),
+            // Default and explicit "startDate desc" both land here: the most
+            // recently set rate first, which is what "current pay" means.
+            _ => query.OrderByDescending(r => r.StartDate)
+        };
+
+        // Stable tiebreaker so pagination never skips or duplicates rows.
+        return ordered.ThenBy(r => r.Id);
+    }
 }
 
-public record GetMaterialMovementsQuery : IRequest<PagedList<MaterialMovementDto>>
+public record GetMaterialMovementsQuery : ISortablePagedQuery, IRequest<PagedList<MaterialMovementDto>>
 {
+    public static readonly string[] AllowedSortFields =
+    [
+        "occurredOn", "materialName", "kind", "quantity", "unitPrice", "projectName"
+    ];
+
     public int PageNumber { get; init; } = 1;
 
     public int PageSize { get; init; } = 20;
@@ -101,15 +146,17 @@ public record GetMaterialMovementsQuery : IRequest<PagedList<MaterialMovementDto
     public DateOnly? From { get; init; }
 
     public DateOnly? To { get; init; }
+
+    public string? SortBy { get; init; }
+
+    public bool SortDescending { get; init; }
 }
 
-public class GetMaterialMovementsQueryValidator : AbstractValidator<GetMaterialMovementsQuery>
+public class GetMaterialMovementsQueryValidator : SortablePagedQueryValidator<GetMaterialMovementsQuery>
 {
     public GetMaterialMovementsQueryValidator()
+        : base(GetMaterialMovementsQuery.AllowedSortFields, maxPageSize: 200)
     {
-        RuleFor(x => x.PageNumber).GreaterThan(0);
-        RuleFor(x => x.PageSize).InclusiveBetween(1, 200);
-
         RuleFor(x => x.To)
             .GreaterThanOrEqualTo(x => x.From!.Value)
             .When(x => x.From is not null && x.To is not null);
@@ -166,19 +213,52 @@ public class GetMaterialMovementsQueryHandler
             query = query.Where(m => m.OccurredOn <= to);
         }
 
+        query = ApplySorting(query, request.SortBy, request.SortDescending);
+
         return await PagedList<MaterialMovementDto>.CreateAsync(
-            query
-                .OrderByDescending(m => m.OccurredOn)
-                .ThenByDescending(m => m.CreatedAt)
-                .Select(MaterialMovementMapping.Projection),
+            query.Select(MaterialMovementMapping.Projection),
             request.PageNumber,
             request.PageSize,
             cancellationToken);
     }
+
+    private static IQueryable<MaterialMovement> ApplySorting(
+        IQueryable<MaterialMovement> query,
+        string? sortBy,
+        bool descending)
+    {
+        IOrderedQueryable<MaterialMovement> ordered = (sortBy?.ToLowerInvariant(), descending) switch
+        {
+            ("occurredon", false) => query.OrderBy(m => m.OccurredOn),
+            ("materialname", false) => query.OrderBy(m => m.Material.Name),
+            ("materialname", true) => query.OrderByDescending(m => m.Material.Name),
+            ("kind", false) => query.OrderBy(m => m.Kind),
+            ("kind", true) => query.OrderByDescending(m => m.Kind),
+            ("quantity", false) => query.OrderBy(m => m.Quantity),
+            ("quantity", true) => query.OrderByDescending(m => m.Quantity),
+            ("unitprice", false) => query.OrderBy(m => m.UnitPrice),
+            ("unitprice", true) => query.OrderByDescending(m => m.UnitPrice),
+            ("projectname", false) => query
+                .OrderBy(m => m.Project != null ? m.Project.Name : null),
+            ("projectname", true) => query
+                .OrderByDescending(m => m.Project != null ? m.Project.Name : null),
+            // Default and explicit "occurredOn desc" both land here: newest
+            // movement first, which is what a running ledger reads as.
+            _ => query.OrderByDescending(m => m.OccurredOn)
+        };
+
+        // Stable tiebreaker so pagination never skips or duplicates rows.
+        return ordered.ThenByDescending(m => m.CreatedAt).ThenBy(m => m.Id);
+    }
 }
 
-public record GetVehicleExpensesQuery : IRequest<PagedList<VehicleExpenseDto>>
+public record GetVehicleExpensesQuery : ISortablePagedQuery, IRequest<PagedList<VehicleExpenseDto>>
 {
+    public static readonly string[] AllowedSortFields =
+    [
+        "occurredOn", "vehicleName", "kind", "amount", "litres", "odometerKm"
+    ];
+
     public int PageNumber { get; init; } = 1;
 
     public int PageSize { get; init; } = 20;
@@ -190,15 +270,17 @@ public record GetVehicleExpensesQuery : IRequest<PagedList<VehicleExpenseDto>>
     public DateOnly? From { get; init; }
 
     public DateOnly? To { get; init; }
+
+    public string? SortBy { get; init; }
+
+    public bool SortDescending { get; init; }
 }
 
-public class GetVehicleExpensesQueryValidator : AbstractValidator<GetVehicleExpensesQuery>
+public class GetVehicleExpensesQueryValidator : SortablePagedQueryValidator<GetVehicleExpensesQuery>
 {
     public GetVehicleExpensesQueryValidator()
+        : base(GetVehicleExpensesQuery.AllowedSortFields, maxPageSize: 200)
     {
-        RuleFor(x => x.PageNumber).GreaterThan(0);
-        RuleFor(x => x.PageSize).InclusiveBetween(1, 200);
-
         RuleFor(x => x.To)
             .GreaterThanOrEqualTo(x => x.From!.Value)
             .When(x => x.From is not null && x.To is not null);
@@ -250,19 +332,52 @@ public class GetVehicleExpensesQueryHandler
             query = query.Where(e => e.OccurredOn <= to);
         }
 
+        query = ApplySorting(query, request.SortBy, request.SortDescending);
+
         return await PagedList<VehicleExpenseDto>.CreateAsync(
-            query
-                .OrderByDescending(e => e.OccurredOn)
-                .ThenByDescending(e => e.CreatedAt)
-                .Select(VehicleExpenseMapping.Projection),
+            query.Select(VehicleExpenseMapping.Projection),
             request.PageNumber,
             request.PageSize,
             cancellationToken);
     }
+
+    private static IQueryable<VehicleExpense> ApplySorting(
+        IQueryable<VehicleExpense> query,
+        string? sortBy,
+        bool descending)
+    {
+        IOrderedQueryable<VehicleExpense> ordered = (sortBy?.ToLowerInvariant(), descending) switch
+        {
+            ("occurredon", false) => query.OrderBy(e => e.OccurredOn),
+            ("vehiclename", false) => query
+                .OrderBy(e => e.Vehicle.Brand).ThenBy(e => e.Vehicle.Model),
+            ("vehiclename", true) => query
+                .OrderByDescending(e => e.Vehicle.Brand).ThenByDescending(e => e.Vehicle.Model),
+            ("kind", false) => query.OrderBy(e => e.Kind),
+            ("kind", true) => query.OrderByDescending(e => e.Kind),
+            ("amount", false) => query.OrderBy(e => e.Amount),
+            ("amount", true) => query.OrderByDescending(e => e.Amount),
+            ("litres", false) => query.OrderBy(e => e.Litres == null).ThenBy(e => e.Litres),
+            ("litres", true) => query.OrderByDescending(e => e.Litres == null).ThenByDescending(e => e.Litres),
+            ("odometerkm", false) => query.OrderBy(e => e.OdometerKm == null).ThenBy(e => e.OdometerKm),
+            ("odometerkm", true) => query.OrderByDescending(e => e.OdometerKm == null).ThenByDescending(e => e.OdometerKm),
+            // Default and explicit "occurredOn desc" both land here: newest
+            // expense first, which is what a running ledger reads as.
+            _ => query.OrderByDescending(e => e.OccurredOn)
+        };
+
+        // Stable tiebreaker so pagination never skips or duplicates rows.
+        return ordered.ThenByDescending(e => e.CreatedAt).ThenBy(e => e.Id);
+    }
 }
 
-public record GetFinanceEntriesQuery : IRequest<PagedList<FinanceEntryDto>>
+public record GetFinanceEntriesQuery : ISortablePagedQuery, IRequest<PagedList<FinanceEntryDto>>
 {
+    public static readonly string[] AllowedSortFields =
+    [
+        "employeeName", "kind", "amount", "hoursWorked", "occurredOn", "projectName"
+    ];
+
     public int PageNumber { get; init; } = 1;
 
     public int PageSize { get; init; } = 20;
@@ -276,15 +391,17 @@ public record GetFinanceEntriesQuery : IRequest<PagedList<FinanceEntryDto>>
     public DateOnly? From { get; init; }
 
     public DateOnly? To { get; init; }
+
+    public string? SortBy { get; init; }
+
+    public bool SortDescending { get; init; }
 }
 
-public class GetFinanceEntriesQueryValidator : AbstractValidator<GetFinanceEntriesQuery>
+public class GetFinanceEntriesQueryValidator : SortablePagedQueryValidator<GetFinanceEntriesQuery>
 {
     public GetFinanceEntriesQueryValidator()
+        : base(GetFinanceEntriesQuery.AllowedSortFields, maxPageSize: 200)
     {
-        RuleFor(x => x.PageNumber).GreaterThan(0);
-        RuleFor(x => x.PageSize).InclusiveBetween(1, 200);
-
         RuleFor(x => x.To)
             .GreaterThanOrEqualTo(x => x.From!.Value)
             .When(x => x.From is not null && x.To is not null);
@@ -343,13 +460,43 @@ public class GetFinanceEntriesQueryHandler
             query = query.Where(e => e.OccurredOn <= to);
         }
 
+        query = ApplySorting(query, request.SortBy, request.SortDescending);
+
         return await PagedList<FinanceEntryDto>.CreateAsync(
-            query
-                .OrderByDescending(e => e.OccurredOn)
-                .ThenByDescending(e => e.CreatedAt)
-                .Select(FinanceEntryMapping.Projection),
+            query.Select(FinanceEntryMapping.Projection),
             request.PageNumber,
             request.PageSize,
             cancellationToken);
+    }
+
+    private static IQueryable<FinanceEntry> ApplySorting(
+        IQueryable<FinanceEntry> query,
+        string? sortBy,
+        bool descending)
+    {
+        IOrderedQueryable<FinanceEntry> ordered = (sortBy?.ToLowerInvariant(), descending) switch
+        {
+            ("employeename", false) => query
+                .OrderBy(e => e.Employee.LastName).ThenBy(e => e.Employee.FirstName),
+            ("employeename", true) => query
+                .OrderByDescending(e => e.Employee.LastName).ThenByDescending(e => e.Employee.FirstName),
+            ("kind", false) => query.OrderBy(e => e.Kind),
+            ("kind", true) => query.OrderByDescending(e => e.Kind),
+            ("amount", false) => query.OrderBy(e => e.Amount),
+            ("amount", true) => query.OrderByDescending(e => e.Amount),
+            ("hoursworked", false) => query.OrderBy(e => e.HoursWorked == null).ThenBy(e => e.HoursWorked),
+            ("hoursworked", true) => query.OrderByDescending(e => e.HoursWorked == null).ThenByDescending(e => e.HoursWorked),
+            ("occurredon", false) => query.OrderBy(e => e.OccurredOn),
+            ("projectname", false) => query
+                .OrderBy(e => e.Project != null ? e.Project.Name : null),
+            ("projectname", true) => query
+                .OrderByDescending(e => e.Project != null ? e.Project.Name : null),
+            // Default and explicit "occurredOn desc" both land here: newest
+            // entry first, which is what a running ledger reads as.
+            _ => query.OrderByDescending(e => e.OccurredOn)
+        };
+
+        // Stable tiebreaker so pagination never skips or duplicates rows.
+        return ordered.ThenByDescending(e => e.CreatedAt).ThenBy(e => e.Id);
     }
 }
