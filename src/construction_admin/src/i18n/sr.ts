@@ -32,6 +32,7 @@ export const sr: Record<MessageKey, Message> = {
   // "ukupno {count}" sidesteps declension, which a noun after the number
   // would force to change with it.
   'common.total': { one: 'ukupno {count}', few: 'ukupno {count}', other: 'ukupno {count}' },
+  'common.viewAll': 'Pogledaj sve',
   'common.rowsPerPage': 'Redova po strani',
   'common.displayedRows': '{from}–{to} od {count}',
   'common.noRows': 'Nema redova',

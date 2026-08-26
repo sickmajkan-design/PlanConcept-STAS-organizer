@@ -19,12 +19,19 @@ import {
   MenuItem,
   Select,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Typography,
 } from '@mui/material';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
+import type { ToolExpense } from '../../api/types';
 import { AuditHistoryCard } from '../../components/AuditHistoryCard';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
@@ -34,6 +41,7 @@ import { StatusChip } from '../../components/StatusChip';
 import { useCoverPhoto } from '../../features/attachments/useAttachments';
 import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
+import { useToolExpensesQuery } from '../../features/costs/useCosts';
 import {
   useAssignToolEmployee,
   useAssignToolProject,
@@ -42,10 +50,13 @@ import {
   useUnassignToolEmployee,
   useUnassignToolProject,
 } from '../../features/tools/useTools';
-import { useT } from '../../i18n/useI18n';
+import { useEnumLabel } from '../../i18n/enumLabels';
+import { useI18n, useT } from '../../i18n/useI18n';
 import { canAdministerAccounts } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { paths } from '../../routes/paths';
+import { formatDate, formatMoney } from '../../utils/formatting';
+import { ToolExpenseDialog } from '../costs/ToolExpensesPage';
 
 export function ToolDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -308,6 +319,10 @@ export function ToolDetailPage() {
           </Card>
         </Grid>
 
+        <Grid size={12}>
+          <ToolCostsCard toolId={tool.id} />
+        </Grid>
+
         {canAdministerAccounts(user) && (
           <Grid size={12}>
             <AuditHistoryCard entityName="Tool" entityId={tool.id} />
@@ -371,6 +386,82 @@ export function ToolDetailPage() {
         qrCode={tool.qrCode}
       />
     </Box>
+  );
+}
+
+/** The last few costs recorded against this tool, double-click to correct one. */
+function ToolCostsCard({ toolId }: { toolId: string }) {
+  const t = useT();
+  const navigate = useNavigate();
+  const { locale } = useI18n();
+  const enumLabel = useEnumLabel();
+  const [editing, setEditing] = useState<ToolExpense | null>(null);
+
+  const query = useMemo(
+    () => ({
+      toolId,
+      pageNumber: 1,
+      pageSize: 10,
+      sortBy: 'occurredOn',
+      sortDescending: true,
+    }),
+    [toolId],
+  );
+
+  const { data } = useToolExpensesQuery(query);
+  const rows = data?.items ?? [];
+
+  return (
+    <Card>
+      <CardContent>
+        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+            {t('toolExpenses.title')}
+          </Typography>
+          <Button size="small" onClick={() => navigate(paths.toolExpenses)}>
+            {t('common.viewAll')}
+          </Button>
+        </Stack>
+
+        {rows.length === 0 ? (
+          <Typography color="text.secondary" sx={{ mt: 1 }}>
+            {t('toolExpenses.empty')}
+          </Typography>
+        ) : (
+          <TableContainer sx={{ mt: 1 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('toolExpenses.occurredOn')}</TableCell>
+                  <TableCell>{t('toolExpenses.kind')}</TableCell>
+                  <TableCell align="right">{t('toolExpenses.amount')}</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    hover
+                    sx={{ cursor: 'pointer' }}
+                    onDoubleClick={() => setEditing(row)}
+                  >
+                    <TableCell>{formatDate(row.occurredOn)}</TableCell>
+                    <TableCell>{enumLabel('toolExpenseKind', row.kind)}</TableCell>
+                    <TableCell align="right">{formatMoney(row.amount, locale)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </CardContent>
+
+      <ToolExpenseDialog
+        open={!!editing}
+        editingExpense={editing}
+        onClose={() => setEditing(null)}
+      />
+    </Card>
   );
 }
 

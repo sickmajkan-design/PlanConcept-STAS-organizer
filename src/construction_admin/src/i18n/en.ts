@@ -23,6 +23,7 @@ export const en = {
   'common.notSet': '—',
   'common.loading': 'Loading…',
   'common.total': { one: '{count} total', other: '{count} total' },
+  'common.viewAll': 'View all',
   'common.rowsPerPage': 'Rows per page',
   'common.displayedRows': '{from}–{to} of {count}',
   'common.noRows': 'No rows',

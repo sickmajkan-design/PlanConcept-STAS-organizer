@@ -225,7 +225,7 @@ export function ToolExpensesPage() {
   );
 }
 
-function ToolExpenseDialog({
+export function ToolExpenseDialog({
   open,
   editingExpense,
   onClose,

@@ -254,7 +254,7 @@ export function VehicleExpensesPage() {
   );
 }
 
-function VehicleExpenseDialog({
+export function VehicleExpenseDialog({
   open,
   editingExpense,
   onClose,

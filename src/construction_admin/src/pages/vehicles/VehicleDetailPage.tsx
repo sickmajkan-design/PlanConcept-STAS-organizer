@@ -19,12 +19,19 @@ import {
   MenuItem,
   Select,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
   Typography,
 } from '@mui/material';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
+import type { VehicleExpense } from '../../api/types';
 import { AuditHistoryCard } from '../../components/AuditHistoryCard';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
@@ -34,6 +41,7 @@ import { StatusChip } from '../../components/StatusChip';
 import { useCoverPhoto } from '../../features/attachments/useAttachments';
 import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
+import { useVehicleExpensesQuery } from '../../features/costs/useCosts';
 import {
   useAssignVehicle,
   useAssignVehicleProject,
@@ -43,10 +51,12 @@ import {
   useVehicleQuery,
 } from '../../features/vehicles/useVehicles';
 import { useEnumLabel } from '../../i18n/enumLabels';
-import { useT } from '../../i18n/useI18n';
+import { useI18n, useT } from '../../i18n/useI18n';
 import { canAdministerAccounts } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { paths } from '../../routes/paths';
+import { formatDate, formatMoney } from '../../utils/formatting';
+import { VehicleExpenseDialog } from '../costs/VehicleExpensesPage';
 
 export function VehicleDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -311,6 +321,10 @@ export function VehicleDetailPage() {
           </Card>
         </Grid>
 
+        <Grid size={12}>
+          <VehicleCostsCard vehicleId={vehicle.id} />
+        </Grid>
+
         {canAdministerAccounts(user) && (
           <Grid size={12}>
             <AuditHistoryCard entityName="Vehicle" entityId={vehicle.id} />
@@ -376,6 +390,82 @@ export function VehicleDetailPage() {
         qrCode={vehicle.qrCode}
       />
     </Box>
+  );
+}
+
+/** The last few costs recorded against this vehicle, double-click to correct one. */
+function VehicleCostsCard({ vehicleId }: { vehicleId: string }) {
+  const t = useT();
+  const navigate = useNavigate();
+  const { locale } = useI18n();
+  const enumLabel = useEnumLabel();
+  const [editing, setEditing] = useState<VehicleExpense | null>(null);
+
+  const query = useMemo(
+    () => ({
+      vehicleId,
+      pageNumber: 1,
+      pageSize: 10,
+      sortBy: 'occurredOn',
+      sortDescending: true,
+    }),
+    [vehicleId],
+  );
+
+  const { data } = useVehicleExpensesQuery(query);
+  const rows = data?.items ?? [];
+
+  return (
+    <Card>
+      <CardContent>
+        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+            {t('vehicleExpenses.title')}
+          </Typography>
+          <Button size="small" onClick={() => navigate(paths.vehicleExpenses)}>
+            {t('common.viewAll')}
+          </Button>
+        </Stack>
+
+        {rows.length === 0 ? (
+          <Typography color="text.secondary" sx={{ mt: 1 }}>
+            {t('vehicleExpenses.empty')}
+          </Typography>
+        ) : (
+          <TableContainer sx={{ mt: 1 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('vehicleExpenses.occurredOn')}</TableCell>
+                  <TableCell>{t('vehicleExpenses.kind')}</TableCell>
+                  <TableCell align="right">{t('vehicleExpenses.amount')}</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    hover
+                    sx={{ cursor: 'pointer' }}
+                    onDoubleClick={() => setEditing(row)}
+                  >
+                    <TableCell>{formatDate(row.occurredOn)}</TableCell>
+                    <TableCell>{enumLabel('vehicleExpenseKind', row.kind)}</TableCell>
+                    <TableCell align="right">{formatMoney(row.amount, locale)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </CardContent>
+
+      <VehicleExpenseDialog
+        open={!!editing}
+        editingExpense={editing}
+        onClose={() => setEditing(null)}
+      />
+    </Card>
   );
 }
 
