@@ -73,6 +73,33 @@ public class DeleteEmployeeRateCommandHandler : IRequestHandler<DeleteEmployeeRa
             .FirstOrDefaultAsync(r => r.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(EmployeeRate), request.Id);
 
+        // Deleting the rate that closed a predecessor must not leave that
+        // predecessor stuck ending the day before a rate that no longer
+        // exists. Reopen it, but only when nothing else has since taken over
+        // — a genuine third rate starting after it means somebody deliberately
+        // priced that period already, and reopening would silently overlap it.
+        var predecessor = await _context.EmployeeRates
+            .Where(r => r.EmployeeId == rate.EmployeeId
+                && r.Id != rate.Id
+                && r.EndDate == rate.StartDate.AddDays(-1))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (predecessor is not null)
+        {
+            var somethingElseFollows = await _context.EmployeeRates
+                .AnyAsync(
+                    r => r.EmployeeId == rate.EmployeeId
+                        && r.Id != rate.Id
+                        && r.Id != predecessor.Id
+                        && r.StartDate > predecessor.EndDate!.Value,
+                    cancellationToken);
+
+            if (!somethingElseFollows)
+            {
+                predecessor.EndDate = null;
+            }
+        }
+
         _context.EmployeeRates.Remove(rate);
         await _context.SaveChangesAsync(cancellationToken);
     }

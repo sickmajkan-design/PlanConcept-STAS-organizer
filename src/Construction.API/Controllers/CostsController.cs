@@ -7,6 +7,10 @@ using Construction.Application.Features.Costs.Commands.RecordFinanceEntry;
 using Construction.Application.Features.Costs.Commands.RecordMaterialMovement;
 using Construction.Application.Features.Costs.Commands.RecordVehicleExpense;
 using Construction.Application.Features.Costs.Commands.SetEmployeeRate;
+using Construction.Application.Features.Costs.Commands.UpdateEmployeeRate;
+using Construction.Application.Features.Costs.Commands.UpdateFinanceEntry;
+using Construction.Application.Features.Costs.Commands.UpdateMaterialMovement;
+using Construction.Application.Features.Costs.Commands.UpdateVehicleExpense;
 using Construction.Application.Features.Costs.Models;
 using Construction.Application.Features.Costs.Queries.GetCostRecords;
 using Construction.Application.Features.Costs.Queries.GetProjectCosts;
@@ -46,6 +50,18 @@ public class CostsController : ApiControllerBase
         return Ok(await Mediator.Send(query, cancellationToken));
     }
 
+    /// <summary>The count and average of whatever the rates list is currently filtered to.</summary>
+    [HttpGet("/api/v{version:apiVersion}/employee-rates/summary")]
+    [HttpGet("/api/employee-rates/summary")]
+    [ProducesResponseType(typeof(EmployeeRateSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<EmployeeRateSummaryDto>> GetRatesSummary(
+        [FromQuery] GetEmployeeRatesSummaryQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
     /// <summary>Puts a new rate in force, closing off the one before it.</summary>
     [HttpPost("/api/v{version:apiVersion}/employee-rates")]
     [HttpPost("/api/employee-rates")]
@@ -62,6 +78,22 @@ public class CostsController : ApiControllerBase
         var rate = await Mediator.Send(command, cancellationToken);
 
         return CreatedAtAction(nameof(GetRates), new { id = rate.Id }, rate);
+    }
+
+    /// <summary>Corrects a rate that was typed in wrong.</summary>
+    [HttpPut("/api/v{version:apiVersion}/employee-rates/{id:guid}")]
+    [HttpPut("/api/employee-rates/{id:guid}")]
+    [ProducesResponseType(typeof(EmployeeRateDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<EmployeeRateDto>> UpdateRate(
+        Guid id,
+        UpdateEmployeeRateCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
     }
 
     /// <summary>Removes a rate. Admin and above.</summary>
@@ -91,6 +123,18 @@ public class CostsController : ApiControllerBase
         return Ok(await Mediator.Send(query, cancellationToken));
     }
 
+    /// <summary>The count and value of whatever the movements list is currently filtered to.</summary>
+    [HttpGet("/api/v{version:apiVersion}/material-movements/summary")]
+    [HttpGet("/api/material-movements/summary")]
+    [ProducesResponseType(typeof(MaterialMovementSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<MaterialMovementSummaryDto>> GetMovementsSummary(
+        [FromQuery] GetMaterialMovementsSummaryQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
     /// <summary>Records a delivery, an issue to site, or a correction.</summary>
     [HttpPost("/api/v{version:apiVersion}/material-movements")]
     [HttpPost("/api/material-movements")]
@@ -107,6 +151,22 @@ public class CostsController : ApiControllerBase
         var movement = await Mediator.Send(command, cancellationToken);
 
         return CreatedAtAction(nameof(GetMovements), new { id = movement.Id }, movement);
+    }
+
+    /// <summary>Corrects a movement that was recorded wrong, adjusting the stock effect to match.</summary>
+    [HttpPut("/api/v{version:apiVersion}/material-movements/{id:guid}")]
+    [HttpPut("/api/material-movements/{id:guid}")]
+    [ProducesResponseType(typeof(MaterialMovementDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<MaterialMovementDto>> UpdateMovement(
+        Guid id,
+        UpdateMaterialMovementCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
     }
 
     /// <summary>Removes a movement and puts the stock back.</summary>
@@ -137,6 +197,18 @@ public class CostsController : ApiControllerBase
         return Ok(await Mediator.Send(query, cancellationToken));
     }
 
+    /// <summary>The count and total of whatever the vehicle-expense list is currently filtered to.</summary>
+    [HttpGet("/api/v{version:apiVersion}/vehicle-expenses/summary")]
+    [HttpGet("/api/vehicle-expenses/summary")]
+    [ProducesResponseType(typeof(VehicleExpenseSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<VehicleExpenseSummaryDto>> GetVehicleExpensesSummary(
+        [FromQuery] GetVehicleExpensesSummaryQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
     /// <summary>Records a tank of fuel, a service, or another cost.</summary>
     [HttpPost("/api/v{version:apiVersion}/vehicle-expenses")]
     [HttpPost("/api/vehicle-expenses")]
@@ -152,6 +224,21 @@ public class CostsController : ApiControllerBase
         var expense = await Mediator.Send(command, cancellationToken);
 
         return CreatedAtAction(nameof(GetVehicleExpenses), new { id = expense.Id }, expense);
+    }
+
+    /// <summary>Corrects a vehicle cost that was typed in wrong.</summary>
+    [HttpPut("/api/v{version:apiVersion}/vehicle-expenses/{id:guid}")]
+    [HttpPut("/api/vehicle-expenses/{id:guid}")]
+    [ProducesResponseType(typeof(VehicleExpenseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<VehicleExpenseDto>> UpdateVehicleExpense(
+        Guid id,
+        UpdateVehicleExpenseCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
     }
 
     /// <summary>Removes a recorded cost.</summary>
@@ -183,6 +270,18 @@ public class CostsController : ApiControllerBase
         return Ok(await Mediator.Send(query, cancellationToken));
     }
 
+    /// <summary>The count and total of whatever the finance-entries list is currently filtered to.</summary>
+    [HttpGet("/api/v{version:apiVersion}/finance-entries/summary")]
+    [HttpGet("/api/finance-entries/summary")]
+    [ProducesResponseType(typeof(FinanceEntrySummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<FinanceEntrySummaryDto>> GetFinanceEntriesSummary(
+        [FromQuery] GetFinanceEntriesSummaryQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
     /// <summary>Records what an employee is owed for a stretch of work.</summary>
     [HttpPost("/api/v{version:apiVersion}/finance-entries")]
     [HttpPost("/api/finance-entries")]
@@ -198,6 +297,21 @@ public class CostsController : ApiControllerBase
         var entry = await Mediator.Send(command, cancellationToken);
 
         return CreatedAtAction(nameof(GetFinanceEntries), new { id = entry.Id }, entry);
+    }
+
+    /// <summary>Corrects a pay entry that was typed in wrong.</summary>
+    [HttpPut("/api/v{version:apiVersion}/finance-entries/{id:guid}")]
+    [HttpPut("/api/finance-entries/{id:guid}")]
+    [ProducesResponseType(typeof(FinanceEntryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<FinanceEntryDto>> UpdateFinanceEntry(
+        Guid id,
+        UpdateFinanceEntryCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
     }
 
     /// <summary>Removes a pay entry.</summary>

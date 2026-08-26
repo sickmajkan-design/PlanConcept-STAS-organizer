@@ -126,6 +126,64 @@ public class GetEmployeeRatesQueryHandler
     }
 }
 
+/// <summary>The count and average of whatever the rates list is currently filtered to.</summary>
+public record GetEmployeeRatesSummaryQuery : IRequest<EmployeeRateSummaryDto>
+{
+    public Guid? EmployeeId { get; init; }
+
+    public bool CurrentOnly { get; init; }
+}
+
+public class GetEmployeeRatesSummaryQueryHandler
+    : IRequestHandler<GetEmployeeRatesSummaryQuery, EmployeeRateSummaryDto>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
+
+    public GetEmployeeRatesSummaryQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
+    }
+
+    public async Task<EmployeeRateSummaryDto> Handle(
+        GetEmployeeRatesSummaryQuery request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanSeeLabourCost(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not see pay rates.");
+        }
+
+        var query = _context.EmployeeRates.AsNoTracking();
+
+        if (request.EmployeeId is { } employeeId)
+        {
+            query = query.Where(r => r.EmployeeId == employeeId);
+        }
+
+        if (request.CurrentOnly)
+        {
+            var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            query = query.Where(r =>
+                r.StartDate <= today && (r.EndDate == null || r.EndDate >= today));
+        }
+
+        var count = await query.CountAsync(cancellationToken);
+
+        return new EmployeeRateSummaryDto
+        {
+            Count = count,
+            AverageHourlyRate = count > 0 ? await query.AverageAsync(r => r.HourlyRate, cancellationToken) : null
+        };
+    }
+}
+
 public record GetMaterialMovementsQuery : ISortablePagedQuery, IRequest<PagedList<MaterialMovementDto>>
 {
     public static readonly string[] AllowedSortFields =
@@ -252,6 +310,79 @@ public class GetMaterialMovementsQueryHandler
     }
 }
 
+/// <summary>The count and value of whatever the movements list is currently filtered to.</summary>
+public record GetMaterialMovementsSummaryQuery : IRequest<MaterialMovementSummaryDto>
+{
+    public Guid? MaterialId { get; init; }
+
+    public Guid? ProjectId { get; init; }
+
+    public MaterialMovementKind? Kind { get; init; }
+
+    public DateOnly? From { get; init; }
+
+    public DateOnly? To { get; init; }
+}
+
+public class GetMaterialMovementsSummaryQueryHandler
+    : IRequestHandler<GetMaterialMovementsSummaryQuery, MaterialMovementSummaryDto>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+
+    public GetMaterialMovementsSummaryQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+    }
+
+    public async Task<MaterialMovementSummaryDto> Handle(
+        GetMaterialMovementsSummaryQuery request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not see stock movements.");
+        }
+
+        var query = _context.MaterialMovements.AsNoTracking();
+
+        if (request.MaterialId is { } materialId)
+        {
+            query = query.Where(m => m.MaterialId == materialId);
+        }
+
+        if (request.ProjectId is { } projectId)
+        {
+            query = query.Where(m => m.ProjectId == projectId);
+        }
+
+        if (request.Kind is { } kind)
+        {
+            query = query.Where(m => m.Kind == kind);
+        }
+
+        if (request.From is { } from)
+        {
+            query = query.Where(m => m.OccurredOn >= from);
+        }
+
+        if (request.To is { } to)
+        {
+            query = query.Where(m => m.OccurredOn <= to);
+        }
+
+        var count = await query.CountAsync(cancellationToken);
+        var totalCost = await query
+            .Where(m => m.UnitPrice != null)
+            .SumAsync(m => m.UnitPrice!.Value * (m.Quantity < 0 ? -m.Quantity : m.Quantity), cancellationToken);
+
+        return new MaterialMovementSummaryDto { Count = count, TotalCost = totalCost };
+    }
+}
+
 public record GetVehicleExpensesQuery : ISortablePagedQuery, IRequest<PagedList<VehicleExpenseDto>>
 {
     public static readonly string[] AllowedSortFields =
@@ -368,6 +499,78 @@ public class GetVehicleExpensesQueryHandler
 
         // Stable tiebreaker so pagination never skips or duplicates rows.
         return ordered.ThenByDescending(e => e.CreatedAt).ThenBy(e => e.Id);
+    }
+}
+
+/// <summary>The count and total of whatever the vehicle-expense list is currently filtered to.</summary>
+public record GetVehicleExpensesSummaryQuery : IRequest<VehicleExpenseSummaryDto>
+{
+    public Guid? VehicleId { get; init; }
+
+    public VehicleExpenseKind? Kind { get; init; }
+
+    public DateOnly? From { get; init; }
+
+    public DateOnly? To { get; init; }
+}
+
+public class GetVehicleExpensesSummaryQueryHandler
+    : IRequestHandler<GetVehicleExpensesSummaryQuery, VehicleExpenseSummaryDto>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+
+    public GetVehicleExpensesSummaryQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+    }
+
+    public async Task<VehicleExpenseSummaryDto> Handle(
+        GetVehicleExpensesSummaryQuery request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not see vehicle costs.");
+        }
+
+        var query = _context.VehicleExpenses.AsNoTracking();
+
+        if (request.VehicleId is { } vehicleId)
+        {
+            query = query.Where(e => e.VehicleId == vehicleId);
+        }
+
+        if (request.Kind is { } kind)
+        {
+            query = query.Where(e => e.Kind == kind);
+        }
+
+        if (request.From is { } from)
+        {
+            query = query.Where(e => e.OccurredOn >= from);
+        }
+
+        if (request.To is { } to)
+        {
+            query = query.Where(e => e.OccurredOn <= to);
+        }
+
+        var count = await query.CountAsync(cancellationToken);
+        var totalAmount = await query.SumAsync(e => e.Amount, cancellationToken);
+        var totalLitres = await query
+            .Where(e => e.Litres != null)
+            .SumAsync(e => e.Litres!.Value, cancellationToken);
+
+        return new VehicleExpenseSummaryDto
+        {
+            Count = count,
+            TotalAmount = totalAmount,
+            TotalLitres = totalLitres
+        };
     }
 }
 
@@ -498,5 +701,84 @@ public class GetFinanceEntriesQueryHandler
 
         // Stable tiebreaker so pagination never skips or duplicates rows.
         return ordered.ThenByDescending(e => e.CreatedAt).ThenBy(e => e.Id);
+    }
+}
+
+/// <summary>The count and total of whatever the finance-entries list is currently filtered to.</summary>
+public record GetFinanceEntriesSummaryQuery : IRequest<FinanceEntrySummaryDto>
+{
+    public Guid? EmployeeId { get; init; }
+
+    public Guid? ProjectId { get; init; }
+
+    public FinanceEntryKind? Kind { get; init; }
+
+    public DateOnly? From { get; init; }
+
+    public DateOnly? To { get; init; }
+}
+
+public class GetFinanceEntriesSummaryQueryHandler
+    : IRequestHandler<GetFinanceEntriesSummaryQuery, FinanceEntrySummaryDto>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+
+    public GetFinanceEntriesSummaryQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+    }
+
+    public async Task<FinanceEntrySummaryDto> Handle(
+        GetFinanceEntriesSummaryQuery request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanSeeLabourCost(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not see pay entries.");
+        }
+
+        var query = _context.FinanceEntries.AsNoTracking();
+
+        if (request.EmployeeId is { } employeeId)
+        {
+            query = query.Where(e => e.EmployeeId == employeeId);
+        }
+
+        if (request.ProjectId is { } projectId)
+        {
+            query = query.Where(e => e.ProjectId == projectId);
+        }
+
+        if (request.Kind is { } kind)
+        {
+            query = query.Where(e => e.Kind == kind);
+        }
+
+        if (request.From is { } from)
+        {
+            query = query.Where(e => e.OccurredOn >= from);
+        }
+
+        if (request.To is { } to)
+        {
+            query = query.Where(e => e.OccurredOn <= to);
+        }
+
+        var count = await query.CountAsync(cancellationToken);
+        var totalAmount = await query.SumAsync(e => e.Amount, cancellationToken);
+        var totalHours = await query
+            .Where(e => e.HoursWorked != null)
+            .SumAsync(e => e.HoursWorked!.Value, cancellationToken);
+
+        return new FinanceEntrySummaryDto
+        {
+            Count = count,
+            TotalAmount = totalAmount,
+            TotalHoursWorked = totalHours
+        };
     }
 }

@@ -112,6 +112,40 @@ public class FinanceEntryDto
     public DateTime CreatedAt { get; init; }
 }
 
+/// <summary>The totals for whatever filter is currently applied to the list, not just the page on screen.</summary>
+public class EmployeeRateSummaryDto
+{
+    public int Count { get; init; }
+
+    public decimal? AverageHourlyRate { get; init; }
+}
+
+public class MaterialMovementSummaryDto
+{
+    public int Count { get; init; }
+
+    /// <summary>Sum of every priced movement's value, In and Out mixed together.</summary>
+    public decimal TotalCost { get; init; }
+}
+
+public class VehicleExpenseSummaryDto
+{
+    public int Count { get; init; }
+
+    public decimal TotalAmount { get; init; }
+
+    public decimal TotalLitres { get; init; }
+}
+
+public class FinanceEntrySummaryDto
+{
+    public int Count { get; init; }
+
+    public decimal TotalAmount { get; init; }
+
+    public decimal TotalHoursWorked { get; init; }
+}
+
 /// <summary>How an <see cref="EmployeeRate"/> becomes an <see cref="EmployeeRateDto"/>.</summary>
 /// <remarks>See <c>EmployeeMapping</c> for the convention these all follow.</remarks>
 public static class EmployeeRateMapping
