@@ -1,6 +1,8 @@
+import { CloseOutlined } from '@mui/icons-material';
 import {
   Alert,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -78,11 +80,14 @@ export function UploadDocumentDialog({
 
   const [ownerType, setOwnerType] = useState<AttachmentOwnerType>('Employee');
   const [ownerId, setOwnerId] = useState('');
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [category, setCategory] = useState<AttachmentCategory>('Certificate');
   const [description, setDescription] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(
+    null,
+  );
 
   const { data: employees } = useAllEmployeesQuery();
   const { data: projects } = useAllProjectsQuery();
@@ -118,11 +123,12 @@ export function UploadDocumentDialog({
   const reset = () => {
     setOwnerType('Employee');
     setOwnerId('');
-    setFile(null);
+    setFiles([]);
     setCategory('Certificate');
     setDescription('');
     setExpiresAt('');
     setLocalError(null);
+    setProgress(null);
   };
 
   const resetUpload = upload.reset;
@@ -150,40 +156,55 @@ export function UploadDocumentDialog({
     onClose();
   };
 
-  const pick = (chosen: File | null) => {
+  const pick = (chosen: FileList | null) => {
     setLocalError(null);
 
-    if (chosen && chosen.size > MAX_ATTACHMENT_BYTES) {
+    if (!chosen || chosen.length === 0) {
+      return;
+    }
+
+    const picked = Array.from(chosen);
+    const tooLarge = picked.find((f) => f.size > MAX_ATTACHMENT_BYTES);
+
+    if (tooLarge) {
       setLocalError(
         t('attachments.tooLarge', {
           limit: Math.round(MAX_ATTACHMENT_BYTES / (1024 * 1024)),
         }),
       );
-      setFile(null);
       return;
     }
 
-    setFile(chosen);
+    setFiles((prev) => [...prev, ...picked]);
   };
 
-  const canSubmit = !!file && ownerId !== '';
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const canSubmit = files.length > 0 && ownerId !== '';
 
   const submit = async () => {
-    if (!file || ownerId === '') {
+    if (files.length === 0 || ownerId === '') {
       return;
     }
 
-    await upload.mutateAsync(
-      {
+    setProgress({ done: 0, total: files.length });
+
+    for (const [index, file] of files.entries()) {
+      // eslint-disable-next-line no-await-in-loop -- each upload must finish before the next starts
+      await upload.mutateAsync({
         ownerType,
         ownerId,
         category,
         file,
         description: description.trim() || null,
         expiresAt: expiryAllowed && expiresAt ? expiresAt : null,
-      },
-      { onSuccess: close },
-    );
+      });
+      setProgress({ done: index + 1, total: files.length });
+    }
+
+    close();
   };
 
   return (
@@ -233,14 +254,34 @@ export function UploadDocumentDialog({
           </FormControl>
 
           <Button variant="outlined" component="label">
-            {file ? file.name : t('attachments.chooseFile')}
+            {files.length > 0
+              ? t('attachments.filesChosen', { count: files.length })
+              : t('attachments.chooseFiles')}
             <input
               hidden
               type="file"
+              multiple
               accept={ACCEPTED_EXTENSIONS}
-              onChange={(event) => pick(event.target.files?.[0] ?? null)}
+              onChange={(event) => {
+                pick(event.target.files);
+                event.target.value = '';
+              }}
             />
           </Button>
+
+          {files.length > 0 && (
+            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+              {files.map((f, index) => (
+                <Chip
+                  key={`${f.name}-${index}`}
+                  label={f.name}
+                  size="small"
+                  onDelete={() => removeFile(index)}
+                  deleteIcon={<CloseOutlined />}
+                />
+              ))}
+            </Stack>
+          )}
 
           <FormControl fullWidth>
             <InputLabel id="upload-category-label">
@@ -297,7 +338,12 @@ export function UploadDocumentDialog({
           disabled={!canSubmit || upload.isPending}
           onClick={() => void submit()}
         >
-          {t('attachments.upload')}
+          {progress
+            ? t('attachments.uploadingProgress', {
+                done: progress.done,
+                total: progress.total,
+              })
+            : t('attachments.upload')}
         </Button>
       </DialogActions>
     </Dialog>

@@ -17,6 +17,7 @@ import {
 import { useMemo, useState } from 'react';
 
 import type { Attachment } from '../../api/types';
+import { AttachmentPreviewDialog } from '../../components/AttachmentPreviewDialog';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
 import { UploadDocumentDialog } from '../../components/UploadDocumentDialog';
@@ -46,6 +47,7 @@ export function ExpiringDocumentsPage() {
   const enumLabel = useEnumLabel();
   const [windowValue, setWindowValue] = useState<WindowValue>(30);
   const [uploading, setUploading] = useState(false);
+  const [previewing, setPreviewing] = useState<Attachment | null>(null);
 
   const { data, isError, error, refetch, isLoading } = useExpiringDocumentsQuery(
     windowValue === ALL_WINDOW ? null : windowValue,
@@ -121,6 +123,11 @@ export function ExpiringDocumentsPage() {
 
       <UploadDocumentDialog open={uploading} onClose={() => setUploading(false)} />
 
+      <AttachmentPreviewDialog
+        attachment={previewing}
+        onClose={() => setPreviewing(null)}
+      />
+
       {isError && <ErrorState error={error} onRetry={() => void refetch()} />}
 
       {sortedData && (
@@ -173,7 +180,12 @@ export function ExpiringDocumentsPage() {
                   new Date(`${document.expiresAt}T00:00`).getTime() < Date.now();
 
                 return (
-                  <TableRow key={document.id} hover>
+                  <TableRow
+                    key={document.id}
+                    hover
+                    onDoubleClick={() => setPreviewing(document)}
+                    sx={{ cursor: 'pointer' }}
+                  >
                     <TableCell>{document.fileName}</TableCell>
                     <TableCell>{document.ownerName ?? '—'}</TableCell>
                     <TableCell>
@@ -185,7 +197,9 @@ export function ExpiringDocumentsPage() {
                         color={lapsed ? 'error' : 'warning'}
                         label={
                           lapsed
-                            ? t('attachments.expired')
+                            ? t('attachments.expiredOn', {
+                                date: formatDate(document.expiresAt),
+                              })
                             : formatDate(document.expiresAt)
                         }
                       />

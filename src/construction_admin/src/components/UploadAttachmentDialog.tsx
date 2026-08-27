@@ -1,6 +1,8 @@
+import { CloseOutlined } from '@mui/icons-material';
 import {
   Alert,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -44,21 +46,25 @@ export function UploadAttachmentDialog({
   const enumLabel = useEnumLabel();
   const upload = useUploadAttachment();
 
-  const [file, setFile] = useState<File | null>(null);
+  const [files, setFiles] = useState<File[]>([]);
   const [category, setCategory] = useState<AttachmentCategory>(categories[0]!);
   const [description, setDescription] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(
+    null,
+  );
 
   // A photograph has no expiry, and the API refuses one.
   const expiryAllowed = category !== 'Photo';
 
   const reset = () => {
-    setFile(null);
+    setFiles([]);
     setCategory(categories[0]!);
     setDescription('');
     setExpiresAt('');
     setLocalError(null);
+    setProgress(null);
   };
 
   const close = () => {
@@ -66,40 +72,56 @@ export function UploadAttachmentDialog({
     onClose();
   };
 
-  const pick = (chosen: File | null) => {
+  const pick = (chosen: FileList | null) => {
     setLocalError(null);
+
+    if (!chosen || chosen.length === 0) {
+      return;
+    }
+
+    const picked = Array.from(chosen);
 
     // Checked here as well as on the server so a 20 MB upload is refused
     // before it is sent rather than after.
-    if (chosen && chosen.size > MAX_ATTACHMENT_BYTES) {
+    const tooLarge = picked.find((f) => f.size > MAX_ATTACHMENT_BYTES);
+
+    if (tooLarge) {
       setLocalError(
         t('attachments.tooLarge', {
           limit: Math.round(MAX_ATTACHMENT_BYTES / (1024 * 1024)),
         }),
       );
-      setFile(null);
       return;
     }
 
-    setFile(chosen);
+    setFiles((prev) => [...prev, ...picked]);
+  };
+
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const submit = async () => {
-    if (!file) {
+    if (files.length === 0) {
       return;
     }
 
-    await upload.mutateAsync(
-      {
+    setProgress({ done: 0, total: files.length });
+
+    for (const [index, file] of files.entries()) {
+      // eslint-disable-next-line no-await-in-loop -- each upload must finish before the next starts
+      await upload.mutateAsync({
         ownerType,
         ownerId,
         category,
         file,
         description: description.trim() || null,
         expiresAt: expiryAllowed && expiresAt ? expiresAt : null,
-      },
-      { onSuccess: close },
-    );
+      });
+      setProgress({ done: index + 1, total: files.length });
+    }
+
+    close();
   };
 
   return (
@@ -111,14 +133,34 @@ export function UploadAttachmentDialog({
           {upload.error && <Alert severity="error">{upload.error.message}</Alert>}
 
           <Button variant="outlined" component="label">
-            {file ? file.name : t('attachments.chooseFile')}
+            {files.length > 0
+              ? t('attachments.filesChosen', { count: files.length })
+              : t('attachments.chooseFiles')}
             <input
               hidden
               type="file"
+              multiple
               accept={ACCEPTED_EXTENSIONS}
-              onChange={(event) => pick(event.target.files?.[0] ?? null)}
+              onChange={(event) => {
+                pick(event.target.files);
+                event.target.value = '';
+              }}
             />
           </Button>
+
+          {files.length > 0 && (
+            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+              {files.map((f, index) => (
+                <Chip
+                  key={`${f.name}-${index}`}
+                  label={f.name}
+                  size="small"
+                  onDelete={() => removeFile(index)}
+                  deleteIcon={<CloseOutlined />}
+                />
+              ))}
+            </Stack>
+          )}
 
           <FormControl fullWidth>
             <InputLabel id="attachment-category-label">
@@ -172,10 +214,15 @@ export function UploadAttachmentDialog({
         <Button onClick={close}>{t('common.cancel')}</Button>
         <Button
           variant="contained"
-          disabled={!file || upload.isPending}
+          disabled={files.length === 0 || upload.isPending}
           onClick={() => void submit()}
         >
-          {t('attachments.upload')}
+          {progress
+            ? t('attachments.uploadingProgress', {
+                done: progress.done,
+                total: progress.total,
+              })
+            : t('attachments.upload')}
         </Button>
       </DialogActions>
     </Dialog>

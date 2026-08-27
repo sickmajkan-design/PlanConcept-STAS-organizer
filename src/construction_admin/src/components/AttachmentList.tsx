@@ -33,6 +33,7 @@ import { useDeleteWithConfirm } from '../hooks/useDeleteWithConfirm';
 import { useEnumLabel } from '../i18n/enumLabels';
 import { useT } from '../i18n/useI18n';
 import { formatDate } from '../utils/formatting';
+import { AttachmentPreviewDialog } from './AttachmentPreviewDialog';
 import { ConfirmDialog } from './ConfirmDialog';
 import { ErrorState } from './ErrorState';
 import { UploadAttachmentDialog } from './UploadAttachmentDialog';
@@ -84,6 +85,7 @@ export function AttachmentList({
 
   const remove = useDeleteWithConfirm<Attachment>(useDeleteAttachment());
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [previewing, setPreviewing] = useState<Attachment | null>(null);
 
   if (isError) {
     return <ErrorState error={error} onRetry={() => void refetch()} />;
@@ -121,6 +123,8 @@ export function AttachmentList({
             <ListItem
               key={attachment.id}
               divider
+              onDoubleClick={() => setPreviewing(attachment)}
+              sx={{ cursor: 'pointer' }}
               secondaryAction={
                 <Stack direction="row" spacing={0.5}>
                   <DownloadButton attachment={attachment} />
@@ -170,6 +174,11 @@ export function AttachmentList({
         ownerId={ownerId}
         categories={categories}
         onClose={() => setUploadOpen(false)}
+      />
+
+      <AttachmentPreviewDialog
+        attachment={previewing}
+        onClose={() => setPreviewing(null)}
       />
 
       <ConfirmDialog
@@ -253,7 +262,13 @@ function ExpiryChip({ expiresAt }: { expiresAt: string | null }) {
   const remaining = daysUntil(expiresAt);
 
   if (remaining < 0) {
-    return <Chip size="small" color="error" label={t('attachments.expired')} />;
+    return (
+      <Chip
+        size="small"
+        color="error"
+        label={t('attachments.expiredOn', { date: formatDate(expiresAt) })}
+      />
+    );
   }
 
   if (remaining <= SOON_DAYS) {
