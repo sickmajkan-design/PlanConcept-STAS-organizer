@@ -49,6 +49,7 @@ export const paths = {
   vehicleExpenses: '/vehicle-expenses',
   toolExpenses: '/tool-expenses',
   rates: '/rates',
+  publicHolidays: '/public-holidays',
   financeEntries: '/finance-entries',
 
   expiringDocuments: '/documents/expiring',

@@ -84,6 +84,24 @@ export function RatesPage() {
         valueGetter: (value) => formatMoney(value as number, locale),
       },
       {
+        field: 'weekendHourlyRate',
+        headerName: t('rates.weekendHourlyRate'),
+        width: 150,
+        align: 'right',
+        headerAlign: 'right',
+        valueGetter: (value) =>
+          value === null ? t('rates.noPremium') : formatMoney(value as number, locale),
+      },
+      {
+        field: 'holidayHourlyRate',
+        headerName: t('rates.holidayHourlyRate'),
+        width: 150,
+        align: 'right',
+        headerAlign: 'right',
+        valueGetter: (value) =>
+          value === null ? t('rates.noPremium') : formatMoney(value as number, locale),
+      },
+      {
         field: 'startDate',
         headerName: t('rates.startDate'),
         width: 120,
@@ -240,6 +258,8 @@ function RateDialog({
 
   const [employeeId, setEmployeeId] = useState('');
   const [hourlyRate, setHourlyRate] = useState('');
+  const [weekendHourlyRate, setWeekendHourlyRate] = useState('');
+  const [holidayHourlyRate, setHolidayHourlyRate] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [note, setNote] = useState('');
@@ -256,12 +276,20 @@ function RateDialog({
     if (editingRate) {
       setEmployeeId(editingRate.employeeId);
       setHourlyRate(String(editingRate.hourlyRate));
+      setWeekendHourlyRate(
+        editingRate.weekendHourlyRate === null ? '' : String(editingRate.weekendHourlyRate),
+      );
+      setHolidayHourlyRate(
+        editingRate.holidayHourlyRate === null ? '' : String(editingRate.holidayHourlyRate),
+      );
       setStartDate(editingRate.startDate);
       setEndDate(editingRate.endDate ?? '');
       setNote(editingRate.note ?? '');
     } else {
       setEmployeeId('');
       setHourlyRate('');
+      setWeekendHourlyRate('');
+      setHolidayHourlyRate('');
       setStartDate('');
       setEndDate('');
       setNote('');
@@ -271,13 +299,32 @@ function RateDialog({
   const parsedRate = Number(hourlyRate);
   const rateIsValid =
     hourlyRate.trim() !== '' && !Number.isNaN(parsedRate) && parsedRate > 0;
+
+  const parsedWeekendRate = Number(weekendHourlyRate);
+  const weekendRateIsValid =
+    weekendHourlyRate.trim() === ''
+    || (!Number.isNaN(parsedWeekendRate) && parsedWeekendRate > 0);
+
+  const parsedHolidayRate = Number(holidayHourlyRate);
+  const holidayRateIsValid =
+    holidayHourlyRate.trim() === ''
+    || (!Number.isNaN(parsedHolidayRate) && parsedHolidayRate > 0);
+
   const datesAreValid = !startDate || !endDate || endDate >= startDate;
 
-  const canSubmit = employeeId !== '' && rateIsValid && datesAreValid;
+  const canSubmit =
+    employeeId !== ''
+    && rateIsValid
+    && weekendRateIsValid
+    && holidayRateIsValid
+    && datesAreValid;
   const mutation = isEditing ? update : set;
   const error = mutation.isError ? toApiError(mutation.error) : null;
 
   const submit = () => {
+    const weekendRate = weekendHourlyRate.trim() === '' ? null : parsedWeekendRate;
+    const holidayRate = holidayHourlyRate.trim() === '' ? null : parsedHolidayRate;
+
     if (isEditing) {
       update.mutate(
         {
@@ -285,6 +332,8 @@ function RateDialog({
           input: {
             employeeId,
             hourlyRate: parsedRate,
+            weekendHourlyRate: weekendRate,
+            holidayHourlyRate: holidayRate,
             startDate,
             endDate: endDate || null,
             note: note.trim() || null,
@@ -297,6 +346,8 @@ function RateDialog({
         {
           employeeId,
           hourlyRate: parsedRate,
+          weekendHourlyRate: weekendRate,
+          holidayHourlyRate: holidayRate,
           startDate: startDate || null,
           endDate: endDate || null,
           note: note.trim() || null,
@@ -343,6 +394,38 @@ function RateDialog({
               error={hourlyRate.trim() !== '' && !rateIsValid}
               helperText={
                 hourlyRate.trim() !== '' && !rateIsValid
+                  ? t('rates.mustBePositive')
+                  : undefined
+              }
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              type="number"
+              fullWidth
+              label={t('rates.weekendHourlyRate')}
+              value={weekendHourlyRate}
+              onChange={(event) => setWeekendHourlyRate(event.target.value)}
+              error={weekendHourlyRate.trim() !== '' && !weekendRateIsValid}
+              helperText={
+                weekendHourlyRate.trim() !== '' && !weekendRateIsValid
+                  ? t('rates.mustBePositive')
+                  : undefined
+              }
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              type="number"
+              fullWidth
+              label={t('rates.holidayHourlyRate')}
+              value={holidayHourlyRate}
+              onChange={(event) => setHolidayHourlyRate(event.target.value)}
+              error={holidayHourlyRate.trim() !== '' && !holidayRateIsValid}
+              helperText={
+                holidayHourlyRate.trim() !== '' && !holidayRateIsValid
                   ? t('rates.mustBePositive')
                   : undefined
               }

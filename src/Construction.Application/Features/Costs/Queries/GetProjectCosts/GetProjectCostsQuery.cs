@@ -129,22 +129,36 @@ public class GetProjectCostsQueryHandler
     }
 
     /// <summary>
-    /// Approved hours per site, priced by the rate in force on the day.
+    /// Approved hours per site, priced by the rate in force on the day —
+    /// weekend and public-holiday hours at that rate's own premium, when it
+    /// sets one.
     /// </summary>
     /// <remarks>
-    /// The rate is found per entry with a correlated subquery rather than
-    /// loading every rate and matching in memory, so the work stays in the
-    /// database where the index is. An entry no rate covers contributes its
-    /// minutes to <c>UnpricedMinutes</c> and nothing to the cost — reported,
-    /// not silently free.
+    /// The covering rate is found per entry with a correlated subquery rather
+    /// than loading every rate and matching in memory, so the work stays in
+    /// the database where the index is; the subquery now returns all three
+    /// prices at once instead of just the base hourly rate.
+    /// Which of the three applies is decided afterwards, in memory, because
+    /// that decision needs the holiday calendar and a plain <c>DayOfWeek</c>
+    /// check — neither translates cleanly into the same query. An entry no
+    /// rate covers still contributes its minutes to <c>UnpricedMinutes</c> and
+    /// nothing to the cost — reported, not silently free.
     ///
-    /// The day is taken from the shift's start in UTC. A shift beginning
-    /// after midnight local time therefore prices against the previous day,
-    /// which only matters when a rate changes on exactly that date.
+    /// The day is taken from the shift's start in UTC, exactly as before this
+    /// premium existed. A shift beginning after midnight local time therefore
+    /// prices — and is weekend/holiday-classified — against the previous day,
+    /// which only matters right at a boundary.
     /// </remarks>
     private async Task<Dictionary<Guid, (int Minutes, decimal Cost, int UnpricedMinutes)>>
         LoadLabourAsync(GetProjectCostsQuery request, CancellationToken cancellationToken)
     {
+        var holidays = (await _context.PublicHolidays
+                .AsNoTracking()
+                .Where(h => h.Date >= request.From && h.Date <= request.To)
+                .Select(h => h.Date)
+                .ToListAsync(cancellationToken))
+            .ToHashSet();
+
         var priced = await _context.TimeEntries
             .AsNoTracking()
             .Where(t => t.Status == TimeEntryStatus.Approved
@@ -156,28 +170,47 @@ public class GetProjectCostsQueryHandler
             .Select(t => new
             {
                 ProjectId = t.ProjectId!.Value,
+                Day = DateOnly.FromDateTime(t.StartedAt),
                 // Npgsql turns the subtraction into an interval and
                 // TotalMinutes into the epoch extraction; the same shape the
                 // timesheet summary already uses.
                 Minutes = (int)((t.EndedAt!.Value - t.StartedAt).TotalMinutes
                     - t.BreakMinutes),
-                HourlyRate = _context.EmployeeRates
+                Rate = _context.EmployeeRates
                     .Where(r => r.EmployeeId == t.EmployeeId
                         && r.StartDate <= DateOnly.FromDateTime(t.StartedAt)
                         && (r.EndDate == null || r.EndDate >= DateOnly.FromDateTime(t.StartedAt)))
-                    .Select(r => (decimal?)r.HourlyRate)
+                    .Select(r => new
+                    {
+                        r.HourlyRate,
+                        r.WeekendHourlyRate,
+                        r.HolidayHourlyRate
+                    })
                     .FirstOrDefault()
             })
             .ToListAsync(cancellationToken);
 
-        return priced
+        var withEffectiveRate = priced.Select(t => new
+        {
+            t.ProjectId,
+            t.Minutes,
+            EffectiveRate = t.Rate is null
+                ? (decimal?)null
+                : holidays.Contains(t.Day)
+                    ? t.Rate.HolidayHourlyRate ?? t.Rate.HourlyRate
+                : t.Day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday
+                    ? t.Rate.WeekendHourlyRate ?? t.Rate.HourlyRate
+                : t.Rate.HourlyRate
+        });
+
+        return withEffectiveRate
             .GroupBy(t => t.ProjectId)
             .ToDictionary(
                 g => g.Key,
                 g => (
                     Minutes: g.Sum(t => t.Minutes),
-                    Cost: g.Sum(t => t.HourlyRate is { } rate ? rate * t.Minutes / 60m : 0m),
-                    UnpricedMinutes: g.Where(t => t.HourlyRate is null).Sum(t => t.Minutes)));
+                    Cost: g.Sum(t => t.EffectiveRate is { } rate ? rate * t.Minutes / 60m : 0m),
+                    UnpricedMinutes: g.Where(t => t.EffectiveRate is null).Sum(t => t.Minutes)));
     }
 
     /// <summary>

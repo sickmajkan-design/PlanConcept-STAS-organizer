@@ -626,6 +626,7 @@ export const en = {
   'nav.toolExpenses': 'Tool costs',
   'nav.assignmentBoard': 'Assignment board',
   'nav.rates': 'Pay rates',
+  'nav.publicHolidays': 'Public holidays',
   'nav.financeEntries': 'Finance entries',
   'nav.annualRealization': 'Annual realization',
 
@@ -737,6 +738,9 @@ export const en = {
   'rates.editTitle': 'Edit rate',
   'rates.employee': 'Employee',
   'rates.hourlyRate': 'Cost per hour',
+  'rates.weekendHourlyRate': 'Weekend rate',
+  'rates.holidayHourlyRate': 'Holiday rate',
+  'rates.noPremium': '—',
   'rates.startDate': 'From',
   'rates.endDate': 'To',
   'rates.open': 'In force',
@@ -754,6 +758,15 @@ export const en = {
   'rates.endsBeforeStart': 'The rate cannot end before it starts.',
   'rates.mustBePositive': 'An hour has to cost something.',
   'rates.summaryAverage': 'Average rate',
+
+  'publicHolidays.title': 'Public holidays',
+  'publicHolidays.subtitle': 'Dates priced at a pay rate\'s holiday premium, when it sets one.',
+  'publicHolidays.add': 'Add a holiday',
+  'publicHolidays.date': 'Date',
+  'publicHolidays.name': 'Name',
+  'publicHolidays.empty': 'No holidays on the calendar.',
+  'publicHolidays.deleteTitle': 'Remove this holiday?',
+  'publicHolidays.deleteBody': '{name} will no longer be priced at the holiday rate.',
 
   'financeEntries.title': 'Finance entries',
   'financeEntries.add': 'Record pay',

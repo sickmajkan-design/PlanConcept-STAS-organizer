@@ -26,6 +26,12 @@ public record UpdateEmployeeRateCommand : IRequest<EmployeeRateDto>
 
     public decimal HourlyRate { get; init; }
 
+    /// <summary>Cost per hour on a Saturday or Sunday. Null means no premium.</summary>
+    public decimal? WeekendHourlyRate { get; init; }
+
+    /// <summary>Cost per hour on a listed public holiday. Null means no premium.</summary>
+    public decimal? HolidayHourlyRate { get; init; }
+
     public DateOnly StartDate { get; init; }
 
     public DateOnly? EndDate { get; init; }
@@ -43,6 +49,16 @@ public class UpdateEmployeeRateCommandValidator : AbstractValidator<UpdateEmploy
             .GreaterThan(0).WithMessage("An hour has to cost something.")
             .LessThanOrEqualTo(CostRules.MaxHourlyRate)
             .WithMessage("That rate looks like a typo rather than a wage.");
+
+        RuleFor(x => x.WeekendHourlyRate)
+            .GreaterThan(0).LessThanOrEqualTo(CostRules.MaxHourlyRate)
+            .WithMessage("That rate looks like a typo rather than a wage.")
+            .When(x => x.WeekendHourlyRate is not null);
+
+        RuleFor(x => x.HolidayHourlyRate)
+            .GreaterThan(0).LessThanOrEqualTo(CostRules.MaxHourlyRate)
+            .WithMessage("That rate looks like a typo rather than a wage.")
+            .When(x => x.HolidayHourlyRate is not null);
 
         RuleFor(x => x.EndDate)
             .GreaterThanOrEqualTo(x => x.StartDate)
@@ -97,6 +113,8 @@ public class UpdateEmployeeRateCommandHandler
         }
 
         rate.HourlyRate = request.HourlyRate;
+        rate.WeekendHourlyRate = request.WeekendHourlyRate;
+        rate.HolidayHourlyRate = request.HolidayHourlyRate;
         rate.StartDate = request.StartDate;
         rate.EndDate = request.EndDate;
         rate.Note = request.Note?.Trim();

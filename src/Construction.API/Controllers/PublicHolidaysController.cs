@@ -1,0 +1,61 @@
+using Construction.API.Authorization;
+using Construction.Application.Features.PublicHolidays.Commands.CreatePublicHoliday;
+using Construction.Application.Features.PublicHolidays.Commands.DeletePublicHoliday;
+using Construction.Application.Features.PublicHolidays.Models;
+using Construction.Application.Features.PublicHolidays.Queries.GetPublicHolidays;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace Construction.API.Controllers;
+
+/// <summary>
+/// The calendar a pay rate's holiday premium is priced against.
+/// </summary>
+/// <remarks>
+/// Same route policy as <see cref="CostsController"/> — the finer split
+/// between reading and managing the calendar lives in <c>CostRules</c>,
+/// mirroring how pay rates themselves are gated.
+/// </remarks>
+[Authorize(Policy = Policies.ForemanAndAbove)]
+public class PublicHolidaysController : ApiControllerBase
+{
+    /// <summary>Lists the holiday calendar. Refused below Project Manager.</summary>
+    [HttpGet("/api/v{version:apiVersion}/public-holidays")]
+    [HttpGet("/api/public-holidays")]
+    [ProducesResponseType(typeof(IReadOnlyList<PublicHolidayDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<IReadOnlyList<PublicHolidayDto>>> GetList(
+        [FromQuery] GetPublicHolidaysQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>Adds a date to the holiday calendar. Admin and above.</summary>
+    [HttpPost("/api/v{version:apiVersion}/public-holidays")]
+    [HttpPost("/api/public-holidays")]
+    [ProducesResponseType(typeof(PublicHolidayDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<PublicHolidayDto>> Create(
+        CreatePublicHolidayCommand command,
+        CancellationToken cancellationToken)
+    {
+        var holiday = await Mediator.Send(command, cancellationToken);
+
+        return CreatedAtAction(nameof(GetList), new { id = holiday.Id }, holiday);
+    }
+
+    /// <summary>Removes a date from the holiday calendar. Admin and above.</summary>
+    [HttpDelete("/api/v{version:apiVersion}/public-holidays/{id:guid}")]
+    [HttpDelete("/api/public-holidays/{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new DeletePublicHolidayCommand(id), cancellationToken);
+        return NoContent();
+    }
+}

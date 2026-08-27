@@ -26,6 +26,18 @@ public class EmployeeRate : BaseEntity, IAuditable
     /// <summary>Cost per hour, in the system's single currency.</summary>
     public decimal HourlyRate { get; set; }
 
+    /// <summary>
+    /// Cost per hour on a Saturday or Sunday. Null means no premium — a
+    /// weekend hour costs the same as any other.
+    /// </summary>
+    public decimal? WeekendHourlyRate { get; set; }
+
+    /// <summary>
+    /// Cost per hour on a day listed in <see cref="PublicHoliday"/>. Null
+    /// means no premium.
+    /// </summary>
+    public decimal? HolidayHourlyRate { get; set; }
+
     public DateOnly StartDate { get; set; }
 
     /// <summary>Null means it is the rate in force, with no end set.</summary>

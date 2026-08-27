@@ -18,7 +18,8 @@ public record GetEmployeeRatesQuery : ISortablePagedQuery, IRequest<PagedList<Em
 {
     public static readonly string[] AllowedSortFields =
     [
-        "employeeName", "hourlyRate", "startDate", "endDate", "setByName", "createdAt"
+        "employeeName", "hourlyRate", "weekendHourlyRate", "holidayHourlyRate",
+        "startDate", "endDate", "setByName", "createdAt"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -109,6 +110,14 @@ public class GetEmployeeRatesQueryHandler
                 .ThenByDescending(r => r.Employee.FirstName),
             ("hourlyrate", false) => query.OrderBy(r => r.HourlyRate),
             ("hourlyrate", true) => query.OrderByDescending(r => r.HourlyRate),
+            ("weekendhourlyrate", false) => query
+                .OrderBy(r => r.WeekendHourlyRate == null).ThenBy(r => r.WeekendHourlyRate),
+            ("weekendhourlyrate", true) => query
+                .OrderByDescending(r => r.WeekendHourlyRate == null).ThenByDescending(r => r.WeekendHourlyRate),
+            ("holidayhourlyrate", false) => query
+                .OrderBy(r => r.HolidayHourlyRate == null).ThenBy(r => r.HolidayHourlyRate),
+            ("holidayhourlyrate", true) => query
+                .OrderByDescending(r => r.HolidayHourlyRate == null).ThenByDescending(r => r.HolidayHourlyRate),
             ("startdate", false) => query.OrderBy(r => r.StartDate),
             ("enddate", false) => query.OrderBy(r => r.EndDate == null).ThenBy(r => r.EndDate),
             ("enddate", true) => query.OrderByDescending(r => r.EndDate == null).ThenByDescending(r => r.EndDate),

@@ -14,6 +14,10 @@ public class EmployeeRateDto
 
     public decimal HourlyRate { get; init; }
 
+    public decimal? WeekendHourlyRate { get; init; }
+
+    public decimal? HolidayHourlyRate { get; init; }
+
     public DateOnly StartDate { get; init; }
 
     public DateOnly? EndDate { get; init; }
@@ -187,6 +191,8 @@ public static class EmployeeRateMapping
             EmployeeId = rate.EmployeeId,
             EmployeeName = rate.Employee.FirstName + " " + rate.Employee.LastName,
             HourlyRate = rate.HourlyRate,
+            WeekendHourlyRate = rate.WeekendHourlyRate,
+            HolidayHourlyRate = rate.HolidayHourlyRate,
             StartDate = rate.StartDate,
             EndDate = rate.EndDate,
             Note = rate.Note,

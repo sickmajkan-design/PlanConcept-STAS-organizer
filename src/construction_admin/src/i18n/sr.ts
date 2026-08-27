@@ -637,6 +637,7 @@ export const sr: Record<MessageKey, Message> = {
   'nav.vehicleExpenses': 'Troškovi vozila',
   'nav.toolExpenses': 'Troškovi alata',
   'nav.rates': 'Cene rada',
+  'nav.publicHolidays': 'Državni praznici',
   'nav.financeEntries': 'Finansijski unosi',
   'nav.annualRealization': 'Godišnja realizacija',
 
@@ -749,6 +750,9 @@ export const sr: Record<MessageKey, Message> = {
   'rates.editTitle': 'Izmeni cenu',
   'rates.employee': 'Radnik',
   'rates.hourlyRate': 'Cena po satu',
+  'rates.weekendHourlyRate': 'Cena vikendom',
+  'rates.holidayHourlyRate': 'Cena praznikom',
+  'rates.noPremium': '—',
   'rates.startDate': 'Od',
   'rates.endDate': 'Do',
   'rates.open': 'Na snazi',
@@ -766,6 +770,15 @@ export const sr: Record<MessageKey, Message> = {
   'rates.endsBeforeStart': 'Cena ne može da se završi pre nego što počne.',
   'rates.mustBePositive': 'Sat mora nešto da košta.',
   'rates.summaryAverage': 'Prosečna cena',
+
+  'publicHolidays.title': 'Državni praznici',
+  'publicHolidays.subtitle': 'Datumi koji se, ako cena to predviđa, obračunavaju po prazničnoj stopi.',
+  'publicHolidays.add': 'Dodaj praznik',
+  'publicHolidays.date': 'Datum',
+  'publicHolidays.name': 'Naziv',
+  'publicHolidays.empty': 'Nema praznika na kalendaru.',
+  'publicHolidays.deleteTitle': 'Obrisati ovaj praznik?',
+  'publicHolidays.deleteBody': '{name} se više neće obračunavati po prazničnoj stopi.',
 
   'financeEntries.title': 'Finansijski unosi',
   'financeEntries.add': 'Evidentiraj isplatu',

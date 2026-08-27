@@ -136,6 +136,11 @@ const ToolExpensesPage = lazy(() =>
 const RatesPage = lazy(() =>
   import('./pages/costs/RatesPage').then((m) => ({ default: m.RatesPage })),
 );
+const PublicHolidaysPage = lazy(() =>
+  import('./pages/costs/PublicHolidaysPage').then((m) => ({
+    default: m.PublicHolidaysPage,
+  })),
+);
 const FinanceEntriesPage = lazy(() =>
   import('./pages/costs/FinanceEntriesPage').then((m) => ({
     default: m.FinanceEntriesPage,
@@ -278,6 +283,7 @@ function Layout() {
 
             <Route element={<RequireLabourCostAccess />}>
               <Route path={paths.rates} element={<RatesPage />} />
+              <Route path={paths.publicHolidays} element={<PublicHolidaysPage />} />
               <Route path={paths.financeEntries} element={<FinanceEntriesPage />} />
               <Route
                 path={paths.annualRealization}

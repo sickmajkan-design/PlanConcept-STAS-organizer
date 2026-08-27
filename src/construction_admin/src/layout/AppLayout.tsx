@@ -16,6 +16,7 @@ import {
   LocalGasStationOutlined,
   SwapVertOutlined,
   RequestQuoteOutlined,
+  EventOutlined,
   ReceiptLongOutlined,
   TrendingUpOutlined,
   DashboardCustomizeOutlined,
@@ -131,6 +132,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
     ...(canSeeLabourCost(user)
       ? [
           { label: t('nav.rates'), path: paths.rates, icon: <RequestQuoteOutlined /> },
+          {
+            label: t('nav.publicHolidays'),
+            path: paths.publicHolidays,
+            icon: <EventOutlined />,
+          },
           {
             label: t('nav.financeEntries'),
             path: paths.financeEntries,

@@ -18,6 +18,8 @@ public class EmployeeRateConfiguration : IEntityTypeConfiguration<EmployeeRate>
         // Money, not a measurement: two decimals and no binary floating point
         // anywhere near it.
         builder.Property(r => r.HourlyRate).HasPrecision(18, 2);
+        builder.Property(r => r.WeekendHourlyRate).HasPrecision(18, 2);
+        builder.Property(r => r.HolidayHourlyRate).HasPrecision(18, 2);
 
         builder.Property(r => r.Note).HasMaxLength(500);
 
@@ -41,6 +43,14 @@ public class EmployeeRateConfiguration : IEntityTypeConfiguration<EmployeeRate>
             // silently rather than loudly.
             t.HasCheckConstraint(
                 "ck_employee_rates_positive", "\"HourlyRate\" > 0");
+
+            t.HasCheckConstraint(
+                "ck_employee_rates_weekend_positive",
+                "\"WeekendHourlyRate\" IS NULL OR \"WeekendHourlyRate\" > 0");
+
+            t.HasCheckConstraint(
+                "ck_employee_rates_holiday_positive",
+                "\"HolidayHourlyRate\" IS NULL OR \"HolidayHourlyRate\" > 0");
         });
 
         // "What did this person cost per hour on day D" — the join every cost

@@ -20,6 +20,12 @@ public record SetEmployeeRateCommand : IRequest<EmployeeRateDto>
 
     public decimal HourlyRate { get; init; }
 
+    /// <summary>Cost per hour on a Saturday or Sunday. Null means no premium.</summary>
+    public decimal? WeekendHourlyRate { get; init; }
+
+    /// <summary>Cost per hour on a listed public holiday. Null means no premium.</summary>
+    public decimal? HolidayHourlyRate { get; init; }
+
     /// <summary>Defaults to today.</summary>
     public DateOnly? StartDate { get; init; }
 
@@ -39,6 +45,16 @@ public class SetEmployeeRateCommandValidator : AbstractValidator<SetEmployeeRate
             .GreaterThan(0).WithMessage("An hour has to cost something.")
             .LessThanOrEqualTo(CostRules.MaxHourlyRate)
             .WithMessage("That rate looks like a typo rather than a wage.");
+
+        RuleFor(x => x.WeekendHourlyRate)
+            .GreaterThan(0).LessThanOrEqualTo(CostRules.MaxHourlyRate)
+            .WithMessage("That rate looks like a typo rather than a wage.")
+            .When(x => x.WeekendHourlyRate is not null);
+
+        RuleFor(x => x.HolidayHourlyRate)
+            .GreaterThan(0).LessThanOrEqualTo(CostRules.MaxHourlyRate)
+            .WithMessage("That rate looks like a typo rather than a wage.")
+            .When(x => x.HolidayHourlyRate is not null);
 
         RuleFor(x => x.EndDate)
             .GreaterThanOrEqualTo(x => x.StartDate!.Value)
@@ -85,6 +101,8 @@ public class SetEmployeeRateCommandHandler
         {
             EmployeeId = request.EmployeeId,
             HourlyRate = request.HourlyRate,
+            WeekendHourlyRate = request.WeekendHourlyRate,
+            HolidayHourlyRate = request.HolidayHourlyRate,
             StartDate = startDate,
             EndDate = request.EndDate,
             Note = request.Note?.Trim(),

@@ -701,6 +701,10 @@ export interface EmployeeRate {
   employeeId: string;
   employeeName: string;
   hourlyRate: number;
+  /** Cost per hour on a Saturday or Sunday. Null means no premium. */
+  weekendHourlyRate: number | null;
+  /** Cost per hour on a listed public holiday. Null means no premium. */
+  holidayHourlyRate: number | null;
   /** `YYYY-MM-DD`. */
   startDate: string;
   /** `YYYY-MM-DD`, or null while it is the rate in force. */
@@ -713,6 +717,8 @@ export interface EmployeeRate {
 export interface EmployeeRateInput {
   employeeId: string;
   hourlyRate: number;
+  weekendHourlyRate?: number | null;
+  holidayHourlyRate?: number | null;
   startDate?: string | null;
   endDate?: string | null;
   note?: string | null;
@@ -974,4 +980,17 @@ export interface AuditEntry {
   userRole: string | null;
   ipAddress: string | null;
   changes: Record<string, AuditChange>;
+}
+
+/** A date priced like a holiday, wherever a pay rate sets a holiday premium. */
+export interface PublicHoliday {
+  id: string;
+  /** `YYYY-MM-DD`. */
+  date: string;
+  name: string;
+}
+
+export interface PublicHolidayInput {
+  date: string;
+  name: string;
 }
