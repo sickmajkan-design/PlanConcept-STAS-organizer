@@ -143,6 +143,7 @@ export function ToolExpensesPage() {
     <Box>
       <PageHeader
         title={t('toolExpenses.title')}
+        description={t('toolExpenses.description')}
         subtitle={data ? t('common.total', { count: data.totalCount }) : undefined}
         action={{
           label: t('toolExpenses.add'),

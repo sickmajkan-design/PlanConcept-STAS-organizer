@@ -73,7 +73,7 @@ export function PublicHolidaysPage() {
     <Box>
       <PageHeader
         title={t('publicHolidays.title')}
-        subtitle={t('publicHolidays.subtitle')}
+        description={t('publicHolidays.subtitle')}
         action={{
           label: t('publicHolidays.add'),
           icon: <AddOutlined />,

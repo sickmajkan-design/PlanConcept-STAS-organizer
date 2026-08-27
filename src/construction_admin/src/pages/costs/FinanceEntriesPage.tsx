@@ -153,6 +153,7 @@ export function FinanceEntriesPage() {
     <Box>
       <PageHeader
         title={t('financeEntries.title')}
+        description={t('financeEntries.description')}
         subtitle={data ? t('common.total', { count: data.totalCount }) : undefined}
         action={{
           label: t('financeEntries.add'),

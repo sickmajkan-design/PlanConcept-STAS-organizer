@@ -166,6 +166,7 @@ export function VehicleExpensesPage() {
     <Box>
       <PageHeader
         title={t('vehicleExpenses.title')}
+        description={t('vehicleExpenses.description')}
         subtitle={data ? t('common.total', { count: data.totalCount }) : undefined}
         action={{
           label: t('vehicleExpenses.add'),

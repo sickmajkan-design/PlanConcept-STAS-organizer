@@ -55,7 +55,7 @@ export function CostsPage() {
 
   return (
     <Box>
-      <PageHeader title={t('costs.title')} subtitle={t('costs.subtitle')} />
+      <PageHeader title={t('costs.title')} description={t('costs.subtitle')} />
 
       <PeriodPicker period={period} onChange={setPeriod} />
 

@@ -642,7 +642,8 @@ export const sr: Record<MessageKey, Message> = {
   'nav.annualRealization': 'Godišnja realizacija',
 
   'costs.title': 'Troškovi',
-  'costs.subtitle': 'Koliko je stvarno koštalo koje gradilište i koje vozilo.',
+  'costs.subtitle':
+    'Automatski izveštaj: rad iz odobrenih sati × cena rada, plus materijal, vozila i alati. Ne uključuje Finansijske unose — oni se prikazuju kao isplata po ekipi na stranicama Projekta i Zaposlenog.',
   'costs.projects': 'Po gradilištu',
   'costs.vehicles': 'Po vozilu',
   'costs.from': 'Od',
@@ -677,6 +678,8 @@ export const sr: Record<MessageKey, Message> = {
   'costs.maintenance': 'Održavanje',
 
   'movements.title': 'Promet materijala',
+  'movements.description':
+    'Nabavke i izdavanja materijala na gradilište. Direktno ulazi u trošak materijala na izveštaju Troškovi.',
   'movements.add': 'Evidentiraj promet',
   'movements.editTitle': 'Izmeni promet',
   'movements.material': 'Materijal',
@@ -700,6 +703,8 @@ export const sr: Record<MessageKey, Message> = {
   'movements.summaryValue': 'Ukupna vrednost',
 
   'vehicleExpenses.title': 'Troškovi vozila',
+  'vehicleExpenses.description':
+    'Gorivo, servis i ostali pojedinačni troškovi vozila. Direktno ulazi u tab "Po vozilu" na izveštaju Troškovi.',
   'vehicleExpenses.add': 'Evidentiraj trošak',
   'vehicleExpenses.editTitle': 'Izmeni trošak',
   'vehicleExpenses.vehicle': 'Vozilo',
@@ -724,6 +729,8 @@ export const sr: Record<MessageKey, Message> = {
   'vehicleExpenses.summaryLitres': 'Ukupno litara',
 
   'toolExpenses.title': 'Troškovi alata',
+  'toolExpenses.description':
+    'Popravke, održavanje i ostali pojedinačni troškovi alata. Direktno ulazi u tab "Po alatu" na izveštaju Troškovi.',
   'toolExpenses.add': 'Evidentiraj trošak',
   'toolExpenses.editTitle': 'Izmeni trošak',
   'toolExpenses.tool': 'Alat',
@@ -746,6 +753,8 @@ export const sr: Record<MessageKey, Message> = {
   'toolExpenseKind.Other': 'Ostalo',
 
   'rates.title': 'Cene rada',
+  'rates.description':
+    'Koliko košta sat rada zaposlenog. Koristi se za automatski obračun odobrenih sati na izveštaju Troškovi — ne beleži šta je stvarno isplaćeno, to su Finansijski unosi.',
   'rates.add': 'Postavi cenu',
   'rates.editTitle': 'Izmeni cenu',
   'rates.employee': 'Radnik',
@@ -781,6 +790,8 @@ export const sr: Record<MessageKey, Message> = {
   'publicHolidays.deleteBody': '{name} se više neće obračunavati po prazničnoj stopi.',
 
   'financeEntries.title': 'Finansijski unosi',
+  'financeEntries.description':
+    'Šta je zaposlenom stvarno isplaćeno, ručno uneto. Ne ulazi u izveštaj Troškovi — prikazuje se kao isplata ispod ekipe na stranicama Projekta i Zaposlenog.',
   'financeEntries.add': 'Evidentiraj isplatu',
   'financeEntries.editTitle': 'Izmeni unos',
   'financeEntries.employee': 'Radnik',

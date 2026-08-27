@@ -631,7 +631,8 @@ export const en = {
   'nav.annualRealization': 'Annual realization',
 
   'costs.title': 'Costs',
-  'costs.subtitle': 'What each site and each vehicle actually cost.',
+  'costs.subtitle':
+    "Automatic report: labour from approved hours × pay rate, plus material, vehicle and tool ledgers. Doesn't include Finance entries — those show as pay per crew posting on the Project and Employee pages instead.",
   'costs.projects': 'By site',
   'costs.vehicles': 'By vehicle',
   'costs.from': 'From',
@@ -665,6 +666,8 @@ export const en = {
   'costs.maintenance': 'Maintenance',
 
   'movements.title': 'Stock movements',
+  'movements.description':
+    "Deliveries and issues to site. Feeds the Costs report's material total directly.",
   'movements.add': 'Record a movement',
   'movements.editTitle': 'Edit movement',
   'movements.material': 'Material',
@@ -688,6 +691,8 @@ export const en = {
   'movements.summaryValue': 'Total value',
 
   'vehicleExpenses.title': 'Vehicle costs',
+  'vehicleExpenses.description':
+    "Fuel, servicing and other individual vehicle costs. Feeds the Costs report's \"By vehicle\" tab directly.",
   'vehicleExpenses.add': 'Record a cost',
   'vehicleExpenses.editTitle': 'Edit cost',
   'vehicleExpenses.vehicle': 'Vehicle',
@@ -712,6 +717,8 @@ export const en = {
   'vehicleExpenses.summaryLitres': 'Total litres',
 
   'toolExpenses.title': 'Tool costs',
+  'toolExpenses.description':
+    "Repairs, maintenance and other individual tool costs. Feeds the Costs report's \"By tool\" tab directly.",
   'toolExpenses.add': 'Record a cost',
   'toolExpenses.editTitle': 'Edit cost',
   'toolExpenses.tool': 'Tool',
@@ -734,6 +741,8 @@ export const en = {
   'toolExpenseKind.Other': 'Other',
 
   'rates.title': 'Pay rates',
+  'rates.description':
+    "What an hour of someone's time costs. Used to automatically price approved hours on the Costs report — it does not record what was actually paid; that's Finance entries.",
   'rates.add': 'Set a rate',
   'rates.editTitle': 'Edit rate',
   'rates.employee': 'Employee',
@@ -769,6 +778,8 @@ export const en = {
   'publicHolidays.deleteBody': '{name} will no longer be priced at the holiday rate.',
 
   'financeEntries.title': 'Finance entries',
+  'financeEntries.description':
+    "What was actually paid to an employee, entered by hand. Doesn't feed the Costs report — shows as pay under each crew posting on the Project and Employee pages instead.",
   'financeEntries.add': 'Record pay',
   'financeEntries.editTitle': 'Edit entry',
   'financeEntries.employee': 'Employee',

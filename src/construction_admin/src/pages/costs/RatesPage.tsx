@@ -159,6 +159,7 @@ export function RatesPage() {
     <Box>
       <PageHeader
         title={t('rates.title')}
+        description={t('rates.description')}
         subtitle={data ? t('common.total', { count: data.totalCount }) : undefined}
         action={{
           label: t('rates.add'),

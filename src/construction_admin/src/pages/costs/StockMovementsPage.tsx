@@ -169,6 +169,7 @@ export function StockMovementsPage() {
     <Box>
       <PageHeader
         title={t('movements.title')}
+        description={t('movements.description')}
         subtitle={data ? t('common.total', { count: data.totalCount }) : undefined}
         action={{
           label: t('movements.add'),
