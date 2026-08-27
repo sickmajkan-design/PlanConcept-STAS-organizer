@@ -85,12 +85,19 @@ export const attachmentsApi = {
    * blob is held in memory.
    */
   objectUrl: async (id: string): Promise<string> => {
+    const blob = await attachmentsApi.blob(id);
+
+    return URL.createObjectURL(blob);
+  },
+
+  /** The raw bytes, for callers that need to parse the file rather than just display it. */
+  blob: async (id: string): Promise<Blob> => {
     const response = await apiClient.request<Blob>({
       method: 'GET',
       url: `/api/v1/attachments/${id}/content`,
       responseType: 'blob',
     });
 
-    return URL.createObjectURL(response.data);
+    return response.data;
   },
 };

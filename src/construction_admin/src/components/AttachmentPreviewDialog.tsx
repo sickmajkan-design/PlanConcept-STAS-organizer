@@ -16,13 +16,63 @@ import { attachmentsApi } from '../api/attachments';
 import type { Attachment } from '../api/types';
 import { useT } from '../i18n/useI18n';
 
+type PreviewState =
+  | { kind: 'loading' }
+  | { kind: 'image'; url: string }
+  | { kind: 'pdf'; url: string }
+  | { kind: 'text'; text: string }
+  | { kind: 'html'; html: string; note?: string }
+  | { kind: 'unsupported' }
+  | { kind: 'error' };
+
+function extensionOf(fileName: string): string {
+  const dot = fileName.lastIndexOf('.');
+
+  return dot === -1 ? '' : fileName.slice(dot + 1).toLowerCase();
+}
+
+const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
+const HEIC_EXTENSIONS = ['heic', 'heif'];
+const EXCEL_EXTENSIONS = ['xls', 'xlsx'];
+
 /**
- * A large in-place look at one document, opened on double-click instead of
- * making every look a download.
+ * Strips anything a parsed document could use to run script or reach off the
+ * page before it is handed to `dangerouslySetInnerHTML` — mammoth and
+ * SheetJS both build real HTML from file content, so a crafted file name,
+ * cell value, or paragraph is attacker-controlled text by the time it gets
+ * here.
+ */
+function sanitizeHtml(html: string): string {
+  const parsed = new DOMParser().parseFromString(html, 'text/html');
+
+  parsed
+    .querySelectorAll('script, style, iframe, object, embed, link, meta')
+    .forEach((el) => el.remove());
+
+  parsed.querySelectorAll('*').forEach((el) => {
+    for (const attr of [...el.attributes]) {
+      const name = attr.name.toLowerCase();
+      const value = attr.value.trim().toLowerCase();
+
+      if (name.startsWith('on') || ((name === 'href' || name === 'src') && value.startsWith('javascript:'))) {
+        el.removeAttribute(attr.name);
+      }
+    }
+  });
+
+  return parsed.body.innerHTML;
+}
+
+/**
+ * A large in-place look at any uploaded document, opened on double-click
+ * instead of making every look a download.
  *
- * Only images and PDFs render inline — a browser has no built-in way to show
- * a `.docx` or `.xlsx`, and pulling in a library to fake it is more than this
- * is worth. Everything else falls back to the download link it already had.
+ * Every accepted file type gets a real preview: images render directly, PDFs
+ * in an iframe, HEIC photos are converted client-side first (browsers cannot
+ * display HEIC), plain text is shown as text, and Word/Excel files are
+ * parsed into HTML — all through libraries loaded on demand so a user who
+ * never opens an office document never pays for the bundle weight. Only the
+ * legacy binary `.doc` format has no parser available; it still downloads.
  */
 export function AttachmentPreviewDialog({
   attachment,
@@ -32,72 +82,200 @@ export function AttachmentPreviewDialog({
   onClose: () => void;
 }) {
   const t = useT();
-  const [url, setUrl] = useState<string | null>(null);
+  const [preview, setPreview] = useState<PreviewState>({ kind: 'loading' });
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!attachment) {
-      setUrl(null);
+      setPreview({ kind: 'loading' });
+      setDownloadUrl(null);
       return;
     }
 
     let cancelled = false;
-    let objectUrl: string | undefined;
+    let downloadObjectUrl: string | undefined;
+    let previewObjectUrl: string | undefined;
 
-    void attachmentsApi.objectUrl(attachment.id).then((resolved) => {
-      if (cancelled) {
-        URL.revokeObjectURL(resolved);
-        return;
+    setPreview({ kind: 'loading' });
+    setDownloadUrl(null);
+
+    void (async () => {
+      try {
+        const blob = await attachmentsApi.blob(attachment.id);
+
+        if (cancelled) return;
+
+        downloadObjectUrl = URL.createObjectURL(blob);
+        setDownloadUrl(downloadObjectUrl);
+
+        const ext = extensionOf(attachment.fileName);
+
+        if (HEIC_EXTENSIONS.includes(ext)) {
+          const heic2any = (await import('heic2any')).default;
+          const converted = await heic2any({ blob, toType: 'image/jpeg', quality: 0.85 });
+          const jpegBlob = Array.isArray(converted) ? converted[0] : converted;
+
+          if (cancelled) return;
+
+          previewObjectUrl = URL.createObjectURL(jpegBlob);
+          setPreview({ kind: 'image', url: previewObjectUrl });
+          return;
+        }
+
+        if (attachment.contentType.startsWith('image/') || IMAGE_EXTENSIONS.includes(ext)) {
+          setPreview({ kind: 'image', url: downloadObjectUrl });
+          return;
+        }
+
+        if (ext === 'pdf' || attachment.contentType === 'application/pdf') {
+          setPreview({ kind: 'pdf', url: downloadObjectUrl });
+          return;
+        }
+
+        if (ext === 'txt') {
+          setPreview({ kind: 'text', text: await blob.text() });
+          return;
+        }
+
+        if (ext === 'docx') {
+          const mammoth = await import('mammoth');
+          const arrayBuffer = await blob.arrayBuffer();
+          const result = await mammoth.convertToHtml({ arrayBuffer });
+
+          if (cancelled) return;
+
+          setPreview({ kind: 'html', html: sanitizeHtml(result.value) });
+          return;
+        }
+
+        if (EXCEL_EXTENSIONS.includes(ext)) {
+          const XLSX = await import('xlsx');
+          const arrayBuffer = await blob.arrayBuffer();
+          const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+          const [firstSheetName, ...restSheetNames] = workbook.SheetNames;
+          const sheet = firstSheetName ? workbook.Sheets[firstSheetName] : undefined;
+
+          if (cancelled) return;
+
+          if (!sheet) {
+            setPreview({ kind: 'unsupported' });
+            return;
+          }
+
+          setPreview({
+            kind: 'html',
+            html: sanitizeHtml(XLSX.utils.sheet_to_html(sheet)),
+            note:
+              restSheetNames.length > 0
+                ? t('attachments.moreSheets', { count: restSheetNames.length })
+                : undefined,
+          });
+          return;
+        }
+
+        // `.doc` (legacy binary Word) and anything else outside the
+        // accepted list: no client-side parser exists for it.
+        setPreview({ kind: 'unsupported' });
+      } catch {
+        if (!cancelled) {
+          setPreview({ kind: 'unsupported' });
+        }
       }
-
-      objectUrl = resolved;
-      setUrl(resolved);
-    });
+    })();
 
     return () => {
       cancelled = true;
 
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-      }
+      if (downloadObjectUrl) URL.revokeObjectURL(downloadObjectUrl);
+      if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl);
     };
-  }, [attachment]);
-
-  const isImage = attachment?.contentType.startsWith('image/') ?? false;
-  const isPdf = attachment?.contentType === 'application/pdf';
+  }, [attachment, t]);
 
   return (
     <Dialog open={!!attachment} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>{attachment?.fileName}</DialogTitle>
       <DialogContent>
-        {!url ? (
+        {preview.kind === 'loading' && (
           <Stack sx={{ alignItems: 'center', py: 6 }}>
             <CircularProgress size={28} />
           </Stack>
-        ) : isImage ? (
+        )}
+
+        {preview.kind === 'image' && (
           <Box
             component="img"
-            src={url}
+            src={preview.url}
             alt={attachment?.fileName}
             sx={{ display: 'block', maxWidth: '100%', maxHeight: '75vh', mx: 'auto' }}
           />
-        ) : isPdf ? (
+        )}
+
+        {preview.kind === 'pdf' && (
           <Box
             component="iframe"
-            src={url}
+            src={preview.url}
             title={attachment?.fileName}
             sx={{ width: '100%', height: '75vh', border: 0 }}
           />
-        ) : (
+        )}
+
+        {preview.kind === 'text' && (
+          <Box
+            component="pre"
+            sx={{
+              m: 0,
+              p: 2,
+              maxHeight: '75vh',
+              overflow: 'auto',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+              fontFamily: 'monospace',
+              fontSize: '0.85rem',
+              bgcolor: 'action.hover',
+              borderRadius: 1,
+            }}
+          >
+            {preview.text}
+          </Box>
+        )}
+
+        {preview.kind === 'html' && (
+          <Stack spacing={1}>
+            <Box
+              sx={{
+                maxHeight: '75vh',
+                overflow: 'auto',
+                p: 1,
+                '& table': { borderCollapse: 'collapse', width: '100%' },
+                '& td, & th': {
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  p: 0.75,
+                  fontSize: '0.85rem',
+                },
+                '& img': { maxWidth: '100%' },
+              }}
+              dangerouslySetInnerHTML={{ __html: preview.html }}
+            />
+            {preview.note && (
+              <Typography variant="caption" color="text.secondary">
+                {preview.note}
+              </Typography>
+            )}
+          </Stack>
+        )}
+
+        {(preview.kind === 'unsupported' || preview.kind === 'error') && (
           <Stack spacing={1} sx={{ py: 4, alignItems: 'center' }}>
             <Typography color="text.secondary">{t('attachments.noPreview')}</Typography>
           </Stack>
         )}
       </DialogContent>
       <DialogActions>
-        {url && attachment && (
+        {downloadUrl && attachment && (
           <Button
             component="a"
-            href={url}
+            href={downloadUrl}
             download={attachment.fileName}
             startIcon={<DownloadOutlined />}
           >

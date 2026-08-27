@@ -442,6 +442,7 @@ export const sr: Record<MessageKey, Message> = {
   'attachments.expiredOn': 'Isteklo {date}',
   'attachments.expiresOn': 'Važi do {date}',
   'attachments.noPreview': 'Za ovu vrstu fajla nije moguć pregled.',
+  'attachments.moreSheets': 'Još {count} list(a) nije prikazano ovde — preuzmite fajl da vidite ostatak.',
   'attachments.expiringSoon': 'Uskoro ističe',
   'attachments.tooLarge': 'Fajl je veći od ograničenja od {limit} MB.',
   'attachments.wrongType': 'Ta vrsta fajla nije dozvoljena.',

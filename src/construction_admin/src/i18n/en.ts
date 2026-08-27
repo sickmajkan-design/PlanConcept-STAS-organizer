@@ -433,6 +433,7 @@ export const en = {
   'attachments.expiredOn': 'Expired {date}',
   'attachments.expiresOn': 'Valid until {date}',
   'attachments.noPreview': 'No preview available for this file type.',
+  'attachments.moreSheets': '+{count} more sheet(s) not shown here — download to see the rest.',
   'attachments.expiringSoon': 'Expiring soon',
   'attachments.tooLarge': 'The file is larger than the {limit} MB limit.',
   'attachments.wrongType': 'That file type is not accepted.',
