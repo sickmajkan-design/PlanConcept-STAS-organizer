@@ -36,11 +36,12 @@ export const attachmentsApi = {
       params: listParams(query),
     }),
 
-  expiring: (withinDays: number) =>
+  /** Null means every document with an expiry date, however far out. */
+  expiring: (withinDays: number | null) =>
     request<Attachment[]>({
       method: 'GET',
       url: '/api/v1/attachments/expiring',
-      params: { withinDays },
+      params: withinDays === null ? {} : { withinDays },
     }),
 
   upload: (input: UploadAttachmentInput) => {

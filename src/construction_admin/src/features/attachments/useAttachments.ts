@@ -11,7 +11,7 @@ import { createResourceKeys, useResourceMutation } from '../resourceQueries';
 
 export const attachmentKeys = createResourceKeys<AttachmentListQuery>('attachments');
 
-const expiringKey = (withinDays: number) => [
+const expiringKey = (withinDays: number | null) => [
   ...attachmentKeys.all,
   'expiring',
   withinDays,
@@ -25,7 +25,7 @@ export function useAttachmentsQuery(query: AttachmentListQuery, enabled = true) 
   });
 }
 
-export function useExpiringDocumentsQuery(withinDays = 30) {
+export function useExpiringDocumentsQuery(withinDays: number | null = 30) {
   return useQuery({
     queryKey: expiringKey(withinDays),
     queryFn: () => attachmentsApi.expiring(withinDays),

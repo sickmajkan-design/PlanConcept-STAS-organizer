@@ -441,9 +441,18 @@ export const sr: Record<MessageKey, Message> = {
   'attachments.tooLarge': 'Fajl je veći od ograničenja od {limit} MB.',
   'attachments.wrongType': 'Ta vrsta fajla nije dozvoljena.',
   'attachments.expiringTitle': 'Dokumenti pred istekom',
+  'attachments.expiringDescription':
+    'Svaki dokument sa rokom važenja — od svih zaposlenih, gradilišta, vozila i alata — najkritičniji (najraniji rok) prvi. Otpremi dokument ovde bez otvaranja njegovog zapisa.',
   'attachments.expiringEmpty': 'U ovom periodu ništa ne ističe.',
   'attachments.expiringWindow': 'Narednih {days} dana',
+  'attachments.expiringAll': 'Svi',
   'attachments.owner': 'Zapis',
+  'attachments.ownerType': 'Pripada',
+  'attachments.ownerTypeEmployee': 'Zaposlenom',
+  'attachments.ownerTypeProject': 'Gradilištu',
+  'attachments.ownerTypeVehicle': 'Vozilu',
+  'attachments.ownerTypeTool': 'Alatu',
+  'attachments.ownerRecord': 'Koji/koje',
   'attachments.photoNoExpiry': 'Fotografija ne ističe.',
 
   'attachmentCategory.Contract': 'Ugovor',

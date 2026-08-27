@@ -1,3 +1,4 @@
+import { UploadFileOutlined } from '@mui/icons-material';
 import {
   Box,
   Chip,
@@ -18,12 +19,17 @@ import { useMemo, useState } from 'react';
 import type { Attachment } from '../../api/types';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
+import { UploadDocumentDialog } from '../../components/UploadDocumentDialog';
 import { useExpiringDocumentsQuery } from '../../features/attachments/useAttachments';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
 import { formatDate } from '../../utils/formatting';
 
 const WINDOWS = [7, 30, 90, 180] as const;
+/** Distinct from every numeric window — selects "no cutoff" on the query. */
+const ALL_WINDOW = 'all';
+
+type WindowValue = (typeof WINDOWS)[number] | typeof ALL_WINDOW;
 
 type SortField = 'fileName' | 'ownerName' | 'category' | 'expiresAt';
 type SortDirection = 'asc' | 'desc';
@@ -38,10 +44,12 @@ type SortDirection = 'asc' | 'desc';
 export function ExpiringDocumentsPage() {
   const t = useT();
   const enumLabel = useEnumLabel();
-  const [withinDays, setWithinDays] = useState<number>(30);
+  const [windowValue, setWindowValue] = useState<WindowValue>(30);
+  const [uploading, setUploading] = useState(false);
 
-  const { data, isError, error, refetch, isLoading } =
-    useExpiringDocumentsQuery(withinDays);
+  const { data, isError, error, refetch, isLoading } = useExpiringDocumentsQuery(
+    windowValue === ALL_WINDOW ? null : windowValue,
+  );
 
   const [sortBy, setSortBy] = useState<SortField>('expiresAt');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -80,21 +88,38 @@ export function ExpiringDocumentsPage() {
 
   return (
     <Box>
-      <PageHeader title={t('attachments.expiringTitle')} />
+      <PageHeader
+        title={t('attachments.expiringTitle')}
+        description={t('attachments.expiringDescription')}
+        action={{
+          label: t('attachments.upload'),
+          icon: <UploadFileOutlined />,
+          onClick: () => setUploading(true),
+        }}
+      />
 
       <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
         <Select
           size="small"
-          value={withinDays}
-          onChange={(event) => setWithinDays(Number(event.target.value))}
+          value={windowValue}
+          onChange={(event) =>
+            setWindowValue(
+              event.target.value === ALL_WINDOW
+                ? ALL_WINDOW
+                : (Number(event.target.value) as (typeof WINDOWS)[number]),
+            )
+          }
         >
           {WINDOWS.map((days) => (
             <MenuItem key={days} value={days}>
               {t('attachments.expiringWindow', { days })}
             </MenuItem>
           ))}
+          <MenuItem value={ALL_WINDOW}>{t('attachments.expiringAll')}</MenuItem>
         </Select>
       </Stack>
+
+      <UploadDocumentDialog open={uploading} onClose={() => setUploading(false)} />
 
       {isError && <ErrorState error={error} onRetry={() => void refetch()} />}
 

@@ -432,9 +432,18 @@ export const en = {
   'attachments.tooLarge': 'The file is larger than the {limit} MB limit.',
   'attachments.wrongType': 'That file type is not accepted.',
   'attachments.expiringTitle': 'Expiring documents',
+  'attachments.expiringDescription':
+    'Every document with a valid-until date, across every employee, project, vehicle and tool — soonest expiry first. Upload one here without opening its record first.',
   'attachments.expiringEmpty': 'Nothing is expiring in this period.',
   'attachments.expiringWindow': 'Next {days} days',
+  'attachments.expiringAll': 'All',
   'attachments.owner': 'Record',
+  'attachments.ownerType': 'Belongs to',
+  'attachments.ownerTypeEmployee': 'An employee',
+  'attachments.ownerTypeProject': 'A site',
+  'attachments.ownerTypeVehicle': 'A vehicle',
+  'attachments.ownerTypeTool': 'A tool',
+  'attachments.ownerRecord': 'Which one',
   'attachments.photoNoExpiry': 'A photograph does not expire.',
 
   'attachmentCategory.Contract': 'Contract',
