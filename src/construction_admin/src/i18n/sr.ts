@@ -807,6 +807,21 @@ export const sr: Record<MessageKey, Message> = {
   'publicHolidays.deleteTitle': 'Obrisati ovaj praznik?',
   'publicHolidays.deleteBody': '{name} se više neće obračunavati po prazničnoj stopi.',
 
+  'nav.bulletin': 'Oglasna ploča',
+  'bulletin.title': 'Oglasna ploča',
+  'bulletin.description':
+    'Obavještenja iz kancelarije, vidljiva svima dok se ne uklone — uključujući i one zaposlene nakon objave.',
+  'bulletin.new': 'Novi oglas',
+  'bulletin.postTitle': 'Naslov',
+  'bulletin.postBody': 'Poruka',
+  'bulletin.publish': 'Objavi',
+  'bulletin.empty': 'Trenutno nema oglasa.',
+  'bulletin.viewCount': { one: '{count} pregled', few: '{count} pregleda', other: '{count} pregleda' },
+  'bulletin.viewers': 'Ko je vidio',
+  'bulletin.viewersEmpty': 'Niko još nije otvorio ovaj oglas.',
+  'bulletin.deleteTitle': 'Ukloniti ovaj oglas?',
+  'bulletin.deleteBody': '"{title}" se više neće prikazivati nikome.',
+
   'financeEntries.title': 'Finansijski unosi',
   'financeEntries.description':
     'Šta je zaposlenom stvarno isplaćeno, ručno uneto. Ne ulazi u izveštaj Troškovi — prikazuje se kao isplata ispod ekipe na stranicama Projekta i Zaposlenog.',

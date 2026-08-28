@@ -46,6 +46,21 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(height: 16),
             const LocationStatusCard(),
             const _PushStatusNotice(),
+            const SizedBox(height: 16),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.campaign_outlined),
+                // Hand-mapped rather than through context.l10n — see the
+                // note on _BulletinText in bulletin_screen.dart for why.
+                title: Text(
+                  Localizations.localeOf(context).languageCode == 'sr'
+                      ? 'Oglasna ploča'
+                      : 'Bulletin board',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(AppRoutes.bulletin),
+              ),
+            ),
             // Above the resource list because it is the thing a worker opens
             // the app for twice a day, and it is open to every role.
             if (user.isEmployee) ...[

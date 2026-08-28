@@ -1,6 +1,7 @@
 import {
   ApartmentOutlined,
   BuildCircleOutlined,
+  CampaignOutlined,
   HandymanOutlined,
   Inventory2Outlined,
   LocalShippingOutlined,
@@ -91,6 +92,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   const navItems: NavItem[] = [
     { label: t('nav.liveMap'), path: paths.map, icon: <MapOutlined /> },
+    { label: t('nav.bulletin'), path: paths.bulletin, icon: <CampaignOutlined /> },
     ...(canViewDirectory(user)
       ? [
           { label: t('nav.employees'), path: paths.employees, icon: <PeopleOutlined /> },

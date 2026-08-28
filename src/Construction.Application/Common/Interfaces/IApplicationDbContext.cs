@@ -51,6 +51,10 @@ public interface IApplicationDbContext
 
     DbSet<PublicHoliday> PublicHolidays { get; }
 
+    DbSet<BulletinPost> BulletinPosts { get; }
+
+    DbSet<BulletinView> BulletinViews { get; }
+
     DbSet<FinanceEntry> FinanceEntries { get; }
 
     DbSet<ProjectRevenue> ProjectRevenues { get; }

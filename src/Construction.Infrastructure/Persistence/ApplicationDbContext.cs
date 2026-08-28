@@ -57,6 +57,10 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<PublicHoliday> PublicHolidays => Set<PublicHoliday>();
 
+    public DbSet<BulletinPost> BulletinPosts => Set<BulletinPost>();
+
+    public DbSet<BulletinView> BulletinViews => Set<BulletinView>();
+
     public DbSet<FinanceEntry> FinanceEntries => Set<FinanceEntry>();
 
     public DbSet<ProjectRevenue> ProjectRevenues => Set<ProjectRevenue>();

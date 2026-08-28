@@ -181,6 +181,9 @@ const NotificationsPage = lazy(() =>
     default: m.NotificationsPage,
   })),
 );
+const BulletinPage = lazy(() =>
+  import('./pages/bulletin/BulletinPage').then((m) => ({ default: m.BulletinPage })),
+);
 const MaterialsListPage = lazy(() =>
   import('./pages/materials/MaterialsListPage').then((m) => ({
     default: m.MaterialsListPage,
@@ -226,6 +229,7 @@ function Layout() {
             {/* Everyone with an account has an inbox, including a worker who
                 only ever signs in to read one. */}
             <Route path={paths.notifications} element={<NotificationsPage />} />
+            <Route path={paths.bulletin} element={<BulletinPage />} />
 
             <Route element={<RequireDirectoryAccess />}>
               <Route path={paths.employees} element={<EmployeesListPage />} />

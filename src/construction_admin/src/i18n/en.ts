@@ -795,6 +795,21 @@ export const en = {
   'publicHolidays.deleteTitle': 'Remove this holiday?',
   'publicHolidays.deleteBody': '{name} will no longer be priced at the holiday rate.',
 
+  'nav.bulletin': 'Bulletin board',
+  'bulletin.title': 'Bulletin board',
+  'bulletin.description':
+    'Notices from the office, visible to everyone until removed — including anyone hired after they went up.',
+  'bulletin.new': 'New notice',
+  'bulletin.postTitle': 'Title',
+  'bulletin.postBody': 'Message',
+  'bulletin.publish': 'Publish',
+  'bulletin.empty': 'Nothing posted right now.',
+  'bulletin.viewCount': { one: '{count} view', other: '{count} views' },
+  'bulletin.viewers': 'Who has seen this',
+  'bulletin.viewersEmpty': 'Nobody has opened this yet.',
+  'bulletin.deleteTitle': 'Take this notice down?',
+  'bulletin.deleteBody': '"{title}" will no longer be shown to anyone.',
+
   'financeEntries.title': 'Finance entries',
   'financeEntries.description':
     "What was actually paid to an employee, entered by hand. Doesn't feed the Costs report — shows as pay under each crew posting on the Project and Employee pages instead.",

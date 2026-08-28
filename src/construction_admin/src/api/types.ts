@@ -996,3 +996,25 @@ export interface PublicHolidayInput {
   date: string;
   name: string;
 }
+
+export interface BulletinPost {
+  id: string;
+  title: string;
+  body: string;
+  createdByName: string;
+  createdAt: string;
+  viewCount: number;
+  /** Whether the current user has already viewed this post. */
+  viewed: boolean;
+}
+
+export interface BulletinPostInput {
+  title: string;
+  body: string;
+}
+
+export interface BulletinViewer {
+  userId: string;
+  userEmail: string;
+  viewedAt: string;
+}

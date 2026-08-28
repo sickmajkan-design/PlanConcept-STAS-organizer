@@ -39,6 +39,10 @@ class AppRoutes {
   /// [vehicles] or it would be swept into [isDirectoryLocation].
   static const scan = '/scan';
 
+  /// Open to every signed-in account, employee-linked or not — the API's
+  /// policy is just "authenticated", the same as the notification inbox.
+  static const bulletin = '/bulletin';
+
   static String employeeDetail(String id) => '$employees/$id';
 
   static String projectDetail(String id) => '$projects/$id';
