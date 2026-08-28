@@ -160,6 +160,9 @@ export function TimeEntryFormPage() {
       <Paper sx={{ p: 3, mt: 2 }}>
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <Stack spacing={2.5}>
+            {existing?.autoClosed && (
+              <Alert severity="warning">{t('timeEntries.autoClosedHint')}</Alert>
+            )}
             {rootError?.message && <Alert severity="error">{rootError.message}</Alert>}
 
             <Grid container spacing={2}>

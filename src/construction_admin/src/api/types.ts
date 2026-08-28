@@ -427,6 +427,7 @@ export interface TimeEntry {
   reviewedByName: string | null;
   reviewedAt: string | null;
   reviewNote: string | null;
+  autoClosed: boolean;
   createdAt: string;
   updatedAt: string | null;
 }
@@ -915,6 +916,7 @@ export const notificationTypes = [
   'TaskAssigned',
   'DefectAssigned',
   'WorkItemDue',
+  'ShiftAutoClosed',
 ] as const;
 
 export type NotificationType = (typeof notificationTypes)[number];

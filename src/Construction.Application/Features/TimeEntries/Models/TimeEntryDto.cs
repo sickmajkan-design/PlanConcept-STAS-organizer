@@ -53,6 +53,8 @@ public class TimeEntryDto
 
     public string? ReviewNote { get; init; }
 
+    public bool AutoClosed { get; init; }
+
     public DateTime CreatedAt { get; init; }
 
     public DateTime? UpdatedAt { get; init; }
@@ -90,6 +92,7 @@ public static class TimeEntryMapping
             ReviewedByName = entry.ReviewedByUser != null ? entry.ReviewedByUser.Email : null,
             ReviewedAt = entry.ReviewedAt,
             ReviewNote = entry.ReviewNote,
+            AutoClosed = entry.AutoClosed,
             CreatedAt = entry.CreatedAt,
             UpdatedAt = entry.UpdatedAt,
         };

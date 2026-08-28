@@ -383,6 +383,8 @@ export const en = {
   'timeEntries.deleteTitle': 'Delete this entry?',
   'timeEntries.deleteBody': "{name}'s entry will be removed from active records.",
   'timeEntries.openOnly': 'Running shifts only',
+  'timeEntries.autoClosed': 'Auto-closed',
+  'timeEntries.autoClosedHint': 'The employee did not clock out — the nightly sweep closed this shift automatically once its day had passed. Check the times before approving.',
   'timeEntries.pendingOnly': 'Waiting for review',
   'timeEntries.from': 'From',
   'timeEntries.to': 'To',
@@ -907,6 +909,7 @@ export const en = {
   'notificationType.TaskAssigned': 'Task',
   'notificationType.DefectAssigned': 'Defect',
   'notificationType.WorkItemDue': 'Due',
+  'notificationType.ShiftAutoClosed': 'Shift',
 } as const;
 
 export type MessageKey = keyof typeof en;

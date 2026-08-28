@@ -46,6 +46,13 @@ public static class TimeEntryRules
     public static readonly TimeSpan MaxShiftDuration = TimeSpan.FromHours(16);
 
     /// <summary>
+    /// The standard length of a working day, used to cap a shift the
+    /// employee never closed themselves when the nightly sweep closes it for
+    /// them — see <c>AutoCloseStaleShiftsCommand</c>.
+    /// </summary>
+    public static readonly TimeSpan StandardShiftDuration = TimeSpan.FromHours(8);
+
+    /// <summary>
     /// How far back an entry may be created or moved. Long enough to fix last
     /// week's timesheet, short enough that a closed payroll period cannot be
     /// rewritten.

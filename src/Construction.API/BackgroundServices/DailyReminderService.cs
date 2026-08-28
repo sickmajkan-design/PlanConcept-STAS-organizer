@@ -1,14 +1,15 @@
 using System.Diagnostics;
 using Construction.API.Observability;
 using Construction.Application.Features.Attachments.Commands.SendExpiryReminders;
+using Construction.Application.Features.TimeEntries.Commands.AutoCloseStaleShifts;
 using Construction.Application.Features.WorkItems.Commands.SendDueReminders;
 using MediatR;
 
 namespace Construction.API.BackgroundServices;
 
 /// <summary>
-/// Runs the daily reminder sweeps: documents about to lapse, and work about to
-/// fall due.
+/// Runs the daily reminder sweeps: documents about to lapse, work about to
+/// fall due, and shifts nobody clocked out of.
 /// </summary>
 /// <remarks>
 /// A hosted service rather than a scheduling library. The product has exactly
@@ -95,6 +96,17 @@ public class DailyReminderService : BackgroundService
             {
                 _logger.LogInformation(
                     "Sent deadline reminders for {Count} work item(s).", work);
+            }
+
+            var closed = await mediator.Send(
+                new AutoCloseStaleShiftsCommand(), cancellationToken);
+
+            _metrics.RemindersSent("shift-auto-close", closed);
+
+            if (closed > 0)
+            {
+                _logger.LogInformation(
+                    "Auto-closed {Count} shift(s) left open past their day.", closed);
             }
         }
         catch (OperationCanceledException)

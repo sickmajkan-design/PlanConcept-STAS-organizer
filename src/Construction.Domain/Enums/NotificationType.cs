@@ -16,5 +16,8 @@ public enum NotificationType
     DefectAssigned = 8,
 
     /// <summary>Work is due soon, or already overdue.</summary>
-    WorkItemDue = 9
+    WorkItemDue = 9,
+
+    /// <summary>A shift was closed by the nightly sweep, not by the employee.</summary>
+    ShiftAutoClosed = 10
 }

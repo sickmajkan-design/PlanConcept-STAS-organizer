@@ -69,6 +69,12 @@ public class TimeEntry : BaseEntity, ISoftDeletable, IAuditable
     public DateTime? DeletedAt { get; set; }
 
     /// <summary>
+    /// True when the nightly sweep closed this shift because the employee
+    /// never clocked out, rather than the employee closing it themselves.
+    /// </summary>
+    public bool AutoClosed { get; set; }
+
+    /// <summary>
     /// Paid minutes, or null while the shift is still running.
     /// Never negative: validation rejects a break longer than the shift.
     /// </summary>

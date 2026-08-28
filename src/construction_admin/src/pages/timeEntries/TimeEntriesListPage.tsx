@@ -2,6 +2,7 @@ import { AddOutlined, DeleteOutlined, EditOutlined } from '@mui/icons-material';
 import {
   Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -131,9 +132,21 @@ export function TimeEntriesListPage() {
       {
         field: 'status',
         headerName: t('timeEntries.status'),
-        width: 150,
+        width: 190,
         renderCell: (params) => (
-          <StatusChip status={params.row.status} kind="timeEntryStatus" />
+          <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+            <StatusChip status={params.row.status} kind="timeEntryStatus" />
+            {params.row.autoClosed && (
+              <Tooltip title={t('timeEntries.autoClosedHint')}>
+                <Chip
+                  size="small"
+                  color="warning"
+                  variant="outlined"
+                  label={t('timeEntries.autoClosed')}
+                />
+              </Tooltip>
+            )}
+          </Stack>
         ),
       },
       {

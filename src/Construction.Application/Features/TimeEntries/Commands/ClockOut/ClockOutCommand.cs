@@ -124,16 +124,12 @@ public class ClockOutCommandHandler : IRequestHandler<ClockOutCommand, TimeEntry
 
         var elapsed = endedAt - entry.StartedAt;
 
-        if (elapsed > TimeEntryRules.MaxShiftDuration)
-        {
-            // Someone left it running overnight. Refusing is the honest
-            // outcome: the app cannot know when they actually stopped, and a
-            // guess would be indistinguishable from a real shift afterwards.
-            throw new ConflictException(
-                $"This shift has been running for over " +
-                $"{TimeEntryRules.MaxShiftDuration.TotalHours:0} hours. " +
-                "A supervisor has to close it with the correct end time.");
-        }
+        // No upper bound here: refusing this once left an employee unable to
+        // clock in (already open) or out (too long) at the same time, stuck
+        // until a supervisor edited the row by hand. Every clock-out already
+        // goes to `Submitted` below regardless of length, so an unusually
+        // long shift still gets a supervisor's eyes on it before it is
+        // approved — it just does not lock the employee out in the meantime.
 
         // Truncated to whole minutes so this compares the same number the
         // entry will report. Comparing against the fractional elapsed time

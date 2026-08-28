@@ -392,6 +392,8 @@ export const sr: Record<MessageKey, Message> = {
   'timeEntries.deleteTitle': 'Obrisati ovaj unos?',
   'timeEntries.deleteBody': 'Unos zaposlenog {name} biće uklonjen iz aktivne evidencije.',
   'timeEntries.openOnly': 'Samo smene u toku',
+  'timeEntries.autoClosed': 'Automatski zatvoreno',
+  'timeEntries.autoClosedHint': 'Radnik se nije odjavio — sistem je automatski zatvorio ovu smjenu pošto je dan prošao. Provjerite vremena prije odobravanja.',
   'timeEntries.pendingOnly': 'Čeka pregled',
   'timeEntries.from': 'Od',
   'timeEntries.to': 'Do',
@@ -920,4 +922,5 @@ export const sr: Record<MessageKey, Message> = {
   'notificationType.TaskAssigned': 'Zadatak',
   'notificationType.DefectAssigned': 'Nedostatak',
   'notificationType.WorkItemDue': 'Rok',
+  'notificationType.ShiftAutoClosed': 'Smjena',
 };
