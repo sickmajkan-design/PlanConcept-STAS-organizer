@@ -68,6 +68,18 @@ function toIso(localValue: string): string {
   return new Date(localValue).toISOString();
 }
 
+/** Splits a `YYYY-MM-DDTHH:mm` value into its date and time halves. */
+function splitLocal(value: string): { date: string; time: string } {
+  const [date = '', time = ''] = value.split('T');
+  return { date, time };
+}
+
+/** Rebuilds the combined `YYYY-MM-DDTHH:mm` value from its two halves. */
+function combineLocal(date: string, time: string): string {
+  if (!date && !time) return '';
+  return `${date}T${time}`;
+}
+
 export function TimeEntryFormPage() {
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
@@ -221,17 +233,43 @@ export function TimeEntryFormPage() {
                 <Controller
                   name="startedAt"
                   control={control}
-                  render={({ field, fieldState }) => (
-                    <TextField
-                      {...field}
-                      label={t('timeEntries.startedAt')}
-                      type="datetime-local"
-                      fullWidth
-                      slotProps={{ inputLabel: { shrink: true } }}
-                      error={!!fieldState.error}
-                      helperText={fieldState.error?.message}
-                    />
-                  )}
+                  render={({ field, fieldState }) => {
+                    const { date, time } = splitLocal(field.value);
+
+                    return (
+                      <Stack direction="row" spacing={1}>
+                        <TextField
+                          label={t('timeEntries.startedAt')}
+                          type="date"
+                          value={date}
+                          onChange={(event) =>
+                            field.onChange(combineLocal(event.target.value, time))
+                          }
+                          fullWidth
+                          slotProps={{ inputLabel: { shrink: true } }}
+                          error={!!fieldState.error}
+                        />
+                        <TextField
+                          label={t('timeEntries.time')}
+                          value={time}
+                          onChange={(event) =>
+                            field.onChange(combineLocal(date, event.target.value))
+                          }
+                          placeholder="HH:mm"
+                          sx={{ width: 110 }}
+                          slotProps={{
+                            htmlInput: {
+                              inputMode: 'numeric',
+                              pattern: '^([01][0-9]|2[0-3]):[0-5][0-9]$',
+                              maxLength: 5,
+                            },
+                          }}
+                          error={!!fieldState.error}
+                          helperText={fieldState.error?.message}
+                        />
+                      </Stack>
+                    );
+                  }}
                 />
               </Grid>
 
@@ -239,19 +277,46 @@ export function TimeEntryFormPage() {
                 <Controller
                   name="endedAt"
                   control={control}
-                  render={({ field, fieldState }) => (
-                    <TextField
-                      {...field}
-                      label={t('timeEntries.endedAt')}
-                      type="datetime-local"
-                      fullWidth
-                      slotProps={{ inputLabel: { shrink: true } }}
-                      error={!!fieldState.error}
-                      // Left blank deliberately records a shift that is still
-                      // running, which is how a forgotten clock-in is opened.
-                      helperText={fieldState.error?.message ?? t('timeEntries.running')}
-                    />
-                  )}
+                  render={({ field, fieldState }) => {
+                    const { date, time } = splitLocal(field.value ?? '');
+
+                    return (
+                      <Stack direction="row" spacing={1}>
+                        <TextField
+                          label={t('timeEntries.endedAt')}
+                          type="date"
+                          value={date}
+                          onChange={(event) =>
+                            field.onChange(combineLocal(event.target.value, time))
+                          }
+                          fullWidth
+                          slotProps={{ inputLabel: { shrink: true } }}
+                          error={!!fieldState.error}
+                        />
+                        <TextField
+                          label={t('timeEntries.time')}
+                          value={time}
+                          onChange={(event) =>
+                            field.onChange(combineLocal(date, event.target.value))
+                          }
+                          placeholder="HH:mm"
+                          sx={{ width: 110 }}
+                          slotProps={{
+                            htmlInput: {
+                              inputMode: 'numeric',
+                              pattern: '^([01][0-9]|2[0-3]):[0-5][0-9]$',
+                              maxLength: 5,
+                            },
+                          }}
+                          error={!!fieldState.error}
+                          // Left blank deliberately records a shift that is
+                          // still running, which is how a forgotten clock-in
+                          // is opened.
+                          helperText={fieldState.error?.message ?? t('timeEntries.running')}
+                        />
+                      </Stack>
+                    );
+                  }}
                 />
               </Grid>
 

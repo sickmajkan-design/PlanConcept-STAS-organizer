@@ -373,6 +373,7 @@ export const sr: Record<MessageKey, Message> = {
   'timeEntries.noProject': 'Bez gradilišta',
   'timeEntries.startedAt': 'Početak',
   'timeEntries.endedAt': 'Kraj',
+  'timeEntries.time': 'Vrijeme (24h)',
   'timeEntries.running': 'U toku',
   'timeEntries.breakMinutes': 'Pauza (minuta)',
   'timeEntries.break': 'Pauza',

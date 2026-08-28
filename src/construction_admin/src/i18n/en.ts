@@ -364,6 +364,7 @@ export const en = {
   'timeEntries.noProject': 'No site',
   'timeEntries.startedAt': 'Start',
   'timeEntries.endedAt': 'End',
+  'timeEntries.time': 'Time (24h)',
   'timeEntries.running': 'Running',
   'timeEntries.breakMinutes': 'Break (minutes)',
   'timeEntries.break': 'Break',

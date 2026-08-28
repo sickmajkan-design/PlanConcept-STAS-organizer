@@ -10,6 +10,22 @@ import { workTypes } from '../../api/types';
 export const MAX_SHIFT_HOURS = 16;
 export const MAX_BACKDATING_DAYS = 31;
 
+/**
+ * `HH:mm`, 24-hour. The time half of `startedAt`/`endedAt` is typed into a
+ * plain text field rather than a native `type="time"` input, because that
+ * native control's displayed format follows the browser/OS locale — on an
+ * en-US machine it silently becomes a 12-hour AM/PM picker regardless of
+ * this app's own locale setting. A hand-validated 24-hour field is the only
+ * way to guarantee what the platform actually shows.
+ */
+const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/** True once both the date and time half of a combined `datetime-local`-shaped value are present and well-formed. */
+function hasValidTimePart(value: string): boolean {
+  const time = value.split('T')[1] ?? '';
+  return TIME_PATTERN.test(time);
+}
+
 /** Minutes between two `datetime-local` values, or null while one is missing. */
 function minutesBetween(startedAt: string, endedAt: string): number | null {
   if (!startedAt || !endedAt) return null;
@@ -35,8 +51,15 @@ export const timeEntryFormSchema = z
   .object({
     employeeId: z.string().min(1, 'Employee is required.'),
     projectId: z.string().optional().or(z.literal('')),
-    startedAt: z.string().min(1, 'Start time is required.'),
-    endedAt: z.string().optional().or(z.literal('')),
+    startedAt: z
+      .string()
+      .min(1, 'Start time is required.')
+      .refine(hasValidTimePart, 'Enter the time as HH:mm.'),
+    endedAt: z
+      .string()
+      .optional()
+      .or(z.literal(''))
+      .refine((value) => !value || hasValidTimePart(value), 'Enter the time as HH:mm.'),
     breakMinutes: z
       .string()
       .refine((value) => value === '' || !Number.isNaN(Number(value)), {
