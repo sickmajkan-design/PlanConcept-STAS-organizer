@@ -11,11 +11,13 @@ import {
   Box,
   Button,
   FormControl,
+  FormControlLabel,
   IconButton,
   InputLabel,
   MenuItem,
   Select,
   Stack,
+  Switch,
   Tooltip,
   Typography,
 } from '@mui/material';
@@ -50,9 +52,15 @@ export function ToolsListPage() {
   const enumLabel = useEnumLabel();
   const list = useListQueryState<ToolStatus>('name');
 
+  const [incompleteOnly, setIncompleteOnly] = useState(false);
+
   const query: ToolListQuery = useMemo(
-    () => ({ ...list.query, status: list.filter || undefined }),
-    [list.query, list.filter],
+    () => ({
+      ...list.query,
+      status: list.filter || undefined,
+      incompleteOnly: incompleteOnly || undefined,
+    }),
+    [list.query, list.filter, incompleteOnly],
   );
 
   const { data, isLoading, isError, error, refetch } = useToolsQuery(query);
@@ -181,6 +189,16 @@ export function ToolsListPage() {
           </Select>
         </FormControl>
         <StatusLegend kind="toolStatus" values={toolStatuses} />
+
+        <FormControlLabel
+          control={
+            <Switch
+              checked={incompleteOnly}
+              onChange={(event) => setIncompleteOnly(event.target.checked)}
+            />
+          }
+          label={t('tools.incompleteOnly')}
+        />
 
         <Button
           variant="outlined"

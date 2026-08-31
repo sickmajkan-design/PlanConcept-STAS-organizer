@@ -19,5 +19,8 @@ public enum NotificationType
     WorkItemDue = 9,
 
     /// <summary>A shift was closed by the nightly sweep, not by the employee.</summary>
-    ShiftAutoClosed = 10
+    ShiftAutoClosed = 10,
+
+    /// <summary>A new notice went up on the bulletin board.</summary>
+    BulletinPosted = 11
 }

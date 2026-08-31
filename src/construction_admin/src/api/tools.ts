@@ -9,6 +9,7 @@ export interface ToolListQuery extends ListQuery {
   assignedEmployeeId?: string;
   assignedProjectId?: string;
   unassigned?: boolean;
+  incompleteOnly?: boolean;
 }
 
 export const toolsApi = {

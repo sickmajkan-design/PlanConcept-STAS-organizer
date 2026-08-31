@@ -33,6 +33,9 @@ public record GetVehiclesQuery : ISortablePagedQuery, IRequest<PagedList<Vehicle
     /// <summary>When true, returns only vehicles with no assigned employee.</summary>
     public bool? Unassigned { get; init; }
 
+    /// <summary>When true, returns only vehicles missing a VIN or QR code.</summary>
+    public bool? IncompleteOnly { get; init; }
+
     public string? SortBy { get; init; }
 
     public bool SortDescending { get; init; }
@@ -89,6 +92,11 @@ public class GetVehiclesQueryHandler : IRequestHandler<GetVehiclesQuery, PagedLi
         if (request.Unassigned == true)
         {
             query = query.Where(v => v.AssignedEmployeeId == null);
+        }
+
+        if (request.IncompleteOnly == true)
+        {
+            query = query.Where(v => v.Vin == null || v.QrCode == null);
         }
 
         query = ApplySorting(query, request.SortBy, request.SortDescending);

@@ -13,6 +13,7 @@ export interface VehicleListQuery extends ListQuery {
   status?: VehicleStatus | '';
   fuelType?: FuelType | '';
   unassigned?: boolean;
+  incompleteOnly?: boolean;
 }
 
 export const vehiclesApi = {

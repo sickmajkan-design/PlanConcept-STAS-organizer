@@ -210,6 +210,7 @@ export const sr: Record<MessageKey, Message> = {
   'vehicles.qrCode': 'QR kod',
   'vehicles.qrCodeHint': 'Ostavite prazno za automatsko generisanje',
   'vehicles.incompleteHint': 'Nedostaje VIN ili QR kod — otvorite i izmijenite da dovršite.',
+  'vehicles.incompleteOnly': 'Samo nepotpuni',
   'vehicles.fuelType': 'Vrsta goriva',
   'vehicles.status': 'Status',
   'vehicles.assignedTo': 'Zaduženo na',
@@ -232,6 +233,7 @@ export const sr: Record<MessageKey, Message> = {
   'tools.qrCode': 'QR kod',
   'tools.qrCodeHint': 'Ostavite prazno za automatsko generisanje',
   'tools.incompleteHint': 'Nedostaje serijski broj ili QR kod — otvorite i izmijenite da dovršite.',
+  'tools.incompleteOnly': 'Samo nepotpuni',
   'tools.status': 'Status',
   'tools.heldBy': 'Zaduženo na',
   'tools.placedOn': 'Na projektu',
@@ -945,4 +947,5 @@ export const sr: Record<MessageKey, Message> = {
   'notificationType.DefectAssigned': 'Nedostatak',
   'notificationType.WorkItemDue': 'Rok',
   'notificationType.ShiftAutoClosed': 'Smjena',
+  'notificationType.BulletinPosted': 'Oglas',
 };

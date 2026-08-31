@@ -917,6 +917,7 @@ export const notificationTypes = [
   'DefectAssigned',
   'WorkItemDue',
   'ShiftAutoClosed',
+  'BulletinPosted',
 ] as const;
 
 export type NotificationType = (typeof notificationTypes)[number];

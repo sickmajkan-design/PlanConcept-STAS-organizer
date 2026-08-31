@@ -35,6 +35,9 @@ public record GetToolsQuery : ISortablePagedQuery, IRequest<PagedList<ToolDto>>
     /// <summary>When true, returns only tools with no employee and no project assignment.</summary>
     public bool? Unassigned { get; init; }
 
+    /// <summary>When true, returns only tools missing a serial number or QR code.</summary>
+    public bool? IncompleteOnly { get; init; }
+
     public string? SortBy { get; init; }
 
     public bool SortDescending { get; init; }
@@ -100,6 +103,11 @@ public class GetToolsQueryHandler : IRequestHandler<GetToolsQuery, PagedList<Too
         if (request.Unassigned == true)
         {
             query = query.Where(t => t.AssignedEmployeeId == null && t.AssignedProjectId == null);
+        }
+
+        if (request.IncompleteOnly == true)
+        {
+            query = query.Where(t => t.SerialNumber == null || t.QrCode == null);
         }
 
         query = ApplySorting(query, request.SortBy, request.SortDescending);

@@ -11,11 +11,13 @@ import {
   Box,
   Button,
   FormControl,
+  FormControlLabel,
   IconButton,
   InputLabel,
   MenuItem,
   Select,
   Stack,
+  Switch,
   Tooltip,
   Typography,
 } from '@mui/material';
@@ -51,9 +53,15 @@ export function VehiclesListPage() {
   const enumLabel = useEnumLabel();
   const list = useListQueryState<VehicleStatus>('brand');
 
+  const [incompleteOnly, setIncompleteOnly] = useState(false);
+
   const query: VehicleListQuery = useMemo(
-    () => ({ ...list.query, status: list.filter || undefined }),
-    [list.query, list.filter],
+    () => ({
+      ...list.query,
+      status: list.filter || undefined,
+      incompleteOnly: incompleteOnly || undefined,
+    }),
+    [list.query, list.filter, incompleteOnly],
   );
 
   const { data, isLoading, isError, error, refetch } = useVehiclesQuery(query);
@@ -184,6 +192,16 @@ export function VehiclesListPage() {
           </Select>
         </FormControl>
         <StatusLegend kind="vehicleStatus" values={vehicleStatuses} />
+
+        <FormControlLabel
+          control={
+            <Switch
+              checked={incompleteOnly}
+              onChange={(event) => setIncompleteOnly(event.target.checked)}
+            />
+          }
+          label={t('vehicles.incompleteOnly')}
+        />
 
         <Button
           variant="outlined"

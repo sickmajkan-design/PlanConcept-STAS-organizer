@@ -201,6 +201,7 @@ export const en = {
   'vehicles.qrCode': 'QR code',
   'vehicles.qrCodeHint': 'Leave blank to auto-generate',
   'vehicles.incompleteHint': 'Missing VIN or QR code — open and edit to complete it.',
+  'vehicles.incompleteOnly': 'Incomplete only',
   'vehicles.fuelType': 'Fuel type',
   'vehicles.status': 'Status',
   'vehicles.assignedTo': 'Assigned to',
@@ -223,6 +224,7 @@ export const en = {
   'tools.qrCode': 'QR code',
   'tools.qrCodeHint': 'Leave blank to auto-generate',
   'tools.incompleteHint': 'Missing serial number or QR code — open and edit to complete it.',
+  'tools.incompleteOnly': 'Incomplete only',
   'tools.status': 'Status',
   'tools.heldBy': 'Held by',
   'tools.placedOn': 'On project',
@@ -932,6 +934,7 @@ export const en = {
   'notificationType.DefectAssigned': 'Defect',
   'notificationType.WorkItemDue': 'Due',
   'notificationType.ShiftAutoClosed': 'Shift',
+  'notificationType.BulletinPosted': 'Bulletin',
 } as const;
 
 export type MessageKey = keyof typeof en;
