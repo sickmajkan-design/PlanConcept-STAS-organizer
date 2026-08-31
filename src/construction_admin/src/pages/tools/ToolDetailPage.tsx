@@ -174,8 +174,8 @@ export function ToolDetailPage() {
                 Tool
               </Typography>
               <Stack spacing={1.5} sx={{ mt: 1 }}>
-                <InfoRow label={t('tools.serialNumber')} value={tool.serialNumber} />
-                <InfoRow label={t('tools.qrCode')} value={tool.qrCode} />
+                <InfoRow label={t('tools.serialNumber')} value={tool.serialNumber} flagMissing />
+                <InfoRow label={t('tools.qrCode')} value={tool.qrCode} flagMissing />
               </Stack>
             </CardContent>
           </Card>
@@ -384,6 +384,7 @@ export function ToolDetailPage() {
         onClose={() => setQrLabelOpen(false)}
         title={tool.name}
         qrCode={tool.qrCode}
+        onEdit={() => navigate(paths.toolEdit(tool.id))}
       />
     </Box>
   );
@@ -465,13 +466,27 @@ function ToolCostsCard({ toolId }: { toolId: string }) {
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {
+function InfoRow({
+  label,
+  value,
+  flagMissing,
+}: {
+  label: string;
+  value: string | null | undefined;
+  /** Shows a warning-colored prompt instead of a plain dash when unset. */
+  flagMissing?: boolean;
+}) {
+  const t = useT();
+  const missing = !value && flagMissing;
+
   return (
     <Box>
       <Typography variant="caption" color="text.secondary">
         {label}
       </Typography>
-      <Typography variant="body1">{value || '—'}</Typography>
+      <Typography variant="body1" color={missing ? 'warning.main' : undefined}>
+        {value || (missing ? t('common.incomplete') : '—')}
+      </Typography>
     </Box>
   );
 }

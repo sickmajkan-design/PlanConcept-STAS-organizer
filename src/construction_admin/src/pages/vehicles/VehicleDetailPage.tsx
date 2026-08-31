@@ -175,8 +175,8 @@ export function VehicleDetailPage() {
                 Vehicle
               </Typography>
               <Stack spacing={1.5} sx={{ mt: 1 }}>
-                <InfoRow label={t('vehicles.vin')} value={vehicle.vin} />
-                <InfoRow label={t('vehicles.qrCode')} value={vehicle.qrCode} />
+                <InfoRow label={t('vehicles.vin')} value={vehicle.vin} flagMissing />
+                <InfoRow label={t('vehicles.qrCode')} value={vehicle.qrCode} flagMissing />
                 <InfoRow label={t('vehicles.fuelType')} value={enumLabel('fuelType', vehicle.fuelType)} />
               </Stack>
             </CardContent>
@@ -388,6 +388,7 @@ export function VehicleDetailPage() {
         onClose={() => setQrLabelOpen(false)}
         title={`${vehicle.brand} ${vehicle.model}`}
         qrCode={vehicle.qrCode}
+        onEdit={() => navigate(paths.vehicleEdit(vehicle.id))}
       />
     </Box>
   );
@@ -469,13 +470,27 @@ function VehicleCostsCard({ vehicleId }: { vehicleId: string }) {
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {
+function InfoRow({
+  label,
+  value,
+  flagMissing,
+}: {
+  label: string;
+  value: string | null | undefined;
+  /** Shows a warning-colored prompt instead of a plain dash when unset. */
+  flagMissing?: boolean;
+}) {
+  const t = useT();
+  const missing = !value && flagMissing;
+
   return (
     <Box>
       <Typography variant="caption" color="text.secondary">
         {label}
       </Typography>
-      <Typography variant="body1">{value || '—'}</Typography>
+      <Typography variant="body1" color={missing ? 'warning.main' : undefined}>
+        {value || (missing ? t('common.incomplete') : '—')}
+      </Typography>
     </Box>
   );
 }

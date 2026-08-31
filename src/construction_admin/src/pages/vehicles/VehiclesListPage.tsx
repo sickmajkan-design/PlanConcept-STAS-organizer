@@ -5,6 +5,7 @@ import {
   LocalShippingOutlined,
   QrCodeScannerOutlined,
   VisibilityOutlined,
+  WarningAmberOutlined,
 } from '@mui/icons-material';
 import {
   Box,
@@ -83,6 +84,16 @@ export function VehiclesListPage() {
         flex: 1,
         minWidth: 180,
         valueGetter: (_value, row) => `${row.brand} ${row.model}`,
+        renderCell: (params) => (
+          <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
+            <span>{params.row.brand} {params.row.model}</span>
+            {(!params.row.vin || !params.row.qrCode) && (
+              <Tooltip title={t('vehicles.incompleteHint')}>
+                <WarningAmberOutlined fontSize="small" color="warning" />
+              </Tooltip>
+            )}
+          </Stack>
+        ),
       },
       { field: 'registrationNumber', headerName: t('vehicles.registrationShort'), width: 140 },
       {

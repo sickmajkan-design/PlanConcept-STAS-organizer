@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Vehicles.Models;
@@ -38,7 +39,16 @@ public class UpdateVehicleCommandHandler : IRequestHandler<UpdateVehicleCommand,
         var vin = string.IsNullOrWhiteSpace(request.Vin)
             ? null
             : request.Vin.Trim().ToUpperInvariant();
-        var qrCode = string.IsNullOrWhiteSpace(request.QrCode) ? null : request.QrCode.Trim();
+
+        // Same rule as CreateVehicle: a blank QR code is filled in rather
+        // than wiped, so editing a record that was left incomplete completes
+        // it instead of quietly erasing whatever it already had.
+        var qrCode = string.IsNullOrWhiteSpace(request.QrCode)
+            ? vehicle.QrCode ?? await QrCodeGenerator.GenerateUniqueAsync(
+                "VH",
+                (candidate, ct) => _context.Vehicles.AnyAsync(v => v.QrCode == candidate, ct),
+                cancellationToken)
+            : request.QrCode.Trim();
 
         await VehicleUniqueness.EnsureUniqueAsync(
             _context, registrationNumber, vin, qrCode, request.Id, cancellationToken);

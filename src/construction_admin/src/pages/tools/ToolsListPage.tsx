@@ -5,6 +5,7 @@ import {
   HandymanOutlined,
   QrCodeScannerOutlined,
   VisibilityOutlined,
+  WarningAmberOutlined,
 } from '@mui/icons-material';
 import {
   Box,
@@ -74,7 +75,22 @@ export function ToolsListPage() {
           />
         ),
       },
-      { field: 'name', headerName: t('tools.tool'), flex: 1, minWidth: 180 },
+      {
+        field: 'name',
+        headerName: t('tools.tool'),
+        flex: 1,
+        minWidth: 180,
+        renderCell: (params) => (
+          <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
+            <span>{params.row.name}</span>
+            {(!params.row.serialNumber || !params.row.qrCode) && (
+              <Tooltip title={t('tools.incompleteHint')}>
+                <WarningAmberOutlined fontSize="small" color="warning" />
+              </Tooltip>
+            )}
+          </Stack>
+        ),
+      },
       {
         field: 'category',
         headerName: t('tools.category'),

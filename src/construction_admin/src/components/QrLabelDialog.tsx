@@ -7,22 +7,51 @@ import { useT } from '../i18n/useI18n';
  * A printable label: QR code + name + the raw code underneath, in case the
  * label ever needs to be typed in by hand. Printing renders only this
  * dialog's content, isolated from the rest of the page via `@media print`.
+ *
+ * A record can legitimately have no QR code yet — see the completeness note
+ * on `ToolDetailPage`/`VehicleDetailPage` — so opening this without one
+ * explains that and points at Edit, rather than opening on nothing with no
+ * indication anything happened.
  */
 export function QrLabelDialog({
   open,
   onClose,
   title,
   qrCode,
+  onEdit,
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   qrCode: string | null;
+  /** Opens the edit form, so "no code yet" has somewhere to go. */
+  onEdit?: () => void;
 }) {
   const t = useT();
 
   if (!qrCode) {
-    return null;
+    return (
+      <Dialog open={open} onClose={onClose}>
+        <DialogContent>
+          <Stack spacing={1.5} sx={{ alignItems: 'center', py: 3, px: 1, minWidth: 240 }}>
+            <Typography variant="body1" sx={{ textAlign: 'center' }}>
+              {t('common.noQrCodeYet')}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+              {t('common.noQrCodeYetHint')}
+            </Typography>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose}>{t('common.close')}</Button>
+          {onEdit && (
+            <Button variant="contained" onClick={onEdit}>
+              {t('common.edit')}
+            </Button>
+          )}
+        </DialogActions>
+      </Dialog>
+    );
   }
 
   return (

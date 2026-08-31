@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Tools.Models;
@@ -36,7 +37,16 @@ public class UpdateToolCommandHandler : IRequestHandler<UpdateToolCommand, ToolD
         var serialNumber = string.IsNullOrWhiteSpace(request.SerialNumber)
             ? null
             : request.SerialNumber.Trim();
-        var qrCode = string.IsNullOrWhiteSpace(request.QrCode) ? null : request.QrCode.Trim();
+
+        // Same rule as CreateTool: a blank QR code is filled in rather than
+        // wiped, so editing a record that was left incomplete completes it
+        // instead of quietly erasing whatever it already had.
+        var qrCode = string.IsNullOrWhiteSpace(request.QrCode)
+            ? tool.QrCode ?? await QrCodeGenerator.GenerateUniqueAsync(
+                "TL",
+                (candidate, ct) => _context.Tools.AnyAsync(t => t.QrCode == candidate, ct),
+                cancellationToken)
+            : request.QrCode.Trim();
 
         await ToolRules.EnsureUniqueAsync(_context, serialNumber, qrCode, request.Id, cancellationToken);
 
