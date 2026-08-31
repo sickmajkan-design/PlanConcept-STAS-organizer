@@ -1,5 +1,7 @@
+using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Bulletin.Models;
+using Construction.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,6 +24,14 @@ public class GetBulletinViewersQueryHandler
         GetBulletinViewersQuery request,
         CancellationToken cancellationToken)
     {
+        var postExists = await _context.BulletinPosts
+            .AnyAsync(p => p.Id == request.PostId, cancellationToken);
+
+        if (!postExists)
+        {
+            throw new NotFoundException(nameof(BulletinPost), request.PostId);
+        }
+
         return await _context.BulletinViews
             .AsNoTracking()
             .Where(v => v.BulletinPostId == request.PostId)

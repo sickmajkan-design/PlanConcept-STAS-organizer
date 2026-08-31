@@ -376,6 +376,13 @@ function RateDialog({
               label={t('rates.employee')}
               value={employeeId}
               onChange={(event) => setEmployeeId(event.target.value)}
+              // Editing a rate is a narrow correction — it deliberately does
+              // not re-run the chain that closes/reopens neighbouring rates
+              // when an employee changes. Locking this field is what keeps
+              // that safe: without it, "fixing a typo" could silently move a
+              // historical rate onto a different employee's pay record.
+              disabled={isEditing}
+              helperText={isEditing ? t('rates.employeeLockedHint') : undefined}
             >
               {employees?.items.map((employee) => (
                 <MenuItem key={employee.id} value={employee.id}>

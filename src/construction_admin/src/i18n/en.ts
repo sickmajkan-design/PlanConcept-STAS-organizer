@@ -787,6 +787,7 @@ export const en = {
   'rates.supersedeHint':
     'The rate in force is closed off the day before this one starts. Old rates are kept so past reports stay correct.',
   'rates.editHint': 'Only fixes a mistake in this one entry. To give someone a raise, set a new rate instead.',
+  'rates.employeeLockedHint': "Can't be changed here — delete this entry and set a new rate instead.",
   'rates.endsBeforeStart': 'The rate cannot end before it starts.',
   'rates.mustBePositive': 'An hour has to cost something.',
   'rates.summaryAverage': 'Average rate',

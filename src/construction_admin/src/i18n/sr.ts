@@ -799,6 +799,7 @@ export const sr: Record<MessageKey, Message> = {
   'rates.supersedeHint':
     'Cena koja je na snazi zatvara se dan pre početka nove. Stare cene ostaju da bi raniji izveštaji ostali tačni.',
   'rates.editHint': 'Ovo samo ispravlja grešku u ovom unosu. Za povišicu radniku, postavi novu cenu.',
+  'rates.employeeLockedHint': 'Ne može se promijeniti ovdje — obrišite ovaj unos i postavite novu cijenu.',
   'rates.endsBeforeStart': 'Cena ne može da se završi pre nego što počne.',
   'rates.mustBePositive': 'Sat mora nešto da košta.',
   'rates.summaryAverage': 'Prosečna cena',
