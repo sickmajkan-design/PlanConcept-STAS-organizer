@@ -279,6 +279,8 @@ export const sr: Record<MessageKey, Message> = {
   'materials.unitPrice': 'Cijena po jedinici',
   'materials.unitPriceHint': 'Referentna cijena, polazna tačka — ne znači da će isporuka koštati baš toliko.',
   'materials.estimatedValue': 'Procijenjena vrijednost zaliha',
+  'materials.incompleteHint': 'Nedostaje referentna cijena — otvorite i izmijenite da dovršite.',
+  'materials.incompleteOnly': 'Samo nepotpuni',
   'materials.project': 'Projekat',
   'materials.lastUpdated': 'Poslednja izmena',
   'materials.warehouseOnly': 'Samo zalihe u magacinu',

@@ -9,6 +9,7 @@ export interface MaterialListQuery extends ListQuery {
   unassignedOnly?: boolean;
   /** `0` is a meaningful filter here — "out of stock" — and is sent as such. */
   maxQuantity?: number;
+  incompleteOnly?: boolean;
 }
 
 export interface AdjustMaterialInput {

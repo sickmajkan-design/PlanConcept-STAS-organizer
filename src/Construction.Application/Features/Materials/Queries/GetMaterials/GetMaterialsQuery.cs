@@ -33,6 +33,9 @@ public record GetMaterialsQuery : ISortablePagedQuery, IRequest<PagedList<Materi
     /// <summary>When set, returns only materials whose quantity is at or below this value.</summary>
     public decimal? MaxQuantity { get; init; }
 
+    /// <summary>When true, returns only materials with no reference price set.</summary>
+    public bool? IncompleteOnly { get; init; }
+
     public string? SortBy { get; init; }
 
     public bool SortDescending { get; init; }
@@ -94,6 +97,11 @@ public class GetMaterialsQueryHandler : IRequestHandler<GetMaterialsQuery, Paged
         if (request.MaxQuantity is { } maxQuantity)
         {
             query = query.Where(m => m.Quantity <= maxQuantity);
+        }
+
+        if (request.IncompleteOnly == true)
+        {
+            query = query.Where(m => m.UnitPrice == null);
         }
 
         query = ApplySorting(query, request.SortBy, request.SortDescending);

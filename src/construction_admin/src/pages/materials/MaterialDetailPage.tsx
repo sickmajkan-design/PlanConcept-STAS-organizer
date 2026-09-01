@@ -131,6 +131,7 @@ export function MaterialDetailPage() {
                       ? null
                       : `${formatMoney(material.unitPrice, locale)} / ${material.unit}`
                   }
+                  flagMissing
                 />
                 {material.unitPrice !== null && (
                   <InfoRow
@@ -241,13 +242,27 @@ export function MaterialDetailPage() {
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {
+function InfoRow({
+  label,
+  value,
+  flagMissing,
+}: {
+  label: string;
+  value: string | null | undefined;
+  /** Shows a warning-colored prompt instead of a plain dash when unset. */
+  flagMissing?: boolean;
+}) {
+  const t = useT();
+  const missing = !value && flagMissing;
+
   return (
     <Box>
       <Typography variant="caption" color="text.secondary">
         {label}
       </Typography>
-      <Typography variant="body1">{value || '—'}</Typography>
+      <Typography variant="body1" color={missing ? 'warning.main' : undefined}>
+        {value || (missing ? t('common.incomplete') : '—')}
+      </Typography>
     </Box>
   );
 }

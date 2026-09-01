@@ -1,4 +1,10 @@
-import { AddOutlined, DeleteOutlined, EditOutlined, VisibilityOutlined } from '@mui/icons-material';
+import {
+  AddOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  VisibilityOutlined,
+  WarningAmberOutlined,
+} from '@mui/icons-material';
 import {
   Box,
   FormControlLabel,
@@ -35,10 +41,15 @@ export function MaterialsListPage() {
   // Materials filter on a boolean rather than a status enum, so this one keeps
   // its own state instead of using the hook's single-select filter.
   const [warehouseOnly, setWarehouseOnly] = useState(false);
+  const [incompleteOnly, setIncompleteOnly] = useState(false);
 
   const query: MaterialListQuery = useMemo(
-    () => ({ ...list.query, unassignedOnly: warehouseOnly || undefined }),
-    [list.query, warehouseOnly],
+    () => ({
+      ...list.query,
+      unassignedOnly: warehouseOnly || undefined,
+      incompleteOnly: incompleteOnly || undefined,
+    }),
+    [list.query, warehouseOnly, incompleteOnly],
   );
 
   const { data, isLoading, isError, error, refetch } = useMaterialsQuery(query);
@@ -46,7 +57,22 @@ export function MaterialsListPage() {
 
   const columns: GridColDef<Material>[] = useMemo(
     () => [
-      { field: 'name', headerName: t('materials.name'), flex: 1, minWidth: 180 },
+      {
+        field: 'name',
+        headerName: t('materials.name'),
+        flex: 1,
+        minWidth: 180,
+        renderCell: (params) => (
+          <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
+            <span>{params.row.name}</span>
+            {params.row.unitPrice === null && (
+              <Tooltip title={t('materials.incompleteHint')}>
+                <WarningAmberOutlined fontSize="small" color="warning" />
+              </Tooltip>
+            )}
+          </Stack>
+        ),
+      },
       {
         field: 'quantity',
         headerName: t('materials.quantity'),
@@ -137,6 +163,18 @@ export function MaterialsListPage() {
             />
           }
           label={t('materials.warehouseOnly')}
+        />
+        <FormControlLabel
+          control={
+            <Switch
+              checked={incompleteOnly}
+              onChange={(event) => {
+                setIncompleteOnly(event.target.checked);
+                list.resetToFirstPage();
+              }}
+            />
+          }
+          label={t('materials.incompleteOnly')}
         />
       </Stack>
 

@@ -270,6 +270,8 @@ export const en = {
   'materials.unitPrice': 'Price per unit',
   'materials.unitPriceHint': 'A reference price, used as a starting point — not what any particular delivery ended up costing.',
   'materials.estimatedValue': 'Estimated value on hand',
+  'materials.incompleteHint': 'Missing a reference price — open and edit to complete it.',
+  'materials.incompleteOnly': 'Incomplete only',
   'materials.project': 'Project',
   'materials.lastUpdated': 'Last updated',
   'materials.warehouseOnly': 'Warehouse stock only',
