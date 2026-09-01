@@ -21,6 +21,13 @@ public class ProjectCostReportDto
 
     public decimal TotalMaterialCost { get; init; }
 
+    /// <summary>
+    /// Value of materials currently assigned to a site, priced at each
+    /// material's own reference price — not part of <see cref="Total"/>. See
+    /// the field of the same name on <see cref="ProjectCostRowDto"/>.
+    /// </summary>
+    public decimal TotalMaterialsOnSiteValue { get; init; }
+
     public decimal Total { get; init; }
 }
 
@@ -46,6 +53,18 @@ public class ProjectCostRowDto
     public int UnpricedMinutes { get; init; }
 
     public decimal MaterialCost { get; init; }
+
+    /// <summary>
+    /// Value of materials currently assigned to this site (quantity × each
+    /// material's reference price), whether or not any of it has been used
+    /// yet. Deliberately not folded into <see cref="MaterialCost"/> or
+    /// <see cref="Total"/> — that stays what was actually issued and priced;
+    /// this is what is sitting there, a different question with a different
+    /// answer. Not scoped to the report's date range either: it is a
+    /// snapshot of what is on site right now, not a transaction total for
+    /// the period.
+    /// </summary>
+    public decimal MaterialsOnSiteValue { get; init; }
 
     public decimal Total { get; init; }
 }

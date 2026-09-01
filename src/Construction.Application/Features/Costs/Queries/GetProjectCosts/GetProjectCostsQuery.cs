@@ -84,10 +84,12 @@ public class GetProjectCostsQueryHandler
             : [];
 
         var materials = await LoadMaterialsAsync(request, cancellationToken);
+        var materialsOnSite = await LoadMaterialsOnSiteAsync(request, cancellationToken);
 
-        // Every site that had either kind of cost. A site with neither is not
-        // a row of zeroes, it is a site nothing happened on.
-        var projectIds = labour.Keys.Concat(materials.Keys).ToHashSet();
+        // Every site that had a cost, or has material sitting on it. A site
+        // with none of the three is not a row of zeroes, it is a site
+        // nothing happened on.
+        var projectIds = labour.Keys.Concat(materials.Keys).Concat(materialsOnSite.Keys).ToHashSet();
 
         var names = await _context.Projects
             .AsNoTracking()
@@ -100,6 +102,7 @@ public class GetProjectCostsQueryHandler
             {
                 var l = labour.GetValueOrDefault(id);
                 var materialCost = materials.GetValueOrDefault(id);
+                var onSiteValue = materialsOnSite.GetValueOrDefault(id);
 
                 return new ProjectCostRowDto
                 {
@@ -109,6 +112,7 @@ public class GetProjectCostsQueryHandler
                     LabourCost = decimal.Round(l.Cost, 2),
                     UnpricedMinutes = l.UnpricedMinutes,
                     MaterialCost = decimal.Round(materialCost, 2),
+                    MaterialsOnSiteValue = decimal.Round(onSiteValue, 2),
                     Total = decimal.Round(l.Cost + materialCost, 2)
                 };
             })
@@ -124,6 +128,7 @@ public class GetProjectCostsQueryHandler
             Rows = rows,
             TotalLabourCost = rows.Sum(r => r.LabourCost),
             TotalMaterialCost = rows.Sum(r => r.MaterialCost),
+            TotalMaterialsOnSiteValue = rows.Sum(r => r.MaterialsOnSiteValue),
             Total = rows.Sum(r => r.Total)
         };
     }
@@ -236,5 +241,34 @@ public class GetProjectCostsQueryHandler
             .ToListAsync(cancellationToken);
 
         return rows.ToDictionary(r => r.ProjectId, r => r.Cost);
+    }
+
+    /// <summary>
+    /// What each site is currently holding, priced at each material's own
+    /// reference price — not the same question as <see cref="LoadMaterialsAsync"/>,
+    /// which prices what was actually issued.
+    /// </summary>
+    /// <remarks>
+    /// A snapshot of the material's own <c>ProjectId</c>, so it is deliberately
+    /// not filtered by <see cref="GetProjectCostsQuery.From"/>/<see cref="GetProjectCostsQuery.To"/>
+    /// — on-hand stock has no period, only a right-now.
+    /// </remarks>
+    private async Task<Dictionary<Guid, decimal>> LoadMaterialsOnSiteAsync(
+        GetProjectCostsQuery request,
+        CancellationToken cancellationToken)
+    {
+        var rows = await _context.Materials
+            .AsNoTracking()
+            .Where(m => m.ProjectId != null && m.UnitPrice != null)
+            .Where(m => request.ProjectId == null || m.ProjectId == request.ProjectId)
+            .GroupBy(m => m.ProjectId!.Value)
+            .Select(g => new
+            {
+                ProjectId = g.Key,
+                Value = g.Sum(m => m.UnitPrice!.Value * m.Quantity)
+            })
+            .ToListAsync(cancellationToken);
+
+        return rows.ToDictionary(r => r.ProjectId, r => r.Value);
     }
 }

@@ -638,6 +638,7 @@ public class ExportProjectCostsQueryHandler
 
         columns.Add(new(ExportLabels.Get("materialCost", english), SpreadsheetValueKind.Money));
         columns.Add(new(ExportLabels.Get("total", english), SpreadsheetValueKind.Money));
+        columns.Add(new(ExportLabels.Get("materialsOnSite", english), SpreadsheetValueKind.Money));
 
         var rows = new List<IReadOnlyList<object?>>();
 
@@ -656,6 +657,7 @@ public class ExportProjectCostsQueryHandler
 
             cells.Add(row.MaterialCost);
             cells.Add(row.Total);
+            cells.Add(row.MaterialsOnSiteValue);
 
             rows.Add(cells);
         }
@@ -676,6 +678,7 @@ public class ExportProjectCostsQueryHandler
 
             totals.Add(report.TotalMaterialCost);
             totals.Add(report.Total);
+            totals.Add(report.TotalMaterialsOnSiteValue);
 
             rows.Add(totals);
         }

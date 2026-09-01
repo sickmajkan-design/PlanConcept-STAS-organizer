@@ -693,6 +693,9 @@ export const en = {
   'costs.vehicle': 'Vehicle',
   'costs.labour': 'Labour',
   'costs.material': 'Material',
+  'costs.materialsOnSite': 'Material on site',
+  'costs.materialsOnSiteHint':
+    "Value of material currently assigned to this site, at each material's reference price — not what was actually issued, and not part of the total. Materials sitting there, not yet used.",
   'costs.hours': 'Hours',
   'costs.total': 'Total',
   'costs.grandTotal': 'Everything',

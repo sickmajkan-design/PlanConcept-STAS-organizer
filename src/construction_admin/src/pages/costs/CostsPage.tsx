@@ -17,6 +17,7 @@ import {
   TableSortLabel,
   Tabs,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import { useMemo, useState } from 'react';
@@ -37,7 +38,13 @@ import { formatMoney, formatQuantity } from '../../utils/formatting';
 import { monthOf, splitHours, yearOf, type Period } from './monthWindow';
 
 type SortDirection = 'asc' | 'desc';
-type ProjectCostSortField = 'projectName' | 'labourMinutes' | 'labourCost' | 'materialCost' | 'total';
+type ProjectCostSortField =
+  | 'projectName'
+  | 'labourMinutes'
+  | 'labourCost'
+  | 'materialCost'
+  | 'materialsOnSiteValue'
+  | 'total';
 type VehicleCostSortField =
   | 'vehicleName'
   | 'fuelCost'
@@ -163,6 +170,8 @@ function ProjectCosts({ period }: { period: Period }) {
           return (a.labourCost - b.labourCost) * factor;
         case 'materialCost':
           return (a.materialCost - b.materialCost) * factor;
+        case 'materialsOnSiteValue':
+          return (a.materialsOnSiteValue - b.materialsOnSiteValue) * factor;
         case 'total':
           return (a.total - b.total) * factor;
         default:
@@ -257,6 +266,20 @@ function ProjectCosts({ period }: { period: Period }) {
                   {t('costs.total')}
                 </TableSortLabel>
               </TableCell>
+              <TableCell
+                align="right"
+                sortDirection={sortBy === 'materialsOnSiteValue' ? sortDirection : false}
+              >
+                <Tooltip title={t('costs.materialsOnSiteHint')}>
+                  <TableSortLabel
+                    active={sortBy === 'materialsOnSiteValue'}
+                    direction={sortBy === 'materialsOnSiteValue' ? sortDirection : 'asc'}
+                    onClick={() => toggleSort('materialsOnSiteValue')}
+                  >
+                    {t('costs.materialsOnSite')}
+                  </TableSortLabel>
+                </Tooltip>
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -279,6 +302,9 @@ function ProjectCosts({ period }: { period: Period }) {
                 <TableCell align="right" sx={{ fontWeight: 600 }}>
                   {formatMoney(row.total, locale)}
                 </TableCell>
+                <TableCell align="right" sx={{ color: 'text.secondary' }}>
+                  {formatMoney(row.materialsOnSiteValue, locale)}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -298,6 +324,9 @@ function ProjectCosts({ period }: { period: Period }) {
               </TableCell>
               <TableCell align="right" sx={{ fontWeight: 700 }}>
                 {formatMoney(data.total, locale)}
+              </TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                {formatMoney(data.totalMaterialsOnSiteValue, locale)}
               </TableCell>
             </TableRow>
           </TableFooter>

@@ -830,6 +830,12 @@ export interface ProjectCostRow {
   /** Hours no rate covered — reported rather than treated as free. */
   unpricedMinutes: number;
   materialCost: number;
+  /**
+   * Value of material currently assigned to this site (quantity × reference
+   * price), whether or not it has been used yet. Not part of `total` — see
+   * the field of the same name on `ProjectCostReport`.
+   */
+  materialsOnSiteValue: number;
   total: number;
 }
 
@@ -841,6 +847,7 @@ export interface ProjectCostReport {
   rows: ProjectCostRow[];
   totalLabourCost: number;
   totalMaterialCost: number;
+  totalMaterialsOnSiteValue: number;
   total: number;
 }
 

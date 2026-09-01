@@ -704,6 +704,9 @@ export const sr: Record<MessageKey, Message> = {
   'costs.vehicle': 'Vozilo',
   'costs.labour': 'Rad',
   'costs.material': 'Materijal',
+  'costs.materialsOnSite': 'Materijal na lageru',
+  'costs.materialsOnSiteHint':
+    'Vrijednost materijala trenutno dodijeljenog ovom projektu, po referentnoj cijeni svakog materijala — nije stvarno utrošeno, i nije dio ukupnog troška. Materijal koji stoji tamo, još neiskorišten.',
   'costs.hours': 'Sati',
   'costs.total': 'Ukupno',
   'costs.grandTotal': 'Sve zajedno',
