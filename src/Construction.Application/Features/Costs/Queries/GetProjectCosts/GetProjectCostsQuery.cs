@@ -86,10 +86,20 @@ public class GetProjectCostsQueryHandler
         var materials = await LoadMaterialsAsync(request, cancellationToken);
         var materialsOnSite = await LoadMaterialsOnSiteAsync(request, cancellationToken);
 
+        // Same visibility rule as clocked labour: a manual pay figure is
+        // payroll, and a role that cannot see one should not see the other.
+        var manualPay = includesLabour
+            ? await LoadFinanceEntriesAsync(request, cancellationToken)
+            : [];
+
         // Every site that had a cost, or has material sitting on it. A site
-        // with none of the three is not a row of zeroes, it is a site
-        // nothing happened on.
-        var projectIds = labour.Keys.Concat(materials.Keys).Concat(materialsOnSite.Keys).ToHashSet();
+        // with none of these is not a row of zeroes, it is a site nothing
+        // happened on.
+        var projectIds = labour.Keys
+            .Concat(materials.Keys)
+            .Concat(materialsOnSite.Keys)
+            .Concat(manualPay.Keys)
+            .ToHashSet();
 
         var names = await _context.Projects
             .AsNoTracking()
@@ -103,6 +113,7 @@ public class GetProjectCostsQueryHandler
                 var l = labour.GetValueOrDefault(id);
                 var materialCost = materials.GetValueOrDefault(id);
                 var onSiteValue = materialsOnSite.GetValueOrDefault(id);
+                var manualPayAmount = manualPay.GetValueOrDefault(id);
 
                 return new ProjectCostRowDto
                 {
@@ -113,6 +124,7 @@ public class GetProjectCostsQueryHandler
                     UnpricedMinutes = l.UnpricedMinutes,
                     MaterialCost = decimal.Round(materialCost, 2),
                     MaterialsOnSiteValue = decimal.Round(onSiteValue, 2),
+                    ManualPayAmount = decimal.Round(manualPayAmount, 2),
                     Total = decimal.Round(l.Cost + materialCost, 2)
                 };
             })
@@ -129,6 +141,7 @@ public class GetProjectCostsQueryHandler
             TotalLabourCost = rows.Sum(r => r.LabourCost),
             TotalMaterialCost = rows.Sum(r => r.MaterialCost),
             TotalMaterialsOnSiteValue = rows.Sum(r => r.MaterialsOnSiteValue),
+            TotalManualPayAmount = rows.Sum(r => r.ManualPayAmount),
             Total = rows.Sum(r => r.Total)
         };
     }
@@ -270,5 +283,31 @@ public class GetProjectCostsQueryHandler
             .ToListAsync(cancellationToken);
 
         return rows.ToDictionary(r => r.ProjectId, r => r.Value);
+    }
+
+    /// <summary>
+    /// Manually entered pay (<c>FinanceEntry</c>) attributed to a site over
+    /// the period — see the remarks on <see cref="ProjectCostRowDto.ManualPayAmount"/>
+    /// for why this is kept separate from <see cref="LoadLabourAsync"/> rather
+    /// than added to it.
+    /// </summary>
+    private async Task<Dictionary<Guid, decimal>> LoadFinanceEntriesAsync(
+        GetProjectCostsQuery request,
+        CancellationToken cancellationToken)
+    {
+        var rows = await _context.FinanceEntries
+            .AsNoTracking()
+            .Where(f => f.ProjectId != null)
+            .Where(f => request.ProjectId == null || f.ProjectId == request.ProjectId)
+            .Where(f => f.OccurredOn >= request.From && f.OccurredOn <= request.To)
+            .GroupBy(f => f.ProjectId!.Value)
+            .Select(g => new
+            {
+                ProjectId = g.Key,
+                Amount = g.Sum(f => f.Amount)
+            })
+            .ToListAsync(cancellationToken);
+
+        return rows.ToDictionary(r => r.ProjectId, r => r.Amount);
     }
 }

@@ -44,6 +44,7 @@ type ProjectCostSortField =
   | 'labourCost'
   | 'materialCost'
   | 'materialsOnSiteValue'
+  | 'manualPayAmount'
   | 'total';
 type VehicleCostSortField =
   | 'vehicleName'
@@ -172,6 +173,8 @@ function ProjectCosts({ period }: { period: Period }) {
           return (a.materialCost - b.materialCost) * factor;
         case 'materialsOnSiteValue':
           return (a.materialsOnSiteValue - b.materialsOnSiteValue) * factor;
+        case 'manualPayAmount':
+          return (a.manualPayAmount - b.manualPayAmount) * factor;
         case 'total':
           return (a.total - b.total) * factor;
         default:
@@ -280,6 +283,22 @@ function ProjectCosts({ period }: { period: Period }) {
                   </TableSortLabel>
                 </Tooltip>
               </TableCell>
+              {data.includesLabour && (
+                <TableCell
+                  align="right"
+                  sortDirection={sortBy === 'manualPayAmount' ? sortDirection : false}
+                >
+                  <Tooltip title={t('costs.manualPayHint')}>
+                    <TableSortLabel
+                      active={sortBy === 'manualPayAmount'}
+                      direction={sortBy === 'manualPayAmount' ? sortDirection : 'asc'}
+                      onClick={() => toggleSort('manualPayAmount')}
+                    >
+                      {t('costs.manualPay')}
+                    </TableSortLabel>
+                  </Tooltip>
+                </TableCell>
+              )}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -305,6 +324,11 @@ function ProjectCosts({ period }: { period: Period }) {
                 <TableCell align="right" sx={{ color: 'text.secondary' }}>
                   {formatMoney(row.materialsOnSiteValue, locale)}
                 </TableCell>
+                {data.includesLabour && (
+                  <TableCell align="right" sx={{ color: 'text.secondary' }}>
+                    {formatMoney(row.manualPayAmount, locale)}
+                  </TableCell>
+                )}
               </TableRow>
             ))}
           </TableBody>
@@ -328,6 +352,11 @@ function ProjectCosts({ period }: { period: Period }) {
               <TableCell align="right" sx={{ fontWeight: 700, color: 'text.secondary' }}>
                 {formatMoney(data.totalMaterialsOnSiteValue, locale)}
               </TableCell>
+              {data.includesLabour && (
+                <TableCell align="right" sx={{ fontWeight: 700, color: 'text.secondary' }}>
+                  {formatMoney(data.totalManualPayAmount, locale)}
+                </TableCell>
+              )}
             </TableRow>
           </TableFooter>
         </Table>

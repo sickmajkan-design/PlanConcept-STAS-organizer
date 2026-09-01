@@ -709,6 +709,9 @@ export const sr: Record<MessageKey, Message> = {
   'costs.materialsOnSite': 'Materijal na lageru',
   'costs.materialsOnSiteHint':
     'Vrijednost materijala trenutno dodijeljenog ovom projektu, po referentnoj cijeni svakog materijala — nije stvarno utrošeno, i nije dio ukupnog troška. Materijal koji stoji tamo, još neiskorišten.',
+  'costs.manualPay': 'Ručni unosi plate',
+  'costs.manualPayHint':
+    'Ručno unesena plata (Finansijski unosi) zadužena na ovaj projekat — nije dio ukupnog troška. Ručni unos je često ispravka već obračunatih i naplaćenih sati, pa bi sabiranje oba rizikovalo dupli obračun istog rada.',
   'costs.hours': 'Sati',
   'costs.total': 'Ukupno',
   'costs.grandTotal': 'Sve zajedno',

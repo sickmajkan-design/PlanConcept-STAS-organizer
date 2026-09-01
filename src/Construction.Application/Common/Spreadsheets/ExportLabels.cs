@@ -57,6 +57,7 @@ public static class ExportLabels
         ["unpricedHours"] = ("Sati bez cene", "Unpriced hours"),
         ["materialCost"] = ("Materijal", "Material"),
         ["materialsOnSite"] = ("Materijal na lageru", "Material on site"),
+        ["manualPay"] = ("Ručni unosi plate", "Manual pay entries"),
         ["total"] = ("Ukupno", "Total"),
         ["grandTotal"] = ("Sve zajedno", "Everything"),
         ["fuelCost"] = ("Gorivo", "Fuel"),

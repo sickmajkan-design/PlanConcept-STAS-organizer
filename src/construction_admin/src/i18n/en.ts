@@ -698,6 +698,9 @@ export const en = {
   'costs.materialsOnSite': 'Material on site',
   'costs.materialsOnSiteHint':
     "Value of material currently assigned to this site, at each material's reference price — not what was actually issued, and not part of the total. Materials sitting there, not yet used.",
+  'costs.manualPay': 'Manual pay entries',
+  'costs.manualPayHint':
+    "Manually entered pay (Finance Entries) charged to this site — not part of the total. A manual entry is often a correction to hours already clocked and priced there, so adding both would risk counting the same work twice.",
   'costs.hours': 'Hours',
   'costs.total': 'Total',
   'costs.grandTotal': 'Everything',

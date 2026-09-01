@@ -836,6 +836,13 @@ export interface ProjectCostRow {
    * the field of the same name on `ProjectCostReport`.
    */
   materialsOnSiteValue: number;
+  /**
+   * Manually entered pay (FinanceEntry) attributed to this site over the
+   * period. Not part of `total` — a manual entry is often a correction to
+   * hours already clocked and priced there, so adding both would risk
+   * counting the same work twice.
+   */
+  manualPayAmount: number;
   total: number;
 }
 
@@ -848,6 +855,7 @@ export interface ProjectCostReport {
   totalLabourCost: number;
   totalMaterialCost: number;
   totalMaterialsOnSiteValue: number;
+  totalManualPayAmount: number;
   total: number;
 }
 

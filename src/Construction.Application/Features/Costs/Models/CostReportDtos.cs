@@ -28,6 +28,13 @@ public class ProjectCostReportDto
     /// </summary>
     public decimal TotalMaterialsOnSiteValue { get; init; }
 
+    /// <summary>
+    /// Manually entered pay (<c>FinanceEntry</c>) attributed to a site over
+    /// the period — not part of <see cref="Total"/>. See the field of the
+    /// same name on <see cref="ProjectCostRowDto"/> for why.
+    /// </summary>
+    public decimal TotalManualPayAmount { get; init; }
+
     public decimal Total { get; init; }
 }
 
@@ -65,6 +72,16 @@ public class ProjectCostRowDto
     /// the period.
     /// </summary>
     public decimal MaterialsOnSiteValue { get; init; }
+
+    /// <summary>
+    /// Manually entered pay (<c>FinanceEntry</c>) attributed to this site over
+    /// the period. Deliberately not folded into <see cref="LabourCost"/> or
+    /// <see cref="Total"/>: a `FinanceEntry` is often a correction to hours
+    /// already clocked and priced there — a rounded figure, a flat day rate —
+    /// so adding the two together risks paying the same work twice on paper.
+    /// Shown as its own figure instead of guessed away.
+    /// </summary>
+    public decimal ManualPayAmount { get; init; }
 
     public decimal Total { get; init; }
 }
