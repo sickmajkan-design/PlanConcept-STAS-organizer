@@ -25,15 +25,16 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
 import { useAdjustMaterial, useDeleteMaterial, useMaterialQuery } from '../../features/materials/useMaterials';
 import { adjustMaterialSchema, type AdjustMaterialFormValues } from '../../features/materials/validation';
-import { useT } from '../../i18n/useI18n';
+import { useI18n, useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
-import { formatDateTime } from '../../utils/formatting';
+import { formatDateTime, formatMoney } from '../../utils/formatting';
 
 export function MaterialDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const t = useT();
 
+  const { locale } = useI18n();
   const { data: material, isLoading, isError, error, refetch } = useMaterialQuery(id);
   const adjust = useAdjustMaterial(id ?? '');
   const deleteMaterial = useDeleteMaterial();
@@ -123,6 +124,20 @@ export function MaterialDetailPage() {
               </Typography>
               <Stack spacing={1.5} sx={{ mt: 1 }}>
                 <InfoRow label={t('materials.warehouse')} value={material.warehouse} />
+                <InfoRow
+                  label={t('materials.unitPrice')}
+                  value={
+                    material.unitPrice === null
+                      ? null
+                      : `${formatMoney(material.unitPrice, locale)} / ${material.unit}`
+                  }
+                />
+                {material.unitPrice !== null && (
+                  <InfoRow
+                    label={t('materials.estimatedValue')}
+                    value={formatMoney(material.unitPrice * material.quantity, locale)}
+                  />
+                )}
                 <InfoRow label={t('materials.lastUpdated')} value={formatDateTime(material.lastUpdated)} />
               </Stack>
             </CardContent>

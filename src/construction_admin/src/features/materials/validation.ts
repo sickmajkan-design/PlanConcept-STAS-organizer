@@ -6,12 +6,18 @@ const quantityString = z
   .refine((value) => !Number.isNaN(Number(value)), { message: 'Must be a number.' })
   .refine((value) => Number(value) >= 0, { message: 'Quantity must not be negative.' });
 
+const optionalPriceString = z
+  .string()
+  .refine((value) => value === '' || !Number.isNaN(Number(value)), { message: 'Must be a number.' })
+  .refine((value) => value === '' || Number(value) >= 0, { message: 'Price must not be negative.' });
+
 /** Mirrors the API's MaterialCommandBaseValidator so the form catches errors early. */
 export const materialFormSchema = z.object({
   name: z.string().trim().min(1, 'Material name is required.').max(256),
   unit: z.string().trim().min(1, 'Unit of measure is required.').max(32),
   quantity: quantityString,
   warehouse: z.string().trim().max(256).optional().or(z.literal('')),
+  unitPrice: optionalPriceString,
   projectId: z.string().optional().or(z.literal('')),
 });
 

@@ -57,6 +57,7 @@ public class UpdateMaterialCommandHandler : IRequestHandler<UpdateMaterialComman
         material.Unit = request.Unit.Trim();
         material.Quantity = request.Quantity;
         material.Warehouse = request.Warehouse?.Trim();
+        material.UnitPrice = request.UnitPrice;
         material.ProjectId = request.ProjectId;
 
         await _context.SaveChangesAsync(cancellationToken);

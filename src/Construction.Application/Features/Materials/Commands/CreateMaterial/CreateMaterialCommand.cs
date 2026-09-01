@@ -45,6 +45,7 @@ public class CreateMaterialCommandHandler : IRequestHandler<CreateMaterialComman
             Unit = request.Unit.Trim(),
             Quantity = request.Quantity,
             Warehouse = request.Warehouse?.Trim(),
+            UnitPrice = request.UnitPrice,
             ProjectId = request.ProjectId,
             LastUpdated = _dateTimeProvider.UtcNow
         };

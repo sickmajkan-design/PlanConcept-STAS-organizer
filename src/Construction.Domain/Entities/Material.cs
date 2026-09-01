@@ -13,6 +13,14 @@ public class Material : BaseEntity, ISoftDeletable, IAuditable
 
     public string? Warehouse { get; set; }
 
+    /// <summary>
+    /// Reference price per unit, set by hand when the material is created or
+    /// edited. Separate from <see cref="MaterialMovement.UnitPrice"/> — that
+    /// is what a delivery actually cost and is what project cost reports are
+    /// priced from; this is a planning figure, not a recorded transaction.
+    /// </summary>
+    public decimal? UnitPrice { get; set; }
+
     public Guid? ProjectId { get; set; }
 
     public Project? Project { get; set; }

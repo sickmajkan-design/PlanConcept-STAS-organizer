@@ -369,7 +369,20 @@ function MovementDialog({
               fullWidth
               label={t('movements.material')}
               value={materialId}
-              onChange={(event) => setMaterialId(event.target.value)}
+              onChange={(event) => {
+                const nextId = event.target.value;
+                setMaterialId(nextId);
+
+                // A convenience, not a rule: only nudges a still-empty price
+                // on a brand new delivery, so it never overwrites a number
+                // the admin already typed or a value already on record.
+                if (!isEditing && kind === 'In' && unitPrice.trim() === '') {
+                  const selected = materials?.items.find((m) => m.id === nextId);
+                  if (selected?.unitPrice != null) {
+                    setUnitPrice(String(selected.unitPrice));
+                  }
+                }
+              }}
             >
               {materials?.items.map((material) => (
                 <MenuItem key={material.id} value={material.id}>

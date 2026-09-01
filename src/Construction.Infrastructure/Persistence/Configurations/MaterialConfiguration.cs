@@ -31,6 +31,12 @@ public class MaterialConfiguration : IEntityTypeConfiguration<Material>
         builder.Property(m => m.Warehouse)
             .HasMaxLength(256);
 
+        builder.Property(m => m.UnitPrice)
+            .HasPrecision(18, 2);
+
+        builder.ToTable(t => t.HasCheckConstraint(
+            "ck_materials_price_not_negative", "\"UnitPrice\" IS NULL OR \"UnitPrice\" >= 0"));
+
         builder.HasOne(m => m.Project)
             .WithMany(p => p.Materials)
             .HasForeignKey(m => m.ProjectId)

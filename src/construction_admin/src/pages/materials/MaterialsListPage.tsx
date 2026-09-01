@@ -21,13 +21,15 @@ import { RowActions } from '../../components/RowActions';
 import { SearchField } from '../../components/SearchField';
 import { useDeleteMaterial, useMaterialsQuery } from '../../features/materials/useMaterials';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
-import { useT } from '../../i18n/useI18n';
+import { useI18n, useT } from '../../i18n/useI18n';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { paths } from '../../routes/paths';
+import { formatMoney } from '../../utils/formatting';
 
 export function MaterialsListPage() {
   const navigate = useNavigate();
   const t = useT();
+  const { locale } = useI18n();
   const list = useListQueryState('name');
 
   // Materials filter on a boolean rather than a status enum, so this one keeps
@@ -58,6 +60,14 @@ export function MaterialsListPage() {
         flex: 1,
         minWidth: 140,
         valueGetter: (v) => v || '—',
+      },
+      {
+        field: 'unitPrice',
+        headerName: t('materials.unitPrice'),
+        width: 130,
+        type: 'number',
+        valueGetter: (_value, row) =>
+          row.unitPrice === null ? '—' : formatMoney(row.unitPrice, locale),
       },
       {
         field: 'projectName',
@@ -95,7 +105,7 @@ export function MaterialsListPage() {
         ),
       },
     ],
-    [navigate, remove, t],
+    [navigate, remove, t, locale],
   );
 
   return (

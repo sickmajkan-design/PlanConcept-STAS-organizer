@@ -343,6 +343,8 @@ export interface Material {
   unit: string;
   quantity: number;
   warehouse: string | null;
+  /** Reference price per unit — a planning figure, not what any delivery actually cost. */
+  unitPrice: number | null;
   projectId: string | null;
   projectName: string | null;
   lastUpdated: string;
@@ -355,6 +357,7 @@ export interface MaterialInput {
   unit: string;
   quantity: number;
   warehouse?: string | null;
+  unitPrice?: number | null;
   projectId?: string | null;
 }
 

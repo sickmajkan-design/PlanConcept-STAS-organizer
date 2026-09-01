@@ -17,6 +17,9 @@ public abstract record MaterialCommandBase
 
     public string? Warehouse { get; init; }
 
+    /// <summary>Reference price per unit — optional, a planning figure rather than a recorded cost.</summary>
+    public decimal? UnitPrice { get; init; }
+
     public Guid? ProjectId { get; init; }
 }
 
@@ -38,5 +41,9 @@ public abstract class MaterialCommandBaseValidator<T> : AbstractValidator<T>
 
         RuleFor(x => x.Warehouse)
             .MaximumLength(256);
+
+        RuleFor(x => x.UnitPrice)
+            .GreaterThanOrEqualTo(0).WithMessage("Price must not be negative.")
+            .When(x => x.UnitPrice is not null);
     }
 }

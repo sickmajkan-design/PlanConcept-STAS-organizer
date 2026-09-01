@@ -31,6 +31,7 @@ const emptyValues: MaterialFormValues = {
   unit: '',
   quantity: '0',
   warehouse: '',
+  unitPrice: '',
   projectId: '',
 };
 
@@ -63,6 +64,7 @@ export function MaterialFormPage() {
         unit: existing.unit,
         quantity: String(existing.quantity),
         warehouse: existing.warehouse ?? '',
+        unitPrice: existing.unitPrice === null ? '' : String(existing.unitPrice),
         projectId: existing.projectId ?? '',
       });
     }
@@ -82,6 +84,7 @@ export function MaterialFormPage() {
       unit: values.unit.trim(),
       quantity: Number(values.quantity),
       warehouse: values.warehouse || null,
+      unitPrice: values.unitPrice === '' ? null : Number(values.unitPrice),
       projectId: values.projectId || null,
     };
 
@@ -184,6 +187,22 @@ export function MaterialFormPage() {
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Controller
+                  name="unitPrice"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      {...field}
+                      label={t('materials.unitPrice')}
+                      type="number"
+                      fullWidth
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message ?? t('materials.unitPriceHint')}
                     />
                   )}
                 />
