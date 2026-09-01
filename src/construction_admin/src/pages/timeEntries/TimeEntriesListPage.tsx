@@ -3,6 +3,7 @@ import {
   DeleteOutlined,
   EditOutlined,
   HelpOutlineOutlined,
+  InfoOutlined,
   LocationOffOutlined,
   ReportOutlined,
   ScheduleOutlined,
@@ -19,6 +20,7 @@ import {
   DialogTitle,
   FormControlLabel,
   IconButton,
+  Popover,
   Stack,
   Switch,
   TextField,
@@ -46,6 +48,7 @@ import {
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { useEnumLabel } from '../../i18n/enumLabels';
+import type { MessageKey } from '../../i18n/en';
 import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { formatDate, formatTimeOfDay, splitMinutes } from '../../utils/formatting';
@@ -102,47 +105,56 @@ export function TimeEntriesListPage() {
         minWidth: 160,
       },
       {
+        // Sorts by the same field as before (startedAt); start, end, and the
+        // worked duration are one fact to a supervisor's eye, so they render
+        // as one two-line cell instead of three separate columns.
         field: 'startedAt',
-        headerName: t('timeEntries.startedAt'),
-        width: 170,
-        valueGetter: (_value, row) =>
-          `${formatDate(row.startedAt)} ${formatTimeOfDay(row.startedAt)}`,
+        headerName: t('timeEntries.shift'),
+        width: 175,
+        renderCell: (params) => {
+          const row = params.row;
+          const range = row.endedAt
+            ? `${formatTimeOfDay(row.startedAt)}–${formatTimeOfDay(row.endedAt)}`
+            : `${formatTimeOfDay(row.startedAt)}–…`;
+          const worked =
+            row.workedMinutes === null
+              ? t('timeEntries.running')
+              : t('timeEntries.hoursShort', splitMinutes(row.workedMinutes));
+
+          return (
+            <Stack sx={{ py: 0.5, lineHeight: 1.2 }}>
+              <Typography variant="body2">
+                {formatDate(row.startedAt)} {range}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {worked}
+              </Typography>
+            </Stack>
+          );
+        },
       },
       {
-        field: 'endedAt',
-        headerName: t('timeEntries.endedAt'),
-        width: 110,
-        sortable: true,
-        valueGetter: (_value, row) =>
-          row.endedAt ? formatTimeOfDay(row.endedAt) : '—',
-      },
-      {
-        field: 'workedMinutes',
-        headerName: t('timeEntries.worked'),
-        width: 120,
-        sortable: false,
-        valueGetter: (_value, row) =>
-          row.workedMinutes === null
-            ? t('timeEntries.running')
-            : t('timeEntries.hoursShort', splitMinutes(row.workedMinutes)),
-      },
-      {
+        // Work type has too few distinct values to earn its own column, so
+        // it rides along as a small chip under the project it was worked on.
         field: 'projectName',
         headerName: t('timeEntries.project'),
         flex: 1,
-        minWidth: 140,
-        valueGetter: (v) => v || t('timeEntries.noProject'),
-      },
-      {
-        field: 'workType',
-        headerName: t('timeEntries.workType'),
-        width: 130,
-        valueGetter: (_value, row) => enumLabel('workType', row.workType),
+        minWidth: 170,
+        renderCell: (params) => (
+          <Stack sx={{ py: 0.5, lineHeight: 1.2 }}>
+            <Typography variant="body2">
+              {params.row.projectName || t('timeEntries.noProject')}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {enumLabel('workType', params.row.workType)}
+            </Typography>
+          </Stack>
+        ),
       },
       {
         field: 'checkIn',
         headerName: t('timeEntries.checkIn'),
-        width: 90,
+        width: 80,
         sortable: false,
         align: 'center',
         headerAlign: 'center',
@@ -283,7 +295,10 @@ export function TimeEntriesListPage() {
         <Button size="small" onClick={() => navigate(paths.timeEntrySummary)}>
           {t('timeEntries.summary')}
         </Button>
-        <StatusLegend kind="timeEntryStatus" values={timeEntryStatuses} />
+        <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+          <StatusLegend kind="timeEntryStatus" values={timeEntryStatuses} />
+          <CheckInLegend />
+        </Stack>
       </Stack>
 
       <ResourceDataGrid
@@ -328,10 +343,60 @@ export function TimeEntriesListPage() {
   );
 }
 
+/** One of the four check-in states, or "unknown" — resolved once so the icon and the legend never drift apart. */
+type CheckInState = 'unknown' | 'bothWrong' | 'wrongLocation' | 'wrongTime' | 'bothCorrect';
+
+function checkInState(locationCorrect: boolean | null, timeCorrect: boolean | null): CheckInState {
+  if (locationCorrect === null && timeCorrect === null) return 'unknown';
+
+  const locationWrong = locationCorrect === false;
+  const timeWrong = timeCorrect === false;
+
+  if (locationWrong && timeWrong) return 'bothWrong';
+  if (locationWrong) return 'wrongLocation';
+  if (timeWrong) return 'wrongTime';
+  return 'bothCorrect';
+}
+
+const CHECK_IN_PRESENTATION: Record<
+  CheckInState,
+  { Icon: typeof TaskAltOutlined; color: string; bgcolor: string; labelKey: MessageKey }
+> = {
+  bothCorrect: {
+    Icon: TaskAltOutlined,
+    color: 'success.dark',
+    bgcolor: 'success.light',
+    labelKey: 'timeEntries.checkInBothCorrect',
+  },
+  wrongLocation: {
+    Icon: LocationOffOutlined,
+    color: 'warning.dark',
+    bgcolor: 'warning.light',
+    labelKey: 'timeEntries.checkInWrongLocation',
+  },
+  wrongTime: {
+    Icon: ScheduleOutlined,
+    color: 'warning.dark',
+    bgcolor: 'warning.light',
+    labelKey: 'timeEntries.checkInWrongTime',
+  },
+  bothWrong: {
+    Icon: ReportOutlined,
+    color: 'error.dark',
+    bgcolor: 'error.light',
+    labelKey: 'timeEntries.checkInBothWrong',
+  },
+  unknown: {
+    Icon: HelpOutlineOutlined,
+    color: 'text.disabled',
+    bgcolor: 'action.hover',
+    labelKey: 'timeEntries.checkInUnknown',
+  },
+};
+
 /**
- * Whether the clock-in was at the right place and time — one of four states,
- * plus an "unknown" state when the project or entry has no data to judge
- * one or both of them against.
+ * Whether the clock-in was at the right place and time, as a small coloured
+ * badge — a bare icon reads as decoration, a filled circle reads as status.
  */
 function CheckInIcon({
   locationCorrect,
@@ -341,44 +406,64 @@ function CheckInIcon({
   timeCorrect: boolean | null;
 }) {
   const t = useT();
-
-  if (locationCorrect === null && timeCorrect === null) {
-    return (
-      <Tooltip title={t('timeEntries.checkInUnknown')}>
-        <HelpOutlineOutlined fontSize="small" color="disabled" />
-      </Tooltip>
-    );
-  }
-
-  const locationWrong = locationCorrect === false;
-  const timeWrong = timeCorrect === false;
-
-  if (locationWrong && timeWrong) {
-    return (
-      <Tooltip title={t('timeEntries.checkInBothWrong')}>
-        <ReportOutlined fontSize="small" color="error" />
-      </Tooltip>
-    );
-  }
-  if (locationWrong) {
-    return (
-      <Tooltip title={t('timeEntries.checkInWrongLocation')}>
-        <LocationOffOutlined fontSize="small" color="warning" />
-      </Tooltip>
-    );
-  }
-  if (timeWrong) {
-    return (
-      <Tooltip title={t('timeEntries.checkInWrongTime')}>
-        <ScheduleOutlined fontSize="small" color="warning" />
-      </Tooltip>
-    );
-  }
+  const { Icon, color, bgcolor, labelKey } = CHECK_IN_PRESENTATION[
+    checkInState(locationCorrect, timeCorrect)
+  ];
 
   return (
-    <Tooltip title={t('timeEntries.checkInBothCorrect')}>
-      <TaskAltOutlined fontSize="small" color="success" />
+    <Tooltip title={t(labelKey)}>
+      <Box
+        sx={{
+          width: 28,
+          height: 28,
+          borderRadius: '50%',
+          bgcolor,
+          color,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Icon fontSize="small" sx={{ color: 'inherit' }} />
+      </Box>
     </Tooltip>
+  );
+}
+
+/** On-demand explanation of the check-in badge colours, in the same style as `StatusLegend`. */
+function CheckInLegend() {
+  const t = useT();
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+
+  const states: CheckInState[] = ['bothCorrect', 'wrongLocation', 'wrongTime', 'bothWrong', 'unknown'];
+
+  return (
+    <>
+      <Tooltip title={t('timeEntries.checkInLegendTitle')}>
+        <IconButton size="small" onClick={(event) => setAnchor(event.currentTarget)}>
+          <InfoOutlined fontSize="small" />
+        </IconButton>
+      </Tooltip>
+      <Popover
+        open={!!anchor}
+        anchorEl={anchor}
+        onClose={() => setAnchor(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+      >
+        <Stack spacing={1.25} sx={{ p: 2, minWidth: 260 }}>
+          <Typography variant="subtitle2">{t('timeEntries.checkInLegendTitle')}</Typography>
+          {states.map((state) => (
+            <Stack key={state} direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+              <CheckInIcon
+                locationCorrect={state === 'wrongLocation' || state === 'bothWrong' ? false : state === 'unknown' ? null : true}
+                timeCorrect={state === 'wrongTime' || state === 'bothWrong' ? false : state === 'unknown' ? null : true}
+              />
+              <Typography variant="body2">{t(CHECK_IN_PRESENTATION[state].labelKey)}</Typography>
+            </Stack>
+          ))}
+        </Stack>
+      </Popover>
+    </>
   );
 }
 

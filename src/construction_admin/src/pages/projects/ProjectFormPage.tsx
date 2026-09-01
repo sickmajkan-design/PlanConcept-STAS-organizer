@@ -3,6 +3,7 @@ import {
   Alert,
   Box,
   Button,
+  Divider,
   FormControl,
   Grid,
   InputLabel,
@@ -252,7 +253,16 @@ export function ProjectFormPage() {
                   )}
                 />
               </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
+              <Grid size={12}>
+                <Divider sx={{ my: 0.5 }} />
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
+                  {t('projects.checkInSection')}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  {t('projects.checkInSectionHint')}
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <Controller
                   name="latitude"
                   control={control}
@@ -268,7 +278,7 @@ export function ProjectFormPage() {
                   )}
                 />
               </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <Controller
                   name="longitude"
                   control={control}
@@ -284,7 +294,7 @@ export function ProjectFormPage() {
                   )}
                 />
               </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <Controller
                   name="shiftStartTime"
                   control={control}
@@ -295,11 +305,14 @@ export function ProjectFormPage() {
                       type="time"
                       fullWidth
                       slotProps={{ inputLabel: { shrink: true } }}
-                      helperText={fieldState.error?.message ?? t('projects.shiftStartTimeHint')}
                       error={!!fieldState.error}
+                      helperText={fieldState.error?.message}
                     />
                   )}
                 />
+              </Grid>
+              <Grid size={12}>
+                <Divider sx={{ my: 0.5 }} />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Controller
