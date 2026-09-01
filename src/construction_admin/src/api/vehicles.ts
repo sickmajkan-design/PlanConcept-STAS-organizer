@@ -12,6 +12,7 @@ import type {
 export interface VehicleListQuery extends ListQuery {
   status?: VehicleStatus | '';
   fuelType?: FuelType | '';
+  assignedProjectId?: string;
   unassigned?: boolean;
   incompleteOnly?: boolean;
 }

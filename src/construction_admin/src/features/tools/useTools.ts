@@ -81,3 +81,19 @@ export function useUnassignToolProject(id: string) {
     toolKeys.all,
   ]);
 }
+
+// Same relationship, initiated from the project's side: the project is fixed,
+// the tool is chosen — the reverse of the two hooks above.
+export function useAssignProjectTool(projectId: string) {
+  return useResourceMutation(
+    (toolId: string, key: string) => toolsApi.assignProject(toolId, projectId, key),
+    [toolKeys.all],
+  );
+}
+
+export function useUnassignProjectTool() {
+  return useResourceMutation(
+    (toolId: string, key: string) => toolsApi.unassignProject(toolId, key),
+    [toolKeys.all],
+  );
+}

@@ -79,3 +79,20 @@ export function useRemoveEmployeeFromProject(employeeId: string) {
     [employeeKeys.detail(employeeId), projectKeys.all],
   );
 }
+
+// The same relationship, initiated from the project's side instead of the
+// employee's — same endpoint, so both caches are invalidated the same way.
+export function useAssignProjectEmployee(projectId: string) {
+  return useResourceMutation(
+    (employeeId: string, key: string) =>
+      employeesApi.assignToProject(employeeId, projectId, key),
+    [projectKeys.detail(projectId), employeeKeys.all],
+  );
+}
+
+export function useRemoveProjectEmployee(projectId: string) {
+  return useResourceMutation(
+    (employeeId: string) => employeesApi.removeFromProject(employeeId, projectId),
+    [projectKeys.detail(projectId), employeeKeys.all],
+  );
+}

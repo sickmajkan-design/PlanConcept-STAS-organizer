@@ -106,7 +106,12 @@ export function ProjectFormPage() {
         ? await updateProject.mutateAsync(input)
         : await createProject.mutateAsync(input);
 
-      navigate(paths.projectDetail(saved.id));
+      // A fresh project has no crew or equipment yet — that's the very next
+      // thing anyone does with it, so the detail page briefly highlights
+      // where to add them instead of landing on a page that looks finished.
+      navigate(paths.projectDetail(saved.id), {
+        state: isEdit ? undefined : { justCreated: true },
+      });
     } catch (err) {
       const apiError = toApiError(err);
 

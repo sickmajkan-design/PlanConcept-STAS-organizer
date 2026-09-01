@@ -82,3 +82,19 @@ export function useUnassignVehicleProject(id: string) {
     vehicleKeys.all,
   ]);
 }
+
+// Same relationship, initiated from the project's side: the project is fixed,
+// the vehicle is chosen — the reverse of the two hooks above.
+export function useAssignProjectVehicle(projectId: string) {
+  return useResourceMutation(
+    (vehicleId: string, key: string) => vehiclesApi.assignProject(vehicleId, projectId, key),
+    [vehicleKeys.all],
+  );
+}
+
+export function useUnassignProjectVehicle() {
+  return useResourceMutation(
+    (vehicleId: string, key: string) => vehiclesApi.unassignProject(vehicleId, key),
+    [vehicleKeys.all],
+  );
+}

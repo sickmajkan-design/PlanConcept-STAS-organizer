@@ -30,6 +30,8 @@ public record GetVehiclesQuery : ISortablePagedQuery, IRequest<PagedList<Vehicle
 
     public Guid? AssignedEmployeeId { get; init; }
 
+    public Guid? AssignedProjectId { get; init; }
+
     /// <summary>When true, returns only vehicles with no assigned employee.</summary>
     public bool? Unassigned { get; init; }
 
@@ -87,6 +89,11 @@ public class GetVehiclesQueryHandler : IRequestHandler<GetVehiclesQuery, PagedLi
         if (request.AssignedEmployeeId is { } employeeId)
         {
             query = query.Where(v => v.AssignedEmployeeId == employeeId);
+        }
+
+        if (request.AssignedProjectId is { } projectId)
+        {
+            query = query.Where(v => v.AssignedProjectId == projectId);
         }
 
         if (request.Unassigned == true)
