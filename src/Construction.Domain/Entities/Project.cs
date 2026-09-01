@@ -17,6 +17,13 @@ public class Project : BaseEntity, ISoftDeletable, IAuditable
 
     public double? Longitude { get; set; }
 
+    /// <summary>
+    /// The site's expected daily clock-in time, in UTC, when one is set.
+    /// Used only to flag a time entry as clocked in outside the expected
+    /// window — it is not a schedule and does not gate clock-in itself.
+    /// </summary>
+    public TimeOnly? ShiftStartTime { get; set; }
+
     public DateOnly? StartDate { get; set; }
 
     public DateOnly? EndDate { get; set; }

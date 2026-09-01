@@ -38,6 +38,7 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
         project.Address = request.Address?.Trim();
         project.Latitude = request.Latitude;
         project.Longitude = request.Longitude;
+        project.ShiftStartTime = request.ShiftStartTime;
         project.StartDate = request.StartDate;
         project.EndDate = request.EndDate;
         project.Status = request.Status;

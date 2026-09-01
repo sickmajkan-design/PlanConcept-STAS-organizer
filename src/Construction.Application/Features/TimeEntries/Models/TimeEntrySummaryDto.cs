@@ -26,6 +26,10 @@ public class TimeEntrySummaryRowDto
 
     public string EmployeeName { get; init; } = null!;
 
+    public Guid? ProjectId { get; init; }
+
+    public string? ProjectName { get; init; }
+
     public int EntryCount { get; init; }
 
     public int TotalMinutes { get; init; }

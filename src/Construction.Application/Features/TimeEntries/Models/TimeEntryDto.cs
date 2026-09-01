@@ -4,6 +4,30 @@ using Construction.Domain.Enums;
 
 namespace Construction.Application.Features.TimeEntries.Models;
 
+/// <summary>
+/// Great-circle distance helpers, used only in memory (never inside an EF
+/// Core query expression) so their trig never has to survive translation
+/// into SQL.
+/// </summary>
+public static class GeoDistance
+{
+    private const double EarthRadiusMeters = 6_371_000;
+
+    /// <summary>Haversine distance between two points, in meters.</summary>
+    public static double Meters(double lat1, double lon1, double lat2, double lon2)
+    {
+        var dLat = DegreesToRadians(lat2 - lat1);
+        var dLon = DegreesToRadians(lon2 - lon1);
+        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
+            + Math.Cos(DegreesToRadians(lat1)) * Math.Cos(DegreesToRadians(lat2))
+            * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+        var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+        return EarthRadiusMeters * c;
+    }
+
+    private static double DegreesToRadians(double degrees) => degrees * Math.PI / 180;
+}
+
 public class TimeEntryDto
 {
     public Guid Id { get; init; }
@@ -47,6 +71,50 @@ public class TimeEntryDto
 
     public double? EndLongitude { get; init; }
 
+    public double? ProjectLatitude { get; init; }
+
+    public double? ProjectLongitude { get; init; }
+
+    public TimeOnly? ProjectShiftStartTime { get; init; }
+
+    /// <summary>Maximum distance from the project's coordinates still counted as "on site".</summary>
+    private const double LocationToleranceMeters = 100;
+
+    /// <summary>How far from the project's expected shift start still counts as "on time".</summary>
+    private static readonly TimeSpan TimeTolerance = TimeSpan.FromMinutes(15);
+
+    /// <summary>
+    /// Whether the clock-in happened within <see cref="LocationToleranceMeters"/>
+    /// of the project's coordinates. Null when either the entry or the
+    /// project has no coordinates to compare.
+    ///
+    /// Computed here rather than projected, for the same reason as
+    /// <see cref="WorkedMinutes"/>: the Haversine trig should never have to
+    /// survive translation into SQL.
+    /// </summary>
+    public bool? LocationCorrect => StartLatitude is null || StartLongitude is null
+        || ProjectLatitude is null || ProjectLongitude is null
+        ? null
+        : GeoDistance.Meters(StartLatitude.Value, StartLongitude.Value, ProjectLatitude.Value, ProjectLongitude.Value)
+            <= LocationToleranceMeters;
+
+    /// <summary>
+    /// Whether the clock-in happened within <see cref="TimeTolerance"/> of
+    /// the project's expected shift start. Null when the project has no
+    /// shift start time set.
+    /// </summary>
+    public bool? TimeCorrect => ProjectShiftStartTime is null
+        ? null
+        : Diff(TimeOnly.FromDateTime(StartedAt), ProjectShiftStartTime.Value) <= TimeTolerance;
+
+    private static TimeSpan Diff(TimeOnly a, TimeOnly b)
+    {
+        var diff = a.ToTimeSpan() - b.ToTimeSpan();
+        var abs = diff.Duration();
+        // Wrap-around, so 23:55 vs 00:05 reads as 10 minutes apart, not ~24h.
+        return abs > TimeSpan.FromHours(12) ? TimeSpan.FromHours(24) - abs : abs;
+    }
+
     public string? ReviewedByName { get; init; }
 
     public DateTime? ReviewedAt { get; init; }
@@ -89,6 +157,9 @@ public static class TimeEntryMapping
             StartLongitude = entry.StartLongitude,
             EndLatitude = entry.EndLatitude,
             EndLongitude = entry.EndLongitude,
+            ProjectLatitude = entry.Project != null ? entry.Project.Latitude : null,
+            ProjectLongitude = entry.Project != null ? entry.Project.Longitude : null,
+            ProjectShiftStartTime = entry.Project != null ? entry.Project.ShiftStartTime : null,
             ReviewedByName = entry.ReviewedByUser != null ? entry.ReviewedByUser.Email : null,
             ReviewedAt = entry.ReviewedAt,
             ReviewNote = entry.ReviewNote,

@@ -117,12 +117,24 @@ public class GetTimeEntrySummaryQueryHandler
         // has to become SQL. PostgreSQL gives an interval for the subtraction;
         // EXTRACT(EPOCH) turns it into seconds, which Npgsql produces from
         // TotalMinutes on the resulting TimeSpan.
+        // Grouped by employee AND project, so a crew member split across two
+        // sites in the period shows up as two rows — one per site — rather
+        // than one row that hides which site the hours were actually worked on.
         var rows = await query
-            .GroupBy(t => new { t.EmployeeId, t.Employee.FirstName, t.Employee.LastName })
+            .GroupBy(t => new
+            {
+                t.EmployeeId,
+                t.Employee.FirstName,
+                t.Employee.LastName,
+                t.ProjectId,
+                ProjectName = t.Project != null ? t.Project.Name : null
+            })
             .Select(g => new TimeEntrySummaryRowDto
             {
                 EmployeeId = g.Key.EmployeeId,
                 EmployeeName = g.Key.FirstName + " " + g.Key.LastName,
+                ProjectId = g.Key.ProjectId,
+                ProjectName = g.Key.ProjectName,
                 EntryCount = g.Count(),
                 TotalMinutes = (int)g.Sum(t =>
                     (t.EndedAt!.Value - t.StartedAt).TotalMinutes - t.BreakMinutes),
@@ -132,6 +144,7 @@ public class GetTimeEntrySummaryQueryHandler
                 PendingCount = g.Count(t => t.Status == TimeEntryStatus.Submitted)
             })
             .OrderBy(r => r.EmployeeName)
+            .ThenBy(r => r.ProjectName)
             .ToListAsync(cancellationToken);
 
         return new TimeEntrySummaryDto

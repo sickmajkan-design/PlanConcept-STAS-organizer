@@ -27,7 +27,13 @@ import { useTimeEntrySummaryQuery } from '../../features/timeEntries/useTimeEntr
 import { useT } from '../../i18n/useI18n';
 import { splitMinutes } from '../../utils/formatting';
 
-type SortField = 'employeeName' | 'entryCount' | 'totalMinutes' | 'approvedMinutes' | 'pendingCount';
+type SortField =
+  | 'employeeName'
+  | 'projectName'
+  | 'entryCount'
+  | 'totalMinutes'
+  | 'approvedMinutes'
+  | 'pendingCount';
 type SortDirection = 'asc' | 'desc';
 
 /** `YYYY-MM-DD` for a date input, in local time rather than UTC. */
@@ -99,6 +105,8 @@ export function TimeEntrySummaryPage() {
       switch (sortBy) {
         case 'employeeName':
           return a.employeeName.localeCompare(b.employeeName) * factor;
+        case 'projectName':
+          return (a.projectName ?? '').localeCompare(b.projectName ?? '') * factor;
         case 'entryCount':
           return (a.entryCount - b.entryCount) * factor;
         case 'totalMinutes':
@@ -193,6 +201,15 @@ export function TimeEntrySummaryPage() {
                       {t('timeEntries.employee')}
                     </TableSortLabel>
                   </TableCell>
+                  <TableCell sortDirection={sortBy === 'projectName' ? sortDirection : false}>
+                    <TableSortLabel
+                      active={sortBy === 'projectName'}
+                      direction={sortBy === 'projectName' ? sortDirection : 'asc'}
+                      onClick={() => toggleSort('projectName')}
+                    >
+                      {t('timeEntries.project')}
+                    </TableSortLabel>
+                  </TableCell>
                   <TableCell align="right" sortDirection={sortBy === 'entryCount' ? sortDirection : false}>
                     <TableSortLabel
                       active={sortBy === 'entryCount'}
@@ -233,8 +250,9 @@ export function TimeEntrySummaryPage() {
               </TableHead>
               <TableBody>
                 {sortedRows.map((row) => (
-                  <TableRow key={row.employeeId} hover>
+                  <TableRow key={`${row.employeeId}-${row.projectId ?? 'none'}`} hover>
                     <TableCell>{row.employeeName}</TableCell>
+                    <TableCell>{row.projectName ?? t('timeEntries.noProject')}</TableCell>
                     <TableCell align="right">{row.entryCount}</TableCell>
                     <TableCell align="right">{hours(row.totalMinutes)}</TableCell>
                     <TableCell align="right">{hours(row.approvedMinutes)}</TableCell>
@@ -250,7 +268,7 @@ export function TimeEntrySummaryPage() {
 
                 {sortedRows.length === 0 && !isLoading && (
                   <TableRow>
-                    <TableCell colSpan={5}>
+                    <TableCell colSpan={6}>
                       <Typography variant="body2" color="text.secondary">
                         {t('timeEntries.summaryEmpty')}
                       </Typography>

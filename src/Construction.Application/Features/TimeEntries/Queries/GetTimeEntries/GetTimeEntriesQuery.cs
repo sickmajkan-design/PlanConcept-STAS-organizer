@@ -38,7 +38,8 @@ public record GetTimeEntriesQuery : ISortablePagedQuery, IRequest<PagedList<Time
 
     public string? SortBy { get; init; }
 
-    public bool SortDescending { get; init; } = true;
+    /// <summary>Chronological by default — whoever clocked in first is listed first.</summary>
+    public bool SortDescending { get; init; }
 }
 
 public class GetTimeEntriesQueryValidator : SortablePagedQueryValidator<GetTimeEntriesQuery>

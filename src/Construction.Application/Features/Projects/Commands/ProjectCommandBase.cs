@@ -21,6 +21,9 @@ public abstract record ProjectCommandBase
 
     public double? Longitude { get; init; }
 
+    /// <summary>The site's expected daily clock-in time, in UTC, if one is set.</summary>
+    public TimeOnly? ShiftStartTime { get; init; }
+
     public DateOnly? StartDate { get; init; }
 
     public DateOnly? EndDate { get; init; }

@@ -118,6 +118,8 @@ export interface Project {
   address: string | null;
   latitude: number | null;
   longitude: number | null;
+  /** The site's expected daily clock-in time, in UTC (`HH:mm:ss`), if one is set. */
+  shiftStartTime: string | null;
   startDate: string | null;
   endDate: string | null;
   status: ProjectStatus;
@@ -159,6 +161,7 @@ export interface ProjectInput {
   address?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  shiftStartTime?: string | null;
   startDate?: string | null;
   endDate?: string | null;
   status: ProjectStatus;
@@ -427,6 +430,10 @@ export interface TimeEntry {
   startLongitude: number | null;
   endLatitude: number | null;
   endLongitude: number | null;
+  /** Null when the entry or the project has no coordinates to compare. */
+  locationCorrect: boolean | null;
+  /** Null when the project has no expected shift start time set. */
+  timeCorrect: boolean | null;
   reviewedByName: string | null;
   reviewedAt: string | null;
   reviewNote: string | null;
@@ -448,6 +455,8 @@ export interface TimeEntryInput {
 export interface TimeEntrySummaryRow {
   employeeId: string;
   employeeName: string;
+  projectId: string | null;
+  projectName: string | null;
   entryCount: number;
   totalMinutes: number;
   approvedMinutes: number;

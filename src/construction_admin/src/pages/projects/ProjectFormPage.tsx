@@ -34,11 +34,41 @@ const emptyValues: ProjectFormValues = {
   address: '',
   latitude: '',
   longitude: '',
+  shiftStartTime: '',
   startDate: '',
   endDate: '',
   status: 'Planned',
   contractValue: '',
 };
+
+/**
+ * The API stores the shift start as a UTC time-of-day with no date attached,
+ * so converting to/from the local `time` input uses today as a stand-in
+ * reference date — the same approach (and the same accepted DST-day edge
+ * case) as `TimeEntryFormPage`'s local/UTC helpers.
+ */
+function utcTimeToLocalInput(value: string | null | undefined): string {
+  if (!value) return '';
+
+  const [hours = '0', minutes = '0'] = value.split(':');
+  const reference = new Date();
+  reference.setUTCHours(Number(hours), Number(minutes), 0, 0);
+  if (Number.isNaN(reference.getTime())) return '';
+
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(reference.getHours())}:${pad(reference.getMinutes())}`;
+}
+
+function localInputToUtcTime(value: string): string | null {
+  if (!value) return null;
+
+  const [hours = '0', minutes = '0'] = value.split(':');
+  const reference = new Date();
+  reference.setHours(Number(hours), Number(minutes), 0, 0);
+
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(reference.getUTCHours())}:${pad(reference.getUTCMinutes())}:00`;
+}
 
 export function ProjectFormPage() {
   const { id } = useParams<{ id: string }>();
@@ -71,6 +101,7 @@ export function ProjectFormPage() {
         address: existing.address ?? '',
         latitude: existing.latitude?.toString() ?? '',
         longitude: existing.longitude?.toString() ?? '',
+        shiftStartTime: utcTimeToLocalInput(existing.shiftStartTime),
         startDate: existing.startDate?.slice(0, 10) ?? '',
         endDate: existing.endDate?.slice(0, 10) ?? '',
         status: existing.status,
@@ -95,6 +126,7 @@ export function ProjectFormPage() {
       address: values.address || null,
       latitude: values.latitude ? Number(values.latitude) : null,
       longitude: values.longitude ? Number(values.longitude) : null,
+      shiftStartTime: localInputToUtcTime(values.shiftStartTime ?? ''),
       startDate: values.startDate || null,
       endDate: values.endDate || null,
       status: values.status,
@@ -248,6 +280,23 @@ export function ProjectFormPage() {
                       placeholder="15.9819"
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Controller
+                  name="shiftStartTime"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      {...field}
+                      label={t('projects.shiftStartTime')}
+                      type="time"
+                      fullWidth
+                      slotProps={{ inputLabel: { shrink: true } }}
+                      helperText={fieldState.error?.message ?? t('projects.shiftStartTimeHint')}
+                      error={!!fieldState.error}
                     />
                   )}
                 />

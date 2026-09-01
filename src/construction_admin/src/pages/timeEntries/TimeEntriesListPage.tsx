@@ -1,4 +1,13 @@
-import { AddOutlined, DeleteOutlined, EditOutlined } from '@mui/icons-material';
+import {
+  AddOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  HelpOutlineOutlined,
+  LocationOffOutlined,
+  ReportOutlined,
+  ScheduleOutlined,
+  TaskAltOutlined,
+} from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -54,7 +63,8 @@ export function TimeEntriesListPage() {
   const navigate = useNavigate();
   const t = useT();
   const enumLabel = useEnumLabel();
-  const list = useListQueryState('startedAt', 'desc');
+  // Chronological by default — whoever clocked in first is listed first.
+  const list = useListQueryState('startedAt', 'asc');
 
   // Two switches rather than a status dropdown: these are the two questions a
   // supervisor actually opens this screen to answer — who is on site now, and
@@ -128,6 +138,20 @@ export function TimeEntriesListPage() {
         headerName: t('timeEntries.workType'),
         width: 130,
         valueGetter: (_value, row) => enumLabel('workType', row.workType),
+      },
+      {
+        field: 'checkIn',
+        headerName: t('timeEntries.checkIn'),
+        width: 90,
+        sortable: false,
+        align: 'center',
+        headerAlign: 'center',
+        renderCell: (params) => (
+          <CheckInIcon
+            locationCorrect={params.row.locationCorrect}
+            timeCorrect={params.row.timeCorrect}
+          />
+        ),
       },
       {
         field: 'status',
@@ -301,6 +325,60 @@ export function TimeEntriesListPage() {
         </Box>
       )}
     </Box>
+  );
+}
+
+/**
+ * Whether the clock-in was at the right place and time — one of four states,
+ * plus an "unknown" state when the project or entry has no data to judge
+ * one or both of them against.
+ */
+function CheckInIcon({
+  locationCorrect,
+  timeCorrect,
+}: {
+  locationCorrect: boolean | null;
+  timeCorrect: boolean | null;
+}) {
+  const t = useT();
+
+  if (locationCorrect === null && timeCorrect === null) {
+    return (
+      <Tooltip title={t('timeEntries.checkInUnknown')}>
+        <HelpOutlineOutlined fontSize="small" color="disabled" />
+      </Tooltip>
+    );
+  }
+
+  const locationWrong = locationCorrect === false;
+  const timeWrong = timeCorrect === false;
+
+  if (locationWrong && timeWrong) {
+    return (
+      <Tooltip title={t('timeEntries.checkInBothWrong')}>
+        <ReportOutlined fontSize="small" color="error" />
+      </Tooltip>
+    );
+  }
+  if (locationWrong) {
+    return (
+      <Tooltip title={t('timeEntries.checkInWrongLocation')}>
+        <LocationOffOutlined fontSize="small" color="warning" />
+      </Tooltip>
+    );
+  }
+  if (timeWrong) {
+    return (
+      <Tooltip title={t('timeEntries.checkInWrongTime')}>
+        <ScheduleOutlined fontSize="small" color="warning" />
+      </Tooltip>
+    );
+  }
+
+  return (
+    <Tooltip title={t('timeEntries.checkInBothCorrect')}>
+      <TaskAltOutlined fontSize="small" color="success" />
+    </Tooltip>
   );
 }
 

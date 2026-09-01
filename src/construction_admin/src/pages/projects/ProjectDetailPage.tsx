@@ -62,6 +62,19 @@ import { postingRange, workedSummary } from '../../utils/postings';
 /** Every vehicle/tool list on this page fits comfortably on one page-worth. */
 const RESOURCE_PAGE: { pageNumber: number; pageSize: number } = { pageNumber: 1, pageSize: 100 };
 
+/** Converts a UTC `HH:mm:ss` time-of-day to the viewer's local wall-clock time. */
+function formatUtcTimeOfDay(value: string | null | undefined): string | null {
+  if (!value) return null;
+
+  const [hours = '0', minutes = '0'] = value.split(':');
+  const reference = new Date();
+  reference.setUTCHours(Number(hours), Number(minutes), 0, 0);
+  if (Number.isNaN(reference.getTime())) return null;
+
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${pad(reference.getHours())}:${pad(reference.getMinutes())}`;
+}
+
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -256,6 +269,10 @@ export function ProjectDetailPage() {
                       ? `${project.latitude!.toFixed(5)}, ${project.longitude!.toFixed(5)}`
                       : null
                   }
+                />
+                <InfoRow
+                  label={t('projects.shiftStartTime')}
+                  value={formatUtcTimeOfDay(project.shiftStartTime)}
                 />
                 <InfoRow label={t('projects.startDate')} value={project.startDate ? formatDate(project.startDate) : null} />
                 <InfoRow label={t('projects.endDate')} value={project.endDate ? formatDate(project.endDate) : null} />
