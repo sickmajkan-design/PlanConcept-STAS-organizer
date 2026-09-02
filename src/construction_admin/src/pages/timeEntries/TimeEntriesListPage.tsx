@@ -1,5 +1,7 @@
 import {
   AddOutlined,
+  ChevronLeftOutlined,
+  ChevronRightOutlined,
   DeleteOutlined,
   EditOutlined,
   HelpOutlineOutlined,
@@ -10,24 +12,30 @@ import {
   TaskAltOutlined,
 } from '@mui/icons-material';
 import {
+  Avatar,
   Box,
   Button,
   Chip,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControl,
   FormControlLabel,
   IconButton,
+  InputLabel,
+  MenuItem,
+  Paper,
   Popover,
+  Select,
   Stack,
   Switch,
   TextField,
   Tooltip,
   Typography,
 } from '@mui/material';
-import type { GridColDef } from '@mui/x-data-grid';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -35,9 +43,10 @@ import type { TimeEntryListQuery } from '../../api/timeEntries';
 import type { TimeEntry } from '../../api/types';
 import { timeEntryStatuses } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
-import { DateQuickFilters } from '../../components/DateQuickFilters';
+import { EmptyState } from '../../components/EmptyState';
+import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
-import { ResourceDataGrid } from '../../components/ResourceDataGrid';
+import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
 import { StatusLegend } from '../../components/StatusLegend';
 import {
@@ -46,13 +55,23 @@ import {
   useTimeEntriesQuery,
 } from '../../features/timeEntries/useTimeEntries';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
-import { useListQueryState } from '../../hooks/useListQueryState';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import type { MessageKey } from '../../i18n/en';
 import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
-import { formatDate, formatTimeOfDay, splitMinutes } from '../../utils/formatting';
+import { dateOnlyOffset, formatTimeOfDay, splitMinutes } from '../../utils/formatting';
 import { ReviewButtons } from './ReviewButtons';
+
+/** One page-worth of an entire day's entries — a crew this size never needs real pagination. */
+const DAY_PAGE: { pageNumber: number; pageSize: number } = { pageNumber: 1, pageSize: 100 };
+
+/** How many cards a column shows before it collapses the rest behind "show more". */
+const COLUMN_CARD_CAP = 5;
+
+/** Key used for the pseudo-column holding entries with no project. */
+const NO_PROJECT_KEY = '__none__';
+
+type CardSort = 'startedAt' | 'employeeName' | 'workedMinutes';
 
 /** The instant just after the given local day ends. */
 function endOfLocalDay(date: string): string {
@@ -62,32 +81,54 @@ function endOfLocalDay(date: string): string {
   return next.toISOString();
 }
 
+/** Adds (or subtracts) whole days from a `YYYY-MM-DD` value, in local time. */
+function shiftDate(date: string, days: number): string {
+  const next = new Date(`${date}T00:00`);
+  next.setDate(next.getDate() + days);
+
+  const pad = (value: number) => String(value).padStart(2, '0');
+  return `${next.getFullYear()}-${pad(next.getMonth() + 1)}-${pad(next.getDate())}`;
+}
+
+/** Two-letter initials from a full "First Last" name, for the card avatar. */
+function employeeInitials(fullName: string): string {
+  const parts = fullName.trim().split(/\s+/);
+  const first = parts[0]?.[0] ?? '';
+  const last = parts.length > 1 ? parts[parts.length - 1]?.[0] ?? '' : '';
+  return (first + last).toUpperCase() || '?';
+}
+
+/** One project's entries, keyed for grouping — `projectId` is null for the "no project" column. */
+interface ProjectGroup {
+  key: string;
+  projectId: string | null;
+  projectName: string;
+  entries: TimeEntry[];
+}
+
 export function TimeEntriesListPage() {
   const navigate = useNavigate();
   const t = useT();
   const enumLabel = useEnumLabel();
-  // Chronological by default — whoever clocked in first is listed first.
-  const list = useListQueryState('startedAt', 'asc');
 
-  // Two switches rather than a status dropdown: these are the two questions a
-  // supervisor actually opens this screen to answer — who is on site now, and
-  // what is waiting on me.
-  const [openOnly, setOpenOnly] = useState(false);
+  const [date, setDate] = useState(() => dateOnlyOffset(0));
   const [pendingOnly, setPendingOnly] = useState(false);
-  const [quickDate, setQuickDate] = useState<string | null>(null);
+  const [openOnly, setOpenOnly] = useState(false);
+  const [search, setSearch] = useState('');
+  const [cardSort, setCardSort] = useState<CardSort>('startedAt');
+  const [expandedColumns, setExpandedColumns] = useState<Set<string>>(new Set());
 
   const query: TimeEntryListQuery = useMemo(
     () => ({
-      ...list.query,
-      // The API has no text search on this collection; sending one would be
-      // ignored, and leaving it in the key would refetch on every keystroke.
-      search: undefined,
+      ...DAY_PAGE,
+      sortBy: 'startedAt',
+      sortDescending: false,
       openOnly: openOnly || undefined,
       status: pendingOnly ? 'Submitted' : undefined,
-      from: quickDate ? new Date(`${quickDate}T00:00`).toISOString() : undefined,
-      to: quickDate ? endOfLocalDay(quickDate) : undefined,
+      from: new Date(`${date}T00:00`).toISOString(),
+      to: endOfLocalDay(date),
     }),
-    [list.query, openOnly, pendingOnly, quickDate],
+    [date, openOnly, pendingOnly],
   );
 
   const { data, isLoading, isError, error, refetch } = useTimeEntriesQuery(query);
@@ -96,153 +137,70 @@ export function TimeEntriesListPage() {
   const [reviewing, setReviewing] = useState<TimeEntry | null>(null);
   const [approving, setApproving] = useState<TimeEntry | null>(null);
 
-  const columns: GridColDef<TimeEntry>[] = useMemo(
-    () => [
-      {
-        field: 'employeeName',
-        headerName: t('timeEntries.employee'),
-        flex: 1,
-        minWidth: 160,
-      },
-      {
-        // Sorts by the same field as before (startedAt); start, end, and the
-        // worked duration are one fact to a supervisor's eye, so they render
-        // as one two-line cell instead of three separate columns.
-        field: 'startedAt',
-        headerName: t('timeEntries.shift'),
-        width: 175,
-        renderCell: (params) => {
-          const row = params.row;
-          const range = row.endedAt
-            ? `${formatTimeOfDay(row.startedAt)}–${formatTimeOfDay(row.endedAt)}`
-            : `${formatTimeOfDay(row.startedAt)}–…`;
-          const worked =
-            row.workedMinutes === null
-              ? t('timeEntries.running')
-              : t('timeEntries.hoursShort', splitMinutes(row.workedMinutes));
+  // Grouped by project rather than paged through as a flat list — a
+  // supervisor opening this screen is asking "who's where today", and a
+  // project's own column answers that without them hunting through pages.
+  const groups = useMemo<ProjectGroup[]>(() => {
+    const byProject = new Map<string, ProjectGroup>();
 
-          return (
-            <Stack sx={{ py: 0.5, lineHeight: 1.2 }}>
-              <Typography variant="body2">
-                {formatDate(row.startedAt)} {range}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {worked}
-              </Typography>
-            </Stack>
-          );
-        },
-      },
-      {
-        // Work type has too few distinct values to earn its own column, so
-        // it rides along as a small chip under the project it was worked on.
-        field: 'projectName',
-        headerName: t('timeEntries.project'),
-        flex: 1,
-        minWidth: 170,
-        renderCell: (params) => (
-          <Stack sx={{ py: 0.5, lineHeight: 1.2 }}>
-            <Typography variant="body2">
-              {params.row.projectName || t('timeEntries.noProject')}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {enumLabel('workType', params.row.workType)}
-            </Typography>
-          </Stack>
-        ),
-      },
-      {
-        field: 'checkIn',
-        headerName: t('timeEntries.checkIn'),
-        width: 80,
-        sortable: false,
-        align: 'center',
-        headerAlign: 'center',
-        renderCell: (params) => (
-          <CheckInIcon
-            locationCorrect={params.row.locationCorrect}
-            timeCorrect={params.row.timeCorrect}
-          />
-        ),
-      },
-      {
-        field: 'status',
-        headerName: t('timeEntries.status'),
-        width: 190,
-        renderCell: (params) => (
-          <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
-            <StatusChip status={params.row.status} kind="timeEntryStatus" />
-            {params.row.autoClosed && (
-              <Tooltip title={t('timeEntries.autoClosedHint')}>
-                <Chip
-                  size="small"
-                  color="warning"
-                  variant="outlined"
-                  label={t('timeEntries.autoClosed')}
-                />
-              </Tooltip>
-            )}
-          </Stack>
-        ),
-      },
-      {
-        field: 'actions',
-        headerName: '',
-        width: 175,
-        sortable: false,
-        filterable: false,
-        align: 'right',
-        headerAlign: 'right',
-        renderCell: (params) => (
-          <Stack direction="row" spacing={0.5}>
-            <ReviewButtons
-              entry={params.row}
-              onApprove={() => setApproving(params.row)}
-              onReject={() => setReviewing(params.row)}
-            />
-            <Tooltip
-              title={
-                params.row.status === 'Approved'
-                  ? t('timeEntries.locked')
-                  : t('common.edit')
-              }
-            >
-              {/* A disabled button swallows its own events, so the tooltip
-                  needs a wrapper that still receives them — otherwise the
-                  reason it is disabled is invisible. */}
-              <span>
-                <IconButton
-                  size="small"
-                  disabled={params.row.status === 'Approved'}
-                  onClick={() => navigate(paths.timeEntryEdit(params.row.id))}
-                >
-                  <EditOutlined fontSize="small" />
-                </IconButton>
-              </span>
-            </Tooltip>
-            <Tooltip
-              title={
-                params.row.status === 'Approved'
-                  ? t('timeEntries.locked')
-                  : t('common.delete')
-              }
-            >
-              <span>
-                <IconButton
-                  size="small"
-                  disabled={params.row.status === 'Approved'}
-                  onClick={() => remove.request(params.row)}
-                >
-                  <DeleteOutlined fontSize="small" />
-                </IconButton>
-              </span>
-            </Tooltip>
-          </Stack>
-        ),
-      },
-    ],
-    [enumLabel, navigate, remove, t],
-  );
+    for (const entry of data?.items ?? []) {
+      const key = entry.projectId ?? NO_PROJECT_KEY;
+      const existing = byProject.get(key);
+      if (existing) {
+        existing.entries.push(entry);
+      } else {
+        byProject.set(key, {
+          key,
+          projectId: entry.projectId,
+          projectName: entry.projectName ?? t('timeEntries.noProject'),
+          entries: [entry],
+        });
+      }
+    }
+
+    const sortEntries = (entries: TimeEntry[]) => {
+      const sorted = [...entries];
+      switch (cardSort) {
+        case 'employeeName':
+          sorted.sort((a, b) => a.employeeName.localeCompare(b.employeeName));
+          break;
+        case 'workedMinutes':
+          sorted.sort((a, b) => (b.workedMinutes ?? 0) - (a.workedMinutes ?? 0));
+          break;
+        default:
+          sorted.sort((a, b) => a.startedAt.localeCompare(b.startedAt));
+      }
+      return sorted;
+    };
+
+    const result = Array.from(byProject.values()).map((group) => ({
+      ...group,
+      entries: sortEntries(group.entries),
+    }));
+
+    // Real projects first, alphabetically; "no project" always trails since
+    // it is a catch-all rather than a site anyone is actually staffing.
+    result.sort((a, b) => {
+      if (a.key === NO_PROJECT_KEY) return 1;
+      if (b.key === NO_PROJECT_KEY) return -1;
+      return a.projectName.localeCompare(b.projectName);
+    });
+
+    const term = search.trim().toLowerCase();
+    return term ? result.filter((group) => group.projectName.toLowerCase().includes(term)) : result;
+  }, [data, search, cardSort, t]);
+
+  const toggleExpanded = (key: string) => {
+    setExpandedColumns((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
 
   return (
     <Box>
@@ -259,39 +217,60 @@ export function TimeEntriesListPage() {
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
         spacing={2}
-        sx={{ mb: 2, alignItems: { sm: 'center' } }}
+        sx={{ mb: 2, alignItems: { sm: 'center' }, flexWrap: 'wrap', rowGap: 1.5 }}
       >
+        <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+          <IconButton size="small" onClick={() => setDate((d) => shiftDate(d, -1))}>
+            <ChevronLeftOutlined fontSize="small" />
+          </IconButton>
+          <TextField
+            type="date"
+            size="small"
+            value={date}
+            onChange={(event) => event.target.value && setDate(event.target.value)}
+            slotProps={{ inputLabel: { shrink: true } }}
+          />
+          <IconButton size="small" onClick={() => setDate((d) => shiftDate(d, 1))}>
+            <ChevronRightOutlined fontSize="small" />
+          </IconButton>
+          <Button size="small" onClick={() => setDate(dateOnlyOffset(0))}>
+            {t('dateFilter.today')}
+          </Button>
+        </Stack>
+
         <FormControlLabel
           control={
-            <Switch
-              checked={pendingOnly}
-              onChange={(event) => {
-                setPendingOnly(event.target.checked);
-                list.resetToFirstPage();
-              }}
-            />
+            <Switch checked={pendingOnly} onChange={(event) => setPendingOnly(event.target.checked)} />
           }
           label={t('timeEntries.pendingOnly')}
         />
         <FormControlLabel
           control={
-            <Switch
-              checked={openOnly}
-              onChange={(event) => {
-                setOpenOnly(event.target.checked);
-                list.resetToFirstPage();
-              }}
-            />
+            <Switch checked={openOnly} onChange={(event) => setOpenOnly(event.target.checked)} />
           }
           label={t('timeEntries.openOnly')}
         />
-        <DateQuickFilters
-          value={quickDate}
-          onChange={(date) => {
-            setQuickDate(date);
-            list.resetToFirstPage();
-          }}
+
+        <SearchField
+          value={search}
+          onChange={setSearch}
+          placeholder={t('timeEntries.searchProjects')}
         />
+
+        <FormControl size="small" sx={{ minWidth: 180 }}>
+          <InputLabel id="te-card-sort-label">{t('timeEntries.sortCards')}</InputLabel>
+          <Select
+            labelId="te-card-sort-label"
+            label={t('timeEntries.sortCards')}
+            value={cardSort}
+            onChange={(event) => setCardSort(event.target.value as CardSort)}
+          >
+            <MenuItem value="startedAt">{t('timeEntries.sortByStart')}</MenuItem>
+            <MenuItem value="employeeName">{t('timeEntries.sortByEmployee')}</MenuItem>
+            <MenuItem value="workedMinutes">{t('timeEntries.sortByWorked')}</MenuItem>
+          </Select>
+        </FormControl>
+
         <Button size="small" onClick={() => navigate(paths.timeEntrySummary)}>
           {t('timeEntries.summary')}
         </Button>
@@ -301,18 +280,38 @@ export function TimeEntriesListPage() {
         </Stack>
       </Stack>
 
-      <ResourceDataGrid
-        data={data}
-        columns={columns}
-        isLoading={isLoading}
-        isError={isError}
-        error={error}
-        onRetry={() => void refetch()}
-        paginationModel={list.paginationModel}
-        onPaginationModelChange={list.setPaginationModel}
-        sortModel={list.sortModel}
-        onSortModelChange={list.setSortModel}
-      />
+      {isError && <ErrorState error={error} onRetry={() => void refetch()} />}
+
+      {isLoading && !isError && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+          <CircularProgress />
+        </Box>
+      )}
+
+      {!isLoading && !isError && groups.length === 0 && (
+        <EmptyState message={t('timeEntries.noEntriesForDay')} />
+      )}
+
+      {!isLoading && !isError && groups.length > 0 && (
+        // Everything for the day is on screen at once, so browsing more
+        // projects is a horizontal scroll rather than a page-number control
+        // at the bottom of the screen.
+        <Stack direction="row" spacing={2} sx={{ overflowX: 'auto', pb: 2 }}>
+          {groups.map((group) => (
+            <ProjectColumn
+              key={group.key}
+              group={group}
+              expanded={expandedColumns.has(group.key)}
+              onToggleExpanded={() => toggleExpanded(group.key)}
+              enumLabel={enumLabel}
+              onEdit={(entry) => navigate(paths.timeEntryEdit(entry.id))}
+              onDelete={(entry) => remove.request(entry)}
+              onApprove={(entry) => setApproving(entry)}
+              onReject={(entry) => setReviewing(entry)}
+            />
+          ))}
+        </Stack>
+      )}
 
       <ApproveDialog entry={approving} onClose={() => setApproving(null)} />
       <RejectDialog entry={reviewing} onClose={() => setReviewing(null)} />
@@ -340,6 +339,153 @@ export function TimeEntriesListPage() {
         </Box>
       )}
     </Box>
+  );
+}
+
+/** One project's column: a header with the day's headcount, and its crew's cards underneath. */
+function ProjectColumn({
+  group,
+  expanded,
+  onToggleExpanded,
+  enumLabel,
+  onEdit,
+  onDelete,
+  onApprove,
+  onReject,
+}: {
+  group: ProjectGroup;
+  expanded: boolean;
+  onToggleExpanded: () => void;
+  enumLabel: ReturnType<typeof useEnumLabel>;
+  onEdit: (entry: TimeEntry) => void;
+  onDelete: (entry: TimeEntry) => void;
+  onApprove: (entry: TimeEntry) => void;
+  onReject: (entry: TimeEntry) => void;
+}) {
+  const t = useT();
+  const shown = expanded ? group.entries : group.entries.slice(0, COLUMN_CARD_CAP);
+  const hiddenCount = group.entries.length - shown.length;
+
+  return (
+    <Paper
+      variant="outlined"
+      sx={{ width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', maxHeight: '78vh' }}
+    >
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{ alignItems: 'center', p: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}
+      >
+        <Typography variant="subtitle2" sx={{ fontWeight: 700, flex: 1 }} noWrap title={group.projectName}>
+          {group.projectName}
+        </Typography>
+        <Chip size="small" label={group.entries.length} />
+      </Stack>
+
+      <Stack spacing={1} sx={{ p: 1.5, overflowY: 'auto' }}>
+        {shown.map((entry) => (
+          <TimeEntryCard
+            key={entry.id}
+            entry={entry}
+            workTypeLabel={enumLabel('workType', entry.workType)}
+            onEdit={() => onEdit(entry)}
+            onDelete={() => onDelete(entry)}
+            onApprove={() => onApprove(entry)}
+            onReject={() => onReject(entry)}
+          />
+        ))}
+
+        {hiddenCount > 0 && (
+          <Button size="small" onClick={onToggleExpanded}>
+            {t('timeEntries.showMore', { count: hiddenCount })}
+          </Button>
+        )}
+        {expanded && group.entries.length > COLUMN_CARD_CAP && (
+          <Button size="small" onClick={onToggleExpanded}>
+            {t('timeEntries.showLess')}
+          </Button>
+        )}
+      </Stack>
+    </Paper>
+  );
+}
+
+/** One worker's entry for the day, styled like a small roster card. */
+function TimeEntryCard({
+  entry,
+  workTypeLabel,
+  onEdit,
+  onDelete,
+  onApprove,
+  onReject,
+}: {
+  entry: TimeEntry;
+  workTypeLabel: string;
+  onEdit: () => void;
+  onDelete: () => void;
+  onApprove: () => void;
+  onReject: () => void;
+}) {
+  const t = useT();
+  const locked = entry.status === 'Approved';
+
+  const range = entry.endedAt
+    ? `${formatTimeOfDay(entry.startedAt)}–${formatTimeOfDay(entry.endedAt)}`
+    : `${formatTimeOfDay(entry.startedAt)}–…`;
+  const worked =
+    entry.workedMinutes === null
+      ? t('timeEntries.running')
+      : t('timeEntries.hoursShort', splitMinutes(entry.workedMinutes));
+
+  return (
+    <Paper variant="outlined" sx={{ p: 1.25 }}>
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
+        <Avatar sx={{ width: 30, height: 30, fontSize: '0.8rem' }}>
+          {employeeInitials(entry.employeeName)}
+        </Avatar>
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
+            {entry.employeeName}
+          </Typography>
+          <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.25 }}>
+            <Chip size="small" variant="outlined" label={workTypeLabel} />
+            <StatusChip status={entry.status} kind="timeEntryStatus" size="small" />
+            {entry.autoClosed && (
+              <Tooltip title={t('timeEntries.autoClosedHint')}>
+                <Chip size="small" color="warning" variant="outlined" label={t('timeEntries.autoClosed')} />
+              </Tooltip>
+            )}
+          </Stack>
+        </Box>
+        <CheckInIcon locationCorrect={entry.locationCorrect} timeCorrect={entry.timeCorrect} />
+      </Stack>
+
+      <Stack sx={{ mt: 1, pl: 4.75 }}>
+        <Typography variant="caption" color="text.secondary">
+          {range} · {worked}
+        </Typography>
+      </Stack>
+
+      <Stack direction="row" spacing={0.25} sx={{ mt: 0.5, justifyContent: 'flex-end' }}>
+        <ReviewButtons entry={entry} onApprove={onApprove} onReject={onReject} />
+        <Tooltip title={locked ? t('timeEntries.locked') : t('common.edit')}>
+          {/* A disabled button swallows its own events, so the tooltip
+              needs a wrapper that still receives them. */}
+          <span>
+            <IconButton size="small" disabled={locked} onClick={onEdit}>
+              <EditOutlined fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+        <Tooltip title={locked ? t('timeEntries.locked') : t('common.delete')}>
+          <span>
+            <IconButton size="small" disabled={locked} onClick={onDelete}>
+              <DeleteOutlined fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+      </Stack>
+    </Paper>
   );
 }
 
@@ -422,6 +568,7 @@ function CheckInIcon({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          flexShrink: 0,
         }}
       >
         <Icon fontSize="small" sx={{ color: 'inherit' }} />
