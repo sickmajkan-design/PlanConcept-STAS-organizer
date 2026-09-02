@@ -1,8 +1,11 @@
-import { AddOutlined, DeleteOutlined } from '@mui/icons-material';
+import { AddOutlined, CloudSyncOutlined, DeleteOutlined } from '@mui/icons-material';
 import {
   Alert,
+  Autocomplete,
   Box,
   Button,
+  Checkbox,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -10,6 +13,7 @@ import {
   Grid,
   IconButton,
   Paper,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -23,17 +27,38 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 
 import { toApiError } from '../../api/apiError';
-import type { PublicHoliday } from '../../api/types';
+import type { PublicHoliday, PublicHolidayCandidate } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import {
   useCreatePublicHoliday,
   useDeletePublicHoliday,
+  useImportPublicHolidays,
+  usePreviewHolidaySync,
   usePublicHolidaysQuery,
 } from '../../features/publicHolidays/usePublicHolidays';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useT } from '../../i18n/useI18n';
 import { formatDate } from '../../utils/formatting';
+
+/**
+ * The markets this company actually operates in (Bosnia and neighbours, plus
+ * Germany/Austria/Switzerland for projects like "Roche Penzberg"). Not
+ * exhaustive — the source API covers ~100 countries — so the picker also
+ * takes free text for anything else, rather than shipping the full list for
+ * a construction firm that needs a handful of them.
+ */
+const COMMON_COUNTRIES = [
+  { code: 'BA', label: 'Bosna i Hercegovina' },
+  { code: 'RS', label: 'Srbija' },
+  { code: 'HR', label: 'Hrvatska' },
+  { code: 'ME', label: 'Crna Gora' },
+  { code: 'SI', label: 'Slovenija' },
+  { code: 'MK', label: 'Sjeverna Makedonija' },
+  { code: 'DE', label: 'Njemačka' },
+  { code: 'AT', label: 'Austrija' },
+  { code: 'CH', label: 'Švicarska' },
+];
 
 type SortField = 'date' | 'name';
 type SortDirection = 'asc' | 'desc';
@@ -43,6 +68,7 @@ export function PublicHolidaysPage() {
   const { data, isLoading } = usePublicHolidaysQuery();
   const remove = useDeleteWithConfirm<PublicHoliday>(useDeletePublicHoliday());
   const [adding, setAdding] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   const [sortBy, setSortBy] = useState<SortField>('date');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
@@ -80,6 +106,16 @@ export function PublicHolidaysPage() {
           onClick: () => setAdding(true),
         }}
       />
+
+      <Stack direction="row" sx={{ justifyContent: 'flex-end', mb: 2 }}>
+        <Button
+          variant="outlined"
+          startIcon={<CloudSyncOutlined />}
+          onClick={() => setSyncing(true)}
+        >
+          {t('publicHolidays.sync')}
+        </Button>
+      </Stack>
 
       <Paper variant="outlined">
         <Table size="small">
@@ -135,6 +171,7 @@ export function PublicHolidaysPage() {
       </Paper>
 
       <AddHolidayDialog open={adding} onClose={() => setAdding(false)} />
+      <SyncHolidaysDialog open={syncing} onClose={() => setSyncing(false)} />
 
       <ConfirmDialog
         open={!!remove.pending}
@@ -230,5 +267,202 @@ function AddHolidayDialog({ open, onClose }: { open: boolean; onClose: () => voi
         </Button>
       </DialogActions>
     </Dialog>
+  );
+}
+
+const COUNTRY_LABEL_TO_CODE = new Map(COMMON_COUNTRIES.map((c) => [c.label, c.code]));
+
+/** A label from the curated list, or a bare two-letter ISO code typed by hand. Null while neither. */
+function resolveCountryCode(input: string): string | null {
+  const trimmed = input.trim();
+  if (COUNTRY_LABEL_TO_CODE.has(trimmed)) return COUNTRY_LABEL_TO_CODE.get(trimmed)!;
+  return /^[A-Za-z]{2}$/.test(trimmed) ? trimmed.toUpperCase() : null;
+}
+
+/**
+ * Search a country/year on the internet, review what comes back, and import
+ * only the ones chosen — nothing is written to the calendar until "Import".
+ */
+function SyncHolidaysDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const t = useT();
+  const preview = usePreviewHolidaySync();
+  const importHolidays = useImportPublicHolidays();
+
+  const [countryInput, setCountryInput] = useState('');
+  const [year, setYear] = useState(() => new Date().getFullYear());
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (open) {
+      setCountryInput('');
+      setYear(new Date().getFullYear());
+      setSelected(new Set());
+      preview.reset();
+      importHolidays.reset();
+    }
+    // Only on open/close — resetting on every render would wipe a search
+    // result the moment its own state settles.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const countryCode = resolveCountryCode(countryInput);
+  const candidates = preview.data ?? [];
+
+  const toggle = (date: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(date)) {
+        next.delete(date);
+      } else {
+        next.add(date);
+      }
+      return next;
+    });
+  };
+
+  const handleSearch = () => {
+    if (!countryCode) return;
+
+    preview.mutate(
+      { countryCode, year },
+      {
+        onSuccess: (result) => {
+          setSelected(new Set(result.filter((c) => !c.alreadyOnCalendar).map((c) => c.date)));
+        },
+      },
+    );
+  };
+
+  const close = () => {
+    onClose();
+  };
+
+  const previewError = preview.isError ? toApiError(preview.error) : null;
+  const importError = importHolidays.isError ? toApiError(importHolidays.error) : null;
+
+  return (
+    <Dialog open={open} onClose={close} fullWidth maxWidth="sm">
+      <DialogTitle>{t('publicHolidays.syncTitle')}</DialogTitle>
+      <DialogContent>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          {t('publicHolidays.syncHint')}
+        </Typography>
+
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }}>
+          <Autocomplete
+            freeSolo
+            fullWidth
+            options={COMMON_COUNTRIES.map((c) => c.label)}
+            inputValue={countryInput}
+            onInputChange={(_event, value) => setCountryInput(value)}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label={t('publicHolidays.country')}
+                placeholder={t('publicHolidays.countryPlaceholder')}
+              />
+            )}
+          />
+          <TextField
+            type="number"
+            label={t('publicHolidays.year')}
+            value={year}
+            onChange={(event) => setYear(Number(event.target.value) || year)}
+            sx={{ minWidth: { sm: 140 } }}
+          />
+          <Button
+            variant="outlined"
+            disabled={!countryCode || preview.isPending}
+            loading={preview.isPending}
+            onClick={handleSearch}
+            sx={{ flexShrink: 0 }}
+          >
+            {t('publicHolidays.search')}
+          </Button>
+        </Stack>
+
+        {previewError && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {previewError.message}
+          </Alert>
+        )}
+        {importError && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {importError.message}
+          </Alert>
+        )}
+
+        {preview.isSuccess && candidates.length === 0 && (
+          <Typography variant="body2" color="text.secondary">
+            {t('publicHolidays.syncEmpty')}
+          </Typography>
+        )}
+
+        {candidates.length > 0 && (
+          <Paper variant="outlined" sx={{ maxHeight: 320, overflowY: 'auto' }}>
+            <Table size="small">
+              <TableBody>
+                {candidates.map((candidate) => (
+                  <CandidateRow
+                    key={candidate.date}
+                    candidate={candidate}
+                    checked={selected.has(candidate.date)}
+                    onToggle={() => toggle(candidate.date)}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          </Paper>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={close}>{t('common.cancel')}</Button>
+        <Button
+          variant="contained"
+          disabled={selected.size === 0 || importHolidays.isPending}
+          loading={importHolidays.isPending}
+          onClick={() => {
+            const items = candidates
+              .filter((c) => selected.has(c.date))
+              .map((c) => ({ date: c.date, name: c.name }));
+
+            importHolidays.mutate({ items }, { onSuccess: close });
+          }}
+        >
+          {t('publicHolidays.importSelected', { count: selected.size })}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+function CandidateRow({
+  candidate,
+  checked,
+  onToggle,
+}: {
+  candidate: PublicHolidayCandidate;
+  checked: boolean;
+  onToggle: () => void;
+}) {
+  const t = useT();
+
+  return (
+    <TableRow hover>
+      <TableCell padding="checkbox">
+        <Checkbox
+          checked={checked}
+          disabled={candidate.alreadyOnCalendar}
+          onChange={onToggle}
+        />
+      </TableCell>
+      <TableCell width={110}>{formatDate(candidate.date)}</TableCell>
+      <TableCell>{candidate.name}</TableCell>
+      <TableCell align="right">
+        {candidate.alreadyOnCalendar && (
+          <Chip size="small" variant="outlined" label={t('publicHolidays.alreadyOnCalendar')} />
+        )}
+      </TableCell>
+    </TableRow>
   );
 }

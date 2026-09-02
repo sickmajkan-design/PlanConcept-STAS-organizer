@@ -119,6 +119,22 @@ public class ExceptionHandlingMiddleware
                 };
                 break;
 
+            case ExternalServiceException:
+                // Logged like the opaque 500 below, unlike the other mapped
+                // exceptions — a third-party outage is an operational event
+                // worth finding in the logs, not just an expected "no" the
+                // client already understands.
+                _logger.LogWarning(exception, "External service call failed for {Path}", context.Request.Path);
+
+                problemDetails = new ProblemDetails
+                {
+                    Status = StatusCodes.Status502BadGateway,
+                    Title = "External service unavailable",
+                    Detail = exception.Message,
+                    Type = "https://tools.ietf.org/html/rfc9110#section-15.6.3"
+                };
+                break;
+
             default:
                 _logger.LogError(exception, "Unhandled exception while processing {Path}", context.Request.Path);
 

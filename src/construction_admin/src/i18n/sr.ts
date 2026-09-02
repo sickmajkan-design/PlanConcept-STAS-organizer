@@ -892,6 +892,21 @@ export const sr: Record<MessageKey, Message> = {
   'publicHolidays.empty': 'Nema praznika na kalendaru.',
   'publicHolidays.deleteTitle': 'Obrisati ovaj praznik?',
   'publicHolidays.deleteBody': '{name} se više neće obračunavati po prazničnoj stopi.',
+  'publicHolidays.sync': 'Sinhronizuj sa interneta',
+  'publicHolidays.syncTitle': 'Sinhronizacija državnih praznika',
+  'publicHolidays.syncHint':
+    'Pretraži državu i godinu, pa izaberi koje praznike da dodaš — ništa se ne čuva dok ne uvezeš.',
+  'publicHolidays.country': 'Država',
+  'publicHolidays.countryPlaceholder': 'Izaberi sa liste ili upiši šifru države',
+  'publicHolidays.year': 'Godina',
+  'publicHolidays.search': 'Pretraži',
+  'publicHolidays.syncEmpty': 'Nema pronađenih praznika za tu državu i godinu.',
+  'publicHolidays.alreadyOnCalendar': 'Već na kalendaru',
+  'publicHolidays.importSelected': {
+    one: 'Uvezi {count} praznik',
+    few: 'Uvezi {count} praznika',
+    other: 'Uvezi {count} praznika',
+  },
 
   'nav.bulletin': 'Oglasna ploča',
   'bulletin.title': 'Oglasna ploča',

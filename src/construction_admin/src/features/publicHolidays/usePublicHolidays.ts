@@ -1,6 +1,11 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
-import { publicHolidaysApi, type PublicHolidayListQuery } from '../../api/publicHolidays';
+import {
+  publicHolidaysApi,
+  type HolidaySyncPreviewQuery,
+  type ImportPublicHolidaysInput,
+  type PublicHolidayListQuery,
+} from '../../api/publicHolidays';
 import type { PublicHolidayInput } from '../../api/types';
 import { createResourceKeys, useResourceMutation } from '../resourceQueries';
 
@@ -24,4 +29,22 @@ export function useDeletePublicHoliday() {
   return useResourceMutation((id: string) => publicHolidaysApi.remove(id), [
     publicHolidayKeys.all,
   ]);
+}
+
+/**
+ * A mutation rather than a query: it's triggered by a "search" button, not
+ * derived from state that should keep the result in sync, and nothing about
+ * it should be cached or refetched automatically.
+ */
+export function usePreviewHolidaySync() {
+  return useMutation({
+    mutationFn: (query: HolidaySyncPreviewQuery) => publicHolidaysApi.syncPreview(query),
+  });
+}
+
+export function useImportPublicHolidays() {
+  return useResourceMutation(
+    (input: ImportPublicHolidaysInput) => publicHolidaysApi.import(input),
+    [publicHolidayKeys.all],
+  );
 }

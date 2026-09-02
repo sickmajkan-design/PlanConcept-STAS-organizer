@@ -1038,6 +1038,15 @@ export interface PublicHolidayInput {
   name: string;
 }
 
+/** One holiday fetched from the internet for a chosen country/year, offered up for review before importing. */
+export interface PublicHolidayCandidate {
+  /** `YYYY-MM-DD`. */
+  date: string;
+  name: string;
+  /** Already on the calendar — importing it again is a silent no-op. */
+  alreadyOnCalendar: boolean;
+}
+
 export interface BulletinPost {
   id: string;
   title: string;

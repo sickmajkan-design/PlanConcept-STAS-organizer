@@ -26,3 +26,17 @@ public static class PublicHolidayMapping
 
     public static PublicHolidayDto ToDto(PublicHoliday holiday) => Compiled(holiday);
 }
+
+/// <summary>
+/// One holiday fetched from the internet for a chosen country/year, offered
+/// up for review before anything is written to the calendar.
+/// </summary>
+public class PublicHolidayCandidateDto
+{
+    public DateOnly Date { get; init; }
+
+    public string Name { get; init; } = null!;
+
+    /// <summary>Already on the calendar — importing it again would be refused as a conflict.</summary>
+    public bool AlreadyOnCalendar { get; init; }
+}

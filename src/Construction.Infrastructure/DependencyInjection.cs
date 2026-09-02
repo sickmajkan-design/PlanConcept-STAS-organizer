@@ -3,6 +3,7 @@ using Construction.Infrastructure.Spreadsheets;
 using Construction.Application.Features.Authentication.Commands.ForgotPassword;
 using Construction.Infrastructure.Authentication;
 using Construction.Infrastructure.Email;
+using Construction.Infrastructure.ExternalServices;
 using Construction.Infrastructure.Notifications;
 using Construction.Infrastructure.Persistence;
 using Construction.Infrastructure.Persistence.Interceptors;
@@ -138,6 +139,12 @@ public static class DependencyInjection
             .ValidateOnStart();
 
         services.AddSingleton<IPushSender, FcmPushSender>();
+
+        services.AddHttpClient<IPublicHolidaySource, NagerDatePublicHolidaySource>(client =>
+        {
+            client.BaseAddress = new Uri("https://date.nager.at/api/v3/");
+            client.Timeout = TimeSpan.FromSeconds(10);
+        });
 
         AddFileStorage(services, configuration);
     }

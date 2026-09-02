@@ -880,6 +880,20 @@ export const en = {
   'publicHolidays.empty': 'No holidays on the calendar.',
   'publicHolidays.deleteTitle': 'Remove this holiday?',
   'publicHolidays.deleteBody': '{name} will no longer be priced at the holiday rate.',
+  'publicHolidays.sync': 'Sync from the internet',
+  'publicHolidays.syncTitle': 'Sync public holidays',
+  'publicHolidays.syncHint':
+    "Search a country and year, then choose which holidays to add — nothing is saved until you import.",
+  'publicHolidays.country': 'Country',
+  'publicHolidays.countryPlaceholder': 'Pick one, or type a country code',
+  'publicHolidays.year': 'Year',
+  'publicHolidays.search': 'Search',
+  'publicHolidays.syncEmpty': 'No holidays found for that country and year.',
+  'publicHolidays.alreadyOnCalendar': 'Already on calendar',
+  'publicHolidays.importSelected': {
+    one: 'Import {count} holiday',
+    other: 'Import {count} holidays',
+  },
 
   'nav.bulletin': 'Bulletin board',
   'bulletin.title': 'Bulletin board',
