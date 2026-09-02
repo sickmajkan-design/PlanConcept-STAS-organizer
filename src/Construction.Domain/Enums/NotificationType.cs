@@ -22,5 +22,8 @@ public enum NotificationType
     ShiftAutoClosed = 10,
 
     /// <summary>A new notice went up on the bulletin board.</summary>
-    BulletinPosted = 11
+    BulletinPosted = 11,
+
+    /// <summary>A change to an approved absence is waiting on this person to confirm or decline it.</summary>
+    AbsenceEditProposed = 12
 }

@@ -51,6 +51,35 @@ public class Absence : BaseEntity, ISoftDeletable, IAuditable
     public DateTime? DeletedAt { get; set; }
 
     /// <summary>
+    /// A change to an already-approved absence's dates/reason, waiting on the
+    /// other side to confirm it — see <c>ProposeAbsenceEditCommand</c> and
+    /// <c>ConfirmAbsenceEditCommand</c>. Null fields mean no edit is pending;
+    /// nothing here touches <see cref="StartDate"/>/<see cref="EndDate"/>
+    /// until it is confirmed, so the schedule and leave balance never see a
+    /// change nobody has agreed to yet.
+    /// </summary>
+    public DateOnly? ProposedStartDate { get; set; }
+
+    public DateOnly? ProposedEndDate { get; set; }
+
+    public string? ProposedReason { get; set; }
+
+    public Guid? ProposedByUserId { get; set; }
+
+    public User? ProposedByUser { get; set; }
+
+    /// <summary>
+    /// True when the employee themselves proposed the change (so it is
+    /// waiting on management to confirm); false when management proposed it
+    /// (so it is waiting on the employee).
+    /// </summary>
+    public bool ProposedByEmployee { get; set; }
+
+    public DateTime? ProposedAt { get; set; }
+
+    public bool HasPendingEdit => ProposedStartDate is not null;
+
+    /// <summary>
     /// Whole days off, both ends included.
     /// </summary>
     public int DayCount => EndDate.DayNumber - StartDate.DayNumber + 1;

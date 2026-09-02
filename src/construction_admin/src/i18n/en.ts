@@ -680,6 +680,23 @@ export const en = {
   'absences.balance': '{used} of {allowance} annual leave days used this year — {remaining} left',
   'absences.balanceOver': '{used} of {allowance} annual leave days used this year — {remaining} over the allowance',
 
+  'absences.proposeEdit': 'Propose a change',
+  'absences.proposeEditUnavailable':
+    'Only granted annual leave with no change already pending can be edited this way.',
+  'absences.proposeEditTitle': 'Propose new dates for this leave',
+  'absences.proposeEditHint':
+    "This doesn't change the leave yet — the other side (the employee, or management if the employee proposed it) still has to confirm it.",
+  'absences.proposeEditReason': 'New reason (optional)',
+  'absences.proposeEditSubmit': 'Send proposal',
+  'absences.pendingEditSummary': 'Proposed: {start} – {end}',
+  'absences.pendingEditWaitingEmployee': 'Waiting for the employee to confirm',
+  'absences.pendingEditWaitingManagement': 'Waiting for management to confirm',
+  'absences.confirmEdit': 'Confirm change',
+  'absences.confirmEditTitle': 'Confirm the proposed change?',
+  'absences.confirmEditBody':
+    'Current: {oldStart} – {oldEnd}. Proposed: {newStart} – {newEnd}. Confirming replaces the current dates.',
+  'absences.declineEdit': 'Decline',
+
   'absenceType.AnnualLeave': 'Annual leave',
   'absenceType.SickLeave': 'Sick leave',
   'absenceType.UnpaidLeave': 'Unpaid leave',

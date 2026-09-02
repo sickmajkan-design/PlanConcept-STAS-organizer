@@ -692,6 +692,23 @@ export const sr: Record<MessageKey, Message> = {
   'absences.balance': 'Iskorišćeno {used} od {allowance} dana godišnjeg odmora ove godine — preostalo {remaining}',
   'absences.balanceOver': 'Iskorišćeno {used} od {allowance} dana godišnjeg odmora ove godine — prekoračeno za {remaining}',
 
+  'absences.proposeEdit': 'Predloži izmjenu',
+  'absences.proposeEditUnavailable':
+    'Samo odobreni godišnji odmor bez izmjene koja već čeka potvrdu može se ovako mijenjati.',
+  'absences.proposeEditTitle': 'Predloži nove datume za ovo odsustvo',
+  'absences.proposeEditHint':
+    'Ovo još ne mijenja odsustvo — druga strana (radnik, ili uprava ako je radnik predložio) i dalje treba da potvrdi.',
+  'absences.proposeEditReason': 'Novi razlog (opciono)',
+  'absences.proposeEditSubmit': 'Pošalji predlog',
+  'absences.pendingEditSummary': 'Predlog: {start} – {end}',
+  'absences.pendingEditWaitingEmployee': 'Čeka potvrdu radnika',
+  'absences.pendingEditWaitingManagement': 'Čeka potvrdu uprave',
+  'absences.confirmEdit': 'Potvrdi izmjenu',
+  'absences.confirmEditTitle': 'Potvrditi predloženu izmjenu?',
+  'absences.confirmEditBody':
+    'Trenutno: {oldStart} – {oldEnd}. Predloženo: {newStart} – {newEnd}. Potvrda mijenja trenutne datume.',
+  'absences.declineEdit': 'Odbij',
+
   'absenceType.AnnualLeave': 'Godišnji odmor',
   'absenceType.SickLeave': 'Bolovanje',
   'absenceType.UnpaidLeave': 'Neplaćeno odsustvo',

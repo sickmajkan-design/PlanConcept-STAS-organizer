@@ -22,6 +22,14 @@ _Absence _$AbsenceFromJson(Map<String, dynamic> json) => _Absence(
       ? null
       : DateTime.parse(json['reviewedAt'] as String),
   reviewNote: json['reviewNote'] as String?,
+  proposedStartDate: json['proposedStartDate'] as String?,
+  proposedEndDate: json['proposedEndDate'] as String?,
+  proposedReason: json['proposedReason'] as String?,
+  proposedByName: json['proposedByName'] as String?,
+  proposedByEmployee: json['proposedByEmployee'] as bool? ?? false,
+  proposedAt: json['proposedAt'] == null
+      ? null
+      : DateTime.parse(json['proposedAt'] as String),
   createdAt: DateTime.parse(json['createdAt'] as String),
 );
 
@@ -39,5 +47,11 @@ Map<String, dynamic> _$AbsenceToJson(_Absence instance) => <String, dynamic>{
   'reviewedByName': ?instance.reviewedByName,
   'reviewedAt': ?instance.reviewedAt?.toIso8601String(),
   'reviewNote': ?instance.reviewNote,
+  'proposedStartDate': ?instance.proposedStartDate,
+  'proposedEndDate': ?instance.proposedEndDate,
+  'proposedReason': ?instance.proposedReason,
+  'proposedByName': ?instance.proposedByName,
+  'proposedByEmployee': instance.proposedByEmployee,
+  'proposedAt': ?instance.proposedAt?.toIso8601String(),
   'createdAt': instance.createdAt.toIso8601String(),
 };

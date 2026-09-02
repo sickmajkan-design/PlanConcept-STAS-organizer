@@ -3,10 +3,12 @@ import {
   CheckOutlined,
   CloseOutlined,
   DeleteOutlined,
+  EditCalendarOutlined,
 } from '@mui/icons-material';
 import {
   Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -22,7 +24,7 @@ import {
   Typography,
 } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import type { AbsenceListQuery } from '../../api/absences';
 import { exportsApi } from '../../api/exports';
@@ -37,7 +39,9 @@ import { StatusLegend } from '../../components/StatusLegend';
 import {
   useAbsenceBalanceQuery,
   useAbsencesQuery,
+  useConfirmAbsenceEdit,
   useDeleteAbsence,
+  useProposeAbsenceEdit,
   useReviewAbsence,
 } from '../../features/absences/useAbsences';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
@@ -79,6 +83,8 @@ export function AbsencesListPage() {
 
   const [approving, setApproving] = useState<Absence | null>(null);
   const [refusing, setRefusing] = useState<Absence | null>(null);
+  const [proposingEdit, setProposingEdit] = useState<Absence | null>(null);
+  const [confirmingEdit, setConfirmingEdit] = useState<Absence | null>(null);
 
   const columns: GridColDef<Absence>[] = useMemo(
     () => [
@@ -116,15 +122,37 @@ export function AbsencesListPage() {
       {
         field: 'status',
         headerName: t('absences.status'),
-        width: 140,
+        width: 190,
         renderCell: (params) => (
-          <StatusChip status={params.row.status} kind="absenceStatus" />
+          <Stack sx={{ py: 0.5, lineHeight: 1.2 }}>
+            <StatusChip status={params.row.status} kind="absenceStatus" />
+            {params.row.hasPendingEdit && (
+              <Tooltip
+                title={
+                  params.row.proposedByEmployee
+                    ? t('absences.pendingEditWaitingManagement')
+                    : t('absences.pendingEditWaitingEmployee')
+                }
+              >
+                <Chip
+                  size="small"
+                  color="info"
+                  variant="outlined"
+                  label={t('absences.pendingEditSummary', {
+                    start: formatDate(params.row.proposedStartDate),
+                    end: formatDate(params.row.proposedEndDate),
+                  })}
+                  sx={{ mt: 0.5 }}
+                />
+              </Tooltip>
+            )}
+          </Stack>
         ),
       },
       {
         field: 'actions',
         headerName: '',
-        width: 140,
+        width: 190,
         sortable: false,
         filterable: false,
         align: 'right',
@@ -135,6 +163,8 @@ export function AbsencesListPage() {
             onApprove={() => setApproving(params.row)}
             onRefuse={() => setRefusing(params.row)}
             onWithdraw={() => remove.request(params.row)}
+            onProposeEdit={() => setProposingEdit(params.row)}
+            onConfirmEdit={() => setConfirmingEdit(params.row)}
           />
         ),
       },
@@ -221,6 +251,8 @@ export function AbsencesListPage() {
       <BookAbsenceDialog open={booking} onClose={() => setBooking(false)} />
       <ApproveDialog absence={approving} onClose={() => setApproving(null)} />
       <RefuseDialog absence={refusing} onClose={() => setRefusing(null)} />
+      <ProposeEditDialog absence={proposingEdit} onClose={() => setProposingEdit(null)} />
+      <ConfirmEditDialog absence={confirmingEdit} onClose={() => setConfirmingEdit(null)} />
 
       <ConfirmDialog
         open={!!remove.pending}
@@ -258,14 +290,24 @@ function RowActions({
   onApprove,
   onRefuse,
   onWithdraw,
+  onProposeEdit,
+  onConfirmEdit,
 }: {
   absence: Absence;
   onApprove: () => void;
   onRefuse: () => void;
   onWithdraw: () => void;
+  onProposeEdit: () => void;
+  onConfirmEdit: () => void;
 }) {
   const t = useT();
   const isPending = absence.status === 'Requested';
+
+  // Waiting on management (this side) to confirm what the employee proposed
+  // — the only case the admin panel itself has something to click here.
+  const awaitingOurConfirmation = absence.hasPendingEdit && absence.proposedByEmployee;
+  const canProposeEdit =
+    absence.status === 'Approved' && absence.type === 'AnnualLeave' && !absence.hasPendingEdit;
 
   return (
     <Stack direction="row" spacing={0.5}>
@@ -295,6 +337,27 @@ function RowActions({
           </IconButton>
         </span>
       </Tooltip>
+      {awaitingOurConfirmation ? (
+        <Tooltip title={t('absences.confirmEdit')}>
+          <IconButton size="small" color="info" onClick={onConfirmEdit}>
+            <EditCalendarOutlined fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      ) : (
+        <Tooltip
+          title={
+            canProposeEdit
+              ? t('absences.proposeEdit')
+              : t('absences.proposeEditUnavailable')
+          }
+        >
+          <span>
+            <IconButton size="small" disabled={!canProposeEdit} onClick={onProposeEdit}>
+              <EditCalendarOutlined fontSize="small" />
+            </IconButton>
+          </span>
+        </Tooltip>
+      )}
       <Tooltip
         title={
           absence.status === 'Approved'
@@ -427,6 +490,162 @@ function RefuseDialog({
           }}
         >
           {t('absences.reject')}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+/**
+ * Proposing new dates for an already-approved absence. This never changes the
+ * absence itself — it only stages a change the other side (whoever did not
+ * click this) still has to confirm.
+ */
+function ProposeEditDialog({
+  absence,
+  onClose,
+}: {
+  absence: Absence | null;
+  onClose: () => void;
+}) {
+  const t = useT();
+  const propose = useProposeAbsenceEdit();
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [reason, setReason] = useState('');
+
+  useEffect(() => {
+    if (absence) {
+      setStartDate(absence.startDate);
+      setEndDate(absence.endDate);
+      setReason(absence.reason ?? '');
+    }
+  }, [absence]);
+
+  const close = () => {
+    setStartDate('');
+    setEndDate('');
+    setReason('');
+    onClose();
+  };
+
+  const datesAreValid = !!startDate && !!endDate && endDate >= startDate;
+
+  return (
+    <Dialog open={!!absence} onClose={close} fullWidth maxWidth="sm">
+      <DialogTitle>{t('absences.proposeEditTitle')}</DialogTitle>
+      <DialogContent>
+        <DialogContentText sx={{ mb: 2 }}>{t('absences.proposeEditHint')}</DialogContentText>
+        <Stack spacing={2}>
+          <Stack direction="row" spacing={2}>
+            <TextField
+              type="date"
+              fullWidth
+              label={t('absences.startDate')}
+              value={startDate}
+              onChange={(event) => setStartDate(event.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+            <TextField
+              type="date"
+              fullWidth
+              label={t('absences.endDate')}
+              value={endDate}
+              onChange={(event) => setEndDate(event.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
+              error={!datesAreValid}
+            />
+          </Stack>
+          <TextField
+            fullWidth
+            multiline
+            minRows={2}
+            label={t('absences.proposeEditReason')}
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
+            error={!!propose.error}
+            helperText={propose.error?.message}
+          />
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={close}>{t('common.cancel')}</Button>
+        <Button
+          variant="contained"
+          disabled={!datesAreValid || propose.isPending}
+          loading={propose.isPending}
+          onClick={() => {
+            if (!absence) return;
+
+            propose.mutate(
+              { id: absence.id, input: { startDate, endDate, reason: reason.trim() || null } },
+              { onSuccess: close },
+            );
+          }}
+        >
+          {t('absences.proposeEditSubmit')}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+/** Confirming or declining a change the other side proposed. */
+function ConfirmEditDialog({
+  absence,
+  onClose,
+}: {
+  absence: Absence | null;
+  onClose: () => void;
+}) {
+  const t = useT();
+  const confirm = useConfirmAbsenceEdit();
+
+  return (
+    <Dialog open={!!absence} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>{t('absences.confirmEditTitle')}</DialogTitle>
+      <DialogContent>
+        <DialogContentText sx={{ mb: 1 }}>
+          {absence &&
+            t('absences.confirmEditBody', {
+              oldStart: formatDate(absence.startDate),
+              oldEnd: formatDate(absence.endDate),
+              newStart: formatDate(absence.proposedStartDate),
+              newEnd: formatDate(absence.proposedEndDate),
+            })}
+        </DialogContentText>
+        {absence?.proposedReason && (
+          <Typography variant="body2" color="text.secondary">
+            {t('absences.proposeEditReason')}: {absence.proposedReason}
+          </Typography>
+        )}
+        {confirm.error && (
+          <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+            {confirm.error.message}
+          </Typography>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button
+          color="warning"
+          disabled={confirm.isPending}
+          onClick={() => {
+            if (!absence) return;
+            confirm.mutate({ id: absence.id, input: { approve: false } }, { onSuccess: onClose });
+          }}
+        >
+          {t('absences.declineEdit')}
+        </Button>
+        <Button
+          variant="contained"
+          disabled={confirm.isPending}
+          loading={confirm.isPending}
+          onClick={() => {
+            if (!absence) return;
+            confirm.mutate({ id: absence.id, input: { approve: true } }, { onSuccess: onClose });
+          }}
+        >
+          {t('absences.confirmEdit')}
         </Button>
       </DialogActions>
     </Dialog>

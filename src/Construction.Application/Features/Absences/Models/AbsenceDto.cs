@@ -32,6 +32,20 @@ public class AbsenceDto
 
     public string? ReviewNote { get; init; }
 
+    public DateOnly? ProposedStartDate { get; init; }
+
+    public DateOnly? ProposedEndDate { get; init; }
+
+    public string? ProposedReason { get; init; }
+
+    public string? ProposedByName { get; init; }
+
+    public bool ProposedByEmployee { get; init; }
+
+    public DateTime? ProposedAt { get; init; }
+
+    public bool HasPendingEdit => ProposedStartDate is not null;
+
     public DateTime CreatedAt { get; init; }
 }
 
@@ -64,6 +78,12 @@ public static class AbsenceMapping
             ReviewedByName = absence.ReviewedByUser != null ? absence.ReviewedByUser.Email : null,
             ReviewedAt = absence.ReviewedAt,
             ReviewNote = absence.ReviewNote,
+            ProposedStartDate = absence.ProposedStartDate,
+            ProposedEndDate = absence.ProposedEndDate,
+            ProposedReason = absence.ProposedReason,
+            ProposedByName = absence.ProposedByUser != null ? absence.ProposedByUser.Email : null,
+            ProposedByEmployee = absence.ProposedByEmployee,
+            ProposedAt = absence.ProposedAt,
             CreatedAt = absence.CreatedAt,
         };
 

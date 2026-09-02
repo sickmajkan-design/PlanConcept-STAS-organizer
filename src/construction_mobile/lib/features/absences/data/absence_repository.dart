@@ -70,6 +70,37 @@ class AbsenceRepository extends ApiRepository {
   /// Takes back an unanswered request.
   Future<void> withdraw(String id) => deleteVoid('/api/v1/absences/$id');
 
+  /// Proposes new dates (and optionally a new reason) for an already-approved
+  /// absence. This does not change it yet — the other side (management, since
+  /// this call only ever comes from the employee's own app) still has to
+  /// confirm via [confirmEdit].
+  Future<Absence> proposeEdit({
+    required String id,
+    required DateTime startDate,
+    required DateTime endDate,
+    String? reason,
+  }) {
+    return postJson(
+      '/api/v1/absences/$id/propose-edit',
+      Absence.fromJson,
+      data: <String, dynamic>{
+        'startDate': _asDate(startDate),
+        'endDate': _asDate(endDate),
+        'reason': ?reason,
+      },
+    );
+  }
+
+  /// Confirms or declines a change management proposed. Only the employee
+  /// this absence belongs to may call this.
+  Future<Absence> confirmEdit({required String id, required bool approve}) {
+    return postJson(
+      '/api/v1/absences/$id/confirm-edit',
+      Absence.fromJson,
+      data: <String, dynamic>{'approve': approve},
+    );
+  }
+
   /// The API speaks `DateOnly`; sending an instant would put a time and a zone
   /// on a value that has neither.
   static String _asDate(DateTime value) {

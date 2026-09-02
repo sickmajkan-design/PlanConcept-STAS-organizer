@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import {
   absencesApi,
   type AbsenceListQuery,
+  type ConfirmAbsenceEditInput,
+  type ProposeAbsenceEditInput,
   type ReviewAbsenceInput,
   type ScheduleQuery,
 } from '../../api/absences';
@@ -54,6 +56,22 @@ export function useReviewAbsence() {
   return useResourceMutation(
     ({ id, input }: { id: string; input: ReviewAbsenceInput }) =>
       absencesApi.review(id, input),
+    absenceCaches,
+  );
+}
+
+export function useProposeAbsenceEdit() {
+  return useResourceMutation(
+    ({ id, input }: { id: string; input: ProposeAbsenceEditInput }) =>
+      absencesApi.proposeEdit(id, input),
+    absenceCaches,
+  );
+}
+
+export function useConfirmAbsenceEdit() {
+  return useResourceMutation(
+    ({ id, input }: { id: string; input: ConfirmAbsenceEditInput }) =>
+      absencesApi.confirmEdit(id, input),
     absenceCaches,
   );
 }

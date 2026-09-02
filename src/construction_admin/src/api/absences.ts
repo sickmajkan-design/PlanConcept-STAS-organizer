@@ -34,11 +34,23 @@ export interface ReviewAbsenceInput {
   note?: string | null;
 }
 
+export interface ProposeAbsenceEditInput {
+  startDate: string;
+  endDate: string;
+  reason?: string | null;
+}
+
+export interface ConfirmAbsenceEditInput {
+  approve: boolean;
+}
+
 /**
  * Absences are not a CRUD collection: leave is booked, then granted or
  * refused, and withdrawing it is a status change rather than an edit. There is
  * no update endpoint to wrap, so this is written out rather than built from
- * `createCrudApi`.
+ * `createCrudApi`. The one exception is an already-approved annual leave's
+ * dates: `proposeEdit`/`confirmEdit` are a two-step, two-sided change rather
+ * than a plain edit, so they stay separate from a generic `update` too.
  */
 export const absencesApi = {
   list: (query: AbsenceListQuery) =>
@@ -55,6 +67,20 @@ export const absencesApi = {
     request<Absence>({
       method: 'POST',
       url: `/api/v1/absences/${id}/review`,
+      data: input,
+    }),
+
+  proposeEdit: (id: string, input: ProposeAbsenceEditInput) =>
+    request<Absence>({
+      method: 'POST',
+      url: `/api/v1/absences/${id}/propose-edit`,
+      data: input,
+    }),
+
+  confirmEdit: (id: string, input: ConfirmAbsenceEditInput) =>
+    request<Absence>({
+      method: 'POST',
+      url: `/api/v1/absences/${id}/confirm-edit`,
       data: input,
     }),
 

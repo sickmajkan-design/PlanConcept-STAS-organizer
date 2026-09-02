@@ -48,6 +48,34 @@ class MyAbsencesController extends FilteredPagedListNotifier<Absence> {
     await ref.read(absenceRepositoryProvider).withdraw(absence.id);
     await refresh();
   }
+
+  /// Proposes new dates for one of the employee's own already-approved
+  /// absences. Waits on management to confirm — see [Absence.hasPendingEdit].
+  Future<void> proposeEdit({
+    required Absence absence,
+    required DateTime startDate,
+    required DateTime endDate,
+    String? reason,
+  }) async {
+    await ref.read(absenceRepositoryProvider).proposeEdit(
+          id: absence.id,
+          startDate: startDate,
+          endDate: endDate,
+          reason: reason,
+        );
+
+    await refresh();
+  }
+
+  /// Confirms or declines a change management proposed on one of the
+  /// employee's own absences.
+  Future<void> confirmEdit({required Absence absence, required bool approve}) async {
+    await ref
+        .read(absenceRepositoryProvider)
+        .confirmEdit(id: absence.id, approve: approve);
+
+    await refresh();
+  }
 }
 
 final myAbsencesControllerProvider =

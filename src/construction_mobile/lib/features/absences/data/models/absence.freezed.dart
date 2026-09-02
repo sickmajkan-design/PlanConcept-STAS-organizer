@@ -18,7 +18,14 @@ mixin _$Absence {
  String get id; String get employeeId; String get employeeName; String get type; String get status;/// `YYYY-MM-DD`.
  String get startDate;/// `YYYY-MM-DD`, inclusive.
  String get endDate;/// Calendar days covered, both ends included.
- int get dayCount; String? get reason; String? get requestedByName; String? get reviewedByName; DateTime? get reviewedAt; String? get reviewNote; DateTime get createdAt;
+ int get dayCount; String? get reason; String? get requestedByName; String? get reviewedByName; DateTime? get reviewedAt; String? get reviewNote;/// `YYYY-MM-DD`. Set together with [proposedEndDate] while a change to
+/// this (already-approved) absence awaits confirmation from the other
+/// side.
+ String? get proposedStartDate;/// `YYYY-MM-DD`, inclusive.
+ String? get proposedEndDate; String? get proposedReason; String? get proposedByName;/// True when the employee proposed the change (so management must
+/// confirm it); false when management proposed it (so the employee
+/// must).
+ bool get proposedByEmployee; DateTime? get proposedAt; DateTime get createdAt;
 /// Create a copy of Absence
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -31,16 +38,19 @@ $AbsenceCopyWith<Absence> get copyWith => _$AbsenceCopyWithImpl<Absence>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Absence&&(identical(other.id, id) || other.id == id)&&(identical(other.employeeId, employeeId) || other.employeeId == employeeId)&&(identical(other.employeeName, employeeName) || other.employeeName == employeeName)&&(identical(other.type, type) || other.type == type)&&(identical(other.status, status) || other.status == status)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.dayCount, dayCount) || other.dayCount == dayCount)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.requestedByName, requestedByName) || other.requestedByName == requestedByName)&&(identical(other.reviewedByName, reviewedByName) || other.reviewedByName == reviewedByName)&&(identical(other.reviewedAt, reviewedAt) || other.reviewedAt == reviewedAt)&&(identical(other.reviewNote, reviewNote) || other.reviewNote == reviewNote)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Absence&&(identical(other.id, id) || other.id == id)&&(identical(other.employeeId, employeeId) || other.employeeId == employeeId)&&(identical(other.employeeName, employeeName) || other.employeeName == employeeName)&&(identical(other.type, type) || other.type == type)&&(identical(other.status, status) || other.status == status)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.dayCount, dayCount) || other.dayCount == dayCount)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.requestedByName, requestedByName) || other.requestedByName == requestedByName)&&(identical(other.reviewedByName, reviewedByName) || other.reviewedByName == reviewedByName)&&(identical(other.reviewedAt, reviewedAt) || other.reviewedAt == reviewedAt)&&(identical(other.reviewNote, reviewNote) || other.reviewNote == reviewNote)&&(identical(other.proposedStartDate, proposedStartDate) || other.proposedStartDate == proposedStartDate)&&(identical(other.proposedEndDate, proposedEndDate) || other.proposedEndDate == proposedEndDate)&&(identical(other.proposedReason, proposedReason) || other.proposedReason == proposedReason)&&(identical(other.proposedByName, proposedByName) || other.proposedByName == proposedByName)&&(identical(other.proposedByEmployee, proposedByEmployee) || other.proposedByEmployee == proposedByEmployee)&&(identical(other.proposedAt, proposedAt) || other.proposedAt == proposedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,employeeId,employeeName,type,status,startDate,endDate,dayCount,reason,requestedByName,reviewedByName,reviewedAt,reviewNote,createdAt);
+// Past Object.hash's 20-argument overload once every field is counted, so
+// this hashes the field list instead — freezed does the same for classes
+// this wide.
+int get hashCode => Object.hashAll([runtimeType,id,employeeId,employeeName,type,status,startDate,endDate,dayCount,reason,requestedByName,reviewedByName,reviewedAt,reviewNote,proposedStartDate,proposedEndDate,proposedReason,proposedByName,proposedByEmployee,proposedAt,createdAt]);
 
 @override
 String toString() {
-  return 'Absence(id: $id, employeeId: $employeeId, employeeName: $employeeName, type: $type, status: $status, startDate: $startDate, endDate: $endDate, dayCount: $dayCount, reason: $reason, requestedByName: $requestedByName, reviewedByName: $reviewedByName, reviewedAt: $reviewedAt, reviewNote: $reviewNote, createdAt: $createdAt)';
+  return 'Absence(id: $id, employeeId: $employeeId, employeeName: $employeeName, type: $type, status: $status, startDate: $startDate, endDate: $endDate, dayCount: $dayCount, reason: $reason, requestedByName: $requestedByName, reviewedByName: $reviewedByName, reviewedAt: $reviewedAt, reviewNote: $reviewNote, proposedStartDate: $proposedStartDate, proposedEndDate: $proposedEndDate, proposedReason: $proposedReason, proposedByName: $proposedByName, proposedByEmployee: $proposedByEmployee, proposedAt: $proposedAt, createdAt: $createdAt)';
 }
 
 
@@ -51,7 +61,7 @@ abstract mixin class $AbsenceCopyWith<$Res>  {
   factory $AbsenceCopyWith(Absence value, $Res Function(Absence) _then) = _$AbsenceCopyWithImpl;
 @useResult
 $Res call({
- String id, String employeeId, String employeeName, String type, String status, String startDate, String endDate, int dayCount, String? reason, String? requestedByName, String? reviewedByName, DateTime? reviewedAt, String? reviewNote, DateTime createdAt
+ String id, String employeeId, String employeeName, String type, String status, String startDate, String endDate, int dayCount, String? reason, String? requestedByName, String? reviewedByName, DateTime? reviewedAt, String? reviewNote, String? proposedStartDate, String? proposedEndDate, String? proposedReason, String? proposedByName, bool proposedByEmployee, DateTime? proposedAt, DateTime createdAt
 });
 
 
@@ -68,7 +78,7 @@ class _$AbsenceCopyWithImpl<$Res>
 
 /// Create a copy of Absence
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? employeeId = null,Object? employeeName = null,Object? type = null,Object? status = null,Object? startDate = null,Object? endDate = null,Object? dayCount = null,Object? reason = freezed,Object? requestedByName = freezed,Object? reviewedByName = freezed,Object? reviewedAt = freezed,Object? reviewNote = freezed,Object? createdAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? employeeId = null,Object? employeeName = null,Object? type = null,Object? status = null,Object? startDate = null,Object? endDate = null,Object? dayCount = null,Object? reason = freezed,Object? requestedByName = freezed,Object? reviewedByName = freezed,Object? reviewedAt = freezed,Object? reviewNote = freezed,Object? proposedStartDate = freezed,Object? proposedEndDate = freezed,Object? proposedReason = freezed,Object? proposedByName = freezed,Object? proposedByEmployee = null,Object? proposedAt = freezed,Object? createdAt = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,employeeId: null == employeeId ? _self.employeeId : employeeId // ignore: cast_nullable_to_non_nullable
@@ -83,7 +93,13 @@ as String?,requestedByName: freezed == requestedByName ? _self.requestedByName :
 as String?,reviewedByName: freezed == reviewedByName ? _self.reviewedByName : reviewedByName // ignore: cast_nullable_to_non_nullable
 as String?,reviewedAt: freezed == reviewedAt ? _self.reviewedAt : reviewedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,reviewNote: freezed == reviewNote ? _self.reviewNote : reviewNote // ignore: cast_nullable_to_non_nullable
-as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String?,proposedStartDate: freezed == proposedStartDate ? _self.proposedStartDate : proposedStartDate // ignore: cast_nullable_to_non_nullable
+as String?,proposedEndDate: freezed == proposedEndDate ? _self.proposedEndDate : proposedEndDate // ignore: cast_nullable_to_non_nullable
+as String?,proposedReason: freezed == proposedReason ? _self.proposedReason : proposedReason // ignore: cast_nullable_to_non_nullable
+as String?,proposedByName: freezed == proposedByName ? _self.proposedByName : proposedByName // ignore: cast_nullable_to_non_nullable
+as String?,proposedByEmployee: null == proposedByEmployee ? _self.proposedByEmployee : proposedByEmployee // ignore: cast_nullable_to_non_nullable
+as bool,proposedAt: freezed == proposedAt ? _self.proposedAt : proposedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
 }
@@ -169,10 +185,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String employeeId,  String employeeName,  String type,  String status,  String startDate,  String endDate,  int dayCount,  String? reason,  String? requestedByName,  String? reviewedByName,  DateTime? reviewedAt,  String? reviewNote,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String employeeId,  String employeeName,  String type,  String status,  String startDate,  String endDate,  int dayCount,  String? reason,  String? requestedByName,  String? reviewedByName,  DateTime? reviewedAt,  String? reviewNote,  String? proposedStartDate,  String? proposedEndDate,  String? proposedReason,  String? proposedByName,  bool proposedByEmployee,  DateTime? proposedAt,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Absence() when $default != null:
-return $default(_that.id,_that.employeeId,_that.employeeName,_that.type,_that.status,_that.startDate,_that.endDate,_that.dayCount,_that.reason,_that.requestedByName,_that.reviewedByName,_that.reviewedAt,_that.reviewNote,_that.createdAt);case _:
+return $default(_that.id,_that.employeeId,_that.employeeName,_that.type,_that.status,_that.startDate,_that.endDate,_that.dayCount,_that.reason,_that.requestedByName,_that.reviewedByName,_that.reviewedAt,_that.reviewNote,_that.proposedStartDate,_that.proposedEndDate,_that.proposedReason,_that.proposedByName,_that.proposedByEmployee,_that.proposedAt,_that.createdAt);case _:
   return orElse();
 
 }
@@ -190,10 +206,10 @@ return $default(_that.id,_that.employeeId,_that.employeeName,_that.type,_that.st
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String employeeId,  String employeeName,  String type,  String status,  String startDate,  String endDate,  int dayCount,  String? reason,  String? requestedByName,  String? reviewedByName,  DateTime? reviewedAt,  String? reviewNote,  DateTime createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String employeeId,  String employeeName,  String type,  String status,  String startDate,  String endDate,  int dayCount,  String? reason,  String? requestedByName,  String? reviewedByName,  DateTime? reviewedAt,  String? reviewNote,  String? proposedStartDate,  String? proposedEndDate,  String? proposedReason,  String? proposedByName,  bool proposedByEmployee,  DateTime? proposedAt,  DateTime createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _Absence():
-return $default(_that.id,_that.employeeId,_that.employeeName,_that.type,_that.status,_that.startDate,_that.endDate,_that.dayCount,_that.reason,_that.requestedByName,_that.reviewedByName,_that.reviewedAt,_that.reviewNote,_that.createdAt);case _:
+return $default(_that.id,_that.employeeId,_that.employeeName,_that.type,_that.status,_that.startDate,_that.endDate,_that.dayCount,_that.reason,_that.requestedByName,_that.reviewedByName,_that.reviewedAt,_that.reviewNote,_that.proposedStartDate,_that.proposedEndDate,_that.proposedReason,_that.proposedByName,_that.proposedByEmployee,_that.proposedAt,_that.createdAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -210,10 +226,10 @@ return $default(_that.id,_that.employeeId,_that.employeeName,_that.type,_that.st
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String employeeId,  String employeeName,  String type,  String status,  String startDate,  String endDate,  int dayCount,  String? reason,  String? requestedByName,  String? reviewedByName,  DateTime? reviewedAt,  String? reviewNote,  DateTime createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String employeeId,  String employeeName,  String type,  String status,  String startDate,  String endDate,  int dayCount,  String? reason,  String? requestedByName,  String? reviewedByName,  DateTime? reviewedAt,  String? reviewNote,  String? proposedStartDate,  String? proposedEndDate,  String? proposedReason,  String? proposedByName,  bool proposedByEmployee,  DateTime? proposedAt,  DateTime createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Absence() when $default != null:
-return $default(_that.id,_that.employeeId,_that.employeeName,_that.type,_that.status,_that.startDate,_that.endDate,_that.dayCount,_that.reason,_that.requestedByName,_that.reviewedByName,_that.reviewedAt,_that.reviewNote,_that.createdAt);case _:
+return $default(_that.id,_that.employeeId,_that.employeeName,_that.type,_that.status,_that.startDate,_that.endDate,_that.dayCount,_that.reason,_that.requestedByName,_that.reviewedByName,_that.reviewedAt,_that.reviewNote,_that.proposedStartDate,_that.proposedEndDate,_that.proposedReason,_that.proposedByName,_that.proposedByEmployee,_that.proposedAt,_that.createdAt);case _:
   return null;
 
 }
@@ -225,7 +241,7 @@ return $default(_that.id,_that.employeeId,_that.employeeName,_that.type,_that.st
 @JsonSerializable()
 
 class _Absence extends Absence {
-  const _Absence({required this.id, required this.employeeId, required this.employeeName, required this.type, required this.status, required this.startDate, required this.endDate, required this.dayCount, this.reason, this.requestedByName, this.reviewedByName, this.reviewedAt, this.reviewNote, required this.createdAt}): super._();
+  const _Absence({required this.id, required this.employeeId, required this.employeeName, required this.type, required this.status, required this.startDate, required this.endDate, required this.dayCount, this.reason, this.requestedByName, this.reviewedByName, this.reviewedAt, this.reviewNote, this.proposedStartDate, this.proposedEndDate, this.proposedReason, this.proposedByName, this.proposedByEmployee = false, this.proposedAt, required this.createdAt}): super._();
   factory _Absence.fromJson(Map<String, dynamic> json) => _$AbsenceFromJson(json);
 
 @override final  String id;
@@ -244,6 +260,19 @@ class _Absence extends Absence {
 @override final  String? reviewedByName;
 @override final  DateTime? reviewedAt;
 @override final  String? reviewNote;
+/// `YYYY-MM-DD`. Set together with [proposedEndDate] while a change to
+/// this (already-approved) absence awaits confirmation from the other
+/// side.
+@override final  String? proposedStartDate;
+/// `YYYY-MM-DD`, inclusive.
+@override final  String? proposedEndDate;
+@override final  String? proposedReason;
+@override final  String? proposedByName;
+/// True when the employee proposed the change (so management must
+/// confirm it); false when management proposed it (so the employee
+/// must).
+@override final  bool proposedByEmployee;
+@override final  DateTime? proposedAt;
 @override final  DateTime createdAt;
 
 /// Create a copy of Absence
@@ -259,16 +288,19 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Absence&&(identical(other.id, id) || other.id == id)&&(identical(other.employeeId, employeeId) || other.employeeId == employeeId)&&(identical(other.employeeName, employeeName) || other.employeeName == employeeName)&&(identical(other.type, type) || other.type == type)&&(identical(other.status, status) || other.status == status)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.dayCount, dayCount) || other.dayCount == dayCount)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.requestedByName, requestedByName) || other.requestedByName == requestedByName)&&(identical(other.reviewedByName, reviewedByName) || other.reviewedByName == reviewedByName)&&(identical(other.reviewedAt, reviewedAt) || other.reviewedAt == reviewedAt)&&(identical(other.reviewNote, reviewNote) || other.reviewNote == reviewNote)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Absence&&(identical(other.id, id) || other.id == id)&&(identical(other.employeeId, employeeId) || other.employeeId == employeeId)&&(identical(other.employeeName, employeeName) || other.employeeName == employeeName)&&(identical(other.type, type) || other.type == type)&&(identical(other.status, status) || other.status == status)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.dayCount, dayCount) || other.dayCount == dayCount)&&(identical(other.reason, reason) || other.reason == reason)&&(identical(other.requestedByName, requestedByName) || other.requestedByName == requestedByName)&&(identical(other.reviewedByName, reviewedByName) || other.reviewedByName == reviewedByName)&&(identical(other.reviewedAt, reviewedAt) || other.reviewedAt == reviewedAt)&&(identical(other.reviewNote, reviewNote) || other.reviewNote == reviewNote)&&(identical(other.proposedStartDate, proposedStartDate) || other.proposedStartDate == proposedStartDate)&&(identical(other.proposedEndDate, proposedEndDate) || other.proposedEndDate == proposedEndDate)&&(identical(other.proposedReason, proposedReason) || other.proposedReason == proposedReason)&&(identical(other.proposedByName, proposedByName) || other.proposedByName == proposedByName)&&(identical(other.proposedByEmployee, proposedByEmployee) || other.proposedByEmployee == proposedByEmployee)&&(identical(other.proposedAt, proposedAt) || other.proposedAt == proposedAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,employeeId,employeeName,type,status,startDate,endDate,dayCount,reason,requestedByName,reviewedByName,reviewedAt,reviewNote,createdAt);
+// Past Object.hash's 20-argument overload once every field is counted, so
+// this hashes the field list instead — freezed does the same for classes
+// this wide.
+int get hashCode => Object.hashAll([runtimeType,id,employeeId,employeeName,type,status,startDate,endDate,dayCount,reason,requestedByName,reviewedByName,reviewedAt,reviewNote,proposedStartDate,proposedEndDate,proposedReason,proposedByName,proposedByEmployee,proposedAt,createdAt]);
 
 @override
 String toString() {
-  return 'Absence(id: $id, employeeId: $employeeId, employeeName: $employeeName, type: $type, status: $status, startDate: $startDate, endDate: $endDate, dayCount: $dayCount, reason: $reason, requestedByName: $requestedByName, reviewedByName: $reviewedByName, reviewedAt: $reviewedAt, reviewNote: $reviewNote, createdAt: $createdAt)';
+  return 'Absence(id: $id, employeeId: $employeeId, employeeName: $employeeName, type: $type, status: $status, startDate: $startDate, endDate: $endDate, dayCount: $dayCount, reason: $reason, requestedByName: $requestedByName, reviewedByName: $reviewedByName, reviewedAt: $reviewedAt, reviewNote: $reviewNote, proposedStartDate: $proposedStartDate, proposedEndDate: $proposedEndDate, proposedReason: $proposedReason, proposedByName: $proposedByName, proposedByEmployee: $proposedByEmployee, proposedAt: $proposedAt, createdAt: $createdAt)';
 }
 
 
@@ -279,7 +311,7 @@ abstract mixin class _$AbsenceCopyWith<$Res> implements $AbsenceCopyWith<$Res> {
   factory _$AbsenceCopyWith(_Absence value, $Res Function(_Absence) _then) = __$AbsenceCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String employeeId, String employeeName, String type, String status, String startDate, String endDate, int dayCount, String? reason, String? requestedByName, String? reviewedByName, DateTime? reviewedAt, String? reviewNote, DateTime createdAt
+ String id, String employeeId, String employeeName, String type, String status, String startDate, String endDate, int dayCount, String? reason, String? requestedByName, String? reviewedByName, DateTime? reviewedAt, String? reviewNote, String? proposedStartDate, String? proposedEndDate, String? proposedReason, String? proposedByName, bool proposedByEmployee, DateTime? proposedAt, DateTime createdAt
 });
 
 
@@ -296,7 +328,7 @@ class __$AbsenceCopyWithImpl<$Res>
 
 /// Create a copy of Absence
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? employeeId = null,Object? employeeName = null,Object? type = null,Object? status = null,Object? startDate = null,Object? endDate = null,Object? dayCount = null,Object? reason = freezed,Object? requestedByName = freezed,Object? reviewedByName = freezed,Object? reviewedAt = freezed,Object? reviewNote = freezed,Object? createdAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? employeeId = null,Object? employeeName = null,Object? type = null,Object? status = null,Object? startDate = null,Object? endDate = null,Object? dayCount = null,Object? reason = freezed,Object? requestedByName = freezed,Object? reviewedByName = freezed,Object? reviewedAt = freezed,Object? reviewNote = freezed,Object? proposedStartDate = freezed,Object? proposedEndDate = freezed,Object? proposedReason = freezed,Object? proposedByName = freezed,Object? proposedByEmployee = null,Object? proposedAt = freezed,Object? createdAt = null,}) {
   return _then(_Absence(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,employeeId: null == employeeId ? _self.employeeId : employeeId // ignore: cast_nullable_to_non_nullable
@@ -311,7 +343,13 @@ as String?,requestedByName: freezed == requestedByName ? _self.requestedByName :
 as String?,reviewedByName: freezed == reviewedByName ? _self.reviewedByName : reviewedByName // ignore: cast_nullable_to_non_nullable
 as String?,reviewedAt: freezed == reviewedAt ? _self.reviewedAt : reviewedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,reviewNote: freezed == reviewNote ? _self.reviewNote : reviewNote // ignore: cast_nullable_to_non_nullable
-as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
+as String?,proposedStartDate: freezed == proposedStartDate ? _self.proposedStartDate : proposedStartDate // ignore: cast_nullable_to_non_nullable
+as String?,proposedEndDate: freezed == proposedEndDate ? _self.proposedEndDate : proposedEndDate // ignore: cast_nullable_to_non_nullable
+as String?,proposedReason: freezed == proposedReason ? _self.proposedReason : proposedReason // ignore: cast_nullable_to_non_nullable
+as String?,proposedByName: freezed == proposedByName ? _self.proposedByName : proposedByName // ignore: cast_nullable_to_non_nullable
+as String?,proposedByEmployee: null == proposedByEmployee ? _self.proposedByEmployee : proposedByEmployee // ignore: cast_nullable_to_non_nullable
+as bool,proposedAt: freezed == proposedAt ? _self.proposedAt : proposedAt // ignore: cast_nullable_to_non_nullable
+as DateTime?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
 }

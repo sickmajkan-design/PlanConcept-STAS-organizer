@@ -15,9 +15,11 @@ public class AbsenceConfiguration : IEntityTypeConfiguration<Absence>
         builder.HasQueryFilter(a => !a.IsDeleted);
 
         builder.Ignore(a => a.DayCount);
+        builder.Ignore(a => a.HasPendingEdit);
 
         builder.Property(a => a.Reason).HasMaxLength(1000);
         builder.Property(a => a.ReviewNote).HasMaxLength(1000);
+        builder.Property(a => a.ProposedReason).HasMaxLength(1000);
 
         builder.HasOne(a => a.Employee)
             .WithMany(e => e.Absences)
@@ -34,8 +36,17 @@ public class AbsenceConfiguration : IEntityTypeConfiguration<Absence>
             .HasForeignKey(a => a.ReviewedByUserId)
             .OnDelete(DeleteBehavior.SetNull);
 
+        builder.HasOne(a => a.ProposedByUser)
+            .WithMany()
+            .HasForeignKey(a => a.ProposedByUserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.ToTable(t => t.HasCheckConstraint(
             "ck_absences_ends_after_start", "\"EndDate\" >= \"StartDate\""));
+
+        builder.ToTable(t => t.HasCheckConstraint(
+            "ck_absences_proposed_ends_after_start",
+            "\"ProposedEndDate\" IS NULL OR \"ProposedEndDate\" >= \"ProposedStartDate\""));
 
         // "Is this person away on day D", the question the schedule asks for
         // every employee in the week.

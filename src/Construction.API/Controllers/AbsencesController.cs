@@ -1,6 +1,8 @@
 using Construction.API.Authorization;
 using Construction.Application.Common.Models;
+using Construction.Application.Features.Absences.Commands.ConfirmAbsenceEdit;
 using Construction.Application.Features.Absences.Commands.DeleteAbsence;
+using Construction.Application.Features.Absences.Commands.ProposeAbsenceEdit;
 using Construction.Application.Features.Absences.Commands.RequestAbsence;
 using Construction.Application.Features.Absences.Commands.ReviewAbsence;
 using Construction.Application.Features.Absences.Models;
@@ -94,6 +96,45 @@ public class AbsencesController : ApiControllerBase
     public async Task<ActionResult<AbsenceDto>> Review(
         Guid id,
         ReviewAbsenceCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
+    }
+
+    /// <summary>
+    /// Proposes new dates (and optionally a new reason) for an already-approved
+    /// absence. Either the employee or a reviewer may propose; the change only
+    /// takes effect once the other side confirms it via <see cref="ConfirmEdit"/>.
+    /// </summary>
+    [HttpPost("{id:guid}/propose-edit")]
+    [Authorize(Policy = Policies.AllEmployees)]
+    [ProducesResponseType(typeof(AbsenceDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<AbsenceDto>> ProposeEdit(
+        Guid id,
+        ProposeAbsenceEditCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
+    }
+
+    /// <summary>
+    /// Confirms or declines a change the other side proposed. Only the side
+    /// that did not propose it may respond.
+    /// </summary>
+    [HttpPost("{id:guid}/confirm-edit")]
+    [Authorize(Policy = Policies.AllEmployees)]
+    [ProducesResponseType(typeof(AbsenceDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<AbsenceDto>> ConfirmEdit(
+        Guid id,
+        ConfirmAbsenceEditCommand command,
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));

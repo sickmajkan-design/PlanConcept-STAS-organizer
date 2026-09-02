@@ -609,6 +609,17 @@ export interface Absence {
   reviewedByName: string | null;
   reviewedAt: string | null;
   reviewNote: string | null;
+  /** `YYYY-MM-DD`. Set together with `proposedEndDate` while a change awaits confirmation. */
+  proposedStartDate: string | null;
+  /** `YYYY-MM-DD`, inclusive. */
+  proposedEndDate: string | null;
+  proposedReason: string | null;
+  proposedByName: string | null;
+  /** True when the employee proposed the change (so management must confirm it), false when management did (so the employee must). */
+  proposedByEmployee: boolean;
+  proposedAt: string | null;
+  /** Derived from `proposedStartDate` — a convenience the DTO also computes. */
+  hasPendingEdit: boolean;
   createdAt: string;
 }
 
