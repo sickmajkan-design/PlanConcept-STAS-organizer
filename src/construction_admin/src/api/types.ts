@@ -46,6 +46,10 @@ export const employeeStatuses = [
 
 export type EmployeeStatus = (typeof employeeStatuses)[number];
 
+export const employeeTypes = ['Employee', 'Subcontractor'] as const;
+
+export type EmployeeType = (typeof employeeTypes)[number];
+
 export const projectStatuses = [
   'Planned',
   'Active',
@@ -69,6 +73,8 @@ export interface Employee {
   employmentDate: string;
   position: string;
   status: EmployeeStatus;
+  /** Direct employee or subcontractor. */
+  type: EmployeeType;
   /** Every project this employee is currently posted to. Empty means unassigned. */
   currentProjectNames: string[];
   createdAt: string;
@@ -110,6 +116,7 @@ export interface EmployeeInput {
   employmentDate: string;
   position: string;
   status: EmployeeStatus;
+  type: EmployeeType;
 }
 
 export interface Project {
@@ -722,15 +729,23 @@ export const vehicleExpenseKinds = [
 
 export type VehicleExpenseKind = (typeof vehicleExpenseKinds)[number];
 
+export const rateTypes = ['Hourly', 'Daily'] as const;
+
+export type RateType = (typeof rateTypes)[number];
+
 export interface EmployeeRate {
   id: string;
   employeeId: string;
   employeeName: string;
-  hourlyRate: number;
-  /** Cost per hour on a Saturday or Sunday. Null means no premium. */
+  rateType: RateType;
+  /** Set when `rateType` is Hourly; null otherwise. */
+  hourlyRate: number | null;
+  /** Cost per hour on a Saturday or Sunday. Null means no premium. Hourly only. */
   weekendHourlyRate: number | null;
-  /** Cost per hour on a listed public holiday. Null means no premium. */
+  /** Cost per hour on a listed public holiday. Null means no premium. Hourly only. */
   holidayHourlyRate: number | null;
+  /** Set when `rateType` is Daily; null otherwise. */
+  dailyRate: number | null;
   /** `YYYY-MM-DD`. */
   startDate: string;
   /** `YYYY-MM-DD`, or null while it is the rate in force. */
@@ -742,9 +757,13 @@ export interface EmployeeRate {
 
 export interface EmployeeRateInput {
   employeeId: string;
-  hourlyRate: number;
+  rateType: RateType;
+  /** Required when `rateType` is Hourly. */
+  hourlyRate?: number | null;
   weekendHourlyRate?: number | null;
   holidayHourlyRate?: number | null;
+  /** Required when `rateType` is Daily. */
+  dailyRate?: number | null;
   startDate?: string | null;
   endDate?: string | null;
   note?: string | null;

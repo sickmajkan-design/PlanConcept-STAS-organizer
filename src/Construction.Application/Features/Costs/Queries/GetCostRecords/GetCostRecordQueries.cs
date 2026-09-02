@@ -18,8 +18,8 @@ public record GetEmployeeRatesQuery : ISortablePagedQuery, IRequest<PagedList<Em
 {
     public static readonly string[] AllowedSortFields =
     [
-        "employeeName", "hourlyRate", "weekendHourlyRate", "holidayHourlyRate",
-        "startDate", "endDate", "setByName", "createdAt"
+        "employeeName", "rateType", "hourlyRate", "weekendHourlyRate", "holidayHourlyRate",
+        "dailyRate", "startDate", "endDate", "setByName", "createdAt"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -108,8 +108,12 @@ public class GetEmployeeRatesQueryHandler
             ("employeename", true) => query
                 .OrderByDescending(r => r.Employee.LastName)
                 .ThenByDescending(r => r.Employee.FirstName),
-            ("hourlyrate", false) => query.OrderBy(r => r.HourlyRate),
-            ("hourlyrate", true) => query.OrderByDescending(r => r.HourlyRate),
+            ("ratetype", false) => query.OrderBy(r => r.RateType),
+            ("ratetype", true) => query.OrderByDescending(r => r.RateType),
+            ("hourlyrate", false) => query
+                .OrderBy(r => r.HourlyRate == null).ThenBy(r => r.HourlyRate),
+            ("hourlyrate", true) => query
+                .OrderByDescending(r => r.HourlyRate == null).ThenByDescending(r => r.HourlyRate),
             ("weekendhourlyrate", false) => query
                 .OrderBy(r => r.WeekendHourlyRate == null).ThenBy(r => r.WeekendHourlyRate),
             ("weekendhourlyrate", true) => query
@@ -118,6 +122,10 @@ public class GetEmployeeRatesQueryHandler
                 .OrderBy(r => r.HolidayHourlyRate == null).ThenBy(r => r.HolidayHourlyRate),
             ("holidayhourlyrate", true) => query
                 .OrderByDescending(r => r.HolidayHourlyRate == null).ThenByDescending(r => r.HolidayHourlyRate),
+            ("dailyrate", false) => query
+                .OrderBy(r => r.DailyRate == null).ThenBy(r => r.DailyRate),
+            ("dailyrate", true) => query
+                .OrderByDescending(r => r.DailyRate == null).ThenByDescending(r => r.DailyRate),
             ("startdate", false) => query.OrderBy(r => r.StartDate),
             ("enddate", false) => query.OrderBy(r => r.EndDate == null).ThenBy(r => r.EndDate),
             ("enddate", true) => query.OrderByDescending(r => r.EndDate == null).ThenByDescending(r => r.EndDate),
@@ -187,10 +195,18 @@ public class GetEmployeeRatesSummaryQueryHandler
 
         var count = await query.CountAsync(cancellationToken);
 
+        // Averaged over hourly rates only — a daily rate has no per-hour
+        // figure to blend in, and mixing the two would produce a number
+        // that means nothing.
+        var hourlyRates = query.Where(r => r.RateType == RateType.Hourly);
+        var hourlyCount = await hourlyRates.CountAsync(cancellationToken);
+
         return new EmployeeRateSummaryDto
         {
             Count = count,
-            AverageHourlyRate = count > 0 ? await query.AverageAsync(r => r.HourlyRate, cancellationToken) : null
+            AverageHourlyRate = hourlyCount > 0
+                ? await hourlyRates.AverageAsync(r => r.HourlyRate!.Value, cancellationToken)
+                : null
         };
     }
 }

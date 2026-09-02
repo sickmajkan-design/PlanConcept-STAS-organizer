@@ -28,6 +28,9 @@ public abstract record EmployeeCommandBase
     public string Position { get; init; } = null!;
 
     public EmployeeStatus Status { get; init; } = EmployeeStatus.Active;
+
+    /// <summary>Direct employee or subcontractor.</summary>
+    public EmployeeType Type { get; init; } = EmployeeType.Employee;
 }
 
 public abstract class EmployeeCommandBaseValidator<T> : AbstractValidator<T>
@@ -73,5 +76,8 @@ public abstract class EmployeeCommandBaseValidator<T> : AbstractValidator<T>
 
         RuleFor(x => x.Status)
             .IsInEnum().WithMessage("Status is not a valid employee status.");
+
+        RuleFor(x => x.Type)
+            .IsInEnum().WithMessage("Type is not a valid employee type.");
     }
 }

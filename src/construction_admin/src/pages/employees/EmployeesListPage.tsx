@@ -12,13 +12,13 @@ import {
   Typography,
 } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type { EmployeeListQuery } from '../../api/employees';
 import { exportsApi } from '../../api/exports';
-import type { Employee, EmployeeStatus } from '../../api/types';
-import { employeeStatuses } from '../../api/types';
+import type { Employee, EmployeeStatus, EmployeeType } from '../../api/types';
+import { employeeStatuses, employeeTypes } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
@@ -40,10 +40,11 @@ export function EmployeesListPage() {
   const t = useT();
   const enumLabel = useEnumLabel();
   const list = useListQueryState<EmployeeStatus>('lastName');
+  const [typeFilter, setTypeFilter] = useState<EmployeeType | ''>('');
 
   const query: EmployeeListQuery = useMemo(
-    () => ({ ...list.query, status: list.filter || undefined }),
-    [list.query, list.filter],
+    () => ({ ...list.query, status: list.filter || undefined, type: typeFilter || undefined }),
+    [list.query, list.filter, typeFilter],
   );
 
   const { data, isLoading, isError, error, refetch } = useEmployeesQuery(query);
@@ -56,6 +57,19 @@ export function EmployeesListPage() {
       { field: 'employeeNumber', headerName: t('employees.number'), width: 110 },
       { field: 'fullName', headerName: t('employees.name'), flex: 1, minWidth: 180 },
       { field: 'position', headerName: t('employees.position'), flex: 1, minWidth: 150 },
+      {
+        field: 'type',
+        headerName: t('employees.type'),
+        width: 130,
+        renderCell: (params) =>
+          params.row.type === 'Subcontractor' ? (
+            <Chip size="small" color="warning" variant="outlined" label={enumLabel('employeeType', 'Subcontractor')} />
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              {enumLabel('employeeType', 'Employee')}
+            </Typography>
+          ),
+      },
       {
         field: 'status',
         headerName: t('employees.status'),
@@ -121,7 +135,7 @@ export function EmployeesListPage() {
         ),
       },
     ],
-    [navigate, remove, t],
+    [enumLabel, navigate, remove, t],
   );
 
   return (
@@ -156,6 +170,27 @@ export function EmployeesListPage() {
             {employeeStatuses.map((value) => (
               <MenuItem key={value} value={value}>
                 {enumLabel('employeeStatus', value)}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <FormControl size="small" sx={{ minWidth: 180 }}>
+          <InputLabel id="type-filter-label">{t('employees.type')}</InputLabel>
+          <Select
+            labelId="type-filter-label"
+            label={t('employees.type')}
+            value={typeFilter}
+            onChange={(event) => {
+              setTypeFilter(event.target.value as EmployeeType | '');
+              list.resetToFirstPage();
+            }}
+          >
+            <MenuItem value="">
+              <em>{t('common.all')}</em>
+            </MenuItem>
+            {employeeTypes.map((value) => (
+              <MenuItem key={value} value={value}>
+                {enumLabel('employeeType', value)}
               </MenuItem>
             ))}
           </Select>

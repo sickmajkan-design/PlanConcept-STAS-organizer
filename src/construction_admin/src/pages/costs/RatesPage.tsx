@@ -23,7 +23,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { toApiError } from '../../api/apiError';
 import type { EmployeeRateListQuery } from '../../api/costs';
-import type { EmployeeRate } from '../../api/types';
+import type { EmployeeRate, RateType } from '../../api/types';
 import { canAdministerAccounts } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { AttachmentList } from '../../components/AttachmentList';
@@ -41,11 +41,13 @@ import {
 import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useListQueryState } from '../../hooks/useListQueryState';
+import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { formatDate, formatDateTime, formatMoney } from '../../utils/formatting';
 
 export function RatesPage() {
   const t = useT();
+  const enumLabel = useEnumLabel();
   const { locale } = useI18n();
   const { user } = useAuth();
   const list = useListQueryState('startDate', 'desc');
@@ -76,12 +78,28 @@ export function RatesPage() {
         minWidth: 180,
       },
       {
+        field: 'rateType',
+        headerName: t('rates.rateType'),
+        width: 110,
+        valueGetter: (value) => enumLabel('rateType', value as string),
+      },
+      {
         field: 'hourlyRate',
         headerName: t('rates.hourlyRate'),
         width: 150,
         align: 'right',
         headerAlign: 'right',
-        valueGetter: (value) => formatMoney(value as number, locale),
+        valueGetter: (value) =>
+          value === null ? '—' : formatMoney(value as number, locale),
+      },
+      {
+        field: 'dailyRate',
+        headerName: t('rates.dailyRate'),
+        width: 150,
+        align: 'right',
+        headerAlign: 'right',
+        valueGetter: (value) =>
+          value === null ? '—' : formatMoney(value as number, locale),
       },
       {
         field: 'weekendHourlyRate',
@@ -152,7 +170,7 @@ export function RatesPage() {
         ),
       },
     ],
-    [locale, remove, t],
+    [enumLabel, locale, remove, t],
   );
 
   return (
@@ -252,15 +270,18 @@ function RateDialog({
   canAdminister?: boolean;
 }) {
   const t = useT();
+  const enumLabel = useEnumLabel();
   const { data: employees } = useAllEmployeesQuery();
   const set = useSetEmployeeRate();
   const update = useUpdateEmployeeRate();
   const isEditing = !!editingRate;
 
   const [employeeId, setEmployeeId] = useState('');
+  const [rateType, setRateType] = useState<RateType>('Hourly');
   const [hourlyRate, setHourlyRate] = useState('');
   const [weekendHourlyRate, setWeekendHourlyRate] = useState('');
   const [holidayHourlyRate, setHolidayHourlyRate] = useState('');
+  const [dailyRate, setDailyRate] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [note, setNote] = useState('');
@@ -276,30 +297,36 @@ function RateDialog({
 
     if (editingRate) {
       setEmployeeId(editingRate.employeeId);
-      setHourlyRate(String(editingRate.hourlyRate));
+      setRateType(editingRate.rateType);
+      setHourlyRate(editingRate.hourlyRate === null ? '' : String(editingRate.hourlyRate));
       setWeekendHourlyRate(
         editingRate.weekendHourlyRate === null ? '' : String(editingRate.weekendHourlyRate),
       );
       setHolidayHourlyRate(
         editingRate.holidayHourlyRate === null ? '' : String(editingRate.holidayHourlyRate),
       );
+      setDailyRate(editingRate.dailyRate === null ? '' : String(editingRate.dailyRate));
       setStartDate(editingRate.startDate);
       setEndDate(editingRate.endDate ?? '');
       setNote(editingRate.note ?? '');
     } else {
       setEmployeeId('');
+      setRateType('Hourly');
       setHourlyRate('');
       setWeekendHourlyRate('');
       setHolidayHourlyRate('');
+      setDailyRate('');
       setStartDate('');
       setEndDate('');
       setNote('');
     }
   }, [open, editingRate, resetSet, resetUpdate]);
 
+  const isHourly = rateType === 'Hourly';
+
   const parsedRate = Number(hourlyRate);
   const rateIsValid =
-    hourlyRate.trim() !== '' && !Number.isNaN(parsedRate) && parsedRate > 0;
+    !isHourly || (hourlyRate.trim() !== '' && !Number.isNaN(parsedRate) && parsedRate > 0);
 
   const parsedWeekendRate = Number(weekendHourlyRate);
   const weekendRateIsValid =
@@ -311,6 +338,10 @@ function RateDialog({
     holidayHourlyRate.trim() === ''
     || (!Number.isNaN(parsedHolidayRate) && parsedHolidayRate > 0);
 
+  const parsedDailyRate = Number(dailyRate);
+  const dailyRateIsValid =
+    isHourly || (dailyRate.trim() !== '' && !Number.isNaN(parsedDailyRate) && parsedDailyRate > 0);
+
   const datesAreValid = !startDate || !endDate || endDate >= startDate;
 
   const canSubmit =
@@ -318,6 +349,7 @@ function RateDialog({
     && rateIsValid
     && weekendRateIsValid
     && holidayRateIsValid
+    && dailyRateIsValid
     && datesAreValid;
   const mutation = isEditing ? update : set;
   const error = mutation.isError ? toApiError(mutation.error) : null;
@@ -326,33 +358,27 @@ function RateDialog({
     const weekendRate = weekendHourlyRate.trim() === '' ? null : parsedWeekendRate;
     const holidayRate = holidayHourlyRate.trim() === '' ? null : parsedHolidayRate;
 
+    const shared = {
+      employeeId,
+      rateType,
+      hourlyRate: isHourly ? parsedRate : null,
+      weekendHourlyRate: isHourly ? weekendRate : null,
+      holidayHourlyRate: isHourly ? holidayRate : null,
+      dailyRate: isHourly ? null : parsedDailyRate,
+      note: note.trim() || null,
+    };
+
     if (isEditing) {
       update.mutate(
         {
           id: editingRate.id,
-          input: {
-            employeeId,
-            hourlyRate: parsedRate,
-            weekendHourlyRate: weekendRate,
-            holidayHourlyRate: holidayRate,
-            startDate,
-            endDate: endDate || null,
-            note: note.trim() || null,
-          },
+          input: { ...shared, startDate, endDate: endDate || null },
         },
         { onSuccess: onClose },
       );
     } else {
       set.mutate(
-        {
-          employeeId,
-          hourlyRate: parsedRate,
-          weekendHourlyRate: weekendRate,
-          holidayHourlyRate: holidayRate,
-          startDate: startDate || null,
-          endDate: endDate || null,
-          note: note.trim() || null,
-        },
+        { ...shared, startDate: startDate || null, endDate: endDate || null },
         { onSuccess: onClose },
       );
     }
@@ -394,51 +420,85 @@ function RateDialog({
 
           <Grid size={12}>
             <TextField
-              type="number"
+              select
               fullWidth
-              label={t('rates.hourlyRate')}
-              value={hourlyRate}
-              onChange={(event) => setHourlyRate(event.target.value)}
-              error={hourlyRate.trim() !== '' && !rateIsValid}
-              helperText={
-                hourlyRate.trim() !== '' && !rateIsValid
-                  ? t('rates.mustBePositive')
-                  : undefined
-              }
-            />
+              label={t('rates.rateType')}
+              value={rateType}
+              onChange={(event) => setRateType(event.target.value as RateType)}
+              helperText={t('rates.rateTypeHint')}
+            >
+              <MenuItem value="Hourly">{enumLabel('rateType', 'Hourly')}</MenuItem>
+              <MenuItem value="Daily">{enumLabel('rateType', 'Daily')}</MenuItem>
+            </TextField>
           </Grid>
 
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
-              type="number"
-              fullWidth
-              label={t('rates.weekendHourlyRate')}
-              value={weekendHourlyRate}
-              onChange={(event) => setWeekendHourlyRate(event.target.value)}
-              error={weekendHourlyRate.trim() !== '' && !weekendRateIsValid}
-              helperText={
-                weekendHourlyRate.trim() !== '' && !weekendRateIsValid
-                  ? t('rates.mustBePositive')
-                  : undefined
-              }
-            />
-          </Grid>
+          {isHourly ? (
+            <>
+              <Grid size={12}>
+                <TextField
+                  type="number"
+                  fullWidth
+                  label={t('rates.hourlyRate')}
+                  value={hourlyRate}
+                  onChange={(event) => setHourlyRate(event.target.value)}
+                  error={hourlyRate.trim() !== '' && !rateIsValid}
+                  helperText={
+                    hourlyRate.trim() !== '' && !rateIsValid
+                      ? t('rates.mustBePositive')
+                      : undefined
+                  }
+                />
+              </Grid>
 
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
-              type="number"
-              fullWidth
-              label={t('rates.holidayHourlyRate')}
-              value={holidayHourlyRate}
-              onChange={(event) => setHolidayHourlyRate(event.target.value)}
-              error={holidayHourlyRate.trim() !== '' && !holidayRateIsValid}
-              helperText={
-                holidayHourlyRate.trim() !== '' && !holidayRateIsValid
-                  ? t('rates.mustBePositive')
-                  : undefined
-              }
-            />
-          </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  type="number"
+                  fullWidth
+                  label={t('rates.weekendHourlyRate')}
+                  value={weekendHourlyRate}
+                  onChange={(event) => setWeekendHourlyRate(event.target.value)}
+                  error={weekendHourlyRate.trim() !== '' && !weekendRateIsValid}
+                  helperText={
+                    weekendHourlyRate.trim() !== '' && !weekendRateIsValid
+                      ? t('rates.mustBePositive')
+                      : undefined
+                  }
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  type="number"
+                  fullWidth
+                  label={t('rates.holidayHourlyRate')}
+                  value={holidayHourlyRate}
+                  onChange={(event) => setHolidayHourlyRate(event.target.value)}
+                  error={holidayHourlyRate.trim() !== '' && !holidayRateIsValid}
+                  helperText={
+                    holidayHourlyRate.trim() !== '' && !holidayRateIsValid
+                      ? t('rates.mustBePositive')
+                      : undefined
+                  }
+                />
+              </Grid>
+            </>
+          ) : (
+            <Grid size={12}>
+              <TextField
+                type="number"
+                fullWidth
+                label={t('rates.dailyRate')}
+                value={dailyRate}
+                onChange={(event) => setDailyRate(event.target.value)}
+                error={dailyRate.trim() !== '' && !dailyRateIsValid}
+                helperText={
+                  dailyRate.trim() !== '' && !dailyRateIsValid
+                    ? t('rates.mustBePositive')
+                    : t('rates.dailyRateHint')
+                }
+              />
+            </Grid>
+          )}
 
           <Grid size={{ xs: 12, sm: 6 }}>
             <TextField

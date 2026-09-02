@@ -2,13 +2,14 @@ using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Costs.Models;
 using Construction.Domain.Entities;
+using Construction.Domain.Enums;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Construction.Application.Features.Costs.Commands.SetEmployeeRate;
 
-/// <summary>Puts a new hourly rate in force from a given date.</summary>
+/// <summary>Puts a new rate in force from a given date.</summary>
 /// <remarks>
 /// A raise, expressed the way it happens: from Monday, this person costs
 /// more. The open-ended rate that was in force is closed off the day before,
@@ -18,13 +19,19 @@ public record SetEmployeeRateCommand : IRequest<EmployeeRateDto>
 {
     public Guid EmployeeId { get; init; }
 
-    public decimal HourlyRate { get; init; }
+    public RateType RateType { get; init; } = RateType.Hourly;
 
-    /// <summary>Cost per hour on a Saturday or Sunday. Null means no premium.</summary>
+    /// <summary>Required when <see cref="RateType"/> is Hourly; ignored otherwise.</summary>
+    public decimal? HourlyRate { get; init; }
+
+    /// <summary>Cost per hour on a Saturday or Sunday. Null means no premium. Hourly only.</summary>
     public decimal? WeekendHourlyRate { get; init; }
 
-    /// <summary>Cost per hour on a listed public holiday. Null means no premium.</summary>
+    /// <summary>Cost per hour on a listed public holiday. Null means no premium. Hourly only.</summary>
     public decimal? HolidayHourlyRate { get; init; }
+
+    /// <summary>Required when <see cref="RateType"/> is Daily; ignored otherwise.</summary>
+    public decimal? DailyRate { get; init; }
 
     /// <summary>Defaults to today.</summary>
     public DateOnly? StartDate { get; init; }
@@ -41,10 +48,14 @@ public class SetEmployeeRateCommandValidator : AbstractValidator<SetEmployeeRate
     {
         RuleFor(x => x.EmployeeId).NotEmpty();
 
+        RuleFor(x => x.RateType).IsInEnum();
+
         RuleFor(x => x.HourlyRate)
+            .NotNull().WithMessage("An hourly rate is required.")
             .GreaterThan(0).WithMessage("An hour has to cost something.")
             .LessThanOrEqualTo(CostRules.MaxHourlyRate)
-            .WithMessage("That rate looks like a typo rather than a wage.");
+            .WithMessage("That rate looks like a typo rather than a wage.")
+            .When(x => x.RateType == RateType.Hourly);
 
         RuleFor(x => x.WeekendHourlyRate)
             .GreaterThan(0).LessThanOrEqualTo(CostRules.MaxHourlyRate)
@@ -55,6 +66,12 @@ public class SetEmployeeRateCommandValidator : AbstractValidator<SetEmployeeRate
             .GreaterThan(0).LessThanOrEqualTo(CostRules.MaxHourlyRate)
             .WithMessage("That rate looks like a typo rather than a wage.")
             .When(x => x.HolidayHourlyRate is not null);
+
+        RuleFor(x => x.DailyRate)
+            .NotNull().WithMessage("A daily rate is required.")
+            .GreaterThan(0).LessThanOrEqualTo(CostRules.MaxHourlyRate)
+            .WithMessage("That rate looks like a typo rather than a day's pay.")
+            .When(x => x.RateType == RateType.Daily);
 
         RuleFor(x => x.EndDate)
             .GreaterThanOrEqualTo(x => x.StartDate!.Value)
@@ -97,12 +114,15 @@ public class SetEmployeeRateCommandHandler
         }
 
         var startDate = request.StartDate ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var isHourly = request.RateType == RateType.Hourly;
         var rate = new EmployeeRate
         {
             EmployeeId = request.EmployeeId,
-            HourlyRate = request.HourlyRate,
-            WeekendHourlyRate = request.WeekendHourlyRate,
-            HolidayHourlyRate = request.HolidayHourlyRate,
+            RateType = request.RateType,
+            HourlyRate = isHourly ? request.HourlyRate : null,
+            WeekendHourlyRate = isHourly ? request.WeekendHourlyRate : null,
+            HolidayHourlyRate = isHourly ? request.HolidayHourlyRate : null,
+            DailyRate = isHourly ? null : request.DailyRate,
             StartDate = startDate,
             EndDate = request.EndDate,
             Note = request.Note?.Trim(),

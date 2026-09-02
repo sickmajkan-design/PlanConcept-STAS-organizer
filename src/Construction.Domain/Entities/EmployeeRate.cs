@@ -1,9 +1,11 @@
 using Construction.Domain.Common;
+using Construction.Domain.Enums;
 
 namespace Construction.Domain.Entities;
 
 /// <summary>
-/// What an hour of this employee's time costs, over a stretch of time.
+/// What this employee's time costs, over a stretch of time — per hour, or
+/// per day worked.
 /// </summary>
 /// <remarks>
 /// A rate is dated rather than a column on <see cref="Employee"/> because a
@@ -13,9 +15,15 @@ namespace Construction.Domain.Entities;
 /// changed — and the number would keep looking plausible, which is what makes
 /// it dangerous.
 ///
-/// It is the cost to the company per hour, not the wage: the useful number
-/// for pricing a job is what the hour costs once contributions are included.
-/// What goes into it is the office's decision; the model only stores it.
+/// It is the cost to the company, not the wage: the useful number for
+/// pricing a job is what the hour or day costs once contributions are
+/// included. What goes into it is the office's decision; the model only
+/// stores it.
+///
+/// Two shapes share one row rather than two tables, because everything else
+/// about a rate — who it belongs to, the dates it covers, the office's note,
+/// who set it — is identical either way, and <see cref="RateType"/> alone
+/// says which of <see cref="HourlyRate"/>/<see cref="DailyRate"/> applies.
 /// </remarks>
 public class EmployeeRate : BaseEntity, IAuditable
 {
@@ -23,20 +31,35 @@ public class EmployeeRate : BaseEntity, IAuditable
 
     public Employee Employee { get; set; } = null!;
 
-    /// <summary>Cost per hour, in the system's single currency.</summary>
-    public decimal HourlyRate { get; set; }
+    /// <summary>Which of <see cref="HourlyRate"/>/<see cref="DailyRate"/> is in play.</summary>
+    public RateType RateType { get; set; } = RateType.Hourly;
+
+    /// <summary>
+    /// Cost per hour, in the system's single currency. Set when
+    /// <see cref="RateType"/> is <see cref="Enums.RateType.Hourly"/>; null
+    /// otherwise.
+    /// </summary>
+    public decimal? HourlyRate { get; set; }
 
     /// <summary>
     /// Cost per hour on a Saturday or Sunday. Null means no premium — a
-    /// weekend hour costs the same as any other.
+    /// weekend hour costs the same as any other. Only meaningful alongside
+    /// <see cref="HourlyRate"/> — a daily rate has no weekend variant.
     /// </summary>
     public decimal? WeekendHourlyRate { get; set; }
 
     /// <summary>
     /// Cost per hour on a day listed in <see cref="PublicHoliday"/>. Null
-    /// means no premium.
+    /// means no premium. Only meaningful alongside <see cref="HourlyRate"/>.
     /// </summary>
     public decimal? HolidayHourlyRate { get; set; }
+
+    /// <summary>
+    /// One flat amount per day worked. Set when <see cref="RateType"/> is
+    /// <see cref="Enums.RateType.Daily"/>; null otherwise. The usual shape
+    /// for a subcontractor's rate.
+    /// </summary>
+    public decimal? DailyRate { get; set; }
 
     public DateOnly StartDate { get; set; }
 

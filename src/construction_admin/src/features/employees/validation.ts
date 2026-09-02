@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { employeeStatuses } from '../../api/types';
+import { employeeStatuses, employeeTypes } from '../../api/types';
 
 /** Mirrors the API's EmployeeCommandBaseValidator so the form catches errors early. */
 export const employeeFormSchema = z
@@ -23,6 +23,7 @@ export const employeeFormSchema = z
     employmentDate: z.string().min(1, 'Employment date is required.'),
     position: z.string().trim().min(1, 'Position is required.').max(128),
     status: z.enum(employeeStatuses),
+    type: z.enum(employeeTypes),
   })
   .refine(
     (values) => {

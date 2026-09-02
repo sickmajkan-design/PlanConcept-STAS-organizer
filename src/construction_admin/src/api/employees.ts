@@ -6,11 +6,13 @@ import type {
   EmployeeDetail,
   EmployeeInput,
   EmployeeStatus,
+  EmployeeType,
   ListQuery,
 } from './types';
 
 export interface EmployeeListQuery extends ListQuery {
   status?: EmployeeStatus | '';
+  type?: EmployeeType | '';
   projectId?: string;
 }
 

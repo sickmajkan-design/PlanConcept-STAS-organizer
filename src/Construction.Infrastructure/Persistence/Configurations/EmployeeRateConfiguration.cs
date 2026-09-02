@@ -1,4 +1,5 @@
 using Construction.Domain.Entities;
+using Construction.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -20,8 +21,12 @@ public class EmployeeRateConfiguration : IEntityTypeConfiguration<EmployeeRate>
         builder.Property(r => r.HourlyRate).HasPrecision(18, 2);
         builder.Property(r => r.WeekendHourlyRate).HasPrecision(18, 2);
         builder.Property(r => r.HolidayHourlyRate).HasPrecision(18, 2);
+        builder.Property(r => r.DailyRate).HasPrecision(18, 2);
 
         builder.Property(r => r.Note).HasMaxLength(500);
+
+        builder.Property(r => r.RateType)
+            .HasDefaultValue(RateType.Hourly);
 
         builder.HasOne(r => r.Employee)
             .WithMany(e => e.Rates)
@@ -39,10 +44,11 @@ public class EmployeeRateConfiguration : IEntityTypeConfiguration<EmployeeRate>
                 "ck_employee_rates_ends_after_start",
                 "\"EndDate\" IS NULL OR \"EndDate\" >= \"StartDate\"");
 
-            // A free hour is a data-entry slip, and it costs a project money
-            // silently rather than loudly.
+            // A free hour (or day) is a data-entry slip, and it costs a
+            // project money silently rather than loudly.
             t.HasCheckConstraint(
-                "ck_employee_rates_positive", "\"HourlyRate\" > 0");
+                "ck_employee_rates_positive",
+                "\"HourlyRate\" IS NULL OR \"HourlyRate\" > 0");
 
             t.HasCheckConstraint(
                 "ck_employee_rates_weekend_positive",
@@ -51,6 +57,20 @@ public class EmployeeRateConfiguration : IEntityTypeConfiguration<EmployeeRate>
             t.HasCheckConstraint(
                 "ck_employee_rates_holiday_positive",
                 "\"HolidayHourlyRate\" IS NULL OR \"HolidayHourlyRate\" > 0");
+
+            t.HasCheckConstraint(
+                "ck_employee_rates_daily_positive",
+                "\"DailyRate\" IS NULL OR \"DailyRate\" > 0");
+
+            // RateType picks which shape this row is — 1 (Hourly) carries an
+            // HourlyRate and no DailyRate, 2 (Daily) the reverse. Written as
+            // the raw enum values rather than a name because a check
+            // constraint cannot reference the C# enum; the application layer
+            // is what keeps these two things meaning the same thing.
+            t.HasCheckConstraint(
+                "ck_employee_rates_type_matches_fields",
+                "(\"RateType\" = 1 AND \"HourlyRate\" IS NOT NULL AND \"DailyRate\" IS NULL) OR "
+                    + "(\"RateType\" = 2 AND \"DailyRate\" IS NOT NULL AND \"HourlyRate\" IS NULL)");
         });
 
         // "What did this person cost per hour on day D" — the join every cost

@@ -19,7 +19,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
 import type { EmployeeInput } from '../../api/types';
-import { employeeStatuses } from '../../api/types';
+import { employeeStatuses, employeeTypes } from '../../api/types';
 import { ErrorState } from '../../components/ErrorState';
 import { useCreateEmployee, useEmployeeQuery, useUpdateEmployee } from '../../features/employees/useEmployees';
 import { employeeFormSchema, type EmployeeFormValues } from '../../features/employees/validation';
@@ -38,6 +38,7 @@ const emptyValues: EmployeeFormValues = {
   employmentDate: '',
   position: '',
   status: 'Active',
+  type: 'Employee',
 };
 
 export function EmployeeFormPage() {
@@ -75,6 +76,7 @@ export function EmployeeFormPage() {
         employmentDate: existing.employmentDate.slice(0, 10),
         position: existing.position,
         status: existing.status,
+        type: existing.type,
       });
     }
   }, [existing, reset]);
@@ -99,6 +101,7 @@ export function EmployeeFormPage() {
       employmentDate: values.employmentDate,
       position: values.position.trim(),
       status: values.status,
+      type: values.type,
     };
 
     try {
@@ -290,6 +293,24 @@ export function EmployeeFormPage() {
                         {employeeStatuses.map((value) => (
                           <MenuItem key={value} value={value}>
                             {enumLabel('employeeStatus', value)}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  )}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Controller
+                  name="type"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControl fullWidth>
+                      <InputLabel id="employee-type-label">{t('employees.type')}</InputLabel>
+                      <Select {...field} labelId="employee-type-label" label={t('employees.type')}>
+                        {employeeTypes.map((value) => (
+                          <MenuItem key={value} value={value}>
+                            {enumLabel('employeeType', value)}
                           </MenuItem>
                         ))}
                       </Select>

@@ -11,6 +11,7 @@ import {
   Button,
   Card,
   CardContent,
+  Chip,
   Divider,
   FormControl,
   Grid,
@@ -33,6 +34,7 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
 import { AttachmentList } from '../../components/AttachmentList';
 import { StatusChip } from '../../components/StatusChip';
+import { useEnumLabel } from '../../i18n/enumLabels';
 import {
   useAssignEmployeeToProject,
   useDeleteEmployee,
@@ -51,6 +53,7 @@ export function EmployeeDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const t = useT();
+  const enumLabel = useEnumLabel();
   const { locale } = useI18n();
   const { user } = useAuth();
 
@@ -113,6 +116,14 @@ export function EmployeeDetailPage() {
               <Typography color="text.secondary">{employee.position}</Typography>
               <Stack direction="row" spacing={1} sx={{ mt: 1.5, alignItems: 'center' }}>
                 <StatusChip status={employee.status} kind="employeeStatus" />
+                {employee.type === 'Subcontractor' && (
+                  <Chip
+                    size="small"
+                    color="warning"
+                    variant="outlined"
+                    label={enumLabel('employeeType', 'Subcontractor')}
+                  />
+                )}
                 <Typography variant="body2" color="text.secondary">
                   · {employee.employeeNumber}
                 </Typography>

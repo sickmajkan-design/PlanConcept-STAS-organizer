@@ -52,6 +52,7 @@ public class UpdateEmployeeCommandHandler : IRequestHandler<UpdateEmployeeComman
         employee.EmploymentDate = request.EmploymentDate;
         employee.Position = request.Position.Trim();
         employee.Status = request.Status;
+        employee.Type = request.Type;
 
         await _context.SaveChangesAsync(cancellationToken);
 

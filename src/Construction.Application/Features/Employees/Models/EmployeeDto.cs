@@ -29,6 +29,9 @@ public class EmployeeDto
 
     public string Status { get; init; } = null!;
 
+    /// <summary>"Employee" or "Subcontractor" — see <c>EmployeeType</c>.</summary>
+    public string Type { get; init; } = null!;
+
     /// <summary>
     /// Every project this employee is currently posted to — open-ended
     /// assignments only, same "EndDate == null" rule as
@@ -86,6 +89,7 @@ public static class EmployeeMapping
             EmploymentDate = employee.EmploymentDate,
             Position = employee.Position,
             Status = employee.Status.ToString(),
+            Type = employee.Type.ToString(),
             CurrentProjectNames = employee.ProjectAssignments
                 .Where(assignment => assignment.EndDate == null)
                 .Select(assignment => assignment.Project.Name)

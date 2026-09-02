@@ -149,18 +149,20 @@ public class GetProjectCostsQueryHandler
     /// <summary>
     /// Approved hours per site, priced by the rate in force on the day —
     /// weekend and public-holiday hours at that rate's own premium, when it
-    /// sets one.
+    /// sets one; a subcontractor on a daily rate instead earns one flat
+    /// amount per day worked, whatever the hours.
     /// </summary>
     /// <remarks>
     /// The covering rate is found per entry with a correlated subquery rather
     /// than loading every rate and matching in memory, so the work stays in
-    /// the database where the index is; the subquery now returns all three
-    /// prices at once instead of just the base hourly rate.
-    /// Which of the three applies is decided afterwards, in memory, because
-    /// that decision needs the holiday calendar and a plain <c>DayOfWeek</c>
-    /// check — neither translates cleanly into the same query. An entry no
-    /// rate covers still contributes its minutes to <c>UnpricedMinutes</c> and
-    /// nothing to the cost — reported, not silently free.
+    /// the database where the index is; the subquery returns every price the
+    /// rate might carry (hourly, its weekend/holiday premiums, daily) at
+    /// once. Which applies is decided afterwards, in memory, because that
+    /// decision needs the holiday calendar, a plain <c>DayOfWeek</c> check,
+    /// and — for daily rates — grouping entries by employee and day, none of
+    /// which translate cleanly into the same query. An entry no rate covers
+    /// still contributes its minutes to <c>UnpricedMinutes</c> and nothing to
+    /// the cost — reported, not silently free.
     ///
     /// The day is taken from the shift's start in UTC, exactly as before this
     /// premium existed. A shift beginning after midnight local time therefore
@@ -187,6 +189,7 @@ public class GetProjectCostsQueryHandler
                 && DateOnly.FromDateTime(t.StartedAt) <= request.To)
             .Select(t => new
             {
+                t.EmployeeId,
                 ProjectId = t.ProjectId!.Value,
                 Day = DateOnly.FromDateTime(t.StartedAt),
                 // Npgsql turns the subtraction into an interval and
@@ -200,35 +203,61 @@ public class GetProjectCostsQueryHandler
                         && (r.EndDate == null || r.EndDate >= DateOnly.FromDateTime(t.StartedAt)))
                     .Select(r => new
                     {
+                        r.RateType,
                         r.HourlyRate,
                         r.WeekendHourlyRate,
-                        r.HolidayHourlyRate
+                        r.HolidayHourlyRate,
+                        r.DailyRate
                     })
                     .FirstOrDefault()
             })
             .ToListAsync(cancellationToken);
 
-        var withEffectiveRate = priced.Select(t => new
-        {
-            t.ProjectId,
-            t.Minutes,
-            EffectiveRate = t.Rate is null
-                ? (decimal?)null
-                : holidays.Contains(t.Day)
-                    ? t.Rate.HolidayHourlyRate ?? t.Rate.HourlyRate
-                : t.Day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday
-                    ? t.Rate.WeekendHourlyRate ?? t.Rate.HourlyRate
-                : t.Rate.HourlyRate
-        });
+        // Hourly-priced entries (and any with no covering rate at all) are
+        // priced per entry, as before. A daily-priced entry — the usual shape
+        // for a subcontractor — is priced once per employee per calendar day
+        // worked, regardless of hours or entry count that day: that is what
+        // "a day's pay" means. A day split across more than one site (rare,
+        // but not impossible for a subcontractor covering two jobs) puts the
+        // whole day's pay on whichever site they logged the most time at,
+        // rather than splitting one flat amount nobody agreed to split.
+        var hourly = priced
+            .Where(t => t.Rate is null || t.Rate.RateType == RateType.Hourly)
+            .Select(t => new
+            {
+                t.ProjectId,
+                t.Minutes,
+                Cost = t.Rate is null
+                    ? 0m
+                    : (holidays.Contains(t.Day)
+                        ? t.Rate.HolidayHourlyRate ?? t.Rate.HourlyRate
+                    : t.Day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday
+                        ? t.Rate.WeekendHourlyRate ?? t.Rate.HourlyRate
+                    : t.Rate.HourlyRate) is { } rate
+                        ? rate * t.Minutes / 60m
+                        : 0m,
+                Unpriced = t.Rate is null ? t.Minutes : 0
+            });
 
-        return withEffectiveRate
+        var daily = priced
+            .Where(t => t.Rate is not null && t.Rate.RateType == RateType.Daily)
+            .GroupBy(t => new { t.EmployeeId, t.Day })
+            .Select(g => new
+            {
+                ProjectId = g.OrderByDescending(x => x.Minutes).First().ProjectId,
+                Minutes = g.Sum(x => x.Minutes),
+                Cost = g.First().Rate!.DailyRate ?? 0m,
+                Unpriced = 0
+            });
+
+        return hourly.Concat(daily)
             .GroupBy(t => t.ProjectId)
             .ToDictionary(
                 g => g.Key,
                 g => (
                     Minutes: g.Sum(t => t.Minutes),
-                    Cost: g.Sum(t => t.EffectiveRate is { } rate ? rate * t.Minutes / 60m : 0m),
-                    UnpricedMinutes: g.Where(t => t.EffectiveRate is null).Sum(t => t.Minutes)));
+                    Cost: g.Sum(t => t.Cost),
+                    UnpricedMinutes: g.Sum(t => t.Unpriced)));
     }
 
     /// <summary>

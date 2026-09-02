@@ -25,6 +25,9 @@ public class Employee : BaseEntity, ISoftDeletable, IAuditable
 
     public EmployeeStatus Status { get; set; } = EmployeeStatus.Active;
 
+    /// <summary>Direct employee or subcontractor — see <see cref="EmployeeType"/>.</summary>
+    public EmployeeType Type { get; set; } = EmployeeType.Employee;
+
     /// <summary>
     /// Annual leave days granted per calendar year. Compared against approved
     /// <see cref="AbsenceType.AnnualLeave"/> days taken to compute a balance.

@@ -15,6 +15,8 @@ import { useT } from './useI18n';
 export type EnumKind =
   | 'role'
   | 'employeeStatus'
+  | 'employeeType'
+  | 'rateType'
   | 'projectStatus'
   | 'vehicleStatus'
   | 'toolStatus'

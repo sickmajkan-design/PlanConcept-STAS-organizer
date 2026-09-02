@@ -1,4 +1,5 @@
 using Construction.Domain.Entities;
+using Construction.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -48,9 +49,13 @@ public class EmployeeConfiguration : IEntityTypeConfiguration<Employee>
         builder.Property(e => e.AnnualLeaveDaysAllowance)
             .HasDefaultValue(20);
 
+        builder.Property(e => e.Type)
+            .HasDefaultValue(EmployeeType.Employee);
+
         builder.Ignore(e => e.FullName);
 
         builder.HasIndex(e => e.LastName);
         builder.HasIndex(e => e.Status);
+        builder.HasIndex(e => e.Type);
     }
 }

@@ -2,6 +2,7 @@ using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Costs.Models;
 using Construction.Domain.Entities;
+using Construction.Domain.Enums;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -24,13 +25,19 @@ public record UpdateEmployeeRateCommand : IRequest<EmployeeRateDto>
 {
     public Guid Id { get; init; }
 
-    public decimal HourlyRate { get; init; }
+    public RateType RateType { get; init; } = RateType.Hourly;
 
-    /// <summary>Cost per hour on a Saturday or Sunday. Null means no premium.</summary>
+    /// <summary>Required when <see cref="RateType"/> is Hourly; ignored otherwise.</summary>
+    public decimal? HourlyRate { get; init; }
+
+    /// <summary>Cost per hour on a Saturday or Sunday. Null means no premium. Hourly only.</summary>
     public decimal? WeekendHourlyRate { get; init; }
 
-    /// <summary>Cost per hour on a listed public holiday. Null means no premium.</summary>
+    /// <summary>Cost per hour on a listed public holiday. Null means no premium. Hourly only.</summary>
     public decimal? HolidayHourlyRate { get; init; }
+
+    /// <summary>Required when <see cref="RateType"/> is Daily; ignored otherwise.</summary>
+    public decimal? DailyRate { get; init; }
 
     public DateOnly StartDate { get; init; }
 
@@ -45,10 +52,14 @@ public class UpdateEmployeeRateCommandValidator : AbstractValidator<UpdateEmploy
     {
         RuleFor(x => x.Id).NotEmpty();
 
+        RuleFor(x => x.RateType).IsInEnum();
+
         RuleFor(x => x.HourlyRate)
+            .NotNull().WithMessage("An hourly rate is required.")
             .GreaterThan(0).WithMessage("An hour has to cost something.")
             .LessThanOrEqualTo(CostRules.MaxHourlyRate)
-            .WithMessage("That rate looks like a typo rather than a wage.");
+            .WithMessage("That rate looks like a typo rather than a wage.")
+            .When(x => x.RateType == RateType.Hourly);
 
         RuleFor(x => x.WeekendHourlyRate)
             .GreaterThan(0).LessThanOrEqualTo(CostRules.MaxHourlyRate)
@@ -59,6 +70,12 @@ public class UpdateEmployeeRateCommandValidator : AbstractValidator<UpdateEmploy
             .GreaterThan(0).LessThanOrEqualTo(CostRules.MaxHourlyRate)
             .WithMessage("That rate looks like a typo rather than a wage.")
             .When(x => x.HolidayHourlyRate is not null);
+
+        RuleFor(x => x.DailyRate)
+            .NotNull().WithMessage("A daily rate is required.")
+            .GreaterThan(0).LessThanOrEqualTo(CostRules.MaxHourlyRate)
+            .WithMessage("That rate looks like a typo rather than a day's pay.")
+            .When(x => x.RateType == RateType.Daily);
 
         RuleFor(x => x.EndDate)
             .GreaterThanOrEqualTo(x => x.StartDate)
@@ -112,9 +129,13 @@ public class UpdateEmployeeRateCommandHandler
             throw new ConflictException("Another rate already covers those dates.");
         }
 
-        rate.HourlyRate = request.HourlyRate;
-        rate.WeekendHourlyRate = request.WeekendHourlyRate;
-        rate.HolidayHourlyRate = request.HolidayHourlyRate;
+        var isHourly = request.RateType == RateType.Hourly;
+
+        rate.RateType = request.RateType;
+        rate.HourlyRate = isHourly ? request.HourlyRate : null;
+        rate.WeekendHourlyRate = isHourly ? request.WeekendHourlyRate : null;
+        rate.HolidayHourlyRate = isHourly ? request.HolidayHourlyRate : null;
+        rate.DailyRate = isHourly ? null : request.DailyRate;
         rate.StartDate = request.StartDate;
         rate.EndDate = request.EndDate;
         rate.Note = request.Note?.Trim();

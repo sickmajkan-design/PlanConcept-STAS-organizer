@@ -14,7 +14,7 @@ public record GetEmployeesQuery : ISortablePagedQuery, IRequest<PagedList<Employ
 {
     public static readonly string[] AllowedSortFields =
     [
-        "employeeNumber", "firstName", "lastName", "fullName", "position", "status", "employmentDate", "phone", "createdAt"
+        "employeeNumber", "firstName", "lastName", "fullName", "position", "status", "type", "employmentDate", "phone", "createdAt"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -25,6 +25,8 @@ public record GetEmployeesQuery : ISortablePagedQuery, IRequest<PagedList<Employ
     public string? Search { get; init; }
 
     public EmployeeStatus? Status { get; init; }
+
+    public EmployeeType? Type { get; init; }
 
     public string? Position { get; init; }
 
@@ -75,6 +77,11 @@ public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, Paged
             query = query.Where(e => e.Status == status);
         }
 
+        if (request.Type is { } type)
+        {
+            query = query.Where(e => e.Type == type);
+        }
+
         if (!string.IsNullOrWhiteSpace(request.Position))
         {
             var positionPattern = SearchPattern.Contains(request.Position);
@@ -117,6 +124,8 @@ public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, Paged
             ("position", true) => query.OrderByDescending(e => e.Position),
             ("status", false) => query.OrderBy(e => e.Status),
             ("status", true) => query.OrderByDescending(e => e.Status),
+            ("type", false) => query.OrderBy(e => e.Type),
+            ("type", true) => query.OrderByDescending(e => e.Type),
             ("employmentdate", false) => query.OrderBy(e => e.EmploymentDate),
             ("employmentdate", true) => query.OrderByDescending(e => e.EmploymentDate),
             ("phone", false) => query.OrderBy(e => e.Phone == null).ThenBy(e => e.Phone),
