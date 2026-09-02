@@ -253,6 +253,11 @@ export function ToolDetailPage() {
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700 }}>
                 Project
               </Typography>
+              {tool.assignedEmployeeId && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                  {t('tools.followsEmployeeHint', { name: tool.assignedEmployeeName ?? '' })}
+                </Typography>
+              )}
 
               {tool.assignedProjectId ? (
                 <Stack

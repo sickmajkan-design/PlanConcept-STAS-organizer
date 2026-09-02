@@ -255,6 +255,11 @@ export function VehicleDetailPage() {
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700 }}>
                 Project
               </Typography>
+              {vehicle.assignedEmployeeId && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                  {t('vehicles.followsEmployeeHint', { name: vehicle.assignedEmployeeName ?? '' })}
+                </Typography>
+              )}
 
               {vehicle.assignedProjectId ? (
                 <Stack

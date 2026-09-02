@@ -121,7 +121,10 @@ export function VehiclesListPage() {
         headerName: t('vehicles.assignedTo'),
         flex: 1,
         minWidth: 160,
-        valueGetter: (v) => v || '—',
+        // Falls back to the project the same way ToolsListPage's "held by"
+        // column does — a vehicle placed directly on a project with nobody
+        // holding it otherwise showed a bare dash.
+        valueGetter: (_value, row) => row.assignedEmployeeName || row.assignedProjectName || '—',
       },
       {
         field: 'actions',

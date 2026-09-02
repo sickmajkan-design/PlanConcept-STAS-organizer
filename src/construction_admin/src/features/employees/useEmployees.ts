@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { employeesApi, type EmployeeListQuery } from '../../api/employees';
 import type { EmployeeInput } from '../../api/types';
 import { projectKeys } from '../projects/useProjects';
+import { toolKeys } from '../tools/useTools';
+import { vehicleKeys } from '../vehicles/useVehicles';
 import {
   createResourceKeys,
   useResourceDetail,
@@ -11,6 +13,18 @@ import {
 } from '../resourceQueries';
 
 export const employeeKeys = createResourceKeys<EmployeeListQuery>('employees');
+
+// Written as the literal `useAssignmentBoard.ts` uses for `assignmentBoardKeys.all`
+// rather than importing it — that file already imports `employeeKeys` from here,
+// and importing back would make the two modules circular.
+const assignmentBoardKey = ['assignmentBoard'] as const;
+
+// Assigning or removing an employee moves their held tools/vehicles onto the
+// new (or no) project as part of the same backend operation — see
+// `EmployeeEquipmentSync` — so Tools/Vehicles and the Assignment Board would
+// otherwise show a stale project for that equipment until something else
+// refreshed them.
+const assignmentCaches = [toolKeys.all, vehicleKeys.all, assignmentBoardKey];
 
 /** The largest page the API will serve, used by the picker query below. */
 const PICKER_QUERY: EmployeeListQuery = {
@@ -68,7 +82,7 @@ export function useAssignEmployeeToProject(employeeId: string) {
   return useResourceMutation(
     (projectId: string, key: string) =>
       employeesApi.assignToProject(employeeId, projectId, key),
-    [employeeKeys.detail(employeeId), projectKeys.all],
+    [employeeKeys.detail(employeeId), projectKeys.all, ...assignmentCaches],
   );
 }
 
@@ -76,7 +90,7 @@ export function useRemoveEmployeeFromProject(employeeId: string) {
   return useResourceMutation(
     (projectId: string) =>
       employeesApi.removeFromProject(employeeId, projectId),
-    [employeeKeys.detail(employeeId), projectKeys.all],
+    [employeeKeys.detail(employeeId), projectKeys.all, ...assignmentCaches],
   );
 }
 
@@ -86,13 +100,13 @@ export function useAssignProjectEmployee(projectId: string) {
   return useResourceMutation(
     (employeeId: string, key: string) =>
       employeesApi.assignToProject(employeeId, projectId, key),
-    [projectKeys.detail(projectId), employeeKeys.all],
+    [projectKeys.detail(projectId), employeeKeys.all, ...assignmentCaches],
   );
 }
 
 export function useRemoveProjectEmployee(projectId: string) {
   return useResourceMutation(
     (employeeId: string) => employeesApi.removeFromProject(employeeId, projectId),
-    [projectKeys.detail(projectId), employeeKeys.all],
+    [projectKeys.detail(projectId), employeeKeys.all, ...assignmentCaches],
   );
 }

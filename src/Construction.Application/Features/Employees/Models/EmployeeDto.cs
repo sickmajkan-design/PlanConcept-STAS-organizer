@@ -29,6 +29,16 @@ public class EmployeeDto
 
     public string Status { get; init; } = null!;
 
+    /// <summary>
+    /// Every project this employee is currently posted to — open-ended
+    /// assignments only, same "EndDate == null" rule as
+    /// <c>EmployeeDetailDto.Projects</c>, so the list and the detail page
+    /// never disagree about whether someone still counts as on a site.
+    /// Empty means unassigned, not "still loading" — the admin panel colours
+    /// the two differently.
+    /// </summary>
+    public IReadOnlyCollection<string> CurrentProjectNames { get; init; } = Array.Empty<string>();
+
     public DateTime CreatedAt { get; init; }
 
     public DateTime? UpdatedAt { get; init; }
@@ -76,6 +86,10 @@ public static class EmployeeMapping
             EmploymentDate = employee.EmploymentDate,
             Position = employee.Position,
             Status = employee.Status.ToString(),
+            CurrentProjectNames = employee.ProjectAssignments
+                .Where(assignment => assignment.EndDate == null)
+                .Select(assignment => assignment.Project.Name)
+                .ToList(),
             CreatedAt = employee.CreatedAt,
             UpdatedAt = employee.UpdatedAt,
         };

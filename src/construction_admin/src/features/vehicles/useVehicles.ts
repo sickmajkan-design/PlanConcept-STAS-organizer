@@ -11,6 +11,17 @@ import {
 
 export const vehicleKeys = createResourceKeys<VehicleListQuery>('vehicles');
 
+// Written as literals rather than importing `employeeKeys`/`assignmentBoardKeys`
+// from their own feature modules — those modules import `vehicleKeys` from
+// here, and importing back would make them circular.
+const employeeKey = ['employees'] as const;
+const assignmentBoardKey = ['assignmentBoard'] as const;
+
+// Assigning or unassigning a vehicle's employee changes what that employee's
+// card shows on the Assignment Board (and, once a project owns the vehicle
+// via EmployeeEquipmentSync, what their project crew list shows too).
+const employeeAssignmentCaches = [employeeKey, assignmentBoardKey];
+
 /** The largest page the API will serve, used by the picker query below. */
 const PICKER_QUERY: VehicleListQuery = {
   pageNumber: 1,
@@ -58,7 +69,7 @@ export function useDeleteVehicle() {
 export function useAssignVehicle(id: string) {
   return useResourceMutation(
     (employeeId: string, key: string) => vehiclesApi.assign(id, employeeId, key),
-    [vehicleKeys.all],
+    [vehicleKeys.all, ...employeeAssignmentCaches],
   );
 }
 
@@ -67,19 +78,21 @@ export function useAssignVehicle(id: string) {
 export function useUnassignVehicle(id: string) {
   return useResourceMutation<void, Vehicle>((_, key) => vehiclesApi.unassign(id, key), [
     vehicleKeys.all,
+    ...employeeAssignmentCaches,
   ]);
 }
 
 export function useAssignVehicleProject(id: string) {
   return useResourceMutation(
     (projectId: string, key: string) => vehiclesApi.assignProject(id, projectId, key),
-    [vehicleKeys.all],
+    [vehicleKeys.all, ...employeeAssignmentCaches],
   );
 }
 
 export function useUnassignVehicleProject(id: string) {
   return useResourceMutation<void, Vehicle>((_, key) => vehiclesApi.unassignProject(id, key), [
     vehicleKeys.all,
+    ...employeeAssignmentCaches,
   ]);
 }
 
@@ -88,13 +101,13 @@ export function useUnassignVehicleProject(id: string) {
 export function useAssignProjectVehicle(projectId: string) {
   return useResourceMutation(
     (vehicleId: string, key: string) => vehiclesApi.assignProject(vehicleId, projectId, key),
-    [vehicleKeys.all],
+    [vehicleKeys.all, ...employeeAssignmentCaches],
   );
 }
 
 export function useUnassignProjectVehicle() {
   return useResourceMutation(
     (vehicleId: string, key: string) => vehiclesApi.unassignProject(vehicleId, key),
-    [vehicleKeys.all],
+    [vehicleKeys.all, ...employeeAssignmentCaches],
   );
 }

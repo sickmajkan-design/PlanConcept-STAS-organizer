@@ -7,6 +7,7 @@ import {
   LocalShippingOutlined,
 } from '@mui/icons-material';
 import {
+  Alert,
   Avatar,
   Box,
   Button,
@@ -106,6 +107,10 @@ export function AssignmentBoardPage() {
   const [employeeSort, setEmployeeSort] = useState<EmployeeSort>('name');
   const [activeEmployee, setActiveEmployee] = useState<AssignmentBoardEmployee | null>(null);
   const [conflict, setConflict] = useState<string | null>(null);
+  // A drop or a remove used to just resolve silently once the board
+  // refetched — nothing told the person who did it that it actually
+  // happened, which is exactly the "did that removal work?" complaint.
+  const [feedback, setFeedback] = useState<string | null>(null);
   const [pendingDrop, setPendingDrop] = useState<PendingDrop | null>(null);
   const [expandedProjectId, setExpandedProjectId] = useState<string | null>(null);
   const [siteSortBy, setSiteSortBy] = useState<SiteSortField>('name');
@@ -307,7 +312,7 @@ export function AssignmentBoardPage() {
                   </Typography>
                 )}
                 {filteredEmployees.map((employee) => (
-                  <EmployeeCard key={employee.id} employee={employee} />
+                  <EmployeeCard key={employee.id} employee={employee} projectsById={projectsById} />
                 ))}
               </Stack>
             </Grid>
@@ -384,12 +389,22 @@ export function AssignmentBoardPage() {
                               (posting) => posting.projectId === project.id,
                             )!
                           }
-                          onRemove={(employeeId) =>
+                          onRemove={(employeeId) => {
+                            const employeeName = employeesById.get(employeeId)?.fullName ?? '';
                             remove.mutate(
                               { employeeId, projectId: project.id },
-                              { onError: (err) => setConflict(toApiError(err).message) },
-                            )
-                          }
+                              {
+                                onSuccess: () =>
+                                  setFeedback(
+                                    t('assignmentBoard.removedFeedback', {
+                                      employee: employeeName,
+                                      project: project.name,
+                                    }),
+                                  ),
+                                onError: (err) => setConflict(toApiError(err).message),
+                              },
+                            );
+                          }}
                         />
                       ))}
                     </TableBody>
@@ -400,7 +415,9 @@ export function AssignmentBoardPage() {
           </Grid>
 
           <DragOverlay>
-            {activeEmployee && <EmployeeCard employee={activeEmployee} overlay />}
+            {activeEmployee && (
+              <EmployeeCard employee={activeEmployee} projectsById={projectsById} overlay />
+            )}
           </DragOverlay>
         </DndContext>
       )}
@@ -417,6 +434,12 @@ export function AssignmentBoardPage() {
             {
               onSuccess: () => {
                 setPendingDrop(null);
+                setFeedback(
+                  t('assignmentBoard.assignedFeedback', {
+                    employee: pendingDrop.employeeName,
+                    project: pendingDrop.projectName,
+                  }),
+                );
 
                 // A move, not an addition — drop the old site now that the
                 // new posting is in. Left alone on error: an employee
@@ -445,6 +468,16 @@ export function AssignmentBoardPage() {
         onClose={() => setConflict(null)}
         message={conflict}
       />
+      <Snackbar open={!!feedback} autoHideDuration={4000} onClose={() => setFeedback(null)}>
+        <Alert
+          onClose={() => setFeedback(null)}
+          severity="success"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {feedback}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
@@ -545,9 +578,11 @@ function EquipmentChips({ items, icon }: { items: AssignmentBoardEquipment[]; ic
 
 function EmployeeCard({
   employee,
+  projectsById,
   overlay = false,
 }: {
   employee: AssignmentBoardEmployee;
+  projectsById: Map<string, AssignmentBoardProject>;
   overlay?: boolean;
 }) {
   const t = useT();
@@ -580,12 +615,22 @@ function EmployeeCard({
             {employee.position}
           </Typography>
         </Box>
-        {employee.postings.length > 0 && (
-          <Chip
-            size="small"
-            label={t('assignmentBoard.siteCount', { count: employee.postings.length })}
-            variant="outlined"
-          />
+      </Stack>
+      {/* Colour is the point here: at a glance, green means "on a site right
+          now" and grey means nobody has to go looking for where they went —
+          a bare count made you open every site row to find out. */}
+      <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.75 }}>
+        {employee.postings.length === 0 ? (
+          <Chip size="small" variant="outlined" label={t('assignmentBoard.unassigned')} />
+        ) : (
+          employee.postings.map((posting) => (
+            <Chip
+              key={posting.projectId}
+              size="small"
+              color="success"
+              label={projectsById.get(posting.projectId)?.name ?? t('assignmentBoard.unknownSite')}
+            />
+          ))
         )}
       </Stack>
       <EquipmentChips items={employee.assignedTools} icon={<HandymanOutlined />} />

@@ -1,6 +1,7 @@
 import { AddOutlined, DeleteOutlined, EditOutlined, VisibilityOutlined } from '@mui/icons-material';
 import {
   Box,
+  Chip,
   FormControl,
   IconButton,
   InputLabel,
@@ -60,6 +61,29 @@ export function EmployeesListPage() {
         headerName: t('employees.status'),
         width: 130,
         renderCell: (params) => <StatusChip status={params.value as string} kind="employeeStatus" />,
+      },
+      {
+        // Same colour convention as the Assignment Board's employee cards:
+        // green for "currently on a site", grey for "nobody has to go
+        // looking for where they are" — a supervisor scanning this list for
+        // who's free no longer has to open the board to find out.
+        field: 'currentProjectNames',
+        headerName: t('employees.currentSite'),
+        flex: 1,
+        minWidth: 160,
+        sortable: false,
+        renderCell: (params) => {
+          const sites = params.row.currentProjectNames;
+          return sites.length === 0 ? (
+            <Chip size="small" variant="outlined" label={t('employees.unassigned')} />
+          ) : (
+            <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5, py: 0.5 }}>
+              {sites.map((name) => (
+                <Chip key={name} size="small" color="success" label={name} />
+              ))}
+            </Stack>
+          );
+        },
       },
       {
         field: 'employmentDate',

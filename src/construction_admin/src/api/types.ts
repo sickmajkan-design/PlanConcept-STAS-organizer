@@ -69,6 +69,8 @@ export interface Employee {
   employmentDate: string;
   position: string;
   status: EmployeeStatus;
+  /** Every project this employee is currently posted to. Empty means unassigned. */
+  currentProjectNames: string[];
   createdAt: string;
   updatedAt: string | null;
 }
