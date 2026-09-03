@@ -14,8 +14,14 @@ export const paths = {
   projects: '/projects',
   projectDetail: (id: string) => `/projects/${id}`,
   projectNew: '/projects/new',
+  /** Pre-selects Sub-project mode with this Main project as the parent. */
+  projectNewSub: (parentProjectId: string) => `/projects/new?parentProjectId=${parentProjectId}`,
   projectEdit: (id: string) => `/projects/${id}/edit`,
   annualRealization: '/projects/annual-realization',
+
+  customers: '/customers',
+  customerNew: '/customers/new',
+  customerEdit: (id: string) => `/customers/${id}/edit`,
 
   vehicles: '/vehicles',
   vehicleDetail: (id: string) => `/vehicles/${id}`,

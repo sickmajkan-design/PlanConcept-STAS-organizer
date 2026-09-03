@@ -11,7 +11,19 @@ public class ProjectDto
 
     public string? Description { get; init; }
 
-    public string? Client { get; init; }
+    public Guid? CustomerId { get; init; }
+
+    public string? CustomerName { get; init; }
+
+    public Guid? ParentProjectId { get; init; }
+
+    public string? ParentProjectName { get; init; }
+
+    /// <summary>"Main" when this project has no parent, "Sub" otherwise.</summary>
+    public string Kind { get; init; } = null!;
+
+    /// <summary>How many sub-projects this project has. Always 0 for a Sub project.</summary>
+    public int SubProjectCount { get; init; }
 
     public string? Address { get; init; }
 
@@ -54,7 +66,12 @@ public static class ProjectMapping
             Id = project.Id,
             Name = project.Name,
             Description = project.Description,
-            Client = project.Client,
+            CustomerId = project.CustomerId,
+            CustomerName = project.Customer != null ? project.Customer.Name : null,
+            ParentProjectId = project.ParentProjectId,
+            ParentProjectName = project.ParentProject != null ? project.ParentProject.Name : null,
+            Kind = project.ParentProjectId == null ? "Main" : "Sub",
+            SubProjectCount = project.SubProjects.Count,
             Address = project.Address,
             Latitude = project.Latitude,
             Longitude = project.Longitude,

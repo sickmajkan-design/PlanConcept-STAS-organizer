@@ -199,6 +199,16 @@ const MaterialDetailPage = lazy(() =>
     default: m.MaterialDetailPage,
   })),
 );
+const CustomersListPage = lazy(() =>
+  import('./pages/customers/CustomersListPage').then((m) => ({
+    default: m.CustomersListPage,
+  })),
+);
+const CustomerFormPage = lazy(() =>
+  import('./pages/customers/CustomerFormPage').then((m) => ({
+    default: m.CustomerFormPage,
+  })),
+);
 
 function RouteFallback() {
   return (
@@ -256,6 +266,10 @@ function Layout() {
               <Route path={paths.materialNew} element={<MaterialFormPage />} />
               <Route path={`${paths.materials}/:id`} element={<MaterialDetailPage />} />
               <Route path={`${paths.materials}/:id/edit`} element={<MaterialFormPage />} />
+
+              <Route path={paths.customers} element={<CustomersListPage />} />
+              <Route path={paths.customerNew} element={<CustomerFormPage />} />
+              <Route path={`${paths.customers}/:id/edit`} element={<CustomerFormPage />} />
 
               {/* `summary` is declared before the `:id` routes so it is matched
                   as a page rather than as an entry id. */}

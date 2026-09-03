@@ -367,7 +367,7 @@ public class ExportProjectsQueryHandler : IRequestHandler<ExportProjectsQuery, E
 
             query = query.Where(p =>
                 EF.Functions.Like(p.Name.ToLower(), pattern, SearchPattern.Escape) ||
-                (p.Client != null && EF.Functions.Like(p.Client.ToLower(), pattern, SearchPattern.Escape)) ||
+                (p.Customer != null && EF.Functions.Like(p.Customer.Name.ToLower(), pattern, SearchPattern.Escape)) ||
                 (p.Address != null && EF.Functions.Like(p.Address.ToLower(), pattern, SearchPattern.Escape)));
         }
 
@@ -381,7 +381,7 @@ public class ExportProjectsQueryHandler : IRequestHandler<ExportProjectsQuery, E
             .Select(p => new
             {
                 p.Name,
-                p.Client,
+                CustomerName = p.Customer != null ? p.Customer.Name : null,
                 p.Status,
                 p.Address,
                 p.StartDate,
@@ -404,7 +404,7 @@ public class ExportProjectsQueryHandler : IRequestHandler<ExportProjectsQuery, E
             rows.Select(r => (IReadOnlyList<object?>)
             [
                 r.Name,
-                r.Client,
+                r.CustomerName,
                 r.Status.ToString(),
                 r.Address,
                 r.StartDate,

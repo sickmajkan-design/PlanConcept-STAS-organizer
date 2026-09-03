@@ -21,9 +21,6 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
         builder.Property(p => p.Description)
             .HasMaxLength(4000);
 
-        builder.Property(p => p.Client)
-            .HasMaxLength(256);
-
         builder.Property(p => p.Address)
             .HasMaxLength(512);
 
@@ -34,7 +31,19 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
             "ck_projects_contract_value_not_negative",
             "\"ContractValue\" IS NULL OR \"ContractValue\" >= 0"));
 
+        builder.HasOne(p => p.Customer)
+            .WithMany(c => c.Projects)
+            .HasForeignKey(p => p.CustomerId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(p => p.ParentProject)
+            .WithMany(p => p.SubProjects)
+            .HasForeignKey(p => p.ParentProjectId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasIndex(p => p.Name);
         builder.HasIndex(p => p.Status);
+        builder.HasIndex(p => p.CustomerId);
+        builder.HasIndex(p => p.ParentProjectId);
     }
 }

@@ -13,7 +13,15 @@ public abstract record ProjectCommandBase
 
     public string? Description { get; init; }
 
-    public string? Client { get; init; }
+    public Guid? CustomerId { get; init; }
+
+    /// <summary>
+    /// Set to make this project a sub-project of another. The parent must
+    /// itself be a Main project — hierarchy is only ever two levels deep.
+    /// When set, the customer is always taken from the parent, regardless of
+    /// what <see cref="CustomerId"/> was sent.
+    /// </summary>
+    public Guid? ParentProjectId { get; init; }
 
     public string? Address { get; init; }
 
@@ -45,9 +53,6 @@ public abstract class ProjectCommandBaseValidator<T> : AbstractValidator<T>
 
         RuleFor(x => x.Description)
             .MaximumLength(4000);
-
-        RuleFor(x => x.Client)
-            .MaximumLength(256);
 
         RuleFor(x => x.Address)
             .MaximumLength(512);

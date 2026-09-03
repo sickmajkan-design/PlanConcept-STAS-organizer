@@ -32,9 +32,56 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
             .FirstOrDefaultAsync(p => p.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(Project), request.Id);
 
+        var customerId = request.CustomerId;
+
+        if (request.ParentProjectId is { } parentProjectId)
+        {
+            if (parentProjectId == project.Id)
+            {
+                throw new ConflictException("A project cannot be its own parent.");
+            }
+
+            var parent = await _context.Projects
+                .FirstOrDefaultAsync(p => p.Id == parentProjectId, cancellationToken)
+                ?? throw new NotFoundException(nameof(Project), parentProjectId);
+
+            if (parent.ParentProjectId is not null)
+            {
+                throw new ConflictException(
+                    "A sub-project's parent must itself be a Main project.");
+            }
+
+            // A sub-project cannot itself carry sub-projects — hierarchy stops
+            // at two levels, so this project's own children would be
+            // stranded three deep if it became a sub-project now.
+            var hasOwnSubProjects = await _context.Projects
+                .AnyAsync(p => p.ParentProjectId == project.Id, cancellationToken);
+
+            if (hasOwnSubProjects)
+            {
+                throw new ConflictException(
+                    "This project has its own sub-projects and cannot become a sub-project itself. Reparent or remove them first.");
+            }
+
+            // Always the parent's, regardless of what was submitted — a
+            // sub-project belongs to whichever customer its Main project does.
+            customerId = parent.CustomerId;
+        }
+        else if (request.CustomerId is { } requestedCustomerId)
+        {
+            var customerExists = await _context.Customers
+                .AnyAsync(c => c.Id == requestedCustomerId, cancellationToken);
+
+            if (!customerExists)
+            {
+                throw new NotFoundException(nameof(Customer), requestedCustomerId);
+            }
+        }
+
         project.Name = request.Name.Trim();
         project.Description = request.Description?.Trim();
-        project.Client = request.Client?.Trim();
+        project.CustomerId = customerId;
+        project.ParentProjectId = request.ParentProjectId;
         project.Address = request.Address?.Trim();
         project.Latitude = request.Latitude;
         project.Longitude = request.Longitude;
@@ -46,6 +93,10 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return ProjectMapping.ToDto(project);
+        return await _context.Projects
+            .AsNoTracking()
+            .Where(p => p.Id == project.Id)
+            .Select(ProjectMapping.Projection)
+            .FirstAsync(cancellationToken);
     }
 }

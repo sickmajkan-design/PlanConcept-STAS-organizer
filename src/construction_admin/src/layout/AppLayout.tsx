@@ -26,6 +26,7 @@ import {
   NotificationsNoneOutlined,
   PasswordOutlined,
   PeopleOutlined,
+  BusinessOutlined,
 } from '@mui/icons-material';
 import {
   AppBar,
@@ -97,6 +98,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
       ? [
           { label: t('nav.employees'), path: paths.employees, icon: <PeopleOutlined /> },
           { label: t('nav.projects'), path: paths.projects, icon: <ApartmentOutlined /> },
+          { label: t('nav.customers'), path: paths.customers, icon: <BusinessOutlined /> },
           { label: t('nav.vehicles'), path: paths.vehicles, icon: <LocalShippingOutlined /> },
           { label: t('nav.tools'), path: paths.tools, icon: <HandymanOutlined /> },
           { label: t('nav.materials'), path: paths.materials, icon: <Inventory2Outlined /> },

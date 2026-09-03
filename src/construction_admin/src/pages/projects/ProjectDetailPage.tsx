@@ -39,7 +39,7 @@ import {
   useAssignProjectEmployee,
   useRemoveProjectEmployee,
 } from '../../features/employees/useEmployees';
-import { useDeleteProject, useProjectQuery } from '../../features/projects/useProjects';
+import { useDeleteProject, useProjectQuery, useProjectsQuery } from '../../features/projects/useProjects';
 import {
   useAllToolsQuery,
   useAssignProjectTool,
@@ -152,6 +152,14 @@ export function ProjectDetailPage() {
     [allTools],
   );
 
+  // Harmless when this project turns out to be a Sub itself — a Sub project
+  // never has children, so the filter just comes back empty and the card
+  // below stays hidden.
+  const { data: subProjects } = useProjectsQuery({
+    ...RESOURCE_PAGE,
+    parentProjectId: id,
+  });
+
   if (isLoading) return null;
   if (isError || !project) {
     return <ErrorState error={error} onRetry={() => void refetch()} />;
@@ -220,10 +228,21 @@ export function ProjectDetailPage() {
               </Typography>
               <Stack direction="row" spacing={1} sx={{ mt: 1.5, alignItems: 'center' }}>
                 <StatusChip status={project.status} kind="projectStatus" />
+                <StatusChip status={project.kind} kind="projectKind" />
                 <Typography variant="body2" color="text.secondary">
                   · {project.employeeCount} assigned
                 </Typography>
               </Stack>
+              {project.kind === 'Sub' && project.parentProjectId && (
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ mt: 0.5, cursor: 'pointer' }}
+                  onClick={() => navigate(paths.projectDetail(project.parentProjectId!))}
+                >
+                  ↳ {t('projects.subOf', { name: project.parentProjectName ?? '' })}
+                </Typography>
+              )}
             </Box>
             <Stack direction="row" spacing={1}>
               <Button
@@ -260,7 +279,7 @@ export function ProjectDetailPage() {
                 Details
               </Typography>
               <Stack spacing={1.5} sx={{ mt: 1 }}>
-                <InfoRow label={t('projects.client')} value={project.client} />
+                <InfoRow label={t('projects.customer')} value={project.customerName} />
                 <InfoRow label={t('projects.address')} value={project.address} />
                 <InfoRow
                   label={t('projects.coordinates')}
@@ -280,6 +299,47 @@ export function ProjectDetailPage() {
             </CardContent>
           </Card>
         </Grid>
+
+        {project.kind === 'Main' && (
+          <Grid size={12}>
+            <Card>
+              <CardContent>
+                <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                    {t('projects.subProjects')} ({subProjects?.items.length ?? 0})
+                  </Typography>
+                  <Button
+                    size="small"
+                    startIcon={<AddOutlined />}
+                    onClick={() => navigate(paths.projectNewSub(project.id))}
+                  >
+                    {t('projects.addSubProject')}
+                  </Button>
+                </Stack>
+
+                {(subProjects?.items.length ?? 0) === 0 ? (
+                  <Typography color="text.secondary" sx={{ py: 2 }}>
+                    {t('projects.noSubProjectsSentence')}
+                  </Typography>
+                ) : (
+                  <List disablePadding>
+                    {(subProjects?.items ?? []).map((sub) => (
+                      <ListItem
+                        key={sub.id}
+                        divider
+                        sx={{ cursor: 'pointer', px: 0 }}
+                        onClick={() => navigate(paths.projectDetail(sub.id))}
+                      >
+                        <ListItemText primary={sub.name} secondary={sub.address ?? undefined} />
+                        <StatusChip status={sub.status} kind="projectStatus" />
+                      </ListItem>
+                    ))}
+                  </List>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
 
         {/* Everything staffed and equipped on this project, grouped together
             so setting up a fresh project is one place to work through rather

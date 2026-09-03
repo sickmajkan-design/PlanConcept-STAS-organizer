@@ -1,7 +1,9 @@
+using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Projects.Models;
 using Construction.Domain.Entities;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Construction.Application.Features.Projects.Commands.CreateProject;
 
@@ -22,11 +24,41 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
         CreateProjectCommand request,
         CancellationToken cancellationToken)
     {
+        var customerId = request.CustomerId;
+
+        if (request.ParentProjectId is { } parentProjectId)
+        {
+            var parent = await _context.Projects
+                .FirstOrDefaultAsync(p => p.Id == parentProjectId, cancellationToken)
+                ?? throw new NotFoundException(nameof(Project), parentProjectId);
+
+            if (parent.ParentProjectId is not null)
+            {
+                throw new ConflictException(
+                    "A sub-project's parent must itself be a Main project.");
+            }
+
+            // Always the parent's, regardless of what was submitted — a
+            // sub-project belongs to whichever customer its Main project does.
+            customerId = parent.CustomerId;
+        }
+        else if (request.CustomerId is { } requestedCustomerId)
+        {
+            var customerExists = await _context.Customers
+                .AnyAsync(c => c.Id == requestedCustomerId, cancellationToken);
+
+            if (!customerExists)
+            {
+                throw new NotFoundException(nameof(Customer), requestedCustomerId);
+            }
+        }
+
         var project = new Project
         {
             Name = request.Name.Trim(),
             Description = request.Description?.Trim(),
-            Client = request.Client?.Trim(),
+            CustomerId = customerId,
+            ParentProjectId = request.ParentProjectId,
             Address = request.Address?.Trim(),
             Latitude = request.Latitude,
             Longitude = request.Longitude,
@@ -41,6 +73,10 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return ProjectMapping.ToDto(project);
+        return await _context.Projects
+            .AsNoTracking()
+            .Where(p => p.Id == project.Id)
+            .Select(ProjectMapping.Projection)
+            .FirstAsync(cancellationToken);
     }
 }

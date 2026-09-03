@@ -50,7 +50,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from '@dnd-kit/core';
-import { useEffect, useMemo, useState, type ReactElement } from 'react';
+import { Fragment, useEffect, useMemo, useState, type ReactElement } from 'react';
 
 import { toApiError } from '../../api/apiError';
 import type {
@@ -197,6 +197,34 @@ export function AssignmentBoardPage() {
 
     return projects;
   }, [data, siteSortBy, siteSortDirection, crewCountByProject]);
+
+  // Every project this office runs for one customer belongs together on the
+  // board — grouped here rather than by the API, so the column sort chosen
+  // above still applies inside each group instead of being overridden by it.
+  const projectGroups = useMemo(() => {
+    const unassignedLabel = t('assignmentBoard.unassignedCustomer');
+    const byCustomer = new Map<string, { customerName: string; projects: typeof sortedProjects }>();
+
+    for (const project of sortedProjects) {
+      const key = project.customerId ?? '';
+      const label = project.customerName ?? unassignedLabel;
+      const group = byCustomer.get(key);
+      if (group) {
+        group.projects.push(project);
+      } else {
+        byCustomer.set(key, { customerName: label, projects: [project] });
+      }
+    }
+
+    const groups = [...byCustomer.values()];
+    groups.sort((a, b) => {
+      if (a.customerName === unassignedLabel) return 1;
+      if (b.customerName === unassignedLabel) return -1;
+      return a.customerName.localeCompare(b.customerName);
+    });
+
+    return groups;
+  }, [sortedProjects, t]);
 
   const toggleSiteSort = (field: SiteSortField) => {
     if (siteSortBy === field) {
@@ -371,41 +399,55 @@ export function AssignmentBoardPage() {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {sortedProjects.map((project) => (
-                        <ProjectRow
-                          key={project.id}
-                          project={project}
-                          expanded={expandedProjectId === project.id}
-                          onToggle={() =>
-                            setExpandedProjectId((current) =>
-                              current === project.id ? null : project.id,
-                            )
-                          }
-                          employees={(data?.employees ?? []).filter((employee) =>
-                            employee.postings.some((posting) => posting.projectId === project.id),
-                          )}
-                          postingFor={(employee) =>
-                            employee.postings.find(
-                              (posting) => posting.projectId === project.id,
-                            )!
-                          }
-                          onRemove={(employeeId) => {
-                            const employeeName = employeesById.get(employeeId)?.fullName ?? '';
-                            remove.mutate(
-                              { employeeId, projectId: project.id },
-                              {
-                                onSuccess: () =>
-                                  setFeedback(
-                                    t('assignmentBoard.removedFeedback', {
-                                      employee: employeeName,
-                                      project: project.name,
-                                    }),
-                                  ),
-                                onError: (err) => setConflict(toApiError(err).message),
-                              },
-                            );
-                          }}
-                        />
+                      {projectGroups.map((group) => (
+                        <Fragment key={group.customerName}>
+                          <TableRow>
+                            <TableCell
+                              colSpan={5}
+                              sx={{ bgcolor: 'action.hover', py: 0.5, borderBottom: 'none' }}
+                            >
+                              <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                                {group.customerName}
+                              </Typography>
+                            </TableCell>
+                          </TableRow>
+                          {group.projects.map((project) => (
+                            <ProjectRow
+                              key={project.id}
+                              project={project}
+                              expanded={expandedProjectId === project.id}
+                              onToggle={() =>
+                                setExpandedProjectId((current) =>
+                                  current === project.id ? null : project.id,
+                                )
+                              }
+                              employees={(data?.employees ?? []).filter((employee) =>
+                                employee.postings.some((posting) => posting.projectId === project.id),
+                              )}
+                              postingFor={(employee) =>
+                                employee.postings.find(
+                                  (posting) => posting.projectId === project.id,
+                                )!
+                              }
+                              onRemove={(employeeId) => {
+                                const employeeName = employeesById.get(employeeId)?.fullName ?? '';
+                                remove.mutate(
+                                  { employeeId, projectId: project.id },
+                                  {
+                                    onSuccess: () =>
+                                      setFeedback(
+                                        t('assignmentBoard.removedFeedback', {
+                                          employee: employeeName,
+                                          project: project.name,
+                                        }),
+                                      ),
+                                    onError: (err) => setConflict(toApiError(err).message),
+                                  },
+                                );
+                              }}
+                            />
+                          ))}
+                        </Fragment>
                       ))}
                     </TableBody>
                   </Table>
@@ -684,14 +726,21 @@ function ProjectRow({
             {expanded ? <ExpandLessOutlined fontSize="small" /> : <ExpandMoreOutlined fontSize="small" />}
           </IconButton>
         </TableCell>
-        <TableCell>
+        <TableCell sx={{ pl: project.kind === 'Sub' ? 4 : 2 }}>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
             <Avatar src={coverPhoto ?? undefined} variant="rounded" sx={{ width: 28, height: 28 }}>
               {project.name.charAt(0)}
             </Avatar>
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              {project.name}
-            </Typography>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
+                {project.name}
+              </Typography>
+              {project.kind === 'Sub' && project.parentProjectName && (
+                <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
+                  ↳ {project.parentProjectName}
+                </Typography>
+              )}
+            </Box>
             <StatusChip status={project.status} kind="projectStatus" size="small" />
           </Stack>
         </TableCell>

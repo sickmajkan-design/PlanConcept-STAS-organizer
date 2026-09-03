@@ -89,6 +89,11 @@ public class GetAssignmentBoardQueryHandler
                 Id = p.Id,
                 Name = p.Name,
                 Status = p.Status.ToString(),
+                CustomerId = p.CustomerId,
+                CustomerName = p.Customer != null ? p.Customer.Name : null,
+                ParentProjectId = p.ParentProjectId,
+                ParentProjectName = p.ParentProject != null ? p.ParentProject.Name : null,
+                Kind = p.ParentProjectId == null ? "Main" : "Sub",
                 ToolCount = p.AssignedTools.Count,
                 VehicleCount = p.AssignedVehicles.Count
             })

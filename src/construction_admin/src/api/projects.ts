@@ -8,6 +8,7 @@ import type {
   Project,
   ProjectDetail,
   ProjectInput,
+  ProjectKind,
   ProjectRevenue,
   ProjectRevenueInput,
   ProjectStatus,
@@ -16,6 +17,10 @@ import type {
 export interface ProjectListQuery extends ListQuery {
   status?: ProjectStatus | '';
   employeeId?: string;
+  customerId?: string;
+  /** Restricts results to the sub-projects of this Main project. */
+  parentProjectId?: string;
+  kind?: ProjectKind | '';
 }
 
 export const projectsApi = createCrudApi<

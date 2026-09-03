@@ -64,6 +64,18 @@ public class AssignmentBoardProjectDto
 
     public string Status { get; init; } = null!;
 
+    public Guid? CustomerId { get; init; }
+
+    /// <summary>Null when the project has no customer set.</summary>
+    public string? CustomerName { get; init; }
+
+    public Guid? ParentProjectId { get; init; }
+
+    public string? ParentProjectName { get; init; }
+
+    /// <summary>"Main" when this project has no parent, "Sub" otherwise.</summary>
+    public string Kind { get; init; } = null!;
+
     /// <summary>Tools currently assigned to this project, directly or via an employee on it.</summary>
     public int ToolCount { get; init; }
 

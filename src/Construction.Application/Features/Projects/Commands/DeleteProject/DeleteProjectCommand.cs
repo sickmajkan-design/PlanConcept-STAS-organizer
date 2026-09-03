@@ -30,6 +30,15 @@ public class DeleteProjectCommandHandler : IRequestHandler<DeleteProjectCommand>
             .FirstOrDefaultAsync(p => p.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(Project), request.Id);
 
+        var hasSubProjects = await _context.Projects
+            .AnyAsync(p => p.ParentProjectId == request.Id, cancellationToken);
+
+        if (hasSubProjects)
+        {
+            throw new ConflictException(
+                "This project still has sub-projects. Reparent or remove them first.");
+        }
+
         var assignedTools = await _context.Tools
             .Where(t => t.AssignedProjectId == request.Id)
             .ToListAsync(cancellationToken);

@@ -119,11 +119,20 @@ export interface EmployeeInput {
   type: EmployeeType;
 }
 
+export type ProjectKind = 'Main' | 'Sub';
+
 export interface Project {
   id: string;
   name: string;
   description: string | null;
-  client: string | null;
+  customerId: string | null;
+  customerName: string | null;
+  parentProjectId: string | null;
+  parentProjectName: string | null;
+  /** "Main" when this project has no parent, "Sub" otherwise. */
+  kind: ProjectKind;
+  /** How many sub-projects this project has. Always 0 for a Sub project. */
+  subProjectCount: number;
   address: string | null;
   latitude: number | null;
   longitude: number | null;
@@ -166,7 +175,9 @@ export interface ProjectDetail extends Project {
 export interface ProjectInput {
   name: string;
   description?: string | null;
-  client?: string | null;
+  customerId?: string | null;
+  /** Set to make this a sub-project of another (Main) project. */
+  parentProjectId?: string | null;
   address?: string | null;
   latitude?: number | null;
   longitude?: number | null;
@@ -175,6 +186,27 @@ export interface ProjectInput {
   endDate?: string | null;
   status: ProjectStatus;
   contractValue?: number | null;
+}
+
+export interface Customer {
+  id: string;
+  name: string;
+  contactPerson: string | null;
+  phone: string | null;
+  email: string | null;
+  note: string | null;
+  /** How many projects (Main and Sub together) currently belong to this customer. */
+  projectCount: number;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface CustomerInput {
+  name: string;
+  contactPerson?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  note?: string | null;
 }
 
 export interface ProjectRevenue {
@@ -245,6 +277,13 @@ export interface AssignmentBoardProject {
   id: string;
   name: string;
   status: ProjectStatus;
+  customerId: string | null;
+  /** Null when the project has no customer set. */
+  customerName: string | null;
+  parentProjectId: string | null;
+  parentProjectName: string | null;
+  /** "Main" when this project has no parent, "Sub" otherwise. */
+  kind: ProjectKind;
   toolCount: number;
   vehicleCount: number;
 }

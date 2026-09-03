@@ -50,6 +50,17 @@ export function useAllProjectsQuery() {
   });
 }
 
+const MAIN_PROJECTS_PICKER_QUERY: ProjectListQuery = { ...PICKER_QUERY, kind: 'Main' };
+
+/** Main projects only, for the "which Main project is this a sub-project of" picker. */
+export function useAllMainProjectsQuery() {
+  return useQuery({
+    queryKey: projectKeys.list(MAIN_PROJECTS_PICKER_QUERY),
+    queryFn: () => projectsApi.list(MAIN_PROJECTS_PICKER_QUERY),
+    staleTime: 60_000,
+  });
+}
+
 export function useCreateProject() {
   return useResourceMutation(
     (input: ProjectInput) => projectsApi.create(input),

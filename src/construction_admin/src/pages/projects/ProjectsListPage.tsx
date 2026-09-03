@@ -11,7 +11,7 @@ import {
   Typography,
 } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type { ProjectListQuery } from '../../api/projects';
@@ -26,6 +26,7 @@ import { RowActions } from '../../components/RowActions';
 import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
 import { StatusLegend } from '../../components/StatusLegend';
+import { useAllCustomersQuery } from '../../features/customers/useCustomers';
 import { useDeleteProject, useProjectsQuery } from '../../features/projects/useProjects';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useEnumLabel } from '../../i18n/enumLabels';
@@ -39,10 +40,16 @@ export function ProjectsListPage() {
   const t = useT();
   const enumLabel = useEnumLabel();
   const list = useListQueryState<ProjectStatus>('name');
+  const [customerFilter, setCustomerFilter] = useState('');
+  const { data: customers } = useAllCustomersQuery();
 
   const query: ProjectListQuery = useMemo(
-    () => ({ ...list.query, status: list.filter || undefined }),
-    [list.query, list.filter],
+    () => ({
+      ...list.query,
+      status: list.filter || undefined,
+      customerId: customerFilter || undefined,
+    }),
+    [list.query, list.filter, customerFilter],
   );
 
   const { data, isLoading, isError, error, refetch } = useProjectsQuery(query);
@@ -52,10 +59,31 @@ export function ProjectsListPage() {
   // every render, which is wasted work.
   const columns: GridColDef<Project>[] = useMemo(
     () => [
-      { field: 'name', headerName: t('projects.name'), flex: 1, minWidth: 200 },
       {
-        field: 'client',
-        headerName: t('projects.client'),
+        field: 'name',
+        headerName: t('projects.name'),
+        flex: 1,
+        minWidth: 200,
+        renderCell: (params) => (
+          <Stack spacing={0}>
+            <span>{params.row.name}</span>
+            {params.row.kind === 'Sub' && params.row.parentProjectName && (
+              <Typography variant="caption" color="text.secondary">
+                ↳ {params.row.parentProjectName}
+              </Typography>
+            )}
+          </Stack>
+        ),
+      },
+      {
+        field: 'kind',
+        headerName: t('projects.kind'),
+        width: 100,
+        valueGetter: (v: string) => enumLabel('projectKind', v),
+      },
+      {
+        field: 'customerName',
+        headerName: t('projects.customer'),
         flex: 1,
         minWidth: 160,
         valueGetter: (v) => v || '—',
@@ -102,7 +130,7 @@ export function ProjectsListPage() {
         ),
       },
     ],
-    [navigate, remove, t],
+    [navigate, remove, t, enumLabel],
   );
 
   return (
@@ -142,6 +170,27 @@ export function ProjectsListPage() {
           </Select>
         </FormControl>
         <StatusLegend kind="projectStatus" values={projectStatuses} />
+        <FormControl size="small" sx={{ minWidth: 180 }}>
+          <InputLabel id="project-customer-filter-label">{t('projects.customer')}</InputLabel>
+          <Select
+            labelId="project-customer-filter-label"
+            label={t('projects.customer')}
+            value={customerFilter}
+            onChange={(event) => {
+              setCustomerFilter(event.target.value);
+              list.resetToFirstPage();
+            }}
+          >
+            <MenuItem value="">
+              <em>{t('common.all')}</em>
+            </MenuItem>
+            {(customers?.items ?? []).map((customer) => (
+              <MenuItem key={customer.id} value={customer.id}>
+                {customer.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
         <ExportButton
           onExport={(language) =>

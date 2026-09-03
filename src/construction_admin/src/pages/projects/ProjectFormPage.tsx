@@ -14,15 +14,21 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
-import type { ProjectInput } from '../../api/types';
+import type { ProjectInput, ProjectKind } from '../../api/types';
 import { projectStatuses } from '../../api/types';
 import { ErrorState } from '../../components/ErrorState';
-import { useCreateProject, useProjectQuery, useUpdateProject } from '../../features/projects/useProjects';
+import { useAllCustomersQuery } from '../../features/customers/useCustomers';
+import {
+  useAllMainProjectsQuery,
+  useCreateProject,
+  useProjectQuery,
+  useUpdateProject,
+} from '../../features/projects/useProjects';
 import { projectFormSchema, type ProjectFormValues } from '../../features/projects/validation';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
@@ -31,7 +37,8 @@ import { paths } from '../../routes/paths';
 const emptyValues: ProjectFormValues = {
   name: '',
   description: '',
-  client: '',
+  customerId: '',
+  parentProjectId: '',
   address: '',
   latitude: '',
   longitude: '',
@@ -75,30 +82,45 @@ export function ProjectFormPage() {
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const t = useT();
   const enumLabel = useEnumLabel();
 
   const { data: existing, isLoading, isError, error, refetch } = useProjectQuery(id);
+  const { data: customers } = useAllCustomersQuery();
+  const { data: mainProjects } = useAllMainProjectsQuery();
   const createProject = useCreateProject();
   const updateProject = useUpdateProject(id ?? '');
+
+  // Not part of the submitted payload — the API always derives CustomerId
+  // from the chosen parent for a Sub project, so this only steers which
+  // fields the form shows. Defaults from the `?parentProjectId=` query param
+  // set by "Add sub-project" on a Main project's detail page.
+  const preselectedParentId = searchParams.get('parentProjectId');
+  const [kind, setKind] = useState<ProjectKind>(preselectedParentId ? 'Sub' : 'Main');
 
   const {
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isSubmitting },
     setError,
   } = useForm<ProjectFormValues>({
     resolver: zodResolver(projectFormSchema),
-    defaultValues: emptyValues,
+    defaultValues: preselectedParentId
+      ? { ...emptyValues, parentProjectId: preselectedParentId }
+      : emptyValues,
   });
 
   useEffect(() => {
     if (existing) {
+      setKind(existing.kind);
       reset({
         name: existing.name,
         description: existing.description ?? '',
-        client: existing.client ?? '',
+        customerId: existing.customerId ?? '',
+        parentProjectId: existing.parentProjectId ?? '',
         address: existing.address ?? '',
         latitude: existing.latitude?.toString() ?? '',
         longitude: existing.longitude?.toString() ?? '',
@@ -110,6 +132,17 @@ export function ProjectFormPage() {
       });
     }
   }, [existing, reset]);
+
+  const selectedParentId = watch('parentProjectId');
+  const selectedParent = useMemo(
+    () => (mainProjects?.items ?? []).find((project) => project.id === selectedParentId),
+    [mainProjects, selectedParentId],
+  );
+
+  // A Main project already carrying sub-projects would strand them one
+  // level too deep if it became a Sub itself — the API refuses this, the
+  // toggle just keeps the form from offering it in the first place.
+  const canBeSub = !isEdit || (existing?.subProjectCount ?? 0) === 0;
 
   if (isEdit && isLoading) {
     return null;
@@ -123,7 +156,8 @@ export function ProjectFormPage() {
     const input: ProjectInput = {
       name: values.name.trim(),
       description: values.description || null,
-      client: values.client || null,
+      customerId: kind === 'Sub' ? null : values.customerId || null,
+      parentProjectId: kind === 'Sub' ? values.parentProjectId || null : null,
       address: values.address || null,
       latitude: values.latitude ? Number(values.latitude) : null,
       longitude: values.longitude ? Number(values.longitude) : null,
@@ -206,20 +240,78 @@ export function ProjectFormPage() {
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  name="client"
-                  control={control}
-                  render={({ field, fieldState }) => (
-                    <TextField
-                      {...field}
-                      label={t('projects.client')}
-                      fullWidth
-                      error={!!fieldState.error}
-                      helperText={fieldState.error?.message}
-                    />
+                <FormControl fullWidth>
+                  <InputLabel id="project-kind-label">{t('projects.kind')}</InputLabel>
+                  <Select
+                    labelId="project-kind-label"
+                    label={t('projects.kind')}
+                    value={kind}
+                    onChange={(event) => setKind(event.target.value as ProjectKind)}
+                    disabled={!canBeSub}
+                  >
+                    <MenuItem value="Main">{enumLabel('projectKind', 'Main')}</MenuItem>
+                    <MenuItem value="Sub">{enumLabel('projectKind', 'Sub')}</MenuItem>
+                  </Select>
+                  {!canBeSub && (
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, ml: 1.5 }}>
+                      {t('projects.kindLockedHint')}
+                    </Typography>
                   )}
-                />
+                </FormControl>
               </Grid>
+              {kind === 'Sub' ? (
+                <>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Controller
+                      name="parentProjectId"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <FormControl fullWidth error={!!fieldState.error}>
+                          <InputLabel id="project-parent-label">{t('projects.parentProject')}</InputLabel>
+                          <Select {...field} labelId="project-parent-label" label={t('projects.parentProject')}>
+                            {(mainProjects?.items ?? [])
+                              .filter((project) => project.id !== existing?.id)
+                              .map((project) => (
+                                <MenuItem key={project.id} value={project.id}>
+                                  {project.name}
+                                </MenuItem>
+                              ))}
+                          </Select>
+                        </FormControl>
+                      )}
+                    />
+                  </Grid>
+                  <Grid size={12}>
+                    <Typography variant="body2" color="text.secondary">
+                      {selectedParent?.customerName
+                        ? t('projects.followsCustomerHint', { name: selectedParent.customerName })
+                        : t('projects.followsCustomerNoneHint')}
+                    </Typography>
+                  </Grid>
+                </>
+              ) : (
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Controller
+                    name="customerId"
+                    control={control}
+                    render={({ field }) => (
+                      <FormControl fullWidth>
+                        <InputLabel id="project-customer-label">{t('projects.customer')}</InputLabel>
+                        <Select {...field} labelId="project-customer-label" label={t('projects.customer')}>
+                          <MenuItem value="">
+                            <em>{t('common.none')}</em>
+                          </MenuItem>
+                          {(customers?.items ?? []).map((customer) => (
+                            <MenuItem key={customer.id} value={customer.id}>
+                              {customer.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    )}
+                  />
+                </Grid>
+              )}
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Controller
                   name="status"

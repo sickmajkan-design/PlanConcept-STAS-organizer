@@ -21,6 +21,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<Project> Projects => Set<Project>();
 
+    public DbSet<Customer> Customers => Set<Customer>();
+
     public DbSet<EmployeeProject> EmployeeProjects => Set<EmployeeProject>();
 
     public DbSet<Vehicle> Vehicles => Set<Vehicle>();

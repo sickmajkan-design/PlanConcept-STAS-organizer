@@ -23,7 +23,8 @@ export const projectFormSchema = z
   .object({
     name: z.string().trim().min(1, 'Project name is required.').max(256),
     description: z.string().trim().max(4000).optional().or(z.literal('')),
-    client: z.string().trim().max(256).optional().or(z.literal('')),
+    customerId: z.string().optional().or(z.literal('')),
+    parentProjectId: z.string().optional().or(z.literal('')),
     address: z.string().trim().max(512).optional().or(z.literal('')),
     latitude: optionalCoordinate,
     longitude: optionalCoordinate,

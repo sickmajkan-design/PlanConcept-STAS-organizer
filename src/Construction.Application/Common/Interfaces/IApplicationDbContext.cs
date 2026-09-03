@@ -15,6 +15,8 @@ public interface IApplicationDbContext
 
     DbSet<Project> Projects { get; }
 
+    DbSet<Customer> Customers { get; }
+
     DbSet<EmployeeProject> EmployeeProjects { get; }
 
     DbSet<Vehicle> Vehicles { get; }

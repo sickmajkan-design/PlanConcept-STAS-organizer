@@ -9,7 +9,21 @@ public class Project : BaseEntity, ISoftDeletable, IAuditable
 
     public string? Description { get; set; }
 
-    public string? Client { get; set; }
+    public Guid? CustomerId { get; set; }
+
+    public Customer? Customer { get; set; }
+
+    /// <summary>
+    /// Set when this project is a sub-project of a Main project. Null means
+    /// this project is itself a Main project. A project whose parent has a
+    /// parent of its own is never created — hierarchy is only ever two levels
+    /// deep, enforced in <c>CreateProjectCommand</c>/<c>UpdateProjectCommand</c>.
+    /// </summary>
+    public Guid? ParentProjectId { get; set; }
+
+    public Project? ParentProject { get; set; }
+
+    public ICollection<Project> SubProjects { get; set; } = new List<Project>();
 
     public string? Address { get; set; }
 

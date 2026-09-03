@@ -14,19 +14,25 @@ public record GetProjectsQuery : ISortablePagedQuery, IRequest<PagedList<Project
 {
     public static readonly string[] AllowedSortFields =
     [
-        "name", "client", "status", "employeeCount", "startDate", "endDate", "createdAt"
+        "name", "customerName", "status", "employeeCount", "startDate", "endDate", "createdAt"
     ];
 
     public int PageNumber { get; init; } = 1;
 
     public int PageSize { get; init; } = 20;
 
-    /// <summary>Matches name, client and address (case-insensitive).</summary>
+    /// <summary>Matches name, customer name and address (case-insensitive).</summary>
     public string? Search { get; init; }
 
     public ProjectStatus? Status { get; init; }
 
-    public string? Client { get; init; }
+    public Guid? CustomerId { get; init; }
+
+    /// <summary>Restricts results to the sub-projects of this Main project.</summary>
+    public Guid? ParentProjectId { get; init; }
+
+    /// <summary>"Main" for projects with no parent, "Sub" for those with one.</summary>
+    public string? Kind { get; init; }
 
     /// <summary>Restricts results to projects the given employee is assigned to.</summary>
     public Guid? EmployeeId { get; init; }
@@ -65,7 +71,7 @@ public class GetProjectsQueryHandler : IRequestHandler<GetProjectsQuery, PagedLi
 
             query = query.Where(p =>
                 EF.Functions.Like(p.Name.ToLower(), pattern, SearchPattern.Escape) ||
-                (p.Client != null && EF.Functions.Like(p.Client.ToLower(), pattern, SearchPattern.Escape)) ||
+                (p.Customer != null && EF.Functions.Like(p.Customer.Name.ToLower(), pattern, SearchPattern.Escape)) ||
                 (p.Address != null && EF.Functions.Like(p.Address.ToLower(), pattern, SearchPattern.Escape)));
         }
 
@@ -74,12 +80,23 @@ public class GetProjectsQueryHandler : IRequestHandler<GetProjectsQuery, PagedLi
             query = query.Where(p => p.Status == status);
         }
 
-        if (!string.IsNullOrWhiteSpace(request.Client))
+        if (request.CustomerId is { } customerId)
         {
-            var clientPattern = SearchPattern.Contains(request.Client);
+            query = query.Where(p => p.CustomerId == customerId);
+        }
 
-            query = query.Where(p => p.Client != null && EF.Functions.Like(
-                p.Client.ToLower(), clientPattern, SearchPattern.Escape));
+        if (request.ParentProjectId is { } parentProjectId)
+        {
+            query = query.Where(p => p.ParentProjectId == parentProjectId);
+        }
+
+        if (string.Equals(request.Kind, "Main", StringComparison.OrdinalIgnoreCase))
+        {
+            query = query.Where(p => p.ParentProjectId == null);
+        }
+        else if (string.Equals(request.Kind, "Sub", StringComparison.OrdinalIgnoreCase))
+        {
+            query = query.Where(p => p.ParentProjectId != null);
         }
 
         if (request.EmployeeId is { } employeeId)
@@ -103,8 +120,8 @@ public class GetProjectsQueryHandler : IRequestHandler<GetProjectsQuery, PagedLi
     {
         IOrderedQueryable<Project> ordered = (sortBy?.ToLowerInvariant(), descending) switch
         {
-            ("client", false) => query.OrderBy(p => p.Client),
-            ("client", true) => query.OrderByDescending(p => p.Client),
+            ("customername", false) => query.OrderBy(p => p.Customer != null ? p.Customer.Name : null),
+            ("customername", true) => query.OrderByDescending(p => p.Customer != null ? p.Customer.Name : null),
             ("status", false) => query.OrderBy(p => p.Status),
             ("status", true) => query.OrderByDescending(p => p.Status),
             ("employeecount", false) => query
