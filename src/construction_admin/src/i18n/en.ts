@@ -179,6 +179,7 @@ export const en = {
   'projects.subProjects': 'Sub-projects',
   'projects.addSubProject': 'Add sub-project',
   'projects.noSubProjectsSentence': 'No sub-projects yet.',
+  'projects.noCustomer': 'No customer',
   'projects.crew': 'Crew',
   'projects.status': 'Status',
   'projects.start': 'Start',

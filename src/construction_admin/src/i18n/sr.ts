@@ -188,6 +188,7 @@ export const sr: Record<MessageKey, Message> = {
   'projects.subProjects': 'Pod-projekti',
   'projects.addSubProject': 'Dodaj pod-projekat',
   'projects.noSubProjectsSentence': 'Još nema pod-projekata.',
+  'projects.noCustomer': 'Bez kupca',
   'projects.crew': 'Ekipa',
   'projects.status': 'Status',
   'projects.start': 'Početak',
