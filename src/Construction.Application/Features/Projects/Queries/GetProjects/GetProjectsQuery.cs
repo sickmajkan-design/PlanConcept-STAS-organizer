@@ -45,7 +45,10 @@ public record GetProjectsQuery : ISortablePagedQuery, IRequest<PagedList<Project
 public class GetProjectsQueryValidator : SortablePagedQueryValidator<GetProjectsQuery>
 {
     public GetProjectsQueryValidator()
-        : base(GetProjectsQuery.AllowedSortFields)
+        // The admin panel's Projects screen is a customer-grouped board, not
+        // a paged grid — it asks for everything in one page-worth, so the
+        // cap has to be raised past the default to actually fit that.
+        : base(GetProjectsQuery.AllowedSortFields, maxPageSize: 500)
     {
     }
 }
