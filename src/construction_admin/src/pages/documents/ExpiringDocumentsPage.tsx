@@ -2,10 +2,14 @@ import { UploadFileOutlined } from '@mui/icons-material';
 import {
   Box,
   Chip,
+  FormControl,
+  FormControlLabel,
+  InputLabel,
   MenuItem,
   Paper,
   Select,
   Stack,
+  Switch,
   Table,
   TableBody,
   TableCell,
@@ -16,7 +20,8 @@ import {
 } from '@mui/material';
 import { useMemo, useState } from 'react';
 
-import type { Attachment } from '../../api/types';
+import type { Attachment, AttachmentCategory, AttachmentOwnerType } from '../../api/types';
+import { attachmentCategories, attachmentOwnerTypes } from '../../api/types';
 import { AttachmentPreviewDialog } from '../../components/AttachmentPreviewDialog';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
@@ -46,11 +51,15 @@ export function ExpiringDocumentsPage() {
   const t = useT();
   const enumLabel = useEnumLabel();
   const [windowValue, setWindowValue] = useState<WindowValue>(30);
+  const [includeUndated, setIncludeUndated] = useState(false);
+  const [ownerTypeFilter, setOwnerTypeFilter] = useState<AttachmentOwnerType | ''>('');
+  const [categoryFilter, setCategoryFilter] = useState<AttachmentCategory | ''>('');
   const [uploading, setUploading] = useState(false);
   const [previewing, setPreviewing] = useState<Attachment | null>(null);
 
   const { data, isError, error, refetch, isLoading } = useExpiringDocumentsQuery(
     windowValue === ALL_WINDOW ? null : windowValue,
+    includeUndated,
   );
 
   const [sortBy, setSortBy] = useState<SortField>('expiresAt');
@@ -67,6 +76,12 @@ export function ExpiringDocumentsPage() {
 
   const sortedData = useMemo(() => {
     if (!data) return data;
+
+    const filtered = data.filter(
+      (document) =>
+        (!ownerTypeFilter || document.ownerType === ownerTypeFilter) &&
+        (!categoryFilter || document.category === categoryFilter),
+    );
 
     const factor = sortDirection === 'asc' ? 1 : -1;
 
@@ -85,8 +100,8 @@ export function ExpiringDocumentsPage() {
       }
     };
 
-    return [...data].sort(compare);
-  }, [data, sortBy, sortDirection]);
+    return filtered.sort(compare);
+  }, [data, sortBy, sortDirection, ownerTypeFilter, categoryFilter]);
 
   return (
     <Box>
@@ -100,7 +115,7 @@ export function ExpiringDocumentsPage() {
         }}
       />
 
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+      <Stack direction="row" spacing={2} sx={{ mb: 2, flexWrap: 'wrap', rowGap: 1.5, alignItems: 'center' }}>
         <Select
           size="small"
           value={windowValue}
@@ -119,6 +134,54 @@ export function ExpiringDocumentsPage() {
           ))}
           <MenuItem value={ALL_WINDOW}>{t('attachments.expiringAll')}</MenuItem>
         </Select>
+
+        <FormControlLabel
+          control={
+            <Switch
+              checked={includeUndated}
+              onChange={(event) => setIncludeUndated(event.target.checked)}
+            />
+          }
+          label={t('attachments.includeUndated')}
+        />
+
+        <FormControl size="small" sx={{ minWidth: 180 }}>
+          <InputLabel id="doc-owner-filter-label">{t('attachments.owner')}</InputLabel>
+          <Select
+            labelId="doc-owner-filter-label"
+            label={t('attachments.owner')}
+            value={ownerTypeFilter}
+            onChange={(event) => setOwnerTypeFilter(event.target.value as AttachmentOwnerType | '')}
+          >
+            <MenuItem value="">
+              <em>{t('common.all')}</em>
+            </MenuItem>
+            {attachmentOwnerTypes.map((value) => (
+              <MenuItem key={value} value={value}>
+                {enumLabel('attachmentOwnerType', value)}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <FormControl size="small" sx={{ minWidth: 180 }}>
+          <InputLabel id="doc-category-filter-label">{t('attachments.category')}</InputLabel>
+          <Select
+            labelId="doc-category-filter-label"
+            label={t('attachments.category')}
+            value={categoryFilter}
+            onChange={(event) => setCategoryFilter(event.target.value as AttachmentCategory | '')}
+          >
+            <MenuItem value="">
+              <em>{t('common.all')}</em>
+            </MenuItem>
+            {attachmentCategories.map((value) => (
+              <MenuItem key={value} value={value}>
+                {enumLabel('attachmentCategory', value)}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Stack>
 
       <UploadDocumentDialog open={uploading} onClose={() => setUploading(false)} />
@@ -192,17 +255,23 @@ export function ExpiringDocumentsPage() {
                       {enumLabel('attachmentCategory', document.category)}
                     </TableCell>
                     <TableCell>
-                      <Chip
-                        size="small"
-                        color={lapsed ? 'error' : 'warning'}
-                        label={
-                          lapsed
-                            ? t('attachments.expiredOn', {
-                                date: formatDate(document.expiresAt),
-                              })
-                            : formatDate(document.expiresAt)
-                        }
-                      />
+                      {document.expiresAt ? (
+                        <Chip
+                          size="small"
+                          color={lapsed ? 'error' : 'warning'}
+                          label={
+                            lapsed
+                              ? t('attachments.expiredOn', {
+                                  date: formatDate(document.expiresAt),
+                                })
+                              : formatDate(document.expiresAt)
+                          }
+                        />
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          {t('attachments.noExpiry')}
+                        </Typography>
+                      )}
                     </TableCell>
                   </TableRow>
                 );

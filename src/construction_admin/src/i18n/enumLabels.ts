@@ -24,6 +24,7 @@ export type EnumKind =
   | 'timeEntryStatus'
   | 'workType'
   | 'attachmentCategory'
+  | 'attachmentOwnerType'
   | 'workItemKind'
   | 'workItemStatus'
   | 'workItemPriority'

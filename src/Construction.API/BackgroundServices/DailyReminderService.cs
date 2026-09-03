@@ -18,9 +18,10 @@ namespace Construction.API.BackgroundServices;
 /// to maintain than the job itself.
 ///
 /// Two instances of the API both run this, which is fine:
-/// <see cref="SendExpiryRemindersCommand"/> claims each document with a
-/// conditional update before notifying, so a duplicate run finds nothing left
-/// to claim rather than telling anyone twice.
+/// <see cref="SendExpiryRemindersCommand"/> claims each (document, admin)
+/// pair with an insert against a unique index before notifying, so a
+/// duplicate run finds the claim already taken rather than telling anyone
+/// twice.
 /// </remarks>
 public class DailyReminderService : BackgroundService
 {

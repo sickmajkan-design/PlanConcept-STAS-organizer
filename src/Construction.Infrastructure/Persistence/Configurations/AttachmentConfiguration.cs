@@ -128,11 +128,11 @@ public class AttachmentConfiguration : IEntityTypeConfiguration<Attachment>
         builder.HasIndex(a => a.FinanceEntryId);
         builder.HasIndex(a => a.ToolExpenseId);
 
-        // The expiry sweep: everything lapsing soon that nobody has been told
-        // about. Partial, because rows without an expiry are most of the table
-        // and never match.
+        // The expiry sweep and the all-documents view both filter/sort on
+        // this. Partial, because rows without an expiry are most of the
+        // table and never match the narrow "what's lapsing" case.
         builder.HasIndex(a => a.ExpiresAt)
             .HasDatabaseName("ix_attachments_pending_expiry")
-            .HasFilter("\"ExpiresAt\" IS NOT NULL AND \"ExpiryReminderSentAt\" IS NULL AND \"IsDeleted\" = false");
+            .HasFilter("\"ExpiresAt\" IS NOT NULL AND \"IsDeleted\" = false");
     }
 }

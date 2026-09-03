@@ -15,7 +15,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useEffect } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
@@ -94,6 +94,7 @@ export function UserFormPage() {
       password: '',
       role: allowedRoles[0] ?? 'Worker',
       employeeId: '',
+      documentExpiryReminderDays: '',
     },
   });
 
@@ -104,9 +105,16 @@ export function UserFormPage() {
         password: '',
         role: existing.role,
         employeeId: existing.employeeId ?? '',
+        documentExpiryReminderDays:
+          existing.documentExpiryReminderDays === null
+            ? ''
+            : String(existing.documentExpiryReminderDays),
       });
     }
   }, [existing, reset]);
+
+  const watchRole = useWatch({ control, name: 'role' });
+  const showReminderField = isEdit && (watchRole === 'SuperAdmin' || watchRole === 'Admin');
 
   const onSubmit = handleSubmit(async (values) => {
     const shared = {
@@ -117,7 +125,12 @@ export function UserFormPage() {
 
     try {
       if (isEdit) {
-        await updateUser.mutateAsync(shared);
+        await updateUser.mutateAsync({
+          ...shared,
+          documentExpiryReminderDays: values.documentExpiryReminderDays
+            ? Number(values.documentExpiryReminderDays)
+            : null,
+        });
       } else {
         await createUser.mutateAsync({ ...shared, password: values.password });
       }
@@ -231,6 +244,25 @@ export function UserFormPage() {
                 )}
               />
             </Grid>
+
+            {showReminderField && (
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Controller
+                  name="documentExpiryReminderDays"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      type="number"
+                      label={t('users.documentExpiryReminderDays')}
+                      fullWidth
+                      placeholder="30"
+                      helperText={t('users.documentExpiryReminderDaysHelp')}
+                    />
+                  )}
+                />
+              </Grid>
+            )}
 
             <Grid size={{ xs: 12 }}>
               <Typography variant="caption" color="text.secondary">

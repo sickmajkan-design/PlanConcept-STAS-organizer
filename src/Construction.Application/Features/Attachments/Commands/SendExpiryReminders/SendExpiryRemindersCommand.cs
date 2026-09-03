@@ -1,4 +1,5 @@
 using Construction.Application.Common.Interfaces;
+using Construction.Domain.Entities;
 using Construction.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +7,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Construction.Application.Features.Attachments.Commands.SendExpiryReminders;
 
 /// <summary>
-/// Tells the office about documents that are about to lapse.
+/// Tells each admin about documents lapsing within the window they've
+/// personally asked for.
 /// </summary>
 /// <remarks>
 /// Written as a command rather than living inside the hosted service so the
@@ -15,14 +17,12 @@ namespace Construction.Application.Features.Attachments.Commands.SendExpiryRemin
 public record SendExpiryRemindersCommand : IRequest<int>
 {
     /// <summary>
-    /// How much warning to give.
+    /// What an admin gets who has never set their own preference
+    /// (<see cref="User.DocumentExpiryReminderDays"/> is null). Thirty days is
+    /// roughly how long it takes to book an occupational medical and get the
+    /// certificate back, which is the slowest of the documents this tracks.
     /// </summary>
-    /// <remarks>
-    /// Thirty days is roughly how long it takes to book an occupational
-    /// medical and get the certificate back, which is the slowest of the
-    /// documents this tracks.
-    /// </remarks>
-    public int WithinDays { get; init; } = 30;
+    public const int DefaultReminderDays = 30;
 }
 
 public class SendExpiryRemindersCommandHandler
@@ -47,85 +47,93 @@ public class SendExpiryRemindersCommandHandler
         CancellationToken cancellationToken)
     {
         var now = _dateTimeProvider.UtcNow;
-        var cutoff = DateOnly.FromDateTime(now).AddDays(request.WithinDays);
+        var today = DateOnly.FromDateTime(now);
 
-        var due = await _context.Attachments
-            .Where(a => a.ExpiresAt != null
-                && a.ExpiresAt <= cutoff
-                && a.ExpiryReminderSentAt == null)
-            .OrderBy(a => a.ExpiresAt)
-            .Select(a => new
-            {
-                a.Id,
-                a.FileName,
-                a.Category,
-                a.ExpiresAt,
-                OwnerName = a.Employee != null
-                    ? a.Employee.FirstName + " " + a.Employee.LastName
-                    : a.Project != null ? a.Project.Name
-                    : a.Vehicle != null ? a.Vehicle.Brand + " " + a.Vehicle.Model
-                    : a.Tool != null ? a.Tool.Name
-                    : null
-            })
+        // Expiry is an office problem: the worker whose certificate lapsed
+        // cannot renew it themselves. Each admin gets their own lead time —
+        // one might want six weeks' warning, another finds that noisy and
+        // only wants the final fortnight.
+        var admins = await _context.Users
+            .Where(u => u.IsActive && (u.Role == UserRole.SuperAdmin || u.Role == UserRole.Admin))
+            .Select(u => new { u.Id, u.DocumentExpiryReminderDays })
             .ToListAsync(cancellationToken);
-
-        if (due.Count == 0)
-        {
-            return 0;
-        }
-
-        // Everyone who can act on it. Expiry is an office problem: the worker
-        // whose certificate lapsed cannot renew it themselves.
-        var recipients = await _context.Users
-            .Where(u => u.IsActive
-                && (u.Role == UserRole.SuperAdmin || u.Role == UserRole.Admin))
-            .Select(u => u.Id)
-            .ToListAsync(cancellationToken);
-
-        if (recipients.Count == 0)
-        {
-            // Nobody to tell. Leaving the marks unset means the reminder still
-            // goes out once an administrator exists, rather than being lost.
-            return 0;
-        }
 
         var sent = 0;
 
-        foreach (var document in due)
+        foreach (var admin in admins)
         {
-            // Claim the row before notifying. The update is conditional on the
-            // mark still being unset, so if a second replica is running the
-            // same sweep only one of them gets a row back — and nobody is told
-            // twice. Doing it after the notification would leave the same row
-            // claimable for the length of the push.
-            var claimed = await _context.Attachments
-                .Where(a => a.Id == document.Id && a.ExpiryReminderSentAt == null)
-                .ExecuteUpdateAsync(
-                    setters => setters.SetProperty(a => a.ExpiryReminderSentAt, now),
-                    cancellationToken);
+            var days = admin.DocumentExpiryReminderDays ?? SendExpiryRemindersCommand.DefaultReminderDays;
+            var cutoff = today.AddDays(days);
 
-            if (claimed == 0)
-            {
-                continue;
-            }
-
-            var expired = document.ExpiresAt < DateOnly.FromDateTime(now);
-
-            await _notifications.NotifyUsersAsync(
-                recipients,
-                NotificationType.DocumentExpiring,
-                expired ? "Document has expired" : "Document expiring soon",
-                $"{document.FileName}" +
-                (document.OwnerName is null ? "" : $" — {document.OwnerName}") +
-                $" ({document.ExpiresAt:dd.MM.yyyy})",
-                new Dictionary<string, string>
+            var due = await _context.Attachments
+                .Where(a => a.ExpiresAt != null && a.ExpiresAt <= cutoff)
+                // Not yet claimed for this admin specifically — a different
+                // admin with a wider window may already have been told about
+                // the same document without that meaning anything for this one.
+                .Where(a => !_context.AttachmentExpiryReminders
+                    .Any(r => r.AttachmentId == a.Id && r.UserId == admin.Id))
+                .OrderBy(a => a.ExpiresAt)
+                .Select(a => new
                 {
-                    ["attachmentId"] = document.Id.ToString(),
-                    ["category"] = document.Category.ToString()
-                },
-                cancellationToken: cancellationToken);
+                    a.Id,
+                    a.FileName,
+                    a.Category,
+                    a.ExpiresAt,
+                    OwnerName = a.Employee != null
+                        ? a.Employee.FirstName + " " + a.Employee.LastName
+                        : a.Project != null ? a.Project.Name
+                        : a.Vehicle != null ? a.Vehicle.Brand + " " + a.Vehicle.Model
+                        : a.Tool != null ? a.Tool.Name
+                        : null
+                })
+                .ToListAsync(cancellationToken);
 
-            sent++;
+            foreach (var document in due)
+            {
+                // The claim row itself is the dedup: a second sweep hitting
+                // the unique (AttachmentId, UserId) index fails the insert
+                // and skips notifying, rather than a separate flag checked
+                // then set as two steps a concurrent run could interleave.
+                var claim = new AttachmentExpiryReminder
+                {
+                    AttachmentId = document.Id,
+                    UserId = admin.Id,
+                    SentAt = now
+                };
+                _context.AttachmentExpiryReminders.Add(claim);
+
+                try
+                {
+                    await _context.SaveChangesAsync(cancellationToken);
+                }
+                catch (DbUpdateException)
+                {
+                    // Someone else claimed it first. Undo the pending insert
+                    // on this context — otherwise every later iteration's
+                    // SaveChangesAsync keeps retrying this same failed row
+                    // and none of them ever succeed.
+                    _context.AttachmentExpiryReminders.Remove(claim);
+                    continue;
+                }
+
+                var expired = document.ExpiresAt < today;
+
+                await _notifications.NotifyUserAsync(
+                    admin.Id,
+                    NotificationType.DocumentExpiring,
+                    expired ? "Document has expired" : "Document expiring soon",
+                    $"{document.FileName}" +
+                    (document.OwnerName is null ? "" : $" — {document.OwnerName}") +
+                    $" ({document.ExpiresAt:dd.MM.yyyy})",
+                    new Dictionary<string, string>
+                    {
+                        ["attachmentId"] = document.Id.ToString(),
+                        ["category"] = document.Category.ToString()
+                    },
+                    cancellationToken: cancellationToken);
+
+                sent++;
+            }
         }
 
         return sent;

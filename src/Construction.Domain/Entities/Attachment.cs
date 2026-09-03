@@ -50,12 +50,6 @@ public class Attachment : BaseEntity, ISoftDeletable, IAuditable
     /// </summary>
     public DateOnly? ExpiresAt { get; set; }
 
-    /// <summary>
-    /// When an expiry reminder was pushed, so it goes out once rather than
-    /// every day until the document is replaced.
-    /// </summary>
-    public DateTime? ExpiryReminderSentAt { get; set; }
-
     public Guid? EmployeeId { get; set; }
 
     public Employee? Employee { get; set; }

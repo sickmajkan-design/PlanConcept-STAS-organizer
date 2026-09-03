@@ -43,6 +43,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<Attachment> Attachments => Set<Attachment>();
 
+    public DbSet<AttachmentExpiryReminder> AttachmentExpiryReminders => Set<AttachmentExpiryReminder>();
+
     public DbSet<WorkItem> WorkItems => Set<WorkItem>();
 
     public DbSet<Absence> Absences => Set<Absence>();

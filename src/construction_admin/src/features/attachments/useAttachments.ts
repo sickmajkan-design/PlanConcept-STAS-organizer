@@ -11,10 +11,11 @@ import { createResourceKeys, useResourceMutation } from '../resourceQueries';
 
 export const attachmentKeys = createResourceKeys<AttachmentListQuery>('attachments');
 
-const expiringKey = (withinDays: number | null) => [
+const expiringKey = (withinDays: number | null, includeUndated: boolean) => [
   ...attachmentKeys.all,
   'expiring',
   withinDays,
+  includeUndated,
 ];
 
 export function useAttachmentsQuery(query: AttachmentListQuery, enabled = true) {
@@ -25,10 +26,10 @@ export function useAttachmentsQuery(query: AttachmentListQuery, enabled = true) 
   });
 }
 
-export function useExpiringDocumentsQuery(withinDays: number | null = 30) {
+export function useExpiringDocumentsQuery(withinDays: number | null = 30, includeUndated = false) {
   return useQuery({
-    queryKey: expiringKey(withinDays),
-    queryFn: () => attachmentsApi.expiring(withinDays),
+    queryKey: expiringKey(withinDays, includeUndated),
+    queryFn: () => attachmentsApi.expiring(withinDays, includeUndated),
   });
 }
 

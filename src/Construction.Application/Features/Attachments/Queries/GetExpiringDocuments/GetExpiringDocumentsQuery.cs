@@ -7,12 +7,17 @@ using Microsoft.EntityFrameworkCore;
 namespace Construction.Application.Features.Attachments.Queries.GetExpiringDocuments;
 
 /// <summary>
-/// Documents that have lapsed or are about to.
+/// Documents that have lapsed or are about to — or, with
+/// <see cref="IncludeUndated"/> set, every document filed anywhere in the
+/// company, dated or not.
 /// </summary>
 /// <remarks>
-/// The whole reason expiry dates are stored. A certificate that quietly ran
-/// out three months ago is a person who should not have been on site, and
-/// nobody finds that by opening employee records one at a time.
+/// The narrow case is the whole reason expiry dates are stored. A certificate
+/// that quietly ran out three months ago is a person who should not have
+/// been on site, and nobody finds that by opening employee records one at a
+/// time. The broad case answers a different, simpler question — "what have
+/// we ever uploaded" — that happens to reuse the exact same shape once the
+/// expiry filter is optional.
 /// </remarks>
 public record GetExpiringDocumentsQuery : IRequest<IReadOnlyList<AttachmentDto>>
 {
@@ -27,6 +32,16 @@ public record GetExpiringDocumentsQuery : IRequest<IReadOnlyList<AttachmentDto>>
     /// typed or assumed.
     /// </summary>
     public int? WithinDays { get; init; }
+
+    /// <summary>
+    /// Also include documents with no expiry date at all — a plain photo, a
+    /// site document nobody dated. Off by default so the existing "what's
+    /// lapsing" view stays exactly what it was; the whole-company "every
+    /// document we've ever filed" view turns this on and ignores
+    /// <see cref="WithinDays"/>, since a window has no meaning for a document
+    /// that never expires.
+    /// </summary>
+    public bool IncludeUndated { get; init; }
 }
 
 public class GetExpiringDocumentsQueryValidator : AbstractValidator<GetExpiringDocumentsQuery>
@@ -59,16 +74,33 @@ public class GetExpiringDocumentsQueryHandler
         GetExpiringDocumentsQuery request,
         CancellationToken cancellationToken)
     {
-        var query = _context.Attachments.AsNoTracking().Where(a => a.ExpiresAt != null);
+        var query = _context.Attachments.AsNoTracking();
 
-        if (request.WithinDays is { } withinDays)
+        if (request.IncludeUndated)
         {
-            var cutoff = DateOnly.FromDateTime(_dateTimeProvider.UtcNow).AddDays(withinDays);
-            query = query.Where(a => a.ExpiresAt <= cutoff);
+            // A window still narrows the dated documents shown; undated ones
+            // have nothing to compare against a cutoff, so they always pass.
+            if (request.WithinDays is { } withinDays)
+            {
+                var cutoff = DateOnly.FromDateTime(_dateTimeProvider.UtcNow).AddDays(withinDays);
+                query = query.Where(a => a.ExpiresAt == null || a.ExpiresAt <= cutoff);
+            }
+        }
+        else
+        {
+            query = query.Where(a => a.ExpiresAt != null);
+
+            if (request.WithinDays is { } withinDays)
+            {
+                var cutoff = DateOnly.FromDateTime(_dateTimeProvider.UtcNow).AddDays(withinDays);
+                query = query.Where(a => a.ExpiresAt <= cutoff);
+            }
         }
 
         return await query
-            // Soonest — which means most-overdue — first.
+            // Soonest — which means most-overdue — first; undated documents
+            // (null sorts last in Postgres ascending order) trail behind
+            // everything that actually has a date to act on.
             .OrderBy(a => a.ExpiresAt)
             .Select(AttachmentMapping.Projection)
             .ToListAsync(cancellationToken);

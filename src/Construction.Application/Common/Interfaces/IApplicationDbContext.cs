@@ -37,6 +37,8 @@ public interface IApplicationDbContext
 
     DbSet<Attachment> Attachments { get; }
 
+    DbSet<AttachmentExpiryReminder> AttachmentExpiryReminders { get; }
+
     DbSet<WorkItem> WorkItems { get; }
 
     DbSet<Absence> Absences { get; }

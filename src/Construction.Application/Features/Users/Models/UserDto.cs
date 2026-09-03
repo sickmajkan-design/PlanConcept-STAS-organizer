@@ -29,6 +29,12 @@ public class UserDto
     /// <summary>Name of the linked employee, so the list needs no second call.</summary>
     public string? EmployeeName { get; init; }
 
+    /// <summary>
+    /// Days of warning this admin wants before a document lapses. Null means
+    /// the system default — only meaningful for Admin/SuperAdmin accounts.
+    /// </summary>
+    public int? DocumentExpiryReminderDays { get; init; }
+
     public DateTime CreatedAt { get; init; }
 }
 
@@ -56,6 +62,7 @@ public static class UserMapping
             EmployeeName = user.Employee != null
                 ? user.Employee.FirstName + " " + user.Employee.LastName
                 : null,
+            DocumentExpiryReminderDays = user.DocumentExpiryReminderDays,
             CreatedAt = user.CreatedAt,
         };
 

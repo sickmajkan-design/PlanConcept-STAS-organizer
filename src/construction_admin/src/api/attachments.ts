@@ -36,12 +36,19 @@ export const attachmentsApi = {
       params: listParams(query),
     }),
 
-  /** Null means every document with an expiry date, however far out. */
-  expiring: (withinDays: number | null) =>
+  /**
+   * `withinDays` null means every document with an expiry date, however far
+   * out. `includeUndated` also pulls in documents that never expire — a
+   * plain photo, an undated site document — regardless of `withinDays`.
+   */
+  expiring: (withinDays: number | null, includeUndated = false) =>
     request<Attachment[]>({
       method: 'GET',
       url: '/api/v1/attachments/expiring',
-      params: withinDays === null ? {} : { withinDays },
+      params: {
+        ...(withinDays === null ? {} : { withinDays }),
+        ...(includeUndated ? { includeUndated: true } : {}),
+      },
     }),
 
   upload: (input: UploadAttachmentInput) => {

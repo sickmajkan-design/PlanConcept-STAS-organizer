@@ -389,6 +389,8 @@ export interface UserAccount {
   lockoutEndsAt: string | null;
   employeeId: string | null;
   employeeName: string | null;
+  /** Days of warning before a document lapses. Null means the system default. Admin/SuperAdmin only. */
+  documentExpiryReminderDays: number | null;
   createdAt: string;
 }
 
@@ -396,6 +398,7 @@ export interface UserAccountInput {
   email: string;
   role: Role;
   employeeId?: string | null;
+  documentExpiryReminderDays?: number | null;
 }
 
 export interface CreateUserAccountInput extends UserAccountInput {

@@ -26,6 +26,9 @@ const baseUserSchema = z.object({
   role: z.enum(roles, { message: 'Role is required.' }),
   // Empty string is what an unselected picker submits; it means "no employee".
   employeeId: z.string().optional().or(z.literal('')),
+  // Empty string means "use the system default" — the API's own
+  // interpretation of a null value.
+  documentExpiryReminderDays: z.string().optional().or(z.literal('')),
 });
 
 export const createUserSchema = baseUserSchema.extend({

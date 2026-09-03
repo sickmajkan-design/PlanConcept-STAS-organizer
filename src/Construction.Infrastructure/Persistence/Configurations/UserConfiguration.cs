@@ -37,5 +37,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(u => u.EmployeeId)
             .IsUnique()
             .HasFilter("\"EmployeeId\" IS NOT NULL");
+
+        builder.ToTable(t => t.HasCheckConstraint(
+            "ck_users_reminder_days_positive",
+            "\"DocumentExpiryReminderDays\" IS NULL OR \"DocumentExpiryReminderDays\" > 0"));
     }
 }

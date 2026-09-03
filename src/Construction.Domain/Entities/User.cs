@@ -36,6 +36,15 @@ public class User : BaseEntity, IAuditable
     /// <summary>Whether sign-in is currently barred by lockout.</summary>
     public bool IsLockedOut(DateTime utcNow) => LockoutEndsAt is { } until && until > utcNow;
 
+    /// <summary>
+    /// How many days before a document lapses this admin wants to hear about
+    /// it. Only meaningful for <see cref="UserRole.SuperAdmin"/>/
+    /// <see cref="UserRole.Admin"/> — the only roles the sweep ever notifies.
+    /// Null means the system default (see
+    /// <c>SendExpiryRemindersCommand.DefaultReminderDays</c>).
+    /// </summary>
+    public int? DocumentExpiryReminderDays { get; set; }
+
     public Guid? EmployeeId { get; set; }
 
     public Employee? Employee { get; set; }
