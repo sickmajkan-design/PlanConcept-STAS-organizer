@@ -65,6 +65,9 @@ export const paths = {
   accommodationNew: '/accommodations/new',
   accommodationEdit: (id: string) => `/accommodations/${id}/edit`,
 
+  ledgers: '/ledgers',
+  ledgerDetail: (id: string) => `/ledgers/${id}`,
+
   expiringDocuments: '/documents/expiring',
 
   notifications: '/notifications',

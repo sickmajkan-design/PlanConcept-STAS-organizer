@@ -23,6 +23,16 @@ public interface IApplicationDbContext
 
     DbSet<AccommodationRate> AccommodationRates { get; }
 
+    DbSet<Ledger> Ledgers { get; }
+
+    DbSet<LedgerColumn> LedgerColumns { get; }
+
+    DbSet<LedgerSection> LedgerSections { get; }
+
+    DbSet<LedgerRow> LedgerRows { get; }
+
+    DbSet<LedgerCell> LedgerCells { get; }
+
     DbSet<EmployeeProject> EmployeeProjects { get; }
 
     DbSet<Vehicle> Vehicles { get; }

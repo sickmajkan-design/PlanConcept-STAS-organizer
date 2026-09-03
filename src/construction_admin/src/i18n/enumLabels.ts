@@ -37,6 +37,7 @@ export type EnumKind =
   | 'toolExpenseKind'
   | 'financeEntryKind'
   | 'generalExpenseCategory'
+  | 'ledgerColumnDataType'
   | 'notificationType';
 
 export function useEnumLabel() {

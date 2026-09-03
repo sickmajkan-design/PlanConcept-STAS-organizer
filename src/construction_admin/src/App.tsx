@@ -17,6 +17,7 @@ import {
   RequireDirectoryAccess,
   RequireLabourCostAccess,
   RequireProjectManagerAccess,
+  RequireSuperAdmin,
   RequireGuest,
 } from './routes/RequireAuth';
 
@@ -164,6 +165,16 @@ const AccommodationFormPage = lazy(() =>
 const AccommodationDetailPage = lazy(() =>
   import('./pages/accommodations/AccommodationDetailPage').then((m) => ({
     default: m.AccommodationDetailPage,
+  })),
+);
+const LedgersListPage = lazy(() =>
+  import('./pages/ledgers/LedgersListPage').then((m) => ({
+    default: m.LedgersListPage,
+  })),
+);
+const LedgerDetailPage = lazy(() =>
+  import('./pages/ledgers/LedgerDetailPage').then((m) => ({
+    default: m.LedgerDetailPage,
   })),
 );
 const AnnualRealizationPlanPage = lazy(() =>
@@ -351,6 +362,13 @@ function Layout() {
                 path={`${paths.notificationGroups}/:id/edit`}
                 element={<NotificationGroupFormPage />}
               />
+            </Route>
+
+            {/* The SuperAdmin's own free-form ledger — narrower than account
+                administration; not even Admin reaches this one. */}
+            <Route element={<RequireSuperAdmin />}>
+              <Route path={paths.ledgers} element={<LedgersListPage />} />
+              <Route path={`${paths.ledgers}/:id`} element={<LedgerDetailPage />} />
             </Route>
 
             <Route path="*" element={<Navigate to={paths.home} replace />} />

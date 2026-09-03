@@ -29,6 +29,16 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<AccommodationRate> AccommodationRates => Set<AccommodationRate>();
 
+    public DbSet<Ledger> Ledgers => Set<Ledger>();
+
+    public DbSet<LedgerColumn> LedgerColumns => Set<LedgerColumn>();
+
+    public DbSet<LedgerSection> LedgerSections => Set<LedgerSection>();
+
+    public DbSet<LedgerRow> LedgerRows => Set<LedgerRow>();
+
+    public DbSet<LedgerCell> LedgerCells => Set<LedgerCell>();
+
     public DbSet<EmployeeProject> EmployeeProjects => Set<EmployeeProject>();
 
     public DbSet<Vehicle> Vehicles => Set<Vehicle>();

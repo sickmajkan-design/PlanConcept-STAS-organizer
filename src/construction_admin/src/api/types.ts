@@ -1028,6 +1028,96 @@ export interface AccommodationRateSummary {
   totalMonthlyAmount: number;
 }
 
+// ---- SuperAdmin ledger ("Evidencija") -------------------------------------
+
+export const ledgerColumnDataTypes = ['Number', 'Currency', 'Text', 'Date'] as const;
+
+export type LedgerColumnDataType = (typeof ledgerColumnDataTypes)[number];
+
+export interface LedgerSummary {
+  id: string;
+  name: string;
+  year: number;
+  month: number;
+  note: string | null;
+  createdByName: string | null;
+  createdAt: string;
+}
+
+export interface LedgerColumn {
+  id: string;
+  name: string;
+  dataType: LedgerColumnDataType;
+  sortOrder: number;
+}
+
+export interface LedgerCell {
+  columnId: string;
+  value: string | null;
+}
+
+export interface LedgerRow {
+  id: string;
+  label: string;
+  employeeId: string | null;
+  employeeName: string | null;
+  sortOrder: number;
+  cells: LedgerCell[];
+}
+
+export interface LedgerSection {
+  id: string;
+  name: string;
+  projectId: string | null;
+  projectName: string | null;
+  sortOrder: number;
+  rows: LedgerRow[];
+}
+
+export interface LedgerDetail {
+  id: string;
+  name: string;
+  year: number;
+  month: number;
+  note: string | null;
+  createdByName: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+  columns: LedgerColumn[];
+  sections: LedgerSection[];
+}
+
+export interface CreateLedgerInput {
+  name: string;
+  year: number;
+  month: number;
+  note?: string | null;
+  /** When set, duplicates that ledger's columns/sections/rows structure (blank cells) into the new one. */
+  copyFromLedgerId?: string | null;
+}
+
+export interface UpdateLedgerInput {
+  name: string;
+  year: number;
+  month: number;
+  note?: string | null;
+}
+
+export interface LedgerColumnInput {
+  name: string;
+  dataType: LedgerColumnDataType;
+}
+
+export interface LedgerSectionInput {
+  name: string;
+  projectId?: string | null;
+}
+
+export interface LedgerRowInput {
+  label: string;
+  employeeId?: string | null;
+}
+
 export interface ProjectCostRow {
   projectId: string;
   projectName: string;

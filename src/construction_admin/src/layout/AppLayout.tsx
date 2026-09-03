@@ -29,6 +29,7 @@ import {
   BusinessOutlined,
   PaymentsOutlined,
   HomeWorkOutlined,
+  TableChartOutlined,
 } from '@mui/icons-material';
 import {
   AppBar,
@@ -56,6 +57,7 @@ import {
   canAdministerAccounts,
   canManageAssignments,
   canSeeLabourCost,
+  isSuperAdmin,
   canViewDirectory,
   displayName,
 } from '../auth/authHelpers';
@@ -179,6 +181,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
             icon: <GroupsOutlined />,
           },
         ]
+      : []),
+    ...(isSuperAdmin(user)
+      ? [{ label: t('nav.ledgers'), path: paths.ledgers, icon: <TableChartOutlined /> }]
       : []),
   ];
 

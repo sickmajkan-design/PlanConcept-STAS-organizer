@@ -55,3 +55,12 @@ export function canSeeLabourCost(user: User | null | undefined): boolean {
 export function canSeeSpending(user: User | null | undefined): boolean {
   return canViewDirectory(user);
 }
+
+/**
+ * Only the SuperAdmin role (the API's `SuperAdminOnly` policy) — used for the
+ * personal ledger ("Evidencija"), which is deliberately not shared with any
+ * other role, not even Admin.
+ */
+export function isSuperAdmin(user: User | null | undefined): boolean {
+  return !!user && user.role === 'SuperAdmin';
+}
