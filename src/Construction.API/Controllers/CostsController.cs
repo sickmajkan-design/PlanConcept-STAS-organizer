@@ -4,12 +4,16 @@ using Construction.Application.Common.Models;
 using Construction.Application.Features.Costs;
 using Construction.Application.Features.Costs.Commands.DeleteCostRecord;
 using Construction.Application.Features.Costs.Commands.RecordFinanceEntry;
+using Construction.Application.Features.Costs.Commands.RecordGeneralExpense;
 using Construction.Application.Features.Costs.Commands.RecordMaterialMovement;
 using Construction.Application.Features.Costs.Commands.RecordVehicleExpense;
+using Construction.Application.Features.Costs.Commands.SetAccommodationRate;
 using Construction.Application.Features.Costs.Commands.SetEmployeeRate;
 using Construction.Application.Features.Costs.Commands.SetVehicleRentalRate;
 using Construction.Application.Features.Costs.Commands.RecordToolExpense;
+using Construction.Application.Features.Costs.Commands.UpdateAccommodationRate;
 using Construction.Application.Features.Costs.Commands.UpdateEmployeeRate;
+using Construction.Application.Features.Costs.Commands.UpdateGeneralExpense;
 using Construction.Application.Features.Costs.Commands.UpdateFinanceEntry;
 using Construction.Application.Features.Costs.Commands.UpdateMaterialMovement;
 using Construction.Application.Features.Costs.Commands.UpdateToolExpense;
@@ -405,6 +409,154 @@ public class CostsController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         await Mediator.Send(new DeleteToolExpenseCommand(id), cancellationToken);
+        return NoContent();
+    }
+
+    // ---- general expenses ---------------------------------------------------
+
+    /// <summary>Lists housing, bookkeeping, damage and every other cost with no ledger of its own.</summary>
+    [HttpGet("/api/v{version:apiVersion}/general-expenses")]
+    [HttpGet("/api/general-expenses")]
+    [ProducesResponseType(typeof(PagedList<GeneralExpenseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<PagedList<GeneralExpenseDto>>> GetGeneralExpenses(
+        [FromQuery] GetGeneralExpensesQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>The count and total of whatever the general-expense list is currently filtered to.</summary>
+    [HttpGet("/api/v{version:apiVersion}/general-expenses/summary")]
+    [HttpGet("/api/general-expenses/summary")]
+    [ProducesResponseType(typeof(GeneralExpenseSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<GeneralExpenseSummaryDto>> GetGeneralExpensesSummary(
+        [FromQuery] GetGeneralExpensesSummaryQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>Records a cost that isn't a vehicle's, a tool's or a material's.</summary>
+    [HttpPost("/api/v{version:apiVersion}/general-expenses")]
+    [HttpPost("/api/general-expenses")]
+    [Idempotent]
+    [ProducesResponseType(typeof(GeneralExpenseDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<GeneralExpenseDto>> RecordGeneralExpense(
+        RecordGeneralExpenseCommand command,
+        CancellationToken cancellationToken)
+    {
+        var expense = await Mediator.Send(command, cancellationToken);
+
+        return CreatedAtAction(nameof(GetGeneralExpenses), new { id = expense.Id }, expense);
+    }
+
+    /// <summary>Corrects a general expense that was typed in wrong.</summary>
+    [HttpPut("/api/v{version:apiVersion}/general-expenses/{id:guid}")]
+    [HttpPut("/api/general-expenses/{id:guid}")]
+    [ProducesResponseType(typeof(GeneralExpenseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<GeneralExpenseDto>> UpdateGeneralExpense(
+        Guid id,
+        UpdateGeneralExpenseCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
+    }
+
+    /// <summary>Removes a recorded general expense.</summary>
+    [HttpDelete("/api/v{version:apiVersion}/general-expenses/{id:guid}")]
+    [HttpDelete("/api/general-expenses/{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteGeneralExpense(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new DeleteGeneralExpenseCommand(id), cancellationToken);
+        return NoContent();
+    }
+
+    // ---- accommodation rates ------------------------------------------------
+
+    /// <summary>Lists rates for worker housing.</summary>
+    [HttpGet("/api/v{version:apiVersion}/accommodation-rates")]
+    [HttpGet("/api/accommodation-rates")]
+    [ProducesResponseType(typeof(PagedList<AccommodationRateDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<PagedList<AccommodationRateDto>>> GetAccommodationRates(
+        [FromQuery] GetAccommodationRatesQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>The count and total monthly amount of whatever the accommodation-rates list is currently filtered to.</summary>
+    [HttpGet("/api/v{version:apiVersion}/accommodation-rates/summary")]
+    [HttpGet("/api/accommodation-rates/summary")]
+    [ProducesResponseType(typeof(AccommodationRateSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<AccommodationRateSummaryDto>> GetAccommodationRatesSummary(
+        [FromQuery] GetAccommodationRatesSummaryQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>Puts a new rate in force for an accommodation, closing off the one before it.</summary>
+    [HttpPost("/api/v{version:apiVersion}/accommodation-rates")]
+    [HttpPost("/api/accommodation-rates")]
+    [Idempotent]
+    [ProducesResponseType(typeof(AccommodationRateDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<AccommodationRateDto>> SetAccommodationRate(
+        SetAccommodationRateCommand command,
+        CancellationToken cancellationToken)
+    {
+        var rate = await Mediator.Send(command, cancellationToken);
+
+        return CreatedAtAction(nameof(GetAccommodationRates), new { id = rate.Id }, rate);
+    }
+
+    /// <summary>Corrects an accommodation rate that was typed in wrong.</summary>
+    [HttpPut("/api/v{version:apiVersion}/accommodation-rates/{id:guid}")]
+    [HttpPut("/api/accommodation-rates/{id:guid}")]
+    [ProducesResponseType(typeof(AccommodationRateDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<AccommodationRateDto>> UpdateAccommodationRate(
+        Guid id,
+        UpdateAccommodationRateCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
+    }
+
+    /// <summary>Removes an accommodation rate.</summary>
+    [HttpDelete("/api/v{version:apiVersion}/accommodation-rates/{id:guid}")]
+    [HttpDelete("/api/accommodation-rates/{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteAccommodationRate(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new DeleteAccommodationRateCommand(id), cancellationToken);
         return NoContent();
     }
 

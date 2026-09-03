@@ -29,7 +29,16 @@ public enum AttachmentOwnerType
     ToolExpense = 10,
 
     /// <summary>The rental or lease contract behind a vehicle's rental rate.</summary>
-    VehicleRentalRate = 11
+    VehicleRentalRate = 11,
+
+    /// <summary>The receipt or evidence behind a general expense — a damage photo, an invoice.</summary>
+    GeneralExpense = 12,
+
+    /// <summary>A photo or document of the apartment itself.</summary>
+    Accommodation = 13,
+
+    /// <summary>The lease contract behind an accommodation's rate.</summary>
+    AccommodationRate = 14
 }
 
 /// <summary>
@@ -63,6 +72,9 @@ public static class AttachmentOwner
         attachment.FinanceEntryId = type == AttachmentOwnerType.FinanceEntry ? id : null;
         attachment.ToolExpenseId = type == AttachmentOwnerType.ToolExpense ? id : null;
         attachment.VehicleRentalRateId = type == AttachmentOwnerType.VehicleRentalRate ? id : null;
+        attachment.GeneralExpenseId = type == AttachmentOwnerType.GeneralExpense ? id : null;
+        attachment.AccommodationId = type == AttachmentOwnerType.Accommodation ? id : null;
+        attachment.AccommodationRateId = type == AttachmentOwnerType.AccommodationRate ? id : null;
     }
 
     /// <summary>Reads the owner back off a stored row.</summary>
@@ -123,6 +135,21 @@ public static class AttachmentOwner
             return (AttachmentOwnerType.VehicleRentalRate, vehicleRentalRateId);
         }
 
+        if (attachment.GeneralExpenseId is { } generalExpenseId)
+        {
+            return (AttachmentOwnerType.GeneralExpense, generalExpenseId);
+        }
+
+        if (attachment.AccommodationId is { } accommodationId)
+        {
+            return (AttachmentOwnerType.Accommodation, accommodationId);
+        }
+
+        if (attachment.AccommodationRateId is { } accommodationRateId)
+        {
+            return (AttachmentOwnerType.AccommodationRate, accommodationRateId);
+        }
+
         // The table's check constraint makes this unreachable; if it is ever
         // reached, something has bypassed the database and guessing an owner
         // would hide it.
@@ -144,6 +171,9 @@ public static class AttachmentOwner
         AttachmentOwnerType.FinanceEntry => "finance-entries",
         AttachmentOwnerType.ToolExpense => "tool-expenses",
         AttachmentOwnerType.VehicleRentalRate => "vehicle-rental-rates",
+        AttachmentOwnerType.GeneralExpense => "general-expenses",
+        AttachmentOwnerType.Accommodation => "accommodations",
+        AttachmentOwnerType.AccommodationRate => "accommodation-rates",
         _ => "other"
     };
 }

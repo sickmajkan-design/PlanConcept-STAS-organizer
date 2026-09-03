@@ -27,6 +27,8 @@ import {
   PasswordOutlined,
   PeopleOutlined,
   BusinessOutlined,
+  PaymentsOutlined,
+  HomeWorkOutlined,
 } from '@mui/icons-material';
 import {
   AppBar,
@@ -130,6 +132,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
             label: t('nav.toolExpenses'),
             path: paths.toolExpenses,
             icon: <BuildCircleOutlined />,
+          },
+          {
+            label: t('nav.generalExpenses'),
+            path: paths.generalExpenses,
+            icon: <PaymentsOutlined />,
+          },
+          {
+            label: t('nav.accommodations'),
+            path: paths.accommodations,
+            icon: <HomeWorkOutlined />,
           },
         ]
       : []),

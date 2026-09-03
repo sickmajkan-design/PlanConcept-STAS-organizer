@@ -45,6 +45,7 @@ type ProjectCostSortField =
   | 'materialCost'
   | 'materialsOnSiteValue'
   | 'manualPayAmount'
+  | 'generalExpenseCost'
   | 'total';
 type VehicleCostSortField =
   | 'vehicleName'
@@ -176,6 +177,8 @@ function ProjectCosts({ period }: { period: Period }) {
           return (a.materialsOnSiteValue - b.materialsOnSiteValue) * factor;
         case 'manualPayAmount':
           return (a.manualPayAmount - b.manualPayAmount) * factor;
+        case 'generalExpenseCost':
+          return (a.generalExpenseCost - b.generalExpenseCost) * factor;
         case 'total':
           return (a.total - b.total) * factor;
         default:
@@ -261,6 +264,18 @@ function ProjectCosts({ period }: { period: Period }) {
                   {t('costs.material')}
                 </TableSortLabel>
               </TableCell>
+              <TableCell
+                align="right"
+                sortDirection={sortBy === 'generalExpenseCost' ? sortDirection : false}
+              >
+                <TableSortLabel
+                  active={sortBy === 'generalExpenseCost'}
+                  direction={sortBy === 'generalExpenseCost' ? sortDirection : 'asc'}
+                  onClick={() => toggleSort('generalExpenseCost')}
+                >
+                  {t('costs.generalExpense')}
+                </TableSortLabel>
+              </TableCell>
               <TableCell align="right" sortDirection={sortBy === 'total' ? sortDirection : false}>
                 <TableSortLabel
                   active={sortBy === 'total'}
@@ -319,6 +334,9 @@ function ProjectCosts({ period }: { period: Period }) {
                 <TableCell align="right">
                   {formatMoney(row.materialCost, locale)}
                 </TableCell>
+                <TableCell align="right">
+                  {formatMoney(row.generalExpenseCost, locale)}
+                </TableCell>
                 <TableCell align="right" sx={{ fontWeight: 600 }}>
                   {formatMoney(row.total, locale)}
                 </TableCell>
@@ -346,6 +364,9 @@ function ProjectCosts({ period }: { period: Period }) {
               )}
               <TableCell align="right" sx={{ fontWeight: 700 }}>
                 {formatMoney(data.totalMaterialCost, locale)}
+              </TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700 }}>
+                {formatMoney(data.totalGeneralExpenseCost, locale)}
               </TableCell>
               <TableCell align="right" sx={{ fontWeight: 700 }}>
                 {formatMoney(data.total, locale)}

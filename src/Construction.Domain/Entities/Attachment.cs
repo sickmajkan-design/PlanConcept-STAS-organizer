@@ -25,7 +25,9 @@ namespace Construction.Domain.Entities;
 /// through ninth, <see cref="ToolExpense"/> the tenth, so a receipt photo
 /// disappears with the cost record it documents, and
 /// <see cref="VehicleRentalRate"/> the eleventh, so a lease contract
-/// disappears with the rate row it was signed for.
+/// disappears with the rate row it was signed for, and
+/// <see cref="GeneralExpense"/>, <see cref="Accommodation"/> and
+/// <see cref="AccommodationRate"/> the twelfth through fourteenth.
 /// </remarks>
 public class Attachment : BaseEntity, ISoftDeletable, IAuditable
 {
@@ -95,6 +97,18 @@ public class Attachment : BaseEntity, ISoftDeletable, IAuditable
     public Guid? VehicleRentalRateId { get; set; }
 
     public VehicleRentalRate? VehicleRentalRate { get; set; }
+
+    public Guid? GeneralExpenseId { get; set; }
+
+    public GeneralExpense? GeneralExpense { get; set; }
+
+    public Guid? AccommodationId { get; set; }
+
+    public Accommodation? Accommodation { get; set; }
+
+    public Guid? AccommodationRateId { get; set; }
+
+    public AccommodationRate? AccommodationRate { get; set; }
 
     public Guid? UploadedByUserId { get; set; }
 

@@ -544,6 +544,9 @@ export const attachmentOwnerTypes = [
   'FinanceEntry',
   'ToolExpense',
   'VehicleRentalRate',
+  'GeneralExpense',
+  'Accommodation',
+  'AccommodationRate',
 ] as const;
 
 export type AttachmentOwnerType = (typeof attachmentOwnerTypes)[number];
@@ -938,6 +941,93 @@ export interface FinanceEntryInput {
   note?: string | null;
 }
 
+export const generalExpenseCategories = [
+  'Housing',
+  'Bookkeeping',
+  'Damage',
+  'Complaint',
+  'WorkerOther',
+  'Other',
+] as const;
+
+export type GeneralExpenseCategory = (typeof generalExpenseCategories)[number];
+
+export interface GeneralExpense {
+  id: string;
+  category: GeneralExpenseCategory;
+  amount: number;
+  /** `YYYY-MM-DD`. */
+  occurredOn: string;
+  projectId: string | null;
+  projectName: string | null;
+  employeeId: string | null;
+  employeeName: string | null;
+  supplier: string | null;
+  note: string | null;
+  recordedByName: string | null;
+  createdAt: string;
+}
+
+export interface GeneralExpenseInput {
+  category: GeneralExpenseCategory;
+  amount: number;
+  occurredOn?: string | null;
+  projectId?: string | null;
+  employeeId?: string | null;
+  supplier?: string | null;
+  note?: string | null;
+}
+
+export interface GeneralExpenseSummary {
+  count: number;
+  totalAmount: number;
+}
+
+export interface Accommodation {
+  id: string;
+  address: string;
+  note: string | null;
+  /** Set when a rate is currently in force. Null for one with no rate on file. */
+  currentMonthlyAmount: number | null;
+  currentProvider: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface AccommodationInput {
+  address: string;
+  note?: string | null;
+}
+
+export interface AccommodationRate {
+  id: string;
+  accommodationId: string;
+  accommodationAddress: string;
+  monthlyAmount: number;
+  provider: string | null;
+  /** `YYYY-MM-DD`. */
+  startDate: string;
+  /** `YYYY-MM-DD`, or null while it is the rate in force. */
+  endDate: string | null;
+  note: string | null;
+  setByName: string | null;
+  createdAt: string;
+}
+
+export interface AccommodationRateInput {
+  accommodationId: string;
+  monthlyAmount: number;
+  provider?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  note?: string | null;
+}
+
+export interface AccommodationRateSummary {
+  count: number;
+  totalMonthlyAmount: number;
+}
+
 export interface ProjectCostRow {
   projectId: string;
   projectName: string;
@@ -960,6 +1050,12 @@ export interface ProjectCostRow {
    * counting the same work twice.
    */
   manualPayAmount: number;
+  /**
+   * General expenses (housing, bookkeeping, damage, and the like) tied to
+   * this project over the period. Part of `total` — unlike `manualPayAmount`,
+   * there's no other source this could double-count against.
+   */
+  generalExpenseCost: number;
   total: number;
 }
 
@@ -973,6 +1069,7 @@ export interface ProjectCostReport {
   totalMaterialCost: number;
   totalMaterialsOnSiteValue: number;
   totalManualPayAmount: number;
+  totalGeneralExpenseCost: number;
   total: number;
 }
 

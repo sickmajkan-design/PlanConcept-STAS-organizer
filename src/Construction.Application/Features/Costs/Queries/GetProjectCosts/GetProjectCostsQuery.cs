@@ -92,6 +92,8 @@ public class GetProjectCostsQueryHandler
             ? await LoadFinanceEntriesAsync(request, cancellationToken)
             : [];
 
+        var generalExpenses = await LoadGeneralExpensesAsync(request, cancellationToken);
+
         // Every site that had a cost, or has material sitting on it. A site
         // with none of these is not a row of zeroes, it is a site nothing
         // happened on.
@@ -99,6 +101,7 @@ public class GetProjectCostsQueryHandler
             .Concat(materials.Keys)
             .Concat(materialsOnSite.Keys)
             .Concat(manualPay.Keys)
+            .Concat(generalExpenses.Keys)
             .ToHashSet();
 
         var names = await _context.Projects
@@ -114,6 +117,7 @@ public class GetProjectCostsQueryHandler
                 var materialCost = materials.GetValueOrDefault(id);
                 var onSiteValue = materialsOnSite.GetValueOrDefault(id);
                 var manualPayAmount = manualPay.GetValueOrDefault(id);
+                var generalExpenseCost = generalExpenses.GetValueOrDefault(id);
 
                 return new ProjectCostRowDto
                 {
@@ -125,7 +129,8 @@ public class GetProjectCostsQueryHandler
                     MaterialCost = decimal.Round(materialCost, 2),
                     MaterialsOnSiteValue = decimal.Round(onSiteValue, 2),
                     ManualPayAmount = decimal.Round(manualPayAmount, 2),
-                    Total = decimal.Round(l.Cost + materialCost, 2)
+                    GeneralExpenseCost = decimal.Round(generalExpenseCost, 2),
+                    Total = decimal.Round(l.Cost + materialCost + generalExpenseCost, 2)
                 };
             })
             .OrderByDescending(r => r.Total)
@@ -142,6 +147,7 @@ public class GetProjectCostsQueryHandler
             TotalMaterialCost = rows.Sum(r => r.MaterialCost),
             TotalMaterialsOnSiteValue = rows.Sum(r => r.MaterialsOnSiteValue),
             TotalManualPayAmount = rows.Sum(r => r.ManualPayAmount),
+            TotalGeneralExpenseCost = rows.Sum(r => r.GeneralExpenseCost),
             Total = rows.Sum(r => r.Total)
         };
     }
@@ -334,6 +340,33 @@ public class GetProjectCostsQueryHandler
             {
                 ProjectId = g.Key,
                 Amount = g.Sum(f => f.Amount)
+            })
+            .ToListAsync(cancellationToken);
+
+        return rows.ToDictionary(r => r.ProjectId, r => r.Amount);
+    }
+
+    /// <summary>
+    /// General expenses (<c>GeneralExpense</c>) attributed to a site over the
+    /// period — housing, bookkeeping, damage, and the rest of what has no
+    /// other ledger. Unlike <see cref="LoadFinanceEntriesAsync"/>'s figure,
+    /// this one is safe to fold straight into the total: it has no other
+    /// source it could be double-counting against.
+    /// </summary>
+    private async Task<Dictionary<Guid, decimal>> LoadGeneralExpensesAsync(
+        GetProjectCostsQuery request,
+        CancellationToken cancellationToken)
+    {
+        var rows = await _context.GeneralExpenses
+            .AsNoTracking()
+            .Where(e => e.ProjectId != null)
+            .Where(e => request.ProjectId == null || e.ProjectId == request.ProjectId)
+            .Where(e => e.OccurredOn >= request.From && e.OccurredOn <= request.To)
+            .GroupBy(e => e.ProjectId!.Value)
+            .Select(g => new
+            {
+                ProjectId = g.Key,
+                Amount = g.Sum(e => e.Amount)
             })
             .ToListAsync(cancellationToken);
 

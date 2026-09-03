@@ -60,6 +60,9 @@ const CATEGORIES_BY_OWNER_TYPE: Record<AttachmentOwnerType, readonly AttachmentC
   FinanceEntry: ['Other'],
   ToolExpense: ['Other'],
   VehicleRentalRate: ['Contract', 'Other'],
+  GeneralExpense: ['Other'],
+  Accommodation: ['Photo', 'Other'],
+  AccommodationRate: ['Contract', 'Other'],
 };
 
 /**

@@ -17,6 +17,12 @@ public interface IApplicationDbContext
 
     DbSet<Customer> Customers { get; }
 
+    DbSet<GeneralExpense> GeneralExpenses { get; }
+
+    DbSet<Accommodation> Accommodations { get; }
+
+    DbSet<AccommodationRate> AccommodationRates { get; }
+
     DbSet<EmployeeProject> EmployeeProjects { get; }
 
     DbSet<Vehicle> Vehicles { get; }

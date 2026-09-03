@@ -1,17 +1,21 @@
 import { useQuery } from '@tanstack/react-query';
 import {
   costsApi,
+  type AccommodationRateListQuery,
   type CostReportQuery,
   type EmployeeRateListQuery,
   type FinanceEntryListQuery,
+  type GeneralExpenseListQuery,
   type MaterialMovementListQuery,
   type ToolExpenseListQuery,
   type VehicleExpenseListQuery,
   type VehicleRentalRateListQuery,
 } from '../../api/costs';
 import type {
+  AccommodationRateInput,
   EmployeeRateInput,
   FinanceEntryInput,
+  GeneralExpenseInput,
   ListQuery,
   MaterialMovementInput,
   ToolExpenseInput,
@@ -28,6 +32,9 @@ export const vehicleRentalRateKeys =
   createResourceKeys<VehicleRentalRateListQuery>('vehicleRentalRates');
 export const toolExpenseKeys = createResourceKeys<ToolExpenseListQuery>('toolExpenses');
 export const financeEntryKeys = createResourceKeys<FinanceEntryListQuery>('financeEntries');
+export const generalExpenseKeys = createResourceKeys<GeneralExpenseListQuery>('generalExpenses');
+export const accommodationRateKeys =
+  createResourceKeys<AccommodationRateListQuery>('accommodationRates');
 
 export const costReportKeys = {
   all: ['costReports'] as const,
@@ -269,6 +276,79 @@ export function useUpdateFinanceEntry() {
 export function useDeleteFinanceEntry() {
   return useResourceMutation((id: string) => costsApi.financeEntries.remove(id), [
     financeEntryKeys.all,
+    costReportKeys.all,
+  ]);
+}
+
+// ---- general expenses --------------------------------------------------------
+
+export function useGeneralExpensesQuery(query: GeneralExpenseListQuery) {
+  return useResourceList(generalExpenseKeys, costsApi.generalExpenses.list, query);
+}
+
+export function useGeneralExpensesSummaryQuery(query: GeneralExpenseListQuery) {
+  const params = summaryParams(query);
+  return useQuery({
+    queryKey: [...generalExpenseKeys.all, 'summary', params],
+    queryFn: () => costsApi.generalExpenses.summary(params),
+  });
+}
+
+export function useRecordGeneralExpense() {
+  return useResourceMutation(
+    (input: GeneralExpenseInput, key: string) => costsApi.generalExpenses.record(input, key),
+    [generalExpenseKeys.all, costReportKeys.all],
+  );
+}
+
+export function useUpdateGeneralExpense() {
+  return useResourceMutation(
+    (variables: { id: string; input: GeneralExpenseInput }, key: string) =>
+      costsApi.generalExpenses.update(variables.id, variables.input, key),
+    [generalExpenseKeys.all, costReportKeys.all],
+  );
+}
+
+export function useDeleteGeneralExpense() {
+  return useResourceMutation((id: string) => costsApi.generalExpenses.remove(id), [
+    generalExpenseKeys.all,
+    costReportKeys.all,
+  ]);
+}
+
+// ---- accommodation rates -------------------------------------------------
+
+export function useAccommodationRatesQuery(query: AccommodationRateListQuery) {
+  return useResourceList(accommodationRateKeys, costsApi.accommodationRates.list, query);
+}
+
+export function useAccommodationRatesSummaryQuery(query: AccommodationRateListQuery) {
+  const params = summaryParams(query);
+  return useQuery({
+    queryKey: [...accommodationRateKeys.all, 'summary', params],
+    queryFn: () => costsApi.accommodationRates.summary(params),
+  });
+}
+
+export function useSetAccommodationRate() {
+  return useResourceMutation(
+    (input: AccommodationRateInput, key: string) =>
+      costsApi.accommodationRates.set(input, key),
+    [accommodationRateKeys.all, costReportKeys.all],
+  );
+}
+
+export function useUpdateAccommodationRate() {
+  return useResourceMutation(
+    (variables: { id: string; input: AccommodationRateInput }, key: string) =>
+      costsApi.accommodationRates.update(variables.id, variables.input, key),
+    [accommodationRateKeys.all, costReportKeys.all],
+  );
+}
+
+export function useDeleteAccommodationRate() {
+  return useResourceMutation((id: string) => costsApi.accommodationRates.remove(id), [
+    accommodationRateKeys.all,
     costReportKeys.all,
   ]);
 }

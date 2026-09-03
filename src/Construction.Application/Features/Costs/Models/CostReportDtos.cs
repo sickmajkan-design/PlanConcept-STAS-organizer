@@ -35,6 +35,14 @@ public class ProjectCostReportDto
     /// </summary>
     public decimal TotalManualPayAmount { get; init; }
 
+    /// <summary>
+    /// General expenses (housing, bookkeeping, damage, and the like) tied to
+    /// a project over the period — part of <see cref="Total"/>, unlike
+    /// <see cref="TotalManualPayAmount"/>: there is no other source this could
+    /// double-count against.
+    /// </summary>
+    public decimal TotalGeneralExpenseCost { get; init; }
+
     public decimal Total { get; init; }
 }
 
@@ -82,6 +90,14 @@ public class ProjectCostRowDto
     /// Shown as its own figure instead of guessed away.
     /// </summary>
     public decimal ManualPayAmount { get; init; }
+
+    /// <summary>
+    /// General expenses (housing, bookkeeping, damage, and the like) tied to
+    /// this project over the period. Folded into <see cref="Total"/> — unlike
+    /// <see cref="ManualPayAmount"/>, this is a genuinely new cost source with
+    /// nothing else it could double-count against.
+    /// </summary>
+    public decimal GeneralExpenseCost { get; init; }
 
     public decimal Total { get; init; }
 }

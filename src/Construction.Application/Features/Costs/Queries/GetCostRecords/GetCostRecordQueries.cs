@@ -1186,3 +1186,387 @@ public class GetVehicleRentalRatesSummaryQueryHandler
         };
     }
 }
+
+public record GetGeneralExpensesQuery : ISortablePagedQuery, IRequest<PagedList<GeneralExpenseDto>>
+{
+    public static readonly string[] AllowedSortFields =
+    [
+        "occurredOn", "category", "amount", "projectName", "employeeName",
+        "supplier", "recordedByName", "createdAt"
+    ];
+
+    public int PageNumber { get; init; } = 1;
+
+    public int PageSize { get; init; } = 20;
+
+    public GeneralExpenseCategory? Category { get; init; }
+
+    public Guid? ProjectId { get; init; }
+
+    public Guid? EmployeeId { get; init; }
+
+    public DateOnly? From { get; init; }
+
+    public DateOnly? To { get; init; }
+
+    public string? SortBy { get; init; }
+
+    public bool SortDescending { get; init; }
+}
+
+public class GetGeneralExpensesQueryValidator : SortablePagedQueryValidator<GetGeneralExpensesQuery>
+{
+    public GetGeneralExpensesQueryValidator()
+        : base(GetGeneralExpensesQuery.AllowedSortFields, maxPageSize: 200)
+    {
+        RuleFor(x => x.To)
+            .GreaterThanOrEqualTo(x => x.From!.Value)
+            .When(x => x.From is not null && x.To is not null);
+    }
+}
+
+public class GetGeneralExpensesQueryHandler
+    : IRequestHandler<GetGeneralExpensesQuery, PagedList<GeneralExpenseDto>>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+
+    public GetGeneralExpensesQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+    }
+
+    public async Task<PagedList<GeneralExpenseDto>> Handle(
+        GetGeneralExpensesQuery request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not see costs.");
+        }
+
+        var query = _context.GeneralExpenses.AsNoTracking();
+
+        if (request.Category is { } category)
+        {
+            query = query.Where(e => e.Category == category);
+        }
+
+        if (request.ProjectId is { } projectId)
+        {
+            query = query.Where(e => e.ProjectId == projectId);
+        }
+
+        if (request.EmployeeId is { } employeeId)
+        {
+            query = query.Where(e => e.EmployeeId == employeeId);
+        }
+
+        if (request.From is { } from)
+        {
+            query = query.Where(e => e.OccurredOn >= from);
+        }
+
+        if (request.To is { } to)
+        {
+            query = query.Where(e => e.OccurredOn <= to);
+        }
+
+        query = ApplySorting(query, request.SortBy, request.SortDescending);
+
+        return await PagedList<GeneralExpenseDto>.CreateAsync(
+            query.Select(GeneralExpenseMapping.Projection),
+            request.PageNumber,
+            request.PageSize,
+            cancellationToken);
+    }
+
+    private static IQueryable<GeneralExpense> ApplySorting(
+        IQueryable<GeneralExpense> query,
+        string? sortBy,
+        bool descending)
+    {
+        IOrderedQueryable<GeneralExpense> ordered = (sortBy?.ToLowerInvariant(), descending) switch
+        {
+            ("occurredon", false) => query.OrderBy(e => e.OccurredOn),
+            ("category", false) => query.OrderBy(e => e.Category),
+            ("category", true) => query.OrderByDescending(e => e.Category),
+            ("amount", false) => query.OrderBy(e => e.Amount),
+            ("amount", true) => query.OrderByDescending(e => e.Amount),
+            ("projectname", false) => query
+                .OrderBy(e => e.Project != null ? e.Project.Name : null),
+            ("projectname", true) => query
+                .OrderByDescending(e => e.Project != null ? e.Project.Name : null),
+            ("employeename", false) => query
+                .OrderBy(e => e.Employee != null ? e.Employee.LastName : null)
+                .ThenBy(e => e.Employee != null ? e.Employee.FirstName : null),
+            ("employeename", true) => query
+                .OrderByDescending(e => e.Employee != null ? e.Employee.LastName : null)
+                .ThenByDescending(e => e.Employee != null ? e.Employee.FirstName : null),
+            ("supplier", false) => query.OrderBy(e => e.Supplier == null).ThenBy(e => e.Supplier),
+            ("supplier", true) => query
+                .OrderByDescending(e => e.Supplier == null).ThenByDescending(e => e.Supplier),
+            ("recordedbyname", false) => query
+                .OrderBy(e => e.RecordedByUser != null ? e.RecordedByUser.Email : null),
+            ("recordedbyname", true) => query
+                .OrderByDescending(e => e.RecordedByUser != null ? e.RecordedByUser.Email : null),
+            ("createdat", false) => query.OrderBy(e => e.CreatedAt),
+            ("createdat", true) => query.OrderByDescending(e => e.CreatedAt),
+            // Default and explicit "occurredOn desc" both land here: newest
+            // cost first, which is what a running ledger reads as.
+            _ => query.OrderByDescending(e => e.OccurredOn)
+        };
+
+        // Stable tiebreaker so pagination never skips or duplicates rows.
+        return ordered.ThenByDescending(e => e.CreatedAt).ThenBy(e => e.Id);
+    }
+}
+
+/// <summary>The count and total of whatever the general-expense list is currently filtered to.</summary>
+public record GetGeneralExpensesSummaryQuery : IRequest<GeneralExpenseSummaryDto>
+{
+    public GeneralExpenseCategory? Category { get; init; }
+
+    public Guid? ProjectId { get; init; }
+
+    public Guid? EmployeeId { get; init; }
+
+    public DateOnly? From { get; init; }
+
+    public DateOnly? To { get; init; }
+}
+
+public class GetGeneralExpensesSummaryQueryHandler
+    : IRequestHandler<GetGeneralExpensesSummaryQuery, GeneralExpenseSummaryDto>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+
+    public GetGeneralExpensesSummaryQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+    }
+
+    public async Task<GeneralExpenseSummaryDto> Handle(
+        GetGeneralExpensesSummaryQuery request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not see costs.");
+        }
+
+        var query = _context.GeneralExpenses.AsNoTracking();
+
+        if (request.Category is { } category)
+        {
+            query = query.Where(e => e.Category == category);
+        }
+
+        if (request.ProjectId is { } projectId)
+        {
+            query = query.Where(e => e.ProjectId == projectId);
+        }
+
+        if (request.EmployeeId is { } employeeId)
+        {
+            query = query.Where(e => e.EmployeeId == employeeId);
+        }
+
+        if (request.From is { } from)
+        {
+            query = query.Where(e => e.OccurredOn >= from);
+        }
+
+        if (request.To is { } to)
+        {
+            query = query.Where(e => e.OccurredOn <= to);
+        }
+
+        var count = await query.CountAsync(cancellationToken);
+        var totalAmount = count > 0
+            ? await query.SumAsync(e => e.Amount, cancellationToken)
+            : 0m;
+
+        return new GeneralExpenseSummaryDto
+        {
+            Count = count,
+            TotalAmount = totalAmount
+        };
+    }
+}
+
+public record GetAccommodationRatesQuery : ISortablePagedQuery, IRequest<PagedList<AccommodationRateDto>>
+{
+    public static readonly string[] AllowedSortFields =
+    [
+        "accommodationAddress", "monthlyAmount", "provider", "startDate", "endDate", "setByName", "createdAt"
+    ];
+
+    public int PageNumber { get; init; } = 1;
+
+    public int PageSize { get; init; } = 20;
+
+    public Guid? AccommodationId { get; init; }
+
+    /// <summary>Only the rate in force today.</summary>
+    public bool CurrentOnly { get; init; }
+
+    public string? SortBy { get; init; }
+
+    public bool SortDescending { get; init; }
+}
+
+public class GetAccommodationRatesQueryValidator : SortablePagedQueryValidator<GetAccommodationRatesQuery>
+{
+    public GetAccommodationRatesQueryValidator()
+        : base(GetAccommodationRatesQuery.AllowedSortFields, maxPageSize: 200)
+    {
+    }
+}
+
+public class GetAccommodationRatesQueryHandler
+    : IRequestHandler<GetAccommodationRatesQuery, PagedList<AccommodationRateDto>>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
+
+    public GetAccommodationRatesQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
+    }
+
+    public async Task<PagedList<AccommodationRateDto>> Handle(
+        GetAccommodationRatesQuery request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not see accommodation rates.");
+        }
+
+        var query = _context.AccommodationRates.AsNoTracking();
+
+        if (request.AccommodationId is { } accommodationId)
+        {
+            query = query.Where(r => r.AccommodationId == accommodationId);
+        }
+
+        if (request.CurrentOnly)
+        {
+            var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            query = query.Where(r =>
+                r.StartDate <= today && (r.EndDate == null || r.EndDate >= today));
+        }
+
+        query = ApplySorting(query, request.SortBy, request.SortDescending);
+
+        return await PagedList<AccommodationRateDto>.CreateAsync(
+            query.Select(AccommodationRateMapping.Projection),
+            request.PageNumber,
+            request.PageSize,
+            cancellationToken);
+    }
+
+    private static IQueryable<AccommodationRate> ApplySorting(
+        IQueryable<AccommodationRate> query,
+        string? sortBy,
+        bool descending)
+    {
+        IOrderedQueryable<AccommodationRate> ordered = (sortBy?.ToLowerInvariant(), descending) switch
+        {
+            ("accommodationaddress", false) => query.OrderBy(r => r.Accommodation.Address),
+            ("accommodationaddress", true) => query.OrderByDescending(r => r.Accommodation.Address),
+            ("monthlyamount", false) => query.OrderBy(r => r.MonthlyAmount),
+            ("monthlyamount", true) => query.OrderByDescending(r => r.MonthlyAmount),
+            ("provider", false) => query.OrderBy(r => r.Provider == null).ThenBy(r => r.Provider),
+            ("provider", true) => query
+                .OrderByDescending(r => r.Provider == null).ThenByDescending(r => r.Provider),
+            ("enddate", false) => query.OrderBy(r => r.EndDate == null).ThenBy(r => r.EndDate),
+            ("enddate", true) => query
+                .OrderByDescending(r => r.EndDate == null).ThenByDescending(r => r.EndDate),
+            ("setbyname", false) => query
+                .OrderBy(r => r.SetByUser != null ? r.SetByUser.Email : null),
+            ("setbyname", true) => query
+                .OrderByDescending(r => r.SetByUser != null ? r.SetByUser.Email : null),
+            ("createdat", false) => query.OrderBy(r => r.CreatedAt),
+            ("createdat", true) => query.OrderByDescending(r => r.CreatedAt),
+            _ => query.OrderByDescending(r => r.StartDate)
+        };
+
+        return ordered.ThenBy(r => r.Id);
+    }
+}
+
+/// <summary>The count and total monthly commitment of whatever the accommodation-rates list is currently filtered to.</summary>
+public record GetAccommodationRatesSummaryQuery : IRequest<AccommodationRateSummaryDto>
+{
+    public Guid? AccommodationId { get; init; }
+
+    public bool CurrentOnly { get; init; }
+}
+
+public class GetAccommodationRatesSummaryQueryHandler
+    : IRequestHandler<GetAccommodationRatesSummaryQuery, AccommodationRateSummaryDto>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
+
+    public GetAccommodationRatesSummaryQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
+    }
+
+    public async Task<AccommodationRateSummaryDto> Handle(
+        GetAccommodationRatesSummaryQuery request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not see accommodation rates.");
+        }
+
+        var query = _context.AccommodationRates.AsNoTracking();
+
+        if (request.AccommodationId is { } accommodationId)
+        {
+            query = query.Where(r => r.AccommodationId == accommodationId);
+        }
+
+        if (request.CurrentOnly)
+        {
+            var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            query = query.Where(r =>
+                r.StartDate <= today && (r.EndDate == null || r.EndDate >= today));
+        }
+
+        var count = await query.CountAsync(cancellationToken);
+        var totalMonthlyAmount = count > 0
+            ? await query.SumAsync(r => r.MonthlyAmount, cancellationToken)
+            : 0m;
+
+        return new AccommodationRateSummaryDto
+        {
+            Count = count,
+            TotalMonthlyAmount = totalMonthlyAmount
+        };
+    }
+}

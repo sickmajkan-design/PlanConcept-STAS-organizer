@@ -23,6 +23,12 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<Customer> Customers => Set<Customer>();
 
+    public DbSet<GeneralExpense> GeneralExpenses => Set<GeneralExpense>();
+
+    public DbSet<Accommodation> Accommodations => Set<Accommodation>();
+
+    public DbSet<AccommodationRate> AccommodationRates => Set<AccommodationRate>();
+
     public DbSet<EmployeeProject> EmployeeProjects => Set<EmployeeProject>();
 
     public DbSet<Vehicle> Vehicles => Set<Vehicle>();

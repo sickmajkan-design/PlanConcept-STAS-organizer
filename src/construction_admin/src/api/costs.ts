@@ -2,6 +2,9 @@ import { request } from './client';
 import { idempotencyHeaders } from './idempotency';
 import { listParams } from './resource';
 import type {
+  AccommodationRate,
+  AccommodationRateInput,
+  AccommodationRateSummary,
   EmployeeRate,
   EmployeeRateInput,
   EmployeeRateSummary,
@@ -9,6 +12,10 @@ import type {
   FinanceEntryInput,
   FinanceEntryKind,
   FinanceEntrySummary,
+  GeneralExpense,
+  GeneralExpenseCategory,
+  GeneralExpenseInput,
+  GeneralExpenseSummary,
   ListQuery,
   MaterialMovement,
   MaterialMovementInput,
@@ -78,6 +85,21 @@ export interface FinanceEntryListQuery extends ListQuery {
   /** `YYYY-MM-DD`. */
   from?: string;
   to?: string;
+}
+
+export interface GeneralExpenseListQuery extends ListQuery {
+  category?: GeneralExpenseCategory;
+  projectId?: string;
+  employeeId?: string;
+  /** `YYYY-MM-DD`. */
+  from?: string;
+  to?: string;
+}
+
+export interface AccommodationRateListQuery extends ListQuery {
+  accommodationId?: string;
+  /** Only the rate in force today. */
+  currentOnly?: boolean;
 }
 
 /** The five ledgers and the three reports. */
@@ -290,6 +312,76 @@ export const costsApi = {
 
     remove: (id: string) =>
       request<void>({ method: 'DELETE', url: `/api/v1/finance-entries/${id}` }),
+  },
+
+  generalExpenses: {
+    list: (query: GeneralExpenseListQuery) =>
+      request<PagedList<GeneralExpense>>({
+        method: 'GET',
+        url: '/api/v1/general-expenses',
+        params: listParams(query),
+      }),
+
+    summary: (query: Omit<GeneralExpenseListQuery, keyof ListQuery>) =>
+      request<GeneralExpenseSummary>({
+        method: 'GET',
+        url: '/api/v1/general-expenses/summary',
+        params: listParams(query),
+      }),
+
+    record: (input: GeneralExpenseInput, idempotencyKey?: string) =>
+      request<GeneralExpense>({
+        method: 'POST',
+        url: '/api/v1/general-expenses',
+        data: input,
+        headers: idempotencyHeaders(idempotencyKey),
+      }),
+
+    update: (id: string, input: GeneralExpenseInput, idempotencyKey?: string) =>
+      request<GeneralExpense>({
+        method: 'PUT',
+        url: `/api/v1/general-expenses/${id}`,
+        data: input,
+        headers: idempotencyHeaders(idempotencyKey),
+      }),
+
+    remove: (id: string) =>
+      request<void>({ method: 'DELETE', url: `/api/v1/general-expenses/${id}` }),
+  },
+
+  accommodationRates: {
+    list: (query: AccommodationRateListQuery) =>
+      request<PagedList<AccommodationRate>>({
+        method: 'GET',
+        url: '/api/v1/accommodation-rates',
+        params: listParams(query),
+      }),
+
+    summary: (query: Omit<AccommodationRateListQuery, keyof ListQuery>) =>
+      request<AccommodationRateSummary>({
+        method: 'GET',
+        url: '/api/v1/accommodation-rates/summary',
+        params: listParams(query),
+      }),
+
+    set: (input: AccommodationRateInput, idempotencyKey?: string) =>
+      request<AccommodationRate>({
+        method: 'POST',
+        url: '/api/v1/accommodation-rates',
+        data: input,
+        headers: idempotencyHeaders(idempotencyKey),
+      }),
+
+    update: (id: string, input: AccommodationRateInput, idempotencyKey?: string) =>
+      request<AccommodationRate>({
+        method: 'PUT',
+        url: `/api/v1/accommodation-rates/${id}`,
+        data: input,
+        headers: idempotencyHeaders(idempotencyKey),
+      }),
+
+    remove: (id: string) =>
+      request<void>({ method: 'DELETE', url: `/api/v1/accommodation-rates/${id}` }),
   },
 
   projectReport: (query: CostReportQuery & { projectId?: string }) =>

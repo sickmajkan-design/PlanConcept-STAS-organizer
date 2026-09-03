@@ -36,6 +36,7 @@ export type EnumKind =
   | 'vehicleExpenseKind'
   | 'toolExpenseKind'
   | 'financeEntryKind'
+  | 'generalExpenseCategory'
   | 'notificationType';
 
 export function useEnumLabel() {

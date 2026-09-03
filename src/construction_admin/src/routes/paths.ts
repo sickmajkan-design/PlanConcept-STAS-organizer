@@ -58,6 +58,12 @@ export const paths = {
   rates: '/rates',
   publicHolidays: '/public-holidays',
   financeEntries: '/finance-entries',
+  generalExpenses: '/general-expenses',
+
+  accommodations: '/accommodations',
+  accommodationDetail: (id: string) => `/accommodations/${id}`,
+  accommodationNew: '/accommodations/new',
+  accommodationEdit: (id: string) => `/accommodations/${id}/edit`,
 
   expiringDocuments: '/documents/expiring',
 

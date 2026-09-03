@@ -301,3 +301,94 @@ public class DeleteVehicleRentalRateCommandHandler : IRequestHandler<DeleteVehic
         await _context.SaveChangesAsync(cancellationToken);
     }
 }
+
+public record DeleteGeneralExpenseCommand(Guid Id) : IRequest;
+
+public class DeleteGeneralExpenseCommandHandler : IRequestHandler<DeleteGeneralExpenseCommand>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+
+    public DeleteGeneralExpenseCommandHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+    }
+
+    public async Task Handle(
+        DeleteGeneralExpenseCommand request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanDeleteSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not remove recorded costs.");
+        }
+
+        var expense = await _context.GeneralExpenses
+            .FirstOrDefaultAsync(e => e.Id == request.Id, cancellationToken)
+            ?? throw new NotFoundException(nameof(GeneralExpense), request.Id);
+
+        _context.GeneralExpenses.Remove(expense);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+}
+
+public record DeleteAccommodationRateCommand(Guid Id) : IRequest;
+
+public class DeleteAccommodationRateCommandHandler : IRequestHandler<DeleteAccommodationRateCommand>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+
+    public DeleteAccommodationRateCommandHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+    }
+
+    public async Task Handle(
+        DeleteAccommodationRateCommand request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanDeleteSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not remove accommodation rates.");
+        }
+
+        var rate = await _context.AccommodationRates
+            .FirstOrDefaultAsync(r => r.Id == request.Id, cancellationToken)
+            ?? throw new NotFoundException(nameof(AccommodationRate), request.Id);
+
+        // Same reopening rule as DeleteVehicleRentalRateCommand: deleting the
+        // rate that closed a predecessor must not leave that predecessor
+        // stuck ending the day before a rate that no longer exists.
+        var predecessor = await _context.AccommodationRates
+            .Where(r => r.AccommodationId == rate.AccommodationId
+                && r.Id != rate.Id
+                && r.EndDate == rate.StartDate.AddDays(-1))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (predecessor is not null)
+        {
+            var somethingElseFollows = await _context.AccommodationRates
+                .AnyAsync(
+                    r => r.AccommodationId == rate.AccommodationId
+                        && r.Id != rate.Id
+                        && r.Id != predecessor.Id
+                        && r.StartDate > predecessor.EndDate!.Value,
+                    cancellationToken);
+
+            if (!somethingElseFollows)
+            {
+                predecessor.EndDate = null;
+            }
+        }
+
+        _context.AccommodationRates.Remove(rate);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+}

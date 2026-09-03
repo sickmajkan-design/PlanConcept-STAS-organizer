@@ -374,3 +374,117 @@ public static class ToolExpenseMapping
 
     public static ToolExpenseDto ToDto(ToolExpense expense) => Compiled(expense);
 }
+
+public class GeneralExpenseDto
+{
+    public Guid Id { get; init; }
+
+    public GeneralExpenseCategory Category { get; init; }
+
+    public decimal Amount { get; init; }
+
+    public DateOnly OccurredOn { get; init; }
+
+    public Guid? ProjectId { get; init; }
+
+    public string? ProjectName { get; init; }
+
+    public Guid? EmployeeId { get; init; }
+
+    public string? EmployeeName { get; init; }
+
+    public string? Supplier { get; init; }
+
+    public string? Note { get; init; }
+
+    public string? RecordedByName { get; init; }
+
+    public DateTime CreatedAt { get; init; }
+}
+
+public class GeneralExpenseSummaryDto
+{
+    public int Count { get; init; }
+
+    public decimal TotalAmount { get; init; }
+}
+
+/// <summary>How a <see cref="GeneralExpense"/> becomes a <see cref="GeneralExpenseDto"/>.</summary>
+public static class GeneralExpenseMapping
+{
+    public static readonly Expression<Func<GeneralExpense, GeneralExpenseDto>> Projection =
+        expense => new GeneralExpenseDto
+        {
+            Id = expense.Id,
+            Category = expense.Category,
+            Amount = expense.Amount,
+            OccurredOn = expense.OccurredOn,
+            ProjectId = expense.ProjectId,
+            ProjectName = expense.Project != null ? expense.Project.Name : null,
+            EmployeeId = expense.EmployeeId,
+            EmployeeName = expense.Employee != null
+                ? expense.Employee.FirstName + " " + expense.Employee.LastName
+                : null,
+            Supplier = expense.Supplier,
+            Note = expense.Note,
+            RecordedByName = expense.RecordedByUser != null ? expense.RecordedByUser.Email : null,
+            CreatedAt = expense.CreatedAt,
+        };
+
+    private static readonly Func<GeneralExpense, GeneralExpenseDto> Compiled = Projection.Compile();
+
+    public static GeneralExpenseDto ToDto(GeneralExpense expense) => Compiled(expense);
+}
+
+public class AccommodationRateDto
+{
+    public Guid Id { get; init; }
+
+    public Guid AccommodationId { get; init; }
+
+    public string AccommodationAddress { get; init; } = null!;
+
+    public decimal MonthlyAmount { get; init; }
+
+    public string? Provider { get; init; }
+
+    public DateOnly StartDate { get; init; }
+
+    public DateOnly? EndDate { get; init; }
+
+    public string? Note { get; init; }
+
+    public string? SetByName { get; init; }
+
+    public DateTime CreatedAt { get; init; }
+}
+
+public class AccommodationRateSummaryDto
+{
+    public int Count { get; init; }
+
+    public decimal TotalMonthlyAmount { get; init; }
+}
+
+/// <summary>How an <see cref="AccommodationRate"/> becomes an <see cref="AccommodationRateDto"/>.</summary>
+public static class AccommodationRateMapping
+{
+    public static readonly Expression<Func<AccommodationRate, AccommodationRateDto>> Projection = rate =>
+        new AccommodationRateDto
+        {
+            Id = rate.Id,
+            AccommodationId = rate.AccommodationId,
+            AccommodationAddress = rate.Accommodation.Address,
+            MonthlyAmount = rate.MonthlyAmount,
+            Provider = rate.Provider,
+            StartDate = rate.StartDate,
+            EndDate = rate.EndDate,
+            Note = rate.Note,
+            SetByName = rate.SetByUser != null ? rate.SetByUser.Email : null,
+            CreatedAt = rate.CreatedAt,
+        };
+
+    private static readonly Func<AccommodationRate, AccommodationRateDto> Compiled = Projection.Compile();
+
+    public static AccommodationRateDto ToDto(AccommodationRate rate) => Compiled(rate);
+}

@@ -93,6 +93,21 @@ public class AttachmentConfiguration : IEntityTypeConfiguration<Attachment>
             .HasForeignKey(a => a.VehicleRentalRateId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne(a => a.GeneralExpense)
+            .WithMany()
+            .HasForeignKey(a => a.GeneralExpenseId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(a => a.Accommodation)
+            .WithMany()
+            .HasForeignKey(a => a.AccommodationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(a => a.AccommodationRate)
+            .WithMany()
+            .HasForeignKey(a => a.AccommodationRateId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // Uploader accounts are not hard-deleted, but the file must survive
         // losing the name of who put it there.
         builder.HasOne(a => a.UploadedByUser)
@@ -116,7 +131,10 @@ public class AttachmentConfiguration : IEntityTypeConfiguration<Attachment>
             + CASE WHEN "EmployeeRateId" IS NULL THEN 0 ELSE 1 END
             + CASE WHEN "FinanceEntryId" IS NULL THEN 0 ELSE 1 END
             + CASE WHEN "ToolExpenseId" IS NULL THEN 0 ELSE 1 END
-            + CASE WHEN "VehicleRentalRateId" IS NULL THEN 0 ELSE 1 END) = 1
+            + CASE WHEN "VehicleRentalRateId" IS NULL THEN 0 ELSE 1 END
+            + CASE WHEN "GeneralExpenseId" IS NULL THEN 0 ELSE 1 END
+            + CASE WHEN "AccommodationId" IS NULL THEN 0 ELSE 1 END
+            + CASE WHEN "AccommodationRateId" IS NULL THEN 0 ELSE 1 END) = 1
             """));
 
         builder.ToTable(t => t.HasCheckConstraint(
@@ -134,6 +152,9 @@ public class AttachmentConfiguration : IEntityTypeConfiguration<Attachment>
         builder.HasIndex(a => a.FinanceEntryId);
         builder.HasIndex(a => a.ToolExpenseId);
         builder.HasIndex(a => a.VehicleRentalRateId);
+        builder.HasIndex(a => a.GeneralExpenseId);
+        builder.HasIndex(a => a.AccommodationId);
+        builder.HasIndex(a => a.AccommodationRateId);
 
         // The expiry sweep and the all-documents view both filter/sort on
         // this. Partial, because rows without an expiry are most of the

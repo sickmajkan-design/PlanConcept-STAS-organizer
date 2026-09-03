@@ -146,6 +146,26 @@ const FinanceEntriesPage = lazy(() =>
     default: m.FinanceEntriesPage,
   })),
 );
+const GeneralExpensesPage = lazy(() =>
+  import('./pages/costs/GeneralExpensesPage').then((m) => ({
+    default: m.GeneralExpensesPage,
+  })),
+);
+const AccommodationsListPage = lazy(() =>
+  import('./pages/accommodations/AccommodationsListPage').then((m) => ({
+    default: m.AccommodationsListPage,
+  })),
+);
+const AccommodationFormPage = lazy(() =>
+  import('./pages/accommodations/AccommodationFormPage').then((m) => ({
+    default: m.AccommodationFormPage,
+  })),
+);
+const AccommodationDetailPage = lazy(() =>
+  import('./pages/accommodations/AccommodationDetailPage').then((m) => ({
+    default: m.AccommodationDetailPage,
+  })),
+);
 const AnnualRealizationPlanPage = lazy(() =>
   import('./pages/projects/AnnualRealizationPlanPage').then((m) => ({
     default: m.AnnualRealizationPlanPage,
@@ -281,6 +301,12 @@ function Layout() {
               <Route path={paths.stockMovements} element={<StockMovementsPage />} />
               <Route path={paths.vehicleExpenses} element={<VehicleExpensesPage />} />
               <Route path={paths.toolExpenses} element={<ToolExpensesPage />} />
+              <Route path={paths.generalExpenses} element={<GeneralExpensesPage />} />
+
+              <Route path={paths.accommodations} element={<AccommodationsListPage />} />
+              <Route path={paths.accommodationNew} element={<AccommodationFormPage />} />
+              <Route path={`${paths.accommodations}/:id`} element={<AccommodationDetailPage />} />
+              <Route path={`${paths.accommodations}/:id/edit`} element={<AccommodationFormPage />} />
 
               <Route path={paths.schedule} element={<SchedulePage />} />
               <Route path={paths.absences} element={<AbsencesListPage />} />
