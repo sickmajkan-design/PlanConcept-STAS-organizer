@@ -243,3 +243,61 @@ public class DeleteToolExpenseCommandHandler
         await _context.SaveChangesAsync(cancellationToken);
     }
 }
+
+public record DeleteVehicleRentalRateCommand(Guid Id) : IRequest;
+
+public class DeleteVehicleRentalRateCommandHandler : IRequestHandler<DeleteVehicleRentalRateCommand>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+
+    public DeleteVehicleRentalRateCommandHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+    }
+
+    public async Task Handle(
+        DeleteVehicleRentalRateCommand request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanDeleteSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not remove rental rates.");
+        }
+
+        var rate = await _context.VehicleRentalRates
+            .FirstOrDefaultAsync(r => r.Id == request.Id, cancellationToken)
+            ?? throw new NotFoundException(nameof(VehicleRentalRate), request.Id);
+
+        // Same reopening rule as DeleteEmployeeRateCommand: deleting the
+        // rate that closed a predecessor must not leave that predecessor
+        // stuck ending the day before a rate that no longer exists.
+        var predecessor = await _context.VehicleRentalRates
+            .Where(r => r.VehicleId == rate.VehicleId
+                && r.Id != rate.Id
+                && r.EndDate == rate.StartDate.AddDays(-1))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (predecessor is not null)
+        {
+            var somethingElseFollows = await _context.VehicleRentalRates
+                .AnyAsync(
+                    r => r.VehicleId == rate.VehicleId
+                        && r.Id != rate.Id
+                        && r.Id != predecessor.Id
+                        && r.StartDate > predecessor.EndDate!.Value,
+                    cancellationToken);
+
+            if (!somethingElseFollows)
+            {
+                predecessor.EndDate = null;
+            }
+        }
+
+        _context.VehicleRentalRates.Remove(rate);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+}

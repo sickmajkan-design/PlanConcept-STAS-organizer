@@ -55,6 +55,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<VehicleExpense> VehicleExpenses => Set<VehicleExpense>();
 
+    public DbSet<VehicleRentalRate> VehicleRentalRates => Set<VehicleRentalRate>();
+
     public DbSet<ToolExpense> ToolExpenses => Set<ToolExpense>();
 
     public DbSet<PublicHoliday> PublicHolidays => Set<PublicHoliday>();

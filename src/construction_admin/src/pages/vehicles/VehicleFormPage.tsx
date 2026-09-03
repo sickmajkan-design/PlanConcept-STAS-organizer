@@ -19,7 +19,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
 import type { VehicleInput } from '../../api/types';
-import { fuelTypes, vehicleStatuses } from '../../api/types';
+import { fuelTypes, vehicleOwnershipTypes, vehicleStatuses } from '../../api/types';
 import { ErrorState } from '../../components/ErrorState';
 import { useCreateVehicle, useUpdateVehicle, useVehicleQuery } from '../../features/vehicles/useVehicles';
 import { vehicleFormSchema, type VehicleFormValues } from '../../features/vehicles/validation';
@@ -35,6 +35,7 @@ const emptyValues: VehicleFormValues = {
   qrCode: '',
   fuelType: 'Diesel',
   status: 'Available',
+  ownershipType: 'Owned',
 };
 
 export function VehicleFormPage() {
@@ -69,6 +70,7 @@ export function VehicleFormPage() {
         qrCode: existing.qrCode ?? '',
         fuelType: existing.fuelType,
         status: existing.status,
+        ownershipType: existing.ownershipType,
       });
     }
   }, [existing, reset]);
@@ -90,6 +92,7 @@ export function VehicleFormPage() {
       qrCode: values.qrCode || null,
       fuelType: values.fuelType,
       status: values.status,
+      ownershipType: values.ownershipType,
     };
 
     try {
@@ -233,6 +236,30 @@ export function VehicleFormPage() {
                         {vehicleStatuses.map((value) => (
                           <MenuItem key={value} value={value}>
                             {enumLabel('vehicleStatus', value)}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  )}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Controller
+                  name="ownershipType"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControl fullWidth>
+                      <InputLabel id="vehicle-ownership-type-label">
+                        {t('vehicles.ownershipType')}
+                      </InputLabel>
+                      <Select
+                        {...field}
+                        labelId="vehicle-ownership-type-label"
+                        label={t('vehicles.ownershipType')}
+                      >
+                        {vehicleOwnershipTypes.map((value) => (
+                          <MenuItem key={value} value={value}>
+                            {enumLabel('vehicleOwnershipType', value)}
                           </MenuItem>
                         ))}
                       </Select>

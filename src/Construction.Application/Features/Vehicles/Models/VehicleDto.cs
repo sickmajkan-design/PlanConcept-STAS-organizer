@@ -21,6 +21,13 @@ public class VehicleDto
 
     public string Status { get; init; } = null!;
 
+    public string OwnershipType { get; init; } = null!;
+
+    /// <summary>Set when a rental/lease rate is currently in force (EndDate null). Null for an owned vehicle, or one with no rate on file.</summary>
+    public decimal? CurrentRentalMonthlyAmount { get; init; }
+
+    public string? CurrentRentalProvider { get; init; }
+
     public Guid? AssignedEmployeeId { get; init; }
 
     public string? AssignedEmployeeName { get; init; }
@@ -58,6 +65,15 @@ public static class VehicleMapping
             QrCode = vehicle.QrCode,
             FuelType = vehicle.FuelType.ToString(),
             Status = vehicle.Status.ToString(),
+            OwnershipType = vehicle.OwnershipType.ToString(),
+            CurrentRentalMonthlyAmount = vehicle.RentalRates
+                .Where(r => r.EndDate == null)
+                .Select(r => (decimal?)r.MonthlyAmount)
+                .FirstOrDefault(),
+            CurrentRentalProvider = vehicle.RentalRates
+                .Where(r => r.EndDate == null)
+                .Select(r => r.Provider)
+                .FirstOrDefault(),
             AssignedEmployeeId = vehicle.AssignedEmployeeId,
             AssignedEmployeeName = vehicle.AssignedEmployee != null
                 ? vehicle.AssignedEmployee.FirstName + " " + vehicle.AssignedEmployee.LastName

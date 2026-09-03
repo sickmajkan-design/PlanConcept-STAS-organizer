@@ -14,7 +14,7 @@ public record GetVehiclesQuery : ISortablePagedQuery, IRequest<PagedList<Vehicle
 {
     public static readonly string[] AllowedSortFields =
     [
-        "brand", "model", "registrationNumber", "fuelType", "status", "assignedEmployeeName", "createdAt"
+        "brand", "model", "registrationNumber", "fuelType", "status", "ownershipType", "assignedEmployeeName", "createdAt"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -27,6 +27,8 @@ public record GetVehiclesQuery : ISortablePagedQuery, IRequest<PagedList<Vehicle
     public VehicleStatus? Status { get; init; }
 
     public FuelType? FuelType { get; init; }
+
+    public VehicleOwnershipType? OwnershipType { get; init; }
 
     public Guid? AssignedEmployeeId { get; init; }
 
@@ -86,6 +88,11 @@ public class GetVehiclesQueryHandler : IRequestHandler<GetVehiclesQuery, PagedLi
             query = query.Where(v => v.FuelType == fuelType);
         }
 
+        if (request.OwnershipType is { } ownershipType)
+        {
+            query = query.Where(v => v.OwnershipType == ownershipType);
+        }
+
         if (request.AssignedEmployeeId is { } employeeId)
         {
             query = query.Where(v => v.AssignedEmployeeId == employeeId);
@@ -130,6 +137,8 @@ public class GetVehiclesQueryHandler : IRequestHandler<GetVehiclesQuery, PagedLi
             ("fueltype", true) => query.OrderByDescending(v => v.FuelType),
             ("status", false) => query.OrderBy(v => v.Status),
             ("status", true) => query.OrderByDescending(v => v.Status),
+            ("ownershiptype", false) => query.OrderBy(v => v.OwnershipType),
+            ("ownershiptype", true) => query.OrderByDescending(v => v.OwnershipType),
             ("assignedemployeename", false) => query
                 .OrderBy(v => v.AssignedEmployee != null ? v.AssignedEmployee.LastName : null)
                 .ThenBy(v => v.AssignedEmployee != null ? v.AssignedEmployee.FirstName : null),

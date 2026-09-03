@@ -225,6 +225,7 @@ export const en = {
   'vehicles.incompleteOnly': 'Incomplete only',
   'vehicles.fuelType': 'Fuel type',
   'vehicles.status': 'Status',
+  'vehicles.ownershipType': 'Ownership',
   'vehicles.assignedTo': 'Assigned to',
   'vehicles.notAssigned': 'Not assigned',
   'vehicles.assign': 'Assign to employee',
@@ -384,6 +385,10 @@ export const en = {
   'vehicleStatus.InService': 'In service',
   'vehicleStatus.OutOfService': 'Out of service',
 
+  'vehicleOwnershipType.Owned': 'Owned',
+  'vehicleOwnershipType.Rented': 'Rented',
+  'vehicleOwnershipType.Leased': 'Leased',
+
   'toolStatus.Available': 'Available',
   'toolStatus.Assigned': 'Assigned',
   'toolStatus.UnderRepair': 'Under repair',
@@ -537,6 +542,7 @@ export const en = {
   'attachmentOwnerType.EmployeeRate': 'Pay rate',
   'attachmentOwnerType.FinanceEntry': 'Pay entry',
   'attachmentOwnerType.ToolExpense': 'Tool expense',
+  'attachmentOwnerType.VehicleRentalRate': 'Vehicle rental rate',
 
   'materials.warehouseStock': 'Warehouse stock',
   'employees.projectsCount': 'Projects ({count})',
@@ -778,6 +784,7 @@ export const en = {
   'costs.fuel': 'Fuel',
   'costs.service': 'Servicing',
   'costs.other': 'Other',
+  'costs.rental': 'Rental/lease',
   'costs.litres': 'Litres',
   'costs.distance': 'Distance',
   'costs.consumption': 'l/100 km',
@@ -895,6 +902,19 @@ export const en = {
   'rates.endsBeforeStart': 'The rate cannot end before it starts.',
   'rates.mustBePositive': 'An hour has to cost something.',
   'rates.summaryAverage': 'Average rate',
+
+  'vehicleRentalRates.title': 'Rental / leasing',
+  'vehicleRentalRates.add': 'Add a rate',
+  'vehicleRentalRates.editTitle': 'Edit rental rate',
+  'vehicleRentalRates.empty': 'No rental or lease rate recorded yet.',
+  'vehicleRentalRates.provider': 'Provider',
+  'vehicleRentalRates.monthlyAmount': 'Monthly amount',
+  'vehicleRentalRates.startDate': 'From',
+  'vehicleRentalRates.endDate': 'To',
+  'vehicleRentalRates.mustBePositive': 'A month has to cost something.',
+  'vehicleRentalRates.deleteTitle': 'Remove this rate?',
+  'vehicleRentalRates.deleteBody':
+    'This period will no longer be counted as rental cost in the fleet report.',
 
   'publicHolidays.title': 'Public holidays',
   'publicHolidays.subtitle': 'Dates priced at a pay rate\'s holiday premium, when it sets one.',

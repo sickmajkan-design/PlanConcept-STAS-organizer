@@ -128,6 +128,13 @@ public class EmployeeRateSummaryDto
     public decimal? AverageHourlyRate { get; init; }
 }
 
+public class VehicleRentalRateSummaryDto
+{
+    public int Count { get; init; }
+
+    public decimal TotalMonthlyAmount { get; init; }
+}
+
 public class MaterialMovementSummaryDto
 {
     public int Count { get; init; }
@@ -209,6 +216,54 @@ public static class EmployeeRateMapping
     private static readonly Func<EmployeeRate, EmployeeRateDto> Compiled = Projection.Compile();
 
     public static EmployeeRateDto ToDto(EmployeeRate rate) => Compiled(rate);
+}
+
+public class VehicleRentalRateDto
+{
+    public Guid Id { get; init; }
+
+    public Guid VehicleId { get; init; }
+
+    public string VehicleName { get; init; } = null!;
+
+    public decimal MonthlyAmount { get; init; }
+
+    public string? Provider { get; init; }
+
+    public DateOnly StartDate { get; init; }
+
+    public DateOnly? EndDate { get; init; }
+
+    public string? Note { get; init; }
+
+    public string? SetByName { get; init; }
+
+    public DateTime CreatedAt { get; init; }
+}
+
+/// <summary>How a <see cref="VehicleRentalRate"/> becomes a <see cref="VehicleRentalRateDto"/>.</summary>
+/// <remarks>See <c>EmployeeMapping</c> for the convention these all follow.</remarks>
+public static class VehicleRentalRateMapping
+{
+    public static readonly Expression<Func<VehicleRentalRate, VehicleRentalRateDto>> Projection = rate =>
+        new VehicleRentalRateDto
+        {
+            Id = rate.Id,
+            VehicleId = rate.VehicleId,
+            VehicleName = rate.Vehicle.Brand + " " + rate.Vehicle.Model
+                + " (" + rate.Vehicle.RegistrationNumber + ")",
+            MonthlyAmount = rate.MonthlyAmount,
+            Provider = rate.Provider,
+            StartDate = rate.StartDate,
+            EndDate = rate.EndDate,
+            Note = rate.Note,
+            SetByName = rate.SetByUser != null ? rate.SetByUser.Email : null,
+            CreatedAt = rate.CreatedAt,
+        };
+
+    private static readonly Func<VehicleRentalRate, VehicleRentalRateDto> Compiled = Projection.Compile();
+
+    public static VehicleRentalRateDto ToDto(VehicleRentalRate rate) => Compiled(rate);
 }
 
 /// <summary>How a <see cref="MaterialMovement"/> becomes a <see cref="MaterialMovementDto"/>.</summary>

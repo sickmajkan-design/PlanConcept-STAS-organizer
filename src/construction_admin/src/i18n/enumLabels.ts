@@ -19,6 +19,7 @@ export type EnumKind =
   | 'rateType'
   | 'projectStatus'
   | 'vehicleStatus'
+  | 'vehicleOwnershipType'
   | 'toolStatus'
   | 'fuelType'
   | 'timeEntryStatus'

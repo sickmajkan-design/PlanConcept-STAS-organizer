@@ -101,6 +101,8 @@ public class VehicleCostReportDto
     public decimal TotalFuelCost { get; init; }
 
     public decimal TotalLitres { get; init; }
+
+    public decimal TotalRentalCost { get; init; }
 }
 
 public class VehicleCostRowDto
@@ -117,6 +119,9 @@ public class VehicleCostRowDto
 
     /// <summary>Insurance, registration and everything else.</summary>
     public decimal OtherCost { get; init; }
+
+    /// <summary>Prorated monthly rent/lease cost for the days of the period the vehicle was under a rental rate.</summary>
+    public decimal RentalCost { get; init; }
 
     public decimal Total { get; init; }
 

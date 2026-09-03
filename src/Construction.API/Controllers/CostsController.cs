@@ -7,12 +7,14 @@ using Construction.Application.Features.Costs.Commands.RecordFinanceEntry;
 using Construction.Application.Features.Costs.Commands.RecordMaterialMovement;
 using Construction.Application.Features.Costs.Commands.RecordVehicleExpense;
 using Construction.Application.Features.Costs.Commands.SetEmployeeRate;
+using Construction.Application.Features.Costs.Commands.SetVehicleRentalRate;
 using Construction.Application.Features.Costs.Commands.RecordToolExpense;
 using Construction.Application.Features.Costs.Commands.UpdateEmployeeRate;
 using Construction.Application.Features.Costs.Commands.UpdateFinanceEntry;
 using Construction.Application.Features.Costs.Commands.UpdateMaterialMovement;
 using Construction.Application.Features.Costs.Commands.UpdateToolExpense;
 using Construction.Application.Features.Costs.Commands.UpdateVehicleExpense;
+using Construction.Application.Features.Costs.Commands.UpdateVehicleRentalRate;
 using Construction.Application.Features.Costs.Models;
 using Construction.Application.Features.Costs.Queries.GetCostRecords;
 using Construction.Application.Features.Costs.Queries.GetProjectCosts;
@@ -255,6 +257,81 @@ public class CostsController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         await Mediator.Send(new DeleteVehicleExpenseCommand(id), cancellationToken);
+        return NoContent();
+    }
+
+    // ---- vehicle rental/lease rates ---------------------------------------
+
+    /// <summary>Lists rental/lease rates.</summary>
+    [HttpGet("/api/v{version:apiVersion}/vehicle-rental-rates")]
+    [HttpGet("/api/vehicle-rental-rates")]
+    [ProducesResponseType(typeof(PagedList<VehicleRentalRateDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<PagedList<VehicleRentalRateDto>>> GetVehicleRentalRates(
+        [FromQuery] GetVehicleRentalRatesQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>The count and total monthly amount of whatever the rental rates list is currently filtered to.</summary>
+    [HttpGet("/api/v{version:apiVersion}/vehicle-rental-rates/summary")]
+    [HttpGet("/api/vehicle-rental-rates/summary")]
+    [ProducesResponseType(typeof(VehicleRentalRateSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<VehicleRentalRateSummaryDto>> GetVehicleRentalRatesSummary(
+        [FromQuery] GetVehicleRentalRatesSummaryQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>Puts a new rental/lease rate in force, closing off the one before it.</summary>
+    [HttpPost("/api/v{version:apiVersion}/vehicle-rental-rates")]
+    [HttpPost("/api/vehicle-rental-rates")]
+    [Idempotent]
+    [ProducesResponseType(typeof(VehicleRentalRateDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<VehicleRentalRateDto>> SetVehicleRentalRate(
+        SetVehicleRentalRateCommand command,
+        CancellationToken cancellationToken)
+    {
+        var rate = await Mediator.Send(command, cancellationToken);
+
+        return CreatedAtAction(nameof(GetVehicleRentalRates), new { id = rate.Id }, rate);
+    }
+
+    /// <summary>Corrects a rental rate that was typed in wrong.</summary>
+    [HttpPut("/api/v{version:apiVersion}/vehicle-rental-rates/{id:guid}")]
+    [HttpPut("/api/vehicle-rental-rates/{id:guid}")]
+    [ProducesResponseType(typeof(VehicleRentalRateDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<VehicleRentalRateDto>> UpdateVehicleRentalRate(
+        Guid id,
+        UpdateVehicleRentalRateCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
+    }
+
+    /// <summary>Removes a rental rate.</summary>
+    [HttpDelete("/api/v{version:apiVersion}/vehicle-rental-rates/{id:guid}")]
+    [HttpDelete("/api/vehicle-rental-rates/{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteVehicleRentalRate(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new DeleteVehicleRentalRateCommand(id), cancellationToken);
         return NoContent();
     }
 

@@ -26,8 +26,8 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type { VehicleListQuery } from '../../api/vehicles';
-import type { Vehicle, VehicleStatus } from '../../api/types';
-import { vehicleStatuses } from '../../api/types';
+import type { Vehicle, VehicleOwnershipType, VehicleStatus } from '../../api/types';
+import { vehicleOwnershipTypes, vehicleStatuses } from '../../api/types';
 import { exportsApi } from '../../api/exports';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ExportButton } from '../../components/ExportButton';
@@ -54,14 +54,16 @@ export function VehiclesListPage() {
   const list = useListQueryState<VehicleStatus>('brand');
 
   const [incompleteOnly, setIncompleteOnly] = useState(false);
+  const [ownershipFilter, setOwnershipFilter] = useState<VehicleOwnershipType | ''>('');
 
   const query: VehicleListQuery = useMemo(
     () => ({
       ...list.query,
       status: list.filter || undefined,
+      ownershipType: ownershipFilter || undefined,
       incompleteOnly: incompleteOnly || undefined,
     }),
-    [list.query, list.filter, incompleteOnly],
+    [list.query, list.filter, ownershipFilter, incompleteOnly],
   );
 
   const { data, isLoading, isError, error, refetch } = useVehiclesQuery(query);
@@ -115,6 +117,14 @@ export function VehiclesListPage() {
         headerName: t('vehicles.status'),
         width: 130,
         renderCell: (params) => <StatusChip status={params.value as string} kind="vehicleStatus" />,
+      },
+      {
+        field: 'ownershipType',
+        headerName: t('vehicles.ownershipType'),
+        width: 120,
+        renderCell: (params) => (
+          <StatusChip status={params.value as string} kind="vehicleOwnershipType" />
+        ),
       },
       {
         field: 'assignedEmployeeName',
@@ -195,6 +205,25 @@ export function VehiclesListPage() {
           </Select>
         </FormControl>
         <StatusLegend kind="vehicleStatus" values={vehicleStatuses} />
+
+        <FormControl size="small" sx={{ minWidth: 180 }}>
+          <InputLabel id="vehicle-ownership-filter-label">{t('vehicles.ownershipType')}</InputLabel>
+          <Select
+            labelId="vehicle-ownership-filter-label"
+            label={t('vehicles.ownershipType')}
+            value={ownershipFilter}
+            onChange={(event) => setOwnershipFilter(event.target.value as VehicleOwnershipType | '')}
+          >
+            <MenuItem value="">
+              <em>{t('common.all')}</em>
+            </MenuItem>
+            {vehicleOwnershipTypes.map((value) => (
+              <MenuItem key={value} value={value}>
+                {enumLabel('vehicleOwnershipType', value)}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
 
         <FormControlLabel
           control={

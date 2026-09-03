@@ -23,6 +23,8 @@ public abstract record VehicleCommandBase
     public FuelType FuelType { get; init; }
 
     public VehicleStatus Status { get; init; } = VehicleStatus.Available;
+
+    public VehicleOwnershipType OwnershipType { get; init; } = VehicleOwnershipType.Owned;
 }
 
 public abstract class VehicleCommandBaseValidator<T> : AbstractValidator<T>
@@ -53,5 +55,8 @@ public abstract class VehicleCommandBaseValidator<T> : AbstractValidator<T>
 
         RuleFor(x => x.Status)
             .IsInEnum().WithMessage("Status is not a valid vehicle status.");
+
+        RuleFor(x => x.OwnershipType)
+            .IsInEnum().WithMessage("Ownership type is not a valid value.");
     }
 }

@@ -66,6 +66,7 @@ public class UpdateVehicleCommandHandler : IRequestHandler<UpdateVehicleCommand,
         vehicle.QrCode = qrCode;
         vehicle.FuelType = request.FuelType;
         vehicle.Status = request.Status;
+        vehicle.OwnershipType = request.OwnershipType;
 
         await _context.SaveChangesAsync(cancellationToken);
 

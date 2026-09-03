@@ -1013,3 +1013,176 @@ public class GetToolExpensesSummaryQueryHandler
         return new ToolExpenseSummaryDto { Count = count, TotalAmount = totalAmount };
     }
 }
+
+public record GetVehicleRentalRatesQuery : ISortablePagedQuery, IRequest<PagedList<VehicleRentalRateDto>>
+{
+    public static readonly string[] AllowedSortFields =
+    [
+        "vehicleName", "monthlyAmount", "provider", "startDate", "endDate", "setByName", "createdAt"
+    ];
+
+    public int PageNumber { get; init; } = 1;
+
+    public int PageSize { get; init; } = 20;
+
+    public Guid? VehicleId { get; init; }
+
+    /// <summary>Only the rate in force today.</summary>
+    public bool CurrentOnly { get; init; }
+
+    public string? SortBy { get; init; }
+
+    public bool SortDescending { get; init; }
+}
+
+public class GetVehicleRentalRatesQueryValidator : SortablePagedQueryValidator<GetVehicleRentalRatesQuery>
+{
+    public GetVehicleRentalRatesQueryValidator()
+        : base(GetVehicleRentalRatesQuery.AllowedSortFields, maxPageSize: 200)
+    {
+    }
+}
+
+public class GetVehicleRentalRatesQueryHandler
+    : IRequestHandler<GetVehicleRentalRatesQuery, PagedList<VehicleRentalRateDto>>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
+
+    public GetVehicleRentalRatesQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
+    }
+
+    public async Task<PagedList<VehicleRentalRateDto>> Handle(
+        GetVehicleRentalRatesQuery request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not see rental rates.");
+        }
+
+        var query = _context.VehicleRentalRates.AsNoTracking();
+
+        if (request.VehicleId is { } vehicleId)
+        {
+            query = query.Where(r => r.VehicleId == vehicleId);
+        }
+
+        if (request.CurrentOnly)
+        {
+            var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            query = query.Where(r =>
+                r.StartDate <= today && (r.EndDate == null || r.EndDate >= today));
+        }
+
+        query = ApplySorting(query, request.SortBy, request.SortDescending);
+
+        return await PagedList<VehicleRentalRateDto>.CreateAsync(
+            query.Select(VehicleRentalRateMapping.Projection),
+            request.PageNumber,
+            request.PageSize,
+            cancellationToken);
+    }
+
+    private static IQueryable<VehicleRentalRate> ApplySorting(
+        IQueryable<VehicleRentalRate> query,
+        string? sortBy,
+        bool descending)
+    {
+        IOrderedQueryable<VehicleRentalRate> ordered = (sortBy?.ToLowerInvariant(), descending) switch
+        {
+            ("vehiclename", false) => query.OrderBy(r => r.Vehicle.Brand).ThenBy(r => r.Vehicle.Model),
+            ("vehiclename", true) => query
+                .OrderByDescending(r => r.Vehicle.Brand).ThenByDescending(r => r.Vehicle.Model),
+            ("monthlyamount", false) => query.OrderBy(r => r.MonthlyAmount),
+            ("monthlyamount", true) => query.OrderByDescending(r => r.MonthlyAmount),
+            ("provider", false) => query.OrderBy(r => r.Provider == null).ThenBy(r => r.Provider),
+            ("provider", true) => query
+                .OrderByDescending(r => r.Provider == null).ThenByDescending(r => r.Provider),
+            ("enddate", false) => query.OrderBy(r => r.EndDate == null).ThenBy(r => r.EndDate),
+            ("enddate", true) => query
+                .OrderByDescending(r => r.EndDate == null).ThenByDescending(r => r.EndDate),
+            ("setbyname", false) => query
+                .OrderBy(r => r.SetByUser != null ? r.SetByUser.Email : null),
+            ("setbyname", true) => query
+                .OrderByDescending(r => r.SetByUser != null ? r.SetByUser.Email : null),
+            ("createdat", false) => query.OrderBy(r => r.CreatedAt),
+            ("createdat", true) => query.OrderByDescending(r => r.CreatedAt),
+            // Default and explicit "startDate desc" both land here: the most
+            // recently set rate first, which is what "current cost" means.
+            _ => query.OrderByDescending(r => r.StartDate)
+        };
+
+        // Stable tiebreaker so pagination never skips or duplicates rows.
+        return ordered.ThenBy(r => r.Id);
+    }
+}
+
+/// <summary>The count and total monthly commitment of whatever the rental-rates list is currently filtered to.</summary>
+public record GetVehicleRentalRatesSummaryQuery : IRequest<VehicleRentalRateSummaryDto>
+{
+    public Guid? VehicleId { get; init; }
+
+    public bool CurrentOnly { get; init; }
+}
+
+public class GetVehicleRentalRatesSummaryQueryHandler
+    : IRequestHandler<GetVehicleRentalRatesSummaryQuery, VehicleRentalRateSummaryDto>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
+
+    public GetVehicleRentalRatesSummaryQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
+    }
+
+    public async Task<VehicleRentalRateSummaryDto> Handle(
+        GetVehicleRentalRatesSummaryQuery request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not see rental rates.");
+        }
+
+        var query = _context.VehicleRentalRates.AsNoTracking();
+
+        if (request.VehicleId is { } vehicleId)
+        {
+            query = query.Where(r => r.VehicleId == vehicleId);
+        }
+
+        if (request.CurrentOnly)
+        {
+            var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            query = query.Where(r =>
+                r.StartDate <= today && (r.EndDate == null || r.EndDate >= today));
+        }
+
+        var count = await query.CountAsync(cancellationToken);
+        var totalMonthlyAmount = count > 0
+            ? await query.SumAsync(r => r.MonthlyAmount, cancellationToken)
+            : 0m;
+
+        return new VehicleRentalRateSummaryDto
+        {
+            Count = count,
+            TotalMonthlyAmount = totalMonthlyAmount
+        };
+    }
+}

@@ -53,6 +53,7 @@ type VehicleCostSortField =
   | 'litresPer100Km'
   | 'serviceCost'
   | 'otherCost'
+  | 'rentalCost'
   | 'total';
 type ToolCostSortField = 'toolName' | 'repairCost' | 'maintenanceCost' | 'otherCost' | 'total';
 
@@ -401,6 +402,8 @@ function VehicleCosts({ period }: { period: Period }) {
           return (a.serviceCost - b.serviceCost) * factor;
         case 'otherCost':
           return (a.otherCost - b.otherCost) * factor;
+        case 'rentalCost':
+          return (a.rentalCost - b.rentalCost) * factor;
         case 'total':
           return (a.total - b.total) * factor;
         default:
@@ -483,6 +486,15 @@ function VehicleCosts({ period }: { period: Period }) {
                 {t('costs.other')}
               </TableSortLabel>
             </TableCell>
+            <TableCell align="right" sortDirection={sortBy === 'rentalCost' ? sortDirection : false}>
+              <TableSortLabel
+                active={sortBy === 'rentalCost'}
+                direction={sortBy === 'rentalCost' ? sortDirection : 'asc'}
+                onClick={() => toggleSort('rentalCost')}
+              >
+                {t('costs.rental')}
+              </TableSortLabel>
+            </TableCell>
             <TableCell align="right" sortDirection={sortBy === 'total' ? sortDirection : false}>
               <TableSortLabel
                 active={sortBy === 'total'}
@@ -513,6 +525,7 @@ function VehicleCosts({ period }: { period: Period }) {
                 {formatMoney(row.serviceCost, locale)}
               </TableCell>
               <TableCell align="right">{formatMoney(row.otherCost, locale)}</TableCell>
+              <TableCell align="right">{formatMoney(row.rentalCost, locale)}</TableCell>
               <TableCell align="right" sx={{ fontWeight: 600 }}>
                 {formatMoney(row.total, locale)}
               </TableCell>
@@ -531,6 +544,9 @@ function VehicleCosts({ period }: { period: Period }) {
             <TableCell />
             <TableCell />
             <TableCell />
+            <TableCell align="right" sx={{ fontWeight: 700 }}>
+              {formatMoney(data.totalRentalCost, locale)}
+            </TableCell>
             <TableCell align="right" sx={{ fontWeight: 700 }}>
               {formatMoney(data.total, locale)}
             </TableCell>

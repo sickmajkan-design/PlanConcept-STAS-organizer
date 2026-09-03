@@ -20,6 +20,9 @@ public class Vehicle : BaseEntity, ISoftDeletable, IAuditable
 
     public VehicleStatus Status { get; set; } = VehicleStatus.Available;
 
+    /// <summary>Owned outright, rented, or leased — orthogonal to <see cref="Status"/>.</summary>
+    public VehicleOwnershipType OwnershipType { get; set; } = VehicleOwnershipType.Owned;
+
     public Guid? AssignedEmployeeId { get; set; }
 
     public Employee? AssignedEmployee { get; set; }
@@ -38,6 +41,8 @@ public class Vehicle : BaseEntity, ISoftDeletable, IAuditable
     public ICollection<Attachment> Attachments { get; set; } = new List<Attachment>();
 
     public ICollection<VehicleExpense> Expenses { get; set; } = new List<VehicleExpense>();
+
+    public ICollection<VehicleRentalRate> RentalRates { get; set; } = new List<VehicleRentalRate>();
 
     public bool IsDeleted { get; set; }
 

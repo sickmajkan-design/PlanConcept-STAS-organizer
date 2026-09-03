@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { fuelTypes, vehicleStatuses } from '../../api/types';
+import { fuelTypes, vehicleOwnershipTypes, vehicleStatuses } from '../../api/types';
 
 /** Mirrors the API's VehicleCommandBaseValidator so the form catches errors early. */
 export const vehicleFormSchema = z.object({
@@ -15,6 +15,7 @@ export const vehicleFormSchema = z.object({
   qrCode: z.string().trim().max(256).optional().or(z.literal('')),
   fuelType: z.enum(fuelTypes, { message: 'Fuel type is required.' }),
   status: z.enum(vehicleStatuses),
+  ownershipType: z.enum(vehicleOwnershipTypes),
 });
 
 export type VehicleFormValues = z.infer<typeof vehicleFormSchema>;

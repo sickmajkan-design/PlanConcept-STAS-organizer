@@ -2,7 +2,7 @@ import { Chip, type ChipProps } from '@mui/material';
 
 import { useEnumLabel, type EnumKind } from '../i18n/enumLabels';
 
-const GOOD = new Set(['Active', 'Available', 'Completed', 'Approved', 'Closed', 'Resolved']);
+const GOOD = new Set(['Active', 'Available', 'Completed', 'Approved', 'Closed', 'Resolved', 'Owned']);
 const CAUTION = new Set([
   'OnLeave',
   'Planned',
@@ -15,6 +15,10 @@ const CAUTION = new Set([
   // An unanswered leave request is waiting on somebody, the same as a
   // submitted timesheet.
   'Requested',
+  // A rented or leased vehicle carries a recurring cost the fleet report
+  // needs to keep in view — same "worth watching" colour as an open item.
+  'Rented',
+  'Leased',
 ]);
 const BAD = new Set(['Suspended', 'UnderRepair', 'Lost', 'Rejected', 'Cancelled']);
 

@@ -95,29 +95,84 @@ public class GetVehicleCostsQueryHandler
             })
             .ToListAsync(cancellationToken);
 
-        var rows = grouped
-            .Select(v =>
+        // Rental/lease cost is a separate source — a vehicle can carry one
+        // with no VehicleExpense rows at all in the period, so it needs its
+        // own vehicle lookup rather than riding along with the group above.
+        var rentalRates = await _context.VehicleRentalRates
+            .AsNoTracking()
+            .Where(r => request.VehicleId == null || r.VehicleId == request.VehicleId)
+            .Where(r => r.StartDate <= request.To && (r.EndDate == null || r.EndDate >= request.From))
+            .Select(r => new
             {
-                var distance = v.FirstOdometer is { } first && v.LastOdometer is { } last
+                r.VehicleId,
+                Name = r.Vehicle.Brand + " " + r.Vehicle.Model
+                    + " (" + r.Vehicle.RegistrationNumber + ")",
+                r.StartDate,
+                r.EndDate,
+                r.MonthlyAmount
+            })
+            .ToListAsync(cancellationToken);
+
+        // A 30-day month is a deliberate approximation, the same one a flat
+        // "per day" reading of a monthly figure always is — the point is a
+        // consistent number to compare period over period, not an invoice
+        // reconciliation.
+        var rentalByVehicle = rentalRates
+            .GroupBy(r => new { r.VehicleId, r.Name })
+            .ToDictionary(
+                g => g.Key,
+                g => g.Sum(r =>
+                {
+                    var start = r.StartDate > request.From ? r.StartDate : request.From;
+                    var end = r.EndDate is { } e && e < request.To ? e : request.To;
+                    var days = end.DayNumber - start.DayNumber + 1;
+                    return days > 0 ? days * (r.MonthlyAmount / 30m) : 0m;
+                }));
+
+        var vehicleNames = grouped
+            .Select(v => (v.VehicleId, v.Name))
+            .Concat(rentalByVehicle.Keys.Select(k => (k.VehicleId, k.Name)))
+            .GroupBy(v => v.VehicleId)
+            .ToDictionary(g => g.Key, g => g.First().Name);
+
+        var vehicleIds = vehicleNames.Keys.ToHashSet();
+        var expensesByVehicle = grouped.ToDictionary(v => v.VehicleId);
+
+        var rows = vehicleIds
+            .Select(vehicleId =>
+            {
+                var v = expensesByVehicle.GetValueOrDefault(vehicleId);
+                var rentalCost = rentalByVehicle
+                    .Where(kv => kv.Key.VehicleId == vehicleId)
+                    .Select(kv => kv.Value)
+                    .FirstOrDefault();
+
+                var distance = v?.FirstOdometer is { } first && v.LastOdometer is { } last
                     && last > first
                     ? last - first
                     : (int?)null;
 
+                var fuelCost = v?.FuelCost ?? 0m;
+                var litres = v?.Litres ?? 0m;
+                var serviceCost = v?.ServiceCost ?? 0m;
+                var totalCost = v?.TotalCost ?? 0m;
+
                 return new VehicleCostRowDto
                 {
-                    VehicleId = v.VehicleId,
-                    VehicleName = v.Name,
-                    FuelCost = decimal.Round(v.FuelCost, 2),
-                    Litres = decimal.Round(v.Litres, 3),
-                    ServiceCost = decimal.Round(v.ServiceCost, 2),
-                    OtherCost = decimal.Round(v.TotalCost - v.FuelCost - v.ServiceCost, 2),
-                    Total = decimal.Round(v.TotalCost, 2),
+                    VehicleId = vehicleId,
+                    VehicleName = vehicleNames[vehicleId],
+                    FuelCost = decimal.Round(fuelCost, 2),
+                    Litres = decimal.Round(litres, 3),
+                    ServiceCost = decimal.Round(serviceCost, 2),
+                    OtherCost = decimal.Round(totalCost - fuelCost - serviceCost, 2),
+                    RentalCost = decimal.Round(rentalCost, 2),
+                    Total = decimal.Round(totalCost + rentalCost, 2),
                     DistanceKm = distance,
                     // Only when both halves are real. A single fill-up gives
                     // no distance, and dividing by a distance of nothing would
                     // produce a headline figure out of one data point.
-                    LitresPer100Km = distance is { } km && km > 0 && v.Litres > 0
-                        ? decimal.Round(v.Litres * 100m / km, 2)
+                    LitresPer100Km = distance is { } km && km > 0 && litres > 0
+                        ? decimal.Round(litres * 100m / km, 2)
                         : null
                 };
             })
@@ -132,7 +187,8 @@ public class GetVehicleCostsQueryHandler
             Rows = rows,
             Total = rows.Sum(r => r.Total),
             TotalFuelCost = rows.Sum(r => r.FuelCost),
-            TotalLitres = rows.Sum(r => r.Litres)
+            TotalLitres = rows.Sum(r => r.Litres),
+            TotalRentalCost = rows.Sum(r => r.RentalCost)
         };
     }
 }

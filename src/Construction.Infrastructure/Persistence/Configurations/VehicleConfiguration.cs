@@ -1,4 +1,5 @@
 using Construction.Domain.Entities;
+using Construction.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,6 +14,9 @@ public class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
         builder.HasKey(v => v.Id);
 
         builder.HasQueryFilter(v => !v.IsDeleted);
+
+        builder.Property(v => v.OwnershipType)
+            .HasDefaultValue(VehicleOwnershipType.Owned);
 
         builder.Property(v => v.Brand)
             .HasMaxLength(100)
@@ -57,5 +61,6 @@ public class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
         builder.HasIndex(v => v.AssignedEmployeeId);
         builder.HasIndex(v => v.AssignedProjectId);
         builder.HasIndex(v => v.Status);
+        builder.HasIndex(v => v.OwnershipType);
     }
 }

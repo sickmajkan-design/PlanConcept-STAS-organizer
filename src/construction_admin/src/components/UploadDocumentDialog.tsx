@@ -59,6 +59,7 @@ const CATEGORIES_BY_OWNER_TYPE: Record<AttachmentOwnerType, readonly AttachmentC
   EmployeeRate: ['Contract', 'Other'],
   FinanceEntry: ['Other'],
   ToolExpense: ['Other'],
+  VehicleRentalRate: ['Contract', 'Other'],
 };
 
 /**

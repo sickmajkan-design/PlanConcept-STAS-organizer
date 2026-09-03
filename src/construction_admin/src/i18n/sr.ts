@@ -234,6 +234,7 @@ export const sr: Record<MessageKey, Message> = {
   'vehicles.incompleteOnly': 'Samo nepotpuni',
   'vehicles.fuelType': 'Vrsta goriva',
   'vehicles.status': 'Status',
+  'vehicles.ownershipType': 'Vlasništvo',
   'vehicles.assignedTo': 'Zaduženo na',
   'vehicles.notAssigned': 'Nije zaduženo',
   'vehicles.assign': 'Zaduži zaposlenog',
@@ -393,6 +394,10 @@ export const sr: Record<MessageKey, Message> = {
   'vehicleStatus.InService': 'Na servisu',
   'vehicleStatus.OutOfService': 'Van upotrebe',
 
+  'vehicleOwnershipType.Owned': 'Vlasništvo firme',
+  'vehicleOwnershipType.Rented': 'Iznajmljeno',
+  'vehicleOwnershipType.Leased': 'Lizing',
+
   'toolStatus.Available': 'Slobodan',
   'toolStatus.Assigned': 'Zadužen',
   'toolStatus.UnderRepair': 'Na popravci',
@@ -546,6 +551,7 @@ export const sr: Record<MessageKey, Message> = {
   'attachmentOwnerType.EmployeeRate': 'Cijena rada',
   'attachmentOwnerType.FinanceEntry': 'Isplata',
   'attachmentOwnerType.ToolExpense': 'Trošak alata',
+  'attachmentOwnerType.VehicleRentalRate': 'Cena rente vozila',
 
   'materials.warehouseStock': 'Zalihe u magacinu',
   'employees.projectsCount': 'Projekti ({count})',
@@ -790,6 +796,7 @@ export const sr: Record<MessageKey, Message> = {
   'costs.fuel': 'Gorivo',
   'costs.service': 'Servis',
   'costs.other': 'Ostalo',
+  'costs.rental': 'Renta/lizing',
   'costs.litres': 'Litara',
   'costs.distance': 'Pređeno',
   'costs.consumption': 'l/100 km',
@@ -907,6 +914,19 @@ export const sr: Record<MessageKey, Message> = {
   'rates.endsBeforeStart': 'Cena ne može da se završi pre nego što počne.',
   'rates.mustBePositive': 'Sat mora nešto da košta.',
   'rates.summaryAverage': 'Prosečna cena',
+
+  'vehicleRentalRates.title': 'Renta / lizing',
+  'vehicleRentalRates.add': 'Dodaj cenu',
+  'vehicleRentalRates.editTitle': 'Izmeni cenu rente',
+  'vehicleRentalRates.empty': 'Još nema unesene rente ili lizinga.',
+  'vehicleRentalRates.provider': 'Davalac',
+  'vehicleRentalRates.monthlyAmount': 'Mesečni iznos',
+  'vehicleRentalRates.startDate': 'Od',
+  'vehicleRentalRates.endDate': 'Do',
+  'vehicleRentalRates.mustBePositive': 'Mesec mora nešto da košta.',
+  'vehicleRentalRates.deleteTitle': 'Obrisati ovu cenu?',
+  'vehicleRentalRates.deleteBody':
+    'Ovaj period se više neće računati kao trošak rente u izveštaju o vozilima.',
 
   'publicHolidays.title': 'Državni praznici',
   'publicHolidays.subtitle': 'Datumi koji se, ako cena to predviđa, obračunavaju po prazničnoj stopi.',

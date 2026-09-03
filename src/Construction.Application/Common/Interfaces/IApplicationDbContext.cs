@@ -49,6 +49,8 @@ public interface IApplicationDbContext
 
     DbSet<VehicleExpense> VehicleExpenses { get; }
 
+    DbSet<VehicleRentalRate> VehicleRentalRates { get; }
+
     DbSet<ToolExpense> ToolExpenses { get; }
 
     DbSet<PublicHoliday> PublicHolidays { get; }

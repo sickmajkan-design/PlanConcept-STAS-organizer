@@ -46,7 +46,8 @@ public class CreateVehicleCommandHandler : IRequestHandler<CreateVehicleCommand,
             Vin = vin,
             QrCode = qrCode,
             FuelType = request.FuelType,
-            Status = request.Status
+            Status = request.Status,
+            OwnershipType = request.OwnershipType
         };
 
         _context.Vehicles.Add(vehicle);

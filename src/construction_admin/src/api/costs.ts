@@ -26,6 +26,9 @@ import type {
   VehicleExpenseInput,
   VehicleExpenseKind,
   VehicleExpenseSummary,
+  VehicleRentalRate,
+  VehicleRentalRateInput,
+  VehicleRentalRateSummary,
 } from './types';
 
 export interface EmployeeRateListQuery extends ListQuery {
@@ -55,6 +58,12 @@ export interface ToolExpenseListQuery extends ListQuery {
   kind?: ToolExpenseKind;
   from?: string;
   to?: string;
+}
+
+export interface VehicleRentalRateListQuery extends ListQuery {
+  vehicleId?: string;
+  /** Only the rate in force today. */
+  currentOnly?: boolean;
 }
 
 export interface CostReportQuery {
@@ -176,6 +185,41 @@ export const costsApi = {
 
     remove: (id: string) =>
       request<void>({ method: 'DELETE', url: `/api/v1/vehicle-expenses/${id}` }),
+  },
+
+  vehicleRentalRates: {
+    list: (query: VehicleRentalRateListQuery) =>
+      request<PagedList<VehicleRentalRate>>({
+        method: 'GET',
+        url: '/api/v1/vehicle-rental-rates',
+        params: listParams(query),
+      }),
+
+    summary: (query: Omit<VehicleRentalRateListQuery, keyof ListQuery>) =>
+      request<VehicleRentalRateSummary>({
+        method: 'GET',
+        url: '/api/v1/vehicle-rental-rates/summary',
+        params: listParams(query),
+      }),
+
+    set: (input: VehicleRentalRateInput, idempotencyKey?: string) =>
+      request<VehicleRentalRate>({
+        method: 'POST',
+        url: '/api/v1/vehicle-rental-rates',
+        data: input,
+        headers: idempotencyHeaders(idempotencyKey),
+      }),
+
+    update: (id: string, input: VehicleRentalRateInput, idempotencyKey?: string) =>
+      request<VehicleRentalRate>({
+        method: 'PUT',
+        url: `/api/v1/vehicle-rental-rates/${id}`,
+        data: input,
+        headers: idempotencyHeaders(idempotencyKey),
+      }),
+
+    remove: (id: string) =>
+      request<void>({ method: 'DELETE', url: `/api/v1/vehicle-rental-rates/${id}` }),
   },
 
   toolExpenses: {

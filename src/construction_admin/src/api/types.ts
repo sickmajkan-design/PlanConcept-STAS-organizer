@@ -287,6 +287,10 @@ export const fuelTypes = ['Petrol', 'Diesel', 'Electric', 'Hybrid', 'Lpg'] as co
 
 export type FuelType = (typeof fuelTypes)[number];
 
+export const vehicleOwnershipTypes = ['Owned', 'Rented', 'Leased'] as const;
+
+export type VehicleOwnershipType = (typeof vehicleOwnershipTypes)[number];
+
 export interface Vehicle {
   id: string;
   brand: string;
@@ -296,6 +300,10 @@ export interface Vehicle {
   qrCode: string | null;
   fuelType: FuelType;
   status: VehicleStatus;
+  ownershipType: VehicleOwnershipType;
+  /** The rate currently in force, when `ownershipType` is Rented or Leased. */
+  currentRentalMonthlyAmount: number | null;
+  currentRentalProvider: string | null;
   assignedEmployeeId: string | null;
   assignedEmployeeName: string | null;
   assignedEmployeeNumber: string | null;
@@ -313,6 +321,7 @@ export interface VehicleInput {
   qrCode?: string | null;
   fuelType: FuelType;
   status: VehicleStatus;
+  ownershipType: VehicleOwnershipType;
 }
 
 export const toolStatuses = [
@@ -495,6 +504,7 @@ export const attachmentOwnerTypes = [
   'EmployeeRate',
   'FinanceEntry',
   'ToolExpense',
+  'VehicleRentalRate',
 ] as const;
 
 export type AttachmentOwnerType = (typeof attachmentOwnerTypes)[number];
@@ -772,6 +782,30 @@ export interface EmployeeRateInput {
   note?: string | null;
 }
 
+export interface VehicleRentalRate {
+  id: string;
+  vehicleId: string;
+  vehicleName: string;
+  monthlyAmount: number;
+  provider: string | null;
+  /** `YYYY-MM-DD`. */
+  startDate: string;
+  /** `YYYY-MM-DD`, or null while it is the rate in force. */
+  endDate: string | null;
+  note: string | null;
+  setByName: string | null;
+  createdAt: string;
+}
+
+export interface VehicleRentalRateInput {
+  vehicleId: string;
+  monthlyAmount: number;
+  provider?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  note?: string | null;
+}
+
 export interface MaterialMovement {
   id: string;
   materialId: string;
@@ -910,6 +944,7 @@ export interface VehicleCostRow {
   litres: number;
   serviceCost: number;
   otherCost: number;
+  rentalCost: number;
   total: number;
   distanceKm: number | null;
   litresPer100Km: number | null;
@@ -922,6 +957,7 @@ export interface VehicleCostReport {
   total: number;
   totalFuelCost: number;
   totalLitres: number;
+  totalRentalCost: number;
 }
 
 export interface ToolCostRow {
@@ -944,6 +980,11 @@ export interface ToolCostReport {
 export interface EmployeeRateSummary {
   count: number;
   averageHourlyRate: number | null;
+}
+
+export interface VehicleRentalRateSummary {
+  count: number;
+  totalMonthlyAmount: number;
 }
 
 export interface MaterialMovementSummary {

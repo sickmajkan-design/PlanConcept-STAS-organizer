@@ -6,12 +6,14 @@ import type {
   ListQuery,
   Vehicle,
   VehicleInput,
+  VehicleOwnershipType,
   VehicleStatus,
 } from './types';
 
 export interface VehicleListQuery extends ListQuery {
   status?: VehicleStatus | '';
   fuelType?: FuelType | '';
+  ownershipType?: VehicleOwnershipType | '';
   assignedProjectId?: string;
   unassigned?: boolean;
   incompleteOnly?: boolean;

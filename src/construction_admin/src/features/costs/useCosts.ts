@@ -7,6 +7,7 @@ import {
   type MaterialMovementListQuery,
   type ToolExpenseListQuery,
   type VehicleExpenseListQuery,
+  type VehicleRentalRateListQuery,
 } from '../../api/costs';
 import type {
   EmployeeRateInput,
@@ -15,6 +16,7 @@ import type {
   MaterialMovementInput,
   ToolExpenseInput,
   VehicleExpenseInput,
+  VehicleRentalRateInput,
 } from '../../api/types';
 import { createResourceKeys, useResourceList, useResourceMutation } from '../resourceQueries';
 import { materialKeys } from '../materials/useMaterials';
@@ -22,6 +24,8 @@ import { materialKeys } from '../materials/useMaterials';
 export const rateKeys = createResourceKeys<EmployeeRateListQuery>('employeeRates');
 export const movementKeys = createResourceKeys<MaterialMovementListQuery>('materialMovements');
 export const vehicleExpenseKeys = createResourceKeys<VehicleExpenseListQuery>('vehicleExpenses');
+export const vehicleRentalRateKeys =
+  createResourceKeys<VehicleRentalRateListQuery>('vehicleRentalRates');
 export const toolExpenseKeys = createResourceKeys<ToolExpenseListQuery>('toolExpenses');
 export const financeEntryKeys = createResourceKeys<FinanceEntryListQuery>('financeEntries');
 
@@ -156,6 +160,43 @@ export function useUpdateVehicleExpense() {
 export function useDeleteVehicleExpense() {
   return useResourceMutation((id: string) => costsApi.vehicleExpenses.remove(id), [
     vehicleExpenseKeys.all,
+    costReportKeys.all,
+  ]);
+}
+
+// ---- vehicle rental/lease rates ---------------------------------------------
+
+export function useVehicleRentalRatesQuery(query: VehicleRentalRateListQuery) {
+  return useResourceList(vehicleRentalRateKeys, costsApi.vehicleRentalRates.list, query);
+}
+
+export function useVehicleRentalRatesSummaryQuery(query: VehicleRentalRateListQuery) {
+  const params = summaryParams(query);
+  return useQuery({
+    queryKey: [...vehicleRentalRateKeys.all, 'summary', params],
+    queryFn: () => costsApi.vehicleRentalRates.summary(params),
+  });
+}
+
+export function useSetVehicleRentalRate() {
+  return useResourceMutation(
+    (input: VehicleRentalRateInput, key: string) =>
+      costsApi.vehicleRentalRates.set(input, key),
+    [vehicleRentalRateKeys.all, costReportKeys.all],
+  );
+}
+
+export function useUpdateVehicleRentalRate() {
+  return useResourceMutation(
+    (variables: { id: string; input: VehicleRentalRateInput }, key: string) =>
+      costsApi.vehicleRentalRates.update(variables.id, variables.input, key),
+    [vehicleRentalRateKeys.all, costReportKeys.all],
+  );
+}
+
+export function useDeleteVehicleRentalRate() {
+  return useResourceMutation((id: string) => costsApi.vehicleRentalRates.remove(id), [
+    vehicleRentalRateKeys.all,
     costReportKeys.all,
   ]);
 }

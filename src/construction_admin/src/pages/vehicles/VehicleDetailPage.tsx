@@ -1,5 +1,6 @@
 import {
   ApartmentOutlined,
+  CarRentalOutlined,
   DeleteOutlined,
   EditOutlined,
   LocalShippingOutlined,
@@ -13,9 +14,14 @@ import {
   Button,
   Card,
   CardContent,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
   FormControl,
   Grid,
+  IconButton,
   MenuItem,
   Select,
   Stack,
@@ -25,13 +31,15 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
-import type { VehicleExpense } from '../../api/types';
+import type { VehicleExpense, VehicleRentalRate } from '../../api/types';
 import { AuditHistoryCard } from '../../components/AuditHistoryCard';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
@@ -41,7 +49,13 @@ import { StatusChip } from '../../components/StatusChip';
 import { useCoverPhoto } from '../../features/attachments/useAttachments';
 import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
-import { useVehicleExpensesQuery } from '../../features/costs/useCosts';
+import {
+  useDeleteVehicleRentalRate,
+  useSetVehicleRentalRate,
+  useUpdateVehicleRentalRate,
+  useVehicleExpensesQuery,
+  useVehicleRentalRatesQuery,
+} from '../../features/costs/useCosts';
 import {
   useAssignVehicle,
   useAssignVehicleProject,
@@ -50,6 +64,7 @@ import {
   useUnassignVehicleProject,
   useVehicleQuery,
 } from '../../features/vehicles/useVehicles';
+import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { canAdministerAccounts } from '../../auth/authHelpers';
@@ -137,6 +152,7 @@ export function VehicleDetailPage() {
               <Typography color="text.secondary">{vehicle.registrationNumber}</Typography>
               <Stack direction="row" spacing={1} sx={{ mt: 1.5, alignItems: 'center' }}>
                 <StatusChip status={vehicle.status} kind="vehicleStatus" />
+                <StatusChip status={vehicle.ownershipType} kind="vehicleOwnershipType" />
               </Stack>
             </Box>
             <Stack direction="row" spacing={1}>
@@ -326,6 +342,12 @@ export function VehicleDetailPage() {
           </Card>
         </Grid>
 
+        {vehicle.ownershipType !== 'Owned' && (
+          <Grid size={12}>
+            <VehicleRentalCard vehicleId={vehicle.id} />
+          </Grid>
+        )}
+
         <Grid size={12}>
           <VehicleCostsCard vehicleId={vehicle.id} />
         </Grid>
@@ -472,6 +494,291 @@ function VehicleCostsCard({ vehicleId }: { vehicleId: string }) {
         onClose={() => setEditing(null)}
       />
     </Card>
+  );
+}
+
+/** The rent/lease history for this vehicle, add a new rate to close off the one in force. */
+function VehicleRentalCard({ vehicleId }: { vehicleId: string }) {
+  const t = useT();
+  const { locale } = useI18n();
+  const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<VehicleRentalRate | null>(null);
+
+  const query = useMemo(
+    () => ({
+      vehicleId,
+      pageNumber: 1,
+      pageSize: 10,
+      sortBy: 'startDate',
+      sortDescending: true,
+    }),
+    [vehicleId],
+  );
+
+  const { data } = useVehicleRentalRatesQuery(query);
+  const remove = useDeleteWithConfirm<VehicleRentalRate>(useDeleteVehicleRentalRate());
+  const rows = data?.items ?? [];
+
+  return (
+    <Card>
+      <CardContent>
+        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+            {t('vehicleRentalRates.title')}
+          </Typography>
+          <Button size="small" startIcon={<CarRentalOutlined />} onClick={() => setAdding(true)}>
+            {t('vehicleRentalRates.add')}
+          </Button>
+        </Stack>
+
+        {rows.length === 0 ? (
+          <Typography color="text.secondary" sx={{ mt: 1 }}>
+            {t('vehicleRentalRates.empty')}
+          </Typography>
+        ) : (
+          <TableContainer sx={{ mt: 1 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('vehicleRentalRates.provider')}</TableCell>
+                  <TableCell align="right">{t('vehicleRentalRates.monthlyAmount')}</TableCell>
+                  <TableCell>{t('vehicleRentalRates.startDate')}</TableCell>
+                  <TableCell>{t('vehicleRentalRates.endDate')}</TableCell>
+                  <TableCell align="right" />
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    hover
+                    sx={{ cursor: 'pointer' }}
+                    onDoubleClick={() => setEditing(row)}
+                  >
+                    <TableCell>{row.provider || '—'}</TableCell>
+                    <TableCell align="right">{formatMoney(row.monthlyAmount, locale)}</TableCell>
+                    <TableCell>{formatDate(row.startDate)}</TableCell>
+                    <TableCell>
+                      {row.endDate ? formatDate(row.endDate) : t('rates.open')}
+                    </TableCell>
+                    <TableCell align="right">
+                      <Tooltip title={t('common.delete')}>
+                        <IconButton
+                          size="small"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            remove.request(row);
+                          }}
+                        >
+                          <DeleteOutlined fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </CardContent>
+
+      <VehicleRentalRateDialog
+        open={adding}
+        vehicleId={vehicleId}
+        onClose={() => setAdding(false)}
+      />
+      <VehicleRentalRateDialog
+        open={!!editing}
+        vehicleId={vehicleId}
+        editingRate={editing}
+        onClose={() => setEditing(null)}
+      />
+
+      <ConfirmDialog
+        open={!!remove.pending}
+        title={t('vehicleRentalRates.deleteTitle')}
+        description={t('vehicleRentalRates.deleteBody')}
+        confirmLabel={t('common.delete')}
+        destructive
+        loading={remove.isDeleting}
+        onConfirm={remove.confirm}
+        onCancel={remove.cancel}
+      />
+    </Card>
+  );
+}
+
+function VehicleRentalRateDialog({
+  open,
+  vehicleId,
+  editingRate,
+  onClose,
+}: {
+  open: boolean;
+  vehicleId: string;
+  editingRate?: VehicleRentalRate | null;
+  onClose: () => void;
+}) {
+  const t = useT();
+  const set = useSetVehicleRentalRate();
+  const update = useUpdateVehicleRentalRate();
+  const isEditing = !!editingRate;
+
+  const [monthlyAmount, setMonthlyAmount] = useState('');
+  const [provider, setProvider] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [note, setNote] = useState('');
+
+  const resetSet = set.reset;
+  const resetUpdate = update.reset;
+
+  useEffect(() => {
+    if (!open) return;
+
+    resetSet();
+    resetUpdate();
+
+    if (editingRate) {
+      setMonthlyAmount(String(editingRate.monthlyAmount));
+      setProvider(editingRate.provider ?? '');
+      setStartDate(editingRate.startDate);
+      setEndDate(editingRate.endDate ?? '');
+      setNote(editingRate.note ?? '');
+    } else {
+      setMonthlyAmount('');
+      setProvider('');
+      setStartDate('');
+      setEndDate('');
+      setNote('');
+    }
+  }, [open, editingRate, resetSet, resetUpdate]);
+
+  const parsedAmount = Number(monthlyAmount);
+  const amountIsValid = monthlyAmount.trim() !== '' && !Number.isNaN(parsedAmount) && parsedAmount > 0;
+  const datesAreValid = !startDate || !endDate || endDate >= startDate;
+  const canSubmit = amountIsValid && datesAreValid;
+
+  const mutation = isEditing ? update : set;
+  const error = mutation.isError ? toApiError(mutation.error) : null;
+
+  const submit = () => {
+    const shared = {
+      vehicleId,
+      monthlyAmount: parsedAmount,
+      provider: provider.trim() || null,
+      note: note.trim() || null,
+    };
+
+    if (isEditing) {
+      update.mutate(
+        { id: editingRate.id, input: { ...shared, startDate, endDate: endDate || null } },
+        { onSuccess: onClose },
+      );
+    } else {
+      set.mutate(
+        { ...shared, startDate: startDate || null, endDate: endDate || null },
+        { onSuccess: onClose },
+      );
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>
+        {isEditing ? t('vehicleRentalRates.editTitle') : t('vehicleRentalRates.add')}
+      </DialogTitle>
+      <DialogContent>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error.message}
+          </Alert>
+        )}
+
+        <Grid container spacing={2} sx={{ mt: 0 }}>
+          <Grid size={12}>
+            <TextField
+              type="number"
+              fullWidth
+              label={t('vehicleRentalRates.monthlyAmount')}
+              value={monthlyAmount}
+              onChange={(event) => setMonthlyAmount(event.target.value)}
+              error={monthlyAmount.trim() !== '' && !amountIsValid}
+              helperText={
+                monthlyAmount.trim() !== '' && !amountIsValid
+                  ? t('vehicleRentalRates.mustBePositive')
+                  : undefined
+              }
+            />
+          </Grid>
+
+          <Grid size={12}>
+            <TextField
+              fullWidth
+              label={t('vehicleRentalRates.provider')}
+              value={provider}
+              onChange={(event) => setProvider(event.target.value)}
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              type="date"
+              fullWidth
+              label={t('vehicleRentalRates.startDate')}
+              value={startDate}
+              onChange={(event) => setStartDate(event.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              type="date"
+              fullWidth
+              label={t('vehicleRentalRates.endDate')}
+              value={endDate}
+              onChange={(event) => setEndDate(event.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
+              error={!datesAreValid}
+              helperText={!datesAreValid ? t('rates.endsBeforeStart') : undefined}
+            />
+          </Grid>
+
+          <Grid size={12}>
+            <TextField
+              fullWidth
+              multiline
+              minRows={2}
+              label={t('rates.note')}
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+            />
+          </Grid>
+
+          {isEditing && (
+            <Grid size={12}>
+              <AttachmentList
+                ownerType="VehicleRentalRate"
+                ownerId={editingRate.id}
+                categories={['Contract', 'Other']}
+              />
+            </Grid>
+          )}
+        </Grid>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>{t('common.cancel')}</Button>
+        <Button
+          variant="contained"
+          disabled={!canSubmit}
+          loading={mutation.isPending}
+          onClick={submit}
+        >
+          {t('common.save')}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }
 
