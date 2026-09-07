@@ -3,7 +3,9 @@ import 'package:construction_mobile/core/network/network_providers.dart';
 import 'package:construction_mobile/core/storage/secure_session_storage.dart';
 import 'package:construction_mobile/features/auth/data/models/auth_session.dart';
 import 'package:construction_mobile/features/auth/data/models/user.dart';
+import 'package:construction_mobile/core/network/offline_cache.dart';
 import 'package:construction_mobile/features/notifications/presentation/notifications_controller.dart';
+import 'package:construction_mobile/features/notifications/presentation/pending_acknowledgments_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -63,6 +65,12 @@ Future<void> _pumpSignedIn(
             .overrideWithValue(_InMemorySessionStorage(session)),
         // The badge count would otherwise reach for the network.
         unreadNotificationCountProvider.overrideWith((ref) async => unread),
+        // So would the acknowledgment banner the shell now carries, and it
+        // drags the offline cache in behind it: opening that waits five
+        // seconds on a directory only the platform can name, and the timer
+        // outlives the test.
+        pendingAcknowledgmentsProvider.overrideWith((ref) async => const []),
+        offlineCacheProvider.overrideWithValue(Future<OfflineCache?>.value(null)),
       ],
       child: const ConstructionApp(),
     ),

@@ -1,7 +1,10 @@
 import 'package:construction_mobile/core/models/paged_list.dart';
 import 'package:construction_mobile/core/network/api_exception.dart';
 import 'package:construction_mobile/features/auth/data/models/user.dart';
+import 'package:construction_mobile/core/network/network_providers.dart';
+import 'package:construction_mobile/core/network/offline_cache.dart';
 import 'package:construction_mobile/features/auth/presentation/auth_controller.dart';
+import 'package:construction_mobile/features/notifications/presentation/pending_acknowledgments_controller.dart';
 import 'package:construction_mobile/features/time_entries/data/clock_queue.dart';
 import 'package:construction_mobile/features/time_entries/data/models/time_entry.dart';
 import 'package:construction_mobile/features/time_entries/data/time_entry_repository.dart';
@@ -169,6 +172,13 @@ Future<void> _pumpShiftScreen(
         timeEntryRepositoryProvider.overrideWithValue(repository),
         clockQueueProvider
             .overrideWithValue(queue ?? ClockQueue(_MemoryClockStore())),
+        // Clocking in and out is a mutating action, so the screen now asks
+        // whether an unconfirmed notice is blocking it. That question reaches
+        // the API, and the API client opens the offline cache — five seconds
+        // spent waiting on a directory only the platform can name, and a
+        // timer that outlives the test. Nothing here is about acknowledgments.
+        pendingAcknowledgmentsProvider.overrideWith((ref) async => const []),
+        offlineCacheProvider.overrideWithValue(Future<OfflineCache?>.value(null)),
       ],
       child: const MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,

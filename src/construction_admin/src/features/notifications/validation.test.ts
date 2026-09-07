@@ -7,6 +7,11 @@ const valid = {
   body: 'Radovi na trafostanici.',
   role: '',
   projectId: '',
+  // The same convention as `role`: a select cannot hold null, so the empty
+  // option carries "no group" and is turned back into null on submit. The
+  // checkbox is always one of the two booleans.
+  groupId: '',
+  requiresAcknowledgment: false,
 };
 
 /**
@@ -52,6 +57,25 @@ describe('the announcement form', () => {
     const parsed = announcementFormSchema.parse({ ...valid, role: '' });
 
     expect(parsed.role).toBe('');
+  });
+
+  it('reads an empty group the same way as an empty role', () => {
+    const parsed = announcementFormSchema.parse({ ...valid, groupId: '' });
+
+    expect(parsed.groupId).toBe('');
+  });
+
+  it('requires an answer on acknowledgment rather than assuming one', () => {
+    // The flag decides whether a worker can carry on using the app before
+    // reading this, so an announcement that never said is not a valid one.
+    expect(
+      announcementFormSchema.safeParse({ ...valid, requiresAcknowledgment: undefined })
+        .success,
+    ).toBe(false);
+
+    expect(
+      announcementFormSchema.safeParse({ ...valid, requiresAcknowledgment: true }).success,
+    ).toBe(true);
   });
 
   it('trims the text it passes on', () => {
