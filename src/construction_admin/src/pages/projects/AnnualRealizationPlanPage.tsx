@@ -154,7 +154,11 @@ export function AnnualRealizationPlanPage() {
               <TableFooter>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 700 }} colSpan={2}>
-                    {t('common.total')}
+                    {/* `common.total` is the counting plural — "3 total" —
+                        and called without a count it renders the template
+                        itself, so this row read "{count} total". The footer of
+                        a money table wants the plain word. */}
+                    {t('costs.total')}
                   </TableCell>
                   <TableCell align="right" sx={{ fontWeight: 700 }}>
                     {formatMoney(data.totalContractValue, locale)}
@@ -377,7 +381,13 @@ function RecordRevenueDialog({ open, onClose }: { open: boolean; onClose: () => 
               value={projectId}
               onChange={(event) => setProjectId(event.target.value)}
             >
-              {projects?.items.map((project) => (
+              {/* Both links optional, not just the first. `projects` being
+                  undefined is the loading case and already guarded; a body
+                  that arrives without `items` — a version skew, a proxy
+                  answering 200 with something else — reached `.map` on
+                  undefined and threw during render, which takes the whole
+                  screen down rather than showing an empty list. */}
+              {projects?.items?.map((project) => (
                 <MenuItem key={project.id} value={project.id}>
                   {project.name}
                 </MenuItem>
