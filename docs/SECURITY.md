@@ -240,6 +240,7 @@ administrator can lock everyone out and the only repair is database access.
 - [ ] TLS terminated in front of the API; HTTP redirects to HTTPS
 - [ ] Reverse proxy restricts `Host` to the real domain
 - [ ] Firebase credentials provisioned, or push accepted as non-functional
+- [ ] `ANTHROPIC_API_KEY` set only if the AI assistant is wanted — it is a **billed** credential, and leaving it empty is a supported configuration that switches the feature off entirely. If it is set, confirm the transfer to Anthropic is covered by the notice to staff (`PRIVACY.md` §1.0a)
 
 ### Verify after deploy
 
@@ -251,6 +252,7 @@ administrator can lock everyone out and the only repair is database access.
 - [ ] The refresh-token audit trail records real client addresses, not the proxy and not a spoofed value
 - [ ] A password-reset email actually arrives, and the link opens the real admin panel
 - [ ] Logs contain no reset links, passwords or tokens
+- [ ] If the assistant is enabled: a Foreman account's answers contain no coordinates and no pay figures, and `/api/v1/assistant/chat` returns `429` after 21 questions in five minutes
 - [ ] The seeded Super Admin password has been changed
 
 ### Ongoing
