@@ -55,6 +55,7 @@ import {
 } from '../auth/authHelpers';
 import { useAuth } from '../auth/useAuth';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { AssistantLauncher } from '../components/assistant/AssistantLauncher';
 import { OfflineBanner } from '../components/OfflineBanner';
 import { useUnreadCountQuery } from '../features/notifications/useNotifications';
 import { useEnumLabel } from '../i18n/enumLabels';
@@ -301,6 +302,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             stated once, in the same place, wherever the operator is. */}
         <OfflineBanner />
         {children}
+        <AssistantLauncher />
       </Box>
     </Box>
   );
