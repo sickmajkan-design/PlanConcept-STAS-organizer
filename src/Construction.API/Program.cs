@@ -1,4 +1,5 @@
 using Construction.API.Authentication;
+using Construction.API.Assistant;
 using Construction.API.Authorization;
 using Construction.API.BackgroundServices;
 using Construction.API.Extensions;
@@ -30,6 +31,11 @@ try
 
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+    // Scoped, and deliberately registered here rather than in Infrastructure:
+    // it needs IAuthorizationService and the request's own ClaimsPrincipal to
+    // put back the role check that MediatR does not perform.
+    builder.Services.AddScoped<IAssistantToolset, AssistantToolset>();
 
     builder.Services
         .AddControllers()
