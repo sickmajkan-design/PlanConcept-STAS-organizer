@@ -38,6 +38,17 @@ Derived from the schema (21 tables). Only person-related data is listed.
 
 ### 1.0a Podaci koji napuštaju server / Data that leaves the server — **[ZA VLASNIKA / FOR THE OWNER]**
 
+> **STANJE: ZADRŽANO, NIJE U UPOTREBI.** Pomoćnik je napravljen i testiran, ali
+> nije uključen u proizvod — dugme nije montirano u admin panelu, pa se ništa od
+> dole opisanog trenutno **ne dešava**. Ovaj odeljak opisuje šta bi važilo kad se
+> pusti, i stoji ovde da se ta odluka ne donese prećutno.
+>
+> **STATUS: HELD BACK, NOT IN USE.** The assistant is built and tested but not
+> mounted in the admin panel, so none of what follows currently happens. This
+> section describes what would apply when it ships, and stands here so that
+> decision is not made silently.
+
+
 **SR** — Do sada nijedan lični podatak nije napuštao instalaciju osim ka
 servisima koje vlasnik sam podesi (SMTP za poštu, S3 za kopije, Firebase za
 push). **Kancelarijski pomoćnik dodaje još jednog obrađivača: Anthropic.**
@@ -352,4 +363,4 @@ employees' location has no basis.
 | Izvoz podataka na zahtev lica / Data export on a subject request | **nije / not done** — trenutno se radi ručno iz baze / currently a manual database query |
 | Ograničenje praćenja na radno vreme / Tracking limited to working hours | **nije / not done** (§6.4) |
 | Pomoćnik ne vidi lokaciju ni zarade / Assistant cannot see location or pay | **urađeno / done** (§1.0a) — allow-lista alata, redaktor polja i dva testa koja oba zamrzavaju / tool allow-list, field redactor, and two tests freezing both |
-| Ugovor o obradi sa Anthropic-om i obaveštenje / Processing agreement with Anthropic and notice | **nije — traži vlasnika / not done — needs the owner** (§1.0a) |
+| Ugovor o obradi sa Anthropic-om i obaveštenje / Processing agreement with Anthropic and notice | **nije potrebno dok je pomoćnik zadržan / not needed while the assistant is held back** (§1.0a) |

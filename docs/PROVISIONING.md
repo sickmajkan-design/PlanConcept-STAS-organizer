@@ -120,6 +120,12 @@ at submission, not silently on users' devices.
 
 ## 2a. AI pomoćnik / The AI assistant
 
+> **ZADRŽANO.** Napravljeno i testirano, ali dugme nije montirano u admin panelu,
+> pa postavljanje ključa **ne prikazuje pomoćnika**. Ovi koraci važe tek kad se
+> pusti u nekoj od sledećih faza. / **HELD BACK.** Built and tested, but the
+> launcher is not mounted, so setting a key does **not** surface the assistant.
+> These steps apply when it ships in a later phase.
+
 **Opciono.** Bez ključa sistem radi u svemu ostalom identično: krajnja tačka
 vraća 503, panel ne prikazuje dugme, i pri pokretanju se upiše upozorenje.
 Ništa se ne šalje nikuda. / **Optional.** Without a key everything else behaves
@@ -185,7 +191,7 @@ Pošteno, da ne bude iznenađenja. / Stated plainly so there are no surprises.
 | GPS kad korisnik ukloni aplikaciju iz „recents" | **ne radi** — Android uništava aktivnost, a sa njom i servis. Fiksevi u redu čekanja se čuvaju i šalju pri sledećem pokretanju. / does not work — the activity is destroyed and the service with it. Queued fixes survive and go out on next launch. |
 | GPS posle restarta telefona | **ne radi** dok se aplikacija ne otvori / does not work until the app is opened |
 | iOS build | nije građen ni potpisan — traži Apple Developer nalog i Mac / not built or signed — needs an Apple Developer account and a Mac |
-| AI pomoćnik bez ključa | **ne radi, i tako treba** — 503 i sakriveno dugme; vidi §2a / **does not work, by design** — 503 and a hidden launcher; see §2a |
+| AI pomoćnik | **zadržan** — napravljen, testiran, nije montiran u panelu; vidi §2a / **held back** — built, tested, not mounted; see §2a |
 
 Trajno rešenje za prva dva je zaseban background-service paket koji pokreće
 drugi Flutter engine, nezavisan od aktivnosti. To je nova zavisnost i zaseban

@@ -201,7 +201,14 @@ ručno, a fotografija se bez pickera ne može uzeti.
 
 ---
 
-## Faza 5a — AI pomoćnik / AI assistant — **PRVA POLOVINA ODRAĐENA / FIRST HALF DONE**
+## Faza 5a — AI pomoćnik / AI assistant — **ZADRŽANO / HELD BACK**
+
+**Napravljeno i testirano, ali namerno nije pušteno.** Dugme nije montirano u
+admin panelu; kod stoji na grani i čeka da bude deo neke od sledećih faza. Radi
+se o odluci o redosledu, ne o problemu sa funkcijom. / **Built and tested,
+deliberately not shipped.** The launcher is not mounted; the code sits on the
+branch waiting to go out with a later phase. A sequencing decision, not a fault.
+
 
 Nije bio na ovoj listi. Došao je kao zahtev vlasnika i uzet je van reda jer ne
 zavisi ni od čega i ništa ne blokira. / Not on this list. It came as an owner
@@ -223,7 +230,7 @@ nothing.
 podataka. Imena i sati odlaze Anthropic-u; lokacija i zarade ne. Pravni deo je
 kod vlasnika — `PRIVACY.md` §1.0a.
 
-**Pokrivenost / Coverage: ≈77%**
+**Pokrivenost kad se pusti / Coverage when shipped: ≈77%**
 
 ---
 
@@ -268,7 +275,7 @@ Every module from here inherits the existing conventions — not done until it h
 | 3 | Zadaci i nedostaci — **odrađeno** | 2 ned. | 50% |
 | 4 | Raspoređivanje i odsustva | 2–3 ned. | 58% |
 | 5 | Troškovi i statistika | 3 ned. | 75% |
-| 5a | AI pomoćnik — pitanja odrađena, predlozi ne | 1 ned. | 77% |
+| 5a | AI pomoćnik — napravljen, **zadržan** / built, **held back** | — | 75% |
 | 6 | Narudžbe, računi, offline, chat, iOS | otvoreno / open | ~100% |
 
 **Ukupno do 75% pokrivenosti: ~3 meseca za jednog programera.**

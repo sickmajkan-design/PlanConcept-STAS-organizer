@@ -55,7 +55,6 @@ import {
 } from '../auth/authHelpers';
 import { useAuth } from '../auth/useAuth';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
-import { AssistantLauncher } from '../components/assistant/AssistantLauncher';
 import { OfflineBanner } from '../components/OfflineBanner';
 import { useUnreadCountQuery } from '../features/notifications/useNotifications';
 import { useEnumLabel } from '../i18n/enumLabels';
@@ -302,7 +301,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
             stated once, in the same place, wherever the operator is. */}
         <OfflineBanner />
         {children}
-        <AssistantLauncher />
+        {/*
+          The office assistant is built but deliberately not mounted. It is
+          finished and tested — src/components/assistant/, src/features/assistant/,
+          and the API side under Construction.API/Assistant — and held back to
+          ship with a later phase rather than on its own. Re-enable by rendering
+          <AssistantLauncher /> here; it hides itself unless the server has an
+          API key, so this line alone does not turn anything on.
+        */}
       </Box>
     </Box>
   );
