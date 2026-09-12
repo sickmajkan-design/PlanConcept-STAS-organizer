@@ -525,8 +525,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
                         size="small"
                         className="nav-pin"
                         aria-label={t('nav.togglePin')}
+                        // Full opacity when starred, otherwise always at least
+                        // partly visible rather than 0 by default — this menu
+                        // is also the one a phone gets (no desktop rail
+                        // there), and touch has no hover to reveal a fully
+                        // transparent icon with. The `&:hover` above still
+                        // brightens it further for a mouse.
                         sx={{
-                          opacity: favorites.isFavorite(item.path) ? 1 : 0,
+                          opacity: favorites.isFavorite(item.path) ? 1 : 0.35,
                           transition: 'opacity 0.15s',
                         }}
                         onClick={(event) => {

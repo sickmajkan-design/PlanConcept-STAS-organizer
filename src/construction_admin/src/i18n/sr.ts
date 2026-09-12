@@ -932,7 +932,7 @@ export const sr: Record<MessageKey, Message> = {
   'schedule.allProjects': 'Sva gradilišta',
   'schedule.assignedOnly': 'Samo oni koji imaju zaduženje',
   'schedule.employee': 'Radnik',
-  'schedule.free': 'Bez rasporeda',
+  'schedule.free': 'Dostupan/na',
   'schedule.continues': 'Traje i posle ove nedelje',
   'schedule.empty': 'Nema koga prikazati za ovu nedelju.',
 
@@ -985,6 +985,7 @@ export const sr: Record<MessageKey, Message> = {
   'assignmentBoard.assign': 'Rasporedi',
   'schedule.legendAssigned': 'Na gradilištu',
   'schedule.legendAway': 'Odsutan',
+  'schedule.legendFree': 'Dostupan/na',
   'schedule.bookLeave': 'Prijavi odsustvo',
   'schedule.openAbsences': 'Odsustva',
 

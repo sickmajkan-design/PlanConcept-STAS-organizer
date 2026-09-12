@@ -908,7 +908,7 @@ export const en = {
   'schedule.allProjects': 'All sites',
   'schedule.assignedOnly': 'Only people with something on',
   'schedule.employee': 'Employee',
-  'schedule.free': 'Nothing scheduled',
+  'schedule.free': 'Available',
   'schedule.continues': 'Runs on past this week',
   'schedule.empty': 'Nobody to show for this week.',
 
@@ -960,6 +960,7 @@ export const en = {
   'assignmentBoard.assign': 'Post them',
   'schedule.legendAssigned': 'On site',
   'schedule.legendAway': 'Away',
+  'schedule.legendFree': 'Available',
   'schedule.bookLeave': 'Book time off',
   'schedule.openAbsences': 'Time off',
 
