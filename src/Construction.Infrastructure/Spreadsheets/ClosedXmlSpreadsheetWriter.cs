@@ -7,6 +7,24 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Construction.Infrastructure.Spreadsheets;
 
 /// <summary>
+/// The house style every exported workbook shares — one palette, applied in
+/// exactly one place, so "make the exports look professional" is a change
+/// here rather than a change repeated across ten export handlers that know
+/// nothing about fonts or fills.
+/// </summary>
+internal static class SpreadsheetTheme
+{
+    /// <summary>The admin panel's own brand color (see construction_admin's theme.ts) — the same orange, not a coincidence.</summary>
+    public static readonly XLColor BrandColor = XLColor.FromHtml("#E65100");
+    public static readonly XLColor BrandColorDark = XLColor.FromHtml("#B23C00");
+    public static readonly XLColor HeaderText = XLColor.White;
+    public static readonly XLColor ZebraFill = XLColor.FromHtml("#FBF3EE");
+    public static readonly XLColor BorderColor = XLColor.FromHtml("#E0D5CC");
+    public static readonly XLColor TotalsFill = XLColor.FromHtml("#FCE4D6");
+    public const string FontFamily = "Calibri";
+}
+
+/// <summary>
 /// Writes a real .xlsx rather than a CSV.
 /// </summary>
 /// <remarks>
@@ -103,27 +121,71 @@ public sealed class ClosedXmlSpreadsheetWriter : ISpreadsheetWriter
             settings.LogoContentType);
     }
 
+    /// <summary>
+    /// The label a grand-total row's first cell carries, in both languages —
+    /// how the writer recognizes one to give it its own styling without the
+    /// ten export handlers that build totals rows needing to know that a
+    /// "total row" is even a styling concept.
+    /// </summary>
+    private static readonly string[] TotalRowMarkers =
+    [
+        ExportLabels.Get("grandTotal", english: false),
+        ExportLabels.Get("grandTotal", english: true),
+    ];
+
     private static void AddSheet(XLWorkbook workbook, SpreadsheetSheet sheet, SpreadsheetBranding branding)
     {
         var worksheet = workbook.Worksheets.Add(SafeSheetName(sheet.Name));
+        worksheet.Style.Font.FontName = SpreadsheetTheme.FontFamily;
 
         var headerRow = 1 + AddBrandingHeader(worksheet, sheet, branding);
+        var columnCount = sheet.Columns.Count;
 
-        for (var column = 0; column < sheet.Columns.Count; column++)
+        for (var column = 0; column < columnCount; column++)
         {
             var cell = worksheet.Cell(headerRow, column + 1);
             cell.Value = sheet.Columns[column].Header;
             cell.Style.Font.Bold = true;
+            cell.Style.Font.FontColor = SpreadsheetTheme.HeaderText;
+            cell.Style.Fill.BackgroundColor = SpreadsheetTheme.BrandColor;
+            cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+            cell.Style.Alignment.WrapText = true;
+            cell.Style.Border.BottomBorder = XLBorderStyleValues.Medium;
+            cell.Style.Border.BottomBorderColor = SpreadsheetTheme.BrandColorDark;
         }
+
+        worksheet.Row(headerRow).Height = 20;
 
         for (var row = 0; row < sheet.Rows.Count; row++)
         {
             var values = sheet.Rows[row];
+            var sheetRow = headerRow + row + 1;
+            var isTotalRow = values.Count > 0 && values[0] is string first && TotalRowMarkers.Contains(first);
+            var isZebra = !isTotalRow && row % 2 == 1;
 
-            for (var column = 0; column < sheet.Columns.Count; column++)
+            for (var column = 0; column < columnCount; column++)
             {
                 var value = column < values.Count ? values[column] : null;
-                Fill(worksheet.Cell(headerRow + row + 1, column + 1), value, sheet.Columns[column].Kind);
+                var cell = worksheet.Cell(sheetRow, column + 1);
+
+                Fill(cell, value, sheet.Columns[column].Kind);
+
+                cell.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                cell.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+                cell.Style.Border.OutsideBorderColor = SpreadsheetTheme.BorderColor;
+                cell.Style.Border.InsideBorderColor = SpreadsheetTheme.BorderColor;
+
+                if (isTotalRow)
+                {
+                    cell.Style.Font.Bold = true;
+                    cell.Style.Fill.BackgroundColor = SpreadsheetTheme.TotalsFill;
+                    cell.Style.Border.TopBorder = XLBorderStyleValues.Medium;
+                    cell.Style.Border.TopBorderColor = SpreadsheetTheme.BrandColor;
+                }
+                else if (isZebra)
+                {
+                    cell.Style.Fill.BackgroundColor = SpreadsheetTheme.ZebraFill;
+                }
             }
         }
 
@@ -132,11 +194,20 @@ public sealed class ClosedXmlSpreadsheetWriter : ISpreadsheetWriter
             // The header stays put while the reader scrolls, and the filter
             // row is what makes an export usable rather than merely present.
             worksheet.SheetView.FreezeRows(headerRow);
-            worksheet.Range(headerRow, 1, sheet.Rows.Count + headerRow, sheet.Columns.Count)
+            worksheet.Range(headerRow, 1, sheet.Rows.Count + headerRow, columnCount)
                 .SetAutoFilter();
         }
 
         worksheet.Columns().AdjustToContents();
+
+        for (var column = 1; column <= columnCount; column++)
+        {
+            // Breathing room past the tightest fit AdjustToContents gives.
+            worksheet.Column(column).Width += 1.5;
+        }
+
+        // The drawn borders are the table now, not Excel's own faint default grid.
+        worksheet.SetShowGridLines(false);
     }
 
     /// <summary>
@@ -154,12 +225,24 @@ public sealed class ClosedXmlSpreadsheetWriter : ISpreadsheetWriter
 
         var columnCount = Math.Max(sheet.Columns.Count, 1);
 
+        // A letterhead band, not just bold text floating on the default
+        // white: a filled, bordered row reads as the top of a document
+        // rather than an accidental first line of data.
+        var band = worksheet.Range(1, 1, 1, columnCount);
+        band.Style.Fill.BackgroundColor = SpreadsheetTheme.BrandColor;
+        band.Style.Border.BottomBorder = XLBorderStyleValues.Thick;
+        band.Style.Border.BottomBorderColor = SpreadsheetTheme.BrandColorDark;
+        worksheet.Row(1).Height = 26;
+
         if (branding.CompanyName is not null)
         {
             var nameCell = worksheet.Cell(1, 1);
             nameCell.Value = branding.CompanyName;
             nameCell.Style.Font.Bold = true;
             nameCell.Style.Font.FontSize = 14;
+            nameCell.Style.Font.FontColor = SpreadsheetTheme.HeaderText;
+            nameCell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+            nameCell.Style.Alignment.Indent = 1;
 
             if (columnCount > 1)
             {
@@ -198,16 +281,19 @@ public sealed class ClosedXmlSpreadsheetWriter : ISpreadsheetWriter
             case SpreadsheetValueKind.Money:
                 cell.Value = Convert.ToDecimal(value);
                 cell.Style.NumberFormat.Format = "#,##0.00";
+                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
                 break;
 
             case SpreadsheetValueKind.Quantity:
                 cell.Value = Convert.ToDecimal(value);
                 cell.Style.NumberFormat.Format = "#,##0.###";
+                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
                 break;
 
             case SpreadsheetValueKind.Integer:
                 cell.Value = Convert.ToInt64(value);
                 cell.Style.NumberFormat.Format = "#,##0";
+                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
                 break;
 
             case SpreadsheetValueKind.Date:
@@ -218,6 +304,7 @@ public sealed class ClosedXmlSpreadsheetWriter : ISpreadsheetWriter
                     _ => cell.Value
                 };
                 cell.Style.DateFormat.Format = "dd.MM.yyyy.";
+                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
                 break;
 
             case SpreadsheetValueKind.Duration:
@@ -226,6 +313,7 @@ public sealed class ClosedXmlSpreadsheetWriter : ISpreadsheetWriter
                 // back round to zero.
                 cell.Value = Convert.ToDouble(value) / 1440d;
                 cell.Style.NumberFormat.Format = "[h]:mm";
+                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
                 break;
 
             default:
