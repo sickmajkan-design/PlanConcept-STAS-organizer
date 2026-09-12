@@ -16,7 +16,9 @@ T _$identity<T>(T value) => value;
 mixin _$Attachment {
 
  String get id; String get fileName; String get contentType; int get sizeBytes; String get category; String? get description;/// `YYYY-MM-DD`, or null for anything that does not lapse.
- String? get expiresAt; String get ownerType; String get ownerId; String? get ownerName; String? get uploadedByName; DateTime get createdAt;
+ String? get expiresAt;/// `YYYY-MM-DD`. While in the future, the API refuses to delete this
+/// attachment regardless of who asks.
+ String? get retainUntil; String get ownerType; String get ownerId; String? get ownerName; String? get uploadedByName; DateTime get createdAt;
 /// Create a copy of Attachment
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +31,16 @@ $AttachmentCopyWith<Attachment> get copyWith => _$AttachmentCopyWithImpl<Attachm
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Attachment&&(identical(other.id, id) || other.id == id)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.sizeBytes, sizeBytes) || other.sizeBytes == sizeBytes)&&(identical(other.category, category) || other.category == category)&&(identical(other.description, description) || other.description == description)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.ownerType, ownerType) || other.ownerType == ownerType)&&(identical(other.ownerId, ownerId) || other.ownerId == ownerId)&&(identical(other.ownerName, ownerName) || other.ownerName == ownerName)&&(identical(other.uploadedByName, uploadedByName) || other.uploadedByName == uploadedByName)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Attachment&&(identical(other.id, id) || other.id == id)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.sizeBytes, sizeBytes) || other.sizeBytes == sizeBytes)&&(identical(other.category, category) || other.category == category)&&(identical(other.description, description) || other.description == description)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.retainUntil, retainUntil) || other.retainUntil == retainUntil)&&(identical(other.ownerType, ownerType) || other.ownerType == ownerType)&&(identical(other.ownerId, ownerId) || other.ownerId == ownerId)&&(identical(other.ownerName, ownerName) || other.ownerName == ownerName)&&(identical(other.uploadedByName, uploadedByName) || other.uploadedByName == uploadedByName)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,fileName,contentType,sizeBytes,category,description,expiresAt,ownerType,ownerId,ownerName,uploadedByName,createdAt);
+int get hashCode => Object.hash(runtimeType,id,fileName,contentType,sizeBytes,category,description,expiresAt,retainUntil,ownerType,ownerId,ownerName,uploadedByName,createdAt);
 
 @override
 String toString() {
-  return 'Attachment(id: $id, fileName: $fileName, contentType: $contentType, sizeBytes: $sizeBytes, category: $category, description: $description, expiresAt: $expiresAt, ownerType: $ownerType, ownerId: $ownerId, ownerName: $ownerName, uploadedByName: $uploadedByName, createdAt: $createdAt)';
+  return 'Attachment(id: $id, fileName: $fileName, contentType: $contentType, sizeBytes: $sizeBytes, category: $category, description: $description, expiresAt: $expiresAt, retainUntil: $retainUntil, ownerType: $ownerType, ownerId: $ownerId, ownerName: $ownerName, uploadedByName: $uploadedByName, createdAt: $createdAt)';
 }
 
 
@@ -49,7 +51,7 @@ abstract mixin class $AttachmentCopyWith<$Res>  {
   factory $AttachmentCopyWith(Attachment value, $Res Function(Attachment) _then) = _$AttachmentCopyWithImpl;
 @useResult
 $Res call({
- String id, String fileName, String contentType, int sizeBytes, String category, String? description, String? expiresAt, String ownerType, String ownerId, String? ownerName, String? uploadedByName, DateTime createdAt
+ String id, String fileName, String contentType, int sizeBytes, String category, String? description, String? expiresAt, String? retainUntil, String ownerType, String ownerId, String? ownerName, String? uploadedByName, DateTime createdAt
 });
 
 
@@ -66,7 +68,7 @@ class _$AttachmentCopyWithImpl<$Res>
 
 /// Create a copy of Attachment
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? fileName = null,Object? contentType = null,Object? sizeBytes = null,Object? category = null,Object? description = freezed,Object? expiresAt = freezed,Object? ownerType = null,Object? ownerId = null,Object? ownerName = freezed,Object? uploadedByName = freezed,Object? createdAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? fileName = null,Object? contentType = null,Object? sizeBytes = null,Object? category = null,Object? description = freezed,Object? expiresAt = freezed,Object? retainUntil = freezed,Object? ownerType = null,Object? ownerId = null,Object? ownerName = freezed,Object? uploadedByName = freezed,Object? createdAt = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,fileName: null == fileName ? _self.fileName : fileName // ignore: cast_nullable_to_non_nullable
@@ -75,6 +77,7 @@ as String,sizeBytes: null == sizeBytes ? _self.sizeBytes : sizeBytes // ignore: 
 as int,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,expiresAt: freezed == expiresAt ? _self.expiresAt : expiresAt // ignore: cast_nullable_to_non_nullable
+as String?,retainUntil: freezed == retainUntil ? _self.retainUntil : retainUntil // ignore: cast_nullable_to_non_nullable
 as String?,ownerType: null == ownerType ? _self.ownerType : ownerType // ignore: cast_nullable_to_non_nullable
 as String,ownerId: null == ownerId ? _self.ownerId : ownerId // ignore: cast_nullable_to_non_nullable
 as String,ownerName: freezed == ownerName ? _self.ownerName : ownerName // ignore: cast_nullable_to_non_nullable
@@ -165,10 +168,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String fileName,  String contentType,  int sizeBytes,  String category,  String? description,  String? expiresAt,  String ownerType,  String ownerId,  String? ownerName,  String? uploadedByName,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String fileName,  String contentType,  int sizeBytes,  String category,  String? description,  String? expiresAt,  String? retainUntil,  String ownerType,  String ownerId,  String? ownerName,  String? uploadedByName,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Attachment() when $default != null:
-return $default(_that.id,_that.fileName,_that.contentType,_that.sizeBytes,_that.category,_that.description,_that.expiresAt,_that.ownerType,_that.ownerId,_that.ownerName,_that.uploadedByName,_that.createdAt);case _:
+return $default(_that.id,_that.fileName,_that.contentType,_that.sizeBytes,_that.category,_that.description,_that.expiresAt,_that.retainUntil,_that.ownerType,_that.ownerId,_that.ownerName,_that.uploadedByName,_that.createdAt);case _:
   return orElse();
 
 }
@@ -186,10 +189,10 @@ return $default(_that.id,_that.fileName,_that.contentType,_that.sizeBytes,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String fileName,  String contentType,  int sizeBytes,  String category,  String? description,  String? expiresAt,  String ownerType,  String ownerId,  String? ownerName,  String? uploadedByName,  DateTime createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String fileName,  String contentType,  int sizeBytes,  String category,  String? description,  String? expiresAt,  String? retainUntil,  String ownerType,  String ownerId,  String? ownerName,  String? uploadedByName,  DateTime createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _Attachment():
-return $default(_that.id,_that.fileName,_that.contentType,_that.sizeBytes,_that.category,_that.description,_that.expiresAt,_that.ownerType,_that.ownerId,_that.ownerName,_that.uploadedByName,_that.createdAt);case _:
+return $default(_that.id,_that.fileName,_that.contentType,_that.sizeBytes,_that.category,_that.description,_that.expiresAt,_that.retainUntil,_that.ownerType,_that.ownerId,_that.ownerName,_that.uploadedByName,_that.createdAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -206,10 +209,10 @@ return $default(_that.id,_that.fileName,_that.contentType,_that.sizeBytes,_that.
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String fileName,  String contentType,  int sizeBytes,  String category,  String? description,  String? expiresAt,  String ownerType,  String ownerId,  String? ownerName,  String? uploadedByName,  DateTime createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String fileName,  String contentType,  int sizeBytes,  String category,  String? description,  String? expiresAt,  String? retainUntil,  String ownerType,  String ownerId,  String? ownerName,  String? uploadedByName,  DateTime createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Attachment() when $default != null:
-return $default(_that.id,_that.fileName,_that.contentType,_that.sizeBytes,_that.category,_that.description,_that.expiresAt,_that.ownerType,_that.ownerId,_that.ownerName,_that.uploadedByName,_that.createdAt);case _:
+return $default(_that.id,_that.fileName,_that.contentType,_that.sizeBytes,_that.category,_that.description,_that.expiresAt,_that.retainUntil,_that.ownerType,_that.ownerId,_that.ownerName,_that.uploadedByName,_that.createdAt);case _:
   return null;
 
 }
@@ -221,7 +224,7 @@ return $default(_that.id,_that.fileName,_that.contentType,_that.sizeBytes,_that.
 @JsonSerializable()
 
 class _Attachment extends Attachment {
-  const _Attachment({required this.id, required this.fileName, required this.contentType, required this.sizeBytes, required this.category, this.description, this.expiresAt, required this.ownerType, required this.ownerId, this.ownerName, this.uploadedByName, required this.createdAt}): super._();
+  const _Attachment({required this.id, required this.fileName, required this.contentType, required this.sizeBytes, required this.category, this.description, this.expiresAt, this.retainUntil, required this.ownerType, required this.ownerId, this.ownerName, this.uploadedByName, required this.createdAt}): super._();
   factory _Attachment.fromJson(Map<String, dynamic> json) => _$AttachmentFromJson(json);
 
 @override final  String id;
@@ -232,6 +235,9 @@ class _Attachment extends Attachment {
 @override final  String? description;
 /// `YYYY-MM-DD`, or null for anything that does not lapse.
 @override final  String? expiresAt;
+/// `YYYY-MM-DD`. While in the future, the API refuses to delete this
+/// attachment regardless of who asks.
+@override final  String? retainUntil;
 @override final  String ownerType;
 @override final  String ownerId;
 @override final  String? ownerName;
@@ -251,16 +257,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Attachment&&(identical(other.id, id) || other.id == id)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.sizeBytes, sizeBytes) || other.sizeBytes == sizeBytes)&&(identical(other.category, category) || other.category == category)&&(identical(other.description, description) || other.description == description)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.ownerType, ownerType) || other.ownerType == ownerType)&&(identical(other.ownerId, ownerId) || other.ownerId == ownerId)&&(identical(other.ownerName, ownerName) || other.ownerName == ownerName)&&(identical(other.uploadedByName, uploadedByName) || other.uploadedByName == uploadedByName)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Attachment&&(identical(other.id, id) || other.id == id)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.contentType, contentType) || other.contentType == contentType)&&(identical(other.sizeBytes, sizeBytes) || other.sizeBytes == sizeBytes)&&(identical(other.category, category) || other.category == category)&&(identical(other.description, description) || other.description == description)&&(identical(other.expiresAt, expiresAt) || other.expiresAt == expiresAt)&&(identical(other.retainUntil, retainUntil) || other.retainUntil == retainUntil)&&(identical(other.ownerType, ownerType) || other.ownerType == ownerType)&&(identical(other.ownerId, ownerId) || other.ownerId == ownerId)&&(identical(other.ownerName, ownerName) || other.ownerName == ownerName)&&(identical(other.uploadedByName, uploadedByName) || other.uploadedByName == uploadedByName)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,fileName,contentType,sizeBytes,category,description,expiresAt,ownerType,ownerId,ownerName,uploadedByName,createdAt);
+int get hashCode => Object.hash(runtimeType,id,fileName,contentType,sizeBytes,category,description,expiresAt,retainUntil,ownerType,ownerId,ownerName,uploadedByName,createdAt);
 
 @override
 String toString() {
-  return 'Attachment(id: $id, fileName: $fileName, contentType: $contentType, sizeBytes: $sizeBytes, category: $category, description: $description, expiresAt: $expiresAt, ownerType: $ownerType, ownerId: $ownerId, ownerName: $ownerName, uploadedByName: $uploadedByName, createdAt: $createdAt)';
+  return 'Attachment(id: $id, fileName: $fileName, contentType: $contentType, sizeBytes: $sizeBytes, category: $category, description: $description, expiresAt: $expiresAt, retainUntil: $retainUntil, ownerType: $ownerType, ownerId: $ownerId, ownerName: $ownerName, uploadedByName: $uploadedByName, createdAt: $createdAt)';
 }
 
 
@@ -271,7 +277,7 @@ abstract mixin class _$AttachmentCopyWith<$Res> implements $AttachmentCopyWith<$
   factory _$AttachmentCopyWith(_Attachment value, $Res Function(_Attachment) _then) = __$AttachmentCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String fileName, String contentType, int sizeBytes, String category, String? description, String? expiresAt, String ownerType, String ownerId, String? ownerName, String? uploadedByName, DateTime createdAt
+ String id, String fileName, String contentType, int sizeBytes, String category, String? description, String? expiresAt, String? retainUntil, String ownerType, String ownerId, String? ownerName, String? uploadedByName, DateTime createdAt
 });
 
 
@@ -288,7 +294,7 @@ class __$AttachmentCopyWithImpl<$Res>
 
 /// Create a copy of Attachment
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? fileName = null,Object? contentType = null,Object? sizeBytes = null,Object? category = null,Object? description = freezed,Object? expiresAt = freezed,Object? ownerType = null,Object? ownerId = null,Object? ownerName = freezed,Object? uploadedByName = freezed,Object? createdAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? fileName = null,Object? contentType = null,Object? sizeBytes = null,Object? category = null,Object? description = freezed,Object? expiresAt = freezed,Object? retainUntil = freezed,Object? ownerType = null,Object? ownerId = null,Object? ownerName = freezed,Object? uploadedByName = freezed,Object? createdAt = null,}) {
   return _then(_Attachment(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,fileName: null == fileName ? _self.fileName : fileName // ignore: cast_nullable_to_non_nullable
@@ -297,6 +303,7 @@ as String,sizeBytes: null == sizeBytes ? _self.sizeBytes : sizeBytes // ignore: 
 as int,category: null == category ? _self.category : category // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,expiresAt: freezed == expiresAt ? _self.expiresAt : expiresAt // ignore: cast_nullable_to_non_nullable
+as String?,retainUntil: freezed == retainUntil ? _self.retainUntil : retainUntil // ignore: cast_nullable_to_non_nullable
 as String?,ownerType: null == ownerType ? _self.ownerType : ownerType // ignore: cast_nullable_to_non_nullable
 as String,ownerId: null == ownerId ? _self.ownerId : ownerId // ignore: cast_nullable_to_non_nullable
 as String,ownerName: freezed == ownerName ? _self.ownerName : ownerName // ignore: cast_nullable_to_non_nullable

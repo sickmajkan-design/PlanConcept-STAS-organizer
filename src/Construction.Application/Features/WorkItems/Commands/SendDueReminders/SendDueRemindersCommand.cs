@@ -101,7 +101,10 @@ public class SendDueRemindersCommandHandler
                 new Dictionary<string, string>
                 {
                     ["workItemId"] = item.Id.ToString(),
-                    ["kind"] = item.Kind.ToString()
+                    ["kind"] = item.Kind.ToString(),
+                    ["title"] = item.Title,
+                    ["dueDate"] = item.DueDate!.Value.ToString("yyyy-MM-dd"),
+                    ["overdue"] = overdue ? "true" : "false"
                 },
                 cancellationToken: cancellationToken);
 

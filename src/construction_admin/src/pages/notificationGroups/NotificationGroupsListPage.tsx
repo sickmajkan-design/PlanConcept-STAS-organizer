@@ -1,18 +1,23 @@
 import { AddOutlined, DeleteOutlined, EditOutlined } from '@mui/icons-material';
-import { IconButton, Stack, Tooltip } from '@mui/material';
+import { Box, IconButton, Stack, Tooltip } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type { NotificationGroup } from '../../api/types';
+import { BulkActionsBar } from '../../components/BulkActionsBar';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
+import { SavedViewsBar } from '../../components/SavedViewsBar';
 import { SearchField } from '../../components/SearchField';
 import {
   useDeleteNotificationGroup,
   useNotificationGroupsQuery,
 } from '../../features/notificationGroups/useNotificationGroups';
+import { useBulkDelete } from '../../hooks/useBulkDelete';
+import { useBulkSelection } from '../../hooks/useBulkSelection';
+import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
@@ -20,19 +25,13 @@ import { paths } from '../../routes/paths';
 export function NotificationGroupsListPage() {
   const navigate = useNavigate();
   const t = useT();
-  const list = useListQueryState('name');
-  const [pendingDelete, setPendingDelete] = useState<NotificationGroup | null>(null);
+  const list = useListQueryState('name', 'asc', 'notification-groups');
 
   const { data, isLoading, isError, error, refetch } = useNotificationGroupsQuery(list.query);
   const deleteGroup = useDeleteNotificationGroup();
-
-  const confirmDelete = () => {
-    if (!pendingDelete) {
-      return;
-    }
-
-    deleteGroup.mutate(pendingDelete.id, { onSuccess: () => setPendingDelete(null) });
-  };
+  const remove = useDeleteWithConfirm<NotificationGroup>(deleteGroup);
+  const bulk = useBulkDelete(deleteGroup);
+  const selection = useBulkSelection();
 
   const columns: GridColDef<NotificationGroup>[] = useMemo(
     () => [
@@ -61,11 +60,7 @@ export function NotificationGroupsListPage() {
               </IconButton>
             </Tooltip>
             <Tooltip title={t('common.delete')}>
-              <IconButton
-                size="small"
-                color="error"
-                onClick={() => setPendingDelete(params.row)}
-              >
+              <IconButton size="small" color="error" onClick={() => remove.request(params.row)}>
                 <DeleteOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
@@ -73,7 +68,7 @@ export function NotificationGroupsListPage() {
         ),
       },
     ],
-    [navigate, t],
+    [navigate, remove, t],
   );
 
   return (
@@ -96,6 +91,23 @@ export function NotificationGroupsListPage() {
         />
       </Stack>
 
+      {list.savedViews && (
+        <Box sx={{ mb: 2 }}>
+          <SavedViewsBar
+            views={list.savedViews.views}
+            onApply={list.savedViews.applyView}
+            onSave={list.savedViews.saveCurrentView}
+            onDelete={list.savedViews.deleteView}
+          />
+        </Box>
+      )}
+
+      <BulkActionsBar
+        count={selection.count}
+        onDelete={() => bulk.request(selection.selectedIds)}
+        onClear={selection.clear}
+      />
+
       <ResourceDataGrid
         data={data}
         columns={columns}
@@ -107,19 +119,36 @@ export function NotificationGroupsListPage() {
         onPaginationModelChange={list.setPaginationModel}
         sortModel={list.sortModel}
         onSortModelChange={list.setSortModel}
+        rowSelectionModel={selection.model}
+        onRowSelectionModelChange={selection.setModel}
       />
 
       <ConfirmDialog
-        open={!!pendingDelete}
+        open={!!remove.pending}
         title={t('notificationGroups.deleteTitle')}
         description={
-          pendingDelete ? t('notificationGroups.deleteBody', { name: pendingDelete.name }) : ''
+          remove.pending ? t('notificationGroups.deleteBody', { name: remove.pending.name }) : ''
         }
         confirmLabel={t('common.delete')}
         destructive
-        loading={deleteGroup.isPending}
-        onConfirm={confirmDelete}
-        onCancel={() => setPendingDelete(null)}
+        loading={remove.isDeleting}
+        onConfirm={remove.confirm}
+        onCancel={remove.cancel}
+      />
+
+      <ConfirmDialog
+        open={!!bulk.pendingIds}
+        title={t('bulk.deleteConfirmTitle')}
+        description={
+          bulk.pendingIds ? t('bulk.deleteConfirmBody', { count: bulk.pendingIds.length }) : ''
+        }
+        confirmLabel={t('common.delete')}
+        destructive
+        onConfirm={() => {
+          void bulk.confirm();
+          selection.clear();
+        }}
+        onCancel={bulk.cancel}
       />
     </>
   );

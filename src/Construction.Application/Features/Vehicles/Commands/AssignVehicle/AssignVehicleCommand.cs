@@ -64,7 +64,13 @@ public class AssignVehicleCommandHandler : IRequestHandler<AssignVehicleCommand,
                 NotificationType.VehicleAssigned,
                 "Vehicle assigned",
                 $"Vehicle {vehicle.Brand} {vehicle.Model} ({vehicle.RegistrationNumber}) has been assigned to you.",
-                new Dictionary<string, string> { ["vehicleId"] = vehicle.Id.ToString() },
+                new Dictionary<string, string>
+                {
+                    ["vehicleId"] = vehicle.Id.ToString(),
+                    ["vehicleBrand"] = vehicle.Brand,
+                    ["vehicleModel"] = vehicle.Model,
+                    ["vehicleRegistration"] = vehicle.RegistrationNumber
+                },
                 cancellationToken: cancellationToken);
         }
 

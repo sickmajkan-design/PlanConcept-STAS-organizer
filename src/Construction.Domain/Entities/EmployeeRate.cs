@@ -55,6 +55,20 @@ public class EmployeeRate : BaseEntity, IAuditable
     public decimal? HolidayHourlyRate { get; set; }
 
     /// <summary>
+    /// Cost per hour for an entry tagged <see cref="WorkType.Overtime"/>. Null
+    /// means no premium — an overtime hour costs the same as a regular one.
+    /// Only meaningful alongside <see cref="HourlyRate"/>.
+    /// </summary>
+    public decimal? OvertimeHourlyRate { get; set; }
+
+    /// <summary>
+    /// Cost per hour for an entry tagged <see cref="WorkType.Travel"/>. Null
+    /// means no premium — travel time costs the same as a regular hour. Only
+    /// meaningful alongside <see cref="HourlyRate"/>.
+    /// </summary>
+    public decimal? TravelHourlyRate { get; set; }
+
+    /// <summary>
     /// One flat amount per day worked. Set when <see cref="RateType"/> is
     /// <see cref="Enums.RateType.Daily"/>; null otherwise. The usual shape
     /// for a subcontractor's rate.

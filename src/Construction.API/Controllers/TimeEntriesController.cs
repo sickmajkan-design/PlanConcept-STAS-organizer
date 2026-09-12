@@ -9,6 +9,7 @@ using Construction.Application.Features.TimeEntries.Commands.ReviewTimeEntry;
 using Construction.Application.Features.TimeEntries.Commands.UpdateTimeEntry;
 using Construction.Application.Features.TimeEntries.Models;
 using Construction.Application.Features.TimeEntries.Queries.GetCurrentTimeEntry;
+using Construction.Application.Features.TimeEntries.Queries.GetMyTeamTimeEntriesToday;
 using Construction.Application.Features.TimeEntries.Queries.GetTimeEntries;
 using Construction.Application.Features.TimeEntries.Queries.GetTimeEntryById;
 using Construction.Application.Features.TimeEntries.Queries.GetTimeEntrySummary;
@@ -31,6 +32,20 @@ public class TimeEntriesController : ApiControllerBase
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<PagedList<TimeEntryDto>>> GetList(
         [FromQuery] GetTimeEntriesQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>
+    /// Who clocked in/out today, for a Foreman's own site(s) — read-only
+    /// oversight, not approval. Everyone else sees every entry for the day.
+    /// </summary>
+    [HttpGet("today")]
+    [Authorize(Policy = Policies.ForemanAndAbove)]
+    [ProducesResponseType(typeof(IReadOnlyList<TimeEntryDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<TimeEntryDto>>> GetTeamToday(
+        [FromQuery] GetMyTeamTimeEntriesTodayQuery query,
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(query, cancellationToken));

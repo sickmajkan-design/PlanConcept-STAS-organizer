@@ -32,6 +32,14 @@ public class Project : BaseEntity, ISoftDeletable, IAuditable
     public double? Longitude { get; set; }
 
     /// <summary>
+    /// ISO 3166-1 alpha-2 (e.g. "BA", "HR", "DE") — which country's public
+    /// holiday calendar applies to shifts on this site. Null means none does:
+    /// a shift here never gets the holiday hourly rate, regardless of what is
+    /// on the calendar for any country, until someone sets this.
+    /// </summary>
+    public string? CountryCode { get; set; }
+
+    /// <summary>
     /// The site's expected daily clock-in time, in UTC, when one is set.
     /// Used only to flag a time entry as clocked in outside the expected
     /// window — it is not a schedule and does not gate clock-in itself.

@@ -7,7 +7,9 @@ import '../../../core/router/app_routes.dart';
 import '../../../core/widgets/paged_list_view.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
+import '../../auth/presentation/auth_controller.dart';
 import '../data/models/employee.dart';
+import 'employee_form_sheet.dart';
 import 'employees_controller.dart';
 
 class EmployeesScreen extends ConsumerWidget {
@@ -19,7 +21,17 @@ class EmployeesScreen extends ConsumerWidget {
     final state = ref.watch(employeesControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.navEmployees)),
+      appBar: AppBar(
+        title: Text(context.l10n.navEmployees),
+        actions: [
+          if (ref.watch(currentUserProvider)?.isAdminAndAbove ?? false)
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: context.l10n.commonAdd,
+              onPressed: () => showEmployeeFormSheet(context, ref),
+            ),
+        ],
+      ),
       body: SafeArea(
         child: PagedListView<Employee>(
           state: state,
@@ -33,6 +45,8 @@ class EmployeesScreen extends ConsumerWidget {
             filters: employeeStatusFilters,
             selectedFilter: controller.filter,
             onFilterSelected: controller.applyFilter,
+            filterLabel: (context, value) =>
+                enumLabel(context.l10n, EnumKind.employeeStatus, value),
           ),
           itemBuilder: (context, employee) => _EmployeeCard(employee: employee),
         ),

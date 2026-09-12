@@ -91,6 +91,16 @@ public class GetAttachmentsQueryHandler
                 query.Where(a => a.FinanceEntryId == request.OwnerId),
             AttachmentOwnerType.ToolExpense =>
                 query.Where(a => a.ToolExpenseId == request.OwnerId),
+            AttachmentOwnerType.VehicleRentalRate =>
+                query.Where(a => a.VehicleRentalRateId == request.OwnerId),
+            AttachmentOwnerType.GeneralExpense =>
+                query.Where(a => a.GeneralExpenseId == request.OwnerId),
+            AttachmentOwnerType.Accommodation =>
+                query.Where(a => a.AccommodationId == request.OwnerId),
+            AttachmentOwnerType.AccommodationRate =>
+                query.Where(a => a.AccommodationRateId == request.OwnerId),
+            AttachmentOwnerType.ToolRentalRate =>
+                query.Where(a => a.ToolRentalRateId == request.OwnerId),
             _ => throw new ArgumentOutOfRangeException(
                 nameof(request),
                 request.OwnerType,

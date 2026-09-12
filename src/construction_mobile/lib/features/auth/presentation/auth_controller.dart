@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/l10n/locale_controller.dart';
 import '../../../core/network/network_providers.dart';
 import '../../notifications/data/notification_repository.dart';
 import '../../notifications/presentation/device_token.dart';
@@ -59,6 +60,19 @@ class AuthController extends AsyncNotifier<AuthState> {
         .start(AuthSession.fromResponse(response));
 
     state = AsyncData(Authenticated(response.user));
+
+    // Catches up an account that picked its in-app language before this
+    // syncing existed, or is signing in on a device that already has a
+    // locale chosen locally — best-effort, same as the language switcher's
+    // own call, since nothing about signing in should fail on this.
+    final locale = ref.read(localeControllerProvider).value;
+    if (locale != null) {
+      try {
+        await ref.read(authRepositoryProvider).updatePreferredLanguage(locale.languageCode);
+      } catch (_) {
+        // Ignored — see above.
+      }
+    }
   }
 
   /// Signs the user out of this device, then tells the server.

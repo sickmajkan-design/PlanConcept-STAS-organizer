@@ -104,7 +104,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.done,
                       autocorrect: false,
-                      validator: Validators.email,
+                      validator: (value) => Validators.email(value, context.l10n),
                       onFieldSubmitted: (_) => _submit(),
                       decoration: InputDecoration(
                         labelText: context.l10n.authEmail,

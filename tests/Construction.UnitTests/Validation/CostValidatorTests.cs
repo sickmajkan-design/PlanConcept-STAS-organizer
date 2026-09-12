@@ -67,7 +67,8 @@ public class CostValidatorTests
         MaterialId = Guid.NewGuid(),
         Kind = MaterialMovementKind.In,
         Quantity = 100m,
-        UnitPrice = 20m
+        UnitPrice = 20m,
+        InvoiceNumber = "INV-001"
     };
 
     [Fact]
@@ -159,6 +160,38 @@ public class CostValidatorTests
                 OccurredOn = Today.AddDays(-CostRules.MaxBackdatingDays - 1)
             },
             nameof(RecordMaterialMovementCommand.OccurredOn));
+    }
+
+    [Fact]
+    public void Refuses_a_delivery_with_no_invoice_number()
+    {
+        ValidationAssert.Invalid(
+            new RecordMaterialMovementCommandValidator(_clock),
+            ValidMovement() with { InvoiceNumber = null },
+            nameof(RecordMaterialMovementCommand.InvoiceNumber));
+    }
+
+    [Fact]
+    public void Does_not_require_an_invoice_number_on_an_issue_or_a_correction()
+    {
+        ValidationAssert.Valid(
+            new RecordMaterialMovementCommandValidator(_clock),
+            ValidMovement() with
+            {
+                Kind = MaterialMovementKind.Out,
+                UnitPrice = null,
+                ProjectId = Guid.NewGuid(),
+                InvoiceNumber = null
+            });
+
+        ValidationAssert.Valid(
+            new RecordMaterialMovementCommandValidator(_clock),
+            ValidMovement() with
+            {
+                Kind = MaterialMovementKind.Adjustment,
+                UnitPrice = null,
+                InvoiceNumber = null
+            });
     }
 
     // ---- vehicle expenses ------------------------------------------------

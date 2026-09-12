@@ -45,6 +45,12 @@ public class CreateVehicleCommandHandler : IRequestHandler<CreateVehicleCommand,
             RegistrationNumber = registrationNumber,
             Vin = vin,
             QrCode = qrCode,
+            GpsProvider = string.IsNullOrWhiteSpace(request.GpsProvider)
+                ? null
+                : request.GpsProvider.Trim(),
+            GpsTrackingUrl = string.IsNullOrWhiteSpace(request.GpsTrackingUrl)
+                ? null
+                : request.GpsTrackingUrl.Trim(),
             FuelType = request.FuelType,
             Status = request.Status,
             OwnershipType = request.OwnershipType

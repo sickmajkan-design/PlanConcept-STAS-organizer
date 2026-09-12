@@ -2,15 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/utils/formatting.dart';
+import '../../../core/widgets/confirm_dialog.dart';
 import '../../../core/widgets/failure_view.dart';
 import '../../../core/widgets/info_tile.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../../attachments/presentation/attachment_section.dart';
+import '../../auth/presentation/auth_controller.dart';
 import '../data/models/vehicle.dart';
+import '../data/vehicle_repository.dart';
+import 'vehicle_form_sheet.dart';
+import 'vehicle_rental_out_section.dart';
+import 'vehicle_rental_rate_section.dart';
 import 'vehicles_controller.dart';
 
 class VehicleDetailScreen extends ConsumerWidget {
@@ -21,9 +29,39 @@ class VehicleDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final detail = ref.watch(vehicleDetailProvider(vehicleId));
+    final canManage = ref.watch(currentUserProvider)?.isAdminAndAbove ?? false;
+    final loadedVehicle = detail.value;
 
     return Scaffold(
-      appBar: AppBar(title: Text(detail.value?.displayName ?? 'Vehicle')),
+      appBar: AppBar(
+        title: Text(loadedVehicle?.displayName ?? context.l10n.commonVehicle),
+        actions: [
+          if (canManage && loadedVehicle != null) ...[
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: context.l10n.commonEdit,
+              onPressed: () => showVehicleFormSheet(
+                context,
+                ref,
+                existing: loadedVehicle,
+              ),
+            ),
+            PopupMenuButton<void>(
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  onTap: () => Future.microtask(
+                    () => _delete(context, ref, loadedVehicle),
+                  ),
+                  child: Text(
+                    context.l10n.commonDelete,
+                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
       body: SafeArea(
         child: detail.when(
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -40,7 +78,7 @@ class VehicleDetailScreen extends ConsumerWidget {
                 _Header(vehicle: vehicle),
                 const SizedBox(height: 20),
                 _Section(
-                  title: 'Vehicle',
+                  title: context.l10n.commonVehicle,
                   children: [
                     InfoTile(
                       icon: Icons.pin_outlined,
@@ -62,8 +100,36 @@ class VehicleDetailScreen extends ConsumerWidget {
                       label: context.l10n.vehicleFuelType,
                       value: humanizeEnum(vehicle.fuelType),
                     ),
+                    if (vehicle.isRented) ...[
+                      InfoTile(
+                        icon: Icons.request_quote_outlined,
+                        label: context.l10n.vehicleRentalProvider,
+                        value: vehicle.currentRentalProvider,
+                      ),
+                      InfoTile(
+                        icon: Icons.payments_outlined,
+                        label: context.l10n.vehicleRentalMonthlyAmount,
+                        value: vehicle.currentRentalMonthlyAmount == null
+                            ? null
+                            : formatAmount(vehicle.currentRentalMonthlyAmount),
+                      ),
+                    ],
+                    if (vehicle.isLoanedOut)
+                      InfoTile(
+                        icon: Icons.handshake_outlined,
+                        label: context.l10n.commonAssignment,
+                        value: context.l10n.vehicleLoanedOutTo(
+                          vehicle.currentRentalOutRenterName!,
+                        ),
+                      ),
                   ],
                 ),
+                if (vehicle.isRented) ...[
+                  const SizedBox(height: 20),
+                  VehicleRentalRateSection(vehicleId: vehicle.id),
+                ],
+                const SizedBox(height: 20),
+                VehicleRentalOutSection(vehicle: vehicle),
                 const SizedBox(height: 20),
                 _Section(
                   title: context.l10n.commonAssignment,
@@ -97,6 +163,33 @@ class VehicleDetailScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+Future<void> _delete(BuildContext context, WidgetRef ref, Vehicle vehicle) async {
+  final l10n = context.l10n;
+
+  final confirmed = await showConfirmDialog(
+    context,
+    title: l10n.vehicleDeleteTitle,
+    body: l10n.vehicleDeleteBody(vehicle.displayName),
+    destructive: true,
+  );
+
+  if (!confirmed || !context.mounted) return;
+
+  final messenger = ScaffoldMessenger.of(context);
+  final router = GoRouter.of(context);
+
+  try {
+    await ref.read(vehicleRepositoryProvider).remove(vehicle.id);
+    await ref.read(vehiclesControllerProvider.notifier).refresh();
+
+    if (router.canPop()) {
+      router.pop();
+    }
+  } on ApiException catch (exception) {
+    messenger.showSnackBar(SnackBar(content: Text(exception.describe(l10n))));
   }
 }
 
@@ -142,7 +235,17 @@ class _Header extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  StatusChip(status: vehicle.status, kind: EnumKind.vehicleStatus),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      StatusChip(status: vehicle.status, kind: EnumKind.vehicleStatus),
+                      StatusChip(
+                        status: vehicle.ownershipType,
+                        kind: EnumKind.vehicleOwnershipType,
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),

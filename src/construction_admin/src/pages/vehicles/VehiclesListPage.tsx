@@ -21,7 +21,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import type { GridColDef } from '@mui/x-data-grid';
+import type { GridColDef, GridSortModel } from '@mui/x-data-grid';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -36,25 +36,58 @@ import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { RowActions } from '../../components/RowActions';
 import { RowPhotoCell } from '../../components/RowPhotoCell';
+import { SavedViewsBar } from '../../components/SavedViewsBar';
 import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
 import { StatusLegend } from '../../components/StatusLegend';
+import { useVehicleRentalsOutSummaryQuery } from '../../features/costs/useCosts';
 import { useDeleteVehicle, useVehiclesQuery } from '../../features/vehicles/useVehicles';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useEnumLabel } from '../../i18n/enumLabels';
-import { useT } from '../../i18n/useI18n';
+import { useI18n, useT } from '../../i18n/useI18n';
 import { useListQueryState } from '../../hooks/useListQueryState';
+import { useSavedViews } from '../../hooks/useSavedViews';
 import { paths } from '../../routes/paths';
-import { humanizeEnum } from '../../utils/formatting';
+import { formatDate, formatMoney, humanizeEnum } from '../../utils/formatting';
+
+interface VehicleViewState {
+  search: string;
+  filter: VehicleStatus | '';
+  sortModel: GridSortModel;
+  ownershipFilter: VehicleOwnershipType | '';
+  incompleteOnly: boolean;
+}
 
 export function VehiclesListPage() {
   const navigate = useNavigate();
   const t = useT();
+  const { locale } = useI18n();
   const enumLabel = useEnumLabel();
   const list = useListQueryState<VehicleStatus>('brand');
 
   const [incompleteOnly, setIncompleteOnly] = useState(false);
   const [ownershipFilter, setOwnershipFilter] = useState<VehicleOwnershipType | ''>('');
+
+  const savedViews = useSavedViews<VehicleViewState>('vehicles');
+
+  const applyView = (state: VehicleViewState) => {
+    list.setSearch(state.search);
+    list.setFilter(state.filter);
+    list.setSortModel(state.sortModel);
+    setOwnershipFilter(state.ownershipFilter);
+    setIncompleteOnly(state.incompleteOnly);
+    list.resetToFirstPage();
+  };
+
+  const saveCurrentView = (name: string) => {
+    savedViews.saveView(name, {
+      search: list.search,
+      filter: list.filter,
+      sortModel: list.sortModel,
+      ownershipFilter,
+      incompleteOnly,
+    });
+  };
 
   const query: VehicleListQuery = useMemo(
     () => ({
@@ -67,6 +100,7 @@ export function VehiclesListPage() {
   );
 
   const { data, isLoading, isError, error, refetch } = useVehiclesQuery(query);
+  const { data: rentalsOutSummary } = useVehicleRentalsOutSummaryQuery({});
   const remove = useDeleteWithConfirm<Vehicle>(useDeleteVehicle());
   const [qrPhotoOpen, setQrPhotoOpen] = useState(false);
 
@@ -137,6 +171,42 @@ export function VehiclesListPage() {
         valueGetter: (_value, row) => row.assignedEmployeeName || row.assignedProjectName || '—',
       },
       {
+        field: 'currentRentalOutRenterName',
+        headerName: t('vehicles.rentedOutColumn'),
+        flex: 1,
+        minWidth: 170,
+        renderCell: (params) => {
+          if (params.row.status === 'RentedOut' && params.row.currentRentalOutRenterName) {
+            return (
+              <Tooltip
+                title={t('vehicles.rentedOutHint', {
+                  rate: formatMoney(params.row.currentRentalOutDailyRate, locale),
+                  date: formatDate(params.row.currentRentalOutStartDate),
+                })}
+              >
+                <span>{params.row.currentRentalOutRenterName}</span>
+              </Tooltip>
+            );
+          }
+
+          if (params.row.lastRentalOutRenterName) {
+            return (
+              <Tooltip
+                title={t('vehicles.previouslyRentedHint', {
+                  date: formatDate(params.row.lastRentalOutEndDate),
+                })}
+              >
+                <Typography variant="caption" color="text.secondary">
+                  {t('vehicles.previouslyRented', { name: params.row.lastRentalOutRenterName })}
+                </Typography>
+              </Tooltip>
+            );
+          }
+
+          return '—';
+        },
+      },
+      {
         field: 'actions',
         headerName: '',
         width: 130,
@@ -165,7 +235,7 @@ export function VehiclesListPage() {
         ),
       },
     ],
-    [navigate, remove, t],
+    [navigate, remove, t, locale],
   );
 
   return (
@@ -179,6 +249,12 @@ export function VehiclesListPage() {
           onClick: () => navigate(paths.vehicleNew),
         }}
       />
+
+      {rentalsOutSummary && (
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, mt: -1.5 }}>
+          {t('vehicles.totalRentalRevenue')}: {formatMoney(rentalsOutSummary.totalValue, locale)}
+        </Typography>
+      )}
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }}>
         <SearchField
@@ -250,6 +326,15 @@ export function VehiclesListPage() {
         />
       </Stack>
 
+      <Box sx={{ mb: 2 }}>
+        <SavedViewsBar
+          views={savedViews.views}
+          onApply={applyView}
+          onSave={saveCurrentView}
+          onDelete={savedViews.deleteView}
+        />
+      </Box>
+
       <ResourceDataGrid
         data={data}
         columns={columns}
@@ -261,7 +346,11 @@ export function VehiclesListPage() {
         onPaginationModelChange={list.setPaginationModel}
         sortModel={list.sortModel}
         onSortModelChange={list.setSortModel}
-        onRowClick={(row) => navigate(paths.vehicleDetail(row.id))}
+        onRowClick={(row) =>
+          navigate(paths.vehicleDetail(row.id), {
+            state: { siblingIds: data?.items.map((item) => item.id) ?? [] },
+          })
+        }
       />
 
       <ConfirmDialog

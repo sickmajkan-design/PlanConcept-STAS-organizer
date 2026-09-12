@@ -6,5 +6,8 @@ public enum ToolStatus
     Assigned = 2,
     UnderRepair = 3,
     Lost = 4,
-    Retired = 5
+    Retired = 5,
+
+    /// <summary>Out with another company — see <see cref="Entities.ToolRentalOut"/>.</summary>
+    RentedOut = 6
 }

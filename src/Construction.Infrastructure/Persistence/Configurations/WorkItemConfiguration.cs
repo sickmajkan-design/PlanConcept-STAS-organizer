@@ -70,5 +70,10 @@ public class WorkItemConfiguration : IEntityTypeConfiguration<WorkItem>
             .HasDatabaseName("ix_work_items_pending_due_reminder")
             .HasFilter(
                 "\"DueDate\" IS NOT NULL AND \"DueReminderSentAt\" IS NULL AND \"IsDeleted\" = false");
+
+        // Same recipe as `TimeEntryConfiguration` — two people racing to
+        // resolve, reassign or close the same item is the same shape of
+        // problem, just for a work item instead of a shift.
+        builder.Property<uint>("Version").IsRowVersion();
     }
 }

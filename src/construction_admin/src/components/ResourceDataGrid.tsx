@@ -3,6 +3,7 @@ import {
   DataGrid,
   type GridColDef,
   type GridPaginationModel,
+  type GridRowSelectionModel,
   type GridSortModel,
   type GridValidRowModel,
 } from '@mui/x-data-grid';
@@ -31,6 +32,8 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
   onRowClick,
   onRowDoubleClick,
   height = 600,
+  rowSelectionModel,
+  onRowSelectionModelChange,
 }: {
   data: PagedList<T> | undefined;
   columns: GridColDef<T>[];
@@ -47,6 +50,13 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
   /** Opens an edit dialog in place, for ledgers with no detail page of their own. */
   onRowDoubleClick?: (row: T) => void;
   height?: number;
+  /**
+   * Passing both turns on row checkboxes for bulk actions (see
+   * `BulkActionsBar`). Omit both — the common case — for a grid with no bulk
+   * actions, which is the same as before this existed.
+   */
+  rowSelectionModel?: GridRowSelectionModel;
+  onRowSelectionModelChange?: (model: GridRowSelectionModel) => void;
 }) {
   const t = useT();
 
@@ -83,6 +93,9 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
           }}
           disableColumnMenu
           disableRowSelectionOnClick
+          checkboxSelection={!!onRowSelectionModelChange}
+          rowSelectionModel={rowSelectionModel}
+          onRowSelectionModelChange={onRowSelectionModelChange}
           onRowClick={onRowClick ? (params) => onRowClick(params.row) : undefined}
           onRowDoubleClick={
             onRowDoubleClick ? (params) => onRowDoubleClick(params.row) : undefined

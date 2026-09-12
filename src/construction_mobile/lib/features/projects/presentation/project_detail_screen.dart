@@ -2,17 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/utils/formatting.dart';
+import '../../../core/widgets/confirm_dialog.dart';
 import '../../../core/widgets/failure_view.dart';
 import '../../../core/widgets/info_tile.dart';
 import '../../attachments/presentation/add_site_photo.dart';
 import '../../attachments/presentation/attachment_section.dart';
+import '../../auth/presentation/auth_controller.dart';
+import '../../notifications/presentation/notify_employee_sheet.dart';
 import '../../work_items/presentation/report_defect.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../data/models/project.dart';
+import '../data/project_repository.dart';
+import 'project_form_sheet.dart';
 import 'projects_controller.dart';
 
 class ProjectDetailScreen extends ConsumerWidget {
@@ -23,9 +30,44 @@ class ProjectDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final detail = ref.watch(projectDetailProvider(projectId));
+    final user = ref.watch(currentUserProvider);
+    final canEdit = user?.isProjectManagerAndAbove ?? false;
+    final canDelete = user?.isAdminAndAbove ?? false;
+    final loadedProject = detail.value;
 
     return Scaffold(
-      appBar: AppBar(title: Text(detail.value?.name ?? 'Project')),
+      appBar: AppBar(
+        title: Text(loadedProject?.name ?? context.l10n.commonProject),
+        actions: [
+          if (loadedProject != null) ...[
+            if (canEdit)
+              IconButton(
+                icon: const Icon(Icons.edit_outlined),
+                tooltip: context.l10n.commonEdit,
+                onPressed: () => showProjectFormSheet(
+                  context,
+                  ref,
+                  existing: loadedProject,
+                ),
+              ),
+            if (canDelete)
+              PopupMenuButton<void>(
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    onTap: () => Future.microtask(
+                      () => _deleteProject(context, ref, loadedProject),
+                    ),
+                    child: Text(
+                      context.l10n.commonDelete,
+                      style:
+                          TextStyle(color: Theme.of(context).colorScheme.error),
+                    ),
+                  ),
+                ],
+              ),
+          ],
+        ],
+      ),
       body: SafeArea(
         child: detail.when(
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -56,7 +98,7 @@ class ProjectDetailScreen extends ConsumerWidget {
                     InfoTile(
                       icon: Icons.business_outlined,
                       label: context.l10n.projectClient,
-                      value: project.client,
+                      value: project.customerName,
                     ),
                     InfoTile(
                       icon: Icons.place_outlined,
@@ -118,6 +160,37 @@ class ProjectDetailScreen extends ConsumerWidget {
   }
 }
 
+Future<void> _deleteProject(
+  BuildContext context,
+  WidgetRef ref,
+  ProjectDetail project,
+) async {
+  final l10n = context.l10n;
+
+  final confirmed = await showConfirmDialog(
+    context,
+    title: l10n.projectDeleteTitle,
+    body: l10n.projectDeleteBody(project.name),
+    destructive: true,
+  );
+
+  if (!confirmed || !context.mounted) return;
+
+  final messenger = ScaffoldMessenger.of(context);
+  final router = GoRouter.of(context);
+
+  try {
+    await ref.read(projectRepositoryProvider).remove(project.id);
+    await ref.read(projectsControllerProvider.notifier).refresh();
+
+    if (router.canPop()) {
+      router.pop();
+    }
+  } on ApiException catch (exception) {
+    messenger.showSnackBar(SnackBar(content: Text(exception.describe(l10n))));
+  }
+}
+
 class _Header extends StatelessWidget {
   const _Header({required this.project});
 
@@ -139,6 +212,15 @@ class _Header extends StatelessWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
+            if (project.isSubProject && project.parentProjectName != null) ...[
+              const SizedBox(height: 2),
+              Text(
+                '↳ ${context.l10n.projectSubOf(project.parentProjectName!)}',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
             Row(
               children: [
@@ -151,7 +233,7 @@ class _Header extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  '${project.employeeCount} assigned',
+                  context.l10n.projectAssignedCount(project.employeeCount),
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
@@ -165,16 +247,16 @@ class _Header extends StatelessWidget {
   }
 }
 
-class _CrewSection extends StatelessWidget {
+class _CrewSection extends ConsumerWidget {
   const _CrewSection({required this.employees});
 
   final List<ProjectEmployee> employees;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (employees.isEmpty) {
       return _Section(
-        title: 'Crew',
+        title: context.l10n.projectCrewTitle,
         children: [
           ListTile(
             leading: Icon(Icons.person_off_outlined),
@@ -184,8 +266,13 @@ class _CrewSection extends StatelessWidget {
       );
     }
 
+    // Same role tier the backend's ForemanAndAbove route policy checks —
+    // a Foreman sees this on their own site's crew, and the send command
+    // independently re-validates the site relationship regardless.
+    final canNotify = ref.watch(currentUserProvider)?.canViewDirectory ?? false;
+
     return _Section(
-      title: 'Crew (${employees.length})',
+      title: context.l10n.projectCrewCount(employees.length),
       children: [
         for (final member in employees)
           ListTile(
@@ -200,7 +287,23 @@ class _CrewSection extends StatelessWidget {
             ),
             title: Text(member.fullName),
             subtitle: Text('${member.position} · ${member.employeeNumber}'),
-            trailing: StatusChip(status: member.status, kind: EnumKind.employeeStatus, dense: true),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (canNotify)
+                  IconButton(
+                    icon: const Icon(Icons.notifications_outlined),
+                    tooltip: context.l10n.notifyEmployeeAction,
+                    onPressed: () => showNotifyEmployeeSheet(
+                      context,
+                      ref,
+                      employeeId: member.employeeId,
+                      employeeName: member.fullName,
+                    ),
+                  ),
+                StatusChip(status: member.status, kind: EnumKind.employeeStatus, dense: true),
+              ],
+            ),
             onTap: () =>
                 context.push(AppRoutes.employeeDetail(member.employeeId)),
           ),

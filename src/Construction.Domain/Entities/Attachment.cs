@@ -27,7 +27,9 @@ namespace Construction.Domain.Entities;
 /// <see cref="VehicleRentalRate"/> the eleventh, so a lease contract
 /// disappears with the rate row it was signed for, and
 /// <see cref="GeneralExpense"/>, <see cref="Accommodation"/> and
-/// <see cref="AccommodationRate"/> the twelfth through fourteenth.
+/// <see cref="AccommodationRate"/> the twelfth through fourteenth, and
+/// <see cref="ToolRentalRate"/> the fifteenth, so a lease contract for a
+/// rented tool disappears with the rate row the same way a vehicle's does.
 /// </remarks>
 public class Attachment : BaseEntity, ISoftDeletable, IAuditable
 {
@@ -53,6 +55,14 @@ public class Attachment : BaseEntity, ISoftDeletable, IAuditable
     /// lapse, such as a photograph.
     /// </summary>
     public DateOnly? ExpiresAt { get; set; }
+
+    /// <summary>
+    /// The earliest date this document may be deleted — a legal retention
+    /// requirement (an invoice, a contract) rather than an everyday setting.
+    /// Null means the ordinary rule applies: anyone allowed to delete may,
+    /// whenever they like.
+    /// </summary>
+    public DateOnly? RetainUntil { get; set; }
 
     public Guid? EmployeeId { get; set; }
 
@@ -110,6 +120,10 @@ public class Attachment : BaseEntity, ISoftDeletable, IAuditable
 
     public AccommodationRate? AccommodationRate { get; set; }
 
+    public Guid? ToolRentalRateId { get; set; }
+
+    public ToolRentalRate? ToolRentalRate { get; set; }
+
     public Guid? UploadedByUserId { get; set; }
 
     public User? UploadedByUser { get; set; }
@@ -121,4 +135,8 @@ public class Attachment : BaseEntity, ISoftDeletable, IAuditable
     /// <summary>True once the document's validity has run out.</summary>
     public bool IsExpiredOn(DateOnly today) =>
         ExpiresAt is { } expiry && expiry < today;
+
+    /// <summary>True while a retention requirement still forbids deleting this.</summary>
+    public bool IsRetainedOn(DateOnly today) =>
+        RetainUntil is { } until && until >= today;
 }

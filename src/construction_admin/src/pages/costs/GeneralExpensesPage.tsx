@@ -15,7 +15,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import type { GridColDef } from '@mui/x-data-grid';
+import type { GridColDef, GridSortModel } from '@mui/x-data-grid';
 import { useEffect, useMemo, useState } from 'react';
 
 import { toApiError } from '../../api/apiError';
@@ -32,6 +32,7 @@ import { AuditHistoryCard } from '../../components/AuditHistoryCard';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
+import { SavedViewsBar } from '../../components/SavedViewsBar';
 import {
   useDeleteGeneralExpense,
   useGeneralExpensesQuery,
@@ -43,9 +44,15 @@ import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useListQueryState } from '../../hooks/useListQueryState';
+import { useSavedViews } from '../../hooks/useSavedViews';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { formatDate, formatDateTime, formatMoney } from '../../utils/formatting';
+
+interface GeneralExpenseViewState {
+  sortModel: GridSortModel;
+  category: GeneralExpenseCategory | '';
+}
 
 export function GeneralExpensesPage() {
   const t = useT();
@@ -57,6 +64,18 @@ export function GeneralExpensesPage() {
   const [category, setCategory] = useState<GeneralExpenseCategory | ''>('');
   const [recording, setRecording] = useState(false);
   const [editing, setEditing] = useState<GeneralExpense | null>(null);
+
+  const savedViews = useSavedViews<GeneralExpenseViewState>('general-expenses');
+
+  const applyView = (state: GeneralExpenseViewState) => {
+    list.setSortModel(state.sortModel);
+    setCategory(state.category);
+    list.resetToFirstPage();
+  };
+
+  const saveCurrentView = (name: string) => {
+    savedViews.saveView(name, { sortModel: list.sortModel, category });
+  };
 
   const query: GeneralExpenseListQuery = useMemo(
     () => ({
@@ -184,6 +203,15 @@ export function GeneralExpensesPage() {
           ))}
         </TextField>
       </Stack>
+
+      <Box sx={{ mb: 2 }}>
+        <SavedViewsBar
+          views={savedViews.views}
+          onApply={applyView}
+          onSave={saveCurrentView}
+          onDelete={savedViews.deleteView}
+        />
+      </Box>
 
       {summary && (
         <Paper variant="outlined" sx={{ px: 2, py: 1, mb: 2 }}>

@@ -17,6 +17,18 @@ public abstract record CustomerCommandBase
     public string? Email { get; init; }
 
     public string? Note { get; init; }
+
+    /// <summary>
+    /// Tax ID, registration number and VAT number — only ever applied by the
+    /// handler when the caller passes <c>CustomerRules.CanEditTaxDetails</c>;
+    /// sent by anyone else, they are silently ignored rather than refused, so
+    /// a viewer without the grant can still edit a customer's ordinary fields.
+    /// </summary>
+    public string? TaxId { get; init; }
+
+    public string? RegistrationNumber { get; init; }
+
+    public string? VatNumber { get; init; }
 }
 
 public abstract class CustomerCommandBaseValidator<T> : AbstractValidator<T>
@@ -41,5 +53,9 @@ public abstract class CustomerCommandBaseValidator<T> : AbstractValidator<T>
 
         RuleFor(x => x.Note)
             .MaximumLength(2000);
+
+        RuleFor(x => x.TaxId).MaximumLength(64);
+        RuleFor(x => x.RegistrationNumber).MaximumLength(64);
+        RuleFor(x => x.VatNumber).MaximumLength(64);
     }
 }

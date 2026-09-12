@@ -1,3 +1,5 @@
+import '../../l10n/app_localizations.dart';
+
 /// Client-side form validation. The password rule intentionally mirrors the
 /// API's policy so the user gets instant feedback instead of a round trip.
 class Validators {
@@ -5,49 +7,49 @@ class Validators {
 
   static final RegExp _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
-  static String? email(String? value) {
+  static String? email(String? value, AppLocalizations l10n) {
     final input = value?.trim() ?? '';
 
     if (input.isEmpty) {
-      return 'Email is required.';
+      return l10n.validationEmailRequired;
     }
 
     if (!_emailPattern.hasMatch(input)) {
-      return 'Enter a valid email address.';
+      return l10n.validationEmailInvalid;
     }
 
     return null;
   }
 
-  static String? notEmpty(String? value, String fieldLabel) {
+  static String? notEmpty(String? value, String fieldLabel, AppLocalizations l10n) {
     if ((value ?? '').trim().isEmpty) {
-      return '$fieldLabel is required.';
+      return l10n.validationFieldRequired(fieldLabel);
     }
 
     return null;
   }
 
-  static String? strongPassword(String? value) {
+  static String? strongPassword(String? value, AppLocalizations l10n) {
     final input = value ?? '';
 
     if (input.isEmpty) {
-      return 'Password is required.';
+      return l10n.validationPasswordRequired;
     }
 
     if (input.length < 8) {
-      return 'Password must be at least 8 characters long.';
+      return l10n.validationPasswordMinLength;
     }
 
     if (!input.contains(RegExp('[A-Z]'))) {
-      return 'Password must contain an upper-case letter.';
+      return l10n.validationPasswordUpper;
     }
 
     if (!input.contains(RegExp('[a-z]'))) {
-      return 'Password must contain a lower-case letter.';
+      return l10n.validationPasswordLower;
     }
 
     if (!input.contains(RegExp('[0-9]'))) {
-      return 'Password must contain a digit.';
+      return l10n.validationPasswordDigit;
     }
 
     return null;

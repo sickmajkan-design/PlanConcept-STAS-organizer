@@ -26,6 +26,7 @@ import type { Role, UserAccount } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
+import { SavedViewsBar } from '../../components/SavedViewsBar';
 import { SearchField } from '../../components/SearchField';
 import { useAuth } from '../../auth/useAuth';
 import {
@@ -63,7 +64,7 @@ export function UsersListPage() {
   const { user: currentUser } = useAuth();
   const t = useT();
   const enumLabel = useEnumLabel();
-  const list = useListQueryState<Role>('isActive');
+  const list = useListQueryState<Role>('isActive', 'asc', 'users');
   const [pendingOffboard, setPendingOffboard] = useState<UserAccount | null>(null);
 
   const query: UserListQuery = useMemo(
@@ -226,6 +227,17 @@ export function UsersListPage() {
           </Select>
         </FormControl>
       </Stack>
+
+      {list.savedViews && (
+        <Box sx={{ mb: 2 }}>
+          <SavedViewsBar
+            views={list.savedViews.views}
+            onApply={list.savedViews.applyView}
+            onSave={list.savedViews.saveCurrentView}
+            onDelete={list.savedViews.deleteView}
+          />
+        </Box>
+      )}
 
       <ResourceDataGrid
         data={data}

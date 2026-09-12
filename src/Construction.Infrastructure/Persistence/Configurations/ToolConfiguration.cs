@@ -1,4 +1,5 @@
 using Construction.Domain.Entities;
+using Construction.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,6 +14,9 @@ public class ToolConfiguration : IEntityTypeConfiguration<Tool>
         builder.HasKey(t => t.Id);
 
         builder.HasQueryFilter(t => !t.IsDeleted);
+
+        builder.Property(t => t.OwnershipType)
+            .HasDefaultValue(ToolOwnershipType.Owned);
 
         builder.Property(t => t.Name)
             .HasMaxLength(256)
@@ -48,5 +52,6 @@ public class ToolConfiguration : IEntityTypeConfiguration<Tool>
         builder.HasIndex(t => t.AssignedEmployeeId);
         builder.HasIndex(t => t.AssignedProjectId);
         builder.HasIndex(t => t.Status);
+        builder.HasIndex(t => t.OwnershipType);
     }
 }

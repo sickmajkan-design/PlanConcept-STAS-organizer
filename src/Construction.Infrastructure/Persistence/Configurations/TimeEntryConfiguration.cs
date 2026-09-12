@@ -67,5 +67,13 @@ public class TimeEntryConfiguration : IEntityTypeConfiguration<TimeEntry>
             .IsDescending(false, true);
 
         builder.HasIndex(t => t.ProjectId);
+
+        // A shadow uint marked as a row version is Npgsql's own recipe for
+        // wiring up Postgres's built-in "xmin" system column as a concurrency
+        // token — no migration needed, since every row already has one. Two
+        // reviews (or an edit and a review) racing the same row now fail the
+        // second write with a concurrency exception instead of one silently
+        // overwriting the other.
+        builder.Property<uint>("Version").IsRowVersion();
     }
 }

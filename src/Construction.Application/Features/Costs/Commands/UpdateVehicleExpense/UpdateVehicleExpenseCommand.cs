@@ -27,6 +27,8 @@ public record UpdateVehicleExpenseCommand : IRequest<VehicleExpenseDto>
 
     public int? OdometerKm { get; init; }
 
+    public string? FuelProductType { get; init; }
+
     public string? Supplier { get; init; }
 
     public string? Note { get; init; }
@@ -67,6 +69,7 @@ public class UpdateVehicleExpenseCommandValidator
                 $"A cost cannot be recorded more than {CostRules.MaxBackdatingDays} days back.");
 
         RuleFor(x => x.Supplier).MaximumLength(200);
+        RuleFor(x => x.FuelProductType).MaximumLength(100);
         RuleFor(x => x.Note).MaximumLength(500);
     }
 }
@@ -112,6 +115,7 @@ public class UpdateVehicleExpenseCommandHandler
         expense.OccurredOn = request.OccurredOn;
         expense.Litres = request.Kind == VehicleExpenseKind.Fuel ? request.Litres : null;
         expense.OdometerKm = request.OdometerKm;
+        expense.FuelProductType = request.FuelProductType?.Trim();
         expense.Supplier = request.Supplier?.Trim();
         expense.Note = request.Note?.Trim();
 

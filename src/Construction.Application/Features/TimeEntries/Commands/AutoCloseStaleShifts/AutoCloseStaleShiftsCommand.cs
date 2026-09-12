@@ -93,7 +93,11 @@ public class AutoCloseStaleShiftsCommandHandler
                 "Shift closed automatically",
                 $"You did not clock out on {entry.StartedAt:dd.MM.yyyy}, so the shift was " +
                 "closed automatically and is waiting for review.",
-                new Dictionary<string, string> { ["timeEntryId"] = entry.Id.ToString() },
+                new Dictionary<string, string>
+                {
+                    ["timeEntryId"] = entry.Id.ToString(),
+                    ["shiftDate"] = DateOnly.FromDateTime(entry.StartedAt).ToString("yyyy-MM-dd")
+                },
                 requiresAcknowledgment: true,
                 cancellationToken: cancellationToken);
         }

@@ -36,6 +36,12 @@ public record UpdateEmployeeRateCommand : IRequest<EmployeeRateDto>
     /// <summary>Cost per hour on a listed public holiday. Null means no premium. Hourly only.</summary>
     public decimal? HolidayHourlyRate { get; init; }
 
+    /// <summary>Cost per hour for a shift tagged Overtime. Null means no premium. Hourly only.</summary>
+    public decimal? OvertimeHourlyRate { get; init; }
+
+    /// <summary>Cost per hour for a shift tagged Travel. Null means no premium. Hourly only.</summary>
+    public decimal? TravelHourlyRate { get; init; }
+
     /// <summary>Required when <see cref="RateType"/> is Daily; ignored otherwise.</summary>
     public decimal? DailyRate { get; init; }
 
@@ -70,6 +76,16 @@ public class UpdateEmployeeRateCommandValidator : AbstractValidator<UpdateEmploy
             .GreaterThan(0).LessThanOrEqualTo(CostRules.MaxHourlyRate)
             .WithMessage("That rate looks like a typo rather than a wage.")
             .When(x => x.HolidayHourlyRate is not null);
+
+        RuleFor(x => x.OvertimeHourlyRate)
+            .GreaterThan(0).LessThanOrEqualTo(CostRules.MaxHourlyRate)
+            .WithMessage("That rate looks like a typo rather than a wage.")
+            .When(x => x.OvertimeHourlyRate is not null);
+
+        RuleFor(x => x.TravelHourlyRate)
+            .GreaterThan(0).LessThanOrEqualTo(CostRules.MaxHourlyRate)
+            .WithMessage("That rate looks like a typo rather than a wage.")
+            .When(x => x.TravelHourlyRate is not null);
 
         RuleFor(x => x.DailyRate)
             .NotNull().WithMessage("A daily rate is required.")
@@ -135,6 +151,8 @@ public class UpdateEmployeeRateCommandHandler
         rate.HourlyRate = isHourly ? request.HourlyRate : null;
         rate.WeekendHourlyRate = isHourly ? request.WeekendHourlyRate : null;
         rate.HolidayHourlyRate = isHourly ? request.HolidayHourlyRate : null;
+        rate.OvertimeHourlyRate = isHourly ? request.OvertimeHourlyRate : null;
+        rate.TravelHourlyRate = isHourly ? request.TravelHourlyRate : null;
         rate.DailyRate = isHourly ? null : request.DailyRate;
         rate.StartDate = request.StartDate;
         rate.EndDate = request.EndDate;

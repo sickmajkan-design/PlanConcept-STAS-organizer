@@ -3,6 +3,7 @@ import {
   Box,
   Button,
   ButtonGroup,
+  Chip,
   CircularProgress,
   Paper,
   Stack,
@@ -31,10 +32,14 @@ import { PageHeader } from '../../components/PageHeader';
 import {
   useProjectCostReport,
   useToolCostReport,
+  useToolRentalsOutQuery,
+  useToolRentalsOutSummaryQuery,
   useVehicleCostReport,
+  useVehicleRentalsOutQuery,
+  useVehicleRentalsOutSummaryQuery,
 } from '../../features/costs/useCosts';
 import { useI18n, useT } from '../../i18n/useI18n';
-import { formatMoney, formatQuantity } from '../../utils/formatting';
+import { formatDate, formatMoney, formatQuantity } from '../../utils/formatting';
 import { monthOf, splitHours, yearOf, type Period } from './monthWindow';
 
 type SortDirection = 'asc' | 'desc';
@@ -55,12 +60,35 @@ type VehicleCostSortField =
   | 'serviceCost'
   | 'otherCost'
   | 'rentalCost'
-  | 'total';
-type ToolCostSortField = 'toolName' | 'repairCost' | 'maintenanceCost' | 'otherCost' | 'total';
+  | 'total'
+  | 'revenue'
+  | 'profit';
+type ToolCostSortField =
+  | 'toolName'
+  | 'repairCost'
+  | 'maintenanceCost'
+  | 'otherCost'
+  | 'rentalCost'
+  | 'total'
+  | 'revenue'
+  | 'profit';
+type RentalsOutSortField = 'kind' | 'name' | 'renter' | 'dailyRate' | 'startDate' | 'endDate';
+
+/** One row of either a vehicle or a tool currently or previously loaned out, shown side by side. */
+interface RentalsOutRow {
+  id: string;
+  kind: 'vehicle' | 'tool';
+  name: string;
+  renter: string;
+  dailyRate: number;
+  startDate: string;
+  endDate: string | null;
+  isOpen: boolean;
+}
 
 export function CostsPage() {
   const t = useT();
-  const [tab, setTab] = useState<'projects' | 'vehicles' | 'tools'>('projects');
+  const [tab, setTab] = useState<'projects' | 'vehicles' | 'tools' | 'rentalsOut'>('projects');
   const [period, setPeriod] = useState<Period>(() => monthOf(new Date()));
 
   return (
@@ -77,11 +105,13 @@ export function CostsPage() {
         <Tab value="projects" label={t('costs.projects')} />
         <Tab value="vehicles" label={t('costs.vehicles')} />
         <Tab value="tools" label={t('costs.tools')} />
+        <Tab value="rentalsOut" label={t('costs.rentalsOut')} />
       </Tabs>
 
       {tab === 'projects' && <ProjectCosts period={period} />}
       {tab === 'vehicles' && <VehicleCosts period={period} />}
       {tab === 'tools' && <ToolCosts period={period} />}
+      {tab === 'rentalsOut' && <RentalsOut period={period} />}
     </Box>
   );
 }
@@ -427,6 +457,10 @@ function VehicleCosts({ period }: { period: Period }) {
           return (a.rentalCost - b.rentalCost) * factor;
         case 'total':
           return (a.total - b.total) * factor;
+        case 'revenue':
+          return (a.revenue - b.revenue) * factor;
+        case 'profit':
+          return (a.profit - b.profit) * factor;
         default:
           return 0;
       }
@@ -525,6 +559,24 @@ function VehicleCosts({ period }: { period: Period }) {
                 {t('costs.total')}
               </TableSortLabel>
             </TableCell>
+            <TableCell align="right" sortDirection={sortBy === 'revenue' ? sortDirection : false}>
+              <TableSortLabel
+                active={sortBy === 'revenue'}
+                direction={sortBy === 'revenue' ? sortDirection : 'asc'}
+                onClick={() => toggleSort('revenue')}
+              >
+                {t('costs.revenue')}
+              </TableSortLabel>
+            </TableCell>
+            <TableCell align="right" sortDirection={sortBy === 'profit' ? sortDirection : false}>
+              <TableSortLabel
+                active={sortBy === 'profit'}
+                direction={sortBy === 'profit' ? sortDirection : 'asc'}
+                onClick={() => toggleSort('profit')}
+              >
+                {t('costs.profit')}
+              </TableSortLabel>
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -550,6 +602,13 @@ function VehicleCosts({ period }: { period: Period }) {
               <TableCell align="right" sx={{ fontWeight: 600 }}>
                 {formatMoney(row.total, locale)}
               </TableCell>
+              <TableCell align="right">{formatMoney(row.revenue, locale)}</TableCell>
+              <TableCell
+                align="right"
+                sx={{ fontWeight: 600, color: row.profit >= 0 ? 'success.main' : 'error.main' }}
+              >
+                {formatMoney(row.profit, locale)}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -570,6 +629,15 @@ function VehicleCosts({ period }: { period: Period }) {
             </TableCell>
             <TableCell align="right" sx={{ fontWeight: 700 }}>
               {formatMoney(data.total, locale)}
+            </TableCell>
+            <TableCell align="right" sx={{ fontWeight: 700 }}>
+              {formatMoney(data.totalRevenue, locale)}
+            </TableCell>
+            <TableCell
+              align="right"
+              sx={{ fontWeight: 700, color: data.totalProfit >= 0 ? 'success.main' : 'error.main' }}
+            >
+              {formatMoney(data.totalProfit, locale)}
             </TableCell>
           </TableRow>
         </TableFooter>
@@ -611,8 +679,14 @@ function ToolCosts({ period }: { period: Period }) {
           return (a.maintenanceCost - b.maintenanceCost) * factor;
         case 'otherCost':
           return (a.otherCost - b.otherCost) * factor;
+        case 'rentalCost':
+          return (a.rentalCost - b.rentalCost) * factor;
         case 'total':
           return (a.total - b.total) * factor;
+        case 'revenue':
+          return (a.revenue - b.revenue) * factor;
+        case 'profit':
+          return (a.profit - b.profit) * factor;
         default:
           return 0;
       }
@@ -667,6 +741,15 @@ function ToolCosts({ period }: { period: Period }) {
                   {t('costs.other')}
                 </TableSortLabel>
               </TableCell>
+              <TableCell align="right" sortDirection={sortBy === 'rentalCost' ? sortDirection : false}>
+                <TableSortLabel
+                  active={sortBy === 'rentalCost'}
+                  direction={sortBy === 'rentalCost' ? sortDirection : 'asc'}
+                  onClick={() => toggleSort('rentalCost')}
+                >
+                  {t('costs.rental')}
+                </TableSortLabel>
+              </TableCell>
               <TableCell align="right" sortDirection={sortBy === 'total' ? sortDirection : false}>
                 <TableSortLabel
                   active={sortBy === 'total'}
@@ -674,6 +757,24 @@ function ToolCosts({ period }: { period: Period }) {
                   onClick={() => toggleSort('total')}
                 >
                   {t('costs.total')}
+                </TableSortLabel>
+              </TableCell>
+              <TableCell align="right" sortDirection={sortBy === 'revenue' ? sortDirection : false}>
+                <TableSortLabel
+                  active={sortBy === 'revenue'}
+                  direction={sortBy === 'revenue' ? sortDirection : 'asc'}
+                  onClick={() => toggleSort('revenue')}
+                >
+                  {t('costs.revenue')}
+                </TableSortLabel>
+              </TableCell>
+              <TableCell align="right" sortDirection={sortBy === 'profit' ? sortDirection : false}>
+                <TableSortLabel
+                  active={sortBy === 'profit'}
+                  direction={sortBy === 'profit' ? sortDirection : 'asc'}
+                  onClick={() => toggleSort('profit')}
+                >
+                  {t('costs.profit')}
                 </TableSortLabel>
               </TableCell>
             </TableRow>
@@ -685,8 +786,16 @@ function ToolCosts({ period }: { period: Period }) {
                 <TableCell align="right">{formatMoney(row.repairCost, locale)}</TableCell>
                 <TableCell align="right">{formatMoney(row.maintenanceCost, locale)}</TableCell>
                 <TableCell align="right">{formatMoney(row.otherCost, locale)}</TableCell>
+                <TableCell align="right">{formatMoney(row.rentalCost, locale)}</TableCell>
                 <TableCell align="right" sx={{ fontWeight: 600 }}>
                   {formatMoney(row.total, locale)}
+                </TableCell>
+                <TableCell align="right">{formatMoney(row.revenue, locale)}</TableCell>
+                <TableCell
+                  align="right"
+                  sx={{ fontWeight: 600, color: row.profit >= 0 ? 'success.main' : 'error.main' }}
+                >
+                  {formatMoney(row.profit, locale)}
                 </TableCell>
               </TableRow>
             ))}
@@ -697,10 +806,192 @@ function ToolCosts({ period }: { period: Period }) {
                 {t('costs.grandTotal')}
               </TableCell>
               <TableCell align="right" sx={{ fontWeight: 700 }}>
+                {formatMoney(data.totalRentalCost, locale)}
+              </TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700 }}>
                 {formatMoney(data.total, locale)}
+              </TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700 }}>
+                {formatMoney(data.totalRevenue, locale)}
+              </TableCell>
+              <TableCell
+                align="right"
+                sx={{ fontWeight: 700, color: data.totalProfit >= 0 ? 'success.main' : 'error.main' }}
+              >
+                {formatMoney(data.totalProfit, locale)}
               </TableCell>
             </TableRow>
           </TableFooter>
+        </Table>
+      </TableContainer>
+    </Stack>
+  );
+}
+
+/**
+ * The fleet-wide view of the revenue direction: every vehicle and tool
+ * currently or previously loaned out to another company, in one sortable
+ * list, so "who has what and what are we charging" is answered without
+ * opening each vehicle or tool one at a time. This total is shown here only —
+ * it is not folded into the site cost report, because a loan-out is not tied
+ * to a project the way labour or materials are.
+ */
+function RentalsOut({ period }: { period: Period }) {
+  const t = useT();
+  const { locale } = useI18n();
+
+  const listQuery = useMemo(
+    () => ({
+      pageNumber: 1,
+      pageSize: 200,
+      from: period.from,
+      to: period.to,
+    }),
+    [period],
+  );
+
+  const vehicles = useVehicleRentalsOutQuery(listQuery);
+  const tools = useToolRentalsOutQuery(listQuery);
+  const vehicleSummary = useVehicleRentalsOutSummaryQuery(listQuery);
+  const toolSummary = useToolRentalsOutSummaryQuery(listQuery);
+
+  const [sortBy, setSortBy] = useState<RentalsOutSortField>('startDate');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+  const toggleSort = (field: RentalsOutSortField) => {
+    if (sortBy === field) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setSortBy(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const rows = useMemo<RentalsOutRow[]>(() => {
+    const vehicleRows: RentalsOutRow[] = (vehicles.data?.items ?? []).map((r) => ({
+      id: r.id,
+      kind: 'vehicle',
+      name: r.vehicleName,
+      renter: r.renterDisplayName,
+      dailyRate: r.dailyRate,
+      startDate: r.startDate,
+      endDate: r.endDate,
+      isOpen: r.isOpen,
+    }));
+    const toolRows: RentalsOutRow[] = (tools.data?.items ?? []).map((r) => ({
+      id: r.id,
+      kind: 'tool',
+      name: r.toolName,
+      renter: r.renterDisplayName,
+      dailyRate: r.dailyRate,
+      startDate: r.startDate,
+      endDate: r.endDate,
+      isOpen: r.isOpen,
+    }));
+
+    const factor = sortDirection === 'asc' ? 1 : -1;
+
+    const compare = (a: RentalsOutRow, b: RentalsOutRow): number => {
+      switch (sortBy) {
+        case 'kind':
+          return a.kind.localeCompare(b.kind) * factor;
+        case 'name':
+          return a.name.localeCompare(b.name) * factor;
+        case 'renter':
+          return a.renter.localeCompare(b.renter) * factor;
+        case 'dailyRate':
+          return (a.dailyRate - b.dailyRate) * factor;
+        case 'startDate':
+          return a.startDate.localeCompare(b.startDate) * factor;
+        case 'endDate':
+          // Still-out rows (no end date) sort as if furthest in the future,
+          // so "ongoing" reads as the most recent activity either way.
+          return (
+            ((a.endDate ?? '9999-99-99').localeCompare(b.endDate ?? '9999-99-99')) * factor
+          );
+        default:
+          return 0;
+      }
+    };
+
+    return [...vehicleRows, ...toolRows].sort(compare);
+  }, [vehicles.data, tools.data, sortBy, sortDirection]);
+
+  const isLoading = vehicles.isLoading || tools.isLoading;
+  const isError = vehicles.isError || tools.isError;
+  const error = vehicles.error ?? tools.error;
+  const totalRevenue = (vehicleSummary.data?.totalValue ?? 0) + (toolSummary.data?.totalValue ?? 0);
+  const openCount = (vehicleSummary.data?.openCount ?? 0) + (toolSummary.data?.openCount ?? 0);
+
+  if (isError) {
+    return (
+      <ErrorState
+        error={error}
+        onRetry={() => {
+          void vehicles.refetch();
+          void tools.refetch();
+        }}
+      />
+    );
+  }
+  if (isLoading) return <Loading />;
+  if (rows.length === 0) return <EmptyState message={t('costs.rentalsOutEmpty')} />;
+
+  const sortCell = (field: RentalsOutSortField, label: string, align: 'left' | 'right' = 'left') => (
+    <TableCell align={align} sortDirection={sortBy === field ? sortDirection : false}>
+      <TableSortLabel
+        active={sortBy === field}
+        direction={sortBy === field ? sortDirection : 'asc'}
+        onClick={() => toggleSort(field)}
+      >
+        {label}
+      </TableSortLabel>
+    </TableCell>
+  );
+
+  return (
+    <Stack spacing={2}>
+      <Stack direction="row" spacing={3}>
+        <Typography variant="body2" color="text.secondary">
+          {t('costs.rentalsOutOpenCount', { count: openCount })}
+        </Typography>
+        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+          {t('costs.rentalsOutTotalRevenue')}: {formatMoney(totalRevenue, locale)}
+        </Typography>
+      </Stack>
+
+      <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              {sortCell('kind', t('costs.rentalsOutKind'))}
+              {sortCell('name', t('costs.rentalsOutAsset'))}
+              {sortCell('renter', t('vehicleRentalsOut.renter'))}
+              {sortCell('dailyRate', t('vehicleRentalsOut.dailyRate'), 'right')}
+              {sortCell('startDate', t('vehicleRentalsOut.startDate'))}
+              {sortCell('endDate', t('vehicleRentalsOut.endDate'))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {rows.map((row) => (
+              <TableRow key={`${row.kind}-${row.id}`} hover>
+                <TableCell>
+                  {row.kind === 'vehicle' ? t('costs.vehicle') : t('costs.tool')}
+                </TableCell>
+                <TableCell>{row.name}</TableCell>
+                <TableCell>{row.renter}</TableCell>
+                <TableCell align="right">{formatMoney(row.dailyRate, locale)}</TableCell>
+                <TableCell>{formatDate(row.startDate)}</TableCell>
+                <TableCell>
+                  {row.endDate ? (
+                    formatDate(row.endDate)
+                  ) : (
+                    <Chip label={t('vehicleRentalsOut.stillOut')} color="warning" size="small" />
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
         </Table>
       </TableContainer>
     </Stack>

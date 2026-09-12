@@ -30,6 +30,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
+import { countryLabel } from '../../data/countries';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
 import { AttachmentList } from '../../components/AttachmentList';
@@ -55,6 +56,7 @@ import {
 import { useI18n, useT } from '../../i18n/useI18n';
 import { canAdministerAccounts } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
+import { useRecordVisit } from '../../layout/useRecentRecords';
 import { paths } from '../../routes/paths';
 import { formatDate, initialsOf } from '../../utils/formatting';
 import { postingRange, workedSummary } from '../../utils/postings';
@@ -84,6 +86,7 @@ export function ProjectDetailPage() {
   const { user } = useAuth();
 
   const { data: project, isLoading, isError, error, refetch } = useProjectQuery(id);
+  useRecordVisit(paths.projectDetail(id ?? ''), project?.name);
   const deleteProject = useDeleteProject();
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -281,6 +284,7 @@ export function ProjectDetailPage() {
               <Stack spacing={1.5} sx={{ mt: 1 }}>
                 <InfoRow label={t('projects.customer')} value={project.customerName} />
                 <InfoRow label={t('projects.address')} value={project.address} />
+                <InfoRow label={t('projects.country')} value={countryLabel(project.countryCode) || null} />
                 <InfoRow
                   label={t('projects.coordinates')}
                   value={

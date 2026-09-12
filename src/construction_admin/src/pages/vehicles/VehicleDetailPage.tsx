@@ -1,19 +1,25 @@
 import {
+  AddOutlined,
   ApartmentOutlined,
+  AssignmentReturnOutlined,
   CarRentalOutlined,
+  CreditCard,
   DeleteOutlined,
   EditOutlined,
   LocalShippingOutlined,
+  MyLocationOutlined,
   PersonOffOutlined,
   QrCode2Outlined,
 } from '@mui/icons-material';
 import {
   Alert,
+  Autocomplete,
   Avatar,
   Box,
   Button,
   Card,
   CardContent,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -39,7 +45,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
-import type { VehicleExpense, VehicleRentalRate } from '../../api/types';
+import type { FuelCard, VehicleExpense, VehicleRentalOut, VehicleRentalRate } from '../../api/types';
 import { AuditHistoryCard } from '../../components/AuditHistoryCard';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
@@ -47,14 +53,26 @@ import { AttachmentList } from '../../components/AttachmentList';
 import { QrLabelDialog } from '../../components/QrLabelDialog';
 import { StatusChip } from '../../components/StatusChip';
 import { useCoverPhoto } from '../../features/attachments/useAttachments';
+import { useAllCustomersQuery } from '../../features/customers/useCustomers';
 import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
 import {
+  useAddFuelCard,
+  useDeleteFuelCard,
+  useFuelCardsQuery,
+} from '../../features/fuelCards/useFuelCards';
+import {
+  useDeleteVehicleRentalOut,
   useDeleteVehicleRentalRate,
+  useRecordVehicleRentalOut,
+  useReturnVehicleRentalOut,
   useSetVehicleRentalRate,
+  useUpdateVehicleRentalOut,
   useUpdateVehicleRentalRate,
   useVehicleExpensesQuery,
   useVehicleRentalRatesQuery,
+  useVehicleRentalsOutQuery,
+  useVehicleRentalsOutSummaryQuery,
 } from '../../features/costs/useCosts';
 import {
   useAssignVehicle,
@@ -69,6 +87,9 @@ import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { canAdministerAccounts } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
+import { SiblingNavButtons } from '../../components/SiblingNavButtons';
+import { useSiblingNavigation } from '../../hooks/useSiblingNavigation';
+import { useRecordVisit } from '../../layout/useRecentRecords';
 import { paths } from '../../routes/paths';
 import { formatDate, formatMoney } from '../../utils/formatting';
 import { VehicleExpenseDialog } from '../costs/VehicleExpensesPage';
@@ -81,6 +102,11 @@ export function VehicleDetailPage() {
   const enumLabel = useEnumLabel();
 
   const { data: vehicle, isLoading, isError, error, refetch } = useVehicleQuery(id);
+  useRecordVisit(
+    paths.vehicleDetail(id ?? ''),
+    vehicle ? `${vehicle.brand} ${vehicle.model}` : undefined,
+  );
+  const { prevId, nextId, siblingIds } = useSiblingNavigation(id);
   const { data: allEmployees } = useAllEmployeesQuery();
   const { data: allProjects } = useAllProjectsQuery();
   const coverPhoto = useCoverPhoto('Vehicle', id ?? '');
@@ -155,7 +181,33 @@ export function VehicleDetailPage() {
                 <StatusChip status={vehicle.ownershipType} kind="vehicleOwnershipType" />
               </Stack>
             </Box>
-            <Stack direction="row" spacing={1}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+              <SiblingNavButtons
+                prevId={prevId}
+                nextId={nextId}
+                siblingIds={siblingIds}
+                buildPath={paths.vehicleDetail}
+              />
+              {vehicle.gpsTrackingUrl && (
+                <Tooltip
+                  title={
+                    vehicle.gpsProvider
+                      ? t('vehicles.gpsTrackHint', { provider: vehicle.gpsProvider })
+                      : ''
+                  }
+                >
+                  <Button
+                    variant="outlined"
+                    startIcon={<MyLocationOutlined />}
+                    component="a"
+                    href={vehicle.gpsTrackingUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {t('vehicles.gpsTrack')}
+                  </Button>
+                </Tooltip>
+              )}
               <Button
                 variant="outlined"
                 startIcon={<QrCode2Outlined />}
@@ -349,6 +401,10 @@ export function VehicleDetailPage() {
         )}
 
         <Grid size={12}>
+          <VehicleRentalOutCard vehicleId={vehicle.id} vehicleStatus={vehicle.status} />
+        </Grid>
+
+        <Grid size={12}>
           <VehicleCostsCard vehicleId={vehicle.id} />
         </Grid>
 
@@ -369,6 +425,10 @@ export function VehicleDetailPage() {
               />
             </CardContent>
           </Card>
+        </Grid>
+
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <FuelCardsCard vehicleId={vehicle.id} />
         </Grid>
 
       </Grid>
@@ -494,6 +554,159 @@ function VehicleCostsCard({ vehicleId }: { vehicleId: string }) {
         onClose={() => setEditing(null)}
       />
     </Card>
+  );
+}
+
+/** Every fuel card ever issued against this vehicle, and the retire action that frees its number back up for a replacement card. */
+function FuelCardsCard({ vehicleId }: { vehicleId: string }) {
+  const t = useT();
+  const [adding, setAdding] = useState(false);
+  const [deleting, setDeleting] = useState<FuelCard | null>(null);
+  const deleteCard = useDeleteFuelCard();
+
+  const query = useMemo(
+    () => ({ vehicleId, pageNumber: 1, pageSize: 20, sortBy: 'createdAt', sortDescending: true }),
+    [vehicleId],
+  );
+
+  const { data } = useFuelCardsQuery(query);
+  const rows = data?.items ?? [];
+
+  const handleDelete = () => {
+    if (!deleting) return;
+    deleteCard.mutate(deleting.id, { onSuccess: () => setDeleting(null) });
+  };
+
+  return (
+    <Card>
+      <CardContent>
+        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+            {t('fuelCards.title')}
+          </Typography>
+          <Button size="small" startIcon={<AddOutlined />} onClick={() => setAdding(true)}>
+            {t('fuelCards.add')}
+          </Button>
+        </Stack>
+
+        {rows.length === 0 ? (
+          <Typography color="text.secondary" sx={{ mt: 1 }}>
+            {t('fuelCards.empty')}
+          </Typography>
+        ) : (
+          <Stack spacing={1} sx={{ mt: 1 }}>
+            {rows.map((card) => (
+              <Stack
+                key={card.id}
+                direction="row"
+                spacing={1}
+                sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+              >
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                  <CreditCard fontSize="small" color="action" />
+                  <Box>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      {card.provider} — {card.cardNumber}
+                    </Typography>
+                    {card.issuedOn && (
+                      <Typography variant="caption" color="text.secondary">
+                        {t('fuelCards.issuedOn')}: {formatDate(card.issuedOn)}
+                      </Typography>
+                    )}
+                  </Box>
+                </Stack>
+                <IconButton size="small" onClick={() => setDeleting(card)}>
+                  <DeleteOutlined fontSize="small" />
+                </IconButton>
+              </Stack>
+            ))}
+          </Stack>
+        )}
+      </CardContent>
+
+      <AddFuelCardDialog vehicleId={vehicleId} open={adding} onClose={() => setAdding(false)} />
+
+      <ConfirmDialog
+        open={!!deleting}
+        title={t('fuelCards.deleteTitle')}
+        description={deleting ? t('fuelCards.deleteBody', { cardNumber: deleting.cardNumber }) : ''}
+        confirmLabel={t('common.delete')}
+        destructive
+        loading={deleteCard.isPending}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleting(null)}
+      />
+    </Card>
+  );
+}
+
+function AddFuelCardDialog({
+  vehicleId,
+  open,
+  onClose,
+}: {
+  vehicleId: string;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const t = useT();
+  const addCard = useAddFuelCard();
+  const [provider, setProvider] = useState('DKV');
+  const [cardNumber, setCardNumber] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      setProvider('DKV');
+      setCardNumber('');
+      setError(null);
+    }
+  }, [open]);
+
+  const handleSave = () => {
+    setError(null);
+    addCard.mutate(
+      { vehicleId, provider: provider.trim(), cardNumber: cardNumber.trim() },
+      {
+        onSuccess: () => onClose(),
+        onError: (err) => setError(toApiError(err).message),
+      },
+    );
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
+      <DialogTitle>{t('fuelCards.add')}</DialogTitle>
+      <DialogContent>
+        <Stack spacing={2} sx={{ mt: 1 }}>
+          {error && <Alert severity="error">{error}</Alert>}
+          <TextField
+            label={t('fuelCards.provider')}
+            value={provider}
+            onChange={(event) => setProvider(event.target.value)}
+            fullWidth
+          />
+          <TextField
+            label={t('fuelCards.cardNumber')}
+            value={cardNumber}
+            onChange={(event) => setCardNumber(event.target.value)}
+            fullWidth
+            autoFocus
+          />
+        </Stack>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>{t('common.cancel')}</Button>
+        <Button
+          variant="contained"
+          disabled={!provider.trim() || !cardNumber.trim()}
+          loading={addCard.isPending}
+          onClick={handleSave}
+        >
+          {t('common.save')}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }
 
@@ -776,6 +989,404 @@ function VehicleRentalRateDialog({
           onClick={submit}
         >
           {t('common.save')}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+/** Loan-out history for this vehicle — the revenue direction. Record a new loan, return the open one. */
+function VehicleRentalOutCard({
+  vehicleId,
+  vehicleStatus,
+}: {
+  vehicleId: string;
+  vehicleStatus: string;
+}) {
+  const t = useT();
+  const { locale } = useI18n();
+  const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<VehicleRentalOut | null>(null);
+  const [returning, setReturning] = useState<VehicleRentalOut | null>(null);
+
+  const query = useMemo(
+    () => ({
+      vehicleId,
+      pageNumber: 1,
+      pageSize: 10,
+      sortBy: 'startDate',
+      sortDescending: true,
+    }),
+    [vehicleId],
+  );
+
+  const { data } = useVehicleRentalsOutQuery(query);
+  const { data: summary } = useVehicleRentalsOutSummaryQuery({ vehicleId });
+  const remove = useDeleteWithConfirm<VehicleRentalOut>(useDeleteVehicleRentalOut());
+  const rows = data?.items ?? [];
+  const canAdd = vehicleStatus === 'Available';
+
+  return (
+    <Card>
+      <CardContent>
+        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+              {t('vehicleRentalsOut.title')}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {t('vehicleRentalsOut.description')}
+            </Typography>
+          </Box>
+          <Tooltip title={canAdd ? '' : t('vehicleRentalsOut.notAvailableHint')}>
+            <span>
+              <Button
+                size="small"
+                startIcon={<CarRentalOutlined />}
+                disabled={!canAdd}
+                onClick={() => setAdding(true)}
+              >
+                {t('vehicleRentalsOut.add')}
+              </Button>
+            </span>
+          </Tooltip>
+        </Stack>
+
+        {summary && (
+          <Typography variant="body2" sx={{ mt: 1, fontWeight: 600 }}>
+            {t('vehicleRentalsOut.totalRevenue')}: {formatMoney(summary.totalValue, locale)}
+          </Typography>
+        )}
+
+        {rows.length === 0 ? (
+          <Typography color="text.secondary" sx={{ mt: 1 }}>
+            {t('vehicleRentalsOut.empty')}
+          </Typography>
+        ) : (
+          <TableContainer sx={{ mt: 1 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('vehicleRentalsOut.renter')}</TableCell>
+                  <TableCell align="right">{t('vehicleRentalsOut.dailyRate')}</TableCell>
+                  <TableCell>{t('vehicleRentalsOut.startDate')}</TableCell>
+                  <TableCell>{t('vehicleRentalsOut.endDate')}</TableCell>
+                  <TableCell align="right" />
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    hover
+                    sx={{ cursor: 'pointer' }}
+                    onDoubleClick={() => setEditing(row)}
+                  >
+                    <TableCell>{row.renterDisplayName}</TableCell>
+                    <TableCell align="right">{formatMoney(row.dailyRate, locale)}</TableCell>
+                    <TableCell>{formatDate(row.startDate)}</TableCell>
+                    <TableCell>
+                      {row.endDate ? (
+                        formatDate(row.endDate)
+                      ) : (
+                        <Chip
+                          label={t('vehicleRentalsOut.stillOut')}
+                          color="warning"
+                          size="small"
+                        />
+                      )}
+                    </TableCell>
+                    <TableCell align="right">
+                      <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'flex-end' }}>
+                        {row.isOpen && (
+                          <Tooltip title={t('vehicleRentalsOut.return')}>
+                            <IconButton
+                              size="small"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setReturning(row);
+                              }}
+                            >
+                              <AssignmentReturnOutlined fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        <Tooltip title={t('common.delete')}>
+                          <IconButton
+                            size="small"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              remove.request(row);
+                            }}
+                          >
+                            <DeleteOutlined fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </CardContent>
+
+      <VehicleRentalOutDialog
+        open={adding}
+        vehicleId={vehicleId}
+        onClose={() => setAdding(false)}
+      />
+      <VehicleRentalOutDialog
+        open={!!editing}
+        vehicleId={vehicleId}
+        editingRental={editing}
+        onClose={() => setEditing(null)}
+      />
+
+      <VehicleRentalOutReturnDialog rental={returning} onClose={() => setReturning(null)} />
+
+      <ConfirmDialog
+        open={!!remove.pending}
+        title={t('vehicleRentalsOut.deleteTitle')}
+        description={t('vehicleRentalsOut.deleteBody')}
+        confirmLabel={t('common.delete')}
+        destructive
+        loading={remove.isDeleting}
+        onConfirm={remove.confirm}
+        onCancel={remove.cancel}
+      />
+    </Card>
+  );
+}
+
+function VehicleRentalOutDialog({
+  open,
+  vehicleId,
+  editingRental,
+  onClose,
+}: {
+  open: boolean;
+  vehicleId: string;
+  editingRental?: VehicleRentalOut | null;
+  onClose: () => void;
+}) {
+  const t = useT();
+  const { data: customers } = useAllCustomersQuery();
+  const record = useRecordVehicleRentalOut();
+  const update = useUpdateVehicleRentalOut();
+  const isEditing = !!editingRental;
+
+  const [customerId, setCustomerId] = useState<string | null>(null);
+  const [renterName, setRenterName] = useState('');
+  const [dailyRate, setDailyRate] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [note, setNote] = useState('');
+
+  const resetRecord = record.reset;
+  const resetUpdate = update.reset;
+
+  useEffect(() => {
+    if (!open) return;
+
+    resetRecord();
+    resetUpdate();
+
+    if (editingRental) {
+      setCustomerId(editingRental.customerId);
+      setRenterName(editingRental.renterName);
+      setDailyRate(String(editingRental.dailyRate));
+      setStartDate(editingRental.startDate);
+      setNote(editingRental.note ?? '');
+    } else {
+      setCustomerId(null);
+      setRenterName('');
+      setDailyRate('');
+      setStartDate('');
+      setNote('');
+    }
+  }, [open, editingRental, resetRecord, resetUpdate]);
+
+  const parsedRate = Number(dailyRate);
+  const rateIsValid = dailyRate.trim() !== '' && !Number.isNaN(parsedRate) && parsedRate > 0;
+  const canSubmit = rateIsValid && renterName.trim() !== '';
+
+  const mutation = isEditing ? update : record;
+  const error = mutation.isError ? toApiError(mutation.error) : null;
+
+  const submit = () => {
+    const shared = {
+      customerId,
+      renterName: renterName.trim(),
+      dailyRate: parsedRate,
+      note: note.trim() || null,
+    };
+
+    if (isEditing) {
+      update.mutate(
+        { id: editingRental.id, input: { ...shared, startDate } },
+        { onSuccess: onClose },
+      );
+    } else {
+      record.mutate(
+        { vehicleId, ...shared, startDate: startDate || null },
+        { onSuccess: onClose },
+      );
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>
+        {isEditing ? t('vehicleRentalsOut.editTitle') : t('vehicleRentalsOut.add')}
+      </DialogTitle>
+      <DialogContent>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error.message}
+          </Alert>
+        )}
+
+        <Grid container spacing={2} sx={{ mt: 0 }}>
+          <Grid size={12}>
+            <Autocomplete
+              options={customers?.items ?? []}
+              getOptionLabel={(option) => option.name}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              value={customers?.items.find((c) => c.id === customerId) ?? null}
+              onChange={(_, value) => setCustomerId(value?.id ?? null)}
+              renderInput={(params) => (
+                <TextField {...params} label={t('vehicleRentalsOut.customer')} />
+              )}
+            />
+          </Grid>
+
+          <Grid size={12}>
+            <TextField
+              fullWidth
+              required
+              label={t('vehicleRentalsOut.renterName')}
+              value={renterName}
+              onChange={(event) => setRenterName(event.target.value)}
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              type="number"
+              fullWidth
+              label={t('vehicleRentalsOut.dailyRate')}
+              value={dailyRate}
+              onChange={(event) => setDailyRate(event.target.value)}
+              error={dailyRate.trim() !== '' && !rateIsValid}
+              helperText={
+                dailyRate.trim() !== '' && !rateIsValid
+                  ? t('vehicleRentalsOut.mustBePositive')
+                  : undefined
+              }
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              type="date"
+              fullWidth
+              label={t('vehicleRentalsOut.startDate')}
+              value={startDate}
+              onChange={(event) => setStartDate(event.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+          </Grid>
+
+          <Grid size={12}>
+            <TextField
+              fullWidth
+              multiline
+              minRows={2}
+              label={t('rates.note')}
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+            />
+          </Grid>
+        </Grid>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>{t('common.cancel')}</Button>
+        <Button
+          variant="contained"
+          disabled={!canSubmit}
+          loading={mutation.isPending}
+          onClick={submit}
+        >
+          {t('common.save')}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+/** Closes an open loan — a separate, deliberately narrow action from correcting one. */
+function VehicleRentalOutReturnDialog({
+  rental,
+  onClose,
+}: {
+  rental: VehicleRentalOut | null;
+  onClose: () => void;
+}) {
+  const t = useT();
+  const { locale } = useI18n();
+  const returnRental = useReturnVehicleRentalOut();
+  const [endDate, setEndDate] = useState('');
+
+  const resetReturn = returnRental.reset;
+
+  useEffect(() => {
+    if (!rental) return;
+    resetReturn();
+    setEndDate('');
+  }, [rental, resetReturn]);
+
+  if (!rental) return null;
+
+  const error = returnRental.isError ? toApiError(returnRental.error) : null;
+
+  const submit = () => {
+    returnRental.mutate(
+      { id: rental.id, input: { endDate: endDate || null } },
+      { onSuccess: onClose },
+    );
+  };
+
+  return (
+    <Dialog open={!!rental} onClose={onClose} fullWidth maxWidth="xs">
+      <DialogTitle>{t('vehicleRentalsOut.returnTitle')}</DialogTitle>
+      <DialogContent>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error.message}
+          </Alert>
+        )}
+        <Typography color="text.secondary" sx={{ mb: 2 }}>
+          {t('vehicleRentalsOut.returnBody')}
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 2 }}>
+          {rental.renterDisplayName} — {formatMoney(rental.dailyRate, locale)}/
+          {t('vehicleRentalsOut.dailyRate').toLowerCase()}
+        </Typography>
+        <TextField
+          type="date"
+          fullWidth
+          label={t('vehicleRentalsOut.endDate')}
+          value={endDate}
+          onChange={(event) => setEndDate(event.target.value)}
+          slotProps={{ inputLabel: { shrink: true } }}
+          helperText={t('vehicleRentalsOut.defaultsToday')}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>{t('common.cancel')}</Button>
+        <Button variant="contained" loading={returnRental.isPending} onClick={submit}>
+          {t('vehicleRentalsOut.return')}
         </Button>
       </DialogActions>
     </Dialog>

@@ -164,6 +164,7 @@ export function signedIn(role: Role = 'Admin'): User {
     firstName: 'Ope',
     lastName: 'Rator',
     lastLoginAt: null,
+    canViewCustomerTaxDetails: false,
   };
 }
 

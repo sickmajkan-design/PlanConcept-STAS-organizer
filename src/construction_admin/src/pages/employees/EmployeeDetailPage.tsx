@@ -33,7 +33,9 @@ import { toApiError } from '../../api/apiError';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
 import { AttachmentList } from '../../components/AttachmentList';
+import { SiblingNavButtons } from '../../components/SiblingNavButtons';
 import { StatusChip } from '../../components/StatusChip';
+import { useSiblingNavigation } from '../../hooks/useSiblingNavigation';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import {
   useAssignEmployeeToProject,
@@ -43,6 +45,7 @@ import {
 } from '../../features/employees/useEmployees';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
 import { useI18n, useT } from '../../i18n/useI18n';
+import { useRecordVisit } from '../../layout/useRecentRecords';
 import { canAdministerAccounts } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { paths } from '../../routes/paths';
@@ -59,6 +62,8 @@ export function EmployeeDetailPage() {
 
   const { data: employee, isLoading, isError, error, refetch } = useEmployeeQuery(id);
   const { data: allProjects } = useAllProjectsQuery();
+  useRecordVisit(paths.employeeDetail(id ?? ''), employee?.fullName);
+  const { prevId, nextId, siblingIds } = useSiblingNavigation(id);
 
   const assign = useAssignEmployeeToProject(id ?? '');
   const remove = useRemoveEmployeeFromProject(id ?? '');
@@ -129,7 +134,13 @@ export function EmployeeDetailPage() {
                 </Typography>
               </Stack>
             </Box>
-            <Stack direction="row" spacing={1}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+              <SiblingNavButtons
+                prevId={prevId}
+                nextId={nextId}
+                siblingIds={siblingIds}
+                buildPath={paths.employeeDetail}
+              />
               <Button
                 variant="outlined"
                 startIcon={<EditOutlined />}

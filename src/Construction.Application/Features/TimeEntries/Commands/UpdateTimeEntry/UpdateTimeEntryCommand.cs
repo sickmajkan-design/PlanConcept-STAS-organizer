@@ -90,7 +90,17 @@ public class UpdateTimeEntryCommandHandler
         entry.ReviewedAt = null;
         entry.ReviewNote = null;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // Someone reviewed or deleted this entry between this handler
+            // reading it and saving the correction.
+            throw new ConflictException(
+                "This entry was changed by someone else just now. Reload it and try again.");
+        }
 
         return await _context.TimeEntries
             .AsNoTracking()

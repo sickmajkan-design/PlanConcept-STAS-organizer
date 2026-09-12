@@ -48,13 +48,16 @@ public class GetVehicleCostsQueryHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
     public GetVehicleCostsQueryHandler(
         IApplicationDbContext context,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<VehicleCostReportDto> Handle(
@@ -129,9 +132,43 @@ public class GetVehicleCostsQueryHandler
                     return days > 0 ? days * (r.MonthlyAmount / 30m) : 0m;
                 }));
 
+        // Revenue-out is a discrete-row source, not a dated chain: a loan is
+        // priced across the overlap with the period, an open one only up to
+        // today (mirrors GetVehicleRentalsOutSummaryQueryHandler's TotalValue).
+        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+
+        var rentalsOut = await _context.VehicleRentalsOut
+            .AsNoTracking()
+            .Where(r => request.VehicleId == null || r.VehicleId == request.VehicleId)
+            .Where(r => r.StartDate <= request.To && (r.EndDate == null || r.EndDate >= request.From))
+            .Select(r => new
+            {
+                r.VehicleId,
+                Name = r.Vehicle.Brand + " " + r.Vehicle.Model
+                    + " (" + r.Vehicle.RegistrationNumber + ")",
+                r.StartDate,
+                r.EndDate,
+                r.DailyRate
+            })
+            .ToListAsync(cancellationToken);
+
+        var revenueByVehicle = rentalsOut
+            .GroupBy(r => new { r.VehicleId, r.Name })
+            .ToDictionary(
+                g => g.Key,
+                g => g.Sum(r =>
+                {
+                    var start = r.StartDate > request.From ? r.StartDate : request.From;
+                    var end = r.EndDate ?? today;
+                    end = end < request.To ? end : request.To;
+                    var days = end.DayNumber - start.DayNumber + 1;
+                    return days > 0 ? days * r.DailyRate : 0m;
+                }));
+
         var vehicleNames = grouped
             .Select(v => (v.VehicleId, v.Name))
             .Concat(rentalByVehicle.Keys.Select(k => (k.VehicleId, k.Name)))
+            .Concat(revenueByVehicle.Keys.Select(k => (k.VehicleId, k.Name)))
             .GroupBy(v => v.VehicleId)
             .ToDictionary(g => g.Key, g => g.First().Name);
 
@@ -146,6 +183,10 @@ public class GetVehicleCostsQueryHandler
                     .Where(kv => kv.Key.VehicleId == vehicleId)
                     .Select(kv => kv.Value)
                     .FirstOrDefault();
+                var revenue = revenueByVehicle
+                    .Where(kv => kv.Key.VehicleId == vehicleId)
+                    .Select(kv => kv.Value)
+                    .FirstOrDefault();
 
                 var distance = v?.FirstOdometer is { } first && v.LastOdometer is { } last
                     && last > first
@@ -156,6 +197,7 @@ public class GetVehicleCostsQueryHandler
                 var litres = v?.Litres ?? 0m;
                 var serviceCost = v?.ServiceCost ?? 0m;
                 var totalCost = v?.TotalCost ?? 0m;
+                var total = totalCost + rentalCost;
 
                 return new VehicleCostRowDto
                 {
@@ -166,7 +208,9 @@ public class GetVehicleCostsQueryHandler
                     ServiceCost = decimal.Round(serviceCost, 2),
                     OtherCost = decimal.Round(totalCost - fuelCost - serviceCost, 2),
                     RentalCost = decimal.Round(rentalCost, 2),
-                    Total = decimal.Round(totalCost + rentalCost, 2),
+                    Total = decimal.Round(total, 2),
+                    Revenue = decimal.Round(revenue, 2),
+                    Profit = decimal.Round(revenue - total, 2),
                     DistanceKm = distance,
                     // Only when both halves are real. A single fill-up gives
                     // no distance, and dividing by a distance of nothing would
@@ -188,7 +232,9 @@ public class GetVehicleCostsQueryHandler
             Total = rows.Sum(r => r.Total),
             TotalFuelCost = rows.Sum(r => r.FuelCost),
             TotalLitres = rows.Sum(r => r.Litres),
-            TotalRentalCost = rows.Sum(r => r.RentalCost)
+            TotalRentalCost = rows.Sum(r => r.RentalCost),
+            TotalRevenue = rows.Sum(r => r.Revenue),
+            TotalProfit = rows.Sum(r => r.Profit)
         };
     }
 }

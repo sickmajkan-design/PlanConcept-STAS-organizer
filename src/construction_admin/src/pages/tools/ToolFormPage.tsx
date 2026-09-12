@@ -19,7 +19,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
 import type { ToolInput } from '../../api/types';
-import { toolStatuses } from '../../api/types';
+import { toolOwnershipTypes, toolStatuses } from '../../api/types';
 import { ErrorState } from '../../components/ErrorState';
 import { useCreateTool, useToolQuery, useUpdateTool } from '../../features/tools/useTools';
 import { toolFormSchema, type ToolFormValues } from '../../features/tools/validation';
@@ -33,6 +33,7 @@ const emptyValues: ToolFormValues = {
   serialNumber: '',
   qrCode: '',
   status: 'Available',
+  ownershipType: 'Owned',
 };
 
 export function ToolFormPage() {
@@ -65,6 +66,7 @@ export function ToolFormPage() {
         serialNumber: existing.serialNumber ?? '',
         qrCode: existing.qrCode ?? '',
         status: existing.status,
+        ownershipType: existing.ownershipType,
       });
     }
   }, [existing, reset]);
@@ -84,6 +86,7 @@ export function ToolFormPage() {
       serialNumber: values.serialNumber || null,
       qrCode: values.qrCode || null,
       status: values.status,
+      ownershipType: values.ownershipType,
     };
 
     try {
@@ -194,6 +197,30 @@ export function ToolFormPage() {
                         {toolStatuses.map((value) => (
                           <MenuItem key={value} value={value}>
                             {enumLabel('toolStatus', value)}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  )}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Controller
+                  name="ownershipType"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControl fullWidth>
+                      <InputLabel id="tool-ownership-type-label">
+                        {t('tools.ownershipType')}
+                      </InputLabel>
+                      <Select
+                        {...field}
+                        labelId="tool-ownership-type-label"
+                        label={t('tools.ownershipType')}
+                      >
+                        {toolOwnershipTypes.map((value) => (
+                          <MenuItem key={value} value={value}>
+                            {enumLabel('toolOwnershipType', value)}
                           </MenuItem>
                         ))}
                       </Select>

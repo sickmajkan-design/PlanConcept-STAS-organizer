@@ -17,6 +17,8 @@ export interface User {
   firstName: string | null;
   lastName: string | null;
   lastLoginAt: string | null;
+  /** Whether this account may see a customer's tax ID, registration number and VAT number. */
+  canViewCustomerTaxDetails: boolean;
 }
 
 export interface AuthResponse {
@@ -136,6 +138,8 @@ export interface Project {
   address: string | null;
   latitude: number | null;
   longitude: number | null;
+  /** ISO 3166-1 alpha-2 (e.g. "BA") — which country's holiday calendar applies here. */
+  countryCode: string | null;
   /** The site's expected daily clock-in time, in UTC (`HH:mm:ss`), if one is set. */
   shiftStartTime: string | null;
   startDate: string | null;
@@ -181,6 +185,7 @@ export interface ProjectInput {
   address?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  countryCode?: string | null;
   shiftStartTime?: string | null;
   startDate?: string | null;
   endDate?: string | null;
@@ -195,6 +200,14 @@ export interface Customer {
   phone: string | null;
   email: string | null;
   note: string | null;
+  /**
+   * Null both when it was never set and when the signed-in user may not see
+   * it — the two look the same on purpose, since the API never sends the
+   * real value to someone without the grant in the first place.
+   */
+  taxId: string | null;
+  registrationNumber: string | null;
+  vatNumber: string | null;
   /** How many projects (Main and Sub together) currently belong to this customer. */
   projectCount: number;
   createdAt: string;
@@ -207,6 +220,48 @@ export interface CustomerInput {
   phone?: string | null;
   email?: string | null;
   note?: string | null;
+  /** Only ever applied by the API when the caller is a SuperAdmin — sent by anyone else, silently ignored. */
+  taxId?: string | null;
+  registrationNumber?: string | null;
+  vatNumber?: string | null;
+}
+
+/**
+ * The platform's own company profile — a singleton, not a per-record
+ * resource. Readable by any signed-in role; only a SuperAdmin may write it.
+ */
+export interface CompanySettings {
+  name: string | null;
+  address: string | null;
+  taxId: string | null;
+  registrationNumber: string | null;
+  vatNumber: string | null;
+  phone: string | null;
+  email: string | null;
+  weeklyReportsForwardEmail: string | null;
+  hasLogo: boolean;
+  updatedAt: string | null;
+}
+
+export interface CompanySettingsInput {
+  name: string;
+  address?: string | null;
+  taxId?: string | null;
+  registrationNumber?: string | null;
+  vatNumber?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  weeklyReportsForwardEmail?: string | null;
+}
+
+/**
+ * What the pre-login screen and the app sidebar need — reached with no auth
+ * token at all, so this carries nothing beyond name and whether a logo
+ * exists.
+ */
+export interface PublicCompanyBranding {
+  name: string | null;
+  hasLogo: boolean;
 }
 
 export interface ProjectRevenue {
@@ -318,6 +373,7 @@ export const vehicleStatuses = [
   'Assigned',
   'InService',
   'OutOfService',
+  'RentedOut',
 ] as const;
 
 export type VehicleStatus = (typeof vehicleStatuses)[number];
@@ -337,12 +393,23 @@ export interface Vehicle {
   registrationNumber: string;
   vin: string | null;
   qrCode: string | null;
+  /** Name of whatever GPS tracking platform this vehicle's tracker reports to. Free text. */
+  gpsProvider: string | null;
+  /** Deep link to this vehicle on its GPS provider's own site. Opened in a new tab. */
+  gpsTrackingUrl: string | null;
   fuelType: FuelType;
   status: VehicleStatus;
   ownershipType: VehicleOwnershipType;
   /** The rate currently in force, when `ownershipType` is Rented or Leased. */
   currentRentalMonthlyAmount: number | null;
   currentRentalProvider: string | null;
+  /** Set when this vehicle is currently loaned out to another company. */
+  currentRentalOutRenterName: string | null;
+  currentRentalOutDailyRate: number | null;
+  currentRentalOutStartDate: string | null;
+  /** Renter on the most recently closed rental-out loan. Null if never loaned out. */
+  lastRentalOutRenterName: string | null;
+  lastRentalOutEndDate: string | null;
   assignedEmployeeId: string | null;
   assignedEmployeeName: string | null;
   assignedEmployeeNumber: string | null;
@@ -358,6 +425,8 @@ export interface VehicleInput {
   registrationNumber: string;
   vin?: string | null;
   qrCode?: string | null;
+  gpsProvider?: string | null;
+  gpsTrackingUrl?: string | null;
   fuelType: FuelType;
   status: VehicleStatus;
   ownershipType: VehicleOwnershipType;
@@ -369,9 +438,14 @@ export const toolStatuses = [
   'UnderRepair',
   'Lost',
   'Retired',
+  'RentedOut',
 ] as const;
 
 export type ToolStatus = (typeof toolStatuses)[number];
+
+export const toolOwnershipTypes = ['Owned', 'Rented', 'Leased'] as const;
+
+export type ToolOwnershipType = (typeof toolOwnershipTypes)[number];
 
 export interface Tool {
   id: string;
@@ -380,6 +454,17 @@ export interface Tool {
   serialNumber: string | null;
   qrCode: string | null;
   status: ToolStatus;
+  ownershipType: ToolOwnershipType;
+  /** The rate currently in force, when `ownershipType` is Rented or Leased. */
+  currentRentalMonthlyAmount: number | null;
+  currentRentalProvider: string | null;
+  /** Set when this tool is currently loaned out to another company. */
+  currentRentalOutRenterName: string | null;
+  currentRentalOutDailyRate: number | null;
+  currentRentalOutStartDate: string | null;
+  /** Renter on the most recently closed rental-out loan. Null if never loaned out. */
+  lastRentalOutRenterName: string | null;
+  lastRentalOutEndDate: string | null;
   assignedEmployeeId: string | null;
   assignedEmployeeName: string | null;
   assignedEmployeeNumber: string | null;
@@ -395,6 +480,7 @@ export interface ToolInput {
   serialNumber?: string | null;
   qrCode?: string | null;
   status: ToolStatus;
+  ownershipType: ToolOwnershipType;
 }
 
 export interface Material {
@@ -439,6 +525,8 @@ export interface UserAccount {
   employeeName: string | null;
   /** Days of warning before a document lapses. Null means the system default. Admin/SuperAdmin only. */
   documentExpiryReminderDays: number | null;
+  /** Whether this account may see a customer's tax ID, registration number and VAT number. */
+  canViewCustomerTaxDetails: boolean;
   createdAt: string;
 }
 
@@ -447,6 +535,8 @@ export interface UserAccountInput {
   role: Role;
   employeeId?: string | null;
   documentExpiryReminderDays?: number | null;
+  /** Only a SuperAdmin caller may actually change this — sent by anyone else, the API leaves it as it was. */
+  canViewCustomerTaxDetails?: boolean;
 }
 
 export interface CreateUserAccountInput extends UserAccountInput {
@@ -547,6 +637,7 @@ export const attachmentOwnerTypes = [
   'GeneralExpense',
   'Accommodation',
   'AccommodationRate',
+  'ToolRentalRate',
 ] as const;
 
 export type AttachmentOwnerType = (typeof attachmentOwnerTypes)[number];
@@ -573,6 +664,8 @@ export interface Attachment {
   description: string | null;
   /** `YYYY-MM-DD`, or null for anything that does not lapse. */
   expiresAt: string | null;
+  /** `YYYY-MM-DD` — a legal retention requirement, null if none applies. */
+  retainUntil: string | null;
   ownerType: AttachmentOwnerType;
   ownerId: string;
   ownerName: string | null;
@@ -799,6 +892,10 @@ export interface EmployeeRate {
   weekendHourlyRate: number | null;
   /** Cost per hour on a listed public holiday. Null means no premium. Hourly only. */
   holidayHourlyRate: number | null;
+  /** Cost per hour for a shift tagged Overtime. Null means no premium. Hourly only. */
+  overtimeHourlyRate: number | null;
+  /** Cost per hour for a shift tagged Travel. Null means no premium. Hourly only. */
+  travelHourlyRate: number | null;
   /** Set when `rateType` is Daily; null otherwise. */
   dailyRate: number | null;
   /** `YYYY-MM-DD`. */
@@ -817,6 +914,8 @@ export interface EmployeeRateInput {
   hourlyRate?: number | null;
   weekendHourlyRate?: number | null;
   holidayHourlyRate?: number | null;
+  overtimeHourlyRate?: number | null;
+  travelHourlyRate?: number | null;
   /** Required when `rateType` is Daily. */
   dailyRate?: number | null;
   startDate?: string | null;
@@ -848,6 +947,122 @@ export interface VehicleRentalRateInput {
   note?: string | null;
 }
 
+export interface ToolRentalRate {
+  id: string;
+  toolId: string;
+  toolName: string;
+  monthlyAmount: number;
+  provider: string | null;
+  /** `YYYY-MM-DD`. */
+  startDate: string;
+  /** `YYYY-MM-DD`, or null while it is the rate in force. */
+  endDate: string | null;
+  note: string | null;
+  setByName: string | null;
+  createdAt: string;
+}
+
+export interface ToolRentalRateInput {
+  toolId: string;
+  monthlyAmount: number;
+  provider?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  note?: string | null;
+}
+
+/** The company's own vehicle loaned out to another company — the revenue direction, opposite `VehicleRentalRate`. */
+export interface VehicleRentalOut {
+  id: string;
+  vehicleId: string;
+  vehicleName: string;
+  customerId: string | null;
+  /** The linked customer's name when set, the free-text `renterName` otherwise. */
+  renterDisplayName: string;
+  renterName: string;
+  dailyRate: number;
+  /** `YYYY-MM-DD`. */
+  startDate: string;
+  /** `YYYY-MM-DD`, or null while the vehicle has not come back. */
+  endDate: string | null;
+  isOpen: boolean;
+  note: string | null;
+  setByName: string | null;
+  createdAt: string;
+}
+
+export interface VehicleRentalOutInput {
+  vehicleId: string;
+  customerId?: string | null;
+  renterName: string;
+  dailyRate: number;
+  startDate?: string | null;
+  note?: string | null;
+}
+
+/** Narrow correction only — never touches `endDate` or the vehicle's status. Returning is a separate action. */
+export interface UpdateVehicleRentalOutInput {
+  customerId?: string | null;
+  renterName: string;
+  dailyRate: number;
+  startDate: string;
+  note?: string | null;
+}
+
+/** Fields on a `PUT .../return`. */
+export interface ReturnRentalOutInput {
+  endDate?: string | null;
+}
+
+export interface VehicleRentalOutSummary {
+  count: number;
+  openCount: number;
+  totalValue: number;
+}
+
+/** The company's own tool loaned out to another company. See `VehicleRentalOut` for the full shape. */
+export interface ToolRentalOut {
+  id: string;
+  toolId: string;
+  toolName: string;
+  customerId: string | null;
+  renterDisplayName: string;
+  renterName: string;
+  dailyRate: number;
+  /** `YYYY-MM-DD`. */
+  startDate: string;
+  /** `YYYY-MM-DD`, or null while the tool has not come back. */
+  endDate: string | null;
+  isOpen: boolean;
+  note: string | null;
+  setByName: string | null;
+  createdAt: string;
+}
+
+export interface ToolRentalOutInput {
+  toolId: string;
+  customerId?: string | null;
+  renterName: string;
+  dailyRate: number;
+  startDate?: string | null;
+  note?: string | null;
+}
+
+/** Narrow correction only — never touches `endDate` or the tool's status. Returning is a separate action. */
+export interface UpdateToolRentalOutInput {
+  customerId?: string | null;
+  renterName: string;
+  dailyRate: number;
+  startDate: string;
+  note?: string | null;
+}
+
+export interface ToolRentalOutSummary {
+  count: number;
+  openCount: number;
+  totalValue: number;
+}
+
 export interface MaterialMovement {
   id: string;
   materialId: string;
@@ -863,6 +1078,7 @@ export interface MaterialMovement {
   /** `YYYY-MM-DD`. */
   occurredOn: string;
   note: string | null;
+  invoiceNumber: string | null;
   recordedByName: string | null;
   createdAt: string;
 }
@@ -875,6 +1091,7 @@ export interface MaterialMovementInput {
   projectId?: string | null;
   occurredOn?: string | null;
   note?: string | null;
+  invoiceNumber?: string | null;
 }
 
 export interface VehicleExpense {
@@ -889,6 +1106,8 @@ export interface VehicleExpense {
   litres: number | null;
   pricePerLitre: number | null;
   odometerKm: number | null;
+  /** What was pumped (diesel, AdBlue, ...). Only ever set on a fill-up. */
+  fuelProductType: string | null;
   supplier: string | null;
   note: string | null;
   recordedByName: string | null;
@@ -902,8 +1121,89 @@ export interface VehicleExpenseInput {
   occurredOn?: string | null;
   litres?: number | null;
   odometerKm?: number | null;
+  fuelProductType?: string | null;
   supplier?: string | null;
   note?: string | null;
+}
+
+export interface FuelCard {
+  id: string;
+  vehicleId: string;
+  vehicleName: string;
+  provider: string;
+  cardNumber: string;
+  /** `YYYY-MM-DD`. */
+  issuedOn: string | null;
+  note: string | null;
+  createdAt: string;
+}
+
+export interface FuelCardInput {
+  vehicleId: string;
+  provider: string;
+  cardNumber: string;
+  issuedOn?: string | null;
+  note?: string | null;
+}
+
+/** Which 0-based column of the uploaded statement holds which field. */
+export interface FuelImportColumnMapping {
+  cardNumberColumn: number;
+  occurredOnColumn: number;
+  amountColumn: number;
+  litresColumn: number;
+  supplierColumn?: number | null;
+  noteColumn?: number | null;
+  odometerColumn?: number | null;
+  fuelProductTypeColumn?: number | null;
+}
+
+export const fuelImportRowStatuses = [
+  'Ready',
+  'MissingCardNumber',
+  'NoMatchingCard',
+  'InvalidDate',
+  'InvalidAmount',
+  'InvalidLitres',
+  'AlreadyImported',
+] as const;
+
+export type FuelImportRowStatus = (typeof fuelImportRowStatuses)[number];
+
+export interface FuelImportPreviewRow {
+  rowNumber: number;
+  cardNumber: string | null;
+  vehicleId: string | null;
+  vehicleName: string | null;
+  occurredOn: string | null;
+  amount: number | null;
+  litres: number | null;
+  odometerKm: number | null;
+  fuelProductType: string | null;
+  supplier: string | null;
+  note: string | null;
+  status: FuelImportRowStatus;
+  reason: string | null;
+}
+
+export interface FuelImportPreviewResult {
+  totalRows: number;
+  readyCount: number;
+  problemCount: number;
+  rows: FuelImportPreviewRow[];
+}
+
+export interface FuelImportSkippedRow {
+  rowNumber: number;
+  cardNumber: string | null;
+  reason: string;
+}
+
+export interface FuelImportResult {
+  totalRows: number;
+  createdCount: number;
+  skippedCount: number;
+  skipped: FuelImportSkippedRow[];
 }
 
 export const financeEntryKinds = [
@@ -1034,6 +1334,14 @@ export const ledgerColumnDataTypes = ['Number', 'Currency', 'Text', 'Date'] as c
 
 export type LedgerColumnDataType = (typeof ledgerColumnDataTypes)[number];
 
+export const ledgerColumnSourceMetrics = [
+  'VehicleTotalCost',
+  'ToolTotalCost',
+  'MaterialCost',
+] as const;
+
+export type LedgerColumnSourceMetric = (typeof ledgerColumnSourceMetrics)[number];
+
 export interface LedgerSummary {
   id: string;
   name: string;
@@ -1048,12 +1356,20 @@ export interface LedgerColumn {
   id: string;
   name: string;
   dataType: LedgerColumnDataType;
+  /** Null for a manual/free-typed column (default); otherwise the metric its cells are computed from. */
+  sourceMetric: LedgerColumnSourceMetric | null;
   sortOrder: number;
 }
 
 export interface LedgerCell {
+  /** The real cell record's id — null for a computed (sourced) cell, which has no edit history. */
+  id: string | null;
   columnId: string;
   value: string | null;
+  /** Hex background color, or null for none. */
+  colorTag: string | null;
+  /** True when this value was computed from real platform data — never editable. */
+  isComputed: boolean;
 }
 
 export interface LedgerRow {
@@ -1061,7 +1377,19 @@ export interface LedgerRow {
   label: string;
   employeeId: string | null;
   employeeName: string | null;
+  vehicleId: string | null;
+  vehicleName: string | null;
+  toolId: string | null;
+  toolName: string | null;
+  materialId: string | null;
+  materialName: string | null;
+  /** Set once this row was pushed through the real General Expense form. */
+  promotedGeneralExpenseId: string | null;
+  /** Set once this row was pushed through the real Accommodation-rate form. */
+  promotedAccommodationRateId: string | null;
   sortOrder: number;
+  /** Hex background color for the whole row, or null for none. */
+  colorTag: string | null;
   cells: LedgerCell[];
 }
 
@@ -1071,6 +1399,9 @@ export interface LedgerSection {
   projectId: string | null;
   projectName: string | null;
   sortOrder: number;
+  /** Known even before this section's rows are loaded. */
+  rowCount: number;
+  /** Empty on the ledger shell — populated only once this section is opened and its rows are fetched. */
   rows: LedgerRow[];
 }
 
@@ -1106,6 +1437,56 @@ export interface UpdateLedgerInput {
 export interface LedgerColumnInput {
   name: string;
   dataType: LedgerColumnDataType;
+  sourceMetric?: LedgerColumnSourceMetric | null;
+}
+
+/** One box of a ledger's month-summary panel, with its current computed value. */
+export interface LedgerSummaryBox {
+  id: string;
+  label: string;
+  sourceColumnId: string | null;
+  sourceColumnName: string | null;
+  manualValue: number | null;
+  /** +1 adds this box to the net total, -1 subtracts it. */
+  sign: 1 | -1;
+  color: string | null;
+  sortOrder: number;
+  /** The live sum of `sourceColumnId` across the ledger, or `manualValue` when there's no source column. */
+  value: number;
+}
+
+export interface LedgerSummaryPanel {
+  boxes: LedgerSummaryBox[];
+  /** Sum of every box's `value * sign`. */
+  netTotal: number;
+}
+
+/** One row with no Employee/Vehicle/Tool/Material link. */
+export interface LedgerUnlinkedRow {
+  rowId: string;
+  rowLabel: string;
+  sectionId: string;
+  sectionName: string;
+}
+
+/** One row already pushed through to a real General Expense or Accommodation rate. */
+export interface LedgerPromotion {
+  rowId: string;
+  rowLabel: string;
+  sectionName: string;
+  target: 'GeneralExpense' | 'AccommodationRate';
+  targetId: string;
+  amount: number;
+  /** `YYYY-MM-DD`. */
+  occurredOn: string;
+}
+
+export interface LedgerSummaryBoxInput {
+  label: string;
+  sourceColumnId?: string | null;
+  manualValue?: number | null;
+  sign: 1 | -1;
+  color?: string | null;
 }
 
 export interface LedgerSectionInput {
@@ -1116,6 +1497,27 @@ export interface LedgerSectionInput {
 export interface LedgerRowInput {
   label: string;
   employeeId?: string | null;
+  vehicleId?: string | null;
+  toolId?: string | null;
+  materialId?: string | null;
+}
+
+export interface PromoteLedgerRowToGeneralExpenseInput {
+  category: GeneralExpenseCategory;
+  amount: number;
+  occurredOn?: string | null;
+  projectId?: string | null;
+  employeeId?: string | null;
+  supplier?: string | null;
+  note?: string | null;
+}
+
+export interface PromoteLedgerRowToAccommodationRateInput {
+  accommodationId: string;
+  monthlyAmount: number;
+  provider?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
 }
 
 export interface ProjectCostRow {
@@ -1172,6 +1574,8 @@ export interface VehicleCostRow {
   otherCost: number;
   rentalCost: number;
   total: number;
+  revenue: number;
+  profit: number;
   distanceKm: number | null;
   litresPer100Km: number | null;
 }
@@ -1184,6 +1588,8 @@ export interface VehicleCostReport {
   totalFuelCost: number;
   totalLitres: number;
   totalRentalCost: number;
+  totalRevenue: number;
+  totalProfit: number;
 }
 
 export interface ToolCostRow {
@@ -1192,7 +1598,10 @@ export interface ToolCostRow {
   repairCost: number;
   maintenanceCost: number;
   otherCost: number;
+  rentalCost: number;
   total: number;
+  revenue: number;
+  profit: number;
 }
 
 export interface ToolCostReport {
@@ -1200,6 +1609,9 @@ export interface ToolCostReport {
   to: string;
   rows: ToolCostRow[];
   total: number;
+  totalRentalCost: number;
+  totalRevenue: number;
+  totalProfit: number;
 }
 
 /** The totals for whatever filter is currently applied to the list, not just the page on screen. */
@@ -1209,6 +1621,11 @@ export interface EmployeeRateSummary {
 }
 
 export interface VehicleRentalRateSummary {
+  count: number;
+  totalMonthlyAmount: number;
+}
+
+export interface ToolRentalRateSummary {
   count: number;
   totalMonthlyAmount: number;
 }
@@ -1314,17 +1731,23 @@ export interface AuditEntry {
   changes: Record<string, AuditChange>;
 }
 
-/** A date priced like a holiday, wherever a pay rate sets a holiday premium. */
+/**
+ * A date priced like a holiday, wherever a pay rate sets a holiday premium —
+ * for a project whose own country matches this one.
+ */
 export interface PublicHoliday {
   id: string;
   /** `YYYY-MM-DD`. */
   date: string;
   name: string;
+  /** ISO 3166-1 alpha-2, e.g. "BA". */
+  countryCode: string;
 }
 
 export interface PublicHolidayInput {
   date: string;
   name: string;
+  countryCode: string;
 }
 
 /** One holiday fetched from the internet for a chosen country/year, offered up for review before importing. */
@@ -1356,4 +1779,90 @@ export interface BulletinViewer {
   userId: string;
   userEmail: string;
   viewedAt: string;
+}
+
+export const scheduledReportTypes = [
+  'TimeEntries',
+  'ProjectCosts',
+  'VehicleCosts',
+  'MaterialMovements',
+  'Absences',
+  'FinanceEntries',
+] as const;
+
+export type ScheduledReportType = (typeof scheduledReportTypes)[number];
+
+export const scheduledReportCadences = ['Weekly', 'Monthly'] as const;
+
+export type ScheduledReportCadence = (typeof scheduledReportCadences)[number];
+
+export const weekDays = [
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+  'Sunday',
+] as const;
+
+export type WeekDay = (typeof weekDays)[number];
+
+export interface ScheduledReportSubscription {
+  id: string;
+  recipientEmail: string;
+  reportType: ScheduledReportType;
+  cadence: ScheduledReportCadence;
+  dayOfWeek: WeekDay | null;
+  dayOfMonth: number | null;
+  language: string;
+  nextRunAtUtc: string;
+  createdByEmail: string;
+}
+
+export interface ScheduledReportSubscriptionInput {
+  recipientEmail?: string | null;
+  reportType: ScheduledReportType;
+  cadence: ScheduledReportCadence;
+  dayOfWeek?: WeekDay | null;
+  dayOfMonth?: number | null;
+  language?: string | null;
+}
+
+export const weeklyReportTypes = ['SignedHours', 'Aufmass', 'Other'] as const;
+
+export type WeeklyReportType = (typeof weeklyReportTypes)[number];
+
+export const weeklyReportStatuses = ['Submitted', 'Processed'] as const;
+
+export type WeeklyReportStatus = (typeof weeklyReportStatuses)[number];
+
+export interface WeeklySiteReport {
+  id: string;
+  projectId: string;
+  projectName: string;
+  submittedByEmployeeId: string;
+  submittedByEmployeeName: string;
+  isoYear: number;
+  isoWeek: number;
+  type: WeeklyReportType;
+  quantity: number | null;
+  note: string | null;
+  fileName: string;
+  status: WeeklyReportStatus;
+  processedAt: string | null;
+  processedByEmail: string | null;
+  createdAt: string;
+}
+
+export interface WeeklySiteReportListQuery extends ListQuery {
+  projectId?: string;
+  isoYear?: number;
+  isoWeek?: number;
+  status?: WeeklyReportStatus | '';
+}
+
+export interface ReportableProject {
+  id: string;
+  name: string;
 }

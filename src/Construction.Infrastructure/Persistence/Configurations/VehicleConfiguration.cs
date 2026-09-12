@@ -48,6 +48,12 @@ public class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
             .IsUnique()
             .HasFilter("\"QrCode\" IS NOT NULL AND \"IsDeleted\" = false");
 
+        builder.Property(v => v.GpsProvider)
+            .HasMaxLength(100);
+
+        builder.Property(v => v.GpsTrackingUrl)
+            .HasMaxLength(1000);
+
         builder.HasOne(v => v.AssignedEmployee)
             .WithMany(e => e.AssignedVehicles)
             .HasForeignKey(v => v.AssignedEmployeeId)

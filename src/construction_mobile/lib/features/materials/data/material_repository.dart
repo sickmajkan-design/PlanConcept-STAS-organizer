@@ -35,6 +35,55 @@ class MaterialRepository extends ApiRepository {
   Future<MaterialItem> fetchMaterial(String id) {
     return getJson('/api/v1/materials/$id', MaterialItem.fromJson);
   }
+
+  Future<MaterialItem> create({
+    required String name,
+    required String unit,
+    required double quantity,
+    String? warehouse,
+    double? unitPrice,
+    String? projectId,
+  }) {
+    return postJson(
+      '/api/v1/materials',
+      MaterialItem.fromJson,
+      data: {
+        'name': name,
+        'unit': unit,
+        'quantity': quantity,
+        'warehouse': ?warehouse,
+        'unitPrice': ?unitPrice,
+        'projectId': ?projectId,
+      },
+    );
+  }
+
+  Future<MaterialItem> update(
+    String id, {
+    required String name,
+    required String unit,
+    required double quantity,
+    String? warehouse,
+    double? unitPrice,
+    String? projectId,
+  }) {
+    return putJson(
+      '/api/v1/materials/$id',
+      MaterialItem.fromJson,
+      data: {
+        'name': name,
+        'unit': unit,
+        'quantity': quantity,
+        'warehouse': ?warehouse,
+        'unitPrice': ?unitPrice,
+        'projectId': ?projectId,
+      },
+    );
+  }
+
+  Future<void> remove(String id) {
+    return deleteVoid('/api/v1/materials/$id');
+  }
 }
 
 final materialRepositoryProvider = Provider<MaterialRepository>((ref) {

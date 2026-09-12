@@ -42,6 +42,8 @@ import { useNavigate } from 'react-router-dom';
 import type { TimeEntryListQuery } from '../../api/timeEntries';
 import type { TimeEntry } from '../../api/types';
 import { timeEntryStatuses } from '../../api/types';
+import { canAdministerAccounts, canReviewTimeEntries, canViewDirectory } from '../../auth/authHelpers';
+import { useAuth } from '../../auth/useAuth';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
@@ -110,6 +112,10 @@ export function TimeEntriesListPage() {
   const navigate = useNavigate();
   const t = useT();
   const enumLabel = useEnumLabel();
+  const { user } = useAuth();
+  const canReview = canReviewTimeEntries(user);
+  const canEdit = canViewDirectory(user);
+  const canDelete = canAdministerAccounts(user);
 
   const [date, setDate] = useState(() => dateOnlyOffset(0));
   const [pendingOnly, setPendingOnly] = useState(false);
@@ -304,6 +310,10 @@ export function TimeEntriesListPage() {
               expanded={expandedColumns.has(group.key)}
               onToggleExpanded={() => toggleExpanded(group.key)}
               enumLabel={enumLabel}
+              currentEmployeeId={user?.employeeId ?? null}
+              canReview={canReview}
+              canEdit={canEdit}
+              canDelete={canDelete}
               onEdit={(entry) => navigate(paths.timeEntryEdit(entry.id))}
               onDelete={(entry) => remove.request(entry)}
               onApprove={(entry) => setApproving(entry)}
@@ -348,6 +358,10 @@ function ProjectColumn({
   expanded,
   onToggleExpanded,
   enumLabel,
+  currentEmployeeId,
+  canReview,
+  canEdit,
+  canDelete,
   onEdit,
   onDelete,
   onApprove,
@@ -357,6 +371,10 @@ function ProjectColumn({
   expanded: boolean;
   onToggleExpanded: () => void;
   enumLabel: ReturnType<typeof useEnumLabel>;
+  currentEmployeeId: string | null;
+  canReview: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
   onEdit: (entry: TimeEntry) => void;
   onDelete: (entry: TimeEntry) => void;
   onApprove: (entry: TimeEntry) => void;
@@ -388,6 +406,10 @@ function ProjectColumn({
             key={entry.id}
             entry={entry}
             workTypeLabel={enumLabel('workType', entry.workType)}
+            canReview={canReview}
+            isOwn={currentEmployeeId != null && entry.employeeId === currentEmployeeId}
+            canEdit={canEdit}
+            canDelete={canDelete}
             onEdit={() => onEdit(entry)}
             onDelete={() => onDelete(entry)}
             onApprove={() => onApprove(entry)}
@@ -414,6 +436,10 @@ function ProjectColumn({
 function TimeEntryCard({
   entry,
   workTypeLabel,
+  canReview,
+  isOwn,
+  canEdit,
+  canDelete,
   onEdit,
   onDelete,
   onApprove,
@@ -421,6 +447,10 @@ function TimeEntryCard({
 }: {
   entry: TimeEntry;
   workTypeLabel: string;
+  canReview: boolean;
+  isOwn: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
   onEdit: () => void;
   onDelete: () => void;
   onApprove: () => void;
@@ -467,23 +497,33 @@ function TimeEntryCard({
       </Stack>
 
       <Stack direction="row" spacing={0.25} sx={{ mt: 0.5, justifyContent: 'flex-end' }}>
-        <ReviewButtons entry={entry} onApprove={onApprove} onReject={onReject} />
-        <Tooltip title={locked ? t('timeEntries.locked') : t('common.edit')}>
-          {/* A disabled button swallows its own events, so the tooltip
-              needs a wrapper that still receives them. */}
-          <span>
-            <IconButton size="small" disabled={locked} onClick={onEdit}>
-              <EditOutlined fontSize="small" />
-            </IconButton>
-          </span>
-        </Tooltip>
-        <Tooltip title={locked ? t('timeEntries.locked') : t('common.delete')}>
-          <span>
-            <IconButton size="small" disabled={locked} onClick={onDelete}>
-              <DeleteOutlined fontSize="small" />
-            </IconButton>
-          </span>
-        </Tooltip>
+        <ReviewButtons
+          entry={entry}
+          canReview={canReview}
+          isOwn={isOwn}
+          onApprove={onApprove}
+          onReject={onReject}
+        />
+        {canEdit && (
+          <Tooltip title={locked ? t('timeEntries.locked') : t('common.edit')}>
+            {/* A disabled button swallows its own events, so the tooltip
+                needs a wrapper that still receives them. */}
+            <span>
+              <IconButton size="small" disabled={locked} onClick={onEdit}>
+                <EditOutlined fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+        )}
+        {canDelete && (
+          <Tooltip title={locked ? t('timeEntries.locked') : t('common.delete')}>
+            <span>
+              <IconButton size="small" disabled={locked} onClick={onDelete}>
+                <DeleteOutlined fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+        )}
       </Stack>
     </Paper>
   );
@@ -628,16 +668,25 @@ function ApproveDialog({
 }) {
   const t = useT();
   const review = useReviewFor(entry);
+  const wasRejected = entry?.status === 'Rejected';
 
   return (
     <ConfirmDialog
       open={!!entry}
       title={t('timeEntries.approveTitle')}
-      description={t('timeEntries.approveBody')}
+      description={
+        wasRejected
+          ? t('timeEntries.reapproveBody', { reason: entry?.reviewNote ?? '' })
+          : t('timeEntries.approveBody')
+      }
       confirmLabel={t('timeEntries.approve')}
       loading={review.isPending}
+      error={review.error?.message}
       onConfirm={() => {
-        review.mutate({ approve: true }, { onSuccess: onClose });
+        // Going through this dialog is itself the confirmation the API asks
+        // for when reversing an earlier rejection — an ordinary approval
+        // ignores the flag.
+        review.mutate({ approve: true, confirm: wasRejected }, { onSuccess: onClose });
       }}
       onCancel={onClose}
     />

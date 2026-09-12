@@ -47,9 +47,16 @@ public class SetLedgerCellCommandHandler : IRequestHandler<SetLedgerCellCommand>
             throw new NotFoundException(nameof(LedgerRow), request.RowId);
         }
 
-        if (!await _context.LedgerColumns.AnyAsync(c => c.Id == request.ColumnId, cancellationToken))
+        var column = await _context.LedgerColumns
+            .Where(c => c.Id == request.ColumnId)
+            .Select(c => new { c.SourceMetric })
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw new NotFoundException(nameof(LedgerColumn), request.ColumnId);
+
+        if (column.SourceMetric is not null)
         {
-            throw new NotFoundException(nameof(LedgerColumn), request.ColumnId);
+            throw new ConflictException(
+                "Sourced columns are computed automatically and cannot be edited.");
         }
 
         var value = request.Value?.Trim();

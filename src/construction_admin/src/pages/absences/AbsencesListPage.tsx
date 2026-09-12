@@ -23,7 +23,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import type { GridColDef } from '@mui/x-data-grid';
+import type { GridColDef, GridSortModel } from '@mui/x-data-grid';
 import { useEffect, useMemo, useState } from 'react';
 
 import type { AbsenceListQuery } from '../../api/absences';
@@ -34,6 +34,7 @@ import { DateQuickFilters } from '../../components/DateQuickFilters';
 import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
+import { SavedViewsBar } from '../../components/SavedViewsBar';
 import { StatusChip } from '../../components/StatusChip';
 import { StatusLegend } from '../../components/StatusLegend';
 import {
@@ -46,10 +47,18 @@ import {
 } from '../../features/absences/useAbsences';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useListQueryState } from '../../hooks/useListQueryState';
+import { useSavedViews } from '../../hooks/useSavedViews';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
 import { formatDate, lastYearRange } from '../../utils/formatting';
 import { BookAbsenceDialog } from './BookAbsenceDialog';
+
+interface AbsenceViewState {
+  sortModel: GridSortModel;
+  pendingOnly: boolean;
+  type: AbsenceType | '';
+  quickDate: string | null;
+}
 
 export function AbsencesListPage() {
   const t = useT();
@@ -61,6 +70,25 @@ export function AbsencesListPage() {
   const [type, setType] = useState<AbsenceType | ''>('');
   const [booking, setBooking] = useState(false);
   const [quickDate, setQuickDate] = useState<string | null>(null);
+
+  const savedViews = useSavedViews<AbsenceViewState>('absences');
+
+  const applyView = (state: AbsenceViewState) => {
+    list.setSortModel(state.sortModel);
+    setPendingOnly(state.pendingOnly);
+    setType(state.type);
+    setQuickDate(state.quickDate);
+    list.resetToFirstPage();
+  };
+
+  const saveCurrentView = (name: string) => {
+    savedViews.saveView(name, {
+      sortModel: list.sortModel,
+      pendingOnly,
+      type,
+      quickDate,
+    });
+  };
 
   const query: AbsenceListQuery = useMemo(
     () => ({
@@ -234,6 +262,15 @@ export function AbsencesListPage() {
           onExport={(language) => exportsApi.absences({ ...lastYearRange(), language })}
         />
       </Stack>
+
+      <Box sx={{ mb: 2 }}>
+        <SavedViewsBar
+          views={savedViews.views}
+          onApply={applyView}
+          onSave={saveCurrentView}
+          onDelete={savedViews.deleteView}
+        />
+      </Box>
 
       <ResourceDataGrid
         data={data}

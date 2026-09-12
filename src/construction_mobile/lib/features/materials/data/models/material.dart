@@ -17,6 +17,7 @@ abstract class MaterialItem with _$MaterialItem {
     required String unit,
     required double quantity,
     String? warehouse,
+    double? unitPrice,
     String? projectId,
     String? projectName,
     required DateTime lastUpdated,

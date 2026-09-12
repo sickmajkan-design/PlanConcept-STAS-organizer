@@ -11,7 +11,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import type { GridColDef } from '@mui/x-data-grid';
+import type { GridColDef, GridSortModel } from '@mui/x-data-grid';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -21,6 +21,7 @@ import { workItemStatuses } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
+import { SavedViewsBar } from '../../components/SavedViewsBar';
 import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
 import { StatusLegend } from '../../components/StatusLegend';
@@ -31,10 +32,19 @@ import {
 } from '../../features/workItems/useWorkItems';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useListQueryState } from '../../hooks/useListQueryState';
+import { useSavedViews } from '../../hooks/useSavedViews';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { formatDate } from '../../utils/formatting';
+
+interface WorkItemViewState {
+  search: string;
+  sortModel: GridSortModel;
+  openOnly: boolean;
+  overdueOnly: boolean;
+  defectsOnly: boolean;
+}
 
 /**
  * The moves offered per state, mirroring the API's transition table.
@@ -62,6 +72,27 @@ export function WorkItemsListPage() {
   const [openOnly, setOpenOnly] = useState(true);
   const [overdueOnly, setOverdueOnly] = useState(false);
   const [defectsOnly, setDefectsOnly] = useState(false);
+
+  const savedViews = useSavedViews<WorkItemViewState>('work-items');
+
+  const applyView = (state: WorkItemViewState) => {
+    list.setSearch(state.search);
+    list.setSortModel(state.sortModel);
+    setOpenOnly(state.openOnly);
+    setOverdueOnly(state.overdueOnly);
+    setDefectsOnly(state.defectsOnly);
+    list.resetToFirstPage();
+  };
+
+  const saveCurrentView = (name: string) => {
+    savedViews.saveView(name, {
+      search: list.search,
+      sortModel: list.sortModel,
+      openOnly,
+      overdueOnly,
+      defectsOnly,
+    });
+  };
 
   const query: WorkItemListQuery = useMemo(
     () => ({
@@ -228,6 +259,15 @@ export function WorkItemsListPage() {
         />
         <StatusLegend kind="workItemStatus" values={workItemStatuses} />
       </Stack>
+
+      <Box sx={{ mb: 2 }}>
+        <SavedViewsBar
+          views={savedViews.views}
+          onApply={applyView}
+          onSave={saveCurrentView}
+          onDelete={savedViews.deleteView}
+        />
+      </Box>
 
       <ResourceDataGrid
         data={data}

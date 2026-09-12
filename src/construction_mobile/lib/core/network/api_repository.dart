@@ -82,6 +82,22 @@ abstract class ApiRepository {
     });
   }
 
+  /// PUTs and discards the response body — the update half of [postVoid].
+  @protected
+  Future<void> putVoid(
+    String path, {
+    Object? data,
+    String? idempotencyKey,
+  }) {
+    return guard(() async {
+      await dio.put<void>(
+        path,
+        data: data,
+        options: _options(idempotencyKey: idempotencyKey),
+      );
+    });
+  }
+
   /// DELETEs and discards the response body.
   @protected
   Future<void> deleteVoid(String path) {
@@ -105,6 +121,26 @@ abstract class ApiRepository {
   }) {
     return guard(() async {
       final response = await dio.post<Map<String, dynamic>>(
+        path,
+        data: data,
+        options: _options(idempotencyKey: idempotencyKey),
+      );
+
+      return fromJson(response.data!);
+    });
+  }
+
+  /// PUTs and maps the JSON body of the response — the update half of
+  /// [postJson]'s create.
+  @protected
+  Future<T> putJson<T>(
+    String path,
+    T Function(Map<String, dynamic> json) fromJson, {
+    Object? data,
+    String? idempotencyKey,
+  }) {
+    return guard(() async {
+      final response = await dio.put<Map<String, dynamic>>(
         path,
         data: data,
         options: _options(idempotencyKey: idempotencyKey),

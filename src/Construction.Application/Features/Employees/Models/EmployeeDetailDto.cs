@@ -86,6 +86,10 @@ public static class EmployeeDetailMapping
             CreatedAt = employee.CreatedAt,
             UpdatedAt = employee.UpdatedAt,
             HasUserAccount = employee.User != null,
+            CurrentProjectNames = employee.ProjectAssignments
+                .Where(assignment => assignment.EndDate == null)
+                .Select(assignment => assignment.Project.Name)
+                .ToList(),
             // Open-ended postings only — deliberately EndDate == null, not
             // "EndDate is today or later". RemoveEmployeeFromProjectCommand
             // doesn't delete an already-started assignment; it closes it with

@@ -30,6 +30,19 @@ abstract class TimeEntry with _$TimeEntry {
     String? reviewNote,
     required DateTime createdAt,
     DateTime? updatedAt,
+
+    /// Set when the nightly sweep force-closed this shift instead of the
+    /// worker clocking out themselves.
+    @Default(false) bool autoClosed,
+
+    /// Null when the project (or the clock-in point) has no location to
+    /// compare against. Otherwise whether the clock-in was close enough to
+    /// the project's own coordinates.
+    bool? locationCorrect,
+
+    /// Null when the project has no expected shift start time set.
+    /// Otherwise whether the clock-in landed close enough to it.
+    bool? timeCorrect,
   }) = _TimeEntry;
 
   const TimeEntry._();
@@ -41,6 +54,11 @@ abstract class TimeEntry with _$TimeEntry {
 
   /// An approved entry is payroll evidence; the API refuses to change it.
   bool get isLocked => status == 'Approved';
+
+  /// Worth a flag in the shift-history list: auto-closed, or clocked in
+  /// somewhere/somewhen the project didn't expect.
+  bool get needsAttention =>
+      autoClosed || locationCorrect == false || timeCorrect == false;
 
   /// How long the shift has been going, for the running-shift card.
   ///

@@ -99,7 +99,8 @@ public class AttachmentsController : ApiControllerBase
                 SizeBytes = request.File.Length,
                 Content = content,
                 Description = request.Description,
-                ExpiresAt = request.ExpiresAt
+                ExpiresAt = request.ExpiresAt,
+                RetainUntil = request.RetainUntil
             },
             cancellationToken);
 
@@ -139,4 +140,6 @@ public class UploadAttachmentRequest
     public string? Description { get; set; }
 
     public DateOnly? ExpiresAt { get; set; }
+
+    public DateOnly? RetainUntil { get; set; }
 }

@@ -17,6 +17,10 @@ public class VehicleDto
 
     public string? QrCode { get; init; }
 
+    public string? GpsProvider { get; init; }
+
+    public string? GpsTrackingUrl { get; init; }
+
     public string FuelType { get; init; } = null!;
 
     public string Status { get; init; } = null!;
@@ -27,6 +31,18 @@ public class VehicleDto
     public decimal? CurrentRentalMonthlyAmount { get; init; }
 
     public string? CurrentRentalProvider { get; init; }
+
+    /// <summary>Set when this vehicle is currently loaned out to another company (EndDate null on the rental-out row). Null otherwise.</summary>
+    public string? CurrentRentalOutRenterName { get; init; }
+
+    public decimal? CurrentRentalOutDailyRate { get; init; }
+
+    public DateOnly? CurrentRentalOutStartDate { get; init; }
+
+    /// <summary>Renter on the most recently closed rental-out loan (EndDate not null). Null if never loaned out.</summary>
+    public string? LastRentalOutRenterName { get; init; }
+
+    public DateOnly? LastRentalOutEndDate { get; init; }
 
     public Guid? AssignedEmployeeId { get; init; }
 
@@ -63,6 +79,8 @@ public static class VehicleMapping
             RegistrationNumber = vehicle.RegistrationNumber,
             Vin = vehicle.Vin,
             QrCode = vehicle.QrCode,
+            GpsProvider = vehicle.GpsProvider,
+            GpsTrackingUrl = vehicle.GpsTrackingUrl,
             FuelType = vehicle.FuelType.ToString(),
             Status = vehicle.Status.ToString(),
             OwnershipType = vehicle.OwnershipType.ToString(),
@@ -73,6 +91,28 @@ public static class VehicleMapping
             CurrentRentalProvider = vehicle.RentalRates
                 .Where(r => r.EndDate == null)
                 .Select(r => r.Provider)
+                .FirstOrDefault(),
+            CurrentRentalOutRenterName = vehicle.RentalsOut
+                .Where(r => r.EndDate == null)
+                .Select(r => r.Customer != null ? r.Customer.Name : r.RenterName)
+                .FirstOrDefault(),
+            CurrentRentalOutDailyRate = vehicle.RentalsOut
+                .Where(r => r.EndDate == null)
+                .Select(r => (decimal?)r.DailyRate)
+                .FirstOrDefault(),
+            CurrentRentalOutStartDate = vehicle.RentalsOut
+                .Where(r => r.EndDate == null)
+                .Select(r => (DateOnly?)r.StartDate)
+                .FirstOrDefault(),
+            LastRentalOutRenterName = vehicle.RentalsOut
+                .Where(r => r.EndDate != null)
+                .OrderByDescending(r => r.EndDate)
+                .Select(r => r.Customer != null ? r.Customer.Name : r.RenterName)
+                .FirstOrDefault(),
+            LastRentalOutEndDate = vehicle.RentalsOut
+                .Where(r => r.EndDate != null)
+                .OrderByDescending(r => r.EndDate)
+                .Select(r => (DateOnly?)r.EndDate)
                 .FirstOrDefault(),
             AssignedEmployeeId = vehicle.AssignedEmployeeId,
             AssignedEmployeeName = vehicle.AssignedEmployee != null

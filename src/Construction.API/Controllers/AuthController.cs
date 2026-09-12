@@ -4,6 +4,7 @@ using Construction.Application.Features.Authentication.Commands.Login;
 using Construction.Application.Features.Authentication.Commands.Logout;
 using Construction.Application.Features.Authentication.Commands.RefreshToken;
 using Construction.Application.Features.Authentication.Commands.ResetPassword;
+using Construction.Application.Features.Authentication.Commands.UpdatePreferredLanguage;
 using Construction.Application.Features.Authentication.Models;
 using Construction.Application.Features.Authentication.Queries.GetCurrentUser;
 using Construction.API.Authentication;
@@ -151,5 +152,21 @@ public class AuthController : ApiControllerBase
     {
         var user = await Mediator.Send(new GetCurrentUserQuery(), cancellationToken);
         return Ok(user);
+    }
+
+    /// <summary>
+    /// Records which language the current user reads the app in, so a push
+    /// notification sent before the app is opened can be rendered in it too.
+    /// </summary>
+    [HttpPut("me/language")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdateMyLanguage(
+        UpdatePreferredLanguageCommand command,
+        CancellationToken cancellationToken)
+    {
+        await Mediator.Send(command, cancellationToken);
+        return NoContent();
     }
 }

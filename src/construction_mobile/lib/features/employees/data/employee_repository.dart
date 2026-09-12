@@ -34,6 +34,75 @@ class EmployeeRepository extends ApiRepository {
   Future<EmployeeDetail> fetchEmployee(String id) {
     return getJson('/api/v1/employees/$id', EmployeeDetail.fromJson);
   }
+
+  Future<EmployeeDetail> create({
+    required String employeeNumber,
+    required String firstName,
+    required String lastName,
+    String? phone,
+    String? email,
+    String? address,
+    DateTime? dateOfBirth,
+    required DateTime employmentDate,
+    required String position,
+    String status = 'Active',
+    String type = 'Employee',
+  }) {
+    return postJson(
+      '/api/v1/employees',
+      EmployeeDetail.fromJson,
+      data: {
+        'employeeNumber': employeeNumber,
+        'firstName': firstName,
+        'lastName': lastName,
+        'phone': ?phone,
+        'email': ?email,
+        'address': ?address,
+        'dateOfBirth': ?dateOfBirth?.toIso8601String(),
+        'employmentDate': employmentDate.toIso8601String(),
+        'position': position,
+        'status': status,
+        'type': type,
+      },
+    );
+  }
+
+  Future<EmployeeDetail> update(
+    String id, {
+    required String employeeNumber,
+    required String firstName,
+    required String lastName,
+    String? phone,
+    String? email,
+    String? address,
+    DateTime? dateOfBirth,
+    required DateTime employmentDate,
+    required String position,
+    required String status,
+    required String type,
+  }) {
+    return putJson(
+      '/api/v1/employees/$id',
+      EmployeeDetail.fromJson,
+      data: {
+        'employeeNumber': employeeNumber,
+        'firstName': firstName,
+        'lastName': lastName,
+        'phone': ?phone,
+        'email': ?email,
+        'address': ?address,
+        'dateOfBirth': ?dateOfBirth?.toIso8601String(),
+        'employmentDate': employmentDate.toIso8601String(),
+        'position': position,
+        'status': status,
+        'type': type,
+      },
+    );
+  }
+
+  Future<void> remove(String id) {
+    return deleteVoid('/api/v1/employees/$id');
+  }
 }
 
 final employeeRepositoryProvider = Provider<EmployeeRepository>((ref) {

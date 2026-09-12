@@ -68,15 +68,18 @@ public class RequestAbsenceCommandHandler : IRequestHandler<RequestAbsenceComman
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly INotificationService _notifications;
 
     public RequestAbsenceCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        INotificationService notifications)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
+        _notifications = notifications;
     }
 
     public async Task<AbsenceDto> Handle(
@@ -137,6 +140,14 @@ public class RequestAbsenceCommandHandler : IRequestHandler<RequestAbsenceComman
 
         await _context.SaveChangesAsync(cancellationToken);
 
+        // Recorded as already-granted (a phoned-in sick day, say) needs no
+        // review, so nobody needs telling — only an actual request waits on
+        // someone.
+        if (status == AbsenceStatus.Requested)
+        {
+            await NotifyReviewersAsync(employeeId, absence, cancellationToken);
+        }
+
         return await _context.Absences
             .AsNoTracking()
             .Where(a => a.Id == absence.Id)
@@ -184,4 +195,49 @@ public class RequestAbsenceCommandHandler : IRequestHandler<RequestAbsenceComman
         CancellationToken cancellationToken) =>
         EnsureNoApprovedOverlapAsync(
             _context, employeeId, startDate, endDate, excludeId, cancellationToken);
+
+    /// <summary>
+    /// Tells everyone who could review this — same audience as
+    /// <c>ProposeAbsenceEditCommand</c>'s employee-proposed case, since
+    /// leave has no site to scope "the right supervisor" against any more
+    /// tightly than that.
+    /// </summary>
+    private async Task NotifyReviewersAsync(
+        Guid employeeId,
+        Absence absence,
+        CancellationToken cancellationToken)
+    {
+        var employeeName = await _context.Employees
+            .Where(e => e.Id == employeeId)
+            .Select(e => e.FirstName + " " + e.LastName)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (employeeName is null)
+        {
+            return;
+        }
+
+        var recipientIds = await _context.Users
+            .Where(u => u.IsActive &&
+                        u.Id != _currentUserService.UserId &&
+                        (u.Role == UserRole.SuperAdmin || u.Role == UserRole.Admin ||
+                         u.Role == UserRole.ProjectManager || u.Role == UserRole.Foreman))
+            .Select(u => u.Id)
+            .ToListAsync(cancellationToken);
+
+        await _notifications.NotifyUsersAsync(
+            recipientIds,
+            NotificationType.AbsenceRequested,
+            "Time off requested",
+            $"{employeeName} asked for time off.",
+            new Dictionary<string, string>
+            {
+                ["employeeId"] = employeeId.ToString(),
+                ["absenceId"] = absence.Id.ToString(),
+                ["employeeName"] = employeeName,
+                ["startDate"] = absence.StartDate.ToString("yyyy-MM-dd"),
+                ["endDate"] = absence.EndDate.ToString("yyyy-MM-dd")
+            },
+            cancellationToken: cancellationToken);
+    }
 }

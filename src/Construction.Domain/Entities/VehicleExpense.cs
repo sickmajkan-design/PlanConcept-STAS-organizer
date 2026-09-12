@@ -45,6 +45,13 @@ public class VehicleExpense : BaseEntity, IAuditable
     /// </remarks>
     public int? OdometerKm { get; set; }
 
+    /// <summary>
+    /// What was pumped — diesel, AdBlue, petrol — free text since it varies
+    /// by provider and this is only ever a label, never priced or totalled
+    /// by type. Only ever set for <see cref="VehicleExpenseKind.Fuel"/>.
+    /// </summary>
+    public string? FuelProductType { get; set; }
+
     public string? Supplier { get; set; }
 
     public string? Note { get; set; }

@@ -62,7 +62,11 @@ public class AssignToolToEmployeeCommandHandler : IRequestHandler<AssignToolToEm
                 NotificationType.ToolAssigned,
                 "Tool assigned",
                 $"Tool '{tool.Name}' has been assigned to you.",
-                new Dictionary<string, string> { ["toolId"] = tool.Id.ToString() },
+                new Dictionary<string, string>
+                {
+                    ["toolId"] = tool.Id.ToString(),
+                    ["toolName"] = tool.Name
+                },
                 cancellationToken: cancellationToken);
         }
 

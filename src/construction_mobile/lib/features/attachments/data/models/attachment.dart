@@ -16,6 +16,10 @@ abstract class Attachment with _$Attachment {
 
     /// `YYYY-MM-DD`, or null for anything that does not lapse.
     String? expiresAt,
+
+    /// `YYYY-MM-DD`. While in the future, the API refuses to delete this
+    /// attachment regardless of who asks.
+    String? retainUntil,
     required String ownerType,
     required String ownerId,
     String? ownerName,
@@ -42,6 +46,21 @@ abstract class Attachment with _$Attachment {
     }
 
     return DateTime(expiry.year, expiry.month, expiry.day)
+        .isBefore(DateTime(today.year, today.month, today.day));
+  }
+
+  DateTime? get retainUntilDate =>
+      retainUntil == null ? null : DateTime.tryParse(retainUntil!);
+
+  /// True while a retention requirement still forbids deleting this file.
+  bool isRetainedOn(DateTime today) {
+    final retain = retainUntilDate;
+
+    if (retain == null) {
+      return false;
+    }
+
+    return !DateTime(retain.year, retain.month, retain.day)
         .isBefore(DateTime(today.year, today.month, today.day));
   }
 

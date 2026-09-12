@@ -89,15 +89,18 @@ public class ClockInCommandHandler : IRequestHandler<ClockInCommand, TimeEntryDt
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly INotificationService _notificationService;
 
     public ClockInCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        INotificationService notificationService)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
+        _notificationService = notificationService;
     }
 
     public async Task<TimeEntryDto> Handle(
@@ -119,15 +122,31 @@ public class ClockInCommandHandler : IRequestHandler<ClockInCommand, TimeEntryDt
             throw new ConflictException("You are already clocked in.");
         }
 
+        string? projectName = null;
+        var isAssignedToProject = true;
+
         if (request.ProjectId is { } projectId)
         {
-            var projectExists = await _context.Projects
-                .AnyAsync(p => p.Id == projectId, cancellationToken);
+            projectName = await _context.Projects
+                .Where(p => p.Id == projectId)
+                .Select(p => p.Name)
+                .FirstOrDefaultAsync(cancellationToken)
+                ?? throw new NotFoundException(nameof(Project), projectId);
 
-            if (!projectExists)
-            {
-                throw new NotFoundException(nameof(Project), projectId);
-            }
+            // Not refused: a foreman filling in wherever a site is short-handed
+            // that day is a real, legitimate shape of this job, and refusing
+            // it here would be exactly the "stuck clocked out" failure mode
+            // the rest of this handler goes out of its way to avoid. Flagged
+            // to the people who can tell an ordinary favour from a mistake
+            // instead.
+            var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+
+            isAssignedToProject = await _context.EmployeeProjects.AnyAsync(
+                a => a.EmployeeId == employeeId &&
+                     a.ProjectId == projectId &&
+                     a.StartDate <= today &&
+                     (a.EndDate == null || a.EndDate >= today),
+                cancellationToken);
         }
 
         // The handset's moment when it sent one, this server's otherwise. The
@@ -154,12 +173,133 @@ public class ClockInCommandHandler : IRequestHandler<ClockInCommand, TimeEntryDt
 
         _context.TimeEntries.Add(entry);
 
-        await _context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            // The AnyAsync check above has a race window: two clock-ins fired
+            // together can both pass it before either inserts. The database's
+            // own unique-open-shift-per-employee index is the real backstop
+            // for that window — this turns its constraint violation into the
+            // same clean conflict the pre-check gives everyone else, instead
+            // of an opaque 500.
+            throw new ConflictException("You are already clocked in.");
+        }
+
+        if (request.ProjectId is { } notifyProjectId)
+        {
+            if (isAssignedToProject)
+            {
+                await NotifyForemenAsync(notifyProjectId, projectName!, employeeId, cancellationToken);
+            }
+            else
+            {
+                await NotifyUnassignedClockInAsync(
+                    notifyProjectId, projectName!, employeeId, cancellationToken);
+            }
+        }
 
         return await _context.TimeEntries
             .AsNoTracking()
             .Where(t => t.Id == entry.Id)
             .Select(TimeEntryMapping.Projection)
             .FirstAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Tells the foremen posted to this site that someone just started work —
+    /// the office asked for this live, and a foreman is the person actually
+    /// running the site, so they are the ones who need to know without
+    /// opening the app and looking.
+    /// </summary>
+    private async Task NotifyForemenAsync(
+        Guid projectId, string projectName, Guid employeeId, CancellationToken cancellationToken)
+    {
+        var employeeName = await _context.Employees
+            .Where(e => e.Id == employeeId)
+            .Select(e => e.FirstName + " " + e.LastName)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (employeeName is null)
+        {
+            return;
+        }
+
+        var foremanUserIds = await _context.Users
+            .Where(u => u.IsActive &&
+                        u.Role == UserRole.Foreman &&
+                        u.EmployeeId != null &&
+                        u.EmployeeId != employeeId &&
+                        _context.EmployeeProjects.Any(ep =>
+                            ep.ProjectId == projectId && ep.EmployeeId == u.EmployeeId))
+            .Select(u => u.Id)
+            .ToListAsync(cancellationToken);
+
+        var data = new Dictionary<string, string>
+        {
+            ["projectId"] = projectId.ToString(),
+            ["employeeId"] = employeeId.ToString(),
+            ["employeeName"] = employeeName,
+            ["projectName"] = projectName
+        };
+
+        await _notificationService.NotifyUsersAsync(
+            foremanUserIds,
+            NotificationType.EmployeeClockedIn,
+            "Clocked in",
+            $"{employeeName} clocked in at {projectName}.",
+            data,
+            cancellationToken: cancellationToken);
+    }
+
+    /// <summary>
+    /// Flags a clock-in at a site the employee has no active posting to, to
+    /// the site's foremen and to management company-wide — the people who
+    /// can tell whether this was covering a gap or a mistake, since the
+    /// clock-in itself is deliberately never refused for it.
+    /// </summary>
+    private async Task NotifyUnassignedClockInAsync(
+        Guid projectId, string projectName, Guid employeeId, CancellationToken cancellationToken)
+    {
+        var employeeName = await _context.Employees
+            .Where(e => e.Id == employeeId)
+            .Select(e => e.FirstName + " " + e.LastName)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (employeeName is null)
+        {
+            return;
+        }
+
+        var recipientIds = await _context.Users
+            .Where(u => u.IsActive &&
+                        u.EmployeeId != employeeId &&
+                        (u.Role == UserRole.SuperAdmin ||
+                         u.Role == UserRole.Admin ||
+                         u.Role == UserRole.ProjectManager ||
+                         (u.Role == UserRole.Foreman &&
+                          u.EmployeeId != null &&
+                          _context.EmployeeProjects.Any(ep =>
+                              ep.ProjectId == projectId && ep.EmployeeId == u.EmployeeId))))
+            .Select(u => u.Id)
+            .ToListAsync(cancellationToken);
+
+        var data = new Dictionary<string, string>
+        {
+            ["projectId"] = projectId.ToString(),
+            ["employeeId"] = employeeId.ToString(),
+            ["employeeName"] = employeeName,
+            ["projectName"] = projectName
+        };
+
+        await _notificationService.NotifyUsersAsync(
+            recipientIds,
+            NotificationType.UnassignedProjectClockIn,
+            "Clock-in at an unassigned site",
+            $"{employeeName} clocked in at {projectName}, but is not currently posted there.",
+            data,
+            cancellationToken: cancellationToken);
     }
 }

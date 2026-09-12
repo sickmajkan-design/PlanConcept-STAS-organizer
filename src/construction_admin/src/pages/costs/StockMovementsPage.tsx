@@ -15,7 +15,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import type { GridColDef } from '@mui/x-data-grid';
+import type { GridColDef, GridSortModel } from '@mui/x-data-grid';
 import { useEffect, useMemo, useState } from 'react';
 
 import type { MaterialMovementListQuery } from '../../api/costs';
@@ -34,6 +34,7 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
+import { SavedViewsBar } from '../../components/SavedViewsBar';
 import {
   useDeleteMaterialMovement,
   useMaterialMovementsQuery,
@@ -45,9 +46,15 @@ import { useAllMaterialsQuery } from '../../features/materials/useMaterials';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useListQueryState } from '../../hooks/useListQueryState';
+import { useSavedViews } from '../../hooks/useSavedViews';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { formatDate, formatDateTime, formatMoney, formatQuantity, lastYearRange } from '../../utils/formatting';
+
+interface StockMovementViewState {
+  sortModel: GridSortModel;
+  kind: MaterialMovementKind | '';
+}
 
 export function StockMovementsPage() {
   const t = useT();
@@ -59,6 +66,18 @@ export function StockMovementsPage() {
   const [kind, setKind] = useState<MaterialMovementKind | ''>('');
   const [recording, setRecording] = useState(false);
   const [editing, setEditing] = useState<MaterialMovement | null>(null);
+
+  const savedViews = useSavedViews<StockMovementViewState>('stock-movements');
+
+  const applyView = (state: StockMovementViewState) => {
+    list.setSortModel(state.sortModel);
+    setKind(state.kind);
+    list.resetToFirstPage();
+  };
+
+  const saveCurrentView = (name: string) => {
+    savedViews.saveView(name, { sortModel: list.sortModel, kind });
+  };
 
   const query: MaterialMovementListQuery = useMemo(
     () => ({
@@ -111,6 +130,12 @@ export function StockMovementsPage() {
         align: 'right',
         headerAlign: 'right',
         valueGetter: (value) => formatMoney(value as number | null, locale),
+      },
+      {
+        field: 'invoiceNumber',
+        headerName: t('movements.invoiceNumber'),
+        width: 140,
+        valueGetter: (value) => value || '—',
       },
       {
         field: 'totalCost',
@@ -207,6 +232,15 @@ export function StockMovementsPage() {
         />
       </Stack>
 
+      <Box sx={{ mb: 2 }}>
+        <SavedViewsBar
+          views={savedViews.views}
+          onApply={applyView}
+          onSave={saveCurrentView}
+          onDelete={savedViews.deleteView}
+        />
+      </Box>
+
       {summary && (
         <Paper variant="outlined" sx={{ px: 2, py: 1, mb: 2 }}>
           <Typography variant="body2" color="text.secondary">
@@ -286,6 +320,7 @@ function MovementDialog({
   const [projectId, setProjectId] = useState('');
   const [occurredOn, setOccurredOn] = useState('');
   const [note, setNote] = useState('');
+  const [invoiceNumber, setInvoiceNumber] = useState('');
 
   const resetRecord = record.reset;
   const resetUpdate = update.reset;
@@ -306,6 +341,7 @@ function MovementDialog({
       setProjectId(editingMovement.projectId ?? '');
       setOccurredOn(editingMovement.occurredOn);
       setNote(editingMovement.note ?? '');
+      setInvoiceNumber(editingMovement.invoiceNumber ?? '');
     } else {
       setMaterialId('');
       setKind('In');
@@ -314,9 +350,11 @@ function MovementDialog({
       setProjectId('');
       setOccurredOn('');
       setNote('');
+      setInvoiceNumber('');
     }
   }, [open, editingMovement, resetRecord, resetUpdate]);
 
+  const isDelivery = kind === 'In';
   const isIssue = kind === 'Out';
   const isAdjustment = kind === 'Adjustment';
   const parsedQuantity = Number(quantity);
@@ -327,7 +365,8 @@ function MovementDialog({
 
   const canSubmit =
     materialId !== '' && quantityIsValid && (!isIssue || projectId !== '')
-    && (!isEditing || occurredOn !== '');
+    && (!isEditing || occurredOn !== '')
+    && (!isDelivery || invoiceNumber.trim() !== '');
   const mutation = isEditing ? update : record;
   const error = mutation.isError ? toApiError(mutation.error) : null;
 
@@ -340,6 +379,7 @@ function MovementDialog({
       projectId: projectId || null,
       occurredOn: occurredOn || null,
       note: note.trim() || null,
+      invoiceNumber: invoiceNumber.trim() || null,
     };
 
     if (isEditing) {
@@ -432,6 +472,22 @@ function MovementDialog({
                 label={t('movements.unitPrice')}
                 value={unitPrice}
                 onChange={(event) => setUnitPrice(event.target.value)}
+              />
+            </Grid>
+          )}
+
+          {/* The invoice is the paper trail back to what was actually paid;
+              only a delivery has one of its own. */}
+          {isDelivery && (
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                fullWidth
+                required
+                label={t('movements.invoiceNumber')}
+                value={invoiceNumber}
+                onChange={(event) => setInvoiceNumber(event.target.value)}
+                error={invoiceNumber.trim() === ''}
+                helperText={invoiceNumber.trim() === '' ? t('movements.needsInvoiceNumber') : undefined}
               />
             </Grid>
           )}

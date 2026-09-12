@@ -50,6 +50,7 @@ export function UploadAttachmentDialog({
   const [category, setCategory] = useState<AttachmentCategory>(categories[0]!);
   const [description, setDescription] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
+  const [retainUntil, setRetainUntil] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(
     null,
@@ -63,6 +64,7 @@ export function UploadAttachmentDialog({
     setCategory(categories[0]!);
     setDescription('');
     setExpiresAt('');
+    setRetainUntil('');
     setLocalError(null);
     setProgress(null);
   };
@@ -117,6 +119,7 @@ export function UploadAttachmentDialog({
         file,
         description: description.trim() || null,
         expiresAt: expiryAllowed && expiresAt ? expiresAt : null,
+        retainUntil: retainUntil || null,
       });
       setProgress({ done: index + 1, total: files.length });
     }
@@ -202,6 +205,16 @@ export function UploadAttachmentDialog({
                 ? t('attachments.expiresHint')
                 : t('attachments.photoNoExpiry')
             }
+          />
+
+          <TextField
+            label={t('attachments.retainUntil')}
+            type="date"
+            value={retainUntil}
+            onChange={(event) => setRetainUntil(event.target.value)}
+            fullWidth
+            slotProps={{ inputLabel: { shrink: true } }}
+            helperText={t('attachments.retainUntilHint')}
           />
 
           <Typography variant="caption" color="text.secondary">

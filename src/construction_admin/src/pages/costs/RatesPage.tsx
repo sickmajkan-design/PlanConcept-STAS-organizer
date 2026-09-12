@@ -18,7 +18,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import type { GridColDef } from '@mui/x-data-grid';
+import type { GridColDef, GridSortModel } from '@mui/x-data-grid';
 import { useEffect, useMemo, useState } from 'react';
 
 import { toApiError } from '../../api/apiError';
@@ -31,6 +31,7 @@ import { AuditHistoryCard } from '../../components/AuditHistoryCard';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
+import { SavedViewsBar } from '../../components/SavedViewsBar';
 import {
   useDeleteEmployeeRate,
   useEmployeeRatesQuery,
@@ -41,9 +42,15 @@ import {
 import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useListQueryState } from '../../hooks/useListQueryState';
+import { useSavedViews } from '../../hooks/useSavedViews';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { formatDate, formatDateTime, formatMoney } from '../../utils/formatting';
+
+interface RatesViewState {
+  sortModel: GridSortModel;
+  currentOnly: boolean;
+}
 
 export function RatesPage() {
   const t = useT();
@@ -55,6 +62,18 @@ export function RatesPage() {
   const [currentOnly, setCurrentOnly] = useState(true);
   const [setting, setSetting] = useState(false);
   const [editing, setEditing] = useState<EmployeeRate | null>(null);
+
+  const savedViews = useSavedViews<RatesViewState>('rates');
+
+  const applyView = (state: RatesViewState) => {
+    list.setSortModel(state.sortModel);
+    setCurrentOnly(state.currentOnly);
+    list.resetToFirstPage();
+  };
+
+  const saveCurrentView = (name: string) => {
+    savedViews.saveView(name, { sortModel: list.sortModel, currentOnly });
+  };
 
   const query: EmployeeRateListQuery = useMemo(
     () => ({
@@ -113,6 +132,24 @@ export function RatesPage() {
       {
         field: 'holidayHourlyRate',
         headerName: t('rates.holidayHourlyRate'),
+        width: 150,
+        align: 'right',
+        headerAlign: 'right',
+        valueGetter: (value) =>
+          value === null ? t('rates.noPremium') : formatMoney(value as number, locale),
+      },
+      {
+        field: 'overtimeHourlyRate',
+        headerName: t('rates.overtimeHourlyRate'),
+        width: 150,
+        align: 'right',
+        headerAlign: 'right',
+        valueGetter: (value) =>
+          value === null ? t('rates.noPremium') : formatMoney(value as number, locale),
+      },
+      {
+        field: 'travelHourlyRate',
+        headerName: t('rates.travelHourlyRate'),
         width: 150,
         align: 'right',
         headerAlign: 'right',
@@ -201,6 +238,15 @@ export function RatesPage() {
         />
       </Stack>
 
+      <Box sx={{ mb: 2 }}>
+        <SavedViewsBar
+          views={savedViews.views}
+          onApply={applyView}
+          onSave={saveCurrentView}
+          onDelete={savedViews.deleteView}
+        />
+      </Box>
+
       {summary && (
         <Paper variant="outlined" sx={{ px: 2, py: 1, mb: 2 }}>
           <Typography variant="body2" color="text.secondary">
@@ -281,6 +327,8 @@ function RateDialog({
   const [hourlyRate, setHourlyRate] = useState('');
   const [weekendHourlyRate, setWeekendHourlyRate] = useState('');
   const [holidayHourlyRate, setHolidayHourlyRate] = useState('');
+  const [overtimeHourlyRate, setOvertimeHourlyRate] = useState('');
+  const [travelHourlyRate, setTravelHourlyRate] = useState('');
   const [dailyRate, setDailyRate] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -305,6 +353,12 @@ function RateDialog({
       setHolidayHourlyRate(
         editingRate.holidayHourlyRate === null ? '' : String(editingRate.holidayHourlyRate),
       );
+      setOvertimeHourlyRate(
+        editingRate.overtimeHourlyRate === null ? '' : String(editingRate.overtimeHourlyRate),
+      );
+      setTravelHourlyRate(
+        editingRate.travelHourlyRate === null ? '' : String(editingRate.travelHourlyRate),
+      );
       setDailyRate(editingRate.dailyRate === null ? '' : String(editingRate.dailyRate));
       setStartDate(editingRate.startDate);
       setEndDate(editingRate.endDate ?? '');
@@ -315,6 +369,8 @@ function RateDialog({
       setHourlyRate('');
       setWeekendHourlyRate('');
       setHolidayHourlyRate('');
+      setOvertimeHourlyRate('');
+      setTravelHourlyRate('');
       setDailyRate('');
       setStartDate('');
       setEndDate('');
@@ -338,6 +394,16 @@ function RateDialog({
     holidayHourlyRate.trim() === ''
     || (!Number.isNaN(parsedHolidayRate) && parsedHolidayRate > 0);
 
+  const parsedOvertimeRate = Number(overtimeHourlyRate);
+  const overtimeRateIsValid =
+    overtimeHourlyRate.trim() === ''
+    || (!Number.isNaN(parsedOvertimeRate) && parsedOvertimeRate > 0);
+
+  const parsedTravelRate = Number(travelHourlyRate);
+  const travelRateIsValid =
+    travelHourlyRate.trim() === ''
+    || (!Number.isNaN(parsedTravelRate) && parsedTravelRate > 0);
+
   const parsedDailyRate = Number(dailyRate);
   const dailyRateIsValid =
     isHourly || (dailyRate.trim() !== '' && !Number.isNaN(parsedDailyRate) && parsedDailyRate > 0);
@@ -349,6 +415,8 @@ function RateDialog({
     && rateIsValid
     && weekendRateIsValid
     && holidayRateIsValid
+    && overtimeRateIsValid
+    && travelRateIsValid
     && dailyRateIsValid
     && datesAreValid;
   const mutation = isEditing ? update : set;
@@ -357,6 +425,8 @@ function RateDialog({
   const submit = () => {
     const weekendRate = weekendHourlyRate.trim() === '' ? null : parsedWeekendRate;
     const holidayRate = holidayHourlyRate.trim() === '' ? null : parsedHolidayRate;
+    const overtimeRate = overtimeHourlyRate.trim() === '' ? null : parsedOvertimeRate;
+    const travelRate = travelHourlyRate.trim() === '' ? null : parsedTravelRate;
 
     const shared = {
       employeeId,
@@ -364,6 +434,8 @@ function RateDialog({
       hourlyRate: isHourly ? parsedRate : null,
       weekendHourlyRate: isHourly ? weekendRate : null,
       holidayHourlyRate: isHourly ? holidayRate : null,
+      overtimeHourlyRate: isHourly ? overtimeRate : null,
+      travelHourlyRate: isHourly ? travelRate : null,
       dailyRate: isHourly ? null : parsedDailyRate,
       note: note.trim() || null,
     };
@@ -476,6 +548,38 @@ function RateDialog({
                   error={holidayHourlyRate.trim() !== '' && !holidayRateIsValid}
                   helperText={
                     holidayHourlyRate.trim() !== '' && !holidayRateIsValid
+                      ? t('rates.mustBePositive')
+                      : undefined
+                  }
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  type="number"
+                  fullWidth
+                  label={t('rates.overtimeHourlyRate')}
+                  value={overtimeHourlyRate}
+                  onChange={(event) => setOvertimeHourlyRate(event.target.value)}
+                  error={overtimeHourlyRate.trim() !== '' && !overtimeRateIsValid}
+                  helperText={
+                    overtimeHourlyRate.trim() !== '' && !overtimeRateIsValid
+                      ? t('rates.mustBePositive')
+                      : undefined
+                  }
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  type="number"
+                  fullWidth
+                  label={t('rates.travelHourlyRate')}
+                  value={travelHourlyRate}
+                  onChange={(event) => setTravelHourlyRate(event.target.value)}
+                  error={travelHourlyRate.trim() !== '' && !travelRateIsValid}
+                  helperText={
+                    travelHourlyRate.trim() !== '' && !travelRateIsValid
                       ? t('rates.mustBePositive')
                       : undefined
                   }

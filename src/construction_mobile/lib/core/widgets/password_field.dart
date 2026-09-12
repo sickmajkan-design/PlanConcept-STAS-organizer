@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_locales.dart';
+
 /// Password input with a visibility toggle — typing a strong password on a
 /// phone with gloves on is hard enough without hiding every character.
 class PasswordField extends StatefulWidget {
@@ -46,7 +48,9 @@ class _PasswordFieldState extends State<PasswordField> {
         prefixIcon: const Icon(Icons.lock_outline),
         suffixIcon: IconButton(
           icon: Icon(_obscured ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-          tooltip: _obscured ? 'Show password' : 'Hide password',
+          tooltip: _obscured
+              ? context.l10n.authShowPassword
+              : context.l10n.authHidePassword,
           onPressed: () => setState(() => _obscured = !_obscured),
         ),
       ),

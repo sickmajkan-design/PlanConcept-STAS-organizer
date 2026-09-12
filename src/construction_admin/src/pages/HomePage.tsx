@@ -2,8 +2,9 @@ import { ApartmentOutlined, MapOutlined, PeopleOutlined } from '@mui/icons-mater
 import { Box, Card, CardActionArea, CardContent, Stack, Typography } from '@mui/material';
 import { Link } from 'react-router-dom';
 
-import { canViewDirectory, displayName } from '../auth/authHelpers';
+import { canConfigureDashboard, canViewDirectory, displayName } from '../auth/authHelpers';
 import { useAuth } from '../auth/useAuth';
+import { DashboardGrid } from '../features/dashboard/DashboardGrid';
 import { useT } from '../i18n/useI18n';
 import { paths } from '../routes/paths';
 
@@ -12,6 +13,17 @@ export function HomePage() {
   const t = useT();
 
   if (!user) return null;
+
+  if (canConfigureDashboard(user)) {
+    return (
+      <Box>
+        <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
+          {t('home.welcome', { name: displayName(user) })}
+        </Typography>
+        <DashboardGrid />
+      </Box>
+    );
+  }
 
   const cards = [
     {

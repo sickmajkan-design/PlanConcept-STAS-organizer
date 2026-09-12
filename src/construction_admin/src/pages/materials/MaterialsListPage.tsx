@@ -14,23 +14,35 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import type { GridColDef } from '@mui/x-data-grid';
+import type { GridColDef, GridSortModel } from '@mui/x-data-grid';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type { MaterialListQuery } from '../../api/materials';
 import type { Material } from '../../api/types';
+import { BulkActionsBar } from '../../components/BulkActionsBar';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { RowActions } from '../../components/RowActions';
+import { SavedViewsBar } from '../../components/SavedViewsBar';
 import { SearchField } from '../../components/SearchField';
 import { useDeleteMaterial, useMaterialsQuery } from '../../features/materials/useMaterials';
+import { useBulkDelete } from '../../hooks/useBulkDelete';
+import { useBulkSelection } from '../../hooks/useBulkSelection';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { useListQueryState } from '../../hooks/useListQueryState';
+import { useSavedViews } from '../../hooks/useSavedViews';
 import { paths } from '../../routes/paths';
 import { formatMoney } from '../../utils/formatting';
+
+interface MaterialViewState {
+  search: string;
+  sortModel: GridSortModel;
+  warehouseOnly: boolean;
+  incompleteOnly: boolean;
+}
 
 export function MaterialsListPage() {
   const navigate = useNavigate();
@@ -43,6 +55,25 @@ export function MaterialsListPage() {
   const [warehouseOnly, setWarehouseOnly] = useState(false);
   const [incompleteOnly, setIncompleteOnly] = useState(false);
 
+  const savedViews = useSavedViews<MaterialViewState>('materials');
+
+  const applyView = (state: MaterialViewState) => {
+    list.setSearch(state.search);
+    list.setSortModel(state.sortModel);
+    setWarehouseOnly(state.warehouseOnly);
+    setIncompleteOnly(state.incompleteOnly);
+    list.resetToFirstPage();
+  };
+
+  const saveCurrentView = (name: string) => {
+    savedViews.saveView(name, {
+      search: list.search,
+      sortModel: list.sortModel,
+      warehouseOnly,
+      incompleteOnly,
+    });
+  };
+
   const query: MaterialListQuery = useMemo(
     () => ({
       ...list.query,
@@ -53,7 +84,10 @@ export function MaterialsListPage() {
   );
 
   const { data, isLoading, isError, error, refetch } = useMaterialsQuery(query);
-  const remove = useDeleteWithConfirm<Material>(useDeleteMaterial());
+  const deleteMaterial = useDeleteMaterial();
+  const remove = useDeleteWithConfirm<Material>(deleteMaterial);
+  const bulk = useBulkDelete(deleteMaterial);
+  const selection = useBulkSelection();
 
   const columns: GridColDef<Material>[] = useMemo(
     () => [
@@ -178,6 +212,21 @@ export function MaterialsListPage() {
         />
       </Stack>
 
+      <Box sx={{ mb: 2 }}>
+        <SavedViewsBar
+          views={savedViews.views}
+          onApply={applyView}
+          onSave={saveCurrentView}
+          onDelete={savedViews.deleteView}
+        />
+      </Box>
+
+      <BulkActionsBar
+        count={selection.count}
+        onDelete={() => bulk.request(selection.selectedIds)}
+        onClear={selection.clear}
+      />
+
       <ResourceDataGrid
         data={data}
         columns={columns}
@@ -189,6 +238,8 @@ export function MaterialsListPage() {
         onPaginationModelChange={list.setPaginationModel}
         sortModel={list.sortModel}
         onSortModelChange={list.setSortModel}
+        rowSelectionModel={selection.model}
+        onRowSelectionModelChange={selection.setModel}
         onRowClick={(row) => navigate(paths.materialDetail(row.id))}
       />
 
@@ -203,6 +254,21 @@ export function MaterialsListPage() {
         loading={remove.isDeleting}
         onConfirm={remove.confirm}
         onCancel={remove.cancel}
+      />
+
+      <ConfirmDialog
+        open={!!bulk.pendingIds}
+        title={t('bulk.deleteConfirmTitle')}
+        description={
+          bulk.pendingIds ? t('bulk.deleteConfirmBody', { count: bulk.pendingIds.length }) : ''
+        }
+        confirmLabel={t('common.delete')}
+        destructive
+        onConfirm={() => {
+          void bulk.confirm();
+          selection.clear();
+        }}
+        onCancel={bulk.cancel}
       />
 
       {remove.error && (

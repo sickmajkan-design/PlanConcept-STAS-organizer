@@ -5,12 +5,14 @@ import {
   Button,
   Divider,
   FormControl,
+  FormControlLabel,
   Grid,
   InputLabel,
   MenuItem,
   Paper,
   Select,
   Stack,
+  Switch,
   TextField,
   Typography,
 } from '@mui/material';
@@ -23,6 +25,7 @@ import type { Role } from '../../api/types';
 import { roles } from '../../api/types';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
+import { isSuperAdmin } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
 import {
@@ -95,6 +98,7 @@ export function UserFormPage() {
       role: allowedRoles[0] ?? 'Worker',
       employeeId: '',
       documentExpiryReminderDays: '',
+      canViewCustomerTaxDetails: false,
     },
   });
 
@@ -109,12 +113,16 @@ export function UserFormPage() {
           existing.documentExpiryReminderDays === null
             ? ''
             : String(existing.documentExpiryReminderDays),
+        canViewCustomerTaxDetails: existing.canViewCustomerTaxDetails,
       });
     }
   }, [existing, reset]);
 
   const watchRole = useWatch({ control, name: 'role' });
   const showReminderField = isEdit && (watchRole === 'SuperAdmin' || watchRole === 'Admin');
+  // A SuperAdmin always sees customer tax details regardless of this flag —
+  // offering the toggle on their own row would be a confusing no-op.
+  const showTaxGrantField = isEdit && isSuperAdmin(currentUser) && watchRole !== 'SuperAdmin';
 
   const onSubmit = handleSubmit(async (values) => {
     const shared = {
@@ -130,6 +138,7 @@ export function UserFormPage() {
           documentExpiryReminderDays: values.documentExpiryReminderDays
             ? Number(values.documentExpiryReminderDays)
             : null,
+          canViewCustomerTaxDetails: values.canViewCustomerTaxDetails ?? false,
         });
       } else {
         await createUser.mutateAsync({ ...shared, password: values.password });
@@ -261,6 +270,24 @@ export function UserFormPage() {
                     />
                   )}
                 />
+              </Grid>
+            )}
+
+            {showTaxGrantField && (
+              <Grid size={{ xs: 12 }}>
+                <Controller
+                  name="canViewCustomerTaxDetails"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControlLabel
+                      control={<Switch checked={field.value ?? false} onChange={field.onChange} />}
+                      label={t('users.canViewCustomerTaxDetails')}
+                    />
+                  )}
+                />
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                  {t('users.canViewCustomerTaxDetailsHelp')}
+                </Typography>
               </Grid>
             )}
 

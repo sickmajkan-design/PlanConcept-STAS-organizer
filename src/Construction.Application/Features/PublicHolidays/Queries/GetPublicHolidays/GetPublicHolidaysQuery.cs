@@ -16,6 +16,9 @@ public record GetPublicHolidaysQuery : IRequest<IReadOnlyList<PublicHolidayDto>>
 {
     /// <summary>Narrows to one calendar year, when given.</summary>
     public int? Year { get; init; }
+
+    /// <summary>Narrows to one country (ISO 3166-1 alpha-2), when given.</summary>
+    public string? CountryCode { get; init; }
 }
 
 public class GetPublicHolidaysQueryHandler
@@ -48,8 +51,15 @@ public class GetPublicHolidaysQueryHandler
             query = query.Where(h => h.Date.Year == year);
         }
 
+        if (!string.IsNullOrWhiteSpace(request.CountryCode))
+        {
+            var countryCode = request.CountryCode.Trim().ToUpperInvariant();
+            query = query.Where(h => h.CountryCode == countryCode);
+        }
+
         return await query
-            .OrderBy(h => h.Date)
+            .OrderBy(h => h.CountryCode)
+            .ThenBy(h => h.Date)
             .Select(PublicHolidayMapping.Projection)
             .ToListAsync(cancellationToken);
     }

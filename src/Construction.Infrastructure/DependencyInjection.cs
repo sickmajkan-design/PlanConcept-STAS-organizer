@@ -103,6 +103,9 @@ public static class DependencyInjection
         // Stateless: it turns a value object into bytes and holds nothing.
         services.AddSingleton<ISpreadsheetWriter, ClosedXmlSpreadsheetWriter>();
 
+        // Stateless: reads a stream into rows and holds nothing.
+        services.AddSingleton<IFuelStatementParser, ClosedXmlFuelStatementParser>();
+
         // Validated on start, like JwtSettings. These used to be bound and
         // forgotten, so a wrong port or an unreadable credential file was
         // discovered at the moment somebody needed the feature — which for

@@ -43,9 +43,6 @@ bool operator ==(Object other) {
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-// Past Object.hash's 20-argument overload once every field is counted, so
-// this hashes the field list instead — freezed does the same for classes
-// this wide.
 int get hashCode => Object.hashAll([runtimeType,id,employeeId,employeeName,type,status,startDate,endDate,dayCount,reason,requestedByName,reviewedByName,reviewedAt,reviewNote,proposedStartDate,proposedEndDate,proposedReason,proposedByName,proposedByEmployee,proposedAt,createdAt]);
 
 @override
@@ -271,7 +268,7 @@ class _Absence extends Absence {
 /// True when the employee proposed the change (so management must
 /// confirm it); false when management proposed it (so the employee
 /// must).
-@override final  bool proposedByEmployee;
+@override@JsonKey() final  bool proposedByEmployee;
 @override final  DateTime? proposedAt;
 @override final  DateTime createdAt;
 
@@ -293,9 +290,6 @@ bool operator ==(Object other) {
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-// Past Object.hash's 20-argument overload once every field is counted, so
-// this hashes the field list instead — freezed does the same for classes
-// this wide.
 int get hashCode => Object.hashAll([runtimeType,id,employeeId,employeeName,type,status,startDate,endDate,dayCount,reason,requestedByName,reviewedByName,reviewedAt,reviewNote,proposedStartDate,proposedEndDate,proposedReason,proposedByName,proposedByEmployee,proposedAt,createdAt]);
 
 @override

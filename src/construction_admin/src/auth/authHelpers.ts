@@ -33,6 +33,16 @@ export function canManageAssignments(user: User | null | undefined): boolean {
 }
 
 /**
+ * Roles the API lets approve or send back a time entry (its
+ * `ProjectManagerAndAbove` policy on `/time-entries/{id}/review`), and never
+ * their own — that half is a same-set check the caller does against the
+ * entry's `employeeId`, not this helper.
+ */
+export function canReviewTimeEntries(user: User | null | undefined): boolean {
+  return !!user && ASSIGNMENT_ROLES.has(user.role);
+}
+
+/**
  * Roles the API shows pay rates to (its `CostRules.CanSeeLabourCost`).
  *
  * Deliberately tighter than {@link canViewDirectory}: a rate is effectively
@@ -54,6 +64,15 @@ export function canSeeLabourCost(user: User | null | undefined): boolean {
  */
 export function canSeeSpending(user: User | null | undefined): boolean {
   return canViewDirectory(user);
+}
+
+/**
+ * Roles that get the configurable home dashboard (the API's `AdminAndAbove`
+ * policy on `/dashboard-layout`). Every other role keeps the plain static
+ * home page — a foreman or worker has no fleet of widgets worth arranging.
+ */
+export function canConfigureDashboard(user: User | null | undefined): boolean {
+  return canAdministerAccounts(user);
 }
 
 /**

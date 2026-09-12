@@ -6,12 +6,16 @@ import { useNavigate } from 'react-router-dom';
 
 import type { CustomerListQuery } from '../../api/customers';
 import type { Customer } from '../../api/types';
+import { BulkActionsBar } from '../../components/BulkActionsBar';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { RowActions } from '../../components/RowActions';
+import { SavedViewsBar } from '../../components/SavedViewsBar';
 import { SearchField } from '../../components/SearchField';
 import { useCustomersQuery, useDeleteCustomer } from '../../features/customers/useCustomers';
+import { useBulkDelete } from '../../hooks/useBulkDelete';
+import { useBulkSelection } from '../../hooks/useBulkSelection';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useT } from '../../i18n/useI18n';
 import { useListQueryState } from '../../hooks/useListQueryState';
@@ -20,12 +24,15 @@ import { paths } from '../../routes/paths';
 export function CustomersListPage() {
   const navigate = useNavigate();
   const t = useT();
-  const list = useListQueryState('name');
+  const list = useListQueryState('name', 'asc', 'customers');
 
   const query: CustomerListQuery = list.query;
 
   const { data, isLoading, isError, error, refetch } = useCustomersQuery(query);
-  const remove = useDeleteWithConfirm<Customer>(useDeleteCustomer());
+  const deleteCustomer = useDeleteCustomer();
+  const remove = useDeleteWithConfirm<Customer>(deleteCustomer);
+  const bulk = useBulkDelete(deleteCustomer);
+  const selection = useBulkSelection();
 
   const columns: GridColDef<Customer>[] = useMemo(
     () => [
@@ -103,6 +110,23 @@ export function CustomersListPage() {
         />
       </Stack>
 
+      {list.savedViews && (
+        <Box sx={{ mb: 2 }}>
+          <SavedViewsBar
+            views={list.savedViews.views}
+            onApply={list.savedViews.applyView}
+            onSave={list.savedViews.saveCurrentView}
+            onDelete={list.savedViews.deleteView}
+          />
+        </Box>
+      )}
+
+      <BulkActionsBar
+        count={selection.count}
+        onDelete={() => bulk.request(selection.selectedIds)}
+        onClear={selection.clear}
+      />
+
       <ResourceDataGrid
         data={data}
         columns={columns}
@@ -114,6 +138,8 @@ export function CustomersListPage() {
         onPaginationModelChange={list.setPaginationModel}
         sortModel={list.sortModel}
         onSortModelChange={list.setSortModel}
+        rowSelectionModel={selection.model}
+        onRowSelectionModelChange={selection.setModel}
         onRowClick={(row) => navigate(paths.customerEdit(row.id))}
       />
 
@@ -128,6 +154,21 @@ export function CustomersListPage() {
         loading={remove.isDeleting}
         onConfirm={remove.confirm}
         onCancel={remove.cancel}
+      />
+
+      <ConfirmDialog
+        open={!!bulk.pendingIds}
+        title={t('bulk.deleteConfirmTitle')}
+        description={
+          bulk.pendingIds ? t('bulk.deleteConfirmBody', { count: bulk.pendingIds.length }) : ''
+        }
+        confirmLabel={t('common.delete')}
+        destructive
+        onConfirm={() => {
+          void bulk.confirm();
+          selection.clear();
+        }}
+        onCancel={bulk.cancel}
       />
 
       {remove.error && (

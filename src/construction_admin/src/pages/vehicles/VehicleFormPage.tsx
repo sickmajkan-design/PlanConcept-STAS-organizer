@@ -33,6 +33,8 @@ const emptyValues: VehicleFormValues = {
   registrationNumber: '',
   vin: '',
   qrCode: '',
+  gpsProvider: '',
+  gpsTrackingUrl: '',
   fuelType: 'Diesel',
   status: 'Available',
   ownershipType: 'Owned',
@@ -68,6 +70,8 @@ export function VehicleFormPage() {
         registrationNumber: existing.registrationNumber,
         vin: existing.vin ?? '',
         qrCode: existing.qrCode ?? '',
+        gpsProvider: existing.gpsProvider ?? '',
+        gpsTrackingUrl: existing.gpsTrackingUrl ?? '',
         fuelType: existing.fuelType,
         status: existing.status,
         ownershipType: existing.ownershipType,
@@ -90,6 +94,8 @@ export function VehicleFormPage() {
       registrationNumber: values.registrationNumber.trim(),
       vin: values.vin || null,
       qrCode: values.qrCode || null,
+      gpsProvider: values.gpsProvider || null,
+      gpsTrackingUrl: values.gpsTrackingUrl || null,
       fuelType: values.fuelType,
       status: values.status,
       ownershipType: values.ownershipType,
@@ -200,6 +206,38 @@ export function VehicleFormPage() {
                       {...field}
                       label={t('vehicles.qrCode')}
                       placeholder={t('vehicles.qrCodeHint')}
+                      fullWidth
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Controller
+                  name="gpsProvider"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      {...field}
+                      label={t('vehicles.gpsProvider')}
+                      placeholder={t('vehicles.gpsProviderHint')}
+                      fullWidth
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Controller
+                  name="gpsTrackingUrl"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      {...field}
+                      label={t('vehicles.gpsTrackingUrl')}
+                      placeholder={t('vehicles.gpsTrackingUrlHint')}
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}

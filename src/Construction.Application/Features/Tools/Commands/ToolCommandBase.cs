@@ -19,6 +19,8 @@ public abstract record ToolCommandBase
     public string? QrCode { get; init; }
 
     public ToolStatus Status { get; init; } = ToolStatus.Available;
+
+    public ToolOwnershipType OwnershipType { get; init; } = ToolOwnershipType.Owned;
 }
 
 public abstract class ToolCommandBaseValidator<T> : AbstractValidator<T>
@@ -41,5 +43,8 @@ public abstract class ToolCommandBaseValidator<T> : AbstractValidator<T>
 
         RuleFor(x => x.Status)
             .IsInEnum().WithMessage("Status is not a valid tool status.");
+
+        RuleFor(x => x.OwnershipType)
+            .IsInEnum().WithMessage("Ownership type is not a valid value.");
     }
 }

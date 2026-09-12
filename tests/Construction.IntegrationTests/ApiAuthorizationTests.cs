@@ -119,6 +119,14 @@ public class ApiAuthorizationTests
             new("POST", "/api/attachments", UserRole.Worker),
             new("DELETE", $"/api/attachments/{Id}", UserRole.Admin),
 
+            // ---- company profile --------------------------------------------
+            new("GET", "/api/company-settings", UserRole.Worker),
+            new("PUT", "/api/company-settings", UserRole.SuperAdmin),
+            new("GET", "/api/company-settings/branding", null),
+            new("GET", "/api/company-settings/logo", null),
+            new("POST", "/api/company-settings/logo", UserRole.SuperAdmin),
+            new("DELETE", "/api/company-settings/logo", UserRole.SuperAdmin),
+
             // ---- costs ----------------------------------------------------
             // The controller carries ForemanAndAbove; CostRules then narrows
             // pay rates to the people who may see somebody's pay.

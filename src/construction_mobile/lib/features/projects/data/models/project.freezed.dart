@@ -15,7 +15,9 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Project {
 
- String get id; String get name; String? get description; String? get client; String? get address; double? get latitude; double? get longitude; DateTime? get startDate; DateTime? get endDate; String get status; int get employeeCount; DateTime get createdAt; DateTime? get updatedAt;
+ String get id; String get name; String? get description; String? get customerId; String? get customerName; String? get parentProjectId; String? get parentProjectName;/// `"Main"` or `"Sub"`, derived server-side from whether the project has
+/// a parent — never stored, never chosen by the caller.
+ String get kind; int get subProjectCount; String? get address; double? get latitude; double? get longitude; String? get countryCode; String? get shiftStartTime; DateTime? get startDate; DateTime? get endDate; String get status; double? get contractValue; int get employeeCount; DateTime get createdAt; DateTime? get updatedAt;
 /// Create a copy of Project
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +30,16 @@ $ProjectCopyWith<Project> get copyWith => _$ProjectCopyWithImpl<Project>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Project&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.client, client) || other.client == client)&&(identical(other.address, address) || other.address == address)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.employeeCount, employeeCount) || other.employeeCount == employeeCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Project&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.customerId, customerId) || other.customerId == customerId)&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.parentProjectId, parentProjectId) || other.parentProjectId == parentProjectId)&&(identical(other.parentProjectName, parentProjectName) || other.parentProjectName == parentProjectName)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.subProjectCount, subProjectCount) || other.subProjectCount == subProjectCount)&&(identical(other.address, address) || other.address == address)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.countryCode, countryCode) || other.countryCode == countryCode)&&(identical(other.shiftStartTime, shiftStartTime) || other.shiftStartTime == shiftStartTime)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.contractValue, contractValue) || other.contractValue == contractValue)&&(identical(other.employeeCount, employeeCount) || other.employeeCount == employeeCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,description,client,address,latitude,longitude,startDate,endDate,status,employeeCount,createdAt,updatedAt);
+int get hashCode => Object.hashAll([runtimeType,id,name,description,customerId,customerName,parentProjectId,parentProjectName,kind,subProjectCount,address,latitude,longitude,countryCode,shiftStartTime,startDate,endDate,status,contractValue,employeeCount,createdAt,updatedAt]);
 
 @override
 String toString() {
-  return 'Project(id: $id, name: $name, description: $description, client: $client, address: $address, latitude: $latitude, longitude: $longitude, startDate: $startDate, endDate: $endDate, status: $status, employeeCount: $employeeCount, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Project(id: $id, name: $name, description: $description, customerId: $customerId, customerName: $customerName, parentProjectId: $parentProjectId, parentProjectName: $parentProjectName, kind: $kind, subProjectCount: $subProjectCount, address: $address, latitude: $latitude, longitude: $longitude, countryCode: $countryCode, shiftStartTime: $shiftStartTime, startDate: $startDate, endDate: $endDate, status: $status, contractValue: $contractValue, employeeCount: $employeeCount, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -48,7 +50,7 @@ abstract mixin class $ProjectCopyWith<$Res>  {
   factory $ProjectCopyWith(Project value, $Res Function(Project) _then) = _$ProjectCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String? description, String? client, String? address, double? latitude, double? longitude, DateTime? startDate, DateTime? endDate, String status, int employeeCount, DateTime createdAt, DateTime? updatedAt
+ String id, String name, String? description, String? customerId, String? customerName, String? parentProjectId, String? parentProjectName, String kind, int subProjectCount, String? address, double? latitude, double? longitude, String? countryCode, String? shiftStartTime, DateTime? startDate, DateTime? endDate, String status, double? contractValue, int employeeCount, DateTime createdAt, DateTime? updatedAt
 });
 
 
@@ -65,19 +67,27 @@ class _$ProjectCopyWithImpl<$Res>
 
 /// Create a copy of Project
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = freezed,Object? client = freezed,Object? address = freezed,Object? latitude = freezed,Object? longitude = freezed,Object? startDate = freezed,Object? endDate = freezed,Object? status = null,Object? employeeCount = null,Object? createdAt = null,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = freezed,Object? customerId = freezed,Object? customerName = freezed,Object? parentProjectId = freezed,Object? parentProjectName = freezed,Object? kind = null,Object? subProjectCount = null,Object? address = freezed,Object? latitude = freezed,Object? longitude = freezed,Object? countryCode = freezed,Object? shiftStartTime = freezed,Object? startDate = freezed,Object? endDate = freezed,Object? status = null,Object? contractValue = freezed,Object? employeeCount = null,Object? createdAt = null,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String?,client: freezed == client ? _self.client : client // ignore: cast_nullable_to_non_nullable
-as String?,address: freezed == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
+as String?,customerId: freezed == customerId ? _self.customerId : customerId // ignore: cast_nullable_to_non_nullable
+as String?,customerName: freezed == customerName ? _self.customerName : customerName // ignore: cast_nullable_to_non_nullable
+as String?,parentProjectId: freezed == parentProjectId ? _self.parentProjectId : parentProjectId // ignore: cast_nullable_to_non_nullable
+as String?,parentProjectName: freezed == parentProjectName ? _self.parentProjectName : parentProjectName // ignore: cast_nullable_to_non_nullable
+as String?,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
+as String,subProjectCount: null == subProjectCount ? _self.subProjectCount : subProjectCount // ignore: cast_nullable_to_non_nullable
+as int,address: freezed == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
 as String?,latitude: freezed == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
 as double?,longitude: freezed == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
-as double?,startDate: freezed == startDate ? _self.startDate : startDate // ignore: cast_nullable_to_non_nullable
+as double?,countryCode: freezed == countryCode ? _self.countryCode : countryCode // ignore: cast_nullable_to_non_nullable
+as String?,shiftStartTime: freezed == shiftStartTime ? _self.shiftStartTime : shiftStartTime // ignore: cast_nullable_to_non_nullable
+as String?,startDate: freezed == startDate ? _self.startDate : startDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,endDate: freezed == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as String,employeeCount: null == employeeCount ? _self.employeeCount : employeeCount // ignore: cast_nullable_to_non_nullable
+as String,contractValue: freezed == contractValue ? _self.contractValue : contractValue // ignore: cast_nullable_to_non_nullable
+as double?,employeeCount: null == employeeCount ? _self.employeeCount : employeeCount // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
@@ -165,10 +175,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String? description,  String? client,  String? address,  double? latitude,  double? longitude,  DateTime? startDate,  DateTime? endDate,  String status,  int employeeCount,  DateTime createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String? description,  String? customerId,  String? customerName,  String? parentProjectId,  String? parentProjectName,  String kind,  int subProjectCount,  String? address,  double? latitude,  double? longitude,  String? countryCode,  String? shiftStartTime,  DateTime? startDate,  DateTime? endDate,  String status,  double? contractValue,  int employeeCount,  DateTime createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Project() when $default != null:
-return $default(_that.id,_that.name,_that.description,_that.client,_that.address,_that.latitude,_that.longitude,_that.startDate,_that.endDate,_that.status,_that.employeeCount,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.name,_that.description,_that.customerId,_that.customerName,_that.parentProjectId,_that.parentProjectName,_that.kind,_that.subProjectCount,_that.address,_that.latitude,_that.longitude,_that.countryCode,_that.shiftStartTime,_that.startDate,_that.endDate,_that.status,_that.contractValue,_that.employeeCount,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -186,10 +196,10 @@ return $default(_that.id,_that.name,_that.description,_that.client,_that.address
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String? description,  String? client,  String? address,  double? latitude,  double? longitude,  DateTime? startDate,  DateTime? endDate,  String status,  int employeeCount,  DateTime createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String? description,  String? customerId,  String? customerName,  String? parentProjectId,  String? parentProjectName,  String kind,  int subProjectCount,  String? address,  double? latitude,  double? longitude,  String? countryCode,  String? shiftStartTime,  DateTime? startDate,  DateTime? endDate,  String status,  double? contractValue,  int employeeCount,  DateTime createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Project():
-return $default(_that.id,_that.name,_that.description,_that.client,_that.address,_that.latitude,_that.longitude,_that.startDate,_that.endDate,_that.status,_that.employeeCount,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.name,_that.description,_that.customerId,_that.customerName,_that.parentProjectId,_that.parentProjectName,_that.kind,_that.subProjectCount,_that.address,_that.latitude,_that.longitude,_that.countryCode,_that.shiftStartTime,_that.startDate,_that.endDate,_that.status,_that.contractValue,_that.employeeCount,_that.createdAt,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -206,10 +216,10 @@ return $default(_that.id,_that.name,_that.description,_that.client,_that.address
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String? description,  String? client,  String? address,  double? latitude,  double? longitude,  DateTime? startDate,  DateTime? endDate,  String status,  int employeeCount,  DateTime createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String? description,  String? customerId,  String? customerName,  String? parentProjectId,  String? parentProjectName,  String kind,  int subProjectCount,  String? address,  double? latitude,  double? longitude,  String? countryCode,  String? shiftStartTime,  DateTime? startDate,  DateTime? endDate,  String status,  double? contractValue,  int employeeCount,  DateTime createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Project() when $default != null:
-return $default(_that.id,_that.name,_that.description,_that.client,_that.address,_that.latitude,_that.longitude,_that.startDate,_that.endDate,_that.status,_that.employeeCount,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.name,_that.description,_that.customerId,_that.customerName,_that.parentProjectId,_that.parentProjectName,_that.kind,_that.subProjectCount,_that.address,_that.latitude,_that.longitude,_that.countryCode,_that.shiftStartTime,_that.startDate,_that.endDate,_that.status,_that.contractValue,_that.employeeCount,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -221,19 +231,29 @@ return $default(_that.id,_that.name,_that.description,_that.client,_that.address
 @JsonSerializable()
 
 class _Project extends Project {
-  const _Project({required this.id, required this.name, this.description, this.client, this.address, this.latitude, this.longitude, this.startDate, this.endDate, required this.status, this.employeeCount = 0, required this.createdAt, this.updatedAt}): super._();
+  const _Project({required this.id, required this.name, this.description, this.customerId, this.customerName, this.parentProjectId, this.parentProjectName, this.kind = 'Main', this.subProjectCount = 0, this.address, this.latitude, this.longitude, this.countryCode, this.shiftStartTime, this.startDate, this.endDate, required this.status, this.contractValue, this.employeeCount = 0, required this.createdAt, this.updatedAt}): super._();
   factory _Project.fromJson(Map<String, dynamic> json) => _$ProjectFromJson(json);
 
 @override final  String id;
 @override final  String name;
 @override final  String? description;
-@override final  String? client;
+@override final  String? customerId;
+@override final  String? customerName;
+@override final  String? parentProjectId;
+@override final  String? parentProjectName;
+/// `"Main"` or `"Sub"`, derived server-side from whether the project has
+/// a parent — never stored, never chosen by the caller.
+@override@JsonKey() final  String kind;
+@override@JsonKey() final  int subProjectCount;
 @override final  String? address;
 @override final  double? latitude;
 @override final  double? longitude;
+@override final  String? countryCode;
+@override final  String? shiftStartTime;
 @override final  DateTime? startDate;
 @override final  DateTime? endDate;
 @override final  String status;
+@override final  double? contractValue;
 @override@JsonKey() final  int employeeCount;
 @override final  DateTime createdAt;
 @override final  DateTime? updatedAt;
@@ -251,16 +271,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Project&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.client, client) || other.client == client)&&(identical(other.address, address) || other.address == address)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.employeeCount, employeeCount) || other.employeeCount == employeeCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Project&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.customerId, customerId) || other.customerId == customerId)&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.parentProjectId, parentProjectId) || other.parentProjectId == parentProjectId)&&(identical(other.parentProjectName, parentProjectName) || other.parentProjectName == parentProjectName)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.subProjectCount, subProjectCount) || other.subProjectCount == subProjectCount)&&(identical(other.address, address) || other.address == address)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.countryCode, countryCode) || other.countryCode == countryCode)&&(identical(other.shiftStartTime, shiftStartTime) || other.shiftStartTime == shiftStartTime)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.contractValue, contractValue) || other.contractValue == contractValue)&&(identical(other.employeeCount, employeeCount) || other.employeeCount == employeeCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,description,client,address,latitude,longitude,startDate,endDate,status,employeeCount,createdAt,updatedAt);
+int get hashCode => Object.hashAll([runtimeType,id,name,description,customerId,customerName,parentProjectId,parentProjectName,kind,subProjectCount,address,latitude,longitude,countryCode,shiftStartTime,startDate,endDate,status,contractValue,employeeCount,createdAt,updatedAt]);
 
 @override
 String toString() {
-  return 'Project(id: $id, name: $name, description: $description, client: $client, address: $address, latitude: $latitude, longitude: $longitude, startDate: $startDate, endDate: $endDate, status: $status, employeeCount: $employeeCount, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Project(id: $id, name: $name, description: $description, customerId: $customerId, customerName: $customerName, parentProjectId: $parentProjectId, parentProjectName: $parentProjectName, kind: $kind, subProjectCount: $subProjectCount, address: $address, latitude: $latitude, longitude: $longitude, countryCode: $countryCode, shiftStartTime: $shiftStartTime, startDate: $startDate, endDate: $endDate, status: $status, contractValue: $contractValue, employeeCount: $employeeCount, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -271,7 +291,7 @@ abstract mixin class _$ProjectCopyWith<$Res> implements $ProjectCopyWith<$Res> {
   factory _$ProjectCopyWith(_Project value, $Res Function(_Project) _then) = __$ProjectCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String? description, String? client, String? address, double? latitude, double? longitude, DateTime? startDate, DateTime? endDate, String status, int employeeCount, DateTime createdAt, DateTime? updatedAt
+ String id, String name, String? description, String? customerId, String? customerName, String? parentProjectId, String? parentProjectName, String kind, int subProjectCount, String? address, double? latitude, double? longitude, String? countryCode, String? shiftStartTime, DateTime? startDate, DateTime? endDate, String status, double? contractValue, int employeeCount, DateTime createdAt, DateTime? updatedAt
 });
 
 
@@ -288,19 +308,27 @@ class __$ProjectCopyWithImpl<$Res>
 
 /// Create a copy of Project
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? description = freezed,Object? client = freezed,Object? address = freezed,Object? latitude = freezed,Object? longitude = freezed,Object? startDate = freezed,Object? endDate = freezed,Object? status = null,Object? employeeCount = null,Object? createdAt = null,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? description = freezed,Object? customerId = freezed,Object? customerName = freezed,Object? parentProjectId = freezed,Object? parentProjectName = freezed,Object? kind = null,Object? subProjectCount = null,Object? address = freezed,Object? latitude = freezed,Object? longitude = freezed,Object? countryCode = freezed,Object? shiftStartTime = freezed,Object? startDate = freezed,Object? endDate = freezed,Object? status = null,Object? contractValue = freezed,Object? employeeCount = null,Object? createdAt = null,Object? updatedAt = freezed,}) {
   return _then(_Project(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String?,client: freezed == client ? _self.client : client // ignore: cast_nullable_to_non_nullable
-as String?,address: freezed == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
+as String?,customerId: freezed == customerId ? _self.customerId : customerId // ignore: cast_nullable_to_non_nullable
+as String?,customerName: freezed == customerName ? _self.customerName : customerName // ignore: cast_nullable_to_non_nullable
+as String?,parentProjectId: freezed == parentProjectId ? _self.parentProjectId : parentProjectId // ignore: cast_nullable_to_non_nullable
+as String?,parentProjectName: freezed == parentProjectName ? _self.parentProjectName : parentProjectName // ignore: cast_nullable_to_non_nullable
+as String?,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
+as String,subProjectCount: null == subProjectCount ? _self.subProjectCount : subProjectCount // ignore: cast_nullable_to_non_nullable
+as int,address: freezed == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
 as String?,latitude: freezed == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
 as double?,longitude: freezed == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
-as double?,startDate: freezed == startDate ? _self.startDate : startDate // ignore: cast_nullable_to_non_nullable
+as double?,countryCode: freezed == countryCode ? _self.countryCode : countryCode // ignore: cast_nullable_to_non_nullable
+as String?,shiftStartTime: freezed == shiftStartTime ? _self.shiftStartTime : shiftStartTime // ignore: cast_nullable_to_non_nullable
+as String?,startDate: freezed == startDate ? _self.startDate : startDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,endDate: freezed == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as String,employeeCount: null == employeeCount ? _self.employeeCount : employeeCount // ignore: cast_nullable_to_non_nullable
+as String,contractValue: freezed == contractValue ? _self.contractValue : contractValue // ignore: cast_nullable_to_non_nullable
+as double?,employeeCount: null == employeeCount ? _self.employeeCount : employeeCount // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,
@@ -314,7 +342,7 @@ as DateTime?,
 /// @nodoc
 mixin _$ProjectDetail {
 
- String get id; String get name; String? get description; String? get client; String? get address; double? get latitude; double? get longitude; DateTime? get startDate; DateTime? get endDate; String get status; int get employeeCount; DateTime get createdAt; DateTime? get updatedAt; List<ProjectEmployee> get employees;
+ String get id; String get name; String? get description; String? get customerId; String? get customerName; String? get parentProjectId; String? get parentProjectName; String get kind; int get subProjectCount; String? get address; double? get latitude; double? get longitude; String? get countryCode; String? get shiftStartTime; DateTime? get startDate; DateTime? get endDate; String get status; double? get contractValue; int get employeeCount; DateTime get createdAt; DateTime? get updatedAt; List<ProjectEmployee> get employees;
 /// Create a copy of ProjectDetail
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -327,16 +355,16 @@ $ProjectDetailCopyWith<ProjectDetail> get copyWith => _$ProjectDetailCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProjectDetail&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.client, client) || other.client == client)&&(identical(other.address, address) || other.address == address)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.employeeCount, employeeCount) || other.employeeCount == employeeCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.employees, employees));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ProjectDetail&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.customerId, customerId) || other.customerId == customerId)&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.parentProjectId, parentProjectId) || other.parentProjectId == parentProjectId)&&(identical(other.parentProjectName, parentProjectName) || other.parentProjectName == parentProjectName)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.subProjectCount, subProjectCount) || other.subProjectCount == subProjectCount)&&(identical(other.address, address) || other.address == address)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.countryCode, countryCode) || other.countryCode == countryCode)&&(identical(other.shiftStartTime, shiftStartTime) || other.shiftStartTime == shiftStartTime)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.contractValue, contractValue) || other.contractValue == contractValue)&&(identical(other.employeeCount, employeeCount) || other.employeeCount == employeeCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other.employees, employees));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,description,client,address,latitude,longitude,startDate,endDate,status,employeeCount,createdAt,updatedAt,const DeepCollectionEquality().hash(employees));
+int get hashCode => Object.hashAll([runtimeType,id,name,description,customerId,customerName,parentProjectId,parentProjectName,kind,subProjectCount,address,latitude,longitude,countryCode,shiftStartTime,startDate,endDate,status,contractValue,employeeCount,createdAt,updatedAt,const DeepCollectionEquality().hash(employees)]);
 
 @override
 String toString() {
-  return 'ProjectDetail(id: $id, name: $name, description: $description, client: $client, address: $address, latitude: $latitude, longitude: $longitude, startDate: $startDate, endDate: $endDate, status: $status, employeeCount: $employeeCount, createdAt: $createdAt, updatedAt: $updatedAt, employees: $employees)';
+  return 'ProjectDetail(id: $id, name: $name, description: $description, customerId: $customerId, customerName: $customerName, parentProjectId: $parentProjectId, parentProjectName: $parentProjectName, kind: $kind, subProjectCount: $subProjectCount, address: $address, latitude: $latitude, longitude: $longitude, countryCode: $countryCode, shiftStartTime: $shiftStartTime, startDate: $startDate, endDate: $endDate, status: $status, contractValue: $contractValue, employeeCount: $employeeCount, createdAt: $createdAt, updatedAt: $updatedAt, employees: $employees)';
 }
 
 
@@ -347,7 +375,7 @@ abstract mixin class $ProjectDetailCopyWith<$Res>  {
   factory $ProjectDetailCopyWith(ProjectDetail value, $Res Function(ProjectDetail) _then) = _$ProjectDetailCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String? description, String? client, String? address, double? latitude, double? longitude, DateTime? startDate, DateTime? endDate, String status, int employeeCount, DateTime createdAt, DateTime? updatedAt, List<ProjectEmployee> employees
+ String id, String name, String? description, String? customerId, String? customerName, String? parentProjectId, String? parentProjectName, String kind, int subProjectCount, String? address, double? latitude, double? longitude, String? countryCode, String? shiftStartTime, DateTime? startDate, DateTime? endDate, String status, double? contractValue, int employeeCount, DateTime createdAt, DateTime? updatedAt, List<ProjectEmployee> employees
 });
 
 
@@ -364,19 +392,27 @@ class _$ProjectDetailCopyWithImpl<$Res>
 
 /// Create a copy of ProjectDetail
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = freezed,Object? client = freezed,Object? address = freezed,Object? latitude = freezed,Object? longitude = freezed,Object? startDate = freezed,Object? endDate = freezed,Object? status = null,Object? employeeCount = null,Object? createdAt = null,Object? updatedAt = freezed,Object? employees = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? description = freezed,Object? customerId = freezed,Object? customerName = freezed,Object? parentProjectId = freezed,Object? parentProjectName = freezed,Object? kind = null,Object? subProjectCount = null,Object? address = freezed,Object? latitude = freezed,Object? longitude = freezed,Object? countryCode = freezed,Object? shiftStartTime = freezed,Object? startDate = freezed,Object? endDate = freezed,Object? status = null,Object? contractValue = freezed,Object? employeeCount = null,Object? createdAt = null,Object? updatedAt = freezed,Object? employees = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String?,client: freezed == client ? _self.client : client // ignore: cast_nullable_to_non_nullable
-as String?,address: freezed == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
+as String?,customerId: freezed == customerId ? _self.customerId : customerId // ignore: cast_nullable_to_non_nullable
+as String?,customerName: freezed == customerName ? _self.customerName : customerName // ignore: cast_nullable_to_non_nullable
+as String?,parentProjectId: freezed == parentProjectId ? _self.parentProjectId : parentProjectId // ignore: cast_nullable_to_non_nullable
+as String?,parentProjectName: freezed == parentProjectName ? _self.parentProjectName : parentProjectName // ignore: cast_nullable_to_non_nullable
+as String?,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
+as String,subProjectCount: null == subProjectCount ? _self.subProjectCount : subProjectCount // ignore: cast_nullable_to_non_nullable
+as int,address: freezed == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
 as String?,latitude: freezed == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
 as double?,longitude: freezed == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
-as double?,startDate: freezed == startDate ? _self.startDate : startDate // ignore: cast_nullable_to_non_nullable
+as double?,countryCode: freezed == countryCode ? _self.countryCode : countryCode // ignore: cast_nullable_to_non_nullable
+as String?,shiftStartTime: freezed == shiftStartTime ? _self.shiftStartTime : shiftStartTime // ignore: cast_nullable_to_non_nullable
+as String?,startDate: freezed == startDate ? _self.startDate : startDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,endDate: freezed == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as String,employeeCount: null == employeeCount ? _self.employeeCount : employeeCount // ignore: cast_nullable_to_non_nullable
+as String,contractValue: freezed == contractValue ? _self.contractValue : contractValue // ignore: cast_nullable_to_non_nullable
+as double?,employeeCount: null == employeeCount ? _self.employeeCount : employeeCount // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,employees: null == employees ? _self.employees : employees // ignore: cast_nullable_to_non_nullable
@@ -465,10 +501,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String? description,  String? client,  String? address,  double? latitude,  double? longitude,  DateTime? startDate,  DateTime? endDate,  String status,  int employeeCount,  DateTime createdAt,  DateTime? updatedAt,  List<ProjectEmployee> employees)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String? description,  String? customerId,  String? customerName,  String? parentProjectId,  String? parentProjectName,  String kind,  int subProjectCount,  String? address,  double? latitude,  double? longitude,  String? countryCode,  String? shiftStartTime,  DateTime? startDate,  DateTime? endDate,  String status,  double? contractValue,  int employeeCount,  DateTime createdAt,  DateTime? updatedAt,  List<ProjectEmployee> employees)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ProjectDetail() when $default != null:
-return $default(_that.id,_that.name,_that.description,_that.client,_that.address,_that.latitude,_that.longitude,_that.startDate,_that.endDate,_that.status,_that.employeeCount,_that.createdAt,_that.updatedAt,_that.employees);case _:
+return $default(_that.id,_that.name,_that.description,_that.customerId,_that.customerName,_that.parentProjectId,_that.parentProjectName,_that.kind,_that.subProjectCount,_that.address,_that.latitude,_that.longitude,_that.countryCode,_that.shiftStartTime,_that.startDate,_that.endDate,_that.status,_that.contractValue,_that.employeeCount,_that.createdAt,_that.updatedAt,_that.employees);case _:
   return orElse();
 
 }
@@ -486,10 +522,10 @@ return $default(_that.id,_that.name,_that.description,_that.client,_that.address
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String? description,  String? client,  String? address,  double? latitude,  double? longitude,  DateTime? startDate,  DateTime? endDate,  String status,  int employeeCount,  DateTime createdAt,  DateTime? updatedAt,  List<ProjectEmployee> employees)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String? description,  String? customerId,  String? customerName,  String? parentProjectId,  String? parentProjectName,  String kind,  int subProjectCount,  String? address,  double? latitude,  double? longitude,  String? countryCode,  String? shiftStartTime,  DateTime? startDate,  DateTime? endDate,  String status,  double? contractValue,  int employeeCount,  DateTime createdAt,  DateTime? updatedAt,  List<ProjectEmployee> employees)  $default,) {final _that = this;
 switch (_that) {
 case _ProjectDetail():
-return $default(_that.id,_that.name,_that.description,_that.client,_that.address,_that.latitude,_that.longitude,_that.startDate,_that.endDate,_that.status,_that.employeeCount,_that.createdAt,_that.updatedAt,_that.employees);case _:
+return $default(_that.id,_that.name,_that.description,_that.customerId,_that.customerName,_that.parentProjectId,_that.parentProjectName,_that.kind,_that.subProjectCount,_that.address,_that.latitude,_that.longitude,_that.countryCode,_that.shiftStartTime,_that.startDate,_that.endDate,_that.status,_that.contractValue,_that.employeeCount,_that.createdAt,_that.updatedAt,_that.employees);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -506,10 +542,10 @@ return $default(_that.id,_that.name,_that.description,_that.client,_that.address
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String? description,  String? client,  String? address,  double? latitude,  double? longitude,  DateTime? startDate,  DateTime? endDate,  String status,  int employeeCount,  DateTime createdAt,  DateTime? updatedAt,  List<ProjectEmployee> employees)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String? description,  String? customerId,  String? customerName,  String? parentProjectId,  String? parentProjectName,  String kind,  int subProjectCount,  String? address,  double? latitude,  double? longitude,  String? countryCode,  String? shiftStartTime,  DateTime? startDate,  DateTime? endDate,  String status,  double? contractValue,  int employeeCount,  DateTime createdAt,  DateTime? updatedAt,  List<ProjectEmployee> employees)?  $default,) {final _that = this;
 switch (_that) {
 case _ProjectDetail() when $default != null:
-return $default(_that.id,_that.name,_that.description,_that.client,_that.address,_that.latitude,_that.longitude,_that.startDate,_that.endDate,_that.status,_that.employeeCount,_that.createdAt,_that.updatedAt,_that.employees);case _:
+return $default(_that.id,_that.name,_that.description,_that.customerId,_that.customerName,_that.parentProjectId,_that.parentProjectName,_that.kind,_that.subProjectCount,_that.address,_that.latitude,_that.longitude,_that.countryCode,_that.shiftStartTime,_that.startDate,_that.endDate,_that.status,_that.contractValue,_that.employeeCount,_that.createdAt,_that.updatedAt,_that.employees);case _:
   return null;
 
 }
@@ -521,19 +557,27 @@ return $default(_that.id,_that.name,_that.description,_that.client,_that.address
 @JsonSerializable()
 
 class _ProjectDetail extends ProjectDetail {
-  const _ProjectDetail({required this.id, required this.name, this.description, this.client, this.address, this.latitude, this.longitude, this.startDate, this.endDate, required this.status, this.employeeCount = 0, required this.createdAt, this.updatedAt, final  List<ProjectEmployee> employees = const <ProjectEmployee>[]}): _employees = employees,super._();
+  const _ProjectDetail({required this.id, required this.name, this.description, this.customerId, this.customerName, this.parentProjectId, this.parentProjectName, this.kind = 'Main', this.subProjectCount = 0, this.address, this.latitude, this.longitude, this.countryCode, this.shiftStartTime, this.startDate, this.endDate, required this.status, this.contractValue, this.employeeCount = 0, required this.createdAt, this.updatedAt, final  List<ProjectEmployee> employees = const <ProjectEmployee>[]}): _employees = employees,super._();
   factory _ProjectDetail.fromJson(Map<String, dynamic> json) => _$ProjectDetailFromJson(json);
 
 @override final  String id;
 @override final  String name;
 @override final  String? description;
-@override final  String? client;
+@override final  String? customerId;
+@override final  String? customerName;
+@override final  String? parentProjectId;
+@override final  String? parentProjectName;
+@override@JsonKey() final  String kind;
+@override@JsonKey() final  int subProjectCount;
 @override final  String? address;
 @override final  double? latitude;
 @override final  double? longitude;
+@override final  String? countryCode;
+@override final  String? shiftStartTime;
 @override final  DateTime? startDate;
 @override final  DateTime? endDate;
 @override final  String status;
+@override final  double? contractValue;
 @override@JsonKey() final  int employeeCount;
 @override final  DateTime createdAt;
 @override final  DateTime? updatedAt;
@@ -558,16 +602,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProjectDetail&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.client, client) || other.client == client)&&(identical(other.address, address) || other.address == address)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.employeeCount, employeeCount) || other.employeeCount == employeeCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._employees, _employees));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ProjectDetail&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.description, description) || other.description == description)&&(identical(other.customerId, customerId) || other.customerId == customerId)&&(identical(other.customerName, customerName) || other.customerName == customerName)&&(identical(other.parentProjectId, parentProjectId) || other.parentProjectId == parentProjectId)&&(identical(other.parentProjectName, parentProjectName) || other.parentProjectName == parentProjectName)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.subProjectCount, subProjectCount) || other.subProjectCount == subProjectCount)&&(identical(other.address, address) || other.address == address)&&(identical(other.latitude, latitude) || other.latitude == latitude)&&(identical(other.longitude, longitude) || other.longitude == longitude)&&(identical(other.countryCode, countryCode) || other.countryCode == countryCode)&&(identical(other.shiftStartTime, shiftStartTime) || other.shiftStartTime == shiftStartTime)&&(identical(other.startDate, startDate) || other.startDate == startDate)&&(identical(other.endDate, endDate) || other.endDate == endDate)&&(identical(other.status, status) || other.status == status)&&(identical(other.contractValue, contractValue) || other.contractValue == contractValue)&&(identical(other.employeeCount, employeeCount) || other.employeeCount == employeeCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&const DeepCollectionEquality().equals(other._employees, _employees));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,description,client,address,latitude,longitude,startDate,endDate,status,employeeCount,createdAt,updatedAt,const DeepCollectionEquality().hash(_employees));
+int get hashCode => Object.hashAll([runtimeType,id,name,description,customerId,customerName,parentProjectId,parentProjectName,kind,subProjectCount,address,latitude,longitude,countryCode,shiftStartTime,startDate,endDate,status,contractValue,employeeCount,createdAt,updatedAt,const DeepCollectionEquality().hash(_employees)]);
 
 @override
 String toString() {
-  return 'ProjectDetail(id: $id, name: $name, description: $description, client: $client, address: $address, latitude: $latitude, longitude: $longitude, startDate: $startDate, endDate: $endDate, status: $status, employeeCount: $employeeCount, createdAt: $createdAt, updatedAt: $updatedAt, employees: $employees)';
+  return 'ProjectDetail(id: $id, name: $name, description: $description, customerId: $customerId, customerName: $customerName, parentProjectId: $parentProjectId, parentProjectName: $parentProjectName, kind: $kind, subProjectCount: $subProjectCount, address: $address, latitude: $latitude, longitude: $longitude, countryCode: $countryCode, shiftStartTime: $shiftStartTime, startDate: $startDate, endDate: $endDate, status: $status, contractValue: $contractValue, employeeCount: $employeeCount, createdAt: $createdAt, updatedAt: $updatedAt, employees: $employees)';
 }
 
 
@@ -578,7 +622,7 @@ abstract mixin class _$ProjectDetailCopyWith<$Res> implements $ProjectDetailCopy
   factory _$ProjectDetailCopyWith(_ProjectDetail value, $Res Function(_ProjectDetail) _then) = __$ProjectDetailCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String? description, String? client, String? address, double? latitude, double? longitude, DateTime? startDate, DateTime? endDate, String status, int employeeCount, DateTime createdAt, DateTime? updatedAt, List<ProjectEmployee> employees
+ String id, String name, String? description, String? customerId, String? customerName, String? parentProjectId, String? parentProjectName, String kind, int subProjectCount, String? address, double? latitude, double? longitude, String? countryCode, String? shiftStartTime, DateTime? startDate, DateTime? endDate, String status, double? contractValue, int employeeCount, DateTime createdAt, DateTime? updatedAt, List<ProjectEmployee> employees
 });
 
 
@@ -595,19 +639,27 @@ class __$ProjectDetailCopyWithImpl<$Res>
 
 /// Create a copy of ProjectDetail
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? description = freezed,Object? client = freezed,Object? address = freezed,Object? latitude = freezed,Object? longitude = freezed,Object? startDate = freezed,Object? endDate = freezed,Object? status = null,Object? employeeCount = null,Object? createdAt = null,Object? updatedAt = freezed,Object? employees = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? description = freezed,Object? customerId = freezed,Object? customerName = freezed,Object? parentProjectId = freezed,Object? parentProjectName = freezed,Object? kind = null,Object? subProjectCount = null,Object? address = freezed,Object? latitude = freezed,Object? longitude = freezed,Object? countryCode = freezed,Object? shiftStartTime = freezed,Object? startDate = freezed,Object? endDate = freezed,Object? status = null,Object? contractValue = freezed,Object? employeeCount = null,Object? createdAt = null,Object? updatedAt = freezed,Object? employees = null,}) {
   return _then(_ProjectDetail(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String?,client: freezed == client ? _self.client : client // ignore: cast_nullable_to_non_nullable
-as String?,address: freezed == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
+as String?,customerId: freezed == customerId ? _self.customerId : customerId // ignore: cast_nullable_to_non_nullable
+as String?,customerName: freezed == customerName ? _self.customerName : customerName // ignore: cast_nullable_to_non_nullable
+as String?,parentProjectId: freezed == parentProjectId ? _self.parentProjectId : parentProjectId // ignore: cast_nullable_to_non_nullable
+as String?,parentProjectName: freezed == parentProjectName ? _self.parentProjectName : parentProjectName // ignore: cast_nullable_to_non_nullable
+as String?,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
+as String,subProjectCount: null == subProjectCount ? _self.subProjectCount : subProjectCount // ignore: cast_nullable_to_non_nullable
+as int,address: freezed == address ? _self.address : address // ignore: cast_nullable_to_non_nullable
 as String?,latitude: freezed == latitude ? _self.latitude : latitude // ignore: cast_nullable_to_non_nullable
 as double?,longitude: freezed == longitude ? _self.longitude : longitude // ignore: cast_nullable_to_non_nullable
-as double?,startDate: freezed == startDate ? _self.startDate : startDate // ignore: cast_nullable_to_non_nullable
+as double?,countryCode: freezed == countryCode ? _self.countryCode : countryCode // ignore: cast_nullable_to_non_nullable
+as String?,shiftStartTime: freezed == shiftStartTime ? _self.shiftStartTime : shiftStartTime // ignore: cast_nullable_to_non_nullable
+as String?,startDate: freezed == startDate ? _self.startDate : startDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,endDate: freezed == endDate ? _self.endDate : endDate // ignore: cast_nullable_to_non_nullable
 as DateTime?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as String,employeeCount: null == employeeCount ? _self.employeeCount : employeeCount // ignore: cast_nullable_to_non_nullable
+as String,contractValue: freezed == contractValue ? _self.contractValue : contractValue // ignore: cast_nullable_to_non_nullable
+as double?,employeeCount: null == employeeCount ? _self.employeeCount : employeeCount // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,employees: null == employees ? _self._employees : employees // ignore: cast_nullable_to_non_nullable

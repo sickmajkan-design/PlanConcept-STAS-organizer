@@ -58,6 +58,9 @@ export const config = {
 
   /** How often the live map re-reads employee positions. */
   liveMapRefreshMs: 30_000,
+
+  /** How often the Work Time board re-reads today's clock-ins/outs. */
+  workTimeRefreshMs: 15_000,
 } as const;
 
 export const hasGoogleMapsKey = config.googleMapsApiKey.length > 0;

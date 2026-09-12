@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Notifications.Services;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
 using FluentValidation;
@@ -195,7 +196,7 @@ public class ProcessOutboxCommandHandler
                 var email = Deserialize<EmailPayload>(message);
 
                 await _emailSender.SendAsync(
-                    email.To, email.Subject, email.HtmlBody, cancellationToken);
+                    email.To, email.Subject, email.HtmlBody, email.Attachment, cancellationToken);
                 break;
 
             case OutboxMessageType.Push:
@@ -216,13 +217,17 @@ public class ProcessOutboxCommandHandler
     private async Task SendPushAsync(PushPayload push, CancellationToken cancellationToken)
     {
         // Resolved now rather than at enqueue time: on a retry an hour later,
-        // a frozen token list could be devices that no longer exist.
-        var tokens = await _context.DeviceTokens
+        // a frozen token list could be devices that no longer exist. The
+        // owning user's language rides along so each device gets text in the
+        // language that user picked — the one thing the in-app inbox's own
+        // client-side rendering cannot do for a banner shown before the app
+        // is even open.
+        var tokensByLanguage = await _context.DeviceTokens
             .Where(t => push.UserIds.Contains(t.UserId))
-            .Select(t => t.Token)
+            .Select(t => new { t.Token, t.User.PreferredLanguage })
             .ToListAsync(cancellationToken);
 
-        if (tokens.Count == 0)
+        if (tokensByLanguage.Count == 0)
         {
             // Nobody has a device registered. Delivered as far as this system
             // is concerned — the inbox row was written when the notification
@@ -235,18 +240,32 @@ public class ProcessOutboxCommandHandler
             ["notificationType"] = push.Type.ToString(),
         };
 
-        var result = await _pushSender.SendAsync(
-            tokens, push.Title, push.Body, data, cancellationToken);
+        var invalidTokens = new List<string>();
 
-        if (result.InvalidTokens.Count > 0)
+        // Grouped so a mixed-language crew (a Serbian-reading foreman and an
+        // English-reading admin on the same notification) each get their own
+        // FCM call with their own rendered text, rather than one call that
+        // could only pick one language for everybody.
+        foreach (var group in tokensByLanguage.GroupBy(t => t.PreferredLanguage))
+        {
+            var (title, body) = PushTextResolver.Resolve(
+                push.Type, push.Title, push.Body, push.Data, group.Key);
+
+            var result = await _pushSender.SendAsync(
+                group.Select(g => g.Token).ToList(), title, body, data, cancellationToken);
+
+            invalidTokens.AddRange(result.InvalidTokens);
+        }
+
+        if (invalidTokens.Count > 0)
         {
             await _context.DeviceTokens
-                .Where(t => result.InvalidTokens.Contains(t.Token))
+                .Where(t => invalidTokens.Contains(t.Token))
                 .ExecuteDeleteAsync(cancellationToken);
 
             _logger.LogInformation(
                 "Pruned {Count} invalid device token(s) after push.",
-                result.InvalidTokens.Count);
+                invalidTokens.Count);
         }
     }
 

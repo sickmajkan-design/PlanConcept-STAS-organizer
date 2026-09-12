@@ -31,39 +31,52 @@ class AcknowledgmentBanner extends ConsumerWidget {
         bottom: false,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.priority_high, size: 20, color: scheme.onErrorContainer),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      context.l10n.ackBannerHeading,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: scheme.onErrorContainer,
-                            fontWeight: FontWeight.w700,
-                          ),
+              Row(
+                children: [
+                  Icon(Icons.priority_high, size: 20, color: scheme.onErrorContainer),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          context.l10n.ackBannerHeading,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                color: scheme.onErrorContainer,
+                                fontWeight: FontWeight.w700,
+                              ),
+                        ),
+                        Text(
+                          notification.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: scheme.onErrorContainer,
+                              ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      notification.title,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: scheme.onErrorContainer,
-                          ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              FilledButton(
-                onPressed: acknowledging
-                    ? null
-                    : () => ref
-                        .read(acknowledgeControllerProvider.notifier)
-                        .acknowledge(notification.id),
-                child: Text(context.l10n.ackConfirmButton),
+              const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: FilledButton(
+                  onPressed: acknowledging
+                      ? null
+                      : () => ref
+                          .read(acknowledgeControllerProvider.notifier)
+                          .acknowledge(notification.id),
+                  child: Text(context.l10n.ackConfirmButton),
+                ),
               ),
             ],
           ),

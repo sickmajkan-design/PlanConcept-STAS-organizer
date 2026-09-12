@@ -18,6 +18,12 @@ public class UserDto
     public string? LastName { get; init; }
 
     public DateTime? LastLoginAt { get; init; }
+
+    /// <summary>Whether this account may see a customer's tax ID, registration number and VAT number.</summary>
+    public bool CanViewCustomerTaxDetails { get; init; }
+
+    /// <summary>ISO 639-1 code the account's push notifications render in. Null means unset.</summary>
+    public string? PreferredLanguage { get; init; }
 }
 
 /// <summary>
@@ -41,6 +47,8 @@ public static class UserMapping
             FirstName = user.Employee != null ? user.Employee.FirstName : null,
             LastName = user.Employee != null ? user.Employee.LastName : null,
             LastLoginAt = user.LastLoginAt,
+            CanViewCustomerTaxDetails = user.CanViewCustomerTaxDetails,
+            PreferredLanguage = user.PreferredLanguage,
         };
 
     private static readonly Func<User, UserDto> Compiled = Projection.Compile();

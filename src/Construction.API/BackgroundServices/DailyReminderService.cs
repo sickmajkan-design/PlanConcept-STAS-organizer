@@ -1,7 +1,10 @@
 using System.Diagnostics;
 using Construction.API.Observability;
 using Construction.Application.Features.Attachments.Commands.SendExpiryReminders;
+using Construction.Application.Features.Attachments.Commands.SendRetentionEndedReminders;
+using Construction.Application.Features.ScheduledReports.Commands.SendScheduledReports;
 using Construction.Application.Features.TimeEntries.Commands.AutoCloseStaleShifts;
+using Construction.Application.Features.WeeklySiteReports.Commands.SendWeeklyReportReminders;
 using Construction.Application.Features.WorkItems.Commands.SendDueReminders;
 using MediatR;
 
@@ -9,7 +12,8 @@ namespace Construction.API.BackgroundServices;
 
 /// <summary>
 /// Runs the daily reminder sweeps: documents about to lapse, work about to
-/// fall due, and shifts nobody clocked out of.
+/// fall due, shifts nobody clocked out of, and any scheduled report due to
+/// go out.
 /// </summary>
 /// <remarks>
 /// A hosted service rather than a scheduling library. The product has exactly
@@ -88,6 +92,17 @@ public class DailyReminderService : BackgroundService
                     "Sent expiry reminders for {Count} document(s).", documents);
             }
 
+            var retentionEnded = await mediator.Send(
+                new SendRetentionEndedRemindersCommand(), cancellationToken);
+
+            _metrics.RemindersSent("document-retention-ended", retentionEnded);
+
+            if (retentionEnded > 0)
+            {
+                _logger.LogInformation(
+                    "Sent retention-ended reminders for {Count} document(s).", retentionEnded);
+            }
+
             var work = await mediator.Send(
                 new SendDueRemindersCommand(), cancellationToken);
 
@@ -108,6 +123,28 @@ public class DailyReminderService : BackgroundService
             {
                 _logger.LogInformation(
                     "Auto-closed {Count} shift(s) left open past their day.", closed);
+            }
+
+            var reports = await mediator.Send(
+                new SendScheduledReportsCommand(), cancellationToken);
+
+            _metrics.RemindersSent("scheduled-reports", reports);
+
+            if (reports > 0)
+            {
+                _logger.LogInformation(
+                    "Queued {Count} scheduled report(s).", reports);
+            }
+
+            var weeklyReportReminders = await mediator.Send(
+                new SendWeeklyReportRemindersCommand(), cancellationToken);
+
+            _metrics.RemindersSent("weekly-report-due", weeklyReportReminders);
+
+            if (weeklyReportReminders > 0)
+            {
+                _logger.LogInformation(
+                    "Sent {Count} weekly-report reminder(s).", weeklyReportReminders);
             }
         }
         catch (OperationCanceledException)

@@ -15,7 +15,10 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Tool {
 
- String get id; String get name; String? get category; String? get serialNumber; String? get qrCode; String get status; String? get assignedEmployeeId; String? get assignedEmployeeName; String? get assignedEmployeeNumber; String? get assignedProjectId; String? get assignedProjectName; DateTime get createdAt; DateTime? get updatedAt;
+ String get id; String get name; String? get category; String? get serialNumber; String? get qrCode; String get status;/// `"Owned"` or `"Rented"`.
+ String get ownershipType;/// Set when a rental/lease rate is currently in force. Null for an owned
+/// tool, or one with no rate on file.
+ double? get currentRentalMonthlyAmount; String? get currentRentalProvider; String? get assignedEmployeeId; String? get assignedEmployeeName; String? get assignedEmployeeNumber; String? get assignedProjectId; String? get assignedProjectName; DateTime get createdAt; DateTime? get updatedAt;
 /// Create a copy of Tool
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +31,16 @@ $ToolCopyWith<Tool> get copyWith => _$ToolCopyWithImpl<Tool>(this as Tool, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Tool&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.category, category) || other.category == category)&&(identical(other.serialNumber, serialNumber) || other.serialNumber == serialNumber)&&(identical(other.qrCode, qrCode) || other.qrCode == qrCode)&&(identical(other.status, status) || other.status == status)&&(identical(other.assignedEmployeeId, assignedEmployeeId) || other.assignedEmployeeId == assignedEmployeeId)&&(identical(other.assignedEmployeeName, assignedEmployeeName) || other.assignedEmployeeName == assignedEmployeeName)&&(identical(other.assignedEmployeeNumber, assignedEmployeeNumber) || other.assignedEmployeeNumber == assignedEmployeeNumber)&&(identical(other.assignedProjectId, assignedProjectId) || other.assignedProjectId == assignedProjectId)&&(identical(other.assignedProjectName, assignedProjectName) || other.assignedProjectName == assignedProjectName)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Tool&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.category, category) || other.category == category)&&(identical(other.serialNumber, serialNumber) || other.serialNumber == serialNumber)&&(identical(other.qrCode, qrCode) || other.qrCode == qrCode)&&(identical(other.status, status) || other.status == status)&&(identical(other.ownershipType, ownershipType) || other.ownershipType == ownershipType)&&(identical(other.currentRentalMonthlyAmount, currentRentalMonthlyAmount) || other.currentRentalMonthlyAmount == currentRentalMonthlyAmount)&&(identical(other.currentRentalProvider, currentRentalProvider) || other.currentRentalProvider == currentRentalProvider)&&(identical(other.assignedEmployeeId, assignedEmployeeId) || other.assignedEmployeeId == assignedEmployeeId)&&(identical(other.assignedEmployeeName, assignedEmployeeName) || other.assignedEmployeeName == assignedEmployeeName)&&(identical(other.assignedEmployeeNumber, assignedEmployeeNumber) || other.assignedEmployeeNumber == assignedEmployeeNumber)&&(identical(other.assignedProjectId, assignedProjectId) || other.assignedProjectId == assignedProjectId)&&(identical(other.assignedProjectName, assignedProjectName) || other.assignedProjectName == assignedProjectName)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,category,serialNumber,qrCode,status,assignedEmployeeId,assignedEmployeeName,assignedEmployeeNumber,assignedProjectId,assignedProjectName,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,name,category,serialNumber,qrCode,status,ownershipType,currentRentalMonthlyAmount,currentRentalProvider,assignedEmployeeId,assignedEmployeeName,assignedEmployeeNumber,assignedProjectId,assignedProjectName,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'Tool(id: $id, name: $name, category: $category, serialNumber: $serialNumber, qrCode: $qrCode, status: $status, assignedEmployeeId: $assignedEmployeeId, assignedEmployeeName: $assignedEmployeeName, assignedEmployeeNumber: $assignedEmployeeNumber, assignedProjectId: $assignedProjectId, assignedProjectName: $assignedProjectName, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Tool(id: $id, name: $name, category: $category, serialNumber: $serialNumber, qrCode: $qrCode, status: $status, ownershipType: $ownershipType, currentRentalMonthlyAmount: $currentRentalMonthlyAmount, currentRentalProvider: $currentRentalProvider, assignedEmployeeId: $assignedEmployeeId, assignedEmployeeName: $assignedEmployeeName, assignedEmployeeNumber: $assignedEmployeeNumber, assignedProjectId: $assignedProjectId, assignedProjectName: $assignedProjectName, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -48,7 +51,7 @@ abstract mixin class $ToolCopyWith<$Res>  {
   factory $ToolCopyWith(Tool value, $Res Function(Tool) _then) = _$ToolCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String? category, String? serialNumber, String? qrCode, String status, String? assignedEmployeeId, String? assignedEmployeeName, String? assignedEmployeeNumber, String? assignedProjectId, String? assignedProjectName, DateTime createdAt, DateTime? updatedAt
+ String id, String name, String? category, String? serialNumber, String? qrCode, String status, String ownershipType, double? currentRentalMonthlyAmount, String? currentRentalProvider, String? assignedEmployeeId, String? assignedEmployeeName, String? assignedEmployeeNumber, String? assignedProjectId, String? assignedProjectName, DateTime createdAt, DateTime? updatedAt
 });
 
 
@@ -65,7 +68,7 @@ class _$ToolCopyWithImpl<$Res>
 
 /// Create a copy of Tool
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? category = freezed,Object? serialNumber = freezed,Object? qrCode = freezed,Object? status = null,Object? assignedEmployeeId = freezed,Object? assignedEmployeeName = freezed,Object? assignedEmployeeNumber = freezed,Object? assignedProjectId = freezed,Object? assignedProjectName = freezed,Object? createdAt = null,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? category = freezed,Object? serialNumber = freezed,Object? qrCode = freezed,Object? status = null,Object? ownershipType = null,Object? currentRentalMonthlyAmount = freezed,Object? currentRentalProvider = freezed,Object? assignedEmployeeId = freezed,Object? assignedEmployeeName = freezed,Object? assignedEmployeeNumber = freezed,Object? assignedProjectId = freezed,Object? assignedProjectName = freezed,Object? createdAt = null,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -73,7 +76,10 @@ as String,category: freezed == category ? _self.category : category // ignore: c
 as String?,serialNumber: freezed == serialNumber ? _self.serialNumber : serialNumber // ignore: cast_nullable_to_non_nullable
 as String?,qrCode: freezed == qrCode ? _self.qrCode : qrCode // ignore: cast_nullable_to_non_nullable
 as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as String,assignedEmployeeId: freezed == assignedEmployeeId ? _self.assignedEmployeeId : assignedEmployeeId // ignore: cast_nullable_to_non_nullable
+as String,ownershipType: null == ownershipType ? _self.ownershipType : ownershipType // ignore: cast_nullable_to_non_nullable
+as String,currentRentalMonthlyAmount: freezed == currentRentalMonthlyAmount ? _self.currentRentalMonthlyAmount : currentRentalMonthlyAmount // ignore: cast_nullable_to_non_nullable
+as double?,currentRentalProvider: freezed == currentRentalProvider ? _self.currentRentalProvider : currentRentalProvider // ignore: cast_nullable_to_non_nullable
+as String?,assignedEmployeeId: freezed == assignedEmployeeId ? _self.assignedEmployeeId : assignedEmployeeId // ignore: cast_nullable_to_non_nullable
 as String?,assignedEmployeeName: freezed == assignedEmployeeName ? _self.assignedEmployeeName : assignedEmployeeName // ignore: cast_nullable_to_non_nullable
 as String?,assignedEmployeeNumber: freezed == assignedEmployeeNumber ? _self.assignedEmployeeNumber : assignedEmployeeNumber // ignore: cast_nullable_to_non_nullable
 as String?,assignedProjectId: freezed == assignedProjectId ? _self.assignedProjectId : assignedProjectId // ignore: cast_nullable_to_non_nullable
@@ -165,10 +171,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String? category,  String? serialNumber,  String? qrCode,  String status,  String? assignedEmployeeId,  String? assignedEmployeeName,  String? assignedEmployeeNumber,  String? assignedProjectId,  String? assignedProjectName,  DateTime createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String? category,  String? serialNumber,  String? qrCode,  String status,  String ownershipType,  double? currentRentalMonthlyAmount,  String? currentRentalProvider,  String? assignedEmployeeId,  String? assignedEmployeeName,  String? assignedEmployeeNumber,  String? assignedProjectId,  String? assignedProjectName,  DateTime createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Tool() when $default != null:
-return $default(_that.id,_that.name,_that.category,_that.serialNumber,_that.qrCode,_that.status,_that.assignedEmployeeId,_that.assignedEmployeeName,_that.assignedEmployeeNumber,_that.assignedProjectId,_that.assignedProjectName,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.name,_that.category,_that.serialNumber,_that.qrCode,_that.status,_that.ownershipType,_that.currentRentalMonthlyAmount,_that.currentRentalProvider,_that.assignedEmployeeId,_that.assignedEmployeeName,_that.assignedEmployeeNumber,_that.assignedProjectId,_that.assignedProjectName,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -186,10 +192,10 @@ return $default(_that.id,_that.name,_that.category,_that.serialNumber,_that.qrCo
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String? category,  String? serialNumber,  String? qrCode,  String status,  String? assignedEmployeeId,  String? assignedEmployeeName,  String? assignedEmployeeNumber,  String? assignedProjectId,  String? assignedProjectName,  DateTime createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String? category,  String? serialNumber,  String? qrCode,  String status,  String ownershipType,  double? currentRentalMonthlyAmount,  String? currentRentalProvider,  String? assignedEmployeeId,  String? assignedEmployeeName,  String? assignedEmployeeNumber,  String? assignedProjectId,  String? assignedProjectName,  DateTime createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Tool():
-return $default(_that.id,_that.name,_that.category,_that.serialNumber,_that.qrCode,_that.status,_that.assignedEmployeeId,_that.assignedEmployeeName,_that.assignedEmployeeNumber,_that.assignedProjectId,_that.assignedProjectName,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.name,_that.category,_that.serialNumber,_that.qrCode,_that.status,_that.ownershipType,_that.currentRentalMonthlyAmount,_that.currentRentalProvider,_that.assignedEmployeeId,_that.assignedEmployeeName,_that.assignedEmployeeNumber,_that.assignedProjectId,_that.assignedProjectName,_that.createdAt,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -206,10 +212,10 @@ return $default(_that.id,_that.name,_that.category,_that.serialNumber,_that.qrCo
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String? category,  String? serialNumber,  String? qrCode,  String status,  String? assignedEmployeeId,  String? assignedEmployeeName,  String? assignedEmployeeNumber,  String? assignedProjectId,  String? assignedProjectName,  DateTime createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String? category,  String? serialNumber,  String? qrCode,  String status,  String ownershipType,  double? currentRentalMonthlyAmount,  String? currentRentalProvider,  String? assignedEmployeeId,  String? assignedEmployeeName,  String? assignedEmployeeNumber,  String? assignedProjectId,  String? assignedProjectName,  DateTime createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Tool() when $default != null:
-return $default(_that.id,_that.name,_that.category,_that.serialNumber,_that.qrCode,_that.status,_that.assignedEmployeeId,_that.assignedEmployeeName,_that.assignedEmployeeNumber,_that.assignedProjectId,_that.assignedProjectName,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.name,_that.category,_that.serialNumber,_that.qrCode,_that.status,_that.ownershipType,_that.currentRentalMonthlyAmount,_that.currentRentalProvider,_that.assignedEmployeeId,_that.assignedEmployeeName,_that.assignedEmployeeNumber,_that.assignedProjectId,_that.assignedProjectName,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -221,7 +227,7 @@ return $default(_that.id,_that.name,_that.category,_that.serialNumber,_that.qrCo
 @JsonSerializable()
 
 class _Tool extends Tool {
-  const _Tool({required this.id, required this.name, this.category, this.serialNumber, this.qrCode, required this.status, this.assignedEmployeeId, this.assignedEmployeeName, this.assignedEmployeeNumber, this.assignedProjectId, this.assignedProjectName, required this.createdAt, this.updatedAt}): super._();
+  const _Tool({required this.id, required this.name, this.category, this.serialNumber, this.qrCode, required this.status, this.ownershipType = 'Owned', this.currentRentalMonthlyAmount, this.currentRentalProvider, this.assignedEmployeeId, this.assignedEmployeeName, this.assignedEmployeeNumber, this.assignedProjectId, this.assignedProjectName, required this.createdAt, this.updatedAt}): super._();
   factory _Tool.fromJson(Map<String, dynamic> json) => _$ToolFromJson(json);
 
 @override final  String id;
@@ -230,6 +236,12 @@ class _Tool extends Tool {
 @override final  String? serialNumber;
 @override final  String? qrCode;
 @override final  String status;
+/// `"Owned"` or `"Rented"`.
+@override@JsonKey() final  String ownershipType;
+/// Set when a rental/lease rate is currently in force. Null for an owned
+/// tool, or one with no rate on file.
+@override final  double? currentRentalMonthlyAmount;
+@override final  String? currentRentalProvider;
 @override final  String? assignedEmployeeId;
 @override final  String? assignedEmployeeName;
 @override final  String? assignedEmployeeNumber;
@@ -251,16 +263,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Tool&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.category, category) || other.category == category)&&(identical(other.serialNumber, serialNumber) || other.serialNumber == serialNumber)&&(identical(other.qrCode, qrCode) || other.qrCode == qrCode)&&(identical(other.status, status) || other.status == status)&&(identical(other.assignedEmployeeId, assignedEmployeeId) || other.assignedEmployeeId == assignedEmployeeId)&&(identical(other.assignedEmployeeName, assignedEmployeeName) || other.assignedEmployeeName == assignedEmployeeName)&&(identical(other.assignedEmployeeNumber, assignedEmployeeNumber) || other.assignedEmployeeNumber == assignedEmployeeNumber)&&(identical(other.assignedProjectId, assignedProjectId) || other.assignedProjectId == assignedProjectId)&&(identical(other.assignedProjectName, assignedProjectName) || other.assignedProjectName == assignedProjectName)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Tool&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.category, category) || other.category == category)&&(identical(other.serialNumber, serialNumber) || other.serialNumber == serialNumber)&&(identical(other.qrCode, qrCode) || other.qrCode == qrCode)&&(identical(other.status, status) || other.status == status)&&(identical(other.ownershipType, ownershipType) || other.ownershipType == ownershipType)&&(identical(other.currentRentalMonthlyAmount, currentRentalMonthlyAmount) || other.currentRentalMonthlyAmount == currentRentalMonthlyAmount)&&(identical(other.currentRentalProvider, currentRentalProvider) || other.currentRentalProvider == currentRentalProvider)&&(identical(other.assignedEmployeeId, assignedEmployeeId) || other.assignedEmployeeId == assignedEmployeeId)&&(identical(other.assignedEmployeeName, assignedEmployeeName) || other.assignedEmployeeName == assignedEmployeeName)&&(identical(other.assignedEmployeeNumber, assignedEmployeeNumber) || other.assignedEmployeeNumber == assignedEmployeeNumber)&&(identical(other.assignedProjectId, assignedProjectId) || other.assignedProjectId == assignedProjectId)&&(identical(other.assignedProjectName, assignedProjectName) || other.assignedProjectName == assignedProjectName)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,category,serialNumber,qrCode,status,assignedEmployeeId,assignedEmployeeName,assignedEmployeeNumber,assignedProjectId,assignedProjectName,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,name,category,serialNumber,qrCode,status,ownershipType,currentRentalMonthlyAmount,currentRentalProvider,assignedEmployeeId,assignedEmployeeName,assignedEmployeeNumber,assignedProjectId,assignedProjectName,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'Tool(id: $id, name: $name, category: $category, serialNumber: $serialNumber, qrCode: $qrCode, status: $status, assignedEmployeeId: $assignedEmployeeId, assignedEmployeeName: $assignedEmployeeName, assignedEmployeeNumber: $assignedEmployeeNumber, assignedProjectId: $assignedProjectId, assignedProjectName: $assignedProjectName, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Tool(id: $id, name: $name, category: $category, serialNumber: $serialNumber, qrCode: $qrCode, status: $status, ownershipType: $ownershipType, currentRentalMonthlyAmount: $currentRentalMonthlyAmount, currentRentalProvider: $currentRentalProvider, assignedEmployeeId: $assignedEmployeeId, assignedEmployeeName: $assignedEmployeeName, assignedEmployeeNumber: $assignedEmployeeNumber, assignedProjectId: $assignedProjectId, assignedProjectName: $assignedProjectName, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -271,7 +283,7 @@ abstract mixin class _$ToolCopyWith<$Res> implements $ToolCopyWith<$Res> {
   factory _$ToolCopyWith(_Tool value, $Res Function(_Tool) _then) = __$ToolCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String? category, String? serialNumber, String? qrCode, String status, String? assignedEmployeeId, String? assignedEmployeeName, String? assignedEmployeeNumber, String? assignedProjectId, String? assignedProjectName, DateTime createdAt, DateTime? updatedAt
+ String id, String name, String? category, String? serialNumber, String? qrCode, String status, String ownershipType, double? currentRentalMonthlyAmount, String? currentRentalProvider, String? assignedEmployeeId, String? assignedEmployeeName, String? assignedEmployeeNumber, String? assignedProjectId, String? assignedProjectName, DateTime createdAt, DateTime? updatedAt
 });
 
 
@@ -288,7 +300,7 @@ class __$ToolCopyWithImpl<$Res>
 
 /// Create a copy of Tool
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? category = freezed,Object? serialNumber = freezed,Object? qrCode = freezed,Object? status = null,Object? assignedEmployeeId = freezed,Object? assignedEmployeeName = freezed,Object? assignedEmployeeNumber = freezed,Object? assignedProjectId = freezed,Object? assignedProjectName = freezed,Object? createdAt = null,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? category = freezed,Object? serialNumber = freezed,Object? qrCode = freezed,Object? status = null,Object? ownershipType = null,Object? currentRentalMonthlyAmount = freezed,Object? currentRentalProvider = freezed,Object? assignedEmployeeId = freezed,Object? assignedEmployeeName = freezed,Object? assignedEmployeeNumber = freezed,Object? assignedProjectId = freezed,Object? assignedProjectName = freezed,Object? createdAt = null,Object? updatedAt = freezed,}) {
   return _then(_Tool(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -296,7 +308,10 @@ as String,category: freezed == category ? _self.category : category // ignore: c
 as String?,serialNumber: freezed == serialNumber ? _self.serialNumber : serialNumber // ignore: cast_nullable_to_non_nullable
 as String?,qrCode: freezed == qrCode ? _self.qrCode : qrCode // ignore: cast_nullable_to_non_nullable
 as String?,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
-as String,assignedEmployeeId: freezed == assignedEmployeeId ? _self.assignedEmployeeId : assignedEmployeeId // ignore: cast_nullable_to_non_nullable
+as String,ownershipType: null == ownershipType ? _self.ownershipType : ownershipType // ignore: cast_nullable_to_non_nullable
+as String,currentRentalMonthlyAmount: freezed == currentRentalMonthlyAmount ? _self.currentRentalMonthlyAmount : currentRentalMonthlyAmount // ignore: cast_nullable_to_non_nullable
+as double?,currentRentalProvider: freezed == currentRentalProvider ? _self.currentRentalProvider : currentRentalProvider // ignore: cast_nullable_to_non_nullable
+as String?,assignedEmployeeId: freezed == assignedEmployeeId ? _self.assignedEmployeeId : assignedEmployeeId // ignore: cast_nullable_to_non_nullable
 as String?,assignedEmployeeName: freezed == assignedEmployeeName ? _self.assignedEmployeeName : assignedEmployeeName // ignore: cast_nullable_to_non_nullable
 as String?,assignedEmployeeNumber: freezed == assignedEmployeeNumber ? _self.assignedEmployeeNumber : assignedEmployeeNumber // ignore: cast_nullable_to_non_nullable
 as String?,assignedProjectId: freezed == assignedProjectId ? _self.assignedProjectId : assignedProjectId // ignore: cast_nullable_to_non_nullable

@@ -23,7 +23,12 @@ public class SmtpEmailSender : IEmailSender
         _logger = logger;
     }
 
-    public async Task SendAsync(string to, string subject, string htmlBody, CancellationToken cancellationToken = default)
+    public async Task SendAsync(
+        string to,
+        string subject,
+        string htmlBody,
+        EmailAttachment? attachment = null,
+        CancellationToken cancellationToken = default)
     {
         if (!_settings.IsConfigured)
         {
@@ -41,7 +46,18 @@ public class SmtpEmailSender : IEmailSender
         message.From.Add(new MailboxAddress(_settings.FromName, _settings.FromAddress));
         message.To.Add(MailboxAddress.Parse(to));
         message.Subject = subject;
-        message.Body = new BodyBuilder { HtmlBody = htmlBody }.ToMessageBody();
+
+        var bodyBuilder = new BodyBuilder { HtmlBody = htmlBody };
+
+        if (attachment is not null)
+        {
+            bodyBuilder.Attachments.Add(
+                attachment.FileName,
+                attachment.Content,
+                MimeKit.ContentType.Parse(attachment.ContentType));
+        }
+
+        message.Body = bodyBuilder.ToMessageBody();
 
         using var client = new SmtpClient();
 

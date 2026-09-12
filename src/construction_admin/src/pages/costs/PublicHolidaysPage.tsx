@@ -10,9 +10,13 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
   Grid,
   IconButton,
+  InputLabel,
+  MenuItem,
   Paper,
+  Select,
   Stack,
   Table,
   TableBody,
@@ -30,6 +34,7 @@ import { toApiError } from '../../api/apiError';
 import type { PublicHoliday, PublicHolidayCandidate } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
+import { COUNTRIES, countryLabel, resolveCountryCode } from '../../data/countries';
 import {
   useCreatePublicHoliday,
   useDeletePublicHoliday,
@@ -41,31 +46,15 @@ import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useT } from '../../i18n/useI18n';
 import { formatDate } from '../../utils/formatting';
 
-/**
- * The markets this company actually operates in (Bosnia and neighbours, plus
- * Germany/Austria/Switzerland for projects like "Roche Penzberg"). Not
- * exhaustive — the source API covers ~100 countries — so the picker also
- * takes free text for anything else, rather than shipping the full list for
- * a construction firm that needs a handful of them.
- */
-const COMMON_COUNTRIES = [
-  { code: 'BA', label: 'Bosna i Hercegovina' },
-  { code: 'RS', label: 'Srbija' },
-  { code: 'HR', label: 'Hrvatska' },
-  { code: 'ME', label: 'Crna Gora' },
-  { code: 'SI', label: 'Slovenija' },
-  { code: 'MK', label: 'Sjeverna Makedonija' },
-  { code: 'DE', label: 'Njemačka' },
-  { code: 'AT', label: 'Austrija' },
-  { code: 'CH', label: 'Švicarska' },
-];
-
 type SortField = 'date' | 'name';
 type SortDirection = 'asc' | 'desc';
 
 export function PublicHolidaysPage() {
   const t = useT();
-  const { data, isLoading } = usePublicHolidaysQuery();
+  const [countryFilter, setCountryFilter] = useState('');
+  const { data, isLoading } = usePublicHolidaysQuery(
+    countryFilter ? { countryCode: countryFilter } : {},
+  );
   const remove = useDeleteWithConfirm<PublicHoliday>(useDeletePublicHoliday());
   const [adding, setAdding] = useState(false);
   const [syncing, setSyncing] = useState(false);
@@ -107,7 +96,25 @@ export function PublicHolidaysPage() {
         }}
       />
 
-      <Stack direction="row" sx={{ justifyContent: 'flex-end', mb: 2 }}>
+      <Stack direction="row" spacing={2} sx={{ justifyContent: 'space-between', mb: 2 }}>
+        <FormControl size="small" sx={{ minWidth: 220 }}>
+          <InputLabel id="holiday-country-filter-label">{t('publicHolidays.country')}</InputLabel>
+          <Select
+            labelId="holiday-country-filter-label"
+            label={t('publicHolidays.country')}
+            value={countryFilter}
+            onChange={(event) => setCountryFilter(event.target.value)}
+          >
+            <MenuItem value="">
+              <em>{t('common.all')}</em>
+            </MenuItem>
+            {COUNTRIES.map((country) => (
+              <MenuItem key={country.code} value={country.code}>
+                {country.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
         <Button
           variant="outlined"
           startIcon={<CloudSyncOutlined />}
@@ -139,6 +146,7 @@ export function PublicHolidaysPage() {
                   {t('publicHolidays.name')}
                 </TableSortLabel>
               </TableCell>
+              <TableCell>{t('publicHolidays.country')}</TableCell>
               <TableCell align="right" />
             </TableRow>
           </TableHead>
@@ -147,6 +155,9 @@ export function PublicHolidaysPage() {
               <TableRow key={holiday.id} hover>
                 <TableCell>{formatDate(holiday.date)}</TableCell>
                 <TableCell>{holiday.name}</TableCell>
+                <TableCell>
+                  <Chip size="small" variant="outlined" label={countryLabel(holiday.countryCode)} />
+                </TableCell>
                 <TableCell align="right">
                   <Tooltip title={t('common.delete')}>
                     <IconButton size="small" onClick={() => remove.request(holiday)}>
@@ -159,7 +170,7 @@ export function PublicHolidaysPage() {
 
             {sortedRows.length === 0 && !isLoading && (
               <TableRow>
-                <TableCell colSpan={3}>
+                <TableCell colSpan={4}>
                   <Typography variant="body2" color="text.secondary">
                     {t('publicHolidays.empty')}
                   </Typography>
@@ -205,6 +216,7 @@ function AddHolidayDialog({ open, onClose }: { open: boolean; onClose: () => voi
 
   const [date, setDate] = useState('');
   const [name, setName] = useState('');
+  const [countryInput, setCountryInput] = useState('');
 
   const reset = create.reset;
 
@@ -212,11 +224,13 @@ function AddHolidayDialog({ open, onClose }: { open: boolean; onClose: () => voi
     if (open) {
       setDate('');
       setName('');
+      setCountryInput('');
       reset();
     }
   }, [open, reset]);
 
-  const canSubmit = date !== '' && name.trim() !== '';
+  const countryCode = resolveCountryCode(countryInput);
+  const canSubmit = date !== '' && name.trim() !== '' && !!countryCode;
   const error = create.isError ? toApiError(create.error) : null;
 
   return (
@@ -249,6 +263,23 @@ function AddHolidayDialog({ open, onClose }: { open: boolean; onClose: () => voi
               onChange={(event) => setName(event.target.value)}
             />
           </Grid>
+
+          <Grid size={12}>
+            <Autocomplete
+              freeSolo
+              fullWidth
+              options={COUNTRIES.map((c) => c.label)}
+              inputValue={countryInput}
+              onInputChange={(_event, value) => setCountryInput(value)}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label={t('publicHolidays.country')}
+                  placeholder={t('publicHolidays.countryPlaceholder')}
+                />
+              )}
+            />
+          </Grid>
         </Grid>
       </DialogContent>
       <DialogActions>
@@ -258,7 +289,7 @@ function AddHolidayDialog({ open, onClose }: { open: boolean; onClose: () => voi
           disabled={!canSubmit || create.isPending}
           onClick={() =>
             create.mutate(
-              { date, name: name.trim() },
+              { date, name: name.trim(), countryCode: countryCode! },
               { onSuccess: onClose },
             )
           }
@@ -268,15 +299,6 @@ function AddHolidayDialog({ open, onClose }: { open: boolean; onClose: () => voi
       </DialogActions>
     </Dialog>
   );
-}
-
-const COUNTRY_LABEL_TO_CODE = new Map(COMMON_COUNTRIES.map((c) => [c.label, c.code]));
-
-/** A label from the curated list, or a bare two-letter ISO code typed by hand. Null while neither. */
-function resolveCountryCode(input: string): string | null {
-  const trimmed = input.trim();
-  if (COUNTRY_LABEL_TO_CODE.has(trimmed)) return COUNTRY_LABEL_TO_CODE.get(trimmed)!;
-  return /^[A-Za-z]{2}$/.test(trimmed) ? trimmed.toUpperCase() : null;
 }
 
 /**
@@ -352,7 +374,7 @@ function SyncHolidaysDialog({ open, onClose }: { open: boolean; onClose: () => v
           <Autocomplete
             freeSolo
             fullWidth
-            options={COMMON_COUNTRIES.map((c) => c.label)}
+            options={COUNTRIES.map((c) => c.label)}
             inputValue={countryInput}
             onInputChange={(_event, value) => setCountryInput(value)}
             renderInput={(params) => (
@@ -422,11 +444,13 @@ function SyncHolidaysDialog({ open, onClose }: { open: boolean; onClose: () => v
           disabled={selected.size === 0 || importHolidays.isPending}
           loading={importHolidays.isPending}
           onClick={() => {
+            if (!countryCode) return;
+
             const items = candidates
               .filter((c) => selected.has(c.date))
               .map((c) => ({ date: c.date, name: c.name }));
 
-            importHolidays.mutate({ items }, { onSuccess: close });
+            importHolidays.mutate({ countryCode, items }, { onSuccess: close });
           }}
         >
           {t('publicHolidays.importSelected', { count: selected.size })}

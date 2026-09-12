@@ -30,6 +30,15 @@ public class CustomerConfiguration : IEntityTypeConfiguration<Customer>
         builder.Property(c => c.Note)
             .HasMaxLength(2000);
 
+        builder.Property(c => c.TaxId)
+            .HasMaxLength(64);
+
+        builder.Property(c => c.RegistrationNumber)
+            .HasMaxLength(64);
+
+        builder.Property(c => c.VatNumber)
+            .HasMaxLength(64);
+
         builder.HasIndex(c => c.Name);
     }
 }

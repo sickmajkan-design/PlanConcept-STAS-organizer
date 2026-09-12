@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Alert,
+  Autocomplete,
   Box,
   Button,
   Divider,
@@ -21,6 +22,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { toApiError } from '../../api/apiError';
 import type { ProjectInput, ProjectKind } from '../../api/types';
 import { projectStatuses } from '../../api/types';
+import { COUNTRIES, countryLabel, resolveCountryCode } from '../../data/countries';
 import { ErrorState } from '../../components/ErrorState';
 import { useAllCustomersQuery } from '../../features/customers/useCustomers';
 import {
@@ -40,6 +42,7 @@ const emptyValues: ProjectFormValues = {
   customerId: '',
   parentProjectId: '',
   address: '',
+  countryCode: '',
   latitude: '',
   longitude: '',
   shiftStartTime: '',
@@ -122,6 +125,7 @@ export function ProjectFormPage() {
         customerId: existing.customerId ?? '',
         parentProjectId: existing.parentProjectId ?? '',
         address: existing.address ?? '',
+        countryCode: countryLabel(existing.countryCode),
         latitude: existing.latitude?.toString() ?? '',
         longitude: existing.longitude?.toString() ?? '',
         shiftStartTime: utcTimeToLocalInput(existing.shiftStartTime),
@@ -159,6 +163,7 @@ export function ProjectFormPage() {
       customerId: kind === 'Sub' ? null : values.customerId || null,
       parentProjectId: kind === 'Sub' ? values.parentProjectId || null : null,
       address: values.address || null,
+      countryCode: kind === 'Sub' ? null : resolveCountryCode(values.countryCode ?? ''),
       latitude: values.latitude ? Number(values.latitude) : null,
       longitude: values.longitude ? Number(values.longitude) : null,
       shiftStartTime: localInputToUtcTime(values.shiftStartTime ?? ''),
@@ -341,6 +346,34 @@ export function ProjectFormPage() {
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid size={12}>
+                <Controller
+                  name="countryCode"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Autocomplete
+                      freeSolo
+                      fullWidth
+                      disabled={kind === 'Sub'}
+                      options={COUNTRIES.map((c) => c.label)}
+                      inputValue={field.value ?? ''}
+                      onInputChange={(_event, value) => field.onChange(value)}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label={t('projects.country')}
+                          helperText={
+                            kind === 'Sub'
+                              ? t('projects.countryInheritedHint')
+                              : fieldState.error?.message ?? t('projects.countryHint')
+                          }
+                          error={!!fieldState.error}
+                        />
+                      )}
                     />
                   )}
                 />

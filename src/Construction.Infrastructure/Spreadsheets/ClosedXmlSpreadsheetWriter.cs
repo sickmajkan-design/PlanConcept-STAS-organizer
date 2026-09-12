@@ -1,6 +1,8 @@
 using ClosedXML.Excel;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Spreadsheets;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Construction.Infrastructure.Spreadsheets;
 
@@ -17,16 +19,34 @@ namespace Construction.Infrastructure.Spreadsheets;
 /// </remarks>
 public sealed class ClosedXmlSpreadsheetWriter : ISpreadsheetWriter
 {
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly IFileStorage _storage;
+
+    /// <remarks>
+    /// This writer is a singleton (see <c>DependencyInjection.AddServices</c>)
+    /// and stateless, but stamping the company name/logo onto every export
+    /// needs a database read, so it takes a scope factory rather than
+    /// <see cref="IApplicationDbContext"/> directly — that would tie a
+    /// singleton to the first request's scoped instance.
+    /// </remarks>
+    public ClosedXmlSpreadsheetWriter(IServiceScopeFactory scopeFactory, IFileStorage storage)
+    {
+        _scopeFactory = scopeFactory;
+        _storage = storage;
+    }
+
     public string ContentType =>
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
     public byte[] Write(Spreadsheet spreadsheet)
     {
+        var branding = LoadBranding();
+
         using var workbook = new XLWorkbook();
 
         foreach (var sheet in spreadsheet.Sheets)
         {
-            AddSheet(workbook, sheet);
+            AddSheet(workbook, sheet, branding);
         }
 
         using var stream = new MemoryStream();
@@ -35,13 +55,63 @@ public sealed class ClosedXmlSpreadsheetWriter : ISpreadsheetWriter
         return stream.ToArray();
     }
 
-    private static void AddSheet(XLWorkbook workbook, SpreadsheetSheet sheet)
+    /// <summary>
+    /// Reads the company name and logo bytes once per export.
+    /// </summary>
+    /// <remarks>
+    /// Blocking on the async database/storage calls is deliberate here rather
+    /// than making <see cref="ISpreadsheetWriter"/> async everywhere: Kestrel
+    /// carries no synchronization context, so there is no deadlock risk, an
+    /// export is a rare, explicit user action rather than a hot path, and it
+    /// keeps every one of the export handlers untouched — this is a single
+    /// shared entry point, and threading branding through fourteen handler
+    /// constructors would be needless surface area for the same result.
+    /// </remarks>
+    private SpreadsheetBranding LoadBranding()
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
+
+        var settings = context.CompanySettings
+            .AsNoTracking()
+            .Select(c => new { c.Name, c.LogoStorageKey, c.LogoContentType })
+            .FirstOrDefault();
+
+        if (settings is null)
+        {
+            return new SpreadsheetBranding(null, null, null);
+        }
+
+        byte[]? logoBytes = null;
+
+        if (settings.LogoStorageKey is not null)
+        {
+            using var logoStream = _storage.OpenReadAsync(settings.LogoStorageKey)
+                .GetAwaiter().GetResult();
+
+            if (logoStream is not null)
+            {
+                using var buffer = new MemoryStream();
+                logoStream.CopyTo(buffer);
+                logoBytes = buffer.ToArray();
+            }
+        }
+
+        return new SpreadsheetBranding(
+            string.IsNullOrWhiteSpace(settings.Name) ? null : settings.Name,
+            logoBytes,
+            settings.LogoContentType);
+    }
+
+    private static void AddSheet(XLWorkbook workbook, SpreadsheetSheet sheet, SpreadsheetBranding branding)
     {
         var worksheet = workbook.Worksheets.Add(SafeSheetName(sheet.Name));
 
+        var headerRow = 1 + AddBrandingHeader(worksheet, sheet, branding);
+
         for (var column = 0; column < sheet.Columns.Count; column++)
         {
-            var cell = worksheet.Cell(1, column + 1);
+            var cell = worksheet.Cell(headerRow, column + 1);
             cell.Value = sheet.Columns[column].Header;
             cell.Style.Font.Bold = true;
         }
@@ -53,7 +123,7 @@ public sealed class ClosedXmlSpreadsheetWriter : ISpreadsheetWriter
             for (var column = 0; column < sheet.Columns.Count; column++)
             {
                 var value = column < values.Count ? values[column] : null;
-                Fill(worksheet.Cell(row + 2, column + 1), value, sheet.Columns[column].Kind);
+                Fill(worksheet.Cell(headerRow + row + 1, column + 1), value, sheet.Columns[column].Kind);
             }
         }
 
@@ -61,12 +131,56 @@ public sealed class ClosedXmlSpreadsheetWriter : ISpreadsheetWriter
         {
             // The header stays put while the reader scrolls, and the filter
             // row is what makes an export usable rather than merely present.
-            worksheet.SheetView.FreezeRows(1);
-            worksheet.Range(1, 1, sheet.Rows.Count + 1, sheet.Columns.Count)
+            worksheet.SheetView.FreezeRows(headerRow);
+            worksheet.Range(headerRow, 1, sheet.Rows.Count + headerRow, sheet.Columns.Count)
                 .SetAutoFilter();
         }
 
         worksheet.Columns().AdjustToContents();
+    }
+
+    /// <summary>
+    /// Writes the company name, merged and bold, above the column headers,
+    /// and embeds the logo beside it when one is set. Returns how many rows
+    /// it used, so the caller can shift the rest of the sheet down.
+    /// </summary>
+    private static int AddBrandingHeader(
+        IXLWorksheet worksheet, SpreadsheetSheet sheet, SpreadsheetBranding branding)
+    {
+        if (branding.CompanyName is null && branding.LogoBytes is null)
+        {
+            return 0;
+        }
+
+        var columnCount = Math.Max(sheet.Columns.Count, 1);
+
+        if (branding.CompanyName is not null)
+        {
+            var nameCell = worksheet.Cell(1, 1);
+            nameCell.Value = branding.CompanyName;
+            nameCell.Style.Font.Bold = true;
+            nameCell.Style.Font.FontSize = 14;
+
+            if (columnCount > 1)
+            {
+                worksheet.Range(1, 1, 1, columnCount).Merge();
+            }
+        }
+
+        if (branding.LogoBytes is { Length: > 0 })
+        {
+            using var logoStream = new MemoryStream(branding.LogoBytes);
+
+            // Anchored on the header row rather than resized to it: a logo
+            // squeezed into a 15-point row is unrecognisable, so it is left
+            // at a sensible fixed height and simply overlaps the row below,
+            // which is blank whitespace either way.
+            worksheet.AddPicture(logoStream)
+                .MoveTo(worksheet.Cell(1, columnCount + 1))
+                .WithSize(120, 40);
+        }
+
+        return 1;
     }
 
     private static void Fill(IXLCell cell, object? value, SpreadsheetValueKind kind)

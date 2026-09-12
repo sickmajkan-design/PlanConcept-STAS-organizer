@@ -77,10 +77,12 @@ public static class ProjectDetailMapping
             Address = project.Address,
             Latitude = project.Latitude,
             Longitude = project.Longitude,
+            CountryCode = project.CountryCode,
             StartDate = project.StartDate,
             EndDate = project.EndDate,
             Status = project.Status.ToString(),
             ContractValue = project.ContractValue,
+            ShiftStartTime = project.ShiftStartTime,
             // Open-ended assignments only — see the matching note in
             // EmployeeDetailMapping.Projection. Without this, a project's
             // roster and count never shrank: everyone ever taken off the

@@ -100,9 +100,21 @@ export function AttachmentPreviewDialog({
     setDownloadUrl(null);
 
     void (async () => {
-      try {
-        const blob = await attachmentsApi.blob(attachment.id);
+      let blob: Blob;
 
+      try {
+        blob = await attachmentsApi.blob(attachment.id);
+      } catch {
+        // A fetch failure (the file is recorded but missing from storage, a
+        // permission change, a dropped connection) is not the same problem
+        // as "we have the bytes but cannot render this format" below — the
+        // two used to collapse into one "no preview" message, which sent
+        // someone looking for a format problem that was not there.
+        if (!cancelled) setPreview({ kind: 'error' });
+        return;
+      }
+
+      try {
         if (cancelled) return;
 
         downloadObjectUrl = URL.createObjectURL(blob);
@@ -265,9 +277,15 @@ export function AttachmentPreviewDialog({
           </Stack>
         )}
 
-        {(preview.kind === 'unsupported' || preview.kind === 'error') && (
+        {preview.kind === 'unsupported' && (
           <Stack spacing={1} sx={{ py: 4, alignItems: 'center' }}>
             <Typography color="text.secondary">{t('attachments.noPreview')}</Typography>
+          </Stack>
+        )}
+
+        {preview.kind === 'error' && (
+          <Stack spacing={1} sx={{ py: 4, alignItems: 'center' }}>
+            <Typography color="error">{t('attachments.previewError')}</Typography>
           </Stack>
         )}
       </DialogContent>

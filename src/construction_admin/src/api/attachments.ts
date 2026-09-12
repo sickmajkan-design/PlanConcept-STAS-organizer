@@ -1,3 +1,4 @@
+import { toApiError } from './apiError';
 import { apiClient, request } from './client';
 import { listParams } from './resource';
 import type {
@@ -20,6 +21,8 @@ export interface UploadAttachmentInput {
   description?: string | null;
   /** `YYYY-MM-DD`. Omitted for anything that does not lapse. */
   expiresAt?: string | null;
+  /** `YYYY-MM-DD`. Omitted for anything with no mandatory retention. */
+  retainUntil?: string | null;
 }
 
 /** Mirrors the API's AttachmentRules, so the picker and the limits agree. */
@@ -67,6 +70,10 @@ export const attachmentsApi = {
       form.append('expiresAt', input.expiresAt);
     }
 
+    if (input.retainUntil) {
+      form.append('retainUntil', input.retainUntil);
+    }
+
     // No explicit Content-Type: the browser has to set it, because only it
     // knows the multipart boundary it generated.
     return request<Attachment>({
@@ -97,14 +104,27 @@ export const attachmentsApi = {
     return URL.createObjectURL(blob);
   },
 
-  /** The raw bytes, for callers that need to parse the file rather than just display it. */
+  /**
+   * The raw bytes, for callers that need to parse the file rather than just
+   * display it.
+   *
+   * Normalises a failure into an {@link ApiError} explicitly rather than
+   * through the shared `request()` helper: with `responseType: 'blob'`,
+   * axios puts even an error body into a `Blob`, so a caller that wants to
+   * tell "the file is gone from storage" apart from "we cannot render this
+   * format" needs the real status code, not a swallowed exception.
+   */
   blob: async (id: string): Promise<Blob> => {
-    const response = await apiClient.request<Blob>({
-      method: 'GET',
-      url: `/api/v1/attachments/${id}/content`,
-      responseType: 'blob',
-    });
+    try {
+      const response = await apiClient.request<Blob>({
+        method: 'GET',
+        url: `/api/v1/attachments/${id}/content`,
+        responseType: 'blob',
+      });
 
-    return response.data;
+      return response.data;
+    } catch (error) {
+      throw toApiError(error);
+    }
   },
 };

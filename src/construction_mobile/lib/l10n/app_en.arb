@@ -2,8 +2,46 @@
   "@@locale": "en",
   "appName": "Construction Organizer",
   "commonCancel": "Cancel",
+  "commonDelete": "Delete",
+  "commonEdit": "Edit",
+  "commonAdd": "Add",
+  "commonStatus": "Status",
+  "vehicleFormAddTitle": "Add a vehicle",
+  "vehicleFormEditTitle": "Edit vehicle",
+  "vehicleFormBrand": "Brand",
+  "vehicleFormModel": "Model",
+  "vehicleFormAdded": "Vehicle added.",
+  "vehicleFormSaved": "Vehicle updated.",
+  "vehicleDeleteTitle": "Delete this vehicle?",
+  "vehicleDeleteBody": "{name} will be removed. This cannot be undone.",
+  "@vehicleDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "commonRetry": "Try again",
   "commonLoadMore": "Load more",
+  "commonTotalCount": "{count} total",
+  "@commonTotalCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonCountOfTotal": "{shown} of {total}",
+  "@commonCountOfTotal": {
+    "placeholders": {
+      "shown": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "commonSignIn": "Sign in",
   "commonSignOut": "Sign out",
   "commonSignOutQuestion": "Sign out?",
@@ -15,6 +53,12 @@
   "commonEmployment": "Employment",
   "commonAccount": "Account",
   "commonResources": "Resources",
+  "commonCompany": "Company",
+  "commonEmployee": "Employee",
+  "commonMaterial": "Material",
+  "commonTool": "Tool",
+  "commonVehicle": "Vehicle",
+  "commonProject": "Project",
   "commonAlerts": "Alerts",
   "authSignInSubtitle": "Sign in to your work account",
   "authEmail": "Email",
@@ -38,6 +82,15 @@
   "validationEmailRequired": "Email is required.",
   "validationEmailInvalid": "Enter a valid email address.",
   "validationPasswordRequired": "Password is required.",
+  "validationPasswordMinLength": "Password must be at least 8 characters long.",
+  "validationFieldRequired": "{field} is required.",
+  "@validationFieldRequired": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
   "validationPasswordUpper": "Password must contain an upper-case letter.",
   "validationPasswordLower": "Password must contain a lower-case letter.",
   "validationPasswordDigit": "Password must contain a digit.",
@@ -53,6 +106,7 @@
   "errorBadRequest": "The request was rejected. Please check the entered data.",
   "errorConflict": "The action conflicts with the current data.",
   "errorUnknown": "Something went wrong. Please try again.",
+  "navHome": "Home",
   "navEmployees": "Employees",
   "navProjects": "Projects",
   "navVehicles": "Vehicles",
@@ -73,11 +127,44 @@
   "projectsSearchHint": "Name, client, address…",
   "projectsEmpty": "No projects match your search.",
   "projectClient": "Client",
+  "projectSubOf": "Part of {name}",
+  "@projectSubOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "projectAddress": "Address",
   "projectStartDate": "Start date",
   "projectEndDate": "End date",
   "projectCoordinates": "Coordinates",
   "projectCrewEmpty": "Nobody assigned yet",
+  "projectAssignedCount": "{count} assigned",
+  "@projectAssignedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "projectCrewTitle": "Crew",
+  "projectCrewCount": "Crew ({count})",
+  "@projectCrewCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "employeeProjectsCount": "Projects ({count})",
+  "@employeeProjectsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "projectAssignedOn": "Assigned {date}",
   "@projectAssignedOn": {
     "placeholders": {
@@ -100,11 +187,27 @@
   "vehiclesSearchHint": "Brand, model, registration…",
   "vehiclesEmpty": "No vehicles match your search.",
   "vehicleRegistration": "Registration number",
+  "vehicleOwnershipType": "Ownership",
   "vehicleFuelType": "Fuel type",
   "vehicleUnassigned": "Not assigned to any employee",
   "toolsSearchHint": "Name, category, serial number…",
   "toolsEmpty": "No tools match your search.",
   "toolSerialNumber": "Serial number",
+  "toolFormAddTitle": "Add a tool",
+  "toolFormEditTitle": "Edit tool",
+  "toolFormName": "Name",
+  "toolFormCategory": "Category",
+  "toolFormAdded": "Tool added.",
+  "toolFormSaved": "Tool updated.",
+  "toolDeleteTitle": "Delete this tool?",
+  "toolDeleteBody": "{name} will be removed. This cannot be undone.",
+  "@toolDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "toolQrCode": "QR code",
   "toolUncategorised": "Uncategorised",
   "toolNotHeld": "Not held by an employee",
@@ -114,9 +217,50 @@
   "toolLookUpByQr": "Look up by QR code",
   "toolByQrCode": "By QR code",
   "vehicleQrCode": "QR code",
+  "vehicleOwnershipTypeOwned": "Owned",
+  "vehicleOwnershipTypeRented": "Rented",
+  "vehicleRentalProvider": "Rented from",
+  "vehicleRentalMonthlyAmount": "Monthly rate",
+  "vehicleLoanedOutTo": "Loaned out to {name}",
+  "@vehicleLoanedOutTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "rentalRatesTitle": "Rental / lease",
+  "rentalRatesAdd": "Add a rate",
+  "rentalRatesEditTitle": "Edit rate",
+  "rentalRatesEmpty": "No rate on file yet.",
+  "rentalRatesProvider": "Provider (optional)",
+  "rentalRatesNote": "Note (optional)",
+  "rentalRatesMonthlyAmount": "Monthly amount",
+  "rentalRatesStartDate": "From",
+  "rentalRatesEndDate": "To (optional, open-ended if blank)",
+  "rentalRatesOpenEnded": "Open",
+  "rentalRatesDeleteTitle": "Delete this rate?",
+  "rentalRatesDeleteBody": "This cannot be undone.",
+  "rentalRatesSaved": "Rental rate saved.",
+  "rentalOutTitle": "Loaned out",
+  "rentalOutAdd": "Loan it out",
+  "rentalOutEditTitle": "Edit loan",
+  "rentalOutEmpty": "Not currently loaned out to anyone.",
+  "rentalOutRenterName": "Renter's name",
+  "rentalOutCustomer": "Linked customer (optional)",
+  "rentalOutNoCustomer": "No linked customer",
+  "rentalOutDailyRate": "Daily rate",
+  "rentalOutStartDate": "From",
+  "rentalOutStillOut": "Still out",
+  "rentalOutReturn": "Mark returned",
+  "rentalOutReturned": "Marked as returned.",
+  "rentalOutDeleteTitle": "Delete this loan?",
+  "rentalOutDeleteBody": "This cannot be undone.",
+  "rentalOutSaved": "Loan saved.",
   "scanTitle": "Scan or look up",
   "scanHint": "Scan the QR label on the tool or vehicle, or enter its code below.",
   "scanAction": "Scan QR code",
+  "scanToggleFlash": "Toggle flashlight",
   "scanCodeLabel": "QR code",
   "scanToolFound": "Tool",
   "scanVehicleFound": "Vehicle",
@@ -178,13 +322,310 @@
   "materialWarehouse": "Warehouse",
   "materialWarehouseStock": "Warehouse stock",
   "materialWarehouseOnly": "Warehouse stock only",
+  "materialFormAddTitle": "Add a material",
+  "materialFormEditTitle": "Edit material",
+  "materialFormName": "Name",
+  "materialFormUnit": "Unit",
+  "materialFormUnitPrice": "Unit price (optional)",
+  "materialFormAdded": "Material added.",
+  "materialFormSaved": "Material updated.",
+  "materialDeleteTitle": "Delete this material?",
+  "materialDeleteBody": "{name} will be removed. This cannot be undone.",
+  "@materialDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "materialWarehouseNote": "Warehouse stock, not tied to a project",
   "materialLastUpdated": "Last updated",
   "materialNoAssignment": "No assignment",
+  "employeeFormAddTitle": "Add an employee",
+  "employeeFormEditTitle": "Edit employee",
+  "employeeFormNumber": "Employee number",
+  "employeeFormFirstName": "First name",
+  "employeeFormLastName": "Last name",
+  "employeeFormEmploymentDate": "Employment date",
+  "employeeFormAdded": "Employee added.",
+  "employeeFormSaved": "Employee updated.",
+  "employeeDeleteTitle": "Delete this employee?",
+  "employeeDeleteBody": "{name} will be removed. This cannot be undone.",
+  "@employeeDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "employeeType": "Type",
+  "employeeTypeEmployee": "Employee",
+  "employeeTypeSubcontractor": "Subcontractor",
+  "projectFormAddTitle": "Add a project",
+  "projectFormEditTitle": "Edit project",
+  "projectFormName": "Project name",
+  "projectFormDescription": "Description (optional)",
+  "projectFormParentProject": "Parent project (optional)",
+  "projectFormNoParent": "No parent — a main project",
+  "projectFormNoCustomer": "No customer",
+  "projectFormCountryCode": "Country code (e.g. BA)",
+  "projectFormShiftStartTime": "Shift start time (optional)",
+  "projectFormContractValue": "Contract value (optional)",
+  "projectFormLatitude": "Latitude",
+  "projectFormLongitude": "Longitude",
+  "projectFormAdded": "Project added.",
+  "projectFormSaved": "Project updated.",
+  "projectDeleteTitle": "Delete this project?",
+  "projectDeleteBody": "{name} will be removed. This cannot be undone.",
+  "@projectDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "notificationsEmpty": "No notifications yet.",
   "notificationsUnreadEmpty": "Nothing unread.",
   "notificationsUnread": "Unread",
+  "notificationsUnreadCount": "Unread ({count})",
+  "@notificationsUnreadCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "notificationsMarkAllRead": "Mark all read",
+  "notificationsAcknowledgedOn": "Confirmed on {date}",
+  "@notificationsAcknowledgedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationsOpenRelated": "Open",
+  "notificationProjectAssignedTitle": "New project assigned",
+  "notificationProjectAssignedBody": "You have been assigned to project \"{projectName}\".",
+  "@notificationProjectAssignedBody": {
+    "placeholders": {
+      "projectName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationProjectAssignedBodyWithAddress": "You have been assigned to project \"{projectName}\", at {address}.",
+  "@notificationProjectAssignedBodyWithAddress": {
+    "placeholders": {
+      "projectName": {
+        "type": "String"
+      },
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationProjectAssignedBodyFull": "You have been assigned to project \"{projectName}\", at {address}. Shift starts at {shiftStartTime}.",
+  "@notificationProjectAssignedBodyFull": {
+    "placeholders": {
+      "projectName": {
+        "type": "String"
+      },
+      "address": {
+        "type": "String"
+      },
+      "shiftStartTime": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationEmployeeAssignedTitle": "Employee assigned to your project",
+  "notificationEmployeeAssignedBody": "{employeeName} has been assigned to project \"{projectName}\".",
+  "@notificationEmployeeAssignedBody": {
+    "placeholders": {
+      "employeeName": { "type": "String" },
+      "projectName": { "type": "String" }
+    }
+  },
+  "notificationVehicleAssignedTitle": "Vehicle assigned",
+  "notificationVehicleAssignedBody": "Vehicle {brand} {model} ({registration}) has been assigned to you.",
+  "@notificationVehicleAssignedBody": {
+    "placeholders": {
+      "brand": { "type": "String" },
+      "model": { "type": "String" },
+      "registration": { "type": "String" }
+    }
+  },
+  "notificationToolAssignedTitle": "Tool assigned",
+  "notificationToolAssignedBody": "Tool \"{toolName}\" has been assigned to you.",
+  "@notificationToolAssignedBody": {
+    "placeholders": {
+      "toolName": { "type": "String" }
+    }
+  },
+  "notificationDocumentExpiringTitle": "Document expiring soon",
+  "notificationDocumentExpiredTitle": "Document has expired",
+  "notificationDocumentExpiringBody": "{fileName} ({expiresAt})",
+  "@notificationDocumentExpiringBody": {
+    "placeholders": {
+      "fileName": { "type": "String" },
+      "expiresAt": { "type": "String" }
+    }
+  },
+  "notificationDocumentExpiringBodyWithOwner": "{fileName} — {ownerName} ({expiresAt})",
+  "@notificationDocumentExpiringBodyWithOwner": {
+    "placeholders": {
+      "fileName": { "type": "String" },
+      "ownerName": { "type": "String" },
+      "expiresAt": { "type": "String" }
+    }
+  },
+  "notificationTaskAssignedTitle": "Task assigned to you",
+  "notificationDefectAssignedTitle": "Defect assigned to you",
+  "notificationWorkItemAssignedBodyWithDueDate": "{title} — due {dueDate}",
+  "@notificationWorkItemAssignedBodyWithDueDate": {
+    "placeholders": {
+      "title": { "type": "String" },
+      "dueDate": { "type": "String" }
+    }
+  },
+  "notificationWorkItemOverdueTitle": "Overdue",
+  "notificationWorkItemDueSoonTitle": "Due soon",
+  "notificationWorkItemDueBody": "{title} ({dueDate})",
+  "@notificationWorkItemDueBody": {
+    "placeholders": {
+      "title": { "type": "String" },
+      "dueDate": { "type": "String" }
+    }
+  },
+  "notificationShiftAutoClosedTitle": "Shift closed automatically",
+  "notificationShiftAutoClosedBody": "You did not clock out on {shiftDate}, so the shift was closed automatically and is waiting for review.",
+  "@notificationShiftAutoClosedBody": {
+    "placeholders": {
+      "shiftDate": { "type": "String" }
+    }
+  },
+  "notificationAbsenceEditProposedTitle": "Change proposed for approved leave",
+  "notificationAbsenceEditProposedBody": "{startDate}–{endDate} — please confirm or decline.",
+  "@notificationAbsenceEditProposedBody": {
+    "placeholders": {
+      "startDate": { "type": "String" },
+      "endDate": { "type": "String" }
+    }
+  },
+  "notificationAbsenceEditConfirmedTitle": "Leave change confirmed",
+  "notificationAbsenceEditConfirmedBody": "{startDate}–{endDate}",
+  "@notificationAbsenceEditConfirmedBody": {
+    "placeholders": {
+      "startDate": { "type": "String" },
+      "endDate": { "type": "String" }
+    }
+  },
+  "notificationAbsenceEditDeclinedTitle": "Leave change declined",
+  "notificationAbsenceEditDeclinedBody": "The other side declined your proposed change.",
+  "notificationWeeklyReportDueTitle": "Weekly hours not yet submitted",
+  "notificationWeeklyReportDueBody": "{projectName} — KW{isoWeek}/{isoYear}",
+  "@notificationWeeklyReportDueBody": {
+    "placeholders": {
+      "projectName": { "type": "String" },
+      "isoWeek": { "type": "String" },
+      "isoYear": { "type": "String" }
+    }
+  },
+  "notificationEmployeeClockedInTitle": "Clocked in",
+  "notificationEmployeeClockedInBody": "{employeeName} clocked in at {projectName}.",
+  "@notificationEmployeeClockedInBody": {
+    "placeholders": {
+      "employeeName": { "type": "String" },
+      "projectName": { "type": "String" }
+    }
+  },
+  "notificationEmployeeClockedOutTitle": "Clocked out",
+  "notificationEmployeeClockedOutBody": "{employeeName} clocked out from {projectName} after {hours}h {minutes}m.",
+  "@notificationEmployeeClockedOutBody": {
+    "placeholders": {
+      "employeeName": { "type": "String" },
+      "projectName": { "type": "String" },
+      "hours": { "type": "String" },
+      "minutes": { "type": "String" }
+    }
+  },
+  "notificationUnassignedClockInTitle": "Clock-in at an unassigned site",
+  "notificationUnassignedClockInBody": "{employeeName} clocked in at {projectName}, but is not currently posted there.",
+  "@notificationUnassignedClockInBody": {
+    "placeholders": {
+      "employeeName": { "type": "String" },
+      "projectName": { "type": "String" }
+    }
+  },
+  "notificationDefectReportedTitle": "New defect reported",
+  "notificationDefectReportedBody": "{reporterName} reported: {title}",
+  "@notificationDefectReportedBody": {
+    "placeholders": {
+      "reporterName": { "type": "String" },
+      "title": { "type": "String" }
+    }
+  },
+  "notificationAbsenceRequestedTitle": "Time off requested",
+  "notificationAbsenceRequestedBody": "{employeeName} asked for time off, from {startDate} to {endDate}.",
+  "@notificationAbsenceRequestedBody": {
+    "placeholders": {
+      "employeeName": { "type": "String" },
+      "startDate": { "type": "String" },
+      "endDate": { "type": "String" }
+    }
+  },
+  "notificationDocumentRetentionEndedTitle": "Document retention period ended",
+  "notificationDocumentRetentionEndedBody": "{fileName} no longer has to be kept (was until {retainUntil}). Delete it yourself if it is no longer needed.",
+  "@notificationDocumentRetentionEndedBody": {
+    "placeholders": {
+      "fileName": { "type": "String" },
+      "retainUntil": { "type": "String" }
+    }
+  },
+  "notificationDocumentRetentionEndedBodyWithOwner": "{fileName} — {ownerName} no longer has to be kept (was until {retainUntil}). Delete it yourself if it is no longer needed.",
+  "@notificationDocumentRetentionEndedBodyWithOwner": {
+    "placeholders": {
+      "fileName": { "type": "String" },
+      "ownerName": { "type": "String" },
+      "retainUntil": { "type": "String" }
+    }
+  },
+  "notificationTypeDirectMessage": "Direct message",
+  "notificationTypeDocumentExpiring": "Document expiring",
+  "notificationTypeTaskAssigned": "Task assigned",
+  "notificationTypeDefectAssigned": "Defect assigned",
+  "notificationTypeWorkItemDue": "Work due",
+  "notificationTypeShiftAutoClosed": "Shift auto-closed",
+  "notificationTypeBulletinPosted": "Bulletin post",
+  "notificationTypeAbsenceEditProposed": "Leave change",
+  "notificationTypeWeeklyReportDue": "Weekly report due",
+  "notificationTypeEmployeeClockedIn": "Clocked in",
+  "notificationTypeEmployeeClockedOut": "Clocked out",
+  "notificationTypeUnassignedProjectClockIn": "Unassigned clock-in",
+  "notificationTypeDefectReported": "Defect reported",
+  "notificationTypeAbsenceRequested": "Leave requested",
+  "notificationTypeDocumentRetentionEnded": "Document retention ended",
+  "announceTitle": "Send an announcement",
+  "announceSubject": "Subject",
+  "announceMessage": "Message",
+  "announceAudienceRole": "Role",
+  "announceEveryRole": "Every role",
+  "announceAudienceProject": "Project",
+  "announceEveryProject": "Every project",
+  "announceAudienceGroup": "Group",
+  "announceEveryGroup": "Every group",
+  "announceRequiresAcknowledgment": "Require confirmation before recipients can do anything else",
+  "announceHint": "A phone notification cannot be recalled — the audience is the one thing worth checking twice.",
+  "announceSend": "Send",
+  "announceSent": "{count, plural, =0{Sent to nobody — nobody matched.} =1{Sent to 1 person.} other{Sent to {count} people.}}",
+  "@announceSent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "notificationsDisabled": "Notifications are turned off for this app.",
   "notificationsNotConfigured": "Push notifications are not configured in this build.",
   "notificationsNotConfiguredBody": "Push delivery is not configured in this build. Notifications are still listed here.",
@@ -250,11 +691,13 @@
   "vehicleStatusAssigned": "Assigned",
   "vehicleStatusInService": "In service",
   "vehicleStatusOutOfService": "Out of service",
+  "vehicleStatusRentedOut": "Loaned out",
   "toolStatusAvailable": "Available",
   "toolStatusAssigned": "Assigned",
   "toolStatusUnderRepair": "Under repair",
   "toolStatusLost": "Lost",
   "toolStatusRetired": "Retired",
+  "toolStatusRentedOut": "Loaned out",
   "fuelPetrol": "Petrol",
   "fuelDiesel": "Diesel",
   "fuelElectric": "Electric",
@@ -321,6 +764,9 @@
     }
   },
   "shiftNotAnEmployee": "This account is not linked to an employee, so it cannot record work time.",
+  "shiftAutoClosed": "Auto-closed",
+  "shiftLocationMismatch": "Clocked in away from the site",
+  "shiftTimeMismatch": "Clocked in outside the expected shift time",
   "timeEntryStatusInProgress": "Running",
   "timeEntryStatusSubmitted": "Awaiting review",
   "timeEntryStatusApproved": "Approved",
@@ -357,6 +803,34 @@
     }
   },
   "attachmentsNotAnImage": "Only a document or image can be attached.",
+  "attachmentsAddDocument": "Add a document",
+  "attachmentsPickFile": "Choose a file",
+  "attachmentsChangeFile": "Choose a different file",
+  "attachmentsCategory": "Category",
+  "attachmentsDescription": "Description (optional)",
+  "attachmentsExpiryDate": "Expiry date (optional)",
+  "attachmentsRetainUntil": "Retain until (optional)",
+  "attachmentsSaved": "Document added.",
+  "attachmentsDeleteTitle": "Delete this document?",
+  "attachmentsDeleteBody": "{name} will be removed. This cannot be undone.",
+  "@attachmentsDeleteBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "attachmentsRetainedCannotDelete": "Kept until {date} — cannot be deleted yet.",
+  "@attachmentsRetainedCannotDelete": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "attachmentsOpen": "Open",
+  "attachmentsOpeningExternally": "Opening in another app…",
+  "attachmentsOpenExternalFailed": "No app on this phone can open this file type.",
   "attachmentCategoryContract": "Contract",
   "attachmentCategoryCertificate": "Certificate",
   "attachmentCategoryMedicalCheck": "Medical check",
@@ -406,6 +880,18 @@
   "workItemPriorityUrgent": "Urgent",
   "navSchedule": "My schedule",
   "navAbsences": "Time off",
+  "navWeeklyReports": "Weekly reports",
+  "navBulletin": "Bulletin board",
+  "bulletinTitle": "Bulletin board",
+  "bulletinEmpty": "Nothing posted right now.",
+  "bulletinPostedBy": "Posted by {name}",
+  "@bulletinPostedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "scheduleTitle": "My schedule",
   "scheduleEmpty": "Nothing scheduled for the next two weeks.",
   "scheduleToday": "Today",
@@ -468,7 +954,67 @@
   "absenceStatusApproved": "Granted",
   "absenceStatusRejected": "Refused",
   "absenceStatusCancelled": "Withdrawn",
+  "weeklyReportsTitle": "Weekly site reports",
+  "weeklyReportsDescription": "Send the week's signed hours, Aufmaß, or other proof of work for a site you are posted to.",
+  "weeklyReportsSubmit": "Submit report",
+  "weeklyReportsProject": "Site",
+  "weeklyReportsProjectsFailed": "Could not load your sites.",
+  "weeklyReportsIsoYear": "Year",
+  "weeklyReportsIsoWeek": "Week",
+  "weeklyReportsType": "Kind",
+  "weeklyReportsHours": "Hours",
+  "weeklyReportsNote": "Note (optional)",
+  "weeklyReportsAttachFile": "Attach file",
+  "weeklyReportsFileTooLarge": "That file is larger than the 20 MB limit.",
+  "weeklyReportsSend": "Send",
+  "notifyEmployeeAction": "Notify",
+  "notifyEmployeeTitle": "Send a message",
+  "notifyEmployeeSubject": "Subject",
+  "notifyEmployeeMessage": "Message",
+  "notifyEmployeeRequireAck": "Require confirmation",
+  "notifyEmployeeRequireAckHint": "They cannot use anything else in the app until they confirm they saw this.",
+  "notifyEmployeeSend": "Send",
+  "notifyEmployeeSent": "Message sent.",
+  "teamTodayAction": "Team today",
+  "teamTodayTitle": "Team today",
+  "teamTodayEmpty": "Nobody has clocked in today yet.",
+  "teamTodayStillWorking": "Since {time} — still working",
+  "@teamTodayStillWorking": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklyReportsSent": "Report sent.",
+  "weeklyReportTypeSignedHours": "Signed hours",
+  "weeklyReportTypeAufmass": "Aufmaß",
+  "weeklyReportTypeOther": "Other",
+  "weeklyReportStatusSubmitted": "Awaiting review",
+  "weeklyReportStatusProcessed": "Processed",
+  "weeklyReportsHistoryTitle": "Sent so far",
+  "weeklyReportsHistoryEmpty": "Nothing sent yet.",
+  "weeklyReportsIsoWeekLabel": "KW{isoWeek}/{isoYear}",
+  "@weeklyReportsIsoWeekLabel": {
+    "placeholders": {
+      "isoWeek": {
+        "type": "int"
+      },
+      "isoYear": {
+        "type": "int"
+      }
+    }
+  },
+  "weeklyReportsProcessedOn": "Processed {date}",
+  "@weeklyReportsProcessedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "navVehicleExpenses": "Vehicle costs",
+  "navToolExpenses": "Tool costs",
   "vehicleExpensesTitle": "Vehicle costs",
   "vehicleExpensesEmpty": "No costs recorded yet.",
   "vehicleExpensesFuelOnly": "Fill-ups only",
@@ -500,6 +1046,58 @@
   "vehicleExpenseKindInsurance": "Insurance",
   "vehicleExpenseKindRegistration": "Registration",
   "vehicleExpenseKindOther": "Other",
+  "toolExpensesTitle": "Tool costs",
+  "toolExpensesEmpty": "No costs recorded yet.",
+  "toolExpensesRecord": "Record a cost",
+  "toolExpensesTool": "Tool",
+  "toolExpensesKind": "Kind",
+  "toolExpensesAmount": "Amount",
+  "toolExpensesSupplier": "Where",
+  "toolExpensesNote": "Note",
+  "toolExpensesSend": "Record",
+  "toolExpensesSent": "Cost recorded.",
+  "toolExpensesNeedsTool": "Pick the tool.",
+  "toolExpensesNeedsAmount": "Enter what it cost.",
+  "toolExpenseKindRepair": "Repair",
+  "toolExpenseKindMaintenance": "Maintenance",
+  "toolExpenseKindCalibration": "Calibration",
+  "toolExpenseKindOther": "Other",
+  "companySettingsTitle": "Company profile",
+  "companySettingsLogo": "Logo",
+  "companySettingsUploadLogo": "Upload logo",
+  "companySettingsRemoveLogo": "Remove logo",
+  "companySettingsLogoTooLarge": "The logo is larger than the {limit} MB limit.",
+  "@companySettingsLogoTooLarge": {
+    "placeholders": {
+      "limit": {
+        "type": "int"
+      }
+    }
+  },
+  "companySettingsName": "Company name",
+  "companySettingsAddress": "Address",
+  "companySettingsTaxId": "Tax ID",
+  "companySettingsRegistrationNumber": "Registration number",
+  "companySettingsVatNumber": "VAT number",
+  "companySettingsPhone": "Phone",
+  "companySettingsEmail": "Email",
+  "companySettingsWeeklyReportsForwardEmail": "Forward weekly reports to",
+  "companySettingsWeeklyReportsForwardEmailHint": "Optional — a copy of every submitted weekly report is emailed here.",
+  "companySettingsSaved": "Company profile saved.",
+  "ledgersTitle": "Ledger",
+  "ledgersEmpty": "No ledgers yet.",
+  "ledgersSearchHint": "Name…",
+  "ledgersSectionsTitle": "Sections",
+  "ledgersSectionEmpty": "No rows in this section.",
+  "ledgersRowCount": "{count, plural, =1{1 row} other{{count} rows}}",
+  "@ledgersRowCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ledgersNetTotal": "Net total",
   "workItemsDefectPhoto": "Photo",
   "workItemsDefectPhotoAdded": "Photo attached",
   "workItemsDefectPhotoHint": "The picture is usually the whole report.",

@@ -224,11 +224,19 @@ public class ExportTests : IntegrationTestBase
 
         var sheet = Open(await ExportCostsAsync(admin, project.Id));
         var lastRow = sheet.LastRowUsed()!.RowNumber();
+        var lastColumn = sheet.LastColumnUsed()!.ColumnNumber();
 
         Assert.Equal("Sve zajedno", sheet.Cell(lastRow, 1).GetString());
 
+        // "Ukupno" (Total) is not the last column — "Materijal na lageru" and
+        // "Ručni unosi plate" report separately alongside it, deliberately
+        // outside the sum (see GetProjectCostsQuery), so the total has to be
+        // found by its header rather than assumed to be wherever the row ends.
+        var totalColumn = Enumerable.Range(1, lastColumn)
+            .Single(column => sheet.Cell(1, column).GetString() == "Ukupno");
+
         // 10 units at 30 each, issued to the site.
-        var total = sheet.Cell(lastRow, sheet.LastColumnUsed()!.ColumnNumber());
+        var total = sheet.Cell(lastRow, totalColumn);
         Assert.Equal(XLDataType.Number, total.DataType);
         Assert.Equal(300d, total.GetDouble(), 2);
     }
@@ -351,7 +359,8 @@ public class ExportTests : IntegrationTestBase
                     Kind = MaterialMovementKind.In,
                     Quantity = 100m,
                     UnitPrice = 30m,
-                    OccurredOn = March
+                    OccurredOn = March,
+                    InvoiceNumber = "INV-EXPORT-001"
                 });
 
             await scope.Send(

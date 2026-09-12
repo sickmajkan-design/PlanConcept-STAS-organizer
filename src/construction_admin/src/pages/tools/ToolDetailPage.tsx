@@ -1,21 +1,30 @@
 import {
   ApartmentOutlined,
+  AssignmentReturnOutlined,
   DeleteOutlined,
   EditOutlined,
   HandymanOutlined,
+  HomeRepairServiceOutlined,
   PersonOffOutlined,
   QrCode2Outlined,
 } from '@mui/icons-material';
 import {
   Alert,
+  Autocomplete,
   Avatar,
   Box,
   Button,
   Card,
   CardContent,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
   FormControl,
   Grid,
+  IconButton,
   MenuItem,
   Select,
   Stack,
@@ -25,13 +34,15 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
-import type { ToolExpense } from '../../api/types';
+import type { ToolExpense, ToolRentalOut, ToolRentalRate } from '../../api/types';
 import { AuditHistoryCard } from '../../components/AuditHistoryCard';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
@@ -39,9 +50,23 @@ import { AttachmentList } from '../../components/AttachmentList';
 import { QrLabelDialog } from '../../components/QrLabelDialog';
 import { StatusChip } from '../../components/StatusChip';
 import { useCoverPhoto } from '../../features/attachments/useAttachments';
+import { useAllCustomersQuery } from '../../features/customers/useCustomers';
 import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
-import { useToolExpensesQuery } from '../../features/costs/useCosts';
+import {
+  useDeleteToolRentalOut,
+  useDeleteToolRentalRate,
+  useRecordToolRentalOut,
+  useReturnToolRentalOut,
+  useSetToolRentalRate,
+  useToolExpensesQuery,
+  useToolRentalRatesQuery,
+  useToolRentalsOutQuery,
+  useToolRentalsOutSummaryQuery,
+  useUpdateToolRentalOut,
+  useUpdateToolRentalRate,
+} from '../../features/costs/useCosts';
+import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import {
   useAssignToolEmployee,
   useAssignToolProject,
@@ -54,6 +79,9 @@ import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { canAdministerAccounts } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
+import { SiblingNavButtons } from '../../components/SiblingNavButtons';
+import { useSiblingNavigation } from '../../hooks/useSiblingNavigation';
+import { useRecordVisit } from '../../layout/useRecentRecords';
 import { paths } from '../../routes/paths';
 import { formatDate, formatMoney } from '../../utils/formatting';
 import { ToolExpenseDialog } from '../costs/ToolExpensesPage';
@@ -65,6 +93,8 @@ export function ToolDetailPage() {
   const { user } = useAuth();
 
   const { data: tool, isLoading, isError, error, refetch } = useToolQuery(id);
+  useRecordVisit(paths.toolDetail(id ?? ''), tool?.name);
+  const { prevId, nextId, siblingIds } = useSiblingNavigation(id);
   const { data: allEmployees } = useAllEmployeesQuery();
   const { data: allProjects } = useAllProjectsQuery();
   const coverPhoto = useCoverPhoto('Tool', id ?? '');
@@ -138,7 +168,13 @@ export function ToolDetailPage() {
                 <StatusChip status={tool.status} kind="toolStatus" />
               </Stack>
             </Box>
-            <Stack direction="row" spacing={1}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+              <SiblingNavButtons
+                prevId={prevId}
+                nextId={nextId}
+                siblingIds={siblingIds}
+                buildPath={paths.toolDetail}
+              />
               <Button
                 variant="outlined"
                 startIcon={<QrCode2Outlined />}
@@ -324,6 +360,16 @@ export function ToolDetailPage() {
           </Card>
         </Grid>
 
+        {tool.ownershipType !== 'Owned' && (
+          <Grid size={12}>
+            <ToolRentalCard toolId={tool.id} />
+          </Grid>
+        )}
+
+        <Grid size={12}>
+          <ToolRentalOutCard toolId={tool.id} toolStatus={tool.status} />
+        </Grid>
+
         <Grid size={12}>
           <ToolCostsCard toolId={tool.id} />
         </Grid>
@@ -468,6 +514,679 @@ function ToolCostsCard({ toolId }: { toolId: string }) {
         onClose={() => setEditing(null)}
       />
     </Card>
+  );
+}
+
+/** The rent/lease history for this tool, add a new rate to close off the one in force. */
+function ToolRentalCard({ toolId }: { toolId: string }) {
+  const t = useT();
+  const { locale } = useI18n();
+  const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<ToolRentalRate | null>(null);
+
+  const query = useMemo(
+    () => ({
+      toolId,
+      pageNumber: 1,
+      pageSize: 10,
+      sortBy: 'startDate',
+      sortDescending: true,
+    }),
+    [toolId],
+  );
+
+  const { data } = useToolRentalRatesQuery(query);
+  const remove = useDeleteWithConfirm<ToolRentalRate>(useDeleteToolRentalRate());
+  const rows = data?.items ?? [];
+
+  return (
+    <Card>
+      <CardContent>
+        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+            {t('toolRentalRates.title')}
+          </Typography>
+          <Button
+            size="small"
+            startIcon={<HomeRepairServiceOutlined />}
+            onClick={() => setAdding(true)}
+          >
+            {t('toolRentalRates.add')}
+          </Button>
+        </Stack>
+
+        {rows.length === 0 ? (
+          <Typography color="text.secondary" sx={{ mt: 1 }}>
+            {t('toolRentalRates.empty')}
+          </Typography>
+        ) : (
+          <TableContainer sx={{ mt: 1 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('toolRentalRates.provider')}</TableCell>
+                  <TableCell align="right">{t('toolRentalRates.monthlyAmount')}</TableCell>
+                  <TableCell>{t('toolRentalRates.startDate')}</TableCell>
+                  <TableCell>{t('toolRentalRates.endDate')}</TableCell>
+                  <TableCell align="right" />
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    hover
+                    sx={{ cursor: 'pointer' }}
+                    onDoubleClick={() => setEditing(row)}
+                  >
+                    <TableCell>{row.provider || '—'}</TableCell>
+                    <TableCell align="right">{formatMoney(row.monthlyAmount, locale)}</TableCell>
+                    <TableCell>{formatDate(row.startDate)}</TableCell>
+                    <TableCell>
+                      {row.endDate ? formatDate(row.endDate) : t('rates.open')}
+                    </TableCell>
+                    <TableCell align="right">
+                      <Tooltip title={t('common.delete')}>
+                        <IconButton
+                          size="small"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            remove.request(row);
+                          }}
+                        >
+                          <DeleteOutlined fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </CardContent>
+
+      <ToolRentalRateDialog open={adding} toolId={toolId} onClose={() => setAdding(false)} />
+      <ToolRentalRateDialog
+        open={!!editing}
+        toolId={toolId}
+        editingRate={editing}
+        onClose={() => setEditing(null)}
+      />
+
+      <ConfirmDialog
+        open={!!remove.pending}
+        title={t('toolRentalRates.deleteTitle')}
+        description={t('toolRentalRates.deleteBody')}
+        confirmLabel={t('common.delete')}
+        destructive
+        loading={remove.isDeleting}
+        onConfirm={remove.confirm}
+        onCancel={remove.cancel}
+      />
+    </Card>
+  );
+}
+
+function ToolRentalRateDialog({
+  open,
+  toolId,
+  editingRate,
+  onClose,
+}: {
+  open: boolean;
+  toolId: string;
+  editingRate?: ToolRentalRate | null;
+  onClose: () => void;
+}) {
+  const t = useT();
+  const set = useSetToolRentalRate();
+  const update = useUpdateToolRentalRate();
+  const isEditing = !!editingRate;
+
+  const [monthlyAmount, setMonthlyAmount] = useState('');
+  const [provider, setProvider] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [note, setNote] = useState('');
+
+  const resetSet = set.reset;
+  const resetUpdate = update.reset;
+
+  useEffect(() => {
+    if (!open) return;
+
+    resetSet();
+    resetUpdate();
+
+    if (editingRate) {
+      setMonthlyAmount(String(editingRate.monthlyAmount));
+      setProvider(editingRate.provider ?? '');
+      setStartDate(editingRate.startDate);
+      setEndDate(editingRate.endDate ?? '');
+      setNote(editingRate.note ?? '');
+    } else {
+      setMonthlyAmount('');
+      setProvider('');
+      setStartDate('');
+      setEndDate('');
+      setNote('');
+    }
+  }, [open, editingRate, resetSet, resetUpdate]);
+
+  const parsedAmount = Number(monthlyAmount);
+  const amountIsValid = monthlyAmount.trim() !== '' && !Number.isNaN(parsedAmount) && parsedAmount > 0;
+  const datesAreValid = !startDate || !endDate || endDate >= startDate;
+  const canSubmit = amountIsValid && datesAreValid;
+
+  const mutation = isEditing ? update : set;
+  const error = mutation.isError ? toApiError(mutation.error) : null;
+
+  const submit = () => {
+    const shared = {
+      toolId,
+      monthlyAmount: parsedAmount,
+      provider: provider.trim() || null,
+      note: note.trim() || null,
+    };
+
+    if (isEditing) {
+      update.mutate(
+        { id: editingRate.id, input: { ...shared, startDate, endDate: endDate || null } },
+        { onSuccess: onClose },
+      );
+    } else {
+      set.mutate(
+        { ...shared, startDate: startDate || null, endDate: endDate || null },
+        { onSuccess: onClose },
+      );
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>
+        {isEditing ? t('toolRentalRates.editTitle') : t('toolRentalRates.add')}
+      </DialogTitle>
+      <DialogContent>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error.message}
+          </Alert>
+        )}
+
+        <Grid container spacing={2} sx={{ mt: 0 }}>
+          <Grid size={12}>
+            <TextField
+              type="number"
+              fullWidth
+              label={t('toolRentalRates.monthlyAmount')}
+              value={monthlyAmount}
+              onChange={(event) => setMonthlyAmount(event.target.value)}
+              error={monthlyAmount.trim() !== '' && !amountIsValid}
+              helperText={
+                monthlyAmount.trim() !== '' && !amountIsValid
+                  ? t('toolRentalRates.mustBePositive')
+                  : undefined
+              }
+            />
+          </Grid>
+
+          <Grid size={12}>
+            <TextField
+              fullWidth
+              label={t('toolRentalRates.provider')}
+              value={provider}
+              onChange={(event) => setProvider(event.target.value)}
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              type="date"
+              fullWidth
+              label={t('toolRentalRates.startDate')}
+              value={startDate}
+              onChange={(event) => setStartDate(event.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              type="date"
+              fullWidth
+              label={t('toolRentalRates.endDate')}
+              value={endDate}
+              onChange={(event) => setEndDate(event.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
+              error={!datesAreValid}
+              helperText={!datesAreValid ? t('rates.endsBeforeStart') : undefined}
+            />
+          </Grid>
+
+          <Grid size={12}>
+            <TextField
+              fullWidth
+              multiline
+              minRows={2}
+              label={t('rates.note')}
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+            />
+          </Grid>
+
+          {isEditing && (
+            <Grid size={12}>
+              <AttachmentList
+                ownerType="ToolRentalRate"
+                ownerId={editingRate.id}
+                categories={['Contract', 'Other']}
+              />
+            </Grid>
+          )}
+        </Grid>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>{t('common.cancel')}</Button>
+        <Button
+          variant="contained"
+          disabled={!canSubmit}
+          loading={mutation.isPending}
+          onClick={submit}
+        >
+          {t('common.save')}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+/** Loan-out history for this tool — the revenue direction. Record a new loan, return the open one. */
+function ToolRentalOutCard({ toolId, toolStatus }: { toolId: string; toolStatus: string }) {
+  const t = useT();
+  const { locale } = useI18n();
+  const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<ToolRentalOut | null>(null);
+  const [returning, setReturning] = useState<ToolRentalOut | null>(null);
+
+  const query = useMemo(
+    () => ({
+      toolId,
+      pageNumber: 1,
+      pageSize: 10,
+      sortBy: 'startDate',
+      sortDescending: true,
+    }),
+    [toolId],
+  );
+
+  const { data } = useToolRentalsOutQuery(query);
+  const { data: summary } = useToolRentalsOutSummaryQuery({ toolId });
+  const remove = useDeleteWithConfirm<ToolRentalOut>(useDeleteToolRentalOut());
+  const rows = data?.items ?? [];
+  const canAdd = toolStatus === 'Available';
+
+  return (
+    <Card>
+      <CardContent>
+        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+              {t('toolRentalsOut.title')}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              {t('toolRentalsOut.description')}
+            </Typography>
+          </Box>
+          <Tooltip title={canAdd ? '' : t('toolRentalsOut.notAvailableHint')}>
+            <span>
+              <Button
+                size="small"
+                startIcon={<HomeRepairServiceOutlined />}
+                disabled={!canAdd}
+                onClick={() => setAdding(true)}
+              >
+                {t('toolRentalsOut.add')}
+              </Button>
+            </span>
+          </Tooltip>
+        </Stack>
+
+        {summary && (
+          <Typography variant="body2" sx={{ mt: 1, fontWeight: 600 }}>
+            {t('toolRentalsOut.totalRevenue')}: {formatMoney(summary.totalValue, locale)}
+          </Typography>
+        )}
+
+        {rows.length === 0 ? (
+          <Typography color="text.secondary" sx={{ mt: 1 }}>
+            {t('toolRentalsOut.empty')}
+          </Typography>
+        ) : (
+          <TableContainer sx={{ mt: 1 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('toolRentalsOut.renter')}</TableCell>
+                  <TableCell align="right">{t('toolRentalsOut.dailyRate')}</TableCell>
+                  <TableCell>{t('toolRentalsOut.startDate')}</TableCell>
+                  <TableCell>{t('toolRentalsOut.endDate')}</TableCell>
+                  <TableCell align="right" />
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    hover
+                    sx={{ cursor: 'pointer' }}
+                    onDoubleClick={() => setEditing(row)}
+                  >
+                    <TableCell>{row.renterDisplayName}</TableCell>
+                    <TableCell align="right">{formatMoney(row.dailyRate, locale)}</TableCell>
+                    <TableCell>{formatDate(row.startDate)}</TableCell>
+                    <TableCell>
+                      {row.endDate ? (
+                        formatDate(row.endDate)
+                      ) : (
+                        <Chip label={t('toolRentalsOut.stillOut')} color="warning" size="small" />
+                      )}
+                    </TableCell>
+                    <TableCell align="right">
+                      <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'flex-end' }}>
+                        {row.isOpen && (
+                          <Tooltip title={t('toolRentalsOut.return')}>
+                            <IconButton
+                              size="small"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setReturning(row);
+                              }}
+                            >
+                              <AssignmentReturnOutlined fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                        <Tooltip title={t('common.delete')}>
+                          <IconButton
+                            size="small"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              remove.request(row);
+                            }}
+                          >
+                            <DeleteOutlined fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </CardContent>
+
+      <ToolRentalOutDialog open={adding} toolId={toolId} onClose={() => setAdding(false)} />
+      <ToolRentalOutDialog
+        open={!!editing}
+        toolId={toolId}
+        editingRental={editing}
+        onClose={() => setEditing(null)}
+      />
+
+      <ToolRentalOutReturnDialog rental={returning} onClose={() => setReturning(null)} />
+
+      <ConfirmDialog
+        open={!!remove.pending}
+        title={t('toolRentalsOut.deleteTitle')}
+        description={t('toolRentalsOut.deleteBody')}
+        confirmLabel={t('common.delete')}
+        destructive
+        loading={remove.isDeleting}
+        onConfirm={remove.confirm}
+        onCancel={remove.cancel}
+      />
+    </Card>
+  );
+}
+
+function ToolRentalOutDialog({
+  open,
+  toolId,
+  editingRental,
+  onClose,
+}: {
+  open: boolean;
+  toolId: string;
+  editingRental?: ToolRentalOut | null;
+  onClose: () => void;
+}) {
+  const t = useT();
+  const { data: customers } = useAllCustomersQuery();
+  const record = useRecordToolRentalOut();
+  const update = useUpdateToolRentalOut();
+  const isEditing = !!editingRental;
+
+  const [customerId, setCustomerId] = useState<string | null>(null);
+  const [renterName, setRenterName] = useState('');
+  const [dailyRate, setDailyRate] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [note, setNote] = useState('');
+
+  const resetRecord = record.reset;
+  const resetUpdate = update.reset;
+
+  useEffect(() => {
+    if (!open) return;
+
+    resetRecord();
+    resetUpdate();
+
+    if (editingRental) {
+      setCustomerId(editingRental.customerId);
+      setRenterName(editingRental.renterName);
+      setDailyRate(String(editingRental.dailyRate));
+      setStartDate(editingRental.startDate);
+      setNote(editingRental.note ?? '');
+    } else {
+      setCustomerId(null);
+      setRenterName('');
+      setDailyRate('');
+      setStartDate('');
+      setNote('');
+    }
+  }, [open, editingRental, resetRecord, resetUpdate]);
+
+  const parsedRate = Number(dailyRate);
+  const rateIsValid = dailyRate.trim() !== '' && !Number.isNaN(parsedRate) && parsedRate > 0;
+  const canSubmit = rateIsValid && renterName.trim() !== '';
+
+  const mutation = isEditing ? update : record;
+  const error = mutation.isError ? toApiError(mutation.error) : null;
+
+  const submit = () => {
+    const shared = {
+      customerId,
+      renterName: renterName.trim(),
+      dailyRate: parsedRate,
+      note: note.trim() || null,
+    };
+
+    if (isEditing) {
+      update.mutate(
+        { id: editingRental.id, input: { ...shared, startDate } },
+        { onSuccess: onClose },
+      );
+    } else {
+      record.mutate(
+        { toolId, ...shared, startDate: startDate || null },
+        { onSuccess: onClose },
+      );
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>
+        {isEditing ? t('toolRentalsOut.editTitle') : t('toolRentalsOut.add')}
+      </DialogTitle>
+      <DialogContent>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error.message}
+          </Alert>
+        )}
+
+        <Grid container spacing={2} sx={{ mt: 0 }}>
+          <Grid size={12}>
+            <Autocomplete
+              options={customers?.items ?? []}
+              getOptionLabel={(option) => option.name}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              value={customers?.items.find((c) => c.id === customerId) ?? null}
+              onChange={(_, value) => setCustomerId(value?.id ?? null)}
+              renderInput={(params) => (
+                <TextField {...params} label={t('toolRentalsOut.customer')} />
+              )}
+            />
+          </Grid>
+
+          <Grid size={12}>
+            <TextField
+              fullWidth
+              required
+              label={t('toolRentalsOut.renterName')}
+              value={renterName}
+              onChange={(event) => setRenterName(event.target.value)}
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              type="number"
+              fullWidth
+              label={t('toolRentalsOut.dailyRate')}
+              value={dailyRate}
+              onChange={(event) => setDailyRate(event.target.value)}
+              error={dailyRate.trim() !== '' && !rateIsValid}
+              helperText={
+                dailyRate.trim() !== '' && !rateIsValid
+                  ? t('toolRentalsOut.mustBePositive')
+                  : undefined
+              }
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              type="date"
+              fullWidth
+              label={t('toolRentalsOut.startDate')}
+              value={startDate}
+              onChange={(event) => setStartDate(event.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+          </Grid>
+
+          <Grid size={12}>
+            <TextField
+              fullWidth
+              multiline
+              minRows={2}
+              label={t('rates.note')}
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+            />
+          </Grid>
+        </Grid>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>{t('common.cancel')}</Button>
+        <Button
+          variant="contained"
+          disabled={!canSubmit}
+          loading={mutation.isPending}
+          onClick={submit}
+        >
+          {t('common.save')}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+/** Closes an open loan — a separate, deliberately narrow action from correcting one. */
+function ToolRentalOutReturnDialog({
+  rental,
+  onClose,
+}: {
+  rental: ToolRentalOut | null;
+  onClose: () => void;
+}) {
+  const t = useT();
+  const { locale } = useI18n();
+  const returnRental = useReturnToolRentalOut();
+  const [endDate, setEndDate] = useState('');
+
+  const resetReturn = returnRental.reset;
+
+  useEffect(() => {
+    if (!rental) return;
+    resetReturn();
+    setEndDate('');
+  }, [rental, resetReturn]);
+
+  if (!rental) return null;
+
+  const error = returnRental.isError ? toApiError(returnRental.error) : null;
+
+  const submit = () => {
+    returnRental.mutate(
+      { id: rental.id, input: { endDate: endDate || null } },
+      { onSuccess: onClose },
+    );
+  };
+
+  return (
+    <Dialog open={!!rental} onClose={onClose} fullWidth maxWidth="xs">
+      <DialogTitle>{t('toolRentalsOut.returnTitle')}</DialogTitle>
+      <DialogContent>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error.message}
+          </Alert>
+        )}
+        <Typography color="text.secondary" sx={{ mb: 2 }}>
+          {t('toolRentalsOut.returnBody')}
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 2 }}>
+          {rental.renterDisplayName} — {formatMoney(rental.dailyRate, locale)}/
+          {t('toolRentalsOut.dailyRate').toLowerCase()}
+        </Typography>
+        <TextField
+          type="date"
+          fullWidth
+          label={t('toolRentalsOut.endDate')}
+          value={endDate}
+          onChange={(event) => setEndDate(event.target.value)}
+          slotProps={{ inputLabel: { shrink: true } }}
+          helperText={t('toolRentalsOut.defaultsToday')}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>{t('common.cancel')}</Button>
+        <Button
+          variant="contained"
+          loading={returnRental.isPending}
+          onClick={submit}
+        >
+          {t('toolRentalsOut.return')}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }
 

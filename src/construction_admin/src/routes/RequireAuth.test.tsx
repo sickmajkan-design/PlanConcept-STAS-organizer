@@ -38,6 +38,7 @@ function signedIn(role: Role): User {
     firstName: null,
     lastName: null,
     lastLoginAt: null,
+    canViewCustomerTaxDetails: false,
   };
 }
 

@@ -27,6 +27,9 @@ public record UpdateMaterialMovementCommand : IRequest<MaterialMovementDto>
     public DateOnly OccurredOn { get; init; }
 
     public string? Note { get; init; }
+
+    /// <summary>Invoice or receipt number. Required on a delivery.</summary>
+    public string? InvoiceNumber { get; init; }
 }
 
 public class UpdateMaterialMovementCommandValidator
@@ -65,6 +68,16 @@ public class UpdateMaterialMovementCommandValidator
                 $"A movement cannot be recorded more than {CostRules.MaxBackdatingDays} days back.");
 
         RuleFor(x => x.Note).MaximumLength(500);
+
+        RuleFor(x => x.InvoiceNumber)
+            .NotEmpty()
+            .WithMessage("A delivery needs an invoice or receipt number.")
+            .MaximumLength(100)
+            .When(x => x.Kind == MaterialMovementKind.In);
+
+        RuleFor(x => x.InvoiceNumber)
+            .MaximumLength(100)
+            .When(x => x.Kind != MaterialMovementKind.In);
     }
 }
 
@@ -124,10 +137,13 @@ public class UpdateMaterialMovementCommandHandler
 
         movement.Kind = request.Kind;
         movement.Quantity = request.Quantity;
-        movement.UnitPrice = await ResolveUnitPriceAsync(request, cancellationToken);
+        movement.UnitPrice = await ResolveUnitPriceAsync(request, request.OccurredOn, cancellationToken);
         movement.ProjectId = request.ProjectId;
         movement.OccurredOn = request.OccurredOn;
         movement.Note = request.Note?.Trim();
+        movement.InvoiceNumber = string.IsNullOrWhiteSpace(request.InvoiceNumber)
+            ? null
+            : request.InvoiceNumber.Trim();
 
         var delta = movement.SignedQuantity - previousSigned;
         var materialId = movement.MaterialId;
@@ -163,9 +179,20 @@ public class UpdateMaterialMovementCommandHandler
             .FirstAsync(cancellationToken);
     }
 
-    /// <summary>Mirrors <c>RecordMaterialMovementCommandHandler.ResolveUnitPriceAsync</c>.</summary>
+    /// <summary>
+    /// Mirrors <c>RecordMaterialMovementCommandHandler.ResolveUnitPriceAsync</c>,
+    /// including scoping the average to deliveries on or before this
+    /// movement's (possibly edited) <paramref name="occurredOn"/>.
+    /// </summary>
+    /// <remarks>
+    /// Not excluded from the pool: the row being edited only matches the
+    /// <c>Kind == In</c> filter if its new Kind is In, and that branch
+    /// returns null above before this query ever runs — so there is no
+    /// self-reference to guard against.
+    /// </remarks>
     private async Task<decimal?> ResolveUnitPriceAsync(
         UpdateMaterialMovementCommand request,
+        DateOnly occurredOn,
         CancellationToken cancellationToken)
     {
         if (request.Kind == MaterialMovementKind.Adjustment)
@@ -187,7 +214,8 @@ public class UpdateMaterialMovementCommandHandler
             .AsNoTracking()
             .Where(m => m.MaterialId == request.MaterialId
                 && m.Kind == MaterialMovementKind.In
-                && m.UnitPrice != null)
+                && m.UnitPrice != null
+                && m.OccurredOn <= occurredOn)
             .GroupBy(m => m.MaterialId)
             .Select(g => new
             {

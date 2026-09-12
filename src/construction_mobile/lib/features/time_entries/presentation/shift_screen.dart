@@ -392,6 +392,27 @@ class _TimeEntryCard extends StatelessWidget {
                     label: Text(l10n.shiftBreakMinutes(entry.breakMinutes)),
                     visualDensity: VisualDensity.compact,
                   ),
+                if (entry.autoClosed)
+                  Chip(
+                    label: Text(l10n.shiftAutoClosed),
+                    visualDensity: VisualDensity.compact,
+                    backgroundColor: theme.colorScheme.errorContainer,
+                    labelStyle: TextStyle(color: theme.colorScheme.onErrorContainer),
+                  ),
+                if (entry.locationCorrect == false)
+                  Chip(
+                    label: Text(l10n.shiftLocationMismatch),
+                    visualDensity: VisualDensity.compact,
+                    backgroundColor: theme.colorScheme.errorContainer,
+                    labelStyle: TextStyle(color: theme.colorScheme.onErrorContainer),
+                  ),
+                if (entry.timeCorrect == false)
+                  Chip(
+                    label: Text(l10n.shiftTimeMismatch),
+                    visualDensity: VisualDensity.compact,
+                    backgroundColor: theme.colorScheme.errorContainer,
+                    labelStyle: TextStyle(color: theme.colorScheme.onErrorContainer),
+                  ),
               ],
             ),
             if (entry.reviewNote != null) ...[

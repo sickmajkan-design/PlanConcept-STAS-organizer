@@ -42,4 +42,21 @@ abstract class User with _$User {
   /// Workers are not served the directory endpoints, so the app does not
   /// offer them either.
   bool get canViewDirectory => _directoryRoles.contains(role);
+
+  /// Mirrors the backend's `AdminAndAbove` policy — create/edit/delete on
+  /// Vehicles, Tools and Employees.
+  static const _adminRoles = <String>{'SuperAdmin', 'Admin'};
+
+  bool get isAdminAndAbove => _adminRoles.contains(role);
+
+  /// Mirrors the backend's `ProjectManagerAndAbove` policy — create/edit on
+  /// Projects and Materials (their *delete* is `AdminAndAbove`, stricter —
+  /// use [isAdminAndAbove] for that).
+  static const _pmRoles = <String>{'SuperAdmin', 'Admin', 'ProjectManager'};
+
+  bool get isProjectManagerAndAbove => _pmRoles.contains(role);
+
+  /// Mirrors the backend's `SuperAdminOnly` policy — the company profile and
+  /// the free-form ledger. Not even Admin may reach these.
+  bool get isSuperAdmin => role == 'SuperAdmin';
 }

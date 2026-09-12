@@ -3,6 +3,7 @@ import {
   Alert,
   Box,
   Button,
+  Divider,
   Grid,
   Paper,
   Stack,
@@ -13,13 +14,27 @@ import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { customersApi } from '../../api/customers';
 import { toApiError } from '../../api/apiError';
 import type { CustomerInput } from '../../api/types';
+import { isSuperAdmin } from '../../auth/authHelpers';
+import { useAuth } from '../../auth/useAuth';
+import { DuplicateWarningAlert } from '../../components/DuplicateWarningAlert';
 import { ErrorState } from '../../components/ErrorState';
 import { useCreateCustomer, useCustomerQuery, useUpdateCustomer } from '../../features/customers/useCustomers';
 import { customerFormSchema, type CustomerFormValues } from '../../features/customers/validation';
+import { useDuplicateWarning } from '../../hooks/useDuplicateWarning';
 import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
+
+async function searchSimilarCustomers(term: string) {
+  const result = await customersApi.list({ pageNumber: 1, pageSize: 5, search: term });
+  return result.items.map((c) => ({
+    id: c.id,
+    label: c.name,
+    path: paths.customerEdit(c.id),
+  }));
+}
 
 const emptyValues: CustomerFormValues = {
   name: '',
@@ -27,6 +42,9 @@ const emptyValues: CustomerFormValues = {
   phone: '',
   email: '',
   note: '',
+  taxId: '',
+  registrationNumber: '',
+  vatNumber: '',
 };
 
 export function CustomerFormPage() {
@@ -34,6 +52,9 @@ export function CustomerFormPage() {
   const isEdit = !!id;
   const navigate = useNavigate();
   const t = useT();
+  const { user } = useAuth();
+  const canEditTaxDetails = isSuperAdmin(user);
+  const canViewTaxDetails = canEditTaxDetails || !!user?.canViewCustomerTaxDetails;
 
   const { data: existing, isLoading, isError, error, refetch } = useCustomerQuery(id);
   const createCustomer = useCreateCustomer();
@@ -43,12 +64,15 @@ export function CustomerFormPage() {
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isSubmitting },
     setError,
   } = useForm<CustomerFormValues>({
     resolver: zodResolver(customerFormSchema),
     defaultValues: emptyValues,
   });
+
+  const duplicates = useDuplicateWarning(searchSimilarCustomers, watch('name'), id);
 
   useEffect(() => {
     if (existing) {
@@ -58,6 +82,9 @@ export function CustomerFormPage() {
         phone: existing.phone ?? '',
         email: existing.email ?? '',
         note: existing.note ?? '',
+        taxId: existing.taxId ?? '',
+        registrationNumber: existing.registrationNumber ?? '',
+        vatNumber: existing.vatNumber ?? '',
       });
     }
   }, [existing, reset]);
@@ -77,6 +104,13 @@ export function CustomerFormPage() {
       phone: values.phone || null,
       email: values.email || null,
       note: values.note || null,
+      ...(canEditTaxDetails
+        ? {
+            taxId: values.taxId || null,
+            registrationNumber: values.registrationNumber || null,
+            vatNumber: values.vatNumber || null,
+          }
+        : {}),
     };
 
     try {
@@ -115,6 +149,7 @@ export function CustomerFormPage() {
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <Stack spacing={2.5}>
             {rootError?.message && <Alert severity="error">{rootError.message}</Alert>}
+            {!isEdit && <DuplicateWarningAlert candidates={duplicates.candidates} />}
 
             <Grid container spacing={2}>
               <Grid size={12}>
@@ -194,6 +229,70 @@ export function CustomerFormPage() {
                   )}
                 />
               </Grid>
+
+              {canViewTaxDetails && (
+                <>
+                  <Grid size={12}>
+                    <Divider sx={{ my: 0.5 }} />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>
+                      {t('customers.taxSection')}
+                    </Typography>
+                    {!canEditTaxDetails && (
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        {t('customers.taxSectionReadOnlyHint')}
+                      </Typography>
+                    )}
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <Controller
+                      name="taxId"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <TextField
+                          {...field}
+                          label={t('customers.taxId')}
+                          fullWidth
+                          disabled={!canEditTaxDetails}
+                          error={!!fieldState.error}
+                          helperText={fieldState.error?.message}
+                        />
+                      )}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <Controller
+                      name="registrationNumber"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <TextField
+                          {...field}
+                          label={t('customers.registrationNumber')}
+                          fullWidth
+                          disabled={!canEditTaxDetails}
+                          error={!!fieldState.error}
+                          helperText={fieldState.error?.message}
+                        />
+                      )}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <Controller
+                      name="vatNumber"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <TextField
+                          {...field}
+                          label={t('customers.vatNumber')}
+                          fullWidth
+                          disabled={!canEditTaxDetails}
+                          error={!!fieldState.error}
+                          helperText={fieldState.error?.message}
+                        />
+                      )}
+                    />
+                  </Grid>
+                </>
+              )}
             </Grid>
 
             <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>

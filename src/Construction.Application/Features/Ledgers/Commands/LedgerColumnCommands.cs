@@ -20,6 +20,9 @@ public record AddLedgerColumnCommand : IRequest<LedgerColumnDto>
     public string Name { get; init; } = null!;
 
     public LedgerColumnDataType DataType { get; init; }
+
+    /// <summary>When set, the column is read-only and computed — see <see cref="LedgerColumn.SourceMetric"/>.</summary>
+    public LedgerColumnSourceMetric? SourceMetric { get; init; }
 }
 
 public class AddLedgerColumnCommandValidator : AbstractValidator<AddLedgerColumnCommand>
@@ -29,6 +32,7 @@ public class AddLedgerColumnCommandValidator : AbstractValidator<AddLedgerColumn
         RuleFor(x => x.LedgerId).NotEmpty();
         RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
         RuleFor(x => x.DataType).IsInEnum();
+        RuleFor(x => x.SourceMetric).IsInEnum().When(x => x.SourceMetric is not null);
     }
 }
 
@@ -59,7 +63,8 @@ public class AddLedgerColumnCommandHandler : IRequestHandler<AddLedgerColumnComm
         {
             LedgerId = request.LedgerId,
             Name = request.Name.Trim(),
-            DataType = request.DataType,
+            DataType = request.SourceMetric is null ? request.DataType : LedgerColumnDataType.Currency,
+            SourceMetric = request.SourceMetric,
             SortOrder = nextOrder + 1,
         };
 
@@ -71,6 +76,7 @@ public class AddLedgerColumnCommandHandler : IRequestHandler<AddLedgerColumnComm
             Id = column.Id,
             Name = column.Name,
             DataType = column.DataType.ToString(),
+            SourceMetric = column.SourceMetric?.ToString(),
             SortOrder = column.SortOrder,
         };
     }
@@ -83,6 +89,9 @@ public record UpdateLedgerColumnCommand : IRequest<LedgerColumnDto>
     public string Name { get; init; } = null!;
 
     public LedgerColumnDataType DataType { get; init; }
+
+    /// <summary>When set, the column is read-only and computed — see <see cref="LedgerColumn.SourceMetric"/>.</summary>
+    public LedgerColumnSourceMetric? SourceMetric { get; init; }
 }
 
 public class UpdateLedgerColumnCommandValidator : AbstractValidator<UpdateLedgerColumnCommand>
@@ -92,6 +101,7 @@ public class UpdateLedgerColumnCommandValidator : AbstractValidator<UpdateLedger
         RuleFor(x => x.Id).NotEmpty();
         RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
         RuleFor(x => x.DataType).IsInEnum();
+        RuleFor(x => x.SourceMetric).IsInEnum().When(x => x.SourceMetric is not null);
     }
 }
 
@@ -114,7 +124,8 @@ public class UpdateLedgerColumnCommandHandler
             ?? throw new NotFoundException(nameof(LedgerColumn), request.Id);
 
         column.Name = request.Name.Trim();
-        column.DataType = request.DataType;
+        column.DataType = request.SourceMetric is null ? request.DataType : LedgerColumnDataType.Currency;
+        column.SourceMetric = request.SourceMetric;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -123,6 +134,7 @@ public class UpdateLedgerColumnCommandHandler
             Id = column.Id,
             Name = column.Name,
             DataType = column.DataType.ToString(),
+            SourceMetric = column.SourceMetric?.ToString(),
             SortOrder = column.SortOrder,
         };
     }

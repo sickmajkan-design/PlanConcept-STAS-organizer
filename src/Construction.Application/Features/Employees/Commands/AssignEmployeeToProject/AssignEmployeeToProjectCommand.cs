@@ -132,17 +132,41 @@ public class AssignEmployeeToProjectCommandHandler : IRequestHandler<AssignEmplo
         var data = new Dictionary<string, string>
         {
             ["projectId"] = project.Id.ToString(),
-            ["employeeId"] = employee.Id.ToString()
+            ["employeeId"] = employee.Id.ToString(),
+            // Carried alongside the plain-English Title/Body below so a
+            // client can render its own, localized version instead — the
+            // point of sending someone to a site is that they know where it
+            // is, and "New project assigned" alone does not say that.
+            ["projectName"] = project.Name,
+            ["employeeName"] = employee.FullName
         };
 
-        // The assigned employee learns about their new project.
+        if (!string.IsNullOrWhiteSpace(project.Address))
+        {
+            data["projectAddress"] = project.Address;
+        }
+
+        if (project.ShiftStartTime is { } shiftStartTime)
+        {
+            data["projectShiftStartTime"] = shiftStartTime.ToString("HH:mm");
+        }
+
+        // The assigned employee learns about their new project — where it is
+        // and, if the site has one, what time the shift starts, not just its
+        // name. The English fallback below is what desktop and an
+        // untemplated client show as-is; the mobile app builds its own
+        // localized sentence from `data` instead (see `resolveNotificationText`).
         if (employee.User is { IsActive: true } user)
         {
+            var body = string.IsNullOrWhiteSpace(project.Address)
+                ? $"You have been assigned to project '{project.Name}'."
+                : $"You have been assigned to project '{project.Name}', at {project.Address}.";
+
             await _notificationService.NotifyUserAsync(
                 user.Id,
                 NotificationType.ProjectAssigned,
                 "New project assigned",
-                $"You have been assigned to project '{project.Name}'.",
+                body,
                 data,
                 cancellationToken: cancellationToken);
         }

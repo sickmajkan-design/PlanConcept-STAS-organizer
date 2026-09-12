@@ -16,6 +16,28 @@ abstract class Vehicle with _$Vehicle {
     String? qrCode,
     required String fuelType,
     required String status,
+
+    /// `"Owned"` or `"Rented"`.
+    @Default('Owned') String ownershipType,
+
+    /// Set when a rental/lease rate is currently in force. Null for an owned
+    /// vehicle, or one with no rate on file.
+    double? currentRentalMonthlyAmount,
+    String? currentRentalProvider,
+
+    /// Set when this vehicle is currently loaned out to another company.
+    String? currentRentalOutRenterName,
+    double? currentRentalOutDailyRate,
+
+    /// `YYYY-MM-DD`.
+    String? currentRentalOutStartDate,
+
+    /// Renter on the most recently closed rental-out loan. Null if never
+    /// loaned out.
+    String? lastRentalOutRenterName,
+
+    /// `YYYY-MM-DD`.
+    String? lastRentalOutEndDate,
     String? assignedEmployeeId,
     String? assignedEmployeeName,
     String? assignedEmployeeNumber,
@@ -31,4 +53,8 @@ abstract class Vehicle with _$Vehicle {
   String get displayName => '$brand $model';
 
   bool get isAssigned => assignedEmployeeId != null;
+
+  bool get isRented => ownershipType == 'Rented';
+
+  bool get isLoanedOut => currentRentalOutRenterName != null;
 }

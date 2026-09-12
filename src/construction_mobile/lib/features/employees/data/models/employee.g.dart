@@ -21,6 +21,7 @@ _Employee _$EmployeeFromJson(Map<String, dynamic> json) => _Employee(
   employmentDate: DateTime.parse(json['employmentDate'] as String),
   position: json['position'] as String,
   status: json['status'] as String,
+  type: json['type'] as String? ?? 'Employee',
   photoUrl: json['photoUrl'] as String?,
   createdAt: DateTime.parse(json['createdAt'] as String),
   updatedAt: json['updatedAt'] == null
@@ -41,6 +42,7 @@ Map<String, dynamic> _$EmployeeToJson(_Employee instance) => <String, dynamic>{
   'employmentDate': instance.employmentDate.toIso8601String(),
   'position': instance.position,
   'status': instance.status,
+  'type': instance.type,
   'photoUrl': ?instance.photoUrl,
   'createdAt': instance.createdAt.toIso8601String(),
   'updatedAt': ?instance.updatedAt?.toIso8601String(),
@@ -62,6 +64,7 @@ _EmployeeDetail _$EmployeeDetailFromJson(Map<String, dynamic> json) =>
       employmentDate: DateTime.parse(json['employmentDate'] as String),
       position: json['position'] as String,
       status: json['status'] as String,
+      type: json['type'] as String? ?? 'Employee',
       photoUrl: json['photoUrl'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: json['updatedAt'] == null
@@ -93,6 +96,7 @@ Map<String, dynamic> _$EmployeeDetailToJson(_EmployeeDetail instance) =>
       'employmentDate': instance.employmentDate.toIso8601String(),
       'position': instance.position,
       'status': instance.status,
+      'type': instance.type,
       'photoUrl': ?instance.photoUrl,
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': ?instance.updatedAt?.toIso8601String(),

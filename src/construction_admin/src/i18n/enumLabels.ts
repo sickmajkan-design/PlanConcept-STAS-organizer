@@ -22,6 +22,7 @@ export type EnumKind =
   | 'vehicleStatus'
   | 'vehicleOwnershipType'
   | 'toolStatus'
+  | 'toolOwnershipType'
   | 'fuelType'
   | 'timeEntryStatus'
   | 'workType'
@@ -38,7 +39,13 @@ export type EnumKind =
   | 'financeEntryKind'
   | 'generalExpenseCategory'
   | 'ledgerColumnDataType'
-  | 'notificationType';
+  | 'ledgerColumnSourceMetric'
+  | 'notificationType'
+  | 'scheduledReportType'
+  | 'scheduledReportCadence'
+  | 'weekDay'
+  | 'weeklyReportType'
+  | 'weeklyReportStatus';
 
 export function useEnumLabel() {
   const t = useT();

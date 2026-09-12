@@ -5,6 +5,7 @@ using Construction.Application.Features.Notifications.Commands.MarkAllNotificati
 using Construction.Application.Features.Notifications.Commands.MarkNotificationRead;
 using Construction.Application.Features.Notifications.Commands.RegisterDeviceToken;
 using Construction.Application.Features.Notifications.Commands.SendAnnouncement;
+using Construction.Application.Features.Notifications.Commands.SendDirectNotification;
 using Construction.Application.Features.Notifications.Commands.UnregisterDeviceToken;
 using Construction.Application.Features.Notifications.Models;
 using Construction.Application.Features.Notifications.Queries.GetMyNotifications;
@@ -122,5 +123,25 @@ public class NotificationsController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(command, cancellationToken));
+    }
+
+    /// <summary>
+    /// Sends a free-typed message straight to one employee. A Foreman may
+    /// only target someone currently posted to one of their own sites;
+    /// ProjectManager and above may target any employee.
+    /// </summary>
+    [HttpPost("notify-employee")]
+    [Authorize(Policy = Policies.ForemanAndAbove)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> NotifyEmployee(
+        SendDirectNotificationCommand command,
+        CancellationToken cancellationToken)
+    {
+        await Mediator.Send(command, cancellationToken);
+        return NoContent();
     }
 }

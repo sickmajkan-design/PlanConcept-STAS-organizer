@@ -1,11 +1,18 @@
 import { EngineeringOutlined } from '@mui/icons-material';
 import { Box, Paper, Stack, Typography } from '@mui/material';
 
+import { config } from '../config';
+import { useCompanyBrandingQuery } from '../features/companySettings/useCompanySettings';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { OfflineBanner } from './OfflineBanner';
 import type { ReactNode } from 'react';
 
-/** Centered card frame shared by every anonymous auth screen. */
+/**
+ * Centered card frame shared by every anonymous auth screen. Shows the
+ * platform's own company logo/name when one is configured, falling back to
+ * the generic app identity — this is the one screen that must work with no
+ * auth token at all, which `useCompanyBrandingQuery` is built for.
+ */
 export function AuthCard({
   title,
   subtitle,
@@ -15,6 +22,8 @@ export function AuthCard({
   subtitle?: string;
   children: ReactNode;
 }) {
+  const { data: branding } = useCompanyBrandingQuery();
+
   return (
     <Box
       sx={{
@@ -35,7 +44,16 @@ export function AuthCard({
               failed login on a dead connection reads as a wrong password. */}
           <OfflineBanner />
           <Stack spacing={1} sx={{ alignItems: 'center', textAlign: 'center' }}>
-            <EngineeringOutlined sx={{ fontSize: 44, color: 'primary.main' }} />
+            {branding?.hasLogo ? (
+              <Box
+                component="img"
+                src={`${config.apiBaseUrl}/api/v1/company-settings/logo`}
+                alt=""
+                sx={{ width: 56, height: 56, objectFit: 'contain' }}
+              />
+            ) : (
+              <EngineeringOutlined sx={{ fontSize: 44, color: 'primary.main' }} />
+            )}
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
               {/* Someone who cannot read this screen cannot get past it to
                   change the language anywhere else. */}

@@ -20,6 +20,9 @@ public record PublicHolidayImportItem(DateOnly Date, string Name);
 /// </summary>
 public record ImportPublicHolidaysCommand : IRequest<IReadOnlyList<PublicHolidayDto>>
 {
+    /// <summary>ISO 3166-1 alpha-2 — every item belongs to this one country, the one previewed.</summary>
+    public string CountryCode { get; init; } = null!;
+
     public IReadOnlyList<PublicHolidayImportItem> Items { get; init; } = Array.Empty<PublicHolidayImportItem>();
 }
 
@@ -27,6 +30,10 @@ public class ImportPublicHolidaysCommandValidator : AbstractValidator<ImportPubl
 {
     public ImportPublicHolidaysCommandValidator()
     {
+        RuleFor(x => x.CountryCode)
+            .NotEmpty().WithMessage("A country is required.")
+            .Length(2).WithMessage("Use the two-letter country code (ISO 3166-1 alpha-2).");
+
         RuleFor(x => x.Items).NotEmpty().WithMessage("Choose at least one holiday to import.");
 
         RuleForEach(x => x.Items).ChildRules(item =>
@@ -60,10 +67,11 @@ public class ImportPublicHolidaysCommandHandler
             throw new ForbiddenAccessException("You may not manage the holiday calendar.");
         }
 
+        var countryCode = request.CountryCode.Trim().ToUpperInvariant();
         var requestedDates = request.Items.Select(i => i.Date).ToList();
 
         var existingDates = await _context.PublicHolidays
-            .Where(h => requestedDates.Contains(h.Date))
+            .Where(h => h.CountryCode == countryCode && requestedDates.Contains(h.Date))
             .Select(h => h.Date)
             .ToListAsync(cancellationToken);
         var existing = existingDates.ToHashSet();
@@ -75,7 +83,12 @@ public class ImportPublicHolidaysCommandHandler
             // conflict the single-add path already guards against.
             .GroupBy(item => item.Date)
             .Select(group => group.First())
-            .Select(item => new PublicHoliday { Date = item.Date, Name = item.Name.Trim() })
+            .Select(item => new PublicHoliday
+            {
+                Date = item.Date,
+                Name = item.Name.Trim(),
+                CountryCode = countryCode,
+            })
             .ToList();
 
         if (toInsert.Count == 0)

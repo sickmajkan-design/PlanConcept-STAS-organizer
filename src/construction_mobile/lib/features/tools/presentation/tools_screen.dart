@@ -7,7 +7,9 @@ import '../../../core/router/app_routes.dart';
 import '../../../core/widgets/paged_list_view.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
+import '../../auth/presentation/auth_controller.dart';
 import '../data/models/tool.dart';
+import 'tool_form_sheet.dart';
 import 'tools_controller.dart';
 
 class ToolsScreen extends ConsumerWidget {
@@ -22,6 +24,12 @@ class ToolsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(context.l10n.navTools),
         actions: [
+          if (ref.watch(currentUserProvider)?.isAdminAndAbove ?? false)
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: context.l10n.commonAdd,
+              onPressed: () => showToolFormSheet(context, ref),
+            ),
           IconButton(
             icon: const Icon(Icons.qr_code_scanner_outlined),
             tooltip: context.l10n.toolLookUpByQr,
@@ -42,6 +50,8 @@ class ToolsScreen extends ConsumerWidget {
             filters: toolStatusFilters,
             selectedFilter: controller.filter,
             onFilterSelected: controller.applyFilter,
+            filterLabel: (context, value) =>
+                enumLabel(context.l10n, EnumKind.toolStatus, value),
           ),
           itemBuilder: (context, tool) => _ToolCard(tool: tool),
         ),
@@ -60,7 +70,7 @@ class _ToolCard extends StatelessWidget {
     final theme = Theme.of(context);
     final subtitle = tool.assignedEmployeeName ??
         tool.assignedProjectName ??
-        (tool.category ?? tool.serialNumber ?? 'No assignment');
+        (tool.category ?? tool.serialNumber ?? context.l10n.materialNoAssignment);
 
     return Card(
       clipBehavior: Clip.antiAlias,

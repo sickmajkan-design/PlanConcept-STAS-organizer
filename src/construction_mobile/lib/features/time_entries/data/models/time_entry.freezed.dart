@@ -16,7 +16,14 @@ T _$identity<T>(T value) => value;
 mixin _$TimeEntry {
 
  String get id; String get employeeId; String get employeeName; String? get projectId; String? get projectName; DateTime get startedAt; DateTime? get endedAt; int get breakMinutes;/// Null while the shift is still running.
- int? get workedMinutes; String get workType; String get status; String? get note; double? get startLatitude; double? get startLongitude; double? get endLatitude; double? get endLongitude; String? get reviewedByName; DateTime? get reviewedAt; String? get reviewNote; DateTime get createdAt; DateTime? get updatedAt;
+ int? get workedMinutes; String get workType; String get status; String? get note; double? get startLatitude; double? get startLongitude; double? get endLatitude; double? get endLongitude; String? get reviewedByName; DateTime? get reviewedAt; String? get reviewNote; DateTime get createdAt; DateTime? get updatedAt;/// Set when the nightly sweep force-closed this shift instead of the
+/// worker clocking out themselves.
+ bool get autoClosed;/// Null when the project (or the clock-in point) has no location to
+/// compare against. Otherwise whether the clock-in was close enough to
+/// the project's own coordinates.
+ bool? get locationCorrect;/// Null when the project has no expected shift start time set.
+/// Otherwise whether the clock-in landed close enough to it.
+ bool? get timeCorrect;
 /// Create a copy of TimeEntry
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,16 +36,16 @@ $TimeEntryCopyWith<TimeEntry> get copyWith => _$TimeEntryCopyWithImpl<TimeEntry>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TimeEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.employeeId, employeeId) || other.employeeId == employeeId)&&(identical(other.employeeName, employeeName) || other.employeeName == employeeName)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.breakMinutes, breakMinutes) || other.breakMinutes == breakMinutes)&&(identical(other.workedMinutes, workedMinutes) || other.workedMinutes == workedMinutes)&&(identical(other.workType, workType) || other.workType == workType)&&(identical(other.status, status) || other.status == status)&&(identical(other.note, note) || other.note == note)&&(identical(other.startLatitude, startLatitude) || other.startLatitude == startLatitude)&&(identical(other.startLongitude, startLongitude) || other.startLongitude == startLongitude)&&(identical(other.endLatitude, endLatitude) || other.endLatitude == endLatitude)&&(identical(other.endLongitude, endLongitude) || other.endLongitude == endLongitude)&&(identical(other.reviewedByName, reviewedByName) || other.reviewedByName == reviewedByName)&&(identical(other.reviewedAt, reviewedAt) || other.reviewedAt == reviewedAt)&&(identical(other.reviewNote, reviewNote) || other.reviewNote == reviewNote)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TimeEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.employeeId, employeeId) || other.employeeId == employeeId)&&(identical(other.employeeName, employeeName) || other.employeeName == employeeName)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.breakMinutes, breakMinutes) || other.breakMinutes == breakMinutes)&&(identical(other.workedMinutes, workedMinutes) || other.workedMinutes == workedMinutes)&&(identical(other.workType, workType) || other.workType == workType)&&(identical(other.status, status) || other.status == status)&&(identical(other.note, note) || other.note == note)&&(identical(other.startLatitude, startLatitude) || other.startLatitude == startLatitude)&&(identical(other.startLongitude, startLongitude) || other.startLongitude == startLongitude)&&(identical(other.endLatitude, endLatitude) || other.endLatitude == endLatitude)&&(identical(other.endLongitude, endLongitude) || other.endLongitude == endLongitude)&&(identical(other.reviewedByName, reviewedByName) || other.reviewedByName == reviewedByName)&&(identical(other.reviewedAt, reviewedAt) || other.reviewedAt == reviewedAt)&&(identical(other.reviewNote, reviewNote) || other.reviewNote == reviewNote)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.autoClosed, autoClosed) || other.autoClosed == autoClosed)&&(identical(other.locationCorrect, locationCorrect) || other.locationCorrect == locationCorrect)&&(identical(other.timeCorrect, timeCorrect) || other.timeCorrect == timeCorrect));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,employeeId,employeeName,projectId,projectName,startedAt,endedAt,breakMinutes,workedMinutes,workType,status,note,startLatitude,startLongitude,endLatitude,endLongitude,reviewedByName,reviewedAt,reviewNote,createdAt,updatedAt]);
+int get hashCode => Object.hashAll([runtimeType,id,employeeId,employeeName,projectId,projectName,startedAt,endedAt,breakMinutes,workedMinutes,workType,status,note,startLatitude,startLongitude,endLatitude,endLongitude,reviewedByName,reviewedAt,reviewNote,createdAt,updatedAt,autoClosed,locationCorrect,timeCorrect]);
 
 @override
 String toString() {
-  return 'TimeEntry(id: $id, employeeId: $employeeId, employeeName: $employeeName, projectId: $projectId, projectName: $projectName, startedAt: $startedAt, endedAt: $endedAt, breakMinutes: $breakMinutes, workedMinutes: $workedMinutes, workType: $workType, status: $status, note: $note, startLatitude: $startLatitude, startLongitude: $startLongitude, endLatitude: $endLatitude, endLongitude: $endLongitude, reviewedByName: $reviewedByName, reviewedAt: $reviewedAt, reviewNote: $reviewNote, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'TimeEntry(id: $id, employeeId: $employeeId, employeeName: $employeeName, projectId: $projectId, projectName: $projectName, startedAt: $startedAt, endedAt: $endedAt, breakMinutes: $breakMinutes, workedMinutes: $workedMinutes, workType: $workType, status: $status, note: $note, startLatitude: $startLatitude, startLongitude: $startLongitude, endLatitude: $endLatitude, endLongitude: $endLongitude, reviewedByName: $reviewedByName, reviewedAt: $reviewedAt, reviewNote: $reviewNote, createdAt: $createdAt, updatedAt: $updatedAt, autoClosed: $autoClosed, locationCorrect: $locationCorrect, timeCorrect: $timeCorrect)';
 }
 
 
@@ -49,7 +56,7 @@ abstract mixin class $TimeEntryCopyWith<$Res>  {
   factory $TimeEntryCopyWith(TimeEntry value, $Res Function(TimeEntry) _then) = _$TimeEntryCopyWithImpl;
 @useResult
 $Res call({
- String id, String employeeId, String employeeName, String? projectId, String? projectName, DateTime startedAt, DateTime? endedAt, int breakMinutes, int? workedMinutes, String workType, String status, String? note, double? startLatitude, double? startLongitude, double? endLatitude, double? endLongitude, String? reviewedByName, DateTime? reviewedAt, String? reviewNote, DateTime createdAt, DateTime? updatedAt
+ String id, String employeeId, String employeeName, String? projectId, String? projectName, DateTime startedAt, DateTime? endedAt, int breakMinutes, int? workedMinutes, String workType, String status, String? note, double? startLatitude, double? startLongitude, double? endLatitude, double? endLongitude, String? reviewedByName, DateTime? reviewedAt, String? reviewNote, DateTime createdAt, DateTime? updatedAt, bool autoClosed, bool? locationCorrect, bool? timeCorrect
 });
 
 
@@ -66,7 +73,7 @@ class _$TimeEntryCopyWithImpl<$Res>
 
 /// Create a copy of TimeEntry
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? employeeId = null,Object? employeeName = null,Object? projectId = freezed,Object? projectName = freezed,Object? startedAt = null,Object? endedAt = freezed,Object? breakMinutes = null,Object? workedMinutes = freezed,Object? workType = null,Object? status = null,Object? note = freezed,Object? startLatitude = freezed,Object? startLongitude = freezed,Object? endLatitude = freezed,Object? endLongitude = freezed,Object? reviewedByName = freezed,Object? reviewedAt = freezed,Object? reviewNote = freezed,Object? createdAt = null,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? employeeId = null,Object? employeeName = null,Object? projectId = freezed,Object? projectName = freezed,Object? startedAt = null,Object? endedAt = freezed,Object? breakMinutes = null,Object? workedMinutes = freezed,Object? workType = null,Object? status = null,Object? note = freezed,Object? startLatitude = freezed,Object? startLongitude = freezed,Object? endLatitude = freezed,Object? endLongitude = freezed,Object? reviewedByName = freezed,Object? reviewedAt = freezed,Object? reviewNote = freezed,Object? createdAt = null,Object? updatedAt = freezed,Object? autoClosed = null,Object? locationCorrect = freezed,Object? timeCorrect = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,employeeId: null == employeeId ? _self.employeeId : employeeId // ignore: cast_nullable_to_non_nullable
@@ -89,7 +96,10 @@ as String?,reviewedAt: freezed == reviewedAt ? _self.reviewedAt : reviewedAt // 
 as DateTime?,reviewNote: freezed == reviewNote ? _self.reviewNote : reviewNote // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,autoClosed: null == autoClosed ? _self.autoClosed : autoClosed // ignore: cast_nullable_to_non_nullable
+as bool,locationCorrect: freezed == locationCorrect ? _self.locationCorrect : locationCorrect // ignore: cast_nullable_to_non_nullable
+as bool?,timeCorrect: freezed == timeCorrect ? _self.timeCorrect : timeCorrect // ignore: cast_nullable_to_non_nullable
+as bool?,
   ));
 }
 
@@ -174,10 +184,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String employeeId,  String employeeName,  String? projectId,  String? projectName,  DateTime startedAt,  DateTime? endedAt,  int breakMinutes,  int? workedMinutes,  String workType,  String status,  String? note,  double? startLatitude,  double? startLongitude,  double? endLatitude,  double? endLongitude,  String? reviewedByName,  DateTime? reviewedAt,  String? reviewNote,  DateTime createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String employeeId,  String employeeName,  String? projectId,  String? projectName,  DateTime startedAt,  DateTime? endedAt,  int breakMinutes,  int? workedMinutes,  String workType,  String status,  String? note,  double? startLatitude,  double? startLongitude,  double? endLatitude,  double? endLongitude,  String? reviewedByName,  DateTime? reviewedAt,  String? reviewNote,  DateTime createdAt,  DateTime? updatedAt,  bool autoClosed,  bool? locationCorrect,  bool? timeCorrect)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TimeEntry() when $default != null:
-return $default(_that.id,_that.employeeId,_that.employeeName,_that.projectId,_that.projectName,_that.startedAt,_that.endedAt,_that.breakMinutes,_that.workedMinutes,_that.workType,_that.status,_that.note,_that.startLatitude,_that.startLongitude,_that.endLatitude,_that.endLongitude,_that.reviewedByName,_that.reviewedAt,_that.reviewNote,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.employeeId,_that.employeeName,_that.projectId,_that.projectName,_that.startedAt,_that.endedAt,_that.breakMinutes,_that.workedMinutes,_that.workType,_that.status,_that.note,_that.startLatitude,_that.startLongitude,_that.endLatitude,_that.endLongitude,_that.reviewedByName,_that.reviewedAt,_that.reviewNote,_that.createdAt,_that.updatedAt,_that.autoClosed,_that.locationCorrect,_that.timeCorrect);case _:
   return orElse();
 
 }
@@ -195,10 +205,10 @@ return $default(_that.id,_that.employeeId,_that.employeeName,_that.projectId,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String employeeId,  String employeeName,  String? projectId,  String? projectName,  DateTime startedAt,  DateTime? endedAt,  int breakMinutes,  int? workedMinutes,  String workType,  String status,  String? note,  double? startLatitude,  double? startLongitude,  double? endLatitude,  double? endLongitude,  String? reviewedByName,  DateTime? reviewedAt,  String? reviewNote,  DateTime createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String employeeId,  String employeeName,  String? projectId,  String? projectName,  DateTime startedAt,  DateTime? endedAt,  int breakMinutes,  int? workedMinutes,  String workType,  String status,  String? note,  double? startLatitude,  double? startLongitude,  double? endLatitude,  double? endLongitude,  String? reviewedByName,  DateTime? reviewedAt,  String? reviewNote,  DateTime createdAt,  DateTime? updatedAt,  bool autoClosed,  bool? locationCorrect,  bool? timeCorrect)  $default,) {final _that = this;
 switch (_that) {
 case _TimeEntry():
-return $default(_that.id,_that.employeeId,_that.employeeName,_that.projectId,_that.projectName,_that.startedAt,_that.endedAt,_that.breakMinutes,_that.workedMinutes,_that.workType,_that.status,_that.note,_that.startLatitude,_that.startLongitude,_that.endLatitude,_that.endLongitude,_that.reviewedByName,_that.reviewedAt,_that.reviewNote,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.employeeId,_that.employeeName,_that.projectId,_that.projectName,_that.startedAt,_that.endedAt,_that.breakMinutes,_that.workedMinutes,_that.workType,_that.status,_that.note,_that.startLatitude,_that.startLongitude,_that.endLatitude,_that.endLongitude,_that.reviewedByName,_that.reviewedAt,_that.reviewNote,_that.createdAt,_that.updatedAt,_that.autoClosed,_that.locationCorrect,_that.timeCorrect);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -215,10 +225,10 @@ return $default(_that.id,_that.employeeId,_that.employeeName,_that.projectId,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String employeeId,  String employeeName,  String? projectId,  String? projectName,  DateTime startedAt,  DateTime? endedAt,  int breakMinutes,  int? workedMinutes,  String workType,  String status,  String? note,  double? startLatitude,  double? startLongitude,  double? endLatitude,  double? endLongitude,  String? reviewedByName,  DateTime? reviewedAt,  String? reviewNote,  DateTime createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String employeeId,  String employeeName,  String? projectId,  String? projectName,  DateTime startedAt,  DateTime? endedAt,  int breakMinutes,  int? workedMinutes,  String workType,  String status,  String? note,  double? startLatitude,  double? startLongitude,  double? endLatitude,  double? endLongitude,  String? reviewedByName,  DateTime? reviewedAt,  String? reviewNote,  DateTime createdAt,  DateTime? updatedAt,  bool autoClosed,  bool? locationCorrect,  bool? timeCorrect)?  $default,) {final _that = this;
 switch (_that) {
 case _TimeEntry() when $default != null:
-return $default(_that.id,_that.employeeId,_that.employeeName,_that.projectId,_that.projectName,_that.startedAt,_that.endedAt,_that.breakMinutes,_that.workedMinutes,_that.workType,_that.status,_that.note,_that.startLatitude,_that.startLongitude,_that.endLatitude,_that.endLongitude,_that.reviewedByName,_that.reviewedAt,_that.reviewNote,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.employeeId,_that.employeeName,_that.projectId,_that.projectName,_that.startedAt,_that.endedAt,_that.breakMinutes,_that.workedMinutes,_that.workType,_that.status,_that.note,_that.startLatitude,_that.startLongitude,_that.endLatitude,_that.endLongitude,_that.reviewedByName,_that.reviewedAt,_that.reviewNote,_that.createdAt,_that.updatedAt,_that.autoClosed,_that.locationCorrect,_that.timeCorrect);case _:
   return null;
 
 }
@@ -230,7 +240,7 @@ return $default(_that.id,_that.employeeId,_that.employeeName,_that.projectId,_th
 @JsonSerializable()
 
 class _TimeEntry extends TimeEntry {
-  const _TimeEntry({required this.id, required this.employeeId, required this.employeeName, this.projectId, this.projectName, required this.startedAt, this.endedAt, required this.breakMinutes, this.workedMinutes, required this.workType, required this.status, this.note, this.startLatitude, this.startLongitude, this.endLatitude, this.endLongitude, this.reviewedByName, this.reviewedAt, this.reviewNote, required this.createdAt, this.updatedAt}): super._();
+  const _TimeEntry({required this.id, required this.employeeId, required this.employeeName, this.projectId, this.projectName, required this.startedAt, this.endedAt, required this.breakMinutes, this.workedMinutes, required this.workType, required this.status, this.note, this.startLatitude, this.startLongitude, this.endLatitude, this.endLongitude, this.reviewedByName, this.reviewedAt, this.reviewNote, required this.createdAt, this.updatedAt, this.autoClosed = false, this.locationCorrect, this.timeCorrect}): super._();
   factory _TimeEntry.fromJson(Map<String, dynamic> json) => _$TimeEntryFromJson(json);
 
 @override final  String id;
@@ -255,6 +265,16 @@ class _TimeEntry extends TimeEntry {
 @override final  String? reviewNote;
 @override final  DateTime createdAt;
 @override final  DateTime? updatedAt;
+/// Set when the nightly sweep force-closed this shift instead of the
+/// worker clocking out themselves.
+@override@JsonKey() final  bool autoClosed;
+/// Null when the project (or the clock-in point) has no location to
+/// compare against. Otherwise whether the clock-in was close enough to
+/// the project's own coordinates.
+@override final  bool? locationCorrect;
+/// Null when the project has no expected shift start time set.
+/// Otherwise whether the clock-in landed close enough to it.
+@override final  bool? timeCorrect;
 
 /// Create a copy of TimeEntry
 /// with the given fields replaced by the non-null parameter values.
@@ -269,16 +289,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TimeEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.employeeId, employeeId) || other.employeeId == employeeId)&&(identical(other.employeeName, employeeName) || other.employeeName == employeeName)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.breakMinutes, breakMinutes) || other.breakMinutes == breakMinutes)&&(identical(other.workedMinutes, workedMinutes) || other.workedMinutes == workedMinutes)&&(identical(other.workType, workType) || other.workType == workType)&&(identical(other.status, status) || other.status == status)&&(identical(other.note, note) || other.note == note)&&(identical(other.startLatitude, startLatitude) || other.startLatitude == startLatitude)&&(identical(other.startLongitude, startLongitude) || other.startLongitude == startLongitude)&&(identical(other.endLatitude, endLatitude) || other.endLatitude == endLatitude)&&(identical(other.endLongitude, endLongitude) || other.endLongitude == endLongitude)&&(identical(other.reviewedByName, reviewedByName) || other.reviewedByName == reviewedByName)&&(identical(other.reviewedAt, reviewedAt) || other.reviewedAt == reviewedAt)&&(identical(other.reviewNote, reviewNote) || other.reviewNote == reviewNote)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TimeEntry&&(identical(other.id, id) || other.id == id)&&(identical(other.employeeId, employeeId) || other.employeeId == employeeId)&&(identical(other.employeeName, employeeName) || other.employeeName == employeeName)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.startedAt, startedAt) || other.startedAt == startedAt)&&(identical(other.endedAt, endedAt) || other.endedAt == endedAt)&&(identical(other.breakMinutes, breakMinutes) || other.breakMinutes == breakMinutes)&&(identical(other.workedMinutes, workedMinutes) || other.workedMinutes == workedMinutes)&&(identical(other.workType, workType) || other.workType == workType)&&(identical(other.status, status) || other.status == status)&&(identical(other.note, note) || other.note == note)&&(identical(other.startLatitude, startLatitude) || other.startLatitude == startLatitude)&&(identical(other.startLongitude, startLongitude) || other.startLongitude == startLongitude)&&(identical(other.endLatitude, endLatitude) || other.endLatitude == endLatitude)&&(identical(other.endLongitude, endLongitude) || other.endLongitude == endLongitude)&&(identical(other.reviewedByName, reviewedByName) || other.reviewedByName == reviewedByName)&&(identical(other.reviewedAt, reviewedAt) || other.reviewedAt == reviewedAt)&&(identical(other.reviewNote, reviewNote) || other.reviewNote == reviewNote)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.autoClosed, autoClosed) || other.autoClosed == autoClosed)&&(identical(other.locationCorrect, locationCorrect) || other.locationCorrect == locationCorrect)&&(identical(other.timeCorrect, timeCorrect) || other.timeCorrect == timeCorrect));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hashAll([runtimeType,id,employeeId,employeeName,projectId,projectName,startedAt,endedAt,breakMinutes,workedMinutes,workType,status,note,startLatitude,startLongitude,endLatitude,endLongitude,reviewedByName,reviewedAt,reviewNote,createdAt,updatedAt]);
+int get hashCode => Object.hashAll([runtimeType,id,employeeId,employeeName,projectId,projectName,startedAt,endedAt,breakMinutes,workedMinutes,workType,status,note,startLatitude,startLongitude,endLatitude,endLongitude,reviewedByName,reviewedAt,reviewNote,createdAt,updatedAt,autoClosed,locationCorrect,timeCorrect]);
 
 @override
 String toString() {
-  return 'TimeEntry(id: $id, employeeId: $employeeId, employeeName: $employeeName, projectId: $projectId, projectName: $projectName, startedAt: $startedAt, endedAt: $endedAt, breakMinutes: $breakMinutes, workedMinutes: $workedMinutes, workType: $workType, status: $status, note: $note, startLatitude: $startLatitude, startLongitude: $startLongitude, endLatitude: $endLatitude, endLongitude: $endLongitude, reviewedByName: $reviewedByName, reviewedAt: $reviewedAt, reviewNote: $reviewNote, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'TimeEntry(id: $id, employeeId: $employeeId, employeeName: $employeeName, projectId: $projectId, projectName: $projectName, startedAt: $startedAt, endedAt: $endedAt, breakMinutes: $breakMinutes, workedMinutes: $workedMinutes, workType: $workType, status: $status, note: $note, startLatitude: $startLatitude, startLongitude: $startLongitude, endLatitude: $endLatitude, endLongitude: $endLongitude, reviewedByName: $reviewedByName, reviewedAt: $reviewedAt, reviewNote: $reviewNote, createdAt: $createdAt, updatedAt: $updatedAt, autoClosed: $autoClosed, locationCorrect: $locationCorrect, timeCorrect: $timeCorrect)';
 }
 
 
@@ -289,7 +309,7 @@ abstract mixin class _$TimeEntryCopyWith<$Res> implements $TimeEntryCopyWith<$Re
   factory _$TimeEntryCopyWith(_TimeEntry value, $Res Function(_TimeEntry) _then) = __$TimeEntryCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String employeeId, String employeeName, String? projectId, String? projectName, DateTime startedAt, DateTime? endedAt, int breakMinutes, int? workedMinutes, String workType, String status, String? note, double? startLatitude, double? startLongitude, double? endLatitude, double? endLongitude, String? reviewedByName, DateTime? reviewedAt, String? reviewNote, DateTime createdAt, DateTime? updatedAt
+ String id, String employeeId, String employeeName, String? projectId, String? projectName, DateTime startedAt, DateTime? endedAt, int breakMinutes, int? workedMinutes, String workType, String status, String? note, double? startLatitude, double? startLongitude, double? endLatitude, double? endLongitude, String? reviewedByName, DateTime? reviewedAt, String? reviewNote, DateTime createdAt, DateTime? updatedAt, bool autoClosed, bool? locationCorrect, bool? timeCorrect
 });
 
 
@@ -306,7 +326,7 @@ class __$TimeEntryCopyWithImpl<$Res>
 
 /// Create a copy of TimeEntry
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? employeeId = null,Object? employeeName = null,Object? projectId = freezed,Object? projectName = freezed,Object? startedAt = null,Object? endedAt = freezed,Object? breakMinutes = null,Object? workedMinutes = freezed,Object? workType = null,Object? status = null,Object? note = freezed,Object? startLatitude = freezed,Object? startLongitude = freezed,Object? endLatitude = freezed,Object? endLongitude = freezed,Object? reviewedByName = freezed,Object? reviewedAt = freezed,Object? reviewNote = freezed,Object? createdAt = null,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? employeeId = null,Object? employeeName = null,Object? projectId = freezed,Object? projectName = freezed,Object? startedAt = null,Object? endedAt = freezed,Object? breakMinutes = null,Object? workedMinutes = freezed,Object? workType = null,Object? status = null,Object? note = freezed,Object? startLatitude = freezed,Object? startLongitude = freezed,Object? endLatitude = freezed,Object? endLongitude = freezed,Object? reviewedByName = freezed,Object? reviewedAt = freezed,Object? reviewNote = freezed,Object? createdAt = null,Object? updatedAt = freezed,Object? autoClosed = null,Object? locationCorrect = freezed,Object? timeCorrect = freezed,}) {
   return _then(_TimeEntry(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,employeeId: null == employeeId ? _self.employeeId : employeeId // ignore: cast_nullable_to_non_nullable
@@ -329,7 +349,10 @@ as String?,reviewedAt: freezed == reviewedAt ? _self.reviewedAt : reviewedAt // 
 as DateTime?,reviewNote: freezed == reviewNote ? _self.reviewNote : reviewNote // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
-as DateTime?,
+as DateTime?,autoClosed: null == autoClosed ? _self.autoClosed : autoClosed // ignore: cast_nullable_to_non_nullable
+as bool,locationCorrect: freezed == locationCorrect ? _self.locationCorrect : locationCorrect // ignore: cast_nullable_to_non_nullable
+as bool?,timeCorrect: freezed == timeCorrect ? _self.timeCorrect : timeCorrect // ignore: cast_nullable_to_non_nullable
+as bool?,
   ));
 }
 

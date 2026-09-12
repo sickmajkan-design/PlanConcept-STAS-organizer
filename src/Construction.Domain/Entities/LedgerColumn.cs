@@ -14,5 +14,12 @@ public class LedgerColumn : BaseEntity, IAuditable
 
     public LedgerColumnDataType DataType { get; set; }
 
+    /// <summary>
+    /// Null means manual/free-typed (today's only behavior). When set, the
+    /// column is read-only and its cell values are computed at read time
+    /// from real platform data — never stored in <see cref="LedgerCell"/>.
+    /// </summary>
+    public LedgerColumnSourceMetric? SourceMetric { get; set; }
+
     public int SortOrder { get; set; }
 }

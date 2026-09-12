@@ -20,6 +20,8 @@ public class AttachmentDto
 
     public DateOnly? ExpiresAt { get; init; }
 
+    public DateOnly? RetainUntil { get; init; }
+
     public AttachmentOwnerType OwnerType { get; init; }
 
     public Guid OwnerId { get; init; }
@@ -53,6 +55,7 @@ public static class AttachmentMapping
             Category = attachment.Category,
             Description = attachment.Description,
             ExpiresAt = attachment.ExpiresAt,
+            RetainUntil = attachment.RetainUntil,
             // Spelled out as a conditional chain rather than through
             // AttachmentOwner.Of, because this has to become SQL: a method call
             // cannot be translated, and loading every row to ask it in memory is
@@ -71,7 +74,12 @@ public static class AttachmentMapping
                 : attachment.MaterialMovementId != null ? AttachmentOwnerType.MaterialMovement
                 : attachment.EmployeeRateId != null ? AttachmentOwnerType.EmployeeRate
                 : attachment.FinanceEntryId != null ? AttachmentOwnerType.FinanceEntry
-                : AttachmentOwnerType.ToolExpense,
+                : attachment.ToolExpenseId != null ? AttachmentOwnerType.ToolExpense
+                : attachment.VehicleRentalRateId != null ? AttachmentOwnerType.VehicleRentalRate
+                : attachment.GeneralExpenseId != null ? AttachmentOwnerType.GeneralExpense
+                : attachment.AccommodationId != null ? AttachmentOwnerType.Accommodation
+                : attachment.AccommodationRateId != null ? AttachmentOwnerType.AccommodationRate
+                : AttachmentOwnerType.ToolRentalRate,
             OwnerId = attachment.EmployeeId != null ? attachment.EmployeeId.Value
                 : attachment.ProjectId != null ? attachment.ProjectId.Value
                 : attachment.VehicleId != null ? attachment.VehicleId.Value
@@ -81,7 +89,12 @@ public static class AttachmentMapping
                 : attachment.MaterialMovementId != null ? attachment.MaterialMovementId.Value
                 : attachment.EmployeeRateId != null ? attachment.EmployeeRateId.Value
                 : attachment.FinanceEntryId != null ? attachment.FinanceEntryId.Value
-                : attachment.ToolExpenseId!.Value,
+                : attachment.ToolExpenseId != null ? attachment.ToolExpenseId.Value
+                : attachment.VehicleRentalRateId != null ? attachment.VehicleRentalRateId.Value
+                : attachment.GeneralExpenseId != null ? attachment.GeneralExpenseId.Value
+                : attachment.AccommodationId != null ? attachment.AccommodationId.Value
+                : attachment.AccommodationRateId != null ? attachment.AccommodationRateId.Value
+                : attachment.ToolRentalRateId!.Value,
             OwnerName = attachment.Employee != null
                 ? attachment.Employee.FirstName + " " + attachment.Employee.LastName
                 : attachment.Project != null ? attachment.Project.Name
@@ -96,6 +109,12 @@ public static class AttachmentMapping
                 : attachment.FinanceEntry != null
                     ? attachment.FinanceEntry.Employee.FirstName + " " + attachment.FinanceEntry.Employee.LastName
                 : attachment.ToolExpense != null ? attachment.ToolExpense.Tool.Name
+                : attachment.VehicleRentalRate != null
+                    ? attachment.VehicleRentalRate.Vehicle.Brand + " " + attachment.VehicleRentalRate.Vehicle.Model
+                : attachment.GeneralExpense != null ? attachment.GeneralExpense.Supplier
+                : attachment.Accommodation != null ? attachment.Accommodation.Address
+                : attachment.AccommodationRate != null ? attachment.AccommodationRate.Accommodation.Address
+                : attachment.ToolRentalRate != null ? attachment.ToolRentalRate.Tool.Name
                 : null,
             UploadedByName = attachment.UploadedByUser != null ? attachment.UploadedByUser.Email : null,
             CreatedAt = attachment.CreatedAt,

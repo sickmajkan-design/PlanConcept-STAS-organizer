@@ -64,6 +64,12 @@ public class UpdateVehicleCommandHandler : IRequestHandler<UpdateVehicleCommand,
         vehicle.RegistrationNumber = registrationNumber;
         vehicle.Vin = vin;
         vehicle.QrCode = qrCode;
+        vehicle.GpsProvider = string.IsNullOrWhiteSpace(request.GpsProvider)
+            ? null
+            : request.GpsProvider.Trim();
+        vehicle.GpsTrackingUrl = string.IsNullOrWhiteSpace(request.GpsTrackingUrl)
+            ? null
+            : request.GpsTrackingUrl.Trim();
         vehicle.FuelType = request.FuelType;
         vehicle.Status = request.Status;
         vehicle.OwnershipType = request.OwnershipType;

@@ -78,6 +78,42 @@ class AttachmentRepository extends ApiRepository {
       return Attachment.fromJson(response.data!);
     });
   }
+
+  /// Uploads any of the accepted document types against a record — the
+  /// general case [uploadPhoto] specialises for the camera/gallery flow.
+  Future<Attachment> upload({
+    required String ownerType,
+    required String ownerId,
+    required String category,
+    required String filePath,
+    required String fileName,
+    String? description,
+    DateTime? expiresAt,
+    DateTime? retainUntil,
+  }) {
+    return guard(() async {
+      final form = FormData.fromMap(<String, dynamic>{
+        'ownerType': ownerType,
+        'ownerId': ownerId,
+        'category': category,
+        'description': ?description,
+        'expiresAt': ?expiresAt?.toIso8601String(),
+        'retainUntil': ?retainUntil?.toIso8601String(),
+        'file': await MultipartFile.fromFile(filePath, filename: fileName),
+      });
+
+      final response = await dio.post<Map<String, dynamic>>(
+        '/api/v1/attachments',
+        data: form,
+      );
+
+      return Attachment.fromJson(response.data!);
+    });
+  }
+
+  Future<void> remove(String id) {
+    return deleteVoid('/api/v1/attachments/$id');
+  }
 }
 
 final attachmentRepositoryProvider = Provider<AttachmentRepository>((ref) {

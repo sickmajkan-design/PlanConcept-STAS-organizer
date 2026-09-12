@@ -64,6 +64,17 @@ public class MaterialMovement : BaseEntity, IAuditable
 
     public string? Note { get; set; }
 
+    /// <summary>
+    /// Invoice or receipt number a delivery was paid against.
+    /// </summary>
+    /// <remarks>
+    /// It is the paper trail back to what was actually paid — the thing a
+    /// bookkeeper reconciles the delivery against later. Required on a
+    /// delivery for that reason; optional elsewhere because an issue or a
+    /// stocktake correction has no invoice of its own to point at.
+    /// </remarks>
+    public string? InvoiceNumber { get; set; }
+
     public Guid? RecordedByUserId { get; set; }
 
     public User? RecordedByUser { get; set; }

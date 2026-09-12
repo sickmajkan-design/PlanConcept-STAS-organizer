@@ -113,10 +113,15 @@ public class TimeEntryTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task A_shift_left_running_overnight_cannot_be_closed_by_the_worker()
+    public async Task A_shift_left_running_overnight_can_still_be_closed_by_the_worker()
     {
-        // The app cannot know when they actually stopped, and a guess would be
-        // indistinguishable from a real shift afterwards.
+        // There used to be an upper bound here, refused with a ConflictException.
+        // It was removed: refusing left an employee unable to clock in (already
+        // open) or out (too long) at the same time, stuck until a supervisor
+        // edited the row by hand. A long shift now closes normally and goes to
+        // Submitted like any other, so a supervisor reviews it before it is
+        // approved — see ClockOutCommand and the nightly auto-close sweep,
+        // which exists for the case nobody clocks out at all.
         var (employee, user) = await InScope(SeedWorkerAsync);
         var start = DateTime.UtcNow.AddHours(-30);
 
@@ -127,12 +132,15 @@ public class TimeEntryTests : IntegrationTestBase
             return scope.Send(new ClockInCommand());
         });
 
-        await Assert.ThrowsAsync<ConflictException>(() => InScope(scope =>
+        var entry = await InScope(scope =>
         {
             ActAs(scope, user, employee.Id);
             scope.Clock.FreezeAt(start.AddHours(30));
             return scope.Send(new ClockOutCommand());
-        }));
+        });
+
+        Assert.Equal(TimeEntryStatus.Submitted, entry.Status);
+        Assert.Equal(30 * 60, entry.WorkedMinutes);
     }
 
     [Fact]

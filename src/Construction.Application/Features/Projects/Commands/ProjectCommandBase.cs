@@ -29,6 +29,9 @@ public abstract record ProjectCommandBase
 
     public double? Longitude { get; init; }
 
+    /// <summary>ISO 3166-1 alpha-2 (e.g. "BA") — which country's holiday calendar applies here.</summary>
+    public string? CountryCode { get; init; }
+
     /// <summary>The site's expected daily clock-in time, in UTC, if one is set.</summary>
     public TimeOnly? ShiftStartTime { get; init; }
 
@@ -56,6 +59,10 @@ public abstract class ProjectCommandBaseValidator<T> : AbstractValidator<T>
 
         RuleFor(x => x.Address)
             .MaximumLength(512);
+
+        RuleFor(x => x.CountryCode)
+            .Length(2).WithMessage("Use the two-letter country code (ISO 3166-1 alpha-2).")
+            .When(x => x.CountryCode is not null);
 
         RuleFor(x => x.Latitude)
             .InclusiveBetween(-90, 90).WithMessage("Latitude must be between -90 and 90.")

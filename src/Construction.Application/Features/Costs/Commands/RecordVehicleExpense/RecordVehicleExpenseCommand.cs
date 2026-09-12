@@ -26,6 +26,8 @@ public record RecordVehicleExpenseCommand : IRequest<VehicleExpenseDto>
 
     public int? OdometerKm { get; init; }
 
+    public string? FuelProductType { get; init; }
+
     public string? Supplier { get; init; }
 
     public string? Note { get; init; }
@@ -68,6 +70,7 @@ public class RecordVehicleExpenseCommandValidator
             .When(x => x.OccurredOn is not null);
 
         RuleFor(x => x.Supplier).MaximumLength(200);
+        RuleFor(x => x.FuelProductType).MaximumLength(100);
         RuleFor(x => x.Note).MaximumLength(500);
     }
 }
@@ -115,6 +118,7 @@ public class RecordVehicleExpenseCommandHandler
             // an insurance premium.
             Litres = request.Kind == VehicleExpenseKind.Fuel ? request.Litres : null,
             OdometerKm = request.OdometerKm,
+            FuelProductType = request.FuelProductType?.Trim(),
             Supplier = request.Supplier?.Trim(),
             Note = request.Note?.Trim(),
             RecordedByUserId = _currentUserService.UserId

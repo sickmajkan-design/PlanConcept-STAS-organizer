@@ -25,6 +25,13 @@ public record ReviewTimeEntryCommand : IRequest<TimeEntryDto>
 
     /// <summary>Required when sending an entry back, so the worker knows what to fix.</summary>
     public string? Note { get; init; }
+
+    /// <summary>
+    /// Required to approve an entry that was previously sent back — reversing
+    /// an earlier rejection is unusual enough that the caller must say they
+    /// meant it, not just have clicked the same button a normal approval uses.
+    /// </summary>
+    public bool Confirm { get; init; }
 }
 
 public class ReviewTimeEntryCommandValidator : AbstractValidator<ReviewTimeEntryCommand>
@@ -89,13 +96,32 @@ public class ReviewTimeEntryCommandHandler
             throw new ConflictException("This entry is already approved.");
         }
 
+        if (request.Approve && entry.Status == TimeEntryStatus.Rejected && !request.Confirm)
+        {
+            throw new ConflictException(
+                $"This entry was sent back: \"{entry.ReviewNote}\". " +
+                "Approving it now overrides that decision — confirm to proceed.");
+        }
+
         entry.Status = request.Approve ? TimeEntryStatus.Approved : TimeEntryStatus.Rejected;
         entry.ReviewedByUserId = reviewerId;
         entry.ReviewedAt = _dateTimeProvider.UtcNow;
         // An approval note would sit on the row looking like an objection.
         entry.ReviewNote = request.Approve ? null : request.Note!.Trim();
 
-        await _context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // Someone else reviewed, edited, or deleted this entry between
+            // this handler reading it and saving — the same shift approved
+            // twice, or approved after being deleted, would otherwise go
+            // through silently as a last-write-wins update.
+            throw new ConflictException(
+                "This entry was changed by someone else just now. Reload it and try again.");
+        }
 
         return await _context.TimeEntries
             .AsNoTracking()

@@ -17,6 +17,9 @@ public class LedgerCellConfiguration : IEntityTypeConfiguration<LedgerCell>
         builder.Property(c => c.Value)
             .HasMaxLength(2000);
 
+        builder.Property(c => c.ColorTag)
+            .HasMaxLength(20);
+
         builder.HasOne(c => c.Row)
             .WithMany(r => r.Cells)
             .HasForeignKey(c => c.RowId)

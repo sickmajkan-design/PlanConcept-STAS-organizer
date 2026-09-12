@@ -15,10 +15,58 @@ class AppLocalizationsSr extends AppLocalizations {
   String get commonCancel => 'Otkaži';
 
   @override
+  String get commonDelete => 'Obriši';
+
+  @override
+  String get commonEdit => 'Izmeni';
+
+  @override
+  String get commonAdd => 'Dodaj';
+
+  @override
+  String get commonStatus => 'Status';
+
+  @override
+  String get vehicleFormAddTitle => 'Dodaj vozilo';
+
+  @override
+  String get vehicleFormEditTitle => 'Izmeni vozilo';
+
+  @override
+  String get vehicleFormBrand => 'Marka';
+
+  @override
+  String get vehicleFormModel => 'Model';
+
+  @override
+  String get vehicleFormAdded => 'Vozilo dodato.';
+
+  @override
+  String get vehicleFormSaved => 'Vozilo izmenjeno.';
+
+  @override
+  String get vehicleDeleteTitle => 'Obrisati ovo vozilo?';
+
+  @override
+  String vehicleDeleteBody(String name) {
+    return '$name će biti uklonjeno. Ovo se ne može poništiti.';
+  }
+
+  @override
   String get commonRetry => 'Pokušaj ponovo';
 
   @override
   String get commonLoadMore => 'Učitaj još';
+
+  @override
+  String commonTotalCount(int count) {
+    return 'Ukupno $count';
+  }
+
+  @override
+  String commonCountOfTotal(int shown, int total) {
+    return '$shown od $total';
+  }
 
   @override
   String get commonSignIn => 'Prijavi se';
@@ -53,6 +101,24 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get commonResources => 'Resursi';
+
+  @override
+  String get commonCompany => 'Firma';
+
+  @override
+  String get commonEmployee => 'Zaposleni';
+
+  @override
+  String get commonMaterial => 'Materijal';
+
+  @override
+  String get commonTool => 'Alat';
+
+  @override
+  String get commonVehicle => 'Vozilo';
+
+  @override
+  String get commonProject => 'Projekat';
 
   @override
   String get commonAlerts => 'Obaveštenja';
@@ -127,6 +193,15 @@ class AppLocalizationsSr extends AppLocalizations {
   String get validationPasswordRequired => 'Lozinka je obavezna.';
 
   @override
+  String get validationPasswordMinLength =>
+      'Lozinka mora imati najmanje 8 karaktera.';
+
+  @override
+  String validationFieldRequired(String field) {
+    return '$field je obavezno polje.';
+  }
+
+  @override
   String get validationPasswordUpper => 'Lozinka mora sadržati veliko slovo.';
 
   @override
@@ -171,6 +246,9 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get errorUnknown => 'Došlo je do greške. Pokušajte ponovo.';
+
+  @override
+  String get navHome => 'Početna';
 
   @override
   String get navEmployees => 'Zaposleni';
@@ -233,6 +311,11 @@ class AppLocalizationsSr extends AppLocalizations {
   String get projectClient => 'Klijent';
 
   @override
+  String projectSubOf(String name) {
+    return 'Deo projekta $name';
+  }
+
+  @override
   String get projectAddress => 'Adresa';
 
   @override
@@ -246,6 +329,24 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get projectCrewEmpty => 'Još niko nije dodeljen';
+
+  @override
+  String projectAssignedCount(int count) {
+    return 'Dodeljeno: $count';
+  }
+
+  @override
+  String get projectCrewTitle => 'Posada';
+
+  @override
+  String projectCrewCount(int count) {
+    return 'Posada ($count)';
+  }
+
+  @override
+  String employeeProjectsCount(int count) {
+    return 'Projekti ($count)';
+  }
 
   @override
   String projectAssignedOn(String date) {
@@ -267,6 +368,9 @@ class AppLocalizationsSr extends AppLocalizations {
   String get vehicleRegistration => 'Registarski broj';
 
   @override
+  String get vehicleOwnershipType => 'Vlasništvo';
+
+  @override
   String get vehicleFuelType => 'Vrsta goriva';
 
   @override
@@ -280,6 +384,32 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get toolSerialNumber => 'Serijski broj';
+
+  @override
+  String get toolFormAddTitle => 'Dodaj alat';
+
+  @override
+  String get toolFormEditTitle => 'Izmeni alat';
+
+  @override
+  String get toolFormName => 'Naziv';
+
+  @override
+  String get toolFormCategory => 'Kategorija';
+
+  @override
+  String get toolFormAdded => 'Alat dodat.';
+
+  @override
+  String get toolFormSaved => 'Alat izmenjen.';
+
+  @override
+  String get toolDeleteTitle => 'Obrisati ovaj alat?';
+
+  @override
+  String toolDeleteBody(String name) {
+    return '$name će biti uklonjen. Ovo se ne može poništiti.';
+  }
 
   @override
   String get toolQrCode => 'QR kod';
@@ -309,6 +439,107 @@ class AppLocalizationsSr extends AppLocalizations {
   String get vehicleQrCode => 'QR kod';
 
   @override
+  String get vehicleOwnershipTypeOwned => 'U vlasništvu';
+
+  @override
+  String get vehicleOwnershipTypeRented => 'Iznajmljeno';
+
+  @override
+  String get vehicleRentalProvider => 'Iznajmljeno od';
+
+  @override
+  String get vehicleRentalMonthlyAmount => 'Mesečna rata';
+
+  @override
+  String vehicleLoanedOutTo(String name) {
+    return 'Izdato na korišćenje: $name';
+  }
+
+  @override
+  String get rentalRatesTitle => 'Renta / lizing';
+
+  @override
+  String get rentalRatesAdd => 'Dodaj cenu';
+
+  @override
+  String get rentalRatesEditTitle => 'Izmeni cenu';
+
+  @override
+  String get rentalRatesEmpty => 'Još nema unesene rente ili lizinga.';
+
+  @override
+  String get rentalRatesProvider => 'Davalac (opciono)';
+
+  @override
+  String get rentalRatesNote => 'Napomena (opciono)';
+
+  @override
+  String get rentalRatesMonthlyAmount => 'Mesečni iznos';
+
+  @override
+  String get rentalRatesStartDate => 'Od';
+
+  @override
+  String get rentalRatesEndDate => 'Do (opciono, otvoreno ako je prazno)';
+
+  @override
+  String get rentalRatesOpenEnded => 'Otvoreno';
+
+  @override
+  String get rentalRatesDeleteTitle => 'Obrisati ovu cenu?';
+
+  @override
+  String get rentalRatesDeleteBody => 'Ovo se ne može poništiti.';
+
+  @override
+  String get rentalRatesSaved => 'Cena rente sačuvana.';
+
+  @override
+  String get rentalOutTitle => 'Izdavanje u zakup';
+
+  @override
+  String get rentalOutAdd => 'Izdaj u zakup';
+
+  @override
+  String get rentalOutEditTitle => 'Izmeni izdavanje';
+
+  @override
+  String get rentalOutEmpty => 'Trenutno nije izdato nikome.';
+
+  @override
+  String get rentalOutRenterName => 'Ime/naziv zakupca';
+
+  @override
+  String get rentalOutCustomer => 'Povezan klijent (opciono)';
+
+  @override
+  String get rentalOutNoCustomer => 'Bez povezanog klijenta';
+
+  @override
+  String get rentalOutDailyRate => 'Dnevna cena';
+
+  @override
+  String get rentalOutStartDate => 'Od';
+
+  @override
+  String get rentalOutStillOut => 'Još nije vraćeno';
+
+  @override
+  String get rentalOutReturn => 'Označi kao vraćeno';
+
+  @override
+  String get rentalOutReturned => 'Označeno kao vraćeno.';
+
+  @override
+  String get rentalOutDeleteTitle => 'Obrisati ovo izdavanje?';
+
+  @override
+  String get rentalOutDeleteBody => 'Ovo se ne može poništiti.';
+
+  @override
+  String get rentalOutSaved => 'Izdavanje sačuvano.';
+
+  @override
   String get scanTitle => 'Skeniraj ili pronađi';
 
   @override
@@ -317,6 +548,9 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get scanAction => 'Skeniraj QR kod';
+
+  @override
+  String get scanToggleFlash => 'Uključi/isključi lampu';
 
   @override
   String get scanCodeLabel => 'QR kod';
@@ -408,6 +642,35 @@ class AppLocalizationsSr extends AppLocalizations {
   String get materialWarehouseOnly => 'Samo zalihe u magacinu';
 
   @override
+  String get materialFormAddTitle => 'Dodaj materijal';
+
+  @override
+  String get materialFormEditTitle => 'Izmeni materijal';
+
+  @override
+  String get materialFormName => 'Naziv';
+
+  @override
+  String get materialFormUnit => 'Jedinica mere';
+
+  @override
+  String get materialFormUnitPrice => 'Cena po jedinici (opciono)';
+
+  @override
+  String get materialFormAdded => 'Materijal dodat.';
+
+  @override
+  String get materialFormSaved => 'Materijal izmenjen.';
+
+  @override
+  String get materialDeleteTitle => 'Obrisati ovaj materijal?';
+
+  @override
+  String materialDeleteBody(String name) {
+    return '$name će biti uklonjen. Ovo se ne može poništiti.';
+  }
+
+  @override
   String get materialWarehouseNote =>
       'Zalihe u magacinu, nisu vezane za projekat';
 
@@ -416,6 +679,97 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get materialNoAssignment => 'Nije zaduženo';
+
+  @override
+  String get employeeFormAddTitle => 'Dodaj zaposlenog';
+
+  @override
+  String get employeeFormEditTitle => 'Izmeni zaposlenog';
+
+  @override
+  String get employeeFormNumber => 'Broj zaposlenog';
+
+  @override
+  String get employeeFormFirstName => 'Ime';
+
+  @override
+  String get employeeFormLastName => 'Prezime';
+
+  @override
+  String get employeeFormEmploymentDate => 'Datum zaposlenja';
+
+  @override
+  String get employeeFormAdded => 'Zaposleni dodat.';
+
+  @override
+  String get employeeFormSaved => 'Zaposleni izmenjen.';
+
+  @override
+  String get employeeDeleteTitle => 'Obrisati ovog zaposlenog?';
+
+  @override
+  String employeeDeleteBody(String name) {
+    return '$name će biti uklonjen. Ovo se ne može poništiti.';
+  }
+
+  @override
+  String get employeeType => 'Tip';
+
+  @override
+  String get employeeTypeEmployee => 'Zaposleni';
+
+  @override
+  String get employeeTypeSubcontractor => 'Kooperant';
+
+  @override
+  String get projectFormAddTitle => 'Dodaj projekat';
+
+  @override
+  String get projectFormEditTitle => 'Izmeni projekat';
+
+  @override
+  String get projectFormName => 'Naziv projekta';
+
+  @override
+  String get projectFormDescription => 'Opis (opciono)';
+
+  @override
+  String get projectFormParentProject => 'Nadređeni projekat (opciono)';
+
+  @override
+  String get projectFormNoParent => 'Bez nadređenog — glavni projekat';
+
+  @override
+  String get projectFormNoCustomer => 'Bez klijenta';
+
+  @override
+  String get projectFormCountryCode => 'Šifra države (npr. BA)';
+
+  @override
+  String get projectFormShiftStartTime => 'Početak smene (opciono)';
+
+  @override
+  String get projectFormContractValue => 'Vrednost ugovora (opciono)';
+
+  @override
+  String get projectFormLatitude => 'Geografska širina';
+
+  @override
+  String get projectFormLongitude => 'Geografska dužina';
+
+  @override
+  String get projectFormAdded => 'Projekat dodat.';
+
+  @override
+  String get projectFormSaved => 'Projekat izmenjen.';
+
+  @override
+  String get projectDeleteTitle => 'Obrisati ovaj projekat?';
+
+  @override
+  String projectDeleteBody(String name) {
+    return '$name će biti uklonjen. Ovo se ne može poništiti.';
+  }
 
   @override
   String get notificationsEmpty => 'Još nema obaveštenja.';
@@ -427,7 +781,348 @@ class AppLocalizationsSr extends AppLocalizations {
   String get notificationsUnread => 'Nepročitano';
 
   @override
+  String notificationsUnreadCount(int count) {
+    return 'Nepročitano ($count)';
+  }
+
+  @override
   String get notificationsMarkAllRead => 'Označi sve pročitanim';
+
+  @override
+  String notificationsAcknowledgedOn(String date) {
+    return 'Potvrđeno $date';
+  }
+
+  @override
+  String get notificationsOpenRelated => 'Otvori';
+
+  @override
+  String get notificationProjectAssignedTitle =>
+      'Dodijeljeni ste na novo gradilište';
+
+  @override
+  String notificationProjectAssignedBody(String projectName) {
+    return 'Dodijeljeni ste na gradilište \"$projectName\".';
+  }
+
+  @override
+  String notificationProjectAssignedBodyWithAddress(
+    String projectName,
+    String address,
+  ) {
+    return 'Dodijeljeni ste na gradilište \"$projectName\", na adresi $address.';
+  }
+
+  @override
+  String notificationProjectAssignedBodyFull(
+    String projectName,
+    String address,
+    String shiftStartTime,
+  ) {
+    return 'Dodijeljeni ste na gradilište \"$projectName\", na adresi $address. Smjena počinje u $shiftStartTime.';
+  }
+
+  @override
+  String get notificationEmployeeAssignedTitle =>
+      'Radnik dodijeljen na vaše gradilište';
+
+  @override
+  String notificationEmployeeAssignedBody(
+    String employeeName,
+    String projectName,
+  ) {
+    return '$employeeName je dodijeljen(a) na gradilište \"$projectName\".';
+  }
+
+  @override
+  String get notificationVehicleAssignedTitle => 'Vozilo dodijeljeno';
+
+  @override
+  String notificationVehicleAssignedBody(
+    String brand,
+    String model,
+    String registration,
+  ) {
+    return 'Vozilo $brand $model ($registration) vam je dodijeljeno.';
+  }
+
+  @override
+  String get notificationToolAssignedTitle => 'Alat dodijeljen';
+
+  @override
+  String notificationToolAssignedBody(String toolName) {
+    return 'Alat \"$toolName\" vam je dodijeljen.';
+  }
+
+  @override
+  String get notificationDocumentExpiringTitle => 'Dokument uskoro ističe';
+
+  @override
+  String get notificationDocumentExpiredTitle => 'Dokument je istekao';
+
+  @override
+  String notificationDocumentExpiringBody(String fileName, String expiresAt) {
+    return '$fileName ($expiresAt)';
+  }
+
+  @override
+  String notificationDocumentExpiringBodyWithOwner(
+    String fileName,
+    String ownerName,
+    String expiresAt,
+  ) {
+    return '$fileName — $ownerName ($expiresAt)';
+  }
+
+  @override
+  String get notificationTaskAssignedTitle => 'Zadatak vam je dodijeljen';
+
+  @override
+  String get notificationDefectAssignedTitle => 'Kvar vam je dodijeljen';
+
+  @override
+  String notificationWorkItemAssignedBodyWithDueDate(
+    String title,
+    String dueDate,
+  ) {
+    return '$title — rok $dueDate';
+  }
+
+  @override
+  String get notificationWorkItemOverdueTitle => 'Kasni';
+
+  @override
+  String get notificationWorkItemDueSoonTitle => 'Uskoro dospijeva';
+
+  @override
+  String notificationWorkItemDueBody(String title, String dueDate) {
+    return '$title ($dueDate)';
+  }
+
+  @override
+  String get notificationShiftAutoClosedTitle => 'Smjena automatski zatvorena';
+
+  @override
+  String notificationShiftAutoClosedBody(String shiftDate) {
+    return 'Niste odjavili smjenu $shiftDate, pa je automatski zatvorena i čeka pregled.';
+  }
+
+  @override
+  String get notificationAbsenceEditProposedTitle =>
+      'Predložena izmjena odobrenog odsustva';
+
+  @override
+  String notificationAbsenceEditProposedBody(String startDate, String endDate) {
+    return '$startDate–$endDate — potvrdite ili odbijte.';
+  }
+
+  @override
+  String get notificationAbsenceEditConfirmedTitle =>
+      'Izmjena odsustva potvrđena';
+
+  @override
+  String notificationAbsenceEditConfirmedBody(
+    String startDate,
+    String endDate,
+  ) {
+    return '$startDate–$endDate';
+  }
+
+  @override
+  String get notificationAbsenceEditDeclinedTitle =>
+      'Izmjena odsustva odbijena';
+
+  @override
+  String get notificationAbsenceEditDeclinedBody =>
+      'Druga strana je odbila predloženu izmjenu.';
+
+  @override
+  String get notificationWeeklyReportDueTitle =>
+      'Sedmični izvještaj još nije predat';
+
+  @override
+  String notificationWeeklyReportDueBody(
+    String projectName,
+    String isoWeek,
+    String isoYear,
+  ) {
+    return '$projectName — KW$isoWeek/$isoYear';
+  }
+
+  @override
+  String get notificationEmployeeClockedInTitle => 'Prijava na posao';
+
+  @override
+  String notificationEmployeeClockedInBody(
+    String employeeName,
+    String projectName,
+  ) {
+    return '$employeeName se prijavio(la) na gradilištu $projectName.';
+  }
+
+  @override
+  String get notificationEmployeeClockedOutTitle => 'Odjava s posla';
+
+  @override
+  String notificationEmployeeClockedOutBody(
+    String employeeName,
+    String projectName,
+    String hours,
+    String minutes,
+  ) {
+    return '$employeeName se odjavio(la) sa gradilišta $projectName nakon ${hours}h ${minutes}min.';
+  }
+
+  @override
+  String get notificationUnassignedClockInTitle =>
+      'Prijava na nedodijeljeno gradilište';
+
+  @override
+  String notificationUnassignedClockInBody(
+    String employeeName,
+    String projectName,
+  ) {
+    return '$employeeName se prijavio(la) na gradilištu $projectName, iako trenutno nije tamo raspoređen(a).';
+  }
+
+  @override
+  String get notificationDefectReportedTitle => 'Prijavljen novi kvar';
+
+  @override
+  String notificationDefectReportedBody(String reporterName, String title) {
+    return '$reporterName je prijavio(la): $title';
+  }
+
+  @override
+  String get notificationAbsenceRequestedTitle => 'Zahtjev za odsustvo';
+
+  @override
+  String notificationAbsenceRequestedBody(
+    String employeeName,
+    String startDate,
+    String endDate,
+  ) {
+    return '$employeeName je zatražio(la) odsustvo, od $startDate do $endDate.';
+  }
+
+  @override
+  String get notificationDocumentRetentionEndedTitle =>
+      'Period čuvanja dokumenta je istekao';
+
+  @override
+  String notificationDocumentRetentionEndedBody(
+    String fileName,
+    String retainUntil,
+  ) {
+    return '$fileName više ne mora biti sačuvan (rok čuvanja je bio do $retainUntil). Obrišite ga sami ako više nije potreban.';
+  }
+
+  @override
+  String notificationDocumentRetentionEndedBodyWithOwner(
+    String fileName,
+    String ownerName,
+    String retainUntil,
+  ) {
+    return '$fileName — $ownerName više ne mora biti sačuvan (rok čuvanja je bio do $retainUntil). Obrišite ga sami ako više nije potreban.';
+  }
+
+  @override
+  String get notificationTypeDirectMessage => 'Direktna poruka';
+
+  @override
+  String get notificationTypeDocumentExpiring => 'Dokument ističe';
+
+  @override
+  String get notificationTypeTaskAssigned => 'Zadatak dodijeljen';
+
+  @override
+  String get notificationTypeDefectAssigned => 'Kvar dodijeljen';
+
+  @override
+  String get notificationTypeWorkItemDue => 'Rok za posao';
+
+  @override
+  String get notificationTypeShiftAutoClosed => 'Smjena automatski zatvorena';
+
+  @override
+  String get notificationTypeBulletinPosted => 'Objava na oglasnoj tabli';
+
+  @override
+  String get notificationTypeAbsenceEditProposed => 'Izmjena odsustva';
+
+  @override
+  String get notificationTypeWeeklyReportDue => 'Sedmični izvještaj';
+
+  @override
+  String get notificationTypeEmployeeClockedIn => 'Prijava na posao';
+
+  @override
+  String get notificationTypeEmployeeClockedOut => 'Odjava s posla';
+
+  @override
+  String get notificationTypeUnassignedProjectClockIn =>
+      'Prijava bez rasporeda';
+
+  @override
+  String get notificationTypeDefectReported => 'Prijavljen kvar';
+
+  @override
+  String get notificationTypeAbsenceRequested => 'Zahtjev za odsustvo';
+
+  @override
+  String get notificationTypeDocumentRetentionEnded =>
+      'Isteklo čuvanje dokumenta';
+
+  @override
+  String get announceTitle => 'Pošalji obaveštenje';
+
+  @override
+  String get announceSubject => 'Naslov';
+
+  @override
+  String get announceMessage => 'Poruka';
+
+  @override
+  String get announceAudienceRole => 'Uloga';
+
+  @override
+  String get announceEveryRole => 'Svaka uloga';
+
+  @override
+  String get announceAudienceProject => 'Projekat';
+
+  @override
+  String get announceEveryProject => 'Svaki projekat';
+
+  @override
+  String get announceAudienceGroup => 'Grupa';
+
+  @override
+  String get announceEveryGroup => 'Svaka grupa';
+
+  @override
+  String get announceRequiresAcknowledgment =>
+      'Zahtevaj potvrdu pre nego što primaoci mogu da rade bilo šta drugo';
+
+  @override
+  String get announceHint =>
+      'Obaveštenje na telefonu se ne može povući — publika je jedina stvar koju vredi proveriti dvaput.';
+
+  @override
+  String get announceSend => 'Pošalji';
+
+  @override
+  String announceSent(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Poslato $count osoba.',
+      few: 'Poslato $count osobama.',
+      one: 'Poslato jednoj osobi.',
+      zero: 'Poslato nikome — niko nije odgovarao uslovima.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get notificationsDisabled =>
@@ -582,6 +1277,9 @@ class AppLocalizationsSr extends AppLocalizations {
   String get vehicleStatusOutOfService => 'Van upotrebe';
 
   @override
+  String get vehicleStatusRentedOut => 'Izdato u zakup';
+
+  @override
   String get toolStatusAvailable => 'Slobodan';
 
   @override
@@ -595,6 +1293,9 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get toolStatusRetired => 'Rashodovan';
+
+  @override
+  String get toolStatusRentedOut => 'Izdato u zakup';
 
   @override
   String get fuelPetrol => 'Benzin';
@@ -719,6 +1420,15 @@ class AppLocalizationsSr extends AppLocalizations {
       'Ovaj nalog nije povezan sa zaposlenim, pa ne može da evidentira radno vreme.';
 
   @override
+  String get shiftAutoClosed => 'Automatski zatvorena';
+
+  @override
+  String get shiftLocationMismatch => 'Prijava van lokacije gradilišta';
+
+  @override
+  String get shiftTimeMismatch => 'Prijava van očekivanog vremena smene';
+
+  @override
   String get timeEntryStatusInProgress => 'U toku';
 
   @override
@@ -788,6 +1498,53 @@ class AppLocalizationsSr extends AppLocalizations {
   @override
   String get attachmentsNotAnImage =>
       'Moguće je priložiti samo dokument ili sliku.';
+
+  @override
+  String get attachmentsAddDocument => 'Dodaj dokument';
+
+  @override
+  String get attachmentsPickFile => 'Izaberi fajl';
+
+  @override
+  String get attachmentsChangeFile => 'Izaberi drugi fajl';
+
+  @override
+  String get attachmentsCategory => 'Kategorija';
+
+  @override
+  String get attachmentsDescription => 'Opis (opciono)';
+
+  @override
+  String get attachmentsExpiryDate => 'Datum isteka (opciono)';
+
+  @override
+  String get attachmentsRetainUntil => 'Čuvati do (opciono)';
+
+  @override
+  String get attachmentsSaved => 'Dokument dodat.';
+
+  @override
+  String get attachmentsDeleteTitle => 'Obrisati ovaj dokument?';
+
+  @override
+  String attachmentsDeleteBody(String name) {
+    return '$name će biti uklonjen. Ovo se ne može poništiti.';
+  }
+
+  @override
+  String attachmentsRetainedCannotDelete(String date) {
+    return 'Čuva se do $date — još se ne može obrisati.';
+  }
+
+  @override
+  String get attachmentsOpen => 'Otvori';
+
+  @override
+  String get attachmentsOpeningExternally => 'Otvaranje u drugoj aplikaciji…';
+
+  @override
+  String get attachmentsOpenExternalFailed =>
+      'Nijedna aplikacija na telefonu ne može otvoriti ovaj tip fajla.';
 
   @override
   String get attachmentCategoryContract => 'Ugovor';
@@ -905,6 +1662,23 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get navAbsences => 'Odsustva';
+
+  @override
+  String get navWeeklyReports => 'Sedmični izveštaji';
+
+  @override
+  String get navBulletin => 'Oglasna ploča';
+
+  @override
+  String get bulletinTitle => 'Oglasna ploča';
+
+  @override
+  String get bulletinEmpty => 'Trenutno nema oglasa.';
+
+  @override
+  String bulletinPostedBy(String name) {
+    return 'Objavio/la $name';
+  }
 
   @override
   String get scheduleTitle => 'Moj raspored';
@@ -1036,7 +1810,124 @@ class AppLocalizationsSr extends AppLocalizations {
   String get absenceStatusCancelled => 'Povučeno';
 
   @override
+  String get weeklyReportsTitle => 'Sedmični izveštaji sa gradilišta';
+
+  @override
+  String get weeklyReportsDescription =>
+      'Pošaljite potpisane sate, Aufmaß ili drugi dokaz o radu za gradilište na koje ste raspoređeni.';
+
+  @override
+  String get weeklyReportsSubmit => 'Pošalji izveštaj';
+
+  @override
+  String get weeklyReportsProject => 'Gradilište';
+
+  @override
+  String get weeklyReportsProjectsFailed =>
+      'Nije moguće učitati vaša gradilišta.';
+
+  @override
+  String get weeklyReportsIsoYear => 'Godina';
+
+  @override
+  String get weeklyReportsIsoWeek => 'Sedmica';
+
+  @override
+  String get weeklyReportsType => 'Vrsta';
+
+  @override
+  String get weeklyReportsHours => 'Sati';
+
+  @override
+  String get weeklyReportsNote => 'Napomena (opciono)';
+
+  @override
+  String get weeklyReportsAttachFile => 'Dodaj fajl';
+
+  @override
+  String get weeklyReportsFileTooLarge => 'Fajl je veći od dozvoljenih 20 MB.';
+
+  @override
+  String get weeklyReportsSend => 'Pošalji';
+
+  @override
+  String get notifyEmployeeAction => 'Obavesti';
+
+  @override
+  String get notifyEmployeeTitle => 'Pošalji poruku';
+
+  @override
+  String get notifyEmployeeSubject => 'Naslov';
+
+  @override
+  String get notifyEmployeeMessage => 'Poruka';
+
+  @override
+  String get notifyEmployeeRequireAck => 'Zahtevaj potvrdu';
+
+  @override
+  String get notifyEmployeeRequireAckHint =>
+      'Neće moći ništa drugo da radi u aplikaciji dok ne potvrdi da je video/videla ovo.';
+
+  @override
+  String get notifyEmployeeSend => 'Pošalji';
+
+  @override
+  String get notifyEmployeeSent => 'Poruka poslata.';
+
+  @override
+  String get teamTodayAction => 'Ekipa danas';
+
+  @override
+  String get teamTodayTitle => 'Ekipa danas';
+
+  @override
+  String get teamTodayEmpty => 'Još niko nije prijavio dolazak danas.';
+
+  @override
+  String teamTodayStillWorking(String time) {
+    return 'Od $time — još uvek radi';
+  }
+
+  @override
+  String get weeklyReportsSent => 'Izveštaj poslat.';
+
+  @override
+  String get weeklyReportTypeSignedHours => 'Potpisani sati';
+
+  @override
+  String get weeklyReportTypeAufmass => 'Aufmaß';
+
+  @override
+  String get weeklyReportTypeOther => 'Ostalo';
+
+  @override
+  String get weeklyReportStatusSubmitted => 'Čeka pregled';
+
+  @override
+  String get weeklyReportStatusProcessed => 'Obrađeno';
+
+  @override
+  String get weeklyReportsHistoryTitle => 'Do sada poslato';
+
+  @override
+  String get weeklyReportsHistoryEmpty => 'Još ništa nije poslato.';
+
+  @override
+  String weeklyReportsIsoWeekLabel(int isoWeek, int isoYear) {
+    return 'KW$isoWeek/$isoYear';
+  }
+
+  @override
+  String weeklyReportsProcessedOn(String date) {
+    return 'Obrađeno $date';
+  }
+
+  @override
   String get navVehicleExpenses => 'Troškovi vozila';
+
+  @override
+  String get navToolExpenses => 'Troškovi alata';
 
   @override
   String get vehicleExpensesTitle => 'Troškovi vozila';
@@ -1112,6 +2003,132 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get vehicleExpenseKindOther => 'Ostalo';
+
+  @override
+  String get toolExpensesTitle => 'Troškovi alata';
+
+  @override
+  String get toolExpensesEmpty => 'Još nema evidentiranih troškova.';
+
+  @override
+  String get toolExpensesRecord => 'Evidentiraj trošak';
+
+  @override
+  String get toolExpensesTool => 'Alat';
+
+  @override
+  String get toolExpensesKind => 'Vrsta';
+
+  @override
+  String get toolExpensesAmount => 'Iznos';
+
+  @override
+  String get toolExpensesSupplier => 'Gde';
+
+  @override
+  String get toolExpensesNote => 'Napomena';
+
+  @override
+  String get toolExpensesSend => 'Evidentiraj';
+
+  @override
+  String get toolExpensesSent => 'Trošak evidentiran.';
+
+  @override
+  String get toolExpensesNeedsTool => 'Izaberite alat.';
+
+  @override
+  String get toolExpensesNeedsAmount => 'Unesite koliko je koštalo.';
+
+  @override
+  String get toolExpenseKindRepair => 'Popravka';
+
+  @override
+  String get toolExpenseKindMaintenance => 'Održavanje';
+
+  @override
+  String get toolExpenseKindCalibration => 'Kalibracija';
+
+  @override
+  String get toolExpenseKindOther => 'Ostalo';
+
+  @override
+  String get companySettingsTitle => 'Profil firme';
+
+  @override
+  String get companySettingsLogo => 'Logo';
+
+  @override
+  String get companySettingsUploadLogo => 'Otpremi logo';
+
+  @override
+  String get companySettingsRemoveLogo => 'Ukloni logo';
+
+  @override
+  String companySettingsLogoTooLarge(int limit) {
+    return 'Logo je veći od $limit MB ograničenja.';
+  }
+
+  @override
+  String get companySettingsName => 'Naziv firme';
+
+  @override
+  String get companySettingsAddress => 'Adresa';
+
+  @override
+  String get companySettingsTaxId => 'PIB';
+
+  @override
+  String get companySettingsRegistrationNumber => 'Matični broj';
+
+  @override
+  String get companySettingsVatNumber => 'PDV broj';
+
+  @override
+  String get companySettingsPhone => 'Telefon';
+
+  @override
+  String get companySettingsEmail => 'Email';
+
+  @override
+  String get companySettingsWeeklyReportsForwardEmail =>
+      'Prosleđivanje nedeljnih izveštaja na';
+
+  @override
+  String get companySettingsWeeklyReportsForwardEmailHint =>
+      'Opciono — kopija svakog podnetog nedeljnog izveštaja se šalje na ovaj email.';
+
+  @override
+  String get companySettingsSaved => 'Profil firme sačuvan.';
+
+  @override
+  String get ledgersTitle => 'Evidencija';
+
+  @override
+  String get ledgersEmpty => 'Još nema evidencija.';
+
+  @override
+  String get ledgersSearchHint => 'Naziv…';
+
+  @override
+  String get ledgersSectionsTitle => 'Sekcije';
+
+  @override
+  String get ledgersSectionEmpty => 'Nema redova u ovoj sekciji.';
+
+  @override
+  String ledgersRowCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count redova',
+      one: '1 red',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ledgersNetTotal => 'Neto ukupno';
 
   @override
   String get workItemsDefectPhoto => 'Fotografija';

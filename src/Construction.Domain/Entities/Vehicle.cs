@@ -16,6 +16,12 @@ public class Vehicle : BaseEntity, ISoftDeletable, IAuditable
     /// <summary>Value encoded in the QR label attached to the physical vehicle.</summary>
     public string? QrCode { get; set; }
 
+    /// <summary>Name of whatever GPS tracking platform this vehicle's tracker reports to. Free text — a leased vehicle often already comes with its lessor's own platform, not one the company chose.</summary>
+    public string? GpsProvider { get; set; }
+
+    /// <summary>Deep link to this vehicle on its GPS provider's own site. Opened in a new tab; no position data is fetched or stored here.</summary>
+    public string? GpsTrackingUrl { get; set; }
+
     public FuelType FuelType { get; set; }
 
     public VehicleStatus Status { get; set; } = VehicleStatus.Available;
@@ -42,7 +48,12 @@ public class Vehicle : BaseEntity, ISoftDeletable, IAuditable
 
     public ICollection<VehicleExpense> Expenses { get; set; } = new List<VehicleExpense>();
 
+    public ICollection<FuelCard> FuelCards { get; set; } = new List<FuelCard>();
+
     public ICollection<VehicleRentalRate> RentalRates { get; set; } = new List<VehicleRentalRate>();
+
+    /// <summary>Every time this vehicle went out to another company. See <see cref="VehicleRentalOut"/>.</summary>
+    public ICollection<VehicleRentalOut> RentalsOut { get; set; } = new List<VehicleRentalOut>();
 
     public bool IsDeleted { get; set; }
 

@@ -28,11 +28,11 @@ public class ProjectTests : IntegrationTestBase
 
     private static CreateProjectCommand New(
         string name,
-        string? client = null,
+        Guid? customerId = null,
         ProjectStatus status = ProjectStatus.Planned) => new()
         {
             Name = name,
-            Client = client,
+            CustomerId = customerId,
             Status = status
         };
 
@@ -41,11 +41,13 @@ public class ProjectTests : IntegrationTestBase
     [Fact]
     public async Task A_created_project_reads_back_as_it_was_written()
     {
+        var customer = await InScope(scope => TestData.SeedCustomerAsync(scope, "Logistika d.o.o."));
+
         var created = await InScope(scope => scope.Send(new CreateProjectCommand
         {
             Name = "  Warehouse in Sesvete  ",
             Description = " Two bays and an office. ",
-            Client = " Logistika d.o.o. ",
+            CustomerId = customer.Id,
             Address = " Sesvetska 12 ",
             Latitude = 45.8317,
             Longitude = 16.1122,
@@ -60,7 +62,8 @@ public class ProjectTests : IntegrationTestBase
         // searches as a different name from the one on screen.
         Assert.Equal("Warehouse in Sesvete", detail.Name);
         Assert.Equal("Two bays and an office.", detail.Description);
-        Assert.Equal("Logistika d.o.o.", detail.Client);
+        Assert.Equal(customer.Id, detail.CustomerId);
+        Assert.Equal("Logistika d.o.o.", detail.CustomerName);
         Assert.Equal("Sesvetska 12", detail.Address);
         Assert.Equal(45.8317, detail.Latitude!.Value, 4);
         Assert.Equal(16.1122, detail.Longitude!.Value, 4);
@@ -121,17 +124,19 @@ public class ProjectTests : IntegrationTestBase
     public async Task An_edit_saves_what_was_changed()
     {
         var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var customer = await InScope(scope => TestData.SeedCustomerAsync(scope, "New customer"));
 
         var updated = await InScope(scope => scope.Send(new UpdateProjectCommand
         {
             Id = project.Id,
             Name = "Renamed site",
-            Client = "New client",
+            CustomerId = customer.Id,
             Status = ProjectStatus.Completed
         }));
 
         Assert.Equal("Renamed site", updated.Name);
-        Assert.Equal("New client", updated.Client);
+        Assert.Equal(customer.Id, updated.CustomerId);
+        Assert.Equal("New customer", updated.CustomerName);
         Assert.Equal(nameof(ProjectStatus.Completed), updated.Status);
     }
 
@@ -140,11 +145,13 @@ public class ProjectTests : IntegrationTestBase
     {
         // The command sends the whole record, so an omitted optional field
         // means "cleared". A handler that only wrote non-nulls would make it
-        // impossible to remove a client or unpin a site from the panel.
+        // impossible to remove a customer or unpin a site from the panel.
+        var customer = await InScope(scope => TestData.SeedCustomerAsync(scope));
+
         var project = await InScope(scope => scope.Send(new CreateProjectCommand
         {
             Name = "Pinned",
-            Client = "Somebody",
+            CustomerId = customer.Id,
             Latitude = 45.81,
             Longitude = 15.98
         }));
@@ -155,7 +162,8 @@ public class ProjectTests : IntegrationTestBase
             Name = "Pinned"
         }));
 
-        Assert.Null(updated.Client);
+        Assert.Null(updated.CustomerId);
+        Assert.Null(updated.CustomerName);
         Assert.Null(updated.Latitude);
         Assert.Null(updated.Longitude);
     }
@@ -239,12 +247,14 @@ public class ProjectTests : IntegrationTestBase
     // ---- listing ---------------------------------------------------------
 
     [Fact]
-    public async Task Search_covers_the_name_the_client_and_the_address()
+    public async Task Search_covers_the_name_the_customer_and_the_address()
     {
+        var customer = await InScope(scope => TestData.SeedCustomerAsync(scope, "Gradnja Uniquename"));
+
         var project = await InScope(scope => scope.Send(new CreateProjectCommand
         {
             Name = "Findable site",
-            Client = "Gradnja Uniquename",
+            CustomerId = customer.Id,
             Address = "Distinctivestreet 4"
         }));
 
@@ -271,20 +281,45 @@ public class ProjectTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task A_wildcard_in_the_client_filter_is_taken_literally_too()
+    public async Task A_wildcard_in_the_customers_own_name_is_taken_literally_too()
     {
-        // The client filter is a separate code path from the search box, and
-        // it used to build its pattern inline without escaping anything.
-        var literal = await InScope(scope =>
-            scope.Send(New("Site A", client: "Fifty%Percent d.o.o.")));
-        var ordinary = await InScope(scope =>
-            scope.Send(New("Site B", client: "Ordinary Client d.o.o.")));
+        // The customer-name branch of Search is a separate OR clause from the
+        // project-name branch above, and it used to be reachable through a
+        // dedicated Client text filter that built its pattern without
+        // escaping anything.
+        var literalCustomer = await InScope(scope =>
+            TestData.SeedCustomerAsync(scope, "Fifty%Percent d.o.o."));
+        var ordinaryCustomer = await InScope(scope =>
+            TestData.SeedCustomerAsync(scope, "Ordinary Customer d.o.o."));
+
+        var literal = await InScope(scope => scope.Send(New("Site A", customerId: literalCustomer.Id)));
+        var ordinary = await InScope(scope => scope.Send(New("Site B", customerId: ordinaryCustomer.Id)));
 
         var page = await InScope(scope =>
-            scope.Send(new GetProjectsQuery { Client = "%", PageSize = 100 }));
+            scope.Send(new GetProjectsQuery { Search = "Fifty%Percent", PageSize = 100 }));
 
         Assert.Contains(page.Items, p => p.Id == literal.Id);
         Assert.DoesNotContain(page.Items, p => p.Id == ordinary.Id);
+    }
+
+    [Fact]
+    public async Task The_list_can_be_narrowed_to_a_customer()
+    {
+        var customer = await InScope(scope => TestData.SeedCustomerAsync(scope));
+        var otherCustomer = await InScope(scope => TestData.SeedCustomerAsync(scope));
+
+        var theirs = await InScope(scope => scope.Send(New("Customer-scoped A", customerId: customer.Id)));
+        var somebody_elses =
+            await InScope(scope => scope.Send(New("Customer-scoped B", customerId: otherCustomer.Id)));
+
+        var page = await InScope(scope => scope.Send(new GetProjectsQuery
+        {
+            CustomerId = customer.Id,
+            PageSize = 100
+        }));
+
+        Assert.Contains(page.Items, p => p.Id == theirs.Id);
+        Assert.DoesNotContain(page.Items, p => p.Id == somebody_elses.Id);
     }
 
     [Fact]

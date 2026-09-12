@@ -17,15 +17,27 @@ import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { employeesApi } from '../../api/employees';
 import { toApiError } from '../../api/apiError';
 import type { EmployeeInput } from '../../api/types';
 import { employeeStatuses, employeeTypes } from '../../api/types';
+import { DuplicateWarningAlert } from '../../components/DuplicateWarningAlert';
 import { ErrorState } from '../../components/ErrorState';
 import { useCreateEmployee, useEmployeeQuery, useUpdateEmployee } from '../../features/employees/useEmployees';
 import { employeeFormSchema, type EmployeeFormValues } from '../../features/employees/validation';
+import { useDuplicateWarning } from '../../hooks/useDuplicateWarning';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
+
+async function searchSimilarEmployees(term: string) {
+  const result = await employeesApi.list({ pageNumber: 1, pageSize: 5, search: term });
+  return result.items.map((e) => ({
+    id: e.id,
+    label: `${e.fullName} — ${e.employeeNumber}`,
+    path: paths.employeeDetail(e.id),
+  }));
+}
 
 const emptyValues: EmployeeFormValues = {
   employeeNumber: '',
@@ -56,12 +68,16 @@ export function EmployeeFormPage() {
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isSubmitting },
     setError,
   } = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeFormSchema),
     defaultValues: emptyValues,
   });
+
+  const fullName = `${watch('firstName')} ${watch('lastName')}`.trim();
+  const duplicates = useDuplicateWarning(searchSimilarEmployees, fullName, id);
 
   useEffect(() => {
     if (existing) {
@@ -140,6 +156,7 @@ export function EmployeeFormPage() {
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <Stack spacing={2.5}>
             {rootError?.message && <Alert severity="error">{rootError.message}</Alert>}
+            {!isEdit && <DuplicateWarningAlert candidates={duplicates.candidates} />}
 
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, sm: 6 }}>

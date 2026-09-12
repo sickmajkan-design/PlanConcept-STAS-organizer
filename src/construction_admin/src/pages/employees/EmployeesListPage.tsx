@@ -11,7 +11,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import type { GridColDef } from '@mui/x-data-grid';
+import type { GridColDef, GridSortModel } from '@mui/x-data-grid';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -19,21 +19,33 @@ import type { EmployeeListQuery } from '../../api/employees';
 import { exportsApi } from '../../api/exports';
 import type { Employee, EmployeeStatus, EmployeeType } from '../../api/types';
 import { employeeStatuses, employeeTypes } from '../../api/types';
+import { BulkActionsBar } from '../../components/BulkActionsBar';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { RowActions } from '../../components/RowActions';
+import { SavedViewsBar } from '../../components/SavedViewsBar';
 import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
 import { StatusLegend } from '../../components/StatusLegend';
 import { useDeleteEmployee, useEmployeesQuery } from '../../features/employees/useEmployees';
+import { useBulkDelete } from '../../hooks/useBulkDelete';
+import { useBulkSelection } from '../../hooks/useBulkSelection';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
 import { useListQueryState } from '../../hooks/useListQueryState';
+import { useSavedViews } from '../../hooks/useSavedViews';
 import { paths } from '../../routes/paths';
 import { formatDate } from '../../utils/formatting';
+
+interface EmployeeViewState {
+  search: string;
+  filter: EmployeeStatus | '';
+  typeFilter: EmployeeType | '';
+  sortModel: GridSortModel;
+}
 
 export function EmployeesListPage() {
   const navigate = useNavigate();
@@ -41,6 +53,24 @@ export function EmployeesListPage() {
   const enumLabel = useEnumLabel();
   const list = useListQueryState<EmployeeStatus>('lastName');
   const [typeFilter, setTypeFilter] = useState<EmployeeType | ''>('');
+  const savedViews = useSavedViews<EmployeeViewState>('employees');
+
+  const applyView = (state: EmployeeViewState) => {
+    list.setSearch(state.search);
+    list.setFilter(state.filter);
+    setTypeFilter(state.typeFilter);
+    list.setSortModel(state.sortModel);
+    list.resetToFirstPage();
+  };
+
+  const saveCurrentView = (name: string) => {
+    savedViews.saveView(name, {
+      search: list.search,
+      filter: list.filter,
+      typeFilter,
+      sortModel: list.sortModel,
+    });
+  };
 
   const query: EmployeeListQuery = useMemo(
     () => ({ ...list.query, status: list.filter || undefined, type: typeFilter || undefined }),
@@ -48,7 +78,10 @@ export function EmployeesListPage() {
   );
 
   const { data, isLoading, isError, error, refetch } = useEmployeesQuery(query);
-  const remove = useDeleteWithConfirm<Employee>(useDeleteEmployee());
+  const deleteEmployee = useDeleteEmployee();
+  const remove = useDeleteWithConfirm<Employee>(deleteEmployee);
+  const bulk = useBulkDelete(deleteEmployee);
+  const selection = useBulkSelection();
 
   // Memoized: DataGrid treats a new columns array as a structural change on
   // every render, which is wasted work.
@@ -204,6 +237,21 @@ export function EmployeesListPage() {
         />
       </Stack>
 
+      <Box sx={{ mb: 2 }}>
+        <SavedViewsBar
+          views={savedViews.views}
+          onApply={applyView}
+          onSave={saveCurrentView}
+          onDelete={savedViews.deleteView}
+        />
+      </Box>
+
+      <BulkActionsBar
+        count={selection.count}
+        onDelete={() => bulk.request(selection.selectedIds)}
+        onClear={selection.clear}
+      />
+
       <ResourceDataGrid
         data={data}
         columns={columns}
@@ -215,7 +263,13 @@ export function EmployeesListPage() {
         onPaginationModelChange={list.setPaginationModel}
         sortModel={list.sortModel}
         onSortModelChange={list.setSortModel}
-        onRowClick={(row) => navigate(paths.employeeDetail(row.id))}
+        rowSelectionModel={selection.model}
+        onRowSelectionModelChange={selection.setModel}
+        onRowClick={(row) =>
+          navigate(paths.employeeDetail(row.id), {
+            state: { siblingIds: data?.items.map((item) => item.id) ?? [] },
+          })
+        }
       />
 
       <ConfirmDialog
@@ -234,6 +288,23 @@ export function EmployeesListPage() {
         loading={remove.isDeleting}
         onConfirm={remove.confirm}
         onCancel={remove.cancel}
+      />
+
+      <ConfirmDialog
+        open={!!bulk.pendingIds}
+        title={t('bulk.deleteConfirmTitle')}
+        description={
+          bulk.pendingIds
+            ? t('bulk.deleteConfirmBody', { count: bulk.pendingIds.length })
+            : ''
+        }
+        confirmLabel={t('common.delete')}
+        destructive
+        onConfirm={() => {
+          void bulk.confirm();
+          selection.clear();
+        }}
+        onCancel={bulk.cancel}
       />
 
       {remove.error && (

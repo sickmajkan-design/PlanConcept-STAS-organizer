@@ -27,6 +27,7 @@ function sessionWith(overrides: Partial<Session> = {}): Session {
       firstName: 'Ivan',
       lastName: 'Horvat',
       lastLoginAt: null,
+      canViewCustomerTaxDetails: false,
     },
     ...overrides,
   };

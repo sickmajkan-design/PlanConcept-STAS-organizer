@@ -14,7 +14,7 @@ public record GetVehiclesQuery : ISortablePagedQuery, IRequest<PagedList<Vehicle
 {
     public static readonly string[] AllowedSortFields =
     [
-        "brand", "model", "registrationNumber", "fuelType", "status", "ownershipType", "assignedEmployeeName", "createdAt"
+        "brand", "model", "registrationNumber", "fuelType", "status", "ownershipType", "assignedEmployeeName", "currentRentalOutRenterName", "lastRentalOutRenterName", "createdAt"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -145,6 +145,28 @@ public class GetVehiclesQueryHandler : IRequestHandler<GetVehiclesQuery, PagedLi
             ("assignedemployeename", true) => query
                 .OrderByDescending(v => v.AssignedEmployee != null ? v.AssignedEmployee.LastName : null)
                 .ThenByDescending(v => v.AssignedEmployee != null ? v.AssignedEmployee.FirstName : null),
+            ("currentrentaloutrentername", false) => query
+                .OrderBy(v => v.RentalsOut
+                    .Where(r => r.EndDate == null)
+                    .Select(r => r.Customer != null ? r.Customer.Name : r.RenterName)
+                    .FirstOrDefault()),
+            ("currentrentaloutrentername", true) => query
+                .OrderByDescending(v => v.RentalsOut
+                    .Where(r => r.EndDate == null)
+                    .Select(r => r.Customer != null ? r.Customer.Name : r.RenterName)
+                    .FirstOrDefault()),
+            ("lastrentaloutrentername", false) => query
+                .OrderBy(v => v.RentalsOut
+                    .Where(r => r.EndDate != null)
+                    .OrderByDescending(r => r.EndDate)
+                    .Select(r => r.Customer != null ? r.Customer.Name : r.RenterName)
+                    .FirstOrDefault()),
+            ("lastrentaloutrentername", true) => query
+                .OrderByDescending(v => v.RentalsOut
+                    .Where(r => r.EndDate != null)
+                    .OrderByDescending(r => r.EndDate)
+                    .Select(r => r.Customer != null ? r.Customer.Name : r.RenterName)
+                    .FirstOrDefault()),
             ("createdat", false) => query.OrderBy(v => v.CreatedAt),
             ("createdat", true) => query.OrderByDescending(v => v.CreatedAt),
             (_, true) => query.OrderByDescending(v => v.Brand).ThenByDescending(v => v.Model),

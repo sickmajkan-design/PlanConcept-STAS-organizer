@@ -25,6 +25,7 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
         CancellationToken cancellationToken)
     {
         var customerId = request.CustomerId;
+        var countryCode = request.CountryCode?.Trim().ToUpperInvariant();
 
         if (request.ParentProjectId is { } parentProjectId)
         {
@@ -39,8 +40,10 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
             }
 
             // Always the parent's, regardless of what was submitted — a
-            // sub-project belongs to whichever customer its Main project does.
+            // sub-project belongs to whichever customer and country its Main
+            // project does: it is the same site, just a narrower scope of it.
             customerId = parent.CustomerId;
+            countryCode = parent.CountryCode;
         }
         else if (request.CustomerId is { } requestedCustomerId)
         {
@@ -62,6 +65,7 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
             Address = request.Address?.Trim(),
             Latitude = request.Latitude,
             Longitude = request.Longitude,
+            CountryCode = countryCode,
             ShiftStartTime = request.ShiftStartTime,
             StartDate = request.StartDate,
             EndDate = request.EndDate,

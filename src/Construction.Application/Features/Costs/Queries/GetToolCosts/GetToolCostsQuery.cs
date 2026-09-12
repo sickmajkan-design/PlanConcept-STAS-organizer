@@ -42,13 +42,16 @@ public class GetToolCostsQueryHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
     public GetToolCostsQueryHandler(
         IApplicationDbContext context,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<ToolCostReportDto> Handle(
@@ -77,15 +80,111 @@ public class GetToolCostsQueryHandler
             })
             .ToListAsync(cancellationToken);
 
-        var rows = grouped
-            .Select(t => new ToolCostRowDto
+        // Rental/lease cost is a separate source — a tool can carry one with
+        // no ToolExpense rows at all in the period, so it needs its own tool
+        // lookup rather than riding along with the group above.
+        var rentalRates = await _context.ToolRentalRates
+            .AsNoTracking()
+            .Where(r => request.ToolId == null || r.ToolId == request.ToolId)
+            .Where(r => r.StartDate <= request.To && (r.EndDate == null || r.EndDate >= request.From))
+            .Select(r => new
             {
-                ToolId = t.ToolId,
-                ToolName = t.Name,
-                RepairCost = decimal.Round(t.RepairCost, 2),
-                MaintenanceCost = decimal.Round(t.MaintenanceCost, 2),
-                OtherCost = decimal.Round(t.TotalCost - t.RepairCost - t.MaintenanceCost, 2),
-                Total = decimal.Round(t.TotalCost, 2)
+                r.ToolId,
+                r.Tool.Name,
+                r.StartDate,
+                r.EndDate,
+                r.MonthlyAmount
+            })
+            .ToListAsync(cancellationToken);
+
+        // A 30-day month is a deliberate approximation, the same one a flat
+        // "per day" reading of a monthly figure always is — the point is a
+        // consistent number to compare period over period, not an invoice
+        // reconciliation.
+        var rentalByTool = rentalRates
+            .GroupBy(r => new { r.ToolId, r.Name })
+            .ToDictionary(
+                g => g.Key,
+                g => g.Sum(r =>
+                {
+                    var start = r.StartDate > request.From ? r.StartDate : request.From;
+                    var end = r.EndDate is { } e && e < request.To ? e : request.To;
+                    var days = end.DayNumber - start.DayNumber + 1;
+                    return days > 0 ? days * (r.MonthlyAmount / 30m) : 0m;
+                }));
+
+        // Revenue-out is a discrete-row source, not a dated chain: a loan is
+        // priced across the overlap with the period, an open one only up to
+        // today (mirrors GetToolRentalsOutSummaryQueryHandler's TotalValue).
+        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+
+        var rentalsOut = await _context.ToolRentalsOut
+            .AsNoTracking()
+            .Where(r => request.ToolId == null || r.ToolId == request.ToolId)
+            .Where(r => r.StartDate <= request.To && (r.EndDate == null || r.EndDate >= request.From))
+            .Select(r => new
+            {
+                r.ToolId,
+                r.Tool.Name,
+                r.StartDate,
+                r.EndDate,
+                r.DailyRate
+            })
+            .ToListAsync(cancellationToken);
+
+        var revenueByTool = rentalsOut
+            .GroupBy(r => new { r.ToolId, r.Name })
+            .ToDictionary(
+                g => g.Key,
+                g => g.Sum(r =>
+                {
+                    var start = r.StartDate > request.From ? r.StartDate : request.From;
+                    var end = r.EndDate ?? today;
+                    end = end < request.To ? end : request.To;
+                    var days = end.DayNumber - start.DayNumber + 1;
+                    return days > 0 ? days * r.DailyRate : 0m;
+                }));
+
+        var toolNames = grouped
+            .Select(t => (t.ToolId, t.Name))
+            .Concat(rentalByTool.Keys.Select(k => (k.ToolId, k.Name)))
+            .Concat(revenueByTool.Keys.Select(k => (k.ToolId, k.Name)))
+            .GroupBy(t => t.ToolId)
+            .ToDictionary(g => g.Key, g => g.First().Name);
+
+        var toolIds = toolNames.Keys.ToHashSet();
+        var expensesByTool = grouped.ToDictionary(t => t.ToolId);
+
+        var rows = toolIds
+            .Select(toolId =>
+            {
+                var t = expensesByTool.GetValueOrDefault(toolId);
+                var rentalCost = rentalByTool
+                    .Where(kv => kv.Key.ToolId == toolId)
+                    .Select(kv => kv.Value)
+                    .FirstOrDefault();
+                var revenue = revenueByTool
+                    .Where(kv => kv.Key.ToolId == toolId)
+                    .Select(kv => kv.Value)
+                    .FirstOrDefault();
+
+                var repairCost = t?.RepairCost ?? 0m;
+                var maintenanceCost = t?.MaintenanceCost ?? 0m;
+                var totalCost = t?.TotalCost ?? 0m;
+                var total = totalCost + rentalCost;
+
+                return new ToolCostRowDto
+                {
+                    ToolId = toolId,
+                    ToolName = toolNames[toolId],
+                    RepairCost = decimal.Round(repairCost, 2),
+                    MaintenanceCost = decimal.Round(maintenanceCost, 2),
+                    OtherCost = decimal.Round(totalCost - repairCost - maintenanceCost, 2),
+                    RentalCost = decimal.Round(rentalCost, 2),
+                    Total = decimal.Round(total, 2),
+                    Revenue = decimal.Round(revenue, 2),
+                    Profit = decimal.Round(revenue - total, 2)
+                };
             })
             .OrderByDescending(r => r.Total)
             .ThenBy(r => r.ToolName)
@@ -96,7 +195,10 @@ public class GetToolCostsQueryHandler
             From = request.From,
             To = request.To,
             Rows = rows,
-            Total = rows.Sum(r => r.Total)
+            Total = rows.Sum(r => r.Total),
+            TotalRentalCost = rows.Sum(r => r.RentalCost),
+            TotalRevenue = rows.Sum(r => r.Revenue),
+            TotalProfit = rows.Sum(r => r.Profit)
         };
     }
 }

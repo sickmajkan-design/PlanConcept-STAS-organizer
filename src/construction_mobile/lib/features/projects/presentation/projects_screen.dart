@@ -8,7 +8,9 @@ import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/paged_list_view.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
+import '../../auth/presentation/auth_controller.dart';
 import '../data/models/project.dart';
+import 'project_form_sheet.dart';
 import 'projects_controller.dart';
 
 class ProjectsScreen extends ConsumerWidget {
@@ -20,7 +22,17 @@ class ProjectsScreen extends ConsumerWidget {
     final state = ref.watch(projectsControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.navProjects)),
+      appBar: AppBar(
+        title: Text(context.l10n.navProjects),
+        actions: [
+          if (ref.watch(currentUserProvider)?.isProjectManagerAndAbove ?? false)
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: context.l10n.commonAdd,
+              onPressed: () => showProjectFormSheet(context, ref),
+            ),
+        ],
+      ),
       body: SafeArea(
         child: PagedListView<Project>(
           state: state,
@@ -34,6 +46,8 @@ class ProjectsScreen extends ConsumerWidget {
             filters: projectStatusFilters,
             selectedFilter: controller.filter,
             onFilterSelected: controller.applyFilter,
+            filterLabel: (context, value) =>
+                enumLabel(context.l10n, EnumKind.projectStatus, value),
           ),
           itemBuilder: (context, project) => _ProjectCard(project: project),
         ),
@@ -75,12 +89,22 @@ class _ProjectCard extends StatelessWidget {
                   StatusChip(status: project.status, kind: EnumKind.projectStatus, dense: true),
                 ],
               ),
-              if ((project.client ?? '').isNotEmpty) ...[
+              if ((project.customerName ?? '').isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
-                  project.client!,
+                  project.customerName!,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+              if (project.isSubProject && project.parentProjectName != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  '↳ ${context.l10n.projectSubOf(project.parentProjectName!)}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontStyle: FontStyle.italic,
                   ),
                 ),
               ],

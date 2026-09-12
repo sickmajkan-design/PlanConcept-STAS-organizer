@@ -15,6 +15,9 @@ export const customerFormSchema = z.object({
   phone: z.string().trim().max(64).optional().or(z.literal('')),
   email: optionalEmailString,
   note: z.string().trim().max(2000).optional().or(z.literal('')),
+  taxId: z.string().trim().max(64).optional().or(z.literal('')),
+  registrationNumber: z.string().trim().max(64).optional().or(z.literal('')),
+  vatNumber: z.string().trim().max(64).optional().or(z.literal('')),
 });
 
 export type CustomerFormValues = z.infer<typeof customerFormSchema>;

@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../features/auth/data/auth_repository.dart';
 import '../network/network_providers.dart';
 import 'app_locales.dart';
 
@@ -30,6 +31,19 @@ class LocaleController extends AsyncNotifier<Locale?> {
     }
 
     state = AsyncData(locale);
+
+    // Best-effort: a push notification sent before the app is next opened
+    // should render in this language too, which only the server can do —
+    // but nothing about picking a language in-app should fail or block on
+    // this call, so a signed-out user or an offline moment is silently
+    // skipped rather than surfaced as an error here.
+    if (locale != null) {
+      try {
+        await ref.read(authRepositoryProvider).updatePreferredLanguage(locale.languageCode);
+      } catch (_) {
+        // Ignored — see above. The in-app language still changed.
+      }
+    }
   }
 }
 

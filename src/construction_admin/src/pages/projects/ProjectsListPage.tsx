@@ -33,6 +33,7 @@ import { ErrorState } from '../../components/ErrorState';
 import { EmptyState } from '../../components/EmptyState';
 import { PageHeader } from '../../components/PageHeader';
 import { RowActions } from '../../components/RowActions';
+import { SavedViewsBar } from '../../components/SavedViewsBar';
 import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
 import { StatusLegend } from '../../components/StatusLegend';
@@ -42,8 +43,15 @@ import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
 import { useListQueryState } from '../../hooks/useListQueryState';
+import { useSavedViews } from '../../hooks/useSavedViews';
 import { paths } from '../../routes/paths';
 import { formatDate } from '../../utils/formatting';
+
+interface ProjectViewState {
+  search: string;
+  filter: ProjectStatus | '';
+  customerFilter: string;
+}
 
 // A construction office's whole project list, grouped by customer, fits
 // comfortably in one page-worth — the same "board, not a paged grid" call
@@ -71,6 +79,19 @@ export function ProjectsListPage() {
   const list = useListQueryState<ProjectStatus>('name');
   const [customerFilter, setCustomerFilter] = useState('');
   const { data: customers } = useAllCustomersQuery();
+
+  const savedViews = useSavedViews<ProjectViewState>('projects');
+
+  const applyView = (state: ProjectViewState) => {
+    list.setSearch(state.search);
+    list.setFilter(state.filter);
+    setCustomerFilter(state.customerFilter);
+    list.resetToFirstPage();
+  };
+
+  const saveCurrentView = (name: string) => {
+    savedViews.saveView(name, { search: list.search, filter: list.filter, customerFilter });
+  };
 
   const query: ProjectListQuery = useMemo(
     () => ({
@@ -212,6 +233,15 @@ export function ProjectsListPage() {
           }
         />
       </Stack>
+
+      <Box sx={{ mb: 2 }}>
+        <SavedViewsBar
+          views={savedViews.views}
+          onApply={applyView}
+          onSave={saveCurrentView}
+          onDelete={savedViews.deleteView}
+        />
+      </Box>
 
       {isError ? (
         <ErrorState error={error} onRetry={() => void refetch()} />

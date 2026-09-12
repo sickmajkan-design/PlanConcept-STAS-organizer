@@ -6,10 +6,15 @@ using Construction.Application.Features.Costs.Commands.DeleteCostRecord;
 using Construction.Application.Features.Costs.Commands.RecordFinanceEntry;
 using Construction.Application.Features.Costs.Commands.RecordGeneralExpense;
 using Construction.Application.Features.Costs.Commands.RecordMaterialMovement;
+using Construction.Application.Features.Costs.Commands.RecordToolRentalOut;
 using Construction.Application.Features.Costs.Commands.RecordVehicleExpense;
+using Construction.Application.Features.Costs.Commands.RecordVehicleRentalOut;
+using Construction.Application.Features.Costs.Commands.ReturnToolRentalOut;
+using Construction.Application.Features.Costs.Commands.ReturnVehicleRentalOut;
 using Construction.Application.Features.Costs.Commands.SetAccommodationRate;
 using Construction.Application.Features.Costs.Commands.SetEmployeeRate;
 using Construction.Application.Features.Costs.Commands.SetVehicleRentalRate;
+using Construction.Application.Features.Costs.Commands.SetToolRentalRate;
 using Construction.Application.Features.Costs.Commands.RecordToolExpense;
 using Construction.Application.Features.Costs.Commands.UpdateAccommodationRate;
 using Construction.Application.Features.Costs.Commands.UpdateEmployeeRate;
@@ -17,13 +22,20 @@ using Construction.Application.Features.Costs.Commands.UpdateGeneralExpense;
 using Construction.Application.Features.Costs.Commands.UpdateFinanceEntry;
 using Construction.Application.Features.Costs.Commands.UpdateMaterialMovement;
 using Construction.Application.Features.Costs.Commands.UpdateToolExpense;
+using Construction.Application.Features.Costs.Commands.UpdateToolRentalOut;
+using Construction.Application.Features.Costs.Commands.UpdateToolRentalRate;
 using Construction.Application.Features.Costs.Commands.UpdateVehicleExpense;
+using Construction.Application.Features.Costs.Commands.UpdateVehicleRentalOut;
 using Construction.Application.Features.Costs.Commands.UpdateVehicleRentalRate;
 using Construction.Application.Features.Costs.Models;
 using Construction.Application.Features.Costs.Queries.GetCostRecords;
 using Construction.Application.Features.Costs.Queries.GetProjectCosts;
 using Construction.Application.Features.Costs.Queries.GetToolCosts;
 using Construction.Application.Features.Costs.Queries.GetVehicleCosts;
+using Construction.Application.Features.FuelCards.Commands;
+using Construction.Application.Features.FuelCards.Import;
+using Construction.Application.Features.FuelCards.Models;
+using Construction.Application.Features.FuelCards.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -264,6 +276,123 @@ public class CostsController : ApiControllerBase
         return NoContent();
     }
 
+    // ---- fuel cards --------------------------------------------------------
+
+    /// <summary>Lists fuel cards, one per card ever issued against a vehicle.</summary>
+    [HttpGet("/api/v{version:apiVersion}/fuel-cards")]
+    [HttpGet("/api/fuel-cards")]
+    [ProducesResponseType(typeof(PagedList<FuelCardDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<PagedList<FuelCardDto>>> GetFuelCards(
+        [FromQuery] GetFuelCardsQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>Registers a fuel card against the vehicle it was issued with.</summary>
+    [HttpPost("/api/v{version:apiVersion}/fuel-cards")]
+    [HttpPost("/api/fuel-cards")]
+    [Idempotent]
+    [ProducesResponseType(typeof(FuelCardDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<FuelCardDto>> AddFuelCard(
+        AddFuelCardCommand command,
+        CancellationToken cancellationToken)
+    {
+        var card = await Mediator.Send(command, cancellationToken);
+
+        return CreatedAtAction(nameof(GetFuelCards), new { id = card.Id }, card);
+    }
+
+    /// <summary>Retires a fuel card. Its number can be reused once it is gone.</summary>
+    [HttpDelete("/api/v{version:apiVersion}/fuel-cards/{id:guid}")]
+    [HttpDelete("/api/fuel-cards/{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteFuelCard(Guid id, CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new DeleteFuelCardCommand(id), cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Parses an uploaded monthly statement against a column mapping and
+    /// reports what would happen, without writing anything.
+    /// </summary>
+    [HttpPost("/api/v{version:apiVersion}/fuel-cards/import/preview")]
+    [HttpPost("/api/fuel-cards/import/preview")]
+    [RequestSizeLimit(FuelImportRules.MaxSizeBytes + 1024 * 1024)]
+    [ProducesResponseType(typeof(FuelImportPreviewDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<FuelImportPreviewDto>> PreviewFuelImport(
+        [FromForm] FuelImportRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (request.File is null || request.File.Length == 0)
+        {
+            ModelState.AddModelError(nameof(request.File), "A statement file is required.");
+            return ValidationProblem(ModelState);
+        }
+
+        await using var content = request.File.OpenReadStream();
+
+        var result = await Mediator.Send(
+            new PreviewFuelImportCommand
+            {
+                FileName = request.File.FileName,
+                SizeBytes = request.File.Length,
+                Content = content,
+                HasHeaderRow = request.HasHeaderRow,
+                Mapping = request.ToMapping(),
+            },
+            cancellationToken);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Commits the same statement and mapping the preview showed, creating a
+    /// fuel <c>VehicleExpense</c> for every row that resolves cleanly.
+    /// </summary>
+    [HttpPost("/api/v{version:apiVersion}/fuel-cards/import")]
+    [HttpPost("/api/fuel-cards/import")]
+    [RequestSizeLimit(FuelImportRules.MaxSizeBytes + 1024 * 1024)]
+    [ProducesResponseType(typeof(FuelImportResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<FuelImportResultDto>> ImportFuelTransactions(
+        [FromForm] FuelImportRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (request.File is null || request.File.Length == 0)
+        {
+            ModelState.AddModelError(nameof(request.File), "A statement file is required.");
+            return ValidationProblem(ModelState);
+        }
+
+        await using var content = request.File.OpenReadStream();
+
+        var result = await Mediator.Send(
+            new ImportFuelTransactionsCommand
+            {
+                FileName = request.File.FileName,
+                SizeBytes = request.File.Length,
+                Content = content,
+                HasHeaderRow = request.HasHeaderRow,
+                Mapping = request.ToMapping(),
+            },
+            cancellationToken);
+
+        return Ok(result);
+    }
+
     // ---- vehicle rental/lease rates ---------------------------------------
 
     /// <summary>Lists rental/lease rates.</summary>
@@ -409,6 +538,263 @@ public class CostsController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         await Mediator.Send(new DeleteToolExpenseCommand(id), cancellationToken);
+        return NoContent();
+    }
+
+    // ---- tool rental/lease rates -------------------------------------------
+
+    /// <summary>Lists rental/lease rates.</summary>
+    [HttpGet("/api/v{version:apiVersion}/tool-rental-rates")]
+    [HttpGet("/api/tool-rental-rates")]
+    [ProducesResponseType(typeof(PagedList<ToolRentalRateDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<PagedList<ToolRentalRateDto>>> GetToolRentalRates(
+        [FromQuery] GetToolRentalRatesQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>The count and total monthly amount of whatever the rental rates list is currently filtered to.</summary>
+    [HttpGet("/api/v{version:apiVersion}/tool-rental-rates/summary")]
+    [HttpGet("/api/tool-rental-rates/summary")]
+    [ProducesResponseType(typeof(ToolRentalRateSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<ToolRentalRateSummaryDto>> GetToolRentalRatesSummary(
+        [FromQuery] GetToolRentalRatesSummaryQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>Puts a new rental/lease rate in force, closing off the one before it.</summary>
+    [HttpPost("/api/v{version:apiVersion}/tool-rental-rates")]
+    [HttpPost("/api/tool-rental-rates")]
+    [Idempotent]
+    [ProducesResponseType(typeof(ToolRentalRateDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ToolRentalRateDto>> SetToolRentalRate(
+        SetToolRentalRateCommand command,
+        CancellationToken cancellationToken)
+    {
+        var rate = await Mediator.Send(command, cancellationToken);
+
+        return CreatedAtAction(nameof(GetToolRentalRates), new { id = rate.Id }, rate);
+    }
+
+    /// <summary>Corrects a rental rate that was typed in wrong.</summary>
+    [HttpPut("/api/v{version:apiVersion}/tool-rental-rates/{id:guid}")]
+    [HttpPut("/api/tool-rental-rates/{id:guid}")]
+    [ProducesResponseType(typeof(ToolRentalRateDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ToolRentalRateDto>> UpdateToolRentalRate(
+        Guid id,
+        UpdateToolRentalRateCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
+    }
+
+    /// <summary>Removes a rental rate.</summary>
+    [HttpDelete("/api/v{version:apiVersion}/tool-rental-rates/{id:guid}")]
+    [HttpDelete("/api/tool-rental-rates/{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteToolRentalRate(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new DeleteToolRentalRateCommand(id), cancellationToken);
+        return NoContent();
+    }
+
+    // ---- vehicles rented out to other companies ----------------------------
+
+    /// <summary>Lists loans of a vehicle out to another company — the revenue direction.</summary>
+    [HttpGet("/api/v{version:apiVersion}/vehicle-rentals-out")]
+    [HttpGet("/api/vehicle-rentals-out")]
+    [ProducesResponseType(typeof(PagedList<VehicleRentalOutDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<PagedList<VehicleRentalOutDto>>> GetVehicleRentalsOut(
+        [FromQuery] GetVehicleRentalsOutQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>The count, how many are still out, and the total value of whatever the loans-out list is currently filtered to.</summary>
+    [HttpGet("/api/v{version:apiVersion}/vehicle-rentals-out/summary")]
+    [HttpGet("/api/vehicle-rentals-out/summary")]
+    [ProducesResponseType(typeof(VehicleRentalOutSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<VehicleRentalOutSummaryDto>> GetVehicleRentalsOutSummary(
+        [FromQuery] GetVehicleRentalsOutSummaryQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>Records the vehicle going out to another company. Requires it to be available.</summary>
+    [HttpPost("/api/v{version:apiVersion}/vehicle-rentals-out")]
+    [HttpPost("/api/vehicle-rentals-out")]
+    [Idempotent]
+    [ProducesResponseType(typeof(VehicleRentalOutDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<VehicleRentalOutDto>> RecordVehicleRentalOut(
+        RecordVehicleRentalOutCommand command,
+        CancellationToken cancellationToken)
+    {
+        var rental = await Mediator.Send(command, cancellationToken);
+
+        return CreatedAtAction(nameof(GetVehicleRentalsOut), new { id = rental.Id }, rental);
+    }
+
+    /// <summary>Closes an open loan — the vehicle came back — and frees the vehicle up again.</summary>
+    [HttpPut("/api/v{version:apiVersion}/vehicle-rentals-out/{id:guid}/return")]
+    [HttpPut("/api/vehicle-rentals-out/{id:guid}/return")]
+    [ProducesResponseType(typeof(VehicleRentalOutDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<VehicleRentalOutDto>> ReturnVehicleRentalOut(
+        Guid id,
+        ReturnVehicleRentalOutCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
+    }
+
+    /// <summary>Corrects a loan that was typed in wrong. Never touches whether it is returned.</summary>
+    [HttpPut("/api/v{version:apiVersion}/vehicle-rentals-out/{id:guid}")]
+    [HttpPut("/api/vehicle-rentals-out/{id:guid}")]
+    [ProducesResponseType(typeof(VehicleRentalOutDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<VehicleRentalOutDto>> UpdateVehicleRentalOut(
+        Guid id,
+        UpdateVehicleRentalOutCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
+    }
+
+    /// <summary>Removes a loan-out record.</summary>
+    [HttpDelete("/api/v{version:apiVersion}/vehicle-rentals-out/{id:guid}")]
+    [HttpDelete("/api/vehicle-rentals-out/{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteVehicleRentalOut(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new DeleteVehicleRentalOutCommand(id), cancellationToken);
+        return NoContent();
+    }
+
+    // ---- tools rented out to other companies -------------------------------
+
+    /// <summary>Lists loans of a tool out to another company — the revenue direction.</summary>
+    [HttpGet("/api/v{version:apiVersion}/tool-rentals-out")]
+    [HttpGet("/api/tool-rentals-out")]
+    [ProducesResponseType(typeof(PagedList<ToolRentalOutDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<PagedList<ToolRentalOutDto>>> GetToolRentalsOut(
+        [FromQuery] GetToolRentalsOutQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>The count, how many are still out, and the total value of whatever the loans-out list is currently filtered to.</summary>
+    [HttpGet("/api/v{version:apiVersion}/tool-rentals-out/summary")]
+    [HttpGet("/api/tool-rentals-out/summary")]
+    [ProducesResponseType(typeof(ToolRentalOutSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<ToolRentalOutSummaryDto>> GetToolRentalsOutSummary(
+        [FromQuery] GetToolRentalsOutSummaryQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>Records the tool going out to another company. Requires it to be available.</summary>
+    [HttpPost("/api/v{version:apiVersion}/tool-rentals-out")]
+    [HttpPost("/api/tool-rentals-out")]
+    [Idempotent]
+    [ProducesResponseType(typeof(ToolRentalOutDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ToolRentalOutDto>> RecordToolRentalOut(
+        RecordToolRentalOutCommand command,
+        CancellationToken cancellationToken)
+    {
+        var rental = await Mediator.Send(command, cancellationToken);
+
+        return CreatedAtAction(nameof(GetToolRentalsOut), new { id = rental.Id }, rental);
+    }
+
+    /// <summary>Closes an open loan — the tool came back — and frees the tool up again.</summary>
+    [HttpPut("/api/v{version:apiVersion}/tool-rentals-out/{id:guid}/return")]
+    [HttpPut("/api/tool-rentals-out/{id:guid}/return")]
+    [ProducesResponseType(typeof(ToolRentalOutDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ToolRentalOutDto>> ReturnToolRentalOut(
+        Guid id,
+        ReturnToolRentalOutCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
+    }
+
+    /// <summary>Corrects a loan that was typed in wrong. Never touches whether it is returned.</summary>
+    [HttpPut("/api/v{version:apiVersion}/tool-rentals-out/{id:guid}")]
+    [HttpPut("/api/tool-rentals-out/{id:guid}")]
+    [ProducesResponseType(typeof(ToolRentalOutDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ToolRentalOutDto>> UpdateToolRentalOut(
+        Guid id,
+        UpdateToolRentalOutCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
+    }
+
+    /// <summary>Removes a loan-out record.</summary>
+    [HttpDelete("/api/v{version:apiVersion}/tool-rentals-out/{id:guid}")]
+    [HttpDelete("/api/tool-rentals-out/{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteToolRentalOut(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new DeleteToolRentalOutCommand(id), cancellationToken);
         return NoContent();
     }
 
@@ -676,4 +1062,48 @@ public class CostsController : ApiControllerBase
     {
         return Ok(await Mediator.Send(query, cancellationToken));
     }
+}
+
+/// <summary>
+/// The multipart form a fuel-statement upload arrives as — the file plus
+/// which column is which, exactly as the preview step showed the user.
+/// </summary>
+/// <remarks>
+/// Separate from the command for the same reason as
+/// <see cref="UploadAttachmentRequest"/>: <see cref="IFormFile"/> is an
+/// ASP.NET type the Application layer does not reference.
+/// </remarks>
+public class FuelImportRequest
+{
+    public IFormFile? File { get; set; }
+
+    public bool HasHeaderRow { get; set; } = true;
+
+    public int CardNumberColumn { get; set; }
+
+    public int OccurredOnColumn { get; set; }
+
+    public int AmountColumn { get; set; }
+
+    public int LitresColumn { get; set; }
+
+    public int? SupplierColumn { get; set; }
+
+    public int? NoteColumn { get; set; }
+
+    public int? OdometerColumn { get; set; }
+
+    public int? FuelProductTypeColumn { get; set; }
+
+    public FuelImportColumnMapping ToMapping() => new()
+    {
+        CardNumberColumn = CardNumberColumn,
+        OccurredOnColumn = OccurredOnColumn,
+        AmountColumn = AmountColumn,
+        LitresColumn = LitresColumn,
+        SupplierColumn = SupplierColumn,
+        NoteColumn = NoteColumn,
+        OdometerColumn = OdometerColumn,
+        FuelProductTypeColumn = FuelProductTypeColumn,
+    };
 }

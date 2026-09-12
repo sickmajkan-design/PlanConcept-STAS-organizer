@@ -15,7 +15,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import type { GridColDef } from '@mui/x-data-grid';
+import type { GridColDef, GridSortModel } from '@mui/x-data-grid';
 import { useEffect, useMemo, useState } from 'react';
 
 import { toApiError } from '../../api/apiError';
@@ -28,6 +28,7 @@ import { AuditHistoryCard } from '../../components/AuditHistoryCard';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
+import { SavedViewsBar } from '../../components/SavedViewsBar';
 import {
   useDeleteToolExpense,
   useRecordToolExpense,
@@ -38,9 +39,15 @@ import {
 import { useAllToolsQuery } from '../../features/tools/useTools';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useListQueryState } from '../../hooks/useListQueryState';
+import { useSavedViews } from '../../hooks/useSavedViews';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { formatDate, formatDateTime, formatMoney } from '../../utils/formatting';
+
+interface ToolExpenseViewState {
+  sortModel: GridSortModel;
+  kind: ToolExpenseKind | '';
+}
 
 export function ToolExpensesPage() {
   const t = useT();
@@ -52,6 +59,18 @@ export function ToolExpensesPage() {
   const [kind, setKind] = useState<ToolExpenseKind | ''>('');
   const [recording, setRecording] = useState(false);
   const [editing, setEditing] = useState<ToolExpense | null>(null);
+
+  const savedViews = useSavedViews<ToolExpenseViewState>('tool-expenses');
+
+  const applyView = (state: ToolExpenseViewState) => {
+    list.setSortModel(state.sortModel);
+    setKind(state.kind);
+    list.resetToFirstPage();
+  };
+
+  const saveCurrentView = (name: string) => {
+    savedViews.saveView(name, { sortModel: list.sortModel, kind });
+  };
 
   const query: ToolExpenseListQuery = useMemo(
     () => ({
@@ -172,6 +191,15 @@ export function ToolExpensesPage() {
           ))}
         </TextField>
       </Stack>
+
+      <Box sx={{ mb: 2 }}>
+        <SavedViewsBar
+          views={savedViews.views}
+          onApply={applyView}
+          onSave={saveCurrentView}
+          onDelete={savedViews.deleteView}
+        />
+      </Box>
 
       {summary && (
         <Paper variant="outlined" sx={{ px: 2, py: 1, mb: 2 }}>

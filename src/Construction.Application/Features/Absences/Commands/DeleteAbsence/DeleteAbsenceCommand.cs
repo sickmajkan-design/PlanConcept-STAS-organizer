@@ -56,12 +56,25 @@ public class DeleteAbsenceCommandHandler : IRequestHandler<DeleteAbsenceCommand>
             // for and taken back, which is what a supervisor who half-planned
             // around it needs to see.
             absence.Status = AbsenceStatus.Cancelled;
-            await _context.SaveChangesAsync(cancellationToken);
+            await SaveAsync(cancellationToken);
             return;
         }
 
         _context.Absences.Remove(absence);
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await SaveAsync(cancellationToken);
+    }
+
+    private async Task SaveAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new ConflictException(
+                "This request was changed by someone else just now. Reload it and try again.");
+        }
     }
 }

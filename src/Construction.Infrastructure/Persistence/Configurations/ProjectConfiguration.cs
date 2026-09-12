@@ -24,6 +24,9 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
         builder.Property(p => p.Address)
             .HasMaxLength(512);
 
+        builder.Property(p => p.CountryCode)
+            .HasMaxLength(2);
+
         builder.Property(p => p.ContractValue)
             .HasPrecision(18, 2);
 

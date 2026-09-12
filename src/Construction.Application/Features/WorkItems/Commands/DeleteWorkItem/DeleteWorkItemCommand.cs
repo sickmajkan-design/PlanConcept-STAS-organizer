@@ -42,6 +42,14 @@ public class DeleteWorkItemCommandHandler : IRequestHandler<DeleteWorkItemComman
 
         _context.WorkItems.Remove(item);
 
-        await _context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new ConflictException(
+                "This item was changed by someone else just now. Reload it and try again.");
+        }
     }
 }

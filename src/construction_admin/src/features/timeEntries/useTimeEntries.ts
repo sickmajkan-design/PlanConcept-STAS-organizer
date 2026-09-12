@@ -7,6 +7,7 @@ import {
   type TimeEntrySummaryQuery,
 } from '../../api/timeEntries';
 import type { TimeEntryInput } from '../../api/types';
+import { config } from '../../config';
 import {
   createResourceKeys,
   useResourceDetail,
@@ -23,8 +24,16 @@ const summaryKey = (query: TimeEntrySummaryQuery) => [
   query,
 ];
 
+/**
+ * Polls rather than loading once: the Work Time board is how the office
+ * finds out someone clocked in or out, and a screen that only updates on a
+ * manual refresh would defeat that — the same reasoning behind the live
+ * map's own `refetchInterval`.
+ */
 export function useTimeEntriesQuery(query: TimeEntryListQuery) {
-  return useResourceList(timeEntryKeys, timeEntriesApi.list, query);
+  return useResourceList(timeEntryKeys, timeEntriesApi.list, query, {
+    refetchInterval: config.workTimeRefreshMs,
+  });
 }
 
 export function useTimeEntryQuery(id: string | undefined) {

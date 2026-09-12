@@ -54,6 +54,7 @@ export const paths = {
   costs: '/costs',
   stockMovements: '/stock-movements',
   vehicleExpenses: '/vehicle-expenses',
+  fuelImport: '/vehicle-expenses/fuel-import',
   toolExpenses: '/tool-expenses',
   rates: '/rates',
   publicHolidays: '/public-holidays',
@@ -68,7 +69,12 @@ export const paths = {
   ledgers: '/ledgers',
   ledgerDetail: (id: string) => `/ledgers/${id}`,
 
+  companySettings: '/company-settings',
+
   expiringDocuments: '/documents/expiring',
+
+  scheduledReports: '/scheduled-reports',
+  weeklyReports: '/weekly-reports',
 
   notifications: '/notifications',
   notificationGroups: '/notification-groups',

@@ -85,6 +85,11 @@ public class CreateLedgerCommandHandler : IRequestHandler<CreateLedgerCommand, L
                 {
                     Name = column.Name,
                     DataType = column.DataType,
+                    // A sourced column's whole point is that it needs no
+                    // re-entry month to month — carrying this over is what
+                    // makes "copy structure" actually save the SuperAdmin the
+                    // work it promises for these columns specifically.
+                    SourceMetric = column.SourceMetric,
                     SortOrder = column.SortOrder,
                 });
             }
@@ -104,6 +109,17 @@ public class CreateLedgerCommandHandler : IRequestHandler<CreateLedgerCommand, L
                     {
                         Label = row.Label,
                         EmployeeId = row.EmployeeId,
+                        // Same reasoning as the column's SourceMetric above —
+                        // the vehicle/tool/material a row represents doesn't
+                        // change month to month, only the cost figure does.
+                        VehicleId = row.VehicleId,
+                        ToolId = row.ToolId,
+                        MaterialId = row.MaterialId,
+                        // Deliberately NOT copied: PromotedGeneralExpenseId/
+                        // PromotedAccommodationRateId. Last month's row was
+                        // pushed through to a real record; this month's copy
+                        // is a fresh row that has not been, and should still
+                        // offer the promote action.
                         SortOrder = row.SortOrder,
                     });
                 }
@@ -117,7 +133,7 @@ public class CreateLedgerCommandHandler : IRequestHandler<CreateLedgerCommand, L
         return await _context.Ledgers
             .AsNoTracking()
             .Where(l => l.Id == ledger.Id)
-            .Select(LedgerDetailMapping.Projection)
+            .Select(LedgerShellMapping.Projection)
             .FirstAsync(cancellationToken);
     }
 }

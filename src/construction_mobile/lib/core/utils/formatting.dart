@@ -117,3 +117,16 @@ String formatQuantity(double? value) {
 
   return text.replaceFirst(RegExp(r'\.?0+$'), '');
 }
+
+/// A file size in bytes, in the coarsest readable unit.
+String formatFileSize(int bytes) {
+  if (bytes < 1024) {
+    return '$bytes B';
+  }
+
+  if (bytes < 1024 * 1024) {
+    return '${(bytes / 1024).round()} kB';
+  }
+
+  return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+}

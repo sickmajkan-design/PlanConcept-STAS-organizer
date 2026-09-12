@@ -14,8 +14,12 @@ public class PublicHolidayConfiguration : IEntityTypeConfiguration<PublicHoliday
 
         builder.Property(h => h.Name).HasMaxLength(200).IsRequired();
 
-        // Two entries for the same date would make "is this day a holiday"
-        // ambiguous for nothing — one row per date is the whole point.
-        builder.HasIndex(h => h.Date).IsUnique();
+        builder.Property(h => h.CountryCode).HasMaxLength(2).IsRequired();
+
+        // Two entries for the same country and date would make "is this day
+        // a holiday there" ambiguous for nothing — one row per (country,
+        // date) is the whole point. Different countries sharing a date (e.g.
+        // 1 January everywhere) are not a conflict.
+        builder.HasIndex(h => new { h.CountryCode, h.Date }).IsUnique();
     }
 }

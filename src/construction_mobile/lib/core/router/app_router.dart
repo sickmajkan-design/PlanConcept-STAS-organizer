@@ -5,6 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../features/absences/presentation/my_absences_screen.dart';
 import '../../features/absences/presentation/my_schedule_screen.dart';
 import '../../features/bulletin/presentation/bulletin_screen.dart';
+import '../../features/company_settings/presentation/company_settings_screen.dart';
+import '../../features/ledgers/presentation/ledger_detail_screen.dart';
+import '../../features/ledgers/presentation/ledgers_screen.dart';
+import '../../features/costs/presentation/tool_expenses_screen.dart';
 import '../../features/costs/presentation/vehicle_expenses_screen.dart';
 import '../../features/auth/presentation/auth_controller.dart';
 import '../../features/auth/presentation/change_password_screen.dart';
@@ -15,6 +19,7 @@ import '../../features/employees/presentation/employees_screen.dart';
 import '../../features/materials/presentation/material_detail_screen.dart';
 import '../../features/materials/presentation/materials_screen.dart';
 import '../../features/time_entries/presentation/shift_screen.dart';
+import '../../features/time_entries/presentation/team_today_screen.dart';
 import '../../features/work_items/presentation/my_work_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/projects/presentation/project_detail_screen.dart';
@@ -27,6 +32,7 @@ import '../../features/tools/presentation/tool_detail_screen.dart';
 import '../../features/tools/presentation/tools_screen.dart';
 import '../../features/vehicles/presentation/vehicle_detail_screen.dart';
 import '../../features/vehicles/presentation/vehicles_screen.dart';
+import '../../features/weekly_reports/presentation/weekly_reports_screen.dart';
 import 'app_routes.dart';
 
 /// Router whose redirect follows the auth state: while the stored session is
@@ -69,6 +75,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       // The API serves the directory to Foreman and above only.
       if (AppRoutes.isDirectoryLocation(location) &&
           !authState.user.canViewDirectory) {
+        return AppRoutes.home;
+      }
+
+      // Mirrors desktop's `RequireSuperAdmin` route guard — not even Admin
+      // may reach the company profile or the ledger, even though the API
+      // itself would happily serve a company-settings read to any signed-in
+      // role.
+      if (AppRoutes.isSuperAdminOnlyLocation(location) &&
+          !authState.user.isSuperAdmin) {
         return AppRoutes.home;
       }
 
@@ -130,10 +145,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ScanScreen(),
       ),
       GoRoute(
-        path: AppRoutes.timeEntries,
-        builder: (context, state) => const ShiftScreen(),
-      ),
-      GoRoute(
         path: AppRoutes.workItems,
         builder: (context, state) => const MyWorkScreen(),
       ),
@@ -146,12 +157,37 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const MyAbsencesScreen(),
       ),
       GoRoute(
+        path: AppRoutes.weeklyReports,
+        builder: (context, state) => const WeeklyReportsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.teamToday,
+        builder: (context, state) => const TeamTodayScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.bulletin,
         builder: (context, state) => const BulletinScreen(),
       ),
       GoRoute(
         path: AppRoutes.vehicleExpenses,
         builder: (context, state) => const VehicleExpensesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.toolExpenses,
+        builder: (context, state) => const ToolExpensesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.companySettings,
+        builder: (context, state) => const CompanySettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.ledgers,
+        builder: (context, state) => const LedgersScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.ledgers}/:id',
+        builder: (context, state) =>
+            LedgerDetailScreen(ledgerId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: AppRoutes.materials,
@@ -172,6 +208,14 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.home,
                 builder: (context, state) => const HomeScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.timeEntries,
+                builder: (context, state) => const ShiftScreen(),
               ),
             ],
           ),

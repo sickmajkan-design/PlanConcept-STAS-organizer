@@ -3,6 +3,7 @@ import {
   Alert,
   Box,
   Button,
+  Chip,
   FormControl,
   Grid,
   InputLabel,
@@ -18,7 +19,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
-import { workTypes, type TimeEntryInput } from '../../api/types';
+import { workTypes, type TimeEntry, type TimeEntryInput } from '../../api/types';
 import { ErrorState } from '../../components/ErrorState';
 import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
@@ -66,6 +67,12 @@ function toLocalInput(iso: string | null | undefined): string {
 
 function toIso(localValue: string): string {
   return new Date(localValue).toISOString();
+}
+
+/** `45.81234, 15.98123`, matching the format the project detail screen uses. */
+function formatCoordinates(latitude: number | null, longitude: number | null): string | null {
+  if (latitude === null || longitude === null) return null;
+  return `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
 }
 
 /** Splits a `YYYY-MM-DDTHH:mm` value into its date and time halves. */
@@ -176,6 +183,8 @@ export function TimeEntryFormPage() {
               <Alert severity="warning">{t('timeEntries.autoClosedHint')}</Alert>
             )}
             {rootError?.message && <Alert severity="error">{rootError.message}</Alert>}
+
+            {isEdit && existing && <LocationSection entry={existing} />}
 
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -393,5 +402,76 @@ export function TimeEntryFormPage() {
         </form>
       </Paper>
     </Box>
+  );
+}
+
+/**
+ * The coordinates a phone reported at clock-in/out, read-only — this is
+ * device-captured evidence, not something a reviewer corrects by hand. Shown
+ * only when at least one side has a fix; a shift recorded from the office
+ * (via this same form) never sets these.
+ */
+function LocationSection({ entry }: { entry: TimeEntry }) {
+  const t = useT();
+
+  const start = formatCoordinates(entry.startLatitude, entry.startLongitude);
+  const end = formatCoordinates(entry.endLatitude, entry.endLongitude);
+
+  if (!start && !end) {
+    return null;
+  }
+
+  const locationLabel =
+    entry.locationCorrect === true
+      ? t('timeEntries.locationCorrectYes')
+      : entry.locationCorrect === false
+        ? t('timeEntries.locationCorrectNo')
+        : t('timeEntries.locationCorrectUnknown');
+
+  const timeLabel =
+    entry.timeCorrect === true
+      ? t('timeEntries.timeCorrectYes')
+      : entry.timeCorrect === false
+        ? t('timeEntries.timeCorrectNo')
+        : t('timeEntries.timeCorrectUnknown');
+
+  return (
+    <Paper variant="outlined" sx={{ p: 2 }}>
+      <Typography variant="subtitle2" gutterBottom sx={{ fontWeight: 700 }}>
+        {t('timeEntries.locationSectionTitle')}
+      </Typography>
+      <Stack spacing={1.5}>
+        {start && (
+          <Box>
+            <Typography variant="caption" color="text.secondary">
+              {t('timeEntries.startLocation')}
+            </Typography>
+            <Typography variant="body2">{start}</Typography>
+          </Box>
+        )}
+        {end && (
+          <Box>
+            <Typography variant="caption" color="text.secondary">
+              {t('timeEntries.endLocation')}
+            </Typography>
+            <Typography variant="body2">{end}</Typography>
+          </Box>
+        )}
+        <Stack direction="row" spacing={1}>
+          <Chip
+            size="small"
+            label={locationLabel}
+            color={entry.locationCorrect === false ? 'warning' : 'default'}
+            variant="outlined"
+          />
+          <Chip
+            size="small"
+            label={timeLabel}
+            color={entry.timeCorrect === false ? 'warning' : 'default'}
+            variant="outlined"
+          />
+        </Stack>
+      </Stack>
+    </Paper>
   );
 }

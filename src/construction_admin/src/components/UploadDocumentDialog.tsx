@@ -59,6 +59,7 @@ const CATEGORIES_BY_OWNER_TYPE: Record<AttachmentOwnerType, readonly AttachmentC
   EmployeeRate: ['Contract', 'Other'],
   FinanceEntry: ['Other'],
   ToolExpense: ['Other'],
+  ToolRentalRate: ['Contract', 'Other'],
   VehicleRentalRate: ['Contract', 'Other'],
   GeneralExpense: ['Other'],
   Accommodation: ['Photo', 'Other'],
@@ -88,6 +89,7 @@ export function UploadDocumentDialog({
   const [category, setCategory] = useState<AttachmentCategory>('Certificate');
   const [description, setDescription] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
+  const [retainUntil, setRetainUntil] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(
     null,
@@ -131,6 +133,7 @@ export function UploadDocumentDialog({
     setCategory('Certificate');
     setDescription('');
     setExpiresAt('');
+    setRetainUntil('');
     setLocalError(null);
     setProgress(null);
   };
@@ -204,6 +207,7 @@ export function UploadDocumentDialog({
         file,
         description: description.trim() || null,
         expiresAt: expiryAllowed && expiresAt ? expiresAt : null,
+        retainUntil: retainUntil || null,
       });
       setProgress({ done: index + 1, total: files.length });
     }
@@ -327,6 +331,16 @@ export function UploadDocumentDialog({
                 ? t('attachments.expiresHint')
                 : t('attachments.photoNoExpiry')
             }
+          />
+
+          <TextField
+            label={t('attachments.retainUntil')}
+            type="date"
+            value={retainUntil}
+            onChange={(event) => setRetainUntil(event.target.value)}
+            fullWidth
+            slotProps={{ inputLabel: { shrink: true } }}
+            helperText={t('attachments.retainUntilHint')}
           />
 
           <Typography variant="caption" color="text.secondary">

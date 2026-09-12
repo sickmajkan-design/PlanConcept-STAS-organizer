@@ -13,6 +13,14 @@ export const vehicleFormSchema = z.object({
     .max(32),
   vin: z.string().trim().max(32).optional().or(z.literal('')),
   qrCode: z.string().trim().max(256).optional().or(z.literal('')),
+  gpsProvider: z.string().trim().max(100).optional().or(z.literal('')),
+  gpsTrackingUrl: z
+    .string()
+    .trim()
+    .max(1000)
+    .url('The tracking link must be a full web address (starting with http:// or https://).')
+    .optional()
+    .or(z.literal('')),
   fuelType: z.enum(fuelTypes, { message: 'Fuel type is required.' }),
   status: z.enum(vehicleStatuses),
   ownershipType: z.enum(vehicleOwnershipTypes),

@@ -15,10 +15,58 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonCancel => 'Cancel';
 
   @override
+  String get commonDelete => 'Delete';
+
+  @override
+  String get commonEdit => 'Edit';
+
+  @override
+  String get commonAdd => 'Add';
+
+  @override
+  String get commonStatus => 'Status';
+
+  @override
+  String get vehicleFormAddTitle => 'Add a vehicle';
+
+  @override
+  String get vehicleFormEditTitle => 'Edit vehicle';
+
+  @override
+  String get vehicleFormBrand => 'Brand';
+
+  @override
+  String get vehicleFormModel => 'Model';
+
+  @override
+  String get vehicleFormAdded => 'Vehicle added.';
+
+  @override
+  String get vehicleFormSaved => 'Vehicle updated.';
+
+  @override
+  String get vehicleDeleteTitle => 'Delete this vehicle?';
+
+  @override
+  String vehicleDeleteBody(String name) {
+    return '$name will be removed. This cannot be undone.';
+  }
+
+  @override
   String get commonRetry => 'Try again';
 
   @override
   String get commonLoadMore => 'Load more';
+
+  @override
+  String commonTotalCount(int count) {
+    return '$count total';
+  }
+
+  @override
+  String commonCountOfTotal(int shown, int total) {
+    return '$shown of $total';
+  }
 
   @override
   String get commonSignIn => 'Sign in';
@@ -53,6 +101,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get commonResources => 'Resources';
+
+  @override
+  String get commonCompany => 'Company';
+
+  @override
+  String get commonEmployee => 'Employee';
+
+  @override
+  String get commonMaterial => 'Material';
+
+  @override
+  String get commonTool => 'Tool';
+
+  @override
+  String get commonVehicle => 'Vehicle';
+
+  @override
+  String get commonProject => 'Project';
 
   @override
   String get commonAlerts => 'Alerts';
@@ -128,6 +194,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get validationPasswordRequired => 'Password is required.';
 
   @override
+  String get validationPasswordMinLength =>
+      'Password must be at least 8 characters long.';
+
+  @override
+  String validationFieldRequired(String field) {
+    return '$field is required.';
+  }
+
+  @override
   String get validationPasswordUpper =>
       'Password must contain an upper-case letter.';
 
@@ -179,6 +254,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorUnknown => 'Something went wrong. Please try again.';
+
+  @override
+  String get navHome => 'Home';
 
   @override
   String get navEmployees => 'Employees';
@@ -241,6 +319,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectClient => 'Client';
 
   @override
+  String projectSubOf(String name) {
+    return 'Part of $name';
+  }
+
+  @override
   String get projectAddress => 'Address';
 
   @override
@@ -254,6 +337,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get projectCrewEmpty => 'Nobody assigned yet';
+
+  @override
+  String projectAssignedCount(int count) {
+    return '$count assigned';
+  }
+
+  @override
+  String get projectCrewTitle => 'Crew';
+
+  @override
+  String projectCrewCount(int count) {
+    return 'Crew ($count)';
+  }
+
+  @override
+  String employeeProjectsCount(int count) {
+    return 'Projects ($count)';
+  }
 
   @override
   String projectAssignedOn(String date) {
@@ -275,6 +376,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vehicleRegistration => 'Registration number';
 
   @override
+  String get vehicleOwnershipType => 'Ownership';
+
+  @override
   String get vehicleFuelType => 'Fuel type';
 
   @override
@@ -288,6 +392,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get toolSerialNumber => 'Serial number';
+
+  @override
+  String get toolFormAddTitle => 'Add a tool';
+
+  @override
+  String get toolFormEditTitle => 'Edit tool';
+
+  @override
+  String get toolFormName => 'Name';
+
+  @override
+  String get toolFormCategory => 'Category';
+
+  @override
+  String get toolFormAdded => 'Tool added.';
+
+  @override
+  String get toolFormSaved => 'Tool updated.';
+
+  @override
+  String get toolDeleteTitle => 'Delete this tool?';
+
+  @override
+  String toolDeleteBody(String name) {
+    return '$name will be removed. This cannot be undone.';
+  }
 
   @override
   String get toolQrCode => 'QR code';
@@ -317,6 +447,107 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vehicleQrCode => 'QR code';
 
   @override
+  String get vehicleOwnershipTypeOwned => 'Owned';
+
+  @override
+  String get vehicleOwnershipTypeRented => 'Rented';
+
+  @override
+  String get vehicleRentalProvider => 'Rented from';
+
+  @override
+  String get vehicleRentalMonthlyAmount => 'Monthly rate';
+
+  @override
+  String vehicleLoanedOutTo(String name) {
+    return 'Loaned out to $name';
+  }
+
+  @override
+  String get rentalRatesTitle => 'Rental / lease';
+
+  @override
+  String get rentalRatesAdd => 'Add a rate';
+
+  @override
+  String get rentalRatesEditTitle => 'Edit rate';
+
+  @override
+  String get rentalRatesEmpty => 'No rate on file yet.';
+
+  @override
+  String get rentalRatesProvider => 'Provider (optional)';
+
+  @override
+  String get rentalRatesNote => 'Note (optional)';
+
+  @override
+  String get rentalRatesMonthlyAmount => 'Monthly amount';
+
+  @override
+  String get rentalRatesStartDate => 'From';
+
+  @override
+  String get rentalRatesEndDate => 'To (optional, open-ended if blank)';
+
+  @override
+  String get rentalRatesOpenEnded => 'Open';
+
+  @override
+  String get rentalRatesDeleteTitle => 'Delete this rate?';
+
+  @override
+  String get rentalRatesDeleteBody => 'This cannot be undone.';
+
+  @override
+  String get rentalRatesSaved => 'Rental rate saved.';
+
+  @override
+  String get rentalOutTitle => 'Loaned out';
+
+  @override
+  String get rentalOutAdd => 'Loan it out';
+
+  @override
+  String get rentalOutEditTitle => 'Edit loan';
+
+  @override
+  String get rentalOutEmpty => 'Not currently loaned out to anyone.';
+
+  @override
+  String get rentalOutRenterName => 'Renter\'s name';
+
+  @override
+  String get rentalOutCustomer => 'Linked customer (optional)';
+
+  @override
+  String get rentalOutNoCustomer => 'No linked customer';
+
+  @override
+  String get rentalOutDailyRate => 'Daily rate';
+
+  @override
+  String get rentalOutStartDate => 'From';
+
+  @override
+  String get rentalOutStillOut => 'Still out';
+
+  @override
+  String get rentalOutReturn => 'Mark returned';
+
+  @override
+  String get rentalOutReturned => 'Marked as returned.';
+
+  @override
+  String get rentalOutDeleteTitle => 'Delete this loan?';
+
+  @override
+  String get rentalOutDeleteBody => 'This cannot be undone.';
+
+  @override
+  String get rentalOutSaved => 'Loan saved.';
+
+  @override
   String get scanTitle => 'Scan or look up';
 
   @override
@@ -325,6 +556,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get scanAction => 'Scan QR code';
+
+  @override
+  String get scanToggleFlash => 'Toggle flashlight';
 
   @override
   String get scanCodeLabel => 'QR code';
@@ -416,6 +650,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get materialWarehouseOnly => 'Warehouse stock only';
 
   @override
+  String get materialFormAddTitle => 'Add a material';
+
+  @override
+  String get materialFormEditTitle => 'Edit material';
+
+  @override
+  String get materialFormName => 'Name';
+
+  @override
+  String get materialFormUnit => 'Unit';
+
+  @override
+  String get materialFormUnitPrice => 'Unit price (optional)';
+
+  @override
+  String get materialFormAdded => 'Material added.';
+
+  @override
+  String get materialFormSaved => 'Material updated.';
+
+  @override
+  String get materialDeleteTitle => 'Delete this material?';
+
+  @override
+  String materialDeleteBody(String name) {
+    return '$name will be removed. This cannot be undone.';
+  }
+
+  @override
   String get materialWarehouseNote => 'Warehouse stock, not tied to a project';
 
   @override
@@ -423,6 +686,97 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get materialNoAssignment => 'No assignment';
+
+  @override
+  String get employeeFormAddTitle => 'Add an employee';
+
+  @override
+  String get employeeFormEditTitle => 'Edit employee';
+
+  @override
+  String get employeeFormNumber => 'Employee number';
+
+  @override
+  String get employeeFormFirstName => 'First name';
+
+  @override
+  String get employeeFormLastName => 'Last name';
+
+  @override
+  String get employeeFormEmploymentDate => 'Employment date';
+
+  @override
+  String get employeeFormAdded => 'Employee added.';
+
+  @override
+  String get employeeFormSaved => 'Employee updated.';
+
+  @override
+  String get employeeDeleteTitle => 'Delete this employee?';
+
+  @override
+  String employeeDeleteBody(String name) {
+    return '$name will be removed. This cannot be undone.';
+  }
+
+  @override
+  String get employeeType => 'Type';
+
+  @override
+  String get employeeTypeEmployee => 'Employee';
+
+  @override
+  String get employeeTypeSubcontractor => 'Subcontractor';
+
+  @override
+  String get projectFormAddTitle => 'Add a project';
+
+  @override
+  String get projectFormEditTitle => 'Edit project';
+
+  @override
+  String get projectFormName => 'Project name';
+
+  @override
+  String get projectFormDescription => 'Description (optional)';
+
+  @override
+  String get projectFormParentProject => 'Parent project (optional)';
+
+  @override
+  String get projectFormNoParent => 'No parent — a main project';
+
+  @override
+  String get projectFormNoCustomer => 'No customer';
+
+  @override
+  String get projectFormCountryCode => 'Country code (e.g. BA)';
+
+  @override
+  String get projectFormShiftStartTime => 'Shift start time (optional)';
+
+  @override
+  String get projectFormContractValue => 'Contract value (optional)';
+
+  @override
+  String get projectFormLatitude => 'Latitude';
+
+  @override
+  String get projectFormLongitude => 'Longitude';
+
+  @override
+  String get projectFormAdded => 'Project added.';
+
+  @override
+  String get projectFormSaved => 'Project updated.';
+
+  @override
+  String get projectDeleteTitle => 'Delete this project?';
+
+  @override
+  String projectDeleteBody(String name) {
+    return '$name will be removed. This cannot be undone.';
+  }
 
   @override
   String get notificationsEmpty => 'No notifications yet.';
@@ -434,7 +788,343 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationsUnread => 'Unread';
 
   @override
+  String notificationsUnreadCount(int count) {
+    return 'Unread ($count)';
+  }
+
+  @override
   String get notificationsMarkAllRead => 'Mark all read';
+
+  @override
+  String notificationsAcknowledgedOn(String date) {
+    return 'Confirmed on $date';
+  }
+
+  @override
+  String get notificationsOpenRelated => 'Open';
+
+  @override
+  String get notificationProjectAssignedTitle => 'New project assigned';
+
+  @override
+  String notificationProjectAssignedBody(String projectName) {
+    return 'You have been assigned to project \"$projectName\".';
+  }
+
+  @override
+  String notificationProjectAssignedBodyWithAddress(
+    String projectName,
+    String address,
+  ) {
+    return 'You have been assigned to project \"$projectName\", at $address.';
+  }
+
+  @override
+  String notificationProjectAssignedBodyFull(
+    String projectName,
+    String address,
+    String shiftStartTime,
+  ) {
+    return 'You have been assigned to project \"$projectName\", at $address. Shift starts at $shiftStartTime.';
+  }
+
+  @override
+  String get notificationEmployeeAssignedTitle =>
+      'Employee assigned to your project';
+
+  @override
+  String notificationEmployeeAssignedBody(
+    String employeeName,
+    String projectName,
+  ) {
+    return '$employeeName has been assigned to project \"$projectName\".';
+  }
+
+  @override
+  String get notificationVehicleAssignedTitle => 'Vehicle assigned';
+
+  @override
+  String notificationVehicleAssignedBody(
+    String brand,
+    String model,
+    String registration,
+  ) {
+    return 'Vehicle $brand $model ($registration) has been assigned to you.';
+  }
+
+  @override
+  String get notificationToolAssignedTitle => 'Tool assigned';
+
+  @override
+  String notificationToolAssignedBody(String toolName) {
+    return 'Tool \"$toolName\" has been assigned to you.';
+  }
+
+  @override
+  String get notificationDocumentExpiringTitle => 'Document expiring soon';
+
+  @override
+  String get notificationDocumentExpiredTitle => 'Document has expired';
+
+  @override
+  String notificationDocumentExpiringBody(String fileName, String expiresAt) {
+    return '$fileName ($expiresAt)';
+  }
+
+  @override
+  String notificationDocumentExpiringBodyWithOwner(
+    String fileName,
+    String ownerName,
+    String expiresAt,
+  ) {
+    return '$fileName — $ownerName ($expiresAt)';
+  }
+
+  @override
+  String get notificationTaskAssignedTitle => 'Task assigned to you';
+
+  @override
+  String get notificationDefectAssignedTitle => 'Defect assigned to you';
+
+  @override
+  String notificationWorkItemAssignedBodyWithDueDate(
+    String title,
+    String dueDate,
+  ) {
+    return '$title — due $dueDate';
+  }
+
+  @override
+  String get notificationWorkItemOverdueTitle => 'Overdue';
+
+  @override
+  String get notificationWorkItemDueSoonTitle => 'Due soon';
+
+  @override
+  String notificationWorkItemDueBody(String title, String dueDate) {
+    return '$title ($dueDate)';
+  }
+
+  @override
+  String get notificationShiftAutoClosedTitle => 'Shift closed automatically';
+
+  @override
+  String notificationShiftAutoClosedBody(String shiftDate) {
+    return 'You did not clock out on $shiftDate, so the shift was closed automatically and is waiting for review.';
+  }
+
+  @override
+  String get notificationAbsenceEditProposedTitle =>
+      'Change proposed for approved leave';
+
+  @override
+  String notificationAbsenceEditProposedBody(String startDate, String endDate) {
+    return '$startDate–$endDate — please confirm or decline.';
+  }
+
+  @override
+  String get notificationAbsenceEditConfirmedTitle => 'Leave change confirmed';
+
+  @override
+  String notificationAbsenceEditConfirmedBody(
+    String startDate,
+    String endDate,
+  ) {
+    return '$startDate–$endDate';
+  }
+
+  @override
+  String get notificationAbsenceEditDeclinedTitle => 'Leave change declined';
+
+  @override
+  String get notificationAbsenceEditDeclinedBody =>
+      'The other side declined your proposed change.';
+
+  @override
+  String get notificationWeeklyReportDueTitle =>
+      'Weekly hours not yet submitted';
+
+  @override
+  String notificationWeeklyReportDueBody(
+    String projectName,
+    String isoWeek,
+    String isoYear,
+  ) {
+    return '$projectName — KW$isoWeek/$isoYear';
+  }
+
+  @override
+  String get notificationEmployeeClockedInTitle => 'Clocked in';
+
+  @override
+  String notificationEmployeeClockedInBody(
+    String employeeName,
+    String projectName,
+  ) {
+    return '$employeeName clocked in at $projectName.';
+  }
+
+  @override
+  String get notificationEmployeeClockedOutTitle => 'Clocked out';
+
+  @override
+  String notificationEmployeeClockedOutBody(
+    String employeeName,
+    String projectName,
+    String hours,
+    String minutes,
+  ) {
+    return '$employeeName clocked out from $projectName after ${hours}h ${minutes}m.';
+  }
+
+  @override
+  String get notificationUnassignedClockInTitle =>
+      'Clock-in at an unassigned site';
+
+  @override
+  String notificationUnassignedClockInBody(
+    String employeeName,
+    String projectName,
+  ) {
+    return '$employeeName clocked in at $projectName, but is not currently posted there.';
+  }
+
+  @override
+  String get notificationDefectReportedTitle => 'New defect reported';
+
+  @override
+  String notificationDefectReportedBody(String reporterName, String title) {
+    return '$reporterName reported: $title';
+  }
+
+  @override
+  String get notificationAbsenceRequestedTitle => 'Time off requested';
+
+  @override
+  String notificationAbsenceRequestedBody(
+    String employeeName,
+    String startDate,
+    String endDate,
+  ) {
+    return '$employeeName asked for time off, from $startDate to $endDate.';
+  }
+
+  @override
+  String get notificationDocumentRetentionEndedTitle =>
+      'Document retention period ended';
+
+  @override
+  String notificationDocumentRetentionEndedBody(
+    String fileName,
+    String retainUntil,
+  ) {
+    return '$fileName no longer has to be kept (was until $retainUntil). Delete it yourself if it is no longer needed.';
+  }
+
+  @override
+  String notificationDocumentRetentionEndedBodyWithOwner(
+    String fileName,
+    String ownerName,
+    String retainUntil,
+  ) {
+    return '$fileName — $ownerName no longer has to be kept (was until $retainUntil). Delete it yourself if it is no longer needed.';
+  }
+
+  @override
+  String get notificationTypeDirectMessage => 'Direct message';
+
+  @override
+  String get notificationTypeDocumentExpiring => 'Document expiring';
+
+  @override
+  String get notificationTypeTaskAssigned => 'Task assigned';
+
+  @override
+  String get notificationTypeDefectAssigned => 'Defect assigned';
+
+  @override
+  String get notificationTypeWorkItemDue => 'Work due';
+
+  @override
+  String get notificationTypeShiftAutoClosed => 'Shift auto-closed';
+
+  @override
+  String get notificationTypeBulletinPosted => 'Bulletin post';
+
+  @override
+  String get notificationTypeAbsenceEditProposed => 'Leave change';
+
+  @override
+  String get notificationTypeWeeklyReportDue => 'Weekly report due';
+
+  @override
+  String get notificationTypeEmployeeClockedIn => 'Clocked in';
+
+  @override
+  String get notificationTypeEmployeeClockedOut => 'Clocked out';
+
+  @override
+  String get notificationTypeUnassignedProjectClockIn => 'Unassigned clock-in';
+
+  @override
+  String get notificationTypeDefectReported => 'Defect reported';
+
+  @override
+  String get notificationTypeAbsenceRequested => 'Leave requested';
+
+  @override
+  String get notificationTypeDocumentRetentionEnded =>
+      'Document retention ended';
+
+  @override
+  String get announceTitle => 'Send an announcement';
+
+  @override
+  String get announceSubject => 'Subject';
+
+  @override
+  String get announceMessage => 'Message';
+
+  @override
+  String get announceAudienceRole => 'Role';
+
+  @override
+  String get announceEveryRole => 'Every role';
+
+  @override
+  String get announceAudienceProject => 'Project';
+
+  @override
+  String get announceEveryProject => 'Every project';
+
+  @override
+  String get announceAudienceGroup => 'Group';
+
+  @override
+  String get announceEveryGroup => 'Every group';
+
+  @override
+  String get announceRequiresAcknowledgment =>
+      'Require confirmation before recipients can do anything else';
+
+  @override
+  String get announceHint =>
+      'A phone notification cannot be recalled — the audience is the one thing worth checking twice.';
+
+  @override
+  String get announceSend => 'Send';
+
+  @override
+  String announceSent(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Sent to $count people.',
+      one: 'Sent to 1 person.',
+      zero: 'Sent to nobody — nobody matched.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get notificationsDisabled =>
@@ -589,6 +1279,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vehicleStatusOutOfService => 'Out of service';
 
   @override
+  String get vehicleStatusRentedOut => 'Loaned out';
+
+  @override
   String get toolStatusAvailable => 'Available';
 
   @override
@@ -602,6 +1295,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get toolStatusRetired => 'Retired';
+
+  @override
+  String get toolStatusRentedOut => 'Loaned out';
 
   @override
   String get fuelPetrol => 'Petrol';
@@ -726,6 +1422,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'This account is not linked to an employee, so it cannot record work time.';
 
   @override
+  String get shiftAutoClosed => 'Auto-closed';
+
+  @override
+  String get shiftLocationMismatch => 'Clocked in away from the site';
+
+  @override
+  String get shiftTimeMismatch => 'Clocked in outside the expected shift time';
+
+  @override
   String get timeEntryStatusInProgress => 'Running';
 
   @override
@@ -795,6 +1500,53 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get attachmentsNotAnImage =>
       'Only a document or image can be attached.';
+
+  @override
+  String get attachmentsAddDocument => 'Add a document';
+
+  @override
+  String get attachmentsPickFile => 'Choose a file';
+
+  @override
+  String get attachmentsChangeFile => 'Choose a different file';
+
+  @override
+  String get attachmentsCategory => 'Category';
+
+  @override
+  String get attachmentsDescription => 'Description (optional)';
+
+  @override
+  String get attachmentsExpiryDate => 'Expiry date (optional)';
+
+  @override
+  String get attachmentsRetainUntil => 'Retain until (optional)';
+
+  @override
+  String get attachmentsSaved => 'Document added.';
+
+  @override
+  String get attachmentsDeleteTitle => 'Delete this document?';
+
+  @override
+  String attachmentsDeleteBody(String name) {
+    return '$name will be removed. This cannot be undone.';
+  }
+
+  @override
+  String attachmentsRetainedCannotDelete(String date) {
+    return 'Kept until $date — cannot be deleted yet.';
+  }
+
+  @override
+  String get attachmentsOpen => 'Open';
+
+  @override
+  String get attachmentsOpeningExternally => 'Opening in another app…';
+
+  @override
+  String get attachmentsOpenExternalFailed =>
+      'No app on this phone can open this file type.';
 
   @override
   String get attachmentCategoryContract => 'Contract';
@@ -912,6 +1664,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navAbsences => 'Time off';
+
+  @override
+  String get navWeeklyReports => 'Weekly reports';
+
+  @override
+  String get navBulletin => 'Bulletin board';
+
+  @override
+  String get bulletinTitle => 'Bulletin board';
+
+  @override
+  String get bulletinEmpty => 'Nothing posted right now.';
+
+  @override
+  String bulletinPostedBy(String name) {
+    return 'Posted by $name';
+  }
 
   @override
   String get scheduleTitle => 'My schedule';
@@ -1045,7 +1814,124 @@ class AppLocalizationsEn extends AppLocalizations {
   String get absenceStatusCancelled => 'Withdrawn';
 
   @override
+  String get weeklyReportsTitle => 'Weekly site reports';
+
+  @override
+  String get weeklyReportsDescription =>
+      'Send the week\'s signed hours, Aufmaß, or other proof of work for a site you are posted to.';
+
+  @override
+  String get weeklyReportsSubmit => 'Submit report';
+
+  @override
+  String get weeklyReportsProject => 'Site';
+
+  @override
+  String get weeklyReportsProjectsFailed => 'Could not load your sites.';
+
+  @override
+  String get weeklyReportsIsoYear => 'Year';
+
+  @override
+  String get weeklyReportsIsoWeek => 'Week';
+
+  @override
+  String get weeklyReportsType => 'Kind';
+
+  @override
+  String get weeklyReportsHours => 'Hours';
+
+  @override
+  String get weeklyReportsNote => 'Note (optional)';
+
+  @override
+  String get weeklyReportsAttachFile => 'Attach file';
+
+  @override
+  String get weeklyReportsFileTooLarge =>
+      'That file is larger than the 20 MB limit.';
+
+  @override
+  String get weeklyReportsSend => 'Send';
+
+  @override
+  String get notifyEmployeeAction => 'Notify';
+
+  @override
+  String get notifyEmployeeTitle => 'Send a message';
+
+  @override
+  String get notifyEmployeeSubject => 'Subject';
+
+  @override
+  String get notifyEmployeeMessage => 'Message';
+
+  @override
+  String get notifyEmployeeRequireAck => 'Require confirmation';
+
+  @override
+  String get notifyEmployeeRequireAckHint =>
+      'They cannot use anything else in the app until they confirm they saw this.';
+
+  @override
+  String get notifyEmployeeSend => 'Send';
+
+  @override
+  String get notifyEmployeeSent => 'Message sent.';
+
+  @override
+  String get teamTodayAction => 'Team today';
+
+  @override
+  String get teamTodayTitle => 'Team today';
+
+  @override
+  String get teamTodayEmpty => 'Nobody has clocked in today yet.';
+
+  @override
+  String teamTodayStillWorking(String time) {
+    return 'Since $time — still working';
+  }
+
+  @override
+  String get weeklyReportsSent => 'Report sent.';
+
+  @override
+  String get weeklyReportTypeSignedHours => 'Signed hours';
+
+  @override
+  String get weeklyReportTypeAufmass => 'Aufmaß';
+
+  @override
+  String get weeklyReportTypeOther => 'Other';
+
+  @override
+  String get weeklyReportStatusSubmitted => 'Awaiting review';
+
+  @override
+  String get weeklyReportStatusProcessed => 'Processed';
+
+  @override
+  String get weeklyReportsHistoryTitle => 'Sent so far';
+
+  @override
+  String get weeklyReportsHistoryEmpty => 'Nothing sent yet.';
+
+  @override
+  String weeklyReportsIsoWeekLabel(int isoWeek, int isoYear) {
+    return 'KW$isoWeek/$isoYear';
+  }
+
+  @override
+  String weeklyReportsProcessedOn(String date) {
+    return 'Processed $date';
+  }
+
+  @override
   String get navVehicleExpenses => 'Vehicle costs';
+
+  @override
+  String get navToolExpenses => 'Tool costs';
 
   @override
   String get vehicleExpensesTitle => 'Vehicle costs';
@@ -1121,6 +2007,132 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get vehicleExpenseKindOther => 'Other';
+
+  @override
+  String get toolExpensesTitle => 'Tool costs';
+
+  @override
+  String get toolExpensesEmpty => 'No costs recorded yet.';
+
+  @override
+  String get toolExpensesRecord => 'Record a cost';
+
+  @override
+  String get toolExpensesTool => 'Tool';
+
+  @override
+  String get toolExpensesKind => 'Kind';
+
+  @override
+  String get toolExpensesAmount => 'Amount';
+
+  @override
+  String get toolExpensesSupplier => 'Where';
+
+  @override
+  String get toolExpensesNote => 'Note';
+
+  @override
+  String get toolExpensesSend => 'Record';
+
+  @override
+  String get toolExpensesSent => 'Cost recorded.';
+
+  @override
+  String get toolExpensesNeedsTool => 'Pick the tool.';
+
+  @override
+  String get toolExpensesNeedsAmount => 'Enter what it cost.';
+
+  @override
+  String get toolExpenseKindRepair => 'Repair';
+
+  @override
+  String get toolExpenseKindMaintenance => 'Maintenance';
+
+  @override
+  String get toolExpenseKindCalibration => 'Calibration';
+
+  @override
+  String get toolExpenseKindOther => 'Other';
+
+  @override
+  String get companySettingsTitle => 'Company profile';
+
+  @override
+  String get companySettingsLogo => 'Logo';
+
+  @override
+  String get companySettingsUploadLogo => 'Upload logo';
+
+  @override
+  String get companySettingsRemoveLogo => 'Remove logo';
+
+  @override
+  String companySettingsLogoTooLarge(int limit) {
+    return 'The logo is larger than the $limit MB limit.';
+  }
+
+  @override
+  String get companySettingsName => 'Company name';
+
+  @override
+  String get companySettingsAddress => 'Address';
+
+  @override
+  String get companySettingsTaxId => 'Tax ID';
+
+  @override
+  String get companySettingsRegistrationNumber => 'Registration number';
+
+  @override
+  String get companySettingsVatNumber => 'VAT number';
+
+  @override
+  String get companySettingsPhone => 'Phone';
+
+  @override
+  String get companySettingsEmail => 'Email';
+
+  @override
+  String get companySettingsWeeklyReportsForwardEmail =>
+      'Forward weekly reports to';
+
+  @override
+  String get companySettingsWeeklyReportsForwardEmailHint =>
+      'Optional — a copy of every submitted weekly report is emailed here.';
+
+  @override
+  String get companySettingsSaved => 'Company profile saved.';
+
+  @override
+  String get ledgersTitle => 'Ledger';
+
+  @override
+  String get ledgersEmpty => 'No ledgers yet.';
+
+  @override
+  String get ledgersSearchHint => 'Name…';
+
+  @override
+  String get ledgersSectionsTitle => 'Sections';
+
+  @override
+  String get ledgersSectionEmpty => 'No rows in this section.';
+
+  @override
+  String ledgersRowCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rows',
+      one: '1 row',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ledgersNetTotal => 'Net total';
 
   @override
   String get workItemsDefectPhoto => 'Photo';

@@ -20,6 +20,10 @@ public abstract record VehicleCommandBase
 
     public string? QrCode { get; init; }
 
+    public string? GpsProvider { get; init; }
+
+    public string? GpsTrackingUrl { get; init; }
+
     public FuelType FuelType { get; init; }
 
     public VehicleStatus Status { get; init; } = VehicleStatus.Available;
@@ -49,6 +53,16 @@ public abstract class VehicleCommandBaseValidator<T> : AbstractValidator<T>
 
         RuleFor(x => x.QrCode)
             .MaximumLength(256);
+
+        RuleFor(x => x.GpsProvider)
+            .MaximumLength(100);
+
+        RuleFor(x => x.GpsTrackingUrl)
+            .MaximumLength(1000)
+            .Must(url => Uri.TryCreate(url, UriKind.Absolute, out var uri)
+                && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+            .WithMessage("The tracking link must be a full web address (starting with http:// or https://).")
+            .When(x => !string.IsNullOrWhiteSpace(x.GpsTrackingUrl));
 
         RuleFor(x => x.FuelType)
             .IsInEnum().WithMessage("Fuel type is required and must be a valid value.");

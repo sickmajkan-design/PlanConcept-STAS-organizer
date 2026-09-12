@@ -14,6 +14,14 @@ abstract class Tool with _$Tool {
     String? serialNumber,
     String? qrCode,
     required String status,
+
+    /// `"Owned"` or `"Rented"`.
+    @Default('Owned') String ownershipType,
+
+    /// Set when a rental/lease rate is currently in force. Null for an owned
+    /// tool, or one with no rate on file.
+    double? currentRentalMonthlyAmount,
+    String? currentRentalProvider,
     String? assignedEmployeeId,
     String? assignedEmployeeName,
     String? assignedEmployeeNumber,
@@ -30,4 +38,6 @@ abstract class Tool with _$Tool {
   bool get isAssignedToEmployee => assignedEmployeeId != null;
 
   bool get isAssignedToProject => assignedProjectId != null;
+
+  bool get isRented => ownershipType == 'Rented';
 }

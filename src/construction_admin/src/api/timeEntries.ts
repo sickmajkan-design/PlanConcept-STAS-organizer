@@ -32,6 +32,8 @@ export interface ReviewTimeEntryInput {
   approve: boolean;
   /** Required when sending an entry back. */
   note?: string | null;
+  /** Required to approve an entry that was previously sent back. */
+  confirm?: boolean;
 }
 
 export const timeEntriesApi = {

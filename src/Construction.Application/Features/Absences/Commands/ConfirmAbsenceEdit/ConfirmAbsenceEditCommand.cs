@@ -105,7 +105,15 @@ public class ConfirmAbsenceEditCommandHandler
         absence.ProposedByEmployee = false;
         absence.ProposedAt = null;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new ConflictException(
+                "This request was changed by someone else just now. Reload it and try again.");
+        }
 
         if (proposerUserId is { } notifyUserId)
         {
@@ -116,7 +124,7 @@ public class ConfirmAbsenceEditCommandHandler
                 request.Approve
                     ? $"{absence.StartDate:dd.MM.yyyy}–{absence.EndDate:dd.MM.yyyy}"
                     : "The other side declined your proposed change.",
-                new Dictionary<string, string> { ["absenceId"] = absence.Id.ToString() },
+                BuildData(absence, request.Approve),
                 cancellationToken: cancellationToken);
         }
 
@@ -125,5 +133,22 @@ public class ConfirmAbsenceEditCommandHandler
             .Where(a => a.Id == absence.Id)
             .Select(AbsenceMapping.Projection)
             .FirstAsync(cancellationToken);
+    }
+
+    private static Dictionary<string, string> BuildData(Absence absence, bool approved)
+    {
+        var data = new Dictionary<string, string>
+        {
+            ["absenceId"] = absence.Id.ToString(),
+            ["approved"] = approved ? "true" : "false"
+        };
+
+        if (approved)
+        {
+            data["startDate"] = absence.StartDate.ToString("yyyy-MM-dd");
+            data["endDate"] = absence.EndDate.ToString("yyyy-MM-dd");
+        }
+
+        return data;
     }
 }

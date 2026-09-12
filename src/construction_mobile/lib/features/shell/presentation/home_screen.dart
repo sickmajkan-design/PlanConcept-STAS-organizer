@@ -28,7 +28,7 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Construction Organizer'),
+        title: Text(context.l10n.appName),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -50,31 +50,19 @@ class HomeScreen extends ConsumerWidget {
             Card(
               child: ListTile(
                 leading: const Icon(Icons.campaign_outlined),
-                // Hand-mapped rather than through context.l10n — see the
-                // note on _BulletinText in bulletin_screen.dart for why.
-                title: Text(
-                  Localizations.localeOf(context).languageCode == 'sr'
-                      ? 'Oglasna ploča'
-                      : 'Bulletin board',
-                ),
+                title: Text(context.l10n.navBulletin),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.push(AppRoutes.bulletin),
               ),
             ),
-            // Above the resource list because it is the thing a worker opens
-            // the app for twice a day, and it is open to every role.
+            // Time Entries itself now lives in the bottom bar — see AppShell
+            // — since it is the one screen almost everyone opens twice a
+            // day and a bottom tab is one fewer step than a card here.
             if (user.isEmployee) ...[
               const SizedBox(height: 16),
               Card(
                 child: Column(
                   children: [
-                    ListTile(
-                      leading: const Icon(Icons.schedule_outlined),
-                      title: Text(context.l10n.navTimeEntries),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => context.push(AppRoutes.timeEntries),
-                    ),
-                    const Divider(height: 1, indent: 20, endIndent: 20),
                     ListTile(
                       leading: const Icon(Icons.checklist_outlined),
                       title: Text(context.l10n.navWorkItems),
@@ -95,12 +83,61 @@ class HomeScreen extends ConsumerWidget {
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => context.push(AppRoutes.absences),
                     ),
+                    const Divider(height: 1, indent: 20, endIndent: 20),
+                    ListTile(
+                      leading: const Icon(Icons.assignment_turned_in_outlined),
+                      title: Text(context.l10n.navWeeklyReports),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push(AppRoutes.weeklyReports),
+                    ),
                   ],
+                ),
+              ),
+            ],
+            if (user.canViewDirectory) ...[
+              const SizedBox(height: 16),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.groups_outlined),
+                  title: Text(context.l10n.teamTodayAction),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push(AppRoutes.teamToday),
                 ),
               ),
             ],
             const SizedBox(height: 24),
             _ResourcesSection(canViewDirectory: user.canViewDirectory),
+            if (user.isSuperAdmin) ...[
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.only(left: 4, bottom: 8),
+                child: Text(
+                  context.l10n.commonCompany,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ),
+              Card(
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.business_outlined),
+                      title: Text(context.l10n.companySettingsTitle),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push(AppRoutes.companySettings),
+                    ),
+                    const Divider(height: 1, indent: 20, endIndent: 20),
+                    ListTile(
+                      leading: const Icon(Icons.table_chart_outlined),
+                      title: Text(context.l10n.ledgersTitle),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push(AppRoutes.ledgers),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 24),
             Padding(
               padding: const EdgeInsets.only(left: 4, bottom: 8),
@@ -270,6 +307,13 @@ class _ResourcesSection extends StatelessWidget {
                   title: Text(context.l10n.navVehicleExpenses),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push(AppRoutes.vehicleExpenses),
+                ),
+                const Divider(height: 1, indent: 20, endIndent: 20),
+                ListTile(
+                  leading: const Icon(Icons.build_outlined),
+                  title: Text(context.l10n.navToolExpenses),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push(AppRoutes.toolExpenses),
                 ),
                 const Divider(height: 1, indent: 20, endIndent: 20),
               ],

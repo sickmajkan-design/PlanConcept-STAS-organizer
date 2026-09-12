@@ -23,6 +23,10 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<Customer> Customers => Set<Customer>();
 
+    public DbSet<CompanySettings> CompanySettings => Set<CompanySettings>();
+
+    public DbSet<DashboardLayout> DashboardLayouts => Set<DashboardLayout>();
+
     public DbSet<GeneralExpense> GeneralExpenses => Set<GeneralExpense>();
 
     public DbSet<Accommodation> Accommodations => Set<Accommodation>();
@@ -38,6 +42,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<LedgerRow> LedgerRows => Set<LedgerRow>();
 
     public DbSet<LedgerCell> LedgerCells => Set<LedgerCell>();
+
+    public DbSet<LedgerSummaryBox> LedgerSummaryBoxes => Set<LedgerSummaryBox>();
 
     public DbSet<EmployeeProject> EmployeeProjects => Set<EmployeeProject>();
 
@@ -63,6 +69,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<AttachmentExpiryReminder> AttachmentExpiryReminders => Set<AttachmentExpiryReminder>();
 
+    public DbSet<AttachmentRetentionReminder> AttachmentRetentionReminders => Set<AttachmentRetentionReminder>();
+
     public DbSet<WorkItem> WorkItems => Set<WorkItem>();
 
     public DbSet<Absence> Absences => Set<Absence>();
@@ -73,9 +81,17 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<VehicleExpense> VehicleExpenses => Set<VehicleExpense>();
 
+    public DbSet<FuelCard> FuelCards => Set<FuelCard>();
+
     public DbSet<VehicleRentalRate> VehicleRentalRates => Set<VehicleRentalRate>();
 
+    public DbSet<VehicleRentalOut> VehicleRentalsOut => Set<VehicleRentalOut>();
+
     public DbSet<ToolExpense> ToolExpenses => Set<ToolExpense>();
+
+    public DbSet<ToolRentalRate> ToolRentalRates => Set<ToolRentalRate>();
+
+    public DbSet<ToolRentalOut> ToolRentalsOut => Set<ToolRentalOut>();
 
     public DbSet<PublicHoliday> PublicHolidays => Set<PublicHoliday>();
 
@@ -88,6 +104,12 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<ProjectRevenue> ProjectRevenues => Set<ProjectRevenue>();
 
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+
+    public DbSet<ScheduledReportSubscription> ScheduledReportSubscriptions => Set<ScheduledReportSubscription>();
+
+    public DbSet<WeeklySiteReport> WeeklySiteReports => Set<WeeklySiteReport>();
+
+    public DbSet<WeeklyReportReminder> WeeklyReportReminders => Set<WeeklyReportReminder>();
 
     public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
 

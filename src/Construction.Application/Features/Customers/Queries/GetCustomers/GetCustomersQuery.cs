@@ -2,6 +2,7 @@ using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
 using Construction.Application.Common.Security;
 using Construction.Application.Features.Customers.Models;
+using Construction.Application.Features.Customers;
 using Construction.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -38,16 +39,21 @@ public class GetCustomersQueryValidator : SortablePagedQueryValidator<GetCustome
 public class GetCustomersQueryHandler : IRequestHandler<GetCustomersQuery, PagedList<CustomerDto>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public GetCustomersQueryHandler(IApplicationDbContext context)
+    public GetCustomersQueryHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
     {
         _context = context;
+        _currentUserService = currentUserService;
     }
 
     public async Task<PagedList<CustomerDto>> Handle(
         GetCustomersQuery request,
         CancellationToken cancellationToken)
     {
+        var canViewTaxDetails = await CustomerRules.ResolveCanViewTaxDetailsAsync(
+            _context, _currentUserService, cancellationToken);
+
         var query = _context.Customers.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(request.Search))
@@ -63,7 +69,7 @@ public class GetCustomersQueryHandler : IRequestHandler<GetCustomersQuery, Paged
         query = ApplySorting(query, request.SortBy, request.SortDescending);
 
         return await PagedList<CustomerDto>.CreateAsync(
-            query.Select(CustomerMapping.Projection),
+            query.Select(CustomerMapping.ProjectionFor(canViewTaxDetails)),
             request.PageNumber,
             request.PageSize,
             cancellationToken);

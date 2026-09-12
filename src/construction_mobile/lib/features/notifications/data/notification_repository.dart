@@ -61,6 +61,55 @@ class NotificationRepository extends ApiRepository {
     });
   }
 
+  /// Sends a free-typed message straight to one employee. The API refuses a
+  /// Foreman's attempt to reach someone off their own site with a 403; the
+  /// caller shows that through the same `ApiException`-in-a-snackbar pattern
+  /// every other write in this app already uses.
+  Future<void> sendDirect({
+    required String employeeId,
+    required String title,
+    required String body,
+    bool requiresAcknowledgment = false,
+  }) {
+    return postVoid(
+      '/api/v1/notifications/notify-employee',
+      data: {
+        'employeeId': employeeId,
+        'title': title,
+        'body': body,
+        'requiresAcknowledgment': requiresAcknowledgment,
+      },
+    );
+  }
+
+  /// Sends one message to everyone, or narrowed to a role, one project's
+  /// crew, and/or one named group — any combination narrows together.
+  /// Returns how many accounts it actually reached.
+  Future<int> sendAnnouncement({
+    required String title,
+    required String body,
+    String? role,
+    String? projectId,
+    String? groupId,
+    bool requiresAcknowledgment = false,
+  }) {
+    return guard(() async {
+      final response = await dio.post<int>(
+        '/api/v1/notifications/announce',
+        data: {
+          'title': title,
+          'body': body,
+          'role': ?role,
+          'projectId': ?projectId,
+          'groupId': ?groupId,
+          'requiresAcknowledgment': requiresAcknowledgment,
+        },
+      );
+
+      return response.data ?? 0;
+    });
+  }
+
   Future<void> registerDeviceToken({
     required String token,
     required String platform,

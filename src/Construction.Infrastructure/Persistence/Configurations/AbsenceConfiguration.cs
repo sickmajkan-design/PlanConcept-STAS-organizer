@@ -52,5 +52,11 @@ public class AbsenceConfiguration : IEntityTypeConfiguration<Absence>
         // every employee in the week.
         builder.HasIndex(a => new { a.EmployeeId, a.StartDate });
         builder.HasIndex(a => a.Status);
+
+        // Same recipe as `TimeEntryConfiguration` — approve/reject and the
+        // edit-propose/confirm dance are exactly the two-person-races-the-
+        // same-row shape TimeEntries review has, so this gets the same
+        // Postgres-native concurrency check.
+        builder.Property<uint>("Version").IsRowVersion();
     }
 }

@@ -31,6 +31,9 @@ public class ProjectDto
 
     public double? Longitude { get; init; }
 
+    /// <summary>ISO 3166-1 alpha-2 — which country's holiday calendar applies here.</summary>
+    public string? CountryCode { get; init; }
+
     /// <summary>The site's expected daily clock-in time, in UTC, if one is set.</summary>
     public TimeOnly? ShiftStartTime { get; init; }
 
@@ -75,6 +78,7 @@ public static class ProjectMapping
             Address = project.Address,
             Latitude = project.Latitude,
             Longitude = project.Longitude,
+            CountryCode = project.CountryCode,
             ShiftStartTime = project.ShiftStartTime,
             StartDate = project.StartDate,
             EndDate = project.EndDate,

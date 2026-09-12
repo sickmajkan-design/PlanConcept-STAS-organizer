@@ -119,6 +119,12 @@ public class VehicleCostReportDto
     public decimal TotalLitres { get; init; }
 
     public decimal TotalRentalCost { get; init; }
+
+    /// <summary>Revenue earned loaning fleet vehicles out to other companies over the period.</summary>
+    public decimal TotalRevenue { get; init; }
+
+    /// <summary>TotalRevenue minus Total — what the fleet actually made (or cost) once rental income is counted.</summary>
+    public decimal TotalProfit { get; init; }
 }
 
 public class VehicleCostRowDto
@@ -140,6 +146,12 @@ public class VehicleCostRowDto
     public decimal RentalCost { get; init; }
 
     public decimal Total { get; init; }
+
+    /// <summary>Revenue earned loaning this vehicle out to another company over the period (daily rate × days out).</summary>
+    public decimal Revenue { get; init; }
+
+    /// <summary>Revenue minus Total — what this vehicle actually made (or cost) once rental income is counted.</summary>
+    public decimal Profit { get; init; }
 
     /// <summary>
     /// Distance covered between the first and last odometer reading in the
@@ -169,6 +181,14 @@ public class ToolCostReportDto
         Array.Empty<ToolCostRowDto>();
 
     public decimal Total { get; init; }
+
+    public decimal TotalRentalCost { get; init; }
+
+    /// <summary>Revenue earned loaning fleet tools out to other companies over the period.</summary>
+    public decimal TotalRevenue { get; init; }
+
+    /// <summary>TotalRevenue minus Total — what the tool fleet actually made (or cost) once rental income is counted.</summary>
+    public decimal TotalProfit { get; init; }
 }
 
 public class ToolCostRowDto
@@ -184,5 +204,14 @@ public class ToolCostRowDto
     /// <summary>Calibration and everything else.</summary>
     public decimal OtherCost { get; init; }
 
+    /// <summary>Prorated monthly rent/lease cost for the days of the period the tool was under a rental rate.</summary>
+    public decimal RentalCost { get; init; }
+
     public decimal Total { get; init; }
+
+    /// <summary>Revenue earned loaning this tool out to another company over the period (daily rate × days out).</summary>
+    public decimal Revenue { get; init; }
+
+    /// <summary>Revenue minus Total — what this tool actually made (or cost) once rental income is counted.</summary>
+    public decimal Profit { get; init; }
 }

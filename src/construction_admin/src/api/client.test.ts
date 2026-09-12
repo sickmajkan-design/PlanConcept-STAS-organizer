@@ -101,6 +101,7 @@ const user = {
   firstName: null,
   lastName: null,
   lastLoginAt: null,
+  canViewCustomerTaxDetails: false,
 };
 
 function storedSession(overrides: Partial<Session> = {}): Session {

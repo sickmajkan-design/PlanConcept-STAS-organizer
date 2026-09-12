@@ -125,7 +125,15 @@ public class ProposeAbsenceEditCommandHandler
         absence.ProposedByEmployee = isOwn;
         absence.ProposedAt = now;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new ConflictException(
+                "This request was changed by someone else just now. Reload it and try again.");
+        }
 
         await NotifyOtherSideAsync(absence, cancellationToken);
 
@@ -141,7 +149,12 @@ public class ProposeAbsenceEditCommandHandler
         var title = "Change proposed for approved leave";
         var body = $"{absence.ProposedStartDate:dd.MM.yyyy}–{absence.ProposedEndDate:dd.MM.yyyy}"
             + " — please confirm or decline.";
-        var data = new Dictionary<string, string> { ["absenceId"] = absence.Id.ToString() };
+        var data = new Dictionary<string, string>
+        {
+            ["absenceId"] = absence.Id.ToString(),
+            ["startDate"] = absence.ProposedStartDate!.Value.ToString("yyyy-MM-dd"),
+            ["endDate"] = absence.ProposedEndDate!.Value.ToString("yyyy-MM-dd")
+        };
 
         if (absence.ProposedByEmployee)
         {

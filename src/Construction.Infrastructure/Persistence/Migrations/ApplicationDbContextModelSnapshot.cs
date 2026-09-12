@@ -91,6 +91,12 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ProposedByUserId");
@@ -254,6 +260,9 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("ProjectId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateOnly?>("RetainUntil")
+                        .HasColumnType("date");
+
                     b.Property<long>("SizeBytes")
                         .HasColumnType("bigint");
 
@@ -266,6 +275,9 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<Guid?>("ToolId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ToolRentalRateId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -315,6 +327,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("ToolId");
 
+                    b.HasIndex("ToolRentalRateId");
+
                     b.HasIndex("UploadedByUserId");
 
                     b.HasIndex("VehicleExpenseId");
@@ -327,7 +341,7 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
                     b.ToTable("attachments", null, t =>
                         {
-                            t.HasCheckConstraint("ck_attachments_exactly_one_owner", "(CASE WHEN \"EmployeeId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"ProjectId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"VehicleId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"ToolId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"WorkItemId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"VehicleExpenseId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"MaterialMovementId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"EmployeeRateId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"FinanceEntryId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"ToolExpenseId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"VehicleRentalRateId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"GeneralExpenseId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"AccommodationId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"AccommodationRateId\" IS NULL THEN 0 ELSE 1 END) = 1");
+                            t.HasCheckConstraint("ck_attachments_exactly_one_owner", "(CASE WHEN \"EmployeeId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"ProjectId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"VehicleId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"ToolId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"WorkItemId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"VehicleExpenseId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"MaterialMovementId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"EmployeeRateId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"FinanceEntryId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"ToolExpenseId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"VehicleRentalRateId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"GeneralExpenseId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"AccommodationId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"AccommodationRateId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"ToolRentalRateId\" IS NULL THEN 0 ELSE 1 END) = 1");
 
                             t.HasCheckConstraint("ck_attachments_size_positive", "\"SizeBytes\" > 0");
                         });
@@ -362,6 +376,37 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("attachment_expiry_reminders", (string)null);
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.AttachmentRetentionReminder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AttachmentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("AttachmentId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("attachment_retention_reminders", (string)null);
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.AuditEntry", b =>
@@ -483,6 +528,63 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.ToTable("bulletin_views", (string)null);
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.CompanySettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("LogoContentType")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("LogoStorageKey")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("RegistrationNumber")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("TaxId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("VatNumber")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("WeeklyReportsForwardEmail")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("company_settings", (string)null);
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.Customer", b =>
                 {
                     b.Property<Guid>("Id")
@@ -519,14 +621,53 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
+                    b.Property<string>("RegistrationNumber")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("TaxId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("VatNumber")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Name");
 
                     b.ToTable("customers", (string)null);
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.DashboardLayout", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("WidgetsJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("dashboard_layouts", (string)null);
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.DeviceToken", b =>
@@ -722,6 +863,10 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<decimal?>("OvertimeHourlyRate")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
                     b.Property<int>("RateType")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
@@ -732,6 +877,10 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
                     b.Property<DateOnly>("StartDate")
                         .HasColumnType("date");
+
+                    b.Property<decimal?>("TravelHourlyRate")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -754,7 +903,11 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("ck_employee_rates_holiday_positive", "\"HolidayHourlyRate\" IS NULL OR \"HolidayHourlyRate\" > 0");
 
+                            t.HasCheckConstraint("ck_employee_rates_overtime_positive", "\"OvertimeHourlyRate\" IS NULL OR \"OvertimeHourlyRate\" > 0");
+
                             t.HasCheckConstraint("ck_employee_rates_positive", "\"HourlyRate\" IS NULL OR \"HourlyRate\" > 0");
+
+                            t.HasCheckConstraint("ck_employee_rates_travel_positive", "\"TravelHourlyRate\" IS NULL OR \"TravelHourlyRate\" > 0");
 
                             t.HasCheckConstraint("ck_employee_rates_type_matches_fields", "(\"RateType\" = 1 AND \"HourlyRate\" IS NOT NULL AND \"DailyRate\" IS NULL) OR (\"RateType\" = 2 AND \"DailyRate\" IS NOT NULL AND \"HourlyRate\" IS NULL)");
 
@@ -815,6 +968,55 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("ck_finance_entries_hours_only_for_hourly", "CASE WHEN \"Kind\" = 1\n     THEN \"HoursWorked\" IS NOT NULL AND \"HoursWorked\" >= 0\n     ELSE \"HoursWorked\" IS NULL\nEND");
                         });
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.FuelCard", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CardNumber")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateOnly?>("IssuedOn")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("VehicleId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CardNumber")
+                        .IsUnique()
+                        .HasFilter("\"IsDeleted\" = false");
+
+                    b.HasIndex("VehicleId");
+
+                    b.ToTable("fuel_cards", (string)null);
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.GeneralExpense", b =>
@@ -969,6 +1171,10 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("ColorTag")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.Property<Guid>("ColumnId")
                         .HasColumnType("uuid");
 
@@ -1018,6 +1224,9 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("SourceMetric")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1034,6 +1243,10 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("ColorTag")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1045,18 +1258,43 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<Guid?>("MaterialId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("PromotedAccommodationRateId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("PromotedGeneralExpenseId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("SectionId")
                         .HasColumnType("uuid");
 
                     b.Property<int>("SortOrder")
                         .HasColumnType("integer");
 
+                    b.Property<Guid?>("ToolId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("VehicleId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
                     b.HasIndex("EmployeeId");
+
+                    b.HasIndex("MaterialId");
+
+                    b.HasIndex("PromotedAccommodationRateId");
+
+                    b.HasIndex("PromotedGeneralExpenseId");
+
+                    b.HasIndex("ToolId");
+
+                    b.HasIndex("VehicleId");
 
                     b.HasIndex("SectionId", "SortOrder");
 
@@ -1096,6 +1334,52 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.HasIndex("LedgerId", "SortOrder");
 
                     b.ToTable("ledger_sections", (string)null);
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.LedgerSummaryBox", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Color")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("LedgerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("ManualValue")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("Sign")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("SourceColumnId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceColumnId");
+
+                    b.HasIndex("LedgerId", "SortOrder");
+
+                    b.ToTable("ledger_summary_boxes", (string)null);
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.LocationRecord", b =>
@@ -1204,6 +1488,10 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("InvoiceNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int>("Kind")
                         .HasColumnType("integer");
@@ -1465,6 +1753,10 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<string>("CountryCode")
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1573,6 +1865,11 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("CountryCode")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1589,7 +1886,7 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Date")
+                    b.HasIndex("CountryCode", "Date")
                         .IsUnique();
 
                     b.ToTable("public_holidays", (string)null);
@@ -1641,6 +1938,55 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("refresh_tokens", (string)null);
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.ScheduledReportSubscription", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Cadence")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("DayOfMonth")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("DayOfWeek")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Language")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.Property<DateTime>("NextRunAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("RecipientEmail")
+                        .IsRequired()
+                        .HasMaxLength(320)
+                        .HasColumnType("character varying(320)");
+
+                    b.Property<int>("ReportType")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("NextRunAtUtc");
+
+                    b.ToTable("scheduled_report_subscriptions", (string)null);
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.TimeEntry", b =>
@@ -1708,6 +2054,12 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.Property<int>("WorkType")
                         .HasColumnType("integer");
 
@@ -1766,6 +2118,11 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<int>("OwnershipType")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
                     b.Property<string>("QrCode")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
@@ -1785,6 +2142,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.HasIndex("AssignedEmployeeId");
 
                     b.HasIndex("AssignedProjectId");
+
+                    b.HasIndex("OwnershipType");
 
                     b.HasIndex("QrCode")
                         .IsUnique()
@@ -1849,11 +2208,127 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.ToolRentalOut", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CustomerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("DailyRate")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("RenterName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid?>("SetByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("ToolId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("SetByUserId");
+
+                    b.HasIndex("ToolId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_tool_rentals_out_one_open_per_tool")
+                        .HasFilter("\"EndDate\" IS NULL");
+
+                    b.HasIndex("ToolId", "StartDate");
+
+                    b.ToTable("tool_rentals_out", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_tool_rentals_out_ends_after_start", "\"EndDate\" IS NULL OR \"EndDate\" >= \"StartDate\"");
+
+                            t.HasCheckConstraint("ck_tool_rentals_out_rate_positive", "\"DailyRate\" > 0");
+                        });
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.ToolRentalRate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("MonthlyAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("Provider")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid?>("SetByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("ToolId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SetByUserId");
+
+                    b.HasIndex("ToolId", "StartDate");
+
+                    b.ToTable("tool_rental_rates", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_tool_rental_rates_ends_after_start", "\"EndDate\" IS NULL OR \"EndDate\" >= \"StartDate\"");
+
+                            t.HasCheckConstraint("ck_tool_rental_rates_positive", "\"MonthlyAmount\" > 0");
+                        });
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<bool>("CanViewCustomerTaxDetails")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -1887,6 +2362,10 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)");
+
+                    b.Property<string>("PreferredLanguage")
+                        .HasMaxLength(5)
+                        .HasColumnType("character varying(5)");
 
                     b.Property<int>("Role")
                         .HasColumnType("integer");
@@ -1934,6 +2413,14 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("FuelType")
                         .HasColumnType("integer");
+
+                    b.Property<string>("GpsProvider")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("GpsTrackingUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -2005,6 +2492,10 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("FuelProductType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<int>("Kind")
                         .HasColumnType("integer");
 
@@ -2050,6 +2541,67 @@ namespace Construction.Infrastructure.Persistence.Migrations
                             t.HasCheckConstraint("ck_vehicle_expenses_litres_only_for_fuel", "CASE WHEN \"Kind\" = 1\n     THEN \"Litres\" IS NOT NULL AND \"Litres\" > 0\n     ELSE \"Litres\" IS NULL\nEND");
 
                             t.HasCheckConstraint("ck_vehicle_expenses_odometer_not_negative", "\"OdometerKm\" IS NULL OR \"OdometerKm\" >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.VehicleRentalOut", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CustomerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("DailyRate")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("RenterName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid?>("SetByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("VehicleId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("SetByUserId");
+
+                    b.HasIndex("VehicleId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_vehicle_rentals_out_one_open_per_vehicle")
+                        .HasFilter("\"EndDate\" IS NULL");
+
+                    b.HasIndex("VehicleId", "StartDate");
+
+                    b.ToTable("vehicle_rentals_out", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_vehicle_rentals_out_ends_after_start", "\"EndDate\" IS NULL OR \"EndDate\" >= \"StartDate\"");
+
+                            t.HasCheckConstraint("ck_vehicle_rentals_out_rate_positive", "\"DailyRate\" > 0");
                         });
                 });
 
@@ -2101,6 +2653,118 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("ck_vehicle_rental_rates_positive", "\"MonthlyAmount\" > 0");
                         });
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.WeeklyReportReminder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("IsoWeek")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IsoYear")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("ProjectId", "EmployeeId", "IsoYear", "IsoWeek")
+                        .IsUnique();
+
+                    b.ToTable("weekly_report_reminders", (string)null);
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.WeeklySiteReport", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<int>("IsoWeek")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IsoYear")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime?>("ProcessedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ProcessedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("Quantity")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<Guid>("SubmittedByEmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProcessedByUserId");
+
+                    b.HasIndex("SubmittedByEmployeeId");
+
+                    b.HasIndex("IsoYear", "IsoWeek");
+
+                    b.HasIndex("ProjectId", "IsoYear", "IsoWeek");
+
+                    b.ToTable("weekly_site_reports", (string)null);
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.WorkItem", b =>
@@ -2168,6 +2832,12 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
 
                     b.HasKey("Id");
 
@@ -2293,6 +2963,11 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasForeignKey("ToolId")
                         .OnDelete(DeleteBehavior.Cascade);
 
+                    b.HasOne("Construction.Domain.Entities.ToolRentalRate", "ToolRentalRate")
+                        .WithMany()
+                        .HasForeignKey("ToolRentalRateId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("Construction.Domain.Entities.User", "UploadedByUser")
                         .WithMany()
                         .HasForeignKey("UploadedByUserId")
@@ -2338,6 +3013,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
                     b.Navigation("ToolExpense");
 
+                    b.Navigation("ToolRentalRate");
+
                     b.Navigation("UploadedByUser");
 
                     b.Navigation("Vehicle");
@@ -2350,6 +3027,25 @@ namespace Construction.Infrastructure.Persistence.Migrations
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.AttachmentExpiryReminder", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.Attachment", "Attachment")
+                        .WithMany()
+                        .HasForeignKey("AttachmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Construction.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Attachment");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.AttachmentRetentionReminder", b =>
                 {
                     b.HasOne("Construction.Domain.Entities.Attachment", "Attachment")
                         .WithMany()
@@ -2394,6 +3090,17 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("BulletinPost");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.DashboardLayout", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.User", "User")
+                        .WithOne()
+                        .HasForeignKey("Construction.Domain.Entities.DashboardLayout", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -2471,6 +3178,17 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("RecordedByUser");
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.FuelCard", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.Vehicle", "Vehicle")
+                        .WithMany("FuelCards")
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Vehicle");
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.GeneralExpense", b =>
                 {
                     b.HasOne("Construction.Domain.Entities.Employee", "Employee")
@@ -2542,15 +3260,50 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Construction.Domain.Entities.Material", "Material")
+                        .WithMany()
+                        .HasForeignKey("MaterialId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Construction.Domain.Entities.AccommodationRate", "PromotedAccommodationRate")
+                        .WithMany()
+                        .HasForeignKey("PromotedAccommodationRateId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Construction.Domain.Entities.GeneralExpense", "PromotedGeneralExpense")
+                        .WithMany()
+                        .HasForeignKey("PromotedGeneralExpenseId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Construction.Domain.Entities.LedgerSection", "Section")
                         .WithMany("Rows")
                         .HasForeignKey("SectionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Construction.Domain.Entities.Tool", "Tool")
+                        .WithMany()
+                        .HasForeignKey("ToolId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Construction.Domain.Entities.Vehicle", "Vehicle")
+                        .WithMany()
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Employee");
 
+                    b.Navigation("Material");
+
+                    b.Navigation("PromotedAccommodationRate");
+
+                    b.Navigation("PromotedGeneralExpense");
+
                     b.Navigation("Section");
+
+                    b.Navigation("Tool");
+
+                    b.Navigation("Vehicle");
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.LedgerSection", b =>
@@ -2569,6 +3322,24 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("Ledger");
 
                     b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.LedgerSummaryBox", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.Ledger", "Ledger")
+                        .WithMany("SummaryBoxes")
+                        .HasForeignKey("LedgerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Construction.Domain.Entities.LedgerColumn", "SourceColumn")
+                        .WithMany()
+                        .HasForeignKey("SourceColumnId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Ledger");
+
+                    b.Navigation("SourceColumn");
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.LocationRecord", b =>
@@ -2704,6 +3475,17 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.ScheduledReportSubscription", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.TimeEntry", b =>
                 {
                     b.HasOne("Construction.Domain.Entities.Employee", "Employee")
@@ -2764,6 +3546,49 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("Tool");
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.ToolRentalOut", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Construction.Domain.Entities.User", "SetByUser")
+                        .WithMany()
+                        .HasForeignKey("SetByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Construction.Domain.Entities.Tool", "Tool")
+                        .WithMany("RentalsOut")
+                        .HasForeignKey("ToolId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("SetByUser");
+
+                    b.Navigation("Tool");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.ToolRentalRate", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.User", "SetByUser")
+                        .WithMany()
+                        .HasForeignKey("SetByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Construction.Domain.Entities.Tool", "Tool")
+                        .WithMany("RentalRates")
+                        .HasForeignKey("ToolId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SetByUser");
+
+                    b.Navigation("Tool");
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.User", b =>
                 {
                     b.HasOne("Construction.Domain.Entities.Employee", "Employee")
@@ -2809,6 +3634,31 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("Vehicle");
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.VehicleRentalOut", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Construction.Domain.Entities.User", "SetByUser")
+                        .WithMany()
+                        .HasForeignKey("SetByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Construction.Domain.Entities.Vehicle", "Vehicle")
+                        .WithMany("RentalsOut")
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("SetByUser");
+
+                    b.Navigation("Vehicle");
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.VehicleRentalRate", b =>
                 {
                     b.HasOne("Construction.Domain.Entities.User", "SetByUser")
@@ -2825,6 +3675,51 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("SetByUser");
 
                     b.Navigation("Vehicle");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.WeeklyReportReminder", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Construction.Domain.Entities.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.WeeklySiteReport", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.User", "ProcessedByUser")
+                        .WithMany()
+                        .HasForeignKey("ProcessedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Construction.Domain.Entities.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Construction.Domain.Entities.Employee", "SubmittedByEmployee")
+                        .WithMany()
+                        .HasForeignKey("SubmittedByEmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ProcessedByUser");
+
+                    b.Navigation("Project");
+
+                    b.Navigation("SubmittedByEmployee");
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.WorkItem", b =>
@@ -2903,6 +3798,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("Columns");
 
                     b.Navigation("Sections");
+
+                    b.Navigation("SummaryBoxes");
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.LedgerRow", b =>
@@ -2955,6 +3852,10 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("Attachments");
 
                     b.Navigation("Expenses");
+
+                    b.Navigation("RentalRates");
+
+                    b.Navigation("RentalsOut");
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.User", b =>
@@ -2974,7 +3875,11 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
                     b.Navigation("Expenses");
 
+                    b.Navigation("FuelCards");
+
                     b.Navigation("RentalRates");
+
+                    b.Navigation("RentalsOut");
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.WorkItem", b =>

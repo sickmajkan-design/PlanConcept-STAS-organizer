@@ -56,3 +56,10 @@ public sealed record Spreadsheet(IReadOnlyList<SpreadsheetSheet> Sheets)
 {
     public static Spreadsheet Of(SpreadsheetSheet sheet) => new([sheet]);
 }
+
+/// <summary>
+/// The platform owner's own name and logo, stamped onto every exported
+/// workbook. Optional: an install that has never configured a company
+/// profile still exports, just without a header.
+/// </summary>
+public sealed record SpreadsheetBranding(string? CompanyName, byte[]? LogoBytes, string? LogoContentType);

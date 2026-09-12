@@ -8,7 +8,10 @@ import {
   type GeneralExpenseListQuery,
   type MaterialMovementListQuery,
   type ToolExpenseListQuery,
+  type ToolRentalOutListQuery,
+  type ToolRentalRateListQuery,
   type VehicleExpenseListQuery,
+  type VehicleRentalOutListQuery,
   type VehicleRentalRateListQuery,
 } from '../../api/costs';
 import type {
@@ -18,19 +21,33 @@ import type {
   GeneralExpenseInput,
   ListQuery,
   MaterialMovementInput,
+  ReturnRentalOutInput,
   ToolExpenseInput,
+  ToolRentalOutInput,
+  ToolRentalRateInput,
+  UpdateToolRentalOutInput,
+  UpdateVehicleRentalOutInput,
   VehicleExpenseInput,
+  VehicleRentalOutInput,
   VehicleRentalRateInput,
 } from '../../api/types';
 import { createResourceKeys, useResourceList, useResourceMutation } from '../resourceQueries';
 import { materialKeys } from '../materials/useMaterials';
+import { vehicleKeys } from '../vehicles/useVehicles';
+import { toolKeys } from '../tools/useTools';
 
 export const rateKeys = createResourceKeys<EmployeeRateListQuery>('employeeRates');
 export const movementKeys = createResourceKeys<MaterialMovementListQuery>('materialMovements');
 export const vehicleExpenseKeys = createResourceKeys<VehicleExpenseListQuery>('vehicleExpenses');
 export const vehicleRentalRateKeys =
   createResourceKeys<VehicleRentalRateListQuery>('vehicleRentalRates');
+export const vehicleRentalOutKeys =
+  createResourceKeys<VehicleRentalOutListQuery>('vehicleRentalsOut');
 export const toolExpenseKeys = createResourceKeys<ToolExpenseListQuery>('toolExpenses');
+export const toolRentalRateKeys =
+  createResourceKeys<ToolRentalRateListQuery>('toolRentalRates');
+export const toolRentalOutKeys =
+  createResourceKeys<ToolRentalOutListQuery>('toolRentalsOut');
 export const financeEntryKeys = createResourceKeys<FinanceEntryListQuery>('financeEntries');
 export const generalExpenseKeys = createResourceKeys<GeneralExpenseListQuery>('generalExpenses');
 export const accommodationRateKeys =
@@ -208,6 +225,54 @@ export function useDeleteVehicleRentalRate() {
   ]);
 }
 
+// ---- vehicles rented out to other companies ---------------------------------
+
+export function useVehicleRentalsOutQuery(query: VehicleRentalOutListQuery) {
+  return useResourceList(vehicleRentalOutKeys, costsApi.vehicleRentalsOut.list, query);
+}
+
+export function useVehicleRentalsOutSummaryQuery(
+  query: Omit<VehicleRentalOutListQuery, keyof ListQuery>,
+) {
+  return useQuery({
+    queryKey: [...vehicleRentalOutKeys.all, 'summary', query],
+    queryFn: () => costsApi.vehicleRentalsOut.summary(query),
+  });
+}
+
+export function useRecordVehicleRentalOut() {
+  return useResourceMutation(
+    (input: VehicleRentalOutInput, key: string) => costsApi.vehicleRentalsOut.record(input, key),
+    // The vehicle's own status flips to RentedOut, so its detail/list caches
+    // need refreshing alongside the loans-out list.
+    [vehicleRentalOutKeys.all, vehicleKeys.all, costReportKeys.all],
+  );
+}
+
+export function useReturnVehicleRentalOut() {
+  return useResourceMutation(
+    (variables: { id: string; input: ReturnRentalOutInput }) =>
+      costsApi.vehicleRentalsOut.return(variables.id, variables.input),
+    [vehicleRentalOutKeys.all, vehicleKeys.all, costReportKeys.all],
+  );
+}
+
+export function useUpdateVehicleRentalOut() {
+  return useResourceMutation(
+    (variables: { id: string; input: UpdateVehicleRentalOutInput }) =>
+      costsApi.vehicleRentalsOut.update(variables.id, variables.input),
+    [vehicleRentalOutKeys.all, costReportKeys.all],
+  );
+}
+
+export function useDeleteVehicleRentalOut() {
+  return useResourceMutation((id: string) => costsApi.vehicleRentalsOut.remove(id), [
+    vehicleRentalOutKeys.all,
+    vehicleKeys.all,
+    costReportKeys.all,
+  ]);
+}
+
 // ---- tool expenses ----------------------------------------------------------
 
 export function useToolExpensesQuery(query: ToolExpenseListQuery) {
@@ -240,6 +305,90 @@ export function useUpdateToolExpense() {
 export function useDeleteToolExpense() {
   return useResourceMutation((id: string) => costsApi.toolExpenses.remove(id), [
     toolExpenseKeys.all,
+    costReportKeys.all,
+  ]);
+}
+
+// ---- tool rental/lease rates -------------------------------------------------
+
+export function useToolRentalRatesQuery(query: ToolRentalRateListQuery) {
+  return useResourceList(toolRentalRateKeys, costsApi.toolRentalRates.list, query);
+}
+
+export function useToolRentalRatesSummaryQuery(query: ToolRentalRateListQuery) {
+  const params = summaryParams(query);
+  return useQuery({
+    queryKey: [...toolRentalRateKeys.all, 'summary', params],
+    queryFn: () => costsApi.toolRentalRates.summary(params),
+  });
+}
+
+export function useSetToolRentalRate() {
+  return useResourceMutation(
+    (input: ToolRentalRateInput, key: string) => costsApi.toolRentalRates.set(input, key),
+    [toolRentalRateKeys.all, costReportKeys.all],
+  );
+}
+
+export function useUpdateToolRentalRate() {
+  return useResourceMutation(
+    (variables: { id: string; input: ToolRentalRateInput }, key: string) =>
+      costsApi.toolRentalRates.update(variables.id, variables.input, key),
+    [toolRentalRateKeys.all, costReportKeys.all],
+  );
+}
+
+export function useDeleteToolRentalRate() {
+  return useResourceMutation((id: string) => costsApi.toolRentalRates.remove(id), [
+    toolRentalRateKeys.all,
+    costReportKeys.all,
+  ]);
+}
+
+// ---- tools rented out to other companies -------------------------------------
+
+export function useToolRentalsOutQuery(query: ToolRentalOutListQuery) {
+  return useResourceList(toolRentalOutKeys, costsApi.toolRentalsOut.list, query);
+}
+
+export function useToolRentalsOutSummaryQuery(
+  query: Omit<ToolRentalOutListQuery, keyof ListQuery>,
+) {
+  return useQuery({
+    queryKey: [...toolRentalOutKeys.all, 'summary', query],
+    queryFn: () => costsApi.toolRentalsOut.summary(query),
+  });
+}
+
+export function useRecordToolRentalOut() {
+  return useResourceMutation(
+    (input: ToolRentalOutInput, key: string) => costsApi.toolRentalsOut.record(input, key),
+    // The tool's own status flips to RentedOut, so its detail/list caches
+    // need refreshing alongside the loans-out list.
+    [toolRentalOutKeys.all, toolKeys.all, costReportKeys.all],
+  );
+}
+
+export function useReturnToolRentalOut() {
+  return useResourceMutation(
+    (variables: { id: string; input: ReturnRentalOutInput }) =>
+      costsApi.toolRentalsOut.return(variables.id, variables.input),
+    [toolRentalOutKeys.all, toolKeys.all, costReportKeys.all],
+  );
+}
+
+export function useUpdateToolRentalOut() {
+  return useResourceMutation(
+    (variables: { id: string; input: UpdateToolRentalOutInput }) =>
+      costsApi.toolRentalsOut.update(variables.id, variables.input),
+    [toolRentalOutKeys.all, costReportKeys.all],
+  );
+}
+
+export function useDeleteToolRentalOut() {
+  return useResourceMutation((id: string) => costsApi.toolRentalsOut.remove(id), [
+    toolRentalOutKeys.all,
+    toolKeys.all,
     costReportKeys.all,
   ]);
 }

@@ -47,6 +47,10 @@ function daysUntil(date: string): number {
   return Math.ceil((target - Date.now()) / 86_400_000);
 }
 
+function isRetained(retainUntil: string | null): boolean {
+  return !!retainUntil && daysUntil(retainUntil) >= 0;
+}
+
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} kB`;
@@ -129,13 +133,24 @@ export function AttachmentList({
                 <Stack direction="row" spacing={0.5}>
                   <DownloadButton attachment={attachment} />
                   {canDelete && (
-                    <Tooltip title={t('common.delete')}>
-                      <IconButton
-                        size="small"
-                        onClick={() => remove.request(attachment)}
-                      >
-                        <DeleteOutlined fontSize="small" />
-                      </IconButton>
+                    <Tooltip
+                      title={
+                        isRetained(attachment.retainUntil)
+                          ? t('attachments.retainedCannotDelete', {
+                              date: formatDate(attachment.retainUntil!),
+                            })
+                          : t('common.delete')
+                      }
+                    >
+                      <span>
+                        <IconButton
+                          size="small"
+                          disabled={isRetained(attachment.retainUntil)}
+                          onClick={() => remove.request(attachment)}
+                        >
+                          <DeleteOutlined fontSize="small" />
+                        </IconButton>
+                      </span>
                     </Tooltip>
                   )}
                 </Stack>
@@ -153,6 +168,7 @@ export function AttachmentList({
                   <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                     <span>{attachment.fileName}</span>
                     <ExpiryChip expiresAt={attachment.expiresAt} />
+                    <RetentionChip retainUntil={attachment.retainUntil} />
                   </Stack>
                 }
                 secondary={[
@@ -286,6 +302,41 @@ function ExpiryChip({ expiresAt }: { expiresAt: string | null }) {
       size="small"
       variant="outlined"
       label={t('attachments.expiresOn', { date: formatDate(expiresAt) })}
+    />
+  );
+}
+
+/**
+ * Blue while a retention requirement still forbids deletion, green once it
+ * has lapsed — green, not red, since a lapsed retention period is good news
+ * (the document may now be cleared out), the opposite of a lapsed expiry.
+ */
+function RetentionChip({ retainUntil }: { retainUntil: string | null }) {
+  const t = useT();
+
+  if (!retainUntil) {
+    return null;
+  }
+
+  const remaining = daysUntil(retainUntil);
+
+  if (remaining < 0) {
+    return (
+      <Chip
+        size="small"
+        color="success"
+        variant="outlined"
+        label={t('attachments.retentionEnded', { date: formatDate(retainUntil) })}
+      />
+    );
+  }
+
+  return (
+    <Chip
+      size="small"
+      color="info"
+      variant="outlined"
+      label={t('attachments.retainedUntil', { date: formatDate(retainUntil) })}
     />
   );
 }

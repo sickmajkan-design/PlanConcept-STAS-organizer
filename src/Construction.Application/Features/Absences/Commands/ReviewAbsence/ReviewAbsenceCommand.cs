@@ -96,7 +96,15 @@ public class ReviewAbsenceCommandHandler : IRequestHandler<ReviewAbsenceCommand,
         // An approval note would sit on the row looking like an objection.
         absence.ReviewNote = request.Approve ? null : request.Note!.Trim();
 
-        await _context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            throw new ConflictException(
+                "This request was changed by someone else just now. Reload it and try again.");
+        }
 
         return await _context.Absences
             .AsNoTracking()

@@ -17,6 +17,10 @@ public interface IApplicationDbContext
 
     DbSet<Customer> Customers { get; }
 
+    DbSet<CompanySettings> CompanySettings { get; }
+
+    DbSet<DashboardLayout> DashboardLayouts { get; }
+
     DbSet<GeneralExpense> GeneralExpenses { get; }
 
     DbSet<Accommodation> Accommodations { get; }
@@ -32,6 +36,8 @@ public interface IApplicationDbContext
     DbSet<LedgerRow> LedgerRows { get; }
 
     DbSet<LedgerCell> LedgerCells { get; }
+
+    DbSet<LedgerSummaryBox> LedgerSummaryBoxes { get; }
 
     DbSet<EmployeeProject> EmployeeProjects { get; }
 
@@ -57,6 +63,8 @@ public interface IApplicationDbContext
 
     DbSet<AttachmentExpiryReminder> AttachmentExpiryReminders { get; }
 
+    DbSet<AttachmentRetentionReminder> AttachmentRetentionReminders { get; }
+
     DbSet<WorkItem> WorkItems { get; }
 
     DbSet<Absence> Absences { get; }
@@ -67,9 +75,17 @@ public interface IApplicationDbContext
 
     DbSet<VehicleExpense> VehicleExpenses { get; }
 
+    DbSet<FuelCard> FuelCards { get; }
+
     DbSet<VehicleRentalRate> VehicleRentalRates { get; }
 
+    DbSet<VehicleRentalOut> VehicleRentalsOut { get; }
+
     DbSet<ToolExpense> ToolExpenses { get; }
+
+    DbSet<ToolRentalRate> ToolRentalRates { get; }
+
+    DbSet<ToolRentalOut> ToolRentalsOut { get; }
 
     DbSet<PublicHoliday> PublicHolidays { get; }
 
@@ -82,6 +98,12 @@ public interface IApplicationDbContext
     DbSet<ProjectRevenue> ProjectRevenues { get; }
 
     DbSet<OutboxMessage> OutboxMessages { get; }
+
+    DbSet<ScheduledReportSubscription> ScheduledReportSubscriptions { get; }
+
+    DbSet<WeeklySiteReport> WeeklySiteReports { get; }
+
+    DbSet<WeeklyReportReminder> WeeklyReportReminders { get; }
 
     DbSet<AuditEntry> AuditEntries { get; }
 

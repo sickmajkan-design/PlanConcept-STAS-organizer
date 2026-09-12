@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$MaterialItem {
 
- String get id; String get name; String get unit; double get quantity; String? get warehouse; String? get projectId; String? get projectName; DateTime get lastUpdated; DateTime get createdAt; DateTime? get updatedAt;
+ String get id; String get name; String get unit; double get quantity; String? get warehouse; double? get unitPrice; String? get projectId; String? get projectName; DateTime get lastUpdated; DateTime get createdAt; DateTime? get updatedAt;
 /// Create a copy of MaterialItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $MaterialItemCopyWith<MaterialItem> get copyWith => _$MaterialItemCopyWithImpl<M
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MaterialItem&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&(identical(other.warehouse, warehouse) || other.warehouse == warehouse)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.lastUpdated, lastUpdated) || other.lastUpdated == lastUpdated)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MaterialItem&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&(identical(other.warehouse, warehouse) || other.warehouse == warehouse)&&(identical(other.unitPrice, unitPrice) || other.unitPrice == unitPrice)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.lastUpdated, lastUpdated) || other.lastUpdated == lastUpdated)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,unit,quantity,warehouse,projectId,projectName,lastUpdated,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,name,unit,quantity,warehouse,unitPrice,projectId,projectName,lastUpdated,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'MaterialItem(id: $id, name: $name, unit: $unit, quantity: $quantity, warehouse: $warehouse, projectId: $projectId, projectName: $projectName, lastUpdated: $lastUpdated, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'MaterialItem(id: $id, name: $name, unit: $unit, quantity: $quantity, warehouse: $warehouse, unitPrice: $unitPrice, projectId: $projectId, projectName: $projectName, lastUpdated: $lastUpdated, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $MaterialItemCopyWith<$Res>  {
   factory $MaterialItemCopyWith(MaterialItem value, $Res Function(MaterialItem) _then) = _$MaterialItemCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String unit, double quantity, String? warehouse, String? projectId, String? projectName, DateTime lastUpdated, DateTime createdAt, DateTime? updatedAt
+ String id, String name, String unit, double quantity, String? warehouse, double? unitPrice, String? projectId, String? projectName, DateTime lastUpdated, DateTime createdAt, DateTime? updatedAt
 });
 
 
@@ -65,14 +65,15 @@ class _$MaterialItemCopyWithImpl<$Res>
 
 /// Create a copy of MaterialItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? unit = null,Object? quantity = null,Object? warehouse = freezed,Object? projectId = freezed,Object? projectName = freezed,Object? lastUpdated = null,Object? createdAt = null,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? unit = null,Object? quantity = null,Object? warehouse = freezed,Object? unitPrice = freezed,Object? projectId = freezed,Object? projectName = freezed,Object? lastUpdated = null,Object? createdAt = null,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,unit: null == unit ? _self.unit : unit // ignore: cast_nullable_to_non_nullable
 as String,quantity: null == quantity ? _self.quantity : quantity // ignore: cast_nullable_to_non_nullable
 as double,warehouse: freezed == warehouse ? _self.warehouse : warehouse // ignore: cast_nullable_to_non_nullable
-as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,unitPrice: freezed == unitPrice ? _self.unitPrice : unitPrice // ignore: cast_nullable_to_non_nullable
+as double?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
 as String?,projectName: freezed == projectName ? _self.projectName : projectName // ignore: cast_nullable_to_non_nullable
 as String?,lastUpdated: null == lastUpdated ? _self.lastUpdated : lastUpdated // ignore: cast_nullable_to_non_nullable
 as DateTime,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -162,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String unit,  double quantity,  String? warehouse,  String? projectId,  String? projectName,  DateTime lastUpdated,  DateTime createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String unit,  double quantity,  String? warehouse,  double? unitPrice,  String? projectId,  String? projectName,  DateTime lastUpdated,  DateTime createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MaterialItem() when $default != null:
-return $default(_that.id,_that.name,_that.unit,_that.quantity,_that.warehouse,_that.projectId,_that.projectName,_that.lastUpdated,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.name,_that.unit,_that.quantity,_that.warehouse,_that.unitPrice,_that.projectId,_that.projectName,_that.lastUpdated,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -183,10 +184,10 @@ return $default(_that.id,_that.name,_that.unit,_that.quantity,_that.warehouse,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String unit,  double quantity,  String? warehouse,  String? projectId,  String? projectName,  DateTime lastUpdated,  DateTime createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String unit,  double quantity,  String? warehouse,  double? unitPrice,  String? projectId,  String? projectName,  DateTime lastUpdated,  DateTime createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _MaterialItem():
-return $default(_that.id,_that.name,_that.unit,_that.quantity,_that.warehouse,_that.projectId,_that.projectName,_that.lastUpdated,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.name,_that.unit,_that.quantity,_that.warehouse,_that.unitPrice,_that.projectId,_that.projectName,_that.lastUpdated,_that.createdAt,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -203,10 +204,10 @@ return $default(_that.id,_that.name,_that.unit,_that.quantity,_that.warehouse,_t
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String unit,  double quantity,  String? warehouse,  String? projectId,  String? projectName,  DateTime lastUpdated,  DateTime createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String unit,  double quantity,  String? warehouse,  double? unitPrice,  String? projectId,  String? projectName,  DateTime lastUpdated,  DateTime createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _MaterialItem() when $default != null:
-return $default(_that.id,_that.name,_that.unit,_that.quantity,_that.warehouse,_that.projectId,_that.projectName,_that.lastUpdated,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.name,_that.unit,_that.quantity,_that.warehouse,_that.unitPrice,_that.projectId,_that.projectName,_that.lastUpdated,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -218,7 +219,7 @@ return $default(_that.id,_that.name,_that.unit,_that.quantity,_that.warehouse,_t
 @JsonSerializable()
 
 class _MaterialItem extends MaterialItem {
-  const _MaterialItem({required this.id, required this.name, required this.unit, required this.quantity, this.warehouse, this.projectId, this.projectName, required this.lastUpdated, required this.createdAt, this.updatedAt}): super._();
+  const _MaterialItem({required this.id, required this.name, required this.unit, required this.quantity, this.warehouse, this.unitPrice, this.projectId, this.projectName, required this.lastUpdated, required this.createdAt, this.updatedAt}): super._();
   factory _MaterialItem.fromJson(Map<String, dynamic> json) => _$MaterialItemFromJson(json);
 
 @override final  String id;
@@ -226,6 +227,7 @@ class _MaterialItem extends MaterialItem {
 @override final  String unit;
 @override final  double quantity;
 @override final  String? warehouse;
+@override final  double? unitPrice;
 @override final  String? projectId;
 @override final  String? projectName;
 @override final  DateTime lastUpdated;
@@ -245,16 +247,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MaterialItem&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&(identical(other.warehouse, warehouse) || other.warehouse == warehouse)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.lastUpdated, lastUpdated) || other.lastUpdated == lastUpdated)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MaterialItem&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.unit, unit) || other.unit == unit)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&(identical(other.warehouse, warehouse) || other.warehouse == warehouse)&&(identical(other.unitPrice, unitPrice) || other.unitPrice == unitPrice)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.lastUpdated, lastUpdated) || other.lastUpdated == lastUpdated)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,unit,quantity,warehouse,projectId,projectName,lastUpdated,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,name,unit,quantity,warehouse,unitPrice,projectId,projectName,lastUpdated,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'MaterialItem(id: $id, name: $name, unit: $unit, quantity: $quantity, warehouse: $warehouse, projectId: $projectId, projectName: $projectName, lastUpdated: $lastUpdated, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'MaterialItem(id: $id, name: $name, unit: $unit, quantity: $quantity, warehouse: $warehouse, unitPrice: $unitPrice, projectId: $projectId, projectName: $projectName, lastUpdated: $lastUpdated, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -265,7 +267,7 @@ abstract mixin class _$MaterialItemCopyWith<$Res> implements $MaterialItemCopyWi
   factory _$MaterialItemCopyWith(_MaterialItem value, $Res Function(_MaterialItem) _then) = __$MaterialItemCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String unit, double quantity, String? warehouse, String? projectId, String? projectName, DateTime lastUpdated, DateTime createdAt, DateTime? updatedAt
+ String id, String name, String unit, double quantity, String? warehouse, double? unitPrice, String? projectId, String? projectName, DateTime lastUpdated, DateTime createdAt, DateTime? updatedAt
 });
 
 
@@ -282,14 +284,15 @@ class __$MaterialItemCopyWithImpl<$Res>
 
 /// Create a copy of MaterialItem
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? unit = null,Object? quantity = null,Object? warehouse = freezed,Object? projectId = freezed,Object? projectName = freezed,Object? lastUpdated = null,Object? createdAt = null,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? unit = null,Object? quantity = null,Object? warehouse = freezed,Object? unitPrice = freezed,Object? projectId = freezed,Object? projectName = freezed,Object? lastUpdated = null,Object? createdAt = null,Object? updatedAt = freezed,}) {
   return _then(_MaterialItem(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,unit: null == unit ? _self.unit : unit // ignore: cast_nullable_to_non_nullable
 as String,quantity: null == quantity ? _self.quantity : quantity // ignore: cast_nullable_to_non_nullable
 as double,warehouse: freezed == warehouse ? _self.warehouse : warehouse // ignore: cast_nullable_to_non_nullable
-as String?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
+as String?,unitPrice: freezed == unitPrice ? _self.unitPrice : unitPrice // ignore: cast_nullable_to_non_nullable
+as double?,projectId: freezed == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
 as String?,projectName: freezed == projectName ? _self.projectName : projectName // ignore: cast_nullable_to_non_nullable
 as String?,lastUpdated: null == lastUpdated ? _self.lastUpdated : lastUpdated // ignore: cast_nullable_to_non_nullable
 as DateTime,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable

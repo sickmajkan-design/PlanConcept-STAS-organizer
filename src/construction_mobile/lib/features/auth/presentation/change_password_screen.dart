@@ -135,8 +135,11 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                       label: context.l10n.authCurrentPassword,
                       enabled: !_submitting,
                       textInputAction: TextInputAction.next,
-                      validator: (value) =>
-                          Validators.notEmpty(value, 'Current password'),
+                      validator: (value) => Validators.notEmpty(
+                        value,
+                        context.l10n.authCurrentPassword,
+                        context.l10n,
+                      ),
                       errorText: error?.errorFor('currentPassword'),
                     ),
                     const SizedBox(height: 16),
@@ -145,7 +148,8 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                       label: context.l10n.authNewPassword,
                       enabled: !_submitting,
                       textInputAction: TextInputAction.next,
-                      validator: Validators.strongPassword,
+                      validator: (value) =>
+                          Validators.strongPassword(value, context.l10n),
                       errorText: error?.errorFor('newPassword'),
                     ),
                     const SizedBox(height: 16),

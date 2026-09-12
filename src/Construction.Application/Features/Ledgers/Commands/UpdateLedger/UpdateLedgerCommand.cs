@@ -60,7 +60,7 @@ public class UpdateLedgerCommandHandler : IRequestHandler<UpdateLedgerCommand, L
         return await _context.Ledgers
             .AsNoTracking()
             .Where(l => l.Id == ledger.Id)
-            .Select(LedgerDetailMapping.Projection)
+            .Select(LedgerShellMapping.Projection)
             .FirstAsync(cancellationToken);
     }
 }

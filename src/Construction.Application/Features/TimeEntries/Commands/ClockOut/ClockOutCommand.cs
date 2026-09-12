@@ -81,15 +81,18 @@ public class ClockOutCommandHandler : IRequestHandler<ClockOutCommand, TimeEntry
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly INotificationService _notificationService;
 
     public ClockOutCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        INotificationService notificationService)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
+        _notificationService = notificationService;
     }
 
     public async Task<TimeEntryDto> Handle(
@@ -139,7 +142,12 @@ public class ClockOutCommandHandler : IRequestHandler<ClockOutCommand, TimeEntry
         // this guard exists to prevent.
         var elapsedMinutes = (int)elapsed.TotalMinutes;
 
-        if (request.BreakMinutes >= elapsedMinutes)
+        // Only a break actually requested can be "as long as the shift" — a
+        // shift under a minute with no break requested is merely short, not
+        // a break eating the whole thing, and this guard used to catch that
+        // too (0 >= 0), leaving the employee stuck clocked in with no way to
+        // close it themselves.
+        if (request.BreakMinutes > 0 && request.BreakMinutes >= elapsedMinutes)
         {
             throw new ConflictException(
                 "The break is as long as the shift, which would leave no time worked.");
@@ -158,10 +166,72 @@ public class ClockOutCommandHandler : IRequestHandler<ClockOutCommand, TimeEntry
 
         await _context.SaveChangesAsync(cancellationToken);
 
+        if (entry.ProjectId is { } notifyProjectId)
+        {
+            var workedMinutes = elapsedMinutes - entry.BreakMinutes;
+            await NotifyForemenAsync(
+                notifyProjectId, employeeId, workedMinutes, cancellationToken);
+        }
+
         return await _context.TimeEntries
             .AsNoTracking()
             .Where(t => t.Id == entry.Id)
             .Select(TimeEntryMapping.Projection)
             .FirstAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// The other half of <c>ClockInCommandHandler.NotifyForemenAsync</c> —
+    /// tells the foremen posted to this site that someone just finished,
+    /// with the hours worked so they do not have to open the app to see it.
+    /// </summary>
+    private async Task NotifyForemenAsync(
+        Guid projectId, Guid employeeId, int workedMinutes, CancellationToken cancellationToken)
+    {
+        var project = await _context.Projects
+            .Where(p => p.Id == projectId)
+            .Select(p => new { p.Name })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var employeeName = await _context.Employees
+            .Where(e => e.Id == employeeId)
+            .Select(e => e.FirstName + " " + e.LastName)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (project is null || employeeName is null)
+        {
+            return;
+        }
+
+        var foremanUserIds = await _context.Users
+            .Where(u => u.IsActive &&
+                        u.Role == UserRole.Foreman &&
+                        u.EmployeeId != null &&
+                        u.EmployeeId != employeeId &&
+                        _context.EmployeeProjects.Any(ep =>
+                            ep.ProjectId == projectId && ep.EmployeeId == u.EmployeeId))
+            .Select(u => u.Id)
+            .ToListAsync(cancellationToken);
+
+        var hours = workedMinutes / 60;
+        var minutes = workedMinutes % 60;
+
+        var data = new Dictionary<string, string>
+        {
+            ["projectId"] = projectId.ToString(),
+            ["employeeId"] = employeeId.ToString(),
+            ["employeeName"] = employeeName,
+            ["projectName"] = project.Name,
+            ["workedHours"] = hours.ToString(),
+            ["workedMinutes"] = minutes.ToString()
+        };
+
+        await _notificationService.NotifyUsersAsync(
+            foremanUserIds,
+            NotificationType.EmployeeClockedOut,
+            "Clocked out",
+            $"{employeeName} clocked out from {project.Name} after {hours}h {minutes}m.",
+            data,
+            cancellationToken: cancellationToken);
     }
 }

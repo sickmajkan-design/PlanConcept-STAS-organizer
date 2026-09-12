@@ -11,6 +11,7 @@ import {
   Button,
   Card,
   CardContent,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -197,6 +198,7 @@ function AccommodationRateCard({ accommodationId }: { accommodationId: string })
             <Table size="small">
               <TableHead>
                 <TableRow>
+                  <TableCell>{t('common.status')}</TableCell>
                   <TableCell>{t('accommodations.provider')}</TableCell>
                   <TableCell align="right">{t('accommodations.monthlyAmount')}</TableCell>
                   <TableCell>{t('accommodations.startDate')}</TableCell>
@@ -212,8 +214,17 @@ function AccommodationRateCard({ accommodationId }: { accommodationId: string })
                     sx={{ cursor: 'pointer' }}
                     onDoubleClick={() => setEditing(row)}
                   >
+                    <TableCell>
+                      {row.endDate ? (
+                        <Chip size="small" variant="outlined" label={t('rates.ended')} />
+                      ) : (
+                        <Chip size="small" color="success" variant="outlined" label={t('rates.active')} />
+                      )}
+                    </TableCell>
                     <TableCell>{row.provider || '—'}</TableCell>
-                    <TableCell align="right">{formatMoney(row.monthlyAmount, locale)}</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 600 }}>
+                      {formatMoney(row.monthlyAmount, locale)}
+                    </TableCell>
                     <TableCell>{formatDate(row.startDate)}</TableCell>
                     <TableCell>
                       {row.endDate ? formatDate(row.endDate) : t('rates.open')}

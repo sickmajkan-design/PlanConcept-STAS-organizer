@@ -37,7 +37,7 @@ const ALL_WINDOW = 'all';
 
 type WindowValue = (typeof WINDOWS)[number] | typeof ALL_WINDOW;
 
-type SortField = 'fileName' | 'ownerName' | 'category' | 'expiresAt';
+type SortField = 'fileName' | 'ownerName' | 'category' | 'expiresAt' | 'retainUntil';
 type SortDirection = 'asc' | 'desc';
 
 /**
@@ -95,6 +95,8 @@ export function ExpiringDocumentsPage() {
           return a.category.localeCompare(b.category) * factor;
         case 'expiresAt':
           return (a.expiresAt ?? '').localeCompare(b.expiresAt ?? '') * factor;
+        case 'retainUntil':
+          return (a.retainUntil ?? '').localeCompare(b.retainUntil ?? '') * factor;
         default:
           return 0;
       }
@@ -234,6 +236,15 @@ export function ExpiringDocumentsPage() {
                     {t('attachments.expiresAt')}
                   </TableSortLabel>
                 </TableCell>
+                <TableCell sortDirection={sortBy === 'retainUntil' ? sortDirection : false}>
+                  <TableSortLabel
+                    active={sortBy === 'retainUntil'}
+                    direction={sortBy === 'retainUntil' ? sortDirection : 'asc'}
+                    onClick={() => toggleSort('retainUntil')}
+                  >
+                    {t('attachments.retainUntil')}
+                  </TableSortLabel>
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -241,6 +252,10 @@ export function ExpiringDocumentsPage() {
                 const lapsed =
                   !!document.expiresAt &&
                   new Date(`${document.expiresAt}T00:00`).getTime() < Date.now();
+
+                const retentionEnded =
+                  !!document.retainUntil &&
+                  new Date(`${document.retainUntil}T00:00`).getTime() < Date.now();
 
                 return (
                   <TableRow
@@ -273,13 +288,35 @@ export function ExpiringDocumentsPage() {
                         </Typography>
                       )}
                     </TableCell>
+                    <TableCell>
+                      {document.retainUntil ? (
+                        <Chip
+                          size="small"
+                          variant="outlined"
+                          color={retentionEnded ? 'success' : 'info'}
+                          label={
+                            retentionEnded
+                              ? t('attachments.retentionEnded', {
+                                  date: formatDate(document.retainUntil),
+                                })
+                              : t('attachments.retainedUntil', {
+                                  date: formatDate(document.retainUntil),
+                                })
+                          }
+                        />
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          —
+                        </Typography>
+                      )}
+                    </TableCell>
                   </TableRow>
                 );
               })}
 
               {sortedData.length === 0 && !isLoading && (
                 <TableRow>
-                  <TableCell colSpan={4}>
+                  <TableCell colSpan={5}>
                     <Typography variant="body2" color="text.secondary">
                       {t('attachments.expiringEmpty')}
                     </Typography>

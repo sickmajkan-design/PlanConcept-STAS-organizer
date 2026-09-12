@@ -63,6 +63,7 @@ public class UpdateToolCommandHandler : IRequestHandler<UpdateToolCommand, ToolD
         tool.SerialNumber = serialNumber;
         tool.QrCode = qrCode;
         tool.Status = request.Status;
+        tool.OwnershipType = request.OwnershipType;
 
         await _context.SaveChangesAsync(cancellationToken);
 

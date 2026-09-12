@@ -1,9 +1,19 @@
+using Construction.Application.Common.Interfaces;
 using Construction.Domain.Enums;
 
 namespace Construction.Application.Features.Outbox;
 
-/// <summary>An email, as it sits in the queue.</summary>
-public record EmailPayload(string To, string Subject, string HtmlBody);
+/// <summary>
+/// An email, as it sits in the queue. <see cref="Attachment"/>'s bytes travel
+/// inside the same JSON payload as everything else here — fine for a
+/// spreadsheet-sized file, and it means an attachment survives a retry
+/// exactly like the rest of the message, with nothing extra to clean up.
+/// </summary>
+public record EmailPayload(
+    string To,
+    string Subject,
+    string HtmlBody,
+    EmailAttachment? Attachment = null);
 
 /// <summary>
 /// A push, as it sits in the queue.

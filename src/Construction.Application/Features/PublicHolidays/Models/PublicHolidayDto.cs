@@ -10,6 +10,9 @@ public class PublicHolidayDto
     public DateOnly Date { get; init; }
 
     public string Name { get; init; } = null!;
+
+    /// <summary>ISO 3166-1 alpha-2, e.g. "BA".</summary>
+    public string CountryCode { get; init; } = null!;
 }
 
 public static class PublicHolidayMapping
@@ -20,6 +23,7 @@ public static class PublicHolidayMapping
             Id = holiday.Id,
             Date = holiday.Date,
             Name = holiday.Name,
+            CountryCode = holiday.CountryCode,
         };
 
     private static readonly Func<PublicHoliday, PublicHolidayDto> Compiled = Projection.Compile();

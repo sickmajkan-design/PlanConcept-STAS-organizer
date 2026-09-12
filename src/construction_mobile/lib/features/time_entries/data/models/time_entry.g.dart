@@ -34,6 +34,9 @@ _TimeEntry _$TimeEntryFromJson(Map<String, dynamic> json) => _TimeEntry(
   updatedAt: json['updatedAt'] == null
       ? null
       : DateTime.parse(json['updatedAt'] as String),
+  autoClosed: json['autoClosed'] as bool? ?? false,
+  locationCorrect: json['locationCorrect'] as bool?,
+  timeCorrect: json['timeCorrect'] as bool?,
 );
 
 Map<String, dynamic> _$TimeEntryToJson(_TimeEntry instance) =>
@@ -59,4 +62,7 @@ Map<String, dynamic> _$TimeEntryToJson(_TimeEntry instance) =>
       'reviewNote': ?instance.reviewNote,
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': ?instance.updatedAt?.toIso8601String(),
+      'autoClosed': instance.autoClosed,
+      'locationCorrect': ?instance.locationCorrect,
+      'timeCorrect': ?instance.timeCorrect,
     };

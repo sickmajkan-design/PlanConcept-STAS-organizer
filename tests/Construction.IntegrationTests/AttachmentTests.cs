@@ -708,6 +708,140 @@ public class AttachmentTests : IntegrationTestBase
         }));
     }
 
+    // ---- newer cost-record owner types -------------------------------------
+    //
+    // VehicleRentalRate, GeneralExpense, Accommodation and AccommodationRate
+    // were added to the check-constraint, the FK columns and AttachmentOwner's
+    // own switch, but three other places that also switch on
+    // AttachmentOwnerType (the list query, the upload existence check, and the
+    // DTO's owner-name projection) were never taught the new values — each
+    // fell through to a `null`-typed default that then failed with "Nullable
+    // object must have a value" once a real row reached it, or refused to
+    // find a record that existed. These tests exist so a fifteenth owner type
+    // cannot go the same way unnoticed.
+
+    [Fact]
+    public async Task A_receipt_can_be_filed_against_a_vehicle_rental_rate()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+        var rate = await InScope(scope => TestData.SeedVehicleRentalRateAsync(scope));
+
+        var uploaded = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return UploadAsync(
+                scope, AttachmentOwnerType.VehicleRentalRate, rate.Id, fileName: "ugovor.pdf");
+        });
+
+        Assert.Equal(rate.Id, uploaded.OwnerId);
+        Assert.NotNull(uploaded.OwnerName);
+
+        var files = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new GetAttachmentsQuery
+            {
+                OwnerType = AttachmentOwnerType.VehicleRentalRate,
+                OwnerId = rate.Id
+            });
+        });
+
+        Assert.Equal(uploaded.Id, Assert.Single(files).Id);
+    }
+
+    [Fact]
+    public async Task A_receipt_can_be_filed_against_a_general_expense()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+        var expense = await InScope(scope => TestData.SeedGeneralExpenseAsync(scope));
+
+        var uploaded = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return UploadAsync(
+                scope,
+                AttachmentOwnerType.GeneralExpense,
+                expense.Id,
+                fileName: "racun.pdf",
+                category: AttachmentCategory.Other);
+        });
+
+        Assert.Equal(expense.Id, uploaded.OwnerId);
+
+        var files = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new GetAttachmentsQuery
+            {
+                OwnerType = AttachmentOwnerType.GeneralExpense,
+                OwnerId = expense.Id
+            });
+        });
+
+        Assert.Equal(uploaded.Id, Assert.Single(files).Id);
+    }
+
+    [Fact]
+    public async Task A_photo_can_be_filed_against_an_accommodation()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+        var accommodation = await InScope(scope => TestData.SeedAccommodationAsync(scope));
+
+        var uploaded = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return UploadAsync(
+                scope,
+                AttachmentOwnerType.Accommodation,
+                accommodation.Id,
+                fileName: "stan.jpg",
+                category: AttachmentCategory.Photo);
+        });
+
+        Assert.Equal(accommodation.Id, uploaded.OwnerId);
+        Assert.Equal(accommodation.Address, uploaded.OwnerName);
+
+        var files = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new GetAttachmentsQuery
+            {
+                OwnerType = AttachmentOwnerType.Accommodation,
+                OwnerId = accommodation.Id
+            });
+        });
+
+        Assert.Equal(uploaded.Id, Assert.Single(files).Id);
+    }
+
+    [Fact]
+    public async Task A_contract_can_be_filed_against_an_accommodation_rate()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+        var rate = await InScope(scope => TestData.SeedAccommodationRateAsync(scope));
+
+        var uploaded = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return UploadAsync(
+                scope, AttachmentOwnerType.AccommodationRate, rate.Id, fileName: "ugovor.pdf");
+        });
+
+        Assert.Equal(rate.Id, uploaded.OwnerId);
+
+        var files = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new GetAttachmentsQuery
+            {
+                OwnerType = AttachmentOwnerType.AccommodationRate,
+                OwnerId = rate.Id
+            });
+        });
+
+        Assert.Equal(uploaded.Id, Assert.Single(files).Id);
+    }
+
     /// <summary>A defect raised by a foreman, optionally assigned to somebody.</summary>
     private async Task<(WorkItem Item, User Foreman)> SeedDefectAsync(Guid? assignedTo = null)
     {

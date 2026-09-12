@@ -28,4 +28,6 @@ public class Ledger : BaseEntity, ISoftDeletable, IAuditable
     public ICollection<LedgerColumn> Columns { get; set; } = new List<LedgerColumn>();
 
     public ICollection<LedgerSection> Sections { get; set; } = new List<LedgerSection>();
+
+    public ICollection<LedgerSummaryBox> SummaryBoxes { get; set; } = new List<LedgerSummaryBox>();
 }

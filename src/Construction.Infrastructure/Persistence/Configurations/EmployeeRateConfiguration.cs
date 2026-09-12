@@ -21,6 +21,8 @@ public class EmployeeRateConfiguration : IEntityTypeConfiguration<EmployeeRate>
         builder.Property(r => r.HourlyRate).HasPrecision(18, 2);
         builder.Property(r => r.WeekendHourlyRate).HasPrecision(18, 2);
         builder.Property(r => r.HolidayHourlyRate).HasPrecision(18, 2);
+        builder.Property(r => r.OvertimeHourlyRate).HasPrecision(18, 2);
+        builder.Property(r => r.TravelHourlyRate).HasPrecision(18, 2);
         builder.Property(r => r.DailyRate).HasPrecision(18, 2);
 
         builder.Property(r => r.Note).HasMaxLength(500);
@@ -57,6 +59,14 @@ public class EmployeeRateConfiguration : IEntityTypeConfiguration<EmployeeRate>
             t.HasCheckConstraint(
                 "ck_employee_rates_holiday_positive",
                 "\"HolidayHourlyRate\" IS NULL OR \"HolidayHourlyRate\" > 0");
+
+            t.HasCheckConstraint(
+                "ck_employee_rates_overtime_positive",
+                "\"OvertimeHourlyRate\" IS NULL OR \"OvertimeHourlyRate\" > 0");
+
+            t.HasCheckConstraint(
+                "ck_employee_rates_travel_positive",
+                "\"TravelHourlyRate\" IS NULL OR \"TravelHourlyRate\" > 0");
 
             t.HasCheckConstraint(
                 "ck_employee_rates_daily_positive",

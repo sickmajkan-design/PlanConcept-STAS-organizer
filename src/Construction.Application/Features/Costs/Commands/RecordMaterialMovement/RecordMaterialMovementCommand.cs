@@ -32,6 +32,9 @@ public record RecordMaterialMovementCommand : IRequest<MaterialMovementDto>
     public DateOnly? OccurredOn { get; init; }
 
     public string? Note { get; init; }
+
+    /// <summary>Invoice or receipt number. Required on a delivery.</summary>
+    public string? InvoiceNumber { get; init; }
 }
 
 public class RecordMaterialMovementCommandValidator
@@ -72,6 +75,18 @@ public class RecordMaterialMovementCommandValidator
             .When(x => x.OccurredOn is not null);
 
         RuleFor(x => x.Note).MaximumLength(500);
+
+        // The invoice is the paper trail back to what was actually paid; a
+        // delivery without one leaves nothing to reconcile against later.
+        RuleFor(x => x.InvoiceNumber)
+            .NotEmpty()
+            .WithMessage("A delivery needs an invoice or receipt number.")
+            .MaximumLength(100)
+            .When(x => x.Kind == MaterialMovementKind.In);
+
+        RuleFor(x => x.InvoiceNumber)
+            .MaximumLength(100)
+            .When(x => x.Kind != MaterialMovementKind.In);
     }
 }
 
@@ -108,16 +123,20 @@ public class RecordMaterialMovementCommandHandler
         }
 
         var now = _dateTimeProvider.UtcNow;
+        var occurredOn = request.OccurredOn ?? DateOnly.FromDateTime(now);
 
         var movement = new MaterialMovement
         {
             MaterialId = request.MaterialId,
             Kind = request.Kind,
             Quantity = request.Quantity,
-            UnitPrice = await ResolveUnitPriceAsync(request, cancellationToken),
+            UnitPrice = await ResolveUnitPriceAsync(request, occurredOn, cancellationToken),
             ProjectId = request.ProjectId,
-            OccurredOn = request.OccurredOn ?? DateOnly.FromDateTime(now),
+            OccurredOn = occurredOn,
             Note = request.Note?.Trim(),
+            InvoiceNumber = string.IsNullOrWhiteSpace(request.InvoiceNumber)
+                ? null
+                : request.InvoiceNumber.Trim(),
             RecordedByUserId = _currentUserService.UserId
         };
 
@@ -177,9 +196,16 @@ public class RecordMaterialMovementCommandHandler
     /// Weighted average rather than FIFO because a heap of gravel has no
     /// batches to consume in order, and FIFO would need a layer table to
     /// answer a question nobody on a building site is asking.
+    ///
+    /// Only deliveries on or before <paramref name="occurredOn"/> count.
+    /// Backdating an issue to a date before a later delivery arrived must
+    /// price it as it was known at the time, not with stock that had not
+    /// been bought yet — otherwise a delivery next month could reach back
+    /// and change what a job last month is recorded as having cost.
     /// </remarks>
     private async Task<decimal?> ResolveUnitPriceAsync(
         RecordMaterialMovementCommand request,
+        DateOnly occurredOn,
         CancellationToken cancellationToken)
     {
         if (request.Kind == MaterialMovementKind.Adjustment)
@@ -204,7 +230,8 @@ public class RecordMaterialMovementCommandHandler
             .AsNoTracking()
             .Where(m => m.MaterialId == request.MaterialId
                 && m.Kind == MaterialMovementKind.In
-                && m.UnitPrice != null)
+                && m.UnitPrice != null
+                && m.OccurredOn <= occurredOn)
             .GroupBy(m => m.MaterialId)
             .Select(g => new
             {

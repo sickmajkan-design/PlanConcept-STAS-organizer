@@ -6,7 +6,9 @@ import '../../../core/l10n/app_locales.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/widgets/paged_list_view.dart';
+import '../../auth/presentation/auth_controller.dart';
 import '../data/models/material.dart';
+import 'material_form_sheet.dart';
 import 'materials_controller.dart';
 
 class MaterialsScreen extends ConsumerWidget {
@@ -18,7 +20,17 @@ class MaterialsScreen extends ConsumerWidget {
     final state = ref.watch(materialsControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.navMaterials)),
+      appBar: AppBar(
+        title: Text(context.l10n.navMaterials),
+        actions: [
+          if (ref.watch(currentUserProvider)?.isProjectManagerAndAbove ?? false)
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: context.l10n.commonAdd,
+              onPressed: () => showMaterialFormSheet(context, ref),
+            ),
+        ],
+      ),
       body: SafeArea(
         child: PagedListView<MaterialItem>(
           state: state,
@@ -32,6 +44,7 @@ class MaterialsScreen extends ConsumerWidget {
             filters: const [materialWarehouseOnlyFilter],
             selectedFilter: controller.filter,
             onFilterSelected: controller.applyFilter,
+            filterLabel: (context, _) => context.l10n.materialWarehouseOnly,
           ),
           itemBuilder: (context, material) => _MaterialCard(material: material),
         ),
@@ -80,7 +93,8 @@ class _MaterialCard extends StatelessWidget {
                     Text(
                       material.isAssignedToProject
                           ? material.projectName!
-                          : (material.warehouse ?? 'Warehouse stock'),
+                          : (material.warehouse ??
+                              context.l10n.materialWarehouseStock),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),

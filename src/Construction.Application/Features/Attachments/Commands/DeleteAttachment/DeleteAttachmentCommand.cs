@@ -13,6 +13,11 @@ namespace Construction.Application.Features.Attachments.Commands.DeleteAttachmen
 /// the row is kept as a trace that a file existed and who removed it, while
 /// the file itself has to actually go — a deletion request for someone's
 /// medical record is not satisfied by hiding it from a list.
+///
+/// Refused outright, before any of that, while
+/// <see cref="Attachment.RetainUntil"/> is still in the future — a legal
+/// retention requirement is not something the usual "Admin may delete"
+/// permission should be able to override by accident.
 /// </remarks>
 public record DeleteAttachmentCommand(Guid Id) : IRequest;
 
@@ -21,15 +26,18 @@ public class DeleteAttachmentCommandHandler : IRequestHandler<DeleteAttachmentCo
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IFileStorage _storage;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
     public DeleteAttachmentCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IFileStorage storage)
+        IFileStorage storage,
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _currentUserService = currentUserService;
         _storage = storage;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task Handle(
@@ -44,6 +52,15 @@ public class DeleteAttachmentCommandHandler : IRequestHandler<DeleteAttachmentCo
         var attachment = await _context.Attachments
             .FirstOrDefaultAsync(a => a.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(Attachment), request.Id);
+
+        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+
+        if (attachment.IsRetainedOn(today))
+        {
+            throw new ConflictException(
+                $"This document must be kept until {attachment.RetainUntil:dd.MM.yyyy} " +
+                "and cannot be deleted before then.");
+        }
 
         var storageKey = attachment.StorageKey;
 

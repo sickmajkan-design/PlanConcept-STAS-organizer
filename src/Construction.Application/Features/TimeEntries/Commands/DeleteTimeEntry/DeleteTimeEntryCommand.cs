@@ -34,6 +34,16 @@ public class DeleteTimeEntryCommandHandler : IRequestHandler<DeleteTimeEntryComm
 
         _context.TimeEntries.Remove(entry);
 
-        await _context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // The entry was approved (or otherwise changed) between this
+            // handler reading it as editable and deleting it.
+            throw new ConflictException(
+                "This entry was changed by someone else just now. Reload it and try again.");
+        }
     }
 }

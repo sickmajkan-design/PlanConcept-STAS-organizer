@@ -125,11 +125,7 @@ public class SendExpiryRemindersCommandHandler
                     $"{document.FileName}" +
                     (document.OwnerName is null ? "" : $" — {document.OwnerName}") +
                     $" ({document.ExpiresAt:dd.MM.yyyy})",
-                    new Dictionary<string, string>
-                    {
-                        ["attachmentId"] = document.Id.ToString(),
-                        ["category"] = document.Category.ToString()
-                    },
+                    BuildData(document.Id, document.Category, document.FileName, document.OwnerName, document.ExpiresAt, expired),
                     cancellationToken: cancellationToken);
 
                 sent++;
@@ -137,5 +133,34 @@ public class SendExpiryRemindersCommandHandler
         }
 
         return sent;
+    }
+
+    private static Dictionary<string, string> BuildData(
+        Guid attachmentId,
+        AttachmentCategory category,
+        string fileName,
+        string? ownerName,
+        DateOnly? expiresAt,
+        bool expired)
+    {
+        var data = new Dictionary<string, string>
+        {
+            ["attachmentId"] = attachmentId.ToString(),
+            ["category"] = category.ToString(),
+            ["fileName"] = fileName,
+            ["expired"] = expired ? "true" : "false"
+        };
+
+        if (ownerName is not null)
+        {
+            data["ownerName"] = ownerName;
+        }
+
+        if (expiresAt is { } date)
+        {
+            data["expiresAt"] = date.ToString("yyyy-MM-dd");
+        }
+
+        return data;
     }
 }

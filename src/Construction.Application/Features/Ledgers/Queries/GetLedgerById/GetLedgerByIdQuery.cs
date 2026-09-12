@@ -25,7 +25,7 @@ public class GetLedgerByIdQueryHandler : IRequestHandler<GetLedgerByIdQuery, Led
         var ledger = await _context.Ledgers
             .AsNoTracking()
             .Where(l => l.Id == request.Id)
-            .Select(LedgerDetailMapping.Projection)
+            .Select(LedgerShellMapping.Projection)
             .FirstOrDefaultAsync(cancellationToken);
 
         return ledger ?? throw new NotFoundException(nameof(Ledger), request.Id);

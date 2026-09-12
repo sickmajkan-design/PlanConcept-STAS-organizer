@@ -29,6 +29,9 @@ const baseUserSchema = z.object({
   // Empty string means "use the system default" — the API's own
   // interpretation of a null value.
   documentExpiryReminderDays: z.string().optional().or(z.literal('')),
+  // Only a SuperAdmin caller may actually change this; the API silently
+  // ignores it from anyone else, so the field is harmless to always send.
+  canViewCustomerTaxDetails: z.boolean().optional(),
 });
 
 export const createUserSchema = baseUserSchema.extend({

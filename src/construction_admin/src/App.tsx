@@ -72,6 +72,11 @@ const NotificationGroupFormPage = lazy(() =>
 const LiveMapPage = lazy(() =>
   import('./pages/map/LiveMapPage').then((m) => ({ default: m.LiveMapPage })),
 );
+const ScheduledReportsListPage = lazy(() =>
+  import('./pages/scheduledReports/ScheduledReportsListPage').then((m) => ({
+    default: m.ScheduledReportsListPage,
+  })),
+);
 const VehiclesListPage = lazy(() =>
   import('./pages/vehicles/VehiclesListPage').then((m) => ({
     default: m.VehiclesListPage,
@@ -116,6 +121,11 @@ const AbsencesListPage = lazy(() =>
     default: m.AbsencesListPage,
   })),
 );
+const WeeklySiteReportsListPage = lazy(() =>
+  import('./pages/weeklySiteReports/WeeklySiteReportsListPage').then((m) => ({
+    default: m.WeeklySiteReportsListPage,
+  })),
+);
 const CostsPage = lazy(() =>
   import('./pages/costs/CostsPage').then((m) => ({ default: m.CostsPage })),
 );
@@ -132,6 +142,11 @@ const VehicleExpensesPage = lazy(() =>
 const ToolExpensesPage = lazy(() =>
   import('./pages/costs/ToolExpensesPage').then((m) => ({
     default: m.ToolExpensesPage,
+  })),
+);
+const FuelImportPage = lazy(() =>
+  import('./pages/costs/FuelImportPage').then((m) => ({
+    default: m.FuelImportPage,
   })),
 );
 const RatesPage = lazy(() =>
@@ -170,6 +185,11 @@ const AccommodationDetailPage = lazy(() =>
 const LedgersListPage = lazy(() =>
   import('./pages/ledgers/LedgersListPage').then((m) => ({
     default: m.LedgersListPage,
+  })),
+);
+const CompanySettingsPage = lazy(() =>
+  import('./pages/settings/CompanySettingsPage').then((m) => ({
+    default: m.CompanySettingsPage,
   })),
 );
 const LedgerDetailPage = lazy(() =>
@@ -311,6 +331,7 @@ function Layout() {
               <Route path={paths.costs} element={<CostsPage />} />
               <Route path={paths.stockMovements} element={<StockMovementsPage />} />
               <Route path={paths.vehicleExpenses} element={<VehicleExpensesPage />} />
+              <Route path={paths.fuelImport} element={<FuelImportPage />} />
               <Route path={paths.toolExpenses} element={<ToolExpensesPage />} />
               <Route path={paths.generalExpenses} element={<GeneralExpensesPage />} />
 
@@ -321,6 +342,7 @@ function Layout() {
 
               <Route path={paths.schedule} element={<SchedulePage />} />
               <Route path={paths.absences} element={<AbsencesListPage />} />
+              <Route path={paths.weeklyReports} element={<WeeklySiteReportsListPage />} />
 
               <Route path={paths.timeEntrySummary} element={<TimeEntrySummaryPage />} />
               <Route path={paths.timeEntries} element={<TimeEntriesListPage />} />
@@ -362,6 +384,7 @@ function Layout() {
                 path={`${paths.notificationGroups}/:id/edit`}
                 element={<NotificationGroupFormPage />}
               />
+              <Route path={paths.scheduledReports} element={<ScheduledReportsListPage />} />
             </Route>
 
             {/* The SuperAdmin's own free-form ledger — narrower than account
@@ -369,6 +392,7 @@ function Layout() {
             <Route element={<RequireSuperAdmin />}>
               <Route path={paths.ledgers} element={<LedgersListPage />} />
               <Route path={`${paths.ledgers}/:id`} element={<LedgerDetailPage />} />
+              <Route path={paths.companySettings} element={<CompanySettingsPage />} />
             </Route>
 
             <Route path="*" element={<Navigate to={paths.home} replace />} />

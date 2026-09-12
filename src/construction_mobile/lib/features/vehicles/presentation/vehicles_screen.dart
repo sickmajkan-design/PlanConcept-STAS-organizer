@@ -7,7 +7,9 @@ import '../../../core/router/app_routes.dart';
 import '../../../core/widgets/paged_list_view.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
+import '../../auth/presentation/auth_controller.dart';
 import '../data/models/vehicle.dart';
+import 'vehicle_form_sheet.dart';
 import 'vehicles_controller.dart';
 
 class VehiclesScreen extends ConsumerWidget {
@@ -22,6 +24,12 @@ class VehiclesScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(context.l10n.navVehicles),
         actions: [
+          if (ref.watch(currentUserProvider)?.isAdminAndAbove ?? false)
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: context.l10n.commonAdd,
+              onPressed: () => showVehicleFormSheet(context, ref),
+            ),
           IconButton(
             icon: const Icon(Icons.qr_code_scanner_outlined),
             tooltip: context.l10n.toolLookUpByQr,
@@ -42,6 +50,8 @@ class VehiclesScreen extends ConsumerWidget {
             filters: vehicleStatusFilters,
             selectedFilter: controller.filter,
             onFilterSelected: controller.applyFilter,
+            filterLabel: (context, value) =>
+                enumLabel(context.l10n, EnumKind.vehicleStatus, value),
           ),
           itemBuilder: (context, vehicle) => _VehicleCard(vehicle: vehicle),
         ),

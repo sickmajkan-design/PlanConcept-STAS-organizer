@@ -15,8 +15,9 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import type { GridColDef } from '@mui/x-data-grid';
+import type { GridColDef, GridSortModel } from '@mui/x-data-grid';
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
 import type { VehicleExpenseListQuery } from '../../api/costs';
@@ -32,6 +33,7 @@ import { AuditHistoryCard } from '../../components/AuditHistoryCard';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
+import { SavedViewsBar } from '../../components/SavedViewsBar';
 import {
   useDeleteVehicleExpense,
   useRecordVehicleExpense,
@@ -42,13 +44,21 @@ import {
 import { useAllVehiclesQuery } from '../../features/vehicles/useVehicles';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useListQueryState } from '../../hooks/useListQueryState';
+import { useSavedViews } from '../../hooks/useSavedViews';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
+import { paths } from '../../routes/paths';
 import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../utils/formatting';
+
+interface VehicleExpenseViewState {
+  sortModel: GridSortModel;
+  kind: VehicleExpenseKind | '';
+}
 
 export function VehicleExpensesPage() {
   const t = useT();
   const { locale } = useI18n();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const enumLabel = useEnumLabel();
   const list = useListQueryState('occurredOn', 'desc');
@@ -56,6 +66,18 @@ export function VehicleExpensesPage() {
   const [kind, setKind] = useState<VehicleExpenseKind | ''>('');
   const [recording, setRecording] = useState(false);
   const [editing, setEditing] = useState<VehicleExpense | null>(null);
+
+  const savedViews = useSavedViews<VehicleExpenseViewState>('vehicle-expenses');
+
+  const applyView = (state: VehicleExpenseViewState) => {
+    list.setSortModel(state.sortModel);
+    setKind(state.kind);
+    list.resetToFirstPage();
+  };
+
+  const saveCurrentView = (name: string) => {
+    savedViews.saveView(name, { sortModel: list.sortModel, kind });
+  };
 
   const query: VehicleExpenseListQuery = useMemo(
     () => ({
@@ -126,6 +148,12 @@ export function VehicleExpensesPage() {
           value === null ? '—' : formatQuantity(value as number, locale),
       },
       {
+        field: 'fuelProductType',
+        headerName: t('vehicleExpenses.fuelProductType'),
+        width: 130,
+        valueGetter: (value) => value || '—',
+      },
+      {
         field: 'recordedByName',
         headerName: t('vehicleExpenses.recordedBy'),
         flex: 1,
@@ -175,7 +203,7 @@ export function VehicleExpensesPage() {
         }}
       />
 
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+      <Stack direction="row" spacing={2} sx={{ mb: 2, alignItems: 'center' }}>
         <TextField
           select
           size="small"
@@ -194,7 +222,19 @@ export function VehicleExpensesPage() {
             </MenuItem>
           ))}
         </TextField>
+        <Button variant="outlined" onClick={() => navigate(paths.fuelImport)}>
+          {t('fuelImport.title')}
+        </Button>
       </Stack>
+
+      <Box sx={{ mb: 2 }}>
+        <SavedViewsBar
+          views={savedViews.views}
+          onApply={applyView}
+          onSave={saveCurrentView}
+          onDelete={savedViews.deleteView}
+        />
+      </Box>
 
       {summary && (
         <Paper variant="outlined" sx={{ px: 2, py: 1, mb: 2 }}>
@@ -278,6 +318,7 @@ export function VehicleExpenseDialog({
   const [amount, setAmount] = useState('');
   const [litres, setLitres] = useState('');
   const [odometerKm, setOdometerKm] = useState('');
+  const [fuelProductType, setFuelProductType] = useState('');
   const [occurredOn, setOccurredOn] = useState('');
   const [supplier, setSupplier] = useState('');
   const [note, setNote] = useState('');
@@ -297,6 +338,7 @@ export function VehicleExpenseDialog({
       setAmount(String(editingExpense.amount));
       setLitres(editingExpense.litres === null ? '' : String(editingExpense.litres));
       setOdometerKm(editingExpense.odometerKm === null ? '' : String(editingExpense.odometerKm));
+      setFuelProductType(editingExpense.fuelProductType ?? '');
       setOccurredOn(editingExpense.occurredOn);
       setSupplier(editingExpense.supplier ?? '');
       setNote(editingExpense.note ?? '');
@@ -306,6 +348,7 @@ export function VehicleExpenseDialog({
       setAmount('');
       setLitres('');
       setOdometerKm('');
+      setFuelProductType('');
       setOccurredOn('');
       setSupplier('');
       setNote('');
@@ -332,6 +375,7 @@ export function VehicleExpenseDialog({
       amount: parsedAmount,
       litres: isFuel ? parsedLitres : null,
       odometerKm: odometerKm.trim() === '' ? null : Number(odometerKm),
+      fuelProductType: isFuel ? fuelProductType.trim() || null : null,
       occurredOn: occurredOn || null,
       supplier: supplier.trim() || null,
       note: note.trim() || null,
@@ -430,6 +474,17 @@ export function VehicleExpenseDialog({
               helperText={t('vehicleExpenses.odometerHint')}
             />
           </Grid>
+
+          {isFuel && (
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                fullWidth
+                label={t('vehicleExpenses.fuelProductType')}
+                value={fuelProductType}
+                onChange={(event) => setFuelProductType(event.target.value)}
+              />
+            </Grid>
+          )}
 
           <Grid size={{ xs: 12, sm: 6 }}>
             <TextField

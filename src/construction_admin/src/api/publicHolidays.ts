@@ -4,6 +4,8 @@ import type { PublicHoliday, PublicHolidayCandidate, PublicHolidayInput } from '
 
 export interface PublicHolidayListQuery {
   year?: number;
+  /** ISO 3166-1 alpha-2. */
+  countryCode?: string;
 }
 
 export interface HolidaySyncPreviewQuery {
@@ -12,6 +14,8 @@ export interface HolidaySyncPreviewQuery {
 }
 
 export interface ImportPublicHolidaysInput {
+  /** ISO 3166-1 alpha-2 — every item belongs to this one country, the one previewed. */
+  countryCode: string;
   items: { date: string; name: string }[];
 }
 

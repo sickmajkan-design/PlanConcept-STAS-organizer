@@ -28,6 +28,8 @@ public record UploadAttachmentCommand : IRequest<AttachmentDto>
     public string? Description { get; init; }
 
     public DateOnly? ExpiresAt { get; init; }
+
+    public DateOnly? RetainUntil { get; init; }
 }
 
 public class UploadAttachmentCommandValidator : AbstractValidator<UploadAttachmentCommand>
@@ -64,6 +66,9 @@ public class UploadAttachmentCommandValidator : AbstractValidator<UploadAttachme
         RuleFor(x => x.ExpiresAt)
             .Null().WithMessage("A photograph does not expire.")
             .When(x => x.Category == AttachmentCategory.Photo);
+
+        // No Photo restriction on RetainUntil, unlike ExpiresAt above — a
+        // site photo can be exactly the evidence a legal dispute needs kept.
     }
 }
 
@@ -116,6 +121,7 @@ public class UploadAttachmentCommandHandler
             Category = request.Category,
             Description = request.Description?.Trim(),
             ExpiresAt = request.ExpiresAt,
+            RetainUntil = request.RetainUntil,
             UploadedByUserId = _currentUserService.UserId
         };
 
@@ -212,6 +218,16 @@ public class UploadAttachmentCommandHandler
                 await _context.FinanceEntries.AnyAsync(f => f.Id == id, cancellationToken),
             AttachmentOwnerType.ToolExpense =>
                 await _context.ToolExpenses.AnyAsync(t => t.Id == id, cancellationToken),
+            AttachmentOwnerType.VehicleRentalRate =>
+                await _context.VehicleRentalRates.AnyAsync(r => r.Id == id, cancellationToken),
+            AttachmentOwnerType.GeneralExpense =>
+                await _context.GeneralExpenses.AnyAsync(g => g.Id == id, cancellationToken),
+            AttachmentOwnerType.Accommodation =>
+                await _context.Accommodations.AnyAsync(a => a.Id == id, cancellationToken),
+            AttachmentOwnerType.AccommodationRate =>
+                await _context.AccommodationRates.AnyAsync(r => r.Id == id, cancellationToken),
+            AttachmentOwnerType.ToolRentalRate =>
+                await _context.ToolRentalRates.AnyAsync(r => r.Id == id, cancellationToken),
             _ => false
         };
 

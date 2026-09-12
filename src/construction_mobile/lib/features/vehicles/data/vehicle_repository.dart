@@ -34,6 +34,59 @@ class VehicleRepository extends ApiRepository {
     return getJson('/api/v1/vehicles/$id', Vehicle.fromJson);
   }
 
+  Future<Vehicle> create({
+    required String brand,
+    required String model,
+    required String registrationNumber,
+    String? vin,
+    required String fuelType,
+    String status = 'Available',
+    String ownershipType = 'Owned',
+  }) {
+    return postJson(
+      '/api/v1/vehicles',
+      Vehicle.fromJson,
+      data: {
+        'brand': brand,
+        'model': model,
+        'registrationNumber': registrationNumber,
+        'vin': ?vin,
+        'fuelType': fuelType,
+        'status': status,
+        'ownershipType': ownershipType,
+      },
+    );
+  }
+
+  Future<Vehicle> update(
+    String id, {
+    required String brand,
+    required String model,
+    required String registrationNumber,
+    String? vin,
+    required String fuelType,
+    required String status,
+    required String ownershipType,
+  }) {
+    return putJson(
+      '/api/v1/vehicles/$id',
+      Vehicle.fromJson,
+      data: {
+        'brand': brand,
+        'model': model,
+        'registrationNumber': registrationNumber,
+        'vin': ?vin,
+        'fuelType': fuelType,
+        'status': status,
+        'ownershipType': ownershipType,
+      },
+    );
+  }
+
+  Future<void> remove(String id) {
+    return deleteVoid('/api/v1/vehicles/$id');
+  }
+
   /// Looks a vehicle up by its QR label. Open to every authenticated
   /// employee, including roles without directory access.
   Future<Vehicle> fetchVehicleByQrCode(String qrCode) {

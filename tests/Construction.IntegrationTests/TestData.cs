@@ -59,15 +59,30 @@ public static class TestData
         return employee;
     }
 
+    public static async Task<Customer> SeedCustomerAsync(TestScope scope, string? name = null)
+    {
+        var customer = new Customer
+        {
+            Name = name ?? $"Customer {UniqueSuffix()}"
+        };
+
+        scope.Db.Customers.Add(customer);
+        await scope.Db.SaveChangesAsync();
+
+        return customer;
+    }
+
     public static async Task<Project> SeedProjectAsync(
         TestScope scope,
         string? name = null,
-        ProjectStatus status = ProjectStatus.Active)
+        ProjectStatus status = ProjectStatus.Active,
+        string? countryCode = null)
     {
         var project = new Project
         {
             Name = name ?? $"Project {UniqueSuffix()}",
-            Status = status
+            Status = status,
+            CountryCode = countryCode,
         };
 
         scope.Db.Projects.Add(project);
@@ -127,5 +142,71 @@ public static class TestData
         await scope.Db.SaveChangesAsync();
 
         return vehicle;
+    }
+
+    public static async Task<VehicleRentalRate> SeedVehicleRentalRateAsync(
+        TestScope scope,
+        Guid? vehicleId = null)
+    {
+        var rate = new VehicleRentalRate
+        {
+            VehicleId = vehicleId ?? (await SeedVehicleAsync(scope)).Id,
+            MonthlyAmount = 350m,
+            StartDate = new DateOnly(2026, 1, 1)
+        };
+
+        scope.Db.VehicleRentalRates.Add(rate);
+        await scope.Db.SaveChangesAsync();
+
+        return rate;
+    }
+
+    public static async Task<GeneralExpense> SeedGeneralExpenseAsync(
+        TestScope scope,
+        GeneralExpenseCategory category = GeneralExpenseCategory.Bookkeeping)
+    {
+        var expense = new GeneralExpense
+        {
+            Category = category,
+            Amount = 120m,
+            OccurredOn = new DateOnly(2026, 1, 15)
+        };
+
+        scope.Db.GeneralExpenses.Add(expense);
+        await scope.Db.SaveChangesAsync();
+
+        return expense;
+    }
+
+    public static async Task<Accommodation> SeedAccommodationAsync(
+        TestScope scope,
+        string? address = null)
+    {
+        var accommodation = new Accommodation
+        {
+            Address = address ?? $"Ulica {UniqueSuffix()}"
+        };
+
+        scope.Db.Accommodations.Add(accommodation);
+        await scope.Db.SaveChangesAsync();
+
+        return accommodation;
+    }
+
+    public static async Task<AccommodationRate> SeedAccommodationRateAsync(
+        TestScope scope,
+        Guid? accommodationId = null)
+    {
+        var rate = new AccommodationRate
+        {
+            AccommodationId = accommodationId ?? (await SeedAccommodationAsync(scope)).Id,
+            MonthlyAmount = 300m,
+            StartDate = new DateOnly(2026, 1, 1)
+        };
+
+        scope.Db.AccommodationRates.Add(rate);
+        await scope.Db.SaveChangesAsync();
+
+        return rate;
     }
 }

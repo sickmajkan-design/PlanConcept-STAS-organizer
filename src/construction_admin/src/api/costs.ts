@@ -23,16 +23,28 @@ import type {
   MaterialMovementSummary,
   PagedList,
   ProjectCostReport,
+  ReturnRentalOutInput,
   ToolCostReport,
   ToolExpense,
   ToolExpenseInput,
   ToolExpenseKind,
   ToolExpenseSummary,
+  ToolRentalOut,
+  ToolRentalOutInput,
+  ToolRentalOutSummary,
+  ToolRentalRate,
+  ToolRentalRateInput,
+  ToolRentalRateSummary,
+  UpdateToolRentalOutInput,
+  UpdateVehicleRentalOutInput,
   VehicleCostReport,
   VehicleExpense,
   VehicleExpenseInput,
   VehicleExpenseKind,
   VehicleExpenseSummary,
+  VehicleRentalOut,
+  VehicleRentalOutInput,
+  VehicleRentalOutSummary,
   VehicleRentalRate,
   VehicleRentalRateInput,
   VehicleRentalRateSummary,
@@ -71,6 +83,30 @@ export interface VehicleRentalRateListQuery extends ListQuery {
   vehicleId?: string;
   /** Only the rate in force today. */
   currentOnly?: boolean;
+}
+
+export interface ToolRentalRateListQuery extends ListQuery {
+  toolId?: string;
+  /** Only the rate in force today. */
+  currentOnly?: boolean;
+}
+
+export interface VehicleRentalOutListQuery extends ListQuery {
+  vehicleId?: string;
+  /** Only loans still out. */
+  openOnly?: boolean;
+  /** `YYYY-MM-DD`. */
+  from?: string;
+  to?: string;
+}
+
+export interface ToolRentalOutListQuery extends ListQuery {
+  toolId?: string;
+  /** Only loans still out. */
+  openOnly?: boolean;
+  /** `YYYY-MM-DD`. */
+  from?: string;
+  to?: string;
 }
 
 export interface CostReportQuery {
@@ -277,6 +313,123 @@ export const costsApi = {
 
     remove: (id: string) =>
       request<void>({ method: 'DELETE', url: `/api/v1/tool-expenses/${id}` }),
+  },
+
+  toolRentalRates: {
+    list: (query: ToolRentalRateListQuery) =>
+      request<PagedList<ToolRentalRate>>({
+        method: 'GET',
+        url: '/api/v1/tool-rental-rates',
+        params: listParams(query),
+      }),
+
+    summary: (query: Omit<ToolRentalRateListQuery, keyof ListQuery>) =>
+      request<ToolRentalRateSummary>({
+        method: 'GET',
+        url: '/api/v1/tool-rental-rates/summary',
+        params: listParams(query),
+      }),
+
+    set: (input: ToolRentalRateInput, idempotencyKey?: string) =>
+      request<ToolRentalRate>({
+        method: 'POST',
+        url: '/api/v1/tool-rental-rates',
+        data: input,
+        headers: idempotencyHeaders(idempotencyKey),
+      }),
+
+    update: (id: string, input: ToolRentalRateInput, idempotencyKey?: string) =>
+      request<ToolRentalRate>({
+        method: 'PUT',
+        url: `/api/v1/tool-rental-rates/${id}`,
+        data: input,
+        headers: idempotencyHeaders(idempotencyKey),
+      }),
+
+    remove: (id: string) =>
+      request<void>({ method: 'DELETE', url: `/api/v1/tool-rental-rates/${id}` }),
+  },
+
+  vehicleRentalsOut: {
+    list: (query: VehicleRentalOutListQuery) =>
+      request<PagedList<VehicleRentalOut>>({
+        method: 'GET',
+        url: '/api/v1/vehicle-rentals-out',
+        params: listParams(query),
+      }),
+
+    summary: (query: Omit<VehicleRentalOutListQuery, keyof ListQuery>) =>
+      request<VehicleRentalOutSummary>({
+        method: 'GET',
+        url: '/api/v1/vehicle-rentals-out/summary',
+        params: listParams(query),
+      }),
+
+    record: (input: VehicleRentalOutInput, idempotencyKey?: string) =>
+      request<VehicleRentalOut>({
+        method: 'POST',
+        url: '/api/v1/vehicle-rentals-out',
+        data: input,
+        headers: idempotencyHeaders(idempotencyKey),
+      }),
+
+    return: (id: string, input: ReturnRentalOutInput) =>
+      request<VehicleRentalOut>({
+        method: 'PUT',
+        url: `/api/v1/vehicle-rentals-out/${id}/return`,
+        data: input,
+      }),
+
+    update: (id: string, input: UpdateVehicleRentalOutInput) =>
+      request<VehicleRentalOut>({
+        method: 'PUT',
+        url: `/api/v1/vehicle-rentals-out/${id}`,
+        data: input,
+      }),
+
+    remove: (id: string) =>
+      request<void>({ method: 'DELETE', url: `/api/v1/vehicle-rentals-out/${id}` }),
+  },
+
+  toolRentalsOut: {
+    list: (query: ToolRentalOutListQuery) =>
+      request<PagedList<ToolRentalOut>>({
+        method: 'GET',
+        url: '/api/v1/tool-rentals-out',
+        params: listParams(query),
+      }),
+
+    summary: (query: Omit<ToolRentalOutListQuery, keyof ListQuery>) =>
+      request<ToolRentalOutSummary>({
+        method: 'GET',
+        url: '/api/v1/tool-rentals-out/summary',
+        params: listParams(query),
+      }),
+
+    record: (input: ToolRentalOutInput, idempotencyKey?: string) =>
+      request<ToolRentalOut>({
+        method: 'POST',
+        url: '/api/v1/tool-rentals-out',
+        data: input,
+        headers: idempotencyHeaders(idempotencyKey),
+      }),
+
+    return: (id: string, input: ReturnRentalOutInput) =>
+      request<ToolRentalOut>({
+        method: 'PUT',
+        url: `/api/v1/tool-rentals-out/${id}/return`,
+        data: input,
+      }),
+
+    update: (id: string, input: UpdateToolRentalOutInput) =>
+      request<ToolRentalOut>({
+        method: 'PUT',
+        url: `/api/v1/tool-rentals-out/${id}`,
+        data: input,
+      }),
+
+    remove: (id: string) =>
+      request<void>({ method: 'DELETE', url: `/api/v1/tool-rentals-out/${id}` }),
   },
 
   financeEntries: {

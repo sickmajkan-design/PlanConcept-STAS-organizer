@@ -24,4 +24,7 @@ public class LedgerCell : BaseEntity, IAuditable
     public LedgerColumn Column { get; set; } = null!;
 
     public string? Value { get; set; }
+
+    /// <summary>Hex color for the cell's background (e.g. "#F6C6C6"), or null for none.</summary>
+    public string? ColorTag { get; set; }
 }

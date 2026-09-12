@@ -38,6 +38,7 @@ class MyWorkScreen extends ConsumerWidget {
             filters: const [workIncludeFinishedFilter],
             selectedFilter: controller.filter,
             onFilterSelected: controller.applyFilter,
+            filterLabel: (context, _) => context.l10n.workItemsIncludeFinished,
           ),
           itemBuilder: (context, item) => _WorkItemCard(item: item),
         ),

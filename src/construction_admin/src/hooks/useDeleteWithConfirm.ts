@@ -2,28 +2,35 @@ import { useState } from 'react';
 import type { UseMutationResult } from '@tanstack/react-query';
 
 import { toApiError, type ApiError } from '../api/apiError';
+import { useT } from '../i18n/useI18n';
+import { scheduleUndoableDelete } from './undoQueue';
 
 /**
- * Holds the row awaiting confirmation and runs the delete once confirmed.
+ * Holds the row awaiting confirmation, then — once confirmed — queues the
+ * actual delete a few seconds out instead of running it immediately, so
+ * confirming is not the last unrecoverable moment.
  *
- * A failed delete deliberately leaves the dialog open: the mutation's own
- * error state is what the page shows, and closing the dialog would suggest
- * the row went away when it did not.
+ * The confirm dialog closes right away; the row itself stays visible in the
+ * list until the deferred delete actually runs and the list refetches, and
+ * the global undo snackbar (`UndoSnackbarHost`, mounted once in `AppLayout`)
+ * is what lets the operator cancel it before that happens. Every caller
+ * keeps working unmodified: `confirm` still just gets called from a
+ * `ConfirmDialog`'s `onConfirm`, and `error` still surfaces a failed delete
+ * whenever the deferred mutation eventually runs and rejects.
  */
 export function useDeleteWithConfirm<T extends { id: string }>(
   mutation: UseMutationResult<void, unknown, string, unknown>,
 ) {
+  const t = useT();
   const [pending, setPending] = useState<T | null>(null);
 
   const confirm = async () => {
     if (!pending) return;
 
-    try {
-      await mutation.mutateAsync(pending.id);
-      setPending(null);
-    } catch {
-      // Surfaced by the caller through the mutation's error state.
-    }
+    const id = pending.id;
+    setPending(null);
+
+    scheduleUndoableDelete(t('common.deletedUndoMessage'), () => mutation.mutateAsync(id));
   };
 
   // Converted here rather than in every page: the raw mutation error is

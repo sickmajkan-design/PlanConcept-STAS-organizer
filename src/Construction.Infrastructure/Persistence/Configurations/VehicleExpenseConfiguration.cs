@@ -20,6 +20,7 @@ public class VehicleExpenseConfiguration : IEntityTypeConfiguration<VehicleExpen
         builder.Property(e => e.Litres).HasPrecision(18, 3);
 
         builder.Property(e => e.Supplier).HasMaxLength(200);
+        builder.Property(e => e.FuelProductType).HasMaxLength(100);
         builder.Property(e => e.Note).HasMaxLength(500);
 
         builder.HasOne(e => e.Vehicle)

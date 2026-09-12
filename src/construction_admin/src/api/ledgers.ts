@@ -5,13 +5,20 @@ import type {
   LedgerColumn,
   LedgerColumnInput,
   LedgerDetail,
+  LedgerPromotion,
   LedgerRow,
+  LedgerUnlinkedRow,
   LedgerRowInput,
   LedgerSection,
   LedgerSectionInput,
   LedgerSummary,
+  LedgerSummaryBox,
+  LedgerSummaryBoxInput,
+  LedgerSummaryPanel,
   ListQuery,
   PagedList,
+  PromoteLedgerRowToAccommodationRateInput,
+  PromoteLedgerRowToGeneralExpenseInput,
   UpdateLedgerInput,
 } from './types';
 
@@ -21,6 +28,12 @@ export interface SetLedgerCellInput {
   rowId: string;
   columnId: string;
   value: string | null;
+}
+
+export interface SetLedgerCellColorInput {
+  rowId: string;
+  columnId: string;
+  color: string | null;
 }
 
 /**
@@ -101,6 +114,13 @@ export const ledgersApi = {
   },
 
   rows: {
+    /** One section's rows and cells — fetched only once that section is opened. */
+    getForSection: (ledgerId: string, sectionId: string) =>
+      request<LedgerSection>({
+        method: 'GET',
+        url: `/api/v1/ledgers/${ledgerId}/sections/${sectionId}/rows`,
+      }),
+
     add: (sectionId: string, input: LedgerRowInput) =>
       request<LedgerRow>({
         method: 'POST',
@@ -124,8 +144,76 @@ export const ledgersApi = {
         url: `/api/v1/ledgers/sections/${sectionId}/rows/reorder`,
         data: { orderedRowIds },
       }),
+
+    /** Pushes a manually-typed row through the real General Expense form — an explicit action, not a sync. */
+    promoteToGeneralExpense: (rowId: string, input: PromoteLedgerRowToGeneralExpenseInput) =>
+      request<LedgerRow>({
+        method: 'POST',
+        url: `/api/v1/ledgers/rows/${rowId}/promote/general-expense`,
+        data: input,
+      }),
+
+    /** Pushes a manually-typed row through the real Accommodation-rate form. */
+    promoteToAccommodationRate: (rowId: string, input: PromoteLedgerRowToAccommodationRateInput) =>
+      request<LedgerRow>({
+        method: 'POST',
+        url: `/api/v1/ledgers/rows/${rowId}/promote/accommodation-rate`,
+        data: input,
+      }),
   },
 
   setCell: (input: SetLedgerCellInput) =>
     request<void>({ method: 'PUT', url: '/api/v1/ledgers/cells', data: input }),
+
+  setRowColor: (rowId: string, color: string | null) =>
+    request<void>({ method: 'PUT', url: `/api/v1/ledgers/rows/${rowId}/color`, data: { color } }),
+
+  setCellColor: (input: SetLedgerCellColorInput) =>
+    request<void>({ method: 'PUT', url: '/api/v1/ledgers/cells/color', data: input }),
+
+  /** Every row with no Employee/Vehicle/Tool/Material link — one call across the whole ledger. */
+  unlinkedRows: (ledgerId: string) =>
+    request<LedgerUnlinkedRow[]>({
+      method: 'GET',
+      url: `/api/v1/ledgers/${ledgerId}/unlinked-rows`,
+    }),
+
+  /** Every row already pushed through to a real expense/rate this month. */
+  promotions: (ledgerId: string) =>
+    request<LedgerPromotion[]>({
+      method: 'GET',
+      url: `/api/v1/ledgers/${ledgerId}/promotions`,
+    }),
+
+  summary: {
+    get: (ledgerId: string) =>
+      request<LedgerSummaryPanel>({
+        method: 'GET',
+        url: `/api/v1/ledgers/${ledgerId}/summary`,
+      }),
+
+    addBox: (ledgerId: string, input: LedgerSummaryBoxInput) =>
+      request<LedgerSummaryBox>({
+        method: 'POST',
+        url: `/api/v1/ledgers/${ledgerId}/summary-boxes`,
+        data: input,
+      }),
+
+    updateBox: (boxId: string, input: LedgerSummaryBoxInput) =>
+      request<LedgerSummaryBox>({
+        method: 'PUT',
+        url: `/api/v1/ledgers/summary-boxes/${boxId}`,
+        data: input,
+      }),
+
+    removeBox: (boxId: string) =>
+      request<void>({ method: 'DELETE', url: `/api/v1/ledgers/summary-boxes/${boxId}` }),
+
+    reorderBoxes: (ledgerId: string, orderedBoxIds: string[]) =>
+      request<void>({
+        method: 'PUT',
+        url: `/api/v1/ledgers/${ledgerId}/summary-boxes/reorder`,
+        data: { orderedBoxIds },
+      }),
+  },
 };

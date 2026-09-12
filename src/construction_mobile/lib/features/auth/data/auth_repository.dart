@@ -51,6 +51,16 @@ class AuthRepository extends ApiRepository {
     );
   }
 
+  /// Records which language this account reads the app in, so a push
+  /// notification sent before the app is open can be rendered in it too —
+  /// the in-app inbox already renders client-side and does not need this.
+  Future<void> updatePreferredLanguage(String languageCode) {
+    return putVoid(
+      '/api/v1/auth/me/language',
+      data: {'languageCode': languageCode},
+    );
+  }
+
   Future<void> requestPasswordReset(String email) {
     return postVoid('/api/v1/auth/forgot-password', data: {'email': email});
   }

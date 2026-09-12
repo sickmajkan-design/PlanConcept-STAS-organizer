@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,11 +9,18 @@ import 'app.dart';
 import 'core/config/server_address.dart';
 import 'core/telemetry/client_error_reporter.dart';
 import 'core/widgets/crash_panel.dart';
+import 'features/notifications/presentation/push_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   installCrashPanel();
+
+  // Registered unconditionally and before runApp, as FCM requires — the
+  // handler itself no-ops when Firebase turns out not to be configured for
+  // this build (see `firebaseMessagingBackgroundHandler`), so this is safe
+  // even when a device never ends up with a real push subscription.
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
   // Before runApp, so a crash while the first screen is being built is
   // reported too — that is the one that leaves a worker with an app that

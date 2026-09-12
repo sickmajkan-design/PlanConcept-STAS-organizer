@@ -98,6 +98,9 @@ public class CreateWorkItemCommandHandler
         await WorkItemNotifier.NotifyAssignedAsync(
             _context, _notifications, item, cancellationToken);
 
+        await WorkItemNotifier.NotifyUnassignedDefectAsync(
+            _context, _notifications, item, cancellationToken);
+
         return await _context.WorkItems
             .AsNoTracking()
             .Where(w => w.Id == item.Id)

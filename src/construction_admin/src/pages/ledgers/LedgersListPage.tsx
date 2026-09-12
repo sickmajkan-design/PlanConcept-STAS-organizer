@@ -26,6 +26,7 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { RowActions } from '../../components/RowActions';
+import { SavedViewsBar } from '../../components/SavedViewsBar';
 import { SearchField } from '../../components/SearchField';
 import {
   useCreateLedger,
@@ -45,7 +46,7 @@ const MONTH_NAMES_KEYS = [
 export function LedgersListPage() {
   const navigate = useNavigate();
   const t = useT();
-  const list = useListQueryState('year', 'desc');
+  const list = useListQueryState('year', 'desc', 'ledgers');
 
   const query: LedgerListQuery = list.query;
 
@@ -123,6 +124,17 @@ export function LedgersListPage() {
           placeholder={t('ledgers.searchPlaceholder')}
         />
       </Stack>
+
+      {list.savedViews && (
+        <Box sx={{ mb: 2 }}>
+          <SavedViewsBar
+            views={list.savedViews.views}
+            onApply={list.savedViews.applyView}
+            onSave={list.savedViews.saveCurrentView}
+            onDelete={list.savedViews.deleteView}
+          />
+        </Box>
+      )}
 
       <ResourceDataGrid
         data={data}

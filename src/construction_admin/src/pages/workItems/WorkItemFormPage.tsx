@@ -25,6 +25,7 @@ import { toApiError } from '../../api/apiError';
 import {
   workItemKinds,
   workItemPriorities,
+  type WorkItem,
   type WorkItemInput,
 } from '../../api/types';
 import { AttachmentList } from '../../components/AttachmentList';
@@ -154,6 +155,8 @@ export function WorkItemFormPage() {
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <Stack spacing={2.5}>
             {rootError?.message && <Alert severity="error">{rootError.message}</Alert>}
+
+            {isEdit && existing && <LocationSection item={existing} />}
 
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, sm: 6 }}>
@@ -354,5 +357,28 @@ export function WorkItemFormPage() {
         </Card>
       )}
     </Box>
+  );
+}
+
+/**
+ * Where the phone was when this was reported, read-only — a defect raised
+ * from the office (via this same form) never sets these.
+ */
+function LocationSection({ item }: { item: WorkItem }) {
+  const t = useT();
+
+  if (item.latitude === null || item.longitude === null) {
+    return null;
+  }
+
+  return (
+    <Paper variant="outlined" sx={{ p: 2 }}>
+      <Typography variant="caption" color="text.secondary">
+        {t('workItems.reportedLocation')}
+      </Typography>
+      <Typography variant="body2">
+        {item.latitude.toFixed(5)}, {item.longitude.toFixed(5)}
+      </Typography>
+    </Paper>
   );
 }

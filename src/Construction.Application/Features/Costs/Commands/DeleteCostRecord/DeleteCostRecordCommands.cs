@@ -302,6 +302,64 @@ public class DeleteVehicleRentalRateCommandHandler : IRequestHandler<DeleteVehic
     }
 }
 
+public record DeleteToolRentalRateCommand(Guid Id) : IRequest;
+
+public class DeleteToolRentalRateCommandHandler : IRequestHandler<DeleteToolRentalRateCommand>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+
+    public DeleteToolRentalRateCommandHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+    }
+
+    public async Task Handle(
+        DeleteToolRentalRateCommand request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanDeleteSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not remove rental rates.");
+        }
+
+        var rate = await _context.ToolRentalRates
+            .FirstOrDefaultAsync(r => r.Id == request.Id, cancellationToken)
+            ?? throw new NotFoundException(nameof(ToolRentalRate), request.Id);
+
+        // Same reopening rule as DeleteVehicleRentalRateCommand: deleting the
+        // rate that closed a predecessor must not leave that predecessor
+        // stuck ending the day before a rate that no longer exists.
+        var predecessor = await _context.ToolRentalRates
+            .Where(r => r.ToolId == rate.ToolId
+                && r.Id != rate.Id
+                && r.EndDate == rate.StartDate.AddDays(-1))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (predecessor is not null)
+        {
+            var somethingElseFollows = await _context.ToolRentalRates
+                .AnyAsync(
+                    r => r.ToolId == rate.ToolId
+                        && r.Id != rate.Id
+                        && r.Id != predecessor.Id
+                        && r.StartDate > predecessor.EndDate!.Value,
+                    cancellationToken);
+
+            if (!somethingElseFollows)
+            {
+                predecessor.EndDate = null;
+            }
+        }
+
+        _context.ToolRentalRates.Remove(rate);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+}
+
 public record DeleteGeneralExpenseCommand(Guid Id) : IRequest;
 
 public class DeleteGeneralExpenseCommandHandler : IRequestHandler<DeleteGeneralExpenseCommand>
@@ -331,6 +389,100 @@ public class DeleteGeneralExpenseCommandHandler : IRequestHandler<DeleteGeneralE
             ?? throw new NotFoundException(nameof(GeneralExpense), request.Id);
 
         _context.GeneralExpenses.Remove(expense);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+}
+
+public record DeleteVehicleRentalOutCommand(Guid Id) : IRequest;
+
+public class DeleteVehicleRentalOutCommandHandler : IRequestHandler<DeleteVehicleRentalOutCommand>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+
+    public DeleteVehicleRentalOutCommandHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+    }
+
+    public async Task Handle(
+        DeleteVehicleRentalOutCommand request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanDeleteSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not remove vehicle rentals.");
+        }
+
+        var rental = await _context.VehicleRentalsOut
+            .FirstOrDefaultAsync(r => r.Id == request.Id, cancellationToken)
+            ?? throw new NotFoundException(nameof(VehicleRentalOut), request.Id);
+
+        // Deleting the open loan must not leave the vehicle stuck as
+        // RentedOut with nothing left that can now return it. A closed loan
+        // already reverted the vehicle when it was returned, so deleting it
+        // afterwards must not touch the vehicle's current status.
+        if (rental.EndDate is null)
+        {
+            var vehicle = await _context.Vehicles
+                .FirstOrDefaultAsync(v => v.Id == rental.VehicleId, cancellationToken);
+
+            if (vehicle is not null)
+            {
+                vehicle.Status = VehicleStatus.Available;
+            }
+        }
+
+        _context.VehicleRentalsOut.Remove(rental);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+}
+
+public record DeleteToolRentalOutCommand(Guid Id) : IRequest;
+
+public class DeleteToolRentalOutCommandHandler : IRequestHandler<DeleteToolRentalOutCommand>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+
+    public DeleteToolRentalOutCommandHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+    }
+
+    public async Task Handle(
+        DeleteToolRentalOutCommand request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanDeleteSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not remove tool rentals.");
+        }
+
+        var rental = await _context.ToolRentalsOut
+            .FirstOrDefaultAsync(r => r.Id == request.Id, cancellationToken)
+            ?? throw new NotFoundException(nameof(ToolRentalOut), request.Id);
+
+        // Same rule as DeleteVehicleRentalOutCommand: only an open loan needs
+        // its tool status reverted on delete.
+        if (rental.EndDate is null)
+        {
+            var tool = await _context.Tools
+                .FirstOrDefaultAsync(t => t.Id == rental.ToolId, cancellationToken);
+
+            if (tool is not null)
+            {
+                tool.Status = ToolStatus.Available;
+            }
+        }
+
+        _context.ToolRentalsOut.Remove(rental);
         await _context.SaveChangesAsync(cancellationToken);
     }
 }

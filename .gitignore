@@ -55,3 +55,11 @@ Thumbs.db
 
 # Deployment environment, filled in per host. Never committed.
 deploy/.env
+
+# Local attachment storage (FileSystemFileStorage's default root). Every
+# attachment row in the database points at a file here by StorageKey; a
+# `git clean` on an untracked directory like this one deletes the bytes while
+# the database rows survive, leaving attachments that 404 forever. Ignoring
+# it does not make it durable — only S3-backed storage (configure
+# FileStorage:Bucket) is — but it stops git from being the thing that wipes it.
+/src/Construction.API/storage/

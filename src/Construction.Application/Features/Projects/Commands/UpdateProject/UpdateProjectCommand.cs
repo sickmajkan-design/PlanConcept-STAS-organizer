@@ -33,6 +33,7 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
             ?? throw new NotFoundException(nameof(Project), request.Id);
 
         var customerId = request.CustomerId;
+        var countryCode = request.CountryCode?.Trim().ToUpperInvariant();
 
         if (request.ParentProjectId is { } parentProjectId)
         {
@@ -64,8 +65,10 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
             }
 
             // Always the parent's, regardless of what was submitted — a
-            // sub-project belongs to whichever customer its Main project does.
+            // sub-project belongs to whichever customer and country its Main
+            // project does.
             customerId = parent.CustomerId;
+            countryCode = parent.CountryCode;
         }
         else if (request.CustomerId is { } requestedCustomerId)
         {
@@ -85,6 +88,7 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
         project.Address = request.Address?.Trim();
         project.Latitude = request.Latitude;
         project.Longitude = request.Longitude;
+        project.CountryCode = countryCode;
         project.ShiftStartTime = request.ShiftStartTime;
         project.StartDate = request.StartDate;
         project.EndDate = request.EndDate;

@@ -9,6 +9,7 @@ import { useAuth } from '../../auth/useAuth';
 import { loginSchema, type LoginFormValues } from '../../auth/validation';
 import { AuthCard } from '../../components/AuthCard';
 import { PasswordField } from '../../components/PasswordField';
+import { useCompanyBrandingQuery } from '../../features/companySettings/useCompanySettings';
 import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 
@@ -18,6 +19,9 @@ export function LoginPage() {
   const t = useT();
   const location = useLocation() as Location & { state?: { from?: Location } };
   const [error, setError] = useState<ApiError | null>(null);
+  // No auth token available yet — this is the one screen that must render
+  // before there is a session, which is exactly what this query is for.
+  const { data: branding } = useCompanyBrandingQuery();
 
   const {
     control,
@@ -41,7 +45,7 @@ export function LoginPage() {
   };
 
   return (
-    <AuthCard title={t('nav.appName')} subtitle={t('auth.signInToConsole')}>
+    <AuthCard title={branding?.name || t('nav.appName')} subtitle={t('auth.signInToConsole')}>
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <Stack spacing={2.5}>
           {error && <Alert severity="error">{error.message}</Alert>}

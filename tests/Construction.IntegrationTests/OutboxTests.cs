@@ -236,6 +236,68 @@ public class OutboxTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task A_push_is_rendered_in_each_recipients_own_preferred_language()
+    {
+        var (srUser, srToken, enUser, enToken) = await InScope(async scope =>
+        {
+            var sr = await TestData.SeedUserAsync(scope);
+            sr.PreferredLanguage = "sr";
+
+            var en = await TestData.SeedUserAsync(scope);
+            en.PreferredLanguage = "en";
+
+            var srDevice = $"device-{Guid.NewGuid():N}";
+            var enDevice = $"device-{Guid.NewGuid():N}";
+
+            scope.Db.DeviceTokens.Add(new DeviceToken
+            {
+                UserId = sr.Id,
+                Token = srDevice,
+                Platform = DevicePlatform.Android,
+                LastUsedAt = DateTime.UtcNow,
+            });
+
+            scope.Db.DeviceTokens.Add(new DeviceToken
+            {
+                UserId = en.Id,
+                Token = enDevice,
+                Platform = DevicePlatform.Android,
+                LastUsedAt = DateTime.UtcNow,
+            });
+
+            await scope.Db.SaveChangesAsync();
+
+            return (sr, srDevice, en, enDevice);
+        });
+
+        var projectName = Subject();
+
+        await InScope(async scope =>
+        {
+            scope.Outbox.Enqueue(new PushPayload(
+                [srUser.Id, enUser.Id],
+                NotificationType.ProjectAssigned,
+                "New project assigned",
+                $"You have been assigned to project '{projectName}'.",
+                new Dictionary<string, string> { ["projectName"] = projectName }));
+
+            await scope.Db.SaveChangesAsync();
+        });
+
+        await InScope(scope => scope.Send(Sweep()));
+
+        var pushes = await InScope(scope => Task.FromResult(scope.Pushes.Sent));
+
+        var toSerbian = Assert.Single(pushes, p => p.Tokens.Contains(srToken));
+        Assert.Equal("Dodijeljeni ste na novo gradilište", toSerbian.Title);
+        Assert.Equal($"Dodijeljeni ste na gradilište \"{projectName}\".", toSerbian.Body);
+
+        var toEnglish = Assert.Single(pushes, p => p.Tokens.Contains(enToken));
+        Assert.Equal("New project assigned", toEnglish.Title);
+        Assert.Equal($"You have been assigned to project '{projectName}'.", toEnglish.Body);
+    }
+
+    [Fact]
     public async Task A_push_to_somebody_with_no_device_counts_as_delivered()
     {
         var user = await InScope(scope => TestData.SeedUserAsync(scope));

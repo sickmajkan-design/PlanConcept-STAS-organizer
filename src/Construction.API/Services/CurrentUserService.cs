@@ -9,6 +9,12 @@ namespace Construction.API.Services;
 /// Exposes the authenticated user's identity (from JWT claims) to the
 /// Application layer without leaking HTTP concerns into it.
 /// </summary>
+/// <remarks>
+/// Checks <see cref="CurrentUserOverride"/> first. A background job has no
+/// <see cref="HttpContext"/> to read claims from at all — the override is
+/// how one stands in for the user whose scheduled action it is running,
+/// rather than every property here silently reading as "nobody".
+/// </remarks>
 public class CurrentUserService : ICurrentUserService
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -22,6 +28,8 @@ public class CurrentUserService : ICurrentUserService
     {
         get
         {
+            if (CurrentUserOverride.Current is { } identity) return identity.UserId;
+
             var value = _httpContextAccessor.HttpContext?.User
                 .FindFirstValue(JwtRegisteredClaimNames.Sub);
 
@@ -33,6 +41,8 @@ public class CurrentUserService : ICurrentUserService
     {
         get
         {
+            if (CurrentUserOverride.Current is { } identity) return identity.EmployeeId;
+
             var value = _httpContextAccessor.HttpContext?.User.FindFirstValue("employeeId");
 
             return Guid.TryParse(value, out var id) ? id : null;
@@ -40,12 +50,15 @@ public class CurrentUserService : ICurrentUserService
     }
 
     public string? Email =>
-        _httpContextAccessor.HttpContext?.User.FindFirstValue(JwtRegisteredClaimNames.Email);
+        CurrentUserOverride.Current?.Email
+        ?? _httpContextAccessor.HttpContext?.User.FindFirstValue(JwtRegisteredClaimNames.Email);
 
     public UserRole? Role
     {
         get
         {
+            if (CurrentUserOverride.Current is { } identity) return identity.Role;
+
             var value = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Role);
 
             return Enum.TryParse<UserRole>(value, out var role) ? role : null;

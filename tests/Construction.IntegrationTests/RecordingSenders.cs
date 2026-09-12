@@ -16,7 +16,7 @@ public sealed class RecordingEmailSender : IEmailSender
 {
     private readonly Lock _gate = new();
 
-    private readonly List<(string To, string Subject, string HtmlBody)> _sent = [];
+    private readonly List<(string To, string Subject, string HtmlBody, EmailAttachment? Attachment)> _sent = [];
 
     /// <summary>Set to make every send throw. Cleared between tests.</summary>
     public Exception? FailWith { get; set; }
@@ -31,7 +31,7 @@ public sealed class RecordingEmailSender : IEmailSender
     /// </remarks>
     public Func<Task>? OnSend { get; set; }
 
-    public IReadOnlyList<(string To, string Subject, string HtmlBody)> Sent
+    public IReadOnlyList<(string To, string Subject, string HtmlBody, EmailAttachment? Attachment)> Sent
     {
         get
         {
@@ -56,6 +56,7 @@ public sealed class RecordingEmailSender : IEmailSender
         string to,
         string subject,
         string htmlBody,
+        EmailAttachment? attachment = null,
         CancellationToken cancellationToken = default)
     {
         if (FailWith is { } failure)
@@ -65,7 +66,7 @@ public sealed class RecordingEmailSender : IEmailSender
 
         lock (_gate)
         {
-            _sent.Add((to, subject, htmlBody));
+            _sent.Add((to, subject, htmlBody, attachment));
         }
 
         if (OnSend is { } hook)

@@ -26,6 +26,7 @@ export const projectFormSchema = z
     customerId: z.string().optional().or(z.literal('')),
     parentProjectId: z.string().optional().or(z.literal('')),
     address: z.string().trim().max(512).optional().or(z.literal('')),
+    countryCode: z.string().optional().or(z.literal('')),
     latitude: optionalCoordinate,
     longitude: optionalCoordinate,
     shiftStartTime: z.string().optional().or(z.literal('')),

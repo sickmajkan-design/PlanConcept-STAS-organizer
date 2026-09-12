@@ -2,14 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/router/app_routes.dart';
+import '../../../core/utils/formatting.dart';
+import '../../../core/widgets/confirm_dialog.dart';
 import '../../../core/widgets/failure_view.dart';
 import '../../../core/widgets/info_tile.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
 import '../../attachments/presentation/attachment_section.dart';
+import '../../auth/presentation/auth_controller.dart';
 import '../data/models/tool.dart';
+import '../data/tool_repository.dart';
+import 'tool_form_sheet.dart';
+import 'tool_rental_out_section.dart';
+import 'tool_rental_rate_section.dart';
 import 'tools_controller.dart';
 
 class ToolDetailScreen extends ConsumerWidget {
@@ -20,9 +29,36 @@ class ToolDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final detail = ref.watch(toolDetailProvider(toolId));
+    final canManage = ref.watch(currentUserProvider)?.isAdminAndAbove ?? false;
+    final loadedTool = detail.value;
 
     return Scaffold(
-      appBar: AppBar(title: Text(detail.value?.name ?? 'Tool')),
+      appBar: AppBar(
+        title: Text(loadedTool?.name ?? context.l10n.commonTool),
+        actions: [
+          if (canManage && loadedTool != null) ...[
+            IconButton(
+              icon: const Icon(Icons.edit_outlined),
+              tooltip: context.l10n.commonEdit,
+              onPressed: () =>
+                  showToolFormSheet(context, ref, existing: loadedTool),
+            ),
+            PopupMenuButton<void>(
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  onTap: () => Future.microtask(
+                    () => _deleteTool(context, ref, loadedTool),
+                  ),
+                  child: Text(
+                    context.l10n.commonDelete,
+                    style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
       body: SafeArea(
         child: detail.when(
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -40,6 +76,12 @@ class ToolDetailScreen extends ConsumerWidget {
                 _ToolInfo(tool: tool),
                 const SizedBox(height: 20),
                 _AssignmentSection(tool: tool),
+                if (tool.isRented) ...[
+                  const SizedBox(height: 20),
+                  ToolRentalRateSection(toolId: tool.id),
+                ],
+                const SizedBox(height: 20),
+                ToolRentalOutSection(tool: tool),
                 const SizedBox(height: 20),
                 _Section(
                   title: context.l10n.attachmentsTitle,
@@ -53,6 +95,33 @@ class ToolDetailScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+Future<void> _deleteTool(BuildContext context, WidgetRef ref, Tool tool) async {
+  final l10n = context.l10n;
+
+  final confirmed = await showConfirmDialog(
+    context,
+    title: l10n.toolDeleteTitle,
+    body: l10n.toolDeleteBody(tool.name),
+    destructive: true,
+  );
+
+  if (!confirmed || !context.mounted) return;
+
+  final messenger = ScaffoldMessenger.of(context);
+  final router = GoRouter.of(context);
+
+  try {
+    await ref.read(toolRepositoryProvider).remove(tool.id);
+    await ref.read(toolsControllerProvider.notifier).refresh();
+
+    if (router.canPop()) {
+      router.pop();
+    }
+  } on ApiException catch (exception) {
+    messenger.showSnackBar(SnackBar(content: Text(exception.describe(l10n))));
   }
 }
 
@@ -117,7 +186,7 @@ class _ToolInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _Section(
-      title: 'Tool',
+      title: context.l10n.commonTool,
       children: [
         InfoTile(
           icon: Icons.confirmation_number_outlined,
@@ -129,6 +198,20 @@ class _ToolInfo extends StatelessWidget {
           label: context.l10n.toolQrCode,
           value: tool.qrCode,
         ),
+        if (tool.isRented) ...[
+          InfoTile(
+            icon: Icons.request_quote_outlined,
+            label: context.l10n.vehicleRentalProvider,
+            value: tool.currentRentalProvider,
+          ),
+          InfoTile(
+            icon: Icons.payments_outlined,
+            label: context.l10n.vehicleRentalMonthlyAmount,
+            value: tool.currentRentalMonthlyAmount == null
+                ? null
+                : formatAmount(tool.currentRentalMonthlyAmount),
+          ),
+        ],
       ],
     );
   }

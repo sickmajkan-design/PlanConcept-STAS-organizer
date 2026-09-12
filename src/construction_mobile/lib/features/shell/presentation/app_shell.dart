@@ -12,7 +12,10 @@ import '../../notifications/presentation/notifications_controller.dart';
 /// Bottom-navigation frame around the signed-in sections.
 ///
 /// The directory tabs are only offered to roles the API actually serves them
-/// to, so a Worker is never shown a tab that would answer 403.
+/// to, so a Worker is never shown a tab that would answer 403. Time Entries
+/// is offered to every employee-linked account, Worker included — it is the
+/// one screen almost everyone opens at least twice a day, which is exactly
+/// why it sits in the bar itself rather than one tap into a card on Home.
 class AppShell extends ConsumerWidget {
   const AppShell({super.key, required this.navigationShell});
 
@@ -20,18 +23,21 @@ class AppShell extends ConsumerWidget {
 
   /// Branch indices in the order declared by the router.
   static const int _homeBranch = 0;
-  static const int _employeesBranch = 1;
-  static const int _projectsBranch = 2;
-  static const int _notificationsBranch = 3;
+  static const int _timeEntriesBranch = 1;
+  static const int _employeesBranch = 2;
+  static const int _projectsBranch = 3;
+  static const int _notificationsBranch = 4;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final canViewDirectory =
-        ref.watch(currentUserProvider)?.canViewDirectory ?? false;
+    final user = ref.watch(currentUserProvider);
+    final canViewDirectory = user?.canViewDirectory ?? false;
+    final isEmployee = user?.isEmployee ?? false;
     final unread = ref.watch(unreadNotificationCountProvider).value ?? 0;
 
     final branches = <int>[
       _homeBranch,
+      if (isEmployee) _timeEntriesBranch,
       if (canViewDirectory) _employeesBranch,
       if (canViewDirectory) _projectsBranch,
       _notificationsBranch,
@@ -62,11 +68,17 @@ class AppShell extends ConsumerWidget {
           );
         },
         destinations: [
-          const NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
+          NavigationDestination(
+            icon: const Icon(Icons.home_outlined),
+            selectedIcon: const Icon(Icons.home),
+            label: context.l10n.navHome,
           ),
+          if (isEmployee)
+            NavigationDestination(
+              icon: const Icon(Icons.schedule_outlined),
+              selectedIcon: const Icon(Icons.schedule),
+              label: context.l10n.navTimeEntries,
+            ),
           if (canViewDirectory) ...[
             NavigationDestination(
               icon: Icon(Icons.people_outline),

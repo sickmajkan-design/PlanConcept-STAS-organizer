@@ -41,7 +41,8 @@ public class CreateToolCommandHandler : IRequestHandler<CreateToolCommand, ToolD
             Category = request.Category?.Trim(),
             SerialNumber = serialNumber,
             QrCode = qrCode,
-            Status = request.Status
+            Status = request.Status,
+            OwnershipType = request.OwnershipType
         };
 
         _context.Tools.Add(tool);

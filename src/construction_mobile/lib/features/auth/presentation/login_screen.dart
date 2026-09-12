@@ -85,7 +85,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      'Construction Organizer',
+                      context.l10n.appName,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w700,
@@ -111,7 +111,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       textInputAction: TextInputAction.next,
                       autocorrect: false,
                       autofillHints: const [AutofillHints.username],
-                      validator: Validators.email,
+                      validator: (value) => Validators.email(value, context.l10n),
                       decoration: InputDecoration(
                         labelText: context.l10n.authEmail,
                         prefixIcon: const Icon(Icons.alternate_email),
@@ -123,8 +123,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       controller: _passwordController,
                       label: context.l10n.authPassword,
                       enabled: !_submitting,
-                      validator: (value) =>
-                          Validators.notEmpty(value, 'Password'),
+                      validator: (value) => Validators.notEmpty(
+                        value,
+                        context.l10n.authPassword,
+                        context.l10n,
+                      ),
                       errorText: error?.errorFor('password'),
                       onSubmitted: _submit,
                     ),

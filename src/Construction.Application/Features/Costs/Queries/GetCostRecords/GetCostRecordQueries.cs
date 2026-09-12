@@ -19,6 +19,7 @@ public record GetEmployeeRatesQuery : ISortablePagedQuery, IRequest<PagedList<Em
     public static readonly string[] AllowedSortFields =
     [
         "employeeName", "rateType", "hourlyRate", "weekendHourlyRate", "holidayHourlyRate",
+        "overtimeHourlyRate", "travelHourlyRate",
         "dailyRate", "startDate", "endDate", "setByName", "createdAt"
     ];
 
@@ -122,6 +123,14 @@ public class GetEmployeeRatesQueryHandler
                 .OrderBy(r => r.HolidayHourlyRate == null).ThenBy(r => r.HolidayHourlyRate),
             ("holidayhourlyrate", true) => query
                 .OrderByDescending(r => r.HolidayHourlyRate == null).ThenByDescending(r => r.HolidayHourlyRate),
+            ("overtimehourlyrate", false) => query
+                .OrderBy(r => r.OvertimeHourlyRate == null).ThenBy(r => r.OvertimeHourlyRate),
+            ("overtimehourlyrate", true) => query
+                .OrderByDescending(r => r.OvertimeHourlyRate == null).ThenByDescending(r => r.OvertimeHourlyRate),
+            ("travelhourlyrate", false) => query
+                .OrderBy(r => r.TravelHourlyRate == null).ThenBy(r => r.TravelHourlyRate),
+            ("travelhourlyrate", true) => query
+                .OrderByDescending(r => r.TravelHourlyRate == null).ThenByDescending(r => r.TravelHourlyRate),
             ("dailyrate", false) => query
                 .OrderBy(r => r.DailyRate == null).ThenBy(r => r.DailyRate),
             ("dailyrate", true) => query
@@ -216,7 +225,7 @@ public record GetMaterialMovementsQuery : ISortablePagedQuery, IRequest<PagedLis
     public static readonly string[] AllowedSortFields =
     [
         "occurredOn", "materialName", "kind", "quantity", "unitPrice", "projectName",
-        "recordedByName", "createdAt"
+        "recordedByName", "createdAt", "invoiceNumber"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -334,6 +343,10 @@ public class GetMaterialMovementsQueryHandler
                 .OrderByDescending(m => m.RecordedByUser != null ? m.RecordedByUser.Email : null),
             ("createdat", false) => query.OrderBy(m => m.CreatedAt),
             ("createdat", true) => query.OrderByDescending(m => m.CreatedAt),
+            ("invoicenumber", false) => query
+                .OrderBy(m => m.InvoiceNumber == null).ThenBy(m => m.InvoiceNumber),
+            ("invoicenumber", true) => query
+                .OrderByDescending(m => m.InvoiceNumber == null).ThenByDescending(m => m.InvoiceNumber),
             // Default and explicit "occurredOn desc" both land here: newest
             // movement first, which is what a running ledger reads as.
             _ => query.OrderByDescending(m => m.OccurredOn)
@@ -1187,6 +1200,178 @@ public class GetVehicleRentalRatesSummaryQueryHandler
     }
 }
 
+public record GetToolRentalRatesQuery : ISortablePagedQuery, IRequest<PagedList<ToolRentalRateDto>>
+{
+    public static readonly string[] AllowedSortFields =
+    [
+        "toolName", "monthlyAmount", "provider", "startDate", "endDate", "setByName", "createdAt"
+    ];
+
+    public int PageNumber { get; init; } = 1;
+
+    public int PageSize { get; init; } = 20;
+
+    public Guid? ToolId { get; init; }
+
+    /// <summary>Only the rate in force today.</summary>
+    public bool CurrentOnly { get; init; }
+
+    public string? SortBy { get; init; }
+
+    public bool SortDescending { get; init; }
+}
+
+public class GetToolRentalRatesQueryValidator : SortablePagedQueryValidator<GetToolRentalRatesQuery>
+{
+    public GetToolRentalRatesQueryValidator()
+        : base(GetToolRentalRatesQuery.AllowedSortFields, maxPageSize: 200)
+    {
+    }
+}
+
+public class GetToolRentalRatesQueryHandler
+    : IRequestHandler<GetToolRentalRatesQuery, PagedList<ToolRentalRateDto>>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
+
+    public GetToolRentalRatesQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
+    }
+
+    public async Task<PagedList<ToolRentalRateDto>> Handle(
+        GetToolRentalRatesQuery request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not see rental rates.");
+        }
+
+        var query = _context.ToolRentalRates.AsNoTracking();
+
+        if (request.ToolId is { } toolId)
+        {
+            query = query.Where(r => r.ToolId == toolId);
+        }
+
+        if (request.CurrentOnly)
+        {
+            var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            query = query.Where(r =>
+                r.StartDate <= today && (r.EndDate == null || r.EndDate >= today));
+        }
+
+        query = ApplySorting(query, request.SortBy, request.SortDescending);
+
+        return await PagedList<ToolRentalRateDto>.CreateAsync(
+            query.Select(ToolRentalRateMapping.Projection),
+            request.PageNumber,
+            request.PageSize,
+            cancellationToken);
+    }
+
+    private static IQueryable<ToolRentalRate> ApplySorting(
+        IQueryable<ToolRentalRate> query,
+        string? sortBy,
+        bool descending)
+    {
+        IOrderedQueryable<ToolRentalRate> ordered = (sortBy?.ToLowerInvariant(), descending) switch
+        {
+            ("toolname", false) => query.OrderBy(r => r.Tool.Name),
+            ("toolname", true) => query.OrderByDescending(r => r.Tool.Name),
+            ("monthlyamount", false) => query.OrderBy(r => r.MonthlyAmount),
+            ("monthlyamount", true) => query.OrderByDescending(r => r.MonthlyAmount),
+            ("provider", false) => query.OrderBy(r => r.Provider == null).ThenBy(r => r.Provider),
+            ("provider", true) => query
+                .OrderByDescending(r => r.Provider == null).ThenByDescending(r => r.Provider),
+            ("enddate", false) => query.OrderBy(r => r.EndDate == null).ThenBy(r => r.EndDate),
+            ("enddate", true) => query
+                .OrderByDescending(r => r.EndDate == null).ThenByDescending(r => r.EndDate),
+            ("setbyname", false) => query
+                .OrderBy(r => r.SetByUser != null ? r.SetByUser.Email : null),
+            ("setbyname", true) => query
+                .OrderByDescending(r => r.SetByUser != null ? r.SetByUser.Email : null),
+            ("createdat", false) => query.OrderBy(r => r.CreatedAt),
+            ("createdat", true) => query.OrderByDescending(r => r.CreatedAt),
+            // Default and explicit "startDate desc" both land here: the most
+            // recently set rate first, which is what "current cost" means.
+            _ => query.OrderByDescending(r => r.StartDate)
+        };
+
+        // Stable tiebreaker so pagination never skips or duplicates rows.
+        return ordered.ThenBy(r => r.Id);
+    }
+}
+
+/// <summary>The count and total monthly commitment of whatever the rental-rates list is currently filtered to.</summary>
+public record GetToolRentalRatesSummaryQuery : IRequest<ToolRentalRateSummaryDto>
+{
+    public Guid? ToolId { get; init; }
+
+    public bool CurrentOnly { get; init; }
+}
+
+public class GetToolRentalRatesSummaryQueryHandler
+    : IRequestHandler<GetToolRentalRatesSummaryQuery, ToolRentalRateSummaryDto>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
+
+    public GetToolRentalRatesSummaryQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
+    }
+
+    public async Task<ToolRentalRateSummaryDto> Handle(
+        GetToolRentalRatesSummaryQuery request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not see rental rates.");
+        }
+
+        var query = _context.ToolRentalRates.AsNoTracking();
+
+        if (request.ToolId is { } toolId)
+        {
+            query = query.Where(r => r.ToolId == toolId);
+        }
+
+        if (request.CurrentOnly)
+        {
+            var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            query = query.Where(r =>
+                r.StartDate <= today && (r.EndDate == null || r.EndDate >= today));
+        }
+
+        var count = await query.CountAsync(cancellationToken);
+        var totalMonthlyAmount = count > 0
+            ? await query.SumAsync(r => r.MonthlyAmount, cancellationToken)
+            : 0m;
+
+        return new ToolRentalRateSummaryDto
+        {
+            Count = count,
+            TotalMonthlyAmount = totalMonthlyAmount
+        };
+    }
+}
+
 public record GetGeneralExpensesQuery : ISortablePagedQuery, IRequest<PagedList<GeneralExpenseDto>>
 {
     public static readonly string[] AllowedSortFields =
@@ -1567,6 +1752,409 @@ public class GetAccommodationRatesSummaryQueryHandler
         {
             Count = count,
             TotalMonthlyAmount = totalMonthlyAmount
+        };
+    }
+}
+
+public record GetVehicleRentalsOutQuery : ISortablePagedQuery, IRequest<PagedList<VehicleRentalOutDto>>
+{
+    public static readonly string[] AllowedSortFields =
+    [
+        "renterName", "dailyRate", "startDate", "endDate", "setByName", "createdAt"
+    ];
+
+    public int PageNumber { get; init; } = 1;
+
+    public int PageSize { get; init; } = 20;
+
+    public Guid? VehicleId { get; init; }
+
+    /// <summary>Only loans still out (<c>EndDate</c> null).</summary>
+    public bool OpenOnly { get; init; }
+
+    public DateOnly? From { get; init; }
+
+    public DateOnly? To { get; init; }
+
+    public string? SortBy { get; init; }
+
+    public bool SortDescending { get; init; }
+}
+
+public class GetVehicleRentalsOutQueryValidator : SortablePagedQueryValidator<GetVehicleRentalsOutQuery>
+{
+    public GetVehicleRentalsOutQueryValidator()
+        : base(GetVehicleRentalsOutQuery.AllowedSortFields, maxPageSize: 200)
+    {
+    }
+}
+
+public class GetVehicleRentalsOutQueryHandler
+    : IRequestHandler<GetVehicleRentalsOutQuery, PagedList<VehicleRentalOutDto>>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+
+    public GetVehicleRentalsOutQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+    }
+
+    public async Task<PagedList<VehicleRentalOutDto>> Handle(
+        GetVehicleRentalsOutQuery request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not see vehicle rentals.");
+        }
+
+        var query = _context.VehicleRentalsOut.AsNoTracking();
+
+        if (request.VehicleId is { } vehicleId)
+        {
+            query = query.Where(r => r.VehicleId == vehicleId);
+        }
+
+        if (request.OpenOnly)
+        {
+            query = query.Where(r => r.EndDate == null);
+        }
+
+        if (request.From is { } from)
+        {
+            query = query.Where(r => r.StartDate >= from);
+        }
+
+        if (request.To is { } to)
+        {
+            query = query.Where(r => r.StartDate <= to);
+        }
+
+        query = ApplySorting(query, request.SortBy, request.SortDescending);
+
+        return await PagedList<VehicleRentalOutDto>.CreateAsync(
+            query.Select(VehicleRentalOutMapping.Projection),
+            request.PageNumber,
+            request.PageSize,
+            cancellationToken);
+    }
+
+    private static IQueryable<VehicleRentalOut> ApplySorting(
+        IQueryable<VehicleRentalOut> query,
+        string? sortBy,
+        bool descending)
+    {
+        IOrderedQueryable<VehicleRentalOut> ordered = (sortBy?.ToLowerInvariant(), descending) switch
+        {
+            ("rentername", false) => query
+                .OrderBy(r => r.Customer != null ? r.Customer.Name : r.RenterName),
+            ("rentername", true) => query
+                .OrderByDescending(r => r.Customer != null ? r.Customer.Name : r.RenterName),
+            ("dailyrate", false) => query.OrderBy(r => r.DailyRate),
+            ("dailyrate", true) => query.OrderByDescending(r => r.DailyRate),
+            ("enddate", false) => query.OrderBy(r => r.EndDate == null).ThenBy(r => r.EndDate),
+            ("enddate", true) => query
+                .OrderByDescending(r => r.EndDate == null).ThenByDescending(r => r.EndDate),
+            ("setbyname", false) => query
+                .OrderBy(r => r.SetByUser != null ? r.SetByUser.Email : null),
+            ("setbyname", true) => query
+                .OrderByDescending(r => r.SetByUser != null ? r.SetByUser.Email : null),
+            ("createdat", false) => query.OrderBy(r => r.CreatedAt),
+            ("createdat", true) => query.OrderByDescending(r => r.CreatedAt),
+            // Default and explicit "startDate desc" both land here: the most
+            // recent loan first.
+            _ => query.OrderByDescending(r => r.StartDate)
+        };
+
+        // Stable tiebreaker so pagination never skips or duplicates rows.
+        return ordered.ThenBy(r => r.Id);
+    }
+}
+
+/// <summary>The count, how many are still out, and the total value of whatever the loans-out list is currently filtered to.</summary>
+public record GetVehicleRentalsOutSummaryQuery : IRequest<VehicleRentalOutSummaryDto>
+{
+    public Guid? VehicleId { get; init; }
+
+    public bool OpenOnly { get; init; }
+
+    public DateOnly? From { get; init; }
+
+    public DateOnly? To { get; init; }
+}
+
+public class GetVehicleRentalsOutSummaryQueryHandler
+    : IRequestHandler<GetVehicleRentalsOutSummaryQuery, VehicleRentalOutSummaryDto>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
+
+    public GetVehicleRentalsOutSummaryQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
+    }
+
+    public async Task<VehicleRentalOutSummaryDto> Handle(
+        GetVehicleRentalsOutSummaryQuery request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not see vehicle rentals.");
+        }
+
+        var query = _context.VehicleRentalsOut.AsNoTracking();
+
+        if (request.VehicleId is { } vehicleId)
+        {
+            query = query.Where(r => r.VehicleId == vehicleId);
+        }
+
+        if (request.OpenOnly)
+        {
+            query = query.Where(r => r.EndDate == null);
+        }
+
+        if (request.From is { } from)
+        {
+            query = query.Where(r => r.StartDate >= from);
+        }
+
+        if (request.To is { } to)
+        {
+            query = query.Where(r => r.StartDate <= to);
+        }
+
+        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+
+        var count = await query.CountAsync(cancellationToken);
+        var openCount = await query.CountAsync(r => r.EndDate == null, cancellationToken);
+
+        // Days out priced at the day rate: a closed loan by its own span, an
+        // open one up to today. +1 because a loan starting and ending the
+        // same day is still a day out, not zero.
+        var totalValue = count > 0
+            ? await query.SumAsync(
+                r => r.DailyRate * (
+                    (r.EndDate ?? today).DayNumber - r.StartDate.DayNumber + 1),
+                cancellationToken)
+            : 0m;
+
+        return new VehicleRentalOutSummaryDto
+        {
+            Count = count,
+            OpenCount = openCount,
+            TotalValue = totalValue
+        };
+    }
+}
+
+public record GetToolRentalsOutQuery : ISortablePagedQuery, IRequest<PagedList<ToolRentalOutDto>>
+{
+    public static readonly string[] AllowedSortFields =
+    [
+        "renterName", "dailyRate", "startDate", "endDate", "setByName", "createdAt"
+    ];
+
+    public int PageNumber { get; init; } = 1;
+
+    public int PageSize { get; init; } = 20;
+
+    public Guid? ToolId { get; init; }
+
+    /// <summary>Only loans still out (<c>EndDate</c> null).</summary>
+    public bool OpenOnly { get; init; }
+
+    public DateOnly? From { get; init; }
+
+    public DateOnly? To { get; init; }
+
+    public string? SortBy { get; init; }
+
+    public bool SortDescending { get; init; }
+}
+
+public class GetToolRentalsOutQueryValidator : SortablePagedQueryValidator<GetToolRentalsOutQuery>
+{
+    public GetToolRentalsOutQueryValidator()
+        : base(GetToolRentalsOutQuery.AllowedSortFields, maxPageSize: 200)
+    {
+    }
+}
+
+public class GetToolRentalsOutQueryHandler
+    : IRequestHandler<GetToolRentalsOutQuery, PagedList<ToolRentalOutDto>>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+
+    public GetToolRentalsOutQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+    }
+
+    public async Task<PagedList<ToolRentalOutDto>> Handle(
+        GetToolRentalsOutQuery request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not see tool rentals.");
+        }
+
+        var query = _context.ToolRentalsOut.AsNoTracking();
+
+        if (request.ToolId is { } toolId)
+        {
+            query = query.Where(r => r.ToolId == toolId);
+        }
+
+        if (request.OpenOnly)
+        {
+            query = query.Where(r => r.EndDate == null);
+        }
+
+        if (request.From is { } from)
+        {
+            query = query.Where(r => r.StartDate >= from);
+        }
+
+        if (request.To is { } to)
+        {
+            query = query.Where(r => r.StartDate <= to);
+        }
+
+        query = ApplySorting(query, request.SortBy, request.SortDescending);
+
+        return await PagedList<ToolRentalOutDto>.CreateAsync(
+            query.Select(ToolRentalOutMapping.Projection),
+            request.PageNumber,
+            request.PageSize,
+            cancellationToken);
+    }
+
+    private static IQueryable<ToolRentalOut> ApplySorting(
+        IQueryable<ToolRentalOut> query,
+        string? sortBy,
+        bool descending)
+    {
+        IOrderedQueryable<ToolRentalOut> ordered = (sortBy?.ToLowerInvariant(), descending) switch
+        {
+            ("rentername", false) => query
+                .OrderBy(r => r.Customer != null ? r.Customer.Name : r.RenterName),
+            ("rentername", true) => query
+                .OrderByDescending(r => r.Customer != null ? r.Customer.Name : r.RenterName),
+            ("dailyrate", false) => query.OrderBy(r => r.DailyRate),
+            ("dailyrate", true) => query.OrderByDescending(r => r.DailyRate),
+            ("enddate", false) => query.OrderBy(r => r.EndDate == null).ThenBy(r => r.EndDate),
+            ("enddate", true) => query
+                .OrderByDescending(r => r.EndDate == null).ThenByDescending(r => r.EndDate),
+            ("setbyname", false) => query
+                .OrderBy(r => r.SetByUser != null ? r.SetByUser.Email : null),
+            ("setbyname", true) => query
+                .OrderByDescending(r => r.SetByUser != null ? r.SetByUser.Email : null),
+            ("createdat", false) => query.OrderBy(r => r.CreatedAt),
+            ("createdat", true) => query.OrderByDescending(r => r.CreatedAt),
+            // Default and explicit "startDate desc" both land here: the most
+            // recent loan first.
+            _ => query.OrderByDescending(r => r.StartDate)
+        };
+
+        // Stable tiebreaker so pagination never skips or duplicates rows.
+        return ordered.ThenBy(r => r.Id);
+    }
+}
+
+/// <summary>The count, how many are still out, and the total value of whatever the loans-out list is currently filtered to.</summary>
+public record GetToolRentalsOutSummaryQuery : IRequest<ToolRentalOutSummaryDto>
+{
+    public Guid? ToolId { get; init; }
+
+    public bool OpenOnly { get; init; }
+
+    public DateOnly? From { get; init; }
+
+    public DateOnly? To { get; init; }
+}
+
+public class GetToolRentalsOutSummaryQueryHandler
+    : IRequestHandler<GetToolRentalsOutSummaryQuery, ToolRentalOutSummaryDto>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
+
+    public GetToolRentalsOutSummaryQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
+    }
+
+    public async Task<ToolRentalOutSummaryDto> Handle(
+        GetToolRentalsOutSummaryQuery request,
+        CancellationToken cancellationToken)
+    {
+        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        {
+            throw new ForbiddenAccessException("You may not see tool rentals.");
+        }
+
+        var query = _context.ToolRentalsOut.AsNoTracking();
+
+        if (request.ToolId is { } toolId)
+        {
+            query = query.Where(r => r.ToolId == toolId);
+        }
+
+        if (request.OpenOnly)
+        {
+            query = query.Where(r => r.EndDate == null);
+        }
+
+        if (request.From is { } from)
+        {
+            query = query.Where(r => r.StartDate >= from);
+        }
+
+        if (request.To is { } to)
+        {
+            query = query.Where(r => r.StartDate <= to);
+        }
+
+        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+
+        var count = await query.CountAsync(cancellationToken);
+        var openCount = await query.CountAsync(r => r.EndDate == null, cancellationToken);
+
+        var totalValue = count > 0
+            ? await query.SumAsync(
+                r => r.DailyRate * (
+                    (r.EndDate ?? today).DayNumber - r.StartDate.DayNumber + 1),
+                cancellationToken)
+            : 0m;
+
+        return new ToolRentalOutSummaryDto
+        {
+            Count = count,
+            OpenCount = openCount,
+            TotalValue = totalValue
         };
     }
 }

@@ -196,8 +196,11 @@ class _Footer<T> extends StatelessWidget {
       child: Center(
         child: Text(
           state.items.length >= state.totalCount
-              ? '${state.totalCount} total'
-              : '${state.items.length} of ${state.totalCount}',
+              ? context.l10n.commonTotalCount(state.totalCount)
+              : context.l10n.commonCountOfTotal(
+                  state.items.length,
+                  state.totalCount,
+                ),
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -217,6 +220,7 @@ class ListSearchHeader extends StatelessWidget {
     this.filters = const [],
     this.selectedFilter,
     this.onFilterSelected,
+    this.filterLabel,
   });
 
   final String hintText;
@@ -224,6 +228,13 @@ class ListSearchHeader extends StatelessWidget {
   final List<String> filters;
   final String? selectedFilter;
   final ValueChanged<String?>? onFilterSelected;
+
+  /// How to display one filter value. Defaults to a plain English
+  /// humanisation of the raw API value (`OnLeave` -> `On Leave`) — every
+  /// screen with a translated filter set (an enum status, or a named
+  /// boolean toggle) should pass this instead, or the chip stays English
+  /// regardless of the app's language.
+  final String Function(BuildContext context, String value)? filterLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -254,7 +265,10 @@ class ListSearchHeader extends StatelessWidget {
                   final selected = filter == selectedFilter;
 
                   return FilterChip(
-                    label: Text(humanizeEnum(filter)),
+                    label: Text(
+                      filterLabel?.call(context, filter) ??
+                          humanizeEnum(filter),
+                    ),
                     selected: selected,
                     onSelected: (_) =>
                         onFilterSelected?.call(selected ? null : filter),

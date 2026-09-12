@@ -44,11 +44,13 @@ export function useResourceList<TResult, TQuery>(
   keys: ResourceKeys<TQuery>,
   fetchPage: (query: TQuery) => Promise<TResult>,
   query: TQuery,
+  options?: { refetchInterval?: number },
 ) {
   return useQuery({
     queryKey: keys.list(query),
     queryFn: () => fetchPage(query),
     placeholderData: keepPreviousData,
+    ...options,
   });
 }
 

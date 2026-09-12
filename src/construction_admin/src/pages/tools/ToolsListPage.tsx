@@ -21,7 +21,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import type { GridColDef } from '@mui/x-data-grid';
+import type { GridColDef, GridSortModel } from '@mui/x-data-grid';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -36,23 +36,54 @@ import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { RowActions } from '../../components/RowActions';
 import { RowPhotoCell } from '../../components/RowPhotoCell';
+import { SavedViewsBar } from '../../components/SavedViewsBar';
 import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
 import { StatusLegend } from '../../components/StatusLegend';
+import { useToolRentalsOutSummaryQuery } from '../../features/costs/useCosts';
 import { useDeleteTool, useToolsQuery } from '../../features/tools/useTools';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useEnumLabel } from '../../i18n/enumLabels';
-import { useT } from '../../i18n/useI18n';
+import { useI18n, useT } from '../../i18n/useI18n';
 import { useListQueryState } from '../../hooks/useListQueryState';
+import { useSavedViews } from '../../hooks/useSavedViews';
 import { paths } from '../../routes/paths';
+import { formatDate, formatMoney } from '../../utils/formatting';
+
+interface ToolViewState {
+  search: string;
+  filter: ToolStatus | '';
+  sortModel: GridSortModel;
+  incompleteOnly: boolean;
+}
 
 export function ToolsListPage() {
   const navigate = useNavigate();
   const t = useT();
+  const { locale } = useI18n();
   const enumLabel = useEnumLabel();
   const list = useListQueryState<ToolStatus>('name');
 
   const [incompleteOnly, setIncompleteOnly] = useState(false);
+
+  const savedViews = useSavedViews<ToolViewState>('tools');
+
+  const applyView = (state: ToolViewState) => {
+    list.setSearch(state.search);
+    list.setFilter(state.filter);
+    list.setSortModel(state.sortModel);
+    setIncompleteOnly(state.incompleteOnly);
+    list.resetToFirstPage();
+  };
+
+  const saveCurrentView = (name: string) => {
+    savedViews.saveView(name, {
+      search: list.search,
+      filter: list.filter,
+      sortModel: list.sortModel,
+      incompleteOnly,
+    });
+  };
 
   const query: ToolListQuery = useMemo(
     () => ({
@@ -64,6 +95,7 @@ export function ToolsListPage() {
   );
 
   const { data, isLoading, isError, error, refetch } = useToolsQuery(query);
+  const { data: rentalsOutSummary } = useToolRentalsOutSummaryQuery({});
   const remove = useDeleteWithConfirm<Tool>(useDeleteTool());
   const [qrPhotoOpen, setQrPhotoOpen] = useState(false);
 
@@ -121,6 +153,42 @@ export function ToolsListPage() {
           row.assignedEmployeeName || row.assignedProjectName || '—',
       },
       {
+        field: 'currentRentalOutRenterName',
+        headerName: t('tools.rentedOutColumn'),
+        flex: 1,
+        minWidth: 170,
+        renderCell: (params) => {
+          if (params.row.status === 'RentedOut' && params.row.currentRentalOutRenterName) {
+            return (
+              <Tooltip
+                title={t('tools.rentedOutHint', {
+                  rate: formatMoney(params.row.currentRentalOutDailyRate, locale),
+                  date: formatDate(params.row.currentRentalOutStartDate),
+                })}
+              >
+                <span>{params.row.currentRentalOutRenterName}</span>
+              </Tooltip>
+            );
+          }
+
+          if (params.row.lastRentalOutRenterName) {
+            return (
+              <Tooltip
+                title={t('tools.previouslyRentedHint', {
+                  date: formatDate(params.row.lastRentalOutEndDate),
+                })}
+              >
+                <Typography variant="caption" color="text.secondary">
+                  {t('tools.previouslyRented', { name: params.row.lastRentalOutRenterName })}
+                </Typography>
+              </Tooltip>
+            );
+          }
+
+          return '—';
+        },
+      },
+      {
         field: 'actions',
         headerName: '',
         width: 130,
@@ -149,7 +217,7 @@ export function ToolsListPage() {
         ),
       },
     ],
-    [navigate, remove, t],
+    [navigate, remove, t, locale],
   );
 
   return (
@@ -163,6 +231,12 @@ export function ToolsListPage() {
           onClick: () => navigate(paths.toolNew),
         }}
       />
+
+      {rentalsOutSummary && (
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, mt: -1.5 }}>
+          {t('tools.totalRentalRevenue')}: {formatMoney(rentalsOutSummary.totalValue, locale)}
+        </Typography>
+      )}
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }}>
         <SearchField
@@ -215,6 +289,15 @@ export function ToolsListPage() {
         />
       </Stack>
 
+      <Box sx={{ mb: 2 }}>
+        <SavedViewsBar
+          views={savedViews.views}
+          onApply={applyView}
+          onSave={saveCurrentView}
+          onDelete={savedViews.deleteView}
+        />
+      </Box>
+
       <ResourceDataGrid
         data={data}
         columns={columns}
@@ -226,7 +309,11 @@ export function ToolsListPage() {
         onPaginationModelChange={list.setPaginationModel}
         sortModel={list.sortModel}
         onSortModelChange={list.setSortModel}
-        onRowClick={(row) => navigate(paths.toolDetail(row.id))}
+        onRowClick={(row) =>
+          navigate(paths.toolDetail(row.id), {
+            state: { siblingIds: data?.items.map((item) => item.id) ?? [] },
+          })
+        }
       />
 
       <ConfirmDialog

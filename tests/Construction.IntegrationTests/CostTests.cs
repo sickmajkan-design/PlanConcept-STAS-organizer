@@ -156,6 +156,97 @@ public class CostTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task A_backdated_issue_is_only_averaged_against_deliveries_that_had_already_happened()
+    {
+        // Day 1: 10 at 10. Day 3: 10 more at 20. An issue backdated to day 2
+        // must be priced at 10 — the day-3 delivery had not happened yet —
+        // not at the 15 you get by averaging both deliveries regardless of
+        // date.
+        var (material, foreman) = await SeedStockKeeperAsync(0m);
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var day1 = new DateOnly(2026, 5, 1);
+        var day2 = new DateOnly(2026, 5, 2);
+        var day3 = new DateOnly(2026, 5, 3);
+
+        await RecordMovementAsync(
+            foreman, material.Id, MaterialMovementKind.In, 10m, 10m, occurredOn: day1);
+        await RecordMovementAsync(
+            foreman, material.Id, MaterialMovementKind.In, 10m, 20m, occurredOn: day3);
+
+        var backdatedIssue = await RecordMovementAsync(
+            foreman, material.Id, MaterialMovementKind.Out, 5m,
+            projectId: project.Id, occurredOn: day2);
+
+        Assert.Equal(10m, backdatedIssue.UnitPrice);
+
+        var laterIssue = await RecordMovementAsync(
+            foreman, material.Id, MaterialMovementKind.Out, 5m,
+            projectId: project.Id, occurredOn: day3);
+
+        // Dated on or after both deliveries: now both count.
+        Assert.Equal(15m, laterIssue.UnitPrice);
+    }
+
+    [Fact]
+    public async Task Editing_an_issues_date_across_a_delivery_recomputes_its_price()
+    {
+        var (material, foreman) = await SeedStockKeeperAsync(0m);
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var day1 = new DateOnly(2026, 5, 1);
+        var day2 = new DateOnly(2026, 5, 2);
+        var day3 = new DateOnly(2026, 5, 3);
+
+        await RecordMovementAsync(
+            foreman, material.Id, MaterialMovementKind.In, 10m, 10m, occurredOn: day1);
+        await RecordMovementAsync(
+            foreman, material.Id, MaterialMovementKind.In, 10m, 20m, occurredOn: day3);
+
+        var issue = await RecordMovementAsync(
+            foreman, material.Id, MaterialMovementKind.Out, 5m,
+            projectId: project.Id, occurredOn: day3);
+
+        Assert.Equal(15m, issue.UnitPrice);
+
+        // Pull the same issue's date back to before the second delivery: its
+        // price must fall back to what was known at that earlier date.
+        var repriced = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Application.Features.Costs.Commands.UpdateMaterialMovement
+                .UpdateMaterialMovementCommand
+            {
+                Id = issue.Id,
+                MaterialId = material.Id,
+                Kind = MaterialMovementKind.Out,
+                Quantity = 5m,
+                ProjectId = project.Id,
+                OccurredOn = day2
+            });
+        });
+
+        Assert.Equal(10m, repriced.UnitPrice);
+
+        // And moving it back onto day 3 restores the full-average price.
+        var backOnDay3 = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Application.Features.Costs.Commands.UpdateMaterialMovement
+                .UpdateMaterialMovementCommand
+            {
+                Id = issue.Id,
+                MaterialId = material.Id,
+                Kind = MaterialMovementKind.Out,
+                Quantity = 5m,
+                ProjectId = project.Id,
+                OccurredOn = day3
+            });
+        });
+
+        Assert.Equal(15m, backOnDay3.UnitPrice);
+    }
+
+    [Fact]
     public async Task Issuing_stock_without_saying_where_it_went_is_refused()
     {
         // Otherwise the material leaves the shelf and lands on no report.
@@ -400,6 +491,237 @@ public class CostTests : IntegrationTestBase
         Assert.Equal(4_500m, row.LabourCost);
     }
 
+    // ---- weekend, holiday, overtime and travel premiums -------------------
+
+    [Fact]
+    public async Task A_shift_on_a_saturday_is_priced_at_the_weekend_rate()
+    {
+        var (employee, admin) = await SeedRateSetterAsync();
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var saturday = March.AddDays(5); // March 2 2026 is a Monday.
+
+        await SetRateAsync(admin, employee.Id, 800m, March, weekendHourlyRate: 1_200m);
+        await SeedApprovedShiftAsync(employee.Id, project.Id, saturday, hours: 8);
+
+        var report = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new GetProjectCostsQuery
+            {
+                From = March,
+                To = March.AddMonths(1),
+                ProjectId = project.Id
+            });
+        });
+
+        Assert.Equal(9_600m, Assert.Single(report.Rows).LabourCost);
+    }
+
+    [Fact]
+    public async Task A_shift_on_a_listed_public_holiday_is_priced_at_the_holiday_rate()
+    {
+        var (employee, admin) = await SeedRateSetterAsync();
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope, countryCode: "BA"));
+        var holiday = March.AddDays(1); // A Tuesday, deliberately not a weekend.
+
+        await SeedPublicHolidayAsync(holiday, countryCode: "BA");
+        await SetRateAsync(admin, employee.Id, 800m, March, holidayHourlyRate: 1_600m);
+        await SeedApprovedShiftAsync(employee.Id, project.Id, holiday, hours: 8);
+
+        var report = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new GetProjectCostsQuery
+            {
+                From = March,
+                To = March.AddMonths(1),
+                ProjectId = project.Id
+            });
+        });
+
+        Assert.Equal(12_800m, Assert.Single(report.Rows).LabourCost);
+    }
+
+    [Fact]
+    public async Task A_holiday_in_one_country_does_not_price_a_shift_in_another()
+    {
+        // The whole reason the calendar is per country: this company runs
+        // sites in more than one at once, and a Croatian holiday must not
+        // give a German site's shift the holiday rate.
+        var (employee, admin) = await SeedRateSetterAsync();
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope, countryCode: "DE"));
+        var holiday = March.AddDays(2);
+
+        await SeedPublicHolidayAsync(holiday, countryCode: "BA");
+        await SetRateAsync(admin, employee.Id, 800m, March, holidayHourlyRate: 1_600m);
+        await SeedApprovedShiftAsync(employee.Id, project.Id, holiday, hours: 8);
+
+        var report = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new GetProjectCostsQuery
+            {
+                From = March,
+                To = March.AddMonths(1),
+                ProjectId = project.Id
+            });
+        });
+
+        Assert.Equal(6_400m, Assert.Single(report.Rows).LabourCost);
+    }
+
+    [Fact]
+    public async Task A_project_with_no_country_never_gets_the_holiday_rate()
+    {
+        var (employee, admin) = await SeedRateSetterAsync();
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope)); // No CountryCode.
+        var holiday = March.AddDays(3);
+
+        await SeedPublicHolidayAsync(holiday, countryCode: "BA");
+        await SetRateAsync(admin, employee.Id, 800m, March, holidayHourlyRate: 1_600m);
+        await SeedApprovedShiftAsync(employee.Id, project.Id, holiday, hours: 8);
+
+        var report = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new GetProjectCostsQuery
+            {
+                From = March,
+                To = March.AddMonths(1),
+                ProjectId = project.Id
+            });
+        });
+
+        Assert.Equal(6_400m, Assert.Single(report.Rows).LabourCost);
+    }
+
+    [Fact]
+    public async Task A_weekend_tag_on_a_weekday_shift_does_not_change_its_price()
+    {
+        // The calendar decides weekend/holiday pricing, not the tag someone
+        // picked when logging the shift — a Monday priced as a weekend would
+        // be wrong, whatever the entry says about itself.
+        var (employee, admin) = await SeedRateSetterAsync();
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+
+        await SetRateAsync(admin, employee.Id, 800m, March, weekendHourlyRate: 1_200m);
+        await SeedApprovedShiftAsync(
+            employee.Id, project.Id, March, hours: 8, workType: WorkType.Weekend);
+
+        var report = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new GetProjectCostsQuery
+            {
+                From = March,
+                To = March.AddMonths(1),
+                ProjectId = project.Id
+            });
+        });
+
+        Assert.Equal(6_400m, Assert.Single(report.Rows).LabourCost);
+    }
+
+    [Fact]
+    public async Task A_shift_tagged_overtime_is_priced_at_the_overtime_rate()
+    {
+        var (employee, admin) = await SeedRateSetterAsync();
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+
+        await SetRateAsync(admin, employee.Id, 800m, March, overtimeHourlyRate: 1_500m);
+        await SeedApprovedShiftAsync(
+            employee.Id, project.Id, March, hours: 8, workType: WorkType.Overtime);
+
+        var report = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new GetProjectCostsQuery
+            {
+                From = March,
+                To = March.AddMonths(1),
+                ProjectId = project.Id
+            });
+        });
+
+        Assert.Equal(12_000m, Assert.Single(report.Rows).LabourCost);
+    }
+
+    [Fact]
+    public async Task A_shift_tagged_travel_is_priced_at_the_travel_rate()
+    {
+        var (employee, admin) = await SeedRateSetterAsync();
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+
+        await SetRateAsync(admin, employee.Id, 800m, March, travelHourlyRate: 400m);
+        await SeedApprovedShiftAsync(
+            employee.Id, project.Id, March, hours: 8, workType: WorkType.Travel);
+
+        var report = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new GetProjectCostsQuery
+            {
+                From = March,
+                To = March.AddMonths(1),
+                ProjectId = project.Id
+            });
+        });
+
+        Assert.Equal(3_200m, Assert.Single(report.Rows).LabourCost);
+    }
+
+    [Fact]
+    public async Task An_unset_overtime_rate_falls_back_to_the_regular_rate()
+    {
+        var (employee, admin) = await SeedRateSetterAsync();
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+
+        await SetRateAsync(admin, employee.Id, 800m, March);
+        await SeedApprovedShiftAsync(
+            employee.Id, project.Id, March, hours: 8, workType: WorkType.Overtime);
+
+        var report = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new GetProjectCostsQuery
+            {
+                From = March,
+                To = March.AddMonths(1),
+                ProjectId = project.Id
+            });
+        });
+
+        Assert.Equal(6_400m, Assert.Single(report.Rows).LabourCost);
+    }
+
+    [Fact]
+    public async Task Overtime_on_a_weekend_is_priced_as_overtime_not_stacked_with_the_weekend_rate()
+    {
+        // One differently priced hour, not two premiums added together.
+        var (employee, admin) = await SeedRateSetterAsync();
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var saturday = March.AddDays(5);
+
+        await SetRateAsync(
+            admin, employee.Id, 800m, March,
+            weekendHourlyRate: 1_200m, overtimeHourlyRate: 1_500m);
+        await SeedApprovedShiftAsync(
+            employee.Id, project.Id, saturday, hours: 8, workType: WorkType.Overtime);
+
+        var report = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new GetProjectCostsQuery
+            {
+                From = March,
+                To = March.AddMonths(1),
+                ProjectId = project.Id
+            });
+        });
+
+        Assert.Equal(12_000m, Assert.Single(report.Rows).LabourCost);
+    }
+
     [Fact]
     public async Task A_foreman_sees_the_material_half_and_not_the_labour()
     {
@@ -414,7 +736,8 @@ public class CostTests : IntegrationTestBase
         await SetRateAsync(admin, employee.Id, 800m, March);
         await SeedApprovedShiftAsync(employee.Id, project.Id, March.AddDays(3), hours: 8);
 
-        await RecordMovementAsync(foreman, material.Id, MaterialMovementKind.In, 100m, 30m);
+        await RecordMovementAsync(
+            foreman, material.Id, MaterialMovementKind.In, 100m, 30m, occurredOn: March);
         await RecordMovementAsync(
             foreman, material.Id, MaterialMovementKind.Out, 10m,
             projectId: project.Id, occurredOn: March.AddDays(4));
@@ -600,7 +923,11 @@ public class CostTests : IntegrationTestBase
         Guid employeeId,
         decimal hourlyRate,
         DateOnly startDate,
-        DateOnly? endDate = null) =>
+        DateOnly? endDate = null,
+        decimal? weekendHourlyRate = null,
+        decimal? holidayHourlyRate = null,
+        decimal? overtimeHourlyRate = null,
+        decimal? travelHourlyRate = null) =>
         InScope(scope =>
         {
             ActAs(scope, actor);
@@ -608,6 +935,10 @@ public class CostTests : IntegrationTestBase
             {
                 EmployeeId = employeeId,
                 HourlyRate = hourlyRate,
+                WeekendHourlyRate = weekendHourlyRate,
+                HolidayHourlyRate = holidayHourlyRate,
+                OvertimeHourlyRate = overtimeHourlyRate,
+                TravelHourlyRate = travelHourlyRate,
                 StartDate = startDate,
                 EndDate = endDate
             });
@@ -620,7 +951,8 @@ public class CostTests : IntegrationTestBase
         decimal quantity,
         decimal? unitPrice = null,
         Guid? projectId = null,
-        DateOnly? occurredOn = null) =>
+        DateOnly? occurredOn = null,
+        string? invoiceNumber = null) =>
         InScope(scope =>
         {
             ActAs(scope, actor);
@@ -631,7 +963,9 @@ public class CostTests : IntegrationTestBase
                 Quantity = quantity,
                 UnitPrice = unitPrice,
                 ProjectId = projectId,
-                OccurredOn = occurredOn
+                OccurredOn = occurredOn,
+                InvoiceNumber = invoiceNumber
+                    ?? (kind == MaterialMovementKind.In ? $"INV-{Guid.NewGuid():N}" : null)
             });
         });
 
@@ -669,7 +1003,8 @@ public class CostTests : IntegrationTestBase
         DateOnly day,
         int hours,
         int breakMinutes = 0,
-        TimeEntryStatus status = TimeEntryStatus.Approved) =>
+        TimeEntryStatus status = TimeEntryStatus.Approved,
+        WorkType workType = WorkType.Regular) =>
         InScope(async scope =>
         {
             var startedAt = day.ToDateTime(new TimeOnly(7, 0), DateTimeKind.Utc);
@@ -681,10 +1016,22 @@ public class CostTests : IntegrationTestBase
                 StartedAt = startedAt,
                 EndedAt = startedAt.AddHours(hours),
                 BreakMinutes = breakMinutes,
-                WorkType = WorkType.Regular,
+                WorkType = workType,
                 Status = status
             });
 
+            await scope.Db.SaveChangesAsync();
+        });
+
+    private Task SeedPublicHolidayAsync(DateOnly date, string countryCode = "BA") =>
+        InScope(async scope =>
+        {
+            scope.Db.PublicHolidays.Add(new PublicHoliday
+            {
+                Date = date,
+                Name = "Test holiday",
+                CountryCode = countryCode,
+            });
             await scope.Db.SaveChangesAsync();
         });
 }

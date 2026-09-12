@@ -10,13 +10,24 @@ abstract class Project with _$Project {
     required String id,
     required String name,
     String? description,
-    String? client,
+    String? customerId,
+    String? customerName,
+    String? parentProjectId,
+    String? parentProjectName,
+
+    /// `"Main"` or `"Sub"`, derived server-side from whether the project has
+    /// a parent — never stored, never chosen by the caller.
+    @Default('Main') String kind,
+    @Default(0) int subProjectCount,
     String? address,
     double? latitude,
     double? longitude,
+    String? countryCode,
+    String? shiftStartTime,
     DateTime? startDate,
     DateTime? endDate,
     required String status,
+    double? contractValue,
     @Default(0) int employeeCount,
     required DateTime createdAt,
     DateTime? updatedAt,
@@ -29,6 +40,8 @@ abstract class Project with _$Project {
 
   /// Both coordinates are always stored together, so one check is enough.
   bool get hasCoordinates => latitude != null && longitude != null;
+
+  bool get isSubProject => kind == 'Sub';
 }
 
 /// Mirrors the API's `ProjectDetailDto` — the list fields plus the crew.
@@ -38,13 +51,21 @@ abstract class ProjectDetail with _$ProjectDetail {
     required String id,
     required String name,
     String? description,
-    String? client,
+    String? customerId,
+    String? customerName,
+    String? parentProjectId,
+    String? parentProjectName,
+    @Default('Main') String kind,
+    @Default(0) int subProjectCount,
     String? address,
     double? latitude,
     double? longitude,
+    String? countryCode,
+    String? shiftStartTime,
     DateTime? startDate,
     DateTime? endDate,
     required String status,
+    double? contractValue,
     @Default(0) int employeeCount,
     required DateTime createdAt,
     DateTime? updatedAt,
@@ -57,6 +78,8 @@ abstract class ProjectDetail with _$ProjectDetail {
       _$ProjectDetailFromJson(json);
 
   bool get hasCoordinates => latitude != null && longitude != null;
+
+  bool get isSubProject => kind == 'Sub';
 }
 
 @freezed

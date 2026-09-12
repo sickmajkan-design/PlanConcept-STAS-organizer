@@ -7,11 +7,39 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/app_message.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/router/app_router.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/notification_repository.dart';
 import 'device_token.dart';
+import 'notification_deep_link.dart';
 import 'notifications_controller.dart';
 import 'pending_acknowledgments_controller.dart';
+
+/// Runs in its own isolate when a push arrives while the app is backgrounded
+/// or terminated — Android and iOS both spin one up fresh for this, so
+/// nothing from the running app (Riverpod, the router, the previous Firebase
+/// instance) is reachable here.
+///
+/// There is no local cache to update, so today this only has to exist: FCM
+/// requires a registered background handler before it will hand the app a
+/// [RemoteMessage] at all, and a plain top-level function is what a
+/// background isolate can call — an instance method or a closure over
+/// controller state cannot survive the isolate boundary. The OS already
+/// draws the notification itself from the payload's `notification` block;
+/// this only runs for `data`-only follow-up work, which there isn't any of
+/// yet.
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  if (Firebase.apps.isEmpty) {
+    try {
+      await Firebase.initializeApp();
+    } catch (_) {
+      // Same "not configured in this build" case _ensureFirebase already
+      // handles in the foreground isolate — nothing to do here either.
+      return;
+    }
+  }
+}
 
 enum PushStatus {
   /// Nobody signed in.
@@ -58,6 +86,7 @@ class PushState {
 class PushController extends Notifier<PushState> {
   StreamSubscription<String>? _tokenRefreshSubscription;
   StreamSubscription<RemoteMessage>? _foregroundSubscription;
+  StreamSubscription<RemoteMessage>? _openedAppSubscription;
 
   @override
   PushState build() {
@@ -66,6 +95,7 @@ class PushController extends Notifier<PushState> {
     ref.onDispose(() {
       _tokenRefreshSubscription?.cancel();
       _foregroundSubscription?.cancel();
+      _openedAppSubscription?.cancel();
     });
 
     if (user == null) {
@@ -122,6 +152,17 @@ class PushController extends Notifier<PushState> {
         ref.invalidate(notificationsControllerProvider);
         ref.invalidate(pendingAcknowledgmentsProvider);
       });
+
+      // Tapped from the system tray while backgrounded.
+      _openedAppSubscription ??=
+          FirebaseMessaging.onMessageOpenedApp.listen(_openFrom);
+
+      // Tapped from the system tray while the app was not running at all —
+      // the message that actually launched this cold start, if any.
+      final initialMessage = await messaging.getInitialMessage();
+      if (initialMessage != null) {
+        _openFrom(initialMessage);
+      }
     } on ApiException catch (exception) {
       state = PushState(status: PushStatus.error, failure: exception);
     } on FirebaseException catch (exception) {
@@ -130,6 +171,20 @@ class PushController extends Notifier<PushState> {
         message: exception.message == null ? AppMessage.notificationsFirebaseFailed : null,
         detail: exception.message,
       );
+    }
+  }
+
+  /// Navigates to whatever the tapped push points at, the same way tapping
+  /// the equivalent row in the in-app inbox would — see [deepLinkForData].
+  void _openFrom(RemoteMessage message) {
+    final target = deepLinkForData(
+      message.data['notificationType'] as String?,
+      message.data,
+      canViewDirectory: ref.read(currentUserProvider)?.canViewDirectory ?? false,
+    );
+
+    if (target != null) {
+      ref.read(routerProvider).push(target);
     }
   }
 

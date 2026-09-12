@@ -34,6 +34,51 @@ class ToolRepository extends ApiRepository {
     return getJson('/api/v1/tools/$id', Tool.fromJson);
   }
 
+  Future<Tool> create({
+    required String name,
+    String? category,
+    String? serialNumber,
+    String status = 'Available',
+    String ownershipType = 'Owned',
+  }) {
+    return postJson(
+      '/api/v1/tools',
+      Tool.fromJson,
+      data: {
+        'name': name,
+        'category': ?category,
+        'serialNumber': ?serialNumber,
+        'status': status,
+        'ownershipType': ownershipType,
+      },
+    );
+  }
+
+  Future<Tool> update(
+    String id, {
+    required String name,
+    String? category,
+    String? serialNumber,
+    required String status,
+    required String ownershipType,
+  }) {
+    return putJson(
+      '/api/v1/tools/$id',
+      Tool.fromJson,
+      data: {
+        'name': name,
+        'category': ?category,
+        'serialNumber': ?serialNumber,
+        'status': status,
+        'ownershipType': ownershipType,
+      },
+    );
+  }
+
+  Future<void> remove(String id) {
+    return deleteVoid('/api/v1/tools/$id');
+  }
+
   /// Looks a tool up by its QR label. Open to every authenticated employee,
   /// including roles without directory access.
   Future<Tool> fetchToolByQrCode(String qrCode) {

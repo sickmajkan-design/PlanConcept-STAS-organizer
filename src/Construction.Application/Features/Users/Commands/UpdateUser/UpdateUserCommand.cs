@@ -33,6 +33,13 @@ public record UpdateUserCommand : IRequest<UserDto>
     /// reminder — set it if you like, but nothing reads it.
     /// </summary>
     public int? DocumentExpiryReminderDays { get; init; }
+
+    /// <summary>
+    /// Whether this account may see a customer's tax ID, registration number
+    /// and VAT number. Only a SuperAdmin caller may actually change this —
+    /// see the handler — so anyone else's request simply leaves it as it was.
+    /// </summary>
+    public bool CanViewCustomerTaxDetails { get; init; }
 }
 
 public class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
@@ -111,6 +118,14 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserD
         user.Employee = await ResolveEmployeeAsync(user, request.EmployeeId, cancellationToken);
         user.EmployeeId = user.Employee?.Id;
         user.DocumentExpiryReminderDays = request.DocumentExpiryReminderDays;
+
+        // Only a SuperAdmin may hand out (or take back) the tax-details grant
+        // — an Admin managing another account's email or role must not be
+        // able to smuggle this through on the same request.
+        if (callerRole == UserRole.SuperAdmin)
+        {
+            user.CanViewCustomerTaxDetails = request.CanViewCustomerTaxDetails;
+        }
 
         if (roleChanged)
         {

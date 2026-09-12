@@ -20,6 +20,10 @@ public class EmployeeRateDto
 
     public decimal? HolidayHourlyRate { get; init; }
 
+    public decimal? OvertimeHourlyRate { get; init; }
+
+    public decimal? TravelHourlyRate { get; init; }
+
     public decimal? DailyRate { get; init; }
 
     public DateOnly StartDate { get; init; }
@@ -59,6 +63,8 @@ public class MaterialMovementDto
 
     public string? Note { get; init; }
 
+    public string? InvoiceNumber { get; init; }
+
     public string? RecordedByName { get; init; }
 
     public DateTime CreatedAt { get; init; }
@@ -83,6 +89,8 @@ public class VehicleExpenseDto
     public decimal? PricePerLitre { get; init; }
 
     public int? OdometerKm { get; init; }
+
+    public string? FuelProductType { get; init; }
 
     public string? Supplier { get; init; }
 
@@ -129,6 +137,13 @@ public class EmployeeRateSummaryDto
 }
 
 public class VehicleRentalRateSummaryDto
+{
+    public int Count { get; init; }
+
+    public decimal TotalMonthlyAmount { get; init; }
+}
+
+public class ToolRentalRateSummaryDto
 {
     public int Count { get; init; }
 
@@ -205,6 +220,8 @@ public static class EmployeeRateMapping
             HourlyRate = rate.HourlyRate,
             WeekendHourlyRate = rate.WeekendHourlyRate,
             HolidayHourlyRate = rate.HolidayHourlyRate,
+            OvertimeHourlyRate = rate.OvertimeHourlyRate,
+            TravelHourlyRate = rate.TravelHourlyRate,
             DailyRate = rate.DailyRate,
             StartDate = rate.StartDate,
             EndDate = rate.EndDate,
@@ -266,6 +283,53 @@ public static class VehicleRentalRateMapping
     public static VehicleRentalRateDto ToDto(VehicleRentalRate rate) => Compiled(rate);
 }
 
+public class ToolRentalRateDto
+{
+    public Guid Id { get; init; }
+
+    public Guid ToolId { get; init; }
+
+    public string ToolName { get; init; } = null!;
+
+    public decimal MonthlyAmount { get; init; }
+
+    public string? Provider { get; init; }
+
+    public DateOnly StartDate { get; init; }
+
+    public DateOnly? EndDate { get; init; }
+
+    public string? Note { get; init; }
+
+    public string? SetByName { get; init; }
+
+    public DateTime CreatedAt { get; init; }
+}
+
+/// <summary>How a <see cref="ToolRentalRate"/> becomes a <see cref="ToolRentalRateDto"/>.</summary>
+/// <remarks>See <c>EmployeeMapping</c> for the convention these all follow.</remarks>
+public static class ToolRentalRateMapping
+{
+    public static readonly Expression<Func<ToolRentalRate, ToolRentalRateDto>> Projection = rate =>
+        new ToolRentalRateDto
+        {
+            Id = rate.Id,
+            ToolId = rate.ToolId,
+            ToolName = rate.Tool.Name,
+            MonthlyAmount = rate.MonthlyAmount,
+            Provider = rate.Provider,
+            StartDate = rate.StartDate,
+            EndDate = rate.EndDate,
+            Note = rate.Note,
+            SetByName = rate.SetByUser != null ? rate.SetByUser.Email : null,
+            CreatedAt = rate.CreatedAt,
+        };
+
+    private static readonly Func<ToolRentalRate, ToolRentalRateDto> Compiled = Projection.Compile();
+
+    public static ToolRentalRateDto ToDto(ToolRentalRate rate) => Compiled(rate);
+}
+
 /// <summary>How a <see cref="MaterialMovement"/> becomes a <see cref="MaterialMovementDto"/>.</summary>
 public static class MaterialMovementMapping
 {
@@ -288,6 +352,7 @@ public static class MaterialMovementMapping
             ProjectName = movement.Project != null ? movement.Project.Name : null,
             OccurredOn = movement.OccurredOn,
             Note = movement.Note,
+            InvoiceNumber = movement.InvoiceNumber,
             RecordedByName = movement.RecordedByUser != null ? movement.RecordedByUser.Email : null,
             CreatedAt = movement.CreatedAt,
         };
@@ -316,6 +381,7 @@ public static class VehicleExpenseMapping
                 ? expense.Amount / expense.Litres
                 : (decimal?)null,
             OdometerKm = expense.OdometerKm,
+            FuelProductType = expense.FuelProductType,
             Supplier = expense.Supplier,
             Note = expense.Note,
             RecordedByName = expense.RecordedByUser != null ? expense.RecordedByUser.Email : null,
@@ -487,4 +553,137 @@ public static class AccommodationRateMapping
     private static readonly Func<AccommodationRate, AccommodationRateDto> Compiled = Projection.Compile();
 
     public static AccommodationRateDto ToDto(AccommodationRate rate) => Compiled(rate);
+}
+
+public class VehicleRentalOutDto
+{
+    public Guid Id { get; init; }
+
+    public Guid VehicleId { get; init; }
+
+    public string VehicleName { get; init; } = null!;
+
+    public Guid? CustomerId { get; init; }
+
+    /// <summary>The tracked customer's name when linked, the free-text <see cref="RenterName"/> otherwise.</summary>
+    public string RenterDisplayName { get; init; } = null!;
+
+    public string RenterName { get; init; } = null!;
+
+    public decimal DailyRate { get; init; }
+
+    public DateOnly StartDate { get; init; }
+
+    /// <summary>Null means the vehicle has not come back yet.</summary>
+    public DateOnly? EndDate { get; init; }
+
+    public bool IsOpen { get; init; }
+
+    public string? Note { get; init; }
+
+    public string? SetByName { get; init; }
+
+    public DateTime CreatedAt { get; init; }
+}
+
+public class VehicleRentalOutSummaryDto
+{
+    public int Count { get; init; }
+
+    public int OpenCount { get; init; }
+
+    public decimal TotalValue { get; init; }
+}
+
+/// <summary>How a <see cref="VehicleRentalOut"/> becomes a <see cref="VehicleRentalOutDto"/>.</summary>
+public static class VehicleRentalOutMapping
+{
+    public static readonly Expression<Func<VehicleRentalOut, VehicleRentalOutDto>> Projection = rental =>
+        new VehicleRentalOutDto
+        {
+            Id = rental.Id,
+            VehicleId = rental.VehicleId,
+            VehicleName = rental.Vehicle.Brand + " " + rental.Vehicle.Model
+                + " (" + rental.Vehicle.RegistrationNumber + ")",
+            CustomerId = rental.CustomerId,
+            RenterDisplayName = rental.Customer != null ? rental.Customer.Name : rental.RenterName,
+            RenterName = rental.RenterName,
+            DailyRate = rental.DailyRate,
+            StartDate = rental.StartDate,
+            EndDate = rental.EndDate,
+            IsOpen = rental.EndDate == null,
+            Note = rental.Note,
+            SetByName = rental.SetByUser != null ? rental.SetByUser.Email : null,
+            CreatedAt = rental.CreatedAt,
+        };
+
+    private static readonly Func<VehicleRentalOut, VehicleRentalOutDto> Compiled = Projection.Compile();
+
+    public static VehicleRentalOutDto ToDto(VehicleRentalOut rental) => Compiled(rental);
+}
+
+public class ToolRentalOutDto
+{
+    public Guid Id { get; init; }
+
+    public Guid ToolId { get; init; }
+
+    public string ToolName { get; init; } = null!;
+
+    public Guid? CustomerId { get; init; }
+
+    /// <summary>The tracked customer's name when linked, the free-text <see cref="RenterName"/> otherwise.</summary>
+    public string RenterDisplayName { get; init; } = null!;
+
+    public string RenterName { get; init; } = null!;
+
+    public decimal DailyRate { get; init; }
+
+    public DateOnly StartDate { get; init; }
+
+    /// <summary>Null means the tool has not come back yet.</summary>
+    public DateOnly? EndDate { get; init; }
+
+    public bool IsOpen { get; init; }
+
+    public string? Note { get; init; }
+
+    public string? SetByName { get; init; }
+
+    public DateTime CreatedAt { get; init; }
+}
+
+public class ToolRentalOutSummaryDto
+{
+    public int Count { get; init; }
+
+    public int OpenCount { get; init; }
+
+    public decimal TotalValue { get; init; }
+}
+
+/// <summary>How a <see cref="ToolRentalOut"/> becomes a <see cref="ToolRentalOutDto"/>.</summary>
+public static class ToolRentalOutMapping
+{
+    public static readonly Expression<Func<ToolRentalOut, ToolRentalOutDto>> Projection = rental =>
+        new ToolRentalOutDto
+        {
+            Id = rental.Id,
+            ToolId = rental.ToolId,
+            ToolName = rental.Tool.Name,
+            CustomerId = rental.CustomerId,
+            RenterDisplayName = rental.Customer != null ? rental.Customer.Name : rental.RenterName,
+            RenterName = rental.RenterName,
+            DailyRate = rental.DailyRate,
+            StartDate = rental.StartDate,
+            EndDate = rental.EndDate,
+            IsOpen = rental.EndDate == null,
+            Note = rental.Note,
+            SetByName = rental.SetByUser != null ? rental.SetByUser.Email : null,
+            CreatedAt = rental.CreatedAt,
+        };
+
+    private static readonly Func<ToolRentalOut, ToolRentalOutDto> Compiled = Projection.Compile();
+
+    public static ToolRentalOutDto ToDto(ToolRentalOut rental) => Compiled(rental);
 }

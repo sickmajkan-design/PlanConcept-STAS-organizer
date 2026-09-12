@@ -170,6 +170,12 @@ public class GetProjectCostsQueryHandler
     /// still contributes its minutes to <c>UnpricedMinutes</c> and nothing to
     /// the cost — reported, not silently free.
     ///
+    /// The holiday calendar is per country, because this company runs sites
+    /// in more than one at once: a date only counts as a holiday for a shift
+    /// whose <see cref="Project.CountryCode"/> matches the calendar row's own.
+    /// A project with no country set never gets the holiday rate — nothing to
+    /// match it against — whatever the calendar says for any country.
+    ///
     /// The day is taken from the shift's start in UTC, exactly as before this
     /// premium existed. A shift beginning after midnight local time therefore
     /// prices — and is weekend/holiday-classified — against the previous day,
@@ -178,11 +184,15 @@ public class GetProjectCostsQueryHandler
     private async Task<Dictionary<Guid, (int Minutes, decimal Cost, int UnpricedMinutes)>>
         LoadLabourAsync(GetProjectCostsQuery request, CancellationToken cancellationToken)
     {
+        // Keyed by (country, date): sites in different countries do not share
+        // a holiday calendar, so a date only counts as a holiday for a shift
+        // whose project's own CountryCode matches the row it came from.
         var holidays = (await _context.PublicHolidays
                 .AsNoTracking()
                 .Where(h => h.Date >= request.From && h.Date <= request.To)
-                .Select(h => h.Date)
+                .Select(h => new { h.CountryCode, h.Date })
                 .ToListAsync(cancellationToken))
+            .Select(h => (h.CountryCode, h.Date))
             .ToHashSet();
 
         var priced = await _context.TimeEntries
@@ -197,7 +207,9 @@ public class GetProjectCostsQueryHandler
             {
                 t.EmployeeId,
                 ProjectId = t.ProjectId!.Value,
+                ProjectCountryCode = t.Project!.CountryCode,
                 Day = DateOnly.FromDateTime(t.StartedAt),
+                t.WorkType,
                 // Npgsql turns the subtraction into an interval and
                 // TotalMinutes into the epoch extraction; the same shape the
                 // timesheet summary already uses.
@@ -213,6 +225,8 @@ public class GetProjectCostsQueryHandler
                         r.HourlyRate,
                         r.WeekendHourlyRate,
                         r.HolidayHourlyRate,
+                        r.OvertimeHourlyRate,
+                        r.TravelHourlyRate,
                         r.DailyRate
                     })
                     .FirstOrDefault()
@@ -227,6 +241,17 @@ public class GetProjectCostsQueryHandler
         // but not impossible for a subcontractor covering two jobs) puts the
         // whole day's pay on whichever site they logged the most time at,
         // rather than splitting one flat amount nobody agreed to split.
+        //
+        // WorkType only enters the price for Overtime and Travel — the two
+        // tags that mean something a date can never tell you. Weekend and
+        // PublicHoliday are deliberately not read here even though a shift
+        // could carry that tag too: the calendar already knows which day a
+        // shift fell on, correctly, every time, and a hand-picked tag that
+        // happened to disagree with the actual date would be the wrong
+        // answer, not a more precise one. An Overtime or Travel shift that
+        // also falls on a weekend or holiday is priced as Overtime/Travel,
+        // not stacked with the weekend/holiday premium — one differently
+        // priced hour, not two premiums added together.
         var hourly = priced
             .Where(t => t.Rate is null || t.Rate.RateType == RateType.Hourly)
             .Select(t => new
@@ -235,7 +260,11 @@ public class GetProjectCostsQueryHandler
                 t.Minutes,
                 Cost = t.Rate is null
                     ? 0m
-                    : (holidays.Contains(t.Day)
+                    : (t.WorkType == WorkType.Overtime
+                        ? t.Rate.OvertimeHourlyRate ?? t.Rate.HourlyRate
+                    : t.WorkType == WorkType.Travel
+                        ? t.Rate.TravelHourlyRate ?? t.Rate.HourlyRate
+                    : t.ProjectCountryCode != null && holidays.Contains((t.ProjectCountryCode, t.Day))
                         ? t.Rate.HolidayHourlyRate ?? t.Rate.HourlyRate
                     : t.Day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday
                         ? t.Rate.WeekendHourlyRate ?? t.Rate.HourlyRate

@@ -14,7 +14,7 @@ String? deepLinkFor(
 }) {
   final raw = notification.dataJson;
 
-  if (raw == null || raw.isEmpty || !canViewDirectory) {
+  if (raw == null || raw.isEmpty) {
     return null;
   }
 
@@ -32,7 +32,29 @@ String? deepLinkFor(
     return null;
   }
 
-  return switch (notification.type) {
+  return deepLinkForData(
+    notification.type,
+    data,
+    canViewDirectory: canViewDirectory,
+  );
+}
+
+/// The same routing rules as [deepLinkFor], for a push notification's own
+/// data map — an FCM `RemoteMessage.data` carries the identical keys the
+/// stored notification's `dataJson` does, plus `notificationType`
+/// (`ProcessOutboxCommand.SendPushAsync` adds it), so a push tap resolves a
+/// destination the same way a tap in the in-app inbox does, without waiting
+/// for the inbox to be re-fetched first.
+String? deepLinkForData(
+  String? type,
+  Map<String, dynamic> data, {
+  required bool canViewDirectory,
+}) {
+  if (!canViewDirectory) {
+    return null;
+  }
+
+  return switch (type) {
     'ProjectAssigned' when data['projectId'] is String =>
       AppRoutes.projectDetail(data['projectId'] as String),
     'EmployeeAssigned' when data['employeeId'] is String =>

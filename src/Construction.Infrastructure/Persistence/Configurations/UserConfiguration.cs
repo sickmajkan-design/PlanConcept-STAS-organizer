@@ -29,6 +29,12 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.IsActive)
             .HasDefaultValue(true);
 
+        builder.Property(u => u.CanViewCustomerTaxDetails)
+            .HasDefaultValue(false);
+
+        builder.Property(u => u.PreferredLanguage)
+            .HasMaxLength(5);
+
         builder.HasOne(u => u.Employee)
             .WithOne(e => e.User)
             .HasForeignKey<User>(u => u.EmployeeId)

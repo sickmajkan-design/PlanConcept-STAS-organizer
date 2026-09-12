@@ -45,6 +45,22 @@ public class User : BaseEntity, IAuditable
     /// </summary>
     public int? DocumentExpiryReminderDays { get; set; }
 
+    /// <summary>
+    /// Whether this account may see a customer's tax ID, registration number
+    /// and VAT number. False by default — a SuperAdmin always sees these
+    /// regardless of this flag; anyone else only once one grants it here.
+    /// </summary>
+    public bool CanViewCustomerTaxDetails { get; set; }
+
+    /// <summary>
+    /// ISO 639-1 code ("sr", "en") for the language a push notification's
+    /// text should be rendered in. Null means unset — the same "assume
+    /// Serbian" default the mobile app itself falls back to for a device
+    /// whose own locale it does not ship (see mobile's <c>resolveLocale</c>),
+    /// since the people using this are on sites in the region.
+    /// </summary>
+    public string? PreferredLanguage { get; set; }
+
     public Guid? EmployeeId { get; set; }
 
     public Employee? Employee { get; set; }

@@ -29,6 +29,22 @@ class TimeEntryRepository extends ApiRepository {
     );
   }
 
+  /// Who clocked in/out today, on a Foreman's own site(s) — everyone else
+  /// gets the company-wide list for the day. Read-only oversight, not
+  /// approval: reconciling the app's record against whatever is tracked on
+  /// paper, not signing off on hours.
+  Future<List<TimeEntry>> fetchTeamToday() {
+    return guard(() async {
+      final response =
+          await dio.get<List<dynamic>>('/api/v1/timeentries/today');
+
+      return (response.data ?? [])
+          .cast<Map<String, dynamic>>()
+          .map(TimeEntry.fromJson)
+          .toList();
+    });
+  }
+
   /// The running shift, or null when off shift.
   ///
   /// The endpoint answers 204 rather than 404 for "not clocked in", because

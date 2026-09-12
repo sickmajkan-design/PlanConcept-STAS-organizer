@@ -2,15 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/utils/formatting.dart';
+import '../../../core/widgets/confirm_dialog.dart';
 import '../../../core/widgets/failure_view.dart';
 import '../../../core/widgets/info_tile.dart';
 import '../../attachments/presentation/attachment_section.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
+import '../../auth/presentation/auth_controller.dart';
+import '../../notifications/presentation/notify_employee_sheet.dart';
+import '../data/employee_repository.dart';
 import '../data/models/employee.dart';
+import 'employee_form_sheet.dart';
 import 'employees_controller.dart';
 
 class EmployeeDetailScreen extends ConsumerWidget {
@@ -21,10 +28,52 @@ class EmployeeDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final detail = ref.watch(employeeDetailProvider(employeeId));
+    final user = ref.watch(currentUserProvider);
+    final canManage = user?.isAdminAndAbove ?? false;
+    final loadedEmployee = detail.value;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(detail.value?.fullName ?? 'Employee'),
+        title: Text(detail.value?.fullName ?? context.l10n.commonEmployee),
+        actions: [
+          if (loadedEmployee != null) ...[
+            IconButton(
+              icon: const Icon(Icons.notifications_outlined),
+              tooltip: context.l10n.notifyEmployeeAction,
+              onPressed: () => showNotifyEmployeeSheet(
+                context,
+                ref,
+                employeeId: loadedEmployee.id,
+                employeeName: loadedEmployee.fullName,
+              ),
+            ),
+            if (canManage)
+              IconButton(
+                icon: const Icon(Icons.edit_outlined),
+                tooltip: context.l10n.commonEdit,
+                onPressed: () => showEmployeeFormSheet(
+                  context,
+                  ref,
+                  existing: loadedEmployee,
+                ),
+              ),
+            if (canManage)
+              PopupMenuButton<void>(
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    onTap: () => Future.microtask(
+                      () => _deleteEmployee(context, ref, loadedEmployee),
+                    ),
+                    child: Text(
+                      context.l10n.commonDelete,
+                      style:
+                          TextStyle(color: Theme.of(context).colorScheme.error),
+                    ),
+                  ),
+                ],
+              ),
+          ],
+        ],
       ),
       body: SafeArea(
         child: detail.when(
@@ -118,6 +167,37 @@ class EmployeeDetailScreen extends ConsumerWidget {
   }
 }
 
+Future<void> _deleteEmployee(
+  BuildContext context,
+  WidgetRef ref,
+  EmployeeDetail employee,
+) async {
+  final l10n = context.l10n;
+
+  final confirmed = await showConfirmDialog(
+    context,
+    title: l10n.employeeDeleteTitle,
+    body: l10n.employeeDeleteBody(employee.fullName),
+    destructive: true,
+  );
+
+  if (!confirmed || !context.mounted) return;
+
+  final messenger = ScaffoldMessenger.of(context);
+  final router = GoRouter.of(context);
+
+  try {
+    await ref.read(employeeRepositoryProvider).remove(employee.id);
+    await ref.read(employeesControllerProvider.notifier).refresh();
+
+    if (router.canPop()) {
+      router.pop();
+    }
+  } on ApiException catch (exception) {
+    messenger.showSnackBar(SnackBar(content: Text(exception.describe(l10n))));
+  }
+}
+
 class _Header extends StatelessWidget {
   const _Header({required this.employee});
 
@@ -193,13 +273,15 @@ class _ProjectsSection extends StatelessWidget {
     }
 
     return _Section(
-      title: 'Projects (${projects.length})',
+      title: context.l10n.employeeProjectsCount(projects.length),
       children: [
         for (final assignment in projects)
           ListTile(
             leading: const Icon(Icons.apartment),
             title: Text(assignment.projectName),
-            subtitle: Text('Assigned ${formatDate(assignment.assignedAt)}'),
+            subtitle: Text(
+              context.l10n.projectAssignedOn(formatDate(assignment.assignedAt)),
+            ),
             trailing: StatusChip(status: assignment.projectStatus, kind: EnumKind.projectStatus, dense: true),
             onTap: () =>
                 context.push(AppRoutes.projectDetail(assignment.projectId)),

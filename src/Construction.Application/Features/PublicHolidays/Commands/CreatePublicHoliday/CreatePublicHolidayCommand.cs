@@ -15,6 +15,9 @@ public record CreatePublicHolidayCommand : IRequest<PublicHolidayDto>
     public DateOnly Date { get; init; }
 
     public string Name { get; init; } = null!;
+
+    /// <summary>ISO 3166-1 alpha-2, e.g. "BA".</summary>
+    public string CountryCode { get; init; } = null!;
 }
 
 public class CreatePublicHolidayCommandValidator : AbstractValidator<CreatePublicHolidayCommand>
@@ -23,6 +26,9 @@ public class CreatePublicHolidayCommandValidator : AbstractValidator<CreatePubli
     {
         RuleFor(x => x.Date).NotEqual(default(DateOnly)).WithMessage("A date is required.");
         RuleFor(x => x.Name).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.CountryCode)
+            .NotEmpty().WithMessage("A country is required.")
+            .Length(2).WithMessage("Use the two-letter country code (ISO 3166-1 alpha-2).");
     }
 }
 
@@ -49,15 +55,19 @@ public class CreatePublicHolidayCommandHandler
             throw new ForbiddenAccessException("You may not manage the holiday calendar.");
         }
 
-        if (await _context.PublicHolidays.AnyAsync(h => h.Date == request.Date, cancellationToken))
+        var countryCode = request.CountryCode.Trim().ToUpperInvariant();
+
+        if (await _context.PublicHolidays.AnyAsync(
+                h => h.Date == request.Date && h.CountryCode == countryCode, cancellationToken))
         {
-            throw new ConflictException("That date is already on the calendar.");
+            throw new ConflictException("That date is already on the calendar for that country.");
         }
 
         var holiday = new PublicHoliday
         {
             Date = request.Date,
             Name = request.Name.Trim(),
+            CountryCode = countryCode,
         };
 
         _context.PublicHolidays.Add(holiday);

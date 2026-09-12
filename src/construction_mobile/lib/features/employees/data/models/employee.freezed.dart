@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Employee {
 
- String get id; String get employeeNumber; String get firstName; String get lastName; String get fullName; String? get phone; String? get email; String? get address; DateTime? get dateOfBirth; DateTime get employmentDate; String get position; String get status; String? get photoUrl; DateTime get createdAt; DateTime? get updatedAt;
+ String get id; String get employeeNumber; String get firstName; String get lastName; String get fullName; String? get phone; String? get email; String? get address; DateTime? get dateOfBirth; DateTime get employmentDate; String get position; String get status; String get type; String? get photoUrl; DateTime get createdAt; DateTime? get updatedAt;
 /// Create a copy of Employee
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $EmployeeCopyWith<Employee> get copyWith => _$EmployeeCopyWithImpl<Employee>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Employee&&(identical(other.id, id) || other.id == id)&&(identical(other.employeeNumber, employeeNumber) || other.employeeNumber == employeeNumber)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.email, email) || other.email == email)&&(identical(other.address, address) || other.address == address)&&(identical(other.dateOfBirth, dateOfBirth) || other.dateOfBirth == dateOfBirth)&&(identical(other.employmentDate, employmentDate) || other.employmentDate == employmentDate)&&(identical(other.position, position) || other.position == position)&&(identical(other.status, status) || other.status == status)&&(identical(other.photoUrl, photoUrl) || other.photoUrl == photoUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Employee&&(identical(other.id, id) || other.id == id)&&(identical(other.employeeNumber, employeeNumber) || other.employeeNumber == employeeNumber)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.email, email) || other.email == email)&&(identical(other.address, address) || other.address == address)&&(identical(other.dateOfBirth, dateOfBirth) || other.dateOfBirth == dateOfBirth)&&(identical(other.employmentDate, employmentDate) || other.employmentDate == employmentDate)&&(identical(other.position, position) || other.position == position)&&(identical(other.status, status) || other.status == status)&&(identical(other.type, type) || other.type == type)&&(identical(other.photoUrl, photoUrl) || other.photoUrl == photoUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,employeeNumber,firstName,lastName,fullName,phone,email,address,dateOfBirth,employmentDate,position,status,photoUrl,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,employeeNumber,firstName,lastName,fullName,phone,email,address,dateOfBirth,employmentDate,position,status,type,photoUrl,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'Employee(id: $id, employeeNumber: $employeeNumber, firstName: $firstName, lastName: $lastName, fullName: $fullName, phone: $phone, email: $email, address: $address, dateOfBirth: $dateOfBirth, employmentDate: $employmentDate, position: $position, status: $status, photoUrl: $photoUrl, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Employee(id: $id, employeeNumber: $employeeNumber, firstName: $firstName, lastName: $lastName, fullName: $fullName, phone: $phone, email: $email, address: $address, dateOfBirth: $dateOfBirth, employmentDate: $employmentDate, position: $position, status: $status, type: $type, photoUrl: $photoUrl, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $EmployeeCopyWith<$Res>  {
   factory $EmployeeCopyWith(Employee value, $Res Function(Employee) _then) = _$EmployeeCopyWithImpl;
 @useResult
 $Res call({
- String id, String employeeNumber, String firstName, String lastName, String fullName, String? phone, String? email, String? address, DateTime? dateOfBirth, DateTime employmentDate, String position, String status, String? photoUrl, DateTime createdAt, DateTime? updatedAt
+ String id, String employeeNumber, String firstName, String lastName, String fullName, String? phone, String? email, String? address, DateTime? dateOfBirth, DateTime employmentDate, String position, String status, String type, String? photoUrl, DateTime createdAt, DateTime? updatedAt
 });
 
 
@@ -65,7 +65,7 @@ class _$EmployeeCopyWithImpl<$Res>
 
 /// Create a copy of Employee
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? employeeNumber = null,Object? firstName = null,Object? lastName = null,Object? fullName = null,Object? phone = freezed,Object? email = freezed,Object? address = freezed,Object? dateOfBirth = freezed,Object? employmentDate = null,Object? position = null,Object? status = null,Object? photoUrl = freezed,Object? createdAt = null,Object? updatedAt = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? employeeNumber = null,Object? firstName = null,Object? lastName = null,Object? fullName = null,Object? phone = freezed,Object? email = freezed,Object? address = freezed,Object? dateOfBirth = freezed,Object? employmentDate = null,Object? position = null,Object? status = null,Object? type = null,Object? photoUrl = freezed,Object? createdAt = null,Object? updatedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,employeeNumber: null == employeeNumber ? _self.employeeNumber : employeeNumber // ignore: cast_nullable_to_non_nullable
@@ -79,6 +79,7 @@ as String?,dateOfBirth: freezed == dateOfBirth ? _self.dateOfBirth : dateOfBirth
 as DateTime?,employmentDate: null == employmentDate ? _self.employmentDate : employmentDate // ignore: cast_nullable_to_non_nullable
 as DateTime,position: null == position ? _self.position : position // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,photoUrl: freezed == photoUrl ? _self.photoUrl : photoUrl // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -167,10 +168,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String employeeNumber,  String firstName,  String lastName,  String fullName,  String? phone,  String? email,  String? address,  DateTime? dateOfBirth,  DateTime employmentDate,  String position,  String status,  String? photoUrl,  DateTime createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String employeeNumber,  String firstName,  String lastName,  String fullName,  String? phone,  String? email,  String? address,  DateTime? dateOfBirth,  DateTime employmentDate,  String position,  String status,  String type,  String? photoUrl,  DateTime createdAt,  DateTime? updatedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Employee() when $default != null:
-return $default(_that.id,_that.employeeNumber,_that.firstName,_that.lastName,_that.fullName,_that.phone,_that.email,_that.address,_that.dateOfBirth,_that.employmentDate,_that.position,_that.status,_that.photoUrl,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.employeeNumber,_that.firstName,_that.lastName,_that.fullName,_that.phone,_that.email,_that.address,_that.dateOfBirth,_that.employmentDate,_that.position,_that.status,_that.type,_that.photoUrl,_that.createdAt,_that.updatedAt);case _:
   return orElse();
 
 }
@@ -188,10 +189,10 @@ return $default(_that.id,_that.employeeNumber,_that.firstName,_that.lastName,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String employeeNumber,  String firstName,  String lastName,  String fullName,  String? phone,  String? email,  String? address,  DateTime? dateOfBirth,  DateTime employmentDate,  String position,  String status,  String? photoUrl,  DateTime createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String employeeNumber,  String firstName,  String lastName,  String fullName,  String? phone,  String? email,  String? address,  DateTime? dateOfBirth,  DateTime employmentDate,  String position,  String status,  String type,  String? photoUrl,  DateTime createdAt,  DateTime? updatedAt)  $default,) {final _that = this;
 switch (_that) {
 case _Employee():
-return $default(_that.id,_that.employeeNumber,_that.firstName,_that.lastName,_that.fullName,_that.phone,_that.email,_that.address,_that.dateOfBirth,_that.employmentDate,_that.position,_that.status,_that.photoUrl,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.employeeNumber,_that.firstName,_that.lastName,_that.fullName,_that.phone,_that.email,_that.address,_that.dateOfBirth,_that.employmentDate,_that.position,_that.status,_that.type,_that.photoUrl,_that.createdAt,_that.updatedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -208,10 +209,10 @@ return $default(_that.id,_that.employeeNumber,_that.firstName,_that.lastName,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String employeeNumber,  String firstName,  String lastName,  String fullName,  String? phone,  String? email,  String? address,  DateTime? dateOfBirth,  DateTime employmentDate,  String position,  String status,  String? photoUrl,  DateTime createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String employeeNumber,  String firstName,  String lastName,  String fullName,  String? phone,  String? email,  String? address,  DateTime? dateOfBirth,  DateTime employmentDate,  String position,  String status,  String type,  String? photoUrl,  DateTime createdAt,  DateTime? updatedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _Employee() when $default != null:
-return $default(_that.id,_that.employeeNumber,_that.firstName,_that.lastName,_that.fullName,_that.phone,_that.email,_that.address,_that.dateOfBirth,_that.employmentDate,_that.position,_that.status,_that.photoUrl,_that.createdAt,_that.updatedAt);case _:
+return $default(_that.id,_that.employeeNumber,_that.firstName,_that.lastName,_that.fullName,_that.phone,_that.email,_that.address,_that.dateOfBirth,_that.employmentDate,_that.position,_that.status,_that.type,_that.photoUrl,_that.createdAt,_that.updatedAt);case _:
   return null;
 
 }
@@ -223,7 +224,7 @@ return $default(_that.id,_that.employeeNumber,_that.firstName,_that.lastName,_th
 @JsonSerializable()
 
 class _Employee extends Employee {
-  const _Employee({required this.id, required this.employeeNumber, required this.firstName, required this.lastName, required this.fullName, this.phone, this.email, this.address, this.dateOfBirth, required this.employmentDate, required this.position, required this.status, this.photoUrl, required this.createdAt, this.updatedAt}): super._();
+  const _Employee({required this.id, required this.employeeNumber, required this.firstName, required this.lastName, required this.fullName, this.phone, this.email, this.address, this.dateOfBirth, required this.employmentDate, required this.position, required this.status, this.type = 'Employee', this.photoUrl, required this.createdAt, this.updatedAt}): super._();
   factory _Employee.fromJson(Map<String, dynamic> json) => _$EmployeeFromJson(json);
 
 @override final  String id;
@@ -238,6 +239,7 @@ class _Employee extends Employee {
 @override final  DateTime employmentDate;
 @override final  String position;
 @override final  String status;
+@override@JsonKey() final  String type;
 @override final  String? photoUrl;
 @override final  DateTime createdAt;
 @override final  DateTime? updatedAt;
@@ -255,16 +257,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Employee&&(identical(other.id, id) || other.id == id)&&(identical(other.employeeNumber, employeeNumber) || other.employeeNumber == employeeNumber)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.email, email) || other.email == email)&&(identical(other.address, address) || other.address == address)&&(identical(other.dateOfBirth, dateOfBirth) || other.dateOfBirth == dateOfBirth)&&(identical(other.employmentDate, employmentDate) || other.employmentDate == employmentDate)&&(identical(other.position, position) || other.position == position)&&(identical(other.status, status) || other.status == status)&&(identical(other.photoUrl, photoUrl) || other.photoUrl == photoUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Employee&&(identical(other.id, id) || other.id == id)&&(identical(other.employeeNumber, employeeNumber) || other.employeeNumber == employeeNumber)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.email, email) || other.email == email)&&(identical(other.address, address) || other.address == address)&&(identical(other.dateOfBirth, dateOfBirth) || other.dateOfBirth == dateOfBirth)&&(identical(other.employmentDate, employmentDate) || other.employmentDate == employmentDate)&&(identical(other.position, position) || other.position == position)&&(identical(other.status, status) || other.status == status)&&(identical(other.type, type) || other.type == type)&&(identical(other.photoUrl, photoUrl) || other.photoUrl == photoUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,employeeNumber,firstName,lastName,fullName,phone,email,address,dateOfBirth,employmentDate,position,status,photoUrl,createdAt,updatedAt);
+int get hashCode => Object.hash(runtimeType,id,employeeNumber,firstName,lastName,fullName,phone,email,address,dateOfBirth,employmentDate,position,status,type,photoUrl,createdAt,updatedAt);
 
 @override
 String toString() {
-  return 'Employee(id: $id, employeeNumber: $employeeNumber, firstName: $firstName, lastName: $lastName, fullName: $fullName, phone: $phone, email: $email, address: $address, dateOfBirth: $dateOfBirth, employmentDate: $employmentDate, position: $position, status: $status, photoUrl: $photoUrl, createdAt: $createdAt, updatedAt: $updatedAt)';
+  return 'Employee(id: $id, employeeNumber: $employeeNumber, firstName: $firstName, lastName: $lastName, fullName: $fullName, phone: $phone, email: $email, address: $address, dateOfBirth: $dateOfBirth, employmentDate: $employmentDate, position: $position, status: $status, type: $type, photoUrl: $photoUrl, createdAt: $createdAt, updatedAt: $updatedAt)';
 }
 
 
@@ -275,7 +277,7 @@ abstract mixin class _$EmployeeCopyWith<$Res> implements $EmployeeCopyWith<$Res>
   factory _$EmployeeCopyWith(_Employee value, $Res Function(_Employee) _then) = __$EmployeeCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String employeeNumber, String firstName, String lastName, String fullName, String? phone, String? email, String? address, DateTime? dateOfBirth, DateTime employmentDate, String position, String status, String? photoUrl, DateTime createdAt, DateTime? updatedAt
+ String id, String employeeNumber, String firstName, String lastName, String fullName, String? phone, String? email, String? address, DateTime? dateOfBirth, DateTime employmentDate, String position, String status, String type, String? photoUrl, DateTime createdAt, DateTime? updatedAt
 });
 
 
@@ -292,7 +294,7 @@ class __$EmployeeCopyWithImpl<$Res>
 
 /// Create a copy of Employee
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? employeeNumber = null,Object? firstName = null,Object? lastName = null,Object? fullName = null,Object? phone = freezed,Object? email = freezed,Object? address = freezed,Object? dateOfBirth = freezed,Object? employmentDate = null,Object? position = null,Object? status = null,Object? photoUrl = freezed,Object? createdAt = null,Object? updatedAt = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? employeeNumber = null,Object? firstName = null,Object? lastName = null,Object? fullName = null,Object? phone = freezed,Object? email = freezed,Object? address = freezed,Object? dateOfBirth = freezed,Object? employmentDate = null,Object? position = null,Object? status = null,Object? type = null,Object? photoUrl = freezed,Object? createdAt = null,Object? updatedAt = freezed,}) {
   return _then(_Employee(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,employeeNumber: null == employeeNumber ? _self.employeeNumber : employeeNumber // ignore: cast_nullable_to_non_nullable
@@ -306,6 +308,7 @@ as String?,dateOfBirth: freezed == dateOfBirth ? _self.dateOfBirth : dateOfBirth
 as DateTime?,employmentDate: null == employmentDate ? _self.employmentDate : employmentDate // ignore: cast_nullable_to_non_nullable
 as DateTime,position: null == position ? _self.position : position // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,photoUrl: freezed == photoUrl ? _self.photoUrl : photoUrl // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -320,7 +323,7 @@ as DateTime?,
 /// @nodoc
 mixin _$EmployeeDetail {
 
- String get id; String get employeeNumber; String get firstName; String get lastName; String get fullName; String? get phone; String? get email; String? get address; DateTime? get dateOfBirth; DateTime get employmentDate; String get position; String get status; String? get photoUrl; DateTime get createdAt; DateTime? get updatedAt; bool get hasUserAccount; List<EmployeeProjectAssignment> get projects;
+ String get id; String get employeeNumber; String get firstName; String get lastName; String get fullName; String? get phone; String? get email; String? get address; DateTime? get dateOfBirth; DateTime get employmentDate; String get position; String get status; String get type; String? get photoUrl; DateTime get createdAt; DateTime? get updatedAt; bool get hasUserAccount; List<EmployeeProjectAssignment> get projects;
 /// Create a copy of EmployeeDetail
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -333,16 +336,16 @@ $EmployeeDetailCopyWith<EmployeeDetail> get copyWith => _$EmployeeDetailCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is EmployeeDetail&&(identical(other.id, id) || other.id == id)&&(identical(other.employeeNumber, employeeNumber) || other.employeeNumber == employeeNumber)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.email, email) || other.email == email)&&(identical(other.address, address) || other.address == address)&&(identical(other.dateOfBirth, dateOfBirth) || other.dateOfBirth == dateOfBirth)&&(identical(other.employmentDate, employmentDate) || other.employmentDate == employmentDate)&&(identical(other.position, position) || other.position == position)&&(identical(other.status, status) || other.status == status)&&(identical(other.photoUrl, photoUrl) || other.photoUrl == photoUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.hasUserAccount, hasUserAccount) || other.hasUserAccount == hasUserAccount)&&const DeepCollectionEquality().equals(other.projects, projects));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is EmployeeDetail&&(identical(other.id, id) || other.id == id)&&(identical(other.employeeNumber, employeeNumber) || other.employeeNumber == employeeNumber)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.email, email) || other.email == email)&&(identical(other.address, address) || other.address == address)&&(identical(other.dateOfBirth, dateOfBirth) || other.dateOfBirth == dateOfBirth)&&(identical(other.employmentDate, employmentDate) || other.employmentDate == employmentDate)&&(identical(other.position, position) || other.position == position)&&(identical(other.status, status) || other.status == status)&&(identical(other.type, type) || other.type == type)&&(identical(other.photoUrl, photoUrl) || other.photoUrl == photoUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.hasUserAccount, hasUserAccount) || other.hasUserAccount == hasUserAccount)&&const DeepCollectionEquality().equals(other.projects, projects));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,employeeNumber,firstName,lastName,fullName,phone,email,address,dateOfBirth,employmentDate,position,status,photoUrl,createdAt,updatedAt,hasUserAccount,const DeepCollectionEquality().hash(projects));
+int get hashCode => Object.hash(runtimeType,id,employeeNumber,firstName,lastName,fullName,phone,email,address,dateOfBirth,employmentDate,position,status,type,photoUrl,createdAt,updatedAt,hasUserAccount,const DeepCollectionEquality().hash(projects));
 
 @override
 String toString() {
-  return 'EmployeeDetail(id: $id, employeeNumber: $employeeNumber, firstName: $firstName, lastName: $lastName, fullName: $fullName, phone: $phone, email: $email, address: $address, dateOfBirth: $dateOfBirth, employmentDate: $employmentDate, position: $position, status: $status, photoUrl: $photoUrl, createdAt: $createdAt, updatedAt: $updatedAt, hasUserAccount: $hasUserAccount, projects: $projects)';
+  return 'EmployeeDetail(id: $id, employeeNumber: $employeeNumber, firstName: $firstName, lastName: $lastName, fullName: $fullName, phone: $phone, email: $email, address: $address, dateOfBirth: $dateOfBirth, employmentDate: $employmentDate, position: $position, status: $status, type: $type, photoUrl: $photoUrl, createdAt: $createdAt, updatedAt: $updatedAt, hasUserAccount: $hasUserAccount, projects: $projects)';
 }
 
 
@@ -353,7 +356,7 @@ abstract mixin class $EmployeeDetailCopyWith<$Res>  {
   factory $EmployeeDetailCopyWith(EmployeeDetail value, $Res Function(EmployeeDetail) _then) = _$EmployeeDetailCopyWithImpl;
 @useResult
 $Res call({
- String id, String employeeNumber, String firstName, String lastName, String fullName, String? phone, String? email, String? address, DateTime? dateOfBirth, DateTime employmentDate, String position, String status, String? photoUrl, DateTime createdAt, DateTime? updatedAt, bool hasUserAccount, List<EmployeeProjectAssignment> projects
+ String id, String employeeNumber, String firstName, String lastName, String fullName, String? phone, String? email, String? address, DateTime? dateOfBirth, DateTime employmentDate, String position, String status, String type, String? photoUrl, DateTime createdAt, DateTime? updatedAt, bool hasUserAccount, List<EmployeeProjectAssignment> projects
 });
 
 
@@ -370,7 +373,7 @@ class _$EmployeeDetailCopyWithImpl<$Res>
 
 /// Create a copy of EmployeeDetail
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? employeeNumber = null,Object? firstName = null,Object? lastName = null,Object? fullName = null,Object? phone = freezed,Object? email = freezed,Object? address = freezed,Object? dateOfBirth = freezed,Object? employmentDate = null,Object? position = null,Object? status = null,Object? photoUrl = freezed,Object? createdAt = null,Object? updatedAt = freezed,Object? hasUserAccount = null,Object? projects = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? employeeNumber = null,Object? firstName = null,Object? lastName = null,Object? fullName = null,Object? phone = freezed,Object? email = freezed,Object? address = freezed,Object? dateOfBirth = freezed,Object? employmentDate = null,Object? position = null,Object? status = null,Object? type = null,Object? photoUrl = freezed,Object? createdAt = null,Object? updatedAt = freezed,Object? hasUserAccount = null,Object? projects = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,employeeNumber: null == employeeNumber ? _self.employeeNumber : employeeNumber // ignore: cast_nullable_to_non_nullable
@@ -384,6 +387,7 @@ as String?,dateOfBirth: freezed == dateOfBirth ? _self.dateOfBirth : dateOfBirth
 as DateTime?,employmentDate: null == employmentDate ? _self.employmentDate : employmentDate // ignore: cast_nullable_to_non_nullable
 as DateTime,position: null == position ? _self.position : position // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,photoUrl: freezed == photoUrl ? _self.photoUrl : photoUrl // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable
@@ -474,10 +478,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String employeeNumber,  String firstName,  String lastName,  String fullName,  String? phone,  String? email,  String? address,  DateTime? dateOfBirth,  DateTime employmentDate,  String position,  String status,  String? photoUrl,  DateTime createdAt,  DateTime? updatedAt,  bool hasUserAccount,  List<EmployeeProjectAssignment> projects)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String employeeNumber,  String firstName,  String lastName,  String fullName,  String? phone,  String? email,  String? address,  DateTime? dateOfBirth,  DateTime employmentDate,  String position,  String status,  String type,  String? photoUrl,  DateTime createdAt,  DateTime? updatedAt,  bool hasUserAccount,  List<EmployeeProjectAssignment> projects)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _EmployeeDetail() when $default != null:
-return $default(_that.id,_that.employeeNumber,_that.firstName,_that.lastName,_that.fullName,_that.phone,_that.email,_that.address,_that.dateOfBirth,_that.employmentDate,_that.position,_that.status,_that.photoUrl,_that.createdAt,_that.updatedAt,_that.hasUserAccount,_that.projects);case _:
+return $default(_that.id,_that.employeeNumber,_that.firstName,_that.lastName,_that.fullName,_that.phone,_that.email,_that.address,_that.dateOfBirth,_that.employmentDate,_that.position,_that.status,_that.type,_that.photoUrl,_that.createdAt,_that.updatedAt,_that.hasUserAccount,_that.projects);case _:
   return orElse();
 
 }
@@ -495,10 +499,10 @@ return $default(_that.id,_that.employeeNumber,_that.firstName,_that.lastName,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String employeeNumber,  String firstName,  String lastName,  String fullName,  String? phone,  String? email,  String? address,  DateTime? dateOfBirth,  DateTime employmentDate,  String position,  String status,  String? photoUrl,  DateTime createdAt,  DateTime? updatedAt,  bool hasUserAccount,  List<EmployeeProjectAssignment> projects)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String employeeNumber,  String firstName,  String lastName,  String fullName,  String? phone,  String? email,  String? address,  DateTime? dateOfBirth,  DateTime employmentDate,  String position,  String status,  String type,  String? photoUrl,  DateTime createdAt,  DateTime? updatedAt,  bool hasUserAccount,  List<EmployeeProjectAssignment> projects)  $default,) {final _that = this;
 switch (_that) {
 case _EmployeeDetail():
-return $default(_that.id,_that.employeeNumber,_that.firstName,_that.lastName,_that.fullName,_that.phone,_that.email,_that.address,_that.dateOfBirth,_that.employmentDate,_that.position,_that.status,_that.photoUrl,_that.createdAt,_that.updatedAt,_that.hasUserAccount,_that.projects);case _:
+return $default(_that.id,_that.employeeNumber,_that.firstName,_that.lastName,_that.fullName,_that.phone,_that.email,_that.address,_that.dateOfBirth,_that.employmentDate,_that.position,_that.status,_that.type,_that.photoUrl,_that.createdAt,_that.updatedAt,_that.hasUserAccount,_that.projects);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -515,10 +519,10 @@ return $default(_that.id,_that.employeeNumber,_that.firstName,_that.lastName,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String employeeNumber,  String firstName,  String lastName,  String fullName,  String? phone,  String? email,  String? address,  DateTime? dateOfBirth,  DateTime employmentDate,  String position,  String status,  String? photoUrl,  DateTime createdAt,  DateTime? updatedAt,  bool hasUserAccount,  List<EmployeeProjectAssignment> projects)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String employeeNumber,  String firstName,  String lastName,  String fullName,  String? phone,  String? email,  String? address,  DateTime? dateOfBirth,  DateTime employmentDate,  String position,  String status,  String type,  String? photoUrl,  DateTime createdAt,  DateTime? updatedAt,  bool hasUserAccount,  List<EmployeeProjectAssignment> projects)?  $default,) {final _that = this;
 switch (_that) {
 case _EmployeeDetail() when $default != null:
-return $default(_that.id,_that.employeeNumber,_that.firstName,_that.lastName,_that.fullName,_that.phone,_that.email,_that.address,_that.dateOfBirth,_that.employmentDate,_that.position,_that.status,_that.photoUrl,_that.createdAt,_that.updatedAt,_that.hasUserAccount,_that.projects);case _:
+return $default(_that.id,_that.employeeNumber,_that.firstName,_that.lastName,_that.fullName,_that.phone,_that.email,_that.address,_that.dateOfBirth,_that.employmentDate,_that.position,_that.status,_that.type,_that.photoUrl,_that.createdAt,_that.updatedAt,_that.hasUserAccount,_that.projects);case _:
   return null;
 
 }
@@ -530,7 +534,7 @@ return $default(_that.id,_that.employeeNumber,_that.firstName,_that.lastName,_th
 @JsonSerializable()
 
 class _EmployeeDetail extends EmployeeDetail {
-  const _EmployeeDetail({required this.id, required this.employeeNumber, required this.firstName, required this.lastName, required this.fullName, this.phone, this.email, this.address, this.dateOfBirth, required this.employmentDate, required this.position, required this.status, this.photoUrl, required this.createdAt, this.updatedAt, this.hasUserAccount = false, final  List<EmployeeProjectAssignment> projects = const <EmployeeProjectAssignment>[]}): _projects = projects,super._();
+  const _EmployeeDetail({required this.id, required this.employeeNumber, required this.firstName, required this.lastName, required this.fullName, this.phone, this.email, this.address, this.dateOfBirth, required this.employmentDate, required this.position, required this.status, this.type = 'Employee', this.photoUrl, required this.createdAt, this.updatedAt, this.hasUserAccount = false, final  List<EmployeeProjectAssignment> projects = const <EmployeeProjectAssignment>[]}): _projects = projects,super._();
   factory _EmployeeDetail.fromJson(Map<String, dynamic> json) => _$EmployeeDetailFromJson(json);
 
 @override final  String id;
@@ -545,6 +549,7 @@ class _EmployeeDetail extends EmployeeDetail {
 @override final  DateTime employmentDate;
 @override final  String position;
 @override final  String status;
+@override@JsonKey() final  String type;
 @override final  String? photoUrl;
 @override final  DateTime createdAt;
 @override final  DateTime? updatedAt;
@@ -570,16 +575,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EmployeeDetail&&(identical(other.id, id) || other.id == id)&&(identical(other.employeeNumber, employeeNumber) || other.employeeNumber == employeeNumber)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.email, email) || other.email == email)&&(identical(other.address, address) || other.address == address)&&(identical(other.dateOfBirth, dateOfBirth) || other.dateOfBirth == dateOfBirth)&&(identical(other.employmentDate, employmentDate) || other.employmentDate == employmentDate)&&(identical(other.position, position) || other.position == position)&&(identical(other.status, status) || other.status == status)&&(identical(other.photoUrl, photoUrl) || other.photoUrl == photoUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.hasUserAccount, hasUserAccount) || other.hasUserAccount == hasUserAccount)&&const DeepCollectionEquality().equals(other._projects, _projects));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _EmployeeDetail&&(identical(other.id, id) || other.id == id)&&(identical(other.employeeNumber, employeeNumber) || other.employeeNumber == employeeNumber)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.fullName, fullName) || other.fullName == fullName)&&(identical(other.phone, phone) || other.phone == phone)&&(identical(other.email, email) || other.email == email)&&(identical(other.address, address) || other.address == address)&&(identical(other.dateOfBirth, dateOfBirth) || other.dateOfBirth == dateOfBirth)&&(identical(other.employmentDate, employmentDate) || other.employmentDate == employmentDate)&&(identical(other.position, position) || other.position == position)&&(identical(other.status, status) || other.status == status)&&(identical(other.type, type) || other.type == type)&&(identical(other.photoUrl, photoUrl) || other.photoUrl == photoUrl)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.updatedAt, updatedAt) || other.updatedAt == updatedAt)&&(identical(other.hasUserAccount, hasUserAccount) || other.hasUserAccount == hasUserAccount)&&const DeepCollectionEquality().equals(other._projects, _projects));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,employeeNumber,firstName,lastName,fullName,phone,email,address,dateOfBirth,employmentDate,position,status,photoUrl,createdAt,updatedAt,hasUserAccount,const DeepCollectionEquality().hash(_projects));
+int get hashCode => Object.hash(runtimeType,id,employeeNumber,firstName,lastName,fullName,phone,email,address,dateOfBirth,employmentDate,position,status,type,photoUrl,createdAt,updatedAt,hasUserAccount,const DeepCollectionEquality().hash(_projects));
 
 @override
 String toString() {
-  return 'EmployeeDetail(id: $id, employeeNumber: $employeeNumber, firstName: $firstName, lastName: $lastName, fullName: $fullName, phone: $phone, email: $email, address: $address, dateOfBirth: $dateOfBirth, employmentDate: $employmentDate, position: $position, status: $status, photoUrl: $photoUrl, createdAt: $createdAt, updatedAt: $updatedAt, hasUserAccount: $hasUserAccount, projects: $projects)';
+  return 'EmployeeDetail(id: $id, employeeNumber: $employeeNumber, firstName: $firstName, lastName: $lastName, fullName: $fullName, phone: $phone, email: $email, address: $address, dateOfBirth: $dateOfBirth, employmentDate: $employmentDate, position: $position, status: $status, type: $type, photoUrl: $photoUrl, createdAt: $createdAt, updatedAt: $updatedAt, hasUserAccount: $hasUserAccount, projects: $projects)';
 }
 
 
@@ -590,7 +595,7 @@ abstract mixin class _$EmployeeDetailCopyWith<$Res> implements $EmployeeDetailCo
   factory _$EmployeeDetailCopyWith(_EmployeeDetail value, $Res Function(_EmployeeDetail) _then) = __$EmployeeDetailCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String employeeNumber, String firstName, String lastName, String fullName, String? phone, String? email, String? address, DateTime? dateOfBirth, DateTime employmentDate, String position, String status, String? photoUrl, DateTime createdAt, DateTime? updatedAt, bool hasUserAccount, List<EmployeeProjectAssignment> projects
+ String id, String employeeNumber, String firstName, String lastName, String fullName, String? phone, String? email, String? address, DateTime? dateOfBirth, DateTime employmentDate, String position, String status, String type, String? photoUrl, DateTime createdAt, DateTime? updatedAt, bool hasUserAccount, List<EmployeeProjectAssignment> projects
 });
 
 
@@ -607,7 +612,7 @@ class __$EmployeeDetailCopyWithImpl<$Res>
 
 /// Create a copy of EmployeeDetail
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? employeeNumber = null,Object? firstName = null,Object? lastName = null,Object? fullName = null,Object? phone = freezed,Object? email = freezed,Object? address = freezed,Object? dateOfBirth = freezed,Object? employmentDate = null,Object? position = null,Object? status = null,Object? photoUrl = freezed,Object? createdAt = null,Object? updatedAt = freezed,Object? hasUserAccount = null,Object? projects = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? employeeNumber = null,Object? firstName = null,Object? lastName = null,Object? fullName = null,Object? phone = freezed,Object? email = freezed,Object? address = freezed,Object? dateOfBirth = freezed,Object? employmentDate = null,Object? position = null,Object? status = null,Object? type = null,Object? photoUrl = freezed,Object? createdAt = null,Object? updatedAt = freezed,Object? hasUserAccount = null,Object? projects = null,}) {
   return _then(_EmployeeDetail(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,employeeNumber: null == employeeNumber ? _self.employeeNumber : employeeNumber // ignore: cast_nullable_to_non_nullable
@@ -621,6 +626,7 @@ as String?,dateOfBirth: freezed == dateOfBirth ? _self.dateOfBirth : dateOfBirth
 as DateTime?,employmentDate: null == employmentDate ? _self.employmentDate : employmentDate // ignore: cast_nullable_to_non_nullable
 as DateTime,position: null == position ? _self.position : position // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
+as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,photoUrl: freezed == photoUrl ? _self.photoUrl : photoUrl // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,updatedAt: freezed == updatedAt ? _self.updatedAt : updatedAt // ignore: cast_nullable_to_non_nullable

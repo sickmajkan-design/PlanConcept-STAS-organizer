@@ -65,11 +65,12 @@ public class PreviewHolidaySyncQueryHandler
             throw new ForbiddenAccessException("You may not manage the holiday calendar.");
         }
 
-        var external = await _source.GetHolidaysAsync(
-            request.CountryCode.Trim().ToUpperInvariant(), request.Year, cancellationToken);
+        var countryCode = request.CountryCode.Trim().ToUpperInvariant();
+
+        var external = await _source.GetHolidaysAsync(countryCode, request.Year, cancellationToken);
 
         var existingDates = await _context.PublicHolidays
-            .Where(h => h.Date.Year == request.Year)
+            .Where(h => h.Date.Year == request.Year && h.CountryCode == countryCode)
             .Select(h => h.Date)
             .ToListAsync(cancellationToken);
         var existing = existingDates.ToHashSet();
