@@ -1114,6 +1114,10 @@ export const sr: Record<MessageKey, Message> = {
   'costs.manualPay': 'Ručni unosi plate',
   'costs.manualPayHint':
     'Ručno unesena plata (Finansijski unosi) zadužena na ovaj projekat — nije dio ukupnog troška. Ručni unos je često ispravka već obračunatih i naplaćenih sati, pa bi sabiranje oba rizikovalo dupli obračun istog rada.',
+  'costs.showDetails': 'Prikaži detalje',
+  'costs.manualPayEntries': 'Ručni unosi plate',
+  'costs.generalExpenseEntries': 'Ostali troškovi',
+  'costs.noEntries': 'Nema unosa u ovom periodu.',
   'costs.hours': 'Sati',
   'costs.total': 'Ukupno',
   'costs.grandTotal': 'Sve zajedno',

@@ -1,3 +1,4 @@
+import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
 import {
   Alert,
   Box,
@@ -5,6 +6,8 @@ import {
   ButtonGroup,
   Chip,
   CircularProgress,
+  Collapse,
+  IconButton,
   Paper,
   Stack,
   Tab,
@@ -21,7 +24,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 
 import { exportsApi } from '../../api/exports';
 import type { ProjectCostRow, ToolCostRow, VehicleCostRow } from '../../api/types';
@@ -30,6 +33,8 @@ import { ExportButton } from '../../components/ExportButton';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
 import {
+  useFinanceEntriesQuery,
+  useGeneralExpensesQuery,
   useProjectCostReport,
   useToolCostReport,
   useToolRentalsOutQuery,
@@ -38,6 +43,7 @@ import {
   useVehicleRentalsOutQuery,
   useVehicleRentalsOutSummaryQuery,
 } from '../../features/costs/useCosts';
+import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { formatDate, formatMoney, formatQuantity } from '../../utils/formatting';
 import { monthOf, splitHours, yearOf, type Period } from './monthWindow';
@@ -178,6 +184,7 @@ function ProjectCosts({ period }: { period: Period }) {
 
   const [sortBy, setSortBy] = useState<ProjectCostSortField>('total');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [expandedProjectId, setExpandedProjectId] = useState<string | null>(null);
 
   const toggleSort = (field: ProjectCostSortField) => {
     if (sortBy === field) {
@@ -254,6 +261,7 @@ function ProjectCosts({ period }: { period: Period }) {
         <Table size="small">
           <TableHead>
             <TableRow>
+              <TableCell width={40} />
               <TableCell sortDirection={sortBy === 'projectName' ? sortDirection : false}>
                 <TableSortLabel
                   active={sortBy === 'projectName'}
@@ -348,41 +356,78 @@ function ProjectCosts({ period }: { period: Period }) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {sortedRows.map((row) => (
-              <TableRow key={row.projectId} hover>
-                <TableCell>{row.projectName}</TableCell>
-                {data.includesLabour && (
-                  <>
+            {sortedRows.map((row) => {
+              const hasDetail = row.manualPayAmount > 0 || row.generalExpenseCost > 0;
+              const isExpanded = expandedProjectId === row.projectId;
+
+              return (
+                <Fragment key={row.projectId}>
+                  <TableRow hover>
+                    <TableCell padding="none" sx={{ pl: 1 }}>
+                      {hasDetail && (
+                        <IconButton
+                          size="small"
+                          aria-label={t('costs.showDetails')}
+                          onClick={() =>
+                            setExpandedProjectId(isExpanded ? null : row.projectId)
+                          }
+                        >
+                          {isExpanded ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
+                        </IconButton>
+                      )}
+                    </TableCell>
+                    <TableCell>{row.projectName}</TableCell>
+                    {data.includesLabour && (
+                      <>
+                        <TableCell align="right">
+                          <HoursCell minutes={row.labourMinutes} />
+                        </TableCell>
+                        <TableCell align="right">
+                          {formatMoney(row.labourCost, locale)}
+                        </TableCell>
+                      </>
+                    )}
                     <TableCell align="right">
-                      <HoursCell minutes={row.labourMinutes} />
+                      {formatMoney(row.materialCost, locale)}
                     </TableCell>
                     <TableCell align="right">
-                      {formatMoney(row.labourCost, locale)}
+                      {formatMoney(row.generalExpenseCost, locale)}
                     </TableCell>
-                  </>
-                )}
-                <TableCell align="right">
-                  {formatMoney(row.materialCost, locale)}
-                </TableCell>
-                <TableCell align="right">
-                  {formatMoney(row.generalExpenseCost, locale)}
-                </TableCell>
-                <TableCell align="right" sx={{ fontWeight: 600 }}>
-                  {formatMoney(row.total, locale)}
-                </TableCell>
-                <TableCell align="right" sx={{ color: 'text.secondary' }}>
-                  {formatMoney(row.materialsOnSiteValue, locale)}
-                </TableCell>
-                {data.includesLabour && (
-                  <TableCell align="right" sx={{ color: 'text.secondary' }}>
-                    {formatMoney(row.manualPayAmount, locale)}
-                  </TableCell>
-                )}
-              </TableRow>
-            ))}
+                    <TableCell align="right" sx={{ fontWeight: 600 }}>
+                      {formatMoney(row.total, locale)}
+                    </TableCell>
+                    <TableCell align="right" sx={{ color: 'text.secondary' }}>
+                      {formatMoney(row.materialsOnSiteValue, locale)}
+                    </TableCell>
+                    {data.includesLabour && (
+                      <TableCell align="right" sx={{ color: 'text.secondary' }}>
+                        {formatMoney(row.manualPayAmount, locale)}
+                      </TableCell>
+                    )}
+                  </TableRow>
+                  {hasDetail && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={6 + (data.includesLabour ? 3 : 0)}
+                        sx={{ py: 0, borderBottom: isExpanded ? undefined : 'none' }}
+                      >
+                        <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                          <ProjectCostDetail
+                            projectId={row.projectId}
+                            period={period}
+                            showManualPay={data.includesLabour}
+                          />
+                        </Collapse>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </Fragment>
+              );
+            })}
           </TableBody>
           <TableFooter>
             <TableRow>
+              <TableCell />
               <TableCell sx={{ fontWeight: 700 }}>{t('costs.grandTotal')}</TableCell>
               {data.includesLabour && (
                 <>
@@ -414,6 +459,127 @@ function ProjectCosts({ period }: { period: Period }) {
         </Table>
       </TableContainer>
     </Stack>
+  );
+}
+
+/**
+ * What a rolled-up project total is hiding: the individual manual pay
+ * entries and general expenses behind it, so "how much did we spend on
+ * wages" never has to mean "trust the number, we can't show you why."
+ */
+function ProjectCostDetail({
+  projectId,
+  period,
+  showManualPay,
+}: {
+  projectId: string;
+  period: Period;
+  showManualPay: boolean;
+}) {
+  const t = useT();
+  const { locale } = useI18n();
+  const enumLabel = useEnumLabel();
+
+  const listQuery = useMemo(
+    () => ({
+      pageNumber: 1,
+      pageSize: 200,
+      projectId,
+      from: period.from,
+      to: period.to,
+    }),
+    [projectId, period],
+  );
+
+  const financeEntries = useFinanceEntriesQuery(listQuery);
+  const generalExpenses = useGeneralExpensesQuery(listQuery);
+
+  return (
+    <Box sx={{ py: 2, px: 2 }}>
+      <Stack spacing={2}>
+        {showManualPay && (
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1 }}>
+              {t('costs.manualPayEntries')}
+            </Typography>
+            {financeEntries.isLoading ? (
+              <CircularProgress size={20} />
+            ) : (financeEntries.data?.items.length ?? 0) === 0 ? (
+              <Typography variant="body2" color="text.secondary">
+                {t('costs.noEntries')}
+              </Typography>
+            ) : (
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>{t('financeEntries.employee')}</TableCell>
+                    <TableCell>{t('financeEntries.kind')}</TableCell>
+                    <TableCell>{t('financeEntries.occurredOn')}</TableCell>
+                    <TableCell align="right">{t('financeEntries.hoursWorked')}</TableCell>
+                    <TableCell align="right">{t('financeEntries.amount')}</TableCell>
+                    <TableCell>{t('financeEntries.recordedBy')}</TableCell>
+                    <TableCell>{t('financeEntries.note')}</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {financeEntries.data?.items.map((entry) => (
+                    <TableRow key={entry.id}>
+                      <TableCell>{entry.employeeName}</TableCell>
+                      <TableCell>{enumLabel('financeEntryKind', entry.kind)}</TableCell>
+                      <TableCell>{formatDate(entry.occurredOn)}</TableCell>
+                      <TableCell align="right">
+                        {entry.hoursWorked === null ? '—' : entry.hoursWorked}
+                      </TableCell>
+                      <TableCell align="right">{formatMoney(entry.amount, locale)}</TableCell>
+                      <TableCell>{entry.recordedByName ?? '—'}</TableCell>
+                      <TableCell>{entry.note ?? '—'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </Box>
+        )}
+
+        <Box>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            {t('costs.generalExpenseEntries')}
+          </Typography>
+          {generalExpenses.isLoading ? (
+            <CircularProgress size={20} />
+          ) : (generalExpenses.data?.items.length ?? 0) === 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              {t('costs.noEntries')}
+            </Typography>
+          ) : (
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('generalExpenses.category')}</TableCell>
+                  <TableCell>{t('generalExpenses.occurredOn')}</TableCell>
+                  <TableCell align="right">{t('generalExpenses.amount')}</TableCell>
+                  <TableCell>{t('generalExpenses.employee')}</TableCell>
+                  <TableCell>{t('generalExpenses.supplier')}</TableCell>
+                  <TableCell>{t('generalExpenses.note')}</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {generalExpenses.data?.items.map((entry) => (
+                  <TableRow key={entry.id}>
+                    <TableCell>{enumLabel('generalExpenseCategory', entry.category)}</TableCell>
+                    <TableCell>{formatDate(entry.occurredOn)}</TableCell>
+                    <TableCell align="right">{formatMoney(entry.amount, locale)}</TableCell>
+                    <TableCell>{entry.employeeName ?? '—'}</TableCell>
+                    <TableCell>{entry.supplier ?? '—'}</TableCell>
+                    <TableCell>{entry.note ?? '—'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </Box>
+      </Stack>
+    </Box>
   );
 }
 
