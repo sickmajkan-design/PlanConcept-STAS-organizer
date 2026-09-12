@@ -43,7 +43,7 @@ public static class ExportLabels
         ["sheet.toolCosts"] = ("Troškovi alata", "Tool costs"),
         ["sheet.vehicleExpenses"] = ("Evidencija troškova vozila", "Vehicle expense entries"),
         ["sheet.toolExpenses"] = ("Evidencija troškova alata", "Tool expense entries"),
-        ["sheet.rentalRates"] = ("Troškovi zakupa/lizinga", "Lease/rental costs"),
+        ["sheet.rentalRates"] = ("Troškovi zakupa i lizinga", "Lease and rental costs"),
         ["sheet.rentalsOut"] = ("Izdato u najam drugima", "Rented out to others"),
 
         ["employee"] = ("Radnik", "Employee"),
