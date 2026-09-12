@@ -207,7 +207,7 @@ internal static class ExportFileFactory
         return new ExportFile(
             fileName,
             writer.ContentType,
-            writer.Write(Spreadsheet.Of(sheet)));
+            writer.Write(Spreadsheet.Of(sheet, GeneratedAtLabel(request.Language))));
     }
 
     /// <summary>
@@ -219,14 +219,30 @@ internal static class ExportFileFactory
         this ISpreadsheetWriter writer,
         SpreadsheetSheet sheet,
         string prefix,
-        DateOnly takenOn)
+        DateOnly takenOn,
+        string? language)
     {
         var fileName = $"{prefix}-{takenOn:yyyy-MM-dd}.xlsx";
 
         return new ExportFile(
             fileName,
             writer.ContentType,
-            writer.Write(Spreadsheet.Of(sheet)));
+            writer.Write(Spreadsheet.Of(sheet, GeneratedAtLabel(language))));
+    }
+
+    /// <summary>
+    /// "Generated 12.09.2026. 21:15" (or the English equivalent), stamped on
+    /// every export — the mark of an actual report rather than a raw data
+    /// dump, and the first thing anyone asks about a spreadsheet that
+    /// disagrees with a later one: when was this taken.
+    /// </summary>
+    private static string GeneratedAtLabel(string? language)
+    {
+        var belgradeTime = TimeZoneInfo.ConvertTimeFromUtc(
+            DateTime.UtcNow,
+            TimeZoneInfo.FindSystemTimeZoneById("Europe/Belgrade"));
+
+        return $"{ExportLabels.Get("generatedOn", ExportLabels.IsEnglish(language))} {belgradeTime:dd.MM.yyyy. HH:mm}";
     }
 }
 
@@ -330,7 +346,7 @@ public class ExportEmployeesQueryHandler : IRequestHandler<ExportEmployeesQuery,
             ]).ToList());
 
         return _writer.RenderSnapshot(
-            sheet, "employees", DateOnly.FromDateTime(_dateTimeProvider.UtcNow));
+            sheet, "employees", DateOnly.FromDateTime(_dateTimeProvider.UtcNow), request.Language);
     }
 }
 
@@ -413,7 +429,7 @@ public class ExportProjectsQueryHandler : IRequestHandler<ExportProjectsQuery, E
             ]).ToList());
 
         return _writer.RenderSnapshot(
-            sheet, "projects", DateOnly.FromDateTime(_dateTimeProvider.UtcNow));
+            sheet, "projects", DateOnly.FromDateTime(_dateTimeProvider.UtcNow), request.Language);
     }
 }
 
@@ -493,7 +509,7 @@ public class ExportVehiclesQueryHandler : IRequestHandler<ExportVehiclesQuery, E
             ]).ToList());
 
         return _writer.RenderSnapshot(
-            sheet, "vehicles", DateOnly.FromDateTime(_dateTimeProvider.UtcNow));
+            sheet, "vehicles", DateOnly.FromDateTime(_dateTimeProvider.UtcNow), request.Language);
     }
 }
 
@@ -572,7 +588,7 @@ public class ExportToolsQueryHandler : IRequestHandler<ExportToolsQuery, ExportF
             ]).ToList());
 
         return _writer.RenderSnapshot(
-            sheet, "tools", DateOnly.FromDateTime(_dateTimeProvider.UtcNow));
+            sheet, "tools", DateOnly.FromDateTime(_dateTimeProvider.UtcNow), request.Language);
     }
 }
 

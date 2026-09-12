@@ -52,9 +52,10 @@ public sealed record SpreadsheetSheet(
 /// feature handlers stay testable without a rendering dependency and the
 /// choice of library stays replaceable.
 /// </remarks>
-public sealed record Spreadsheet(IReadOnlyList<SpreadsheetSheet> Sheets)
+public sealed record Spreadsheet(IReadOnlyList<SpreadsheetSheet> Sheets, string? GeneratedAtLabel = null)
 {
-    public static Spreadsheet Of(SpreadsheetSheet sheet) => new([sheet]);
+    public static Spreadsheet Of(SpreadsheetSheet sheet, string? generatedAtLabel = null) =>
+        new([sheet], generatedAtLabel);
 }
 
 /// <summary>

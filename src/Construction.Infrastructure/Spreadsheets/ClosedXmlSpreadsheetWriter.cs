@@ -14,13 +14,22 @@ namespace Construction.Infrastructure.Spreadsheets;
 /// </summary>
 internal static class SpreadsheetTheme
 {
-    /// <summary>The admin panel's own brand color (see construction_admin's theme.ts) — the same orange, not a coincidence.</summary>
-    public static readonly XLColor BrandColor = XLColor.FromHtml("#E65100");
-    public static readonly XLColor BrandColorDark = XLColor.FromHtml("#B23C00");
+    /// <summary>
+    /// A dark neutral carries the header and totals bands — the accent color
+    /// below is what actually reads as "the brand," used sparingly, the way a
+    /// bank statement or a consulting deck uses its accent color for one rule
+    /// or one row rather than painting whole panels with it. A solid orange
+    /// header band read as a themed spreadsheet, not a financial document.
+    /// </summary>
+    public static readonly XLColor HeaderFill = XLColor.FromHtml("#1F2A37");
     public static readonly XLColor HeaderText = XLColor.White;
-    public static readonly XLColor ZebraFill = XLColor.FromHtml("#FBF3EE");
-    public static readonly XLColor BorderColor = XLColor.FromHtml("#E0D5CC");
-    public static readonly XLColor TotalsFill = XLColor.FromHtml("#FCE4D6");
+
+    /// <summary>The admin panel's own brand color (see construction_admin's theme.ts) — the same orange, not a coincidence. Used only as a thin accent rule.</summary>
+    public static readonly XLColor AccentColor = XLColor.FromHtml("#E65100");
+
+    public static readonly XLColor ZebraFill = XLColor.FromHtml("#F5F6F8");
+    public static readonly XLColor BorderColor = XLColor.FromHtml("#D7DAE0");
+    public static readonly XLColor FooterText = XLColor.FromHtml("#6B7280");
     public const string FontFamily = "Calibri";
 }
 
@@ -64,7 +73,7 @@ public sealed class ClosedXmlSpreadsheetWriter : ISpreadsheetWriter
 
         foreach (var sheet in spreadsheet.Sheets)
         {
-            AddSheet(workbook, sheet, branding);
+            AddSheet(workbook, sheet, branding, spreadsheet.GeneratedAtLabel);
         }
 
         using var stream = new MemoryStream();
@@ -133,10 +142,12 @@ public sealed class ClosedXmlSpreadsheetWriter : ISpreadsheetWriter
         ExportLabels.Get("grandTotal", english: true),
     ];
 
-    private static void AddSheet(XLWorkbook workbook, SpreadsheetSheet sheet, SpreadsheetBranding branding)
+    private static void AddSheet(
+        XLWorkbook workbook, SpreadsheetSheet sheet, SpreadsheetBranding branding, string? generatedAtLabel)
     {
         var worksheet = workbook.Worksheets.Add(SafeSheetName(sheet.Name));
         worksheet.Style.Font.FontName = SpreadsheetTheme.FontFamily;
+        worksheet.Style.Font.FontSize = 10.5;
 
         var headerRow = 1 + AddBrandingHeader(worksheet, sheet, branding);
         var columnCount = sheet.Columns.Count;
@@ -146,20 +157,24 @@ public sealed class ClosedXmlSpreadsheetWriter : ISpreadsheetWriter
             var cell = worksheet.Cell(headerRow, column + 1);
             cell.Value = sheet.Columns[column].Header;
             cell.Style.Font.Bold = true;
+            cell.Style.Font.FontSize = 10.5;
             cell.Style.Font.FontColor = SpreadsheetTheme.HeaderText;
-            cell.Style.Fill.BackgroundColor = SpreadsheetTheme.BrandColor;
+            cell.Style.Fill.BackgroundColor = SpreadsheetTheme.HeaderFill;
             cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
             cell.Style.Alignment.WrapText = true;
             cell.Style.Border.BottomBorder = XLBorderStyleValues.Medium;
-            cell.Style.Border.BottomBorderColor = SpreadsheetTheme.BrandColorDark;
+            cell.Style.Border.BottomBorderColor = SpreadsheetTheme.AccentColor;
         }
 
-        worksheet.Row(headerRow).Height = 20;
+        worksheet.Row(headerRow).Height = 22;
+
+        var lastDataRow = headerRow;
 
         for (var row = 0; row < sheet.Rows.Count; row++)
         {
             var values = sheet.Rows[row];
             var sheetRow = headerRow + row + 1;
+            lastDataRow = sheetRow;
             var isTotalRow = values.Count > 0 && values[0] is string first && TotalRowMarkers.Contains(first);
             var isZebra = !isTotalRow && row % 2 == 1;
 
@@ -177,10 +192,16 @@ public sealed class ClosedXmlSpreadsheetWriter : ISpreadsheetWriter
 
                 if (isTotalRow)
                 {
+                    // The same dark band the header uses, not a tint of the
+                    // accent color — a total is the bottom bookend of the
+                    // table, and pairing its styling with the header's is
+                    // what makes it read that way rather than as one more
+                    // (bolder) data row.
                     cell.Style.Font.Bold = true;
-                    cell.Style.Fill.BackgroundColor = SpreadsheetTheme.TotalsFill;
+                    cell.Style.Font.FontColor = SpreadsheetTheme.HeaderText;
+                    cell.Style.Fill.BackgroundColor = SpreadsheetTheme.HeaderFill;
                     cell.Style.Border.TopBorder = XLBorderStyleValues.Medium;
-                    cell.Style.Border.TopBorderColor = SpreadsheetTheme.BrandColor;
+                    cell.Style.Border.TopBorderColor = SpreadsheetTheme.AccentColor;
                 }
                 else if (isZebra)
                 {
@@ -191,12 +212,17 @@ public sealed class ClosedXmlSpreadsheetWriter : ISpreadsheetWriter
 
         if (sheet.Rows.Count > 0)
         {
-            // The header stays put while the reader scrolls, and the filter
-            // row is what makes an export usable rather than merely present.
+            // The header (and the identifying first column, for a sheet
+            // wider than one screen) stay put while the reader scrolls, and
+            // the filter row is what makes an export usable rather than
+            // merely present.
             worksheet.SheetView.FreezeRows(headerRow);
+            worksheet.SheetView.FreezeColumns(1);
             worksheet.Range(headerRow, 1, sheet.Rows.Count + headerRow, columnCount)
                 .SetAutoFilter();
         }
+
+        AddFooter(worksheet, generatedAtLabel, lastDataRow, columnCount);
 
         worksheet.Columns().AdjustToContents();
 
@@ -208,6 +234,41 @@ public sealed class ClosedXmlSpreadsheetWriter : ISpreadsheetWriter
 
         // The drawn borders are the table now, not Excel's own faint default grid.
         worksheet.SetShowGridLines(false);
+
+        // A document meant to be printed or turned into a PDF, not only
+        // scrolled on screen: the header repeats on every page, and the
+        // columns never spill onto a second sheet of paper.
+        worksheet.PageSetup.PrintAreas.Clear();
+        worksheet.PageSetup.PrintAreas.Add(1, 1, Math.Max(lastDataRow, headerRow), Math.Max(columnCount, 1));
+        worksheet.PageSetup.SetRowsToRepeatAtTop(headerRow, headerRow);
+        worksheet.PageSetup.FitToPages(1, 0);
+        worksheet.PageSetup.Margins.SetLeft(0.4).SetRight(0.4).SetTop(0.6).SetBottom(0.6);
+    }
+
+    /// <summary>
+    /// "Generated 12.09.2026. 21:15" beneath the table, small and muted — the
+    /// one detail that turns a spreadsheet into a report: proof of exactly
+    /// when it was taken, for whoever compares it against a later one.
+    /// </summary>
+    private static void AddFooter(
+        IXLWorksheet worksheet, string? generatedAtLabel, int lastDataRow, int columnCount)
+    {
+        if (generatedAtLabel is null)
+        {
+            return;
+        }
+
+        var footerRow = lastDataRow + 2;
+        var cell = worksheet.Cell(footerRow, 1);
+        cell.Value = generatedAtLabel;
+        cell.Style.Font.FontColor = SpreadsheetTheme.FooterText;
+        cell.Style.Font.Italic = true;
+        cell.Style.Font.FontSize = 9;
+
+        if (columnCount > 1)
+        {
+            worksheet.Range(footerRow, 1, footerRow, columnCount).Merge();
+        }
     }
 
     /// <summary>
@@ -227,12 +288,15 @@ public sealed class ClosedXmlSpreadsheetWriter : ISpreadsheetWriter
 
         // A letterhead band, not just bold text floating on the default
         // white: a filled, bordered row reads as the top of a document
-        // rather than an accidental first line of data.
+        // rather than an accidental first line of data. Same dark band the
+        // column headers use, with the same orange accent rule beneath it —
+        // one visual language for the whole sheet, not the brand color
+        // spent on two different things.
         var band = worksheet.Range(1, 1, 1, columnCount);
-        band.Style.Fill.BackgroundColor = SpreadsheetTheme.BrandColor;
+        band.Style.Fill.BackgroundColor = SpreadsheetTheme.HeaderFill;
         band.Style.Border.BottomBorder = XLBorderStyleValues.Thick;
-        band.Style.Border.BottomBorderColor = SpreadsheetTheme.BrandColorDark;
-        worksheet.Row(1).Height = 26;
+        band.Style.Border.BottomBorderColor = SpreadsheetTheme.AccentColor;
+        worksheet.Row(1).Height = 28;
 
         if (branding.CompanyName is not null)
         {

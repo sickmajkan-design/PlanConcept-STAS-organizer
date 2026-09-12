@@ -37,6 +37,18 @@ public class ExportTests : IntegrationTestBase
         return workbook.Worksheets.First();
     }
 
+    /// <summary>
+    /// Finds the grand-total row by its own label rather than assuming it is
+    /// whatever `LastRowUsed()` returns — the sheet now ends with a
+    /// generated-at footer a couple of rows further down, which is not that
+    /// row, and coupling the tests to the exact number of rows between them
+    /// would make an unrelated layout change break these tests for no
+    /// reason.
+    /// </summary>
+    private static int TotalsRow(IXLWorksheet sheet) =>
+        Enumerable.Range(1, sheet.LastRowUsed()!.RowNumber())
+            .Single(row => sheet.Cell(row, 1).GetString() == "Sve zajedno");
+
     [Fact]
     public async Task A_timesheet_export_writes_hours_as_a_duration_not_as_text()
     {
@@ -160,8 +172,11 @@ public class ExportTests : IntegrationTestBase
 
         var sheet = Open(await ExportAsync(admin, employee.Id, language: null));
 
-        // Header plus exactly one data row.
-        Assert.Equal(2, sheet.LastRowUsed()!.RowNumber());
+        // Header plus exactly one data row — row 2 is that row, and row 3 is
+        // blank (the generated-at footer sits further down still, past a
+        // deliberate gap row, so it is not what this is checking).
+        Assert.False(sheet.Cell(2, 1).IsEmpty());
+        Assert.True(sheet.Cell(3, 1).IsEmpty());
     }
 
     [Fact]
@@ -223,10 +238,8 @@ public class ExportTests : IntegrationTestBase
         await SeedIssuedMaterialAsync(foreman, material.Id, project.Id);
 
         var sheet = Open(await ExportCostsAsync(admin, project.Id));
-        var lastRow = sheet.LastRowUsed()!.RowNumber();
+        var lastRow = TotalsRow(sheet);
         var lastColumn = sheet.LastColumnUsed()!.ColumnNumber();
-
-        Assert.Equal("Sve zajedno", sheet.Cell(lastRow, 1).GetString());
 
         // "Ukupno" (Total) is not the last column — "Materijal na lageru" and
         // "Ručni unosi plate" report separately alongside it, deliberately
@@ -275,9 +288,8 @@ public class ExportTests : IntegrationTestBase
         });
 
         var sheet = Open(file);
-        var lastRow = sheet.LastRowUsed()!.RowNumber();
+        var lastRow = TotalsRow(sheet);
 
-        Assert.Equal("Sve zajedno", sheet.Cell(lastRow, 1).GetString());
         // Column 5 is l/100 km.
         Assert.True(sheet.Cell(lastRow, 5).IsEmpty());
     }

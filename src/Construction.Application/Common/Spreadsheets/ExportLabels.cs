@@ -60,6 +60,7 @@ public static class ExportLabels
         ["manualPay"] = ("Ručni unosi plate", "Manual pay entries"),
         ["total"] = ("Ukupno", "Total"),
         ["grandTotal"] = ("Sve zajedno", "Everything"),
+        ["generatedOn"] = ("Generisano", "Generated"),
         ["fuelCost"] = ("Gorivo", "Fuel"),
         ["litres"] = ("Litara", "Litres"),
         ["consumption"] = ("l/100 km", "l/100 km"),
