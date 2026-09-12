@@ -150,7 +150,14 @@ function SubmitReportDialog({ open, onClose }: { open: boolean; onClose: () => v
 
           {canPickEmployee && (
             <FormControl fullWidth>
-              <InputLabel id="wr-employee-label">{t('weeklyReports.submittedByEmployee')}</InputLabel>
+              {/* `shrink` forced on: `displayEmpty` always shows real text in
+                  the field (the "auto-detect" placeholder is not really
+                  empty), but MUI's label only floats up on its own when
+                  `value` is non-empty — without this it sits in the middle of
+                  the field, printed right on top of that placeholder text. */}
+              <InputLabel id="wr-employee-label" shrink>
+                {t('weeklyReports.submittedByEmployee')}
+              </InputLabel>
               <Select
                 labelId="wr-employee-label"
                 label={t('weeklyReports.submittedByEmployee')}
