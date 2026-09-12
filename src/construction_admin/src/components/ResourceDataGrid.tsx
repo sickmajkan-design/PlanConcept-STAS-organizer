@@ -93,6 +93,12 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
           }}
           disableColumnMenu
           disableRowSelectionOnClick
+          // The app's own BulkActionsBar already shows the selected count
+          // (translated); MUI's built-in footer count ships English-only
+          // ("N row(s) selected") with no locale text override available for
+          // it, so it stays hidden rather than showing untranslated text
+          // whenever checkbox selection is on.
+          hideFooterSelectedRowCount
           checkboxSelection={!!onRowSelectionModelChange}
           rowSelectionModel={rowSelectionModel}
           onRowSelectionModelChange={onRowSelectionModelChange}

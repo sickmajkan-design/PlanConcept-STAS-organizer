@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 
 import { I18nContext, type I18nContextValue, type Translate, type TranslateValues } from './context';
 import { en } from './en';
+import { setLiveTranslate } from './liveT';
 import { sr } from './sr';
 import { locales, type Locale, type Message, type Messages } from './types';
 
@@ -109,6 +110,15 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     },
     [locale],
   );
+
+  // Lets `ApiError.message` and Zod validation messages render in whatever
+  // language is current even though they were created before this render —
+  // see `i18n/liveT.ts` for why this is a module-level call rather than
+  // threading `t` through every place that needs it. Set directly in the
+  // render body, not an effect: an effect runs after the first paint, and a
+  // schema validated during that first paint would still read a stale (or
+  // absent) translator.
+  setLiveTranslate(t);
 
   const value = useMemo<I18nContextValue>(() => ({ locale, setLocale, t }), [locale, setLocale, t]);
 

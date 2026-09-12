@@ -1,13 +1,24 @@
 import { z } from 'zod';
 
+import { liveT } from '../../i18n/liveT';
+import { zodMsg } from '../../i18n/zodMessage';
 import { workItemKinds, workItemPriorities } from '../../api/types';
 
 /** Mirrors the API's WorkItemCommandBaseValidator. */
 export const workItemFormSchema = z
   .object({
     kind: z.enum(workItemKinds),
-    title: z.string().trim().min(1, 'A title is required.').max(256),
-    description: z.string().trim().max(4000).optional().or(z.literal('')),
+    title: z
+      .string()
+      .trim()
+      .min(1, { error: zodMsg('validation.required') })
+      .max(256, { error: zodMsg('validation.maxLength', { max: 256 }) }),
+    description: z
+      .string()
+      .trim()
+      .max(4000, { error: zodMsg('validation.maxLength', { max: 4000 }) })
+      .optional()
+      .or(z.literal('')),
     projectId: z.string().optional().or(z.literal('')),
     assignedEmployeeId: z.string().optional().or(z.literal('')),
     priority: z.enum(workItemPriorities),
@@ -21,7 +32,7 @@ export const workItemFormSchema = z
       ctx.addIssue({
         code: 'custom',
         path: ['projectId'],
-        message: 'A defect has to be raised against a site.',
+        message: liveT('validation.defectNeedsProject'),
       });
     }
   });

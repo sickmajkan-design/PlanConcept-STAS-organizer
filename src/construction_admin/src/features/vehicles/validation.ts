@@ -1,27 +1,51 @@
 import { z } from 'zod';
 
+import { zodMsg } from '../../i18n/zodMessage';
 import { fuelTypes, vehicleOwnershipTypes, vehicleStatuses } from '../../api/types';
 
 /** Mirrors the API's VehicleCommandBaseValidator so the form catches errors early. */
 export const vehicleFormSchema = z.object({
-  brand: z.string().trim().min(1, 'Brand is required.').max(100),
-  model: z.string().trim().min(1, 'Model is required.').max(100),
+  brand: z
+    .string()
+    .trim()
+    .min(1, { error: zodMsg('validation.required') })
+    .max(100, { error: zodMsg('validation.maxLength', { max: 100 }) }),
+  model: z
+    .string()
+    .trim()
+    .min(1, { error: zodMsg('validation.required') })
+    .max(100, { error: zodMsg('validation.maxLength', { max: 100 }) }),
   registrationNumber: z
     .string()
     .trim()
-    .min(1, 'Registration number is required.')
-    .max(32),
-  vin: z.string().trim().max(32).optional().or(z.literal('')),
-  qrCode: z.string().trim().max(256).optional().or(z.literal('')),
-  gpsProvider: z.string().trim().max(100).optional().or(z.literal('')),
+    .min(1, { error: zodMsg('validation.required') })
+    .max(32, { error: zodMsg('validation.maxLength', { max: 32 }) }),
+  vin: z
+    .string()
+    .trim()
+    .max(32, { error: zodMsg('validation.maxLength', { max: 32 }) })
+    .optional()
+    .or(z.literal('')),
+  qrCode: z
+    .string()
+    .trim()
+    .max(256, { error: zodMsg('validation.maxLength', { max: 256 }) })
+    .optional()
+    .or(z.literal('')),
+  gpsProvider: z
+    .string()
+    .trim()
+    .max(100, { error: zodMsg('validation.maxLength', { max: 100 }) })
+    .optional()
+    .or(z.literal('')),
   gpsTrackingUrl: z
     .string()
     .trim()
-    .max(1000)
-    .url('The tracking link must be a full web address (starting with http:// or https://).')
+    .max(1000, { error: zodMsg('validation.maxLength', { max: 1000 }) })
+    .url({ error: zodMsg('validation.urlInvalid') })
     .optional()
     .or(z.literal('')),
-  fuelType: z.enum(fuelTypes, { message: 'Fuel type is required.' }),
+  fuelType: z.enum(fuelTypes, { error: zodMsg('validation.fuelTypeRequired') }),
   status: z.enum(vehicleStatuses),
   ownershipType: z.enum(vehicleOwnershipTypes),
 });

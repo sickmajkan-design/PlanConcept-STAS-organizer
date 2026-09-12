@@ -1,23 +1,25 @@
 import { z } from 'zod';
 
+import { zodMsg } from '../i18n/zodMessage';
+
 /** Mirrors the API's password policy so the form gives instant feedback. */
 export const strongPasswordSchema = z
   .string()
-  .min(1, 'Password is required.')
-  .min(8, 'Password must be at least 8 characters long.')
-  .max(128, 'Password must not exceed 128 characters.')
-  .regex(/[A-Z]/, 'Password must contain an upper-case letter.')
-  .regex(/[a-z]/, 'Password must contain a lower-case letter.')
-  .regex(/[0-9]/, 'Password must contain a digit.');
+  .min(1, { error: zodMsg('validation.required') })
+  .min(8, { error: zodMsg('validation.passwordMin') })
+  .max(128, { error: zodMsg('validation.maxLength', { max: 128 }) })
+  .regex(/[A-Z]/, { error: zodMsg('validation.passwordUpper') })
+  .regex(/[a-z]/, { error: zodMsg('validation.passwordLower') })
+  .regex(/[0-9]/, { error: zodMsg('validation.passwordDigit') });
 
 export const emailSchema = z
   .string()
-  .min(1, 'Email is required.')
-  .email('Enter a valid email address.');
+  .min(1, { error: zodMsg('validation.emailRequired') })
+  .email({ error: zodMsg('validation.emailInvalid') });
 
 export const loginSchema = z.object({
   email: emailSchema,
-  password: z.string().min(1, 'Password is required.'),
+  password: z.string().min(1, { error: zodMsg('validation.required') }),
 });
 
 export type LoginFormValues = z.infer<typeof loginSchema>;
@@ -31,12 +33,12 @@ export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 export const resetPasswordSchema = z
   .object({
     email: emailSchema,
-    token: z.string().min(1, 'Reset token is required.'),
+    token: z.string().min(1, { error: zodMsg('validation.required') }),
     newPassword: strongPasswordSchema,
-    confirmPassword: z.string().min(1, 'Confirm the new password.'),
+    confirmPassword: z.string().min(1, { error: zodMsg('validation.required') }),
   })
   .refine((values) => values.newPassword === values.confirmPassword, {
-    message: 'The passwords do not match.',
+    error: zodMsg('validation.passwordsDiffer'),
     path: ['confirmPassword'],
   });
 
@@ -44,16 +46,16 @@ export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
 export const changePasswordSchema = z
   .object({
-    currentPassword: z.string().min(1, 'Current password is required.'),
+    currentPassword: z.string().min(1, { error: zodMsg('validation.required') }),
     newPassword: strongPasswordSchema,
-    confirmPassword: z.string().min(1, 'Confirm the new password.'),
+    confirmPassword: z.string().min(1, { error: zodMsg('validation.required') }),
   })
   .refine((values) => values.newPassword !== values.currentPassword, {
-    message: 'New password must be different from the current password.',
+    error: zodMsg('validation.passwordSameAsCurrent'),
     path: ['newPassword'],
   })
   .refine((values) => values.newPassword === values.confirmPassword, {
-    message: 'The passwords do not match.',
+    error: zodMsg('validation.passwordsDiffer'),
     path: ['confirmPassword'],
   });
 

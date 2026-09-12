@@ -13,6 +13,16 @@ import type { Message } from './types';
  * "razduženo" (handed back), which is the wording used on the paperwork.
  */
 export const sr: Record<MessageKey, Message> = {
+  // --- Generalne greške API-ja (kad server ne pošalje sopstveni tekst) ------
+  'apiError.timeout': 'Server je predugo odgovarao. Pokušajte ponovo.',
+  'apiError.network': 'Nema veze sa serverom. Proverite mrežu i pokušajte ponovo.',
+  'apiError.server': 'Došlo je do greške na serveru. Pokušajte kasnije.',
+  'apiError.badRequest': 'Zahtev je odbijen. Proverite unete podatke.',
+  'apiError.unauthorized': 'Sesija je istekla. Prijavite se ponovo.',
+  'apiError.forbidden': 'Nemate dozvolu za ovu akciju.',
+  'apiError.notFound': 'Traženi zapis nije pronađen.',
+  'apiError.conflict': 'Akcija je u sukobu sa trenutnim podacima.',
+  'apiError.unknown': 'Nešto je pošlo naopako. Pokušajte ponovo.',
   // --- Common ---------------------------------------------------------------
   'common.cancel': 'Otkaži',
   'common.save': 'Sačuvaj izmene',
@@ -94,6 +104,34 @@ export const sr: Record<MessageKey, Message> = {
     'Traka: zadrži miš preko ikonice grupe da vidiš njene stranice, klik odlazi na glavnu.',
   'shortcuts.siblingNavHint':
     'Na zapisu otvorenom iz liste, ‹ › vodi na prethodni/sledeći.',
+  'guide.title': 'Kako se koristi platforma',
+  'guide.tabUsage': 'Korišćenje platforme',
+  'guide.tabRoles': 'Uloge',
+  'guide.usage.step1': 'Prijavite se sa svojim email-om i lozinkom na stranici za prijavu.',
+  'guide.usage.step2':
+    'Izaberite sekciju sa trake ikonica lijevo. Zadržite miš preko ikonice grupe (npr. Troškovi) da vidite njene stranice, ili kliknite da odmah odete na glavnu.',
+  'guide.usage.step3':
+    'Svaka lista ima dugme "+" za dodavanje novog zapisa, a klik na red otvara detalje ili izmjenu.',
+  'guide.usage.step4': 'Pretražite cijelu platformu pomoću lupe ili prečice Ctrl+K.',
+  'guide.usage.step5':
+    'Ikonica zvona pokazuje obaveštenja — nove zahtjeve, dokumente koji ističu i sve ostalo što čeka na vas.',
+  'guide.usage.step6':
+    'Jezik interfejsa mijenjate ikonicom globusa gore desno — sve se odmah prevodi.',
+  'guide.role.superAdmin.name': 'Super Admin',
+  'guide.role.superAdmin.description':
+    'Pun pristup cijeloj platformi, uključujući Podešavanja firme i slobodnu Evidenciju. Vodi sistem u cjelini.',
+  'guide.role.admin.name': 'Admin',
+  'guide.role.admin.description':
+    'Svakodnevno upravljanje: radnici, gradilišta, vozila, alati, materijali, troškovi i korisnički nalozi. Nema pristup Podešavanjima firme ni Evidenciji — samo Super Admin.',
+  'guide.role.projectManager.name': 'Rukovodilac projekta',
+  'guide.role.projectManager.description':
+    'Upravlja gradilištima i materijalima, odobrava zahtjeve za odsustvo i pregledava evidentirano radno vrijeme. Nema pristup platama ni podešavanjima firme.',
+  'guide.role.foreman.name': 'Poslovođa',
+  'guide.role.foreman.description':
+    'Vodi jedno gradilište iz dana u dan — pregleda radno vrijeme svoje ekipe, odsustva i prijavljene kvarove. Koristi vozila, alate i materijale, ne dodaje nove.',
+  'guide.role.worker.name': 'Radnik',
+  'guide.role.worker.description':
+    'Koristi mobilnu aplikaciju na terenu — prijavljuje dolazak i odlazak s posla, prijavljuje kvarove, predaje sedmične izvještaje i traži odsustvo. Nema pristup ovom admin panelu.',
   'common.undo': 'Opozovi',
   'common.deletedUndoMessage': 'Obrisano.',
   'common.deletedCountUndoMessage': {
@@ -284,9 +322,35 @@ export const sr: Record<MessageKey, Message> = {
   'validation.passwordLower': 'Lozinka mora sadržati bar jedno malo slovo.',
   'validation.passwordDigit': 'Lozinka mora sadržati bar jednu cifru.',
   'validation.passwordsDiffer': 'Lozinke se ne poklapaju.',
+  'validation.passwordSameAsCurrent': 'Nova lozinka mora biti drugačija od trenutne.',
   'validation.maxLength': 'Najviše {max} znakova.',
   'validation.numberPositive': 'Mora biti nula ili više.',
   'validation.dateInvalid': 'Datum nije ispravan.',
+  'validation.mustBeNumber': 'Mora biti broj.',
+  'validation.urlInvalid': 'Mora biti puna web adresa (počinje sa http:// ili https://).',
+  'validation.roleRequired': 'Uloga je obavezna.',
+  'validation.saySomething': 'Napišite nešto.',
+  'validation.dateOfBirthPast': 'Datum rođenja mora biti u prošlosti.',
+  'validation.dateOfBirthBeforeEmployment': 'Datum rođenja mora biti prije datuma zaposlenja.',
+  'validation.contractValueNegative': 'Vrijednost ugovora ne može biti negativna.',
+  'validation.latLngTogether': 'Geografska širina i dužina moraju biti unesene zajedno.',
+  'validation.latitudeRange': 'Geografska širina mora biti između -90 i 90.',
+  'validation.longitudeRange': 'Geografska dužina mora biti između -180 i 180.',
+  'validation.endDateBeforeStart': 'Datum završetka ne smije biti prije datuma početka.',
+  'validation.fuelTypeRequired': 'Vrsta goriva je obavezna.',
+  'validation.changeNotZero': 'Promjena ne smije biti nula.',
+  'validation.timeFormat': 'Unesite vrijeme u formatu HH:mm.',
+  'validation.breakNegative': 'Pauza ne smije biti negativna.',
+  'validation.shiftFuture': 'Smjena ne može početi u budućnosti.',
+  'validation.shiftTooOld': 'Smjena se ne može evidentirati više od {days} dana unazad.',
+  'validation.shiftEndBeforeStart': 'Smjena mora završiti poslije nego što je počela.',
+  'validation.shiftTooLong': 'Smjena ne može trajati duže od {hours} sati.',
+  'validation.breakAsLongAsShift':
+    'Pauza traje koliko i cijela smjena, pa ne bi ostalo odrađeno vrijeme.',
+  'validation.pickEmployee': 'Izaberite za koga je ovo.',
+  'validation.absenceEndBeforeStart': 'Odsustvo ne može završiti prije nego što počne.',
+  'validation.absenceTooLong': 'Tako dugo odsustvo je promjena statusa zaposlenja, ne godišnji odmor.',
+  'validation.defectNeedsProject': 'Kvar mora biti prijavljen na neko gradilište.',
 
   // --- Employees ------------------------------------------------------------
   'employees.title': 'Zaposleni',

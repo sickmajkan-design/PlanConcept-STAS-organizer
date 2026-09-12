@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { zodMsg } from '../../i18n/zodMessage';
 import { roles } from '../../api/types';
 
 /**
@@ -8,22 +9,22 @@ import { roles } from '../../api/types';
  */
 export const passwordSchema = z
   .string()
-  .min(8, 'Password must be at least 8 characters long.')
-  .max(128)
-  .regex(/[A-Z]/, 'Password must contain at least one upper-case letter.')
-  .regex(/[a-z]/, 'Password must contain at least one lower-case letter.')
-  .regex(/[0-9]/, 'Password must contain at least one digit.');
+  .min(8, { error: zodMsg('validation.passwordMin') })
+  .max(128, { error: zodMsg('validation.maxLength', { max: 128 }) })
+  .regex(/[A-Z]/, { error: zodMsg('validation.passwordUpper') })
+  .regex(/[a-z]/, { error: zodMsg('validation.passwordLower') })
+  .regex(/[0-9]/, { error: zodMsg('validation.passwordDigit') });
 
 const baseUserSchema = z.object({
   email: z
     .string()
     .trim()
-    .min(1, 'Email is required.')
-    .max(256)
+    .min(1, { error: zodMsg('validation.emailRequired') })
+    .max(256, { error: zodMsg('validation.maxLength', { max: 256 }) })
     .refine((value) => z.string().email().safeParse(value).success, {
-      message: 'Email is not a valid email address.',
+      error: zodMsg('validation.emailInvalid'),
     }),
-  role: z.enum(roles, { message: 'Role is required.' }),
+  role: z.enum(roles, { error: zodMsg('validation.roleRequired') }),
   // Empty string is what an unselected picker submits; it means "no employee".
   employeeId: z.string().optional().or(z.literal('')),
   // Empty string means "use the system default" — the API's own

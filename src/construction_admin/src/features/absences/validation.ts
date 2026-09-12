@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { liveT } from '../../i18n/liveT';
+import { zodMsg } from '../../i18n/zodMessage';
 import { absenceTypes } from '../../api/types';
 
 /** Longest single absence. Mirrors AbsenceRules.MaxDays. */
@@ -8,11 +10,16 @@ export const maxAbsenceDays = 180;
 /** Mirrors the API's RequestAbsenceCommandValidator. */
 export const absenceFormSchema = z
   .object({
-    employeeId: z.string().min(1, 'Pick who this is for.'),
+    employeeId: z.string().min(1, { error: zodMsg('validation.pickEmployee') }),
     type: z.enum(absenceTypes),
-    startDate: z.string().min(1, 'A start date is required.'),
-    endDate: z.string().min(1, 'An end date is required.'),
-    reason: z.string().trim().max(1000).optional().or(z.literal('')),
+    startDate: z.string().min(1, { error: zodMsg('validation.required') }),
+    endDate: z.string().min(1, { error: zodMsg('validation.required') }),
+    reason: z
+      .string()
+      .trim()
+      .max(1000, { error: zodMsg('validation.maxLength', { max: 1000 }) })
+      .optional()
+      .or(z.literal('')),
     approve: z.boolean(),
   })
   .superRefine((values, ctx) => {
@@ -27,7 +34,7 @@ export const absenceFormSchema = z
       ctx.addIssue({
         code: 'custom',
         path: ['endDate'],
-        message: 'The absence cannot end before it starts.',
+        message: liveT('validation.absenceEndBeforeStart'),
       });
       return;
     }
@@ -39,7 +46,7 @@ export const absenceFormSchema = z
       ctx.addIssue({
         code: 'custom',
         path: ['endDate'],
-        message: 'An absence that long is a change of employment, not leave.',
+        message: liveT('validation.absenceTooLong'),
       });
     }
   });

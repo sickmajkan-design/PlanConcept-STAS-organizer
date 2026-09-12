@@ -6,6 +6,16 @@
  * to English in front of a customer.
  */
 export const en = {
+  // --- Generic API error fallbacks (no detail text from the server) ---------
+  'apiError.timeout': 'The server took too long to respond. Please try again.',
+  'apiError.network': 'No connection to the server. Check your network and try again.',
+  'apiError.server': 'The server encountered an error. Please try again later.',
+  'apiError.badRequest': 'The request was rejected. Please check the entered data.',
+  'apiError.unauthorized': 'Your session has expired. Please sign in again.',
+  'apiError.forbidden': 'You do not have permission to perform this action.',
+  'apiError.notFound': 'The requested item could not be found.',
+  'apiError.conflict': 'The action conflicts with the current data.',
+  'apiError.unknown': 'Something went wrong. Please try again.',
   // --- Common ---------------------------------------------------------------
   'common.cancel': 'Cancel',
   'common.save': 'Save changes',
@@ -86,6 +96,34 @@ export const en = {
   'shortcuts.railHint': 'Rail: hover a group icon to see its pages, click to jump to the main one.',
   'shortcuts.siblingNavHint':
     'On a record opened from a list, ‹ › steps to the previous/next one.',
+  'guide.title': 'How this works',
+  'guide.tabUsage': 'Using the platform',
+  'guide.tabRoles': 'Roles',
+  'guide.usage.step1': 'Sign in with your email and password on the sign-in page.',
+  'guide.usage.step2':
+    'Pick a section from the icon rail on the left. Hover a group icon (e.g. Costs) to see its pages, or click it to jump straight to the main one.',
+  'guide.usage.step3':
+    'Every list has a "+" button to add a new record, and clicking a row opens it for details or editing.',
+  'guide.usage.step4': 'Search the whole platform with the magnifier icon or Ctrl+K.',
+  'guide.usage.step5':
+    'The bell icon shows notifications — new requests, documents about to expire, and anything else waiting on you.',
+  'guide.usage.step6':
+    'Switch the interface language with the globe icon, top right — everything updates immediately.',
+  'guide.role.superAdmin.name': 'Super Admin',
+  'guide.role.superAdmin.description':
+    'Full access to the whole platform, including Company Settings and the free-form Ledger. Runs the system overall.',
+  'guide.role.admin.name': 'Admin',
+  'guide.role.admin.description':
+    'Day-to-day management: employees, projects, vehicles, tools, materials, costs and user accounts. No access to Company Settings or the Ledger — Super Admin only.',
+  'guide.role.projectManager.name': 'Project Manager',
+  'guide.role.projectManager.description':
+    'Manages projects and materials, approves time-off requests, and reviews logged hours. No access to pay rates or company-wide settings.',
+  'guide.role.foreman.name': 'Foreman',
+  'guide.role.foreman.description':
+    "Runs one site day to day — reviews their crew's hours, absences and reported defects. Uses vehicles, tools and materials rather than adding new ones.",
+  'guide.role.worker.name': 'Worker',
+  'guide.role.worker.description':
+    'Uses the mobile app on site — clocks in and out, reports defects, submits weekly reports and requests time off. Has no access to this admin panel.',
   'common.undo': 'Undo',
   'common.deletedUndoMessage': 'Deleted.',
   'common.deletedCountUndoMessage': { one: '{count} deleted.', other: '{count} deleted.' },
@@ -261,9 +299,35 @@ export const en = {
   'validation.passwordLower': 'Password must contain at least one lower-case letter.',
   'validation.passwordDigit': 'Password must contain at least one digit.',
   'validation.passwordsDiffer': 'The passwords do not match.',
+  'validation.passwordSameAsCurrent': 'New password must be different from the current password.',
   'validation.maxLength': 'Must be at most {max} characters.',
   'validation.numberPositive': 'Must be zero or more.',
   'validation.dateInvalid': 'Not a valid date.',
+  'validation.mustBeNumber': 'Must be a number.',
+  'validation.urlInvalid': 'Must be a full web address (starting with http:// or https://).',
+  'validation.roleRequired': 'Role is required.',
+  'validation.saySomething': 'Say something.',
+  'validation.dateOfBirthPast': 'Date of birth must be in the past.',
+  'validation.dateOfBirthBeforeEmployment': 'Date of birth must be before the employment date.',
+  'validation.contractValueNegative': 'Contract value cannot be negative.',
+  'validation.latLngTogether': 'Latitude and longitude must be provided together.',
+  'validation.latitudeRange': 'Latitude must be between -90 and 90.',
+  'validation.longitudeRange': 'Longitude must be between -180 and 180.',
+  'validation.endDateBeforeStart': 'End date must not be before the start date.',
+  'validation.fuelTypeRequired': 'Fuel type is required.',
+  'validation.changeNotZero': 'Change must not be zero.',
+  'validation.timeFormat': 'Enter the time as HH:mm.',
+  'validation.breakNegative': 'Break must not be negative.',
+  'validation.shiftFuture': 'A shift cannot start in the future.',
+  'validation.shiftTooOld': 'A shift cannot be recorded more than {days} days back.',
+  'validation.shiftEndBeforeStart': 'The shift must end after it starts.',
+  'validation.shiftTooLong': 'A shift cannot be longer than {hours} hours.',
+  'validation.breakAsLongAsShift':
+    'The break is as long as the shift, which would leave no time worked.',
+  'validation.pickEmployee': 'Pick who this is for.',
+  'validation.absenceEndBeforeStart': 'The absence cannot end before it starts.',
+  'validation.absenceTooLong': 'An absence that long is a change of employment, not leave.',
+  'validation.defectNeedsProject': 'A defect has to be raised against a site.',
 
   // --- Employees ------------------------------------------------------------
   'employees.title': 'Employees',

@@ -6,6 +6,7 @@ import {
   PasswordOutlined,
   ExpandLess,
   ExpandMore,
+  HelpOutlined,
   KeyboardOutlined,
   SearchOutlined,
   StarOutlined,
@@ -63,6 +64,7 @@ import {
   type NavGroup,
   type NavItem,
 } from './navConfig';
+import { PlatformGuideDialog } from './PlatformGuideDialog';
 import { isTypingTarget, ShortcutsHelpDialog } from './ShortcutsHelpDialog';
 import { useFavorites } from './useFavorites';
 import { useNavBadgeCounts } from './useNavBadgeCounts';
@@ -78,6 +80,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
   const [railFlyout, setRailFlyout] = useState<{ key: string; anchorEl: HTMLElement } | null>(
     null,
   );
@@ -286,38 +289,39 @@ export function AppLayout({ children }: { children: ReactNode }) {
         .filter((entry) => isNavGroup(entry) || entry.path !== paths.home)
         .map((entry) =>
           isNavGroup(entry) ? (
-            <Tooltip
+            // No Tooltip here on purpose: the hover-triggered Popper flyout
+            // below already opens on the same hover and shows the group name
+            // as its own header, so a floating tooltip and the flyout used to
+            // land in the same place at once — the exact "elements on top of
+            // each other" a hovered icon produced. `aria-label` keeps the
+            // hint for screen readers without drawing anything on hover.
+            <IconButton
               key={entry.key}
-              title={`${entry.label} — ${t('nav.hoverHint')}`}
-              placement="top"
-              disableInteractive
+              aria-label={`${entry.label} — ${t('nav.hoverHint')}`}
+              onClick={() => {
+                clearHoverTimer();
+                setRailFlyout(null);
+                navigate(entry.items[0].path);
+              }}
+              onMouseEnter={(event) => scheduleFlyoutOpen(entry.key, event.currentTarget)}
+              onMouseLeave={scheduleFlyoutClose}
+              color={groupContainsActivePath(entry) ? 'primary' : 'default'}
+              sx={{
+                bgcolor:
+                  groupContainsActivePath(entry) || railFlyout?.key === entry.key
+                    ? 'action.selected'
+                    : 'transparent',
+              }}
             >
-              <IconButton
-                onClick={() => {
-                  clearHoverTimer();
-                  setRailFlyout(null);
-                  navigate(entry.items[0].path);
-                }}
-                onMouseEnter={(event) => scheduleFlyoutOpen(entry.key, event.currentTarget)}
-                onMouseLeave={scheduleFlyoutClose}
-                color={groupContainsActivePath(entry) ? 'primary' : 'default'}
-                sx={{
-                  bgcolor:
-                    groupContainsActivePath(entry) || railFlyout?.key === entry.key
-                      ? 'action.selected'
-                      : 'transparent',
-                }}
+              <Badge
+                badgeContent={badgeCounts[entry.key] ?? 0}
+                color="error"
+                max={99}
+                overlap="circular"
               >
-                <Badge
-                  badgeContent={badgeCounts[entry.key] ?? 0}
-                  color="error"
-                  max={99}
-                  overlap="circular"
-                >
-                  {entry.icon}
-                </Badge>
-              </IconButton>
-            </Tooltip>
+                {entry.icon}
+              </Badge>
+            </IconButton>
           ) : (
             <Tooltip key={entry.path} title={entry.label} placement="right">
               <IconButton
@@ -356,9 +360,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
                       <Typography
                         variant="caption"
                         color="text.secondary"
-                        sx={{ px: 2, pt: 0.5, pb: 0.5, display: 'block', fontWeight: 600 }}
+                        sx={{ px: 2, pt: 0.5, display: 'block', fontWeight: 600 }}
                       >
                         {activeFlyoutGroup.label}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        color="text.disabled"
+                        sx={{ px: 2, pb: 0.5, display: 'block' }}
+                      >
+                        {t('nav.hoverHint')}
                       </Typography>
                       {activeFlyoutGroup.items.map((item) => (
                         <MenuItem
@@ -564,6 +575,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
       />
       <UndoSnackbarHost />
       <ShortcutsHelpDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+      <PlatformGuideDialog open={guideOpen} onClose={() => setGuideOpen(false)} />
       <AppBar
         position="fixed"
         color="inherit"
@@ -587,6 +599,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </Tooltip>
           )}
           <Box sx={{ flex: 1 }} />
+          <Tooltip title={t('guide.title')}>
+            <IconButton onClick={() => setGuideOpen(true)} aria-label={t('guide.title')}>
+              <HelpOutlined />
+            </IconButton>
+          </Tooltip>
           <Tooltip title={t('shortcuts.title')}>
             <IconButton onClick={() => setShortcutsOpen(true)} aria-label={t('shortcuts.title')}>
               <KeyboardOutlined />

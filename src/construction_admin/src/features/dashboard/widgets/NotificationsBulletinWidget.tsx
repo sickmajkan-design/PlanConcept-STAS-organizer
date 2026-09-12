@@ -4,9 +4,9 @@ import { Link } from 'react-router-dom';
 
 import { bulletinApi } from '../../../api/bulletin';
 import { notificationsApi } from '../../../api/notifications';
+import { useFormatRelative } from '../../../i18n/useFormatRelative';
 import { useT } from '../../../i18n/useI18n';
 import { paths } from '../../../routes/paths';
-import { formatRelative } from '../../../utils/formatting';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
 
@@ -18,6 +18,7 @@ export function NotificationsBulletinWidget({
   onRemove,
 }: DashboardWidgetProps) {
   const t = useT();
+  const formatRelative = useFormatRelative();
 
   const unreadQuery = useQuery({
     queryKey: ['dashboard', 'notifications', 'unread-count'] as const,

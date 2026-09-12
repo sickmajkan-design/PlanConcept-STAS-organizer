@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { liveT } from '../../i18n/liveT';
+import { zodMsg } from '../../i18n/zodMessage';
 import { workTypes } from '../../api/types';
 
 /**
@@ -49,27 +51,34 @@ function minutesBetween(startedAt: string, endedAt: string): number | null {
  */
 export const timeEntryFormSchema = z
   .object({
-    employeeId: z.string().min(1, 'Employee is required.'),
+    employeeId: z.string().min(1, { error: zodMsg('validation.required') }),
     projectId: z.string().optional().or(z.literal('')),
     startedAt: z
       .string()
-      .min(1, 'Start time is required.')
-      .refine(hasValidTimePart, 'Enter the time as HH:mm.'),
+      .min(1, { error: zodMsg('validation.required') })
+      .refine(hasValidTimePart, { error: zodMsg('validation.timeFormat') }),
     endedAt: z
       .string()
       .optional()
       .or(z.literal(''))
-      .refine((value) => !value || hasValidTimePart(value), 'Enter the time as HH:mm.'),
+      .refine((value) => !value || hasValidTimePart(value), {
+        error: zodMsg('validation.timeFormat'),
+      }),
     breakMinutes: z
       .string()
       .refine((value) => value === '' || !Number.isNaN(Number(value)), {
-        message: 'Must be a number.',
+        error: zodMsg('validation.mustBeNumber'),
       })
       .refine((value) => value === '' || Number(value) >= 0, {
-        message: 'Break must not be negative.',
+        error: zodMsg('validation.breakNegative'),
       }),
     workType: z.enum(workTypes),
-    note: z.string().trim().max(1000).optional().or(z.literal('')),
+    note: z
+      .string()
+      .trim()
+      .max(1000, { error: zodMsg('validation.maxLength', { max: 1000 }) })
+      .optional()
+      .or(z.literal('')),
   })
   .superRefine((values, ctx) => {
     const start = new Date(values.startedAt).getTime();
@@ -81,13 +90,13 @@ export const timeEntryFormSchema = z
         ctx.addIssue({
           code: 'custom',
           path: ['startedAt'],
-          message: 'A shift cannot start in the future.',
+          message: liveT('validation.shiftFuture'),
         });
       } else if (start < backdatingLimit) {
         ctx.addIssue({
           code: 'custom',
           path: ['startedAt'],
-          message: `A shift cannot be recorded more than ${MAX_BACKDATING_DAYS} days back.`,
+          message: liveT('validation.shiftTooOld', { days: MAX_BACKDATING_DAYS }),
         });
       }
     }
@@ -102,7 +111,7 @@ export const timeEntryFormSchema = z
       ctx.addIssue({
         code: 'custom',
         path: ['endedAt'],
-        message: 'The shift must end after it starts.',
+        message: liveT('validation.shiftEndBeforeStart'),
       });
       return;
     }
@@ -111,7 +120,7 @@ export const timeEntryFormSchema = z
       ctx.addIssue({
         code: 'custom',
         path: ['endedAt'],
-        message: `A shift cannot be longer than ${MAX_SHIFT_HOURS} hours.`,
+        message: liveT('validation.shiftTooLong', { hours: MAX_SHIFT_HOURS }),
       });
       return;
     }
@@ -120,7 +129,7 @@ export const timeEntryFormSchema = z
       ctx.addIssue({
         code: 'custom',
         path: ['breakMinutes'],
-        message: 'The break is as long as the shift, which would leave no time worked.',
+        message: liveT('validation.breakAsLongAsShift'),
       });
     }
   });
