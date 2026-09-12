@@ -63,3 +63,8 @@ deploy/.env
 # it does not make it durable — only S3-backed storage (configure
 # FileStorage:Bucket) is — but it stops git from being the thing that wipes it.
 /src/Construction.API/storage/
+
+# Whatever a host drops in deploy/downloads/ for the Caddyfile's /downloads/*
+# route (an APK during test rollout, say) — a build artifact, not source.
+/deploy/downloads/*
+!/deploy/downloads/.gitkeep

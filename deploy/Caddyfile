@@ -41,6 +41,15 @@
 		reverse_proxy api:8080
 	}
 
+	# A plain download link for the Android APK during test rollout, before
+	# there is a Play Store listing to point people at instead. Whatever is
+	# dropped into the `downloads/` directory beside this file is served
+	# as-is — nothing here knows or cares that it is currently one APK.
+	handle /downloads/* {
+		root * /srv/downloads
+		file_server
+	}
+
 	handle {
 		reverse_proxy admin:8080
 	}

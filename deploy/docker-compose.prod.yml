@@ -160,6 +160,10 @@ services:
       # on the next start, which is fine but counts against rate limits.
       - caddy-data:/data
       - caddy-config:/config
+      # Whatever is dropped here (an APK during test rollout, say) is served
+      # at /downloads/ — see the Caddyfile. A bind mount, not a named volume,
+      # so putting a file there is `cp`, not `docker cp` into a container.
+      - ./downloads:/srv/downloads:ro
     networks:
       - internal
 
