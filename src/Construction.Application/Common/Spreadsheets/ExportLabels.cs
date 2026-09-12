@@ -44,7 +44,6 @@ public static class ExportLabels
         ["sheet.vehicleExpenses"] = ("Evidencija troškova vozila", "Vehicle expense entries"),
         ["sheet.toolExpenses"] = ("Evidencija troškova alata", "Tool expense entries"),
         ["sheet.rentalRates"] = ("Troškovi zakupa i lizinga", "Lease and rental costs"),
-        ["sheet.rentalsOut"] = ("Izdato u najam drugima", "Rented out to others"),
 
         ["employee"] = ("Radnik", "Employee"),
         ["project"] = ("Gradilište", "Site"),
@@ -81,8 +80,6 @@ public static class ExportLabels
         ["revenue"] = ("Prihod", "Revenue"),
         ["profit"] = ("Dobit", "Profit"),
         ["provider"] = ("Davalac", "Provider"),
-        ["renter"] = ("Zakupac", "Renter"),
-        ["dailyRate"] = ("Dnevna cena", "Daily rate"),
         ["monthlyAmount"] = ("Mesečni iznos", "Monthly amount"),
         ["odometer"] = ("Kilometraža", "Odometer"),
         ["kind"] = ("Vrsta", "Kind"),

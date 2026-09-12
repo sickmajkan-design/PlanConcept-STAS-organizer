@@ -966,15 +966,16 @@ public class ExportVehicleCostsQueryHandler
                     })
                 .ToList());
 
-        // The same three ledgers the summary's Fuel/Service/Other, Rental and
-        // Revenue columns are built from, listed row by row — so nobody has
-        // to take a fleet total on faith.
+        // The two ledgers the summary's Fuel/Service/Other and Rental columns
+        // are built from, listed row by row — so nobody has to take a fleet
+        // cost total on faith. Revenue from renting a vehicle out to another
+        // company is a separate concern — it is not a cost, so it belongs to
+        // its own report, not itemised here alongside what the fleet cost.
         List<SpreadsheetSheet> sheets =
         [
             summarySheet,
             await BuildVehicleExpensesSheet(request, english, cancellationToken),
-            await BuildVehicleRentalRatesSheet(request, english, cancellationToken),
-            await BuildVehicleRentalsOutSheet(request, english, cancellationToken)
+            await BuildVehicleRentalRatesSheet(request, english, cancellationToken)
         ];
 
         return _writer.Render(sheets, "vehicle-costs", request);
@@ -1070,46 +1071,6 @@ public class ExportVehicleCostsQueryHandler
             ]).ToList());
     }
 
-    private async Task<SpreadsheetSheet> BuildVehicleRentalsOutSheet(
-        ExportVehicleCostsQuery request, bool english, CancellationToken cancellationToken)
-    {
-        var query = _context.VehicleRentalsOut
-            .AsNoTracking()
-            .Where(r => r.StartDate <= request.To && (r.EndDate == null || r.EndDate >= request.From));
-
-        if (request.VehicleId is { } vehicleId)
-        {
-            query = query.Where(r => r.VehicleId == vehicleId);
-        }
-
-        var rows = await query
-            .OrderBy(r => r.StartDate)
-            .Select(r => new
-            {
-                Vehicle = r.Vehicle.Brand + " " + r.Vehicle.Model + " (" + r.Vehicle.RegistrationNumber + ")",
-                r.RenterName,
-                r.DailyRate,
-                r.StartDate,
-                r.EndDate,
-                r.Note
-            })
-            .ToListAsync(cancellationToken);
-
-        return new SpreadsheetSheet(
-            ExportLabels.Get("sheet.rentalsOut", english),
-            [
-                new(ExportLabels.Get("vehicle", english), SpreadsheetValueKind.Text),
-                new(ExportLabels.Get("renter", english), SpreadsheetValueKind.Text),
-                new(ExportLabels.Get("dailyRate", english), SpreadsheetValueKind.Money),
-                new(ExportLabels.Get("startDate", english), SpreadsheetValueKind.Date),
-                new(ExportLabels.Get("endDate", english), SpreadsheetValueKind.Date),
-                new(ExportLabels.Get("note", english), SpreadsheetValueKind.Text)
-            ],
-            rows.Select(r => (IReadOnlyList<object?>)
-            [
-                r.Vehicle, r.RenterName, r.DailyRate, r.StartDate, r.EndDate, r.Note
-            ]).ToList());
-    }
 }
 
 // ---- tool costs -------------------------------------------------------------
@@ -1201,8 +1162,7 @@ public class ExportToolCostsQueryHandler
         [
             summarySheet,
             await BuildToolExpensesSheet(request, english, cancellationToken),
-            await BuildToolRentalRatesSheet(request, english, cancellationToken),
-            await BuildToolRentalsOutSheet(request, english, cancellationToken)
+            await BuildToolRentalRatesSheet(request, english, cancellationToken)
         ];
 
         return _writer.Render(sheets, "tool-costs", request);
@@ -1293,46 +1253,6 @@ public class ExportToolCostsQueryHandler
             ]).ToList());
     }
 
-    private async Task<SpreadsheetSheet> BuildToolRentalsOutSheet(
-        ExportToolCostsQuery request, bool english, CancellationToken cancellationToken)
-    {
-        var query = _context.ToolRentalsOut
-            .AsNoTracking()
-            .Where(r => r.StartDate <= request.To && (r.EndDate == null || r.EndDate >= request.From));
-
-        if (request.ToolId is { } toolId)
-        {
-            query = query.Where(r => r.ToolId == toolId);
-        }
-
-        var rows = await query
-            .OrderBy(r => r.StartDate)
-            .Select(r => new
-            {
-                Tool = r.Tool.Name,
-                r.RenterName,
-                r.DailyRate,
-                r.StartDate,
-                r.EndDate,
-                r.Note
-            })
-            .ToListAsync(cancellationToken);
-
-        return new SpreadsheetSheet(
-            ExportLabels.Get("sheet.rentalsOut", english),
-            [
-                new(ExportLabels.Get("tool", english), SpreadsheetValueKind.Text),
-                new(ExportLabels.Get("renter", english), SpreadsheetValueKind.Text),
-                new(ExportLabels.Get("dailyRate", english), SpreadsheetValueKind.Money),
-                new(ExportLabels.Get("startDate", english), SpreadsheetValueKind.Date),
-                new(ExportLabels.Get("endDate", english), SpreadsheetValueKind.Date),
-                new(ExportLabels.Get("note", english), SpreadsheetValueKind.Text)
-            ],
-            rows.Select(r => (IReadOnlyList<object?>)
-            [
-                r.Tool, r.RenterName, r.DailyRate, r.StartDate, r.EndDate, r.Note
-            ]).ToList());
-    }
 }
 
 // ---- stock -----------------------------------------------------------------
