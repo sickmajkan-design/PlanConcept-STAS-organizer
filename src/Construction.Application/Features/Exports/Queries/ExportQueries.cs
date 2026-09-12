@@ -4,6 +4,7 @@ using Construction.Application.Common.Security;
 using Construction.Application.Common.Spreadsheets;
 using Construction.Application.Features.Costs;
 using Construction.Application.Features.Costs.Queries.GetProjectCosts;
+using Construction.Application.Features.Costs.Queries.GetToolCosts;
 using Construction.Application.Features.Costs.Queries.GetVehicleCosts;
 using Construction.Application.Features.TimeEntries;
 using Construction.Domain.Enums;
@@ -883,11 +884,16 @@ public class ExportVehicleCostsQueryHandler
     : IRequestHandler<ExportVehicleCostsQuery, ExportFile>
 {
     private readonly IMediator _mediator;
+    private readonly IApplicationDbContext _context;
     private readonly ISpreadsheetWriter _writer;
 
-    public ExportVehicleCostsQueryHandler(IMediator mediator, ISpreadsheetWriter writer)
+    public ExportVehicleCostsQueryHandler(
+        IMediator mediator,
+        IApplicationDbContext context,
+        ISpreadsheetWriter writer)
     {
         _mediator = mediator;
+        _context = context;
         _writer = writer;
     }
 
@@ -906,7 +912,7 @@ public class ExportVehicleCostsQueryHandler
 
         var english = ExportLabels.IsEnglish(request.Language);
 
-        var sheet = new SpreadsheetSheet(
+        var summarySheet = new SpreadsheetSheet(
             ExportLabels.Get("sheet.vehicleCosts", english),
             [
                 new(ExportLabels.Get("vehicle", english), SpreadsheetValueKind.Text),
@@ -916,7 +922,10 @@ public class ExportVehicleCostsQueryHandler
                 new(ExportLabels.Get("consumption", english), SpreadsheetValueKind.Quantity),
                 new(ExportLabels.Get("serviceCost", english), SpreadsheetValueKind.Money),
                 new(ExportLabels.Get("otherCost", english), SpreadsheetValueKind.Money),
-                new(ExportLabels.Get("total", english), SpreadsheetValueKind.Money)
+                new(ExportLabels.Get("rentalCost", english), SpreadsheetValueKind.Money),
+                new(ExportLabels.Get("total", english), SpreadsheetValueKind.Money),
+                new(ExportLabels.Get("revenue", english), SpreadsheetValueKind.Money),
+                new(ExportLabels.Get("profit", english), SpreadsheetValueKind.Money)
             ],
             report.Rows
                 .Select(r => (IReadOnlyList<object?>)
@@ -928,7 +937,10 @@ public class ExportVehicleCostsQueryHandler
                     r.LitresPer100Km,
                     r.ServiceCost,
                     r.OtherCost,
-                    r.Total
+                    r.RentalCost,
+                    r.Total,
+                    r.Revenue,
+                    r.Profit
                 ])
                 .Concat(report.Rows.Count == 0
                     ? []
@@ -946,12 +958,380 @@ public class ExportVehicleCostsQueryHandler
                             null,
                             null,
                             null,
-                            report.Total
+                            report.TotalRentalCost,
+                            report.Total,
+                            report.TotalRevenue,
+                            report.TotalProfit
                         ]
                     })
                 .ToList());
 
-        return _writer.Render(sheet, "vehicle-costs", request);
+        // The same three ledgers the summary's Fuel/Service/Other, Rental and
+        // Revenue columns are built from, listed row by row — so nobody has
+        // to take a fleet total on faith.
+        List<SpreadsheetSheet> sheets =
+        [
+            summarySheet,
+            await BuildVehicleExpensesSheet(request, english, cancellationToken),
+            await BuildVehicleRentalRatesSheet(request, english, cancellationToken),
+            await BuildVehicleRentalsOutSheet(request, english, cancellationToken)
+        ];
+
+        return _writer.Render(sheets, "vehicle-costs", request);
+    }
+
+    private async Task<SpreadsheetSheet> BuildVehicleExpensesSheet(
+        ExportVehicleCostsQuery request, bool english, CancellationToken cancellationToken)
+    {
+        var query = _context.VehicleExpenses
+            .AsNoTracking()
+            .Where(e => e.OccurredOn >= request.From && e.OccurredOn <= request.To);
+
+        if (request.VehicleId is { } vehicleId)
+        {
+            query = query.Where(e => e.VehicleId == vehicleId);
+        }
+
+        var rows = await query
+            .OrderBy(e => e.OccurredOn)
+            .ThenBy(e => e.CreatedAt)
+            .Select(e => new
+            {
+                Vehicle = e.Vehicle.Brand + " " + e.Vehicle.Model + " (" + e.Vehicle.RegistrationNumber + ")",
+                e.Kind,
+                e.OccurredOn,
+                e.Amount,
+                e.Litres,
+                e.OdometerKm,
+                e.Supplier,
+                RecordedBy = e.RecordedByUser != null ? e.RecordedByUser.Email : null,
+                e.Note
+            })
+            .ToListAsync(cancellationToken);
+
+        return new SpreadsheetSheet(
+            ExportLabels.Get("sheet.vehicleExpenses", english),
+            [
+                new(ExportLabels.Get("vehicle", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("kind", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("date", english), SpreadsheetValueKind.Date),
+                new(ExportLabels.Get("amount", english), SpreadsheetValueKind.Money),
+                new(ExportLabels.Get("litres", english), SpreadsheetValueKind.Quantity),
+                new(ExportLabels.Get("odometer", english), SpreadsheetValueKind.Integer),
+                new(ExportLabels.Get("supplier", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("recordedBy", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("note", english), SpreadsheetValueKind.Text)
+            ],
+            rows.Select(r => (IReadOnlyList<object?>)
+            [
+                r.Vehicle, r.Kind.ToString(), r.OccurredOn, r.Amount,
+                r.Litres, r.OdometerKm, r.Supplier, r.RecordedBy, r.Note
+            ]).ToList());
+    }
+
+    private async Task<SpreadsheetSheet> BuildVehicleRentalRatesSheet(
+        ExportVehicleCostsQuery request, bool english, CancellationToken cancellationToken)
+    {
+        var query = _context.VehicleRentalRates
+            .AsNoTracking()
+            .Where(r => r.StartDate <= request.To && (r.EndDate == null || r.EndDate >= request.From));
+
+        if (request.VehicleId is { } vehicleId)
+        {
+            query = query.Where(r => r.VehicleId == vehicleId);
+        }
+
+        var rows = await query
+            .OrderBy(r => r.StartDate)
+            .Select(r => new
+            {
+                Vehicle = r.Vehicle.Brand + " " + r.Vehicle.Model + " (" + r.Vehicle.RegistrationNumber + ")",
+                r.MonthlyAmount,
+                r.Provider,
+                r.StartDate,
+                r.EndDate,
+                r.Note
+            })
+            .ToListAsync(cancellationToken);
+
+        return new SpreadsheetSheet(
+            ExportLabels.Get("sheet.rentalRates", english),
+            [
+                new(ExportLabels.Get("vehicle", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("monthlyAmount", english), SpreadsheetValueKind.Money),
+                new(ExportLabels.Get("provider", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("startDate", english), SpreadsheetValueKind.Date),
+                new(ExportLabels.Get("endDate", english), SpreadsheetValueKind.Date),
+                new(ExportLabels.Get("note", english), SpreadsheetValueKind.Text)
+            ],
+            rows.Select(r => (IReadOnlyList<object?>)
+            [
+                r.Vehicle, r.MonthlyAmount, r.Provider, r.StartDate, r.EndDate, r.Note
+            ]).ToList());
+    }
+
+    private async Task<SpreadsheetSheet> BuildVehicleRentalsOutSheet(
+        ExportVehicleCostsQuery request, bool english, CancellationToken cancellationToken)
+    {
+        var query = _context.VehicleRentalsOut
+            .AsNoTracking()
+            .Where(r => r.StartDate <= request.To && (r.EndDate == null || r.EndDate >= request.From));
+
+        if (request.VehicleId is { } vehicleId)
+        {
+            query = query.Where(r => r.VehicleId == vehicleId);
+        }
+
+        var rows = await query
+            .OrderBy(r => r.StartDate)
+            .Select(r => new
+            {
+                Vehicle = r.Vehicle.Brand + " " + r.Vehicle.Model + " (" + r.Vehicle.RegistrationNumber + ")",
+                r.RenterName,
+                r.DailyRate,
+                r.StartDate,
+                r.EndDate,
+                r.Note
+            })
+            .ToListAsync(cancellationToken);
+
+        return new SpreadsheetSheet(
+            ExportLabels.Get("sheet.rentalsOut", english),
+            [
+                new(ExportLabels.Get("vehicle", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("renter", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("dailyRate", english), SpreadsheetValueKind.Money),
+                new(ExportLabels.Get("startDate", english), SpreadsheetValueKind.Date),
+                new(ExportLabels.Get("endDate", english), SpreadsheetValueKind.Date),
+                new(ExportLabels.Get("note", english), SpreadsheetValueKind.Text)
+            ],
+            rows.Select(r => (IReadOnlyList<object?>)
+            [
+                r.Vehicle, r.RenterName, r.DailyRate, r.StartDate, r.EndDate, r.Note
+            ]).ToList());
+    }
+}
+
+// ---- tool costs -------------------------------------------------------------
+
+/// <summary>The tool cost report as a spreadsheet. Mirrors <see cref="ExportVehicleCostsQuery"/> exactly, tool for vehicle.</summary>
+public sealed record ExportToolCostsQuery : ExportQueryBase, IRequest<ExportFile>
+{
+    public Guid? ToolId { get; init; }
+}
+
+public class ExportToolCostsQueryValidator
+    : ExportQueryValidator<ExportToolCostsQuery>;
+
+public class ExportToolCostsQueryHandler
+    : IRequestHandler<ExportToolCostsQuery, ExportFile>
+{
+    private readonly IMediator _mediator;
+    private readonly IApplicationDbContext _context;
+    private readonly ISpreadsheetWriter _writer;
+
+    public ExportToolCostsQueryHandler(
+        IMediator mediator,
+        IApplicationDbContext context,
+        ISpreadsheetWriter writer)
+    {
+        _mediator = mediator;
+        _context = context;
+        _writer = writer;
+    }
+
+    public async Task<ExportFile> Handle(
+        ExportToolCostsQuery request,
+        CancellationToken cancellationToken)
+    {
+        var report = await _mediator.Send(
+            new GetToolCostsQuery
+            {
+                From = request.From,
+                To = request.To,
+                ToolId = request.ToolId
+            },
+            cancellationToken);
+
+        var english = ExportLabels.IsEnglish(request.Language);
+
+        var summarySheet = new SpreadsheetSheet(
+            ExportLabels.Get("sheet.toolCosts", english),
+            [
+                new(ExportLabels.Get("tool", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("repairCost", english), SpreadsheetValueKind.Money),
+                new(ExportLabels.Get("maintenanceCost", english), SpreadsheetValueKind.Money),
+                new(ExportLabels.Get("otherCost", english), SpreadsheetValueKind.Money),
+                new(ExportLabels.Get("rentalCost", english), SpreadsheetValueKind.Money),
+                new(ExportLabels.Get("total", english), SpreadsheetValueKind.Money),
+                new(ExportLabels.Get("revenue", english), SpreadsheetValueKind.Money),
+                new(ExportLabels.Get("profit", english), SpreadsheetValueKind.Money)
+            ],
+            report.Rows
+                .Select(r => (IReadOnlyList<object?>)
+                [
+                    r.ToolName,
+                    r.RepairCost,
+                    r.MaintenanceCost,
+                    r.OtherCost,
+                    r.RentalCost,
+                    r.Total,
+                    r.Revenue,
+                    r.Profit
+                ])
+                .Concat(report.Rows.Count == 0
+                    ? []
+                    : new[]
+                    {
+                        (IReadOnlyList<object?>)
+                        [
+                            ExportLabels.Get("grandTotal", english),
+                            report.Rows.Sum(r => r.RepairCost),
+                            report.Rows.Sum(r => r.MaintenanceCost),
+                            report.Rows.Sum(r => r.OtherCost),
+                            report.TotalRentalCost,
+                            report.Total,
+                            report.TotalRevenue,
+                            report.TotalProfit
+                        ]
+                    })
+                .ToList());
+
+        List<SpreadsheetSheet> sheets =
+        [
+            summarySheet,
+            await BuildToolExpensesSheet(request, english, cancellationToken),
+            await BuildToolRentalRatesSheet(request, english, cancellationToken),
+            await BuildToolRentalsOutSheet(request, english, cancellationToken)
+        ];
+
+        return _writer.Render(sheets, "tool-costs", request);
+    }
+
+    private async Task<SpreadsheetSheet> BuildToolExpensesSheet(
+        ExportToolCostsQuery request, bool english, CancellationToken cancellationToken)
+    {
+        var query = _context.ToolExpenses
+            .AsNoTracking()
+            .Where(e => e.OccurredOn >= request.From && e.OccurredOn <= request.To);
+
+        if (request.ToolId is { } toolId)
+        {
+            query = query.Where(e => e.ToolId == toolId);
+        }
+
+        var rows = await query
+            .OrderBy(e => e.OccurredOn)
+            .ThenBy(e => e.CreatedAt)
+            .Select(e => new
+            {
+                Tool = e.Tool.Name,
+                e.Kind,
+                e.OccurredOn,
+                e.Amount,
+                e.Supplier,
+                RecordedBy = e.RecordedByUser != null ? e.RecordedByUser.Email : null,
+                e.Note
+            })
+            .ToListAsync(cancellationToken);
+
+        return new SpreadsheetSheet(
+            ExportLabels.Get("sheet.toolExpenses", english),
+            [
+                new(ExportLabels.Get("tool", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("kind", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("date", english), SpreadsheetValueKind.Date),
+                new(ExportLabels.Get("amount", english), SpreadsheetValueKind.Money),
+                new(ExportLabels.Get("supplier", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("recordedBy", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("note", english), SpreadsheetValueKind.Text)
+            ],
+            rows.Select(r => (IReadOnlyList<object?>)
+            [
+                r.Tool, r.Kind.ToString(), r.OccurredOn, r.Amount, r.Supplier, r.RecordedBy, r.Note
+            ]).ToList());
+    }
+
+    private async Task<SpreadsheetSheet> BuildToolRentalRatesSheet(
+        ExportToolCostsQuery request, bool english, CancellationToken cancellationToken)
+    {
+        var query = _context.ToolRentalRates
+            .AsNoTracking()
+            .Where(r => r.StartDate <= request.To && (r.EndDate == null || r.EndDate >= request.From));
+
+        if (request.ToolId is { } toolId)
+        {
+            query = query.Where(r => r.ToolId == toolId);
+        }
+
+        var rows = await query
+            .OrderBy(r => r.StartDate)
+            .Select(r => new
+            {
+                Tool = r.Tool.Name,
+                r.MonthlyAmount,
+                r.Provider,
+                r.StartDate,
+                r.EndDate,
+                r.Note
+            })
+            .ToListAsync(cancellationToken);
+
+        return new SpreadsheetSheet(
+            ExportLabels.Get("sheet.rentalRates", english),
+            [
+                new(ExportLabels.Get("tool", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("monthlyAmount", english), SpreadsheetValueKind.Money),
+                new(ExportLabels.Get("provider", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("startDate", english), SpreadsheetValueKind.Date),
+                new(ExportLabels.Get("endDate", english), SpreadsheetValueKind.Date),
+                new(ExportLabels.Get("note", english), SpreadsheetValueKind.Text)
+            ],
+            rows.Select(r => (IReadOnlyList<object?>)
+            [
+                r.Tool, r.MonthlyAmount, r.Provider, r.StartDate, r.EndDate, r.Note
+            ]).ToList());
+    }
+
+    private async Task<SpreadsheetSheet> BuildToolRentalsOutSheet(
+        ExportToolCostsQuery request, bool english, CancellationToken cancellationToken)
+    {
+        var query = _context.ToolRentalsOut
+            .AsNoTracking()
+            .Where(r => r.StartDate <= request.To && (r.EndDate == null || r.EndDate >= request.From));
+
+        if (request.ToolId is { } toolId)
+        {
+            query = query.Where(r => r.ToolId == toolId);
+        }
+
+        var rows = await query
+            .OrderBy(r => r.StartDate)
+            .Select(r => new
+            {
+                Tool = r.Tool.Name,
+                r.RenterName,
+                r.DailyRate,
+                r.StartDate,
+                r.EndDate,
+                r.Note
+            })
+            .ToListAsync(cancellationToken);
+
+        return new SpreadsheetSheet(
+            ExportLabels.Get("sheet.rentalsOut", english),
+            [
+                new(ExportLabels.Get("tool", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("renter", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("dailyRate", english), SpreadsheetValueKind.Money),
+                new(ExportLabels.Get("startDate", english), SpreadsheetValueKind.Date),
+                new(ExportLabels.Get("endDate", english), SpreadsheetValueKind.Date),
+                new(ExportLabels.Get("note", english), SpreadsheetValueKind.Text)
+            ],
+            rows.Select(r => (IReadOnlyList<object?>)
+            [
+                r.Tool, r.RenterName, r.DailyRate, r.StartDate, r.EndDate, r.Note
+            ]).ToList());
     }
 }
 

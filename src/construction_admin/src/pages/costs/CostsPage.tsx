@@ -867,6 +867,14 @@ function ToolCosts({ period }: { period: Period }) {
 
   return (
     <Stack spacing={2}>
+      <Box>
+        <ExportButton
+          onExport={(language) =>
+            exportsApi.toolCosts({ ...period, language })
+          }
+        />
+      </Box>
+
       <TableContainer component={Paper} variant="outlined" sx={{ overflowX: 'auto' }}>
         <Table size="small">
           <TableHead>

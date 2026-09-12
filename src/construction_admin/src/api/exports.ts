@@ -97,6 +97,9 @@ export const exportsApi = {
   vehicleCosts: (query: ExportQuery & { vehicleId?: string }) =>
     download('/api/v1/exports/vehicle-costs', query),
 
+  toolCosts: (query: ExportQuery & { toolId?: string }) =>
+    download('/api/v1/exports/tool-costs', query),
+
   materialMovements: (query: ExportQuery & { materialId?: string; projectId?: string }) =>
     download('/api/v1/exports/material-movements', query),
 

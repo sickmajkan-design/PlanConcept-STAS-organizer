@@ -64,6 +64,20 @@ public class ExportsController : ApiControllerBase
         return Download(await Mediator.Send(query, cancellationToken));
     }
 
+    /// <summary>What the tool fleet cost.</summary>
+    [HttpGet("/api/v{version:apiVersion}/exports/tool-costs")]
+    [HttpGet("/api/exports/tool-costs")]
+    [Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> ExportToolCosts(
+        [FromQuery] ExportToolCostsQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Download(await Mediator.Send(query, cancellationToken));
+    }
+
     /// <summary>Deliveries, issues and corrections over a period.</summary>
     [HttpGet("/api/v{version:apiVersion}/exports/material-movements")]
     [HttpGet("/api/exports/material-movements")]
