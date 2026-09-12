@@ -211,6 +211,25 @@ internal static class ExportFileFactory
     }
 
     /// <summary>
+    /// The multi-sheet form: a summary alongside the itemised detail behind
+    /// it, in one workbook, so the reader never has to cross-reference a
+    /// second download to see what a total is made of.
+    /// </summary>
+    public static ExportFile Render(
+        this ISpreadsheetWriter writer,
+        IReadOnlyList<SpreadsheetSheet> sheets,
+        string prefix,
+        ExportQueryBase request)
+    {
+        var fileName = $"{prefix}-{request.From:yyyy-MM-dd}-{request.To:yyyy-MM-dd}.xlsx";
+
+        return new ExportFile(
+            fileName,
+            writer.ContentType,
+            writer.Write(new Spreadsheet(sheets, GeneratedAtLabel(request.Language))));
+    }
+
+    /// <summary>
     /// Names a directory export after the day it was taken, not a period —
     /// these are a snapshot of what is in the system now, not a report over a
     /// stretch of time.
@@ -614,11 +633,16 @@ public class ExportProjectCostsQueryHandler
     : IRequestHandler<ExportProjectCostsQuery, ExportFile>
 {
     private readonly IMediator _mediator;
+    private readonly IApplicationDbContext _context;
     private readonly ISpreadsheetWriter _writer;
 
-    public ExportProjectCostsQueryHandler(IMediator mediator, ISpreadsheetWriter writer)
+    public ExportProjectCostsQueryHandler(
+        IMediator mediator,
+        IApplicationDbContext context,
+        ISpreadsheetWriter writer)
     {
         _mediator = mediator;
+        _context = context;
         _writer = writer;
     }
 
@@ -653,6 +677,7 @@ public class ExportProjectCostsQueryHandler
         }
 
         columns.Add(new(ExportLabels.Get("materialCost", english), SpreadsheetValueKind.Money));
+        columns.Add(new(ExportLabels.Get("generalExpenseCost", english), SpreadsheetValueKind.Money));
         columns.Add(new(ExportLabels.Get("total", english), SpreadsheetValueKind.Money));
         columns.Add(new(ExportLabels.Get("materialsOnSite", english), SpreadsheetValueKind.Money));
 
@@ -677,6 +702,7 @@ public class ExportProjectCostsQueryHandler
             }
 
             cells.Add(row.MaterialCost);
+            cells.Add(row.GeneralExpenseCost);
             cells.Add(row.Total);
             cells.Add(row.MaterialsOnSiteValue);
 
@@ -703,6 +729,7 @@ public class ExportProjectCostsQueryHandler
             }
 
             totals.Add(report.TotalMaterialCost);
+            totals.Add(report.TotalGeneralExpenseCost);
             totals.Add(report.Total);
             totals.Add(report.TotalMaterialsOnSiteValue);
 
@@ -714,10 +741,133 @@ public class ExportProjectCostsQueryHandler
             rows.Add(totals);
         }
 
-        var sheet = new SpreadsheetSheet(
+        var summarySheet = new SpreadsheetSheet(
             ExportLabels.Get("sheet.projectCosts", english), columns, rows);
 
-        return _writer.Render(sheet, "project-costs", request);
+        // A total is only as trustworthy as the reader's ability to check it.
+        // The same two ledgers behind "Manual pay" and "Other costs" on the
+        // summary sheet — Finance Entries and General Expenses — are listed
+        // here row by row, one per employee/entry, so nobody has to take the
+        // sums on faith or open a second export to see what is in them.
+        var generalExpensesSheet = await BuildGeneralExpensesSheet(request, english, cancellationToken);
+
+        List<SpreadsheetSheet> sheets = [summarySheet];
+
+        if (report.IncludesLabour)
+        {
+            sheets.Add(await BuildManualPaySheet(request, english, cancellationToken));
+        }
+
+        sheets.Add(generalExpensesSheet);
+
+        return _writer.Render(sheets, "project-costs", request);
+    }
+
+    private async Task<SpreadsheetSheet> BuildManualPaySheet(
+        ExportProjectCostsQuery request,
+        bool english,
+        CancellationToken cancellationToken)
+    {
+        var query = _context.FinanceEntries
+            .AsNoTracking()
+            .Where(e => e.OccurredOn >= request.From && e.OccurredOn <= request.To);
+
+        if (request.ProjectId is { } projectId)
+        {
+            query = query.Where(e => e.ProjectId == projectId);
+        }
+
+        var rows = await query
+            .OrderBy(e => e.OccurredOn)
+            .ThenBy(e => e.CreatedAt)
+            .Select(e => new
+            {
+                Project = e.Project != null ? e.Project.Name : null,
+                Employee = e.Employee.FirstName + " " + e.Employee.LastName,
+                e.Kind,
+                e.OccurredOn,
+                e.HoursWorked,
+                e.Amount,
+                RecordedBy = e.RecordedByUser != null ? e.RecordedByUser.Email : null,
+                e.Note
+            })
+            .ToListAsync(cancellationToken);
+
+        return new SpreadsheetSheet(
+            ExportLabels.Get("sheet.financeEntries", english),
+            [
+                new(ExportLabels.Get("project", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("employee", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("kind", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("date", english), SpreadsheetValueKind.Date),
+                new(ExportLabels.Get("hours", english), SpreadsheetValueKind.Quantity),
+                new(ExportLabels.Get("amount", english), SpreadsheetValueKind.Money),
+                new(ExportLabels.Get("recordedBy", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("note", english), SpreadsheetValueKind.Text)
+            ],
+            rows.Select(r => (IReadOnlyList<object?>)
+            [
+                r.Project,
+                r.Employee,
+                r.Kind.ToString(),
+                r.OccurredOn,
+                r.HoursWorked,
+                r.Amount,
+                r.RecordedBy,
+                r.Note
+            ]).ToList());
+    }
+
+    private async Task<SpreadsheetSheet> BuildGeneralExpensesSheet(
+        ExportProjectCostsQuery request,
+        bool english,
+        CancellationToken cancellationToken)
+    {
+        var query = _context.GeneralExpenses
+            .AsNoTracking()
+            .Where(e => e.OccurredOn >= request.From && e.OccurredOn <= request.To);
+
+        if (request.ProjectId is { } projectId)
+        {
+            query = query.Where(e => e.ProjectId == projectId);
+        }
+
+        var rows = await query
+            .OrderBy(e => e.OccurredOn)
+            .ThenBy(e => e.CreatedAt)
+            .Select(e => new
+            {
+                Project = e.Project != null ? e.Project.Name : null,
+                e.Category,
+                e.OccurredOn,
+                e.Amount,
+                Employee = e.Employee != null ? e.Employee.FirstName + " " + e.Employee.LastName : null,
+                e.Supplier,
+                e.Note
+            })
+            .ToListAsync(cancellationToken);
+
+        return new SpreadsheetSheet(
+            ExportLabels.Get("sheet.generalExpenses", english),
+            [
+                new(ExportLabels.Get("project", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("category", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("date", english), SpreadsheetValueKind.Date),
+                new(ExportLabels.Get("amount", english), SpreadsheetValueKind.Money),
+                new(ExportLabels.Get("employee", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("supplier", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("note", english), SpreadsheetValueKind.Text)
+            ],
+            rows.Select(r => (IReadOnlyList<object?>)
+            [
+                r.Project,
+                r.Category.ToString(),
+                r.OccurredOn,
+                r.Amount,
+                r.Employee,
+                r.Supplier,
+                r.Note
+            ]).ToList());
     }
 }
 
