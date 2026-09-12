@@ -1,6 +1,7 @@
 using Construction.Application.Common.Interfaces;
 using Construction.Infrastructure.Spreadsheets;
 using Construction.Application.Features.Authentication.Commands.ForgotPassword;
+using Construction.Infrastructure.Ai;
 using Construction.Infrastructure.Authentication;
 using Construction.Infrastructure.Email;
 using Construction.Infrastructure.ExternalServices;
@@ -150,6 +151,40 @@ public static class DependencyInjection
         });
 
         AddFileStorage(services, configuration);
+        AddAssistant(services, configuration);
+    }
+
+    /// <summary>
+    /// The AI assistant, which is optional in the same way push is.
+    /// </summary>
+    /// <remarks>
+    /// Deliberately not <c>ValidateOnStart</c> on the key. An installation
+    /// that never wanted the assistant must still boot, so a missing key is a
+    /// switched-off feature rather than a failed deployment — the endpoint
+    /// answers 503 and the panel hides itself. What is validated is everything
+    /// that would be silently wrong if set badly.
+    /// </remarks>
+    private static void AddAssistant(IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddOptions<AnthropicSettings>()
+            .Bind(configuration.GetSection(AnthropicSettings.SectionName))
+            .Validate(
+                s => !string.IsNullOrWhiteSpace(s.Model),
+                "Anthropic:Model must name a model.")
+            .Validate(
+                s => s.MaxOutputTokens is > 0 and <= 32000,
+                "Anthropic:MaxOutputTokens must be between 1 and 32000.")
+            .Validate(
+                s => s.TimeoutSeconds is > 0 and <= 300,
+                "Anthropic:TimeoutSeconds must be between 1 and 300.")
+            .Validate(
+                s => s.RateLimitPermitCount > 0 && s.RateLimitWindowSeconds > 0,
+                "Anthropic rate-limit settings must both be positive; a zero would refuse every request.")
+            .ValidateOnStart();
+
+        // Singleton: it holds one configured SDK client and no request state.
+        // The per-conversation state lives in the session it hands out.
+        services.AddSingleton<IAssistantClient, ClaudeAssistantClient>();
     }
 
     /// <summary>

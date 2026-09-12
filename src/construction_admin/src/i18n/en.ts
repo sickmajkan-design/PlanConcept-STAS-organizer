@@ -1664,6 +1664,31 @@ export const en = {
   'notificationType.WorkItemDue': 'Due',
   'notificationType.ShiftAutoClosed': 'Shift',
   'notificationType.BulletinPosted': 'Bulletin',
+
+  // --- Assistant ------------------------------------------------------------
+  'assistant.title': 'Office assistant',
+  'assistant.ask': 'Ask a question',
+  'assistant.placeholder': 'How many hours did Marko work in July?',
+  'assistant.send': 'Send',
+  'assistant.clear': 'Clear',
+  'assistant.thinking': 'Looking it up…',
+  'assistant.emptyTitle': 'Ask about your own records. The assistant looks the answer up rather than guessing.',
+  'assistant.emptyExample1': '“Which sites are active, and who is on each?”',
+  'assistant.emptyExample2': '“What is still open on Vidikovac, and what is overdue?”',
+  'assistant.truncated': 'The assistant ran out of lookups before it finished. Try asking something narrower.',
+  'assistant.disclaimer': 'Reads only — it cannot change anything, and it cannot see locations or pay. Check any figure you are about to act on.',
+  'assistant.tool.list_projects': 'Sites',
+  'assistant.tool.get_project': 'Site',
+  'assistant.tool.list_employees': 'Staff',
+  'assistant.tool.get_employee': 'Employee',
+  'assistant.tool.list_time_entries': 'Shifts',
+  'assistant.tool.time_entry_summary': 'Hours',
+  'assistant.tool.list_work_items': 'Tasks',
+  'assistant.tool.list_absences': 'Absences',
+  'assistant.tool.list_assignments': 'Assignments',
+  'assistant.tool.list_materials': 'Materials',
+  'assistant.tool.list_vehicles': 'Vehicles',
+  'assistant.tool.list_tools': 'Tools',
 } as const;
 
 export type MessageKey = keyof typeof en;

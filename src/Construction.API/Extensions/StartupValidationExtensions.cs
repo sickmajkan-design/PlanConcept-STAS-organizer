@@ -1,3 +1,4 @@
+using Construction.Infrastructure.Ai;
 using Construction.Infrastructure.Email;
 using Construction.Infrastructure.Notifications;
 using Microsoft.Extensions.Options;
@@ -90,6 +91,16 @@ public static class StartupValidationExtensions
                 "correct when the admin panel is served from this same origin, which is what the " +
                 "deployment stack does. Set it only if the panel is served from its own name.",
                 CorsOrigins.ConfigurationKey);
+        }
+
+        var assistant = app.Services.GetRequiredService<IOptions<AnthropicSettings>>().Value;
+
+        if (!assistant.IsConfigured)
+        {
+            logger.LogWarning(
+                "'{Section}:ApiKey' is not set, so the AI assistant is switched off. The panel "
+                + "hides itself and the endpoint answers 503; nothing else is affected.",
+                AnthropicSettings.SectionName);
         }
 
         var firebase = app.Services.GetRequiredService<IOptions<FirebaseSettings>>().Value;

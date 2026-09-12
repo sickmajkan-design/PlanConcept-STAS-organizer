@@ -45,6 +45,8 @@ services:
       # Empty means push is logged instead of sent, which is what every
       # environment without a Firebase project should do.
       Firebase__CredentialsJson: ${FIREBASE_CREDENTIALS_JSON:-}
+
+      Anthropic__ApiKey: ${ANTHROPIC_API_KEY:-}
       # Empty bucket means the container's own disk, which the volume below
       # keeps across restarts. Set a bucket to use object storage instead.
       FileStorage__Bucket: ${FILE_STORAGE_BUCKET:-}

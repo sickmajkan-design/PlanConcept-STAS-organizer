@@ -135,6 +135,24 @@ public class ExceptionHandlingMiddleware
                 };
                 break;
 
+            case ServiceUnavailableException:
+                // Logged as a warning, not an error: the fault is not here, and
+                // raising the 5xx error rate on somebody else's rate limit would
+                // page whoever is on call for this system.
+                _logger.LogWarning(
+                    exception,
+                    "A dependency was unavailable while processing {Path}",
+                    context.Request.Path);
+
+                problemDetails = new ProblemDetails
+                {
+                    Status = StatusCodes.Status503ServiceUnavailable,
+                    Title = "Service unavailable",
+                    Detail = exception.Message,
+                    Type = "https://tools.ietf.org/html/rfc9110#section-15.6.4"
+                };
+                break;
+
             default:
                 _logger.LogError(exception, "Unhandled exception while processing {Path}", context.Request.Path);
 

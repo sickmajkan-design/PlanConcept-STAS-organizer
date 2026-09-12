@@ -201,6 +201,39 @@ ručno, a fotografija se bez pickera ne može uzeti.
 
 ---
 
+## Faza 5a — AI pomoćnik / AI assistant — **ZADRŽANO / HELD BACK**
+
+**Napravljeno i testirano, ali namerno nije pušteno.** Dugme nije montirano u
+admin panelu; kod stoji na grani i čeka da bude deo neke od sledećih faza. Radi
+se o odluci o redosledu, ne o problemu sa funkcijom. / **Built and tested,
+deliberately not shipped.** The launcher is not mounted; the code sits on the
+branch waiting to go out with a later phase. A sequencing decision, not a fault.
+
+
+Nije bio na ovoj listi. Došao je kao zahtev vlasnika i uzet je van reda jer ne
+zavisi ni od čega i ništa ne blokira. / Not on this list. It came as an owner
+request and was taken out of order because it depends on nothing and blocks
+nothing.
+
+| Stavka / Item | Stanje / State |
+|---|---|
+| Pitanja i odgovori nad sopstvenim podacima | **Odrađeno.** Dvanaest alata, svaki postojeći upit iza politike koju njegov kontroler već nosi. Odgovara na jeziku pitanja. |
+| Nasleđivanje autorizacije | **Odrađeno, i to je bio ceo posao.** `[Authorize]` živi samo na kontrolerima, a MediatR nema autorizaciono ponašanje — alat koji bi zvao `IMediator` direktno preskočio bi proveru uloge u celosti. `AssistantToolset` je vraća: pita `IAuthorizationService` pre nego što model uopšte vidi alat, i pita ponovo pre nego što ga pokrene. |
+| Plafon podataka — bez GPS-a i bez zarada | **Odrađeno, u tri sloja.** Izostavljanje `Features/Locations` iz registra nije bilo dovoljno: `TimeEntryDto` već nosi koordinate smene, a `EmployeeDetailDto` nosi trošak perioda, i oba pripadaju alatima koji kancelariji trebaju. Otuda i redaktor po imenu polja, i dva testa koja zamrzavaju i skup alata i listu polja. |
+| Panel u admin aplikaciji, dvojezično | **Odrađeno.** Fioka pored ekrana na kom je čovek već, jer su pitanja o tom ekranu. Bez ključa se dugme uopšte ne prikazuje. |
+| Trošak pod kontrolom | **Odrađeno.** Ograničenje **po korisniku** a ne po adresi — kancelarija deli jedan izlaz, a ovo čuva račun a ne tajnu. Uz to gornja granica tokena i šest provera po pitanju. |
+| Izmene kroz predlog i potvrdu | **Nije još.** Model bi sastavio predlog, panel bi ga prikazao kao karticu sa dugmetom „Potvrdi", a klik bi pozvao **postojeći** endpoint — dakle ista provera uloge, isti ključ protiv duplog izvršenja, isti audit trag. Nema drugog puta za pisanje koji bi trebalo posebno obezbeđivati. |
+| Striming odgovora | **Nije, namerno.** Bio bi prvi streamovani odgovor u ovom kodu, a `ExceptionHandlingMiddleware` ne može da prepiše odgovor koji je počeo. Odgovori su kratki; indikator kucanja je dovoljan. |
+| Mobilna aplikacija | **Nije.** Pitanja radnika su druga vrsta pitanja i traže svoj skup alata. |
+
+**Poznato ograničenje / Known limitation:** pomoćnik je nov obrađivač ličnih
+podataka. Imena i sati odlaze Anthropic-u; lokacija i zarade ne. Pravni deo je
+kod vlasnika — `PRIVACY.md` §1.0a.
+
+**Pokrivenost kad se pusti / Coverage when shipped: ≈77%**
+
+---
+
 ## Faza 6 — Odloženo / Deferred
 
 | Stavka / Item | Zašto kasnije / Why later |
@@ -242,6 +275,7 @@ Every module from here inherits the existing conventions — not done until it h
 | 3 | Zadaci i nedostaci — **odrađeno** | 2 ned. | 50% |
 | 4 | Raspoređivanje i odsustva | 2–3 ned. | 58% |
 | 5 | Troškovi i statistika | 3 ned. | 75% |
+| 5a | AI pomoćnik — napravljen, **zadržan** / built, **held back** | — | 75% |
 | 6 | Narudžbe, računi, offline, chat, iOS | otvoreno / open | ~100% |
 
 **Ukupno do 75% pokrivenosti: ~3 meseca za jednog programera.**

@@ -1,4 +1,5 @@
 using System.Threading.RateLimiting;
+using Construction.Infrastructure.Ai;
 using Microsoft.AspNetCore.RateLimiting;
 
 namespace Construction.API.Extensions;
@@ -43,6 +44,20 @@ public static class RateLimitingExtensions
     /// <summary>Applied to the unauthenticated client-error endpoint.</summary>
     public const string ClientErrorPolicy = "client-errors";
 
+    /// <summary>Applied to the assistant, which costs money per call.</summary>
+    public const string AssistantPolicy = "assistant";
+
+    /// <summary>
+    /// Says what happened rather than blaming the reader. The credentials
+    /// limit counts every attempt from an address, so on a site where everyone
+    /// shares one connection it can arrive on a perfectly correct password —
+    /// and being told "too many attempts" then sends people hunting for a
+    /// mistake they did not make.
+    /// </summary>
+    private const string CredentialsRejectionDetail =
+        "This connection has made too many sign-in attempts in a short time. "
+        + "If several people share it, wait a minute and try again.";
+
     /// <summary>
     /// Reports allowed from one address per minute.
     /// </summary>
@@ -85,6 +100,17 @@ public static class RateLimitingExtensions
             ? TimeSpan.FromSeconds(settings.WindowSeconds)
             : TimeSpan.FromMinutes(1);
 
+        var assistant = configuration.GetSection(AnthropicSettings.SectionName)
+            .Get<AnthropicSettings>() ?? new AnthropicSettings();
+
+        var assistantPermitLimit = assistant.RateLimitPermitCount > 0
+            ? assistant.RateLimitPermitCount
+            : new AnthropicSettings().RateLimitPermitCount;
+
+        var assistantWindow = assistant.RateLimitWindowSeconds > 0
+            ? TimeSpan.FromSeconds(assistant.RateLimitWindowSeconds)
+            : TimeSpan.FromSeconds(new AnthropicSettings().RateLimitWindowSeconds);
+
         services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -107,23 +133,45 @@ public static class RateLimitingExtensions
                     QueueLimit = 0
                 }));
 
+            // Partitioned by user, not by address — the one policy here that
+            // is. The office shares a single connection, so an IP partition
+            // would let whoever asked first spend everyone's allowance, and
+            // this endpoint is reached only with a bearer token, so the
+            // subject claim is always there to partition on. It guards a bill
+            // rather than a secret, and a bill is per account.
+            options.AddPolicy(AssistantPolicy, context => RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: context.User.FindFirst(
+                    System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value
+                    ?? context.Connection.RemoteIpAddress?.ToString()
+                    ?? "unknown",
+                factory: _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = assistantPermitLimit,
+                    Window = assistantWindow,
+                    QueueLimit = 0
+                }));
+
             options.OnRejected = async (context, cancellationToken) =>
             {
                 context.HttpContext.Response.ContentType = "application/problem+json";
+
+                // Which limit bit changes what the reader should do about it,
+                // and "too many sign-in attempts" on a refused question sends
+                // somebody looking for a password problem they do not have.
+                var policy = context.HttpContext.GetEndpoint()?.Metadata
+                    .GetMetadata<EnableRateLimitingAttribute>()?.PolicyName;
+
+                var detail = policy == AssistantPolicy
+                    ? "You have asked the assistant a lot of questions in a short time. "
+                        + "Wait a few minutes and ask again."
+                    : CredentialsRejectionDetail;
 
                 await context.HttpContext.Response.WriteAsJsonAsync(new
                 {
                     type = "https://tools.ietf.org/html/rfc6585#section-4",
                     title = "Too many requests",
                     status = StatusCodes.Status429TooManyRequests,
-                    // Says what happened rather than blaming the reader. The
-                    // limit counts every attempt from an address, so on a site
-                    // where everyone shares one connection this can arrive on a
-                    // perfectly correct password — and being told "too many
-                    // attempts" then sends people hunting for a mistake they
-                    // did not make.
-                    detail = "This connection has made too many sign-in attempts in a short "
-                        + "time. If several people share it, wait a minute and try again."
+                    detail
                 }, cancellationToken);
             };
         });

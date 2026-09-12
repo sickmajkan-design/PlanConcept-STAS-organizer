@@ -710,6 +710,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
             stated once, in the same place, wherever the operator is. */}
         <OfflineBanner />
         {children}
+        {/*
+          The office assistant is built but deliberately not mounted. It is
+          finished and tested — src/components/assistant/, src/features/assistant/,
+          and the API side under Construction.API/Assistant — and held back to
+          ship with a later phase rather than on its own. Re-enable by rendering
+          <AssistantLauncher /> here; it hides itself unless the server has an
+          API key, so this line alone does not turn anything on.
+        */}
       </Box>
     </Box>
   );

@@ -240,6 +240,7 @@ administrator can lock everyone out and the only repair is database access.
 - [ ] TLS terminated in front of the API; HTTP redirects to HTTPS
 - [ ] Reverse proxy restricts `Host` to the real domain
 - [ ] Firebase credentials provisioned, or push accepted as non-functional
+- [ ] `ANTHROPIC_API_KEY` left **empty** — the AI assistant is held back and not mounted in the panel, so a key buys nothing and only creates a billed credential on the host. When the assistant does ship, confirm the transfer to Anthropic is covered by the notice to staff first (`PRIVACY.md` §1.0a)
 
 ### Verify after deploy
 

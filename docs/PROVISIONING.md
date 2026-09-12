@@ -118,6 +118,69 @@ at submission, not silently on users' devices.
 
 ---
 
+## 2a. AI pomoćnik / The AI assistant
+
+> **ZADRŽANO.** Napravljeno i testirano, ali dugme nije montirano u admin panelu,
+> pa postavljanje ključa **ne prikazuje pomoćnika**. Ovi koraci važe tek kad se
+> pusti u nekoj od sledećih faza. / **HELD BACK.** Built and tested, but the
+> launcher is not mounted, so setting a key does **not** surface the assistant.
+> These steps apply when it ships in a later phase.
+
+**Opciono.** Bez ključa sistem radi u svemu ostalom identično: krajnja tačka
+vraća 503, panel ne prikazuje dugme, i pri pokretanju se upiše upozorenje.
+Ništa se ne šalje nikuda. / **Optional.** Without a key everything else behaves
+identically: the endpoint answers 503, the panel shows no launcher, and startup
+logs a warning. Nothing is sent anywhere.
+
+### 2a.1 Uzmi ključ / Get a key
+
+1. Otvori nalog na <https://console.anthropic.com> i napravi API ključ.
+2. Upiši ga u `.env` pored ostalih tajni:
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+Ključ je **naplativ po pozivu** i daje pristup nalogu — u produkciji ide u
+menadžer tajni, nikad u fajl koji ide u repozitorijum. / The key is **billed per
+call** and grants account access — in production it belongs in a secret manager,
+never in a committed file.
+
+### 2a.2 Provera / Verify
+
+```bash
+docker compose up -d api
+# treba da vrati {"enabled":true} / should answer {"enabled":true}
+curl -s -H "Authorization: Bearer $TOKEN" http://localhost:5000/api/v1/assistant/status
+```
+
+Pa se prijavi u admin panel kao Poslovođa ili više i pritisni dugme dole desno.
+/ Then sign in to the admin panel as Foreman or above and press the button in the
+bottom-right corner.
+
+### 2a.3 Šta pomoćnik sme, a šta ne / What it may and may not do
+
+- **Samo čita.** Nema nijedan alat koji piše. Svaki alat je postojeći upit,
+  pokrenut iza politike koju njegov kontroler već nosi, pa Poslovođa kroz
+  pomoćnika ne vidi ništa što ne vidi i kroz ekrane. / **Reads only.** No tool
+  writes. Each is an existing query behind the policy its own controller
+  carries.
+- **Ne vidi lokacije ni zarade.** Sprovedeno na tri mesta — vidi
+  `PRIVACY.md` §1.0a. / **Cannot see location or pay.** Enforced in three
+  places — see `PRIVACY.md` §1.0a.
+- **Ne pamti razgovore.** Istorija živi u pregledaču; server ne čuva ništa osim
+  zapisa u logu o tome koji je alat pozvan. / **Stores no conversations.**
+
+### 2a.4 Trošak / Cost
+
+Ograničenja koja već stoje: 20 pitanja po korisniku u 5 minuta
+(`Anthropic:RateLimitPermitCount`), najviše 2048 tokena po odgovoru, i najviše
+šest provera po pitanju. Potrošnja se meri i upisuje u log po odgovoru. /
+Bounds already in place: 20 questions per user per 5 minutes, 2048 output tokens
+per answer, six lookups per question. Usage is logged per answer.
+
+---
+
 ## 3. Šta i dalje ne radi posle ovoga / What still does not work after this
 
 Pošteno, da ne bude iznenađenja. / Stated plainly so there are no surprises.
@@ -128,6 +191,7 @@ Pošteno, da ne bude iznenađenja. / Stated plainly so there are no surprises.
 | GPS kad korisnik ukloni aplikaciju iz „recents" | **ne radi** — Android uništava aktivnost, a sa njom i servis. Fiksevi u redu čekanja se čuvaju i šalju pri sledećem pokretanju. / does not work — the activity is destroyed and the service with it. Queued fixes survive and go out on next launch. |
 | GPS posle restarta telefona | **ne radi** dok se aplikacija ne otvori / does not work until the app is opened |
 | iOS build | nije građen ni potpisan — traži Apple Developer nalog i Mac / not built or signed — needs an Apple Developer account and a Mac |
+| AI pomoćnik | **zadržan** — napravljen, testiran, nije montiran u panelu; vidi §2a / **held back** — built, tested, not mounted; see §2a |
 
 Trajno rešenje za prva dva je zaseban background-service paket koji pokreće
 drugi Flutter engine, nezavisan od aktivnosti. To je nova zavisnost i zaseban

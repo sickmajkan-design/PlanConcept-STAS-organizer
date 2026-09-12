@@ -36,6 +36,69 @@ Derived from the schema (21 tables). Only person-related data is listed.
 | `attachments` | Dokumenti vezani za radnika (ugovori, lekarska uverenja, dozvole) | Kadrovska dokumentacija / HR documents | Trajno / Indefinitely |
 | `employee_projects`, `work_items` | Gde je ko radio i šta je radio / Who worked where and on what | Organizacija posla / Work organisation | Trajno / Indefinitely |
 
+### 1.0a Podaci koji napuštaju server / Data that leaves the server — **[ZA VLASNIKA / FOR THE OWNER]**
+
+> **STANJE: ZADRŽANO, NIJE U UPOTREBI.** Pomoćnik je napravljen i testiran, ali
+> nije uključen u proizvod — dugme nije montirano u admin panelu, pa se ništa od
+> dole opisanog trenutno **ne dešava**. Ovaj odeljak opisuje šta bi važilo kad se
+> pusti, i stoji ovde da se ta odluka ne donese prećutno.
+>
+> **STATUS: HELD BACK, NOT IN USE.** The assistant is built and tested but not
+> mounted in the admin panel, so none of what follows currently happens. This
+> section describes what would apply when it ships, and stands here so that
+> decision is not made silently.
+
+
+**SR** — Do sada nijedan lični podatak nije napuštao instalaciju osim ka
+servisima koje vlasnik sam podesi (SMTP za poštu, S3 za kopije, Firebase za
+push). **Kancelarijski pomoćnik dodaje još jednog obrađivača: Anthropic.**
+
+Pitanje koje kancelarija otkuca i zapisi kojima se na njega odgovara šalju se
+Anthropic-ovom API-ju. To znači imena radnika, imena gradilišta, sate, zadatke,
+odsustva, materijal, vozila i alat.
+
+**Šta se ne šalje, i to je sprovedeno u kodu, ne obećanjem:**
+
+- **istorija kretanja i koordinate smene** — `AssistantRedactor` briše svako
+  polje čije se ime završava na `latitude`/`longitude`, na bilo kojoj dubini;
+  ceo `Features/Locations` uopšte nije u registru alata;
+- **zarade i trošak rada** — `totalPay`, `hourlyRate`, `labourCost` i slična
+  polja idu istim putem; upiti nad cenama rada nisu izloženi;
+- **adresa stanovanja i datum rođenja** — nisu deo zadatog plafona, ali su
+  svejedno izostavljeni: ne odgovaraju ni na jedno pitanje o gradilištu.
+
+Pomoćnik je **opcion**. Bez `Anthropic__ApiKey` ništa se nikuda ne šalje,
+dugme se ne prikazuje, i ova stavka ne važi za tu instalaciju.
+
+**Odluka koja ostaje vlasniku:** da li je ovaj prenos pokriven postojećim
+obaveštenjem zaposlenima i ugovorom o obradi. Ovo je nov obrađivač u lancu i
+traži isti tretman kao §6 — pravni osnov i obaveštenje, ne kod.
+
+**EN** — Until now no personal data left the installation except to services the
+owner configures themselves (SMTP, S3, Firebase). **The office assistant adds
+one more processor: Anthropic.**
+
+The question the office types and the records used to answer it are sent to
+Anthropic's API — employee names, site names, hours, tasks, absences, materials,
+vehicles and tools.
+
+**What is not sent, enforced in code rather than promised:** movement history
+and shift coordinates (`AssistantRedactor` strips any field whose name ends in
+`latitude`/`longitude`, at any depth, and `Features/Locations` is absent from the
+tool registry entirely); wages and labour cost (`totalPay`, `hourlyRate`,
+`labourCost` and the like go the same way, and no pay-rate query is exposed);
+home address and date of birth (outside the stated ceiling, withheld anyway —
+they answer no question about a building site).
+
+The assistant is **optional**. Without `Anthropic__ApiKey` nothing is sent
+anywhere, the launcher does not render, and this entry does not apply to that
+installation.
+
+**The decision left to the owner:** whether this transfer is covered by the
+existing notice to staff and by a processing agreement. It is a new processor in
+the chain and needs the same treatment as §6 — a lawful basis and a notice, not
+code.
+
 ### 1.1 Dve stavke koje traže posebnu pažnju / Two items needing particular care
 
 **SR** — Obe su nađene čitanjem šeme, ne pretpostavkom:
@@ -299,3 +362,5 @@ employees' location has no basis.
 | Pravni osnov, obaveštenje, DPIA / Lawful basis, notice, DPIA | **nije — traži vlasnika i pravnika / not done — needs the owner and a lawyer** (§6) |
 | Izvoz podataka na zahtev lica / Data export on a subject request | **nije / not done** — trenutno se radi ručno iz baze / currently a manual database query |
 | Ograničenje praćenja na radno vreme / Tracking limited to working hours | **nije / not done** (§6.4) |
+| Pomoćnik ne vidi lokaciju ni zarade / Assistant cannot see location or pay | **urađeno / done** (§1.0a) — allow-lista alata, redaktor polja i dva testa koja oba zamrzavaju / tool allow-list, field redactor, and two tests freezing both |
+| Ugovor o obradi sa Anthropic-om i obaveštenje / Processing agreement with Anthropic and notice | **nije potrebno dok je pomoćnik zadržan / not needed while the assistant is held back** (§1.0a) |

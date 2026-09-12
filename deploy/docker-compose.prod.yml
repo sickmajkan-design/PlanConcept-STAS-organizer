@@ -104,6 +104,8 @@ services:
 
       Firebase__CredentialsJson: ${FIREBASE_CREDENTIALS_JSON:-}
 
+      Anthropic__ApiKey: ${ANTHROPIC_API_KEY:-}
+
       FileStorage__Bucket: ${FILE_STORAGE_BUCKET:-}
       FileStorage__ServiceUrl: ${FILE_STORAGE_SERVICE_URL:-}
       FileStorage__Region: ${FILE_STORAGE_REGION:-}
