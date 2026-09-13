@@ -124,6 +124,9 @@ export const en = {
   'guide.role.worker.name': 'Worker',
   'guide.role.worker.description':
     'Uses the mobile app on site — clocks in and out, reports defects, submits weekly reports and requests time off. Has no access to this admin panel.',
+  'guide.role.customer.name': 'Customer',
+  'guide.role.customer.description':
+    "An external client, not staff — signs in at a separate address (/customer) to a read-only page showing their own project's status and progress, nothing else: no prices, no pay, no access to this admin panel at all. To set one up: create a user on the Users page, pick the Customer role, and link it to the customer record instead of an employee.",
   'common.undo': 'Undo',
   'common.deletedUndoMessage': 'Deleted.',
   'common.deletedCountUndoMessage': { one: '{count} deleted.', other: '{count} deleted.' },

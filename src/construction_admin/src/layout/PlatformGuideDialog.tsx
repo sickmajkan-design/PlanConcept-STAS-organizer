@@ -14,7 +14,14 @@ function GuideItem({ children }: { children: string }) {
   );
 }
 
-const ROLE_KEYS = ['superAdmin', 'admin', 'projectManager', 'foreman', 'worker'] as const;
+const ROLE_KEYS = [
+  'superAdmin',
+  'admin',
+  'projectManager',
+  'foreman',
+  'worker',
+  'customer',
+] as const;
 
 /**
  * The short "how this works" reference the client asked for after using the

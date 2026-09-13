@@ -132,6 +132,9 @@ export const sr: Record<MessageKey, Message> = {
   'guide.role.worker.name': 'Radnik',
   'guide.role.worker.description':
     'Koristi mobilnu aplikaciju na terenu — prijavljuje dolazak i odlazak s posla, prijavljuje kvarove, predaje sedmične izvještaje i traži odsustvo. Nema pristup ovom admin panelu.',
+  'guide.role.customer.name': 'Klijent',
+  'guide.role.customer.description':
+    'Spoljni klijent, ne zaposleni — prijavljuje se na posebnu adresu (/customer) na stranicu koja pokazuje samo status i napredak njegovog projekta, ništa drugo: bez cijena, bez plata, bez pristupa ovom admin panelu. Da biste ga podesili: napravite korisnika na stranici Korisnici, izaberite ulogu Klijent i povežite ga sa zapisom klijenta umjesto sa zaposlenim.',
   'common.undo': 'Opozovi',
   'common.deletedUndoMessage': 'Obrisano.',
   'common.deletedCountUndoMessage': {
