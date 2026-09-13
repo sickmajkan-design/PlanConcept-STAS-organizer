@@ -28,6 +28,12 @@ public record UpdateUserCommand : IRequest<UserDto>
     public Guid? EmployeeId { get; init; }
 
     /// <summary>
+    /// See the remarks on <c>CreateUserCommand.CustomerId</c> — required for
+    /// and exclusive to <see cref="UserRole.Customer"/>.
+    /// </summary>
+    public Guid? CustomerId { get; init; }
+
+    /// <summary>
     /// Days of warning this admin wants before a document lapses. Null keeps
     /// the system default. Ignored for roles that never receive the
     /// reminder — set it if you like, but nothing reads it.
@@ -58,6 +64,18 @@ public class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
             .GreaterThan(0).WithMessage("The reminder window must be at least 1 day.")
             .LessThanOrEqualTo(365).WithMessage("The reminder window must be at most 365 days.")
             .When(x => x.DocumentExpiryReminderDays is not null);
+
+        RuleFor(x => x.CustomerId)
+            .NotNull().WithMessage("A customer account must be linked to a customer.")
+            .When(x => x.Role == UserRole.Customer);
+
+        RuleFor(x => x.CustomerId)
+            .Null().WithMessage("Only a customer account may be linked to a customer.")
+            .When(x => x.Role != UserRole.Customer);
+
+        RuleFor(x => x.EmployeeId)
+            .Null().WithMessage("A customer account may not be linked to an employee.")
+            .When(x => x.Role == UserRole.Customer);
     }
 }
 
@@ -84,6 +102,7 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserD
 
         var user = await _context.Users
             .Include(u => u.Employee)
+            .Include(u => u.Customer)
             .FirstOrDefaultAsync(u => u.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException("User", request.Id);
 
@@ -117,6 +136,8 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserD
         user.Role = request.Role;
         user.Employee = await ResolveEmployeeAsync(user, request.EmployeeId, cancellationToken);
         user.EmployeeId = user.Employee?.Id;
+        user.Customer = await ResolveCustomerAsync(request.CustomerId, cancellationToken);
+        user.CustomerId = user.Customer?.Id;
         user.DocumentExpiryReminderDays = request.DocumentExpiryReminderDays;
 
         // Only a SuperAdmin may hand out (or take back) the tax-details grant
@@ -166,6 +187,17 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserD
         }
 
         return employee;
+    }
+
+    private async Task<Customer?> ResolveCustomerAsync(Guid? customerId, CancellationToken cancellationToken)
+    {
+        if (customerId is not { } id)
+        {
+            return null;
+        }
+
+        return await _context.Customers.FirstOrDefaultAsync(c => c.Id == id, cancellationToken)
+            ?? throw new NotFoundException(nameof(Customer), id);
     }
 
     private async Task RevokeSessionsAsync(Guid userId, CancellationToken cancellationToken)

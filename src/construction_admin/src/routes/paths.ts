@@ -5,6 +5,7 @@ export const paths = {
   changePassword: '/change-password',
 
   home: '/',
+  customerPortal: '/customer',
   bulletin: '/bulletin',
   employees: '/employees',
   employeeDetail: (id: string) => `/employees/${id}`,

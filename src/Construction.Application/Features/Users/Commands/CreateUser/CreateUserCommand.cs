@@ -23,9 +23,20 @@ public record CreateUserCommand : IRequest<UserDto>
     /// <summary>
     /// Links the account to a personnel record. Required for anyone who uses
     /// the mobile app: GPS reporting identifies the employee from this link,
-    /// and an account without it is refused by those endpoints.
+    /// and an account without it is refused by those endpoints. Only ever
+    /// set together with an internal-staff <see cref="Role"/> — see
+    /// <see cref="CustomerId"/> for the other direction.
     /// </summary>
     public Guid? EmployeeId { get; init; }
+
+    /// <summary>
+    /// Links the account to the client it may see the portal's read-only
+    /// project status for. Required when <see cref="Role"/> is
+    /// <see cref="UserRole.Customer"/>, and refused otherwise — a customer
+    /// login with no customer, or a staff login with one, is always a
+    /// mistake worth catching at the form rather than a support ticket later.
+    /// </summary>
+    public Guid? CustomerId { get; init; }
 }
 
 public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
@@ -41,6 +52,18 @@ public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
 
         RuleFor(x => x.Role)
             .IsInEnum().WithMessage("Role is not a known role.");
+
+        RuleFor(x => x.CustomerId)
+            .NotNull().WithMessage("A customer account must be linked to a customer.")
+            .When(x => x.Role == UserRole.Customer);
+
+        RuleFor(x => x.CustomerId)
+            .Null().WithMessage("Only a customer account may be linked to a customer.")
+            .When(x => x.Role != UserRole.Customer);
+
+        RuleFor(x => x.EmployeeId)
+            .Null().WithMessage("A customer account may not be linked to an employee.")
+            .When(x => x.Role == UserRole.Customer);
     }
 }
 
@@ -75,6 +98,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserD
         }
 
         var employee = await ResolveEmployeeAsync(request.EmployeeId, cancellationToken);
+        var customer = await ResolveCustomerAsync(request.CustomerId, cancellationToken);
 
         var user = new User
         {
@@ -82,15 +106,28 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserD
             PasswordHash = _passwordHasher.Hash(request.Password),
             Role = request.Role,
             IsActive = true,
-            EmployeeId = employee?.Id
+            EmployeeId = employee?.Id,
+            CustomerId = customer?.Id
         };
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync(cancellationToken);
 
         user.Employee = employee;
+        user.Customer = customer;
 
         return UserMapping.ToDto(user);
+    }
+
+    private async Task<Customer?> ResolveCustomerAsync(Guid? customerId, CancellationToken cancellationToken)
+    {
+        if (customerId is not { } id)
+        {
+            return null;
+        }
+
+        return await _context.Customers.FirstOrDefaultAsync(c => c.Id == id, cancellationToken)
+            ?? throw new NotFoundException(nameof(Customer), id);
     }
 
     private async Task<Employee?> ResolveEmployeeAsync(Guid? employeeId, CancellationToken cancellationToken)

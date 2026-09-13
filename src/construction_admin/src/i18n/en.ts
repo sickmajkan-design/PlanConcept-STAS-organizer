@@ -574,6 +574,7 @@ export const en = {
   'users.emailHelp': 'Used to sign in.',
   'users.role': 'Role',
   'users.employee': 'Employee',
+  'users.customer': 'Customer',
   'users.notLinked': 'Not linked',
   'users.documentExpiryReminderDays': 'Document expiry reminder (days ahead)',
   'users.documentExpiryReminderDaysHelp': 'Leave blank for the default (30 days).',
@@ -632,6 +633,14 @@ export const en = {
   'role.ProjectManager': 'Project Manager',
   'role.Foreman': 'Foreman',
   'role.Worker': 'Worker',
+  'role.Customer': 'Customer',
+
+  // --- Customer portal --------------------------------------------------
+  'customerPortal.title': 'Project status',
+  'customerPortal.subtitle': 'The current status of your project, updated as work progresses.',
+  'customerPortal.empty': 'No projects are linked to your account yet.',
+  'customerPortal.progress': 'Progress',
+  'customerPortal.ongoing': 'Ongoing',
 
   'employeeStatus.Active': 'Active',
   'employeeStatus.OnLeave': 'On leave',

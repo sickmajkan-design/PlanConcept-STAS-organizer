@@ -49,6 +49,7 @@ const RANK: Record<Role, number> = {
   ProjectManager: 3,
   Foreman: 4,
   Worker: 5,
+  Customer: 6,
 };
 
 function canManage(callerRole: Role | undefined, targetRole: Role): boolean {

@@ -35,6 +35,7 @@ export const roles = [
   'ProjectManager',
   'Foreman',
   'Worker',
+  'Customer',
 ] as const;
 
 export type Role = (typeof roles)[number];
@@ -523,6 +524,9 @@ export interface UserAccount {
   lockoutEndsAt: string | null;
   employeeId: string | null;
   employeeName: string | null;
+  /** Set only for a Customer-role account. */
+  customerId: string | null;
+  customerName: string | null;
   /** Days of warning before a document lapses. Null means the system default. Admin/SuperAdmin only. */
   documentExpiryReminderDays: number | null;
   /** Whether this account may see a customer's tax ID, registration number and VAT number. */
@@ -534,6 +538,7 @@ export interface UserAccountInput {
   email: string;
   role: Role;
   employeeId?: string | null;
+  customerId?: string | null;
   documentExpiryReminderDays?: number | null;
   /** Only a SuperAdmin caller may actually change this — sent by anyone else, the API leaves it as it was. */
   canViewCustomerTaxDetails?: boolean;

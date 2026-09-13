@@ -14,8 +14,10 @@ import { paths } from './routes/paths';
 import {
   RequireAccountAdmin,
   RequireAuth,
+  RequireCustomer,
   RequireDirectoryAccess,
   RequireLabourCostAccess,
+  RequireNotCustomer,
   RequireProjectManagerAccess,
   RequireSuperAdmin,
   RequireGuest,
@@ -260,6 +262,11 @@ const CustomerFormPage = lazy(() =>
     default: m.CustomerFormPage,
   })),
 );
+const CustomerPortalPage = lazy(() =>
+  import('./pages/customerPortal/CustomerPortalPage').then((m) => ({
+    default: m.CustomerPortalPage,
+  })),
+);
 
 function RouteFallback() {
   return (
@@ -413,7 +420,16 @@ export function App() {
       </Route>
 
       <Route element={<RequireAuth />}>
-        <Route path="/*" element={<Layout />} />
+        <Route element={<RequireCustomer />}>
+          <Route path={paths.customerPortal} element={<CustomerPortalPage />} />
+        </Route>
+
+        {/* Guards the entire internal app in one place, rather than on every
+            route inside `Layout` — a customer login must never render so
+            much as the sidebar, not just be refused the pages behind it. */}
+        <Route element={<RequireNotCustomer />}>
+          <Route path="/*" element={<Layout />} />
+        </Route>
       </Route>
     </Routes>
   );

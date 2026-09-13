@@ -14,17 +14,21 @@ public sealed class TestCurrentUserService : ICurrentUserService
 
     public Guid? EmployeeId { get; set; }
 
+    public Guid? CustomerId { get; set; }
+
     public string? Email { get; set; }
 
     public UserRole? Role { get; set; }
 
     public string? IpAddress { get; set; } = "127.0.0.1";
 
-    public void SignInAs(Guid userId, UserRole role, Guid? employeeId = null, string? email = null)
+    public void SignInAs(
+        Guid userId, UserRole role, Guid? employeeId = null, string? email = null, Guid? customerId = null)
     {
         UserId = userId;
         Role = role;
         EmployeeId = employeeId;
+        CustomerId = customerId;
         Email = email;
     }
 
@@ -33,6 +37,7 @@ public sealed class TestCurrentUserService : ICurrentUserService
         UserId = null;
         Role = null;
         EmployeeId = null;
+        CustomerId = null;
         Email = null;
     }
 }

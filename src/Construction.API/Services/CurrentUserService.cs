@@ -49,6 +49,18 @@ public class CurrentUserService : ICurrentUserService
         }
     }
 
+    public Guid? CustomerId
+    {
+        get
+        {
+            if (CurrentUserOverride.Current is { } identity) return identity.CustomerId;
+
+            var value = _httpContextAccessor.HttpContext?.User.FindFirstValue("customerId");
+
+            return Guid.TryParse(value, out var id) ? id : null;
+        }
+    }
+
     public string? Email =>
         CurrentUserOverride.Current?.Email
         ?? _httpContextAccessor.HttpContext?.User.FindFirstValue(JwtRegisteredClaimNames.Email);

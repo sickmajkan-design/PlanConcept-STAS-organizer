@@ -29,6 +29,12 @@ public class UserDto
     /// <summary>Name of the linked employee, so the list needs no second call.</summary>
     public string? EmployeeName { get; init; }
 
+    /// <summary>Set only for a <see cref="Construction.Domain.Enums.UserRole.Customer"/> account.</summary>
+    public Guid? CustomerId { get; init; }
+
+    /// <summary>Name of the linked customer, so the list needs no second call.</summary>
+    public string? CustomerName { get; init; }
+
     /// <summary>
     /// Days of warning this admin wants before a document lapses. Null means
     /// the system default — only meaningful for Admin/SuperAdmin accounts.
@@ -68,6 +74,8 @@ public static class UserMapping
             EmployeeName = user.Employee != null
                 ? user.Employee.FirstName + " " + user.Employee.LastName
                 : null,
+            CustomerId = user.CustomerId,
+            CustomerName = user.Customer != null ? user.Customer.Name : null,
             DocumentExpiryReminderDays = user.DocumentExpiryReminderDays,
             CanViewCustomerTaxDetails = user.CanViewCustomerTaxDetails,
             PreferredLanguage = user.PreferredLanguage,

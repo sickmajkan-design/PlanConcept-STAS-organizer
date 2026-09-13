@@ -133,6 +133,41 @@ export function RequireLabourCostAccess() {
 }
 
 /**
+ * Keeps a customer login out of the entire internal-staff app — the sidebar,
+ * the home dashboard, every screen `Layout` renders. Mirrors the API's
+ * `CustomerOnly`/`AllEmployees` split: a customer sees `paths.customerPortal`
+ * and nothing else, checked once here rather than on every internal route.
+ */
+export function RequireNotCustomer() {
+  const { user } = useAuth();
+
+  if (user === undefined) {
+    return null;
+  }
+
+  if (user?.role === 'Customer') {
+    return <Navigate to={paths.customerPortal} replace />;
+  }
+
+  return <Outlet />;
+}
+
+/** Restricts a route to the Customer role alone — the portal's own guard, the mirror image of {@link RequireNotCustomer}. */
+export function RequireCustomer() {
+  const { user } = useAuth();
+
+  if (user === undefined) {
+    return null;
+  }
+
+  if (user?.role !== 'Customer') {
+    return <Navigate to={paths.home} replace />;
+  }
+
+  return <Outlet />;
+}
+
+/**
  * Restricts a route to the SuperAdmin role alone (its `SuperAdminOnly`
  * policy) — used for the personal ledger, which not even Admin can reach.
  */

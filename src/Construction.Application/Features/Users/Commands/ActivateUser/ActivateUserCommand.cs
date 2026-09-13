@@ -33,6 +33,7 @@ public class ActivateUserCommandHandler : IRequestHandler<ActivateUserCommand, U
 
         var user = await _context.Users
             .Include(u => u.Employee)
+            .Include(u => u.Customer)
             .FirstOrDefaultAsync(u => u.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException("User", request.Id);
 

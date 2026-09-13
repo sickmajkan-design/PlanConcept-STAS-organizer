@@ -19,7 +19,8 @@ public static class TestData
         UserRole role = UserRole.Admin,
         Guid? employeeId = null,
         bool isActive = true,
-        string? email = null)
+        string? email = null,
+        Guid? customerId = null)
     {
         var user = new User
         {
@@ -27,7 +28,8 @@ public static class TestData
             PasswordHash = Hasher.Hash(Password),
             Role = role,
             IsActive = isActive,
-            EmployeeId = employeeId
+            EmployeeId = employeeId,
+            CustomerId = customerId
         };
 
         scope.Db.Users.Add(user);

@@ -10,6 +10,8 @@ public sealed class StubCurrentUser : ICurrentUserService
 
     public Guid? EmployeeId { get; set; } = Guid.NewGuid();
 
+    public Guid? CustomerId { get; set; }
+
     public string? Email { get; set; } = "ana@construction.local";
 
     public UserRole? Role { get; set; } = UserRole.Admin;

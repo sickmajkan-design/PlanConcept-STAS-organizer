@@ -50,11 +50,21 @@ public class ApiAuthorizationTests
     /// only: asserting that an admitted role is not refused would contradict a
     /// refusal the product intends.
     /// </param>
+    /// <param name="AnyAuthenticated">
+    /// True for the handful of endpoints gated by a bare <c>[Authorize]</c>
+    /// rather than a named policy — every signed-in identity, staff or not.
+    /// <see cref="UserRole.Customer"/> sits outside the staff seniority
+    /// ladder <see cref="Minimum"/> encodes, so it needs its own escape from
+    /// the numeric-range rule rather than silently failing the "admitted"
+    /// check for an endpoint that was never staff-only in the first place.
+    /// <see cref="Minimum"/> still drives the anonymous-gets-401 assertion.
+    /// </param>
     public sealed record Endpoint(
         string Method,
         string Path,
         UserRole? Minimum,
-        bool HandlerNarrows = false)
+        bool HandlerNarrows = false,
+        bool AnyAuthenticated = false)
     {
         public override string ToString() => $"{Method} {Path}";
     }
@@ -87,8 +97,8 @@ public class ApiAuthorizationTests
             // and so is the rule. Each of these has its own case below, costing
             // one or two requests instead of six.
             new("POST", "/api/auth/refresh", null),
-            new("POST", "/api/auth/logout", UserRole.Worker),
-            new("GET", "/api/auth/me", UserRole.Worker),
+            new("POST", "/api/auth/logout", UserRole.Worker, AnyAuthenticated: true),
+            new("GET", "/api/auth/me", UserRole.Worker, AnyAuthenticated: true),
 
             // ---- absences and the schedule board -------------------------
             new("GET", "/api/absences", UserRole.Worker),
@@ -274,7 +284,9 @@ public class ApiAuthorizationTests
         {
             var status = await SendAsync(_api.ClientAs(role), endpoint);
 
-            var admitted = endpoint.Minimum is null || (int)role <= (int)endpoint.Minimum;
+            var admitted = endpoint.AnyAuthenticated
+                || endpoint.Minimum is null
+                || (int)role <= (int)endpoint.Minimum;
 
             if (!admitted && status != HttpStatusCode.Forbidden)
             {

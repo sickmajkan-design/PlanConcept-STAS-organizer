@@ -24,7 +24,8 @@ namespace Construction.Application.Common.Interfaces;
 /// </remarks>
 public static class CurrentUserOverride
 {
-    public sealed record Identity(Guid UserId, string Email, UserRole Role, Guid? EmployeeId);
+    public sealed record Identity(
+        Guid UserId, string Email, UserRole Role, Guid? EmployeeId, Guid? CustomerId = null);
 
     private static readonly AsyncLocal<Identity?> Holder = new();
 

@@ -12,6 +12,7 @@ namespace Construction.Infrastructure.Authentication;
 public class JwtProvider : IJwtProvider
 {
     public const string EmployeeIdClaim = "employeeId";
+    public const string CustomerIdClaim = "customerId";
 
     private readonly JwtSettings _settings;
     private readonly IDateTimeProvider _dateTimeProvider;
@@ -44,6 +45,11 @@ public class JwtProvider : IJwtProvider
         if (user.EmployeeId is { } employeeId)
         {
             claims.Add(new Claim(EmployeeIdClaim, employeeId.ToString()));
+        }
+
+        if (user.CustomerId is { } customerId)
+        {
+            claims.Add(new Claim(CustomerIdClaim, customerId.ToString()));
         }
 
         var token = new JwtSecurityToken(

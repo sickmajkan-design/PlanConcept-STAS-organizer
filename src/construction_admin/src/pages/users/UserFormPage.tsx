@@ -27,6 +27,7 @@ import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
 import { isSuperAdmin } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
+import { useAllCustomersQuery } from '../../features/customers/useCustomers';
 import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
 import {
   useCreateUser,
@@ -53,6 +54,7 @@ const RANK: Record<Role, number> = {
   ProjectManager: 3,
   Foreman: 4,
   Worker: 5,
+  Customer: 6,
 };
 
 function assignableRoles(callerRole: Role | undefined): Role[] {
@@ -75,6 +77,7 @@ export function UserFormPage() {
 
   const { data: existing, isLoading, isError, error, refetch } = useUserQuery(id);
   const { data: employees } = useAllEmployeesQuery();
+  const { data: customers } = useAllCustomersQuery();
   const createUser = useCreateUser();
   const updateUser = useUpdateUser(id ?? '');
 
@@ -97,6 +100,7 @@ export function UserFormPage() {
       password: '',
       role: allowedRoles[0] ?? 'Worker',
       employeeId: '',
+      customerId: '',
       documentExpiryReminderDays: '',
       canViewCustomerTaxDetails: false,
     },
@@ -109,6 +113,7 @@ export function UserFormPage() {
         password: '',
         role: existing.role,
         employeeId: existing.employeeId ?? '',
+        customerId: existing.customerId ?? '',
         documentExpiryReminderDays:
           existing.documentExpiryReminderDays === null
             ? ''
@@ -119,6 +124,7 @@ export function UserFormPage() {
   }, [existing, reset]);
 
   const watchRole = useWatch({ control, name: 'role' });
+  const isCustomerRole = watchRole === 'Customer';
   const showReminderField = isEdit && (watchRole === 'SuperAdmin' || watchRole === 'Admin');
   // A SuperAdmin always sees customer tax details regardless of this flag —
   // offering the toggle on their own row would be a confusing no-op.
@@ -128,7 +134,8 @@ export function UserFormPage() {
     const shared = {
       email: values.email.trim(),
       role: values.role,
-      employeeId: values.employeeId ? values.employeeId : null,
+      employeeId: values.role === 'Customer' ? null : values.employeeId ? values.employeeId : null,
+      customerId: values.role === 'Customer' ? values.customerId || null : null,
     };
 
     try {
@@ -233,25 +240,44 @@ export function UserFormPage() {
             </Grid>
 
             <Grid size={{ xs: 12, sm: 6 }}>
-              <Controller
-                name="employeeId"
-                control={control}
-                render={({ field }) => (
-                  <FormControl fullWidth>
-                    <InputLabel id="user-employee-label">{t('users.employee')}</InputLabel>
-                    <Select {...field} labelId="user-employee-label" label={t('users.employee')}>
-                      <MenuItem value="">
-                        <em>{t('users.notLinked')}</em>
-                      </MenuItem>
-                      {employees?.items.map((employee) => (
-                        <MenuItem key={employee.id} value={employee.id}>
-                          {employee.fullName} ({employee.employeeNumber})
+              {isCustomerRole ? (
+                <Controller
+                  name="customerId"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControl fullWidth error={!!errors.customerId}>
+                      <InputLabel id="user-customer-label">{t('users.customer')}</InputLabel>
+                      <Select {...field} labelId="user-customer-label" label={t('users.customer')}>
+                        {customers?.items.map((customer) => (
+                          <MenuItem key={customer.id} value={customer.id}>
+                            {customer.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  )}
+                />
+              ) : (
+                <Controller
+                  name="employeeId"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControl fullWidth>
+                      <InputLabel id="user-employee-label">{t('users.employee')}</InputLabel>
+                      <Select {...field} labelId="user-employee-label" label={t('users.employee')}>
+                        <MenuItem value="">
+                          <em>{t('users.notLinked')}</em>
                         </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                )}
-              />
+                        {employees?.items.map((employee) => (
+                          <MenuItem key={employee.id} value={employee.id}>
+                            {employee.fullName} ({employee.employeeNumber})
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  )}
+                />
+              )}
             </Grid>
 
             {showReminderField && (

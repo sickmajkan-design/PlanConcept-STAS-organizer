@@ -65,6 +65,17 @@ public class User : BaseEntity, IAuditable
 
     public Employee? Employee { get; set; }
 
+    /// <summary>
+    /// Set only for <see cref="UserRole.Customer"/> accounts — which of the
+    /// company's clients this login may see the portal's read-only project
+    /// status for. Null for every internal-staff role, the same way
+    /// <see cref="EmployeeId"/> is null for an account with no linked
+    /// employee.
+    /// </summary>
+    public Guid? CustomerId { get; set; }
+
+    public Customer? Customer { get; set; }
+
     public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 
     public ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = new List<PasswordResetToken>();

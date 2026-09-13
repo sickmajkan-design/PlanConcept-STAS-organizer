@@ -27,6 +27,8 @@ const baseUserSchema = z.object({
   role: z.enum(roles, { error: zodMsg('validation.roleRequired') }),
   // Empty string is what an unselected picker submits; it means "no employee".
   employeeId: z.string().optional().or(z.literal('')),
+  // Same convention, for the customer picker a Customer-role account uses instead.
+  customerId: z.string().optional().or(z.literal('')),
   // Empty string means "use the system default" — the API's own
   // interpretation of a null value.
   documentExpiryReminderDays: z.string().optional().or(z.literal('')),

@@ -9,6 +9,9 @@ public interface ICurrentUserService
     /// <summary>The employee record linked to the account, when there is one.</summary>
     Guid? EmployeeId { get; }
 
+    /// <summary>The customer this account's portal login belongs to — set only for <see cref="UserRole.Customer"/>.</summary>
+    Guid? CustomerId { get; }
+
     string? Email { get; }
 
     UserRole? Role { get; }

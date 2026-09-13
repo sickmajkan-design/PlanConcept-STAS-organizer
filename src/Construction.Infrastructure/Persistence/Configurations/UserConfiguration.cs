@@ -44,6 +44,14 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsUnique()
             .HasFilter("\"EmployeeId\" IS NOT NULL");
 
+        // Many-to-one, unlike Employee above: a customer is a company, and
+        // more than one of their people may reasonably want their own portal
+        // login — not the same "at most one account" rule a person gets.
+        builder.HasOne(u => u.Customer)
+            .WithMany()
+            .HasForeignKey(u => u.CustomerId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.ToTable(t => t.HasCheckConstraint(
             "ck_users_reminder_days_positive",
             "\"DocumentExpiryReminderDays\" IS NULL OR \"DocumentExpiryReminderDays\" > 0"));

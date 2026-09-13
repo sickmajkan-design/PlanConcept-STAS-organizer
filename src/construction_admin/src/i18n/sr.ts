@@ -598,6 +598,7 @@ export const sr: Record<MessageKey, Message> = {
   'users.emailHelp': 'Koristi se za prijavu.',
   'users.role': 'Uloga',
   'users.employee': 'Zaposleni',
+  'users.customer': 'Klijent',
   'users.notLinked': 'Nije povezan',
   'users.documentExpiryReminderDays': 'Podsjetnik o isteku dokumenata (dana unaprijed)',
   'users.documentExpiryReminderDaysHelp': 'Ostavi prazno za podrazumijevano (30 dana).',
@@ -656,6 +657,14 @@ export const sr: Record<MessageKey, Message> = {
   'role.ProjectManager': 'Rukovodilac projekta',
   'role.Foreman': 'Poslovođa',
   'role.Worker': 'Radnik',
+  'role.Customer': 'Klijent',
+
+  // --- Portal za klijenta -------------------------------------------------
+  'customerPortal.title': 'Status projekta',
+  'customerPortal.subtitle': 'Trenutni status vašeg projekta, ažuriran kako radovi napreduju.',
+  'customerPortal.empty': 'Vaš nalog još uvek nema povezanih projekata.',
+  'customerPortal.progress': 'Napredak',
+  'customerPortal.ongoing': 'U toku',
 
   'employeeStatus.Active': 'Aktivan',
   'employeeStatus.OnLeave': 'Na odsustvu',

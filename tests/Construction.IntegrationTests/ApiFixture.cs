@@ -178,27 +178,45 @@ public sealed class ApiFixture : IAsyncLifetime
 
         var userId = await InScope(async context =>
         {
-            var employee = new Employee
-            {
-                EmployeeNumber = $"API-{Guid.NewGuid():N}"[..20],
-                FirstName = role.ToString(),
-                LastName = "Tester",
-                Position = "Tester",
-                EmploymentDate = new DateOnly(2020, 1, 1),
-                Status = EmployeeStatus.Active
-            };
-
-            context.Employees.Add(employee);
-            await context.SaveChangesAsync();
-
             var user = new User
             {
                 Email = address,
                 PasswordHash = new PasswordHasher().Hash(TestData.Password),
                 Role = role,
                 IsActive = true,
-                EmployeeId = employee.Id
             };
+
+            // A customer login is linked to a Customer, never an Employee —
+            // the opposite of every staff role. Seeding it with an employee
+            // behind it (as every other role gets, below) would make it look
+            // like an ordinary staff account to any handler that only checks
+            // EmployeeId, masking exactly the leak this fixture exists to
+            // catch.
+            if (role == UserRole.Customer)
+            {
+                var customer = new Customer { Name = "API Test Customer" };
+                context.Customers.Add(customer);
+                await context.SaveChangesAsync();
+
+                user.CustomerId = customer.Id;
+            }
+            else
+            {
+                var employee = new Employee
+                {
+                    EmployeeNumber = $"API-{Guid.NewGuid():N}"[..20],
+                    FirstName = role.ToString(),
+                    LastName = "Tester",
+                    Position = "Tester",
+                    EmploymentDate = new DateOnly(2020, 1, 1),
+                    Status = EmployeeStatus.Active
+                };
+
+                context.Employees.Add(employee);
+                await context.SaveChangesAsync();
+
+                user.EmployeeId = employee.Id;
+            }
 
             context.Users.Add(user);
             await context.SaveChangesAsync();
