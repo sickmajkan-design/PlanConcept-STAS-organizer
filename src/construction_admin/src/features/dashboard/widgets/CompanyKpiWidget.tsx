@@ -1,4 +1,4 @@
-import { Box, Stack, Typography } from '@mui/material';
+import { Box, Divider, Stack, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 
@@ -32,7 +32,6 @@ interface Tile {
   label: string;
   value: string;
   hint?: string;
-  to: string;
 }
 
 export function CompanyKpiWidget({
@@ -102,13 +101,11 @@ export function CompanyKpiWidget({
       key: 'cost',
       label: t('dashboard.companyKpi.costThisMonth'),
       value: formatMoney(costQuery.data?.total ?? 0, locale),
-      to: paths.costs,
     },
     {
       key: 'employees',
       label: t('dashboard.companyKpi.activeEmployees'),
       value: String(employeesQuery.data?.totalCount ?? 0),
-      to: paths.employees,
     },
     {
       key: 'workItems',
@@ -118,19 +115,16 @@ export function CompanyKpiWidget({
         overdueCount > 0
           ? t('dashboard.companyKpi.overdue', { count: overdueCount })
           : undefined,
-      to: paths.workItems,
     },
     {
       key: 'vehicles',
       label: t('dashboard.companyKpi.vehiclesAvailable'),
       value: `${vehiclesAvailable} / ${vehiclesQuery.data?.totalCount ?? 0}`,
-      to: paths.vehicles,
     },
     {
       key: 'tools',
       label: t('dashboard.companyKpi.toolsAvailable'),
       value: `${toolsAvailable} / ${toolsQuery.data?.totalCount ?? 0}`,
-      to: paths.tools,
     },
   ];
 
@@ -142,42 +136,55 @@ export function CompanyKpiWidget({
       onRemove={onRemove}
       dragHandleProps={dragHandleProps}
     >
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-          gap: 2,
-        }}
-      >
-        {tiles.map((tile) => (
-          <Stack
-            key={tile.key}
-            component={Link}
-            to={tile.to}
-            spacing={0.25}
-            sx={{
-              textDecoration: 'none',
-              color: 'inherit',
-              p: 1.5,
-              borderRadius: 1,
-              bgcolor: 'action.hover',
-              '&:hover': { bgcolor: 'action.selected' },
-            }}
-          >
-            <Typography variant="caption" color="text.secondary" noWrap>
-              {tile.label}
-            </Typography>
-            <Typography variant="h5" sx={{ fontWeight: 700 }}>
-              {tile.value}
-            </Typography>
-            {tile.hint && (
-              <Typography variant="caption" color="warning.main">
-                {tile.hint}
+      <Stack spacing={2}>
+        {/* Plain stat tiles, not links — a drag handle is the only thing on
+            this card that should ever pick up a pointer gesture. Navigation
+            lives in the plain text links below instead, exactly like every
+            other widget on this board (see FleetStatusWidget). */}
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+            gap: 2,
+          }}
+        >
+          {tiles.map((tile) => (
+            <Stack key={tile.key} spacing={0.25} sx={{ p: 1.5, borderRadius: 1, bgcolor: 'action.hover' }}>
+              <Typography variant="caption" color="text.secondary" noWrap>
+                {tile.label}
               </Typography>
-            )}
-          </Stack>
-        ))}
-      </Box>
+              <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                {tile.value}
+              </Typography>
+              {tile.hint && (
+                <Typography variant="caption" color="warning.main">
+                  {tile.hint}
+                </Typography>
+              )}
+            </Stack>
+          ))}
+        </Box>
+
+        <Divider />
+
+        <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap' }}>
+          <Typography variant="body2">
+            <Link to={paths.costs}>{t('nav.costs')}</Link>
+          </Typography>
+          <Typography variant="body2">
+            <Link to={paths.employees}>{t('nav.employees')}</Link>
+          </Typography>
+          <Typography variant="body2">
+            <Link to={paths.workItems}>{t('nav.workItems')}</Link>
+          </Typography>
+          <Typography variant="body2">
+            <Link to={paths.vehicles}>{t('nav.vehicles')}</Link>
+          </Typography>
+          <Typography variant="body2">
+            <Link to={paths.tools}>{t('nav.tools')}</Link>
+          </Typography>
+        </Stack>
+      </Stack>
     </WidgetShell>
   );
 }
