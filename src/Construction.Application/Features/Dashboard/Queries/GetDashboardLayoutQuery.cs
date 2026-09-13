@@ -48,14 +48,30 @@ public class GetDashboardLayoutQueryHandler
         return new DashboardLayoutDto { Widgets = widgets };
     }
 
-    private static List<DashboardWidgetDto> DefaultWidgets() =>
-        DashboardWidgetTypes.All
-            .Select((type, index) => new DashboardWidgetDto
+    /// <summary>
+    /// The two-column board a first visit lands on. <see cref="DashboardWidgetTypes.CompanyKpi"/>
+    /// leads the left column — the one glance that answers "how's the
+    /// company doing" — with everything else alternating columns so a wide
+    /// screen isn't left with one tall stack and an empty half.
+    /// </summary>
+    private static List<DashboardWidgetDto> DefaultWidgets()
+    {
+        var columnOrders = new[] { 0, 0 };
+
+        return DashboardWidgetTypes.All
+            .Select((type, index) =>
             {
-                Id = Guid.NewGuid(),
-                Type = type,
-                Column = 0,
-                Order = index,
+                var column = type == DashboardWidgetTypes.CompanyKpi ? 0 : index % 2;
+                var order = columnOrders[column]++;
+
+                return new DashboardWidgetDto
+                {
+                    Id = Guid.NewGuid(),
+                    Type = type,
+                    Column = column,
+                    Order = order,
+                };
             })
             .ToList();
+    }
 }

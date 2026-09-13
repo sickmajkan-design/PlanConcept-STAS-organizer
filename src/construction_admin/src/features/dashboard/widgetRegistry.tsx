@@ -2,6 +2,7 @@ import type { ComponentType } from 'react';
 
 import type { MessageKey } from '../../i18n/en';
 import { AbsencesBalanceWidget } from './widgets/AbsencesBalanceWidget';
+import { CompanyKpiWidget } from './widgets/CompanyKpiWidget';
 import { DocumentExpiryWidget } from './widgets/DocumentExpiryWidget';
 import { FleetStatusWidget } from './widgets/FleetStatusWidget';
 import { NeedsAttentionWidget } from './widgets/NeedsAttentionWidget';
@@ -20,6 +21,10 @@ interface WidgetRegistryEntry {
  * read off this map and need no other change.
  */
 export const widgetRegistry: Record<DashboardWidgetType, WidgetRegistryEntry> = {
+  CompanyKpi: {
+    component: CompanyKpiWidget,
+    titleKey: 'dashboard.widget.CompanyKpi',
+  },
   ProjectsRealization: {
     component: ProjectsRealizationWidget,
     titleKey: 'dashboard.widget.ProjectsRealization',

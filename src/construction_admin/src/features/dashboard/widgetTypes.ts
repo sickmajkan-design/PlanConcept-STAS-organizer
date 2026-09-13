@@ -1,5 +1,6 @@
 /** Mirrors `DashboardWidgetTypes` in Construction.Application — keep in sync. */
 export const dashboardWidgetTypes = [
+  'CompanyKpi',
   'ProjectsRealization',
   'AbsencesBalance',
   'NotificationsBulletin',

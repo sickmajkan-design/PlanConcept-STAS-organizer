@@ -8,6 +8,7 @@ namespace Construction.Application.Features.Dashboard.Models;
 /// </summary>
 public static class DashboardWidgetTypes
 {
+    public const string CompanyKpi = nameof(CompanyKpi);
     public const string ProjectsRealization = nameof(ProjectsRealization);
     public const string AbsencesBalance = nameof(AbsencesBalance);
     public const string NotificationsBulletin = nameof(NotificationsBulletin);
@@ -17,6 +18,7 @@ public static class DashboardWidgetTypes
 
     public static readonly IReadOnlyList<string> All =
     [
+        CompanyKpi,
         ProjectsRealization,
         AbsencesBalance,
         NotificationsBulletin,

@@ -247,6 +247,7 @@ export const en = {
   'dashboard.pickerEmpty': 'Every widget is already on your dashboard.',
   'dashboard.removeWidget': 'Remove widget',
   'dashboard.empty': 'Your dashboard is empty — add a widget to get started.',
+  'dashboard.widget.CompanyKpi': 'Company KPIs',
   'dashboard.widget.ProjectsRealization': 'Projects — realization',
   'dashboard.widget.AbsencesBalance': 'Workforce',
   'dashboard.widget.NotificationsBulletin': 'Notifications & bulletin',
@@ -287,6 +288,15 @@ export const en = {
   'dashboard.documentExpiry.expiresOn': 'Expires {date}',
   'dashboard.fleet.vehicles': 'Vehicles',
   'dashboard.fleet.tools': 'Tools',
+  'dashboard.companyKpi.costThisMonth': 'Cost this month',
+  'dashboard.companyKpi.activeEmployees': 'Active employees',
+  'dashboard.companyKpi.openWorkItems': 'Open work items',
+  'dashboard.companyKpi.overdue': {
+    one: '{count} overdue',
+    other: '{count} overdue',
+  },
+  'dashboard.companyKpi.vehiclesAvailable': 'Vehicles available',
+  'dashboard.companyKpi.toolsAvailable': 'Tools available',
   'map.project': 'Project',
   'map.allProjects': 'All projects',
 
