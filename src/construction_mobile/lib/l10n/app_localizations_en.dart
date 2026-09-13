@@ -990,6 +990,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get notificationClockInLocationMismatchTitle =>
+      'Clock-in location mismatch';
+
+  @override
+  String notificationClockInLocationMismatchBody(
+    String employeeName,
+    String projectName,
+  ) {
+    return '$employeeName clocked in at $projectName, but their GPS location does not match the site.';
+  }
+
+  @override
   String get notificationDefectReportedTitle => 'New defect reported';
 
   @override

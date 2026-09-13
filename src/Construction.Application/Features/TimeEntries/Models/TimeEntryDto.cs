@@ -13,6 +13,14 @@ public static class GeoDistance
 {
     private const double EarthRadiusMeters = 6_371_000;
 
+    /// <summary>
+    /// Maximum distance from the project's coordinates still counted as "on
+    /// site". Shared by <see cref="TimeEntryDto.LocationCorrect"/> (what the
+    /// screens show) and <c>ClockInCommandHandler</c> (who gets told about
+    /// it) so the two can never disagree about what counts as a mismatch.
+    /// </summary>
+    public const double LocationToleranceMeters = 100;
+
     /// <summary>Haversine distance between two points, in meters.</summary>
     public static double Meters(double lat1, double lon1, double lat2, double lon2)
     {
@@ -77,14 +85,11 @@ public class TimeEntryDto
 
     public TimeOnly? ProjectShiftStartTime { get; init; }
 
-    /// <summary>Maximum distance from the project's coordinates still counted as "on site".</summary>
-    private const double LocationToleranceMeters = 100;
-
     /// <summary>How far from the project's expected shift start still counts as "on time".</summary>
     private static readonly TimeSpan TimeTolerance = TimeSpan.FromMinutes(15);
 
     /// <summary>
-    /// Whether the clock-in happened within <see cref="LocationToleranceMeters"/>
+    /// Whether the clock-in happened within <see cref="GeoDistance.LocationToleranceMeters"/>
     /// of the project's coordinates. Null when either the entry or the
     /// project has no coordinates to compare.
     ///
@@ -96,7 +101,7 @@ public class TimeEntryDto
         || ProjectLatitude is null || ProjectLongitude is null
         ? null
         : GeoDistance.Meters(StartLatitude.Value, StartLongitude.Value, ProjectLatitude.Value, ProjectLongitude.Value)
-            <= LocationToleranceMeters;
+            <= GeoDistance.LocationToleranceMeters;
 
     /// <summary>
     /// Whether the clock-in happened within <see cref="TimeTolerance"/> of

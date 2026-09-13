@@ -347,6 +347,8 @@
   "notificationEmployeeClockedOutBody": "{employeeName} se odjavio(la) sa gradilišta {projectName} nakon {hours}h {minutes}min.",
   "notificationUnassignedClockInTitle": "Prijava na nedodijeljeno gradilište",
   "notificationUnassignedClockInBody": "{employeeName} se prijavio(la) na gradilištu {projectName}, iako trenutno nije tamo raspoređen(a).",
+  "notificationClockInLocationMismatchTitle": "Neslaganje lokacije prijave",
+  "notificationClockInLocationMismatchBody": "{employeeName} se prijavio(la) na gradilištu {projectName}, ali GPS lokacija ne odgovara gradilištu.",
   "notificationDefectReportedTitle": "Prijavljen novi kvar",
   "notificationDefectReportedBody": "{reporterName} je prijavio(la): {title}",
   "notificationAbsenceRequestedTitle": "Zahtjev za odsustvo",

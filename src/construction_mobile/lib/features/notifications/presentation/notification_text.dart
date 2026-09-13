@@ -254,6 +254,18 @@ LocalizedNotificationText resolveNotificationText(
         );
       }
 
+    case 'ClockInLocationMismatch':
+      {
+        final employeeName = str('employeeName');
+        final projectName = str('projectName');
+        if (employeeName == null || projectName == null) return fallback;
+
+        return LocalizedNotificationText(
+          title: l10n.notificationClockInLocationMismatchTitle,
+          body: l10n.notificationClockInLocationMismatchBody(employeeName, projectName),
+        );
+      }
+
     case 'DefectReported':
       {
         final reporterName = str('reporterName');

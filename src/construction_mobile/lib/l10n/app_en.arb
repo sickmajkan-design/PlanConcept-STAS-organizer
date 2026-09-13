@@ -558,6 +558,14 @@
       "projectName": { "type": "String" }
     }
   },
+  "notificationClockInLocationMismatchTitle": "Clock-in location mismatch",
+  "notificationClockInLocationMismatchBody": "{employeeName} clocked in at {projectName}, but their GPS location does not match the site.",
+  "@notificationClockInLocationMismatchBody": {
+    "placeholders": {
+      "employeeName": { "type": "String" },
+      "projectName": { "type": "String" }
+    }
+  },
   "notificationDefectReportedTitle": "New defect reported",
   "notificationDefectReportedBody": "{reporterName} reported: {title}",
   "@notificationDefectReportedBody": {

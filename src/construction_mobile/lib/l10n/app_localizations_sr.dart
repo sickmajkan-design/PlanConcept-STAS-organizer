@@ -986,6 +986,18 @@ class AppLocalizationsSr extends AppLocalizations {
   }
 
   @override
+  String get notificationClockInLocationMismatchTitle =>
+      'Neslaganje lokacije prijave';
+
+  @override
+  String notificationClockInLocationMismatchBody(
+    String employeeName,
+    String projectName,
+  ) {
+    return '$employeeName se prijavio(la) na gradilištu $projectName, ali GPS lokacija ne odgovara gradilištu.';
+  }
+
+  @override
   String get notificationDefectReportedTitle => 'Prijavljen novi kvar';
 
   @override

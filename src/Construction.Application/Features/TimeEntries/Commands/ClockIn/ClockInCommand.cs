@@ -123,15 +123,21 @@ public class ClockInCommandHandler : IRequestHandler<ClockInCommand, TimeEntryDt
         }
 
         string? projectName = null;
+        double? projectLatitude = null;
+        double? projectLongitude = null;
         var isAssignedToProject = true;
 
         if (request.ProjectId is { } projectId)
         {
-            projectName = await _context.Projects
+            var project = await _context.Projects
                 .Where(p => p.Id == projectId)
-                .Select(p => p.Name)
+                .Select(p => new { p.Name, p.Latitude, p.Longitude })
                 .FirstOrDefaultAsync(cancellationToken)
                 ?? throw new NotFoundException(nameof(Project), projectId);
+
+            projectName = project.Name;
+            projectLatitude = project.Latitude;
+            projectLongitude = project.Longitude;
 
             // Not refused: a foreman filling in wherever a site is short-handed
             // that day is a real, legitimate shape of this job, and refusing
@@ -199,6 +205,18 @@ public class ClockInCommandHandler : IRequestHandler<ClockInCommand, TimeEntryDt
                 await NotifyUnassignedClockInAsync(
                     notifyProjectId, projectName!, employeeId, cancellationToken);
             }
+
+            // Never refused for it — same reasoning as an unassigned clock-in
+            // above: a phone with a poor fix or a large site is a real,
+            // ordinary cause too, so this only ever flags the mismatch to the
+            // people who can tell it apart from one that matters.
+            if (request.Latitude is { } lat && request.Longitude is { } lon
+                && projectLatitude is { } siteLat && projectLongitude is { } siteLon
+                && GeoDistance.Meters(lat, lon, siteLat, siteLon) > GeoDistance.LocationToleranceMeters)
+            {
+                await NotifyLocationMismatchAsync(
+                    notifyProjectId, projectName!, employeeId, cancellationToken);
+            }
         }
 
         return await _context.TimeEntries
@@ -250,6 +268,54 @@ public class ClockInCommandHandler : IRequestHandler<ClockInCommand, TimeEntryDt
             NotificationType.EmployeeClockedIn,
             "Clocked in",
             $"{employeeName} clocked in at {projectName}.",
+            data,
+            cancellationToken: cancellationToken);
+    }
+
+    /// <summary>
+    /// Flags a clock-in whose GPS fix landed outside the site's geofence to
+    /// the site's foremen — the same "let the person on the ground tell a
+    /// mistake from an ordinary poor fix" reasoning as
+    /// <see cref="NotifyUnassignedClockInAsync"/>, but scoped to this site's
+    /// own foremen rather than escalated company-wide: a location mismatch is
+    /// a softer signal than a clock-in with no posting at all.
+    /// </summary>
+    private async Task NotifyLocationMismatchAsync(
+        Guid projectId, string projectName, Guid employeeId, CancellationToken cancellationToken)
+    {
+        var employeeName = await _context.Employees
+            .Where(e => e.Id == employeeId)
+            .Select(e => e.FirstName + " " + e.LastName)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (employeeName is null)
+        {
+            return;
+        }
+
+        var foremanUserIds = await _context.Users
+            .Where(u => u.IsActive &&
+                        u.Role == UserRole.Foreman &&
+                        u.EmployeeId != null &&
+                        u.EmployeeId != employeeId &&
+                        _context.EmployeeProjects.Any(ep =>
+                            ep.ProjectId == projectId && ep.EmployeeId == u.EmployeeId))
+            .Select(u => u.Id)
+            .ToListAsync(cancellationToken);
+
+        var data = new Dictionary<string, string>
+        {
+            ["projectId"] = projectId.ToString(),
+            ["employeeId"] = employeeId.ToString(),
+            ["employeeName"] = employeeName,
+            ["projectName"] = projectName
+        };
+
+        await _notificationService.NotifyUsersAsync(
+            foremanUserIds,
+            NotificationType.ClockInLocationMismatch,
+            "Clock-in location mismatch",
+            $"{employeeName} clocked in at {projectName}, but their GPS location does not match the site.",
             data,
             cancellationToken: cancellationToken);
     }

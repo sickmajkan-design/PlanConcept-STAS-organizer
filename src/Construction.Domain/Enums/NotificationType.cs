@@ -49,5 +49,8 @@ public enum NotificationType
     DocumentRetentionEnded = 19,
 
     /// <summary>A free-typed message sent straight to one employee, rather than fired by a system event.</summary>
-    DirectMessage = 20
+    DirectMessage = 20,
+
+    /// <summary>A clock-in's GPS fix landed outside the site's geofence — never blocks the clock-in itself.</summary>
+    ClockInLocationMismatch = 21
 }

@@ -1820,6 +1820,21 @@ abstract class AppLocalizations {
     String projectName,
   );
 
+  /// No description provided for @notificationClockInLocationMismatchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock-in location mismatch'**
+  String get notificationClockInLocationMismatchTitle;
+
+  /// No description provided for @notificationClockInLocationMismatchBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{employeeName} clocked in at {projectName}, but their GPS location does not match the site.'**
+  String notificationClockInLocationMismatchBody(
+    String employeeName,
+    String projectName,
+  );
+
   /// No description provided for @notificationDefectReportedTitle.
   ///
   /// In en, this message translates to:

@@ -209,6 +209,17 @@ public static class PushTextResolver
                     $"{employeeName} se prijavio(la) na gradilištu {projectName}, iako trenutno nije tamo raspoređen(a).");
             }
 
+            case NotificationType.ClockInLocationMismatch:
+            {
+                var employeeName = Str("employeeName");
+                var projectName = Str("projectName");
+                if (employeeName is null || projectName is null) break;
+
+                return (
+                    "Neslaganje lokacije prijave",
+                    $"{employeeName} se prijavio(la) na gradilištu {projectName}, ali GPS lokacija ne odgovara gradilištu.");
+            }
+
             case NotificationType.DefectReported:
             {
                 var reporterName = Str("reporterName");
