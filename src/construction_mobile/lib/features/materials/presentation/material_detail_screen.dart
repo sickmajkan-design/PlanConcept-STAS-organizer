@@ -48,9 +48,10 @@ class MaterialDetailScreen extends ConsumerWidget {
               PopupMenuButton<void>(
                 itemBuilder: (context) => [
                   PopupMenuItem(
-                    onTap: () => Future.microtask(
-                      () => _deleteMaterial(context, ref, loadedMaterial),
-                    ),
+                    onTap: () => Future.microtask(() {
+                      if (!context.mounted) return;
+                      _deleteMaterial(context, ref, loadedMaterial);
+                    }),
                     child: Text(
                       context.l10n.commonDelete,
                       style:

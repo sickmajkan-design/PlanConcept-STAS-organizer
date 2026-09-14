@@ -372,25 +372,26 @@ export function AppLayout({ children }: { children: ReactNode }) {
                         {t('nav.hoverHint')}
                       </Typography>
                       {activeFlyoutGroup.items.map((item) => (
-                        <MenuItem
-                          key={item.path}
-                          component={Link}
-                          to={item.path}
-                          selected={isItemSelected(item)}
-                          onClick={() => setRailFlyout(null)}
-                          sx={{ gap: 1 }}
-                        >
-                          <ListItemIcon sx={{ minWidth: 32 }}>{item.icon}</ListItemIcon>
-                          {item.label}
+                        // See the mobile drawer's identical fix: a button
+                        // nested inside this link polluted its accessible
+                        // name with the star's own label — siblings inside a
+                        // plain row instead.
+                        <Box key={item.path} sx={{ display: 'flex', alignItems: 'center' }}>
+                          <MenuItem
+                            component={Link}
+                            to={item.path}
+                            selected={isItemSelected(item)}
+                            onClick={() => setRailFlyout(null)}
+                            sx={{ gap: 1, flex: 1, minWidth: 0 }}
+                          >
+                            <ListItemIcon sx={{ minWidth: 32 }}>{item.icon}</ListItemIcon>
+                            {item.label}
+                          </MenuItem>
                           <IconButton
                             size="small"
                             aria-label={t('nav.togglePin')}
-                            sx={{ ml: 'auto' }}
-                            onClick={(event) => {
-                              event.preventDefault();
-                              event.stopPropagation();
-                              favorites.toggleFavorite(item.path);
-                            }}
+                            sx={{ mr: 1 }}
+                            onClick={() => favorites.toggleFavorite(item.path)}
                           >
                             {favorites.isFavorite(item.path) ? (
                               <StarOutlined fontSize="inherit" color="warning" />
@@ -398,7 +399,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                               <StarBorderOutlined fontSize="inherit" />
                             )}
                           </IconButton>
-                        </MenuItem>
+                        </Box>
                       ))}
                     </>
                   )}
@@ -511,16 +512,31 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <Collapse in={expandedGroups.has(entry.key)} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
                   {entry.items.map((item) => (
-                    <ListItemButton
+                    // A button nested inside the link it sits on used to
+                    // pollute the link's accessible name with the star's own
+                    // label ("Employees Pin to favorites" instead of
+                    // "Employees") — invalid HTML (interactive-in-interactive)
+                    // as well as a real accessibility bug, not just a test
+                    // inconvenience. Siblings inside a plain row fix both.
+                    <Box
                       key={item.path}
-                      component={Link}
-                      to={item.path}
-                      selected={isItemSelected(item)}
-                      onClick={() => setMobileOpen(false)}
-                      sx={{ borderRadius: 1, mb: 0.5, pl: 4, '&:hover .nav-pin': { opacity: 1 } }}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        mb: 0.5,
+                        '&:hover .nav-pin': { opacity: 1 },
+                      }}
                     >
-                      <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
-                      <ListItemText primary={item.label} />
+                      <ListItemButton
+                        component={Link}
+                        to={item.path}
+                        selected={isItemSelected(item)}
+                        onClick={() => setMobileOpen(false)}
+                        sx={{ borderRadius: 1, pl: 4, flex: 1, minWidth: 0 }}
+                      >
+                        <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
+                        <ListItemText primary={item.label} />
+                      </ListItemButton>
                       <IconButton
                         size="small"
                         className="nav-pin"
@@ -534,12 +550,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
                         sx={{
                           opacity: favorites.isFavorite(item.path) ? 1 : 0.35,
                           transition: 'opacity 0.15s',
+                          mr: 1,
                         }}
-                        onClick={(event) => {
-                          event.preventDefault();
-                          event.stopPropagation();
-                          favorites.toggleFavorite(item.path);
-                        }}
+                        onClick={() => favorites.toggleFavorite(item.path)}
                       >
                         {favorites.isFavorite(item.path) ? (
                           <StarOutlined fontSize="inherit" color="warning" />
@@ -547,7 +560,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                           <StarBorderOutlined fontSize="inherit" />
                         )}
                       </IconButton>
-                    </ListItemButton>
+                    </Box>
                   ))}
                 </List>
               </Collapse>

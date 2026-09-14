@@ -1,6 +1,6 @@
 import { expect, test as base } from '@playwright/test';
 
-import { navLink, OPERATOR, signIn, setLanguage } from './fixtures';
+import { OPERATOR, signIn, setLanguage } from './fixtures';
 
 /**
  * Signing in, staying signed in, and the cookie that makes both work.
@@ -54,8 +54,14 @@ base.describe('the session', () => {
     await setLanguage(page, 'en');
     await signIn(page);
 
+    // The page heading, not the nav — desktop's sidebar is an icon rail with
+    // no persistent text link at all; a flyout only appears on hover/click.
+    // The heading is what actually says "still on the Employees page" on
+    // every breakpoint.
+    const heading = page.getByRole('heading', { name: 'Employees', exact: true });
+
     await page.goto('/employees');
-    await expect(navLink(page, 'Employees')).toBeVisible();
+    await expect(heading).toBeVisible();
 
     await page.reload();
 
@@ -63,7 +69,7 @@ base.describe('the session', () => {
     // and treating it as signed-out sends a returning operator to the login
     // screen on every reload.
     await expect(page).toHaveURL(/\/employees$/);
-    await expect(navLink(page, 'Employees')).toBeVisible();
+    await expect(heading).toBeVisible();
   });
 
   base('signing out ends the session for good', async ({ page }) => {

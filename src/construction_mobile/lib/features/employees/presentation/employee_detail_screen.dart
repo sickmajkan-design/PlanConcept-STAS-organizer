@@ -61,9 +61,10 @@ class EmployeeDetailScreen extends ConsumerWidget {
               PopupMenuButton<void>(
                 itemBuilder: (context) => [
                   PopupMenuItem(
-                    onTap: () => Future.microtask(
-                      () => _deleteEmployee(context, ref, loadedEmployee),
-                    ),
+                    onTap: () => Future.microtask(() {
+                      if (!context.mounted) return;
+                      _deleteEmployee(context, ref, loadedEmployee);
+                    }),
                     child: Text(
                       context.l10n.commonDelete,
                       style:

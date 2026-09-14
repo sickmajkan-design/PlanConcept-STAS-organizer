@@ -54,9 +54,10 @@ class ProjectDetailScreen extends ConsumerWidget {
               PopupMenuButton<void>(
                 itemBuilder: (context) => [
                   PopupMenuItem(
-                    onTap: () => Future.microtask(
-                      () => _deleteProject(context, ref, loadedProject),
-                    ),
+                    onTap: () => Future.microtask(() {
+                      if (!context.mounted) return;
+                      _deleteProject(context, ref, loadedProject);
+                    }),
                     child: Text(
                       context.l10n.commonDelete,
                       style:

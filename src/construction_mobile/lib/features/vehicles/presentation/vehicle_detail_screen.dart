@@ -49,9 +49,10 @@ class VehicleDetailScreen extends ConsumerWidget {
             PopupMenuButton<void>(
               itemBuilder: (context) => [
                 PopupMenuItem(
-                  onTap: () => Future.microtask(
-                    () => _delete(context, ref, loadedVehicle),
-                  ),
+                  onTap: () => Future.microtask(() {
+                    if (!context.mounted) return;
+                    _delete(context, ref, loadedVehicle);
+                  }),
                   child: Text(
                     context.l10n.commonDelete,
                     style: TextStyle(color: Theme.of(context).colorScheme.error),

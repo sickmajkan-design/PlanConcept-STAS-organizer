@@ -46,9 +46,10 @@ class ToolDetailScreen extends ConsumerWidget {
             PopupMenuButton<void>(
               itemBuilder: (context) => [
                 PopupMenuItem(
-                  onTap: () => Future.microtask(
-                    () => _deleteTool(context, ref, loadedTool),
-                  ),
+                  onTap: () => Future.microtask(() {
+                    if (!context.mounted) return;
+                    _deleteTool(context, ref, loadedTool);
+                  }),
                   child: Text(
                     context.l10n.commonDelete,
                     style: TextStyle(color: Theme.of(context).colorScheme.error),

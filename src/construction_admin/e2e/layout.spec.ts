@@ -23,6 +23,11 @@ base.describe('on a tablet', () => {
     // operator on whatever page they landed on, and no unit test can see it.
     await page.locator('.MuiAppBar-root button').first().click();
 
+    // The drawer groups its links under collapsible headers — Employees
+    // lives inside "Directory" — so opening the drawer surfaces the group,
+    // not the link itself.
+    await page.getByRole('button', { name: 'Directory', exact: true }).click();
+
     await expect(navLink(page, 'Employees')).toBeVisible();
     await navLink(page, 'Employees').click();
 

@@ -281,6 +281,8 @@ class _CompanySettingsFormState extends ConsumerState<_CompanySettingsForm> {
 
     final length = await File(picked.path).length();
 
+    if (!mounted) return;
+
     if (length > 20 * 1024 * 1024) {
       setState(() => _logoError = null);
       ScaffoldMessenger.of(context).showSnackBar(
