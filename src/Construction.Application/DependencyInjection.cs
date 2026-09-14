@@ -4,6 +4,7 @@ using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Authentication.Services;
 using Construction.Application.Features.Notifications.Services;
 using Construction.Application.Features.Outbox;
+using Construction.Application.Features.PublicHolidays.Services;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -34,6 +35,7 @@ public static class DependencyInjection
 
         services.AddScoped<IAuthTokenService, AuthTokenService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IHolidayAutoSyncService, HolidayAutoSyncService>();
 
         // Scoped, because enqueuing joins the caller's unit of work: the
         // message commits with the operation that caused it or not at all.

@@ -42,15 +42,23 @@ public class CreateTimeEntryCommandHandler
             throw new NotFoundException(nameof(Employee), request.EmployeeId);
         }
 
+        string? projectCountryCode = null;
+
         if (request.ProjectId is { } projectId)
         {
-            var projectExists = await _context.Projects
-                .AnyAsync(p => p.Id == projectId, cancellationToken);
+            // Guid? default makes "no row" and "row with a null CountryCode"
+            // indistinguishable from a bare Select, so ask for both at once.
+            var project = await _context.Projects
+                .Where(p => p.Id == projectId)
+                .Select(p => new { p.CountryCode })
+                .FirstOrDefaultAsync(cancellationToken);
 
-            if (!projectExists)
+            if (project is null)
             {
                 throw new NotFoundException(nameof(Project), projectId);
             }
+
+            projectCountryCode = project.CountryCode;
         }
 
         var startedAt = TimeEntryRules.AsUtc(request.StartedAt);
@@ -61,6 +69,9 @@ public class CreateTimeEntryCommandHandler
         await TimeEntryRules.EnsureNoOverlapAsync(
             _context, request.EmployeeId, startedAt, endedAt, null, cancellationToken);
 
+        var workType = await TimeEntryRules.ResolveWorkTypeAsync(
+            _context, request.WorkType, projectCountryCode, startedAt, cancellationToken);
+
         var entry = new TimeEntry
         {
             EmployeeId = request.EmployeeId,
@@ -68,7 +79,7 @@ public class CreateTimeEntryCommandHandler
             StartedAt = startedAt,
             EndedAt = endedAt,
             BreakMinutes = request.BreakMinutes,
-            WorkType = request.WorkType,
+            WorkType = workType,
             // A shift entered by hand with both ends known is already
             // complete, so it joins the review queue rather than pretending
             // to still be running.

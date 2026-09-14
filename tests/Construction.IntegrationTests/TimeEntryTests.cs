@@ -77,6 +77,95 @@ public class TimeEntryTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task Clocking_in_on_the_sites_own_public_holiday_is_recorded_as_one()
+    {
+        var (employee, user) = await InScope(SeedWorkerAsync);
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        var project = await InScope(async scope =>
+        {
+            var p = await TestData.SeedProjectAsync(scope);
+            p.CountryCode = "BA";
+            scope.Db.PublicHolidays.Add(new PublicHoliday
+            {
+                Date = today,
+                Name = "Test Holiday",
+                CountryCode = "BA",
+            });
+            await scope.Db.SaveChangesAsync();
+            return p;
+        });
+
+        var entry = await InScope(scope =>
+        {
+            ActAs(scope, user, employee.Id);
+            return scope.Send(new ClockInCommand { ProjectId = project.Id });
+        });
+
+        Assert.Equal(WorkType.PublicHoliday, entry.WorkType);
+    }
+
+    [Fact]
+    public async Task A_deliberately_chosen_work_type_is_never_overridden_by_the_holiday_calendar()
+    {
+        var (employee, user) = await InScope(SeedWorkerAsync);
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        var project = await InScope(async scope =>
+        {
+            var p = await TestData.SeedProjectAsync(scope);
+            p.CountryCode = "HR";
+            scope.Db.PublicHolidays.Add(new PublicHoliday
+            {
+                Date = today,
+                Name = "Test Holiday",
+                CountryCode = "HR",
+            });
+            await scope.Db.SaveChangesAsync();
+            return p;
+        });
+
+        var entry = await InScope(scope =>
+        {
+            ActAs(scope, user, employee.Id);
+            return scope.Send(new ClockInCommand { ProjectId = project.Id, WorkType = WorkType.Overtime });
+        });
+
+        Assert.Equal(WorkType.Overtime, entry.WorkType);
+    }
+
+    [Fact]
+    public async Task A_public_holiday_in_a_different_country_does_not_apply()
+    {
+        var (employee, user) = await InScope(SeedWorkerAsync);
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        var project = await InScope(async scope =>
+        {
+            var p = await TestData.SeedProjectAsync(scope);
+            p.CountryCode = "BA";
+            // A German holiday on the same date must not bleed into a
+            // Bosnian site's shift.
+            scope.Db.PublicHolidays.Add(new PublicHoliday
+            {
+                Date = today,
+                Name = "German Test Holiday",
+                CountryCode = "DE",
+            });
+            await scope.Db.SaveChangesAsync();
+            return p;
+        });
+
+        var entry = await InScope(scope =>
+        {
+            ActAs(scope, user, employee.Id);
+            return scope.Send(new ClockInCommand { ProjectId = project.Id });
+        });
+
+        Assert.Equal(WorkType.Regular, entry.WorkType);
+    }
+
+    [Fact]
     public async Task Clocking_out_records_the_worked_time_less_the_break()
     {
         var (employee, user) = await InScope(SeedWorkerAsync);

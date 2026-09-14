@@ -1,6 +1,7 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Projects.Models;
+using Construction.Application.Features.PublicHolidays.Services;
 using Construction.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -14,10 +15,12 @@ public class CreateProjectCommandValidator : ProjectCommandBaseValidator<CreateP
 public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand, ProjectDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IHolidayAutoSyncService _holidaySync;
 
-    public CreateProjectCommandHandler(IApplicationDbContext context)
+    public CreateProjectCommandHandler(IApplicationDbContext context, IHolidayAutoSyncService holidaySync)
     {
         _context = context;
+        _holidaySync = holidaySync;
     }
 
     public async Task<ProjectDto> Handle(
@@ -76,6 +79,11 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
         _context.Projects.Add(project);
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        // Best-effort: a new site in a country the calendar has nothing for
+        // yet gets that country's public holidays without anyone visiting
+        // the holiday page first — see the remarks on HolidayAutoSyncService.
+        await _holidaySync.SyncIfMissingAsync(countryCode, cancellationToken);
 
         return await _context.Projects
             .AsNoTracking()

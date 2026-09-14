@@ -125,19 +125,21 @@ public class ClockInCommandHandler : IRequestHandler<ClockInCommand, TimeEntryDt
         string? projectName = null;
         double? projectLatitude = null;
         double? projectLongitude = null;
+        string? projectCountryCode = null;
         var isAssignedToProject = true;
 
         if (request.ProjectId is { } projectId)
         {
             var project = await _context.Projects
                 .Where(p => p.Id == projectId)
-                .Select(p => new { p.Name, p.Latitude, p.Longitude })
+                .Select(p => new { p.Name, p.Latitude, p.Longitude, p.CountryCode })
                 .FirstOrDefaultAsync(cancellationToken)
                 ?? throw new NotFoundException(nameof(Project), projectId);
 
             projectName = project.Name;
             projectLatitude = project.Latitude;
             projectLongitude = project.Longitude;
+            projectCountryCode = project.CountryCode;
 
             // Not refused: a foreman filling in wherever a site is short-handed
             // that day is a real, legitimate shape of this job, and refusing
@@ -165,12 +167,15 @@ public class ClockInCommandHandler : IRequestHandler<ClockInCommand, TimeEntryDt
         await TimeEntryRules.EnsureNoOverlapAsync(
             _context, employeeId, startedAt, null, null, cancellationToken);
 
+        var workType = await TimeEntryRules.ResolveWorkTypeAsync(
+            _context, request.WorkType, projectCountryCode, startedAt, cancellationToken);
+
         var entry = new TimeEntry
         {
             EmployeeId = employeeId,
             ProjectId = request.ProjectId,
             StartedAt = startedAt,
-            WorkType = request.WorkType,
+            WorkType = workType,
             Status = TimeEntryStatus.InProgress,
             Note = request.Note?.Trim(),
             StartLatitude = request.Latitude,

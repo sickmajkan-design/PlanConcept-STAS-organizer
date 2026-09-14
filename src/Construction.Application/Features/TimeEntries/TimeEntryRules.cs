@@ -166,4 +166,43 @@ public static class TimeEntryRules
                 "This entry is approved. Reject it first to make changes.");
         }
     }
+
+    /// <summary>
+    /// Upgrades an unremarkable <see cref="WorkType.Regular"/> shift to
+    /// <see cref="WorkType.PublicHoliday"/> when the site's own calendar
+    /// already says the shift's day is one, in the site's own country.
+    /// </summary>
+    /// <remarks>
+    /// Pay already gets this right regardless: <c>GetProjectCostsQuery</c>
+    /// checks the same calendar independently of whatever is stored here. This
+    /// is about the record matching what actually happened, not about the
+    /// total — a shift worked on a public holiday should read as one on the
+    /// timesheet, not as an ordinary day that happened to pay more.
+    ///
+    /// Never touches a type someone chose on purpose: overtime, weekend and
+    /// travel all mean something specific, and second-guessing a deliberate
+    /// choice would be a worse mistake than leaving a default alone.
+    /// </remarks>
+    public static async Task<WorkType> ResolveWorkTypeAsync(
+        IApplicationDbContext context,
+        WorkType requested,
+        string? projectCountryCode,
+        DateTime startedAt,
+        CancellationToken cancellationToken)
+    {
+        if (requested != WorkType.Regular || projectCountryCode is null)
+        {
+            return requested;
+        }
+
+        var shiftDate = DateOnly.FromDateTime(startedAt);
+
+        var isHoliday = await context.PublicHolidays
+            .AsNoTracking()
+            .AnyAsync(
+                h => h.CountryCode == projectCountryCode && h.Date == shiftDate,
+                cancellationToken);
+
+        return isHoliday ? WorkType.PublicHoliday : requested;
+    }
 }

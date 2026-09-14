@@ -1,6 +1,7 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Projects.Models;
+using Construction.Application.Features.PublicHolidays.Services;
 using Construction.Domain.Entities;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -18,10 +19,12 @@ public class UpdateProjectCommandValidator : ProjectCommandBaseValidator<UpdateP
 public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand, ProjectDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IHolidayAutoSyncService _holidaySync;
 
-    public UpdateProjectCommandHandler(IApplicationDbContext context)
+    public UpdateProjectCommandHandler(IApplicationDbContext context, IHolidayAutoSyncService holidaySync)
     {
         _context = context;
+        _holidaySync = holidaySync;
     }
 
     public async Task<ProjectDto> Handle(
@@ -81,6 +84,8 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
             }
         }
 
+        var countryChanged = countryCode != project.CountryCode;
+
         project.Name = request.Name.Trim();
         project.Description = request.Description?.Trim();
         project.CustomerId = customerId;
@@ -96,6 +101,11 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
         project.ContractValue = request.ContractValue;
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        if (countryChanged)
+        {
+            await _holidaySync.SyncIfMissingAsync(countryCode, cancellationToken);
+        }
 
         return await _context.Projects
             .AsNoTracking()
