@@ -189,6 +189,29 @@ dotnet ef migrations add <Name> \
   --output-dir Persistence/Migrations
 ```
 
+## Demo data
+
+```bash
+export API_BASE_URL=https://your-test-server
+./scripts/seed-demo.py --dry-run                  # print it, connect to nothing
+./scripts/seed-demo.py --yes-seed-demo-data       # write it
+./scripts/seed-demo.py --yes-seed-demo-data --undo
+```
+
+Fills an installation with a working day dated from the moment it runs: two
+sites, eight people, five working days of hours behind them, three shifts still
+running, a task due today and one overdue, leave that covers today.
+
+It goes through the public API rather than the database, so everything it
+writes passes the same validation and overlap rules as a person typing it in —
+a demo database built with `INSERT`s holds states the application cannot
+produce, and the afternoon goes on chasing a bug that is not there.
+
+It **refuses to run against an installation holding records it did not create**,
+which is the check that matters more than the hostname. Credentials come from
+the environment or `.env`, never an argument — an argument is kept in shell
+history and shown by `ps`.
+
 ## Backups
 
 ```bash
