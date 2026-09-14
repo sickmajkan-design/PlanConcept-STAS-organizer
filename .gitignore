@@ -68,3 +68,7 @@ deploy/.env
 # route (an APK during test rollout, say) — a build artifact, not source.
 /deploy/downloads/*
 !/deploy/downloads/.gitkeep
+
+# Python bytecode, from running the scripts in scripts/
+__pycache__/
+*.pyc
