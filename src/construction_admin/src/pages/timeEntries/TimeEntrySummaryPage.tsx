@@ -5,6 +5,7 @@ import {
   Card,
   CardContent,
   Chip,
+  CircularProgress,
   Collapse,
   FormControlLabel,
   IconButton,
@@ -24,12 +25,13 @@ import { useMemo, useState } from 'react';
 
 import { exportsApi } from '../../api/exports';
 import type { TimeEntrySummaryRow } from '../../api/types';
+import { StatusChip } from '../../components/StatusChip';
 import { ErrorState } from '../../components/ErrorState';
 import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
-import { useTimeEntrySummaryQuery } from '../../features/timeEntries/useTimeEntries';
+import { useTimeEntriesQuery, useTimeEntrySummaryQuery } from '../../features/timeEntries/useTimeEntries';
 import { useT } from '../../i18n/useI18n';
-import { splitMinutes } from '../../utils/formatting';
+import { formatDate, formatTimeOfDay, splitMinutes } from '../../utils/formatting';
 
 type SortField = 'employeeName' | 'entryCount' | 'totalMinutes' | 'approvedMinutes' | 'pendingCount';
 type SortDirection = 'asc' | 'desc';
@@ -308,6 +310,7 @@ export function TimeEntrySummaryPage() {
                     hours={hours}
                     expanded={expandedIds.has(group.employeeId)}
                     onToggle={() => toggleExpanded(group.employeeId)}
+                    query={query}
                   />
                 ))}
 
@@ -330,20 +333,23 @@ export function TimeEntrySummaryPage() {
 }
 
 /**
- * One employee's totals, expandable to the per-project rows behind them.
- * A crew member on a single site expands to nothing new, so the chevron is
- * hidden for single-project groups rather than opening an empty breakdown.
+ * One employee's totals, expandable to the individual shifts behind them —
+ * not just the per-project subtotal that used to be all there was to see
+ * here. A total with no way to check what it's made of is exactly the gap
+ * the Costs page had before this same treatment; this screen had it too.
  */
 function EmployeeGroupRow({
   group,
   hours,
   expanded,
   onToggle,
+  query,
 }: {
   group: EmployeeGroup;
   hours: (minutes: number) => string;
   expanded: boolean;
   onToggle: () => void;
+  query: { from: string; to: string; approvedOnly?: boolean };
 }) {
   const t = useT();
   const hasBreakdown = group.projects.length > 1;
@@ -352,15 +358,13 @@ function EmployeeGroupRow({
     <>
       <TableRow hover selected={expanded}>
         <TableCell>
-          {hasBreakdown && (
-            <IconButton size="small" onClick={onToggle}>
-              {expanded ? (
-                <KeyboardArrowDownOutlined fontSize="small" />
-              ) : (
-                <KeyboardArrowRightOutlined fontSize="small" />
-              )}
-            </IconButton>
-          )}
+          <IconButton size="small" onClick={onToggle}>
+            {expanded ? (
+              <KeyboardArrowDownOutlined fontSize="small" />
+            ) : (
+              <KeyboardArrowRightOutlined fontSize="small" />
+            )}
+          </IconButton>
         </TableCell>
         <TableCell>
           <Typography variant="body2">{group.employeeName}</Typography>
@@ -381,35 +385,93 @@ function EmployeeGroupRow({
           )}
         </TableCell>
       </TableRow>
-      {hasBreakdown && (
-        <TableRow>
-          <TableCell sx={{ py: 0, borderBottom: expanded ? undefined : 'none' }} colSpan={6}>
-            <Collapse in={expanded} timeout="auto" unmountOnExit>
-              <Table size="small" sx={{ bgcolor: 'action.hover' }}>
-                <TableBody>
-                  {group.projects.map((row) => (
-                    <TableRow key={row.projectId ?? 'none'}>
-                      <TableCell width={40} />
-                      <TableCell>{row.projectName ?? t('timeEntries.noProject')}</TableCell>
-                      <TableCell align="right">{row.entryCount}</TableCell>
-                      <TableCell align="right">{hours(row.totalMinutes)}</TableCell>
-                      <TableCell align="right">{hours(row.approvedMinutes)}</TableCell>
-                      <TableCell align="right">
-                        {row.pendingCount > 0 ? (
-                          <Chip size="small" color="warning" variant="outlined" label={row.pendingCount} />
-                        ) : (
-                          '—'
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Collapse>
-          </TableCell>
-        </TableRow>
-      )}
+      <TableRow>
+        <TableCell sx={{ py: 0, borderBottom: expanded ? undefined : 'none' }} colSpan={6}>
+          <Collapse in={expanded} timeout="auto" unmountOnExit>
+            <EmployeeShiftDetail employeeId={group.employeeId} query={query} hours={hours} />
+          </Collapse>
+        </TableCell>
+      </TableRow>
     </>
+  );
+}
+
+/**
+ * The actual shifts behind one employee's totals in this period — fetched
+ * only once expanded, using the same window and approved-only filter the
+ * summary itself was built from, so the two can never disagree.
+ */
+function EmployeeShiftDetail({
+  employeeId,
+  query,
+  hours,
+}: {
+  employeeId: string;
+  query: { from: string; to: string; approvedOnly?: boolean };
+  hours: (minutes: number) => string;
+}) {
+  const t = useT();
+
+  const { data, isLoading, isError } = useTimeEntriesQuery({
+    employeeId,
+    from: query.from,
+    to: query.to,
+    status: query.approvedOnly ? 'Approved' : undefined,
+    pageNumber: 1,
+    pageSize: 100,
+    sortBy: 'startedAt',
+    sortDescending: true,
+  });
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+        <CircularProgress size={20} />
+      </Box>
+    );
+  }
+
+  if (isError || !data || data.items.length === 0) {
+    return (
+      <Typography variant="body2" color="text.secondary" sx={{ py: 1.5, px: 1 }}>
+        {isError ? t('common.somethingWentWrong') : t('timeEntries.summaryEmpty')}
+      </Typography>
+    );
+  }
+
+  return (
+    <Table size="small" sx={{ bgcolor: 'action.hover' }}>
+      <TableHead>
+        <TableRow>
+          <TableCell width={40} />
+          <TableCell>{t('timeEntries.project')}</TableCell>
+          <TableCell>{t('timeEntries.date')}</TableCell>
+          <TableCell>{t('timeEntries.time')}</TableCell>
+          <TableCell align="right">{t('timeEntries.summaryTotal')}</TableCell>
+          <TableCell>{t('timeEntries.status')}</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {data.items.map((entry) => (
+          <TableRow key={entry.id}>
+            <TableCell width={40} />
+            <TableCell>{entry.projectName ?? t('timeEntries.noProject')}</TableCell>
+            <TableCell>{formatDate(entry.startedAt)}</TableCell>
+            <TableCell>
+              {entry.endedAt
+                ? `${formatTimeOfDay(entry.startedAt)}–${formatTimeOfDay(entry.endedAt)}`
+                : `${formatTimeOfDay(entry.startedAt)}–…`}
+            </TableCell>
+            <TableCell align="right">
+              {entry.workedMinutes === null ? t('timeEntries.running') : hours(entry.workedMinutes)}
+            </TableCell>
+            <TableCell>
+              <StatusChip status={entry.status} kind="timeEntryStatus" size="small" />
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 }
 

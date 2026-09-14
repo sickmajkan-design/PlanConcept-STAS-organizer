@@ -700,6 +700,7 @@ export const en = {
   'timeEntries.employee': 'Employee',
   'timeEntries.project': 'Project',
   'timeEntries.noProject': 'No site',
+  'timeEntries.date': 'Date',
   'timeEntries.startedAt': 'Start',
   'timeEntries.endedAt': 'End',
   'timeEntries.time': 'Time (24h)',

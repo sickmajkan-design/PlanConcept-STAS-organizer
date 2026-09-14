@@ -724,6 +724,7 @@ export const sr: Record<MessageKey, Message> = {
   'timeEntries.employee': 'Zaposleni',
   'timeEntries.project': 'Projekat',
   'timeEntries.noProject': 'Bez gradilišta',
+  'timeEntries.date': 'Datum',
   'timeEntries.startedAt': 'Početak',
   'timeEntries.endedAt': 'Kraj',
   'timeEntries.time': 'Vrijeme (24h)',
