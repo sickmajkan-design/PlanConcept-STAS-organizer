@@ -172,11 +172,17 @@ describe('EmployeesListPage', () => {
       within(dialog).getByRole('button', { name: /^(obriši|delete|potvrdi|confirm)/i }),
     );
 
-    await waitFor(() => {
-      const deletes = network.calls.filter((call) => call.method === 'DELETE');
-      expect(deletes).toHaveLength(1);
-      expect(deletes[0].url).toContain('11111111-1111-1111-1111-111111111111');
-    });
+    // The confirmed delete is not sent immediately — it sits in the undo
+    // queue for UNDO_WINDOW_MS (6s, see undoQueue.ts) so the operator has a
+    // window to cancel it via the snackbar before it actually runs.
+    await waitFor(
+      () => {
+        const deletes = network.calls.filter((call) => call.method === 'DELETE');
+        expect(deletes).toHaveLength(1);
+        expect(deletes[0].url).toContain('11111111-1111-1111-1111-111111111111');
+      },
+      { timeout: 7000 },
+    );
   }, SCREEN_TIMEOUT);
 
   it('shows the failure rather than an empty grid when the list cannot load', async () => {
