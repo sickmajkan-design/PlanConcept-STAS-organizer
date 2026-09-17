@@ -750,6 +750,7 @@ export const en = {
   'timeEntries.noPendingForDay': 'Nothing waiting for review on this day.',
   'timeEntries.noPendingAnywhere': 'Nothing is waiting for review anywhere.',
   'timeEntries.jumpedToPendingDate': 'Jumped to {date} — the day with entries waiting for review.',
+  'timeEntries.reviewQueue': 'Review queue',
   'timeEntries.summary': 'Hours per employee',
   'timeEntries.summaryEntries': 'Entries',
   'timeEntries.summaryTotal': 'Recorded',

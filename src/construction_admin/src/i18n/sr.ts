@@ -774,6 +774,7 @@ export const sr: Record<MessageKey, Message> = {
   'timeEntries.noPendingForDay': 'Nema unosa koji čekaju pregled za ovaj dan.',
   'timeEntries.noPendingAnywhere': 'Nema unosa koji čekaju pregled.',
   'timeEntries.jumpedToPendingDate': 'Prebačeno na {date} — dan sa unosima koji čekaju pregled.',
+  'timeEntries.reviewQueue': 'Pregled na čekanju',
   'timeEntries.summary': 'Sati po zaposlenom',
   'timeEntries.summaryEntries': 'Unosa',
   'timeEntries.summaryTotal': 'Evidentirano',

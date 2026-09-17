@@ -2,17 +2,10 @@ import {
   AddOutlined,
   ChevronLeftOutlined,
   ChevronRightOutlined,
-  DeleteOutlined,
-  EditOutlined,
-  HelpOutlineOutlined,
   InfoOutlined,
-  LocationOffOutlined,
-  ReportOutlined,
-  ScheduleOutlined,
-  TaskAltOutlined,
+  PlaylistAddCheckOutlined,
 } from '@mui/icons-material';
 import {
-  Avatar,
   Box,
   Button,
   Chip,
@@ -50,7 +43,6 @@ import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
 import { SearchField } from '../../components/SearchField';
-import { StatusChip } from '../../components/StatusChip';
 import { StatusLegend } from '../../components/StatusLegend';
 import {
   useDeleteTimeEntry,
@@ -60,17 +52,15 @@ import {
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useHighlightTarget } from '../../hooks/useHighlightTarget';
 import { useEnumLabel } from '../../i18n/enumLabels';
-import type { MessageKey } from '../../i18n/en';
 import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import {
   dateOnlyOffset,
   formatDate,
-  formatTimeOfDay,
-  splitMinutes,
   toLocalDateOnly,
 } from '../../utils/formatting';
-import { ReviewButtons } from './ReviewButtons';
+import { PendingReviewDialog } from './PendingReviewDialog';
+import { CheckInIcon, CHECK_IN_PRESENTATION, TimeEntryCard, type CheckInState } from './TimeEntryCard';
 
 /** One page-worth of an entire day's entries — a crew this size never needs real pagination. */
 const DAY_PAGE: { pageNumber: number; pageSize: number } = { pageNumber: 1, pageSize: 100 };
@@ -100,14 +90,6 @@ function shiftDate(date: string, days: number): string {
   return `${next.getFullYear()}-${pad(next.getMonth() + 1)}-${pad(next.getDate())}`;
 }
 
-/** Two-letter initials from a full "First Last" name, for the card avatar. */
-function employeeInitials(fullName: string): string {
-  const parts = fullName.trim().split(/\s+/);
-  const first = parts[0]?.[0] ?? '';
-  const last = parts.length > 1 ? parts[parts.length - 1]?.[0] ?? '' : '';
-  return (first + last).toUpperCase() || '?';
-}
-
 /** One project's entries, keyed for grouping — `projectId` is null for the "no project" column. */
 interface ProjectGroup {
   key: string;
@@ -134,6 +116,13 @@ export function TimeEntriesListPage() {
 
   const [date, setDate] = useState(() => searchParams.get('date') || dateOnlyOffset(0));
   const [pendingOnly, setPendingOnly] = useState(() => searchParams.get('pendingOnly') === 'true');
+  // The nav badge counts entries across every day, so its click opens this
+  // instead of the single-day board — a detailed, cross-day view of
+  // everything waiting on a decision, grouped and tagged by what's actually
+  // wrong with each one, rather than a day that may well come up empty.
+  const [reviewQueueOpen, setReviewQueueOpen] = useState(
+    () => searchParams.get('reviewQueue') === 'true',
+  );
   const [openOnly, setOpenOnly] = useState(false);
   const [search, setSearch] = useState('');
   const [cardSort, setCardSort] = useState<CardSort>('startedAt');
@@ -348,6 +337,16 @@ export function TimeEntriesListPage() {
         <Button size="small" onClick={() => navigate(paths.timeEntrySummary)}>
           {t('timeEntries.summary')}
         </Button>
+        {canReview && (
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<PlaylistAddCheckOutlined fontSize="small" />}
+            onClick={() => setReviewQueueOpen(true)}
+          >
+            {t('timeEntries.reviewQueue')}
+          </Button>
+        )}
         <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
           <StatusLegend kind="timeEntryStatus" values={timeEntryStatuses} />
           <CheckInLegend />
@@ -395,6 +394,20 @@ export function TimeEntriesListPage() {
           ))}
         </Stack>
       )}
+
+      <PendingReviewDialog
+        open={reviewQueueOpen}
+        onClose={() => setReviewQueueOpen(false)}
+        enumLabel={enumLabel}
+        currentEmployeeId={user?.employeeId ?? null}
+        canReview={canReview}
+        canEdit={canEdit}
+        canDelete={canDelete}
+        onEdit={(entry) => navigate(paths.timeEntryEdit(entry.id))}
+        onDelete={(entry) => remove.request(entry)}
+        onApprove={(entry) => setApproving(entry)}
+        onReject={(entry) => setReviewing(entry)}
+      />
 
       <ApproveDialog entry={approving} onClose={() => setApproving(null)} />
       <RejectDialog entry={reviewing} onClose={() => setReviewing(null)} />
@@ -512,203 +525,6 @@ function ProjectColumn({
         )}
       </Stack>
     </Paper>
-  );
-}
-
-/** One worker's entry for the day, styled like a small roster card. */
-function TimeEntryCard({
-  entry,
-  workTypeLabel,
-  canReview,
-  isOwn,
-  canEdit,
-  canDelete,
-  onEdit,
-  onDelete,
-  onApprove,
-  onReject,
-  highlighted = false,
-}: {
-  entry: TimeEntry;
-  workTypeLabel: string;
-  canReview: boolean;
-  isOwn: boolean;
-  canEdit: boolean;
-  canDelete: boolean;
-  onEdit: () => void;
-  onDelete: () => void;
-  onApprove: () => void;
-  onReject: () => void;
-  highlighted?: boolean;
-}) {
-  const t = useT();
-  const locked = entry.status === 'Approved';
-
-  const range = entry.endedAt
-    ? `${formatTimeOfDay(entry.startedAt)}–${formatTimeOfDay(entry.endedAt)}`
-    : `${formatTimeOfDay(entry.startedAt)}–…`;
-  const worked =
-    entry.workedMinutes === null
-      ? t('timeEntries.running')
-      : t('timeEntries.hoursShort', splitMinutes(entry.workedMinutes));
-
-  return (
-    <Paper
-      ref={(element: HTMLDivElement | null) => {
-        if (highlighted) element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }}
-      variant="outlined"
-      sx={{
-        p: 1.25,
-        transition: 'background-color 1.5s ease',
-        bgcolor: highlighted ? 'action.hover' : undefined,
-      }}
-    >
-      <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
-        <Avatar sx={{ width: 30, height: 30, fontSize: '0.8rem' }}>
-          {employeeInitials(entry.employeeName)}
-        </Avatar>
-        <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
-            {entry.employeeName}
-          </Typography>
-          <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.25 }}>
-            <Chip size="small" variant="outlined" label={workTypeLabel} />
-            <StatusChip status={entry.status} kind="timeEntryStatus" size="small" />
-            {entry.autoClosed && (
-              <Tooltip title={t('timeEntries.autoClosedHint')}>
-                <Chip size="small" color="warning" variant="outlined" label={t('timeEntries.autoClosed')} />
-              </Tooltip>
-            )}
-          </Stack>
-        </Box>
-        <CheckInIcon locationCorrect={entry.locationCorrect} timeCorrect={entry.timeCorrect} />
-      </Stack>
-
-      <Stack sx={{ mt: 1, pl: 4.75 }}>
-        <Typography variant="caption" color="text.secondary">
-          {range} · {worked}
-        </Typography>
-      </Stack>
-
-      <Stack direction="row" spacing={0.25} sx={{ mt: 0.5, justifyContent: 'flex-end' }}>
-        <ReviewButtons
-          entry={entry}
-          canReview={canReview}
-          isOwn={isOwn}
-          onApprove={onApprove}
-          onReject={onReject}
-        />
-        {canEdit && (
-          <Tooltip title={locked ? t('timeEntries.locked') : t('common.edit')}>
-            {/* A disabled button swallows its own events, so the tooltip
-                needs a wrapper that still receives them. */}
-            <span>
-              <IconButton size="small" disabled={locked} onClick={onEdit}>
-                <EditOutlined fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-        )}
-        {canDelete && (
-          <Tooltip title={locked ? t('timeEntries.locked') : t('common.delete')}>
-            <span>
-              <IconButton size="small" disabled={locked} onClick={onDelete}>
-                <DeleteOutlined fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-        )}
-      </Stack>
-    </Paper>
-  );
-}
-
-/** One of the four check-in states, or "unknown" — resolved once so the icon and the legend never drift apart. */
-type CheckInState = 'unknown' | 'bothWrong' | 'wrongLocation' | 'wrongTime' | 'bothCorrect';
-
-function checkInState(locationCorrect: boolean | null, timeCorrect: boolean | null): CheckInState {
-  if (locationCorrect === null && timeCorrect === null) return 'unknown';
-
-  const locationWrong = locationCorrect === false;
-  const timeWrong = timeCorrect === false;
-
-  if (locationWrong && timeWrong) return 'bothWrong';
-  if (locationWrong) return 'wrongLocation';
-  if (timeWrong) return 'wrongTime';
-  return 'bothCorrect';
-}
-
-const CHECK_IN_PRESENTATION: Record<
-  CheckInState,
-  { Icon: typeof TaskAltOutlined; color: string; bgcolor: string; labelKey: MessageKey }
-> = {
-  bothCorrect: {
-    Icon: TaskAltOutlined,
-    color: 'success.dark',
-    bgcolor: 'success.light',
-    labelKey: 'timeEntries.checkInBothCorrect',
-  },
-  wrongLocation: {
-    Icon: LocationOffOutlined,
-    color: 'warning.dark',
-    bgcolor: 'warning.light',
-    labelKey: 'timeEntries.checkInWrongLocation',
-  },
-  wrongTime: {
-    Icon: ScheduleOutlined,
-    color: 'warning.dark',
-    bgcolor: 'warning.light',
-    labelKey: 'timeEntries.checkInWrongTime',
-  },
-  bothWrong: {
-    Icon: ReportOutlined,
-    color: 'error.dark',
-    bgcolor: 'error.light',
-    labelKey: 'timeEntries.checkInBothWrong',
-  },
-  unknown: {
-    Icon: HelpOutlineOutlined,
-    color: 'text.disabled',
-    bgcolor: 'action.hover',
-    labelKey: 'timeEntries.checkInUnknown',
-  },
-};
-
-/**
- * Whether the clock-in was at the right place and time, as a small coloured
- * badge — a bare icon reads as decoration, a filled circle reads as status.
- */
-function CheckInIcon({
-  locationCorrect,
-  timeCorrect,
-}: {
-  locationCorrect: boolean | null;
-  timeCorrect: boolean | null;
-}) {
-  const t = useT();
-  const { Icon, color, bgcolor, labelKey } = CHECK_IN_PRESENTATION[
-    checkInState(locationCorrect, timeCorrect)
-  ];
-
-  return (
-    <Tooltip title={t(labelKey)}>
-      <Box
-        sx={{
-          width: 28,
-          height: 28,
-          borderRadius: '50%',
-          bgcolor,
-          color,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-        }}
-      >
-        <Icon fontSize="small" sx={{ color: 'inherit' }} />
-      </Box>
-    </Tooltip>
   );
 }
 

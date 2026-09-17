@@ -115,13 +115,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
    * Where clicking a nav item actually goes. Plain `item.path`, except for
    * Time Entries with a pending-review badge: its badge counts entries that
    * can be on any day, but the page itself only ever shows one day at a
-   * time — so a badged click opens straight into the "Čeka pregled" filter,
-   * which is what finds them regardless of which day they're on (see
-   * TimeEntriesListPage's own earliest-pending lookup).
+   * time — so a badged click opens the detailed review queue dialog
+   * directly instead, which finds them regardless of which day they're on.
    */
   const navItemHref = (path: string) =>
     path === paths.timeEntries && (badgeCounts[path] ?? 0) > 0
-      ? `${path}?pendingOnly=true`
+      ? `${path}?reviewQueue=true`
       : path;
 
   const navEntries = useMemo(() => (user ? buildNavEntries(user, t) : []), [user, t]);
