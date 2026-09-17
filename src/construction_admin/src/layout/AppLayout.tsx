@@ -49,8 +49,12 @@ import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { OfflineBanner } from '../components/OfflineBanner';
 import { UndoSnackbarHost } from '../components/UndoSnackbarHost';
 import { config } from '../config';
-import { useCompanyBrandingQuery } from '../features/companySettings/useCompanySettings';
+import {
+  useCompanyBrandingQuery,
+  useCompanySettingsQuery,
+} from '../features/companySettings/useCompanySettings';
 import { useUnreadCountQuery } from '../features/notifications/useNotifications';
+import type { MessageKey } from '../i18n/en';
 import { useEnumLabel } from '../i18n/enumLabels';
 import { useT } from '../i18n/useI18n';
 import { paths } from '../routes/paths';
@@ -72,6 +76,8 @@ import { useNavBadgeCounts } from './useNavBadgeCounts';
 const RAIL_WIDTH = 72;
 const MOBILE_DRAWER_WIDTH = 260;
 const EXPANDED_GROUPS_STORAGE_KEY = 'nav.expandedGroups';
+/** How long the pointer must hover the rail logo before the enlarged preview appears. */
+const LOGO_PREVIEW_HOVER_DELAY_MS = 500;
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const theme = useTheme();
@@ -85,6 +91,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
     null,
   );
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [logoPreviewAnchor, setLogoPreviewAnchor] = useState<HTMLElement | null>(null);
+  const logoHoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
     try {
       const raw = localStorage.getItem(EXPANDED_GROUPS_STORAGE_KEY);
@@ -101,6 +109,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const enumLabel = useEnumLabel();
   const { data: unreadCount } = useUnreadCountQuery();
   const { data: branding } = useCompanyBrandingQuery();
+  const { data: companyDetails } = useCompanySettingsQuery();
   const favorites = useFavorites();
   const badgeCounts = useNavBadgeCounts(user);
 
@@ -173,9 +182,25 @@ export function AppLayout({ children }: { children: ReactNode }) {
   useEffect(
     () => () => {
       if (hoverTimer.current) clearTimeout(hoverTimer.current);
+      if (logoHoverTimer.current) clearTimeout(logoHoverTimer.current);
     },
     [],
   );
+
+  const scheduleLogoPreview = (target: HTMLElement) => {
+    if (logoHoverTimer.current) clearTimeout(logoHoverTimer.current);
+    logoHoverTimer.current = setTimeout(() => {
+      setLogoPreviewAnchor(target);
+    }, LOGO_PREVIEW_HOVER_DELAY_MS);
+  };
+
+  const cancelLogoPreview = () => {
+    if (logoHoverTimer.current) {
+      clearTimeout(logoHoverTimer.current);
+      logoHoverTimer.current = null;
+    }
+    setLogoPreviewAnchor(null);
+  };
 
   const toggleGroup = (key: string) => {
     setExpandedGroups((prev) => {
@@ -240,22 +265,115 @@ export function AppLayout({ children }: { children: ReactNode }) {
         gap: 0.5,
       }}
     >
-      <Tooltip title={branding?.name || t('nav.appName')} placement="right">
-        <IconButton component={Link} to={paths.home} sx={{ mb: 1 }}>
-          {branding?.hasLogo ? (
-            <Box
-              component="img"
-              src={`${config.apiBaseUrl}/api/v1/company-settings/logo`}
-              alt=""
-              sx={{ width: 28, height: 28, objectFit: 'contain', borderRadius: 0.5 }}
-            />
-          ) : (
-            <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: 14 }}>
-              {(branding?.name || t('nav.appName')).slice(0, 1)}
-            </Avatar>
-          )}
-        </IconButton>
-      </Tooltip>
+      <IconButton
+        component={Link}
+        to={paths.home}
+        sx={{ mb: 1 }}
+        onMouseEnter={(event) => scheduleLogoPreview(event.currentTarget)}
+        onMouseLeave={cancelLogoPreview}
+      >
+        {branding?.hasLogo ? (
+          <Box
+            component="img"
+            src={`${config.apiBaseUrl}/api/v1/company-settings/logo`}
+            alt=""
+            sx={{ width: 28, height: 28, objectFit: 'contain', borderRadius: 0.5 }}
+          />
+        ) : (
+          <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: 14 }}>
+            {(branding?.name || t('nav.appName')).slice(0, 1)}
+          </Avatar>
+        )}
+      </IconButton>
+
+      <Popper
+        open={Boolean(logoPreviewAnchor)}
+        anchorEl={logoPreviewAnchor}
+        placement="right-start"
+        transition
+        sx={{ zIndex: (theme) => theme.zIndex.tooltip }}
+        modifiers={[{ name: 'offset', options: { offset: [0, 12] } }]}
+      >
+        {({ TransitionProps }) => (
+          <Fade {...TransitionProps} timeout={150}>
+            <Paper
+              elevation={8}
+              sx={{ p: 2, width: 280 }}
+              onMouseEnter={() => {
+                if (logoHoverTimer.current) clearTimeout(logoHoverTimer.current);
+              }}
+              onMouseLeave={cancelLogoPreview}
+            >
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
+                {branding?.hasLogo ? (
+                  <Box
+                    component="img"
+                    src={`${config.apiBaseUrl}/api/v1/company-settings/logo`}
+                    alt=""
+                    sx={{
+                      width: 220,
+                      height: 220,
+                      objectFit: 'contain',
+                      borderRadius: 1,
+                      bgcolor: 'grey.50',
+                    }}
+                  />
+                ) : (
+                  <Avatar
+                    variant="rounded"
+                    sx={{ width: 220, height: 220, bgcolor: 'primary.main', fontSize: 64 }}
+                  >
+                    {(branding?.name || t('nav.appName')).slice(0, 1)}
+                  </Avatar>
+                )}
+
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25, width: '100%' }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                    {branding?.name || t('nav.appName')}
+                  </Typography>
+                  {companyDetails?.address && (
+                    <Typography variant="body2" color="text.secondary">
+                      {companyDetails.address}
+                    </Typography>
+                  )}
+                  {companyDetails?.taxId && (
+                    <Typography variant="body2" color="text.secondary">
+                      {t('companySettings.taxId')}: {companyDetails.taxId}
+                    </Typography>
+                  )}
+                  {companyDetails?.phone && (
+                    <Typography variant="body2" color="text.secondary">
+                      {companyDetails.phone}
+                    </Typography>
+                  )}
+                  {companyDetails?.email && (
+                    <Typography variant="body2" color="text.secondary">
+                      {companyDetails.email}
+                    </Typography>
+                  )}
+                </Box>
+
+                <Divider flexItem sx={{ width: '100%' }} />
+
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25, width: '100%' }}>
+                  <Typography variant="caption" color="text.secondary">
+                    {t('companySettings.previewLoggedInAs')}
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {displayName(user)}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {user.email}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {t(`role.${user.role}` as MessageKey)}
+                  </Typography>
+                </Box>
+              </Box>
+            </Paper>
+          </Fade>
+        )}
+      </Popper>
 
       <Tooltip title={t('commandPalette.trigger')} placement="right">
         <IconButton onClick={() => setPaletteOpen(true)} sx={{ color: 'text.secondary' }}>
