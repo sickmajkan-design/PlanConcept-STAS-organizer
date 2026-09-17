@@ -8,7 +8,6 @@ import {
 } from '../../api/timeEntries';
 import type { TimeEntryInput } from '../../api/types';
 import { config } from '../../config';
-import { navBadgeKeys } from '../../layout/useNavBadgeCounts';
 import {
   createResourceKeys,
   useResourceDetail,
@@ -26,12 +25,12 @@ const summaryKey = (query: TimeEntrySummaryQuery) => [
 ];
 
 /**
- * Every time-entry write also invalidates the nav badge: reviewing one
- * resolves the "Submitted" backlog it counts, and editing or deleting one
- * can just as easily change which entries are still in that state — so the
- * count on "Radno vreme" updates the instant the write succeeds.
+ * `timeEntryKeys.all` is a prefix of every `useTimeEntriesQuery` call,
+ * including the nav badge's own Submitted-count query — so reviewing,
+ * editing, or deleting an entry drops "Radno vreme" the instant the write
+ * succeeds, with nothing extra to list here.
  */
-const timeEntryCaches = [timeEntryKeys.all, navBadgeKeys.timeEntriesSubmitted];
+const timeEntryCaches = [timeEntryKeys.all];
 
 /**
  * Polls rather than loading once: the Work Time board is how the office

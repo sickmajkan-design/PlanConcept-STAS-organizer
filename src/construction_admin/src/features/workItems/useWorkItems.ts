@@ -3,7 +3,6 @@ import {
   type WorkItemListQuery,
 } from '../../api/workItems';
 import type { WorkItemInput, WorkItemStatus } from '../../api/types';
-import { navBadgeKeys } from '../../layout/useNavBadgeCounts';
 import {
   createResourceKeys,
   useResourceDetail,
@@ -14,15 +13,15 @@ import {
 export const workItemKeys = createResourceKeys<WorkItemListQuery>('workItems');
 
 /**
- * Every work-item write also invalidates the nav badge: assigning it,
- * closing it, or deleting it all resolve the same "nobody is assigned to it
- * yet" backlog the badge on "Zadaci i nedostaci" counts, so the number drops
- * the instant one of those succeeds rather than on the badge's own poll.
+ * `workItemKeys.all` is a prefix of every `useWorkItemsQuery` call, including
+ * the nav badge's own two count queries — so assigning, closing, or deleting
+ * a work item drops "Zadaci i nedostaci" the instant it succeeds, with
+ * nothing extra to list here.
  */
-const workItemCaches = [workItemKeys.all, navBadgeKeys.workItemsUnassigned];
+const workItemCaches = [workItemKeys.all];
 
-export function useWorkItemsQuery(query: WorkItemListQuery) {
-  return useResourceList(workItemKeys, workItemsApi.list, query);
+export function useWorkItemsQuery(query: WorkItemListQuery, enabled = true) {
+  return useResourceList(workItemKeys, workItemsApi.list, query, { enabled });
 }
 
 export function useWorkItemQuery(id: string | undefined) {

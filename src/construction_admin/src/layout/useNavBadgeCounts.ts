@@ -1,10 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
-
-import { absencesApi } from '../api/absences';
-import { attachmentsApi } from '../api/attachments';
-import { timeEntriesApi } from '../api/timeEntries';
 import type { User } from '../api/types';
-import { workItemsApi } from '../api/workItems';
+import { useAbsencesQuery } from '../features/absences/useAbsences';
+import { useExpiringDocumentsQuery } from '../features/attachments/useAttachments';
+import { useTimeEntriesQuery } from '../features/timeEntries/useTimeEntries';
+import { useWorkItemsQuery } from '../features/workItems/useWorkItems';
 import {
   canAdministerAccounts,
   canReviewTimeEntries,
@@ -13,32 +11,8 @@ import {
 import { paths } from '../routes/paths';
 
 const DOCUMENT_EXPIRY_WINDOW_DAYS = 30;
-/**
- * A minute's staleness is fine for a badge nobody is staring at — but the
- * whole point of a badge is that it goes away the moment its own backlog is
- * cleared, not up to a minute later. Every write that resolves one of these
- * (approving an absence, assigning a work item, reviewing a time entry,
- * deleting an expiring document) invalidates the matching key below
- * directly, so this staleness only ever matters for a *different* browser
- * tab or user, never the one that just acted.
- */
-const STALE_TIME_MS = 60_000;
 /** Just the count, not the rows — every one of these queries only reads `totalCount`/`length`. */
 const COUNT_ONLY_PAGE = { pageNumber: 1, pageSize: 1 } as const;
-
-/**
- * Exported so the mutation that resolves each backlog — approving an
- * absence, assigning a work item, reviewing a time entry, deleting or
- * replacing an expiring document — can invalidate its badge directly, and
- * the number updates the instant the action succeeds instead of waiting out
- * {@link STALE_TIME_MS} or a page reload.
- */
-export const navBadgeKeys = {
-  documentsExpiring: ['nav-badge', 'documents-expiring'] as const,
-  absencesPending: ['nav-badge', 'absences-pending'] as const,
-  workItemsUnassigned: ['nav-badge', 'work-items-unassigned'] as const,
-  timeEntriesSubmitted: ['nav-badge', 'time-entries-submitted'] as const,
-};
 
 /**
  * Small counts shown as a badge on the nav — keyed both by {@link NavGroup.key}
@@ -48,19 +22,29 @@ export const navBadgeKeys = {
  * item — and, from there, the exact module — a notification was actually
  * about, rather than stopping at the group icon.
  *
- * Each one mirrors a notification type this app sends: {@link absencesQuery}
- * for `AbsenceRequested`/`AbsenceEditProposed`, {@link documentsQuery} for
- * `DocumentExpiring`, {@link workItemsQuery} for `DefectReported` (an
- * unassigned defect is exactly "nobody is assigned to it yet"), and
- * {@link timeEntriesQuery} for the review half of `ShiftAutoClosed` and the
- * clock-in notices. A few notification types have nothing to count here on
- * purpose: `ProjectAssigned`/`EmployeeAssigned`/`VehicleAssigned`/
+ * Each one mirrors a notification type this app sends: `absencesQuery` for
+ * `AbsenceRequested`/`AbsenceEditProposed`, `documentsQuery` for
+ * `DocumentExpiring`, `workItemsOpenQuery`/`workItemsInProgressQuery` for
+ * `DefectReported` (an unassigned defect is exactly "nobody is assigned to
+ * it yet"), and `timeEntriesQuery` for the review half of `ShiftAutoClosed`
+ * and the clock-in notices. A few notification types have nothing to count
+ * here on purpose: `ProjectAssigned`/`EmployeeAssigned`/`VehicleAssigned`/
  * `ToolAssigned` are one-off events with no resulting backlog, and
  * `GeneralAnnouncement`/`DirectMessage`/`BulletinPosted` are free text with
  * no queryable "how many are still open" — those stay visible only in the
  * notification bell itself, same as `DocumentRetentionEnded`, which the
  * expiring-documents endpoint deliberately doesn't return (see
  * `GetExpiringDocumentsQuery` — it only ever filters by `ExpiresAt`).
+ *
+ * Every query here goes through the same resource hooks (`useAbsencesQuery`,
+ * `useWorkItemsQuery`, `useTimeEntriesQuery`, `useExpiringDocumentsQuery`)
+ * every list page and dashboard widget already uses — not a separate
+ * "nav-badge" cache someone has to remember to invalidate by hand. Their
+ * resource's own mutations (`absenceKeys.all`, `workItemKeys.all`, …) already
+ * invalidate every query keyed under them, this one included, so a badge
+ * drops the instant its backlog is resolved from *anywhere* on the
+ * platform — the inbox, the dashboard, or the module's own page — with no
+ * bespoke wiring needed for the next module that gets one.
  */
 export function useNavBadgeCounts(user: User | null | undefined): Record<string, number> {
   const showDocuments = canAdministerAccounts(user);
@@ -68,38 +52,44 @@ export function useNavBadgeCounts(user: User | null | undefined): Record<string,
   const showWorkItems = canViewDirectory(user);
   const showTimeEntries = canReviewTimeEntries(user);
 
-  const documentsQuery = useQuery({
-    queryKey: navBadgeKeys.documentsExpiring,
-    queryFn: () => attachmentsApi.expiring(DOCUMENT_EXPIRY_WINDOW_DAYS),
-    enabled: showDocuments,
-    staleTime: STALE_TIME_MS,
-  });
+  const documentsQuery = useExpiringDocumentsQuery(
+    DOCUMENT_EXPIRY_WINDOW_DAYS,
+    false,
+    showDocuments,
+  );
 
-  const absencesQuery = useQuery({
-    queryKey: navBadgeKeys.absencesPending,
-    queryFn: () => absencesApi.list({ ...COUNT_ONLY_PAGE, status: 'Requested' }),
-    enabled: showAbsences,
-    staleTime: STALE_TIME_MS,
-  });
+  const absencesQuery = useAbsencesQuery(
+    { ...COUNT_ONLY_PAGE, status: 'Requested' },
+    showAbsences,
+  );
 
-  const workItemsQuery = useQuery({
-    queryKey: navBadgeKeys.workItemsUnassigned,
-    queryFn: () =>
-      workItemsApi.list({ ...COUNT_ONLY_PAGE, unassignedOnly: true, openOnly: true }),
-    enabled: showWorkItems,
-    staleTime: STALE_TIME_MS,
-  });
+  // Not `openOnly`: the API's own definition of "open" only excludes Closed
+  // and Cancelled, and deliberately still counts Resolved as open (a
+  // Resolved item can still be reopened). A defect resolved without ever
+  // being assigned — a common shortcut — would stay Resolved-and-unassigned
+  // forever and never leave this badge if it used that flag. Open and
+  // InProgress are the only two states where "nobody is assigned to it yet"
+  // is still actually a problem.
+  const workItemsOpenQuery = useWorkItemsQuery(
+    { ...COUNT_ONLY_PAGE, unassignedOnly: true, status: 'Open' },
+    showWorkItems,
+  );
 
-  const timeEntriesQuery = useQuery({
-    queryKey: navBadgeKeys.timeEntriesSubmitted,
-    queryFn: () => timeEntriesApi.list({ ...COUNT_ONLY_PAGE, status: 'Submitted' }),
-    enabled: showTimeEntries,
-    staleTime: STALE_TIME_MS,
-  });
+  const workItemsInProgressQuery = useWorkItemsQuery(
+    { ...COUNT_ONLY_PAGE, unassignedOnly: true, status: 'InProgress' },
+    showWorkItems,
+  );
+
+  const timeEntriesQuery = useTimeEntriesQuery(
+    { ...COUNT_ONLY_PAGE, status: 'Submitted' },
+    showTimeEntries,
+  );
 
   const documentsCount = showDocuments ? (documentsQuery.data?.length ?? 0) : 0;
   const absencesCount = showAbsences ? (absencesQuery.data?.totalCount ?? 0) : 0;
-  const workItemsCount = showWorkItems ? (workItemsQuery.data?.totalCount ?? 0) : 0;
+  const workItemsCount = showWorkItems
+    ? (workItemsOpenQuery.data?.totalCount ?? 0) + (workItemsInProgressQuery.data?.totalCount ?? 0)
+    : 0;
   const timeEntriesCount = showTimeEntries ? (timeEntriesQuery.data?.totalCount ?? 0) : 0;
 
   return {

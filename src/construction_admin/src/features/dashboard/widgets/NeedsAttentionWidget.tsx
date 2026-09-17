@@ -1,10 +1,9 @@
 import { EventBusyOutlined, WarningAmberOutlined } from '@mui/icons-material';
 import { List, ListItem, ListItemIcon, ListItemText, Stack, Typography } from '@mui/material';
-import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 
-import { absencesApi } from '../../../api/absences';
-import { attachmentsApi } from '../../../api/attachments';
+import { useAbsencesQuery } from '../../absences/useAbsences';
+import { useExpiringDocumentsQuery } from '../../attachments/useAttachments';
 import { useT } from '../../../i18n/useI18n';
 import { paths } from '../../../routes/paths';
 import { formatDate } from '../../../utils/formatting';
@@ -31,15 +30,11 @@ export function NeedsAttentionWidget({
 }: DashboardWidgetProps) {
   const t = useT();
 
-  const documentsQuery = useQuery({
-    queryKey: ['dashboard', 'needs-attention', 'documents'] as const,
-    queryFn: () => attachmentsApi.expiring(DOCUMENT_WINDOW_DAYS),
-  });
-
-  const absencesQuery = useQuery({
-    queryKey: ['dashboard', 'needs-attention', 'absences'] as const,
-    queryFn: () => absencesApi.list({ pageNumber: 1, pageSize: SHOWN, status: 'Requested' }),
-  });
+  // Same query hooks the nav badge and each module's own list page use —
+  // not a separate "dashboard" cache — so resolving one of these anywhere on
+  // the platform updates this widget the instant it succeeds too.
+  const documentsQuery = useExpiringDocumentsQuery(DOCUMENT_WINDOW_DAYS);
+  const absencesQuery = useAbsencesQuery({ pageNumber: 1, pageSize: SHOWN, status: 'Requested' });
 
   const documents = Array.isArray(documentsQuery.data) ? documentsQuery.data.slice(0, SHOWN) : [];
   const absences = absencesQuery.data?.items ?? [];

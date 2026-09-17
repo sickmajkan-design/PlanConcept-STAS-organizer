@@ -7,17 +7,17 @@ import {
   type UploadAttachmentInput,
 } from '../../api/attachments';
 import type { AttachmentOwnerType } from '../../api/types';
-import { navBadgeKeys } from '../../layout/useNavBadgeCounts';
 import { createResourceKeys, useResourceMutation } from '../resourceQueries';
 
 export const attachmentKeys = createResourceKeys<AttachmentListQuery>('attachments');
 
 /**
- * Uploading (a renewed document replacing an expiring one) or deleting
- * invalidates the nav badge too, so "Dokumenti" drops its count the instant
- * the write succeeds rather than on the badge's own minute-long poll.
+ * Every attachment write invalidates the whole collection. `attachmentKeys.all`
+ * is a prefix of `expiringKey(...)` too, so uploading a renewal or deleting an
+ * expiring document drops the nav badge's and the dashboard's counts the
+ * instant the write succeeds — nothing extra to list here for either of them.
  */
-const attachmentCaches = [attachmentKeys.all, navBadgeKeys.documentsExpiring];
+const attachmentCaches = [attachmentKeys.all];
 
 const expiringKey = (withinDays: number | null, includeUndated: boolean) => [
   ...attachmentKeys.all,
@@ -34,10 +34,15 @@ export function useAttachmentsQuery(query: AttachmentListQuery, enabled = true) 
   });
 }
 
-export function useExpiringDocumentsQuery(withinDays: number | null = 30, includeUndated = false) {
+export function useExpiringDocumentsQuery(
+  withinDays: number | null = 30,
+  includeUndated = false,
+  enabled = true,
+) {
   return useQuery({
     queryKey: expiringKey(withinDays, includeUndated),
     queryFn: () => attachmentsApi.expiring(withinDays, includeUndated),
+    enabled,
   });
 }
 
