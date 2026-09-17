@@ -2,24 +2,49 @@ import { useQuery } from '@tanstack/react-query';
 
 import { absencesApi } from '../api/absences';
 import { attachmentsApi } from '../api/attachments';
+import { timeEntriesApi } from '../api/timeEntries';
 import type { User } from '../api/types';
-import { canAdministerAccounts, canViewDirectory } from '../auth/authHelpers';
+import { workItemsApi } from '../api/workItems';
+import {
+  canAdministerAccounts,
+  canReviewTimeEntries,
+  canViewDirectory,
+} from '../auth/authHelpers';
 import { paths } from '../routes/paths';
 
 const DOCUMENT_EXPIRY_WINDOW_DAYS = 30;
 /** These are convenience counters on a nav icon, not a live dashboard — a minute of staleness is fine. */
 const STALE_TIME_MS = 60_000;
+/** Just the count, not the rows — every one of these queries only reads `totalCount`/`length`. */
+const COUNT_ONLY_PAGE = { pageNumber: 1, pageSize: 1 } as const;
 
 /**
  * Small counts shown as a badge on the nav — keyed both by {@link NavGroup.key}
- * (the rail's collapsed group icon, an aggregate) and by the specific item's
- * own `path` (its row inside the flyout/drawer), so the same number that
- * shows on the group also follows through to the exact item it's about,
- * rather than stopping at the group icon.
+ * (the rail's collapsed group icon, an aggregate of everything inside it) and
+ * by the specific item's own `path` (its row inside the flyout/drawer), so
+ * the same number that shows on the group also follows through to the exact
+ * item — and, from there, the exact module — a notification was actually
+ * about, rather than stopping at the group icon.
+ *
+ * Each one mirrors a notification type this app sends: {@link absencesQuery}
+ * for `AbsenceRequested`/`AbsenceEditProposed`, {@link documentsQuery} for
+ * `DocumentExpiring`, {@link workItemsQuery} for `DefectReported` (an
+ * unassigned defect is exactly "nobody is assigned to it yet"), and
+ * {@link timeEntriesQuery} for the review half of `ShiftAutoClosed` and the
+ * clock-in notices. A few notification types have nothing to count here on
+ * purpose: `ProjectAssigned`/`EmployeeAssigned`/`VehicleAssigned`/
+ * `ToolAssigned` are one-off events with no resulting backlog, and
+ * `GeneralAnnouncement`/`DirectMessage`/`BulletinPosted` are free text with
+ * no queryable "how many are still open" — those stay visible only in the
+ * notification bell itself, same as `DocumentRetentionEnded`, which the
+ * expiring-documents endpoint deliberately doesn't return (see
+ * `GetExpiringDocumentsQuery` — it only ever filters by `ExpiresAt`).
  */
 export function useNavBadgeCounts(user: User | null | undefined): Record<string, number> {
   const showDocuments = canAdministerAccounts(user);
   const showAbsences = canViewDirectory(user);
+  const showWorkItems = canViewDirectory(user);
+  const showTimeEntries = canReviewTimeEntries(user);
 
   const documentsQuery = useQuery({
     queryKey: ['nav-badge', 'documents-expiring'] as const,
@@ -30,18 +55,37 @@ export function useNavBadgeCounts(user: User | null | undefined): Record<string,
 
   const absencesQuery = useQuery({
     queryKey: ['nav-badge', 'absences-pending'] as const,
-    queryFn: () => absencesApi.list({ pageNumber: 1, pageSize: 1, status: 'Requested' }),
+    queryFn: () => absencesApi.list({ ...COUNT_ONLY_PAGE, status: 'Requested' }),
     enabled: showAbsences,
+    staleTime: STALE_TIME_MS,
+  });
+
+  const workItemsQuery = useQuery({
+    queryKey: ['nav-badge', 'work-items-unassigned'] as const,
+    queryFn: () =>
+      workItemsApi.list({ ...COUNT_ONLY_PAGE, unassignedOnly: true, openOnly: true }),
+    enabled: showWorkItems,
+    staleTime: STALE_TIME_MS,
+  });
+
+  const timeEntriesQuery = useQuery({
+    queryKey: ['nav-badge', 'time-entries-submitted'] as const,
+    queryFn: () => timeEntriesApi.list({ ...COUNT_ONLY_PAGE, status: 'Submitted' }),
+    enabled: showTimeEntries,
     staleTime: STALE_TIME_MS,
   });
 
   const documentsCount = showDocuments ? (documentsQuery.data?.length ?? 0) : 0;
   const absencesCount = showAbsences ? (absencesQuery.data?.totalCount ?? 0) : 0;
+  const workItemsCount = showWorkItems ? (workItemsQuery.data?.totalCount ?? 0) : 0;
+  const timeEntriesCount = showTimeEntries ? (timeEntriesQuery.data?.totalCount ?? 0) : 0;
 
   return {
     admin: documentsCount,
-    work: absencesCount,
+    work: absencesCount + workItemsCount + timeEntriesCount,
     [paths.expiringDocuments]: documentsCount,
     [paths.absences]: absencesCount,
+    [paths.workItems]: workItemsCount,
+    [paths.timeEntries]: timeEntriesCount,
   };
 }
