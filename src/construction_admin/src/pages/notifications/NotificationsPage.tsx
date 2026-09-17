@@ -14,8 +14,10 @@ import {
   Typography,
 } from '@mui/material';
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import type { NotificationListQuery } from '../../api/notifications';
+import type { Notification } from '../../api/types';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
@@ -27,6 +29,7 @@ import {
   useNotificationsQuery,
   useUnreadCountQuery,
 } from '../../features/notifications/useNotifications';
+import { resolveNotificationTarget } from '../../features/notifications/notificationDeepLink';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
 import { useFormatRelative } from '../../i18n/useFormatRelative';
@@ -45,6 +48,7 @@ export function NotificationsPage() {
   const t = useT();
   const enumLabel = useEnumLabel();
   const formatRelative = useFormatRelative();
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   const [page, setPage] = useState(1);
@@ -67,6 +71,16 @@ export function NotificationsPage() {
     // Page 3 of "everything" is rarely a page of "unread" at all, and an empty
     // grid reads as "nothing to see" rather than "wrong page".
     setPage(1);
+  };
+
+  // Opening it is what marks it read, same as before — the only change is
+  // that "opening" now actually goes somewhere when the notification has a
+  // source entity the viewer's role can reach.
+  const openNotification = (notification: Notification) => {
+    if (!notification.isRead) markRead.mutate(notification.id);
+
+    const target = resolveNotificationTarget(notification, user);
+    if (target) navigate(target);
   };
 
   return (
@@ -132,11 +146,7 @@ export function NotificationsPage() {
             <ListItemButton
               key={notification.id}
               divider
-              // Opening it is what marks it read; there is no separate button
-              // because there is nothing else to do with one.
-              onClick={() =>
-                !notification.isRead && markRead.mutate(notification.id)
-              }
+              onClick={() => openNotification(notification)}
               sx={{
                 alignItems: 'flex-start',
                 bgcolor: notification.isRead ? undefined : 'action.hover',

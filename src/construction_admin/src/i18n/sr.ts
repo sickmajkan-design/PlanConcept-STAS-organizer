@@ -1790,6 +1790,16 @@ export const sr: Record<MessageKey, Message> = {
   'notificationType.WorkItemDue': 'Rok',
   'notificationType.ShiftAutoClosed': 'Smjena',
   'notificationType.BulletinPosted': 'Oglas',
+  'notificationType.AbsenceEditProposed': 'Izmena odsustva',
+  'notificationType.WeeklyReportDue': 'Sedmični izveštaj',
+  'notificationType.EmployeeClockedIn': 'Prijava na smenu',
+  'notificationType.EmployeeClockedOut': 'Odjava sa smene',
+  'notificationType.UnassignedProjectClockIn': 'Prijava na nedodeljeno gradilište',
+  'notificationType.DefectReported': 'Prijavljen nedostatak',
+  'notificationType.AbsenceRequested': 'Zahtev za odsustvo',
+  'notificationType.DocumentRetentionEnded': 'Istekao rok čuvanja',
+  'notificationType.DirectMessage': 'Poruka',
+  'notificationType.ClockInLocationMismatch': 'Neusklađena lokacija',
 
   // --- Pomoćnik ----------------------------------------------------------
   'assistant.title': 'Kancelarijski pomoćnik',

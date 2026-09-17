@@ -18,7 +18,7 @@ import {
   TableSortLabel,
   Typography,
 } from '@mui/material';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import type { Attachment, AttachmentCategory, AttachmentOwnerType } from '../../api/types';
 import { attachmentCategories, attachmentOwnerTypes } from '../../api/types';
@@ -27,6 +27,7 @@ import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
 import { UploadDocumentDialog } from '../../components/UploadDocumentDialog';
 import { useExpiringDocumentsQuery } from '../../features/attachments/useAttachments';
+import { useHighlightTarget } from '../../hooks/useHighlightTarget';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
 import { formatDate } from '../../utils/formatting';
@@ -50,8 +51,12 @@ type SortDirection = 'asc' | 'desc';
 export function ExpiringDocumentsPage() {
   const t = useT();
   const enumLabel = useEnumLabel();
-  const [windowValue, setWindowValue] = useState<WindowValue>(30);
-  const [includeUndated, setIncludeUndated] = useState(false);
+  const { targetId, isHighlighted, scrollIntoViewOnce } = useHighlightTarget();
+  // A notification deep-link may point at a document outside the default
+  // 30-day/dated-only view — widen the filters so the row it leads to is
+  // actually there to land on, rather than opening to an empty-looking table.
+  const [windowValue, setWindowValue] = useState<WindowValue>(targetId ? ALL_WINDOW : 30);
+  const [includeUndated, setIncludeUndated] = useState(Boolean(targetId));
   const [ownerTypeFilter, setOwnerTypeFilter] = useState<AttachmentOwnerType | ''>('');
   const [categoryFilter, setCategoryFilter] = useState<AttachmentCategory | ''>('');
   const [uploading, setUploading] = useState(false);
@@ -104,6 +109,14 @@ export function ExpiringDocumentsPage() {
 
     return filtered.sort(compare);
   }, [data, sortBy, sortDirection, ownerTypeFilter, categoryFilter]);
+
+  useEffect(() => {
+    if (!targetId || !sortedData) return;
+    const match = sortedData.find((document) => document.id === targetId);
+    if (match) setPreviewing(match);
+    // Runs once the deep-linked document is available, not on every refetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetId, !!sortedData]);
 
   return (
     <Box>
@@ -260,9 +273,16 @@ export function ExpiringDocumentsPage() {
                 return (
                   <TableRow
                     key={document.id}
+                    ref={(element: HTMLTableRowElement | null) => {
+                      if (document.id === targetId) scrollIntoViewOnce(element);
+                    }}
                     hover
                     onDoubleClick={() => setPreviewing(document)}
-                    sx={{ cursor: 'pointer' }}
+                    sx={{
+                      cursor: 'pointer',
+                      transition: 'background-color 1.5s ease',
+                      bgcolor: isHighlighted(document.id) ? 'action.hover' : undefined,
+                    }}
                   >
                     <TableCell>{document.fileName}</TableCell>
                     <TableCell>{document.ownerName ?? '—'}</TableCell>

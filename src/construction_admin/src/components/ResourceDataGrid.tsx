@@ -34,6 +34,7 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
   height = 600,
   rowSelectionModel,
   onRowSelectionModelChange,
+  highlightedId,
 }: {
   data: PagedList<T> | undefined;
   columns: GridColDef<T>[];
@@ -57,6 +58,8 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
    */
   rowSelectionModel?: GridRowSelectionModel;
   onRowSelectionModelChange?: (model: GridRowSelectionModel) => void;
+  /** The row a notification deep-link points at — briefly flashed so it isn't lost in the page. */
+  highlightedId?: string | null;
 }) {
   const t = useT();
 
@@ -106,10 +109,14 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
           onRowDoubleClick={
             onRowDoubleClick ? (params) => onRowDoubleClick(params.row) : undefined
           }
+          getRowClassName={(params) =>
+            highlightedId && params.id === highlightedId ? 'row-highlight' : ''
+          }
           // Only offer the affordance when a click actually goes somewhere.
           sx={{
             border: 'none',
             cursor: onRowClick || onRowDoubleClick ? 'pointer' : 'default',
+            '& .row-highlight': { bgcolor: 'action.hover' },
           }}
         />
       )}

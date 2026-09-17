@@ -1669,6 +1669,16 @@ export const notificationTypes = [
   'WorkItemDue',
   'ShiftAutoClosed',
   'BulletinPosted',
+  'AbsenceEditProposed',
+  'WeeklyReportDue',
+  'EmployeeClockedIn',
+  'EmployeeClockedOut',
+  'UnassignedProjectClockIn',
+  'DefectReported',
+  'AbsenceRequested',
+  'DocumentRetentionEnded',
+  'DirectMessage',
+  'ClockInLocationMismatch',
 ] as const;
 
 export type NotificationType = (typeof notificationTypes)[number];

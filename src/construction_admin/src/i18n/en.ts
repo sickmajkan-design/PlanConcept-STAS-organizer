@@ -1758,6 +1758,16 @@ export const en = {
   'notificationType.WorkItemDue': 'Due',
   'notificationType.ShiftAutoClosed': 'Shift',
   'notificationType.BulletinPosted': 'Bulletin',
+  'notificationType.AbsenceEditProposed': 'Absence change',
+  'notificationType.WeeklyReportDue': 'Weekly report',
+  'notificationType.EmployeeClockedIn': 'Clocked in',
+  'notificationType.EmployeeClockedOut': 'Clocked out',
+  'notificationType.UnassignedProjectClockIn': 'Unassigned clock-in',
+  'notificationType.DefectReported': 'Defect reported',
+  'notificationType.AbsenceRequested': 'Time-off request',
+  'notificationType.DocumentRetentionEnded': 'Retention ended',
+  'notificationType.DirectMessage': 'Message',
+  'notificationType.ClockInLocationMismatch': 'Location mismatch',
 
   // --- Assistant ------------------------------------------------------------
   'assistant.title': 'Office assistant',

@@ -46,6 +46,7 @@ import {
   useReviewAbsence,
 } from '../../features/absences/useAbsences';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
+import { useHighlightTarget } from '../../hooks/useHighlightTarget';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { useSavedViews } from '../../hooks/useSavedViews';
 import { useEnumLabel } from '../../i18n/enumLabels';
@@ -64,6 +65,7 @@ export function AbsencesListPage() {
   const t = useT();
   const enumLabel = useEnumLabel();
   const list = useListQueryState('startDate', 'desc');
+  const { targetId, isHighlighted } = useHighlightTarget();
 
   // The one question a supervisor opens this screen to answer.
   const [pendingOnly, setPendingOnly] = useState(false);
@@ -283,6 +285,7 @@ export function AbsencesListPage() {
         onPaginationModelChange={list.setPaginationModel}
         sortModel={list.sortModel}
         onSortModelChange={list.setSortModel}
+        highlightedId={targetId && isHighlighted(targetId) ? targetId : null}
       />
 
       <BookAbsenceDialog open={booking} onClose={() => setBooking(false)} />

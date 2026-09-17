@@ -40,6 +40,7 @@ import {
   useMarkBulletinViewed,
 } from '../../features/bulletin/useBulletin';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
+import { useHighlightTarget } from '../../hooks/useHighlightTarget';
 import { useT } from '../../i18n/useI18n';
 import { formatDateTime, initialsOf } from '../../utils/formatting';
 
@@ -61,6 +62,7 @@ export function BulletinPage() {
   const remove = useDeleteWithConfirm<BulletinPost>(useDeleteBulletinPost());
   const [composing, setComposing] = useState(false);
   const [viewingPostId, setViewingPostId] = useState<string | null>(null);
+  const { targetId, isHighlighted, scrollIntoViewOnce } = useHighlightTarget();
 
   const posts = data ?? [];
 
@@ -110,11 +112,16 @@ export function BulletinPage() {
           {posts.map((post) => (
             <Grid key={post.id} size={{ xs: 12, md: 6 }}>
               <Card
+                ref={(element: HTMLDivElement | null) => {
+                  if (post.id === targetId) scrollIntoViewOnce(element);
+                }}
                 variant="outlined"
                 sx={{
                   height: '100%',
                   borderLeft: '4px solid',
                   borderLeftColor: 'primary.main',
+                  transition: 'background-color 1.5s ease',
+                  bgcolor: isHighlighted(post.id) ? 'action.hover' : undefined,
                 }}
               >
                 <CardContent>

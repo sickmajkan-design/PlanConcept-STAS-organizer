@@ -37,7 +37,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import type { TimeEntryListQuery } from '../../api/timeEntries';
 import type { TimeEntry } from '../../api/types';
@@ -57,6 +57,7 @@ import {
   useTimeEntriesQuery,
 } from '../../features/timeEntries/useTimeEntries';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
+import { useHighlightTarget } from '../../hooks/useHighlightTarget';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import type { MessageKey } from '../../i18n/en';
 import { useT } from '../../i18n/useI18n';
@@ -117,12 +118,22 @@ export function TimeEntriesListPage() {
   const canEdit = canViewDirectory(user);
   const canDelete = canAdministerAccounts(user);
 
-  const [date, setDate] = useState(() => dateOnlyOffset(0));
+  // A notification deep-link (a clock-in/out, e.g.) carries the day, project
+  // and employee it happened on — read once on arrival so the page opens
+  // already on the right day with that project's column expanded, rather
+  // than always defaulting to today.
+  const [searchParams] = useSearchParams();
+  const { targetId: highlightEmployeeId, isHighlighted } = useHighlightTarget('employeeId');
+
+  const [date, setDate] = useState(() => searchParams.get('date') || dateOnlyOffset(0));
   const [pendingOnly, setPendingOnly] = useState(false);
   const [openOnly, setOpenOnly] = useState(false);
   const [search, setSearch] = useState('');
   const [cardSort, setCardSort] = useState<CardSort>('startedAt');
-  const [expandedColumns, setExpandedColumns] = useState<Set<string>>(new Set());
+  const [expandedColumns, setExpandedColumns] = useState<Set<string>>(() => {
+    const projectId = searchParams.get('projectId');
+    return projectId ? new Set([projectId]) : new Set();
+  });
 
   const query: TimeEntryListQuery = useMemo(
     () => ({
@@ -318,6 +329,7 @@ export function TimeEntriesListPage() {
               onDelete={(entry) => remove.request(entry)}
               onApprove={(entry) => setApproving(entry)}
               onReject={(entry) => setReviewing(entry)}
+              highlightedEmployeeId={highlightEmployeeId && isHighlighted(highlightEmployeeId) ? highlightEmployeeId : null}
             />
           ))}
         </Stack>
@@ -366,6 +378,7 @@ function ProjectColumn({
   onDelete,
   onApprove,
   onReject,
+  highlightedEmployeeId,
 }: {
   group: ProjectGroup;
   expanded: boolean;
@@ -379,6 +392,7 @@ function ProjectColumn({
   onDelete: (entry: TimeEntry) => void;
   onApprove: (entry: TimeEntry) => void;
   onReject: (entry: TimeEntry) => void;
+  highlightedEmployeeId?: string | null;
 }) {
   const t = useT();
   const shown = expanded ? group.entries : group.entries.slice(0, COLUMN_CARD_CAP);
@@ -414,6 +428,7 @@ function ProjectColumn({
             onDelete={() => onDelete(entry)}
             onApprove={() => onApprove(entry)}
             onReject={() => onReject(entry)}
+            highlighted={!!highlightedEmployeeId && entry.employeeId === highlightedEmployeeId}
           />
         ))}
 
@@ -444,6 +459,7 @@ function TimeEntryCard({
   onDelete,
   onApprove,
   onReject,
+  highlighted = false,
 }: {
   entry: TimeEntry;
   workTypeLabel: string;
@@ -455,6 +471,7 @@ function TimeEntryCard({
   onDelete: () => void;
   onApprove: () => void;
   onReject: () => void;
+  highlighted?: boolean;
 }) {
   const t = useT();
   const locked = entry.status === 'Approved';
@@ -468,7 +485,17 @@ function TimeEntryCard({
       : t('timeEntries.hoursShort', splitMinutes(entry.workedMinutes));
 
   return (
-    <Paper variant="outlined" sx={{ p: 1.25 }}>
+    <Paper
+      ref={(element: HTMLDivElement | null) => {
+        if (highlighted) element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }}
+      variant="outlined"
+      sx={{
+        p: 1.25,
+        transition: 'background-color 1.5s ease',
+        bgcolor: highlighted ? 'action.hover' : undefined,
+      }}
+    >
       <Stack direction="row" spacing={1} sx={{ alignItems: 'flex-start' }}>
         <Avatar sx={{ width: 30, height: 30, fontSize: '0.8rem' }}>
           {employeeInitials(entry.employeeName)}
