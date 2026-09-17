@@ -13,10 +13,32 @@ import {
 import { paths } from '../routes/paths';
 
 const DOCUMENT_EXPIRY_WINDOW_DAYS = 30;
-/** These are convenience counters on a nav icon, not a live dashboard — a minute of staleness is fine. */
+/**
+ * A minute's staleness is fine for a badge nobody is staring at — but the
+ * whole point of a badge is that it goes away the moment its own backlog is
+ * cleared, not up to a minute later. Every write that resolves one of these
+ * (approving an absence, assigning a work item, reviewing a time entry,
+ * deleting an expiring document) invalidates the matching key below
+ * directly, so this staleness only ever matters for a *different* browser
+ * tab or user, never the one that just acted.
+ */
 const STALE_TIME_MS = 60_000;
 /** Just the count, not the rows — every one of these queries only reads `totalCount`/`length`. */
 const COUNT_ONLY_PAGE = { pageNumber: 1, pageSize: 1 } as const;
+
+/**
+ * Exported so the mutation that resolves each backlog — approving an
+ * absence, assigning a work item, reviewing a time entry, deleting or
+ * replacing an expiring document — can invalidate its badge directly, and
+ * the number updates the instant the action succeeds instead of waiting out
+ * {@link STALE_TIME_MS} or a page reload.
+ */
+export const navBadgeKeys = {
+  documentsExpiring: ['nav-badge', 'documents-expiring'] as const,
+  absencesPending: ['nav-badge', 'absences-pending'] as const,
+  workItemsUnassigned: ['nav-badge', 'work-items-unassigned'] as const,
+  timeEntriesSubmitted: ['nav-badge', 'time-entries-submitted'] as const,
+};
 
 /**
  * Small counts shown as a badge on the nav — keyed both by {@link NavGroup.key}
@@ -47,21 +69,21 @@ export function useNavBadgeCounts(user: User | null | undefined): Record<string,
   const showTimeEntries = canReviewTimeEntries(user);
 
   const documentsQuery = useQuery({
-    queryKey: ['nav-badge', 'documents-expiring'] as const,
+    queryKey: navBadgeKeys.documentsExpiring,
     queryFn: () => attachmentsApi.expiring(DOCUMENT_EXPIRY_WINDOW_DAYS),
     enabled: showDocuments,
     staleTime: STALE_TIME_MS,
   });
 
   const absencesQuery = useQuery({
-    queryKey: ['nav-badge', 'absences-pending'] as const,
+    queryKey: navBadgeKeys.absencesPending,
     queryFn: () => absencesApi.list({ ...COUNT_ONLY_PAGE, status: 'Requested' }),
     enabled: showAbsences,
     staleTime: STALE_TIME_MS,
   });
 
   const workItemsQuery = useQuery({
-    queryKey: ['nav-badge', 'work-items-unassigned'] as const,
+    queryKey: navBadgeKeys.workItemsUnassigned,
     queryFn: () =>
       workItemsApi.list({ ...COUNT_ONLY_PAGE, unassignedOnly: true, openOnly: true }),
     enabled: showWorkItems,
@@ -69,7 +91,7 @@ export function useNavBadgeCounts(user: User | null | undefined): Record<string,
   });
 
   const timeEntriesQuery = useQuery({
-    queryKey: ['nav-badge', 'time-entries-submitted'] as const,
+    queryKey: navBadgeKeys.timeEntriesSubmitted,
     queryFn: () => timeEntriesApi.list({ ...COUNT_ONLY_PAGE, status: 'Submitted' }),
     enabled: showTimeEntries,
     staleTime: STALE_TIME_MS,

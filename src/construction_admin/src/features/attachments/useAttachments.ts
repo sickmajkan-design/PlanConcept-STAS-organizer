@@ -7,9 +7,17 @@ import {
   type UploadAttachmentInput,
 } from '../../api/attachments';
 import type { AttachmentOwnerType } from '../../api/types';
+import { navBadgeKeys } from '../../layout/useNavBadgeCounts';
 import { createResourceKeys, useResourceMutation } from '../resourceQueries';
 
 export const attachmentKeys = createResourceKeys<AttachmentListQuery>('attachments');
+
+/**
+ * Uploading (a renewed document replacing an expiring one) or deleting
+ * invalidates the nav badge too, so "Dokumenti" drops its count the instant
+ * the write succeeds rather than on the badge's own minute-long poll.
+ */
+const attachmentCaches = [attachmentKeys.all, navBadgeKeys.documentsExpiring];
 
 const expiringKey = (withinDays: number | null, includeUndated: boolean) => [
   ...attachmentKeys.all,
@@ -36,14 +44,12 @@ export function useExpiringDocumentsQuery(withinDays: number | null = 30, includ
 export function useUploadAttachment() {
   return useResourceMutation(
     (input: UploadAttachmentInput) => attachmentsApi.upload(input),
-    [attachmentKeys.all],
+    attachmentCaches,
   );
 }
 
 export function useDeleteAttachment() {
-  return useResourceMutation((id: string) => attachmentsApi.remove(id), [
-    attachmentKeys.all,
-  ]);
+  return useResourceMutation((id: string) => attachmentsApi.remove(id), attachmentCaches);
 }
 
 /**

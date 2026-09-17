@@ -8,6 +8,7 @@ import {
   type ScheduleQuery,
 } from '../../api/absences';
 import type { AbsenceInput } from '../../api/types';
+import { navBadgeKeys } from '../../layout/useNavBadgeCounts';
 import { createResourceKeys, useResourceList, useResourceMutation } from '../resourceQueries';
 
 export const absenceKeys = createResourceKeys<AbsenceListQuery>('absences');
@@ -41,9 +42,11 @@ export function useAbsenceBalanceQuery(employeeId: string | undefined, year?: nu
 /**
  * Every absence write invalidates the board as well as the list. Granting
  * leave puts a bar on the schedule, so a board left on screen from before the
- * approval would show the person as available.
+ * approval would show the person as available. The nav badge is in here too,
+ * so approving or refusing a request drops the count on "Odsustva" the
+ * instant it succeeds — no waiting on the badge's own poll, no reload.
  */
-const absenceCaches = [absenceKeys.all, scheduleKeys.all];
+const absenceCaches = [absenceKeys.all, scheduleKeys.all, navBadgeKeys.absencesPending];
 
 export function useBookAbsence() {
   return useResourceMutation(

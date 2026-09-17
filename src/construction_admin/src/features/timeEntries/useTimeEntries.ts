@@ -8,6 +8,7 @@ import {
 } from '../../api/timeEntries';
 import type { TimeEntryInput } from '../../api/types';
 import { config } from '../../config';
+import { navBadgeKeys } from '../../layout/useNavBadgeCounts';
 import {
   createResourceKeys,
   useResourceDetail,
@@ -23,6 +24,14 @@ const summaryKey = (query: TimeEntrySummaryQuery) => [
   'summary',
   query,
 ];
+
+/**
+ * Every time-entry write also invalidates the nav badge: reviewing one
+ * resolves the "Submitted" backlog it counts, and editing or deleting one
+ * can just as easily change which entries are still in that state — so the
+ * count on "Radno vreme" updates the instant the write succeeds.
+ */
+const timeEntryCaches = [timeEntryKeys.all, navBadgeKeys.timeEntriesSubmitted];
 
 /**
  * Polls rather than loading once: the Work Time board is how the office
@@ -55,26 +64,24 @@ export function useTimeEntrySummaryQuery(
 export function useCreateTimeEntry() {
   return useResourceMutation(
     (input: TimeEntryInput) => timeEntriesApi.create(input),
-    [timeEntryKeys.all],
+    timeEntryCaches,
   );
 }
 
 export function useUpdateTimeEntry(id: string) {
   return useResourceMutation(
     (input: TimeEntryInput) => timeEntriesApi.update(id, input),
-    [timeEntryKeys.all],
+    timeEntryCaches,
   );
 }
 
 export function useReviewTimeEntry(id: string) {
   return useResourceMutation(
     (input: ReviewTimeEntryInput) => timeEntriesApi.review(id, input),
-    [timeEntryKeys.all],
+    timeEntryCaches,
   );
 }
 
 export function useDeleteTimeEntry() {
-  return useResourceMutation((id: string) => timeEntriesApi.remove(id), [
-    timeEntryKeys.all,
-  ]);
+  return useResourceMutation((id: string) => timeEntriesApi.remove(id), timeEntryCaches);
 }
