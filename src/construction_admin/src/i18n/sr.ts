@@ -1116,6 +1116,8 @@ export const sr: Record<MessageKey, Message> = {
   'companySettings.weeklyReportsForwardEmailHint':
     'Svaki podneti sedmični izveštaj sa gradilišta se automatski prosleđuje i na ovaj mejl, pored toga što se čuva na platformi. Ostavite prazno da se samo evidentira.',
   'companySettings.saved': 'Podaci firme su sačuvani.',
+  'companySettings.previewLoggedInAs': 'Prijavljeni nalog',
+  'companySettings.previewNoDetails': 'Podaci firme još nisu popunjeni.',
 
   'costs.title': 'Troškovi',
   'costs.subtitle':

@@ -1090,6 +1090,8 @@ export const en = {
   'companySettings.weeklyReportsForwardEmailHint':
     'Every submitted weekly site report is also emailed here, in addition to being filed on the platform. Leave blank to only file it.',
   'companySettings.saved': 'Company profile saved.',
+  'companySettings.previewLoggedInAs': 'Logged in as',
+  'companySettings.previewNoDetails': 'No company details filled in yet.',
 
   'costs.title': 'Costs',
   'costs.subtitle':

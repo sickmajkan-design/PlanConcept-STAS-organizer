@@ -5,18 +5,22 @@ import {
   Avatar,
   Box,
   Button,
+  Divider,
+  Fade,
   Grid,
   Paper,
+  Popper,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import { LOGO_ACCEPTED_EXTENSIONS, MAX_LOGO_BYTES } from '../../api/companySettings';
 import { toApiError } from '../../api/apiError';
 import type { CompanySettingsInput } from '../../api/types';
+import { useAuth } from '../../auth/useAuth';
 import { ErrorState } from '../../components/ErrorState';
 import { config } from '../../config';
 import {
@@ -29,7 +33,11 @@ import {
   useUpdateCompanySettings,
   useUploadCompanyLogo,
 } from '../../features/companySettings/useCompanySettings';
+import type { MessageKey } from '../../i18n/en';
 import { useT } from '../../i18n/useI18n';
+
+/** How long the pointer must hover the logo before the enlarged preview appears. */
+const LOGO_PREVIEW_HOVER_DELAY_MS = 500;
 
 const emptyValues: CompanySettingsFormValues = {
   name: '',
@@ -44,6 +52,7 @@ const emptyValues: CompanySettingsFormValues = {
 
 export function CompanySettingsPage() {
   const t = useT();
+  const { user } = useAuth();
   const { data: existing, isLoading, isError, error, refetch } = useCompanySettingsQuery();
   const updateSettings = useUpdateCompanySettings();
   const uploadLogo = useUploadCompanyLogo();
@@ -54,6 +63,34 @@ export function CompanySettingsPage() {
   // previous image from cache for a URL that never changes shape.
   const [logoCacheBust, setLogoCacheBust] = useState(0);
   const [logoError, setLogoError] = useState<string | null>(null);
+
+  const [logoAnchor, setLogoAnchor] = useState<HTMLElement | null>(null);
+  const logoHoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const scheduleLogoPreview = (target: HTMLElement) => {
+    if (logoHoverTimer.current) {
+      clearTimeout(logoHoverTimer.current);
+    }
+    logoHoverTimer.current = setTimeout(() => {
+      setLogoAnchor(target);
+    }, LOGO_PREVIEW_HOVER_DELAY_MS);
+  };
+
+  const cancelLogoPreview = () => {
+    if (logoHoverTimer.current) {
+      clearTimeout(logoHoverTimer.current);
+      logoHoverTimer.current = null;
+    }
+    setLogoAnchor(null);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (logoHoverTimer.current) {
+        clearTimeout(logoHoverTimer.current);
+      }
+    };
+  }, []);
 
   const {
     control,
@@ -189,10 +226,101 @@ export function CompanySettingsPage() {
           <Avatar
             src={logoUrl ?? undefined}
             variant="rounded"
-            sx={{ width: 72, height: 72, bgcolor: 'grey.100' }}
+            sx={{ width: 72, height: 72, bgcolor: 'grey.100', cursor: logoUrl ? 'pointer' : 'default' }}
+            onMouseEnter={(event) => {
+              if (logoUrl) {
+                scheduleLogoPreview(event.currentTarget);
+              }
+            }}
+            onMouseLeave={cancelLogoPreview}
           >
             {!logoUrl && (existing?.name?.charAt(0) ?? '?')}
           </Avatar>
+
+          <Popper
+            open={Boolean(logoAnchor)}
+            anchorEl={logoAnchor}
+            placement="right-start"
+            transition
+            sx={{ zIndex: (theme) => theme.zIndex.tooltip }}
+            modifiers={[{ name: 'offset', options: { offset: [0, 12] } }]}
+          >
+            {({ TransitionProps }) => (
+              <Fade {...TransitionProps} timeout={150}>
+                <Paper
+                  elevation={8}
+                  sx={{ p: 2, width: 280 }}
+                  onMouseEnter={() => {
+                    if (logoHoverTimer.current) {
+                      clearTimeout(logoHoverTimer.current);
+                    }
+                  }}
+                  onMouseLeave={cancelLogoPreview}
+                >
+                  <Stack spacing={1.5} sx={{ alignItems: 'center' }}>
+                    <Box
+                      component="img"
+                      src={logoUrl ?? undefined}
+                      alt={existing?.name ?? ''}
+                      sx={{
+                        width: 220,
+                        height: 220,
+                        objectFit: 'contain',
+                        borderRadius: 1,
+                        bgcolor: 'grey.50',
+                      }}
+                    />
+
+                    <Stack spacing={0.25} sx={{ width: '100%' }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+                        {existing?.name || t('companySettings.previewNoDetails')}
+                      </Typography>
+                      {existing?.address && (
+                        <Typography variant="body2" color="text.secondary">
+                          {existing.address}
+                        </Typography>
+                      )}
+                      {existing?.taxId && (
+                        <Typography variant="body2" color="text.secondary">
+                          {t('companySettings.taxId')}: {existing.taxId}
+                        </Typography>
+                      )}
+                      {existing?.phone && (
+                        <Typography variant="body2" color="text.secondary">
+                          {existing.phone}
+                        </Typography>
+                      )}
+                      {existing?.email && (
+                        <Typography variant="body2" color="text.secondary">
+                          {existing.email}
+                        </Typography>
+                      )}
+                    </Stack>
+
+                    {user && (
+                      <>
+                        <Divider sx={{ width: '100%' }} />
+                        <Stack spacing={0.25} sx={{ width: '100%' }}>
+                          <Typography variant="caption" color="text.secondary">
+                            {t('companySettings.previewLoggedInAs')}
+                          </Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {[user.firstName, user.lastName].filter(Boolean).join(' ') || user.email}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {user.email}
+                          </Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            {t(`role.${user.role}` as MessageKey)}
+                          </Typography>
+                        </Stack>
+                      </>
+                    )}
+                  </Stack>
+                </Paper>
+              </Fade>
+            )}
+          </Popper>
 
           <Stack direction="row" spacing={1}>
             <Button
