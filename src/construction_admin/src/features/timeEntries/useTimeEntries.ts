@@ -30,9 +30,10 @@ const summaryKey = (query: TimeEntrySummaryQuery) => [
  * manual refresh would defeat that — the same reasoning behind the live
  * map's own `refetchInterval`.
  */
-export function useTimeEntriesQuery(query: TimeEntryListQuery) {
+export function useTimeEntriesQuery(query: TimeEntryListQuery, enabled = true) {
   return useResourceList(timeEntryKeys, timeEntriesApi.list, query, {
     refetchInterval: config.workTimeRefreshMs,
+    enabled,
   });
 }
 

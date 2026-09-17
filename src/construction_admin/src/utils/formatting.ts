@@ -19,6 +19,12 @@ export function formatDate(value: string | null | undefined): string {
 export function dateOnlyOffset(days: number): string {
   const date = new Date();
   date.setDate(date.getDate() + days);
+  return toLocalDateOnly(date);
+}
+
+/** `YYYY-MM-DD` for an ISO instant (or `Date`), in the browser's local time. */
+export function toLocalDateOnly(value: string | Date): string {
+  const date = typeof value === 'string' ? new Date(value) : value;
 
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');

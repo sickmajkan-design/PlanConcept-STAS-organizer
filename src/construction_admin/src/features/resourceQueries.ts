@@ -44,7 +44,7 @@ export function useResourceList<TResult, TQuery>(
   keys: ResourceKeys<TQuery>,
   fetchPage: (query: TQuery) => Promise<TResult>,
   query: TQuery,
-  options?: { refetchInterval?: number },
+  options?: { refetchInterval?: number; enabled?: boolean },
 ) {
   return useQuery({
     queryKey: keys.list(query),

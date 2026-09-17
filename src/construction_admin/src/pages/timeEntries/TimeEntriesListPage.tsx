@@ -30,13 +30,14 @@ import {
   Paper,
   Popover,
   Select,
+  Snackbar,
   Stack,
   Switch,
   TextField,
   Tooltip,
   Typography,
 } from '@mui/material';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import type { TimeEntryListQuery } from '../../api/timeEntries';
@@ -62,7 +63,13 @@ import { useEnumLabel } from '../../i18n/enumLabels';
 import type { MessageKey } from '../../i18n/en';
 import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
-import { dateOnlyOffset, formatTimeOfDay, splitMinutes } from '../../utils/formatting';
+import {
+  dateOnlyOffset,
+  formatDate,
+  formatTimeOfDay,
+  splitMinutes,
+  toLocalDateOnly,
+} from '../../utils/formatting';
 import { ReviewButtons } from './ReviewButtons';
 
 /** One page-worth of an entire day's entries — a crew this size never needs real pagination. */
@@ -126,7 +133,7 @@ export function TimeEntriesListPage() {
   const { targetId: highlightEmployeeId, isHighlighted } = useHighlightTarget('employeeId');
 
   const [date, setDate] = useState(() => searchParams.get('date') || dateOnlyOffset(0));
-  const [pendingOnly, setPendingOnly] = useState(false);
+  const [pendingOnly, setPendingOnly] = useState(() => searchParams.get('pendingOnly') === 'true');
   const [openOnly, setOpenOnly] = useState(false);
   const [search, setSearch] = useState('');
   const [cardSort, setCardSort] = useState<CardSort>('startedAt');
@@ -153,6 +160,56 @@ export function TimeEntriesListPage() {
 
   const [reviewing, setReviewing] = useState<TimeEntry | null>(null);
   const [approving, setApproving] = useState<TimeEntry | null>(null);
+
+  // "Čeka pregled" filters to the current day only, same as every other
+  // filter here — but a pending entry can sit on any day, so a reviewer
+  // arriving with nothing to show on today's board (from the nav badge, most
+  // often) would otherwise see an empty board with no clue where the pending
+  // count actually lives. One lookup, once per time this filter turns on:
+  // find the earliest Submitted entry anywhere and jump straight to its day.
+  const [jumpMessage, setJumpMessage] = useState<string | null>(null);
+  const autoJumpAttempted = useRef(false);
+  const wasPendingOnly = useRef(pendingOnly);
+
+  useEffect(() => {
+    if (pendingOnly && !wasPendingOnly.current) {
+      autoJumpAttempted.current = false;
+    }
+    wasPendingOnly.current = pendingOnly;
+  }, [pendingOnly]);
+
+  const needsEarliestPendingLookup =
+    pendingOnly && !isLoading && (data?.totalCount ?? 0) === 0 && !autoJumpAttempted.current;
+
+  const earliestPendingQuery = useTimeEntriesQuery(
+    {
+      pageNumber: 1,
+      pageSize: 1,
+      sortBy: 'startedAt',
+      sortDescending: false,
+      status: 'Submitted',
+    },
+    needsEarliestPendingLookup,
+  );
+
+  useEffect(() => {
+    if (!needsEarliestPendingLookup || !earliestPendingQuery.isSuccess) return;
+
+    autoJumpAttempted.current = true;
+
+    const entry = earliestPendingQuery.data.items[0];
+    if (!entry) {
+      setJumpMessage(t('timeEntries.noPendingAnywhere'));
+      return;
+    }
+
+    const entryDate = toLocalDateOnly(entry.startedAt);
+    if (entryDate !== date) {
+      setDate(entryDate);
+      setJumpMessage(t('timeEntries.jumpedToPendingDate', { date: formatDate(entryDate) }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [needsEarliestPendingLookup, earliestPendingQuery.isSuccess, earliestPendingQuery.data]);
 
   // Grouped by project rather than paged through as a flat list — a
   // supervisor opening this screen is asking "who's where today", and a
@@ -306,7 +363,11 @@ export function TimeEntriesListPage() {
       )}
 
       {!isLoading && !isError && groups.length === 0 && (
-        <EmptyState message={t('timeEntries.noEntriesForDay')} />
+        <EmptyState
+          message={
+            pendingOnly ? t('timeEntries.noPendingForDay') : t('timeEntries.noEntriesForDay')
+          }
+        />
       )}
 
       {!isLoading && !isError && groups.length > 0 && (
@@ -360,6 +421,13 @@ export function TimeEntriesListPage() {
           </Typography>
         </Box>
       )}
+
+      <Snackbar
+        open={!!jumpMessage}
+        autoHideDuration={6000}
+        onClose={() => setJumpMessage(null)}
+        message={jumpMessage}
+      />
     </Box>
   );
 }

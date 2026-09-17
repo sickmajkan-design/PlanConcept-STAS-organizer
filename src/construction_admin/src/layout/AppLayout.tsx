@@ -111,6 +111,19 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const favorites = useFavorites();
   const badgeCounts = useNavBadgeCounts(user);
 
+  /**
+   * Where clicking a nav item actually goes. Plain `item.path`, except for
+   * Time Entries with a pending-review badge: its badge counts entries that
+   * can be on any day, but the page itself only ever shows one day at a
+   * time — so a badged click opens straight into the "Čeka pregled" filter,
+   * which is what finds them regardless of which day they're on (see
+   * TimeEntriesListPage's own earliest-pending lookup).
+   */
+  const navItemHref = (path: string) =>
+    path === paths.timeEntries && (badgeCounts[path] ?? 0) > 0
+      ? `${path}?pendingOnly=true`
+      : path;
+
   const navEntries = useMemo(() => (user ? buildNavEntries(user, t) : []), [user, t]);
   const flatItems = useMemo(() => flattenNavEntries(navEntries), [navEntries]);
   const favoriteItems = useMemo(
@@ -386,7 +399,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <Tooltip key={item.path} title={item.label} placement="right">
               <IconButton
                 component={Link}
-                to={item.path}
+                to={navItemHref(item.path)}
                 color={isItemSelected(item) ? 'primary' : 'default'}
                 sx={{
                   bgcolor: isItemSelected(item) ? 'action.selected' : 'transparent',
@@ -419,7 +432,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
               onClick={() => {
                 clearHoverTimer();
                 setRailFlyout(null);
-                navigate(entry.items[0].path);
+                navigate(navItemHref(entry.items[0].path));
               }}
               onMouseEnter={(event) => scheduleFlyoutOpen(entry.key, event.currentTarget)}
               onMouseLeave={scheduleFlyoutClose}
@@ -444,7 +457,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <Tooltip key={entry.path} title={entry.label} placement="right">
               <IconButton
                 component={Link}
-                to={entry.path}
+                to={navItemHref(entry.path)}
                 color={isItemSelected(entry) ? 'primary' : 'default'}
                 sx={{
                   bgcolor: isItemSelected(entry) ? 'action.selected' : 'transparent',
@@ -499,7 +512,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                         <Box key={item.path} sx={{ display: 'flex', alignItems: 'center' }}>
                           <MenuItem
                             component={Link}
-                            to={item.path}
+                            to={navItemHref(item.path)}
                             selected={isItemSelected(item)}
                             onClick={() => setRailFlyout(null)}
                             sx={{ gap: 1, flex: 1, minWidth: 0 }}
@@ -596,7 +609,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <ListItemButton
                 key={item.path}
                 component={Link}
-                to={item.path}
+                to={navItemHref(item.path)}
                 selected={isItemSelected(item)}
                 onClick={() => setMobileOpen(false)}
                 sx={{ borderRadius: 1, mb: 0.5 }}
@@ -662,7 +675,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                     >
                       <ListItemButton
                         component={Link}
-                        to={item.path}
+                        to={navItemHref(item.path)}
                         selected={isItemSelected(item)}
                         onClick={() => setMobileOpen(false)}
                         sx={{ borderRadius: 1, pl: 4, flex: 1, minWidth: 0 }}
@@ -711,7 +724,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <ListItemButton
               key={entry.path}
               component={Link}
-              to={entry.path}
+              to={navItemHref(entry.path)}
               selected={isItemSelected(entry)}
               onClick={() => setMobileOpen(false)}
               sx={{ borderRadius: 1, mb: 0.5 }}
