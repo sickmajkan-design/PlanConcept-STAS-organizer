@@ -392,7 +392,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
                   bgcolor: isItemSelected(item) ? 'action.selected' : 'transparent',
                 }}
               >
-                {item.icon}
+                <Badge badgeContent={badgeCounts[item.path] ?? 0} color="error" max={99} overlap="circular">
+                  {item.icon}
+                </Badge>
               </IconButton>
             </Tooltip>
           ))}
@@ -448,7 +450,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
                   bgcolor: isItemSelected(entry) ? 'action.selected' : 'transparent',
                 }}
               >
-                {entry.icon}
+                <Badge badgeContent={badgeCounts[entry.path] ?? 0} color="error" max={99} overlap="circular">
+                  {entry.icon}
+                </Badge>
               </IconButton>
             </Tooltip>
           ),
@@ -500,7 +504,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
                             onClick={() => setRailFlyout(null)}
                             sx={{ gap: 1, flex: 1, minWidth: 0 }}
                           >
-                            <ListItemIcon sx={{ minWidth: 32 }}>{item.icon}</ListItemIcon>
+                            <ListItemIcon sx={{ minWidth: 32 }}>
+                              <Badge
+                                badgeContent={badgeCounts[item.path] ?? 0}
+                                color="error"
+                                max={99}
+                                overlap="circular"
+                              >
+                                {item.icon}
+                              </Badge>
+                            </ListItemIcon>
                             {item.label}
                           </MenuItem>
                           <IconButton
@@ -588,7 +601,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 onClick={() => setMobileOpen(false)}
                 sx={{ borderRadius: 1, mb: 0.5 }}
               >
-                <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <Badge badgeContent={badgeCounts[item.path] ?? 0} color="error" max={99} overlap="circular">
+                    {item.icon}
+                  </Badge>
+                </ListItemIcon>
                 <ListItemText primary={item.label} />
               </ListItemButton>
             ))}
@@ -650,7 +667,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
                         onClick={() => setMobileOpen(false)}
                         sx={{ borderRadius: 1, pl: 4, flex: 1, minWidth: 0 }}
                       >
-                        <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
+                        <ListItemIcon sx={{ minWidth: 40 }}>
+                          <Badge
+                            badgeContent={badgeCounts[item.path] ?? 0}
+                            color="error"
+                            max={99}
+                            overlap="circular"
+                          >
+                            {item.icon}
+                          </Badge>
+                        </ListItemIcon>
                         <ListItemText primary={item.label} />
                       </ListItemButton>
                       <IconButton
@@ -690,7 +716,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
               onClick={() => setMobileOpen(false)}
               sx={{ borderRadius: 1, mb: 0.5 }}
             >
-              <ListItemIcon sx={{ minWidth: 40 }}>{entry.icon}</ListItemIcon>
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <Badge badgeContent={badgeCounts[entry.path] ?? 0} color="error" max={99} overlap="circular">
+                  {entry.icon}
+                </Badge>
+              </ListItemIcon>
               <ListItemText primary={entry.label} />
             </ListItemButton>
           ),
