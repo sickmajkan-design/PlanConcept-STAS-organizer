@@ -1743,6 +1743,7 @@ export const sr: Record<MessageKey, Message> = {
   'notifications.unreadOnly': 'Samo nepročitana',
   'notifications.markAllRead': 'Označi sve kao pročitano',
   'notifications.empty': 'Ovde još nema ničega.',
+  'notifications.viewAll': 'Prikaži sve',
   'notifications.noUnread': 'Sve je pročitano.',
   'notifications.announce': 'Pošalji obaveštenje',
   'notifications.announceTitle': 'Slanje obaveštenja',

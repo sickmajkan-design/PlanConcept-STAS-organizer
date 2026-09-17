@@ -1712,6 +1712,7 @@ export const en = {
   'notifications.unreadOnly': 'Unread only',
   'notifications.markAllRead': 'Mark all as read',
   'notifications.empty': 'Nothing here yet.',
+  'notifications.viewAll': 'View all',
   'notifications.noUnread': 'Everything has been read.',
   'notifications.announce': 'Send an announcement',
   'notifications.announceTitle': 'Send an announcement',
