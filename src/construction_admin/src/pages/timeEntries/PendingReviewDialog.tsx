@@ -21,8 +21,12 @@ import { useT } from '../../i18n/useI18n';
 import { formatDate, toLocalDateOnly } from '../../utils/formatting';
 import { TimeEntryCard } from './TimeEntryCard';
 
-/** More than this and the dialog is standing in for the summary report, not a review queue. */
-const MAX_ENTRIES = 200;
+/**
+ * The API refuses anything above 100 (`PagedQuery.DefaultMaxPageSize`) — and
+ * a review queue with more than a hundred entries waiting is the summary
+ * report's job, not a dialog's.
+ */
+const MAX_ENTRIES = 100;
 
 /** What's actually wrong with an entry, beyond "it's Submitted" — the card's own status chip already says that. */
 function problemTags(entry: TimeEntry, t: ReturnType<typeof useT>): string[] {
