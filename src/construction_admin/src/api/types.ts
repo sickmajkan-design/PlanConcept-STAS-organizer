@@ -1119,6 +1119,22 @@ export interface VehicleExpense {
   createdAt: string;
 }
 
+/** A fill-up whose consumption looks off against that vehicle's own history. */
+export interface FuelConsumptionFlag {
+  expenseId: string;
+  vehicleId: string;
+  vehicleName: string;
+  /** `YYYY-MM-DD`. */
+  occurredOn: string;
+  distanceKm: number;
+  litres: number;
+  litresPer100Km: number;
+  /** The vehicle's own average over its prior fill-ups, before this one. */
+  vehicleAverageLitresPer100Km: number;
+  /** How far above (positive) or below (negative) that average this reading is. */
+  deviationPercent: number;
+}
+
 export interface VehicleExpenseInput {
   vehicleId: string;
   kind: VehicleExpenseKind;
@@ -1733,6 +1749,9 @@ export interface AuditChange {
 }
 
 /** One recorded change to a record — who, when, and which fields moved. */
+export const auditActions = ['Created', 'Updated', 'Deleted'] as const;
+export type AuditAction = (typeof auditActions)[number];
+
 export interface AuditEntry {
   id: number;
   occurredAt: string;

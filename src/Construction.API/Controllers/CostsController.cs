@@ -29,6 +29,7 @@ using Construction.Application.Features.Costs.Commands.UpdateVehicleRentalOut;
 using Construction.Application.Features.Costs.Commands.UpdateVehicleRentalRate;
 using Construction.Application.Features.Costs.Models;
 using Construction.Application.Features.Costs.Queries.GetCostRecords;
+using Construction.Application.Features.Costs.Queries.GetFuelConsumptionFlags;
 using Construction.Application.Features.Costs.Queries.GetProjectCosts;
 using Construction.Application.Features.Costs.Queries.GetToolCosts;
 using Construction.Application.Features.Costs.Queries.GetVehicleCosts;
@@ -274,6 +275,18 @@ public class CostsController : ApiControllerBase
     {
         await Mediator.Send(new DeleteVehicleExpenseCommand(id), cancellationToken);
         return NoContent();
+    }
+
+    /// <summary>Fill-ups that look off against that vehicle's own consumption history.</summary>
+    [HttpGet("/api/v{version:apiVersion}/vehicle-expenses/fuel-consumption-flags")]
+    [HttpGet("/api/vehicle-expenses/fuel-consumption-flags")]
+    [ProducesResponseType(typeof(List<FuelConsumptionFlagDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<List<FuelConsumptionFlagDto>>> GetFuelConsumptionFlags(
+        [FromQuery] GetFuelConsumptionFlagsQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
     }
 
     // ---- fuel cards --------------------------------------------------------

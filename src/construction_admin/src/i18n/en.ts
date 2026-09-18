@@ -35,6 +35,7 @@ export const en = {
   'savedViews.namePlaceholder': 'View name',
   'duplicateWarning.message': 'A similar record already exists — check before saving another:',
   'nav.scheduledReports': 'Scheduled reports',
+  'nav.audit': 'Audit trail',
   'nav.weeklyReports': 'Weekly site reports',
   'weeklyReports.title': 'Weekly site reports',
   'weeklyReports.description':
@@ -961,6 +962,19 @@ export const en = {
   'audit.title': 'History',
   'audit.empty': 'No recorded changes yet.',
   'audit.systemActor': 'System',
+  'audit.pageTitle': 'Audit trail',
+  'audit.pageDescription': 'Every recorded change across the system, newest first.',
+  'audit.occurredAt': 'When',
+  'audit.action': 'Action',
+  'audit.allActions': 'Any action',
+  'audit.entityName': 'Record type',
+  'audit.entityId': 'Record',
+  'audit.user': 'By',
+  'audit.userRole': 'Role',
+  'audit.ipAddress': 'IP address',
+  'audit.from': 'From',
+  'audit.to': 'To',
+  'audit.changesTitle': 'What changed',
 
   // --- Find by QR photo ---------------------------------------------------
   'qrPhoto.findAction': 'Find by QR photo',
@@ -1208,6 +1222,12 @@ export const en = {
   'vehicleExpenses.odometerHint': 'Optional, but two readings are what give you consumption.',
   'vehicleExpenses.summaryTotal': 'Total',
   'vehicleExpenses.summaryLitres': 'Total litres',
+  'vehicleExpenses.consumptionFlagsTitle': {
+    one: '{count} fill-up looks off compared to that vehicle’s own average',
+    other: '{count} fill-ups look off compared to their vehicles’ own average',
+  },
+  'vehicleExpenses.consumptionFlagRow':
+    '{vehicle}, {date}: {litresPer100Km} L/100km ({sign}{deviation}% vs. its usual {average} L/100km)',
 
   'fuelCards.title': 'Fuel cards',
   'fuelCards.add': 'Add card',
@@ -1696,6 +1716,10 @@ export const en = {
   'materialMovementKind.In': 'Delivery',
   'materialMovementKind.Out': 'Issued to site',
   'materialMovementKind.Adjustment': 'Correction',
+
+  'auditAction.Created': 'Created',
+  'auditAction.Updated': 'Updated',
+  'auditAction.Deleted': 'Deleted',
 
   'vehicleExpenseKind.Fuel': 'Fuel',
   'vehicleExpenseKind.Service': 'Service',

@@ -33,6 +33,7 @@ import {
   WorkOutlined,
   AdminPanelSettingsOutlined,
   SecurityOutlined,
+  HistoryOutlined,
 } from '@mui/icons-material';
 import type { ReactNode } from 'react';
 
@@ -213,6 +214,11 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
                 label: t('nav.scheduledReports'),
                 path: paths.scheduledReports,
                 icon: <ScheduleSendOutlined />,
+              },
+              {
+                label: t('nav.audit'),
+                path: paths.audit,
+                icon: <HistoryOutlined />,
               },
             ],
           } satisfies NavGroup,

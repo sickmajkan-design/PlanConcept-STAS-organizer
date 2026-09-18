@@ -12,6 +12,7 @@ import type {
   FinanceEntryInput,
   FinanceEntryKind,
   FinanceEntrySummary,
+  FuelConsumptionFlag,
   GeneralExpense,
   GeneralExpenseCategory,
   GeneralExpenseInput,
@@ -68,6 +69,13 @@ export interface MaterialMovementListQuery extends ListQuery {
 export interface VehicleExpenseListQuery extends ListQuery {
   vehicleId?: string;
   kind?: VehicleExpenseKind;
+  from?: string;
+  to?: string;
+}
+
+export interface FuelConsumptionFlagsQuery {
+  vehicleId?: string;
+  /** `YYYY-MM-DD`. */
   from?: string;
   to?: string;
 }
@@ -243,6 +251,13 @@ export const costsApi = {
 
     remove: (id: string) =>
       request<void>({ method: 'DELETE', url: `/api/v1/vehicle-expenses/${id}` }),
+
+    fuelConsumptionFlags: (query: FuelConsumptionFlagsQuery) =>
+      request<FuelConsumptionFlag[]>({
+        method: 'GET',
+        url: '/api/v1/vehicle-expenses/fuel-consumption-flags',
+        params: listParams(query),
+      }),
   },
 
   vehicleRentalRates: {

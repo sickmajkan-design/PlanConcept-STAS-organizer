@@ -214,6 +214,11 @@ const ExpiringDocumentsPage = lazy(() =>
     default: m.ExpiringDocumentsPage,
   })),
 );
+const AuditPage = lazy(() =>
+  import('./pages/audit/AuditPage').then((m) => ({
+    default: m.AuditPage,
+  })),
+);
 const TimeEntriesListPage = lazy(() =>
   import('./pages/timeEntries/TimeEntriesListPage').then((m) => ({
     default: m.TimeEntriesListPage,
@@ -382,6 +387,7 @@ function Layout() {
                   documents, so it sits with account administration rather than
                   with the directory screens. */}
               <Route path={paths.expiringDocuments} element={<ExpiringDocumentsPage />} />
+              <Route path={paths.audit} element={<AuditPage />} />
               <Route path={paths.users} element={<UsersListPage />} />
               <Route path={paths.userNew} element={<UserFormPage />} />
               <Route path={`${paths.users}/:id/edit`} element={<UserFormPage />} />

@@ -42,6 +42,7 @@ export const sr: Record<MessageKey, Message> = {
   'savedViews.namePlaceholder': 'Naziv pogleda',
   'duplicateWarning.message': 'Sličan zapis već postoji — proverite pre čuvanja novog:',
   'nav.scheduledReports': 'Zakazani izveštaji',
+  'nav.audit': 'Trag izmena',
   'nav.weeklyReports': 'Sedmični izveštaji',
   'weeklyReports.title': 'Sedmični izveštaji sa gradilišta',
   'weeklyReports.description':
@@ -986,6 +987,19 @@ export const sr: Record<MessageKey, Message> = {
   'audit.title': 'Istorija',
   'audit.empty': 'Još nema zabeleženih promena.',
   'audit.systemActor': 'Sistem',
+  'audit.pageTitle': 'Trag izmena',
+  'audit.pageDescription': 'Svaka zabeležena promena u sistemu, najnovije prvo.',
+  'audit.occurredAt': 'Kada',
+  'audit.action': 'Radnja',
+  'audit.allActions': 'Sve radnje',
+  'audit.entityName': 'Tip zapisa',
+  'audit.entityId': 'Zapis',
+  'audit.user': 'Ko',
+  'audit.userRole': 'Uloga',
+  'audit.ipAddress': 'IP adresa',
+  'audit.from': 'Od',
+  'audit.to': 'Do',
+  'audit.changesTitle': 'Šta se promenilo',
 
   // --- Pronađi po QR slici ---------------------------------------------------
   'qrPhoto.findAction': 'Pronađi po QR slici',
@@ -1236,6 +1250,13 @@ export const sr: Record<MessageKey, Message> = {
   'vehicleExpenses.odometerHint': 'Nije obavezno, ali dva stanja daju potrošnju.',
   'vehicleExpenses.summaryTotal': 'Ukupno',
   'vehicleExpenses.summaryLitres': 'Ukupno litara',
+  'vehicleExpenses.consumptionFlagsTitle': {
+    one: '{count} točenje odstupa od prosečne potrošnje tog vozila',
+    few: '{count} točenja odstupaju od prosečne potrošnje svojih vozila',
+    other: '{count} točenja odstupa od prosečne potrošnje svojih vozila',
+  },
+  'vehicleExpenses.consumptionFlagRow':
+    '{vehicle}, {date}: {litresPer100Km} L/100km ({sign}{deviation}% u odnosu na uobičajenih {average} L/100km)',
 
   'fuelCards.title': 'Kartice za gorivo',
   'fuelCards.add': 'Dodaj karticu',
@@ -1727,6 +1748,10 @@ export const sr: Record<MessageKey, Message> = {
   'materialMovementKind.In': 'Nabavka',
   'materialMovementKind.Out': 'Izdato na gradilište',
   'materialMovementKind.Adjustment': 'Ispravka',
+
+  'auditAction.Created': 'Kreirano',
+  'auditAction.Updated': 'Izmenjeno',
+  'auditAction.Deleted': 'Obrisano',
 
   'vehicleExpenseKind.Fuel': 'Gorivo',
   'vehicleExpenseKind.Service': 'Servis',

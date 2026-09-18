@@ -5,6 +5,7 @@ import {
   type CostReportQuery,
   type EmployeeRateListQuery,
   type FinanceEntryListQuery,
+  type FuelConsumptionFlagsQuery,
   type GeneralExpenseListQuery,
   type MaterialMovementListQuery,
   type ToolExpenseListQuery,
@@ -186,6 +187,18 @@ export function useDeleteVehicleExpense() {
     vehicleExpenseKeys.all,
     costReportKeys.all,
   ]);
+}
+
+/**
+ * Fill-ups that look off against that vehicle's own history — a small,
+ * always-on check rather than a page of its own, so a leak or a bad injector
+ * surfaces on the screen an office worker is already looking at.
+ */
+export function useFuelConsumptionFlagsQuery(query: FuelConsumptionFlagsQuery) {
+  return useQuery({
+    queryKey: [...vehicleExpenseKeys.all, 'fuelConsumptionFlags', query],
+    queryFn: () => costsApi.vehicleExpenses.fuelConsumptionFlags(query),
+  });
 }
 
 // ---- vehicle rental/lease rates ---------------------------------------------

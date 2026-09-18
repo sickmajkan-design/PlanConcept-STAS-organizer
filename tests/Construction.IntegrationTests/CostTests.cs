@@ -4,6 +4,7 @@ using Construction.Application.Features.Costs.Commands.RecordMaterialMovement;
 using Construction.Application.Features.Costs.Commands.RecordVehicleExpense;
 using Construction.Application.Features.Costs.Commands.SetEmployeeRate;
 using Construction.Application.Features.Costs.Queries.GetCostRecords;
+using Construction.Application.Features.Costs.Queries.GetFuelConsumptionFlags;
 using Construction.Application.Features.Costs.Queries.GetProjectCosts;
 using Construction.Application.Features.Costs.Queries.GetVehicleCosts;
 using Construction.Application.Features.Materials.Commands.AdjustMaterialQuantity;
@@ -869,6 +870,105 @@ public class CostTests : IntegrationTestBase
 
         Assert.Null(row.DistanceKm);
         Assert.Null(row.LitresPer100Km);
+    }
+
+    // ---- fuel consumption flags -------------------------------------------
+
+    [Fact]
+    public async Task A_fill_up_far_off_its_own_average_gets_flagged()
+    {
+        var (vehicle, foreman) = await SeedFleetKeeperAsync();
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+
+        // Three steady fill-ups at 10 L/100km establish the baseline the
+        // fourth one is judged against.
+        await RecordExpenseAsync(foreman, vehicle.Id, VehicleExpenseKind.Fuel, 5_000m,
+            litres: 50m, odometerKm: 100_000, occurredOn: March);
+        await RecordExpenseAsync(foreman, vehicle.Id, VehicleExpenseKind.Fuel, 5_000m,
+            litres: 50m, odometerKm: 100_500, occurredOn: March.AddDays(5));
+        await RecordExpenseAsync(foreman, vehicle.Id, VehicleExpenseKind.Fuel, 5_000m,
+            litres: 50m, odometerKm: 101_000, occurredOn: March.AddDays(10));
+        await RecordExpenseAsync(foreman, vehicle.Id, VehicleExpenseKind.Fuel, 5_000m,
+            litres: 50m, odometerKm: 101_500, occurredOn: March.AddDays(15));
+        // The odd one out: 100 litres over the same 500 km the others took
+        // 50 for — double the vehicle's own average.
+        await RecordExpenseAsync(foreman, vehicle.Id, VehicleExpenseKind.Fuel, 10_000m,
+            litres: 100m, odometerKm: 102_000, occurredOn: March.AddDays(20));
+
+        var flags = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new GetFuelConsumptionFlagsQuery { VehicleId = vehicle.Id });
+        });
+
+        var flag = Assert.Single(flags);
+
+        Assert.Equal(500, flag.DistanceKm);
+        Assert.Equal(20m, flag.LitresPer100Km);
+        Assert.Equal(10m, flag.VehicleAverageLitresPer100Km);
+        Assert.Equal(100m, flag.DeviationPercent);
+    }
+
+    [Fact]
+    public async Task Nothing_is_flagged_until_the_vehicle_has_a_baseline()
+    {
+        // Two wildly different fill-ups with no baseline yet — flagging either
+        // one would just be "compared to the one before it", which is not a
+        // baseline, it's a coin flip.
+        var (vehicle, foreman) = await SeedFleetKeeperAsync();
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+
+        await RecordExpenseAsync(foreman, vehicle.Id, VehicleExpenseKind.Fuel, 5_000m,
+            litres: 50m, odometerKm: 100_000, occurredOn: March);
+        await RecordExpenseAsync(foreman, vehicle.Id, VehicleExpenseKind.Fuel, 20_000m,
+            litres: 200m, odometerKm: 100_500, occurredOn: March.AddDays(5));
+
+        var flags = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new GetFuelConsumptionFlagsQuery { VehicleId = vehicle.Id });
+        });
+
+        Assert.Empty(flags);
+    }
+
+    [Fact]
+    public async Task A_reset_odometer_is_skipped_rather_than_flagged()
+    {
+        var (vehicle, foreman) = await SeedFleetKeeperAsync();
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+
+        await RecordExpenseAsync(foreman, vehicle.Id, VehicleExpenseKind.Fuel, 5_000m,
+            litres: 50m, odometerKm: 100_000, occurredOn: March);
+        await RecordExpenseAsync(foreman, vehicle.Id, VehicleExpenseKind.Fuel, 5_000m,
+            litres: 50m, odometerKm: 100_500, occurredOn: March.AddDays(5));
+        await RecordExpenseAsync(foreman, vehicle.Id, VehicleExpenseKind.Fuel, 5_000m,
+            litres: 50m, odometerKm: 101_000, occurredOn: March.AddDays(10));
+        // A cluster replacement, or a typo — the reading goes backwards.
+        await RecordExpenseAsync(foreman, vehicle.Id, VehicleExpenseKind.Fuel, 5_000m,
+            litres: 50m, odometerKm: 500, occurredOn: March.AddDays(15));
+
+        var flags = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new GetFuelConsumptionFlagsQuery { VehicleId = vehicle.Id });
+        });
+
+        Assert.Empty(flags);
+    }
+
+    [Fact]
+    public async Task A_worker_may_not_see_fuel_consumption_flags()
+    {
+        var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var worker = await InScope(scope =>
+            TestData.SeedUserAsync(scope, UserRole.Worker, employee.Id));
+
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => InScope(scope =>
+        {
+            ActAs(scope, worker, employee.Id);
+            return scope.Send(new GetFuelConsumptionFlagsQuery());
+        }));
     }
 
     [Fact]

@@ -73,6 +73,7 @@ export const paths = {
   companySettings: '/company-settings',
 
   expiringDocuments: '/documents/expiring',
+  audit: '/audit',
 
   scheduledReports: '/scheduled-reports',
   weeklyReports: '/weekly-reports',

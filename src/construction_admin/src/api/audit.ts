@@ -1,10 +1,16 @@
 import { request } from './client';
 import { listParams } from './resource';
-import type { AuditEntry, PagedList } from './types';
+import type { AuditAction, AuditEntry, PagedList } from './types';
 
 export interface AuditTrailQuery {
-  entityName: string;
-  entityId: string;
+  entityName?: string;
+  entityId?: string;
+  userId?: string;
+  action?: AuditAction;
+  /** ISO 8601. */
+  from?: string;
+  /** ISO 8601. */
+  to?: string;
   pageNumber: number;
   pageSize: number;
 }

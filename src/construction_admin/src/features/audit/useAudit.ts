@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
-import { auditApi } from '../../api/audit';
+import { auditApi, type AuditTrailQuery } from '../../api/audit';
+import { createResourceKeys, useResourceList } from '../resourceQueries';
 
 /**
  * One record's history. Admin and above only — mirrors the API's own policy,
@@ -14,4 +15,15 @@ export function useAuditTrailQuery(entityName: string, entityId: string | undefi
       auditApi.list({ entityName, entityId: entityId!, pageNumber: 1, pageSize: 50 }),
     enabled: !!entityId,
   });
+}
+
+export const auditTrailKeys = createResourceKeys<AuditTrailQuery>('auditTrail');
+
+/**
+ * The whole trail, filtered however the audit page is asked to — a separate
+ * cache from {@link useAuditTrailQuery} because that one is keyed for a single
+ * record's history and this one pages through everything.
+ */
+export function useAuditListQuery(query: AuditTrailQuery) {
+  return useResourceList(auditTrailKeys, auditApi.list, query);
 }

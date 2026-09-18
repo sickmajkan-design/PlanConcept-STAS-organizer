@@ -1,6 +1,7 @@
 import { AddOutlined, DeleteOutlined } from '@mui/icons-material';
 import {
   Alert,
+  AlertTitle,
   Box,
   Button,
   Dialog,
@@ -36,6 +37,7 @@ import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { SavedViewsBar } from '../../components/SavedViewsBar';
 import {
   useDeleteVehicleExpense,
+  useFuelConsumptionFlagsQuery,
   useRecordVehicleExpense,
   useUpdateVehicleExpense,
   useVehicleExpensesQuery,
@@ -90,6 +92,7 @@ export function VehicleExpensesPage() {
 
   const { data, isLoading, isError, error, refetch } = useVehicleExpensesQuery(query);
   const { data: summary } = useVehicleExpensesSummaryQuery(query);
+  const { data: consumptionFlags } = useFuelConsumptionFlagsQuery({});
   const remove = useDeleteWithConfirm<VehicleExpense>(useDeleteVehicleExpense());
 
   const columns: GridColDef<VehicleExpense>[] = useMemo(
@@ -226,6 +229,28 @@ export function VehicleExpensesPage() {
           {t('fuelImport.title')}
         </Button>
       </Stack>
+
+      {consumptionFlags && consumptionFlags.length > 0 && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          <AlertTitle>
+            {t('vehicleExpenses.consumptionFlagsTitle', { count: consumptionFlags.length })}
+          </AlertTitle>
+          <Stack spacing={0.5}>
+            {consumptionFlags.map((flag) => (
+              <Typography key={flag.expenseId} variant="body2">
+                {t('vehicleExpenses.consumptionFlagRow', {
+                  vehicle: flag.vehicleName,
+                  date: formatDate(flag.occurredOn),
+                  litresPer100Km: formatQuantity(flag.litresPer100Km, locale),
+                  average: formatQuantity(flag.vehicleAverageLitresPer100Km, locale),
+                  sign: flag.deviationPercent > 0 ? '+' : '',
+                  deviation: flag.deviationPercent,
+                })}
+              </Typography>
+            ))}
+          </Stack>
+        </Alert>
+      )}
 
       <Box sx={{ mb: 2 }}>
         <SavedViewsBar

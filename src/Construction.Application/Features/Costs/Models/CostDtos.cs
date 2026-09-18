@@ -101,6 +101,30 @@ public class VehicleExpenseDto
     public DateTime CreatedAt { get; init; }
 }
 
+/// <summary>One fill-up whose consumption looks off against that vehicle's own history.</summary>
+public class FuelConsumptionFlagDto
+{
+    public Guid ExpenseId { get; init; }
+
+    public Guid VehicleId { get; init; }
+
+    public string VehicleName { get; init; } = null!;
+
+    public DateOnly OccurredOn { get; init; }
+
+    public int DistanceKm { get; init; }
+
+    public decimal Litres { get; init; }
+
+    public decimal LitresPer100Km { get; init; }
+
+    /// <summary>The vehicle's own average over its prior fill-ups, before this one.</summary>
+    public decimal VehicleAverageLitresPer100Km { get; init; }
+
+    /// <summary>How far above (positive) or below (negative) that average this reading is.</summary>
+    public decimal DeviationPercent { get; init; }
+}
+
 public class FinanceEntryDto
 {
     public Guid Id { get; init; }

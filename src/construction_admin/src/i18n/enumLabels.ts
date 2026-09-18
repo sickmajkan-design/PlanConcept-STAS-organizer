@@ -45,7 +45,8 @@ export type EnumKind =
   | 'scheduledReportCadence'
   | 'weekDay'
   | 'weeklyReportType'
-  | 'weeklyReportStatus';
+  | 'weeklyReportStatus'
+  | 'auditAction';
 
 export function useEnumLabel() {
   const t = useT();

@@ -153,6 +153,7 @@ public class ApiAuthorizationTests
             new("POST", "/api/material-movements", UserRole.Foreman),
             new("DELETE", $"/api/material-movements/{Id}", UserRole.Foreman, HandlerNarrows: true),
             new("GET", "/api/vehicle-expenses", UserRole.Foreman),
+            new("GET", "/api/vehicle-expenses/fuel-consumption-flags", UserRole.Foreman),
             new("POST", "/api/vehicle-expenses", UserRole.Foreman),
             new("DELETE", $"/api/vehicle-expenses/{Id}", UserRole.Foreman, HandlerNarrows: true),
             new("GET", "/api/costs/projects", UserRole.Foreman),

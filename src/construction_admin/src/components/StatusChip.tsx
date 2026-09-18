@@ -2,7 +2,7 @@ import { Chip, type ChipProps } from '@mui/material';
 
 import { useEnumLabel, type EnumKind } from '../i18n/enumLabels';
 
-const GOOD = new Set(['Active', 'Available', 'Completed', 'Approved', 'Closed', 'Resolved', 'Owned', 'Processed']);
+const GOOD = new Set(['Active', 'Available', 'Completed', 'Approved', 'Closed', 'Resolved', 'Owned', 'Processed', 'Created']);
 const CAUTION = new Set([
   'OnLeave',
   'Planned',
@@ -23,7 +23,7 @@ const CAUTION = new Set([
   // the crew until it is returned.
   'RentedOut',
 ]);
-const BAD = new Set(['Suspended', 'UnderRepair', 'Lost', 'Rejected', 'Cancelled']);
+const BAD = new Set(['Suspended', 'UnderRepair', 'Lost', 'Rejected', 'Cancelled', 'Deleted']);
 
 /**
  * Colour-coded label for the API's status enums. Colours are grouped by
