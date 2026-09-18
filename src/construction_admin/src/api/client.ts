@@ -67,14 +67,26 @@ export function setSessionLostHandler(handler: () => void): void {
  */
 let refreshInFlight: Promise<Session | null> | null = null;
 
-async function performRefresh(): Promise<Session | null> {
-  const current = sessionStore.read();
-
-  if (!current) {
-    return null;
+/**
+ * Serialises refreshes across every tab of this browser, not just this one.
+ *
+ * All tabs share one refresh cookie, and the API treats a rotated token being
+ * presented again as theft: it revokes every token the user holds, the phone
+ * app's included. Two tabs refreshing at the same moment is exactly that
+ * pattern — and now that each new tab restores itself from the cookie on
+ * start-up, opening two at once would do it. Under the lock the second tab
+ * waits, and by the time it runs the browser already holds the rotated cookie.
+ */
+function withRefreshLock<T>(run: () => Promise<T>): Promise<T> {
+  if (!('locks' in navigator)) {
+    return run();
   }
 
-  try {
+  return navigator.locks.request('construction.admin.refresh', run);
+}
+
+function postRefresh(): Promise<AuthResponse> {
+  return withRefreshLock(async () => {
     // No token in the body — the browser holds it in a cookie it cannot read,
     // and sends it because of `withCredentials`.
     const { data } = await plainClient.post<AuthResponse>(
@@ -83,7 +95,19 @@ async function performRefresh(): Promise<Session | null> {
       { headers: cookieAuthHeaders },
     );
 
-    const refreshed = sessionFromAuthResponse(data);
+    return data;
+  });
+}
+
+async function performRefresh(): Promise<Session | null> {
+  const current = sessionStore.read();
+
+  if (!current) {
+    return null;
+  }
+
+  try {
+    const refreshed = sessionFromAuthResponse(await postRefresh());
     sessionStore.write(refreshed);
     return refreshed;
   } catch (error) {
@@ -108,6 +132,25 @@ function refreshSession(): Promise<Session | null> {
   });
 
   return refreshInFlight;
+}
+
+/**
+ * Revives a session from the refresh cookie alone, with nothing in storage.
+ *
+ * This is what makes a second tab — or a reload — work now that the session is
+ * scoped to the browsing session rather than the machine. The cookie is one
+ * too, so it is there while the browser is open and gone once it is closed,
+ * which is exactly the line the panel wants to draw. A failure here is the
+ * ordinary case, not an error: it means nobody is signed in.
+ */
+export async function restoreSessionFromCookie(): Promise<Session | null> {
+  try {
+    const restored = sessionFromAuthResponse(await postRefresh());
+    sessionStore.write(restored);
+    return restored;
+  } catch {
+    return null;
+  }
 }
 
 apiClient.interceptors.request.use(

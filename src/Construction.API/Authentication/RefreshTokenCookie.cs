@@ -151,9 +151,12 @@ public class RefreshTokenCookie
             SameSite = _settings.SameSite,
             Path = _settings.Path,
             Domain = _settings.EffectiveDomain,
-            // Expiring with the token itself: a cookie that outlives what it
-            // carries is a request the server can only answer with 401.
-            Expires = response.RefreshTokenExpiresAt,
+            // No Expires, deliberately: a session cookie, which the browser
+            // drops when it closes. The panel runs on shared office machines,
+            // and with a seven-day expiry here whoever opened the browser next
+            // was signed straight in as the last person — superadmin included.
+            // The token behind it still lives seven days for the mobile app,
+            // which never takes this path.
             IsEssential = true,
         });
 

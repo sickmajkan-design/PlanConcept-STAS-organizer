@@ -59,8 +59,17 @@ public class AuthController : ApiControllerBase
     }
 
     /// <summary>Revokes the presented refresh token, ending the session.</summary>
+    /// <remarks>
+    /// Anonymous, like refresh: holding the refresh token is the proof, and the
+    /// handler already refuses to let a signed-in user revoke somebody else's.
+    /// Requiring a live access token as well meant the admin panel could not
+    /// sign out a session it was ending for inactivity — the access token lasts
+    /// fifteen minutes and the idle limit is thirty, so by then it is always
+    /// dead, the call answered 401, and the refresh cookie stayed behind for
+    /// the next tab to quietly sign straight back in with.
+    /// </remarks>
     [HttpPost("logout")]
-    [Authorize]
+    [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Logout(
         TokenRequest? request,

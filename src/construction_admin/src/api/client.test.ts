@@ -136,6 +136,7 @@ let network: FakeNetwork;
 
 beforeEach(() => {
   window.localStorage.clear();
+  window.sessionStorage.clear();
   network = installFakeNetwork();
 });
 
@@ -215,7 +216,7 @@ describe('refreshing before the token dies', () => {
 
     await request({ method: 'GET', url: '/api/v1/employees' });
 
-    const raw = window.localStorage.getItem('construction.admin.session') ?? '';
+    const raw = window.sessionStorage.getItem('construction.admin.session') ?? '';
 
     expect(raw).not.toContain('a-real-refresh-token');
 
@@ -335,6 +336,54 @@ describe('when the session cannot be recovered', () => {
     ).rejects.toThrow();
 
     expect(network.calls.map((call) => call.url)).toEqual(['/api/v1/auth/login']);
+  });
+});
+
+describe('restoring a session from the cookie alone', () => {
+  it('revives a new tab that has nothing stored yet', async () => {
+    // The session is per tab now, so a second tab — or a reload — starts
+    // empty and asks the shared refresh cookie who is signed in.
+    network.reply('/api/v1/auth/refresh', 200, freshTokens);
+
+    const { restoreSessionFromCookie } = await loadClient();
+
+    const restored = await restoreSessionFromCookie();
+
+    expect(restored?.accessToken).toBe('new-access');
+    expect(sessionStore.read()?.accessToken).toBe('new-access');
+    expect(network.calls[0]?.headers['x-auth-mode']).toBe('cookie');
+  });
+
+  it('answers "nobody" quietly when there is no cookie', async () => {
+    // The ordinary case after the browser was closed: the session cookie is
+    // gone. Not an error, and not a "session lost" — there was none.
+    network.reply('/api/v1/auth/refresh', 400);
+
+    const { restoreSessionFromCookie, setSessionLostHandler } = await loadClient();
+
+    const lost = vi.fn();
+    setSessionLostHandler(lost);
+
+    await expect(restoreSessionFromCookie()).resolves.toBeNull();
+    expect(sessionStore.read()).toBeNull();
+    expect(lost).not.toHaveBeenCalled();
+  });
+});
+
+describe('signing out', () => {
+  it('needs no access token, so an idle sign-out still revokes the cookie', async () => {
+    // By the thirty-minute idle limit the fifteen-minute access token is
+    // always dead. Routed through the refreshing client, sign-out would first
+    // try to renew it — and with the session already cleared, it would reach
+    // the API with no credential at all.
+    storedSession({ accessTokenExpiresAt: inMinutes(-1) });
+
+    await loadClient();
+    const { authApi } = await import('./auth');
+
+    await authApi.logout();
+
+    expect(network.calls.map((call) => call.url)).toEqual(['/api/v1/auth/logout']);
   });
 });
 

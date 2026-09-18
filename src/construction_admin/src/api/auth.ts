@@ -12,9 +12,11 @@ export const authApi = {
       headers: cookieAuthHeaders,
     }),
 
-  // No token in the body: the API reads the cookie, and clears it.
+  // No token in the body: the API reads the cookie, and clears it. Anonymous,
+  // because the cookie is the credential — an idle sign-out happens long after
+  // the access token has died, and must still reach the API.
   logout: () =>
-    request<void>({ method: 'POST', url: '/api/v1/auth/logout', data: {} }),
+    anonymousRequest<void>({ method: 'POST', url: '/api/v1/auth/logout', data: {} }),
 
   currentUser: () => request<User>({ method: 'GET', url: '/api/v1/auth/me' }),
 

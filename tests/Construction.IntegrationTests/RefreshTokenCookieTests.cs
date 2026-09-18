@@ -247,6 +247,64 @@ public class RefreshTokenCookieTests
     }
 
     [Fact]
+    public async Task The_cookie_ends_when_the_browser_closes()
+    {
+        // A session cookie: no Expires and no Max-Age. With either, the panel
+        // survived a browser restart, and on a shared office machine the next
+        // person to open it was signed in as the last one.
+        var (email, _) = await _api.SeedSignInAccountAsync(UserRole.Admin);
+
+        using var client = _api.ClientWithoutCookieJar();
+
+        var (response, _) = await SignInAsync(client, email, wantCookie: true);
+
+        var cookie = SetCookieHeader(response);
+
+        Assert.NotNull(cookie);
+        Assert.DoesNotContain("expires=", cookie!, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("max-age=", cookie, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Signing_out_needs_only_the_cookie()
+    {
+        // The idle timeout signs out after thirty minutes, by which point the
+        // fifteen-minute access token is always dead. If sign-out insisted on
+        // one, the refresh cookie would outlive the timeout and the next tab
+        // would revive the session from it.
+        var (email, _) = await _api.SeedSignInAccountAsync(UserRole.SuperAdmin);
+
+        using var client = _api.ClientWithoutCookieJar();
+
+        var (loginResponse, _) = await SignInAsync(client, email, wantCookie: true);
+
+        var cookieValue = SetCookieHeader(loginResponse)!.Split(';')[0];
+
+        using var logout = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/logout")
+        {
+            Content = JsonContent.Create(new { }),
+        };
+
+        logout.Headers.Add("Cookie", cookieValue);
+
+        var logoutResponse = await client.SendAsync(logout);
+
+        Assert.Equal(HttpStatusCode.NoContent, logoutResponse.StatusCode);
+
+        // And the token is actually revoked, not merely forgotten by the browser.
+        using var refresh = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/refresh")
+        {
+            Content = JsonContent.Create(new { }),
+        };
+
+        refresh.Headers.Add("Cookie", cookieValue);
+
+        var refreshResponse = await client.SendAsync(refresh);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, refreshResponse.StatusCode);
+    }
+
+    [Fact]
     public async Task A_spent_cookie_cannot_be_used_twice()
     {
         // Rotation and reuse detection are unchanged by where the token is

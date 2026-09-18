@@ -97,7 +97,9 @@ public class ApiAuthorizationTests
             // and so is the rule. Each of these has its own case below, costing
             // one or two requests instead of six.
             new("POST", "/api/auth/refresh", null),
-            new("POST", "/api/auth/logout", UserRole.Worker, AnyAuthenticated: true),
+            // Anonymous like refresh: the refresh token is the credential. See
+            // AuthController.Logout for why a live access token cannot be required.
+            new("POST", "/api/auth/logout", null),
             new("GET", "/api/auth/me", UserRole.Worker, AnyAuthenticated: true),
 
             // ---- absences and the schedule board -------------------------

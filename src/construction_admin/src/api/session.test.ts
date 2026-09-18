@@ -5,7 +5,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { AuthResponse } from './types';
 import {
+  activityClock,
+  IDLE_LIMIT_MS,
   isAccessTokenExpired,
+  purgeLegacySession,
   sessionFromAuthResponse,
   sessionStore,
   type Session,
@@ -35,6 +38,7 @@ function sessionWith(overrides: Partial<Session> = {}): Session {
 
 beforeEach(() => {
   window.localStorage.clear();
+  window.sessionStorage.clear();
 });
 
 afterEach(() => {
@@ -50,6 +54,16 @@ describe('sessionStore', () => {
     expect(sessionStore.read()).toEqual(session);
   });
 
+  it('keeps the session where closing the browser removes it', () => {
+    // The whole point: in localStorage it outlived the browser, and whoever
+    // opened the panel next on a shared machine was signed in as the last
+    // person to use it.
+    sessionStore.write(sessionWith());
+
+    expect(window.sessionStorage.getItem('construction.admin.session')).not.toBeNull();
+    expect(window.localStorage.getItem('construction.admin.session')).toBeNull();
+  });
+
   it('has no session before anybody signs in', () => {
     expect(sessionStore.read()).toBeNull();
   });
@@ -60,14 +74,14 @@ describe('sessionStore', () => {
     // Nothing can revive it, so keeping it would only mean the app starts up
     // believing it is signed in and discovers otherwise on the first request.
     expect(sessionStore.read()).toBeNull();
-    expect(window.localStorage.length).toBe(0);
+    expect(window.sessionStorage.length).toBe(0);
   });
 
   it('discards a stored value that is not a session at all', () => {
-    window.localStorage.setItem('construction.admin.session', '{not json');
+    window.sessionStorage.setItem('construction.admin.session', '{not json');
 
     expect(sessionStore.read()).toBeNull();
-    expect(window.localStorage.length).toBe(0);
+    expect(window.sessionStorage.length).toBe(0);
   });
 
   it('clears on request', () => {
@@ -75,6 +89,69 @@ describe('sessionStore', () => {
     sessionStore.clear();
 
     expect(sessionStore.read()).toBeNull();
+  });
+});
+
+describe('purgeLegacySession', () => {
+  it('removes the session an older version left in localStorage', () => {
+    window.localStorage.setItem('construction.admin.session', JSON.stringify(sessionWith()));
+
+    purgeLegacySession();
+
+    expect(window.localStorage.getItem('construction.admin.session')).toBeNull();
+  });
+});
+
+describe('activityClock', () => {
+  it('counts a machine that has never recorded activity as expired', () => {
+    // A browser last used by the version with a week-long cookie may still
+    // hold one. Expired is what gets that cookie revoked instead of revived.
+    expect(activityClock.isExpired()).toBe(true);
+  });
+
+  it('is not expired right after signing in', () => {
+    activityClock.start();
+
+    expect(activityClock.isExpired()).toBe(false);
+  });
+
+  it('expires once the panel has been left alone for the idle limit', () => {
+    vi.useFakeTimers();
+    activityClock.start();
+
+    vi.advanceTimersByTime(IDLE_LIMIT_MS - 1_000);
+    expect(activityClock.isExpired()).toBe(false);
+
+    vi.advanceTimersByTime(1_000);
+    expect(activityClock.isExpired()).toBe(true);
+  });
+
+  it('restarts the countdown on interaction', () => {
+    vi.useFakeTimers();
+    activityClock.start();
+
+    vi.advanceTimersByTime(IDLE_LIMIT_MS - 60_000);
+    activityClock.touch();
+    vi.advanceTimersByTime(IDLE_LIMIT_MS - 60_000);
+
+    expect(activityClock.isExpired()).toBe(false);
+  });
+
+  it('does not let a late click revive a session that already timed out', () => {
+    vi.useFakeTimers();
+    activityClock.start();
+
+    vi.advanceTimersByTime(IDLE_LIMIT_MS);
+    activityClock.touch();
+
+    expect(activityClock.isExpired()).toBe(true);
+  });
+
+  it('is shared by every tab, so a background tab cannot time out the one in use', () => {
+    // localStorage, unlike the session itself: one clock for the browser.
+    activityClock.start();
+
+    expect(window.localStorage.getItem('construction.admin.last-active')).not.toBeNull();
   });
 });
 
@@ -125,7 +202,7 @@ describe('sessionFromAuthResponse', () => {
       }),
     );
 
-    const raw = window.localStorage.getItem('construction.admin.session') ?? '';
+    const raw = window.sessionStorage.getItem('construction.admin.session') ?? '';
 
     expect(raw).not.toContain('a-real-refresh-token');
   });
