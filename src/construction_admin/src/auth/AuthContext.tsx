@@ -7,6 +7,7 @@ import {
   sessionStore,
   type Session,
 } from '../api/session';
+import { queryClient } from '../queryClient';
 import { AuthContext, type AuthContextValue } from './authContextInstance';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -14,13 +15,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setSession(sessionStore.read());
-    setSessionLostHandler(() => setSession(null));
+    // A forced sign-out (refresh rejected) leaves cached queries for whoever
+    // was signed in — clear them so the next person on this machine never
+    // sees a screen still holding the previous account's data.
+    setSessionLostHandler(() => {
+      queryClient.clear();
+      setSession(null);
+    });
   }, []);
 
   const signIn = useCallback(async (email: string, password: string) => {
     const response = await authApi.login(email, password);
     const next = sessionFromAuthResponse(response);
     sessionStore.write(next);
+    // React Query's cache keys don't carry a user id, so anything left over
+    // from a previous account would otherwise render for this one until it
+    // happened to refetch — a real cross-account data leak, not just a stale
+    // UI flash.
+    queryClient.clear();
     setSession(next);
   }, []);
 
@@ -36,6 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     sessionStore.clear();
+    queryClient.clear();
     setSession(null);
   }, []);
 
