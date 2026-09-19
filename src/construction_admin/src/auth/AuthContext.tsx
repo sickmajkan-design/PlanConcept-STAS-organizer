@@ -9,6 +9,7 @@ import {
   sessionStore,
   type Session,
 } from '../api/session';
+import { purgeLegacyUiStorage } from '../hooks/userScopedStorage';
 import { queryClient } from '../queryClient';
 import { AuthContext, type AuthContextValue } from './authContextInstance';
 
@@ -66,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     purgeLegacySession();
+    purgeLegacyUiStorage();
 
     // A forced sign-out (refresh rejected) leaves cached queries for whoever
     // was signed in — clear them so the next person on this machine never

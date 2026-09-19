@@ -27,6 +27,7 @@ import {
 import { useT } from '../i18n/useI18n';
 import type { NavItem } from './navConfig';
 import type { useFavorites } from './useFavorites';
+import { storageScope } from '../hooks/userScopedStorage';
 import { readRecentRecords } from './useRecentRecords';
 
 interface CommandPaletteProps {
@@ -50,6 +51,7 @@ export function CommandPalette({ open, onClose, items, favorites, user }: Comman
   const [recent, setRecent] = useState<Row[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const { groups, loading } = useGlobalSearch(query, user);
+  const scope = storageScope(user);
 
   const pageResults = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -86,7 +88,7 @@ export function CommandPalette({ open, onClose, items, favorites, user }: Comman
       setQuery('');
       setHighlightedIndex(0);
       setRecent(
-        readRecentRecords().map((r) => ({
+        readRecentRecords(scope).map((r) => ({
           kind: 'recent',
           key: `recent:${r.path}`,
           label: r.label,
@@ -97,7 +99,7 @@ export function CommandPalette({ open, onClose, items, favorites, user }: Comman
       // Dialog mounts before its content is painted; wait a tick so autoFocus doesn't race it.
       requestAnimationFrame(() => inputRef.current?.focus());
     }
-  }, [open]);
+  }, [open, scope]);
 
   useEffect(() => {
     setHighlightedIndex(0);

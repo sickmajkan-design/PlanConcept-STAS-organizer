@@ -44,6 +44,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { displayName } from '../auth/authHelpers';
 import { useAuth } from '../auth/useAuth';
+import { readScoped, storageScope, writeScoped } from '../hooks/userScopedStorage';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { OfflineBanner } from '../components/OfflineBanner';
 import { UndoSnackbarHost } from '../components/UndoSnackbarHost';
@@ -74,7 +75,7 @@ import { useNavBadgeCounts } from './useNavBadgeCounts';
 
 const RAIL_WIDTH = 72;
 const MOBILE_DRAWER_WIDTH = 260;
-const EXPANDED_GROUPS_STORAGE_KEY = 'nav.expandedGroups';
+const EXPANDED_GROUPS_KEY = 'nav.expandedGroups';
 /** How long the pointer must hover the rail logo before the enlarged preview appears. */
 const LOGO_PREVIEW_HOVER_DELAY_MS = 500;
 
@@ -92,16 +93,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [logoPreviewAnchor, setLogoPreviewAnchor] = useState<HTMLElement | null>(null);
   const logoHoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
-    try {
-      const raw = localStorage.getItem(EXPANDED_GROUPS_STORAGE_KEY);
-      return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
-    } catch {
-      return new Set();
-    }
-  });
-
   const { user, signOut } = useAuth();
+  const scope = storageScope(user);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
+    () => new Set(readScoped<string[]>(scope, EXPANDED_GROUPS_KEY, [])),
+  );
+
+  useEffect(() => {
+    setExpandedGroups(new Set(readScoped<string[]>(scope, EXPANDED_GROUPS_KEY, [])));
+  }, [scope]);
+
   const navigate = useNavigate();
   const location = useLocation();
   const t = useT();
@@ -220,11 +221,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
       } else {
         next.add(key);
       }
-      try {
-        localStorage.setItem(EXPANDED_GROUPS_STORAGE_KEY, JSON.stringify([...next]));
-      } catch {
-        // best-effort persistence only
-      }
+      writeScoped(scope, EXPANDED_GROUPS_KEY, [...next]);
       return next;
     });
   };
