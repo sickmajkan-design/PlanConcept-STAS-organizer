@@ -77,6 +77,11 @@ export function resolveNotificationTarget(
       return `${paths.timeEntries}?${params.toString()}`;
     }
 
+    // The costs page has no per-row highlight yet, so this lands on the list,
+    // where the rejected cost carries the "Rejected" status.
+    case 'VehicleExpenseRejected':
+      return hasDirectory ? paths.vehicleExpenses : null;
+
     case 'AbsenceRequested':
     case 'AbsenceEditProposed':
       if (!hasDirectory) return null;

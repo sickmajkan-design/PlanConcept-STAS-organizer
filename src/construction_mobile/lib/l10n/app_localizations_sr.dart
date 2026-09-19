@@ -1006,6 +1006,14 @@ class AppLocalizationsSr extends AppLocalizations {
   }
 
   @override
+  String get notificationVehicleExpenseRejectedTitle => 'Trošak vraćen na doradu';
+
+  @override
+  String notificationVehicleExpenseRejectedBody(String vehicleName, String date, String note) {
+    return '$vehicleName ($date) je vraćen: $note';
+  }
+
+  @override
   String get notificationAbsenceRequestedTitle => 'Zahtjev za odsustvo';
 
   @override
@@ -1077,6 +1085,9 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get notificationTypeDefectReported => 'Prijavljen kvar';
+
+  @override
+  String get notificationTypeVehicleExpenseRejected => 'Trošak vraćen';
 
   @override
   String get notificationTypeAbsenceRequested => 'Zahtjev za odsustvo';

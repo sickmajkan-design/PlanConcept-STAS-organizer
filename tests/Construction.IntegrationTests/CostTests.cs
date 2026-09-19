@@ -1068,6 +1068,58 @@ public class CostTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task A_rejection_tells_whoever_recorded_the_cost_and_says_why()
+    {
+        var (vehicle, foreman) = await SeedFleetKeeperAsync();
+        var reviewer = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.ProjectManager));
+
+        var expense = await RecordExpenseAsync(
+            foreman, vehicle.Id, VehicleExpenseKind.Service, 5_000m, occurredOn: March);
+
+        await InScope(scope =>
+        {
+            ActAs(scope, reviewer);
+            return scope.Send(new ReviewVehicleExpenseCommand
+            {
+                Id = expense.Id,
+                Approve = false,
+                Note = "Receipt missing."
+            });
+        });
+
+        var notification = await InScope(scope => scope.Db.Notifications
+            .Where(n => n.UserId == foreman.Id && n.Type == NotificationType.VehicleExpenseRejected)
+            .SingleAsync());
+
+        Assert.Contains("Receipt missing.", notification.Body);
+        var data = System.Text.Json.JsonDocument.Parse(notification.DataJson!).RootElement;
+
+        Assert.Equal("Receipt missing.", data.GetProperty("note").GetString());
+        Assert.Equal(expense.Id.ToString(), data.GetProperty("expenseId").GetString());
+    }
+
+    [Fact]
+    public async Task An_approval_does_not_notify_anyone()
+    {
+        var (vehicle, foreman) = await SeedFleetKeeperAsync();
+        var reviewer = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.ProjectManager));
+
+        var expense = await RecordExpenseAsync(
+            foreman, vehicle.Id, VehicleExpenseKind.Service, 5_000m, occurredOn: March);
+
+        await InScope(scope =>
+        {
+            ActAs(scope, reviewer);
+            return scope.Send(new ReviewVehicleExpenseCommand { Id = expense.Id, Approve = true });
+        });
+
+        var count = await InScope(scope => scope.Db.Notifications
+            .CountAsync(n => n.Type == NotificationType.VehicleExpenseRejected && n.UserId == foreman.Id));
+
+        Assert.Equal(0, count);
+    }
+
+    [Fact]
     public async Task Editing_a_reviewed_cost_sends_it_back_to_pending()
     {
         var (vehicle, foreman) = await SeedFleetKeeperAsync();

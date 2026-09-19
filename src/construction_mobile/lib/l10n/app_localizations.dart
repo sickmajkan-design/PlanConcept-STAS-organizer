@@ -1847,6 +1847,18 @@ abstract class AppLocalizations {
   /// **'{reporterName} reported: {title}'**
   String notificationDefectReportedBody(String reporterName, String title);
 
+  /// No description provided for @notificationVehicleExpenseRejectedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost sent back'**
+  String get notificationVehicleExpenseRejectedTitle;
+
+  /// No description provided for @notificationVehicleExpenseRejectedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{vehicleName} ({date}) was sent back: {note}'**
+  String notificationVehicleExpenseRejectedBody(String vehicleName, String date, String note);
+
   /// No description provided for @notificationAbsenceRequestedTitle.
   ///
   /// In en, this message translates to:
@@ -1965,6 +1977,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Defect reported'**
   String get notificationTypeDefectReported;
+
+  /// No description provided for @notificationTypeVehicleExpenseRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost sent back'**
+  String get notificationTypeVehicleExpenseRejected;
 
   /// No description provided for @notificationTypeAbsenceRequested.
   ///

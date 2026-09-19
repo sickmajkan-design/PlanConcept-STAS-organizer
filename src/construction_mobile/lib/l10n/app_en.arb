@@ -574,6 +574,15 @@
       "title": { "type": "String" }
     }
   },
+  "notificationVehicleExpenseRejectedTitle": "Cost sent back",
+  "notificationVehicleExpenseRejectedBody": "{vehicleName} ({date}) was sent back: {note}",
+  "@notificationVehicleExpenseRejectedBody": {
+    "placeholders": {
+      "vehicleName": { "type": "String" },
+      "date": { "type": "String" },
+      "note": { "type": "String" }
+    }
+  },
   "notificationAbsenceRequestedTitle": "Time off requested",
   "notificationAbsenceRequestedBody": "{employeeName} asked for time off, from {startDate} to {endDate}.",
   "@notificationAbsenceRequestedBody": {
@@ -612,6 +621,7 @@
   "notificationTypeEmployeeClockedOut": "Clocked out",
   "notificationTypeUnassignedProjectClockIn": "Unassigned clock-in",
   "notificationTypeDefectReported": "Defect reported",
+  "notificationTypeVehicleExpenseRejected": "Cost sent back",
   "notificationTypeAbsenceRequested": "Leave requested",
   "notificationTypeDocumentRetentionEnded": "Document retention ended",
   "announceTitle": "Send an announcement",

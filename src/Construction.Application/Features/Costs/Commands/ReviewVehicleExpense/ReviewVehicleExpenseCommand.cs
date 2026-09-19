@@ -54,15 +54,18 @@ public class ReviewVehicleExpenseCommandHandler
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly INotificationService _notifications;
 
     public ReviewVehicleExpenseCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        INotificationService notifications)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
+        _notifications = notifications;
     }
 
     public async Task<VehicleExpenseDto> Handle(
@@ -126,10 +129,33 @@ public class ReviewVehicleExpenseCommandHandler
                 "This cost was changed by someone else just now. Reload it and try again.");
         }
 
-        return await _context.VehicleExpenses
+        var dto = await _context.VehicleExpenses
             .AsNoTracking()
             .Where(e => e.Id == expense.Id)
             .Select(VehicleExpenseMapping.Projection)
             .FirstAsync(cancellationToken);
+
+        // Only a rejection: it is the one outcome that asks something of the
+        // person who recorded the cost. An approval needs nothing from them,
+        // and a notification for every signed-off fill-up would teach people to
+        // stop reading this one.
+        if (!request.Approve && expense.RecordedByUserId is { } recorderId)
+        {
+            await _notifications.NotifyUserAsync(
+                recorderId,
+                NotificationType.VehicleExpenseRejected,
+                "Cost sent back",
+                $"{dto.VehicleName} ({dto.OccurredOn:yyyy-MM-dd}) was sent back: {dto.ReviewNote}",
+                new Dictionary<string, string>
+                {
+                    ["expenseId"] = dto.Id.ToString(),
+                    ["vehicleName"] = dto.VehicleName,
+                    ["occurredOn"] = dto.OccurredOn.ToString("yyyy-MM-dd"),
+                    ["note"] = dto.ReviewNote ?? string.Empty
+                },
+                cancellationToken: cancellationToken);
+        }
+
+        return dto;
     }
 }

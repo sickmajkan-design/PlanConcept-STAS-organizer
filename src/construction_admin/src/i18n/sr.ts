@@ -1872,6 +1872,7 @@ export const sr: Record<MessageKey, Message> = {
   'notificationType.DocumentRetentionEnded': 'Istekao rok čuvanja',
   'notificationType.DirectMessage': 'Poruka',
   'notificationType.ClockInLocationMismatch': 'Neusklađena lokacija',
+  'notificationType.VehicleExpenseRejected': 'Trošak vraćen na doradu',
 
   // --- Pomoćnik ----------------------------------------------------------
   'assistant.title': 'Kancelarijski pomoćnik',

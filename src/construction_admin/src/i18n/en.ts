@@ -1839,6 +1839,7 @@ export const en = {
   'notificationType.DocumentRetentionEnded': 'Retention ended',
   'notificationType.DirectMessage': 'Message',
   'notificationType.ClockInLocationMismatch': 'Location mismatch',
+  'notificationType.VehicleExpenseRejected': 'Cost sent back',
 
   // --- Assistant ------------------------------------------------------------
   'assistant.title': 'Office assistant',

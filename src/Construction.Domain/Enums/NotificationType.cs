@@ -52,5 +52,8 @@ public enum NotificationType
     DirectMessage = 20,
 
     /// <summary>A clock-in's GPS fix landed outside the site's geofence — never blocks the clock-in itself.</summary>
-    ClockInLocationMismatch = 21
+    ClockInLocationMismatch = 21,
+
+    /// <summary>A vehicle cost this person recorded was sent back by a reviewer, with a reason.</summary>
+    VehicleExpenseRejected = 22
 }

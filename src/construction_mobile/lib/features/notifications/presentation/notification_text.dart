@@ -278,6 +278,23 @@ LocalizedNotificationText resolveNotificationText(
         );
       }
 
+    case 'VehicleExpenseRejected':
+      {
+        final vehicleName = str('vehicleName');
+        final occurredOn = str('occurredOn');
+        final note = str('note');
+        if (vehicleName == null || occurredOn == null || note == null) return fallback;
+
+        return LocalizedNotificationText(
+          title: l10n.notificationVehicleExpenseRejectedTitle,
+          body: l10n.notificationVehicleExpenseRejectedBody(
+            vehicleName,
+            _isoDate(occurredOn),
+            note,
+          ),
+        );
+      }
+
     case 'AbsenceRequested':
       {
         final employeeName = str('employeeName');
