@@ -738,6 +738,12 @@ export const sr: Record<MessageKey, Message> = {
   'materials.noProjectNote': 'Skladišna zaliha, nije vezana za projekat.',
   'materials.adjustHint': 'Unesite pozitivan broj za primljenu robu ili negativan za utrošenu. Trenutna količina: {quantity} {unit}.',
   'materials.historyValue': 'Vrijednost',
+  'invoiceFile.attach': 'Priloži sken ili fotografiju fakture',
+  'invoiceFile.hint': 'Opcionalno. PDF ili slika, do 20 MB.',
+  'invoiceFile.remove': 'Ukloni fajl',
+  'invoiceFile.tooBig': 'Fajl je veći od 20 MB.',
+  'invoiceFile.badType': 'Ova vrsta fajla nije dozvoljena.',
+  'invoiceFile.uploadFailed': 'Prijem je sačuvan, ali fajl fakture nije mogao biti priložen: {reason} Otvorite prijem da ga ponovo priložite.',
   'materials.deleteTitle': 'Obrisati materijal?',
   'materials.deleteBody': '{name} će biti uklonjen iz aktivnih zapisa.',
 

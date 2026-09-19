@@ -16,7 +16,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -25,6 +25,9 @@ import type { MaterialInput } from '../../api/types';
 import { useAuth } from '../../auth/useAuth';
 import { canSeeSpending } from '../../auth/authHelpers';
 import { ErrorState } from '../../components/ErrorState';
+import { InvoiceFilePicker } from '../../components/InvoiceFilePicker';
+import { costsApi } from '../../api/costs';
+import { attachmentsApi } from '../../api/attachments';
 import { useMovementSuppliersQuery } from '../../features/costs/useCosts';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
 import { useCreateMaterial, useMaterialQuery, useUpdateMaterial } from '../../features/materials/useMaterials';
@@ -88,6 +91,7 @@ export function MaterialFormPage() {
   const { data: allProjects } = useAllProjectsQuery();
   const { data: knownSuppliers } = useMovementSuppliersQuery(!isEdit && showReceiptDetails);
   const createMaterial = useCreateMaterial();
+  const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
   const updateMaterial = useUpdateMaterial(id ?? '');
 
   const {
@@ -161,7 +165,36 @@ export function MaterialFormPage() {
         ? await updateMaterial.mutateAsync(input)
         : await createMaterial.mutateAsync(input);
 
-      navigate(paths.materialDetail(saved.id));
+      let invoiceProblem: string | null = null;
+
+      // The starting delivery exists now; the invoice file hangs off it.
+      if (!isEdit && invoiceFile && hasStock) {
+        try {
+          const created = await costsApi.movements.list({
+            materialId: saved.id,
+            pageNumber: 1,
+            pageSize: 1,
+            sortBy: 'createdAt',
+            sortDescending: true,
+          });
+          const movement = created.items[0];
+
+          if (movement) {
+            await attachmentsApi.upload({
+              ownerType: 'MaterialMovement',
+              ownerId: movement.id,
+              category: 'Other',
+              file: invoiceFile,
+            });
+          }
+        } catch (uploadErr) {
+          invoiceProblem = toApiError(uploadErr).message;
+        }
+      }
+
+      navigate(paths.materialDetail(saved.id), {
+        state: invoiceProblem ? { invoiceUploadFailed: invoiceProblem } : undefined,
+      });
     } catch (err) {
       const apiError = toApiError(err);
 
@@ -306,6 +339,9 @@ export function MaterialFormPage() {
                     </Grid>
                     <Grid size={{ xs: 12, sm: 6 }}>
                       {text('invoiceNumber', t('materials.invoiceNumber'))}
+                    </Grid>
+                    <Grid size={12}>
+                      <InvoiceFilePicker file={invoiceFile} onChange={setInvoiceFile} />
                     </Grid>
                     <Grid size={12}>
                       {text('receiptNote', t('materials.receiptNote'), { multiline: true, minRows: 2 })}

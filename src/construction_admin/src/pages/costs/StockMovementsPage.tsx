@@ -32,6 +32,8 @@ import { useAuth } from '../../auth/useAuth';
 import { AttachmentList } from '../../components/AttachmentList';
 import { AuditHistoryCard } from '../../components/AuditHistoryCard';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { InvoiceFilePicker } from '../../components/InvoiceFilePicker';
+import { useUploadAttachment } from '../../features/attachments/useAttachments';
 import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
@@ -335,6 +337,11 @@ export function MovementDialog({
   const [note, setNote] = useState('');
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [supplier, setSupplier] = useState('');
+  const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
+  // Set when the delivery was saved but its invoice file was not: the form must
+  // not be submitted again, or the delivery would be recorded twice.
+  const [uploadProblem, setUploadProblem] = useState<string | null>(null);
+  const uploadAttachment = useUploadAttachment();
   const { data: knownSuppliers } = useMovementSuppliersQuery(open);
 
   const resetRecord = record.reset;
@@ -369,6 +376,9 @@ export function MovementDialog({
       setInvoiceNumber('');
       setSupplier('');
     }
+
+    setInvoiceFile(null);
+    setUploadProblem(null);
   }, [open, editingMovement, defaultMaterialId, defaultKind, resetRecord, resetUpdate]);
 
   const isDelivery = kind === 'In';
@@ -406,7 +416,25 @@ export function MovementDialog({
         { onSuccess: onClose },
       );
     } else {
-      record.mutate(input, { onSuccess: onClose });
+      record.mutate(input, {
+        onSuccess: async (saved) => {
+          if (invoiceFile) {
+            try {
+              await uploadAttachment.mutateAsync({
+                ownerType: 'MaterialMovement',
+                ownerId: saved.id,
+                category: 'Other',
+                file: invoiceFile,
+              });
+            } catch (err) {
+              setUploadProblem(toApiError(err).message);
+              return;
+            }
+          }
+
+          onClose();
+        },
+      });
     }
   };
 
@@ -417,6 +445,11 @@ export function MovementDialog({
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error.message}
+          </Alert>
+        )}
+        {uploadProblem && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            {t('invoiceFile.uploadFailed', { reason: uploadProblem })}
           </Alert>
         )}
 
@@ -522,6 +555,12 @@ export function MovementDialog({
             </Grid>
           )}
 
+          {isDelivery && !isEditing && (
+            <Grid size={12}>
+              <InvoiceFilePicker file={invoiceFile} onChange={setInvoiceFile} />
+            </Grid>
+          )}
+
           <Grid size={{ xs: 12, sm: 6 }}>
             <TextField
               type="date"
@@ -600,7 +639,7 @@ export function MovementDialog({
         <Button onClick={onClose}>{t('common.cancel')}</Button>
         <Button
           variant="contained"
-          disabled={!canSubmit || mutation.isPending}
+          disabled={!canSubmit || mutation.isPending || uploadAttachment.isPending || !!uploadProblem}
           onClick={submit}
         >
           {isEditing ? t('common.save') : t('common.create')}

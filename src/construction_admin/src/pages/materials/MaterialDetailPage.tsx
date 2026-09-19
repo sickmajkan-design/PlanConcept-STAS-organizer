@@ -32,7 +32,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { Link as RouterLink, useNavigate, useParams } from 'react-router-dom';
+import { Link as RouterLink, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
 import { useAuth } from '../../auth/useAuth';
@@ -53,6 +53,9 @@ const HISTORY_ROWS = 15;
 export function MaterialDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const invoiceUploadFailed = (location.state as { invoiceUploadFailed?: string } | null)
+    ?.invoiceUploadFailed;
   const t = useT();
   const enumLabel = useEnumLabel();
   const { user } = useAuth();
@@ -107,6 +110,11 @@ export function MaterialDetailPage() {
 
   return (
     <Box sx={{ maxWidth: 960 }}>
+      {invoiceUploadFailed && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          {t('invoiceFile.uploadFailed', { reason: invoiceUploadFailed })}
+        </Alert>
+      )}
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <Stack

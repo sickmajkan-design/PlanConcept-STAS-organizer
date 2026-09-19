@@ -710,6 +710,12 @@ export const en = {
   'materials.noProjectNote': 'Warehouse stock, not tied to a project.',
   'materials.adjustHint': 'Enter a positive number for stock received or a negative one for stock used. Current quantity: {quantity} {unit}.',
   'materials.historyValue': 'Value',
+  'invoiceFile.attach': 'Attach a scan or photo of the invoice',
+  'invoiceFile.hint': 'Optional. PDF or image, up to 20 MB.',
+  'invoiceFile.remove': 'Remove file',
+  'invoiceFile.tooBig': 'The file is larger than 20 MB.',
+  'invoiceFile.badType': 'This file type is not accepted.',
+  'invoiceFile.uploadFailed': 'The delivery was saved, but the invoice file could not be attached: {reason} Open the delivery to attach it again.',
   'materials.deleteTitle': 'Delete material?',
   'materials.deleteBody': '{name} will be removed from active records.',
 
