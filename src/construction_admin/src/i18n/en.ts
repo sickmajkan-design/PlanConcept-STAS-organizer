@@ -1127,6 +1127,8 @@ export const en = {
   'absenceStatus.Cancelled': 'Withdrawn',
   // --- Costs ----------------------------------------------------------------
   'nav.costs': 'Costs',
+  'nav.costRecords': 'Cost records',
+  'nav.billingSettings': 'Billing settings',
   'nav.stockMovements': 'Stock movements',
   'nav.vehicleExpenses': 'Vehicle costs',
   'nav.toolExpenses': 'Tool costs',

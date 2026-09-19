@@ -53,6 +53,14 @@ export interface NavItem {
   label: string;
   path: string;
   icon: ReactNode;
+  /**
+   * Reached through a tab strip on its section's page rather than the drawer.
+   * Still searchable, favouritable and part of the breadcrumb trail; only the
+   * drawer and the collapsed rail leave it out.
+   */
+  inTabs?: boolean;
+  /** Other paths this entry is "current" for, so a hub stays highlighted on its tabs. */
+  alsoActiveOn?: string[];
 }
 
 export interface NavGroup {
@@ -146,51 +154,79 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
             items: [
               { label: t('nav.costs'), path: paths.costs, icon: <PaidOutlined /> },
               {
-                label: t('nav.stockMovements'),
-                path: paths.stockMovements,
-                icon: <SwapVertOutlined />,
+                label: t('nav.costRecords'),
+                path: paths.costRecords,
+                icon: <ReceiptLongOutlined />,
+                alsoActiveOn: [
+                  paths.vehicleExpenses,
+                  paths.toolExpenses,
+                  paths.generalExpenses,
+                  paths.stockMovements,
+                  paths.accommodations,
+                  paths.financeEntries,
+                ],
               },
               {
                 label: t('nav.vehicleExpenses'),
                 path: paths.vehicleExpenses,
                 icon: <LocalGasStationOutlined />,
+                inTabs: true,
               },
               {
                 label: t('nav.toolExpenses'),
                 path: paths.toolExpenses,
                 icon: <BuildCircleOutlined />,
+                inTabs: true,
               },
               {
                 label: t('nav.generalExpenses'),
                 path: paths.generalExpenses,
                 icon: <PaymentsOutlined />,
+                inTabs: true,
+              },
+              {
+                label: t('nav.stockMovements'),
+                path: paths.stockMovements,
+                icon: <SwapVertOutlined />,
+                inTabs: true,
               },
               {
                 label: t('nav.accommodations'),
                 path: paths.accommodations,
                 icon: <HomeWorkOutlined />,
+                inTabs: true,
               },
               ...(canSeeLabourCost(user)
                 ? [
                     {
+                      label: t('nav.financeEntries'),
+                      path: paths.financeEntries,
+                      icon: <ReceiptLongOutlined />,
+                      inTabs: true,
+                    },
+                    {
+                      label: t('nav.billingSettings'),
+                      path: paths.billingSettings,
+                      icon: <RequestQuoteOutlined />,
+                      alsoActiveOn: [paths.rates, paths.publicHolidays, paths.annualRealization],
+                    },
+                    {
                       label: t('nav.rates'),
                       path: paths.rates,
                       icon: <RequestQuoteOutlined />,
+                      inTabs: true,
                     },
                     {
                       label: t('nav.publicHolidays'),
                       path: paths.publicHolidays,
                       icon: <EventOutlined />,
-                    },
-                    {
-                      label: t('nav.financeEntries'),
-                      path: paths.financeEntries,
-                      icon: <ReceiptLongOutlined />,
+                      inTabs: true,
                     },
                     {
                       label: t('nav.annualRealization'),
                       path: paths.annualRealization,
                       icon: <TrendingUpOutlined />,
+                      inTabs: true,
                     },
                   ]
                 : []),

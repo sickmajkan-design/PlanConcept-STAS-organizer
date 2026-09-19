@@ -54,6 +54,8 @@ export const paths = {
   assignmentBoard: '/assignment-board',
 
   costs: '/costs',
+  costRecords: '/cost-records',
+  billingSettings: '/billing-settings',
   stockMovements: '/stock-movements',
   vehicleExpenses: '/vehicle-expenses',
   fuelImport: '/vehicle-expenses/fuel-import',

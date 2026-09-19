@@ -1158,6 +1158,8 @@ export const sr: Record<MessageKey, Message> = {
   'absenceStatus.Cancelled': 'Povučeno',
   // --- Troskovi -------------------------------------------------------------
   'nav.costs': 'Troškovi',
+  'nav.costRecords': 'Unosi troškova',
+  'nav.billingSettings': 'Podešavanja obračuna',
   'nav.stockMovements': 'Promet materijala',
   'nav.vehicleExpenses': 'Troškovi vozila',
   'nav.toolExpenses': 'Troškovi alata',

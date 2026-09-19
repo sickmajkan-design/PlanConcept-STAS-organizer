@@ -5,6 +5,7 @@ import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { RouteErrorFallback } from './components/RouteErrorFallback';
 import { AppLayout } from './layout/AppLayout';
+import { BillingSettingsLayout, CostRecordsLayout } from './layout/SectionTabs';
 import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { LoginPage } from './pages/auth/LoginPage';
@@ -347,16 +348,24 @@ function Layout() {
               <Route path={`${paths.workItems}/:id/edit`} element={<WorkItemFormPage />} />
 
               <Route path={paths.costs} element={<CostsPage />} />
-              <Route path={paths.stockMovements} element={<StockMovementsPage />} />
-              <Route path={paths.vehicleExpenses} element={<VehicleExpensesPage />} />
-              <Route path={paths.fuelImport} element={<FuelImportPage />} />
-              <Route path={paths.toolExpenses} element={<ToolExpensesPage />} />
-              <Route path={paths.generalExpenses} element={<GeneralExpensesPage />} />
+              <Route
+                path={paths.costRecords}
+                element={<Navigate to={paths.vehicleExpenses} replace />}
+              />
 
-              <Route path={paths.accommodations} element={<AccommodationsListPage />} />
-              <Route path={paths.accommodationNew} element={<AccommodationFormPage />} />
-              <Route path={`${paths.accommodations}/:id`} element={<AccommodationDetailPage />} />
-              <Route path={`${paths.accommodations}/:id/edit`} element={<AccommodationFormPage />} />
+              {/* One menu entry, a tab strip between the ledgers. */}
+              <Route element={<CostRecordsLayout />}>
+                <Route path={paths.stockMovements} element={<StockMovementsPage />} />
+                <Route path={paths.vehicleExpenses} element={<VehicleExpensesPage />} />
+                <Route path={paths.fuelImport} element={<FuelImportPage />} />
+                <Route path={paths.toolExpenses} element={<ToolExpensesPage />} />
+                <Route path={paths.generalExpenses} element={<GeneralExpensesPage />} />
+
+                <Route path={paths.accommodations} element={<AccommodationsListPage />} />
+                <Route path={paths.accommodationNew} element={<AccommodationFormPage />} />
+                <Route path={`${paths.accommodations}/:id`} element={<AccommodationDetailPage />} />
+                <Route path={`${paths.accommodations}/:id/edit`} element={<AccommodationFormPage />} />
+              </Route>
 
               <Route path={paths.schedule} element={<SchedulePage />} />
               <Route path={paths.absences} element={<AbsencesListPage />} />
@@ -377,13 +386,21 @@ function Layout() {
             </Route>
 
             <Route element={<RequireLabourCostAccess />}>
-              <Route path={paths.rates} element={<RatesPage />} />
-              <Route path={paths.publicHolidays} element={<PublicHolidaysPage />} />
-              <Route path={paths.financeEntries} element={<FinanceEntriesPage />} />
               <Route
-                path={paths.annualRealization}
-                element={<AnnualRealizationPlanPage />}
+                path={paths.billingSettings}
+                element={<Navigate to={paths.rates} replace />}
               />
+              <Route element={<BillingSettingsLayout />}>
+                <Route path={paths.rates} element={<RatesPage />} />
+                <Route path={paths.publicHolidays} element={<PublicHolidaysPage />} />
+                <Route
+                  path={paths.annualRealization}
+                  element={<AnnualRealizationPlanPage />}
+                />
+              </Route>
+              <Route element={<CostRecordsLayout />}>
+                <Route path={paths.financeEntries} element={<FinanceEntriesPage />} />
+              </Route>
             </Route>
 
             {/* Account administration is Admin and above, a narrower set than

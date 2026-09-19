@@ -137,7 +137,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const isItemSelected = (item: NavItem) =>
     item.path === paths.home
       ? location.pathname === paths.home
-      : location.pathname.startsWith(item.path);
+      : [item.path, ...(item.alsoActiveOn ?? [])].some((path) =>
+          location.pathname.startsWith(path),
+        );
 
   /**
    * Detail/edit/new sub-pages (e.g. `/employees/:id/edit`) have no nav entry
@@ -500,7 +502,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                       >
                         {t('nav.hoverHint')}
                       </Typography>
-                      {activeFlyoutGroup.items.map((item) => (
+                      {activeFlyoutGroup.items.filter((item) => !item.inTabs).map((item) => (
                         // See the mobile drawer's identical fix: a button
                         // nested inside this link polluted its accessible
                         // name with the star's own label — siblings inside a
@@ -653,7 +655,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
               </ListItemButton>
               <Collapse in={expandedGroups.has(entry.key)} timeout="auto" unmountOnExit>
                 <List component="div" disablePadding>
-                  {entry.items.map((item) => (
+                  {entry.items.filter((item) => !item.inTabs).map((item) => (
                     // A button nested inside the link it sits on used to
                     // pollute the link's accessible name with the star's own
                     // label ("Employees Pin to favorites" instead of
