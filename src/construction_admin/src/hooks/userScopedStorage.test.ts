@@ -23,9 +23,9 @@ describe('storageScope', () => {
     expect(storageScope(undefined)).toBeNull();
   });
 
-  it('differs per account and per role of the same account', () => {
+  it('differs per account, and stays put when the same account changes role', () => {
     expect(storageScope(admin)).not.toBe(storageScope(foreman));
-    expect(storageScope(admin)).not.toBe(storageScope({ ...admin, role: 'Foreman' }));
+    expect(storageScope(admin)).toBe(storageScope({ ...admin, role: 'Foreman' }));
   });
 });
 
@@ -37,10 +37,14 @@ describe('scoped reads and writes', () => {
     expect(readScoped(storageScope(admin), 'nav.recentRecords', [])).toHaveLength(1);
   });
 
-  it('starts an account over when its role changes', () => {
+  it('keeps what an account saved across a change of role', () => {
     writeScoped(storageScope(admin), 'nav.favorites', ['/users']);
 
-    expect(readScoped(storageScope({ ...admin, role: 'Foreman' }), 'nav.favorites', [])).toEqual([]);
+    // Nothing is wiped by a demotion; what the new role may see is decided
+    // when it is read (see filterRecentForRole), so a promotion restores it.
+    expect(readScoped(storageScope({ ...admin, role: 'Foreman' }), 'nav.favorites', [])).toEqual([
+      '/users',
+    ]);
   });
 
   it('reads and writes nothing while nobody is signed in', () => {

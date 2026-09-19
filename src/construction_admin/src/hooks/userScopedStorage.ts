@@ -10,16 +10,17 @@ import type { User } from '../api/types';
  * recent records — real employee and project names, possibly ones their own
  * role is not allowed to open — and their pinned pages.
  *
- * The scope is the account *and* its role. Role is in there so that a demotion
- * does not leave behind a list of records the account could see yesterday and
- * may not today; changing it simply starts an empty list.
+ * The scope is the account alone. A change of role does not wipe what someone
+ * has saved — the readers recalibrate it instead, showing only what the
+ * current role may open (see `filterRecentForRole`), so a demotion narrows the
+ * view and a later promotion brings the rest back.
  *
  * Nothing is read or written without a signed-in user, and there is no
  * fallback to an unscoped key: a fallback is exactly the leak this exists to
  * close.
  */
-export function storageScope(user: Pick<User, 'id' | 'role'> | null | undefined): string | null {
-  return user ? `${user.id}.${user.role}` : null;
+export function storageScope(user: Pick<User, 'id'> & Partial<User> | null | undefined): string | null {
+  return user ? user.id : null;
 }
 
 const PREFIX = 'u.';

@@ -16,6 +16,26 @@ export function readRecentRecords(scope: string | null): RecentRecord[] {
 }
 
 /**
+ * Only the records under a page the current role can reach.
+ *
+ * The nav is the one place that already says what a role may open, so it is
+ * the test: a record belongs to a page when the page's path is a prefix of the
+ * record's. Anything else — an employee the account viewed as an admin and may
+ * not open as a foreman — is left out of what is shown, not deleted, so a later
+ * promotion brings it back.
+ */
+export function filterRecentForRole(
+  records: RecentRecord[],
+  allowedPagePaths: string[],
+): RecentRecord[] {
+  return records.filter((record) =>
+    allowedPagePaths.some(
+      (page) => page !== '/' && (record.path === page || record.path.startsWith(`${page}/`)),
+    ),
+  );
+}
+
+/**
  * Call from a detail page once its record has loaded, to add it to the
  * global "recently viewed" list shown in the command palette.
  *

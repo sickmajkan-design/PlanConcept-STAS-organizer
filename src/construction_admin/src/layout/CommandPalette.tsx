@@ -28,7 +28,7 @@ import { useT } from '../i18n/useI18n';
 import type { NavItem } from './navConfig';
 import type { useFavorites } from './useFavorites';
 import { storageScope } from '../hooks/userScopedStorage';
-import { readRecentRecords } from './useRecentRecords';
+import { filterRecentForRole, readRecentRecords } from './useRecentRecords';
 
 interface CommandPaletteProps {
   open: boolean;
@@ -88,7 +88,10 @@ export function CommandPalette({ open, onClose, items, favorites, user }: Comman
       setQuery('');
       setHighlightedIndex(0);
       setRecent(
-        readRecentRecords(scope).map((r) => ({
+        filterRecentForRole(
+          readRecentRecords(scope),
+          items.map((item) => item.path),
+        ).map((r) => ({
           kind: 'recent',
           key: `recent:${r.path}`,
           label: r.label,
@@ -99,7 +102,7 @@ export function CommandPalette({ open, onClose, items, favorites, user }: Comman
       // Dialog mounts before its content is painted; wait a tick so autoFocus doesn't race it.
       requestAnimationFrame(() => inputRef.current?.focus());
     }
-  }, [open, scope]);
+  }, [open, scope, items]);
 
   useEffect(() => {
     setHighlightedIndex(0);
