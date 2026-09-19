@@ -241,6 +241,37 @@ public static class PushTextResolver
                     $"{vehicleName} ({IsoDate(occurredOn)}) je vraćen: {note}");
             }
 
+            case NotificationType.TimeEntryRejected:
+            {
+                var date = Str("date");
+                var note = Str("note");
+                if (date is null || note is null) break;
+
+                return ("Sati vraćeni na doradu", $"Vaši sati za {IsoDate(date)} su vraćeni: {note}");
+            }
+
+            case NotificationType.AbsenceDecided:
+            {
+                var decision = Str("decision");
+                var startDate = Str("startDate");
+                var endDate = Str("endDate");
+                if (decision is null || startDate is null || endDate is null) break;
+
+                var period = $"od {IsoDate(startDate)} do {IsoDate(endDate)}";
+
+                if (decision == "Approved")
+                {
+                    return ("Odsustvo odobreno", $"Vaše odsustvo {period} je odobreno.");
+                }
+
+                var note = Str("note");
+                return (
+                    "Odsustvo odbijeno",
+                    string.IsNullOrEmpty(note)
+                        ? $"Vaše odsustvo {period} je odbijeno."
+                        : $"Vaše odsustvo {period} je odbijeno: {note}");
+            }
+
             case NotificationType.VehicleExpenseSubmitted:
             {
                 var vehicleName = Str("vehicleName");

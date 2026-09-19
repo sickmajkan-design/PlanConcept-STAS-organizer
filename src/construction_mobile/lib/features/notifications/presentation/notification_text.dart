@@ -278,6 +278,43 @@ LocalizedNotificationText resolveNotificationText(
         );
       }
 
+    case 'TimeEntryRejected':
+      {
+        final date = str('date');
+        final note = str('note');
+        if (date == null || note == null) return fallback;
+
+        return LocalizedNotificationText(
+          title: l10n.notificationTimeEntryRejectedTitle,
+          body: l10n.notificationTimeEntryRejectedBody(_isoDate(date), note),
+        );
+      }
+
+    case 'AbsenceDecided':
+      {
+        final decision = str('decision');
+        final startDate = str('startDate');
+        final endDate = str('endDate');
+        if (decision == null || startDate == null || endDate == null) return fallback;
+
+        final start = _isoDate(startDate);
+        final end = _isoDate(endDate);
+        if (decision == 'Approved') {
+          return LocalizedNotificationText(
+            title: l10n.notificationAbsenceApprovedTitle,
+            body: l10n.notificationAbsenceApprovedBody(start, end),
+          );
+        }
+
+        final note = str('note');
+        return LocalizedNotificationText(
+          title: l10n.notificationAbsenceRefusedTitle,
+          body: (note == null || note.isEmpty)
+              ? l10n.notificationAbsenceRefusedBodyNoReason(start, end)
+              : l10n.notificationAbsenceRefusedBody(start, end, note),
+        );
+      }
+
     case 'VehicleExpenseSubmitted':
       {
         final count = int.tryParse(str('count') ?? '');

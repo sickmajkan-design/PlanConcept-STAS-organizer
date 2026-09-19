@@ -1756,6 +1756,8 @@ export const notificationTypes = [
   'ClockInLocationMismatch',
   'VehicleExpenseRejected',
   'VehicleExpenseSubmitted',
+  'TimeEntryRejected',
+  'AbsenceDecided',
 ] as const;
 
 export type NotificationType = (typeof notificationTypes)[number];

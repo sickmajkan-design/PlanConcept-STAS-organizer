@@ -1010,6 +1010,42 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get notificationTimeEntryRejectedTitle => 'Hours sent back';
+
+  @override
+  String notificationTimeEntryRejectedBody(String date, String note) {
+    return 'Your hours for $date were sent back: $note';
+  }
+
+  @override
+  String get notificationAbsenceApprovedTitle => 'Time off approved';
+
+  @override
+  String notificationAbsenceApprovedBody(String startDate, String endDate) {
+    return 'Your time off from $startDate to $endDate was approved.';
+  }
+
+  @override
+  String get notificationAbsenceRefusedTitle => 'Time off refused';
+
+  @override
+  String notificationAbsenceRefusedBody(
+    String startDate,
+    String endDate,
+    String note,
+  ) {
+    return 'Your time off from $startDate to $endDate was refused: $note';
+  }
+
+  @override
+  String notificationAbsenceRefusedBodyNoReason(
+    String startDate,
+    String endDate,
+  ) {
+    return 'Your time off from $startDate to $endDate was refused.';
+  }
+
+  @override
   String get notificationVehicleExpenseSubmittedTitle => 'Cost to review';
 
   @override
@@ -1117,6 +1153,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationTypeVehicleExpenseSubmitted => 'Cost to review';
+
+  @override
+  String get notificationTypeTimeEntryRejected => 'Hours sent back';
+
+  @override
+  String get notificationTypeAbsenceDecided => 'Time off decision';
 
   @override
   String get notificationTypeAbsenceRequested => 'Leave requested';

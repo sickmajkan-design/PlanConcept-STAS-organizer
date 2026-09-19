@@ -55,15 +55,18 @@ public class ReviewTimeEntryCommandHandler
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly INotificationService _notifications;
 
     public ReviewTimeEntryCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        INotificationService notifications)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
+        _notifications = notifications;
     }
 
     public async Task<TimeEntryDto> Handle(
@@ -121,6 +124,34 @@ public class ReviewTimeEntryCommandHandler
             // through silently as a last-write-wins update.
             throw new ConflictException(
                 "This entry was changed by someone else just now. Reload it and try again.");
+        }
+
+        // Only a rejection asks something of the worker: the hours have to be
+        // fixed and sent again. An approval needs nothing from them.
+        if (!request.Approve)
+        {
+            var workerUserId = await _context.Users
+                .Where(u => u.IsActive && u.EmployeeId == entry.EmployeeId)
+                .Select(u => (Guid?)u.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (workerUserId is { } recipientId)
+            {
+                var day = entry.StartedAt.ToString("yyyy-MM-dd");
+
+                await _notifications.NotifyUserAsync(
+                    recipientId,
+                    NotificationType.TimeEntryRejected,
+                    "Hours sent back",
+                    $"Your hours for {day} were sent back: {entry.ReviewNote}",
+                    new Dictionary<string, string>
+                    {
+                        ["timeEntryId"] = entry.Id.ToString(),
+                        ["date"] = day,
+                        ["note"] = entry.ReviewNote ?? string.Empty
+                    },
+                    cancellationToken: cancellationToken);
+            }
         }
 
         return await _context.TimeEntries

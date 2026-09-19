@@ -1847,6 +1847,55 @@ abstract class AppLocalizations {
   /// **'{reporterName} reported: {title}'**
   String notificationDefectReportedBody(String reporterName, String title);
 
+  /// No description provided for @notificationTimeEntryRejectedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours sent back'**
+  String get notificationTimeEntryRejectedTitle;
+
+  /// No description provided for @notificationTimeEntryRejectedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your hours for {date} were sent back: {note}'**
+  String notificationTimeEntryRejectedBody(String date, String note);
+
+  /// No description provided for @notificationAbsenceApprovedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time off approved'**
+  String get notificationAbsenceApprovedTitle;
+
+  /// No description provided for @notificationAbsenceApprovedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your time off from {startDate} to {endDate} was approved.'**
+  String notificationAbsenceApprovedBody(String startDate, String endDate);
+
+  /// No description provided for @notificationAbsenceRefusedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time off refused'**
+  String get notificationAbsenceRefusedTitle;
+
+  /// No description provided for @notificationAbsenceRefusedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your time off from {startDate} to {endDate} was refused: {note}'**
+  String notificationAbsenceRefusedBody(
+    String startDate,
+    String endDate,
+    String note,
+  );
+
+  /// No description provided for @notificationAbsenceRefusedBodyNoReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Your time off from {startDate} to {endDate} was refused.'**
+  String notificationAbsenceRefusedBodyNoReason(
+    String startDate,
+    String endDate,
+  );
+
   /// No description provided for @notificationVehicleExpenseSubmittedTitle.
   ///
   /// In en, this message translates to:
@@ -2020,6 +2069,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cost to review'**
   String get notificationTypeVehicleExpenseSubmitted;
+
+  /// No description provided for @notificationTypeTimeEntryRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours sent back'**
+  String get notificationTypeTimeEntryRejected;
+
+  /// No description provided for @notificationTypeAbsenceDecided.
+  ///
+  /// In en, this message translates to:
+  /// **'Time off decision'**
+  String get notificationTypeAbsenceDecided;
 
   /// No description provided for @notificationTypeAbsenceRequested.
   ///

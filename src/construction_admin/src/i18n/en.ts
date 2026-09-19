@@ -126,7 +126,7 @@ export const en = {
   'weekDay.Saturday': 'Saturday',
   'weekDay.Sunday': 'Sunday',
   'shortcuts.title': 'Keyboard shortcuts',
-  'shortcuts.commandPalette': 'Search pages and records',
+  'shortcuts.commandPalette': 'Search pages and records, or start something new',
   'shortcuts.help': 'Show this list',
   'shortcuts.closeDialog': 'Close a dialog or panel',
   'shortcuts.railHint': 'Rail: hover a group icon to see its pages, click to jump to the main one.',
@@ -140,11 +140,20 @@ export const en = {
     'Pick a section from the icon rail on the left. Hover a group icon (e.g. Costs) to see its pages, or click it to jump straight to the main one.',
   'guide.usage.step3':
     'Every list has a "+" button to add a new record, and clicking a row opens it for details or editing.',
-  'guide.usage.step4': 'Search the whole platform with the magnifier icon or Ctrl+K.',
+  'guide.usage.step4':
+    'Press Ctrl+K (or the magnifier) to search pages and records, or to start something new: record a cost, book time off, add an employee. Pages that are waiting on you show their count.',
   'guide.usage.step5':
     'The bell icon shows notifications — new requests, documents about to expire, and anything else waiting on you.',
   'guide.usage.step6':
     'Switch the interface language with the globe icon, top right — everything updates immediately.',
+  'guide.usage.step7':
+    'Costs: every cost ledger (vehicles, tools, other, materials, accommodation, finance) sits under "Cost records" with tabs. Pay rates, holidays and the annual plan are under "Billing settings".',
+  'guide.usage.step8':
+    'Anything that needs a decision (time entries, time off, vehicle costs, defects) shows a red number in the menu and sends a notification to whoever can decide. Costs are approved or sent back with a reason; you cannot approve your own entry (a Super Admin can).',
+  'guide.usage.step9':
+    'Lists have no page numbers: press "Show more" to see further rows. Time off and vehicle costs also have a Board view, one column per status, next to the List view.',
+  'guide.usage.step10':
+    'On a phone every list turns into cards, with the same actions and a sort picker at the top.',
   'guide.role.superAdmin.name': 'Super Admin',
   'guide.role.superAdmin.description':
     'Full access to the whole platform, including Company Settings and the free-form Ledger. Runs the system overall.',
@@ -153,10 +162,10 @@ export const en = {
     'Day-to-day management: employees, projects, vehicles, tools, materials, costs and user accounts. No access to Company Settings or the Ledger — Super Admin only.',
   'guide.role.projectManager.name': 'Project Manager',
   'guide.role.projectManager.description':
-    'Manages projects and materials, approves time-off requests, and reviews logged hours. No access to pay rates or company-wide settings.',
+    'Manages projects and materials, approves time-off requests, and reviews logged hours and vehicle costs. No access to pay rates or company-wide settings.',
   'guide.role.foreman.name': 'Foreman',
   'guide.role.foreman.description':
-    "Runs one site day to day — reviews their crew's hours, absences and reported defects. Uses vehicles, tools and materials rather than adding new ones.",
+    "Runs one site day to day — reviews their crew's hours, absences and reported defects. Records fuel and other vehicle costs (a manager reviews them). Uses vehicles, tools and materials rather than adding new ones.",
   'guide.role.worker.name': 'Worker',
   'guide.role.worker.description':
     'Uses the mobile app on site — clocks in and out, reports defects, submits weekly reports and requests time off. Has no access to this admin panel.',
@@ -1885,6 +1894,8 @@ export const en = {
   'notificationType.ClockInLocationMismatch': 'Location mismatch',
   'notificationType.VehicleExpenseRejected': 'Cost sent back',
   'notificationType.VehicleExpenseSubmitted': 'Cost to review',
+  'notificationType.TimeEntryRejected': 'Hours sent back',
+  'notificationType.AbsenceDecided': 'Time off decision',
 
   // --- Assistant ------------------------------------------------------------
   'assistant.title': 'Office assistant',

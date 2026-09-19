@@ -134,7 +134,7 @@ export const sr: Record<MessageKey, Message> = {
   'weekDay.Saturday': 'Subota',
   'weekDay.Sunday': 'Nedelja',
   'shortcuts.title': 'Prečice na tastaturi',
-  'shortcuts.commandPalette': 'Pretraga stranica i zapisa',
+  'shortcuts.commandPalette': 'Pretraga stranica i zapisa ili početak nečeg novog',
   'shortcuts.help': 'Prikaži ovaj spisak',
   'shortcuts.closeDialog': 'Zatvori dijalog ili panel',
   'shortcuts.railHint':
@@ -149,11 +149,20 @@ export const sr: Record<MessageKey, Message> = {
     'Izaberite sekciju sa trake ikonica lijevo. Zadržite miš preko ikonice grupe (npr. Troškovi) da vidite njene stranice, ili kliknite da odmah odete na glavnu.',
   'guide.usage.step3':
     'Svaka lista ima dugme "+" za dodavanje novog zapisa, a klik na red otvara detalje ili izmjenu.',
-  'guide.usage.step4': 'Pretražite cijelu platformu pomoću lupe ili prečice Ctrl+K.',
+  'guide.usage.step4':
+    'Pritisnite Ctrl+K (ili lupu) da pretražite stranice i zapise ili da započnete nešto novo: evidentirate trošak, prijavite odsustvo, dodate zaposlenog. Stranice koje čekaju na vas prikazuju broj.',
   'guide.usage.step5':
     'Ikonica zvona pokazuje obaveštenja — nove zahtjeve, dokumente koji ističu i sve ostalo što čeka na vas.',
   'guide.usage.step6':
     'Jezik interfejsa mijenjate ikonicom globusa gore desno — sve se odmah prevodi.',
+  'guide.usage.step7':
+    'Troškovi: sve evidencije troškova (vozila, alati, ostali, materijal, smještaj, finansije) su pod "Unosi troškova" u tabovima. Cijene rada, praznici i godišnji plan su pod "Podešavanja obračuna".',
+  'guide.usage.step8':
+    'Sve što traži odluku (radni sati, odsustva, troškovi vozila, kvarovi) ima crveni broj u meniju i šalje obavještenje onome ko može odlučiti. Troškovi se odobravaju ili vraćaju sa razlogom; svoj unos ne možete odobriti sami (Super Admin može).',
+  'guide.usage.step9':
+    'Liste nemaju brojeve stranica: dugme "Prikaži još" otvara sljedeće redove. Odsustva i troškovi vozila imaju i prikaz "Tabla", po jedna kolona za svaki status, pored prikaza "Lista".',
+  'guide.usage.step10':
+    'Na telefonu se svaka lista pretvara u kartice, sa istim akcijama i izborom sortiranja na vrhu.',
   'guide.role.superAdmin.name': 'Super Admin',
   'guide.role.superAdmin.description':
     'Pun pristup cijeloj platformi, uključujući Podešavanja firme i slobodnu Evidenciju. Vodi sistem u cjelini.',
@@ -162,10 +171,10 @@ export const sr: Record<MessageKey, Message> = {
     'Svakodnevno upravljanje: radnici, gradilišta, vozila, alati, materijali, troškovi i korisnički nalozi. Nema pristup Podešavanjima firme ni Evidenciji — samo Super Admin.',
   'guide.role.projectManager.name': 'Rukovodilac projekta',
   'guide.role.projectManager.description':
-    'Upravlja gradilištima i materijalima, odobrava zahtjeve za odsustvo i pregledava evidentirano radno vrijeme. Nema pristup platama ni podešavanjima firme.',
+    'Upravlja gradilištima i materijalima, odobrava zahtjeve za odsustvo, pregledava evidentirano radno vrijeme i troškove vozila. Nema pristup platama ni podešavanjima firme.',
   'guide.role.foreman.name': 'Poslovođa',
   'guide.role.foreman.description':
-    'Vodi jedno gradilište iz dana u dan — pregleda radno vrijeme svoje ekipe, odsustva i prijavljene kvarove. Koristi vozila, alate i materijale, ne dodaje nove.',
+    'Vodi jedno gradilište iz dana u dan — pregleda radno vrijeme svoje ekipe, odsustva i prijavljene kvarove. Evidentira gorivo i ostale troškove vozila (pregleda ih menadžer). Koristi vozila, alate i materijale, ne dodaje nove.',
   'guide.role.worker.name': 'Radnik',
   'guide.role.worker.description':
     'Koristi mobilnu aplikaciju na terenu — prijavljuje dolazak i odlazak s posla, prijavljuje kvarove, predaje sedmične izvještaje i traži odsustvo. Nema pristup ovom admin panelu.',
@@ -1922,6 +1931,8 @@ export const sr: Record<MessageKey, Message> = {
   'notificationType.ClockInLocationMismatch': 'Neusklađena lokacija',
   'notificationType.VehicleExpenseRejected': 'Trošak vraćen na doradu',
   'notificationType.VehicleExpenseSubmitted': 'Trošak čeka pregled',
+  'notificationType.TimeEntryRejected': 'Sati vraćeni na doradu',
+  'notificationType.AbsenceDecided': 'Odluka o odsustvu',
 
   // --- Pomoćnik ----------------------------------------------------------
   'assistant.title': 'Kancelarijski pomoćnik',

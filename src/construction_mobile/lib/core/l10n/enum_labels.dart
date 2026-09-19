@@ -97,6 +97,9 @@ String enumLabel(AppLocalizations l10n, EnumKind kind, String? value) {
       l10n.notificationTypeVehicleExpenseRejected,
     (EnumKind.notificationType, 'VehicleExpenseSubmitted') =>
       l10n.notificationTypeVehicleExpenseSubmitted,
+    (EnumKind.notificationType, 'TimeEntryRejected') =>
+      l10n.notificationTypeTimeEntryRejected,
+    (EnumKind.notificationType, 'AbsenceDecided') => l10n.notificationTypeAbsenceDecided,
     (EnumKind.notificationType, 'AbsenceRequested') => l10n.notificationTypeAbsenceRequested,
     (EnumKind.notificationType, 'DocumentRetentionEnded') =>
       l10n.notificationTypeDocumentRetentionEnded,

@@ -41,15 +41,18 @@ public class ReviewAbsenceCommandHandler : IRequestHandler<ReviewAbsenceCommand,
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly INotificationService _notifications;
 
     public ReviewAbsenceCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        INotificationService notifications)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
+        _notifications = notifications;
     }
 
     public async Task<AbsenceDto> Handle(
@@ -104,6 +107,37 @@ public class ReviewAbsenceCommandHandler : IRequestHandler<ReviewAbsenceCommand,
         {
             throw new ConflictException(
                 "This request was changed by someone else just now. Reload it and try again.");
+        }
+
+        // Unlike hours, both outcomes matter to the person: they are waiting
+        // to know whether they can plan the days off.
+        var requesterUserId = await _context.Users
+            .Where(u => u.IsActive && u.EmployeeId == absence.EmployeeId)
+            .Select(u => (Guid?)u.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (requesterUserId is { } recipientId)
+        {
+            var start = absence.StartDate.ToString("yyyy-MM-dd");
+            var end = absence.EndDate.ToString("yyyy-MM-dd");
+            var data = new Dictionary<string, string>
+            {
+                ["absenceId"] = absence.Id.ToString(),
+                ["decision"] = request.Approve ? "Approved" : "Rejected",
+                ["startDate"] = start,
+                ["endDate"] = end,
+                ["note"] = absence.ReviewNote ?? string.Empty
+            };
+
+            await _notifications.NotifyUserAsync(
+                recipientId,
+                NotificationType.AbsenceDecided,
+                request.Approve ? "Time off approved" : "Time off refused",
+                request.Approve
+                    ? $"Your time off from {start} to {end} was approved."
+                    : $"Your time off from {start} to {end} was refused: {absence.ReviewNote}",
+                data,
+                cancellationToken: cancellationToken);
         }
 
         return await _context.Absences

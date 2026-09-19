@@ -1006,6 +1006,42 @@ class AppLocalizationsSr extends AppLocalizations {
   }
 
   @override
+  String get notificationTimeEntryRejectedTitle => 'Sati vraćeni na doradu';
+
+  @override
+  String notificationTimeEntryRejectedBody(String date, String note) {
+    return 'Vaši sati za $date su vraćeni: $note';
+  }
+
+  @override
+  String get notificationAbsenceApprovedTitle => 'Odsustvo odobreno';
+
+  @override
+  String notificationAbsenceApprovedBody(String startDate, String endDate) {
+    return 'Vaše odsustvo od $startDate do $endDate je odobreno.';
+  }
+
+  @override
+  String get notificationAbsenceRefusedTitle => 'Odsustvo odbijeno';
+
+  @override
+  String notificationAbsenceRefusedBody(
+    String startDate,
+    String endDate,
+    String note,
+  ) {
+    return 'Vaše odsustvo od $startDate do $endDate je odbijeno: $note';
+  }
+
+  @override
+  String notificationAbsenceRefusedBodyNoReason(
+    String startDate,
+    String endDate,
+  ) {
+    return 'Vaše odsustvo od $startDate do $endDate je odbijeno.';
+  }
+
+  @override
   String get notificationVehicleExpenseSubmittedTitle => 'Trošak čeka pregled';
 
   @override
@@ -1116,6 +1152,12 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get notificationTypeVehicleExpenseSubmitted => 'Trošak čeka pregled';
+
+  @override
+  String get notificationTypeTimeEntryRejected => 'Sati vraćeni';
+
+  @override
+  String get notificationTypeAbsenceDecided => 'Odluka o odsustvu';
 
   @override
   String get notificationTypeAbsenceRequested => 'Zahtjev za odsustvo';

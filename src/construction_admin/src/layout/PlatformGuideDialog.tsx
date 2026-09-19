@@ -40,6 +40,10 @@ export function PlatformGuideDialog({ open, onClose }: { open: boolean; onClose:
     'guide.usage.step4',
     'guide.usage.step5',
     'guide.usage.step6',
+    'guide.usage.step7',
+    'guide.usage.step8',
+    'guide.usage.step9',
+    'guide.usage.step10',
   ];
 
   return (

@@ -135,10 +135,16 @@ cp .env.example .env
 npm run dev
 ```
 
-Implemented: authentication, the employee/project/vehicle/tool/material
-directories (CRUD, search, filters, project assignment, tool dual
-assignment, material stock adjustment), and a live map of employee
-locations. See [`src/construction_admin/README.md`](src/construction_admin/README.md).
+Implemented: authentication (session ends on browser close and after 30
+minutes idle), the employee/project/vehicle/tool/material directories, time
+entries, time off, cost ledgers with an approval workflow for vehicle costs,
+billing settings, an organisation hierarchy, an audit trail, notifications and
+a live map. Lists show "Showing N of M" with a Show more button (no page
+numbers), turn into cards on a phone, and time off and vehicle costs have a
+status board. Ctrl+K searches pages and records and starts common actions.
+How the screens are meant to behave is written down in
+[`docs/UX_CONVENTIONS.md`](docs/UX_CONVENTIONS.md). See also
+[`src/construction_admin/README.md`](src/construction_admin/README.md).
 
 ## Tests
 
@@ -281,6 +287,8 @@ work.
 
 | Module | Endpoints |
 |---|---|
+| Vehicle costs | `GET /api/vehicle-expenses` (`status`, `kind`, paging, sort), `/summary`, `POST /api/vehicle-expenses`, `PUT /api/vehicle-expenses/{id}` (an edit after a decision resets it to Pending), `POST /api/vehicle-expenses/{id}/review` (`approve`, `note` required when rejecting, `confirm` to reverse an earlier decision; nobody reviews their own entry except a Super Admin), `GET /api/vehicle-expenses/fuel-consumption-flags`. Recording, re-submitting and importing fuel notify the reviewers (`VehicleExpenseSubmitted`); a rejection notifies the recorder (`VehicleExpenseRejected`) |
+| Organisation hierarchy | `GET /api/employees/hierarchy` (people by rank, plus active accounts not linked to an employee, for Admin and above), `PUT /api/employees/{id}/rank` |
 | Authentication | `POST /api/auth/login`, `/refresh`, `/logout`, `/change-password`, `/forgot-password`, `/reset-password`, `GET /api/auth/me` |
 | User accounts | `GET /api/users` (pagination, `search`, `role`, `isActive` filters, `sortBy`/`sortDescending`), `GET /api/users/{id}`, `POST /api/users`, `PUT /api/users/{id}`, `POST /api/users/{id}/deactivate` (offboarding: revokes sessions, reset links and device registrations), `POST /api/users/{id}/activate`, `POST /api/users/{id}/password`. Admin and above; a handler additionally refuses to act on an account senior to the caller or to grant a role the caller does not hold |
 | Employees | `GET /api/employees` (pagination `pageNumber`/`pageSize`, `search`, `status`, `position`, `projectId` filters, `sortBy`/`sortDescending`), `GET /api/employees/{id}`, `POST /api/employees`, `PUT /api/employees/{id}`, `DELETE /api/employees/{id}` (soft), `POST`/`DELETE /api/employees/{id}/projects/{projectId}` |

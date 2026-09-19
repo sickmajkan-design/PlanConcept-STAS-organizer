@@ -58,5 +58,11 @@ public enum NotificationType
     VehicleExpenseRejected = 22,
 
     /// <summary>A vehicle cost was recorded, or changed after a decision, and is waiting for a reviewer.</summary>
-    VehicleExpenseSubmitted = 23
+    VehicleExpenseSubmitted = 23,
+
+    /// <summary>Hours this person logged were sent back by a reviewer, with a reason.</summary>
+    TimeEntryRejected = 24,
+
+    /// <summary>A time-off request was granted or refused.</summary>
+    AbsenceDecided = 25
 }

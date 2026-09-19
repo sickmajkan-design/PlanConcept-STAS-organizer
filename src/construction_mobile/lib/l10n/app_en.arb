@@ -574,6 +574,29 @@
       "title": { "type": "String" }
     }
   },
+  "notificationTimeEntryRejectedTitle": "Hours sent back",
+  "notificationTimeEntryRejectedBody": "Your hours for {date} were sent back: {note}",
+  "@notificationTimeEntryRejectedBody": {
+    "placeholders": { "date": { "type": "String" }, "note": { "type": "String" } }
+  },
+  "notificationAbsenceApprovedTitle": "Time off approved",
+  "notificationAbsenceApprovedBody": "Your time off from {startDate} to {endDate} was approved.",
+  "@notificationAbsenceApprovedBody": {
+    "placeholders": { "startDate": { "type": "String" }, "endDate": { "type": "String" } }
+  },
+  "notificationAbsenceRefusedTitle": "Time off refused",
+  "notificationAbsenceRefusedBody": "Your time off from {startDate} to {endDate} was refused: {note}",
+  "@notificationAbsenceRefusedBody": {
+    "placeholders": {
+      "startDate": { "type": "String" },
+      "endDate": { "type": "String" },
+      "note": { "type": "String" }
+    }
+  },
+  "notificationAbsenceRefusedBodyNoReason": "Your time off from {startDate} to {endDate} was refused.",
+  "@notificationAbsenceRefusedBodyNoReason": {
+    "placeholders": { "startDate": { "type": "String" }, "endDate": { "type": "String" } }
+  },
   "notificationVehicleExpenseSubmittedTitle": "Cost to review",
   "notificationVehicleExpenseSubmittedBody": "{vehicleName} ({date}) is waiting for review.",
   "@notificationVehicleExpenseSubmittedBody": {
@@ -638,6 +661,8 @@
   "notificationTypeDefectReported": "Defect reported",
   "notificationTypeVehicleExpenseRejected": "Cost sent back",
   "notificationTypeVehicleExpenseSubmitted": "Cost to review",
+  "notificationTypeTimeEntryRejected": "Hours sent back",
+  "notificationTypeAbsenceDecided": "Time off decision",
   "notificationTypeAbsenceRequested": "Leave requested",
   "notificationTypeDocumentRetentionEnded": "Document retention ended",
   "announceTitle": "Send an announcement",

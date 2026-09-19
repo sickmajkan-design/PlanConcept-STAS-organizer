@@ -83,6 +83,13 @@ export function resolveNotificationTarget(
     case 'VehicleExpenseSubmitted':
       return hasDirectory ? paths.vehicleExpenses : null;
 
+    case 'TimeEntryRejected':
+      return hasDirectory ? paths.timeEntries : null;
+
+    case 'AbsenceDecided':
+      if (!hasDirectory) return null;
+      return data.absenceId ? `${paths.absences}?highlight=${data.absenceId}` : paths.absences;
+
     case 'AbsenceRequested':
     case 'AbsenceEditProposed':
       if (!hasDirectory) return null;

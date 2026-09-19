@@ -424,6 +424,60 @@ public class ScheduleTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task The_person_is_told_when_their_leave_is_granted_or_refused()
+    {
+        var (employee, reviewer) = await SeedReviewablePairAsync();
+        var worker = await InScope(scope =>
+            TestData.SeedUserAsync(scope, UserRole.Worker, employee.Id));
+
+        var granted = await InScope(scope =>
+        {
+            ActAs(scope, reviewer);
+            return scope.Send(new RequestAbsenceCommand
+            {
+                EmployeeId = employee.Id,
+                StartDate = Monday,
+                EndDate = Monday.AddDays(1)
+            });
+        });
+        var refused = await InScope(scope =>
+        {
+            ActAs(scope, reviewer);
+            return scope.Send(new RequestAbsenceCommand
+            {
+                EmployeeId = employee.Id,
+                StartDate = Monday.AddDays(7),
+                EndDate = Monday.AddDays(8)
+            });
+        });
+
+        await InScope(scope =>
+        {
+            ActAs(scope, reviewer);
+            return scope.Send(new ReviewAbsenceCommand { Id = granted.Id, Approve = true });
+        });
+        await InScope(scope =>
+        {
+            ActAs(scope, reviewer);
+            return scope.Send(new ReviewAbsenceCommand
+            {
+                Id = refused.Id,
+                Approve = false,
+                Note = "Rok na gradilištu"
+            });
+        });
+
+        var decisions = await InScope(scope => scope.Db.Notifications
+            .Where(n => n.UserId == worker.Id && n.Type == NotificationType.AbsenceDecided)
+            .Select(n => n.DataJson)
+            .ToListAsync());
+
+        Assert.Equal(2, decisions.Count);
+        Assert.Contains(decisions, d => d!.Contains("\"decision\":\"Approved\""));
+        Assert.Contains(decisions, d => d!.Contains("\"decision\":\"Rejected\"") && d.Contains("Rok na gradilištu"));
+    }
+
+    [Fact]
     public async Task A_worker_withdraws_their_own_unanswered_request()
     {
         var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
