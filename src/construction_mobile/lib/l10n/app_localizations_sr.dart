@@ -2033,6 +2033,20 @@ class AppLocalizationsSr extends AppLocalizations {
   String get vehicleExpenseKindOther => 'Ostalo';
 
   @override
+  String get vehicleExpenseStatusPending => 'Čeka pregled';
+
+  @override
+  String get vehicleExpenseStatusApproved => 'Odobreno';
+
+  @override
+  String get vehicleExpenseStatusRejected => 'Vraćeno';
+
+  @override
+  String vehicleExpensesRejectedReason(String reason) {
+    return 'Vraćeno: $reason';
+  }
+
+  @override
   String get toolExpensesTitle => 'Troškovi alata';
 
   @override

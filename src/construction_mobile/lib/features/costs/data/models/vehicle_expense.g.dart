@@ -21,6 +21,8 @@ _VehicleExpense _$VehicleExpenseFromJson(Map<String, dynamic> json) =>
       note: json['note'] as String?,
       recordedByName: json['recordedByName'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      status: json['status'] as String? ?? 'Pending',
+      reviewNote: json['reviewNote'] as String?,
     );
 
 Map<String, dynamic> _$VehicleExpenseToJson(_VehicleExpense instance) =>
@@ -38,4 +40,6 @@ Map<String, dynamic> _$VehicleExpenseToJson(_VehicleExpense instance) =>
       'note': ?instance.note,
       'recordedByName': ?instance.recordedByName,
       'createdAt': instance.createdAt.toIso8601String(),
+      'status': instance.status,
+      'reviewNote': ?instance.reviewNote,
     };

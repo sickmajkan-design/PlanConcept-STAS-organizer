@@ -2036,6 +2036,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vehicleExpenseKindOther => 'Other';
 
   @override
+  String get vehicleExpenseStatusPending => 'Pending review';
+
+  @override
+  String get vehicleExpenseStatusApproved => 'Approved';
+
+  @override
+  String get vehicleExpenseStatusRejected => 'Sent back';
+
+  @override
+  String vehicleExpensesRejectedReason(String reason) {
+    return 'Sent back: $reason';
+  }
+
+  @override
   String get toolExpensesTitle => 'Tool costs';
 
   @override

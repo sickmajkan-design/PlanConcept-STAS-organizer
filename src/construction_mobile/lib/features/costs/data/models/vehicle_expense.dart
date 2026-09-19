@@ -24,11 +24,20 @@ abstract class VehicleExpense with _$VehicleExpense {
     String? note,
     String? recordedByName,
     required DateTime createdAt,
+
+    /// `Pending`, `Approved` or `Rejected`. Pending while an older API that
+    /// predates the review workflow leaves it out.
+    @Default('Pending') String status,
+
+    /// Why a reviewer sent it back. Set only when [status] is `Rejected`.
+    String? reviewNote,
   }) = _VehicleExpense;
 
   const VehicleExpense._();
 
   bool get isFuel => kind == 'Fuel';
+
+  bool get isRejected => status == 'Rejected';
 
   DateTime? get occurred => DateTime.tryParse(occurredOn);
 

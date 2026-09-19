@@ -1064,6 +1064,15 @@
   "vehicleExpenseKindInsurance": "Insurance",
   "vehicleExpenseKindRegistration": "Registration",
   "vehicleExpenseKindOther": "Other",
+  "vehicleExpenseStatusPending": "Pending review",
+  "vehicleExpenseStatusApproved": "Approved",
+  "vehicleExpenseStatusRejected": "Sent back",
+  "vehicleExpensesRejectedReason": "Sent back: {reason}",
+  "@vehicleExpensesRejectedReason": {
+    "placeholders": {
+      "reason": { "type": "String" }
+    }
+  },
   "toolExpensesTitle": "Tool costs",
   "toolExpensesEmpty": "No costs recorded yet.",
   "toolExpensesRecord": "Record a cost",

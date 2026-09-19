@@ -3662,6 +3662,30 @@ abstract class AppLocalizations {
   /// **'Other'**
   String get vehicleExpenseKindOther;
 
+  /// No description provided for @vehicleExpenseStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending review'**
+  String get vehicleExpenseStatusPending;
+
+  /// No description provided for @vehicleExpenseStatusApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get vehicleExpenseStatusApproved;
+
+  /// No description provided for @vehicleExpenseStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent back'**
+  String get vehicleExpenseStatusRejected;
+
+  /// No description provided for @vehicleExpensesRejectedReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent back: {reason}'**
+  String vehicleExpensesRejectedReason(String reason);
+
   /// No description provided for @toolExpensesTitle.
   ///
   /// In en, this message translates to:
