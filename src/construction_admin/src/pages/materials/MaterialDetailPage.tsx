@@ -40,7 +40,12 @@ import { canSeeSpending } from '../../auth/authHelpers';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
 import { useMaterialMovementsQuery } from '../../features/costs/useCosts';
-import { useAdjustMaterial, useDeleteMaterial, useMaterialQuery } from '../../features/materials/useMaterials';
+import {
+  useAdjustMaterial,
+  useDeleteMaterial,
+  useMaterialPricingQuery,
+  useMaterialQuery,
+} from '../../features/materials/useMaterials';
 import { adjustMaterialSchema, type AdjustMaterialFormValues } from '../../features/materials/validation';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
@@ -64,6 +69,7 @@ export function MaterialDetailPage() {
   const { locale } = useI18n();
   const { data: material, isLoading, isError, error, refetch } = useMaterialQuery(id);
   const adjust = useAdjustMaterial(id ?? '');
+  const { data: pricing } = useMaterialPricingQuery(id, canSeeHistory);
   const deleteMaterial = useDeleteMaterial();
   const history = useMaterialMovementsQuery({
     materialId: id,
@@ -199,12 +205,33 @@ export function MaterialDetailPage() {
                       ? null
                       : `${formatMoney(material.unitPrice, locale)} / ${material.unit}`
                   }
-                  flagMissing
+                  flagMissing={pricing?.averagePurchasePrice == null}
                 />
-                {material.unitPrice !== null && (
+                {pricing?.lastPurchasePrice != null && (
                   <InfoRow
-                    label={t('materials.estimatedValue')}
-                    value={formatMoney(material.unitPrice * material.quantity, locale)}
+                    label={t('materials.lastPurchase')}
+                    value={`${formatMoney(pricing.lastPurchasePrice, locale)} / ${material.unit}${
+                      pricing.lastPurchasedOn ? ` (${formatDate(pricing.lastPurchasedOn)}${pricing.lastSupplier ? `, ${pricing.lastSupplier}` : ''})` : ''
+                    }`}
+                  />
+                )}
+                {pricing?.averagePurchasePrice != null && (
+                  <InfoRow
+                    label={t('materials.averagePurchase')}
+                    value={`${formatMoney(pricing.averagePurchasePrice, locale)} / ${material.unit}`}
+                  />
+                )}
+                {(pricing?.averagePurchasePrice ?? material.unitPrice) != null && (
+                  <InfoRow
+                    label={
+                      pricing?.averagePurchasePrice != null
+                        ? t('materials.valueOnHand')
+                        : t('materials.estimatedValue')
+                    }
+                    value={formatMoney(
+                      (pricing?.averagePurchasePrice ?? material.unitPrice!) * material.quantity,
+                      locale,
+                    )}
                   />
                 )}
                 <InfoRow label={t('materials.lastUpdated')} value={formatDateTime(material.lastUpdated)} />

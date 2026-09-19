@@ -751,6 +751,11 @@ export const sr: Record<MessageKey, Message> = {
   'materials.minimumHint': 'Obavještenje stiže kad zaliha padne ispod ove količine. Ostavite prazno ako ne treba pratiti.',
   'materials.lowStock': 'Ispod minimuma',
   'materials.lowStockOnly': 'Samo niska zaliha',
+  'materials.lastPurchase': 'Posljednja nabavna cijena',
+  'materials.averagePurchase': 'Prosječna nabavna cijena',
+  'materials.valueOnHand': 'Vrijednost zalihe (po prosječnoj nabavnoj cijeni)',
+  'materials.referencePriceOptional': 'Referentna cijena po jedinici (opciono)',
+  'materials.pricingSummary': 'Iz prijema: posljednja {last}, prosjek {average}.',
   'materials.deleteTitle': 'Obrisati materijal?',
   'materials.deleteBody': '{name} će biti uklonjen iz aktivnih zapisa.',
 

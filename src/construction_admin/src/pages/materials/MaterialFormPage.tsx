@@ -30,7 +30,12 @@ import { costsApi } from '../../api/costs';
 import { attachmentsApi } from '../../api/attachments';
 import { useMovementSuppliersQuery } from '../../features/costs/useCosts';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
-import { useCreateMaterial, useMaterialQuery, useUpdateMaterial } from '../../features/materials/useMaterials';
+import {
+  useCreateMaterial,
+  useMaterialPricingQuery,
+  useMaterialQuery,
+  useUpdateMaterial,
+} from '../../features/materials/useMaterials';
 import { materialFormSchema, type MaterialFormValues } from '../../features/materials/validation';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
@@ -90,6 +95,7 @@ export function MaterialFormPage() {
 
   const { data: existing, isLoading, isError, error, refetch } = useMaterialQuery(id);
   const { data: allProjects } = useAllProjectsQuery();
+  const { data: pricing } = useMaterialPricingQuery(id, isEdit && showReceiptDetails);
   const { data: knownSuppliers } = useMovementSuppliersQuery(!isEdit && showReceiptDetails);
   const createMaterial = useCreateMaterial();
   const [invoiceFile, setInvoiceFile] = useState<File | null>(null);
@@ -286,6 +292,21 @@ export function MaterialFormPage() {
                   helperText: errors.minimumQuantity?.message ?? t('materials.minimumHint'),
                 })}
               </Grid>
+              <Grid size={{ xs: 12, sm: 4 }}>
+                {text('unitPrice', t('materials.referencePriceOptional'), {
+                  type: 'number',
+                  helperText:
+                    errors.unitPrice?.message ??
+                    (pricing?.lastPurchasePrice != null && pricing.averagePurchasePrice != null
+                      ? t('materials.pricingSummary', {
+                          last: formatMoney(pricing.lastPurchasePrice, locale),
+                          average: formatMoney(pricing.averagePurchasePrice, locale),
+                        })
+                      : isEdit
+                        ? t('materials.unitPriceHint')
+                        : t('materials.priceFromPurchase')),
+                })}
+              </Grid>
             </Grid>
           </Section>
 
@@ -376,17 +397,6 @@ export function MaterialFormPage() {
               )}
             </Section>
           )}
-
-          <Section title={t('materials.sectionPricing')} hint={t('materials.unitPriceHint')}>
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                {text('unitPrice', t('materials.unitPrice'), {
-                  type: 'number',
-                  helperText: isEdit ? undefined : t('materials.priceFromPurchase'),
-                })}
-              </Grid>
-            </Grid>
-          </Section>
 
           <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
             <Button onClick={() => navigate(-1)} disabled={isSubmitting}>

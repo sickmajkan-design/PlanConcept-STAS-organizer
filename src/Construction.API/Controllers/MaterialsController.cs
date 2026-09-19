@@ -7,6 +7,7 @@ using Construction.Application.Features.Materials.Commands.DeleteMaterial;
 using Construction.Application.Features.Materials.Commands.UpdateMaterial;
 using Construction.Application.Features.Materials.Models;
 using Construction.Application.Features.Materials.Queries.GetMaterialById;
+using Construction.Application.Features.Materials.Queries.GetMaterialPricing;
 using Construction.Application.Features.Materials.Queries.GetMaterials;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -35,6 +36,19 @@ public class MaterialsController : ApiControllerBase
     public async Task<ActionResult<MaterialDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(new GetMaterialByIdQuery(id), cancellationToken));
+    }
+
+    /// <summary>What the material has actually cost: last and average purchase price.</summary>
+    [HttpGet("{id:guid}/pricing")]
+    [Authorize(Policy = Policies.ForemanAndAbove)]
+    [ProducesResponseType(typeof(MaterialPricingDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<MaterialPricingDto>> GetPricing(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetMaterialPricingQuery(id), cancellationToken));
     }
 
     /// <summary>Creates a new material.</summary>

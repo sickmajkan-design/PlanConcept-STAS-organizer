@@ -543,6 +543,17 @@ export interface Material {
   updatedAt: string | null;
 }
 
+/** What a material has actually cost, worked out from its deliveries. */
+export interface MaterialPricing {
+  lastPurchasePrice: number | null;
+  /** `YYYY-MM-DD`. */
+  lastPurchasedOn: string | null;
+  lastSupplier: string | null;
+  /** Weighted by quantity over every priced delivery. */
+  averagePurchasePrice: number | null;
+  totalReceived: number;
+}
+
 export interface MaterialInput {
   name: string;
   unit: string;

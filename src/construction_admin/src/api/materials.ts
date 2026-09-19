@@ -1,7 +1,7 @@
 import { request } from './client';
 import { idempotencyHeaders } from './idempotency';
 import { createCrudApi } from './resource';
-import type { ListQuery, Material, MaterialInput } from './types';
+import type { ListQuery, Material, MaterialInput, MaterialPricing } from './types';
 
 export interface MaterialListQuery extends ListQuery {
   projectId?: string;
@@ -23,6 +23,9 @@ export const materialsApi = {
   ...createCrudApi<Material, Material, MaterialInput, MaterialListQuery>(
     '/api/v1/materials',
   ),
+
+  pricing: (id: string) =>
+    request<MaterialPricing>({ method: 'GET', url: `/api/v1/materials/${id}/pricing` }),
 
   /**
    * A relative movement, and the reason the idempotency key exists at all: run

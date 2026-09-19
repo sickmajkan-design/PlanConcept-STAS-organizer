@@ -723,6 +723,11 @@ export const en = {
   'materials.minimumHint': 'You are notified when the stock falls below this. Leave empty to not watch it.',
   'materials.lowStock': 'Below minimum',
   'materials.lowStockOnly': 'Low stock only',
+  'materials.lastPurchase': 'Last purchase price',
+  'materials.averagePurchase': 'Average purchase price',
+  'materials.valueOnHand': 'Value on hand (at the average purchase price)',
+  'materials.referencePriceOptional': 'Reference price per unit (optional)',
+  'materials.pricingSummary': 'From the deliveries: last {last}, average {average}.',
   'materials.deleteTitle': 'Delete material?',
   'materials.deleteBody': '{name} will be removed from active records.',
 

@@ -26,6 +26,15 @@ export function useMaterialsQuery(query: MaterialListQuery, enabled = true) {
   return useResourceList(materialKeys, materialsApi.list, query, { enabled });
 }
 
+/** Last and average purchase price. Only for those who may see spending. */
+export function useMaterialPricingQuery(id: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: ['materialMovements', 'pricing', id],
+    queryFn: () => materialsApi.pricing(id!),
+    enabled: !!id && enabled,
+  });
+}
+
 export function useMaterialQuery(id: string | undefined) {
   return useResourceDetail(materialKeys, materialsApi.get, id);
 }

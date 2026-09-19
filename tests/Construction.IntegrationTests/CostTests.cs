@@ -1439,6 +1439,54 @@ public class CostTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task Pricing_reports_the_last_and_the_quantity_weighted_average_purchase_price()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+
+        var material = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Construction.Application.Features.Materials.Commands.CreateMaterial.CreateMaterialCommand
+            {
+                Name = "Cement",
+                Unit = "vreća",
+                Quantity = 100m,
+                InvoiceNumber = "A-1",
+                Supplier = "Prvi",
+                PurchaseUnitPrice = 10m,
+                ReceivedOn = March
+            });
+        });
+
+        await RecordMovementAsync(
+            admin, material.Id, MaterialMovementKind.In, 300m, 20m,
+            occurredOn: March.AddDays(10), invoiceNumber: "A-2");
+
+        var pricing = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Construction.Application.Features.Materials.Queries.GetMaterialPricing.GetMaterialPricingQuery(material.Id));
+        });
+
+        Assert.Equal(20m, pricing.LastPurchasePrice);
+        Assert.Equal(March.AddDays(10), pricing.LastPurchasedOn);
+        Assert.Equal(17.5m, pricing.AveragePurchasePrice);
+        Assert.Equal(400m, pricing.TotalReceived);
+    }
+
+    [Fact]
+    public async Task A_foreman_cannot_read_what_a_material_cost()
+    {
+        var (material, foreman) = await SeedStockKeeperAsync(10m);
+
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => InScope(scope =>
+        {
+            ActAs(scope, foreman);
+            return scope.Send(new Construction.Application.Features.Materials.Queries.GetMaterialPricing.GetMaterialPricingQuery(material.Id));
+        }));
+    }
+
+    [Fact]
     public async Task The_owner_may_approve_a_cost_they_recorded_themselves()
     {
         // Nobody sits above a SuperAdmin to send it to, and where one person
