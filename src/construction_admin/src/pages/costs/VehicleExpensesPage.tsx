@@ -304,7 +304,7 @@ export function VehicleExpensesPage() {
         }}
       />
 
-      <Stack direction="row" spacing={2} sx={{ mb: 2, alignItems: 'center' }}>
+      <Stack direction="row" spacing={2} useFlexGap sx={{ mb: 2, alignItems: 'center', flexWrap: 'wrap' }}>
         <TextField
           select
           size="small"
