@@ -201,6 +201,10 @@ export const costsApi = {
         params: listParams(query),
       }),
 
+    /** Suppliers already used on deliveries, newest first. */
+    suppliers: () =>
+      request<string[]>({ method: 'GET', url: '/api/v1/material-movements/suppliers' }),
+
     record: (input: MaterialMovementInput, idempotencyKey?: string) =>
       request<MaterialMovement>({
         method: 'POST',

@@ -65,6 +65,8 @@ public class MaterialMovementDto
 
     public string? InvoiceNumber { get; init; }
 
+    public string? Supplier { get; init; }
+
     public string? RecordedByName { get; init; }
 
     public DateTime CreatedAt { get; init; }
@@ -385,6 +387,7 @@ public static class MaterialMovementMapping
             OccurredOn = movement.OccurredOn,
             Note = movement.Note,
             InvoiceNumber = movement.InvoiceNumber,
+            Supplier = movement.Supplier,
             RecordedByName = movement.RecordedByUser != null ? movement.RecordedByUser.Email : null,
             CreatedAt = movement.CreatedAt,
         };

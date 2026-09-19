@@ -30,6 +30,9 @@ public record UpdateMaterialMovementCommand : IRequest<MaterialMovementDto>
 
     /// <summary>Invoice or receipt number. Required on a delivery.</summary>
     public string? InvoiceNumber { get; init; }
+
+    /// <summary>Who the goods were bought from. Optional; only a delivery has one.</summary>
+    public string? Supplier { get; init; }
 }
 
 public class UpdateMaterialMovementCommandValidator
@@ -68,6 +71,7 @@ public class UpdateMaterialMovementCommandValidator
                 $"A movement cannot be recorded more than {CostRules.MaxBackdatingDays} days back.");
 
         RuleFor(x => x.Note).MaximumLength(500);
+        RuleFor(x => x.Supplier).MaximumLength(200);
 
         RuleFor(x => x.InvoiceNumber)
             .NotEmpty()
@@ -144,6 +148,9 @@ public class UpdateMaterialMovementCommandHandler
         movement.InvoiceNumber = string.IsNullOrWhiteSpace(request.InvoiceNumber)
             ? null
             : request.InvoiceNumber.Trim();
+        movement.Supplier = string.IsNullOrWhiteSpace(request.Supplier)
+            ? null
+            : request.Supplier.Trim();
 
         var delta = movement.SignedQuantity - previousSigned;
         var materialId = movement.MaterialId;

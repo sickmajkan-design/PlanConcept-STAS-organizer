@@ -46,7 +46,8 @@ export function useAllMaterialsQuery() {
 export function useCreateMaterial() {
   return useResourceMutation(
     (input: MaterialInput) => materialsApi.create(input),
-    [materialKeys.all],
+    // A starting delivery is also a movement, so the stock history follows.
+    [materialKeys.all, ['materialMovements']],
   );
 }
 

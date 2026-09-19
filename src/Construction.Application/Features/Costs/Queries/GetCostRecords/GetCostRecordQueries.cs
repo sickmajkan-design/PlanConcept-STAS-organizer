@@ -225,7 +225,7 @@ public record GetMaterialMovementsQuery : ISortablePagedQuery, IRequest<PagedLis
     public static readonly string[] AllowedSortFields =
     [
         "occurredOn", "materialName", "kind", "quantity", "unitPrice", "projectName",
-        "recordedByName", "createdAt", "invoiceNumber"
+        "recordedByName", "createdAt", "invoiceNumber", "supplier"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -343,6 +343,10 @@ public class GetMaterialMovementsQueryHandler
                 .OrderByDescending(m => m.RecordedByUser != null ? m.RecordedByUser.Email : null),
             ("createdat", false) => query.OrderBy(m => m.CreatedAt),
             ("createdat", true) => query.OrderByDescending(m => m.CreatedAt),
+            ("supplier", false) => query
+                .OrderBy(m => m.Supplier == null).ThenBy(m => m.Supplier),
+            ("supplier", true) => query
+                .OrderByDescending(m => m.Supplier == null).ThenByDescending(m => m.Supplier),
             ("invoicenumber", false) => query
                 .OrderBy(m => m.InvoiceNumber == null).ThenBy(m => m.InvoiceNumber),
             ("invoicenumber", true) => query

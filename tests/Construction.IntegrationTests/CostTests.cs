@@ -1247,6 +1247,115 @@ public class CostTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task A_new_material_with_an_invoice_starts_its_history_with_that_delivery()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+
+        var material = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Construction.Application.Features.Materials.Commands.CreateMaterial.CreateMaterialCommand
+            {
+                Name = "Cement CEM II",
+                Unit = "vreća",
+                Quantity = 40m,
+                InvoiceNumber = "INV-2026-0142",
+                Supplier = "Kastel d.o.o.",
+                PurchaseUnitPrice = 9.5m,
+                ReceivedOn = March
+            });
+        });
+
+        var movement = await InScope(scope => scope.Db.MaterialMovements
+            .SingleAsync(m => m.MaterialId == material.Id));
+
+        Assert.Equal(MaterialMovementKind.In, movement.Kind);
+        Assert.Equal(40m, movement.Quantity);
+        Assert.Equal(9.5m, movement.UnitPrice);
+        Assert.Equal("INV-2026-0142", movement.InvoiceNumber);
+        Assert.Equal("Kastel d.o.o.", movement.Supplier);
+        Assert.Equal(March, movement.OccurredOn);
+    }
+
+    [Fact]
+    public async Task Starting_stock_without_an_invoice_is_an_unpriced_opening_balance()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+
+        var material = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Construction.Application.Features.Materials.Commands.CreateMaterial.CreateMaterialCommand
+            {
+                Name = "Šljunak",
+                Unit = "m3",
+                Quantity = 12m
+            });
+        });
+
+        var movement = await InScope(scope => scope.Db.MaterialMovements
+            .SingleAsync(m => m.MaterialId == material.Id));
+
+        Assert.Equal(MaterialMovementKind.Adjustment, movement.Kind);
+        Assert.Null(movement.UnitPrice);
+        Assert.Null(movement.InvoiceNumber);
+    }
+
+    [Fact]
+    public async Task A_supplier_or_price_without_an_invoice_number_is_refused()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+
+        await Assert.ThrowsAsync<Construction.Application.Common.Exceptions.ValidationException>(() => InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Construction.Application.Features.Materials.Commands.CreateMaterial.CreateMaterialCommand
+            {
+                Name = "Armatura",
+                Unit = "kg",
+                Quantity = 100m,
+                Supplier = "Kastel d.o.o."
+            });
+        }));
+    }
+
+    [Fact]
+    public async Task Suppliers_already_used_are_offered_back_newest_first()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+
+        foreach (var (supplier, invoice, day) in new[]
+                 {
+                     ("Stari dobavljač", "A-1", March),
+                     ("Novi dobavljač", "B-1", March.AddDays(10))
+                 })
+        {
+            await InScope(scope =>
+            {
+                ActAs(scope, admin);
+                return scope.Send(new Construction.Application.Features.Materials.Commands.CreateMaterial.CreateMaterialCommand
+                {
+                    Name = "Materijal " + invoice,
+                    Unit = "kom",
+                    Quantity = 1m,
+                    InvoiceNumber = invoice,
+                    Supplier = supplier,
+                    PurchaseUnitPrice = 1m,
+                    ReceivedOn = day
+                });
+            });
+        }
+
+        var suppliers = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Construction.Application.Features.Costs.Queries.GetMaterialSuppliers.GetMaterialSuppliersQuery());
+        });
+
+        Assert.True(suppliers.ToList().IndexOf("Novi dobavljač") < suppliers.ToList().IndexOf("Stari dobavljač"));
+    }
+
+    [Fact]
     public async Task The_owner_may_approve_a_cost_they_recorded_themselves()
     {
         // Nobody sits above a SuperAdmin to send it to, and where one person

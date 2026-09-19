@@ -75,6 +75,17 @@ public class MaterialMovement : BaseEntity, IAuditable
     /// </remarks>
     public string? InvoiceNumber { get; set; }
 
+    /// <summary>
+    /// Who the goods were bought from, on a delivery.
+    /// </summary>
+    /// <remarks>
+    /// Free text rather than a supplier table: the office types the name as it
+    /// is printed on the invoice, and the history is what matters here, not a
+    /// directory to keep in sync. The names already used are offered back when
+    /// the next delivery is entered, which is what keeps them consistent.
+    /// </remarks>
+    public string? Supplier { get; set; }
+
     public Guid? RecordedByUserId { get; set; }
 
     public User? RecordedByUser { get; set; }

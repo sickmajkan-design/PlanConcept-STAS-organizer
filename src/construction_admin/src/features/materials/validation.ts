@@ -38,7 +38,37 @@ export const materialFormSchema = z.object({
     .or(z.literal('')),
   unitPrice: optionalPriceString,
   projectId: z.string().optional().or(z.literal('')),
-});
+  // The delivery the starting stock came in on (new material only).
+  receivedOn: z.string().optional().or(z.literal('')),
+  supplier: z
+    .string()
+    .trim()
+    .max(200, { error: zodMsg('validation.maxLength', { max: 200 }) })
+    .optional()
+    .or(z.literal('')),
+  invoiceNumber: z
+    .string()
+    .trim()
+    .max(100, { error: zodMsg('validation.maxLength', { max: 100 }) })
+    .optional()
+    .or(z.literal('')),
+  purchaseUnitPrice: optionalPriceString,
+  receiptNote: z
+    .string()
+    .trim()
+    .max(500, { error: zodMsg('validation.maxLength', { max: 500 }) })
+    .optional()
+    .or(z.literal('')),
+})
+  // Same rule the API applies: a supplier or a price means it was bought, and
+  // something bought has an invoice or receipt behind it.
+  .refine(
+    (values) =>
+      Number(values.quantity) <= 0 ||
+      (!values.supplier && !values.purchaseUnitPrice) ||
+      !!values.invoiceNumber,
+    { path: ['invoiceNumber'], error: zodMsg('movements.needsInvoiceNumber') },
+  );
 
 export type MaterialFormValues = z.infer<typeof materialFormSchema>;
 

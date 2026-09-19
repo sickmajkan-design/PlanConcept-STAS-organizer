@@ -26,6 +26,7 @@ public class MaterialMovementConfiguration : IEntityTypeConfiguration<MaterialMo
 
         builder.Property(m => m.Note).HasMaxLength(500);
         builder.Property(m => m.InvoiceNumber).HasMaxLength(100);
+        builder.Property(m => m.Supplier).HasMaxLength(200);
 
         builder.HasOne(m => m.Material)
             .WithMany(m => m.Movements)

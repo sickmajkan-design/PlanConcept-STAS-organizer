@@ -1,3 +1,4 @@
+using Construction.Application.Features.Costs.Queries.GetMaterialSuppliers;
 using Construction.API.Authorization;
 using Construction.API.Filters;
 using Construction.Application.Common.Models;
@@ -145,6 +146,17 @@ public class CostsController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>Suppliers already used on deliveries, newest first, for suggestions.</summary>
+    [HttpGet("/api/v{version:apiVersion}/material-movements/suppliers")]
+    [HttpGet("/api/material-movements/suppliers")]
+    [ProducesResponseType(typeof(IReadOnlyList<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<IReadOnlyList<string>>> GetMovementSuppliers(
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetMaterialSuppliersQuery(), cancellationToken));
     }
 
     /// <summary>The count and value of whatever the movements list is currently filtered to.</summary>

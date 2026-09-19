@@ -1,6 +1,7 @@
 import { AddOutlined, DeleteOutlined } from '@mui/icons-material';
 import {
   Alert,
+  Autocomplete,
   Box,
   Button,
   Dialog,
@@ -39,6 +40,7 @@ import {
   useDeleteMaterialMovement,
   useMaterialMovementsQuery,
   useMaterialMovementsSummaryQuery,
+  useMovementSuppliersQuery,
   useRecordMaterialMovement,
   useUpdateMaterialMovement,
 } from '../../features/costs/useCosts';
@@ -130,6 +132,12 @@ export function StockMovementsPage() {
         align: 'right',
         headerAlign: 'right',
         valueGetter: (value) => formatMoney(value as number | null, locale),
+      },
+      {
+        field: 'supplier',
+        headerName: t('movements.supplier'),
+        width: 170,
+        valueGetter: (value) => value || '—',
       },
       {
         field: 'invoiceNumber',
@@ -294,16 +302,21 @@ export function StockMovementsPage() {
   );
 }
 
-function MovementDialog({
+export function MovementDialog({
   open,
   editingMovement,
   onClose,
   canAdminister,
+  defaultMaterialId,
+  defaultKind = 'In',
 }: {
   open: boolean;
   editingMovement?: MaterialMovement | null;
   onClose: () => void;
   canAdminister?: boolean;
+  /** Opened from a material's own page: that material is already chosen. */
+  defaultMaterialId?: string;
+  defaultKind?: MaterialMovementKind;
 }) {
   const t = useT();
   const enumLabel = useEnumLabel();
@@ -321,6 +334,8 @@ function MovementDialog({
   const [occurredOn, setOccurredOn] = useState('');
   const [note, setNote] = useState('');
   const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [supplier, setSupplier] = useState('');
+  const { data: knownSuppliers } = useMovementSuppliersQuery(open);
 
   const resetRecord = record.reset;
   const resetUpdate = update.reset;
@@ -342,17 +357,19 @@ function MovementDialog({
       setOccurredOn(editingMovement.occurredOn);
       setNote(editingMovement.note ?? '');
       setInvoiceNumber(editingMovement.invoiceNumber ?? '');
+      setSupplier(editingMovement.supplier ?? '');
     } else {
-      setMaterialId('');
-      setKind('In');
+      setMaterialId(defaultMaterialId ?? '');
+      setKind(defaultKind);
       setQuantity('');
       setUnitPrice('');
       setProjectId('');
       setOccurredOn('');
       setNote('');
       setInvoiceNumber('');
+      setSupplier('');
     }
-  }, [open, editingMovement, resetRecord, resetUpdate]);
+  }, [open, editingMovement, defaultMaterialId, defaultKind, resetRecord, resetUpdate]);
 
   const isDelivery = kind === 'In';
   const isIssue = kind === 'Out';
@@ -380,6 +397,7 @@ function MovementDialog({
       occurredOn: occurredOn || null,
       note: note.trim() || null,
       invoiceNumber: invoiceNumber.trim() || null,
+      supplier: isDelivery ? supplier.trim() || null : null,
     };
 
     if (isEditing) {
@@ -488,6 +506,18 @@ function MovementDialog({
                 onChange={(event) => setInvoiceNumber(event.target.value)}
                 error={invoiceNumber.trim() === ''}
                 helperText={invoiceNumber.trim() === '' ? t('movements.needsInvoiceNumber') : undefined}
+              />
+            </Grid>
+          )}
+
+          {isDelivery && (
+            <Grid size={12}>
+              <Autocomplete
+                freeSolo
+                options={knownSuppliers ?? []}
+                inputValue={supplier}
+                onInputChange={(_event, value) => setSupplier(value)}
+                renderInput={(params) => <TextField {...params} label={t('movements.supplier')} />}
               />
             </Grid>
           )}

@@ -111,8 +111,17 @@ export function useDeleteEmployeeRate() {
 
 // ---- stock movements -------------------------------------------------------
 
-export function useMaterialMovementsQuery(query: MaterialMovementListQuery) {
-  return useResourceList(movementKeys, costsApi.movements.list, query);
+export function useMaterialMovementsQuery(query: MaterialMovementListQuery, enabled = true) {
+  return useResourceList(movementKeys, costsApi.movements.list, query, { enabled });
+}
+
+export function useMovementSuppliersQuery(enabled = true) {
+  return useQuery({
+    queryKey: [...movementKeys.all, 'suppliers'],
+    queryFn: () => costsApi.movements.suppliers(),
+    enabled,
+    staleTime: 60_000,
+  });
 }
 
 export function useMaterialMovementsSummaryQuery(query: MaterialMovementListQuery) {

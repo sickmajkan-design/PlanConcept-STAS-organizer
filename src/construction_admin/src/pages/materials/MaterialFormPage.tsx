@@ -1,10 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Alert,
+  Autocomplete,
   Box,
   Button,
+  Divider,
   FormControl,
   Grid,
+  InputAdornment,
   InputLabel,
   MenuItem,
   Paper,
@@ -13,18 +16,22 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { useEffect } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { useEffect, type ReactNode } from 'react';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
 import type { MaterialInput } from '../../api/types';
+import { useAuth } from '../../auth/useAuth';
+import { canSeeSpending } from '../../auth/authHelpers';
 import { ErrorState } from '../../components/ErrorState';
+import { useMovementSuppliersQuery } from '../../features/costs/useCosts';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
 import { useCreateMaterial, useMaterialQuery, useUpdateMaterial } from '../../features/materials/useMaterials';
 import { materialFormSchema, type MaterialFormValues } from '../../features/materials/validation';
-import { useT } from '../../i18n/useI18n';
+import { useI18n, useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
+import { formatMoney } from '../../utils/formatting';
 
 const emptyValues: MaterialFormValues = {
   name: '',
@@ -33,16 +40,53 @@ const emptyValues: MaterialFormValues = {
   warehouse: '',
   unitPrice: '',
   projectId: '',
+  receivedOn: '',
+  supplier: '',
+  invoiceNumber: '',
+  purchaseUnitPrice: '',
+  receiptNote: '',
 };
+
+/** One titled block of the form: a heading, what it is for, and its fields. */
+function Section({
+  title,
+  hint,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  children: ReactNode;
+}) {
+  return (
+    <Paper variant="outlined" sx={{ p: { xs: 2, sm: 3 } }}>
+      <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+        {title}
+      </Typography>
+      {hint && (
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, maxWidth: 560 }}>
+          {hint}
+        </Typography>
+      )}
+      <Divider sx={{ my: 2 }} />
+      {children}
+    </Paper>
+  );
+}
 
 export function MaterialFormPage() {
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
   const navigate = useNavigate();
   const t = useT();
+  const { locale } = useI18n();
+  const { user } = useAuth();
+  // Price, supplier and invoice are spending records; without the right to
+  // record spending only the quantity is asked for.
+  const showReceiptDetails = canSeeSpending(user);
 
   const { data: existing, isLoading, isError, error, refetch } = useMaterialQuery(id);
   const { data: allProjects } = useAllProjectsQuery();
+  const { data: knownSuppliers } = useMovementSuppliersQuery(!isEdit && showReceiptDetails);
   const createMaterial = useCreateMaterial();
   const updateMaterial = useUpdateMaterial(id ?? '');
 
@@ -57,9 +101,20 @@ export function MaterialFormPage() {
     defaultValues: emptyValues,
   });
 
+  const [unit, quantity, purchasePrice, invoiceNumber] = useWatch({
+    control,
+    name: ['unit', 'quantity', 'purchaseUnitPrice', 'invoiceNumber'],
+  });
+  const receivedQuantity = Number(quantity);
+  const receiptTotal =
+    receivedQuantity > 0 && purchasePrice !== '' && !Number.isNaN(Number(purchasePrice))
+      ? receivedQuantity * Number(purchasePrice)
+      : null;
+
   useEffect(() => {
     if (existing) {
       reset({
+        ...emptyValues,
         name: existing.name,
         unit: existing.unit,
         quantity: String(existing.quantity),
@@ -79,13 +134,26 @@ export function MaterialFormPage() {
   }
 
   const onSubmit = async (values: MaterialFormValues) => {
+    const purchase = values.purchaseUnitPrice === '' ? null : Number(values.purchaseUnitPrice);
+    const hasStock = Number(values.quantity) > 0;
+
     const input: MaterialInput = {
       name: values.name.trim(),
       unit: values.unit.trim(),
       quantity: Number(values.quantity),
       warehouse: values.warehouse || null,
-      unitPrice: values.unitPrice === '' ? null : Number(values.unitPrice),
+      // Left empty, the reference price follows what the first delivery cost.
+      unitPrice: values.unitPrice === '' ? purchase : Number(values.unitPrice),
       projectId: values.projectId || null,
+      ...(isEdit || !hasStock
+        ? {}
+        : {
+            invoiceNumber: values.invoiceNumber || null,
+            supplier: values.supplier || null,
+            purchaseUnitPrice: purchase,
+            receivedOn: values.receivedOn || null,
+            receiptNote: values.receiptNote || null,
+          }),
     };
 
     try {
@@ -111,103 +179,46 @@ export function MaterialFormPage() {
   };
 
   const rootError = errors.root as { message?: string } | undefined;
+  const text = (name: keyof MaterialFormValues, label: string, extra: object = {}) => (
+    <Controller
+      name={name}
+      control={control}
+      render={({ field, fieldState }) => (
+        <TextField
+          {...field}
+          value={field.value ?? ''}
+          label={label}
+          fullWidth
+          error={!!fieldState.error}
+          helperText={fieldState.error?.message}
+          {...extra}
+        />
+      )}
+    />
+  );
 
   return (
-    <Box sx={{ maxWidth: 720 }}>
-      <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
+    <Box sx={{ maxWidth: 840 }}>
+      <Typography variant="h5" sx={{ fontWeight: 700 }}>
         {isEdit ? t('materials.editTitle') : t('materials.newTitle')}
       </Typography>
 
       {isEdit && (
-        <Alert severity="info" sx={{ mt: 1 }}>
+        <Alert severity="info" sx={{ mt: 2 }}>
           {t('materials.absoluteQuantityNotice')}
         </Alert>
       )}
 
-      <Paper sx={{ p: 3, mt: 2 }}>
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          <Stack spacing={2.5}>
-            {rootError?.message && <Alert severity="error">{rootError.message}</Alert>}
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <Stack spacing={2.5} sx={{ mt: 3 }}>
+          {rootError?.message && <Alert severity="error">{rootError.message}</Alert>}
 
+          <Section title={t('materials.sectionBasics')}>
             <Grid container spacing={2}>
-              <Grid size={12}>
-                <Controller
-                  name="name"
-                  control={control}
-                  render={({ field, fieldState }) => (
-                    <TextField
-                      {...field}
-                      label={t('materials.name')}
-                      fullWidth
-                      error={!!fieldState.error}
-                      helperText={fieldState.error?.message}
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  name="unit"
-                  control={control}
-                  render={({ field, fieldState }) => (
-                    <TextField
-                      {...field}
-                      label={t('materials.unitHint')}
-                      fullWidth
-                      error={!!fieldState.error}
-                      helperText={fieldState.error?.message}
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  name="quantity"
-                  control={control}
-                  render={({ field, fieldState }) => (
-                    <TextField
-                      {...field}
-                      label={t('materials.quantity')}
-                      type="number"
-                      fullWidth
-                      error={!!fieldState.error}
-                      helperText={fieldState.error?.message}
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  name="warehouse"
-                  control={control}
-                  render={({ field, fieldState }) => (
-                    <TextField
-                      {...field}
-                      label={t('materials.warehouse')}
-                      fullWidth
-                      error={!!fieldState.error}
-                      helperText={fieldState.error?.message}
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  name="unitPrice"
-                  control={control}
-                  render={({ field, fieldState }) => (
-                    <TextField
-                      {...field}
-                      label={t('materials.unitPrice')}
-                      type="number"
-                      fullWidth
-                      error={!!fieldState.error}
-                      helperText={fieldState.error?.message ?? t('materials.unitPriceHint')}
-                    />
-                  )}
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
+              <Grid size={12}>{text('name', t('materials.name'))}</Grid>
+              <Grid size={{ xs: 12, sm: 4 }}>{text('unit', t('materials.unitHint'))}</Grid>
+              <Grid size={{ xs: 12, sm: 4 }}>{text('warehouse', t('materials.warehouse'))}</Grid>
+              <Grid size={{ xs: 12, sm: 4 }}>
                 <Controller
                   name="projectId"
                   control={control}
@@ -216,7 +227,7 @@ export function MaterialFormPage() {
                       <InputLabel id="material-project-label">{t('materials.project')}</InputLabel>
                       <Select {...field} labelId="material-project-label" label={t('materials.project')}>
                         <MenuItem value="">
-                          <em>Warehouse stock (no project)</em>
+                          <em>{t('materials.warehouseStock')}</em>
                         </MenuItem>
                         {(allProjects?.items ?? []).map((project) => (
                           <MenuItem key={project.id} value={project.id}>
@@ -228,19 +239,120 @@ export function MaterialFormPage() {
                   )}
                 />
               </Grid>
+              {isEdit && (
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  {text('quantity', t('materials.quantity'), { type: 'number' })}
+                </Grid>
+              )}
             </Grid>
+          </Section>
 
-            <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
-              <Button onClick={() => navigate(-1)} disabled={isSubmitting}>
-                {t('common.cancel')}
-              </Button>
-              <Button type="submit" variant="contained" loading={isSubmitting}>
-                {isEdit ? t('common.save') : 'Create material'}
-              </Button>
-            </Stack>
+          {!isEdit && (
+            <Section title={t('materials.sectionReceipt')} hint={t('materials.receiptHint')}>
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  {text('quantity', t('materials.receivedQuantity'), {
+                    type: 'number',
+                    slotProps: {
+                      input: {
+                        endAdornment: unit ? (
+                          <InputAdornment position="end">{unit}</InputAdornment>
+                        ) : undefined,
+                      },
+                    },
+                  })}
+                </Grid>
+                {showReceiptDetails && (
+                  <>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      {text('receivedOn', t('materials.receivedOn'), {
+                        type: 'date',
+                        slotProps: { inputLabel: { shrink: true } },
+                      })}
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 4 }}>
+                      {text('purchaseUnitPrice', t('materials.purchasePrice'), {
+                        type: 'number',
+                        slotProps: {
+                          input: {
+                            endAdornment: unit ? (
+                              <InputAdornment position="end">/ {unit}</InputAdornment>
+                            ) : undefined,
+                          },
+                        },
+                      })}
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <Controller
+                        name="supplier"
+                        control={control}
+                        render={({ field, fieldState }) => (
+                          <Autocomplete
+                            freeSolo
+                            options={knownSuppliers ?? []}
+                            inputValue={field.value ?? ''}
+                            onInputChange={(_event, value) => field.onChange(value)}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                label={t('materials.supplier')}
+                                error={!!fieldState.error}
+                                helperText={fieldState.error?.message}
+                              />
+                            )}
+                          />
+                        )}
+                      />
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      {text('invoiceNumber', t('materials.invoiceNumber'))}
+                    </Grid>
+                    <Grid size={12}>
+                      {text('receiptNote', t('materials.receiptNote'), { multiline: true, minRows: 2 })}
+                    </Grid>
+                  </>
+                )}
+              </Grid>
+
+              {receivedQuantity > 0 && (
+                <Box sx={{ mt: 2 }}>
+                  {receiptTotal !== null && (
+                    <Typography variant="body2">
+                      {t('materials.receiptValue')}:{' '}
+                      <strong>{formatMoney(receiptTotal, locale)}</strong>
+                    </Typography>
+                  )}
+                  {!invoiceNumber && (
+                    <Typography variant="body2" color="text.secondary">
+                      {t('materials.openingStockHint')}
+                    </Typography>
+                  )}
+                </Box>
+              )}
+            </Section>
+          )}
+
+          <Section title={t('materials.sectionPricing')} hint={t('materials.unitPriceHint')}>
+            <Grid container spacing={2}>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                {text('unitPrice', t('materials.unitPrice'), {
+                  type: 'number',
+                  helperText: isEdit ? undefined : t('materials.priceFromPurchase'),
+                })}
+              </Grid>
+            </Grid>
+          </Section>
+
+          <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
+            <Button onClick={() => navigate(-1)} disabled={isSubmitting}>
+              {t('common.cancel')}
+            </Button>
+            <Button type="submit" variant="contained" loading={isSubmitting}>
+              {isEdit ? t('common.save') : t('materials.create')}
+            </Button>
           </Stack>
-        </form>
-      </Paper>
+        </Stack>
+      </form>
     </Box>
   );
 }

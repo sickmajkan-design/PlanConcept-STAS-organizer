@@ -287,6 +287,7 @@ work.
 
 | Module | Endpoints |
 |---|---|
+| Material deliveries | `POST /api/material-movements` (a delivery needs an invoice number; `supplier` and the purchase `unitPrice` are recorded with it), `GET /api/material-movements/suppliers` (names already used, newest first). Creating a material with starting stock records it as a delivery (with invoice) or as an unpriced opening balance (without) |
 | Vehicle costs | `GET /api/vehicle-expenses` (`status`, `kind`, paging, sort), `/summary`, `POST /api/vehicle-expenses`, `PUT /api/vehicle-expenses/{id}` (an edit after a decision resets it to Pending), `POST /api/vehicle-expenses/{id}/review` (`approve`, `note` required when rejecting, `confirm` to reverse an earlier decision; nobody reviews their own entry except a Super Admin), `POST /api/vehicle-expenses/{id}/reopen` (takes a decision back to Pending), `GET /api/vehicle-expenses/fuel-consumption-flags`. Recording, re-submitting and importing fuel notify the reviewers (`VehicleExpenseSubmitted`); a rejection notifies the recorder (`VehicleExpenseRejected`) |
 | Organisation hierarchy | `GET /api/employees/hierarchy` (people by rank, plus active accounts not linked to an employee, for Admin and above), `PUT /api/employees/{id}/rank` |
 | Authentication | `POST /api/auth/login`, `/refresh`, `/logout`, `/change-password`, `/forgot-password`, `/reset-password`, `GET /api/auth/me` |

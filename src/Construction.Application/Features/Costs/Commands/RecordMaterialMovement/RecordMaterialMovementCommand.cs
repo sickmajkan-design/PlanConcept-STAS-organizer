@@ -35,6 +35,9 @@ public record RecordMaterialMovementCommand : IRequest<MaterialMovementDto>
 
     /// <summary>Invoice or receipt number. Required on a delivery.</summary>
     public string? InvoiceNumber { get; init; }
+
+    /// <summary>Who the goods were bought from. Optional; only a delivery has one.</summary>
+    public string? Supplier { get; init; }
 }
 
 public class RecordMaterialMovementCommandValidator
@@ -75,6 +78,7 @@ public class RecordMaterialMovementCommandValidator
             .When(x => x.OccurredOn is not null);
 
         RuleFor(x => x.Note).MaximumLength(500);
+        RuleFor(x => x.Supplier).MaximumLength(200);
 
         // The invoice is the paper trail back to what was actually paid; a
         // delivery without one leaves nothing to reconcile against later.
@@ -137,6 +141,9 @@ public class RecordMaterialMovementCommandHandler
             InvoiceNumber = string.IsNullOrWhiteSpace(request.InvoiceNumber)
                 ? null
                 : request.InvoiceNumber.Trim(),
+            Supplier = string.IsNullOrWhiteSpace(request.Supplier)
+                ? null
+                : request.Supplier.Trim(),
             RecordedByUserId = _currentUserService.UserId
         };
 

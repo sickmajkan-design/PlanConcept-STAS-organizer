@@ -3,6 +3,7 @@ using Construction.Application.Features.Materials.Commands.CreateMaterial;
 using Construction.Application.Features.Tools.Commands.CreateTool;
 using Construction.Application.Features.Vehicles.Commands.CreateVehicle;
 using Construction.Domain.Enums;
+using Construction.UnitTests.Fakes;
 
 namespace Construction.UnitTests.Validation;
 
@@ -108,7 +109,7 @@ public class ToolValidatorTests
 
 public class MaterialValidatorTests
 {
-    private readonly CreateMaterialCommandValidator _validator = new();
+    private readonly CreateMaterialCommandValidator _validator = new(new FixedDateTimeProvider());
 
     private static CreateMaterialCommand Valid() => new()
     {

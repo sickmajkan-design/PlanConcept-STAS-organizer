@@ -548,6 +548,13 @@ export interface MaterialInput {
   warehouse?: string | null;
   unitPrice?: number | null;
   projectId?: string | null;
+  /** New material only: the delivery the starting stock came in on. */
+  invoiceNumber?: string | null;
+  supplier?: string | null;
+  purchaseUnitPrice?: number | null;
+  /** `YYYY-MM-DD`. */
+  receivedOn?: string | null;
+  receiptNote?: string | null;
 }
 
 /**
@@ -1130,6 +1137,7 @@ export interface MaterialMovement {
   occurredOn: string;
   note: string | null;
   invoiceNumber: string | null;
+  supplier: string | null;
   recordedByName: string | null;
   createdAt: string;
 }
@@ -1143,6 +1151,7 @@ export interface MaterialMovementInput {
   occurredOn?: string | null;
   note?: string | null;
   invoiceNumber?: string | null;
+  supplier?: string | null;
 }
 
 export interface VehicleExpense {
