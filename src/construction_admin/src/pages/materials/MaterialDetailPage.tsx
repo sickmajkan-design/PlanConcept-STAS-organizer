@@ -160,7 +160,7 @@ export function MaterialDetailPage() {
 
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, sm: 6 }}>
-          <Card sx={{ height: '100%' }}>
+          <Card>
             <CardContent>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700 }}>
                 {t('materials.stockSection')}
@@ -189,7 +189,7 @@ export function MaterialDetailPage() {
         </Grid>
 
         <Grid size={{ xs: 12, sm: 6 }}>
-          <Card sx={{ height: '100%' }}>
+          <Card>
             <CardContent>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700 }}>
                 {t('materials.projectSection')}
