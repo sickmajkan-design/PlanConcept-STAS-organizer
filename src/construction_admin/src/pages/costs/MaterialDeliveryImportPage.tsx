@@ -191,7 +191,9 @@ export function MaterialDeliveryImportPage() {
                 useFlexGap
                 sx={{ p: 2, flexWrap: 'wrap', alignItems: 'center' }}
               >
-                <Chip color="success" label={t('deliveryImport.readyCount', { count: preview.readyCount })} />
+                {preview.readyCount > 0 && (
+                  <Chip color="success" label={t('deliveryImport.readyCount', { count: preview.readyCount })} />
+                )}
                 {preview.newMaterialCount > 0 && (
                   <Chip
                     color="info"
