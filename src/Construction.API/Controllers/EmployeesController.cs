@@ -5,6 +5,7 @@ using Construction.Application.Features.Employees.Commands.AssignEmployeeToProje
 using Construction.Application.Features.Employees.Commands.CreateEmployee;
 using Construction.Application.Features.Employees.Commands.DeleteEmployee;
 using Construction.Application.Features.Employees.Commands.RemoveEmployeeFromProject;
+using Construction.Application.Features.Employees.Commands.SetEmployeeRank;
 using Construction.Application.Features.Employees.Commands.UpdateEmployee;
 using Construction.Application.Features.Employees.Models;
 using Construction.Application.Features.Employees.Queries.GetEmployeeById;
@@ -38,6 +39,20 @@ public class EmployeesController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(new GetOrganizationHierarchyQuery(), cancellationToken));
+    }
+
+    /// <summary>Places someone on the org chart, or clears their placement with a null rank.</summary>
+    [HttpPut("{id:guid}/rank")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(EmployeeDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<EmployeeDto>> SetRank(
+        Guid id,
+        SetEmployeeRankCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
     }
 
     /// <summary>Returns one employee including project assignments.</summary>

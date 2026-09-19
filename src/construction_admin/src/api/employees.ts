@@ -9,6 +9,7 @@ import type {
   EmployeeType,
   ListQuery,
   OrganizationHierarchyNode,
+  OrganizationRank,
 } from './types';
 
 export interface EmployeeListQuery extends ListQuery {
@@ -39,6 +40,13 @@ export const employeesApi = {
     request<void>({
       method: 'DELETE',
       url: `/api/v1/employees/${employeeId}/projects/${projectId}`,
+    }),
+
+  setRank: (id: string, rank: OrganizationRank | null) =>
+    request<Employee>({
+      method: 'PUT',
+      url: `/api/v1/employees/${id}/rank`,
+      data: { rank },
     }),
 
   hierarchy: () =>

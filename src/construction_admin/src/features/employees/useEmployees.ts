@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { employeesApi, type EmployeeListQuery } from '../../api/employees';
-import type { EmployeeInput } from '../../api/types';
+import type { EmployeeInput, OrganizationRank } from '../../api/types';
 import { projectKeys } from '../projects/useProjects';
 import { toolKeys } from '../tools/useTools';
 import { vehicleKeys } from '../vehicles/useVehicles';
@@ -61,6 +61,16 @@ export function useOrganizationHierarchyQuery() {
     queryFn: () => employeesApi.hierarchy(),
     staleTime: 60_000,
   });
+}
+
+export function useSetEmployeeRank() {
+  return useResourceMutation(
+    (variables: { id: string; rank: OrganizationRank | null }) =>
+      employeesApi.setRank(variables.id, variables.rank),
+    // The chart lives under the same key as the list, so one invalidation
+    // refreshes the chart, the list and the detail page together.
+    [employeeKeys.all],
+  );
 }
 
 export function useCreateEmployee() {

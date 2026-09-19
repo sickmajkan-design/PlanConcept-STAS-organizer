@@ -2,6 +2,7 @@ using Construction.Application.Common.Exceptions;
 using Construction.Application.Features.Employees.Commands.AssignEmployeeToProject;
 using Construction.Application.Features.Employees.Commands.CreateEmployee;
 using Construction.Application.Features.Employees.Commands.DeleteEmployee;
+using Construction.Application.Features.Employees.Commands.SetEmployeeRank;
 using Construction.Application.Features.Employees.Commands.UpdateEmployee;
 using Construction.Application.Features.Employees.Queries.GetEmployeeById;
 using Construction.Application.Features.Employees.Queries.GetEmployees;
@@ -494,5 +495,50 @@ public class EmployeeTests : IntegrationTestBase
 
         Assert.Equal("ProjectManager", managerNode.Role);
         Assert.Null(subcontractorNode.Role);
+    }
+
+    [Fact]
+    public async Task A_rank_can_be_set_cleared_and_shows_on_the_chart()
+    {
+        var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+
+        var ranked = await InScope(scope => scope.Send(
+            new SetEmployeeRankCommand { Id = employee.Id, Rank = OrganizationRank.LogisticsManager }));
+
+        Assert.Equal(OrganizationRank.LogisticsManager, ranked.Rank);
+
+        var node = (await InScope(scope => scope.Send(new GetOrganizationHierarchyQuery())))
+            .Single(n => n.EmployeeId == employee.Id);
+
+        Assert.Equal(OrganizationRank.LogisticsManager, node.Rank);
+
+        var cleared = await InScope(scope => scope.Send(
+            new SetEmployeeRankCommand { Id = employee.Id, Rank = null }));
+
+        Assert.Null(cleared.Rank);
+    }
+
+    [Fact]
+    public async Task Editing_an_employee_leaves_their_rank_alone()
+    {
+        // The mobile app edits through this command and has never heard of a
+        // rank; if it carried one, every edit from a phone would erase it.
+        var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+
+        await InScope(scope => scope.Send(
+            new SetEmployeeRankCommand { Id = employee.Id, Rank = OrganizationRank.Director }));
+
+        await InScope(scope => scope.Send(Edit(employee.Id, employee.EmployeeNumber, firstName: "Petar")));
+
+        var detail = await InScope(scope => scope.Send(new GetEmployeeByIdQuery(employee.Id)));
+
+        Assert.Equal(OrganizationRank.Director, detail.Rank);
+    }
+
+    [Fact]
+    public async Task Setting_a_rank_on_someone_who_does_not_exist_is_a_404()
+    {
+        await Assert.ThrowsAsync<NotFoundException>(() => InScope(scope => scope.Send(
+            new SetEmployeeRankCommand { Id = Guid.NewGuid(), Rank = OrganizationRank.Worker })));
     }
 }

@@ -166,6 +166,7 @@ public class ApiAuthorizationTests
             new("GET", $"/api/employees/{Id}", UserRole.Foreman),
             new("POST", "/api/employees", UserRole.Admin),
             new("PUT", $"/api/employees/{Id}", UserRole.Admin),
+            new("PUT", $"/api/employees/{Id}/rank", UserRole.Admin),
             new("DELETE", $"/api/employees/{Id}", UserRole.Admin),
             new("POST", $"/api/employees/{Id}/projects/{OtherId}", UserRole.ProjectManager),
             new("DELETE", $"/api/employees/{Id}/projects/{OtherId}", UserRole.ProjectManager),

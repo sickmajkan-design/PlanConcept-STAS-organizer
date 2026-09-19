@@ -34,6 +34,13 @@ public class Employee : BaseEntity, ISoftDeletable, IAuditable
     /// </summary>
     public int AnnualLeaveDaysAllowance { get; set; } = 20;
 
+    /// <summary>
+    /// Chosen by hand for the org chart. Null until somebody picks one — the
+    /// chart then falls back to what the person's login role implies, where
+    /// that is unambiguous, rather than guessing a title.
+    /// </summary>
+    public OrganizationRank? Rank { get; set; }
+
     public bool IsDeleted { get; set; }
 
     public DateTime? DeletedAt { get; set; }

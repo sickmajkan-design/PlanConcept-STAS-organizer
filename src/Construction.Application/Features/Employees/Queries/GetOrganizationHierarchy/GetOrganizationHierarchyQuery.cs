@@ -1,4 +1,5 @@
 using Construction.Application.Common.Interfaces;
+using Construction.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,6 +13,9 @@ public class OrganizationHierarchyNodeDto
     public string FullName { get; init; } = null!;
 
     public string Position { get; init; } = null!;
+
+    /// <summary>The rank picked by hand, or null — the page then places them by <see cref="Role"/>.</summary>
+    public OrganizationRank? Rank { get; init; }
 
     /// <summary>
     /// Null for an employee with no login of their own — a subcontractor, most
@@ -54,6 +58,7 @@ public class GetOrganizationHierarchyQueryHandler
                 EmployeeId = e.Id,
                 FullName = e.FirstName + " " + e.LastName,
                 Position = e.Position,
+                Rank = e.Rank,
                 Role = e.User != null ? e.User.Role.ToString() : null,
             })
             .ToListAsync(cancellationToken);

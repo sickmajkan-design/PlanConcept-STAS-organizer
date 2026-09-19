@@ -47,7 +47,8 @@ export type EnumKind =
   | 'weekDay'
   | 'weeklyReportType'
   | 'weeklyReportStatus'
-  | 'auditAction';
+  | 'auditAction'
+  | 'organizationRank';
 
 export function useEnumLabel() {
   const t = useT();

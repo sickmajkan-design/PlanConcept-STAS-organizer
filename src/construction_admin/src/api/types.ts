@@ -40,11 +40,30 @@ export const roles = [
 
 export type Role = (typeof roles)[number];
 
+/** Org-chart ranks, most senior first — the order the Hierarchy page draws them in. */
+export const organizationRanks = [
+  'Owner',
+  'ExecutiveDirector',
+  'Director',
+  'DeputyDirector',
+  'FinanceManager',
+  'ProcurementManager',
+  'LogisticsManager',
+  'HrManager',
+  'ProjectManager',
+  'Foreman',
+  'Worker',
+] as const;
+
+export type OrganizationRank = (typeof organizationRanks)[number];
+
 /** One person on the org chart. `role` is null for an employee with no login of their own. */
 export interface OrganizationHierarchyNode {
   employeeId: string;
   fullName: string;
   position: string;
+  /** Picked by hand; null means the page places them by `role` where that is unambiguous. */
+  rank: OrganizationRank | null;
   role: Role | null;
 }
 
@@ -86,6 +105,8 @@ export interface Employee {
   status: EmployeeStatus;
   /** Direct employee or subcontractor. */
   type: EmployeeType;
+  /** Where they sit on the org chart, if somebody picked. */
+  rank: OrganizationRank | null;
   /** Every project this employee is currently posted to. Empty means unassigned. */
   currentProjectNames: string[];
   createdAt: string;

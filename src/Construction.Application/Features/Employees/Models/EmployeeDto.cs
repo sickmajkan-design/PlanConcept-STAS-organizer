@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Construction.Domain.Entities;
+using Construction.Domain.Enums;
 
 namespace Construction.Application.Features.Employees.Models;
 
@@ -31,6 +32,9 @@ public class EmployeeDto
 
     /// <summary>"Employee" or "Subcontractor" — see <c>EmployeeType</c>.</summary>
     public string Type { get; init; } = null!;
+
+    /// <summary>The org-chart rank picked for them, or null if none has been.</summary>
+    public OrganizationRank? Rank { get; init; }
 
     /// <summary>
     /// Every project this employee is currently posted to — open-ended
@@ -90,6 +94,7 @@ public static class EmployeeMapping
             Position = employee.Position,
             Status = employee.Status.ToString(),
             Type = employee.Type.ToString(),
+            Rank = employee.Rank,
             CurrentProjectNames = employee.ProjectAssignments
                 .Where(assignment => assignment.EndDate == null)
                 .Select(assignment => assignment.Project.Name)

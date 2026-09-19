@@ -13,17 +13,22 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { employeesApi } from '../../api/employees';
 import { toApiError } from '../../api/apiError';
-import type { EmployeeInput } from '../../api/types';
-import { employeeStatuses, employeeTypes } from '../../api/types';
+import type { EmployeeInput, OrganizationRank } from '../../api/types';
+import { employeeStatuses, employeeTypes, organizationRanks } from '../../api/types';
 import { DuplicateWarningAlert } from '../../components/DuplicateWarningAlert';
 import { ErrorState } from '../../components/ErrorState';
-import { useCreateEmployee, useEmployeeQuery, useUpdateEmployee } from '../../features/employees/useEmployees';
+import {
+  useCreateEmployee,
+  useEmployeeQuery,
+  useSetEmployeeRank,
+  useUpdateEmployee,
+} from '../../features/employees/useEmployees';
 import { employeeFormSchema, type EmployeeFormValues } from '../../features/employees/validation';
 import { useDuplicateWarning } from '../../hooks/useDuplicateWarning';
 import { useEnumLabel } from '../../i18n/enumLabels';
@@ -63,6 +68,13 @@ export function EmployeeFormPage() {
   const { data: existing, isLoading, isError, error, refetch } = useEmployeeQuery(id);
   const createEmployee = useCreateEmployee();
   const updateEmployee = useUpdateEmployee(id ?? '');
+  const setEmployeeRank = useSetEmployeeRank();
+
+  // Held outside the form's own values on purpose: it is saved through its own
+  // endpoint (see `SetEmployeeRankCommand`), not through the create/update the
+  // form's schema describes.
+  const [rank, setRank] = useState<OrganizationRank | ''>('');
+  const [savedRank, setSavedRank] = useState<OrganizationRank | ''>('');
 
   const {
     control,
@@ -94,6 +106,8 @@ export function EmployeeFormPage() {
         status: existing.status,
         type: existing.type,
       });
+      setRank(existing.rank ?? '');
+      setSavedRank(existing.rank ?? '');
     }
   }, [existing, reset]);
 
@@ -124,6 +138,21 @@ export function EmployeeFormPage() {
       const saved = isEdit
         ? await updateEmployee.mutateAsync(input)
         : await createEmployee.mutateAsync(input);
+
+      if (rank !== savedRank) {
+        try {
+          await setEmployeeRank.mutateAsync({ id: saved.id, rank: rank || null });
+        } catch (rankErr) {
+          // The employee itself is already saved. Sending a new one back
+          // through this form would try to create them a second time, so
+          // land on their edit page, where retrying is an update.
+          if (!isEdit) {
+            navigate(paths.employeeEdit(saved.id));
+          }
+
+          throw rankErr;
+        }
+      }
 
       navigate(paths.employeeDetail(saved.id));
     } catch (err) {
@@ -334,6 +363,23 @@ export function EmployeeFormPage() {
                     </FormControl>
                   )}
                 />
+              </Grid>
+              <Grid size={12}>
+                <TextField
+                  select
+                  fullWidth
+                  label={t('employees.rank')}
+                  value={rank}
+                  onChange={(event) => setRank(event.target.value as OrganizationRank | '')}
+                  helperText={t('employees.rankHint')}
+                >
+                  <MenuItem value="">{t('hierarchy.defaultPlacement')}</MenuItem>
+                  {organizationRanks.map((value) => (
+                    <MenuItem key={value} value={value}>
+                      {enumLabel('organizationRank', value)}
+                    </MenuItem>
+                  ))}
+                </TextField>
               </Grid>
             </Grid>
 

@@ -83,6 +83,7 @@ public static class EmployeeDetailMapping
             Position = employee.Position,
             Status = employee.Status.ToString(),
             Type = employee.Type.ToString(),
+            Rank = employee.Rank,
             CreatedAt = employee.CreatedAt,
             UpdatedAt = employee.UpdatedAt,
             HasUserAccount = employee.User != null,
