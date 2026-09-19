@@ -273,8 +273,8 @@ export function LedgerDetailPage() {
     <Box sx={{ maxWidth: 1100, mx: 'auto' }}>
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
-        spacing={2}
-        sx={{ mb: 3, alignItems: { sm: 'center' }, justifyContent: 'space-between' }}
+        spacing={2} useFlexGap
+        sx={{ flexWrap: 'wrap', mb: 3, alignItems: { sm: 'center' }, justifyContent: 'space-between' }}
       >
         <Box>
           <Typography variant="h5" sx={{ fontWeight: 700 }}>
@@ -409,7 +409,7 @@ export function LedgerDetailPage() {
         </Collapse>
       </Paper>
 
-      <Stack direction="row" spacing={1} sx={{ mb: 2, alignItems: 'center' }}>
+      <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 2, alignItems: 'center' }}>
         <Button size="small" startIcon={<AddOutlined />} onClick={() => setAddingSection(true)}>
           {t('ledgers.addSection')}
         </Button>

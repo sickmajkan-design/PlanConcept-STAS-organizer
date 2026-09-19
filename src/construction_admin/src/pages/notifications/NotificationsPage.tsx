@@ -104,8 +104,8 @@ export function NotificationsPage() {
 
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
-        spacing={2}
-        sx={{ mb: 2, alignItems: { sm: 'center' } }}
+        spacing={2} useFlexGap
+        sx={{ flexWrap: 'wrap', mb: 2, alignItems: { sm: 'center' } }}
       >
         <FormControlLabel
           control={

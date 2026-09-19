@@ -103,7 +103,7 @@ export function CostsPage() {
 
       <PeriodPicker period={period} onChange={setPeriod} />
 
-      <Tabs
+      <Tabs variant="scrollable" scrollButtons="auto"
         value={tab}
         onChange={(_event, value) => setTab(value as typeof tab)}
         sx={{ mb: 2 }}
@@ -134,8 +134,8 @@ function PeriodPicker({
   return (
     <Stack
       direction={{ xs: 'column', md: 'row' }}
-      spacing={2}
-      sx={{ mb: 2, alignItems: { md: 'center' } }}
+      spacing={2} useFlexGap
+      sx={{ flexWrap: 'wrap', mb: 2, alignItems: { md: 'center' } }}
     >
       {/* The three periods anyone actually asks for, before the date fields:
           "what did last month cost" is the question, and making somebody type

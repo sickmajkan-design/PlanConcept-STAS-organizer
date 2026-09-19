@@ -211,7 +211,7 @@ export function ResourceCardList<T extends GridValidRowModel>({
   return (
     <Box>
       {sortable.length > 0 && (
-        <Stack direction="row" spacing={1} sx={{ mb: 1.5, alignItems: 'center' }}>
+        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 1.5, alignItems: 'center' }}>
           <FormControl size="small" sx={{ flex: 1, minWidth: 0 }}>
             <InputLabel>{t('common.sortBy')}</InputLabel>
             <Select

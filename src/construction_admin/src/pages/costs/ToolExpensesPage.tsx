@@ -171,7 +171,7 @@ export function ToolExpensesPage() {
         }}
       />
 
-      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+      <Stack direction="row" spacing={2} useFlexGap sx={{ flexWrap: 'wrap', mb: 2 }}>
         <TextField
           select
           size="small"

@@ -180,7 +180,7 @@ export function ProjectsListPage() {
         }}
       />
 
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ flexWrap: 'wrap', mb: 2 }}>
         <SearchField
           value={list.search}
           onChange={list.setSearch}
@@ -255,7 +255,7 @@ export function ProjectsListPage() {
         <Stack spacing={3}>
           {groups.map((group) => (
             <Box key={group.key}>
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 1 }}>
+              <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', alignItems: 'center', mb: 1 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                   {group.customerName}
                 </Typography>

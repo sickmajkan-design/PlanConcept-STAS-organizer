@@ -17,8 +17,8 @@ export function PageHeader({
   return (
     <Stack
       direction={{ xs: 'column', sm: 'row' }}
-      spacing={2}
-      sx={{
+      spacing={2} useFlexGap
+      sx={{ flexWrap: 'wrap', 
         mb: 3,
         justifyContent: 'space-between',
         alignItems: { xs: 'flex-start', sm: 'center' },

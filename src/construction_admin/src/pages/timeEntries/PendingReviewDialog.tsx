@@ -126,8 +126,8 @@ export function PendingReviewDialog({
                 {index > 0 && <Divider sx={{ mb: 2.5 }} />}
                 <Stack
                   direction="row"
-                  spacing={1}
-                  sx={{ alignItems: 'center', mb: 1.25 }}
+                  spacing={1} useFlexGap
+                  sx={{ flexWrap: 'wrap', alignItems: 'center', mb: 1.25 }}
                 >
                   <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                     {formatDate(group.date)}

@@ -181,7 +181,7 @@ export function FinanceEntriesPage() {
         }}
       />
 
-      <Stack direction="row" spacing={2} sx={{ mb: 2, alignItems: 'center' }}>
+      <Stack direction="row" spacing={2} useFlexGap sx={{ flexWrap: 'wrap', mb: 2, alignItems: 'center' }}>
         <TextField
           select
           size="small"

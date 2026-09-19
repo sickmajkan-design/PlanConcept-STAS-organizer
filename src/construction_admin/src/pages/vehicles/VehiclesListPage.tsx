@@ -256,7 +256,7 @@ export function VehiclesListPage() {
         </Typography>
       )}
 
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ flexWrap: 'wrap', mb: 2 }}>
         <SearchField
           value={list.search}
           onChange={list.setSearch}

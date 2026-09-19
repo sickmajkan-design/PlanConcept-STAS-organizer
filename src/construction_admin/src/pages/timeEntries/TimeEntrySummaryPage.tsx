@@ -185,8 +185,8 @@ export function TimeEntrySummaryPage() {
 
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
-        spacing={2}
-        sx={{ mb: 2, alignItems: { sm: 'center' } }}
+        spacing={2} useFlexGap
+        sx={{ flexWrap: 'wrap', mb: 2, alignItems: { sm: 'center' } }}
       >
         <TextField
           label={t('timeEntries.from')}
@@ -229,7 +229,7 @@ export function TimeEntrySummaryPage() {
 
       {data && (
         <>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }}>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ flexWrap: 'wrap', mb: 2 }}>
             <SummaryTile
               label={t('timeEntries.summaryTotal')}
               value={hours(data.totalMinutes)}
@@ -250,7 +250,7 @@ export function TimeEntrySummaryPage() {
             </Button>
           </Stack>
 
-          <Paper>
+          <Paper sx={{ overflowX: 'auto' }}>
             <Table size="small">
               <TableHead>
                 <TableRow>

@@ -136,8 +136,8 @@ export function StatusBoard<T extends GridValidRowModel>({
             >
               <Stack
                 direction="row"
-                spacing={1}
-                sx={{ mb: 1.5, alignItems: 'center', justifyContent: 'space-between' }}
+                spacing={1} useFlexGap
+                sx={{ flexWrap: 'wrap', mb: 1.5, alignItems: 'center', justifyContent: 'space-between' }}
               >
                 <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                   {column.label}

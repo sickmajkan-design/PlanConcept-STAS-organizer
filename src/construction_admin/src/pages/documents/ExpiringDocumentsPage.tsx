@@ -209,7 +209,7 @@ export function ExpiringDocumentsPage() {
       {isError && <ErrorState error={error} onRetry={() => void refetch()} />}
 
       {sortedData && (
-        <Paper>
+        <Paper sx={{ overflowX: 'auto' }}>
           <Table size="small">
             <TableHead>
               <TableRow>

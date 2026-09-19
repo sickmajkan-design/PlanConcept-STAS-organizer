@@ -96,7 +96,7 @@ export function PublicHolidaysPage() {
         }}
       />
 
-      <Stack direction="row" spacing={2} sx={{ justifyContent: 'space-between', mb: 2 }}>
+      <Stack direction="row" spacing={2} useFlexGap sx={{ flexWrap: 'wrap', justifyContent: 'space-between', mb: 2 }}>
         <FormControl size="small" sx={{ minWidth: 220 }}>
           <InputLabel id="holiday-country-filter-label">{t('publicHolidays.country')}</InputLabel>
           <Select
@@ -124,7 +124,7 @@ export function PublicHolidaysPage() {
         </Button>
       </Stack>
 
-      <Paper variant="outlined">
+      <Paper variant="outlined" sx={{ overflowX: 'auto' }}>
         <Table size="small">
           <TableHead>
             <TableRow>
@@ -370,7 +370,7 @@ function SyncHolidaysDialog({ open, onClose }: { open: boolean; onClose: () => v
           {t('publicHolidays.syncHint')}
         </Typography>
 
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ flexWrap: 'wrap', mb: 2 }}>
           <Autocomplete
             freeSolo
             fullWidth
@@ -421,7 +421,7 @@ function SyncHolidaysDialog({ open, onClose }: { open: boolean; onClose: () => v
         )}
 
         {candidates.length > 0 && (
-          <Paper variant="outlined" sx={{ maxHeight: 320, overflowY: 'auto' }}>
+          <Paper variant="outlined" sx={{ maxHeight: 320, overflow: 'auto' }}>
             <Table size="small">
               <TableBody>
                 {candidates.map((candidate) => (
