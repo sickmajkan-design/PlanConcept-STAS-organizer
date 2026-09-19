@@ -193,7 +193,7 @@ export function AccommodationDetailPage() {
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700 }}>
                 {t('accommodations.sectionPlace')}
               </Typography>
-              <Stack spacing={1.5} sx={{ mt: 1 }}>
+              <Box sx={{ mt: 1, display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
                 <InfoRow label={t('accommodations.floor')} value={accommodation.floor} />
                 <InfoRow
                   label={t('accommodations.rooms')}
@@ -218,7 +218,7 @@ export function AccommodationDetailPage() {
                     <Typography sx={{ whiteSpace: 'pre-wrap' }}>{accommodation.note}</Typography>
                   </Box>
                 )}
-              </Stack>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
@@ -229,7 +229,7 @@ export function AccommodationDetailPage() {
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700 }}>
                 {t('accommodations.sectionLandlord')}
               </Typography>
-              <Stack spacing={1.5} sx={{ mt: 1 }}>
+              <Box sx={{ mt: 1, display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
                 <InfoRow label={t('accommodations.landlordName')} value={accommodation.landlordName} />
                 <Box>
                   <Typography variant="caption" color="text.secondary">
@@ -291,7 +291,7 @@ export function AccommodationDetailPage() {
                   label={t('accommodations.deposit')}
                   value={accommodation.depositAmount === null ? null : formatMoney(accommodation.depositAmount, locale)}
                 />
-              </Stack>
+              </Box>
             </CardContent>
           </Card>
         </Grid>
