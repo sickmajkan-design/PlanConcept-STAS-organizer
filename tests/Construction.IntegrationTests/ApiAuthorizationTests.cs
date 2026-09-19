@@ -383,25 +383,24 @@ public class ApiAuthorizationTests
     }
 
     /// <summary>
-    /// Records the window an offboarded account keeps: its access token stays
-    /// valid until it expires.
+    /// An offboarded account is locked out on its very next request, not when
+    /// its access token happens to expire.
     /// </summary>
     /// <remarks>
-    /// This asserts what the system does, not what would be nicest. Nothing
-    /// checks the account on each request — the bearer token is validated by
-    /// signature and expiry alone — so deactivating somebody stops them
-    /// refreshing but not using the token already in their hand, for up to the
-    /// access-token lifetime (fifteen minutes as configured).
+    /// This used to assert the opposite. The bearer token was validated by
+    /// signature and expiry alone, so deactivating somebody stopped them
+    /// refreshing but left the token in their hand working for up to fifteen
+    /// minutes, and the test recorded that as a deliberate trade — a database
+    /// lookup per request against the property that makes a JWT worth having.
     ///
-    /// That is a deliberate trade: a database lookup on every request buys
-    /// immediate revocation at the cost of the property that makes a JWT worth
-    /// having. Whether fifteen minutes is acceptable is a decision for whoever
-    /// runs this, and it should be a decision rather than a surprise — which
-    /// is why it is written down here as a test and not left to be discovered
-    /// during an incident.
+    /// The owner of the deployment decided the trade was wrong: a demoted
+    /// administrator administering for a quarter of an hour, or a dismissed
+    /// employee still clocking in, costs more than one primary-key lookup.
+    /// See <c>TokenAccountValidation</c>; the same check also covers a changed
+    /// role or employee link, tested in <c>TokenAccountValidationTests</c>.
     /// </remarks>
     [Fact]
-    public async Task A_deactivated_account_keeps_its_token_until_it_expires()
+    public async Task A_deactivated_account_is_refused_on_its_next_request()
     {
         var (email, userId) = await _api.SeedSignInAccountAsync(UserRole.Worker);
 
@@ -420,7 +419,7 @@ public class ApiAuthorizationTests
 
         var response = await client.GetAsync("/api/auth/me");
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     [Fact]
