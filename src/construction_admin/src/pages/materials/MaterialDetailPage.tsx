@@ -72,7 +72,7 @@ export function MaterialDetailPage() {
 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [adjustOpen, setAdjustOpen] = useState(false);
-  const [receiveOpen, setReceiveOpen] = useState(false);
+  const [movementOpen, setMovementOpen] = useState(false);
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm<AdjustMaterialFormValues>({
     resolver: zodResolver(adjustMaterialSchema),
@@ -126,18 +126,22 @@ export function MaterialDetailPage() {
               </Typography>
             </Box>
             <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
-              {canSeeHistory && (
+              {/* One entry point for every change of stock. Someone who may not
+                  record spending has no price or invoice to give, so they keep
+                  the plain quantity correction. */}
+              {canSeeHistory ? (
                 <Button
                   variant="contained"
                   startIcon={<MoveToInboxOutlined />}
-                  onClick={() => setReceiveOpen(true)}
+                  onClick={() => setMovementOpen(true)}
                 >
-                  {t('materials.receiveGoods')}
+                  {t('materials.moveStock')}
+                </Button>
+              ) : (
+                <Button variant="contained" onClick={openAdjust}>
+                  {t('materials.adjust')}
                 </Button>
               )}
-              <Button variant="outlined" onClick={openAdjust}>
-                {t('materials.adjust')}
-              </Button>
               <Button
                 variant="outlined"
                 startIcon={<EditOutlined />}
@@ -287,8 +291,8 @@ export function MaterialDetailPage() {
       )}
 
       <MovementDialog
-        open={receiveOpen}
-        onClose={() => setReceiveOpen(false)}
+        open={movementOpen}
+        onClose={() => setMovementOpen(false)}
         defaultMaterialId={material.id}
         defaultKind="In"
       />

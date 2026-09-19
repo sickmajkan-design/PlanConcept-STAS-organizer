@@ -729,6 +729,7 @@ export const sr: Record<MessageKey, Message> = {
   'materials.openingStockHint': 'Bez fakture se količina upisuje kao početno stanje, bez cijene.',
   'materials.priceFromPurchase': 'Ako ostane prazno, koristi se nabavna cijena.',
   'materials.receiveGoods': 'Prijem robe',
+  'materials.moveStock': 'Promet robe',
   'materials.history': 'Istorija prometa',
   'materials.historyEmpty': 'Za ovaj materijal još ništa nije evidentirano.',
   'materials.allMovements': 'Svi prometi',

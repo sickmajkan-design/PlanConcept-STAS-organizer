@@ -701,6 +701,7 @@ export const en = {
   'materials.openingStockHint': 'Without an invoice the quantity is saved as opening stock, with no price.',
   'materials.priceFromPurchase': 'If left empty, the purchase price is used.',
   'materials.receiveGoods': 'Receive goods',
+  'materials.moveStock': 'Stock movement',
   'materials.history': 'Stock history',
   'materials.historyEmpty': 'Nothing has been recorded for this material yet.',
   'materials.allMovements': 'All movements',
