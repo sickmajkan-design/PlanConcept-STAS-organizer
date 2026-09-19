@@ -574,6 +574,21 @@
       "title": { "type": "String" }
     }
   },
+  "notificationVehicleExpenseSubmittedTitle": "Cost to review",
+  "notificationVehicleExpenseSubmittedBody": "{vehicleName} ({date}) is waiting for review.",
+  "@notificationVehicleExpenseSubmittedBody": {
+    "placeholders": {
+      "vehicleName": { "type": "String" },
+      "date": { "type": "String" }
+    }
+  },
+  "notificationVehicleExpenseSubmittedBulkTitle": "Costs to review",
+  "notificationVehicleExpenseSubmittedBulkBody": "{count} costs are waiting for review.",
+  "@notificationVehicleExpenseSubmittedBulkBody": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "notificationVehicleExpenseRejectedTitle": "Cost sent back",
   "notificationVehicleExpenseRejectedBody": "{vehicleName} ({date}) was sent back: {note}",
   "@notificationVehicleExpenseRejectedBody": {
@@ -622,6 +637,7 @@
   "notificationTypeUnassignedProjectClockIn": "Unassigned clock-in",
   "notificationTypeDefectReported": "Defect reported",
   "notificationTypeVehicleExpenseRejected": "Cost sent back",
+  "notificationTypeVehicleExpenseSubmitted": "Cost to review",
   "notificationTypeAbsenceRequested": "Leave requested",
   "notificationTypeDocumentRetentionEnded": "Document retention ended",
   "announceTitle": "Send an announcement",

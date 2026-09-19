@@ -1,14 +1,17 @@
-import { Box, Tab, Tabs } from '@mui/material';
+import { Badge, Box, Tab, Tabs } from '@mui/material';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import { useAuth } from '../auth/useAuth';
 import { canSeeLabourCost } from '../auth/authHelpers';
 import { useT } from '../i18n/useI18n';
 import { paths } from '../routes/paths';
+import { useNavBadgeCounts } from './useNavBadgeCounts';
 
 interface SectionTab {
   path: string;
   label: string;
+  /** Something waiting on the reader in this tab. */
+  badge?: number;
 }
 
 function TabStrip({ tabs }: { tabs: SectionTab[] }) {
@@ -23,7 +26,21 @@ function TabStrip({ tabs }: { tabs: SectionTab[] }) {
     <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
       <Tabs value={current?.path ?? false} variant="scrollable" scrollButtons="auto">
         {tabs.map((tab) => (
-          <Tab key={tab.path} value={tab.path} label={tab.label} component={Link} to={tab.path} />
+          <Tab
+            key={tab.path}
+            value={tab.path}
+            label={
+              tab.badge ? (
+                <Badge badgeContent={tab.badge} color="error" max={99} sx={{ pr: 1.5 }}>
+                  {tab.label}
+                </Badge>
+              ) : (
+                tab.label
+              )
+            }
+            component={Link}
+            to={tab.path}
+          />
         ))}
       </Tabs>
     </Box>
@@ -38,9 +55,14 @@ function TabStrip({ tabs }: { tabs: SectionTab[] }) {
 export function CostRecordsLayout() {
   const t = useT();
   const { user } = useAuth();
+  const counts = useNavBadgeCounts(user);
 
   const tabs: SectionTab[] = [
-    { path: paths.vehicleExpenses, label: t('nav.vehicleExpenses') },
+    {
+      path: paths.vehicleExpenses,
+      label: t('nav.vehicleExpenses'),
+      badge: counts[paths.vehicleExpenses],
+    },
     { path: paths.toolExpenses, label: t('nav.toolExpenses') },
     { path: paths.generalExpenses, label: t('nav.generalExpenses') },
     { path: paths.stockMovements, label: t('nav.stockMovements') },

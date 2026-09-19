@@ -55,5 +55,8 @@ public enum NotificationType
     ClockInLocationMismatch = 21,
 
     /// <summary>A vehicle cost this person recorded was sent back by a reviewer, with a reason.</summary>
-    VehicleExpenseRejected = 22
+    VehicleExpenseRejected = 22,
+
+    /// <summary>A vehicle cost was recorded, or changed after a decision, and is waiting for a reviewer.</summary>
+    VehicleExpenseSubmitted = 23
 }

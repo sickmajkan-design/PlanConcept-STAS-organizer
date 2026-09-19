@@ -155,8 +155,8 @@ export function useDeleteMaterialMovement() {
 
 // ---- vehicle expenses ------------------------------------------------------
 
-export function useVehicleExpensesQuery(query: VehicleExpenseListQuery) {
-  return useResourceList(vehicleExpenseKeys, costsApi.vehicleExpenses.list, query);
+export function useVehicleExpensesQuery(query: VehicleExpenseListQuery, enabled = true) {
+  return useResourceList(vehicleExpenseKeys, costsApi.vehicleExpenses.list, query, { enabled });
 }
 
 export function useVehicleExpensesSummaryQuery(query: VehicleExpenseListQuery) {

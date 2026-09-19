@@ -1120,6 +1120,78 @@ public class CostTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task Recording_a_cost_tells_the_reviewers_but_not_the_person_who_recorded_it()
+    {
+        var (vehicle, foreman) = await SeedFleetKeeperAsync();
+        var manager = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.ProjectManager));
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+
+        var expense = await RecordExpenseAsync(
+            foreman, vehicle.Id, VehicleExpenseKind.Service, 5_000m, occurredOn: March);
+
+        var recipients = await InScope(scope => scope.Db.Notifications
+            .Where(n => n.Type == NotificationType.VehicleExpenseSubmitted)
+            .Select(n => n.UserId)
+            .ToListAsync());
+
+        Assert.Contains(manager.Id, recipients);
+        Assert.Contains(admin.Id, recipients);
+        Assert.DoesNotContain(foreman.Id, recipients);
+
+        var data = await InScope(scope => scope.Db.Notifications
+            .Where(n => n.UserId == manager.Id && n.Type == NotificationType.VehicleExpenseSubmitted)
+            .Select(n => n.DataJson)
+            .SingleAsync());
+
+        Assert.Equal(
+            expense.Id.ToString(),
+            System.Text.Json.JsonDocument.Parse(data!).RootElement.GetProperty("expenseId").GetString());
+    }
+
+    [Fact]
+    public async Task Changing_an_approved_cost_puts_it_back_in_front_of_the_reviewers()
+    {
+        var (vehicle, foreman) = await SeedFleetKeeperAsync();
+        var manager = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.ProjectManager));
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+
+        var expense = await RecordExpenseAsync(
+            foreman, vehicle.Id, VehicleExpenseKind.Service, 5_000m, occurredOn: March);
+
+        await InScope(scope =>
+        {
+            ActAs(scope, manager);
+            return scope.Send(new ReviewVehicleExpenseCommand { Id = expense.Id, Approve = true });
+        });
+
+        var before = await InScope(scope => scope.Db.Notifications
+            .CountAsync(n => n.UserId == manager.Id && n.Type == NotificationType.VehicleExpenseSubmitted));
+
+        await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new UpdateVehicleExpenseCommand
+            {
+                Id = expense.Id,
+                VehicleId = vehicle.Id,
+                Kind = VehicleExpenseKind.Service,
+                Amount = 5_500m,
+                OccurredOn = March
+            });
+        });
+
+        var after = await InScope(scope => scope.Db.Notifications
+            .CountAsync(n => n.UserId == manager.Id && n.Type == NotificationType.VehicleExpenseSubmitted));
+        var adminHeardOwnEdit = await InScope(scope => scope.Db.Notifications
+            .CountAsync(n => n.UserId == admin.Id &&
+                             n.Type == NotificationType.VehicleExpenseSubmitted &&
+                             n.Body.Contains("changed")));
+
+        Assert.Equal(before + 1, after);
+        Assert.Equal(0, adminHeardOwnEdit);
+    }
+
+    [Fact]
     public async Task The_owner_may_approve_a_cost_they_recorded_themselves()
     {
         // Nobody sits above a SuperAdmin to send it to, and where one person

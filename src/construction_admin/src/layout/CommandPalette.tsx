@@ -5,6 +5,7 @@ import {
   StarBorderOutlined,
 } from '@mui/icons-material';
 import {
+  Chip,
   CircularProgress,
   Dialog,
   IconButton,
@@ -26,6 +27,7 @@ import {
 } from '../features/globalSearch/useGlobalSearch';
 import { useT } from '../i18n/useI18n';
 import type { NavItem } from './navConfig';
+import { buildPaletteActions } from './paletteActions';
 import type { useFavorites } from './useFavorites';
 import { storageScope } from '../hooks/userScopedStorage';
 import { filterRecentForRole, readRecentRecords } from './useRecentRecords';
@@ -36,14 +38,24 @@ interface CommandPaletteProps {
   items: NavItem[];
   favorites: ReturnType<typeof useFavorites>;
   user: User | null | undefined;
+  /** Waiting-on-me counts by page path, the same numbers the menu shows. */
+  badgeCounts?: Record<string, number>;
 }
 
 type Row =
-  | { kind: 'page'; key: string; label: string; sublabel?: string; icon: React.ReactNode; path: string }
+  | { kind: 'page'; key: string; label: string; sublabel?: string; icon: React.ReactNode; path: string; badge?: number }
+  | { kind: 'action'; key: string; label: string; sublabel?: string; icon: React.ReactNode; path: string }
   | { kind: 'entity'; key: string; label: string; sublabel?: string; icon: React.ReactNode; path: string }
   | { kind: 'recent'; key: string; label: string; sublabel?: string; icon: React.ReactNode; path: string };
 
-export function CommandPalette({ open, onClose, items, favorites, user }: CommandPaletteProps) {
+export function CommandPalette({
+  open,
+  onClose,
+  items,
+  favorites,
+  user,
+  badgeCounts,
+}: CommandPaletteProps) {
   const t = useT();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
@@ -59,6 +71,20 @@ export function CommandPalette({ open, onClose, items, favorites, user }: Comman
     return items.filter((item) => item.label.toLowerCase().includes(q));
   }, [items, query]);
 
+  const actionRows: Row[] = useMemo(() => {
+    const q = query.trim().toLowerCase();
+
+    return buildPaletteActions(user, t)
+      .filter((action) => !q || action.label.toLowerCase().includes(q))
+      .map((action) => ({
+        kind: 'action' as const,
+        key: `action:${action.key}`,
+        label: action.label,
+        icon: action.icon,
+        path: action.path,
+      }));
+  }, [user, t, query]);
+
   const rows: Row[] = useMemo(() => {
     const isEmptyQuery = query.trim() === '';
     const pageRows: Row[] = pageResults.map((item) => ({
@@ -67,6 +93,7 @@ export function CommandPalette({ open, onClose, items, favorites, user }: Comman
       label: item.label,
       icon: item.icon,
       path: item.path,
+      badge: badgeCounts?.[item.path],
     }));
     const entityRows: Row[] = groups.flatMap((group) =>
       group.results.map(
@@ -80,8 +107,10 @@ export function CommandPalette({ open, onClose, items, favorites, user }: Comman
         }),
       ),
     );
-    return isEmptyQuery ? [...recent, ...pageRows] : [...pageRows, ...entityRows];
-  }, [pageResults, groups, recent, query]);
+    return isEmptyQuery
+      ? [...recent, ...actionRows, ...pageRows]
+      : [...pageRows, ...actionRows, ...entityRows];
+  }, [pageResults, groups, recent, actionRows, query, badgeCounts]);
 
   useEffect(() => {
     if (open) {
@@ -186,6 +215,9 @@ export function CommandPalette({ open, onClose, items, favorites, user }: Comman
           >
             <ListItemIcon sx={{ minWidth: 40 }}>{row.icon}</ListItemIcon>
             <ListItemText primary={row.label} secondary={row.sublabel} />
+            {row.kind === 'page' && !!row.badge && (
+              <Chip size="small" color="error" label={row.badge} sx={{ mr: 1 }} />
+            )}
             {row.kind === 'page' && (
               <IconButton
                 size="small"

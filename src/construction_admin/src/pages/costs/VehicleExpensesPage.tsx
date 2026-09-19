@@ -58,6 +58,7 @@ import {
 } from '../../features/costs/useCosts';
 import { useAllVehiclesQuery } from '../../features/vehicles/useVehicles';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
+import { useOpenOnParam } from '../../hooks/useOpenOnParam';
 import { useBulkSelection } from '../../hooks/useBulkSelection';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { useSavedViews } from '../../hooks/useSavedViews';
@@ -96,6 +97,7 @@ export function VehicleExpensesPage() {
   const [approving, setApproving] = useState<VehicleExpense | null>(null);
   const [rejecting, setRejecting] = useState<VehicleExpense | null>(null);
   const [bulkApproving, setBulkApproving] = useState(false);
+  useOpenOnParam('new', () => setRecording(true));
   const selection = useBulkSelection();
 
   const savedViews = useSavedViews<VehicleExpenseViewState>('vehicle-expenses');

@@ -241,6 +241,24 @@ public static class PushTextResolver
                     $"{vehicleName} ({IsoDate(occurredOn)}) je vraćen: {note}");
             }
 
+            case NotificationType.VehicleExpenseSubmitted:
+            {
+                var vehicleName = Str("vehicleName");
+                var occurredOn = Str("occurredOn");
+                var count = Str("count");
+
+                if (count is not null && count != "1")
+                {
+                    return ("Troškovi čekaju pregled", $"{count} troškova čeka pregled.");
+                }
+
+                if (vehicleName is null || occurredOn is null) break;
+
+                return (
+                    "Trošak čeka pregled",
+                    $"{vehicleName} ({IsoDate(occurredOn)}) čeka pregled.");
+            }
+
             case NotificationType.AbsenceRequested:
             {
                 var employeeName = Str("employeeName");

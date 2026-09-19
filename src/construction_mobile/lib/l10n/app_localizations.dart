@@ -1847,6 +1847,33 @@ abstract class AppLocalizations {
   /// **'{reporterName} reported: {title}'**
   String notificationDefectReportedBody(String reporterName, String title);
 
+  /// No description provided for @notificationVehicleExpenseSubmittedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost to review'**
+  String get notificationVehicleExpenseSubmittedTitle;
+
+  /// No description provided for @notificationVehicleExpenseSubmittedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{vehicleName} ({date}) is waiting for review.'**
+  String notificationVehicleExpenseSubmittedBody(
+    String vehicleName,
+    String date,
+  );
+
+  /// No description provided for @notificationVehicleExpenseSubmittedBulkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Costs to review'**
+  String get notificationVehicleExpenseSubmittedBulkTitle;
+
+  /// No description provided for @notificationVehicleExpenseSubmittedBulkBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} costs are waiting for review.'**
+  String notificationVehicleExpenseSubmittedBulkBody(int count);
+
   /// No description provided for @notificationVehicleExpenseRejectedTitle.
   ///
   /// In en, this message translates to:
@@ -1987,6 +2014,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cost sent back'**
   String get notificationTypeVehicleExpenseRejected;
+
+  /// No description provided for @notificationTypeVehicleExpenseSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost to review'**
+  String get notificationTypeVehicleExpenseSubmitted;
 
   /// No description provided for @notificationTypeAbsenceRequested.
   ///

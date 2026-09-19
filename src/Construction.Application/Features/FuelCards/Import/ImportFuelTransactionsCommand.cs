@@ -54,15 +54,18 @@ public class ImportFuelTransactionsCommandHandler
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IFuelStatementParser _xlsxParser;
+    private readonly INotificationService _notifications;
 
     public ImportFuelTransactionsCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IFuelStatementParser xlsxParser)
+        IFuelStatementParser xlsxParser,
+        INotificationService notifications)
     {
         _context = context;
         _currentUserService = currentUserService;
         _xlsxParser = xlsxParser;
+        _notifications = notifications;
     }
 
     public async Task<FuelImportResultDto> Handle(
@@ -161,6 +164,17 @@ public class ImportFuelTransactionsCommandHandler
                 },
                 cancellationToken);
         }
+
+        // One bell for the whole statement, not one per fill-up.
+        await VehicleExpenseReviewNotifier.NotifyAsync(
+            _context,
+            _notifications,
+            _currentUserService.UserId,
+            toCreate.Count,
+            "Costs to review",
+            $"{toCreate.Count} imported fuel costs are waiting for review.",
+            new Dictionary<string, string> { ["count"] = toCreate.Count.ToString() },
+            cancellationToken);
 
         return new FuelImportResultDto
         {

@@ -1755,6 +1755,7 @@ export const notificationTypes = [
   'DirectMessage',
   'ClockInLocationMismatch',
   'VehicleExpenseRejected',
+  'VehicleExpenseSubmitted',
 ] as const;
 
 export type NotificationType = (typeof notificationTypes)[number];

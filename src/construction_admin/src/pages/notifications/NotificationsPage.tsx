@@ -33,6 +33,7 @@ import { resolveNotificationTarget } from '../../features/notifications/notifica
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
 import { useFormatRelative } from '../../i18n/useFormatRelative';
+import { useOpenOnParam } from '../../hooks/useOpenOnParam';
 import { AnnounceDialog } from './AnnounceDialog';
 
 const PAGE_SIZE = 20;
@@ -54,6 +55,7 @@ export function NotificationsPage() {
   const [page, setPage] = useState(1);
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [announcing, setAnnouncing] = useState(false);
+  useOpenOnParam('compose', () => setAnnouncing(true));
   const [sentTo, setSentTo] = useState<number | null>(null);
 
   const query: NotificationListQuery = useMemo(

@@ -79,13 +79,16 @@ public class UpdateVehicleExpenseCommandHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly INotificationService _notifications;
 
     public UpdateVehicleExpenseCommandHandler(
         IApplicationDbContext context,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        INotificationService notifications)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _notifications = notifications;
     }
 
     public async Task<VehicleExpenseDto> Handle(
@@ -123,7 +126,9 @@ public class UpdateVehicleExpenseCommandHandler
         // ones. Back to Pending regardless of which way it went, so a changed
         // amount always gets a fresh look rather than riding on an approval
         // that was never about this version of it.
-        if (expense.Status != VehicleExpenseStatus.Pending)
+        var sentBackForReview = expense.Status != VehicleExpenseStatus.Pending;
+
+        if (sentBackForReview)
         {
             expense.Status = VehicleExpenseStatus.Pending;
             expense.ReviewNote = null;
@@ -133,10 +138,31 @@ public class UpdateVehicleExpenseCommandHandler
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return await _context.VehicleExpenses
+        var dto = await _context.VehicleExpenses
             .AsNoTracking()
             .Where(e => e.Id == expense.Id)
             .Select(VehicleExpenseMapping.Projection)
             .FirstAsync(cancellationToken);
+
+        if (sentBackForReview)
+        {
+            await VehicleExpenseReviewNotifier.NotifyAsync(
+                _context,
+                _notifications,
+                _currentUserService.UserId,
+                count: 1,
+                "Cost to review",
+                $"{dto.VehicleName} ({dto.OccurredOn:yyyy-MM-dd}) was changed and is waiting for review again.",
+                new Dictionary<string, string>
+                {
+                    ["expenseId"] = dto.Id.ToString(),
+                    ["vehicleName"] = dto.VehicleName,
+                    ["occurredOn"] = dto.OccurredOn.ToString("yyyy-MM-dd"),
+                    ["count"] = "1"
+                },
+                cancellationToken);
+        }
+
+        return dto;
     }
 }

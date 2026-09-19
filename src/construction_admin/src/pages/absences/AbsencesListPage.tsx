@@ -55,6 +55,7 @@ import {
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useHighlightTarget } from '../../hooks/useHighlightTarget';
 import { useListQueryState } from '../../hooks/useListQueryState';
+import { useOpenOnParam } from '../../hooks/useOpenOnParam';
 import { useSavedViews } from '../../hooks/useSavedViews';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
@@ -79,6 +80,7 @@ export function AbsencesListPage() {
   const [type, setType] = useState<AbsenceType | ''>('');
   const [booking, setBooking] = useState(false);
   const [quickDate, setQuickDate] = useState<string | null>(null);
+  useOpenOnParam('new', () => setBooking(true));
 
   const savedViews = useSavedViews<AbsenceViewState>('absences');
 

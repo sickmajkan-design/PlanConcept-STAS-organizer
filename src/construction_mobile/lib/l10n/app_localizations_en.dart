@@ -1010,6 +1010,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get notificationVehicleExpenseSubmittedTitle => 'Cost to review';
+
+  @override
+  String notificationVehicleExpenseSubmittedBody(
+    String vehicleName,
+    String date,
+  ) {
+    return '$vehicleName ($date) is waiting for review.';
+  }
+
+  @override
+  String get notificationVehicleExpenseSubmittedBulkTitle => 'Costs to review';
+
+  @override
+  String notificationVehicleExpenseSubmittedBulkBody(int count) {
+    return '$count costs are waiting for review.';
+  }
+
+  @override
   String get notificationVehicleExpenseRejectedTitle => 'Cost sent back';
 
   @override
@@ -1095,6 +1114,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationTypeVehicleExpenseRejected => 'Cost sent back';
+
+  @override
+  String get notificationTypeVehicleExpenseSubmitted => 'Cost to review';
 
   @override
   String get notificationTypeAbsenceRequested => 'Leave requested';

@@ -278,6 +278,29 @@ LocalizedNotificationText resolveNotificationText(
         );
       }
 
+    case 'VehicleExpenseSubmitted':
+      {
+        final count = int.tryParse(str('count') ?? '');
+        if (count != null && count > 1) {
+          return LocalizedNotificationText(
+            title: l10n.notificationVehicleExpenseSubmittedBulkTitle,
+            body: l10n.notificationVehicleExpenseSubmittedBulkBody(count),
+          );
+        }
+
+        final vehicleName = str('vehicleName');
+        final occurredOn = str('occurredOn');
+        if (vehicleName == null || occurredOn == null) return fallback;
+
+        return LocalizedNotificationText(
+          title: l10n.notificationVehicleExpenseSubmittedTitle,
+          body: l10n.notificationVehicleExpenseSubmittedBody(
+            vehicleName,
+            _isoDate(occurredOn),
+          ),
+        );
+      }
+
     case 'VehicleExpenseRejected':
       {
         final vehicleName = str('vehicleName');

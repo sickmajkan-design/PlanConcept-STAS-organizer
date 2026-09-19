@@ -81,15 +81,18 @@ public class RecordVehicleExpenseCommandHandler
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly INotificationService _notifications;
 
     public RecordVehicleExpenseCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        INotificationService notifications)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
+        _notifications = notifications;
     }
 
     public async Task<VehicleExpenseDto> Handle(
@@ -128,10 +131,28 @@ public class RecordVehicleExpenseCommandHandler
         _context.VehicleExpenses.Add(expense);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return await _context.VehicleExpenses
+        var dto = await _context.VehicleExpenses
             .AsNoTracking()
             .Where(e => e.Id == expense.Id)
             .Select(VehicleExpenseMapping.Projection)
             .FirstAsync(cancellationToken);
+
+        await VehicleExpenseReviewNotifier.NotifyAsync(
+            _context,
+            _notifications,
+            _currentUserService.UserId,
+            count: 1,
+            "Cost to review",
+            $"{dto.VehicleName} ({dto.OccurredOn:yyyy-MM-dd}) is waiting for review.",
+            new Dictionary<string, string>
+            {
+                ["expenseId"] = dto.Id.ToString(),
+                ["vehicleName"] = dto.VehicleName,
+                ["occurredOn"] = dto.OccurredOn.ToString("yyyy-MM-dd"),
+                ["count"] = "1"
+            },
+            cancellationToken);
+
+        return dto;
     }
 }

@@ -748,6 +748,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         items={flatItems}
         favorites={favorites}
         user={user}
+        badgeCounts={badgeCounts}
       />
       <UndoSnackbarHost />
       <ShortcutsHelpDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />

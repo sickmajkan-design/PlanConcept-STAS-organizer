@@ -80,6 +80,7 @@ export function resolveNotificationTarget(
     // The costs page has no per-row highlight yet, so this lands on the list,
     // where the rejected cost carries the "Rejected" status.
     case 'VehicleExpenseRejected':
+    case 'VehicleExpenseSubmitted':
       return hasDirectory ? paths.vehicleExpenses : null;
 
     case 'AbsenceRequested':

@@ -1,10 +1,12 @@
 import type { User } from '../api/types';
+import { useVehicleExpensesQuery } from '../features/costs/useCosts';
 import { useAbsencesQuery } from '../features/absences/useAbsences';
 import { useExpiringDocumentsQuery } from '../features/attachments/useAttachments';
 import { useTimeEntriesQuery } from '../features/timeEntries/useTimeEntries';
 import { useWorkItemsQuery } from '../features/workItems/useWorkItems';
 import {
   canAdministerAccounts,
+  canReviewSpending,
   canReviewTimeEntries,
   canViewDirectory,
 } from '../auth/authHelpers';
@@ -51,6 +53,7 @@ export function useNavBadgeCounts(user: User | null | undefined): Record<string,
   const showAbsences = canViewDirectory(user);
   const showWorkItems = canViewDirectory(user);
   const showTimeEntries = canReviewTimeEntries(user);
+  const showVehicleExpenses = canReviewSpending(user);
 
   const documentsQuery = useExpiringDocumentsQuery(
     DOCUMENT_EXPIRY_WINDOW_DAYS,
@@ -85,16 +88,29 @@ export function useNavBadgeCounts(user: User | null | undefined): Record<string,
     showTimeEntries,
   );
 
+  // Costs waiting for a decision - the same "waiting on me" number the
+  // notification of the same name announces.
+  const vehicleExpensesQuery = useVehicleExpensesQuery(
+    { ...COUNT_ONLY_PAGE, status: 'Pending' },
+    showVehicleExpenses,
+  );
+
   const documentsCount = showDocuments ? (documentsQuery.data?.length ?? 0) : 0;
   const absencesCount = showAbsences ? (absencesQuery.data?.totalCount ?? 0) : 0;
   const workItemsCount = showWorkItems
     ? (workItemsOpenQuery.data?.totalCount ?? 0) + (workItemsInProgressQuery.data?.totalCount ?? 0)
     : 0;
   const timeEntriesCount = showTimeEntries ? (timeEntriesQuery.data?.totalCount ?? 0) : 0;
+  const vehicleExpensesCount = showVehicleExpenses
+    ? (vehicleExpensesQuery.data?.totalCount ?? 0)
+    : 0;
 
   return {
     admin: documentsCount,
     work: absencesCount + workItemsCount + timeEntriesCount,
+    costs: vehicleExpensesCount,
+    [paths.costRecords]: vehicleExpensesCount,
+    [paths.vehicleExpenses]: vehicleExpensesCount,
     [paths.expiringDocuments]: documentsCount,
     [paths.absences]: absencesCount,
     [paths.workItems]: workItemsCount,

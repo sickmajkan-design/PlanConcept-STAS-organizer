@@ -1006,6 +1006,26 @@ class AppLocalizationsSr extends AppLocalizations {
   }
 
   @override
+  String get notificationVehicleExpenseSubmittedTitle => 'Trošak čeka pregled';
+
+  @override
+  String notificationVehicleExpenseSubmittedBody(
+    String vehicleName,
+    String date,
+  ) {
+    return '$vehicleName ($date) čeka pregled.';
+  }
+
+  @override
+  String get notificationVehicleExpenseSubmittedBulkTitle =>
+      'Troškovi čekaju pregled';
+
+  @override
+  String notificationVehicleExpenseSubmittedBulkBody(int count) {
+    return '$count troškova čeka pregled.';
+  }
+
+  @override
   String get notificationVehicleExpenseRejectedTitle =>
       'Trošak vraćen na doradu';
 
@@ -1093,6 +1113,9 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get notificationTypeVehicleExpenseRejected => 'Trošak vraćen';
+
+  @override
+  String get notificationTypeVehicleExpenseSubmitted => 'Trošak čeka pregled';
 
   @override
   String get notificationTypeAbsenceRequested => 'Zahtjev za odsustvo';
