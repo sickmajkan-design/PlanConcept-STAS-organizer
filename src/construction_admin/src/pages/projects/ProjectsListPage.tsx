@@ -25,7 +25,14 @@ import { useNavigate } from 'react-router-dom';
 
 import type { ProjectListQuery } from '../../api/projects';
 import type { Project, ProjectStatus } from '../../api/types';
+import type { GridColDef } from '@mui/x-data-grid';
 import { projectStatuses } from '../../api/types';
+import {
+  StatusBoard,
+  ViewModeToggle,
+  buildBoardColumns,
+  useViewMode,
+} from '../../components/StatusBoard';
 import { exportsApi } from '../../api/exports';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ExportButton } from '../../components/ExportButton';
@@ -103,7 +110,29 @@ export function ProjectsListPage() {
     [list.query, list.filter, customerFilter],
   );
 
-  const { data, isLoading, isError, error, refetch } = useProjectsQuery(query);
+  const [viewMode, setViewMode] = useViewMode('projects');
+  const isBoard = viewMode === 'board';
+
+  // The board shows every status side by side, so the status filter is left out.
+  const boardQuery = useMemo(() => ({ ...query, status: undefined }), [query]);
+
+  const { data, isLoading, isError, error, refetch } = useProjectsQuery(
+    isBoard ? boardQuery : query,
+  );
+
+  const boardCardColumns: GridColDef<Project>[] = useMemo(
+    () => [
+      { field: 'name', headerName: t('projects.name') },
+      { field: 'customerName', headerName: t('projects.customer') },
+      { field: 'address', headerName: t('projects.address') },
+      {
+        field: 'endDate',
+        headerName: t('projects.endDate'),
+        valueGetter: (value) => (value ? formatDate(value as string) : ''),
+      },
+    ],
+    [t],
+  );
   const remove = useDeleteWithConfirm<Project>(useDeleteProject());
 
   const groups = useMemo<CustomerGroup[]>(() => {
@@ -186,6 +215,7 @@ export function ProjectsListPage() {
           onChange={list.setSearch}
           placeholder={t('projects.searchPlaceholder')}
         />
+        {!isBoard && (
         <FormControl size="small" sx={{ minWidth: 180 }}>
           <InputLabel id="project-status-filter-label">{t('projects.status')}</InputLabel>
           <Select
@@ -204,6 +234,8 @@ export function ProjectsListPage() {
             ))}
           </Select>
         </FormControl>
+        )}
+        <ViewModeToggle value={viewMode} onChange={setViewMode} />
         <StatusLegend kind="projectStatus" values={projectStatuses} />
         <FormControl size="small" sx={{ minWidth: 180 }}>
           <InputLabel id="project-customer-filter-label">{t('projects.customer')}</InputLabel>
@@ -249,6 +281,20 @@ export function ProjectsListPage() {
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
           <CircularProgress />
         </Box>
+      ) : isBoard ? (
+        <StatusBoard
+          rows={data?.items ?? []}
+          totalCount={data?.totalCount ?? 0}
+          columns={boardCardColumns}
+          boardColumns={buildBoardColumns(
+            projectStatuses,
+            (status) => enumLabel('projectStatus', status),
+            { Planned: 'inherit', Active: 'success', OnHold: 'warning', Completed: 'inherit' },
+          )}
+          getStatus={(row) => row.status}
+          isLoading={isLoading}
+          onCardClick={(row) => navigate(paths.projectDetail(row.id))}
+        />
       ) : groups.length === 0 ? (
         <EmptyState message={t('common.noResults')} />
       ) : (
