@@ -150,9 +150,10 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserD
 
         if (roleChanged)
         {
-            // The role travels inside the access token, so a demotion would
-            // otherwise keep its old permissions until that token expired and
-            // the refresh handed out a new one. Revoking forces a fresh sign-in.
+            // Revoking the refresh tokens forces a fresh sign-in. It does not
+            // touch the access token already issued — that is refused on its
+            // next request by TokenAccountValidation, which compares its role
+            // to the one saved here.
             await RevokeSessionsAsync(user.Id, cancellationToken);
         }
 

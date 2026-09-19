@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text;
+using Construction.API.Authentication;
 using Construction.Infrastructure.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -48,6 +49,11 @@ public static class AuthenticationExtensions
                     ClockSkew = TimeSpan.FromSeconds(30),
                     NameClaimType = "sub",
                     RoleClaimType = ClaimTypes.Role
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnTokenValidated = TokenAccountValidation.ValidateAsync
                 };
             });
 
