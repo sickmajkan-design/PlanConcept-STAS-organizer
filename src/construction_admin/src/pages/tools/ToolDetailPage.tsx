@@ -168,7 +168,7 @@ export function ToolDetailPage() {
                 <StatusChip status={tool.status} kind="toolStatus" />
               </Stack>
             </Box>
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
               <SiblingNavButtons
                 prevId={prevId}
                 nextId={nextId}
@@ -466,7 +466,7 @@ function ToolCostsCard({ toolId }: { toolId: string }) {
   return (
     <Card>
       <CardContent>
-        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+        <Stack direction="row" useFlexGap sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
             {t('toolExpenses.title')}
           </Typography>
@@ -542,7 +542,7 @@ function ToolRentalCard({ toolId }: { toolId: string }) {
   return (
     <Card>
       <CardContent>
-        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+        <Stack direction="row" useFlexGap sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
             {t('toolRentalRates.title')}
           </Typography>
@@ -830,7 +830,7 @@ function ToolRentalOutCard({ toolId, toolStatus }: { toolId: string; toolStatus:
   return (
     <Card>
       <CardContent>
-        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+        <Stack direction="row" useFlexGap sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
               {t('toolRentalsOut.title')}

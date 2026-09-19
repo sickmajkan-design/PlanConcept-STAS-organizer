@@ -180,7 +180,7 @@ function AccommodationRateCard({ accommodationId }: { accommodationId: string })
   return (
     <Card>
       <CardContent>
-        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+        <Stack direction="row" useFlexGap sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
             {t('accommodations.rateHistory')}
           </Typography>

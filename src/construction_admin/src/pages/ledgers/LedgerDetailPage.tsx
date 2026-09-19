@@ -337,7 +337,7 @@ export function LedgerDetailPage() {
           onClick={() => setColumnsExpanded((v) => !v)}
           sx={{ alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
         >
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+          <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
             <IconButton
               size="small"
               onClick={(event) => {
@@ -398,7 +398,7 @@ export function LedgerDetailPage() {
                   </Stack>
                 }
               >
-                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
                   <Typography variant="body2">{column.name}</Typography>
                   <Chip size="small" variant="outlined" label={enumLabel('ledgerColumnDataType', column.dataType)} />
                 </Stack>
@@ -1026,7 +1026,7 @@ function PromotionsPanel({ promotions }: { promotions: LedgerPromotion[] }) {
         onClick={() => setExpanded((v) => !v)}
         sx={{ alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}
       >
-        <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
           <IconButton
             size="small"
             onClick={(event) => {

@@ -181,7 +181,7 @@ export function VehicleDetailPage() {
                 <StatusChip status={vehicle.ownershipType} kind="vehicleOwnershipType" />
               </Stack>
             </Box>
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
               <SiblingNavButtons
                 prevId={prevId}
                 nextId={nextId}
@@ -506,7 +506,7 @@ function VehicleCostsCard({ vehicleId }: { vehicleId: string }) {
   return (
     <Card>
       <CardContent>
-        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+        <Stack direction="row" useFlexGap sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
             {t('vehicleExpenses.title')}
           </Typography>
@@ -582,7 +582,7 @@ function FuelCardsCard({ vehicleId }: { vehicleId: string }) {
   return (
     <Card>
       <CardContent>
-        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+        <Stack direction="row" useFlexGap sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
             {t('fuelCards.title')}
           </Typography>
@@ -604,7 +604,7 @@ function FuelCardsCard({ vehicleId }: { vehicleId: string }) {
                 spacing={1}
                 sx={{ alignItems: 'center', justifyContent: 'space-between' }}
               >
-                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
                   <CreditCard fontSize="small" color="action" />
                   <Box>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
@@ -737,7 +737,7 @@ function VehicleRentalCard({ vehicleId }: { vehicleId: string }) {
   return (
     <Card>
       <CardContent>
-        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+        <Stack direction="row" useFlexGap sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
             {t('vehicleRentalRates.title')}
           </Typography>
@@ -1031,7 +1031,7 @@ function VehicleRentalOutCard({
   return (
     <Card>
       <CardContent>
-        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+        <Stack direction="row" useFlexGap sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
             <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
               {t('vehicleRentalsOut.title')}

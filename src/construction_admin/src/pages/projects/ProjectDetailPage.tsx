@@ -308,7 +308,7 @@ export function ProjectDetailPage() {
           <Grid size={12}>
             <Card>
               <CardContent>
-                <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                <Stack direction="row" useFlexGap sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center', justifyContent: 'space-between' }}>
                   <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                     {t('projects.subProjects')} ({subProjects?.items.length ?? 0})
                   </Typography>

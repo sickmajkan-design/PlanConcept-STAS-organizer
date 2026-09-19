@@ -134,7 +134,7 @@ export function EmployeeDetailPage() {
                 </Typography>
               </Stack>
             </Box>
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
               <SiblingNavButtons
                 prevId={prevId}
                 nextId={nextId}
