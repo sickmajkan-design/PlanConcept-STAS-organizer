@@ -863,6 +863,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         component="main"
         sx={{
           flexGrow: 1,
+          minWidth: 0,
           width: { md: `calc(100% - ${RAIL_WIDTH}px)` },
           px: { xs: 2, sm: 3 },
           py: 3,
