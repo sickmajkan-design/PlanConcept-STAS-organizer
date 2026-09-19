@@ -19,6 +19,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { useDndAccessibility } from '../../hooks/useDndAccessibility';
 import { useT } from '../../i18n/useI18n';
 import { dashboardApi } from './api';
 import { widgetRegistry } from './widgetRegistry';
@@ -118,6 +119,7 @@ function DashboardColumn({ column, widgets, onRemove }: DashboardColumnProps) {
  */
 export function DashboardGrid() {
   const t = useT();
+  const dndAccessibility = useDndAccessibility();
   const queryClient = useQueryClient();
   const [widgets, setWidgets] = useState<DashboardWidgetConfig[] | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -258,7 +260,12 @@ export function DashboardGrid() {
       {widgets.length === 0 ? (
         <Typography color="text.secondary">{t('dashboard.empty')}</Typography>
       ) : (
-        <DndContext sensors={sensors} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
+        <DndContext
+          sensors={sensors}
+          accessibility={dndAccessibility}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+        >
           <Grid container spacing={2}>
             {columns.map((columnWidgets, column) => (
               <DashboardColumn

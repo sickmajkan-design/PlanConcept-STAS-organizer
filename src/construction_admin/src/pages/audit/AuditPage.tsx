@@ -82,6 +82,7 @@ export function AuditPage() {
         headerName: t('audit.entityName'),
         width: 160,
         sortable: false,
+        valueGetter: (value) => enumLabel('auditEntity', value as string),
       },
       {
         field: 'entityId',
@@ -108,7 +109,7 @@ export function AuditPage() {
         headerName: t('audit.userRole'),
         width: 130,
         sortable: false,
-        valueGetter: (value) => value || '—',
+        valueGetter: (value) => enumLabel('role', value as string),
       },
       {
         field: 'ipAddress',

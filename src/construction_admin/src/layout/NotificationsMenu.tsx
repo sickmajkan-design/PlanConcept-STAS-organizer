@@ -22,6 +22,7 @@ import {
   useUnreadCountQuery,
 } from '../features/notifications/useNotifications';
 import { useFormatRelative } from '../i18n/useFormatRelative';
+import { resolveNotificationText } from '../features/notifications/notificationText';
 import { useT } from '../i18n/useI18n';
 import { paths } from '../routes/paths';
 
@@ -115,7 +116,7 @@ export function NotificationsMenu() {
                     sx={{ fontWeight: notification.isRead ? 500 : 700, flex: 1, minWidth: 0 }}
                     noWrap
                   >
-                    {notification.title}
+                    {resolveNotificationText(t, notification).title}
                   </Typography>
                   <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
                     {formatRelative(notification.createdAt)}
@@ -131,7 +132,7 @@ export function NotificationsMenu() {
                     overflow: 'hidden',
                   }}
                 >
-                  {notification.body}
+                  {resolveNotificationText(t, notification).body}
                 </Typography>
               </Stack>
             </MenuItem>

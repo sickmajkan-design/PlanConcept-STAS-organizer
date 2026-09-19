@@ -69,6 +69,7 @@ import {
   useAssignmentBoardQuery,
   useRemoveOnBoard,
 } from '../../features/assignments/useAssignmentBoard';
+import { useDndAccessibility } from '../../hooks/useDndAccessibility';
 import { useT } from '../../i18n/useI18n';
 import { dateOnlyOffset } from '../../utils/formatting';
 import { postingRange } from '../../utils/postings';
@@ -98,6 +99,7 @@ type SortDirection = 'asc' | 'desc';
 
 export function AssignmentBoardPage() {
   const t = useT();
+  const dndAccessibility = useDndAccessibility();
   const { data, isLoading, isError, error, refetch } = useAssignmentBoardQuery();
   const assign = useAssignOnBoard();
   const remove = useRemoveOnBoard();
@@ -292,7 +294,12 @@ export function AssignmentBoardPage() {
           <CircularProgress />
         </Box>
       ) : (
-        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <DndContext
+          sensors={sensors}
+          accessibility={dndAccessibility}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, md: 3 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>

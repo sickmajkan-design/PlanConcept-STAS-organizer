@@ -125,6 +125,12 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
           // explicitly or it stays English inside a translated page.
           localeText={{
             noRowsLabel: t('common.noRows'),
+            checkboxSelectionHeaderName: t('grid.checkboxColumn'),
+            checkboxSelectionSelectAllRows: t('grid.selectAllRows'),
+            checkboxSelectionUnselectAllRows: t('grid.unselectAllRows'),
+            checkboxSelectionSelectRow: t('grid.selectRow'),
+            checkboxSelectionUnselectRow: t('grid.unselectRow'),
+            columnHeaderSortIconLabel: t('grid.sortIcon'),
           }}
           disableColumnMenu
           disableRowSelectionOnClick

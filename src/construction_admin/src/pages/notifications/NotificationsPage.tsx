@@ -31,6 +31,7 @@ import {
 } from '../../features/notifications/useNotifications';
 import { resolveNotificationTarget } from '../../features/notifications/notificationDeepLink';
 import { useEnumLabel } from '../../i18n/enumLabels';
+import { resolveNotificationText } from '../../features/notifications/notificationText';
 import { useT } from '../../i18n/useI18n';
 import { useFormatRelative } from '../../i18n/useFormatRelative';
 import { useOpenOnParam } from '../../hooks/useOpenOnParam';
@@ -165,7 +166,7 @@ export function NotificationsPage() {
                     variant="subtitle2"
                     sx={{ fontWeight: notification.isRead ? 500 : 700 }}
                   >
-                    {notification.title}
+                    {resolveNotificationText(t, notification).title}
                   </Typography>
                   <Chip
                     size="small"
@@ -178,7 +179,7 @@ export function NotificationsPage() {
                   color="text.secondary"
                   sx={{ whiteSpace: 'pre-line' }}
                 >
-                  {notification.body}
+                  {resolveNotificationText(t, notification).body}
                 </Typography>
               </Box>
               <Typography

@@ -112,9 +112,7 @@ export function LiveMapPage() {
         {!hasGoogleMapsKey ? (
           <Box sx={{ p: 4 }}>
             <Alert severity="info">
-              The live map needs a Google Maps API key. Set{' '}
-              <code>VITE_GOOGLE_MAPS_API_KEY</code> in the admin app's environment
-              to enable it — see the README for details.
+              {t('map.noKey')}
             </Alert>
           </Box>
         ) : isError ? (
