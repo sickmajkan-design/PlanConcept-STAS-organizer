@@ -20,6 +20,9 @@ public abstract record MaterialCommandBase
     /// <summary>Reference price per unit — optional, a planning figure rather than a recorded cost.</summary>
     public decimal? UnitPrice { get; init; }
 
+    /// <summary>Reorder level: the office is told when stock falls below it. Optional.</summary>
+    public decimal? MinimumQuantity { get; init; }
+
     public Guid? ProjectId { get; init; }
 }
 
@@ -41,6 +44,10 @@ public abstract class MaterialCommandBaseValidator<T> : AbstractValidator<T>
 
         RuleFor(x => x.Warehouse)
             .MaximumLength(256);
+
+        RuleFor(x => x.MinimumQuantity)
+            .GreaterThanOrEqualTo(0).WithMessage("Minimum stock must not be negative.")
+            .When(x => x.MinimumQuantity is not null);
 
         RuleFor(x => x.UnitPrice)
             .GreaterThanOrEqualTo(0).WithMessage("Price must not be negative.")

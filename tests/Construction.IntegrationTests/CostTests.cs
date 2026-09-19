@@ -1356,6 +1356,89 @@ public class CostTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task Falling_below_the_minimum_tells_the_office_once()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+        var manager = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.ProjectManager));
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+
+        var material = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Construction.Application.Features.Materials.Commands.CreateMaterial.CreateMaterialCommand
+            {
+                Name = "Cement",
+                Unit = "vreća",
+                Quantity = 30m,
+                MinimumQuantity = 20m
+            });
+        });
+
+        async Task IssueAsync(decimal quantity) => await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new RecordMaterialMovementCommand
+            {
+                MaterialId = material.Id,
+                Kind = MaterialMovementKind.Out,
+                Quantity = quantity,
+                ProjectId = project.Id
+            });
+        });
+
+        Task<int> AlertsAsync() => InScope(scope => scope.Db.Notifications.CountAsync(
+            n => n.UserId == manager.Id && n.Type == NotificationType.MaterialLowStock));
+
+        await IssueAsync(5m);   // 25, still above the minimum
+        Assert.Equal(0, await AlertsAsync());
+
+        await IssueAsync(10m);  // 15, falls through it
+        Assert.Equal(1, await AlertsAsync());
+
+        await IssueAsync(5m);   // 10, already low: not announced again
+        Assert.Equal(1, await AlertsAsync());
+    }
+
+    [Fact]
+    public async Task Materials_below_their_minimum_can_be_listed()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+
+        foreach (var (name, quantity, minimum) in new (string, decimal, decimal?)[]
+                 {
+                     ("Nisko", 3m, 10m),
+                     ("Dovoljno", 30m, 10m),
+                     ("Bez praga", 1m, null)
+                 })
+        {
+            await InScope(scope =>
+            {
+                ActAs(scope, admin);
+                return scope.Send(new Construction.Application.Features.Materials.Commands.CreateMaterial.CreateMaterialCommand
+                {
+                    Name = name,
+                    Unit = "kom",
+                    Quantity = quantity,
+                    MinimumQuantity = minimum
+                });
+            });
+        }
+
+        var low = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Construction.Application.Features.Materials.Queries.GetMaterials.GetMaterialsQuery
+            {
+                LowStockOnly = true
+            });
+        });
+
+        Assert.Contains(low.Items, m => m.Name == "Nisko");
+        Assert.DoesNotContain(low.Items, m => m.Name == "Dovoljno");
+        Assert.DoesNotContain(low.Items, m => m.Name == "Bez praga");
+    }
+
+    [Fact]
     public async Task The_owner_may_approve_a_cost_they_recorded_themselves()
     {
         // Nobody sits above a SuperAdmin to send it to, and where one person

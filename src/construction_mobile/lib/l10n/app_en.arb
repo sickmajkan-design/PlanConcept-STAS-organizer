@@ -574,6 +574,16 @@
       "title": { "type": "String" }
     }
   },
+  "notificationMaterialLowStockTitle": "Low stock",
+  "notificationMaterialLowStockBody": "{materialName}: {quantity} {unit} left, below the minimum of {minimum}.",
+  "@notificationMaterialLowStockBody": {
+    "placeholders": {
+      "materialName": { "type": "String" },
+      "quantity": { "type": "String" },
+      "unit": { "type": "String" },
+      "minimum": { "type": "String" }
+    }
+  },
   "notificationTimeEntryRejectedTitle": "Hours sent back",
   "notificationTimeEntryRejectedBody": "Your hours for {date} were sent back: {note}",
   "@notificationTimeEntryRejectedBody": {
@@ -662,6 +672,7 @@
   "notificationTypeVehicleExpenseRejected": "Cost sent back",
   "notificationTypeVehicleExpenseSubmitted": "Cost to review",
   "notificationTypeTimeEntryRejected": "Hours sent back",
+  "notificationTypeMaterialLowStock": "Low stock",
   "notificationTypeAbsenceDecided": "Time off decision",
   "notificationTypeAbsenceRequested": "Leave requested",
   "notificationTypeDocumentRetentionEnded": "Document retention ended",

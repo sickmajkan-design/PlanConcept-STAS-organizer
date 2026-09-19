@@ -1847,6 +1847,23 @@ abstract class AppLocalizations {
   /// **'{reporterName} reported: {title}'**
   String notificationDefectReportedBody(String reporterName, String title);
 
+  /// No description provided for @notificationMaterialLowStockTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Low stock'**
+  String get notificationMaterialLowStockTitle;
+
+  /// No description provided for @notificationMaterialLowStockBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{materialName}: {quantity} {unit} left, below the minimum of {minimum}.'**
+  String notificationMaterialLowStockBody(
+    String materialName,
+    String quantity,
+    String unit,
+    String minimum,
+  );
+
   /// No description provided for @notificationTimeEntryRejectedTitle.
   ///
   /// In en, this message translates to:
@@ -2075,6 +2092,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Hours sent back'**
   String get notificationTypeTimeEntryRejected;
+
+  /// No description provided for @notificationTypeMaterialLowStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Low stock'**
+  String get notificationTypeMaterialLowStock;
 
   /// No description provided for @notificationTypeAbsenceDecided.
   ///

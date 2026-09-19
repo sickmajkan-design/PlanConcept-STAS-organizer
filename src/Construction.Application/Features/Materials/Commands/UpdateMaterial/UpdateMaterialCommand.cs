@@ -19,13 +19,16 @@ public class UpdateMaterialCommandHandler : IRequestHandler<UpdateMaterialComman
 {
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly INotificationService _notifications;
 
     public UpdateMaterialCommandHandler(
         IApplicationDbContext context,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        INotificationService notifications)
     {
         _context = context;
         _dateTimeProvider = dateTimeProvider;
+        _notifications = notifications;
     }
 
     public async Task<MaterialDto> Handle(
@@ -48,6 +51,8 @@ public class UpdateMaterialCommandHandler : IRequestHandler<UpdateMaterialComman
             }
         }
 
+        var previousQuantity = material.Quantity;
+
         if (material.Quantity != request.Quantity)
         {
             material.LastUpdated = _dateTimeProvider.UtcNow;
@@ -58,9 +63,13 @@ public class UpdateMaterialCommandHandler : IRequestHandler<UpdateMaterialComman
         material.Quantity = request.Quantity;
         material.Warehouse = request.Warehouse?.Trim();
         material.UnitPrice = request.UnitPrice;
+        material.MinimumQuantity = request.MinimumQuantity;
         material.ProjectId = request.ProjectId;
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        await Construction.Application.Features.Materials.LowStockNotifier.NotifyIfCrossedAsync(
+            _context, _notifications, material.Id, request.Quantity - previousQuantity, cancellationToken);
 
         // Reload through a projection so a changed ProjectId comes back with its name.
         return await _context.Materials

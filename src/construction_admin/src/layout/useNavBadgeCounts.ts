@@ -1,5 +1,6 @@
 import type { User } from '../api/types';
 import { useVehicleExpensesQuery } from '../features/costs/useCosts';
+import { useMaterialsQuery } from '../features/materials/useMaterials';
 import { useAbsencesQuery } from '../features/absences/useAbsences';
 import { useExpiringDocumentsQuery } from '../features/attachments/useAttachments';
 import { useTimeEntriesQuery } from '../features/timeEntries/useTimeEntries';
@@ -95,12 +96,16 @@ export function useNavBadgeCounts(user: User | null | undefined): Record<string,
     showVehicleExpenses,
   );
 
+  // Materials under their reorder level: only the people who order stock.
+  const lowStockQuery = useMaterialsQuery({ ...COUNT_ONLY_PAGE, lowStockOnly: true }, showVehicleExpenses);
+
   const documentsCount = showDocuments ? (documentsQuery.data?.length ?? 0) : 0;
   const absencesCount = showAbsences ? (absencesQuery.data?.totalCount ?? 0) : 0;
   const workItemsCount = showWorkItems
     ? (workItemsOpenQuery.data?.totalCount ?? 0) + (workItemsInProgressQuery.data?.totalCount ?? 0)
     : 0;
   const timeEntriesCount = showTimeEntries ? (timeEntriesQuery.data?.totalCount ?? 0) : 0;
+  const lowStockCount = showVehicleExpenses ? (lowStockQuery.data?.totalCount ?? 0) : 0;
   const vehicleExpensesCount = showVehicleExpenses
     ? (vehicleExpensesQuery.data?.totalCount ?? 0)
     : 0;
@@ -108,6 +113,8 @@ export function useNavBadgeCounts(user: User | null | undefined): Record<string,
   return {
     admin: documentsCount,
     work: absencesCount + workItemsCount + timeEntriesCount,
+    directory: lowStockCount,
+    [paths.materials]: lowStockCount,
     costs: vehicleExpensesCount,
     [paths.costRecords]: vehicleExpensesCount,
     [paths.vehicleExpenses]: vehicleExpensesCount,

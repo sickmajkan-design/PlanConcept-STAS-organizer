@@ -21,6 +21,16 @@ public class Material : BaseEntity, ISoftDeletable, IAuditable
     /// </summary>
     public decimal? UnitPrice { get; set; }
 
+    /// <summary>
+    /// The quantity below which this material should be reordered. Null means
+    /// nobody is watching it.
+    /// </summary>
+    /// <remarks>
+    /// A floor rather than a target: the office is told once when the stock
+    /// falls through it, not repeatedly while it stays low.
+    /// </remarks>
+    public decimal? MinimumQuantity { get; set; }
+
     public Guid? ProjectId { get; set; }
 
     public Project? Project { get; set; }

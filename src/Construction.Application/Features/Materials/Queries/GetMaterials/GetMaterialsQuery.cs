@@ -13,7 +13,7 @@ public record GetMaterialsQuery : ISortablePagedQuery, IRequest<PagedList<Materi
 {
     public static readonly string[] AllowedSortFields =
     [
-        "name", "unit", "quantity", "warehouse", "unitPrice", "projectName", "lastUpdated", "createdAt"
+        "name", "unit", "quantity", "minimumQuantity", "warehouse", "unitPrice", "projectName", "lastUpdated", "createdAt"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -35,6 +35,9 @@ public record GetMaterialsQuery : ISortablePagedQuery, IRequest<PagedList<Materi
 
     /// <summary>When true, returns only materials with no reference price set.</summary>
     public bool? IncompleteOnly { get; init; }
+
+    /// <summary>When true, returns only materials below the minimum set for them.</summary>
+    public bool? LowStockOnly { get; init; }
 
     public string? SortBy { get; init; }
 
@@ -99,6 +102,11 @@ public class GetMaterialsQueryHandler : IRequestHandler<GetMaterialsQuery, Paged
             query = query.Where(m => m.Quantity <= maxQuantity);
         }
 
+        if (request.LowStockOnly == true)
+        {
+            query = query.Where(m => m.MinimumQuantity != null && m.Quantity < m.MinimumQuantity);
+        }
+
         if (request.IncompleteOnly == true)
         {
             query = query.Where(m => m.UnitPrice == null);
@@ -133,6 +141,8 @@ public class GetMaterialsQueryHandler : IRequestHandler<GetMaterialsQuery, Paged
             ("lastupdated", false) => query.OrderBy(m => m.LastUpdated),
             ("lastupdated", true) => query.OrderByDescending(m => m.LastUpdated),
             ("createdat", false) => query.OrderBy(m => m.CreatedAt),
+            ("minimumquantity", false) => query.OrderBy(m => m.MinimumQuantity == null).ThenBy(m => m.MinimumQuantity),
+            ("minimumquantity", true) => query.OrderByDescending(m => m.MinimumQuantity == null).ThenByDescending(m => m.MinimumQuantity),
             ("createdat", true) => query.OrderByDescending(m => m.CreatedAt),
             (_, true) => query.OrderByDescending(m => m.Name),
             _ => query.OrderBy(m => m.Name)

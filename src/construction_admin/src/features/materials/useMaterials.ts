@@ -22,8 +22,8 @@ const PICKER_QUERY: MaterialListQuery = {
   sortBy: 'name',
 };
 
-export function useMaterialsQuery(query: MaterialListQuery) {
-  return useResourceList(materialKeys, materialsApi.list, query);
+export function useMaterialsQuery(query: MaterialListQuery, enabled = true) {
+  return useResourceList(materialKeys, materialsApi.list, query, { enabled });
 }
 
 export function useMaterialQuery(id: string | undefined) {

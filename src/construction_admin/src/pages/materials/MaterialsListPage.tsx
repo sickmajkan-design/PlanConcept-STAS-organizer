@@ -42,6 +42,7 @@ interface MaterialViewState {
   sortModel: GridSortModel;
   warehouseOnly: boolean;
   incompleteOnly: boolean;
+  lowStockOnly?: boolean;
 }
 
 export function MaterialsListPage() {
@@ -54,6 +55,7 @@ export function MaterialsListPage() {
   // its own state instead of using the hook's single-select filter.
   const [warehouseOnly, setWarehouseOnly] = useState(false);
   const [incompleteOnly, setIncompleteOnly] = useState(false);
+  const [lowStockOnly, setLowStockOnly] = useState(false);
 
   const savedViews = useSavedViews<MaterialViewState>('materials');
 
@@ -62,6 +64,7 @@ export function MaterialsListPage() {
     list.setSortModel(state.sortModel);
     setWarehouseOnly(state.warehouseOnly);
     setIncompleteOnly(state.incompleteOnly);
+    setLowStockOnly(!!state.lowStockOnly);
     list.resetToFirstPage();
   };
 
@@ -71,6 +74,7 @@ export function MaterialsListPage() {
       sortModel: list.sortModel,
       warehouseOnly,
       incompleteOnly,
+      lowStockOnly,
     });
   };
 
@@ -79,8 +83,9 @@ export function MaterialsListPage() {
       ...list.query,
       unassignedOnly: warehouseOnly || undefined,
       incompleteOnly: incompleteOnly || undefined,
+      lowStockOnly: lowStockOnly || undefined,
     }),
-    [list.query, warehouseOnly, incompleteOnly],
+    [list.query, warehouseOnly, incompleteOnly, lowStockOnly],
   );
 
   const { data, isLoading, isError, error, refetch } = useMaterialsQuery(query);
@@ -113,6 +118,31 @@ export function MaterialsListPage() {
         width: 140,
         type: 'number',
         valueGetter: (_value, row) => `${row.quantity} ${row.unit}`,
+        renderCell: (params) => {
+          const low =
+            params.row.minimumQuantity !== null && params.row.quantity < params.row.minimumQuantity;
+
+          return (
+            <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+              {low && (
+                <Tooltip title={t('materials.lowStock')}>
+                  <WarningAmberOutlined fontSize="small" color="error" />
+                </Tooltip>
+              )}
+              <span style={low ? { color: 'inherit', fontWeight: 700 } : undefined}>
+                {params.row.quantity} {params.row.unit}
+              </span>
+            </Stack>
+          );
+        },
+      },
+      {
+        field: 'minimumQuantity',
+        headerName: t('materials.minimumQuantity'),
+        width: 130,
+        type: 'number',
+        valueGetter: (_value, row) =>
+          row.minimumQuantity === null ? '—' : `${row.minimumQuantity} ${row.unit}`,
       },
       {
         field: 'warehouse',
@@ -209,6 +239,18 @@ export function MaterialsListPage() {
             />
           }
           label={t('materials.incompleteOnly')}
+        />
+        <FormControlLabel
+          control={
+            <Switch
+              checked={lowStockOnly}
+              onChange={(event) => {
+                setLowStockOnly(event.target.checked);
+                list.resetToFirstPage();
+              }}
+            />
+          }
+          label={t('materials.lowStockOnly')}
         />
       </Stack>
 

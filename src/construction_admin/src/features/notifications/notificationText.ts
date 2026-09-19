@@ -227,6 +227,18 @@ export function resolveNotificationText(t: T, notification: Notification): Notif
         body: text('notificationDefectReportedBody', { reporterName: d.reporterName, title: d.title }),
       };
 
+    case 'MaterialLowStock':
+      if (!d.materialName || !d.quantity || !d.unit || !d.minimum) return fallback;
+      return {
+        title: text('notificationMaterialLowStockTitle'),
+        body: text('notificationMaterialLowStockBody', {
+          materialName: d.materialName,
+          quantity: d.quantity,
+          unit: d.unit,
+          minimum: d.minimum,
+        }),
+      };
+
     case 'TimeEntryRejected':
       if (!d.date || d.note === undefined) return fallback;
       return {

@@ -42,6 +42,7 @@ const emptyValues: MaterialFormValues = {
   quantity: '0',
   warehouse: '',
   unitPrice: '',
+  minimumQuantity: '',
   projectId: '',
   receivedOn: '',
   supplier: '',
@@ -124,6 +125,7 @@ export function MaterialFormPage() {
         quantity: String(existing.quantity),
         warehouse: existing.warehouse ?? '',
         unitPrice: existing.unitPrice === null ? '' : String(existing.unitPrice),
+        minimumQuantity: existing.minimumQuantity === null ? '' : String(existing.minimumQuantity),
         projectId: existing.projectId ?? '',
       });
     }
@@ -148,6 +150,7 @@ export function MaterialFormPage() {
       warehouse: values.warehouse || null,
       // Left empty, the reference price follows what the first delivery cost.
       unitPrice: values.unitPrice === '' ? purchase : Number(values.unitPrice),
+      minimumQuantity: values.minimumQuantity === '' ? null : Number(values.minimumQuantity),
       projectId: values.projectId || null,
       ...(isEdit || !hasStock
         ? {}
@@ -277,6 +280,12 @@ export function MaterialFormPage() {
                   {text('quantity', t('materials.quantity'), { type: 'number' })}
                 </Grid>
               )}
+              <Grid size={{ xs: 12, sm: 4 }}>
+                {text('minimumQuantity', t('materials.minimumQuantity'), {
+                  type: 'number',
+                  helperText: errors.minimumQuantity?.message ?? t('materials.minimumHint'),
+                })}
+              </Grid>
             </Grid>
           </Section>
 

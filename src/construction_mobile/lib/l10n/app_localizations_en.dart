@@ -1010,6 +1010,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get notificationMaterialLowStockTitle => 'Low stock';
+
+  @override
+  String notificationMaterialLowStockBody(
+    String materialName,
+    String quantity,
+    String unit,
+    String minimum,
+  ) {
+    return '$materialName: $quantity $unit left, below the minimum of $minimum.';
+  }
+
+  @override
   String get notificationTimeEntryRejectedTitle => 'Hours sent back';
 
   @override
@@ -1156,6 +1169,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notificationTypeTimeEntryRejected => 'Hours sent back';
+
+  @override
+  String get notificationTypeMaterialLowStock => 'Low stock';
 
   @override
   String get notificationTypeAbsenceDecided => 'Time off decision';

@@ -55,13 +55,16 @@ public class AdjustMaterialQuantityCommandHandler
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly ICurrentUserService _currentUserService;
     private readonly ILogger<AdjustMaterialQuantityCommandHandler> _logger;
+    private readonly INotificationService _notifications;
 
     public AdjustMaterialQuantityCommandHandler(
         IApplicationDbContext context,
         IDateTimeProvider dateTimeProvider,
         ICurrentUserService currentUserService,
-        ILogger<AdjustMaterialQuantityCommandHandler> logger)
+        ILogger<AdjustMaterialQuantityCommandHandler> logger,
+        INotificationService notifications)
     {
+        _notifications = notifications;
         _context = context;
         _dateTimeProvider = dateTimeProvider;
         _currentUserService = currentUserService;
@@ -114,6 +117,9 @@ public class AdjustMaterialQuantityCommandHandler
                 await _context.SaveChangesAsync(token);
             },
             cancellationToken);
+
+        await Construction.Application.Features.Materials.LowStockNotifier.NotifyIfCrossedAsync(
+            _context, _notifications, request.Id, request.Change, cancellationToken);
 
         var material = await _context.Materials
             .AsNoTracking()

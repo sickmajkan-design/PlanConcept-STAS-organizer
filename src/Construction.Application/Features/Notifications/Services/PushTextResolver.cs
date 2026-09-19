@@ -241,6 +241,19 @@ public static class PushTextResolver
                     $"{vehicleName} ({IsoDate(occurredOn)}) je vraćen: {note}");
             }
 
+            case NotificationType.MaterialLowStock:
+            {
+                var materialName = Str("materialName");
+                var quantity = Str("quantity");
+                var unit = Str("unit");
+                var minimum = Str("minimum");
+                if (materialName is null || quantity is null || unit is null || minimum is null) break;
+
+                return (
+                    "Niska zaliha",
+                    $"{materialName}: preostalo {quantity} {unit}, ispod minimuma od {minimum}.");
+            }
+
             case NotificationType.TimeEntryRejected:
             {
                 var date = Str("date");

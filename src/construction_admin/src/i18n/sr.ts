@@ -744,6 +744,13 @@ export const sr: Record<MessageKey, Message> = {
   'invoiceFile.tooBig': 'Fajl je veći od 20 MB.',
   'invoiceFile.badType': 'Ova vrsta fajla nije dozvoljena.',
   'invoiceFile.uploadFailed': 'Prijem je sačuvan, ali fajl fakture nije mogao biti priložen: {reason} Otvorite prijem da ga ponovo priložite.',
+  'notificationText.notificationMaterialLowStockTitle': 'Niska zaliha',
+  'notificationText.notificationMaterialLowStockBody': '{materialName}: preostalo {quantity} {unit}, ispod minimuma od {minimum}.',
+  'notificationType.MaterialLowStock': 'Niska zaliha',
+  'materials.minimumQuantity': 'Minimalna zaliha',
+  'materials.minimumHint': 'Obavještenje stiže kad zaliha padne ispod ove količine. Ostavite prazno ako ne treba pratiti.',
+  'materials.lowStock': 'Ispod minimuma',
+  'materials.lowStockOnly': 'Samo niska zaliha',
   'materials.deleteTitle': 'Obrisati materijal?',
   'materials.deleteBody': '{name} će biti uklonjen iz aktivnih zapisa.',
 

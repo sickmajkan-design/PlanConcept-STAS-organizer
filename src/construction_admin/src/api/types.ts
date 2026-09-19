@@ -534,6 +534,8 @@ export interface Material {
   warehouse: string | null;
   /** Reference price per unit — a planning figure, not what any delivery actually cost. */
   unitPrice: number | null;
+  /** Reorder level: the office is told when stock falls below it. */
+  minimumQuantity: number | null;
   projectId: string | null;
   projectName: string | null;
   lastUpdated: string;
@@ -547,6 +549,7 @@ export interface MaterialInput {
   quantity: number;
   warehouse?: string | null;
   unitPrice?: number | null;
+  minimumQuantity?: number | null;
   projectId?: string | null;
   /** New material only: the delivery the starting stock came in on. */
   invoiceNumber?: string | null;
@@ -1767,6 +1770,7 @@ export const notificationTypes = [
   'VehicleExpenseSubmitted',
   'TimeEntryRejected',
   'AbsenceDecided',
+  'MaterialLowStock',
 ] as const;
 
 export type NotificationType = (typeof notificationTypes)[number];

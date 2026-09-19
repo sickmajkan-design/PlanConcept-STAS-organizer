@@ -64,5 +64,8 @@ public enum NotificationType
     TimeEntryRejected = 24,
 
     /// <summary>A time-off request was granted or refused.</summary>
-    AbsenceDecided = 25
+    AbsenceDecided = 25,
+
+    /// <summary>A material's stock fell below the minimum set for it.</summary>
+    MaterialLowStock = 26
 }

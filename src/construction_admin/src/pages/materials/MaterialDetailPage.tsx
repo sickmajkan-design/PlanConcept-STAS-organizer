@@ -129,9 +129,14 @@ export function MaterialDetailPage() {
               <Typography variant="h5" sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}>
                 {material.name}
               </Typography>
-              <Typography variant="h4" color="primary" sx={{ fontWeight: 700, mt: 1 }}>
-                {formatQuantity(material.quantity, locale)} {material.unit}
-              </Typography>
+              <Stack direction="row" spacing={1.5} useFlexGap sx={{ mt: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+                <Typography variant="h4" color="primary" sx={{ fontWeight: 700 }}>
+                  {formatQuantity(material.quantity, locale)} {material.unit}
+                </Typography>
+                {material.minimumQuantity !== null && material.quantity < material.minimumQuantity && (
+                  <Chip color="error" size="small" label={t('materials.lowStock')} />
+                )}
+              </Stack>
             </Box>
             <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
               {/* One entry point for every change of stock. Someone who may not
@@ -179,6 +184,14 @@ export function MaterialDetailPage() {
               </Typography>
               <Stack spacing={1.5} sx={{ mt: 1 }}>
                 <InfoRow label={t('materials.warehouse')} value={material.warehouse} />
+                <InfoRow
+                  label={t('materials.minimumQuantity')}
+                  value={
+                    material.minimumQuantity === null
+                      ? null
+                      : `${formatQuantity(material.minimumQuantity, locale)} ${material.unit}`
+                  }
+                />
                 <InfoRow
                   label={t('materials.unitPrice')}
                   value={

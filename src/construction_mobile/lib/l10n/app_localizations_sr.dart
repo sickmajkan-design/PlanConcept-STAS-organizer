@@ -1008,6 +1008,19 @@ class AppLocalizationsSr extends AppLocalizations {
   }
 
   @override
+  String get notificationMaterialLowStockTitle => 'Niska zaliha';
+
+  @override
+  String notificationMaterialLowStockBody(
+    String materialName,
+    String quantity,
+    String unit,
+    String minimum,
+  ) {
+    return '$materialName: preostalo $quantity $unit, ispod minimuma od $minimum.';
+  }
+
+  @override
   String get notificationTimeEntryRejectedTitle => 'Sati vraćeni na doradu';
 
   @override
@@ -1157,6 +1170,9 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get notificationTypeTimeEntryRejected => 'Sati vraćeni';
+
+  @override
+  String get notificationTypeMaterialLowStock => 'Niska zaliha';
 
   @override
   String get notificationTypeAbsenceDecided => 'Odluka o odsustvu';

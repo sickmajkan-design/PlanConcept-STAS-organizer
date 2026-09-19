@@ -18,6 +18,9 @@ public class MaterialDto
     /// <summary>Reference price per unit — a planning figure, not what any delivery actually cost.</summary>
     public decimal? UnitPrice { get; init; }
 
+    /// <summary>Reorder level, or null when none is set.</summary>
+    public decimal? MinimumQuantity { get; init; }
+
     public Guid? ProjectId { get; init; }
 
     public string? ProjectName { get; init; }
@@ -49,6 +52,7 @@ public static class MaterialMapping
             Quantity = material.Quantity,
             Warehouse = material.Warehouse,
             UnitPrice = material.UnitPrice,
+            MinimumQuantity = material.MinimumQuantity,
             ProjectId = material.ProjectId,
             ProjectName = material.Project != null ? material.Project.Name : null,
             LastUpdated = material.LastUpdated,

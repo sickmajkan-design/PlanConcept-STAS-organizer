@@ -10,6 +10,8 @@ export interface MaterialListQuery extends ListQuery {
   /** `0` is a meaningful filter here — "out of stock" — and is sent as such. */
   maxQuantity?: number;
   incompleteOnly?: boolean;
+  /** Only materials below the minimum set for them. */
+  lowStockOnly?: boolean;
 }
 
 export interface AdjustMaterialInput {

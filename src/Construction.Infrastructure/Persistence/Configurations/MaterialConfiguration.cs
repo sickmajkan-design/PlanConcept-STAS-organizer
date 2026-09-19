@@ -28,6 +28,12 @@ public class MaterialConfiguration : IEntityTypeConfiguration<Material>
         builder.ToTable(t => t.HasCheckConstraint(
             "ck_materials_quantity_non_negative", "\"Quantity\" >= 0"));
 
+        builder.Property(m => m.MinimumQuantity)
+            .HasPrecision(18, 3);
+
+        builder.ToTable(t => t.HasCheckConstraint(
+            "ck_materials_minimum_not_negative", "\"MinimumQuantity\" IS NULL OR \"MinimumQuantity\" >= 0"));
+
         builder.Property(m => m.Warehouse)
             .HasMaxLength(256);
 

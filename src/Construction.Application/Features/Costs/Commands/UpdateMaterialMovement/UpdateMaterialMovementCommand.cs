@@ -92,14 +92,18 @@ public class UpdateMaterialMovementCommandHandler
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
 
+    private readonly INotificationService _notifications;
+
     public UpdateMaterialMovementCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        INotificationService notifications)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
+        _notifications = notifications;
     }
 
     public async Task<MaterialMovementDto> Handle(
@@ -178,6 +182,9 @@ public class UpdateMaterialMovementCommandHandler
                 await _context.SaveChangesAsync(token);
             },
             cancellationToken);
+
+        await Construction.Application.Features.Materials.LowStockNotifier.NotifyIfCrossedAsync(
+            _context, _notifications, materialId, delta, cancellationToken);
 
         return await _context.MaterialMovements
             .AsNoTracking()

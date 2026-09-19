@@ -100,15 +100,18 @@ public class RecordMaterialMovementCommandHandler
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly INotificationService _notifications;
 
     public RecordMaterialMovementCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        INotificationService notifications)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
+        _notifications = notifications;
     }
 
     public async Task<MaterialMovementDto> Handle(
@@ -182,6 +185,9 @@ public class RecordMaterialMovementCommandHandler
                 await _context.SaveChangesAsync(token);
             },
             cancellationToken);
+
+        await Construction.Application.Features.Materials.LowStockNotifier.NotifyIfCrossedAsync(
+            _context, _notifications, request.MaterialId, movement.SignedQuantity, cancellationToken);
 
         return await _context.MaterialMovements
             .AsNoTracking()

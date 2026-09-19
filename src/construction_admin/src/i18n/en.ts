@@ -716,6 +716,13 @@ export const en = {
   'invoiceFile.tooBig': 'The file is larger than 20 MB.',
   'invoiceFile.badType': 'This file type is not accepted.',
   'invoiceFile.uploadFailed': 'The delivery was saved, but the invoice file could not be attached: {reason} Open the delivery to attach it again.',
+  'notificationText.notificationMaterialLowStockTitle': 'Low stock',
+  'notificationText.notificationMaterialLowStockBody': '{materialName}: {quantity} {unit} left, below the minimum of {minimum}.',
+  'notificationType.MaterialLowStock': 'Low stock',
+  'materials.minimumQuantity': 'Minimum stock',
+  'materials.minimumHint': 'You are notified when the stock falls below this. Leave empty to not watch it.',
+  'materials.lowStock': 'Below minimum',
+  'materials.lowStockOnly': 'Low stock only',
   'materials.deleteTitle': 'Delete material?',
   'materials.deleteBody': '{name} will be removed from active records.',
 

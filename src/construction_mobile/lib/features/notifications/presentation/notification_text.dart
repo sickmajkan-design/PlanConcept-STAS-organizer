@@ -278,6 +278,22 @@ LocalizedNotificationText resolveNotificationText(
         );
       }
 
+    case 'MaterialLowStock':
+      {
+        final materialName = str('materialName');
+        final quantity = str('quantity');
+        final unit = str('unit');
+        final minimum = str('minimum');
+        if (materialName == null || quantity == null || unit == null || minimum == null) {
+          return fallback;
+        }
+
+        return LocalizedNotificationText(
+          title: l10n.notificationMaterialLowStockTitle,
+          body: l10n.notificationMaterialLowStockBody(materialName, quantity, unit, minimum),
+        );
+      }
+
     case 'TimeEntryRejected':
       {
         final date = str('date');

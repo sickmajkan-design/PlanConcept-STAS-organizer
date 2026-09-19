@@ -37,6 +37,7 @@ export const materialFormSchema = z.object({
     .optional()
     .or(z.literal('')),
   unitPrice: optionalPriceString,
+  minimumQuantity: optionalPriceString,
   projectId: z.string().optional().or(z.literal('')),
   // The delivery the starting stock came in on (new material only).
   receivedOn: z.string().optional().or(z.literal('')),
