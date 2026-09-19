@@ -142,6 +142,11 @@ const StockMovementsPage = lazy(() =>
     default: m.StockMovementsPage,
   })),
 );
+const MaterialDeliveryImportPage = lazy(() =>
+  import('./pages/costs/MaterialDeliveryImportPage').then((m) => ({
+    default: m.MaterialDeliveryImportPage,
+  })),
+);
 const VehicleExpensesPage = lazy(() =>
   import('./pages/costs/VehicleExpensesPage').then((m) => ({
     default: m.VehicleExpensesPage,
@@ -356,6 +361,10 @@ function Layout() {
               {/* One menu entry, a tab strip between the ledgers. */}
               <Route element={<CostRecordsLayout />}>
                 <Route path={paths.stockMovements} element={<StockMovementsPage />} />
+                <Route
+                  path={paths.materialDeliveryImport}
+                  element={<MaterialDeliveryImportPage />}
+                />
                 <Route path={paths.vehicleExpenses} element={<VehicleExpensesPage />} />
                 <Route path={paths.fuelImport} element={<FuelImportPage />} />
                 <Route path={paths.toolExpenses} element={<ToolExpensesPage />} />

@@ -1,3 +1,4 @@
+using Construction.Application.Features.Materials.Import;
 using Construction.Application.Features.Costs.Queries.GetMaterialSuppliers;
 using Construction.API.Authorization;
 using Construction.API.Filters;
@@ -157,6 +158,64 @@ public class CostsController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(new GetMaterialSuppliersQuery(), cancellationToken));
+    }
+
+    /// <summary>Reads an uploaded delivery list and reports what would happen, without writing anything.</summary>
+    [HttpPost("/api/v{version:apiVersion}/material-movements/import/preview")]
+    [HttpPost("/api/material-movements/import/preview")]
+    [RequestSizeLimit(FuelImportRules.MaxSizeBytes + 1024 * 1024)]
+    [ProducesResponseType(typeof(MaterialImportPreviewDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<MaterialImportPreviewDto>> PreviewMaterialDeliveryImport(
+        [FromForm] MaterialImportRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (request.File is null || request.File.Length == 0)
+        {
+            ModelState.AddModelError(nameof(request.File), "A file is required.");
+            return ValidationProblem(ModelState);
+        }
+
+        await using var content = request.File.OpenReadStream();
+
+        return Ok(await Mediator.Send(
+            new PreviewMaterialDeliveryImportCommand
+            {
+                FileName = request.File.FileName,
+                SizeBytes = request.File.Length,
+                Content = content
+            },
+            cancellationToken));
+    }
+
+    /// <summary>Records every row of the list that resolves cleanly, creating materials that do not exist yet.</summary>
+    [HttpPost("/api/v{version:apiVersion}/material-movements/import")]
+    [HttpPost("/api/material-movements/import")]
+    [RequestSizeLimit(FuelImportRules.MaxSizeBytes + 1024 * 1024)]
+    [ProducesResponseType(typeof(MaterialImportResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<MaterialImportResultDto>> ImportMaterialDeliveries(
+        [FromForm] MaterialImportRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (request.File is null || request.File.Length == 0)
+        {
+            ModelState.AddModelError(nameof(request.File), "A file is required.");
+            return ValidationProblem(ModelState);
+        }
+
+        await using var content = request.File.OpenReadStream();
+
+        return Ok(await Mediator.Send(
+            new ImportMaterialDeliveriesCommand
+            {
+                FileName = request.File.FileName,
+                SizeBytes = request.File.Length,
+                Content = content
+            },
+            cancellationToken));
     }
 
     /// <summary>The count and value of whatever the movements list is currently filtered to.</summary>
@@ -1130,6 +1189,11 @@ public class CostsController : ApiControllerBase
 /// <see cref="UploadAttachmentRequest"/>: <see cref="IFormFile"/> is an
 /// ASP.NET type the Application layer does not reference.
 /// </remarks>
+public class MaterialImportRequest
+{
+    public IFormFile? File { get; set; }
+}
+
 public class FuelImportRequest
 {
     public IFormFile? File { get; set; }

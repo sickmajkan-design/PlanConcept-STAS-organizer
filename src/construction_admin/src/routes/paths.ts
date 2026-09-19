@@ -57,6 +57,7 @@ export const paths = {
   costRecords: '/cost-records',
   billingSettings: '/billing-settings',
   stockMovements: '/stock-movements',
+  materialDeliveryImport: '/stock-movements/import',
   vehicleExpenses: '/vehicle-expenses',
   fuelImport: '/vehicle-expenses/fuel-import',
   toolExpenses: '/tool-expenses',

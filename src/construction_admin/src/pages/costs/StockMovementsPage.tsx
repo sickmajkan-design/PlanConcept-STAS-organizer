@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import type { GridColDef, GridSortModel } from '@mui/x-data-grid';
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import type { MaterialMovementListQuery } from '../../api/costs';
 import { toApiError } from '../../api/apiError';
@@ -32,6 +33,7 @@ import { useAuth } from '../../auth/useAuth';
 import { AttachmentList } from '../../components/AttachmentList';
 import { AuditHistoryCard } from '../../components/AuditHistoryCard';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { paths } from '../../routes/paths';
 import { InvoiceFilePicker } from '../../components/InvoiceFilePicker';
 import { useUploadAttachment } from '../../features/attachments/useAttachments';
 import { ExportButton } from '../../components/ExportButton';
@@ -61,6 +63,7 @@ interface StockMovementViewState {
 }
 
 export function StockMovementsPage() {
+  const navigate = useNavigate();
   const t = useT();
   const { locale } = useI18n();
   const { user } = useAuth();
@@ -214,6 +217,9 @@ export function StockMovementsPage() {
       />
 
       <Stack direction="row" spacing={2} useFlexGap sx={{ flexWrap: 'wrap', mb: 2 }}>
+        <Button variant="outlined" onClick={() => navigate(paths.materialDeliveryImport)}>
+          {t('deliveryImport.title')}
+        </Button>
         <TextField
           select
           size="small"

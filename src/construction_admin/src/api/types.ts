@@ -543,6 +543,48 @@ export interface Material {
   updatedAt: string | null;
 }
 
+export type MaterialImportRowStatus =
+  | 'Ready'
+  | 'NewMaterial'
+  | 'MissingMaterialName'
+  | 'UnknownMaterialNoUnit'
+  | 'InvalidQuantity'
+  | 'InvalidPrice'
+  | 'MissingInvoiceNumber'
+  | 'InvalidDate'
+  | 'AlreadyImported';
+
+export interface MaterialImportRow {
+  rowNumber: number;
+  materialName: string | null;
+  unit: string | null;
+  quantity: number | null;
+  unitPrice: number | null;
+  invoiceNumber: string | null;
+  supplier: string | null;
+  /** `YYYY-MM-DD`. */
+  occurredOn: string | null;
+  note: string | null;
+  materialId: string | null;
+  status: MaterialImportRowStatus;
+}
+
+export interface MaterialImportPreview {
+  totalRows: number;
+  readyCount: number;
+  newMaterialCount: number;
+  problemCount: number;
+  rows: MaterialImportRow[];
+}
+
+export interface MaterialImportResult {
+  totalRows: number;
+  createdDeliveries: number;
+  createdMaterials: number;
+  skippedCount: number;
+  skipped: MaterialImportRow[];
+}
+
 /** What a material has actually cost, worked out from its deliveries. */
 export interface MaterialPricing {
   lastPurchasePrice: number | null;

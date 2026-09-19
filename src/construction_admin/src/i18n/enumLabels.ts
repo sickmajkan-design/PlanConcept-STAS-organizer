@@ -49,6 +49,7 @@ export type EnumKind =
   | 'weeklyReportStatus'
   | 'auditAction'
   | 'auditEntity'
+  | 'materialImportRowStatus'
   | 'organizationRank';
 
 export function useEnumLabel() {

@@ -26,6 +26,19 @@ export function useMaterialsQuery(query: MaterialListQuery, enabled = true) {
   return useResourceList(materialKeys, materialsApi.list, query, { enabled });
 }
 
+/** A fresh read of whatever file is on screen; nothing to cache. */
+export function usePreviewMaterialDeliveryImport() {
+  return useResourceMutation((file: File) => materialsApi.deliveryImport.preview(file), []);
+}
+
+/** Importing deliveries changes stock, the movement history and the cost reports. */
+export function useImportMaterialDeliveries() {
+  return useResourceMutation(
+    (file: File) => materialsApi.deliveryImport.commit(file),
+    [materialKeys.all, ['materialMovements'], ['costReports']],
+  );
+}
+
 /** Last and average purchase price. Only for those who may see spending. */
 export function useMaterialPricingQuery(id: string | undefined, enabled = true) {
   return useQuery({

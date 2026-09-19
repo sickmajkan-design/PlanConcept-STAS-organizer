@@ -1487,6 +1487,86 @@ public class CostTests : IntegrationTestBase
         }));
     }
 
+    private static Stream Csv(string text) => new MemoryStream(System.Text.Encoding.UTF8.GetBytes(text));
+
+    [Fact]
+    public async Task A_delivery_list_is_previewed_row_by_row_without_writing_anything()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+        var material = await InScope(scope => TestData.SeedMaterialAsync(scope, 10m));
+        var name = await InScope(scope => scope.Db.Materials
+            .Where(m => m.Id == material.Id).Select(m => m.Name).SingleAsync());
+
+        var text =
+            "Materijal;Količina;Jedinica;Nabavna cijena;Broj fakture;Dobavljač;Datum\n" +
+            $"{name};20;;5,50;F-1;Kastel;01.03.2026\n" +
+            "Novi materijal;4;kom;2;F-1;Kastel;01.03.2026\n" +
+            "Nepoznat;4;;2;F-1;Kastel;01.03.2026\n" +
+            $"{name};7;;5;;Kastel;01.03.2026\n";
+
+        var preview = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Construction.Application.Features.Materials.Import.PreviewMaterialDeliveryImportCommand
+            {
+                FileName = "prijem.csv",
+                SizeBytes = text.Length,
+                Content = Csv(text)
+            });
+        });
+
+        Assert.Equal(4, preview.TotalRows);
+        Assert.Equal(1, preview.ReadyCount);
+        Assert.Equal(1, preview.NewMaterialCount);
+        Assert.Equal(2, preview.ProblemCount);
+        Assert.Contains(preview.Rows, r => r.Status == Construction.Application.Features.Materials.Import.MaterialImportRowStatus.UnknownMaterialNoUnit);
+        Assert.Contains(preview.Rows, r => r.Status == Construction.Application.Features.Materials.Import.MaterialImportRowStatus.MissingInvoiceNumber);
+
+        Assert.Equal(0, await InScope(scope => scope.Db.MaterialMovements.CountAsync(m => m.MaterialId == material.Id)));
+    }
+
+    [Fact]
+    public async Task Importing_a_delivery_list_records_the_deliveries_and_a_second_run_adds_nothing()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+        var material = await InScope(scope => TestData.SeedMaterialAsync(scope, 10m));
+        var name = await InScope(scope => scope.Db.Materials
+            .Where(m => m.Id == material.Id).Select(m => m.Name).SingleAsync());
+
+        var text =
+            "Materijal;Količina;Jedinica;Nabavna cijena;Broj fakture;Dobavljač;Datum\n" +
+            $"{name};20;;5,50;IMP-1;Kastel;01.03.2026\n" +
+            "Uvezeni novi;4;kom;2;IMP-1;Kastel;01.03.2026\n";
+
+        Task<Construction.Application.Features.Materials.Import.MaterialImportResultDto> Run() => InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Construction.Application.Features.Materials.Import.ImportMaterialDeliveriesCommand
+            {
+                FileName = "prijem.csv",
+                SizeBytes = text.Length,
+                Content = Csv(text)
+            });
+        });
+
+        var first = await Run();
+
+        Assert.Equal(2, first.CreatedDeliveries);
+        Assert.Equal(1, first.CreatedMaterials);
+        Assert.Equal(30m, await InScope(scope => scope.Db.Materials
+            .Where(m => m.Id == material.Id).Select(m => m.Quantity).SingleAsync()));
+
+        var created = await InScope(scope => scope.Db.Materials.SingleAsync(m => m.Name == "Uvezeni novi"));
+        Assert.Equal(4m, created.Quantity);
+
+        var second = await Run();
+
+        Assert.Equal(0, second.CreatedDeliveries);
+        Assert.Equal(2, second.SkippedCount);
+        Assert.Equal(30m, await InScope(scope => scope.Db.Materials
+            .Where(m => m.Id == material.Id).Select(m => m.Quantity).SingleAsync()));
+    }
+
     [Fact]
     public async Task The_owner_may_approve_a_cost_they_recorded_themselves()
     {

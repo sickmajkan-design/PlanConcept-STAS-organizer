@@ -1,7 +1,14 @@
 import { request } from './client';
 import { idempotencyHeaders } from './idempotency';
 import { createCrudApi } from './resource';
-import type { ListQuery, Material, MaterialInput, MaterialPricing } from './types';
+import type {
+  ListQuery,
+  Material,
+  MaterialImportPreview,
+  MaterialImportResult,
+  MaterialInput,
+  MaterialPricing,
+} from './types';
 
 export interface MaterialListQuery extends ListQuery {
   projectId?: string;
@@ -19,10 +26,32 @@ export interface AdjustMaterialInput {
   reason?: string | null;
 }
 
+function fileForm(file: File): FormData {
+  const form = new FormData();
+  form.append('file', file);
+  return form;
+}
+
 export const materialsApi = {
   ...createCrudApi<Material, Material, MaterialInput, MaterialListQuery>(
     '/api/v1/materials',
   ),
+
+  deliveryImport: {
+    preview: (file: File) =>
+      request<MaterialImportPreview>({
+        method: 'POST',
+        url: '/api/v1/material-movements/import/preview',
+        data: fileForm(file),
+      }),
+
+    commit: (file: File) =>
+      request<MaterialImportResult>({
+        method: 'POST',
+        url: '/api/v1/material-movements/import',
+        data: fileForm(file),
+      }),
+  },
 
   pricing: (id: string) =>
     request<MaterialPricing>({ method: 'GET', url: `/api/v1/materials/${id}/pricing` }),
