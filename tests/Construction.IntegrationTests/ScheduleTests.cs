@@ -472,9 +472,15 @@ public class ScheduleTests : IntegrationTestBase
             .Select(n => n.DataJson)
             .ToListAsync());
 
-        Assert.Equal(2, decisions.Count);
-        Assert.Contains(decisions, d => d!.Contains("\"decision\":\"Approved\""));
-        Assert.Contains(decisions, d => d!.Contains("\"decision\":\"Rejected\"") && d.Contains("Rok na gradilištu"));
+        var parsed = decisions
+            .Select(d => System.Text.Json.JsonDocument.Parse(d!).RootElement)
+            .ToList();
+
+        Assert.Equal(2, parsed.Count);
+        Assert.Contains(parsed, d => d.GetProperty("decision").GetString() == "Approved");
+        Assert.Contains(parsed, d =>
+            d.GetProperty("decision").GetString() == "Rejected" &&
+            d.GetProperty("note").GetString() == "Rok na gradilištu");
     }
 
     [Fact]
