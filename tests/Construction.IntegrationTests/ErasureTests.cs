@@ -99,7 +99,7 @@ public class ErasureTests : IntegrationTestBase
             {
                 UserId = user.Id,
                 Type = NotificationType.VehicleAssigned,
-                Title = "Vozilo dodeljeno",
+                Title = "Vozilo dodijeljeno",
                 Body = "Kombi ZG-1234-AB"
             });
 

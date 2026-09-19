@@ -415,12 +415,12 @@ public class ScheduleTests : IntegrationTestBase
             {
                 Id = absence.Id,
                 Approve = false,
-                Note = "Rok na gradilištu te nedelje"
+                Note = "Rok na gradilištu te sedmice"
             });
         });
 
         Assert.Equal(AbsenceStatus.Rejected, refused.Status);
-        Assert.Equal("Rok na gradilištu te nedelje", refused.ReviewNote);
+        Assert.Equal("Rok na gradilištu te sedmice", refused.ReviewNote);
     }
 
     [Fact]

@@ -2,14 +2,14 @@
 
 **SR** — Ovaj dokument opisuje **šta sistem zaista čuva**, izvedeno iz šeme
 baze, a ne iz šablona. Sadrži i ono što mora da odluči vlasnik sistema uz
-pravnika — ti delovi su jasno označeni. Ovo **nije pravni savet**.
+pravnika — ti dijelovi su jasno označeni. Ovo **nije pravni savet**.
 
 **EN** — This document describes **what the system actually holds**, derived
 from the database schema rather than from a template. It also marks what the
 owner must decide with a lawyer — those parts are labelled. This is **not legal
 advice**.
 
-> **SR** — Odeljci označeni sa **[ZA VLASNIKA]** ne mogu biti popunjeni iz koda.
+> **SR** — Odjeljci označeni sa **[ZA VLASNIKA]** ne mogu biti popunjeni iz koda.
 > Traže odluku o pravnom osnovu i tekst koji ide radnicima.
 > **EN** — Sections marked **[FOR THE OWNER]** cannot be filled in from code.
 > They need a decision on lawful basis and text that goes to the workforce.
@@ -23,25 +23,25 @@ Derived from the schema (21 tables). Only person-related data is listed.
 
 | Tabela / Table | Lični podaci / Personal data | Zašto / Why | Koliko / For how long |
 |---|---|---|---|
-| `employees` | Ime, prezime, telefon, e-pošta, adresa, datum rođenja, radno mesto, datum zaposlenja | Kadrovska evidencija / Employment record | Trajno, do brisanja (§4) / Indefinitely, until erasure |
-| `users` | E-pošta, hash lozinke, uloga, poslednja prijava, neuspeli pokušaji | Pristup sistemu / System access | Dok nalog postoji / While the account exists |
-| `location_records` | **Geografska širina/dužina, tačnost, vreme — svakog minuta** | Mapa uživo, dokaz prisustva / Live map, presence | **180 dana** (podesivo) / **180 days** (configurable) |
-| `time_entries` | Sati, projekat, **koordinate prijave i odjave smene** | Obračun zarade / Payroll | Sati trajno; koordinate uz smenu, osim ako se ne podesi rok (§3.1) / Hours indefinitely; coordinates with the shift unless bounded |
+| `employees` | Ime, prezime, telefon, e-pošta, adresa, datum rođenja, radno mjesto, datum zaposlenja | Kadrovska evidencija / Employment record | Trajno, do brisanja (§4) / Indefinitely, until erasure |
+| `users` | E-pošta, hash lozinke, uloga, posljednja prijava, neuspeli pokušaji | Pristup sistemu / System access | Dok nalog postoji / While the account exists |
+| `location_records` | **Geografska širina/dužina, tačnost, vrijeme — svakog minuta** | Mapa uživo, dokaz prisustva / Live map, presence | **180 dana** (podesivo) / **180 days** (configurable) |
+| `time_entries` | Sati, projekat, **koordinate prijave i odjave smjene** | Obračun zarade / Payroll | Sati trajno; koordinate uz smjenu, osim ako se ne podesi rok (§3.1) / Hours indefinitely; coordinates with the shift unless bounded |
 | `absences` | Tip odsustva, datumi, **razlog (slobodan tekst)**, napomena odobravaoca | Evidencija odsustva / Absence record | Trajno / Indefinitely |
 | `employee_rates` | Satnica, period važenja | Obračun troška / Costing | Trajno / Indefinitely |
-| `audit_entries` | E-pošta i uloga onoga ko je menjao, **IP adresa**, stare i nove vrednosti polja | Dokazivanje usklađenosti / Demonstrating compliance | Trajno (podrazumevano) / Indefinitely (default) |
-| `refresh_tokens` | **IP adresa** pri izdavanju i opozivu | Otkrivanje krađe sesije / Session-theft detection | 30 dana posle isteka / 30 days past expiry |
-| `device_tokens` | Token uređaja | Push obaveštenja / Push | Dok se uređaj ne odjavi / Until the device is unregistered |
-| `notifications` | Naslov i telo poruke po korisniku | Obaveštenja / Notifications | Trajno / Indefinitely |
+| `audit_entries` | E-pošta i uloga onoga ko je mijenjao, **IP adresa**, stare i nove vrijednosti polja | Dokazivanje usklađenosti / Demonstrating compliance | Trajno (podrazumijevano) / Indefinitely (default) |
+| `refresh_tokens` | **IP adresa** pri izdavanju i opozivu | Otkrivanje krađe sesije / Session-theft detection | 30 dana poslije isteka / 30 days past expiry |
+| `device_tokens` | Token uređaja | Push obavještenja / Push | Dok se uređaj ne odjavi / Until the device is unregistered |
+| `notifications` | Naslov i tijelo poruke po korisniku | Obavještenja / Notifications | Trajno / Indefinitely |
 | `attachments` | Dokumenti vezani za radnika (ugovori, lekarska uverenja, dozvole) | Kadrovska dokumentacija / HR documents | Trajno / Indefinitely |
-| `employee_projects`, `work_items` | Gde je ko radio i šta je radio / Who worked where and on what | Organizacija posla / Work organisation | Trajno / Indefinitely |
+| `employee_projects`, `work_items` | Gdje je ko radio i šta je radio / Who worked where and on what | Organizacija posla / Work organisation | Trajno / Indefinitely |
 
 ### 1.0a Podaci koji napuštaju server / Data that leaves the server — **[ZA VLASNIKA / FOR THE OWNER]**
 
 > **STANJE: ZADRŽANO, NIJE U UPOTREBI.** Pomoćnik je napravljen i testiran, ali
 > nije uključen u proizvod — dugme nije montirano u admin panelu, pa se ništa od
-> dole opisanog trenutno **ne dešava**. Ovaj odeljak opisuje šta bi važilo kad se
-> pusti, i stoji ovde da se ta odluka ne donese prećutno.
+> dole opisanog trenutno **ne dešava**. Ovaj odjeljak opisuje šta bi važilo kad se
+> pusti, i stoji ovdje da se ta odluka ne donese prećutno.
 >
 > **STATUS: HELD BACK, NOT IN USE.** The assistant is built and tested but not
 > mounted in the admin panel, so none of what follows currently happens. This
@@ -59,20 +59,20 @@ odsustva, materijal, vozila i alat.
 
 **Šta se ne šalje, i to je sprovedeno u kodu, ne obećanjem:**
 
-- **istorija kretanja i koordinate smene** — `AssistantRedactor` briše svako
+- **istorija kretanja i koordinate smjene** — `AssistantRedactor` briše svako
   polje čije se ime završava na `latitude`/`longitude`, na bilo kojoj dubini;
-  ceo `Features/Locations` uopšte nije u registru alata;
+  cio `Features/Locations` uopšte nije u registru alata;
 - **zarade i trošak rada** — `totalPay`, `hourlyRate`, `labourCost` i slična
-  polja idu istim putem; upiti nad cenama rada nisu izloženi;
-- **adresa stanovanja i datum rođenja** — nisu deo zadatog plafona, ali su
+  polja idu istim putem; upiti nad cijenama rada nisu izloženi;
+- **adresa stanovanja i datum rođenja** — nisu dio zadatog plafona, ali su
   svejedno izostavljeni: ne odgovaraju ni na jedno pitanje o gradilištu.
 
 Pomoćnik je **opcion**. Bez `Anthropic__ApiKey` ništa se nikuda ne šalje,
 dugme se ne prikazuje, i ova stavka ne važi za tu instalaciju.
 
 **Odluka koja ostaje vlasniku:** da li je ovaj prenos pokriven postojećim
-obaveštenjem zaposlenima i ugovorom o obradi. Ovo je nov obrađivač u lancu i
-traži isti tretman kao §6 — pravni osnov i obaveštenje, ne kod.
+obavještenjem zaposlenima i ugovorom o obradi. Ovo je nov obrađivač u lancu i
+traži isti tretman kao §6 — pravni osnov i obavještenje, ne kod.
 
 **EN** — Until now no personal data left the installation except to services the
 owner configures themselves (SMTP, S3, Firebase). **The office assistant adds
@@ -116,10 +116,10 @@ code.
    system does not require it; consider leaving it empty or restricting who
    reads it. Erasure (§4) removes it.
 
-2. **Koordinate prijave i odjave smene nadživljavaju GPS rok.** To je bila
-   namerna odluka — odobren radni list je dokaz za zaradu, a gde je smena
-   počela je deo tog dokaza. Ali to znači da tvrdnja „lokacije se čuvaju 180
-   dana" nije potpuna: dve koordinate po smeni ostaju uz smenu. Podesivo od
+2. **Koordinate prijave i odjave smjene nadživljavaju GPS rok.** To je bila
+   namerna odluka — odobren radni list je dokaz za zaradu, a gdje je smjena
+   počela je dio tog dokaza. Ali to znači da tvrdnja „lokacije se čuvaju 180
+   dana" nije potpuna: dve koordinate po smjeni ostaju uz smjenu. Podesivo od
    sada — vidi §3.1. /
    **Clock-in and clock-out coordinates outlive the GPS window.** That was a
    deliberate decision — an approved timesheet is payroll evidence and where the
@@ -131,9 +131,9 @@ code.
 
 ### 1.2 Kopija na telefonu / The copy on the phone
 
-**SR** — Mobilna aplikacija od sada čuva poslednji uspešan odgovor na svaki
-ekran, da bi radila i tamo gde nema signala. To znači da lični podaci — imena,
-pozicije, rasporedi, poslednje poznate lokacije — postoje i na uređaju, ne samo
+**SR** — Mobilna aplikacija od sada čuva posljednji uspješan odgovor na svaki
+ekran, da bi radila i tamo gdje nema signala. To znači da lični podaci — imena,
+pozicije, rasporedi, posljednje poznate lokacije — postoje i na uređaju, ne samo
 na serveru. Pravila su:
 
 **EN** — The mobile app now keeps the last successful answer to each screen so
@@ -143,16 +143,16 @@ the server. The rules are:
 
 | Pitanje / Question | Odgovor / Answer |
 |---|---|
-| Gde / Where | Privatni direktorijum aplikacije (`ApplicationSupport/api_cache`). Nedostupan drugim aplikacijama na neizmenjenom uređaju. / The app's private directory. Not readable by other apps on an unmodified device. |
+| Gdje / Where | Privatni direktorijum aplikacije (`ApplicationSupport/api_cache`). Nedostupan drugim aplikacijama na neizmenjenom uređaju. / The app's private directory. Not readable by other apps on an unmodified device. |
 | Koliko dugo / For how long | Najviše 7 dana; starije se briše pri prvom čitanju, ne prikazuje se. / At most 7 days; older entries are deleted on read rather than shown. |
 | Koliko / How much | Najviše 200 odgovora, najviše 512 KB po odgovoru. / At most 200 answers, at most 512 KB each. |
-| Kad se briše / When it is cleared | Pri svakoj promeni korisnika: odjava, istek sesije, prijava drugog naloga. / On every change of user: sign-out, session expiry, a different account signing in. |
+| Kad se briše / When it is cleared | Pri svakoj promijeni korisnika: odjava, istek sesije, prijava drugog naloga. / On every change of user: sign-out, session expiry, a different account signing in. |
 | Rezervne kopije / Device backup | `android:allowBackup="false"` — Android ne kopira ovo na Google nalog. / Android does not copy this into the user's Google account. |
 | Šta se ne čuva / What is never kept | Tokeni i `/auth/*` odgovori, sadržaj priloga (fotografije), i sve što nije GET. / Tokens and `/auth/*` responses, attachment content (photographs), and anything that is not a GET. |
 
-**SR** — Korisniku se uvek kaže kada gleda kopiju, i od kada je: traka na vrhu
-ekrana piše vreme kada je odgovor sačuvan. Kopija se koristi **samo** kad
-zahtev ne stigne do servera. Odbijanje sa servera (403, 404, 500) se nikad ne
+**SR** — Korisniku se uvijek kaže kada gleda kopiju, i od kada je: traka na vrhu
+ekrana piše vrijeme kada je odgovor sačuvan. Kopija se koristi **samo** kad
+zahtjev ne stigne do servera. Odbijanje sa servera (403, 404, 500) se nikad ne
 zaobilazi kopijom — oduzeta dozvola ostaje oduzeta. /
 **EN** — The user is always told when they are looking at a copy and how old it
 is: a strip at the top of the screen carries the time it was saved. A copy is
@@ -169,18 +169,18 @@ immediate removal is required, sign the device out.
 
 ### 1.3 Prijave grešaka iz aplikacija / Crash reports from the clients
 
-**SR** — Kad se admin panel ili mobilna aplikacija sruše, šalju izveštaj na
+**SR** — Kad se admin panel ili mobilna aplikacija sruše, šalju izvještaj na
 `POST /api/v1/client-errors`: poruka greške, tip, stack trace, ekran na kome se
-desilo, verzija aplikacije i opis uređaja. Izveštaj **ne sadrži** ime, e-mail
-ni identifikator korisnika — šalje se bez prijave, jer je najvažniji izveštaj
+desilo, verzija aplikacije i opis uređaja. Izvještaj **ne sadrži** ime, e-mail
+ni identifikator korisnika — šalje se bez prijave, jer je najvažniji izvještaj
 onaj sa ekrana za prijavu koji neće da se učita.
 
 Ipak, ovo jesu lični podaci u jednom smislu koji treba reći naglas: putanja
 ekrana može sadržati identifikator zaposlenog (`/employees/<id>`), a stack
-trace može uhvatiti vrednost koja je bila u obradi. Izveštaji idu u isti log
+trace može uhvatiti vrijednost koja je bila u obradi. Izvještaji idu u isti log
 kao i sve ostalo — na vaš server, pod vašim rokom čuvanja — i **ne šalju se
-nijednom trećem servisu.** To je bila namerna odluka: gde odlaze podaci o
-kretanju i radu vaših zaposlenih nije stvar podrazumevane vrednosti neke
+nijednom trećem servisu.** To je bila namerna odluka: gdje odlaze podaci o
+kretanju i radu vaših zaposlenih nije stvar podrazumijevane vrijednosti neke
 biblioteke.
 
 Ako log ide u agregator, on nasleđuje ovo isto — pa rok čuvanja logova treba
@@ -228,12 +228,12 @@ to project manager and above only (`CostRules`).
 
 Podešava se promenljivama okruženja. / Set by environment variable.
 
-| Promenljiva / Variable | Podrazumevano / Default | Šta radi / Effect |
+| Promenljiva / Variable | Podrazumijevano / Default | Šta radi / Effect |
 |---|---|---|
 | `Retention__LocationRecordDays` | `180` | GPS fiksevi stariji od toga se brišu. `0` = čuvaj sve, uz upozorenje pri pokretanju. / GPS fixes older than this are deleted. `0` = keep everything, with a startup warning. |
-| `Retention__TimeEntryCoordinateDays` | `0` (čuvaj uz smenu / keep with the shift) | Briše koordinate smene starije od roka; sati ostaju. / Clears shift coordinates past the window; the hours stay. |
-| `Retention__AuditEntryDays` | `0` (čuvaj sve / keep everything) | Jedini rok koji podrazumevano čuva — vidi §5. / The one default that keeps — see §5. |
-| `Retention__RefreshTokenGraceDays` | `30` | Posle isteka tokena. / Past the token's own expiry. |
+| `Retention__TimeEntryCoordinateDays` | `0` (čuvaj uz smjenu / keep with the shift) | Briše koordinate smjene starije od roka; sati ostaju. / Clears shift coordinates past the window; the hours stay. |
+| `Retention__AuditEntryDays` | `0` (čuvaj sve / keep everything) | Jedini rok koji podrazumijevano čuva — vidi §5. / The one default that keeps — see §5. |
+| `Retention__RefreshTokenGraceDays` | `30` | Poslije isteka tokena. / Past the token's own expiry. |
 | `Retention__SentOutboxMessageDays` | `14` | Isporučene poruke. / Delivered messages. |
 
 Čisti `DataRetentionService`, na svakih 6 sati, u ograničenim serijama. /
@@ -242,8 +242,8 @@ Swept by `DataRetentionService` every six hours in bounded batches.
 ### 3.1 Preporuka / Recommendation
 
 **SR** — Ako nemate obavezu da čuvate duže, `Retention__LocationRecordDays`
-niže od 180 je lakše braniti. Za koordinate smene: postavite
-`Retention__TimeEntryCoordinateDays` na period posle kojeg zarada više ne može
+niže od 180 je lakše braniti. Za koordinate smjene: postavite
+`Retention__TimeEntryCoordinateDays` na period poslije kojeg zarada više ne može
 biti osporena u vašoj jurisdikciji. /
 **EN** — Unless you are obliged to keep longer, a `LocationRecordDays` below 180
 is easier to defend. For shift coordinates, set
@@ -265,17 +265,17 @@ trail.
 
 | Briše se / Removed | Ostaje / Kept |
 |---|---|
-| Ceo GPS trag / The whole GPS track | Sati, projekat, status smene / Hours, project, shift status |
-| Koordinate prijave/odjave / Clock-in and clock-out coordinates | Broj radnika, datum zaposlenja, radno mesto / Employee number, employment date, position |
+| Cio GPS trag / The whole GPS track | Sati, projekat, status smjene / Hours, project, shift status |
+| Koordinate prijave/odjave / Clock-in and clock-out coordinates | Broj radnika, datum zaposlenja, radno mjesto / Employee number, employment date, position |
 | Razlog odsustva i napomena / Absence reason and review note | Tip i datumi odsustva / Absence type and dates |
 | Telefon, e-pošta, adresa, datum rođenja / Phone, email, address, date of birth | Satnice / Pay rates |
-| Obaveštenja, tokeni uređaja, sesije / Notifications, device tokens, sessions | Audit trag / The audit trail (§5) |
+| Obavještenja, tokeni uređaja, sesije / Notifications, device tokens, sessions | Audit trag / The audit trail (§5) |
 | Ime → `Erased`, prezime → broj radnika / Name redacted to the employee number | |
 
 **SR** — Zašto ne „obriši sve": poslodavac je dužan da čuva evidenciju o radu i
-zaradi godinama posle odlaska radnika. Komanda koja bi to obrisala zamenila bi
+zaradi godinama poslije odlaska radnika. Komanda koja bi to obrisala zamijenila bi
 problem privatnosti problemom knjigovodstva. Rezultat je radni list koji se i
-dalje sabira, a više ne govori ko, gde, ni zašto je bio na bolovanju. /
+dalje sabira, a više ne govori ko, gdje, ni zašto je bio na bolovanju. /
 **EN** — Why not "delete everything": an employer must retain work and pay
 records for years after somebody leaves. A command that removed those would
 trade a privacy failure for a bookkeeping one. The result is a timesheet that
@@ -292,14 +292,14 @@ returns their count — remove them separately.
 
 ## 5. Audit trag i brisanje / The audit trail and erasure — **[ZA VLASNIKA / FOR THE OWNER]**
 
-**SR** — Brisanje **ne dira** audit trag. Zapisi beleže ko je šta menjao,
-uključujući izmene koje je ta osoba napravila kao korisnik; njihovo čišćenje
+**SR** — Brisanje **ne dira** audit trag. Zapisi bilježe ko je šta mijenjao,
+uključujući izmjene koje je ta osoba napravila kao korisnik; njihovo čišćenje
 uništilo bi integritet traga za sve ostale. Zauzeti stav je da se trag čuva
 radi dokazivanja usklađenosti, što je i samo po sebi pravni osnov.
 
-**To je odluka za pravnika, ne za programera.** Ako se proceni drugačije, u
-pitanju je izmena koda, ne podešavanje. Test
-`ErasureTests.The_audit_trail_is_left_intact` je mesto koje će pući i pokazati
+**To je odluka za pravnika, ne za programera.** Ako se procijeni drugačije, u
+pitanju je izmjena koda, ne podešavanje. Test
+`ErasureTests.The_audit_trail_is_left_intact` je mjesto koje će pući i pokazati
 na ovu odluku.
 
 **EN** — Erasure **does not touch** the audit trail. Entries record who changed
@@ -323,22 +323,22 @@ employees' location has no basis.
 
 1. **Pravni osnov za praćenje lokacije.** Saglasnost radnika je slab osnov u
    radnom odnosu — odnos nije ravnopravan, pa se saglasnost teško smatra
-   slobodnom. Legitimni interes je uobičajeniji, ali traži zabeležen test
+   slobodnom. Legitimni interes je uobičajeniji, ali traži zabilježen test
    odmeravanja. / **Lawful basis for location tracking.** Consent is weak in an
    employment relationship — the parties are not equals, so it is hard to call
    it freely given. Legitimate interest is the usual route, but it needs a
    documented balancing test.
-2. **Obaveštenje radnicima**, na srpskom: šta se beleži, kada (samo tokom radnog
+2. **Obavještenje radnicima**, na srpskom: šta se bilježi, kada (samo tokom radnog
    vremena?), koliko dugo, ko vidi, i kako da traže brisanje. / **A notice to
    the workforce** covering what is recorded, when, for how long, who sees it,
    and how to request erasure.
 3. **DPIA.** Sistematsko praćenje zaposlenih ga po pravilu traži. Tehničke
-   ulaze — šta, gde, koliko, ko — daje odeljak §1 ovog dokumenta. /
+   ulaze — šta, gdje, koliko, ko — daje odjeljak §1 ovog dokumenta. /
    **A DPIA.** Systematic monitoring of employees normally requires one. The
    technical inputs — what, where, how long, who — are in §1 above.
-4. **Da li se prati van radnog vremena.** Sistem trenutno ne zna za radno vreme:
-   mobilna aplikacija šalje fikseve dok je praćenje uključeno. Ako se ne sme
-   pratiti van smene, to je izmena u aplikaciji, ne podešavanje. /
+4. **Da li se prati van radnog vremena.** Sistem trenutno ne zna za radno vrijeme:
+   mobilna aplikacija šalje fikseve dok je praćenje uključeno. Ako se ne smije
+   pratiti van smjene, to je izmjena u aplikaciji, ne podešavanje. /
    **Whether tracking runs outside working hours.** The system has no concept of
    a shift window: the mobile app reports while tracking is on. If tracking
    outside a shift is not permitted, that is an app change rather than a
@@ -354,13 +354,13 @@ employees' location has no basis.
 | Stavka / Item | Stanje / State |
 |---|---|
 | Popis podataka izveden iz šeme / Data inventory derived from the schema | **urađeno / done** (§1) |
-| Rokovi čuvanja, podesivi i primenjeni / Retention, configurable and enforced | **urađeno / done** (§3) |
+| Rokovi čuvanja, podesivi i primijenjeni / Retention, configurable and enforced | **urađeno / done** (§3) |
 | Ograničenje pristupa lokacijama po ulozi / Role-scoped access to location | **urađeno / done** (§2) |
 | Put za brisanje, sa testovima / Erasure path, with tests | **urađeno / done** (§4) |
-| Audit trag ko je šta menjao / Audit trail of who changed what | **urađeno / done** |
+| Audit trag ko je šta mijenjao / Audit trail of who changed what | **urađeno / done** |
 | Kopija podataka na telefonu, ograničena i objavljena / Device-side copy, bounded and documented | **urađeno / done** (§1.2) |
-| Pravni osnov, obaveštenje, DPIA / Lawful basis, notice, DPIA | **nije — traži vlasnika i pravnika / not done — needs the owner and a lawyer** (§6) |
-| Izvoz podataka na zahtev lica / Data export on a subject request | **nije / not done** — trenutno se radi ručno iz baze / currently a manual database query |
-| Ograničenje praćenja na radno vreme / Tracking limited to working hours | **nije / not done** (§6.4) |
+| Pravni osnov, obavještenje, DPIA / Lawful basis, notice, DPIA | **nije — traži vlasnika i pravnika / not done — needs the owner and a lawyer** (§6) |
+| Izvoz podataka na zahtjev lica / Data export on a subject request | **nije / not done** — trenutno se radi ručno iz baze / currently a manual database query |
+| Ograničenje praćenja na radno vrijeme / Tracking limited to working hours | **nije / not done** (§6.4) |
 | Pomoćnik ne vidi lokaciju ni zarade / Assistant cannot see location or pay | **urađeno / done** (§1.0a) — allow-lista alata, redaktor polja i dva testa koja oba zamrzavaju / tool allow-list, field redactor, and two tests freezing both |
-| Ugovor o obradi sa Anthropic-om i obaveštenje / Processing agreement with Anthropic and notice | **nije potrebno dok je pomoćnik zadržan / not needed while the assistant is held back** (§1.0a) |
+| Ugovor o obradi sa Anthropic-om i obavještenje / Processing agreement with Anthropic and notice | **nije potrebno dok je pomoćnik zadržan / not needed while the assistant is held back** (§1.0a) |

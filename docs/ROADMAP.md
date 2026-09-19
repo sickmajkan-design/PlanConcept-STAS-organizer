@@ -15,9 +15,9 @@ missing against the market** and in which order to build it.
 **SR** — Poređenje sa STAS Organizerom (rekonstruisano iz njihove stranice
 „Značajke", opisa u prodavnicama aplikacija i domaćeg PR-a; njihov sajt nije bio
 dostupan iz razvojnog okruženja) daje **≈27% pokrivenosti**: 4 pune funkcije, 6
-delimičnih, 15 nedostajućih od 26 posmatranih oblasti.
+djelimičnih, 15 nedostajućih od 26 posmatranih oblasti.
 
-Struktura razlike je važnija od broja. Mi imamo **registar** — ko, šta i gde
+Struktura razlike je važnija od broja. Mi imamo **registar** — ko, šta i gdje
 postoji. Njima povrh toga radi **transakcioni sloj** — šta se desilo, koliko je
 koštalo i šta treba uraditi. Ušteda koju oni prodaju („1–2 sata administracije
 dnevno po osobi") dolazi iz tog drugog sloja, ne iz prvog.
@@ -36,14 +36,14 @@ hours of admin per person per day") comes from that second layer, not the first.
 
 ## Princip prioritizacije / Prioritisation principle
 
-Redosled nije „po vrednosti" nego **po zavisnostima pa po vrednosti**. Tri pravila:
+Redosled nije „po vrijednosti" nego **po zavisnostima pa po vrijednosti**. Tri pravila:
 
-1. **Popravi polomljeno pre nego što dodaš novo.** Dve od devet isporučenih
+1. **Popravi polomljeno prije nego što dodaš novo.** Dve od devet isporučenih
    funkcija ne rade u produkciji. Deseta funkcija to ne popravlja, a demo obara.
 2. **Prvo ono što otključava ostalo.** Skladište fajlova otključava tri modula.
-   Radni sati su izvor podataka za svaki kasniji izveštaj o troškovima.
+   Radni sati su izvor podataka za svaki kasniji izvještaj o troškovima.
 3. **Skupo i integraciono ide na kraj.** Računi, narudžbe i chat traže tuđe
-   sisteme ili realtime infrastrukturu; vrednost po danu rada im je najniža.
+   sisteme ili realtime infrastrukturu; vrijednost po danu rada im je najniža.
 
 Ordering is not "by value" but **by dependency, then value**. Three rules:
 
@@ -70,10 +70,10 @@ vlasnik: `PROVISIONING.md`. / Owner-only steps: see `PROVISIONING.md`.
 | Potpisivanje Android builda / Android signing | Nije bilo release keystore-a. | **Odrađeno** — čita se iz `android/key.properties` van repozitorijuma, uz pad na debug ključ da build i dalje prolazi. Keystore pravi vlasnik. |
 
 **Zašto prvo / Why first:** ovo su jedine dve funkcije koje *tvrdimo* da imamo a
-ne rade. Sve dalje na listi (podsetnici o isteku dokumenata, dodela zadatka,
+ne rade. Sve dalje na listi (podsetnici o isteku dokumenata, dodjela zadatka,
 prijava na gradilište) oslanja se na push ili GPS.
 
-**Procena / Estimate:** 1–2 nedelje. **Pokrivenost posle / Coverage after: ≈31%**
+**Procjena / Estimate:** 1–2 sedmice. **Pokrivenost poslije / Coverage after: ≈31%**
 
 ---
 
@@ -83,15 +83,15 @@ Ključni modul. / The keystone module.
 
 | Stavka / Item | Stanje / State |
 |---|---|
-| Entitet `TimeEntry` + migracija | **Odrađeno.** Smena u toku je red bez kraja, ne zasebna tabela. Parcijalni jedinstveni indeks dozvoljava tačno jednu otvorenu smenu po radniku; check ograničenja odbijaju negativnu pauzu i kraj pre početka. Sva četiri proverena direktno na PostgreSQL-u. |
-| Mobilno: prijava/odjava sa GPS pečatom | **Odrađeno.** Kartica smene sa proteklim vremenom, lista sopstvenih unosa. Pozicija je dokaz kad je ima, nikad uslov — rad u podrumu mora da se evidentira. |
+| Entitet `TimeEntry` + migracija | **Odrađeno.** Smjena u toku je red bez kraja, ne zasebna tabela. Parcijalni jedinstveni indeks dozvoljava tačno jednu otvorenu smjenu po radniku; check ograničenja odbijaju negativnu pauzu i kraj prije početka. Sva četiri provjerena direktno na PostgreSQL-u. |
+| Mobilno: prijava/odjava sa GPS pečatom | **Odrađeno.** Kartica smjene sa proteklim vremenom, lista sopstvenih unosa. Pozicija je dokaz kad je ima, nikad uslov — rad u podrumu mora da se evidentira. |
 | Admin: pregled, odobravanje, ispravke | **Odrađeno.** Lista sa filterima „čeka pregled" i „u toku", odobri/vrati na doradu, ručni unos i ispravka. |
 | Zbir sati po zaposlenom | **Odrađeno.** Agregacija u bazi (`GROUP BY`), ne prolaskom kroz stranice. |
-| Pravila | **Odrađeno.** Preklapanje, granica unosa unazad (31 dan), maksimalna smena (16 h), zaključavanje odobrenog, i zabrana odobravanja sopstvenih sati. |
+| Pravila | **Odrađeno.** Preklapanje, granica unosa unazad (31 dan), maksimalna smjena (16 h), zaključavanje odobrenog, i zabrana odobravanja sopstvenih sati. |
 
-**Nije rađeno / Not built:** nedeljna mreža kao tabela dan-po-dan. Zbir po
+**Nije rađeno / Not built:** sedmična mreža kao tabela dan-po-dan. Zbir po
 zaposlenom za period odgovara na isto pitanje uz znatno manje posla; mreža se
-može dodati kasnije bez izmena na API-ju.
+može dodati kasnije bez izmjena na API-ju.
 
 **Pokrivenost / Coverage: ≈35%**
 
@@ -101,17 +101,17 @@ može dodati kasnije bez izmena na API-ju.
 
 | Stavka / Item | Stanje / State |
 |---|---|
-| `IFileStorage` + dve implementacije | **Odrađeno.** Disk je podrazumevan, pa klon i CI rade bez ijednog spoljnog servisa; podešavanje bucket-a prebacuje na bilo koji S3-kompatibilan servis. |
-| Upload/download, ograničenja tipa i veličine | **Odrađeno.** 20 MB, allow-lista ekstenzija, tip se izvodi iz ekstenzije a ne iz zahteva. |
+| `IFileStorage` + dve implementacije | **Odrađeno.** Disk je podrazumijevan, pa klon i CI rade bez ijednog spoljnog servisa; podešavanje bucket-a prebacuje na bilo koji S3-kompatibilan servis. |
+| Upload/download, ograničenja tipa i veličine | **Odrađeno.** 20 MB, allow-lista ekstenzija, tip se izvodi iz ekstenzije a ne iz zahtjeva. |
 | Prilog na `Employee`, `Project`, `Vehicle`, `Tool` | **Odrađeno.** Četiri nullable strana ključa uz check ograničenje „tačno jedan", pa kaskada i integritet i dalje rade. |
 | Dokumenti sa datumom isteka | **Odrađeno.** Ugovori, sertifikati, lekarski pregledi, licence, osiguranja. |
 | Podsetnik na istek preko push-a | **Odrađeno.** Dnevni prolaz, idempotentan — druga replika ne javlja isto dvaput. |
 | Mobilno: pregled + slikanje gradilišta | **Odrađeno.** Radnik može da doda fotografiju na projekat i ništa drugo. |
 
-**Odstupanje od plana / Deviation:** umesto potpisanih URL-ova, API prenosi
-bajtove u oba smera. Potpisan link izlazi iz autorizacije koja ga je izdala —
-ko ga ima, ima i fajl do isteka. Ovde su u pitanju dokumenti i fotografije, ne
-video, pa je jedan odgovor na pitanje „sme li ovaj korisnik ovaj fajl" vredniji
+**Odstupanje od plana / Deviation:** umjesto potpisanih URL-ova, API prenosi
+bajtove u oba smjera. Potpisan link izlazi iz autorizacije koja ga je izdala —
+ko ga ima, ima i fajl do isteka. Ovdje su u pitanju dokumenti i fotografije, ne
+video, pa je jedan odgovor na pitanje „smije li ovaj korisnik ovaj fajl" vrijedniji
 od uštede propusnog opsega. Potpisivanje ostaje moguće kasnije iza istog
 interfejsa.
 
@@ -127,12 +127,12 @@ ručno, a fotografija se bez pickera ne može uzeti.
 
 | Stavka / Item | Stanje / State |
 |---|---|
-| `WorkItem` — jedna tabela za oba | **Odrađeno.** Nedostatak je zadatak sa mestom i fotografijom; sve ostalo je isto, pa bi dve tabele značile duple upite, ekrane i notifikacije zbog jednog polja. |
-| Pravila u bazi | **Odrađeno.** Nedostatak mora imati gradilište; pozicija je cela ili je nema. Oba proverena na PostgreSQL-u. |
-| Životni ciklus | **Odrađeno.** Prelazi su tabela, ne lanac `if`-ova. Zatvaranje traži nadređenog — to je provera da je posao urađen, pa nije poziv iste osobe koja ga je radila. |
+| `WorkItem` — jedna tabela za oba | **Odrađeno.** Nedostatak je zadatak sa mjestom i fotografijom; sve ostalo je isto, pa bi dve tabele značile duple upite, ekrane i notifikacije zbog jednog polja. |
+| Pravila u bazi | **Odrađeno.** Nedostatak mora imati gradilište; pozicija je cijela ili je nema. Oba provjerena na PostgreSQL-u. |
+| Životni ciklus | **Odrađeno.** Prelazi su tabela, ne lanac `if`-ova. Zatvaranje traži nadređenog — to je provjera da je posao urađen, pa nije poziv iste osobe koja ga je radila. |
 | Fotografije nedostatka | **Odrađeno.** Peti vlasnik priloga, tačno put predviđen u Fazi 2 — fotografija nestaje sa nedostatkom. |
-| Push pri dodeli i pred rok | **Odrađeno.** Dnevni prolaz uz isti idempotentni obrazac; pomeren rok briše oznaku, pa se novi datum najavljuje. |
-| Mobilno: „moji zadaci" + prijava nedostatka | **Odrađeno.** Radnik pomera svoje stavke i prijavljuje nedostatak sa GPS pečatom. |
+| Push pri dodijeli i pred rok | **Odrađeno.** Dnevni prolaz uz isti idempotentni obrazac; pomjeren rok briše oznaku, pa se novi datum najavljuje. |
+| Mobilno: „moji zadaci" + prijava nedostatka | **Odrađeno.** Radnik pomjera svoje stavke i prijavljuje nedostatak sa GPS pečatom. |
 
 **Pokrivenost / Coverage: ≈50%**
 
@@ -142,23 +142,23 @@ ručno, a fotografija se bez pickera ne može uzeti.
 
 | Stavka / Item | Stanje / State |
 |---|---|
-| `EmployeeProject` sa rasponom datuma | **Odrađeno.** Raspored je sada raspon, ne članstvo: radnik se kroz nedelju seli sa gradilišta na gradilište, vraća se kasnije kao drugi raspored, i može pokrivati dva gradilišta odjednom — poslednje namerno, jer nadzornik to stvarno radi. |
-| Migracija bez gubitka podataka | **Odrađeno.** `Id` iz `gen_random_uuid()`, `StartDate` izveden iz `AssignedAt`. Provereno na bazi sa podacima, ne pretpostavljeno. |
-| Preklapanja kao ograničenja baze | **Odrađeno.** `EXCLUDE USING gist` nad `daterange` za oba slučaja, pa dva zahteva u trci ne mogu oba proći. Rukovaoci proveravaju samo da bi odgovor bio rečenica. |
-| Skidanje sa gradilišta | **Odrađeno.** Zatvara raspored današnjim danom umesto da ga briše — radnik je bio tamo, a satnica pored toga to i kaže. Raspored koji nije počeo se briše. |
-| Odsustva sa odobrenjem | **Odrađeno.** Zahtev dok ga neko ne odgovori. Sopstveno odsustvo ne odobrava niko, bez obzira na ulogu — ista provera koju satnica već nosi. |
-| Tabla rasporeda u admin panelu | **Odrađeno.** Nedelja po nedelja, jedan upit za celu tablu. Na tabli je samo odobreno odsustvo; zahtev bez odgovora bi značio da se posao planira oko slobodnih dana koje niko nije dao. |
-| Mobilno: moj raspored i moja odsustva | **Odrađeno.** Isti `/api/schedule`, server suzi radnika na njegov red. Radnik traži odsustvo i povlači zahtev bez odgovora; odobreno mora nadređeni da odbije. |
+| `EmployeeProject` sa rasponom datuma | **Odrađeno.** Raspored je sada raspon, ne članstvo: radnik se kroz sedmicu seli sa gradilišta na gradilište, vraća se kasnije kao drugi raspored, i može pokrivati dva gradilišta odjednom — posljednje namerno, jer nadzornik to stvarno radi. |
+| Migracija bez gubitka podataka | **Odrađeno.** `Id` iz `gen_random_uuid()`, `StartDate` izveden iz `AssignedAt`. Provjereno na bazi sa podacima, ne pretpostavljeno. |
+| Preklapanja kao ograničenja baze | **Odrađeno.** `EXCLUDE USING gist` nad `daterange` za oba slučaja, pa dva zahtjeva u trci ne mogu oba proći. Rukovaoci provjeravaju samo da bi odgovor bio rečenica. |
+| Skidanje sa gradilišta | **Odrađeno.** Zatvara raspored današnjim danom umjesto da ga briše — radnik je bio tamo, a satnica pored toga to i kaže. Raspored koji nije počeo se briše. |
+| Odsustva sa odobrenjem | **Odrađeno.** Zahtjev dok ga neko ne odgovori. Sopstveno odsustvo ne odobrava niko, bez obzira na ulogu — ista provjera koju satnica već nosi. |
+| Tabla rasporeda u admin panelu | **Odrađeno.** Sedmica po sedmica, jedan upit za cijelu tablu. Na tabli je samo odobreno odsustvo; zahtjev bez odgovora bi značio da se posao planira oko slobodnih dana koje niko nije dao. |
+| Mobilno: moj raspored i moja odsustva | **Odrađeno.** Isti `/api/schedule`, server suzi radnika na njegov red. Radnik traži odsustvo i povlači zahtjev bez odgovora; odobreno mora nadređeni da odbije. |
 
 **Poznati nedostaci / Known gaps:**
 
-- Push obaveštenje kad se odsustvo odobri ili odbije **ne postoji**. To je i
-  dalje tako za sve preglede u sistemu (satnica takođe ne šalje), pa je ovde
+- Push obavještenje kad se odsustvo odobri ili odbije **ne postoji**. To je i
+  dalje tako za sve preglede u sistemu (satnica takođe ne šalje), pa je ovdje
   ostavljeno dosledno — ali radnik trenutno mora sam da otvori aplikaciju da
   bi video odgovor. Prvi kandidat za dopunu.
 - Prevlačenje mišem po tabli (drag-and-drop) nije urađeno. Tabla prikazuje i
   filtrira; raspoređivanje ide preko ekrana radnika. Njihova reklamna funkcija,
-  ali ne menja šta sistem zna.
+  ali ne mijenja šta sistem zna.
 - Poruke validacije formi su i dalje samo na engleskom — na sva tri sloja
   (FluentValidation, zod, ARB nije u pitanju). Nije uvedeno ovom fazom;
   pogađa svih devet postojećih formi jednako.
@@ -171,13 +171,13 @@ ručno, a fotografija se bez pickera ne može uzeti.
 
 | Stavka / Item | Stanje / State |
 |---|---|
-| Cena rada sa datumom | **Odrađeno.** Svi su dobili povišicu u junu; martovski izveštaj i dalje mora reći koliko je mart koštao. Jedna kolona sa „trenutnom cenom" bi nečujno prepisala svaki ranije odrađen izveštaj, a broj bi i dalje izgledao uverljivo. Nova cena zatvara prethodnu, preklapanja odbija ograničenje baze. |
-| Promet materijala | **Odrađeno.** Stanje odgovara samo na „koliko je ostalo". Ne može reći koliko je potrošeno ni koje gradilište — a to su dva pitanja zbog kojih izveštaj postoji. Stanje ostaje kao keš zbira; promet i izmena stanja idu u istoj transakciji, pa magacinski ekran ne može da odluta od istorije. |
-| Vrednovanje izdatog materijala | **Odrađeno.** Po proseku dosadašnjih nabavki, i taj broj se **upisuje** na red. Da se računa u trenutku izveštaja, nabavka sledećeg meseca po drugoj ceni bi promenila koliko je završen posao koštao. |
-| Gorivo i servisi vozila | **Odrađeno.** Jedna tabela: gorivo, servis, popravka, osiguranje i registracija se razlikuju u dva polja a slažu u svemu ostalom, i pitanje „koliko nas je ovaj kombi koštao" ih ionako sabira. Izveštaj razdvaja gorivo nazad i računa l/100 km — broj koji zaista otkriva kvar ili tuđu upotrebu kartice. |
-| Izveštaj po gradilištu i vozilu | **Odrađeno.** Samo odobreni sati ulaze u trošak; neodobreni su tvrdnja, ne trošak. Sati koje nijedna cena ne pokriva se **prijavljuju**, ne prećutkuju — zbir koji tiho izostavi trećinu ekipe izgleda isto kao onaj koji ne izostavlja. |
-| Uloge drugačije nego drugde | **Odrađeno.** Poslovođa evidentira nabavku i vidi šta je njegovo gradilište potrošilo, ali cena rada je tuđa plata, pa mu izveštaj vraća taj deo kao nulu umesto da odbije ceo izveštaj. |
-| Mobilno: trošak sa pumpe | **Odrađeno.** Jedino mesto u ovom modulu gde telefon pobeđuje kancelariju: čovek koji toči stoji pored računa i kilometraže, a sve što mora da zapamti biva upisano pogrešno ili nikako. |
+| Cijena rada sa datumom | **Odrađeno.** Svi su dobili povišicu u junu; martovski izvještaj i dalje mora reći koliko je mart koštao. Jedna kolona sa „trenutnom cijenom" bi nečujno prepisala svaki ranije odrađen izvještaj, a broj bi i dalje izgledao uverljivo. Nova cijena zatvara prethodnu, preklapanja odbija ograničenje baze. |
+| Promet materijala | **Odrađeno.** Stanje odgovara samo na „koliko je ostalo". Ne može reći koliko je potrošeno ni koje gradilište — a to su dva pitanja zbog kojih izvještaj postoji. Stanje ostaje kao keš zbira; promet i izmjena stanja idu u istoj transakciji, pa magacinski ekran ne može da odluta od istorije. |
+| Vrijednovanje izdatog materijala | **Odrađeno.** Po prosjeku dosadašnjih nabavki, i taj broj se **upisuje** na red. Da se računa u trenutku izvještaja, nabavka sljedećeg mjeseca po drugoj cijeni bi promijenila koliko je završen posao koštao. |
+| Gorivo i servisi vozila | **Odrađeno.** Jedna tabela: gorivo, servis, popravka, osiguranje i registracija se razlikuju u dva polja a slažu u svemu ostalom, i pitanje „koliko nas je ovaj kombi koštao" ih ionako sabira. Izvještaj razdvaja gorivo nazad i računa l/100 km — broj koji zaista otkriva kvar ili tuđu upotrebu kartice. |
+| Izvještaj po gradilištu i vozilu | **Odrađeno.** Samo odobreni sati ulaze u trošak; neodobreni su tvrdnja, ne trošak. Sati koje nijedna cijena ne pokriva se **prijavljuju**, ne prećutkuju — zbir koji tiho izostavi trećinu ekipe izgleda isto kao onaj koji ne izostavlja. |
+| Uloge drugačije nego drugde | **Odrađeno.** Poslovođa evidentira nabavku i vidi šta je njegovo gradilište potrošilo, ali cijena rada je tuđa plata, pa mu izvještaj vraća taj dio kao nulu umjesto da odbije cio izvještaj. |
+| Mobilno: trošak sa pumpe | **Odrađeno.** Jedino mjesto u ovom modulu gdje telefon pobeđuje kancelariju: čovek koji toči stoji pored računa i kilometraže, a sve što mora da zapamti biva upisano pogrešno ili nikako. |
 
 **Poznati nedostaci / Known gaps:**
 
@@ -185,15 +185,15 @@ ručno, a fotografija se bez pickera ne može uzeti.
   iz sistema: sate, troškove po gradilištu, troškove voznog parka i promet
   materijala. Prava `.xlsx` datoteka, ne CSV — Excel na srpskom očekuje tačku i
   zarez kao razdvajač i čita UTF-8 kao Windows-1250, pa svako š i ć postane
-  smeće. Zaglavlja idu na jeziku koji se traži, jer datoteka nadživi zahtev:
+  smeće. Zaglavlja idu na jeziku koji se traži, jer datoteka nadživi zahtjev:
   neko je pošalje knjigovođi čiji pretraživač o jeziku nikad nije imao mišljenja.
   Ostale liste (radnici, projekti, vozila, alat) još nemaju izvoz.
 - Trošak vozila se ne raspoređuje po gradilištima. Kombi nije raspoređen na
   gradilište kao čovek, pa bi svako pripisivanje bilo izmišljena raspodela koju
-  podaci ne podržavaju. Vozni park ima svoj izveštaj.
-- Valuta nigde ne piše. Sistem čuva jednu valutu i ne kaže koju; klijenti zato
-  ne štampaju oznaku umesto da izmisle pogrešnu.
-- Vrednovanje je prosečna cena, ne FIFO. Gomila šljunka nema serije da se troše
+  podaci ne podržavaju. Vozni park ima svoj izvještaj.
+- Valuta nigdje ne piše. Sistem čuva jednu valutu i ne kaže koju; klijenti zato
+  ne štampaju oznaku umjesto da izmisle pogrešnu.
+- Vrijednovanje je prosječna cijena, ne FIFO. Gomila šljunka nema serije da se troše
   po redu, a FIFO bi tražio tabelu slojeva zarad pitanja koje na gradilištu niko
   ne postavlja.
 
@@ -204,13 +204,13 @@ ručno, a fotografija se bez pickera ne može uzeti.
 ## Faza 5a — AI pomoćnik / AI assistant — **ZADRŽANO / HELD BACK**
 
 **Napravljeno i testirano, ali namerno nije pušteno.** Dugme nije montirano u
-admin panelu; kod stoji na grani i čeka da bude deo neke od sledećih faza. Radi
+admin panelu; kod stoji na grani i čeka da bude dio neke od sljedećih faza. Radi
 se o odluci o redosledu, ne o problemu sa funkcijom. / **Built and tested,
 deliberately not shipped.** The launcher is not mounted; the code sits on the
 branch waiting to go out with a later phase. A sequencing decision, not a fault.
 
 
-Nije bio na ovoj listi. Došao je kao zahtev vlasnika i uzet je van reda jer ne
+Nije bio na ovoj listi. Došao je kao zahtjev vlasnika i uzet je van reda jer ne
 zavisi ni od čega i ništa ne blokira. / Not on this list. It came as an owner
 request and was taken out of order because it depends on nothing and blocks
 nothing.
@@ -218,16 +218,16 @@ nothing.
 | Stavka / Item | Stanje / State |
 |---|---|
 | Pitanja i odgovori nad sopstvenim podacima | **Odrađeno.** Dvanaest alata, svaki postojeći upit iza politike koju njegov kontroler već nosi. Odgovara na jeziku pitanja. |
-| Nasleđivanje autorizacije | **Odrađeno, i to je bio ceo posao.** `[Authorize]` živi samo na kontrolerima, a MediatR nema autorizaciono ponašanje — alat koji bi zvao `IMediator` direktno preskočio bi proveru uloge u celosti. `AssistantToolset` je vraća: pita `IAuthorizationService` pre nego što model uopšte vidi alat, i pita ponovo pre nego što ga pokrene. |
-| Plafon podataka — bez GPS-a i bez zarada | **Odrađeno, u tri sloja.** Izostavljanje `Features/Locations` iz registra nije bilo dovoljno: `TimeEntryDto` već nosi koordinate smene, a `EmployeeDetailDto` nosi trošak perioda, i oba pripadaju alatima koji kancelariji trebaju. Otuda i redaktor po imenu polja, i dva testa koja zamrzavaju i skup alata i listu polja. |
+| Nasleđivanje autorizacije | **Odrađeno, i to je bio cio posao.** `[Authorize]` živi samo na kontrolerima, a MediatR nema autorizaciono ponašanje — alat koji bi zvao `IMediator` direktno preskočio bi provjeru uloge u celosti. `AssistantToolset` je vraća: pita `IAuthorizationService` prije nego što model uopšte vidi alat, i pita ponovo prije nego što ga pokrene. |
+| Plafon podataka — bez GPS-a i bez zarada | **Odrađeno, u tri sloja.** Izostavljanje `Features/Locations` iz registra nije bilo dovoljno: `TimeEntryDto` već nosi koordinate smjene, a `EmployeeDetailDto` nosi trošak perioda, i oba pripadaju alatima koji kancelariji trebaju. Otuda i redaktor po imenu polja, i dva testa koja zamrzavaju i skup alata i listu polja. |
 | Panel u admin aplikaciji, dvojezično | **Odrađeno.** Fioka pored ekrana na kom je čovek već, jer su pitanja o tom ekranu. Bez ključa se dugme uopšte ne prikazuje. |
-| Trošak pod kontrolom | **Odrađeno.** Ograničenje **po korisniku** a ne po adresi — kancelarija deli jedan izlaz, a ovo čuva račun a ne tajnu. Uz to gornja granica tokena i šest provera po pitanju. |
-| Izmene kroz predlog i potvrdu | **Nije još.** Model bi sastavio predlog, panel bi ga prikazao kao karticu sa dugmetom „Potvrdi", a klik bi pozvao **postojeći** endpoint — dakle ista provera uloge, isti ključ protiv duplog izvršenja, isti audit trag. Nema drugog puta za pisanje koji bi trebalo posebno obezbeđivati. |
+| Trošak pod kontrolom | **Odrađeno.** Ograničenje **po korisniku** a ne po adresi — kancelarija deli jedan izlaz, a ovo čuva račun a ne tajnu. Uz to gornja granica tokena i šest provjera po pitanju. |
+| Izmjene kroz predlog i potvrdu | **Nije još.** Model bi sastavio predlog, panel bi ga prikazao kao karticu sa dugmetom „Potvrdi", a klik bi pozvao **postojeći** endpoint — dakle ista provjera uloge, isti ključ protiv duplog izvršenja, isti audit trag. Nema drugog puta za pisanje koji bi trebalo posebno obezbeđivati. |
 | Striming odgovora | **Nije, namerno.** Bio bi prvi streamovani odgovor u ovom kodu, a `ExceptionHandlingMiddleware` ne može da prepiše odgovor koji je počeo. Odgovori su kratki; indikator kucanja je dovoljan. |
 | Mobilna aplikacija | **Nije.** Pitanja radnika su druga vrsta pitanja i traže svoj skup alata. |
 
 **Poznato ograničenje / Known limitation:** pomoćnik je nov obrađivač ličnih
-podataka. Imena i sati odlaze Anthropic-u; lokacija i zarade ne. Pravni deo je
+podataka. Imena i sati odlaze Anthropic-u; lokacija i zarade ne. Pravni dio je
 kod vlasnika — `PRIVACY.md` §1.0a.
 
 **Pokrivenost kad se pusti / Coverage when shipped: ≈77%**
@@ -239,10 +239,10 @@ kod vlasnika — `PRIVACY.md` §1.0a.
 | Stavka / Item | Zašto kasnije / Why later |
 |---|---|
 | Narudžbe i računi / Orders and invoices | Traži vezu sa knjigovodstvom; regulatorno različito po tržištu |
-| Usluge i raspored usluga / Services scheduling | Vredno tek firmama koje rade održavanje, ne opštoj građevini |
-| Investitorski pristup / Investor access | Jeftino *posle* resource-scoped autorizacije (H11 iz audita) — do tada rizik curenja podataka |
+| Usluge i raspored usluga / Services scheduling | Vrijedno tek firmama koje rade održavanje, ne opštoj građevini |
+| Investitorski pristup / Investor access | Jeftino *poslije* resource-scoped autorizacije (H11 iz audita) — do tada rizik curenja podataka |
 | Offline rad / Offline mode | Skupo, samo mobilno, dira svaki ekran |
-| Chat | Realtime infrastruktura; zadaci + notifikacije pokrivaju 80% potrebe za deo cene |
+| Chat | Realtime infrastruktura; zadaci + notifikacije pokrivaju 80% potrebe za dio cijene |
 | iOS build | Traži Apple Developer nalog i Mac za potpisivanje |
 
 ---
@@ -254,12 +254,12 @@ Every module from here inherits the existing conventions — not done until it h
 
 1. Entitet + EF konfiguracija + **migracija** (trenutno postoji samo `InitialCreate`)
 2. CQRS handleri sa FluentValidation, `ProjectTo` za liste, soft delete
-3. Kontroler sa autorizacijom po ulozi; provera preko `RoleAdministration` gde je bitno
+3. Kontroler sa autorizacijom po ulozi; provjera preko `RoleAdministration` gdje je bitno
 4. Admin ekran (`src/construction_admin/src/pages/`) i mobilni ekran
    (`src/construction_mobile/lib/features/`) — koristiti `createCrudApi`,
    `ResourceDataGrid`, `FilteredPagedListNotifier`
 5. **Dvojezično: `en.ts` + `sr.ts` i `app_en.arb` + `app_sr.arb`.** Pažnja na
-   `EnumKind` — ista engleska reč traži različit srpski oblik po entitetu
+   `EnumKind` — ista engleska riječ traži različit srpski oblik po entitetu
    (`Available` → „Slobodno" za vozilo, „Slobodan" za alat)
 6. Unit testovi validatora + integracioni test protiv prave baze
 
@@ -278,10 +278,10 @@ Every module from here inherits the existing conventions — not done until it h
 | 5a | AI pomoćnik — napravljen, **zadržan** / built, **held back** | — | 75% |
 | 6 | Narudžbe, računi, offline, chat, iOS | otvoreno / open | ~100% |
 
-**Ukupno do 75% pokrivenosti: ~3 meseca za jednog programera.**
+**Ukupno do 75% pokrivenosti: ~3 mjeseca za jednog programera.**
 **Total to 75% coverage: ~3 months for one developer.**
 
-Procene su za jednog programera preko sva tri koda (API, admin, mobilna) i
+Procjene su za jednog programera preko sva tri koda (API, admin, mobilna) i
 uključuju testove i prevode — ne uključuju dizajn, QA ni pregovore sa klijentom.
 Estimates are for one developer across all three codebases (API, admin, mobile)
 and include tests and translations — they exclude design, QA and client

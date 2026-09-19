@@ -2,15 +2,15 @@
 
 **SR** — Odjava je bila potpuno pokvarena, a 260 automatskih testova je
 prolazilo. Našlo se tek kad je neko uzeo telefon i pritisnuo dugme. Ovaj
-dokument je pokušaj da se ostatak aplikacije provuče kroz istu vrstu provere,
-redom i bez preskakanja — jer sve što nije ovde prošlo, nije provereno.
+dokument je pokušaj da se ostatak aplikacije provuče kroz istu vrstu provjere,
+redom i bez preskakanja — jer sve što nije ovdje prošlo, nije provjereno.
 
 **EN** — Sign-out was completely broken while 260 automated tests passed. It
 was found the first time somebody held a phone and pressed the button. This
 document puts the rest of the app through the same kind of check, in order,
 without skipping — because anything not ticked here has not been verified.
 
-Ništa se ne popravlja u toku prolaza. Zapiši i idi dalje; popravke idu posle,
+Ništa se ne popravlja u toku prolaza. Zapiši i idi dalje; popravke idu poslije,
 zajedno. / Fix nothing during a pass. Write it down and move on; fixes come
 afterwards, together.
 
@@ -20,7 +20,7 @@ afterwards, together.
 
 ### 0.1 APK
 
-1. GitHub → **Actions** → poslednji zeleni run na grani
+1. GitHub → **Actions** → posljednji zeleni run na grani
    `claude/construction-workforce-phase-1-diz0zx`
 2. Dole, **Artifacts** → `construction-organizer-debug-apk`
 3. Raspakuj, prebaci `app-debug.apk` na telefon, otvori iz menadžera fajlova.
@@ -29,7 +29,7 @@ afterwards, together.
    from a file manager. Android will ask to allow unknown sources; that is
    expected for a debug-signed build.
 
-> **Deinstaliraj prethodnu verziju pre instalacije.** Sesija ostaje u keystore-u
+> **Deinstaliraj prethodnu verziju prije instalacije.** Sesija ostaje u keystore-u
 > između instalacija, a ovaj prolaz počinje od prijave. / **Uninstall the
 > previous version first.** The session survives in the keystore between
 > installs, and this pass starts from sign-in.
@@ -39,10 +39,10 @@ afterwards, together.
 Server mora slušati na adresi koju telefon vidi, ne samo na `localhost`:
 
 ```bash
-# na mašini gde radi server / on the machine running the server
+# na mašini gdje radi server / on the machine running the server
 dotnet run --project src/Construction.API --urls http://0.0.0.0:5000
 
-# proveri sa telefona, u pregledaču / check from the phone's browser
+# provjeri sa telefona, u pregledaču / check from the phone's browser
 # http://<ip-mašine>:5000/health/live
 ```
 
@@ -58,7 +58,7 @@ the admin panel (`/users`):
 
 | Uloga / Role | Vidi / Sees | Za šta treba / Needed for |
 |---|---|---|
-| **Worker** | samo svoje / only their own | prolaz 2, i provera da direktorijum **nije** dostupan |
+| **Worker** | samo svoje / only their own | prolaz 2, i provjera da direktorijum **nije** dostupan |
 | **Foreman** | + direktorijum, troškovi / + directory, spending | prolaz 3 |
 | **Admin** | sve / everything | prolaz 7 |
 
@@ -78,7 +78,7 @@ Without them a failure usually cannot be reproduced.
 2. **Šta se desilo** — tačan tekst poruke, ili „ništa se nije desilo".
    / What happened — the exact message, or "nothing happened".
 3. **Šta si očekivao.** / What you expected.
-4. **Vreme** (na minut) — da bi se našlo u logu servera. / The time, to the
+4. **Vrijeme** (na minut) — da bi se našlo u logu servera. / The time, to the
    minute, so it can be found in the server log.
 5. **Mreža** — pun signal, slab, avionski režim. / Network state.
 
@@ -112,63 +112,63 @@ Nalog: **bilo koji**. / Account: **any**.
       `http://`. / *Expected:* accepts the address, refuses one without a scheme.
 - [ ] Pogrešna lozinka → poruka o grešci, ne prazan ekran.
 - [ ] **Deset** pogrešnih pokušaja zaredom → nalog se zaključava, poruka to
-      kaže. *(Otključati iz admin panela pre nastavka.)* / Ten wrong attempts
+      kaže. *(Otključati iz admin panela prije nastavka.)* / Ten wrong attempts
       in a row locks the account.
 - [ ] Tačna lozinka → početni ekran, tvoje ime i uloga na kartici.
-- [ ] **Promeni jezik** (Nalog → Jezik / Account → Language) na engleski i
-      nazad na srpski. *Očekivano:* menja se ceo ekran, uključujući donju
+- [ ] **Promijeni jezik** (Nalog → Jezik / Account → Language) na engleski i
+      nazad na srpski. *Očekivano:* mijenja se cio ekran, uključujući donju
       navigaciju, bez restarta.
 - [ ] Ubij aplikaciju i otvori je ponovo. *Očekivano:* i dalje si prijavljen,
       i dalje na izabranom jeziku.
 - [ ] **Odjava** (Nalog → Odjavi se). *Očekivano:* odmah, u istom trenutku,
-      ekran za prijavu. Ne posle par sekundi.
+      ekran za prijavu. Ne poslije par sekundi.
 - [ ] Ponovi odjavu **sa isključenim Wi-Fi-jem**. *Očekivano:* isto tako
-      trenutno. Ovo je ispravka iz `C9` i vredi je proveriti baš ovako.
-- [ ] Posle odjave ubij i otvori aplikaciju. *Očekivano:* ekran za prijavu,
+      trenutno. Ovo je ispravka iz `C9` i vredi je provjeriti baš ovako.
+- [ ] Poslije odjave ubij i otvori aplikaciju. *Očekivano:* ekran za prijavu,
       ne početni.
 
 ## 3. Prolaz 2 — dan radnika / A worker's day
 
 Nalog: **Worker**. Ovo je putanja koju će pravi ljudi koristiti dva puta dnevno.
 
-- [ ] Donja navigacija ima **samo** Početna i Obaveštenja. *Očekivano:*
+- [ ] Donja navigacija ima **samo** Početna i Obavještenja. *Očekivano:*
       Zaposleni i Projekti se **ne vide** — API bi ih ionako odbio.
-- [ ] **Radno vreme** → prijavi dolazak. *Očekivano:* ekran pokazuje da je
-      smena u toku, sa vremenom početka.
-- [ ] Vrati se na početnu, pa opet na Radno vreme. *Očekivano:* smena je i
+- [ ] **Radno vrijeme** → prijavi dolazak. *Očekivano:* ekran pokazuje da je
+      smjena u toku, sa vremenom početka.
+- [ ] Vrati se na početnu, pa opet na Radno vrijeme. *Očekivano:* smjena je i
       dalje u toku.
-- [ ] Ubij aplikaciju, otvori je, otvori Radno vreme. *Očekivano:* i dalje u
+- [ ] Ubij aplikaciju, otvori je, otvori Radno vrijeme. *Očekivano:* i dalje u
       toku — stanje je na serveru, ne u aplikaciji.
-- [ ] Odjavi smenu. *Očekivano:* otvara se list za pauzu; **dodirni izvan
+- [ ] Odjavi smjenu. *Očekivano:* otvara se list za pauzu; **dodirni izvan
       lista i povuci nadole** — *očekivano:* list se **ne zatvara**, jedino
       Otkaži i Potvrdi rade. Potvrdi; trajanje je izračunato i tačno.
       *(Ispravka `C10` — zatvaranje dodirom izvan lista je izgledalo kao da
       dugme ne radi.)*
 - [ ] Pokušaj **dva puta zaredom** prijaviti dolazak. *Očekivano:* drugi put
       je odbijeno sa razumljivom porukom, ne sa greškom 500.
-- [ ] **Moji zadaci** → otvori zadatak, promeni status.
+- [ ] **Moji zadaci** → otvori zadatak, promijeni status.
 - [ ] **Prijavi defekat** sa **fotografijom iz kamere**. *Očekivano:* slika se
       šalje; vidi se u admin panelu na tom zadatku.
 - [ ] Isto, ali **slika iz galerije**.
-- [ ] **Moj raspored** — pokazuje gde si raspoređen narednih 14 dana.
-- [ ] **Odsustva** → zatraži godišnji odmor. Probaj i datum „do" **pre** datuma
-      „od". *Očekivano:* odbijeno pre slanja.
-- [ ] Povuci zahtev koji čeka odgovor. *Očekivano:* uspeva.
-- [ ] **Skeniraj** — kamera pročita QR nalepnicu sa alata ili vozila.
-      *Očekivano:* traži dozvolu za kameru prvi put; posle skeniranja prikaže
+- [ ] **Moj raspored** — pokazuje gdje si raspoređen narednih 14 dana.
+- [ ] **Odsustva** → zatraži godišnji odmor. Probaj i datum „do" **prije** datuma
+      „od". *Očekivano:* odbijeno prije slanja.
+- [ ] Povuci zahtjev koji čeka odgovor. *Očekivano:* uspeva.
+- [ ] **Skeniraj** — kamera pročita QR naljepnicu sa alata ili vozila.
+      *Očekivano:* traži dozvolu za kameru prvi put; poslije skeniranja prikaže
       predmet i ko ga je zadužio. / The camera reads the QR label.
-- [ ] Isto, ali **ukucaj kod ručno** umesto skeniranja. *Očekivano:* isti
-      rezultat — nalepnica koja se ne da pročitati ne sme da blokira posao.
-- [ ] **Zaduži na mene**, pa **Razduži**. *Očekivano:* stanje se menja odmah i
+- [ ] Isto, ali **ukucaj kod ručno** umjesto skeniranja. *Očekivano:* isti
+      rezultat — naljepnica koja se ne da pročitati ne smije da blokira posao.
+- [ ] **Zaduži na mene**, pa **Razduži**. *Očekivano:* stanje se mijenja odmah i
       vidi se u admin panelu.
 - [ ] Skeniraj nešto što **već drži neko drugi**. *Očekivano:* piše čije je, ne
       dozvoljava tiho preuzimanje.
 - [ ] **Odbij dozvolu za kameru**, pa probaj ponovo. *Očekivano:* razumljiva
       poruka i ručni unos i dalje radi, aplikacija ne puca.
-- [ ] **Obaveštenja** — lista se otvara; označi jedno kao pročitano; brojač na
+- [ ] **Obavještenja** — lista se otvara; označi jedno kao pročitano; brojač na
       donjoj navigaciji se smanji.
-- [ ] **Promena lozinke** (Nalog → Promeni lozinku). *Očekivano:* posle
-      promene te izbaci na prijavu — sve sesije su poništene.
+- [ ] **Promjena lozinke** (Nalog → Promijeni lozinku). *Očekivano:* poslije
+      promjene te izbaci na prijavu — sve sesije su poništene.
 
 ## 4. Prolaz 3 — poslovođa / A foreman
 
@@ -178,24 +178,24 @@ Nalog: **Foreman**.
 - [ ] Zaposleni → pretraga po imenu; otvori nekoga; vide se prilozi (dokumenti).
 - [ ] **Dodaj prilog** (dokument ili sliku) zaposlenom, pa ga otvori.
       *Očekivano:* otprema uspeva. Ovo je ispravka `C11` i **mora se probati na
-      sveže podignutom okruženju** (`docker compose down -v` pa `up`) — greška
+      svježe podignutom okruženju** (`docker compose down -v` pa `up`) — greška
       je bila u vlasništvu Docker volumena pri prvom montiranju, pa je na
       ručno popravljenom okruženju nevidljiva. / Must be tried on a freshly
       created environment; the bug was in volume ownership at first mount.
 - [ ] Projekti → otvori projekat; vidi se ekipa i rok.
-- [ ] **Skini nekoga sa projekta** (iz admin panela), pa osveži i projekat i
+- [ ] **Skini nekoga sa projekta** (iz admin panela), pa osvježi i projekat i
       karton tog zaposlenog. *Očekivano:* nestaje sa spiska **odmah**, i
       brojač ekipe se smanji. *(Ispravka `C12` — raspored se zatvara datumom
-      umesto da se briše, a spiskovi taj datum nisu gledali.)*
+      umjesto da se briše, a spiskovi taj datum nisu gledali.)*
 - [ ] **Vozila / Alat / Materijal** — liste se otvaraju, pretraga radi.
-- [ ] Materijal → **izmeni stanje** (dodaj ili skini količinu). *Očekivano:*
+- [ ] Materijal → **izmijeni stanje** (dodaj ili skini količinu). *Očekivano:*
       novo stanje je odmah tačno.
 - [ ] Isto to **dva puta brzo zaredom, istim potezom**. *Očekivano:* količina
-      se promeni **jednom**, ne dvaput — to je zaštita idempotentnim ključem.
+      se promijeni **jednom**, ne dvaput — to je zaštita idempotentnim ključem.
 - [ ] **Troškovi vozila** → unesi gorivo. *Očekivano:* upisano, vidi se u
       admin panelu pod troškovima.
-- [ ] Otvori ekran koji Foreman **ne sme** da vidi tako što ćeš ga zvati iz
-      obaveštenja/deep linka, ako je moguće. *Očekivano:* vraća te na početnu,
+- [ ] Otvori ekran koji Foreman **ne smije** da vidi tako što ćeš ga zvati iz
+      obavještenja/deep linka, ako je moguće. *Očekivano:* vraća te na početnu,
       ne prazan ekran sa greškom.
 
 ## 5. Prolaz 4 — bez signala / Offline
@@ -210,17 +210,17 @@ Ovo je gradilište. Uključi **avionski režim** za svaku stavku.
       „Pokušaj ponovo" — ne crveni ekran i ne beskrajni točkić.
 - [ ] Pritisni „Pokušaj ponovo" dok je i dalje avionski režim. *Očekivano:*
       ista poruka, bez rušenja.
-- [ ] Vrati mrežu, pritisni „Pokušaj ponovo". *Očekivano:* sveži podaci, traka
+- [ ] Vrati mrežu, pritisni „Pokušaj ponovo". *Očekivano:* svježi podaci, traka
       o starim podacima nestaje.
 - [ ] **Prijavi dolazak bez signala.** *Očekivano:* **uspeva** — kartica
-      pokazuje da je smena u toku i piše „Zabeleženo na ovom telefonu. Biće
+      pokazuje da je smjena u toku i piše „Zabilježeno na ovom telefonu. Biće
       poslato kad bude signala." *(Ovo je `M9`, novo.)*
-- [ ] Zabeleži tačno vreme kad si pritisnuo. Ubij aplikaciju, vrati signal,
-      otvori je ponovo. *Očekivano:* smena je otišla na server **sa tim
-      vremenom**, ne sa vremenom kad si otvorio aplikaciju. Proveri u admin
+- [ ] Zabilježi tačno vrijeme kad si pritisnuo. Ubij aplikaciju, vrati signal,
+      otvori je ponovo. *Očekivano:* smjena je otišla na server **sa tim
+      vremenom**, ne sa vremenom kad si otvorio aplikaciju. Provjeri u admin
       panelu.
-- [ ] Isto i za **odjavu smene bez signala**, uključujući minute pauze.
-- [ ] Cela smena bez signala: prijava, pa odjava, pa tek onda vrati mrežu.
+- [ ] Isto i za **odjavu smjene bez signala**, uključujući minute pauze.
+- [ ] Cijela smjena bez signala: prijava, pa odjava, pa tek onda vrati mrežu.
       *Očekivano:* obe idu, u redosledu, i trajanje je tačno.
 - [ ] Odjavi se bez signala. *Očekivano:* trenutno, kao u prolazu 1.
 
@@ -228,19 +228,19 @@ Ovo je gradilište. Uključi **avionski režim** za svaku stavku.
 
 Traži da neko stvarno hoda ili vozi. Najbolje pola sata.
 
-- [ ] Prvo pokretanje traži dozvolu za lokaciju. Odobri **„Uvek" / „Always"**.
+- [ ] Prvo pokretanje traži dozvolu za lokaciju. Odobri **„Uvijek" / „Always"**.
 - [ ] Početni ekran pokazuje da se pozicija deli.
 - [ ] Zaključaj ekran i stavi telefon u džep na 10 minuta, hodajući.
-      *Očekivano:* u status baru stoji trajno obaveštenje o praćenju, a na
-      mapi u admin panelu se pozicija pomera.
+      *Očekivano:* u status baru stoji trajno obavještenje o praćenju, a na
+      mapi u admin panelu se pozicija pomjera.
 - [ ] Prebaci se u drugu aplikaciju na 10 minuta. *Očekivano:* isto.
 - [ ] **Uđi u zonu bez signala** (podrum, garaža) pa izađi. *Očekivano:*
       pozicije iz rupe stižu naknadno, u redosledu, ne nestaju.
 - [ ] **Ukloni aplikaciju iz „recents".** *Očekivano:* praćenje **prestaje** —
       to je poznato ograničenje (`C3`), ne greška. Otvori aplikaciju ponovo:
       sačuvane pozicije treba da odu na server.
-- [ ] **Odjavi se dok praćenje radi.** *Očekivano:* obaveštenje u status baru
-      **nestaje odmah**. Ako ostane, to je greška i vredna je prijave.
+- [ ] **Odjavi se dok praćenje radi.** *Očekivano:* obavještenje u status baru
+      **nestaje odmah**. Ako ostane, to je greška i vrijedna je prijave.
 - [ ] Isključi lokaciju u podešavanjima telefona dok aplikacija radi.
       *Očekivano:* ekran to kaže, aplikacija ne puca.
 
@@ -251,32 +251,32 @@ nešto nije u redu.
 
 - [ ] Prijavi se, pa ostavi telefon **20 minuta** neotvoren (access token traje
       15). Otvori bilo koji ekran. *Očekivano:* radi bez ponovne prijave —
-      token se sam osvežio.
+      token se sam osvježio.
 - [ ] Prijavi se kao **Worker**, pogledaj neke ekrane, odjavi se, pa se prijavi
       kao **Foreman**. Uključi avionski režim i otvori iste ekrane.
       *Očekivano:* **ne vidiš podatke prethodnog korisnika** — keš se prazni na
-      svaku promenu osobe.
+      svaku promjenu osobe.
 - [ ] Prijavi se na telefonu, pa iz admin panela **deaktiviraj tog korisnika**.
-      Na telefonu povuci listu da se osveži. *Očekivano:* najkasnije kad token
+      Na telefonu povuci listu da se osvježi. *Očekivano:* najkasnije kad token
       istekne, aplikacija te vraća na prijavu — radnik koji je napustio firmu
-      ne sme da nastavi da radi sa telefonom u džepu. / Deactivate the signed-in
+      ne smije da nastavi da radi sa telefonom u džepu. / Deactivate the signed-in
       user from the admin panel; the phone must fall back to sign-in.
 - [ ] Deinstaliraj i instaliraj ponovo. *Očekivano:* ekran za prijavu i traži
       adresu servera iznova; aplikacija **ne ostaje na splash ekranu**. Ovo
-      proverava ispravku za keystore iz `C9`.
+      provjerava ispravku za keystore iz `C9`.
 
 ## 8. Prolaz 7 — admin panel / The admin panel
 
 Nalog: **Admin**, u pregledaču.
 
-- [ ] Prijava; osvežavanje stranice te ne izbacuje.
+- [ ] Prijava; osvježavanje stranice te ne izbacuje.
 - [ ] **Mapa** — pozicije sa telefona iz prolaza 5 se vide, sa imenima.
-- [ ] Zaposleni / Projekti / Vozila / Alat / Materijal — **napravi, izmeni,
+- [ ] Zaposleni / Projekti / Vozila / Alat / Materijal — **napravi, izmijeni,
       obriši** po jedan zapis u svakom. Naročito **obriši**: taj je već jednom
-      umesto brisanja samo otvarao stranicu.
-- [ ] Radno vreme → pregled smena iz prolaza 2; **izmeni** jednu; **zbirni
+      umjesto brisanja samo otvarao stranicu.
+- [ ] Radno vrijeme → pregled smjena iz prolaza 2; **izmijeni** jednu; **zbirni
       pregled** se slaže.
-- [ ] Odsustva → **odobri** zahtev iz prolaza 2. *Očekivano:* radnik to vidi na
+- [ ] Odsustva → **odobri** zahtjev iz prolaza 2. *Očekivano:* radnik to vidi na
       telefonu.
 - [ ] Zadaci → vidi se defekat sa fotografijom iz prolaza 2; slika se otvara.
 - [ ] Troškovi → gorivo iz prolaza 3 je tu; zbir po projektu i po vozilu ima
@@ -284,23 +284,23 @@ Nalog: **Admin**, u pregledaču.
 - [ ] **Izvoz u Excel** na bar dve liste. *Očekivano:* fajl se otvara, ćirilica
       i dijakritika su ispravni.
 - [ ] Dokumenta koja ističu → lista radi.
-- [ ] **Pošalji obaveštenje** iz panela. *Očekivano:* stiže u listu obaveštenja
+- [ ] **Pošalji obavještenje** iz panela. *Očekivano:* stiže u listu obavještenja
       u aplikaciji. **Push u status bar neće stići** dok Firebase nije
       podešen (`C5`) — to je poznato.
-- [ ] Promeni jezik panela na engleski i nazad.
+- [ ] Promijeni jezik panela na engleski i nazad.
 - [ ] Odjava; nazad na prijavu; dugme „nazad" u pregledaču te ne vraća unutra.
 
 ---
 
 ## 9. Poznato da ne radi / Known not to work
 
-Ne troši vreme na prijavljivanje ovoga. / Do not spend time reporting these.
+Ne troši vrijeme na prijavljivanje ovoga. / Do not spend time reporting these.
 
 | Stavka / Item | Zašto / Why |
 |---|---|
-| Push u status bar / Push to the status bar | Firebase projekat ne postoji (`C5`). Lista obaveštenja u aplikaciji radi. |
-| Ostala pisanja bez signala — defekat, odsustvo, stanje materijala / Other offline writes | Nisu u redu čekanja. Samo prijava i odjava smene jesu (`M9`), jer su jedine kod kojih je **vreme** ono što se ne može rekonstruisati posle. |
-| GPS posle uklanjanja iz „recents" ili restarta telefona | Servis je vezan za aktivnost (`C3`). Sačuvane pozicije odlaze pri sledećem pokretanju. |
+| Push u status bar / Push to the status bar | Firebase projekat ne postoji (`C5`). Lista obavještenja u aplikaciji radi. |
+| Ostala pisanja bez signala — defekat, odsustvo, stanje materijala / Other offline writes | Nisu u redu čekanja. Samo prijava i odjava smjene jesu (`M9`), jer su jedine kod kojih je **vrijeme** ono što se ne može rekonstruisati poslije. |
+| GPS poslije uklanjanja iz „recents" ili restarta telefona | Servis je vezan za aktivnost (`C3`). Sačuvane pozicije odlaze pri sljedećem pokretanju. |
 | iOS | Nikad građen ni pokrenut. |
 | Release (potpisan) Android build | Konfiguracija napisana, nikad izvršena sa pravim keystore-om (`C4`). |
 
@@ -311,8 +311,8 @@ Ne troši vreme na prijavljivanje ovoga. / Do not spend time reporting these.
 Kad prođeš prolaz, vrati nazad samo dve stvari: / When a pass is done, bring
 back two things:
 
-1. Koje su stavke pale, sa pet podataka iz odeljka 1. / Which items failed,
+1. Koje su stavke pale, sa pet podataka iz odjeljka 1. / Which items failed,
    with the five details from section 1.
-2. Šta je delovalo **čudno a nije palo** — sporo, zbunjujuće, pogrešna reč.
+2. Šta je delovalo **čudno a nije palo** — sporo, zbunjujuće, pogrešna riječ.
    Te nalaze nijedan test neće naći. / What felt **wrong without failing** —
    slow, confusing, a badly worded label. No test will ever find those.

@@ -27,7 +27,7 @@ const summaryKey = (query: TimeEntrySummaryQuery) => [
 /**
  * `timeEntryKeys.all` is a prefix of every `useTimeEntriesQuery` call,
  * including the nav badge's own Submitted-count query — so reviewing,
- * editing, or deleting an entry drops "Radno vreme" the instant the write
+ * editing, or deleting an entry drops "Radno vrijeme" the instant the write
  * succeeds, with nothing extra to list here.
  */
 const timeEntryCaches = [timeEntryKeys.all];

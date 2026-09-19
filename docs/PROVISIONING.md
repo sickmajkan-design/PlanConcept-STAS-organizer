@@ -1,8 +1,8 @@
 # Provisioning — koraci koje mora uraditi vlasnik / Owner-only setup steps
 
-**SR** — Ovo su koraci koje kod ne može da uradi umesto vas, jer traže naloge
+**SR** — Ovo su koraci koje kod ne može da uradi umjesto vas, jer traže naloge
 i tajne koje pripadaju vašoj organizaciji. Sve ostalo u Fazi 0 je odrađeno i
-čeka samo ove vrednosti.
+čeka samo ove vrijednosti.
 
 **EN** — These are the steps code cannot do for you: they need accounts and
 secrets that belong to your organisation. Everything else in Phase 0 is done
@@ -13,7 +13,7 @@ and waiting on these values.
 ## 1. Firebase / Push notifikacije
 
 Bez ovoga aplikacija radi, ali nijedna push poruka ne izlazi — mobilna
-prijavljuje `unconfigured`, a API loguje umesto da šalje.
+prijavljuje `unconfigured`, a API loguje umjesto da šalje.
 Without this the app runs, but no push is delivered — the mobile app reports
 `unconfigured`, and the API logs instead of sending.
 
@@ -30,7 +30,7 @@ Without this the app runs, but no push is delivered — the mobile app reports
 3. Preuzmi `google-services.json` i stavi ga u / Download `google-services.json` into:
    `src/construction_mobile/android/app/google-services.json`
 
-Fajl je git-ignorisan. Build ga sam detektuje: ako postoji, primenjuje se
+Fajl je git-ignorisan. Build ga sam detektuje: ako postoji, primjenjuje se
 Google Services Gradle plugin; ako ne postoji, build i dalje prolazi i ispisuje
 upozorenje. / The file is git-ignored. The build detects it: present means the
 Google Services Gradle plugin is applied, absent means the build still succeeds
@@ -59,11 +59,11 @@ u secret manager, nikad u fajl koji se komituje. / This key can push to every
 installed device — in production it belongs in a secret manager, never in a
 committed file.
 
-### 1.5 Provera / Verify
+### 1.5 Provjera / Verify
 
 ```
 docker compose up -d
-# prijavi se na telefonu, pa iz admin panela pošalji obaveštenje
+# prijavi se na telefonu, pa iz admin panela pošalji obavještenje
 # sign in on the phone, then send a notification from the admin panel
 ```
 
@@ -122,7 +122,7 @@ at submission, not silently on users' devices.
 
 > **ZADRŽANO.** Napravljeno i testirano, ali dugme nije montirano u admin panelu,
 > pa postavljanje ključa **ne prikazuje pomoćnika**. Ovi koraci važe tek kad se
-> pusti u nekoj od sledećih faza. / **HELD BACK.** Built and tested, but the
+> pusti u nekoj od sljedećih faza. / **HELD BACK.** Built and tested, but the
 > launcher is not mounted, so setting a key does **not** surface the assistant.
 > These steps apply when it ships in a later phase.
 
@@ -146,7 +146,7 @@ menadžer tajni, nikad u fajl koji ide u repozitorijum. / The key is **billed pe
 call** and grants account access — in production it belongs in a secret manager,
 never in a committed file.
 
-### 2a.2 Provera / Verify
+### 2a.2 Provjera / Verify
 
 ```bash
 docker compose up -d api
@@ -158,14 +158,14 @@ Pa se prijavi u admin panel kao Poslovođa ili više i pritisni dugme dole desno
 / Then sign in to the admin panel as Foreman or above and press the button in the
 bottom-right corner.
 
-### 2a.3 Šta pomoćnik sme, a šta ne / What it may and may not do
+### 2a.3 Šta pomoćnik smije, a šta ne / What it may and may not do
 
 - **Samo čita.** Nema nijedan alat koji piše. Svaki alat je postojeći upit,
   pokrenut iza politike koju njegov kontroler već nosi, pa Poslovođa kroz
   pomoćnika ne vidi ništa što ne vidi i kroz ekrane. / **Reads only.** No tool
   writes. Each is an existing query behind the policy its own controller
   carries.
-- **Ne vidi lokacije ni zarade.** Sprovedeno na tri mesta — vidi
+- **Ne vidi lokacije ni zarade.** Sprovedeno na tri mjesta — vidi
   `PRIVACY.md` §1.0a. / **Cannot see location or pay.** Enforced in three
   places — see `PRIVACY.md` §1.0a.
 - **Ne pamti razgovore.** Istorija živi u pregledaču; server ne čuva ništa osim
@@ -175,25 +175,25 @@ bottom-right corner.
 
 Ograničenja koja već stoje: 20 pitanja po korisniku u 5 minuta
 (`Anthropic:RateLimitPermitCount`), najviše 2048 tokena po odgovoru, i najviše
-šest provera po pitanju. Potrošnja se meri i upisuje u log po odgovoru. /
+šest provjera po pitanju. Potrošnja se meri i upisuje u log po odgovoru. /
 Bounds already in place: 20 questions per user per 5 minutes, 2048 output tokens
 per answer, six lookups per question. Usage is logged per answer.
 
 ---
 
-## 3. Šta i dalje ne radi posle ovoga / What still does not work after this
+## 3. Šta i dalje ne radi poslije ovoga / What still does not work after this
 
 Pošteno, da ne bude iznenađenja. / Stated plainly so there are no surprises.
 
 | Stavka / Item | Stanje / State |
 |---|---|
 | GPS dok je aplikacija u pozadini ili ekran ugašen | **radi** / works |
-| GPS kad korisnik ukloni aplikaciju iz „recents" | **ne radi** — Android uništava aktivnost, a sa njom i servis. Fiksevi u redu čekanja se čuvaju i šalju pri sledećem pokretanju. / does not work — the activity is destroyed and the service with it. Queued fixes survive and go out on next launch. |
-| GPS posle restarta telefona | **ne radi** dok se aplikacija ne otvori / does not work until the app is opened |
+| GPS kad korisnik ukloni aplikaciju iz „recents" | **ne radi** — Android uništava aktivnost, a sa njom i servis. Fiksevi u redu čekanja se čuvaju i šalju pri sljedećem pokretanju. / does not work — the activity is destroyed and the service with it. Queued fixes survive and go out on next launch. |
+| GPS poslije restarta telefona | **ne radi** dok se aplikacija ne otvori / does not work until the app is opened |
 | iOS build | nije građen ni potpisan — traži Apple Developer nalog i Mac / not built or signed — needs an Apple Developer account and a Mac |
 | AI pomoćnik | **zadržan** — napravljen, testiran, nije montiran u panelu; vidi §2a / **held back** — built, tested, not mounted; see §2a |
 
-Trajno rešenje za prva dva je zaseban background-service paket koji pokreće
+Trajno rješenje za prva dva je zaseban background-service paket koji pokreće
 drugi Flutter engine, nezavisan od aktivnosti. To je nova zavisnost i zaseban
 posao — namerno nije uzeto u Fazi 0. / The permanent fix for the first two is a
 separate background-service package running a second Flutter engine,
@@ -205,7 +205,7 @@ work — deliberately not taken on in Phase 0.
 ## 4. Backup i restore / Backup and restore
 
 **SR** — Skripte su u `scripts/`. Restore je *isproban*, ne samo napisan:
-rezultat provere je na kraju ovog odeljka.
+rezultat provjere je na kraju ovog odjeljka.
 
 **EN** — The scripts are in `scripts/`. The restore has been *performed*, not
 merely written: the verification result is at the end of this section.
@@ -216,9 +216,9 @@ merely written: the verification result is at the end of this section.
 |---|---|
 | `backup.sh` | Dump (`-Fc`) + arhiva priloga + SHA-256 za oba, pa kopija van servera ako je podešena, pa brisanje starijih od `BACKUP_RETENTION_DAYS`. / A custom-format dump, the attachment archive, a SHA-256 for each, then the off-site copy if configured, then the prune. |
 | `restore.sh` | Vraća dump u bazu; sa `--files <dir>` raspakuje i priloge. Odbija da pregazi bazu koja ima tabele bez `--force`. / Restores into a database; with `--files <dir>` unpacks the attachments too. Refuses to overwrite a populated database unless `--force`. |
-| `verify-restore.sh` | Ceo krug: backup → restore u privremenu bazu → poređenje broja redova → **provera da svaki prilog u bazi ima svoj fajl** → brisanje privremene. / The whole round trip, including the check that every attachment row has its file. |
-| `offsite.sh` | `push` (šalje i proverava), `pull` (vraća sa udaljene lokacije), `status` (koliko je stara najnovija potvrđena kopija). / `push` uploads and verifies, `pull` fetches back, `status` reports how old the newest confirmed copy is. |
-| `test-offsite.sh` | Testira potpisivanje i ceo krug prema lokalnom S3 serveru koji proverava potpis. / Exercises the signing and the round trip against a local S3 that checks the signature. |
+| `verify-restore.sh` | Cio krug: backup → restore u privremenu bazu → poređenje broja redova → **provjera da svaki prilog u bazi ima svoj fajl** → brisanje privremene. / The whole round trip, including the check that every attachment row has its file. |
+| `offsite.sh` | `push` (šalje i provjerava), `pull` (vraća sa udaljene lokacije), `status` (koliko je stara najnovija potvrđena kopija). / `push` uploads and verifies, `pull` fetches back, `status` reports how old the newest confirmed copy is. |
+| `test-offsite.sh` | Testira potpisivanje i cio krug prema lokalnom S3 serveru koji provjerava potpis. / Exercises the signing and the round trip against a local S3 that checks the signature. |
 
 Sve tri koriste standardne `PG*` promenljive, pa `~/.pgpass` i `PGSERVICE`
 rade kao i inače. / All three use the standard `PG*` variables, so `~/.pgpass`
@@ -228,7 +228,7 @@ and `PGSERVICE` keep working.
 # ručno / by hand
 PGDATABASE=construction BACKUP_DIR=/mnt/backups ./scripts/backup.sh
 
-# vežba oporavka — pokrenuti posle svake promene šeme
+# vežba oporavka — pokrenuti poslije svake promjene šeme
 # restore rehearsal — run after any schema change
 ./scripts/verify-restore.sh
 ```
@@ -239,15 +239,15 @@ PGDATABASE=construction BACKUP_DIR=/mnt/backups ./scripts/backup.sh
 docker compose --profile backup up -d
 ```
 
-Servis je opt-in namerno: razvojni stack ga ne treba, a produkcija ne sme da
-se oslanja na podrazumevanu vrednost. / The service is opt-in on purpose: a
+Servis je opt-in namerno: razvojni stack ga ne treba, a produkcija ne smije da
+se oslanja na podrazumijevanu vrijednost. / The service is opt-in on purpose: a
 development stack does not need it, and a deployment should not rely on a
 default.
 
 ### 4.3 Kopija van servera / The off-site copy
 
 **SR** — Dump na volumenu pored baze preživljava obrisanu tabelu i lošu
-migraciju. Ne preživljava gubitak mašine. Ovo je korak koji to menja, i sada
+migraciju. Ne preživljava gubitak mašine. Ovo je korak koji to mijenja, i sada
 je automatizovan — potrebni su samo nalog i ključevi, jer su oni vaši.
 
 **EN** — A dump on a volume beside the database survives a dropped table and a
@@ -259,11 +259,11 @@ pair, because those are yours.
    B2, Wasabi, Cloudflare R2, tuđi MinIO). / Create a bucket at any
    S3-compatible provider.
 2. Napravite ključ sa pravom pisanja **samo u taj bucket**. Uključite
-   versioning ili object-lock: nalog koji sme i da briše je meta za
+   versioning ili object-lock: nalog koji smije i da briše je meta za
    ransomware. / Create a key with write access to **that bucket only**. Turn
    on versioning or object-lock — an uploader that can also delete is a
    ransomware target.
-3. Napravite ključ za šifrovanje i **čuvajte ga negde drugde**:
+3. Napravite ključ za šifrovanje i **čuvajte ga negdje drugde**:
    `age-keygen -o backup-key.txt`. Backup šifrovan ključem koji je izgoreo
    zajedno sa serverom nije backup. / Generate an encryption key and **keep it
    somewhere else**. A backup encrypted to a key that burned with the server
@@ -272,7 +272,7 @@ pair, because those are yours.
    `OFFSITE_ACCESS_KEY_ID`, `OFFSITE_SECRET_ACCESS_KEY`,
    `OFFSITE_AGE_RECIPIENT`. / Put these in `.env`.
 
-Od tada svaki backup ide gore i **proverava se** — poredi se kontrolna suma
+Od tada svaki backup ide gore i **provjerava se** — poredi se kontrolna suma
 onoga što provajder kaže da drži sa onim što je poslato. Sve dok kopija nije
 potvrđena, `backup.sh` odbija da obriše lokalnu, ma koliko bila stara. / From
 then on every backup is uploaded and **verified** — the provider's checksum is
@@ -292,11 +292,11 @@ that has no confirmed off-site one, however old it is.
 ./scripts/restore.sh /tmp/r.dump construction --files /var/lib/construction/storage
 ```
 
-### 4.4 Šta ovo i dalje NE rešava / What this still does NOT solve
+### 4.4 Šta ovo i dalje NE rješava / What this still does NOT solve
 
-**SR** — Prenos je testiran prema lokalnom S3 serveru koji proverava potpis,
+**SR** — Prenos je testiran prema lokalnom S3 serveru koji provjerava potpis,
 ali **nikad prema pravom AWS-u**. To traži nalog. Prvi put kad podesite ovo,
-pokrenite `./scripts/offsite.sh push` ručno i pogledajte izlaz pre nego što se
+pokrenite `./scripts/offsite.sh push` ručno i pogledajte izlaz prije nego što se
 oslonite na noćni posao.
 
 **EN** — The transport is tested against a local S3 that verifies the
@@ -307,7 +307,7 @@ output before trusting the nightly.
 Takođe nije mereno: koliko restore traje na produkcionoj količini podataka. /
 Also unmeasured: how long a restore takes at production data volume.
 
-### 4.5 Rezultat provere / Verification result
+### 4.5 Rezultat provjere / Verification result
 
 **SR** — Pokrenuto protiv baze sa realnom šemom (svih 10 migracija) i podacima:
 
@@ -318,7 +318,7 @@ data in it:
 Restore verification PASSED: 22 table(s), 10522 row(s) matched.
 ```
 
-Provereno je i da provera **ume da padne**, jer „PASSED" inače ne znači ništa —
+Provjereno je i da provjera **ume da padne**, jer „PASSED" inače ne znači ništa —
 sve tri greške su izazvane namerno i sve tri su uhvaćene: /
 The check was also proven able to **fail**, since "PASSED" means nothing
 otherwise — all three faults were induced deliberately and all three were
@@ -326,8 +326,8 @@ caught:
 
 | Greška / Fault | Ishod / Outcome |
 |---|---|
-| Dump stariji od baze (7 redova dodato posle) / Dump older than the database | `FAILED`, uz `diff` koji pokazuje `projects 19 → 12` |
-| Dump ne odgovara svom checksum-u / Dump does not match its checksum | Odbijeno pre dodirivanja baze / Refused before touching the database |
+| Dump stariji od baze (7 redova dodato poslije) / Dump older than the database | `FAILED`, uz `diff` koji pokazuje `projects 19 → 12` |
+| Dump ne odgovara svom checksum-u / Dump does not match its checksum | Odbijeno prije dodirivanja baze / Refused before touching the database |
 | Restore preko pune baze bez `--force` / Restore over a populated database | Odbijeno, uz broj tabela koje bi bile pregažene / Refused, naming the tables at risk |
 
 #### Prilozi i kopija van servera / Attachments and the off-site copy
@@ -344,13 +344,13 @@ All 12 attachment(s) have their file.
 Restore verification PASSED: 23 table(s), 24 row(s) matched.
 ```
 
-I ovde je provereno da **ume da padne** / Proven able to **fail** here too:
+I ovdje je provjereno da **ume da padne** / Proven able to **fail** here too:
 
 | Greška / Fault | Ishod / Outcome |
 |---|---|
-| Baza ima priloge, `ATTACHMENT_DIR` nije podešen / Attachments recorded, `ATTACHMENT_DIR` unset | Upozorenje pri backup-u, pa `FAILED` pri proveri: „the restore would give a list of documents that are not there" |
+| Baza ima priloge, `ATTACHMENT_DIR` nije podešen / Attachments recorded, `ATTACHMENT_DIR` unset | Upozorenje pri backup-u, pa `FAILED` pri provjeri: „the restore would give a list of documents that are not there" |
 | Dva fajla nedostaju u arhivi / Two files missing from the archive | `FAILED`, uz imena oba ključa / `FAILED`, naming both keys |
-| Arhiva oštećena posle checksum-a / Archive corrupted after the checksum | Odbijeno pre raspakivanja / Refused before unpacking |
+| Arhiva oštećena poslije checksum-a / Archive corrupted after the checksum | Odbijeno prije raspakivanja / Refused before unpacking |
 
 **Oporavak sa udaljene lokacije, izveden / Recovery from off-site, performed.**
 Backup je poslat na S3 endpoint, lokalna kopija je zatim **obrisana**, i sistem
@@ -362,16 +362,16 @@ files, every row with its file.
 
 Ta vežba je odmah našla i pravu grešku: `sha256sum putanja > putanja.sha256`
 upisuje apsolutnu putanju, pa se checksum napisan na mašini koja je crkla
-proverava prema putanji koje na novoj mašini nema — prvi korak pravog oporavka
+provjerava prema putanji koje na novoj mašini nema — prvi korak pravog oporavka
 je pao na fajlu koji je bio potpuno ispravan. Sada se upisuje samo ime fajla. /
 That drill immediately found a real bug: the checksum files recorded the
 absolute path of the machine that wrote them, so the first step of a recovery
 onto a different host failed on a file that was perfectly intact. They now
 record the basename.
 
-**Šta i dalje nije provereno / Still unverified:** prenos prema *pravom* AWS-u
-(testiran je prema lokalnom S3 serveru koji proverava potpis), oporavak na
-drugom *fizičkom* serveru, i vreme potrebno za restore na produkcionoj količini
+**Šta i dalje nije provjereno / Still unverified:** prenos prema *pravom* AWS-u
+(testiran je prema lokalnom S3 serveru koji provjerava potpis), oporavak na
+drugom *fizičkom* serveru, i vrijeme potrebno za restore na produkcionoj količini
 podataka. / The transport against *real* AWS (it is tested against a local S3
 that verifies the signature), recovery onto a different *physical* host, and
 how long a restore takes at production data volume.
@@ -395,12 +395,12 @@ docker compose -f deploy/docker-compose.prod.yml up -d
 | `admin` | React panel iza nginx-a, na 8080 unutar mreže. / The React panel behind nginx, on 8080 inside the network. |
 | `api` | ASP.NET Core, nedostupan spolja. / Unreachable from outside. |
 | `postgres` | Baza, nedostupna spolja. / The database, unreachable from outside. |
-| `backup` | Noćni backup, upaljen po podrazumevanom — vidi §4. / Nightly backup, on by default — see §4. |
+| `backup` | Noćni backup, upaljen po podrazumijevanom — vidi §4. / Nightly backup, on by default — see §4. |
 
-### 5.1 Pre prvog pokretanja / Before the first start
+### 5.1 Prije prvog pokretanja / Before the first start
 
 1. **`DOMAIN` mora već da pokazuje na ovaj host.** Caddy dokazuje kontrolu nad
-   imenom preko porta 80; ime koje još ne pokazuje ovamo obara tu proveru i
+   imenom preko porta 80; ime koje još ne pokazuje ovamo obara tu provjeru i
    troši Let's Encrypt kvotu. /
    **`DOMAIN` must already resolve here.** Caddy proves control over port 80;
    a name that does not yet point here fails that check and burns quota.
@@ -413,7 +413,7 @@ docker compose -f deploy/docker-compose.prod.yml up -d
 
 **SR** — Refresh token je `HttpOnly; Secure; SameSite=Strict` kolačić. Sa
 drugog porekla browser ga ne bi ni slao, pa bi se operater odjavljivao pri
-svakom osvežavanju — bez ijedne greške bilo gde. Zato proxy šalje `/api/*` na
+svakom osvježavanju — bez ijedne greške bilo gdje. Zato proxy šalje `/api/*` na
 API, a sve ostalo na panel. /
 **EN** — The refresh token is a `SameSite=Strict` cookie. From a different
 origin the browser would not send it at all, and the operator would be signed
@@ -423,7 +423,7 @@ the API and everything else to the panel.
 ### 5.3 Jedna slika, više instalacija / One image, many installations
 
 **SR** — `vite build` peče `VITE_*` u bundle, što bi značilo posebnu sliku po
-klijentu i novi build zbog pogrešno otkucanog imena hosta. Umesto toga slika
+klijentu i novi build zbog pogrešno otkucanog imena hosta. Umjesto toga slika
 piše `config.js` pri pokretanju iz `API_BASE_URL` i `GOOGLE_MAPS_API_KEY`.
 Ista slika radi svuda; adresa je stvar deploymenta, ne builda. /
 **EN** — A Vite build bakes `VITE_*` into the bundle, which would mean one
@@ -432,37 +432,37 @@ image per customer and a release to fix a hostname. Instead the image writes
 
 ### 5.4 Migracije / Migrations
 
-**SR** — `Database__ApplyMigrationsOnStartup` je `true` ovde, i to je bezbedno
+**SR** — `Database__ApplyMigrationsOnStartup` je `true` ovdje, i to je bezbedno
 iz jednog razloga: ovaj fajl pokreće **tačno jedan** API kontejner. Dve replike
 bi se trkale oko iste migracije. Ako stack ikad dobije drugu repliku, ovo se
-gasi i migracije se puštaju kao zaseban korak pre rolovanja. /
+gasi i migracije se puštaju kao zaseban korak prije rolovanja. /
 **EN** — It is `true` here, safe for exactly one reason: this file runs exactly
 one API container. Two replicas would race. If a second replica is ever added,
 turn this off and run migrations as their own step.
 
 ### 5.4a GPS particije / The GPS partitions
 
-**SR** — `location_records` je podeljena na mesečne particije. Retencija tako
-briše ceo mesec jednom DDL naredbom umesto milion redova, ali particionisana
-tabela odbija red za mesec koji nema particiju — a to bi bio izgubljen GPS
+**SR** — `location_records` je podijeljena na mjesečne particije. Retencija tako
+briše cio mjesec jednom DDL naredbom umjesto milion redova, ali particionisana
+tabela odbija red za mjesec koji nema particiju — a to bi bio izgubljen GPS
 ping. Zato:
 
-- particije se prave **unapred**, tri meseca, pri svakom pokretanju API-ja i
+- particije se prave **unaprijed**, tri mjeseca, pri svakom pokretanju API-ja i
   pri svakom prolasku retencije;
 - ispod svega stoji `location_records_unpartitioned` (DEFAULT particija), koja
   hvata sve nepredviđeno. Redovi u njoj su potpuno ispravni i čitljivi.
 
-**Ta particija treba da bude prazna.** Ako nije, održavanje je negde stalo:
+**Ta particija treba da bude prazna.** Ako nije, održavanje je negdje stalo:
 
 ```sql
 SELECT count(*) FROM location_records_unpartitioned;
 ```
 
-Ako ima redova, API to prijavljuje kao grešku pri sledećem pokušaju pravljenja
-tog meseca — PostgreSQL neće da izdvoji opseg ispod redova koji već postoje.
-Ništa nije izgubljeno; taj mesec se samo ne može obrisati kao celina dok se
+Ako ima redova, API to prijavljuje kao grešku pri sljedećem pokušaju pravljenja
+tog mjeseca — PostgreSQL neće da izdvoji opseg ispod redova koji već postoje.
+Ništa nije izgubljeno; taj mjesec se samo ne može obrisati kao cjelina dok se
 redovi ne presele. Postupak je u dokumentaciji PostgreSQL-a pod „attaching a
-partition"; u praksi: napravi tabelu iste strukture, prebaci redove tog meseca
+partition"; u praksi: napravi tabelu iste strukture, prebaci redove tog mjeseca
 iz DEFAULT-a u nju, obriši ih iz DEFAULT-a, pa je zakači kao particiju — sve u
 jednoj transakciji. /
 
@@ -485,9 +485,9 @@ DEFAULT, and attach it as a partition, all in one transaction.
 
 ### 5.4b Vraćanje migracije unazad / Rolling a migration back
 
-**SR** — Pre nego što zatreba, probano je: `scripts/rehearse-migrations.sh`
-pravi svoju bazu, ubaci podatke, vrati poslednju migraciju unazad, pusti je
-ponovo unapred i uporedi — a zatim prođe celu istoriju do prazne baze i nazad.
+**SR** — Prije nego što zatreba, probano je: `scripts/rehearse-migrations.sh`
+pravi svoju bazu, ubaci podatke, vrati posljednju migraciju unazad, pusti je
+ponovo unaprijed i uporedi — a zatim prođe cijelu istoriju do prazne baze i nazad.
 Isto se izvršava na svakom `push`-u u CI-ju, pa nova migracija ne može da prođe
 sa `Down` koji niko nije pokušao.
 
@@ -497,7 +497,7 @@ Kada stvarno zatreba, na serveru:
 # 1. Napravi kopiju PRE svega ostalog. Vraćanje unazad ume da obriše kolonu.
 scripts/backup.sh
 
-# 2. Nazad za jedan korak (ime pretposlednje migracije, ne poslednje).
+# 2. Nazad za jedan korak (ime pretposljednje migracije, ne posljednje).
 dotnet ef database update <PretposlednjaMigracija> --project src/Construction.Infrastructure
 
 # 3. Vrati staru sliku kontejnera i podigni stack.
@@ -527,14 +527,14 @@ dotnet ef database update <PreviousMigration> --project src/Construction.Infrast
 The order is not arbitrary: the backup comes first, because a `Down` that
 removes a column removes what was in it.
 
-### 5.5 Provera da stack stvarno radi / Proving the stack works
+### 5.5 Provjera da stack stvarno radi / Proving the stack works
 
 ```
 scripts/smoke-deploy.sh
 ```
 
 **SR** — Podiže pravi stack sa `DOMAIN=localhost` (Caddy tada izdaje sopstveni
-sertifikat, bez Let's Encrypt) i proverava ono što YAML ne može: da TLS radi i
+sertifikat, bez Let's Encrypt) i provjerava ono što YAML ne može: da TLS radi i
 da HTTP preusmerava na njega, da panel dobija adresu *ove* instalacije a ne
 build-a, da prijava kroz proxy vraća kolačić koji je i `HttpOnly` i `Secure`, i
 da baza i API nisu dostupni spolja. Briše sve za sobom. /
@@ -544,10 +544,10 @@ rather than the build's, that a sign-in through the proxy returns a cookie that
 is both `HttpOnly` and `Secure`, and that the database and API are unreachable
 from outside. Cleans up after itself.
 
-**SR** — Provera kolačića je najvrednija: `Secure` se postavlja iz
+**SR** — Provjera kolačića je najvrednija: `Secure` se postavlja iz
 `Request.IsHttps`, što je tačno onda kad API veruje proxyju
 (`Network__TrustedProxies`). Pogrešna adresa proxyja → kolačić bez `Secure` →
-browser ga odbacuje → operater se odjavljuje pri svakom osvežavanju. Ta greška
+browser ga odbacuje → operater se odjavljuje pri svakom osvježavanju. Ta greška
 se ne vidi ni u jednom logu. /
 **EN** — The cookie check is the valuable one: `Secure` follows
 `Request.IsHttps`, which is true only when the API trusts the proxy. A wrong
@@ -560,16 +560,16 @@ CI runs the same script on every push.
 ### 5.6 Objavljivanje slika / Publishing images
 
 **SR** — `release.yml` gradi obe slike na svaki push, a **objavljuje** ih u
-GHCR samo sa podrazumevane grane i sa `v*` taga. Slika u registru je nešto što
+GHCR samo sa podrazumijevane grane i sa `v*` taga. Slika u registru je nešto što
 neko može greškom da pusti u rad, pa polugotova grana nema šta da je ostavlja
-tamo. Za deployment koji treba da bude ponovljiv, pinuj tag ili SHA umesto
+tamo. Za deployment koji treba da bude ponovljiv, pinuj tag ili SHA umjesto
 `latest`. /
 **EN** — `release.yml` builds both images on every push and **publishes** only
 from the default branch and from a `v*` tag. An image in a registry is
 something somebody can deploy by accident. Pin a tag or a SHA rather than
 `latest` for a deployment you intend to reproduce.
 
-### 5.7 Šta ovde još ne postoji / What is still missing here
+### 5.7 Šta ovdje još ne postoji / What is still missing here
 
 **SR** — Automatski deployment na server i staging okruženje. Oba traže host
 kojeg nema: pipeline gradi i objavljuje slike, ali ih niko ne pušta u rad —

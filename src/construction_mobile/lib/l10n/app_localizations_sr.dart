@@ -18,7 +18,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get commonDelete => 'Obriši';
 
   @override
-  String get commonEdit => 'Izmeni';
+  String get commonEdit => 'Izmijeni';
 
   @override
   String get commonAdd => 'Dodaj';
@@ -30,7 +30,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get vehicleFormAddTitle => 'Dodaj vozilo';
 
   @override
-  String get vehicleFormEditTitle => 'Izmeni vozilo';
+  String get vehicleFormEditTitle => 'Izmijeni vozilo';
 
   @override
   String get vehicleFormBrand => 'Marka';
@@ -42,7 +42,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get vehicleFormAdded => 'Vozilo dodato.';
 
   @override
-  String get vehicleFormSaved => 'Vozilo izmenjeno.';
+  String get vehicleFormSaved => 'Vozilo izmijenjeno.';
 
   @override
   String get vehicleDeleteTitle => 'Obrisati ovo vozilo?';
@@ -121,7 +121,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get commonProject => 'Projekat';
 
   @override
-  String get commonAlerts => 'Obaveštenja';
+  String get commonAlerts => 'Obavještenja';
 
   @override
   String get authSignInSubtitle => 'Prijavite se na svoj radni nalog';
@@ -168,14 +168,14 @@ class AppLocalizationsSr extends AppLocalizations {
   String get authSendAgain => 'Pošalji ponovo';
 
   @override
-  String get authChangePassword => 'Promena lozinke';
+  String get authChangePassword => 'Promjena lozinke';
 
   @override
-  String get authPasswordChanged => 'Lozinka je promenjena';
+  String get authPasswordChanged => 'Lozinka je promijenjena';
 
   @override
   String get authPasswordChangedBody =>
-      'Vaša lozinka je izmenjena. Radi bezbednosti, svi vaši prijavljeni uređaji su odjavljeni.';
+      'Vaša lozinka je izmijenjena. Radi bezbednosti, svi vaši prijavljeni uređaji su odjavljeni.';
 
   @override
   String get authSignInAgain => 'Prijavi se ponovo';
@@ -218,16 +218,17 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get errorNoConnection =>
-      'Nema veze sa serverom. Proverite internet i pokušajte ponovo.';
+      'Nema veze sa serverom. Provjerite internet i pokušajte ponovo.';
 
   @override
   String get errorTimeout => 'Server predugo ne odgovara. Pokušajte ponovo.';
 
   @override
-  String get errorCancelled => 'Zahtev je otkazan.';
+  String get errorCancelled => 'Zahtjev je otkazan.';
 
   @override
-  String get errorCertificate => 'Sertifikat servera nije mogao biti provaren.';
+  String get errorCertificate =>
+      'Sertifikat servera nije mogao biti provjeren.';
 
   @override
   String get errorServer => 'Došlo je do greške na serveru. Pokušajte kasnije.';
@@ -239,7 +240,8 @@ class AppLocalizationsSr extends AppLocalizations {
   String get errorForbidden => 'Nemate dozvolu za ovu radnju.';
 
   @override
-  String get errorBadRequest => 'Zahtev je odbijen. Proverite unete podatke.';
+  String get errorBadRequest =>
+      'Zahtjev je odbijen. Provjerite unijete podatke.';
 
   @override
   String get errorConflict => 'Radnja je u sukobu sa trenutnim podacima.';
@@ -266,10 +268,10 @@ class AppLocalizationsSr extends AppLocalizations {
   String get navMaterials => 'Materijal';
 
   @override
-  String get navNotifications => 'Obaveštenja';
+  String get navNotifications => 'Obavještenja';
 
   @override
-  String get employeesSearchHint => 'Ime, broj, radno mesto…';
+  String get employeesSearchHint => 'Ime, broj, radno mjesto…';
 
   @override
   String get employeesEmpty => 'Nema zaposlenih za vašu pretragu.';
@@ -278,7 +280,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get employeeNumber => 'Matični broj';
 
   @override
-  String get employeePosition => 'Radno mesto';
+  String get employeePosition => 'Radno mjesto';
 
   @override
   String get employeePhone => 'Telefon';
@@ -299,7 +301,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get employeeAppAccount => 'Nalog u aplikaciji';
 
   @override
-  String get employeeNoProjects => 'Nije dodeljen ni na jedan projekat';
+  String get employeeNoProjects => 'Nije dodijeljen ni na jedan projekat';
 
   @override
   String get projectsSearchHint => 'Naziv, klijent, adresa…';
@@ -312,7 +314,7 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String projectSubOf(String name) {
-    return 'Deo projekta $name';
+    return 'Dio projekta $name';
   }
 
   @override
@@ -328,11 +330,11 @@ class AppLocalizationsSr extends AppLocalizations {
   String get projectCoordinates => 'Koordinate';
 
   @override
-  String get projectCrewEmpty => 'Još niko nije dodeljen';
+  String get projectCrewEmpty => 'Još niko nije dodijeljen';
 
   @override
   String projectAssignedCount(int count) {
-    return 'Dodeljeno: $count';
+    return 'Dodijeljeno: $count';
   }
 
   @override
@@ -350,7 +352,7 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String projectAssignedOn(String date) {
-    return 'Dodeljen $date';
+    return 'Dodijeljen $date';
   }
 
   @override
@@ -389,7 +391,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get toolFormAddTitle => 'Dodaj alat';
 
   @override
-  String get toolFormEditTitle => 'Izmeni alat';
+  String get toolFormEditTitle => 'Izmijeni alat';
 
   @override
   String get toolFormName => 'Naziv';
@@ -401,7 +403,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get toolFormAdded => 'Alat dodat.';
 
   @override
-  String get toolFormSaved => 'Alat izmenjen.';
+  String get toolFormSaved => 'Alat izmijenjen.';
 
   @override
   String get toolDeleteTitle => 'Obrisati ovaj alat?';
@@ -448,7 +450,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get vehicleRentalProvider => 'Iznajmljeno od';
 
   @override
-  String get vehicleRentalMonthlyAmount => 'Mesečna rata';
+  String get vehicleRentalMonthlyAmount => 'Mjesečna rata';
 
   @override
   String vehicleLoanedOutTo(String name) {
@@ -459,10 +461,10 @@ class AppLocalizationsSr extends AppLocalizations {
   String get rentalRatesTitle => 'Renta / lizing';
 
   @override
-  String get rentalRatesAdd => 'Dodaj cenu';
+  String get rentalRatesAdd => 'Dodaj cijenu';
 
   @override
-  String get rentalRatesEditTitle => 'Izmeni cenu';
+  String get rentalRatesEditTitle => 'Izmijeni cijenu';
 
   @override
   String get rentalRatesEmpty => 'Još nema unesene rente ili lizinga.';
@@ -474,7 +476,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get rentalRatesNote => 'Napomena (opciono)';
 
   @override
-  String get rentalRatesMonthlyAmount => 'Mesečni iznos';
+  String get rentalRatesMonthlyAmount => 'Mjesečni iznos';
 
   @override
   String get rentalRatesStartDate => 'Od';
@@ -486,13 +488,13 @@ class AppLocalizationsSr extends AppLocalizations {
   String get rentalRatesOpenEnded => 'Otvoreno';
 
   @override
-  String get rentalRatesDeleteTitle => 'Obrisati ovu cenu?';
+  String get rentalRatesDeleteTitle => 'Obrisati ovu cijenu?';
 
   @override
   String get rentalRatesDeleteBody => 'Ovo se ne može poništiti.';
 
   @override
-  String get rentalRatesSaved => 'Cena rente sačuvana.';
+  String get rentalRatesSaved => 'Cijena rente sačuvana.';
 
   @override
   String get rentalOutTitle => 'Izdavanje u zakup';
@@ -501,7 +503,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get rentalOutAdd => 'Izdaj u zakup';
 
   @override
-  String get rentalOutEditTitle => 'Izmeni izdavanje';
+  String get rentalOutEditTitle => 'Izmijeni izdavanje';
 
   @override
   String get rentalOutEmpty => 'Trenutno nije izdato nikome.';
@@ -516,7 +518,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get rentalOutNoCustomer => 'Bez povezanog klijenta';
 
   @override
-  String get rentalOutDailyRate => 'Dnevna cena';
+  String get rentalOutDailyRate => 'Dnevna cijena';
 
   @override
   String get rentalOutStartDate => 'Od';
@@ -544,7 +546,7 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get scanHint =>
-      'Skenirajte QR nalepnicu na alatu ili vozilu, ili unesite kod ispod.';
+      'Skenirajte QR naljepnicu na alatu ili vozilu, ili unesite kod ispod.';
 
   @override
   String get scanAction => 'Skeniraj QR kod';
@@ -645,22 +647,22 @@ class AppLocalizationsSr extends AppLocalizations {
   String get materialFormAddTitle => 'Dodaj materijal';
 
   @override
-  String get materialFormEditTitle => 'Izmeni materijal';
+  String get materialFormEditTitle => 'Izmijeni materijal';
 
   @override
   String get materialFormName => 'Naziv';
 
   @override
-  String get materialFormUnit => 'Jedinica mere';
+  String get materialFormUnit => 'Jedinica mjere';
 
   @override
-  String get materialFormUnitPrice => 'Cena po jedinici (opciono)';
+  String get materialFormUnitPrice => 'Cijena po jedinici (opciono)';
 
   @override
   String get materialFormAdded => 'Materijal dodat.';
 
   @override
-  String get materialFormSaved => 'Materijal izmenjen.';
+  String get materialFormSaved => 'Materijal izmijenjen.';
 
   @override
   String get materialDeleteTitle => 'Obrisati ovaj materijal?';
@@ -675,7 +677,7 @@ class AppLocalizationsSr extends AppLocalizations {
       'Zalihe u magacinu, nisu vezane za projekat';
 
   @override
-  String get materialLastUpdated => 'Poslednja izmena';
+  String get materialLastUpdated => 'Posljednja izmjena';
 
   @override
   String get materialNoAssignment => 'Nije zaduženo';
@@ -684,7 +686,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get employeeFormAddTitle => 'Dodaj zaposlenog';
 
   @override
-  String get employeeFormEditTitle => 'Izmeni zaposlenog';
+  String get employeeFormEditTitle => 'Izmijeni zaposlenog';
 
   @override
   String get employeeFormNumber => 'Broj zaposlenog';
@@ -702,7 +704,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get employeeFormAdded => 'Zaposleni dodat.';
 
   @override
-  String get employeeFormSaved => 'Zaposleni izmenjen.';
+  String get employeeFormSaved => 'Zaposleni izmijenjen.';
 
   @override
   String get employeeDeleteTitle => 'Obrisati ovog zaposlenog?';
@@ -725,7 +727,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get projectFormAddTitle => 'Dodaj projekat';
 
   @override
-  String get projectFormEditTitle => 'Izmeni projekat';
+  String get projectFormEditTitle => 'Izmijeni projekat';
 
   @override
   String get projectFormName => 'Naziv projekta';
@@ -746,10 +748,10 @@ class AppLocalizationsSr extends AppLocalizations {
   String get projectFormCountryCode => 'Šifra države (npr. BA)';
 
   @override
-  String get projectFormShiftStartTime => 'Početak smene (opciono)';
+  String get projectFormShiftStartTime => 'Početak smjene (opciono)';
 
   @override
-  String get projectFormContractValue => 'Vrednost ugovora (opciono)';
+  String get projectFormContractValue => 'Vrijednost ugovora (opciono)';
 
   @override
   String get projectFormLatitude => 'Geografska širina';
@@ -761,7 +763,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get projectFormAdded => 'Projekat dodat.';
 
   @override
-  String get projectFormSaved => 'Projekat izmenjen.';
+  String get projectFormSaved => 'Projekat izmijenjen.';
 
   @override
   String get projectDeleteTitle => 'Obrisati ovaj projekat?';
@@ -772,7 +774,7 @@ class AppLocalizationsSr extends AppLocalizations {
   }
 
   @override
-  String get notificationsEmpty => 'Još nema obaveštenja.';
+  String get notificationsEmpty => 'Još nema obavještenja.';
 
   @override
   String get notificationsUnreadEmpty => 'Nema nepročitanih.';
@@ -1167,7 +1169,7 @@ class AppLocalizationsSr extends AppLocalizations {
       'Isteklo čuvanje dokumenta';
 
   @override
-  String get announceTitle => 'Pošalji obaveštenje';
+  String get announceTitle => 'Pošalji obavještenje';
 
   @override
   String get announceSubject => 'Naslov';
@@ -1195,11 +1197,11 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get announceRequiresAcknowledgment =>
-      'Zahtevaj potvrdu pre nego što primaoci mogu da rade bilo šta drugo';
+      'Zahtijevaj potvrdu prije nego što primaoci mogu da rade bilo šta drugo';
 
   @override
   String get announceHint =>
-      'Obaveštenje na telefonu se ne može povući — publika je jedina stvar koju vredi proveriti dvaput.';
+      'Obavještenje na telefonu se ne može povući — publika je jedina stvar koju vrijedi provjeriti dvaput.';
 
   @override
   String get announceSend => 'Pošalji';
@@ -1219,19 +1221,19 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get notificationsDisabled =>
-      'Obaveštenja su isključena za ovu aplikaciju.';
+      'Obavještenja su isključena za ovu aplikaciju.';
 
   @override
   String get notificationsNotConfigured =>
-      'Push obaveštenja nisu podešena u ovoj verziji.';
+      'Push obavještenja nisu podešena u ovoj verziji.';
 
   @override
   String get notificationsNotConfiguredBody =>
-      'Slanje push obaveštenja nije podešeno u ovoj verziji. Obaveštenja se i dalje prikazuju ovde.';
+      'Slanje push obavještenja nije podešeno u ovoj verziji. Obavještenja se i dalje prikazuju ovdje.';
 
   @override
   String get notificationsBlockedBody =>
-      'Push obaveštenja su isključena za ovu aplikaciju. I dalje ih možete čitati ovde.';
+      'Push obavještenja su isključena za ovu aplikaciju. I dalje ih možete čitati ovdje.';
 
   @override
   String get notificationsOpenSettings => 'Otvori podešavanja aplikacije';
@@ -1240,7 +1242,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get notificationsTokenFailed => 'Nije moguće dobiti token uređaja.';
 
   @override
-  String get notificationsFirebaseFailed => 'Firebase poruke nisu uspele.';
+  String get notificationsFirebaseFailed => 'Firebase poruke nisu uspjele.';
 
   @override
   String get locationSharingOn => 'Deljenje lokacije je uključeno';
@@ -1250,13 +1252,13 @@ class AppLocalizationsSr extends AppLocalizations {
       'Vaša pozicija se šalje kancelariji svakog minuta dok ste prijavljeni.';
 
   @override
-  String get locationStarting => 'Pokretanje deljenja lokacije…';
+  String get locationStarting => 'Pokretanje dijeljenja lokacije…';
 
   @override
-  String get locationProblem => 'Problem sa deljenjem lokacije';
+  String get locationProblem => 'Problem sa dijeljenjem lokacije';
 
   @override
-  String get locationNotShared => 'Vaša pozicija se ne deli sa kancelarijom.';
+  String get locationNotShared => 'Vaša pozicija se ne dijeli sa kancelarijom.';
 
   @override
   String get locationServicesOff => 'Usluge lokacije su isključene';
@@ -1309,7 +1311,7 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String locationLastSent(String when) {
-    return 'Poslednji put poslato $when.';
+    return 'Posljednji put poslato $when.';
   }
 
   @override
@@ -1406,10 +1408,10 @@ class AppLocalizationsSr extends AppLocalizations {
   String get fuelLpg => 'LPG';
 
   @override
-  String get notificationTypeEmployeeAssigned => 'Zaposleni dodeljen';
+  String get notificationTypeEmployeeAssigned => 'Zaposleni dodijeljen';
 
   @override
-  String get notificationTypeProjectAssigned => 'Projekat dodeljen';
+  String get notificationTypeProjectAssigned => 'Projekat dodijeljen';
 
   @override
   String get notificationTypeToolAssigned => 'Alat zadužen';
@@ -1418,7 +1420,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get notificationTypeVehicleAssigned => 'Vozilo zaduženo';
 
   @override
-  String get notificationTypeAnnouncement => 'Obaveštenje';
+  String get notificationTypeAnnouncement => 'Obavještenje';
 
   @override
   String get settingsLanguage => 'Jezik';
@@ -1430,16 +1432,16 @@ class AppLocalizationsSr extends AppLocalizations {
   String get settingsLanguageEnglish => 'English';
 
   @override
-  String get navTimeEntries => 'Radno vreme';
+  String get navTimeEntries => 'Radno vrijeme';
 
   @override
-  String get shiftTitle => 'Moje radno vreme';
+  String get shiftTitle => 'Moje radno vrijeme';
 
   @override
-  String get shiftRunning => 'Prijavljeni ste na smenu';
+  String get shiftRunning => 'Prijavljeni ste na smjenu';
 
   @override
-  String get shiftOff => 'Niste prijavljeni na smenu';
+  String get shiftOff => 'Niste prijavljeni na smjenu';
 
   @override
   String shiftSince(String time) {
@@ -1452,13 +1454,13 @@ class AppLocalizationsSr extends AppLocalizations {
   }
 
   @override
-  String get shiftClockIn => 'Prijavi se na smenu';
+  String get shiftClockIn => 'Prijavi se na smjenu';
 
   @override
-  String get shiftClockOut => 'Odjavi se sa smene';
+  String get shiftClockOut => 'Odjavi se sa smjene';
 
   @override
-  String get shiftClockOutTitle => 'Završetak smene';
+  String get shiftClockOutTitle => 'Završetak smjene';
 
   @override
   String get shiftBreakLabel => 'Neplaćena pauza (minuta)';
@@ -1479,7 +1481,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get shiftConfirm => 'Potvrdi';
 
   @override
-  String get shiftHistory => 'Poslednji unosi';
+  String get shiftHistory => 'Posljednji unosi';
 
   @override
   String get shiftHistoryEmpty => 'Još nema evidentiranih sati.';
@@ -1510,7 +1512,7 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get shiftNotAnEmployee =>
-      'Ovaj nalog nije povezan sa zaposlenim, pa ne može da evidentira radno vreme.';
+      'Ovaj nalog nije povezan sa zaposlenim, pa ne može da evidentira radno vrijeme.';
 
   @override
   String get shiftAutoClosed => 'Automatski zatvorena';
@@ -1519,7 +1521,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get shiftLocationMismatch => 'Prijava van lokacije gradilišta';
 
   @override
-  String get shiftTimeMismatch => 'Prijava van očekivanog vremena smene';
+  String get shiftTimeMismatch => 'Prijava van očekivanog vremena smjene';
 
   @override
   String get timeEntryStatusInProgress => 'U toku';
@@ -1702,7 +1704,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get workItemsDefectSent => 'Nedostatak je prijavljen.';
 
   @override
-  String get workItemsDefectNeedsTitle => 'Opišite problem u par reči.';
+  String get workItemsDefectNeedsTitle => 'Opišite problem u par riječi.';
 
   @override
   String workItemsPhotoCount(int count) {
@@ -1730,7 +1732,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get workItemStatusInProgress => 'U toku';
 
   @override
-  String get workItemStatusResolved => 'Urađeno, za proveru';
+  String get workItemStatusResolved => 'Urađeno, za provjeru';
 
   @override
   String get workItemStatusClosed => 'Zatvoreno';
@@ -1757,7 +1759,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get navAbsences => 'Odsustva';
 
   @override
-  String get navWeeklyReports => 'Sedmični izveštaji';
+  String get navWeeklyReports => 'Sedmični izvještaji';
 
   @override
   String get navBulletin => 'Oglasna ploča';
@@ -1777,7 +1779,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get scheduleTitle => 'Moj raspored';
 
   @override
-  String get scheduleEmpty => 'Nema rasporeda za naredne dve nedelje.';
+  String get scheduleEmpty => 'Nema rasporeda za naredne dve sedmice.';
 
   @override
   String get scheduleToday => 'Danas';
@@ -1789,7 +1791,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get scheduleContinues => 'Traje dalje';
 
   @override
-  String get scheduleUpcoming => 'Naredne dve nedelje';
+  String get scheduleUpcoming => 'Naredne dve sedmice';
 
   @override
   String scheduleDateRange(String from, String to) {
@@ -1827,16 +1829,17 @@ class AppLocalizationsSr extends AppLocalizations {
   String get absencesReason => 'Razlog (opciono)';
 
   @override
-  String get absencesSend => 'Pošalji zahtev';
+  String get absencesSend => 'Pošalji zahtjev';
 
   @override
-  String get absencesSent => 'Zahtev je poslat.';
+  String get absencesSent => 'Zahtjev je poslat.';
 
   @override
-  String get absencesPickDates => 'Izaberi prvi i poslednji dan odsustva.';
+  String get absencesPickDates => 'Izaberi prvi i posljednji dan odsustva.';
 
   @override
-  String get absencesEndsBeforeStart => 'Poslednji dan ne može biti pre prvog.';
+  String get absencesEndsBeforeStart =>
+      'Posljednji dan ne može biti prije prvog.';
 
   @override
   String absencesDayCount(int count) {
@@ -1854,14 +1857,14 @@ class AppLocalizationsSr extends AppLocalizations {
   String get absencesWithdraw => 'Povuci';
 
   @override
-  String get absencesWithdrawTitle => 'Povući ovaj zahtev?';
+  String get absencesWithdrawTitle => 'Povući ovaj zahtjev?';
 
   @override
   String get absencesWithdrawBody =>
-      'Nadređeni više neće videti da tražiš te dane.';
+      'Nadređeni više neće vidjeti da tražiš te dane.';
 
   @override
-  String get absencesWithdrawn => 'Zahtev je povučen.';
+  String get absencesWithdrawn => 'Zahtjev je povučen.';
 
   @override
   String get absencesGrantedLocked =>
@@ -1903,14 +1906,14 @@ class AppLocalizationsSr extends AppLocalizations {
   String get absenceStatusCancelled => 'Povučeno';
 
   @override
-  String get weeklyReportsTitle => 'Sedmični izveštaji sa gradilišta';
+  String get weeklyReportsTitle => 'Sedmični izvještaji sa gradilišta';
 
   @override
   String get weeklyReportsDescription =>
       'Pošaljite potpisane sate, Aufmaß ili drugi dokaz o radu za gradilište na koje ste raspoređeni.';
 
   @override
-  String get weeklyReportsSubmit => 'Pošalji izveštaj';
+  String get weeklyReportsSubmit => 'Pošalji izvještaj';
 
   @override
   String get weeklyReportsProject => 'Gradilište';
@@ -1944,7 +1947,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get weeklyReportsSend => 'Pošalji';
 
   @override
-  String get notifyEmployeeAction => 'Obavesti';
+  String get notifyEmployeeAction => 'Obavijesti';
 
   @override
   String get notifyEmployeeTitle => 'Pošalji poruku';
@@ -1956,11 +1959,11 @@ class AppLocalizationsSr extends AppLocalizations {
   String get notifyEmployeeMessage => 'Poruka';
 
   @override
-  String get notifyEmployeeRequireAck => 'Zahtevaj potvrdu';
+  String get notifyEmployeeRequireAck => 'Zahtijevaj potvrdu';
 
   @override
   String get notifyEmployeeRequireAckHint =>
-      'Neće moći ništa drugo da radi u aplikaciji dok ne potvrdi da je video/videla ovo.';
+      'Neće moći ništa drugo da radi u aplikaciji dok ne potvrdi da je vidio/vidjela ovo.';
 
   @override
   String get notifyEmployeeSend => 'Pošalji';
@@ -1979,11 +1982,11 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String teamTodayStillWorking(String time) {
-    return 'Od $time — još uvek radi';
+    return 'Od $time — još uvijek radi';
   }
 
   @override
-  String get weeklyReportsSent => 'Izveštaj poslat.';
+  String get weeklyReportsSent => 'Izvještaj poslat.';
 
   @override
   String get weeklyReportTypeSignedHours => 'Potpisani sati';
@@ -2050,7 +2053,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get vehicleExpensesOdometer => 'Kilometraža';
 
   @override
-  String get vehicleExpensesSupplier => 'Gde';
+  String get vehicleExpensesSupplier => 'Gdje';
 
   @override
   String get vehicleExpensesNote => 'Napomena';
@@ -2130,7 +2133,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get toolExpensesAmount => 'Iznos';
 
   @override
-  String get toolExpensesSupplier => 'Gde';
+  String get toolExpensesSupplier => 'Gdje';
 
   @override
   String get toolExpensesNote => 'Napomena';
@@ -2199,11 +2202,11 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get companySettingsWeeklyReportsForwardEmail =>
-      'Prosleđivanje nedeljnih izveštaja na';
+      'Prosljeđivanje sedmičnih izvještaja na';
 
   @override
   String get companySettingsWeeklyReportsForwardEmailHint =>
-      'Opciono — kopija svakog podnetog nedeljnog izveštaja se šalje na ovaj email.';
+      'Opciono — kopija svakog podnijetog sedmičnog izvještaja se šalje na ovaj email.';
 
   @override
   String get companySettingsSaved => 'Profil firme sačuvan.';
@@ -2244,7 +2247,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get workItemsDefectPhotoAdded => 'Fotografija priložena';
 
   @override
-  String get workItemsDefectPhotoHint => 'Slika je obično ceo izveštaj.';
+  String get workItemsDefectPhotoHint => 'Slika je obično cio izvještaj.';
 
   @override
   String get workItemsDefectPhotoFailed =>
@@ -2255,20 +2258,21 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get failureOffline =>
-      'Nema veze sa serverom. Proverite mrežu i pokušajte ponovo.';
+      'Nema veze sa serverom. Provjerite mrežu i pokušajte ponovo.';
 
   @override
   String get failureTimeout => 'Server predugo ne odgovara. Pokušajte ponovo.';
 
   @override
-  String get failureCancelled => 'Zahtev je otkazan.';
+  String get failureCancelled => 'Zahtjev je otkazan.';
 
   @override
   String get failureCertificate =>
-      'Sertifikat servera nije mogao da se proveri.';
+      'Sertifikat servera nije mogao da se provjeri.';
 
   @override
-  String get failureBadRequest => 'Zahtev je odbijen. Proverite unete podatke.';
+  String get failureBadRequest =>
+      'Zahtjev je odbijen. Provjerite unijete podatke.';
 
   @override
   String get failureUnauthorized => 'Sesija je istekla. Prijavite se ponovo.';
@@ -2330,7 +2334,7 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get shiftWaitingToSend =>
-      'Zabeleženo na ovom telefonu. Biće poslato kad bude signala.';
+      'Zabilježeno na ovom telefonu. Biće poslato kad bude signala.';
 
   @override
   String get ackBannerHeading => 'Potrebna potvrda';

@@ -218,7 +218,7 @@ public class AbsenceValidatorTests
             {
                 Id = Guid.NewGuid(),
                 Approve = false,
-                Note = "Rok na gradilištu te nedelje"
+                Note = "Rok na gradilištu te sedmice"
             });
     }
 

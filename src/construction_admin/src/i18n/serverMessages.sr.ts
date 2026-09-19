@@ -1,5 +1,5 @@
 /**
- * Serbian (Latin, ekavian) translations of the English messages the .NET API
+ * Serbian (Latin, ijekavian) translations of the English messages the .NET API
  * returns (ForbiddenAccess/Conflict/NotFound exceptions and FluentValidation).
  *
  * translateServerMessage() returns null for unknown text so the caller can

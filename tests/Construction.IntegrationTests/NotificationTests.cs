@@ -41,7 +41,7 @@ public class NotificationTests : IntegrationTestBase
             .CountAsync(n => n.UserId == userId && n.Title == title));
 
     /// <summary>A subject unique to one test, so the count is that test's own.</summary>
-    private static string Subject() => $"Obaveštenje {Guid.NewGuid():N}";
+    private static string Subject() => $"Obavještenje {Guid.NewGuid():N}";
 
     private static async Task<User> SeedCrewMemberAsync(
         TestScope scope,
