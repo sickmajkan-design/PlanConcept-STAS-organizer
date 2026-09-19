@@ -198,6 +198,13 @@ export function useReviewVehicleExpense() {
   );
 }
 
+export function useReopenVehicleExpense() {
+  return useResourceMutation(
+    (id: string) => costsApi.vehicleExpenses.reopen(id),
+    [vehicleExpenseKeys.all, costReportKeys.all],
+  );
+}
+
 /**
  * Fill-ups that look off against that vehicle's own history — a small,
  * always-on check rather than a page of its own, so a leak or a bad injector

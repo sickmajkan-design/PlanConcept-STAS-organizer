@@ -262,6 +262,12 @@ export const costsApi = {
         data: input,
       }),
 
+    reopen: (id: string) =>
+      request<VehicleExpense>({
+        method: 'POST',
+        url: `/api/v1/vehicle-expenses/${id}/reopen`,
+      }),
+
     fuelConsumptionFlags: (query: FuelConsumptionFlagsQuery) =>
       request<FuelConsumptionFlag[]>({
         method: 'GET',

@@ -484,6 +484,46 @@ public class ScheduleTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task Waiting_on_a_reviewer_covers_undecided_requests_and_proposed_changes()
+    {
+        var (employee, reviewer) = await SeedReviewablePairAsync();
+
+        var undecided = await InScope(scope =>
+        {
+            ActAs(scope, reviewer);
+            return scope.Send(new RequestAbsenceCommand
+            {
+                EmployeeId = employee.Id,
+                StartDate = Monday,
+                EndDate = Monday
+            });
+        });
+        var granted = await InScope(scope =>
+        {
+            ActAs(scope, reviewer);
+            return scope.Send(new RequestAbsenceCommand
+            {
+                EmployeeId = employee.Id,
+                StartDate = Monday.AddDays(7),
+                EndDate = Monday.AddDays(7)
+            });
+        });
+        await InScope(scope =>
+        {
+            ActAs(scope, reviewer);
+            return scope.Send(new ReviewAbsenceCommand { Id = granted.Id, Approve = true });
+        });
+
+        var waiting = await InScope(scope =>
+        {
+            ActAs(scope, reviewer);
+            return scope.Send(new GetAbsencesQuery { WaitingOnReviewer = true });
+        });
+
+        Assert.Equal(new[] { undecided.Id }, waiting.Items.Select(a => a.Id).ToArray());
+    }
+
+    [Fact]
     public async Task A_worker_withdraws_their_own_unanswered_request()
     {
         var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));

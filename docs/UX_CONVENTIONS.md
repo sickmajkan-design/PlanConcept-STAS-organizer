@@ -37,8 +37,12 @@ anything new.
 Nobody approves their own entry, except a Super Admin. Changing a record after
 a decision puts it back to pending and notifies the reviewers again.
 
-There is no undo for an approval: the API has no "back to pending" operation
-other than editing the record. Do not add an undo button that pretends.
+A decision can be taken back: "Back to pending" on a decided vehicle cost
+(`POST /vehicle-expenses/{id}/reopen`) returns it to the queue. It follows the
+same who-may-act rules as reviewing and needs a confirmation, not a reason.
+It is a real server operation, not a toast that pretends to undo. "Waiting on
+me" for time off means undecided requests plus changes the employee proposed
+to approved leave; the menu badge counts the same set (`waitingOnReviewer`).
 
 ## Lists
 

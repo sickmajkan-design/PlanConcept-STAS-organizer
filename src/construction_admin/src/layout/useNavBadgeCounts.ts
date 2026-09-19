@@ -62,7 +62,7 @@ export function useNavBadgeCounts(user: User | null | undefined): Record<string,
   );
 
   const absencesQuery = useAbsencesQuery(
-    { ...COUNT_ONLY_PAGE, status: 'Requested' },
+    { ...COUNT_ONLY_PAGE, waitingOnReviewer: true },
     showAbsences,
   );
 

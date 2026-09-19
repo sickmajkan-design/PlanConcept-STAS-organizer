@@ -15,6 +15,8 @@ export interface AbsenceListQuery extends ListQuery {
   employeeId?: string;
   status?: AbsenceStatus;
   type?: AbsenceType;
+  /** Undecided requests plus employee-proposed changes awaiting confirmation. */
+  waitingOnReviewer?: boolean;
   /** `YYYY-MM-DD`. Matches leave overlapping the window, not only inside it. */
   from?: string;
   to?: string;

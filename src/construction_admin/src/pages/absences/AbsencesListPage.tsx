@@ -107,7 +107,7 @@ export function AbsencesListPage() {
       // The API has no text search on this collection; sending one would be
       // ignored, and leaving it in the key would refetch on every keystroke.
       search: undefined,
-      status: pendingOnly ? 'Requested' : undefined,
+      waitingOnReviewer: pendingOnly || undefined,
       type: type || undefined,
       // Overlap, not containment: whoever is away on that day, not only leave
       // that starts on it.

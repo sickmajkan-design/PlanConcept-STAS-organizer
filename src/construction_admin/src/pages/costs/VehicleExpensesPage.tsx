@@ -1,4 +1,10 @@
-import { AddOutlined, CheckOutlined, CloseOutlined, DeleteOutlined } from '@mui/icons-material';
+import {
+  AddOutlined,
+  CheckOutlined,
+  CloseOutlined,
+  DeleteOutlined,
+  UndoOutlined,
+} from '@mui/icons-material';
 import {
   Alert,
   AlertTitle,
@@ -51,6 +57,7 @@ import {
   useDeleteVehicleExpense,
   useFuelConsumptionFlagsQuery,
   useRecordVehicleExpense,
+  useReopenVehicleExpense,
   useReviewVehicleExpense,
   useUpdateVehicleExpense,
   useVehicleExpensesQuery,
@@ -96,6 +103,7 @@ export function VehicleExpensesPage() {
   const [editing, setEditing] = useState<VehicleExpense | null>(null);
   const [approving, setApproving] = useState<VehicleExpense | null>(null);
   const [rejecting, setRejecting] = useState<VehicleExpense | null>(null);
+  const [reopening, setReopening] = useState<VehicleExpense | null>(null);
   const [bulkApproving, setBulkApproving] = useState(false);
   useOpenOnParam('new', () => setRecording(true));
   const selection = useBulkSelection();
@@ -152,6 +160,7 @@ export function VehicleExpensesPage() {
   const { data: consumptionFlags } = useFuelConsumptionFlagsQuery({});
   const remove = useDeleteWithConfirm<VehicleExpense>(useDeleteVehicleExpense());
   const review = useReviewVehicleExpense();
+  const reopen = useReopenVehicleExpense();
   // A foreman records costs but does not review them; showing them buttons the
   // API will refuse is a trap, not a courtesy.
   const reviewer = canReviewSpending(user);
@@ -251,7 +260,7 @@ export function VehicleExpensesPage() {
       {
         field: 'actions',
         headerName: '',
-        width: 112,
+        width: 140,
         sortable: false,
         filterable: false,
         align: 'right',
@@ -305,6 +314,19 @@ export function VehicleExpensesPage() {
                       </IconButton>
                     </span>
                   </Tooltip>
+                  {!isPending && !isOwn && (
+                    <Tooltip title={t('vehicleExpenses.reopen')}>
+                      <IconButton
+                        size="small"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setReopening(params.row);
+                        }}
+                      >
+                        <UndoOutlined fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  )}
                 </>
               )}
               <IconButton
@@ -560,6 +582,26 @@ export function VehicleExpensesPage() {
           setApproving(null);
         }}
         onCancel={() => setApproving(null)}
+      />
+
+      <ConfirmDialog
+        open={!!reopening}
+        title={t('vehicleExpenses.reopenTitle')}
+        description={t('vehicleExpenses.reopenBody')}
+        confirmLabel={t('vehicleExpenses.reopen')}
+        onConfirm={async () => {
+          if (!reopening) return;
+
+          try {
+            await reopen.mutateAsync(reopening.id);
+          } catch (err) {
+            void refetch();
+            throw err;
+          }
+
+          setReopening(null);
+        }}
+        onCancel={() => setReopening(null)}
       />
 
       <RejectVehicleExpenseDialog expense={rejecting} onClose={() => setRejecting(null)} />

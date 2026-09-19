@@ -25,6 +25,13 @@ public record GetAbsencesQuery : ISortablePagedQuery, IRequest<PagedList<Absence
 
     public AbsenceType? Type { get; init; }
 
+    /// <summary>
+    /// What a reviewer still has to answer: leave nobody has decided yet, and a
+    /// change to approved leave that the employee proposed and management has not
+    /// confirmed. The same set the menu badge counts.
+    /// </summary>
+    public bool WaitingOnReviewer { get; init; }
+
     /// <summary>Absences overlapping this window, not only ones inside it.</summary>
     public DateOnly? From { get; init; }
 
@@ -84,6 +91,15 @@ public class GetAbsencesQueryHandler : IRequestHandler<GetAbsencesQuery, PagedLi
         if (request.Status is { } status)
         {
             query = query.Where(a => a.Status == status);
+        }
+
+        if (request.WaitingOnReviewer)
+        {
+            query = query.Where(a =>
+                a.Status == AbsenceStatus.Requested ||
+                (a.Status == AbsenceStatus.Approved &&
+                 a.ProposedStartDate != null &&
+                 a.ProposedByEmployee));
         }
 
         if (request.Type is { } type)

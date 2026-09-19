@@ -2,6 +2,8 @@ import {
   ApartmentOutlined,
   BusinessOutlined,
   ChecklistOutlined,
+  GroupsOutlined,
+  ManageAccountsOutlined,
   HandymanOutlined,
   HomeWorkOutlined,
   Inventory2Outlined,
@@ -17,8 +19,10 @@ import { materialsApi } from '../../api/materials';
 import { projectsApi } from '../../api/projects';
 import { toolsApi } from '../../api/tools';
 import { vehiclesApi } from '../../api/vehicles';
+import { notificationGroupsApi } from '../../api/notificationGroups';
+import { usersApi } from '../../api/users';
 import { workItemsApi } from '../../api/workItems';
-import { canViewDirectory } from '../../auth/authHelpers';
+import { canAdministerAccounts, canViewDirectory } from '../../auth/authHelpers';
 import type { User } from '../../api/types';
 import { paths } from '../../routes/paths';
 
@@ -52,10 +56,24 @@ async function searchEntity<TItem>(
   }
 }
 
-async function runGlobalSearch(query: string): Promise<GlobalSearchGroup[]> {
+async function runGlobalSearch(
+  query: string,
+  includeAccounts: boolean,
+): Promise<GlobalSearchGroup[]> {
   const listQuery = { search: query, pageNumber: 1, pageSize: PAGE_SIZE };
 
-  const [employees, projects, customers, vehicles, tools, materials, workItems, accommodations] =
+  const [
+    employees,
+    projects,
+    customers,
+    vehicles,
+    tools,
+    materials,
+    workItems,
+    accommodations,
+    users,
+    notificationGroups,
+  ] =
     await Promise.all([
       searchEntity(() => employeesApi.list(listQuery), (e) => ({
         id: e.id,
@@ -104,6 +122,23 @@ async function runGlobalSearch(query: string): Promise<GlobalSearchGroup[]> {
         label: a.address,
         path: paths.accommodationDetail(a.id),
       })),
+      // Accounts and groups are administration: only searched for those who
+      // can open them, so a result is never a page the reader is refused.
+      includeAccounts
+        ? searchEntity(() => usersApi.list(listQuery), (u) => ({
+            id: u.id,
+            label: u.employeeName ?? u.customerName ?? u.email,
+            sublabel: u.email,
+            path: paths.userEdit(u.id),
+          }))
+        : Promise.resolve([]),
+      includeAccounts
+        ? searchEntity(() => notificationGroupsApi.list(listQuery), (g) => ({
+            id: g.id,
+            label: g.name,
+            path: paths.notificationGroupEdit(g.id),
+          }))
+        : Promise.resolve([]),
     ]);
 
   const groups: GlobalSearchGroup[] = [
@@ -115,6 +150,8 @@ async function runGlobalSearch(query: string): Promise<GlobalSearchGroup[]> {
     { key: 'materials', labelKey: 'nav.materials', icon: <Inventory2Outlined fontSize="small" />, results: materials },
     { key: 'workItems', labelKey: 'nav.workItems', icon: <ChecklistOutlined fontSize="small" />, results: workItems },
     { key: 'accommodations', labelKey: 'nav.accommodations', icon: <HomeWorkOutlined fontSize="small" />, results: accommodations },
+    { key: 'users', labelKey: 'nav.users', icon: <ManageAccountsOutlined fontSize="small" />, results: users },
+    { key: 'notificationGroups', labelKey: 'nav.notificationGroups', icon: <GroupsOutlined fontSize="small" />, results: notificationGroups },
   ];
 
   return groups.filter((group) => group.results.length > 0);
@@ -135,7 +172,7 @@ export function useGlobalSearch(query: string, user: User | null | undefined) {
     let cancelled = false;
     setLoading(true);
     const timer = setTimeout(() => {
-      runGlobalSearch(trimmed)
+      runGlobalSearch(trimmed, canAdministerAccounts(user))
         .then((result) => {
           if (!cancelled) setGroups(result);
         })

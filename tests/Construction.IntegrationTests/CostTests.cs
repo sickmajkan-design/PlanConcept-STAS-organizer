@@ -1,3 +1,4 @@
+using Construction.Application.Features.Costs.Commands.ReopenVehicleExpense;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Features.Costs.Commands.DeleteCostRecord;
 using Construction.Application.Features.Costs.Commands.RecordMaterialMovement;
@@ -1189,6 +1190,60 @@ public class CostTests : IntegrationTestBase
 
         Assert.Equal(before + 1, after);
         Assert.Equal(0, adminHeardOwnEdit);
+    }
+
+    [Fact]
+    public async Task A_decision_can_be_taken_back_and_the_cost_waits_for_review_again()
+    {
+        var (vehicle, foreman) = await SeedFleetKeeperAsync();
+        var reviewer = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.ProjectManager));
+
+        var expense = await RecordExpenseAsync(
+            foreman, vehicle.Id, VehicleExpenseKind.Service, 5_000m, occurredOn: March);
+
+        await InScope(scope =>
+        {
+            ActAs(scope, reviewer);
+            return scope.Send(new ReviewVehicleExpenseCommand { Id = expense.Id, Approve = true });
+        });
+
+        var reopened = await InScope(scope =>
+        {
+            ActAs(scope, reviewer);
+            return scope.Send(new ReopenVehicleExpenseCommand { Id = expense.Id });
+        });
+
+        Assert.Equal(VehicleExpenseStatus.Pending, reopened.Status);
+        Assert.Null(reopened.ReviewNote);
+
+        // Pending already: nothing to take back.
+        await Assert.ThrowsAsync<ConflictException>(() => InScope(scope =>
+        {
+            ActAs(scope, reviewer);
+            return scope.Send(new ReopenVehicleExpenseCommand { Id = expense.Id });
+        }));
+    }
+
+    [Fact]
+    public async Task A_foreman_cannot_take_back_a_decision()
+    {
+        var (vehicle, foreman) = await SeedFleetKeeperAsync();
+        var reviewer = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.ProjectManager));
+
+        var expense = await RecordExpenseAsync(
+            foreman, vehicle.Id, VehicleExpenseKind.Service, 5_000m, occurredOn: March);
+
+        await InScope(scope =>
+        {
+            ActAs(scope, reviewer);
+            return scope.Send(new ReviewVehicleExpenseCommand { Id = expense.Id, Approve = true });
+        });
+
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => InScope(scope =>
+        {
+            ActAs(scope, foreman);
+            return scope.Send(new ReopenVehicleExpenseCommand { Id = expense.Id });
+        }));
     }
 
     [Fact]

@@ -158,7 +158,7 @@ export const sr: Record<MessageKey, Message> = {
   'guide.usage.step7':
     'Troškovi: sve evidencije troškova (vozila, alati, ostali, materijal, smještaj, finansije) su pod "Unosi troškova" u tabovima. Cijene rada, praznici i godišnji plan su pod "Podešavanja obračuna".',
   'guide.usage.step8':
-    'Sve što traži odluku (radni sati, odsustva, troškovi vozila, kvarovi) ima crveni broj u meniju i šalje obavještenje onome ko može odlučiti. Troškovi se odobravaju ili vraćaju sa razlogom; svoj unos ne možete odobriti sami (Super Admin može).',
+    'Sve što traži odluku (radni sati, odsustva, troškovi vozila, kvarovi) ima crveni broj u meniju i šalje obavještenje onome ko može odlučiti. Troškovi se odobravaju ili vraćaju sa razlogom; svoj unos ne možete odobriti sami (Super Admin može). Pogrešnu odluku možete poništiti dugmetom "Vrati na čekanje".',
   'guide.usage.step9':
     'Liste nemaju brojeve stranica: dugme "Prikaži još" otvara sljedeće redove. Odsustva i troškovi vozila imaju i prikaz "Tabla", po jedna kolona za svaki status, pored prikaza "Lista".',
   'guide.usage.step10':
@@ -1345,6 +1345,9 @@ export const sr: Record<MessageKey, Message> = {
   'vehicleExpenses.approve': 'Odobri',
   'vehicleExpenses.reject': 'Odbij',
   'vehicleExpenses.answered': 'Već pregledano',
+  'vehicleExpenses.reopen': 'Vrati na čekanje',
+  'vehicleExpenses.reopenTitle': 'Poništiti ovu odluku?',
+  'vehicleExpenses.reopenBody': 'Trošak se vraća na čekanje pregleda i više se ne računa kao pregledan.',
   'vehicleExpenses.rejectTitle': 'Vrati trošak na doradu',
   'vehicleExpenses.rejectHint': 'Razlog vidi osoba koja je evidentirala trošak, pa napiši šta treba ispraviti.',
   'vehicleExpenses.rejectReason': 'Razlog',

@@ -11,6 +11,7 @@ using Construction.Application.Features.Costs.Commands.RecordVehicleExpense;
 using Construction.Application.Features.Costs.Commands.RecordVehicleRentalOut;
 using Construction.Application.Features.Costs.Commands.ReturnToolRentalOut;
 using Construction.Application.Features.Costs.Commands.ReturnVehicleRentalOut;
+using Construction.Application.Features.Costs.Commands.ReopenVehicleExpense;
 using Construction.Application.Features.Costs.Commands.ReviewVehicleExpense;
 using Construction.Application.Features.Costs.Commands.SetAccommodationRate;
 using Construction.Application.Features.Costs.Commands.SetEmployeeRate;
@@ -278,6 +279,20 @@ public class CostsController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
+    }
+
+    /// <summary>Takes back a decision, so the cost waits for review again.</summary>
+    [HttpPost("/api/v{version:apiVersion}/vehicle-expenses/{id:guid}/reopen")]
+    [HttpPost("/api/vehicle-expenses/{id:guid}/reopen")]
+    [ProducesResponseType(typeof(VehicleExpenseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<VehicleExpenseDto>> ReopenVehicleExpense(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new ReopenVehicleExpenseCommand { Id = id }, cancellationToken));
     }
 
     /// <summary>Removes a recorded cost.</summary>

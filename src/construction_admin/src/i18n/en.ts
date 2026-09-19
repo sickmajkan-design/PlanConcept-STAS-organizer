@@ -149,7 +149,7 @@ export const en = {
   'guide.usage.step7':
     'Costs: every cost ledger (vehicles, tools, other, materials, accommodation, finance) sits under "Cost records" with tabs. Pay rates, holidays and the annual plan are under "Billing settings".',
   'guide.usage.step8':
-    'Anything that needs a decision (time entries, time off, vehicle costs, defects) shows a red number in the menu and sends a notification to whoever can decide. Costs are approved or sent back with a reason; you cannot approve your own entry (a Super Admin can).',
+    'Anything that needs a decision (time entries, time off, vehicle costs, defects) shows a red number in the menu and sends a notification to whoever can decide. Costs are approved or sent back with a reason; you cannot approve your own entry (a Super Admin can). A wrong decision can be taken back with "Back to pending".',
   'guide.usage.step9':
     'Lists have no page numbers: press "Show more" to see further rows. Time off and vehicle costs also have a Board view, one column per status, next to the List view.',
   'guide.usage.step10':
@@ -1312,6 +1312,9 @@ export const en = {
   'vehicleExpenses.approve': 'Approve',
   'vehicleExpenses.reject': 'Reject',
   'vehicleExpenses.answered': 'Already reviewed',
+  'vehicleExpenses.reopen': 'Back to pending',
+  'vehicleExpenses.reopenTitle': 'Take back this decision?',
+  'vehicleExpenses.reopenBody': 'The cost goes back to waiting for review, and is no longer counted as reviewed.',
   'vehicleExpenses.rejectTitle': 'Send this cost back',
   'vehicleExpenses.rejectHint': 'The reason is shown to whoever recorded it, so say what to fix.',
   'vehicleExpenses.rejectReason': 'Reason',
