@@ -1475,13 +1475,14 @@ public class CostTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task A_foreman_cannot_read_what_a_material_cost()
+    public async Task Someone_who_may_not_see_spending_cannot_read_what_a_material_cost()
     {
-        var (material, foreman) = await SeedStockKeeperAsync(10m);
+        var material = await InScope(scope => TestData.SeedMaterialAsync(scope, 10m));
+        var worker = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Worker));
 
         await Assert.ThrowsAsync<ForbiddenAccessException>(() => InScope(scope =>
         {
-            ActAs(scope, foreman);
+            ActAs(scope, worker);
             return scope.Send(new Construction.Application.Features.Materials.Queries.GetMaterialPricing.GetMaterialPricingQuery(material.Id));
         }));
     }
