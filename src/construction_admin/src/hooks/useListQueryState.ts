@@ -5,7 +5,8 @@ import type { ListQuery } from '../api/types';
 import { useDebouncedValue } from './useDebouncedValue';
 import { useSavedViews } from './useSavedViews';
 
-export const PAGE_SIZE_OPTIONS = [10, 20, 50];
+/** Each "show more" moves to the next size; the API refuses more than 100 in one request. */
+export const PAGE_SIZE_OPTIONS = [20, 50, 100];
 
 const SEARCH_DEBOUNCE_MS = 350;
 

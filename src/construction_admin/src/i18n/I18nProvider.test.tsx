@@ -108,18 +108,18 @@ describe('interpolation', () => {
   it('substitutes named values', () => {
     renderIn(
       'sr',
-      <Shows messageKey="common.displayedRows" values={{ from: 1, to: 20, count: 57 }} />,
+      <Shows messageKey="common.shownOfTotal" values={{ shown: 20, total: 57 }} />,
     );
 
-    expect(text()).toBe('1–20 od 57');
+    expect(text()).toBe('Prikazano 20 od 57');
   });
 
   it('leaves a placeholder alone rather than printing "undefined"', () => {
     // A missing value showing as `{to}` says "the translation wants something
     // here"; `undefined` says the data is broken. The first is easier to fix.
-    renderIn('sr', <Shows messageKey="common.displayedRows" values={{ from: 1 }} />);
+    renderIn('sr', <Shows messageKey="common.shownOfTotal" values={{ shown: 1 }} />);
 
-    expect(text()).toBe('1–{to} od {count}');
+    expect(text()).toBe('Prikazano 1 od {total}');
   });
 });
 

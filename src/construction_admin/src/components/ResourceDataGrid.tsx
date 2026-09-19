@@ -1,4 +1,4 @@
-import { Paper, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Button, Paper, Typography, useMediaQuery, useTheme } from '@mui/material';
 import {
   DataGrid,
   type GridColDef,
@@ -72,6 +72,13 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
   const theme = useTheme();
   const isCompact = useMediaQuery(theme.breakpoints.down('sm'));
 
+  // No page numbers: the list grows in place. Underneath it is still one
+  // server page, just a bigger one, so every row is always fresh - a row
+  // approved on screen cannot linger as "pending" from an older page load.
+  const total = data?.totalCount ?? 0;
+  const shown = data?.items.length ?? 0;
+  const nextPageSize = PAGE_SIZE_OPTIONS.find((size) => size > paginationModel.pageSize);
+
   // Always a model, empty when nothing is hidden: switching a grid between
   // controlled and uncontrolled as the window is resized draws a warning.
   const columnVisibilityModel: Record<string, boolean> =
@@ -80,10 +87,11 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
       : {};
 
   return (
-    <Paper sx={{ height }}>
+    <Paper sx={{ height, display: 'flex', flexDirection: 'column' }}>
       {isError ? (
         <ErrorState error={error} onRetry={onRetry} />
       ) : (
+        <Box sx={{ flex: 1, minHeight: 0 }}>
         <DataGrid
           rows={data?.items ?? []}
           columns={columns}
@@ -93,7 +101,7 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
           paginationMode="server"
           paginationModel={paginationModel}
           onPaginationModelChange={onPaginationModelChange}
-          pageSizeOptions={PAGE_SIZE_OPTIONS}
+          hideFooter
           sortingMode="server"
           sortModel={sortModel}
           onSortModelChange={onSortModelChange}
@@ -102,14 +110,6 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
           // explicitly or it stays English inside a translated page.
           localeText={{
             noRowsLabel: t('common.noRows'),
-            paginationRowsPerPage: `${t('common.rowsPerPage')}:`,
-            paginationDisplayedRows: ({ from, to, count }) =>
-              t('common.displayedRows', {
-                from,
-                to,
-                // -1 means the total is not known yet.
-                count: count === -1 ? to : count,
-              }),
           }}
           disableColumnMenu
           disableRowSelectionOnClick
@@ -136,6 +136,38 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
             '& .row-highlight': { bgcolor: 'action.hover' },
           }}
         />
+        </Box>
+      )}
+      {!isError && total > 0 && (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            px: 2,
+            py: 1,
+            borderTop: 1,
+            borderColor: 'divider',
+            flexWrap: 'wrap',
+          }}
+        >
+          <Typography variant="body2" color="text.secondary">
+            {t('common.shownOfTotal', { shown, total })}
+          </Typography>
+          {shown < total && nextPageSize && (
+            <Button
+              size="small"
+              onClick={() => onPaginationModelChange({ page: 0, pageSize: nextPageSize })}
+            >
+              {t('common.showMore')}
+            </Button>
+          )}
+          {shown < total && !nextPageSize && (
+            <Typography variant="body2" color="text.secondary">
+              {t('common.narrowSearch')}
+            </Typography>
+          )}
+        </Box>
       )}
     </Paper>
   );
