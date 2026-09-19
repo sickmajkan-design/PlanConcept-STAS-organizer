@@ -128,3 +128,23 @@ describe('ApiError.isForbidden', () => {
     expect(new ApiError('x').isForbidden).toBe(false);
   });
 });
+
+describe('ApiError in the Serbian panel', () => {
+  it('shows the API\'s known English messages in Serbian and leaves unknown text alone', async () => {
+    const { setLiveLocale } = await import('../i18n/liveT');
+    setLiveLocale('sr');
+
+    try {
+      const known = new ApiError('You cannot review your own hours.', 403, {
+        Note: ['A reason is required when sending an entry back.'],
+      });
+      const unknown = new ApiError('Something the table has never heard of.');
+
+      expect(known.message).toBe('Ne možete pregledati vlastite radne sate.');
+      expect(known.errorFor('note')).toBe('Razlog je obavezan pri vraćanju unosa.');
+      expect(unknown.message).toBe('Something the table has never heard of.');
+    } finally {
+      setLiveLocale('en');
+    }
+  });
+});

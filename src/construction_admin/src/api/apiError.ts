@@ -1,7 +1,8 @@
 import { AxiosError } from 'axios';
 
 import type { MessageKey } from '../i18n/en';
-import { liveT } from '../i18n/liveT';
+import { liveT, getLiveLocale } from '../i18n/liveT';
+import { translateServerMessage } from '../i18n/serverMessages.sr';
 
 type ProblemDetails = {
   title?: string;
@@ -64,12 +65,19 @@ export class ApiError extends Error {
     fieldErrors: Record<string, string[]> = {},
     kind: ApiErrorKind | null = null,
   ) {
-    super(message);
+    // The API writes its messages in English. In the Serbian panel the ones
+    // we know are shown in Serbian; anything unknown is shown as sent.
+    const localize = (text: string) =>
+      getLiveLocale() === 'sr' ? (translateServerMessage(text) ?? text) : text;
+
+    super(localize(message));
     this.name = 'ApiError';
     this.status = status;
-    this.fieldErrors = fieldErrors;
+    this.fieldErrors = Object.fromEntries(
+      Object.entries(fieldErrors).map(([field, messages]) => [field, messages.map(localize)]),
+    );
     this.kind = kind;
-    this.fallbackMessage = message;
+    this.fallbackMessage = localize(message);
 
     // Shadows `Error`'s own instance property with a getter, so every
     // existing `error.message` read — and there are many — picks up

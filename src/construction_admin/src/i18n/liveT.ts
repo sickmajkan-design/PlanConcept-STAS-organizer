@@ -46,3 +46,14 @@ export function setLiveTranslate(t: (key: MessageKey, values?: TranslateValues) 
 export function liveT(key: MessageKey, values?: TranslateValues): string {
   return current ? current(key, values) : englishFallback(key, values);
 }
+
+let currentLocale = 'en';
+
+/** The language in use, for code outside React (an `ApiError` deciding whether to translate the server's text). */
+export function setLiveLocale(locale: string): void {
+  currentLocale = locale;
+}
+
+export function getLiveLocale(): string {
+  return currentLocale;
+}
