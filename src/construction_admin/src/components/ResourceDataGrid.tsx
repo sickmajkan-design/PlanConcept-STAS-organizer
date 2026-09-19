@@ -76,7 +76,7 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
   // server page, just a bigger one, so every row is always fresh - a row
   // approved on screen cannot linger as "pending" from an older page load.
   const total = data?.totalCount ?? 0;
-  const shown = data?.items.length ?? 0;
+  const shown = data?.items?.length ?? 0;
   const nextPageSize = PAGE_SIZE_OPTIONS.find((size) => size > paginationModel.pageSize);
 
   // Always a model, empty when nothing is hidden: switching a grid between
