@@ -59,6 +59,12 @@ public static class FuelStatementFileParser
         var rows = new List<IReadOnlyList<string>>();
         var lines = text.Split(["\r\n", "\n"], StringSplitOptions.None);
 
+        // The heading line says which delimiter the file uses. A file with ';'
+        // in it is a European-locale export, where a comma is the decimal
+        // separator inside a value ("5,50") and must not split the cell.
+        var heading = lines.FirstOrDefault(l => l.Length > 0) ?? string.Empty;
+        var delimiter = heading.Contains(';') ? ';' : ',';
+
         foreach (var line in lines)
         {
             if (line.Length == 0)
@@ -66,7 +72,7 @@ public static class FuelStatementFileParser
                 continue;
             }
 
-            var cells = ParseCsvLine(line);
+            var cells = ParseCsvLine(line, delimiter);
 
             if (cells.Any(c => !string.IsNullOrWhiteSpace(c)))
             {
@@ -77,7 +83,7 @@ public static class FuelStatementFileParser
         return new FuelStatementParseResult(rows);
     }
 
-    private static List<string> ParseCsvLine(string line)
+    private static List<string> ParseCsvLine(string line, char delimiter)
     {
         var cells = new List<string>();
         var current = new System.Text.StringBuilder();
@@ -110,7 +116,7 @@ public static class FuelStatementFileParser
             {
                 inQuotes = true;
             }
-            else if (c == ',' || c == ';')
+            else if (c == delimiter)
             {
                 cells.Add(current.ToString().Trim());
                 current.Clear();
