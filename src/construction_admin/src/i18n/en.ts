@@ -41,7 +41,10 @@ export const en = {
   'hierarchy.description': 'The company by rank, most senior first. Pick a rank per person to place them.',
   'hierarchy.unplaced': 'Not placed yet',
   'hierarchy.unplacedHint': 'No rank picked, and their account role does not say where they belong.',
-  'hierarchy.people': { one: '{count} person', other: '{count} people' },
+  'hierarchy.accounts': 'Accounts without an employee',
+  'hierarchy.accountsHint':
+    'Not linked to an employee record, so they cannot be ranked yet. Link them from Users.',
+  'hierarchy.people':{ one: '{count} person', other: '{count} people' },
   'hierarchy.changeRank': 'Change rank',
   'hierarchy.rankDialogTitle': 'Place {name} on the chart',
   'hierarchy.rankDialogHint': 'Only moves them on this page — it does not change what they may do in the app.',

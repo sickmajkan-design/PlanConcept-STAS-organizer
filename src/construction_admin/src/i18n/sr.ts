@@ -48,7 +48,10 @@ export const sr: Record<MessageKey, Message> = {
   'hierarchy.description': 'Firma po rangu, od najvišeg ka najnižem. Izaberi rang za svaku osobu da je rasporediš.',
   'hierarchy.unplaced': 'Još nije raspoređeno',
   'hierarchy.unplacedHint': 'Nije izabran rang, a uloga naloga ne govori gde pripadaju.',
-  'hierarchy.people': { one: '{count} osoba', few: '{count} osobe', other: '{count} osoba' },
+  'hierarchy.accounts': 'Nalozi bez zaposlenog',
+  'hierarchy.accountsHint':
+    'Nisu povezani sa zapisom zaposlenog, pa im se još ne može dodeliti rang. Poveži ih u Korisnicima.',
+  'hierarchy.people':{ one: '{count} osoba', few: '{count} osobe', other: '{count} osoba' },
   'hierarchy.changeRank': 'Promeni rang',
   'hierarchy.rankDialogTitle': 'Rasporedi: {name}',
   'hierarchy.rankDialogHint': 'Pomera ih samo na ovoj stranici — ne menja šta smeju u aplikaciji.',

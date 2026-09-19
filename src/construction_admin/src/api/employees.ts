@@ -8,7 +8,7 @@ import type {
   EmployeeStatus,
   EmployeeType,
   ListQuery,
-  OrganizationHierarchyNode,
+  OrganizationHierarchy,
   OrganizationRank,
 } from './types';
 
@@ -50,7 +50,7 @@ export const employeesApi = {
     }),
 
   hierarchy: () =>
-    request<OrganizationHierarchyNode[]>({
+    request<OrganizationHierarchy>({
       method: 'GET',
       url: '/api/v1/employees/hierarchy',
     }),

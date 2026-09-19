@@ -490,8 +490,8 @@ public class EmployeeTests : IntegrationTestBase
 
         var hierarchy = await InScope(scope => scope.Send(new GetOrganizationHierarchyQuery()));
 
-        var managerNode = hierarchy.Single(n => n.EmployeeId == manager.Id);
-        var subcontractorNode = hierarchy.Single(n => n.EmployeeId == subcontractor.Id);
+        var managerNode = hierarchy.People.Single(n => n.EmployeeId == manager.Id);
+        var subcontractorNode = hierarchy.People.Single(n => n.EmployeeId == subcontractor.Id);
 
         Assert.Equal("ProjectManager", managerNode.Role);
         Assert.Null(subcontractorNode.Role);
@@ -508,7 +508,7 @@ public class EmployeeTests : IntegrationTestBase
         Assert.Equal(OrganizationRank.LogisticsManager, ranked.Rank);
 
         var node = (await InScope(scope => scope.Send(new GetOrganizationHierarchyQuery())))
-            .Single(n => n.EmployeeId == employee.Id);
+            .People.Single(n => n.EmployeeId == employee.Id);
 
         Assert.Equal(OrganizationRank.LogisticsManager, node.Rank);
 
@@ -533,6 +533,46 @@ public class EmployeeTests : IntegrationTestBase
         var detail = await InScope(scope => scope.Send(new GetEmployeeByIdQuery(employee.Id)));
 
         Assert.Equal(OrganizationRank.Director, detail.Rank);
+    }
+
+    [Fact]
+    public async Task Logins_with_no_employee_are_listed_for_admins_only()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+        var foreman = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Foreman));
+
+        var linkedEmployee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var linked = await InScope(scope =>
+            TestData.SeedUserAsync(scope, UserRole.Foreman, linkedEmployee.Id));
+        var inactive = await InScope(scope =>
+            TestData.SeedUserAsync(scope, UserRole.Admin, isActive: false));
+        var customer = await InScope(scope =>
+            TestData.SeedUserAsync(scope, UserRole.Customer));
+
+        var asAdmin = await InScope(scope =>
+        {
+            scope.CurrentUser.SignInAs(admin.Id, admin.Role, null, admin.Email);
+            return scope.Send(new GetOrganizationHierarchyQuery());
+        });
+
+        var emails = asAdmin.UnlinkedAccounts.Select(a => a.Email).ToList();
+
+        Assert.Contains(admin.Email, emails);
+        Assert.Contains(foreman.Email, emails);
+        // Already on the chart through their employee, a stranded customer
+        // portal login, and a deactivated account are each not staff to place.
+        Assert.DoesNotContain(linked.Email, emails);
+        Assert.DoesNotContain(customer.Email, emails);
+        Assert.DoesNotContain(inactive.Email, emails);
+
+        // Login emails are an Admin-and-above view; a foreman sees the chart only.
+        var asForeman = await InScope(scope =>
+        {
+            scope.CurrentUser.SignInAs(foreman.Id, foreman.Role, null, foreman.Email);
+            return scope.Send(new GetOrganizationHierarchyQuery());
+        });
+
+        Assert.Empty(asForeman.UnlinkedAccounts);
     }
 
     [Fact]

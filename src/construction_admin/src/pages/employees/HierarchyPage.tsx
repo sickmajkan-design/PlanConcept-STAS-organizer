@@ -1,4 +1,4 @@
-import { BusinessOutlined, SwapVertOutlined } from '@mui/icons-material';
+import { BusinessOutlined, ManageAccountsOutlined, SwapVertOutlined } from '@mui/icons-material';
 import {
   Avatar,
   Box,
@@ -27,6 +27,7 @@ import {
   type OrganizationHierarchyNode,
   type OrganizationRank,
   type Role,
+  type UnlinkedAccount,
 } from '../../api/types';
 import { canAdministerAccounts } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
@@ -135,6 +136,41 @@ function PersonCard({
           </IconButton>
         </Tooltip>
       )}
+    </Paper>
+  );
+}
+
+/** A login with no employee behind it: shown for completeness, with no rank to change. */
+function AccountCard({ account, onOpen }: { account: UnlinkedAccount; onOpen: () => void }) {
+  const enumLabel = useEnumLabel();
+
+  return (
+    <Paper
+      variant="outlined"
+      onClick={onOpen}
+      sx={{
+        width: 240,
+        p: 1.25,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1.25,
+        cursor: 'pointer',
+        borderLeft: '4px solid',
+        borderLeftColor: 'text.disabled',
+        '&:hover': { boxShadow: 3 },
+      }}
+    >
+      <Avatar sx={{ width: 38, height: 38 }}>
+        <ManageAccountsOutlined fontSize="small" />
+      </Avatar>
+      <Box sx={{ minWidth: 0, flex: 1 }}>
+        <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
+          {account.email}
+        </Typography>
+        <Typography variant="caption" color="text.secondary" noWrap component="div">
+          {enumLabel('role', account.role)}
+        </Typography>
+      </Box>
     </Paper>
   );
 }
@@ -295,7 +331,7 @@ export function HierarchyPage() {
     const byRank = new Map<OrganizationRank, OrganizationHierarchyNode[]>();
     const loose: OrganizationHierarchyNode[] = [];
 
-    for (const node of data ?? []) {
+    for (const node of data?.people ?? []) {
       const rank = node.rank ?? rankFromRole(node.role);
 
       if (!rank) {
@@ -315,7 +351,9 @@ export function HierarchyPage() {
   }, [data]);
 
   const companyName = branding?.name || t('nav.appName');
-  const nothingToShow = !isLoading && !isError && tiers.length === 0 && unplaced.length === 0;
+  const accounts = data?.unlinkedAccounts ?? [];
+  const nothingToShow =
+    !isLoading && !isError && tiers.length === 0 && unplaced.length === 0 && accounts.length === 0;
 
   return (
     <Box>
@@ -384,6 +422,35 @@ export function HierarchyPage() {
                 onChangeRank={setEditing}
               />
             </Box>
+          )}
+          {accounts.length > 0 && (
+            <Paper
+              variant="outlined"
+              sx={{ width: '100%', mt: 3, overflow: 'hidden', borderTop: '4px solid', borderTopColor: 'text.disabled' }}
+            >
+              <Stack
+                direction="row"
+                spacing={1.5}
+                sx={{ px: 2, py: 1.25, alignItems: 'center', bgcolor: 'action.hover' }}
+              >
+                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                  {t('hierarchy.accounts')}
+                </Typography>
+                <Chip size="small" label={t('hierarchy.people', { count: accounts.length })} />
+                <Typography variant="caption" color="text.secondary">
+                  {t('hierarchy.accountsHint')}
+                </Typography>
+              </Stack>
+              <Box sx={{ p: 2, display: 'flex', flexWrap: 'wrap', gap: 1.5, justifyContent: 'center' }}>
+                {accounts.map((account) => (
+                  <AccountCard
+                    key={account.userId}
+                    account={account}
+                    onOpen={() => navigate(paths.userEdit(account.userId))}
+                  />
+                ))}
+              </Box>
+            </Paper>
           )}
         </Box>
       )}

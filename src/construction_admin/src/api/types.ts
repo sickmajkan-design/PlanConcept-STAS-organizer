@@ -57,6 +57,19 @@ export const organizationRanks = [
 
 export type OrganizationRank = (typeof organizationRanks)[number];
 
+/** A staff login with no employee record behind it. Shown, but it cannot hold a rank. */
+export interface UnlinkedAccount {
+  userId: string;
+  email: string;
+  role: Role;
+}
+
+export interface OrganizationHierarchy {
+  people: OrganizationHierarchyNode[];
+  /** Filled for Admin and above only. */
+  unlinkedAccounts: UnlinkedAccount[];
+}
+
 /** One person on the org chart. `role` is null for an employee with no login of their own. */
 export interface OrganizationHierarchyNode {
   employeeId: string;

@@ -34,8 +34,8 @@ public class EmployeesController : ApiControllerBase
     /// <summary>Everyone active, for the org chart to group by role.</summary>
     [HttpGet("hierarchy")]
     [Authorize(Policy = Policies.ForemanAndAbove)]
-    [ProducesResponseType(typeof(List<OrganizationHierarchyNodeDto>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<OrganizationHierarchyNodeDto>>> GetHierarchy(
+    [ProducesResponseType(typeof(OrganizationHierarchyDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<OrganizationHierarchyDto>> GetHierarchy(
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(new GetOrganizationHierarchyQuery(), cancellationToken));
