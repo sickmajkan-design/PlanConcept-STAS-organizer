@@ -1,4 +1,4 @@
-﻿import { Box, Divider, Link as MuiLink, Stack, Typography } from '@mui/material';
+import { Box, Divider, Link as MuiLink, Stack, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { Link as RouterLink } from 'react-router-dom';
 

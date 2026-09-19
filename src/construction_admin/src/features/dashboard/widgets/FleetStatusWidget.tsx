@@ -1,4 +1,4 @@
-﻿import { List, ListItem, ListItemText, Stack, Typography } from '@mui/material';
+import { List, ListItem, ListItemText, Stack, Typography } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';

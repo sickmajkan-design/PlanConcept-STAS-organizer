@@ -1,4 +1,4 @@
-﻿import { AddOutlined, CheckOutlined, CloseOutlined, DeleteOutlined } from '@mui/icons-material';
+import { AddOutlined, CheckOutlined, CloseOutlined, DeleteOutlined } from '@mui/icons-material';
 import {
   Alert,
   AlertTitle,
