@@ -1120,6 +1120,43 @@ public class CostTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task The_owner_may_approve_a_cost_they_recorded_themselves()
+    {
+        // Nobody sits above a SuperAdmin to send it to, and where one person
+        // records most costs the general rule would make them unapprovable.
+        var (vehicle, _) = await SeedFleetKeeperAsync();
+        var owner = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.SuperAdmin));
+
+        var expense = await RecordExpenseAsync(
+            owner, vehicle.Id, VehicleExpenseKind.Service, 5_000m, occurredOn: March);
+
+        var reviewed = await InScope(scope =>
+        {
+            ActAs(scope, owner);
+            return scope.Send(new ReviewVehicleExpenseCommand { Id = expense.Id, Approve = true });
+        });
+
+        Assert.Equal(VehicleExpenseStatus.Approved, reviewed.Status);
+    }
+
+    [Fact]
+    public async Task An_admin_still_cannot_approve_their_own_cost()
+    {
+        // The exception is for the owner alone, not for the tier below.
+        var (vehicle, _) = await SeedFleetKeeperAsync();
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+
+        var expense = await RecordExpenseAsync(
+            admin, vehicle.Id, VehicleExpenseKind.Service, 5_000m, occurredOn: March);
+
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new ReviewVehicleExpenseCommand { Id = expense.Id, Approve = true });
+        }));
+    }
+
+    [Fact]
     public async Task Editing_a_reviewed_cost_sends_it_back_to_pending()
     {
         var (vehicle, foreman) = await SeedFleetKeeperAsync();

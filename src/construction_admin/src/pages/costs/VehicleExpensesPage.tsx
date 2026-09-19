@@ -212,8 +212,10 @@ export function VehicleExpensesPage() {
           const isPending = params.row.status === 'Pending';
           // The recorder is shown by email, which is also what the account
           // signs in with. Never your own — the API refuses it, so the button
-          // says why up front instead of failing after a click.
-          const isOwn = !!user && params.row.recordedByName === user.email;
+          // says why up front instead of failing after a click. The owner
+          // (SuperAdmin) is the one exception, as on the API.
+          const isOwn =
+            !!user && user.role !== 'SuperAdmin' && params.row.recordedByName === user.email;
           const canAct = isPending && !isOwn;
           const reason = !isPending
             ? t('vehicleExpenses.answered')

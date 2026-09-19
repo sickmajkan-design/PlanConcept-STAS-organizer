@@ -87,7 +87,15 @@ public class ReviewVehicleExpenseCommandHandler
         // Nobody signs off their own entry — without this a project manager
         // recording their own fuel could approve it themselves, and the
         // review would mean nothing.
-        if (expense.RecordedByUserId is { } recordedByUserId && recordedByUserId == reviewerId)
+        //
+        // Except the owner. A SuperAdmin sits at the top of the approval
+        // chain: there is nobody above them to send it to, and in a firm where
+        // one person records most costs the rule would leave those costs
+        // unapprovable by anyone. Every other role, Admin included, still
+        // needs a second pair of eyes.
+        if (expense.RecordedByUserId is { } recordedByUserId
+            && recordedByUserId == reviewerId
+            && _currentUserService.Role != UserRole.SuperAdmin)
         {
             throw new ForbiddenAccessException("You cannot review a cost you recorded yourself.");
         }
