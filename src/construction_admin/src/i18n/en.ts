@@ -36,6 +36,13 @@ export const en = {
   'duplicateWarning.message': 'A similar record already exists — check before saving another:',
   'nav.scheduledReports': 'Scheduled reports',
   'nav.audit': 'Audit trail',
+  'nav.hierarchy': 'Hierarchy',
+  'hierarchy.title': 'Hierarchy',
+  'hierarchy.description': 'Everyone active, grouped by the level their account signs in at.',
+  'hierarchy.tier.management': 'Management',
+  'hierarchy.tier.admins': 'Administrators',
+  'hierarchy.tier.managers': 'Project managers & foremen',
+  'hierarchy.tier.workers': 'Workers',
   'nav.weeklyReports': 'Weekly site reports',
   'weeklyReports.title': 'Weekly site reports',
   'weeklyReports.description':
@@ -1228,6 +1235,17 @@ export const en = {
   },
   'vehicleExpenses.consumptionFlagRow':
     '{vehicle}, {date}: {litresPer100Km} L/100km ({sign}{deviation}% vs. its usual {average} L/100km)',
+  'vehicleExpenses.status': 'Status',
+  'vehicleExpenses.approve': 'Approve',
+  'vehicleExpenses.reject': 'Reject',
+  'vehicleExpenses.answered': 'Already reviewed',
+  'vehicleExpenses.rejectTitle': 'Send this cost back',
+  'vehicleExpenses.rejectHint': 'The reason is shown to whoever recorded it, so say what to fix.',
+  'vehicleExpenses.rejectReason': 'Reason',
+  'vehicleExpenses.approveTitle': 'Approve this cost?',
+  'vehicleExpenses.approveBody': 'It counts toward the fleet report as reviewed and correct.',
+  'vehicleExpenses.reviewOwnCost': 'You cannot review a cost you recorded yourself.',
+  'vehicleExpenses.allStatuses': 'Any status',
 
   'fuelCards.title': 'Fuel cards',
   'fuelCards.add': 'Add card',
@@ -1720,6 +1738,10 @@ export const en = {
   'auditAction.Created': 'Created',
   'auditAction.Updated': 'Updated',
   'auditAction.Deleted': 'Deleted',
+
+  'vehicleExpenseStatus.Pending': 'Pending review',
+  'vehicleExpenseStatus.Approved': 'Approved',
+  'vehicleExpenseStatus.Rejected': 'Rejected',
 
   'vehicleExpenseKind.Fuel': 'Fuel',
   'vehicleExpenseKind.Service': 'Service',

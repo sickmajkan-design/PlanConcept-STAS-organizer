@@ -156,11 +156,13 @@ public class ApiAuthorizationTests
             new("GET", "/api/vehicle-expenses/fuel-consumption-flags", UserRole.Foreman),
             new("POST", "/api/vehicle-expenses", UserRole.Foreman),
             new("DELETE", $"/api/vehicle-expenses/{Id}", UserRole.Foreman, HandlerNarrows: true),
+            new("POST", $"/api/vehicle-expenses/{Id}/review", UserRole.Foreman, HandlerNarrows: true),
             new("GET", "/api/costs/projects", UserRole.Foreman),
             new("GET", "/api/costs/vehicles", UserRole.Foreman),
 
             // ---- employees ------------------------------------------------
             new("GET", "/api/employees", UserRole.Foreman),
+            new("GET", "/api/employees/hierarchy", UserRole.Foreman),
             new("GET", $"/api/employees/{Id}", UserRole.Foreman),
             new("POST", "/api/employees", UserRole.Admin),
             new("PUT", $"/api/employees/{Id}", UserRole.Admin),

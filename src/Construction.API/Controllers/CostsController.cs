@@ -11,6 +11,7 @@ using Construction.Application.Features.Costs.Commands.RecordVehicleExpense;
 using Construction.Application.Features.Costs.Commands.RecordVehicleRentalOut;
 using Construction.Application.Features.Costs.Commands.ReturnToolRentalOut;
 using Construction.Application.Features.Costs.Commands.ReturnVehicleRentalOut;
+using Construction.Application.Features.Costs.Commands.ReviewVehicleExpense;
 using Construction.Application.Features.Costs.Commands.SetAccommodationRate;
 using Construction.Application.Features.Costs.Commands.SetEmployeeRate;
 using Construction.Application.Features.Costs.Commands.SetVehicleRentalRate;
@@ -258,6 +259,22 @@ public class CostsController : ApiControllerBase
     public async Task<ActionResult<VehicleExpenseDto>> UpdateVehicleExpense(
         Guid id,
         UpdateVehicleExpenseCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
+    }
+
+    /// <summary>Signs a recorded cost off, or sends it back with a reason. Never your own.</summary>
+    [HttpPost("/api/v{version:apiVersion}/vehicle-expenses/{id:guid}/review")]
+    [HttpPost("/api/vehicle-expenses/{id:guid}/review")]
+    [ProducesResponseType(typeof(VehicleExpenseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<VehicleExpenseDto>> ReviewVehicleExpense(
+        Guid id,
+        ReviewVehicleExpenseCommand command,
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));

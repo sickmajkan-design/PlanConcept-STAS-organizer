@@ -25,6 +25,7 @@ import type {
   PagedList,
   ProjectCostReport,
   ReturnRentalOutInput,
+  ReviewVehicleExpenseInput,
   ToolCostReport,
   ToolExpense,
   ToolExpenseInput,
@@ -42,6 +43,7 @@ import type {
   VehicleExpense,
   VehicleExpenseInput,
   VehicleExpenseKind,
+  VehicleExpenseStatus,
   VehicleExpenseSummary,
   VehicleRentalOut,
   VehicleRentalOutInput,
@@ -69,6 +71,7 @@ export interface MaterialMovementListQuery extends ListQuery {
 export interface VehicleExpenseListQuery extends ListQuery {
   vehicleId?: string;
   kind?: VehicleExpenseKind;
+  status?: VehicleExpenseStatus;
   from?: string;
   to?: string;
 }
@@ -251,6 +254,13 @@ export const costsApi = {
 
     remove: (id: string) =>
       request<void>({ method: 'DELETE', url: `/api/v1/vehicle-expenses/${id}` }),
+
+    review: (id: string, input: ReviewVehicleExpenseInput) =>
+      request<VehicleExpense>({
+        method: 'POST',
+        url: `/api/v1/vehicle-expenses/${id}/review`,
+        data: input,
+      }),
 
     fuelConsumptionFlags: (query: FuelConsumptionFlagsQuery) =>
       request<FuelConsumptionFlag[]>({

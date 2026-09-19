@@ -119,6 +119,18 @@ public class UpdateVehicleExpenseCommandHandler
         expense.Supplier = request.Supplier?.Trim();
         expense.Note = request.Note?.Trim();
 
+        // A decision made against the old figures says nothing about the new
+        // ones. Back to Pending regardless of which way it went, so a changed
+        // amount always gets a fresh look rather than riding on an approval
+        // that was never about this version of it.
+        if (expense.Status != VehicleExpenseStatus.Pending)
+        {
+            expense.Status = VehicleExpenseStatus.Pending;
+            expense.ReviewNote = null;
+            expense.ReviewedByUserId = null;
+            expense.ReviewedAt = null;
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
 
         return await _context.VehicleExpenses

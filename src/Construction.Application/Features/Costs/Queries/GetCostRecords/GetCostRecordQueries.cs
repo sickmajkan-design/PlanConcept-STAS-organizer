@@ -446,6 +446,8 @@ public record GetVehicleExpensesQuery : ISortablePagedQuery, IRequest<PagedList<
 
     public VehicleExpenseKind? Kind { get; init; }
 
+    public VehicleExpenseStatus? Status { get; init; }
+
     public DateOnly? From { get; init; }
 
     public DateOnly? To { get; init; }
@@ -499,6 +501,11 @@ public class GetVehicleExpensesQueryHandler
         if (request.Kind is { } kind)
         {
             query = query.Where(e => e.Kind == kind);
+        }
+
+        if (request.Status is { } status)
+        {
+            query = query.Where(e => e.Status == status);
         }
 
         if (request.From is { } from)

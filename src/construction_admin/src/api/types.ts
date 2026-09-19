@@ -40,6 +40,14 @@ export const roles = [
 
 export type Role = (typeof roles)[number];
 
+/** One person on the org chart. `role` is null for an employee with no login of their own. */
+export interface OrganizationHierarchyNode {
+  employeeId: string;
+  fullName: string;
+  position: string;
+  role: Role | null;
+}
+
 export const employeeStatuses = [
   'Active',
   'OnLeave',
@@ -882,6 +890,10 @@ export const vehicleExpenseKinds = [
 
 export type VehicleExpenseKind = (typeof vehicleExpenseKinds)[number];
 
+export const vehicleExpenseStatuses = ['Pending', 'Approved', 'Rejected'] as const;
+
+export type VehicleExpenseStatus = (typeof vehicleExpenseStatuses)[number];
+
 export const rateTypes = ['Hourly', 'Daily'] as const;
 
 export type RateType = (typeof rateTypes)[number];
@@ -1117,6 +1129,19 @@ export interface VehicleExpense {
   note: string | null;
   recordedByName: string | null;
   createdAt: string;
+  status: VehicleExpenseStatus;
+  /** Set only on a rejection. */
+  reviewNote: string | null;
+  reviewedByName: string | null;
+  reviewedAt: string | null;
+}
+
+export interface ReviewVehicleExpenseInput {
+  approve: boolean;
+  /** Required when `approve` is false. */
+  note?: string | null;
+  /** Required to reverse an earlier decision, rather than review a pending one. */
+  confirm?: boolean;
 }
 
 /** A fill-up whose consumption looks off against that vehicle's own history. */

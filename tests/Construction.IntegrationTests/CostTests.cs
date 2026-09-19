@@ -2,7 +2,9 @@ using Construction.Application.Common.Exceptions;
 using Construction.Application.Features.Costs.Commands.DeleteCostRecord;
 using Construction.Application.Features.Costs.Commands.RecordMaterialMovement;
 using Construction.Application.Features.Costs.Commands.RecordVehicleExpense;
+using Construction.Application.Features.Costs.Commands.ReviewVehicleExpense;
 using Construction.Application.Features.Costs.Commands.SetEmployeeRate;
+using Construction.Application.Features.Costs.Commands.UpdateVehicleExpense;
 using Construction.Application.Features.Costs.Queries.GetCostRecords;
 using Construction.Application.Features.Costs.Queries.GetFuelConsumptionFlags;
 using Construction.Application.Features.Costs.Queries.GetProjectCosts;
@@ -969,6 +971,172 @@ public class CostTests : IntegrationTestBase
             ActAs(scope, worker, employee.Id);
             return scope.Send(new GetFuelConsumptionFlagsQuery());
         }));
+    }
+
+    // ---- vehicle expense review --------------------------------------------
+
+    [Fact]
+    public async Task A_recorded_cost_starts_pending_and_can_be_approved()
+    {
+        var (vehicle, foreman) = await SeedFleetKeeperAsync();
+        var reviewer = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.ProjectManager));
+
+        var expense = await RecordExpenseAsync(
+            foreman, vehicle.Id, VehicleExpenseKind.Service, 5_000m, occurredOn: March);
+
+        Assert.Equal(VehicleExpenseStatus.Pending, expense.Status);
+
+        var reviewed = await InScope(scope =>
+        {
+            ActAs(scope, reviewer);
+            return scope.Send(new ReviewVehicleExpenseCommand { Id = expense.Id, Approve = true });
+        });
+
+        Assert.Equal(VehicleExpenseStatus.Approved, reviewed.Status);
+        Assert.Null(reviewed.ReviewNote);
+        Assert.Equal(reviewer.Email, reviewed.ReviewedByName);
+    }
+
+    [Fact]
+    public async Task Rejecting_a_cost_requires_a_reason()
+    {
+        var (vehicle, foreman) = await SeedFleetKeeperAsync();
+        var reviewer = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.ProjectManager));
+
+        var expense = await RecordExpenseAsync(
+            foreman, vehicle.Id, VehicleExpenseKind.Service, 5_000m, occurredOn: March);
+
+        var reviewed = await InScope(scope =>
+        {
+            ActAs(scope, reviewer);
+            return scope.Send(new ReviewVehicleExpenseCommand
+            {
+                Id = expense.Id,
+                Approve = false,
+                Note = "Wrong vehicle billed."
+            });
+        });
+
+        Assert.Equal(VehicleExpenseStatus.Rejected, reviewed.Status);
+        Assert.Equal("Wrong vehicle billed.", reviewed.ReviewNote);
+    }
+
+    [Fact]
+    public async Task A_foreman_cannot_review_a_cost_even_one_they_did_not_record()
+    {
+        // Review is office work, one tier above recording — the same split
+        // TimeEntries uses between submitting hours and signing them off.
+        var (vehicle, foreman) = await SeedFleetKeeperAsync();
+        var otherForeman = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Foreman));
+
+        var expense = await RecordExpenseAsync(
+            foreman, vehicle.Id, VehicleExpenseKind.Service, 5_000m, occurredOn: March);
+
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => InScope(scope =>
+        {
+            ActAs(scope, otherForeman);
+            return scope.Send(new ReviewVehicleExpenseCommand { Id = expense.Id, Approve = true });
+        }));
+    }
+
+    [Fact]
+    public async Task Nobody_reviews_a_cost_they_recorded_themselves()
+    {
+        var (vehicle, foreman) = await SeedFleetKeeperAsync();
+
+        // The recorder happens to also hold a reviewing role — a small team
+        // where the same person wears both hats. The rule still has to hold.
+        var expense = await InScope(scope =>
+        {
+            ActAs(scope, foreman);
+            return scope.Send(new RecordVehicleExpenseCommand
+            {
+                VehicleId = vehicle.Id,
+                Kind = VehicleExpenseKind.Service,
+                Amount = 5_000m,
+                OccurredOn = March
+            });
+        });
+
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => InScope(scope =>
+        {
+            // Promote them past Foreman for this call only, so the failure is
+            // provably about self-review and not the role check above it.
+            scope.CurrentUser.SignInAs(foreman.Id, UserRole.ProjectManager, null, foreman.Email);
+            return scope.Send(new ReviewVehicleExpenseCommand { Id = expense.Id, Approve = true });
+        }));
+    }
+
+    [Fact]
+    public async Task Editing_a_reviewed_cost_sends_it_back_to_pending()
+    {
+        var (vehicle, foreman) = await SeedFleetKeeperAsync();
+        var reviewer = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.ProjectManager));
+
+        var expense = await RecordExpenseAsync(
+            foreman, vehicle.Id, VehicleExpenseKind.Service, 5_000m, occurredOn: March);
+
+        await InScope(scope =>
+        {
+            ActAs(scope, reviewer);
+            return scope.Send(new ReviewVehicleExpenseCommand { Id = expense.Id, Approve = true });
+        });
+
+        var updated = await InScope(scope =>
+        {
+            ActAs(scope, reviewer);
+            return scope.Send(new UpdateVehicleExpenseCommand
+            {
+                Id = expense.Id,
+                VehicleId = vehicle.Id,
+                Kind = VehicleExpenseKind.Service,
+                Amount = 6_000m,
+                OccurredOn = March
+            });
+        });
+
+        Assert.Equal(VehicleExpenseStatus.Pending, updated.Status);
+        Assert.Null(updated.ReviewedByName);
+    }
+
+    [Fact]
+    public async Task Reversing_a_rejection_needs_confirmation()
+    {
+        var (vehicle, foreman) = await SeedFleetKeeperAsync();
+        var reviewer = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.ProjectManager));
+
+        var expense = await RecordExpenseAsync(
+            foreman, vehicle.Id, VehicleExpenseKind.Service, 5_000m, occurredOn: March);
+
+        await InScope(scope =>
+        {
+            ActAs(scope, reviewer);
+            return scope.Send(new ReviewVehicleExpenseCommand
+            {
+                Id = expense.Id,
+                Approve = false,
+                Note = "Needs a receipt."
+            });
+        });
+
+        await Assert.ThrowsAsync<ConflictException>(() => InScope(scope =>
+        {
+            ActAs(scope, reviewer);
+            return scope.Send(new ReviewVehicleExpenseCommand { Id = expense.Id, Approve = true });
+        }));
+
+        var reversed = await InScope(scope =>
+        {
+            ActAs(scope, reviewer);
+            return scope.Send(new ReviewVehicleExpenseCommand
+            {
+                Id = expense.Id,
+                Approve = true,
+                Confirm = true
+            });
+        });
+
+        Assert.Equal(VehicleExpenseStatus.Approved, reversed.Status);
     }
 
     [Fact]

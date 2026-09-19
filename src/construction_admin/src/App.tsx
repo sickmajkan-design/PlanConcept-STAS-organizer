@@ -35,6 +35,11 @@ const EmployeeFormPage = lazy(() =>
     default: m.EmployeeFormPage,
   })),
 );
+const HierarchyPage = lazy(() =>
+  import('./pages/employees/HierarchyPage').then((m) => ({
+    default: m.HierarchyPage,
+  })),
+);
 const EmployeeDetailPage = lazy(() =>
   import('./pages/employees/EmployeeDetailPage').then((m) => ({
     default: m.EmployeeDetailPage,
@@ -309,6 +314,7 @@ function Layout() {
               <Route path={paths.employeeNew} element={<EmployeeFormPage />} />
               <Route path={`${paths.employees}/:id`} element={<EmployeeDetailPage />} />
               <Route path={`${paths.employees}/:id/edit`} element={<EmployeeFormPage />} />
+              <Route path={paths.hierarchy} element={<HierarchyPage />} />
 
               <Route path={paths.projects} element={<ProjectsListPage />} />
               <Route path={paths.projectNew} element={<ProjectFormPage />} />

@@ -88,4 +88,11 @@ public static class CostRules
     /// </remarks>
     public static bool CanDeleteSpending(UserRole? role) =>
         role is UserRole.SuperAdmin or UserRole.Admin or UserRole.ProjectManager;
+
+    /// <summary>
+    /// Who may approve or reject a recorded cost. The same tier as correcting
+    /// one — both are "office work" judgements on a figure a site role
+    /// already recorded, not the recording itself.
+    /// </summary>
+    public static bool CanReviewSpending(UserRole? role) => CanDeleteSpending(role);
 }

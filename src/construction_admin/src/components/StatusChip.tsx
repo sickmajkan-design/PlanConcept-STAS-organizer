@@ -13,8 +13,9 @@ const CAUTION = new Set([
   'Submitted',
   'Open',
   // An unanswered leave request is waiting on somebody, the same as a
-  // submitted timesheet.
+  // submitted timesheet or an unreviewed cost.
   'Requested',
+  'Pending',
   // A rented or leased vehicle carries a recurring cost the fleet report
   // needs to keep in view — same "worth watching" colour as an open item.
   'Rented',

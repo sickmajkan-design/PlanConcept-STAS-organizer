@@ -43,6 +43,13 @@ export const sr: Record<MessageKey, Message> = {
   'duplicateWarning.message': 'Sličan zapis već postoji — proverite pre čuvanja novog:',
   'nav.scheduledReports': 'Zakazani izveštaji',
   'nav.audit': 'Trag izmena',
+  'nav.hierarchy': 'Hijerarhija',
+  'hierarchy.title': 'Hijerarhija',
+  'hierarchy.description': 'Svi aktivni, grupisani po nivou naloga sa kojim se prijavljuju.',
+  'hierarchy.tier.management': 'Uprava',
+  'hierarchy.tier.admins': 'Administratori',
+  'hierarchy.tier.managers': 'Voditelji projekata i poslovođe',
+  'hierarchy.tier.workers': 'Radnici',
   'nav.weeklyReports': 'Sedmični izveštaji',
   'weeklyReports.title': 'Sedmični izveštaji sa gradilišta',
   'weeklyReports.description':
@@ -1257,6 +1264,17 @@ export const sr: Record<MessageKey, Message> = {
   },
   'vehicleExpenses.consumptionFlagRow':
     '{vehicle}, {date}: {litresPer100Km} L/100km ({sign}{deviation}% u odnosu na uobičajenih {average} L/100km)',
+  'vehicleExpenses.status': 'Status',
+  'vehicleExpenses.approve': 'Odobri',
+  'vehicleExpenses.reject': 'Odbij',
+  'vehicleExpenses.answered': 'Već pregledano',
+  'vehicleExpenses.rejectTitle': 'Vrati trošak na doradu',
+  'vehicleExpenses.rejectHint': 'Razlog vidi osoba koja je evidentirala trošak, pa napiši šta treba ispraviti.',
+  'vehicleExpenses.rejectReason': 'Razlog',
+  'vehicleExpenses.approveTitle': 'Odobriti ovaj trošak?',
+  'vehicleExpenses.approveBody': 'Ubrojiće se u izveštaj voznog parka kao pregledan i tačan.',
+  'vehicleExpenses.reviewOwnCost': 'Ne možeš pregledati trošak koji si sam evidentirao.',
+  'vehicleExpenses.allStatuses': 'Svi statusi',
 
   'fuelCards.title': 'Kartice za gorivo',
   'fuelCards.add': 'Dodaj karticu',
@@ -1752,6 +1770,10 @@ export const sr: Record<MessageKey, Message> = {
   'auditAction.Created': 'Kreirano',
   'auditAction.Updated': 'Izmenjeno',
   'auditAction.Deleted': 'Obrisano',
+
+  'vehicleExpenseStatus.Pending': 'Čeka pregled',
+  'vehicleExpenseStatus.Approved': 'Odobreno',
+  'vehicleExpenseStatus.Rejected': 'Odbijeno',
 
   'vehicleExpenseKind.Fuel': 'Gorivo',
   'vehicleExpenseKind.Service': 'Servis',

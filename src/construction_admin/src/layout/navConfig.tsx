@@ -34,6 +34,7 @@ import {
   AdminPanelSettingsOutlined,
   SecurityOutlined,
   HistoryOutlined,
+  AccountTreeOutlined,
 } from '@mui/icons-material';
 import type { ReactNode } from 'react';
 
@@ -81,6 +82,11 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
             icon: <FolderSharedOutlined />,
             items: [
               { label: t('nav.employees'), path: paths.employees, icon: <PeopleOutlined /> },
+              {
+                label: t('nav.hierarchy'),
+                path: paths.hierarchy,
+                icon: <AccountTreeOutlined />,
+              },
               { label: t('nav.projects'), path: paths.projects, icon: <ApartmentOutlined /> },
               { label: t('nav.customers'), path: paths.customers, icon: <BusinessOutlined /> },
               {

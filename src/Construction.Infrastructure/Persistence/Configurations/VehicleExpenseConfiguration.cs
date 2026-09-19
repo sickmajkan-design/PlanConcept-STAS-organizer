@@ -1,4 +1,5 @@
 using Construction.Domain.Entities;
+using Construction.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -22,6 +23,20 @@ public class VehicleExpenseConfiguration : IEntityTypeConfiguration<VehicleExpen
         builder.Property(e => e.Supplier).HasMaxLength(200);
         builder.Property(e => e.FuelProductType).HasMaxLength(100);
         builder.Property(e => e.Note).HasMaxLength(500);
+        builder.Property(e => e.ReviewNote).HasMaxLength(1000);
+
+        // Matches the entity's own property initializer, but this is the copy
+        // that actually reaches a row: EF's C# default only applies to an
+        // entity built through EF, and every existing row predates this
+        // column entirely — without it they would backfill to the CLR
+        // default (0), which is not a value the enum defines at all.
+        builder.Property(e => e.Status).HasDefaultValue(VehicleExpenseStatus.Pending);
+
+        // Guards two people reviewing, or reviewing and editing, the same
+        // expense at once — the same protection TimeEntries has around its
+        // own review, mapped onto Postgres's own row version rather than a
+        // column this entity would otherwise have no use for.
+        builder.Property<uint>("Version").IsRowVersion();
 
         builder.HasOne(e => e.Vehicle)
             .WithMany(v => v.Expenses)
@@ -31,6 +46,11 @@ public class VehicleExpenseConfiguration : IEntityTypeConfiguration<VehicleExpen
         builder.HasOne(e => e.RecordedByUser)
             .WithMany()
             .HasForeignKey(e => e.RecordedByUserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(e => e.ReviewedByUser)
+            .WithMany()
+            .HasForeignKey(e => e.ReviewedByUserId)
             .OnDelete(DeleteBehavior.SetNull);
 
         builder.ToTable(t =>

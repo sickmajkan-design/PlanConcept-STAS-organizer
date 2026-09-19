@@ -1,4 +1,4 @@
-import { AddOutlined, DeleteOutlined } from '@mui/icons-material';
+import { AddOutlined, CheckOutlined, CloseOutlined, DeleteOutlined } from '@mui/icons-material';
 import {
   Alert,
   AlertTitle,
@@ -7,6 +7,7 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
+  DialogContentText,
   DialogTitle,
   Grid,
   IconButton,
@@ -14,6 +15,7 @@ import {
   Paper,
   Stack,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import type { GridColDef, GridSortModel } from '@mui/x-data-grid';
@@ -24,8 +26,10 @@ import { toApiError } from '../../api/apiError';
 import type { VehicleExpenseListQuery } from '../../api/costs';
 import {
   vehicleExpenseKinds,
+  vehicleExpenseStatuses,
   type VehicleExpense,
   type VehicleExpenseKind,
+  type VehicleExpenseStatus,
 } from '../../api/types';
 import { canAdministerAccounts } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
@@ -35,10 +39,12 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { SavedViewsBar } from '../../components/SavedViewsBar';
+import { StatusChip } from '../../components/StatusChip';
 import {
   useDeleteVehicleExpense,
   useFuelConsumptionFlagsQuery,
   useRecordVehicleExpense,
+  useReviewVehicleExpense,
   useUpdateVehicleExpense,
   useVehicleExpensesQuery,
   useVehicleExpensesSummaryQuery,
@@ -66,8 +72,11 @@ export function VehicleExpensesPage() {
   const list = useListQueryState('occurredOn', 'desc');
 
   const [kind, setKind] = useState<VehicleExpenseKind | ''>('');
+  const [status, setStatus] = useState<VehicleExpenseStatus | ''>('');
   const [recording, setRecording] = useState(false);
   const [editing, setEditing] = useState<VehicleExpense | null>(null);
+  const [approving, setApproving] = useState<VehicleExpense | null>(null);
+  const [rejecting, setRejecting] = useState<VehicleExpense | null>(null);
 
   const savedViews = useSavedViews<VehicleExpenseViewState>('vehicle-expenses');
 
@@ -86,14 +95,16 @@ export function VehicleExpensesPage() {
       ...list.query,
       search: undefined,
       kind: kind || undefined,
+      status: status || undefined,
     }),
-    [kind, list.query],
+    [kind, status, list.query],
   );
 
   const { data, isLoading, isError, error, refetch } = useVehicleExpensesQuery(query);
   const { data: summary } = useVehicleExpensesSummaryQuery(query);
   const { data: consumptionFlags } = useFuelConsumptionFlagsQuery({});
   const remove = useDeleteWithConfirm<VehicleExpense>(useDeleteVehicleExpense());
+  const review = useReviewVehicleExpense();
 
   const columns: GridColDef<VehicleExpense>[] = useMemo(
     () => [
@@ -170,24 +181,69 @@ export function VehicleExpensesPage() {
         valueGetter: (value) => formatDateTime(value as string),
       },
       {
+        field: 'status',
+        headerName: t('vehicleExpenses.status'),
+        width: 140,
+        sortable: false,
+        renderCell: (params) => (
+          <StatusChip status={params.value} kind="vehicleExpenseStatus" />
+        ),
+      },
+      {
         field: 'actions',
         headerName: '',
-        width: 60,
+        width: 110,
         sortable: false,
         filterable: false,
         align: 'right',
         headerAlign: 'right',
-        renderCell: (params) => (
-          <IconButton
-            size="small"
-            onClick={(event) => {
-              event.stopPropagation();
-              remove.request(params.row);
-            }}
-          >
-            <DeleteOutlined fontSize="small" />
-          </IconButton>
-        ),
+        renderCell: (params) => {
+          const isPending = params.row.status === 'Pending';
+
+          return (
+            <Stack direction="row" spacing={0.5}>
+              <Tooltip title={isPending ? t('vehicleExpenses.approve') : t('vehicleExpenses.answered')}>
+                <span>
+                  <IconButton
+                    size="small"
+                    color="success"
+                    disabled={!isPending}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setApproving(params.row);
+                    }}
+                  >
+                    <CheckOutlined fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+              <Tooltip title={isPending ? t('vehicleExpenses.reject') : t('vehicleExpenses.answered')}>
+                <span>
+                  <IconButton
+                    size="small"
+                    color="warning"
+                    disabled={!isPending}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setRejecting(params.row);
+                    }}
+                  >
+                    <CloseOutlined fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+              <IconButton
+                size="small"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  remove.request(params.row);
+                }}
+              >
+                <DeleteOutlined fontSize="small" />
+              </IconButton>
+            </Stack>
+          );
+        },
       },
     ],
     [enumLabel, locale, remove, t],
@@ -222,6 +278,24 @@ export function VehicleExpensesPage() {
           {vehicleExpenseKinds.map((value) => (
             <MenuItem key={value} value={value}>
               {enumLabel('vehicleExpenseKind', value)}
+            </MenuItem>
+          ))}
+        </TextField>
+        <TextField
+          select
+          size="small"
+          label={t('vehicleExpenses.status')}
+          value={status}
+          onChange={(event) => {
+            setStatus(event.target.value as VehicleExpenseStatus | '');
+            list.resetToFirstPage();
+          }}
+          sx={{ minWidth: 180 }}
+        >
+          <MenuItem value="">{t('vehicleExpenses.allStatuses')}</MenuItem>
+          {vehicleExpenseStatuses.map((value) => (
+            <MenuItem key={value} value={value}>
+              {enumLabel('vehicleExpenseStatus', value)}
             </MenuItem>
           ))}
         </TextField>
@@ -316,7 +390,82 @@ export function VehicleExpensesPage() {
           </Typography>
         </Box>
       )}
+
+      <ConfirmDialog
+        open={!!approving}
+        title={t('vehicleExpenses.approveTitle')}
+        description={t('vehicleExpenses.approveBody')}
+        confirmLabel={t('vehicleExpenses.approve')}
+        loading={review.isPending}
+        onConfirm={() => {
+          if (!approving) return;
+
+          review.mutate(
+            { id: approving.id, input: { approve: true } },
+            { onSuccess: () => setApproving(null) },
+          );
+        }}
+        onCancel={() => setApproving(null)}
+      />
+
+      <RejectVehicleExpenseDialog expense={rejecting} onClose={() => setRejecting(null)} />
     </Box>
+  );
+}
+
+function RejectVehicleExpenseDialog({
+  expense,
+  onClose,
+}: {
+  expense: VehicleExpense | null;
+  onClose: () => void;
+}) {
+  const t = useT();
+  const review = useReviewVehicleExpense();
+  const [note, setNote] = useState('');
+
+  const close = () => {
+    setNote('');
+    review.reset();
+    onClose();
+  };
+
+  return (
+    <Dialog open={!!expense} onClose={close} fullWidth maxWidth="sm">
+      <DialogTitle>{t('vehicleExpenses.rejectTitle')}</DialogTitle>
+      <DialogContent>
+        <DialogContentText sx={{ mb: 2 }}>{t('vehicleExpenses.rejectHint')}</DialogContentText>
+        <TextField
+          autoFocus
+          fullWidth
+          multiline
+          minRows={2}
+          label={t('vehicleExpenses.rejectReason')}
+          value={note}
+          onChange={(event) => setNote(event.target.value)}
+          error={!!review.error}
+          helperText={review.error ? toApiError(review.error).message : undefined}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={close}>{t('common.cancel')}</Button>
+        <Button
+          variant="contained"
+          color="warning"
+          disabled={!note.trim() || review.isPending}
+          onClick={() => {
+            if (!expense) return;
+
+            review.mutate(
+              { id: expense.id, input: { approve: false, note: note.trim() } },
+              { onSuccess: close },
+            );
+          }}
+        >
+          {t('vehicleExpenses.reject')}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }
 
@@ -425,6 +574,12 @@ export function VehicleExpenseDialog({
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error.message}
+          </Alert>
+        )}
+
+        {editingExpense?.status === 'Rejected' && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            {editingExpense.reviewNote}
           </Alert>
         )}
 

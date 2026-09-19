@@ -11,6 +11,7 @@ export const paths = {
   employeeDetail: (id: string) => `/employees/${id}`,
   employeeNew: '/employees/new',
   employeeEdit: (id: string) => `/employees/${id}/edit`,
+  hierarchy: '/hierarchy',
 
   projects: '/projects',
   projectDetail: (id: string) => `/projects/${id}`,

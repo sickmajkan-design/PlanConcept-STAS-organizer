@@ -60,6 +60,18 @@ public class VehicleExpense : BaseEntity, IAuditable
 
     public User? RecordedByUser { get; set; }
 
+    /// <summary>Starts at <see cref="VehicleExpenseStatus.Pending"/> on every new record.</summary>
+    public VehicleExpenseStatus Status { get; set; } = VehicleExpenseStatus.Pending;
+
+    /// <summary>Required on a rejection, so the person who recorded it knows what to fix.</summary>
+    public string? ReviewNote { get; set; }
+
+    public Guid? ReviewedByUserId { get; set; }
+
+    public User? ReviewedByUser { get; set; }
+
+    public DateTime? ReviewedAt { get; set; }
+
     /// <summary>
     /// Cost per litre, when both numbers are known. Derived rather than
     /// stored, so it can never disagree with the two it comes from.

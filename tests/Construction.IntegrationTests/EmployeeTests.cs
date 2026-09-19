@@ -5,6 +5,7 @@ using Construction.Application.Features.Employees.Commands.DeleteEmployee;
 using Construction.Application.Features.Employees.Commands.UpdateEmployee;
 using Construction.Application.Features.Employees.Queries.GetEmployeeById;
 using Construction.Application.Features.Employees.Queries.GetEmployees;
+using Construction.Application.Features.Employees.Queries.GetOrganizationHierarchy;
 using Construction.Domain.Enums;
 
 namespace Construction.IntegrationTests;
@@ -475,5 +476,23 @@ public class EmployeeTests : IntegrationTestBase
         Assert.Equal("ana.maric@example.com", detail.Email);
         Assert.Equal("Electrician", detail.Position);
         Assert.Equal(new DateOnly(2021, 6, 1), detail.EmploymentDate);
+    }
+
+    [Fact]
+    public async Task The_hierarchy_carries_each_employees_role_where_one_exists()
+    {
+        var manager = await InScope(scope => TestData.SeedEmployeeAsync(scope, lastName: "Petrovic"));
+        await InScope(scope => TestData.SeedUserAsync(scope, UserRole.ProjectManager, manager.Id));
+
+        // A subcontractor with no login of their own — no User row to join to.
+        var subcontractor = await InScope(scope => TestData.SeedEmployeeAsync(scope, lastName: "Jovanovic"));
+
+        var hierarchy = await InScope(scope => scope.Send(new GetOrganizationHierarchyQuery()));
+
+        var managerNode = hierarchy.Single(n => n.EmployeeId == manager.Id);
+        var subcontractorNode = hierarchy.Single(n => n.EmployeeId == subcontractor.Id);
+
+        Assert.Equal("ProjectManager", managerNode.Role);
+        Assert.Null(subcontractorNode.Role);
     }
 }

@@ -23,6 +23,7 @@ import type {
   ListQuery,
   MaterialMovementInput,
   ReturnRentalOutInput,
+  ReviewVehicleExpenseInput,
   ToolExpenseInput,
   ToolRentalOutInput,
   ToolRentalRateInput,
@@ -187,6 +188,14 @@ export function useDeleteVehicleExpense() {
     vehicleExpenseKeys.all,
     costReportKeys.all,
   ]);
+}
+
+export function useReviewVehicleExpense() {
+  return useResourceMutation(
+    (variables: { id: string; input: ReviewVehicleExpenseInput }) =>
+      costsApi.vehicleExpenses.review(variables.id, variables.input),
+    [vehicleExpenseKeys.all, costReportKeys.all],
+  );
 }
 
 /**

@@ -8,6 +8,7 @@ import type {
   EmployeeStatus,
   EmployeeType,
   ListQuery,
+  OrganizationHierarchyNode,
 } from './types';
 
 export interface EmployeeListQuery extends ListQuery {
@@ -38,5 +39,11 @@ export const employeesApi = {
     request<void>({
       method: 'DELETE',
       url: `/api/v1/employees/${employeeId}/projects/${projectId}`,
+    }),
+
+  hierarchy: () =>
+    request<OrganizationHierarchyNode[]>({
+      method: 'GET',
+      url: '/api/v1/employees/hierarchy',
     }),
 };

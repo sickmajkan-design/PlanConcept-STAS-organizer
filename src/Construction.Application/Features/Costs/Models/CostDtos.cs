@@ -99,6 +99,14 @@ public class VehicleExpenseDto
     public string? RecordedByName { get; init; }
 
     public DateTime CreatedAt { get; init; }
+
+    public VehicleExpenseStatus Status { get; init; }
+
+    public string? ReviewNote { get; init; }
+
+    public string? ReviewedByName { get; init; }
+
+    public DateTime? ReviewedAt { get; init; }
 }
 
 /// <summary>One fill-up whose consumption looks off against that vehicle's own history.</summary>
@@ -410,6 +418,10 @@ public static class VehicleExpenseMapping
             Note = expense.Note,
             RecordedByName = expense.RecordedByUser != null ? expense.RecordedByUser.Email : null,
             CreatedAt = expense.CreatedAt,
+            Status = expense.Status,
+            ReviewNote = expense.ReviewNote,
+            ReviewedByName = expense.ReviewedByUser != null ? expense.ReviewedByUser.Email : null,
+            ReviewedAt = expense.ReviewedAt,
         };
 
     private static readonly Func<VehicleExpense, VehicleExpenseDto> Compiled = Projection.Compile();

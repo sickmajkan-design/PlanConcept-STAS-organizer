@@ -121,7 +121,8 @@ public class RecordVehicleExpenseCommandHandler
             FuelProductType = request.FuelProductType?.Trim(),
             Supplier = request.Supplier?.Trim(),
             Note = request.Note?.Trim(),
-            RecordedByUserId = _currentUserService.UserId
+            RecordedByUserId = _currentUserService.UserId,
+            Status = VehicleExpenseStatus.Pending
         };
 
         _context.VehicleExpenses.Add(expense);

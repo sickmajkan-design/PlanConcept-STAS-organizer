@@ -9,6 +9,7 @@ using Construction.Application.Features.Employees.Commands.UpdateEmployee;
 using Construction.Application.Features.Employees.Models;
 using Construction.Application.Features.Employees.Queries.GetEmployeeById;
 using Construction.Application.Features.Employees.Queries.GetEmployees;
+using Construction.Application.Features.Employees.Queries.GetOrganizationHierarchy;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -27,6 +28,16 @@ public class EmployeesController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>Everyone active, for the org chart to group by role.</summary>
+    [HttpGet("hierarchy")]
+    [Authorize(Policy = Policies.ForemanAndAbove)]
+    [ProducesResponseType(typeof(List<OrganizationHierarchyNodeDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<OrganizationHierarchyNodeDto>>> GetHierarchy(
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetOrganizationHierarchyQuery(), cancellationToken));
     }
 
     /// <summary>Returns one employee including project assignments.</summary>

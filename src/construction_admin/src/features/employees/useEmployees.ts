@@ -55,6 +55,14 @@ export function useAllEmployeesQuery() {
   });
 }
 
+export function useOrganizationHierarchyQuery() {
+  return useQuery({
+    queryKey: [...employeeKeys.all, 'hierarchy'],
+    queryFn: () => employeesApi.hierarchy(),
+    staleTime: 60_000,
+  });
+}
+
 export function useCreateEmployee() {
   return useResourceMutation(
     (input: EmployeeInput) => employeesApi.create(input),
