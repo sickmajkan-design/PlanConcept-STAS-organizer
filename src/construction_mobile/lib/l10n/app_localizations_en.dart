@@ -1013,7 +1013,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationVehicleExpenseRejectedTitle => 'Cost sent back';
 
   @override
-  String notificationVehicleExpenseRejectedBody(String vehicleName, String date, String note) {
+  String notificationVehicleExpenseRejectedBody(
+    String vehicleName,
+    String date,
+    String note,
+  ) {
     return '$vehicleName ($date) was sent back: $note';
   }
 

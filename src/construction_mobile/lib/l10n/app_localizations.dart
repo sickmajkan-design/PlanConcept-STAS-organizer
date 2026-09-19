@@ -1857,7 +1857,11 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'{vehicleName} ({date}) was sent back: {note}'**
-  String notificationVehicleExpenseRejectedBody(String vehicleName, String date, String note);
+  String notificationVehicleExpenseRejectedBody(
+    String vehicleName,
+    String date,
+    String note,
+  );
 
   /// No description provided for @notificationAbsenceRequestedTitle.
   ///

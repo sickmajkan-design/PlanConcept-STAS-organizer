@@ -1006,10 +1006,15 @@ class AppLocalizationsSr extends AppLocalizations {
   }
 
   @override
-  String get notificationVehicleExpenseRejectedTitle => 'Trošak vraćen na doradu';
+  String get notificationVehicleExpenseRejectedTitle =>
+      'Trošak vraćen na doradu';
 
   @override
-  String notificationVehicleExpenseRejectedBody(String vehicleName, String date, String note) {
+  String notificationVehicleExpenseRejectedBody(
+    String vehicleName,
+    String date,
+    String note,
+  ) {
     return '$vehicleName ($date) je vraćen: $note';
   }
 
