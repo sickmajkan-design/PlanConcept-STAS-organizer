@@ -33,6 +33,12 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ExportButton } from '../../components/ExportButton';
 import { FindByQrPhotoDialog } from '../../components/FindByQrPhotoDialog';
 import { PageHeader } from '../../components/PageHeader';
+import {
+  StatusBoard,
+  ViewModeToggle,
+  buildBoardColumns,
+  useViewMode,
+} from '../../components/StatusBoard';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { RowActions } from '../../components/RowActions';
 import { RowPhotoCell } from '../../components/RowPhotoCell';
@@ -94,7 +100,16 @@ export function ToolsListPage() {
     [list.query, list.filter, incompleteOnly],
   );
 
-  const { data, isLoading, isError, error, refetch } = useToolsQuery(query);
+  const [viewMode, setViewMode] = useViewMode('tools');
+  const isBoard = viewMode === 'board';
+
+  // The board shows every status side by side: one big page, no status filter.
+  const boardQuery = useMemo(
+    () => ({ ...query, pageNumber: 1, pageSize: 100, status: undefined }),
+    [query],
+  );
+
+  const { data, isLoading, isError, error, refetch } = useToolsQuery(isBoard ? boardQuery : query);
   const { data: rentalsOutSummary } = useToolRentalsOutSummaryQuery({});
   const remove = useDeleteWithConfirm<Tool>(useDeleteTool());
   const [qrPhotoOpen, setQrPhotoOpen] = useState(false);
@@ -244,6 +259,7 @@ export function ToolsListPage() {
           onChange={list.setSearch}
           placeholder={t('tools.searchPlaceholder')}
         />
+        {!isBoard && (
         <FormControl size="small" sx={{ minWidth: 180 }}>
           <InputLabel id="tool-status-filter-label">{t('tools.status')}</InputLabel>
           <Select
@@ -262,6 +278,8 @@ export function ToolsListPage() {
             ))}
           </Select>
         </FormControl>
+        )}
+        <ViewModeToggle value={viewMode} onChange={setViewMode} />
         <StatusLegend kind="toolStatus" values={toolStatuses} />
 
         <FormControlLabel
@@ -298,7 +316,23 @@ export function ToolsListPage() {
         />
       </Box>
 
-      <ResourceDataGrid
+      {isBoard ? (
+        <StatusBoard
+          rows={data?.items ?? []}
+          totalCount={data?.totalCount ?? 0}
+          columns={columns}
+          boardColumns={buildBoardColumns(toolStatuses, (status) => enumLabel('toolStatus', status), {"Available":"success","UnderRepair":"warning","Lost":"error"})}
+          getStatus={(row) => row.status}
+          hideFields={['status']}
+          isLoading={isLoading}
+          onCardClick={(row) =>
+          navigate(paths.toolDetail(row.id), {
+            state: { siblingIds: data?.items.map((item) => item.id) ?? [] },
+          })
+        }
+        />
+      ) : (
+        <ResourceDataGrid
         data={data}
         columns={columns}
         isLoading={isLoading}
@@ -315,6 +349,7 @@ export function ToolsListPage() {
           })
         }
       />
+      )}
 
       <ConfirmDialog
         open={!!remove.pending}

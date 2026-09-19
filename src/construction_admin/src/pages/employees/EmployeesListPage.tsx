@@ -23,6 +23,12 @@ import { BulkActionsBar } from '../../components/BulkActionsBar';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
+import {
+  StatusBoard,
+  ViewModeToggle,
+  buildBoardColumns,
+  useViewMode,
+} from '../../components/StatusBoard';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { RowActions } from '../../components/RowActions';
 import { SavedViewsBar } from '../../components/SavedViewsBar';
@@ -77,7 +83,16 @@ export function EmployeesListPage() {
     [list.query, list.filter, typeFilter],
   );
 
-  const { data, isLoading, isError, error, refetch } = useEmployeesQuery(query);
+  const [viewMode, setViewMode] = useViewMode('employees');
+  const isBoard = viewMode === 'board';
+
+  // The board shows every status side by side: one big page, no status filter.
+  const boardQuery = useMemo(
+    () => ({ ...query, pageNumber: 1, pageSize: 100, status: undefined }),
+    [query],
+  );
+
+  const { data, isLoading, isError, error, refetch } = useEmployeesQuery(isBoard ? boardQuery : query);
   const deleteEmployee = useDeleteEmployee();
   const remove = useDeleteWithConfirm<Employee>(deleteEmployee);
   const bulk = useBulkDelete(deleteEmployee);
@@ -189,6 +204,7 @@ export function EmployeesListPage() {
           onChange={list.setSearch}
           placeholder={t('employees.searchPlaceholder')}
         />
+        {!isBoard && (
         <FormControl size="small" sx={{ minWidth: 180 }}>
           <InputLabel id="status-filter-label">{t('employees.status')}</InputLabel>
           <Select
@@ -207,6 +223,7 @@ export function EmployeesListPage() {
             ))}
           </Select>
         </FormControl>
+        )}
         <FormControl size="small" sx={{ minWidth: 180 }}>
           <InputLabel id="type-filter-label">{t('employees.type')}</InputLabel>
           <Select
@@ -228,6 +245,7 @@ export function EmployeesListPage() {
             ))}
           </Select>
         </FormControl>
+        <ViewModeToggle value={viewMode} onChange={setViewMode} />
         <StatusLegend kind="employeeStatus" values={employeeStatuses} />
 
         <ExportButton
@@ -252,7 +270,23 @@ export function EmployeesListPage() {
         onClear={selection.clear}
       />
 
-      <ResourceDataGrid
+      {isBoard ? (
+        <StatusBoard
+          rows={data?.items ?? []}
+          totalCount={data?.totalCount ?? 0}
+          columns={columns}
+          boardColumns={buildBoardColumns(employeeStatuses, (status) => enumLabel('employeeStatus', status), {"Active":"success","OnLeave":"warning","Suspended":"error"})}
+          getStatus={(row) => row.status}
+          hideFields={['status']}
+          isLoading={isLoading}
+          onCardClick={(row) =>
+          navigate(paths.employeeDetail(row.id), {
+            state: { siblingIds: data?.items.map((item) => item.id) ?? [] },
+          })
+        }
+        />
+      ) : (
+        <ResourceDataGrid
         data={data}
         columns={columns}
         isLoading={isLoading}
@@ -271,6 +305,7 @@ export function EmployeesListPage() {
           })
         }
       />
+      )}
 
       <ConfirmDialog
         open={!!remove.pending}

@@ -20,6 +20,12 @@ import type { WorkItem, WorkItemStatus } from '../../api/types';
 import { workItemStatuses } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
+import {
+  StatusBoard,
+  ViewModeToggle,
+  buildBoardColumns,
+  useViewMode,
+} from '../../components/StatusBoard';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { SavedViewsBar } from '../../components/SavedViewsBar';
 import { SearchField } from '../../components/SearchField';
@@ -104,7 +110,16 @@ export function WorkItemsListPage() {
     [list.query, openOnly, overdueOnly, defectsOnly],
   );
 
-  const { data, isLoading, isError, error, refetch } = useWorkItemsQuery(query);
+  const [viewMode, setViewMode] = useViewMode('work-items');
+  const isBoard = viewMode === 'board';
+
+  // The board shows every status side by side: one big page, no status filter.
+  const boardQuery = useMemo(
+    () => ({ ...query, pageNumber: 1, pageSize: 100, status: undefined, openOnly: undefined }),
+    [query],
+  );
+
+  const { data, isLoading, isError, error, refetch } = useWorkItemsQuery(isBoard ? boardQuery : query);
   const remove = useDeleteWithConfirm<WorkItem>(useDeleteWorkItem());
 
   const columns: GridColDef<WorkItem>[] = useMemo(
@@ -221,6 +236,7 @@ export function WorkItemsListPage() {
           onChange={list.setSearch}
           placeholder={t('workItems.searchPlaceholder')}
         />
+        {!isBoard && (
         <FormControlLabel
           control={
             <Switch
@@ -233,6 +249,7 @@ export function WorkItemsListPage() {
           }
           label={t('workItems.openOnly')}
         />
+        )}
         <FormControlLabel
           control={
             <Switch
@@ -257,6 +274,7 @@ export function WorkItemsListPage() {
           }
           label={t('workItems.defectsOnly')}
         />
+        <ViewModeToggle value={viewMode} onChange={setViewMode} />
         <StatusLegend kind="workItemStatus" values={workItemStatuses} />
       </Stack>
 
@@ -269,7 +287,19 @@ export function WorkItemsListPage() {
         />
       </Box>
 
-      <ResourceDataGrid
+      {isBoard ? (
+        <StatusBoard
+          rows={data?.items ?? []}
+          totalCount={data?.totalCount ?? 0}
+          columns={columns}
+          boardColumns={buildBoardColumns(workItemStatuses, (status) => enumLabel('workItemStatus', status), {"Open":"warning","Resolved":"success"})}
+          getStatus={(row) => row.status}
+          hideFields={['status']}
+          isLoading={isLoading}
+          
+        />
+      ) : (
+        <ResourceDataGrid
         data={data}
         columns={columns}
         isLoading={isLoading}
@@ -281,6 +311,7 @@ export function WorkItemsListPage() {
         sortModel={list.sortModel}
         onSortModelChange={list.setSortModel}
       />
+      )}
 
       <ConfirmDialog
         open={!!remove.pending}

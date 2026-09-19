@@ -33,6 +33,12 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ExportButton } from '../../components/ExportButton';
 import { FindByQrPhotoDialog } from '../../components/FindByQrPhotoDialog';
 import { PageHeader } from '../../components/PageHeader';
+import {
+  StatusBoard,
+  ViewModeToggle,
+  buildBoardColumns,
+  useViewMode,
+} from '../../components/StatusBoard';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { RowActions } from '../../components/RowActions';
 import { RowPhotoCell } from '../../components/RowPhotoCell';
@@ -99,7 +105,16 @@ export function VehiclesListPage() {
     [list.query, list.filter, ownershipFilter, incompleteOnly],
   );
 
-  const { data, isLoading, isError, error, refetch } = useVehiclesQuery(query);
+  const [viewMode, setViewMode] = useViewMode('vehicles');
+  const isBoard = viewMode === 'board';
+
+  // The board shows every status side by side: one big page, no status filter.
+  const boardQuery = useMemo(
+    () => ({ ...query, pageNumber: 1, pageSize: 100, status: undefined }),
+    [query],
+  );
+
+  const { data, isLoading, isError, error, refetch } = useVehiclesQuery(isBoard ? boardQuery : query);
   const { data: rentalsOutSummary } = useVehicleRentalsOutSummaryQuery({});
   const remove = useDeleteWithConfirm<Vehicle>(useDeleteVehicle());
   const [qrPhotoOpen, setQrPhotoOpen] = useState(false);
@@ -262,6 +277,7 @@ export function VehiclesListPage() {
           onChange={list.setSearch}
           placeholder={t('vehicles.searchPlaceholder')}
         />
+        {!isBoard && (
         <FormControl size="small" sx={{ minWidth: 180 }}>
           <InputLabel id="vehicle-status-filter-label">{t('vehicles.status')}</InputLabel>
           <Select
@@ -280,6 +296,8 @@ export function VehiclesListPage() {
             ))}
           </Select>
         </FormControl>
+        )}
+        <ViewModeToggle value={viewMode} onChange={setViewMode} />
         <StatusLegend kind="vehicleStatus" values={vehicleStatuses} />
 
         <FormControl size="small" sx={{ minWidth: 180 }}>
@@ -335,7 +353,23 @@ export function VehiclesListPage() {
         />
       </Box>
 
-      <ResourceDataGrid
+      {isBoard ? (
+        <StatusBoard
+          rows={data?.items ?? []}
+          totalCount={data?.totalCount ?? 0}
+          columns={columns}
+          boardColumns={buildBoardColumns(vehicleStatuses, (status) => enumLabel('vehicleStatus', status), {"Available":"success","InService":"warning","OutOfService":"error"})}
+          getStatus={(row) => row.status}
+          hideFields={['status']}
+          isLoading={isLoading}
+          onCardClick={(row) =>
+          navigate(paths.vehicleDetail(row.id), {
+            state: { siblingIds: data?.items.map((item) => item.id) ?? [] },
+          })
+        }
+        />
+      ) : (
+        <ResourceDataGrid
         data={data}
         columns={columns}
         isLoading={isLoading}
@@ -352,6 +386,7 @@ export function VehiclesListPage() {
           })
         }
       />
+      )}
 
       <ConfirmDialog
         open={!!remove.pending}

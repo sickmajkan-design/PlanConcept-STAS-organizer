@@ -179,3 +179,19 @@ export function StatusBoard<T extends GridValidRowModel>({
     </Box>
   );
 }
+
+/**
+ * One board column per status, in the order the enum lists them. Statuses not
+ * named in `colors` get a neutral stripe.
+ */
+export function buildBoardColumns(
+  statuses: readonly string[],
+  label: (status: string) => string,
+  colors: Record<string, BoardColumn['color']> = {},
+): BoardColumn[] {
+  return statuses.map((status) => ({
+    status,
+    label: label(status),
+    color: colors[status] ?? 'inherit',
+  }));
+}
