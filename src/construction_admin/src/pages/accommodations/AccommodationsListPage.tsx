@@ -9,17 +9,21 @@ import {
   Chip,
   CircularProgress,
   Divider,
+  FormControlLabel,
   IconButton,
+  MenuItem,
   Paper,
   Stack,
+  Switch,
+  TextField,
   Tooltip,
   Typography,
 } from '@mui/material';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type { AccommodationListQuery } from '../../api/accommodations';
-import type { Accommodation } from '../../api/types';
+import { accommodationTypes, type Accommodation, type AccommodationType } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
@@ -32,6 +36,7 @@ import {
   useDeleteAccommodation,
 } from '../../features/accommodations/useAccommodations';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
+import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { paths } from '../../routes/paths';
@@ -45,11 +50,19 @@ export function AccommodationsListPage() {
   const navigate = useNavigate();
   const t = useT();
   const { locale } = useI18n();
+  const enumLabel = useEnumLabel();
   const list = useListQueryState('address', 'asc', 'accommodations');
+  const [type, setType] = useState<AccommodationType | ''>('');
+  const [activeOnly, setActiveOnly] = useState(true);
 
   const query: AccommodationListQuery = useMemo(
-    () => ({ ...list.query, ...FULL_LIST }),
-    [list.query],
+    () => ({
+      ...list.query,
+      ...FULL_LIST,
+      type: type || undefined,
+      isActive: activeOnly ? true : undefined,
+    }),
+    [list.query, type, activeOnly],
   );
 
   const { data, isLoading, isError, error, refetch } = useAccommodationsQuery(query);
@@ -74,6 +87,25 @@ export function AccommodationsListPage() {
           value={list.search}
           onChange={list.setSearch}
           placeholder={t('accommodations.searchPlaceholder')}
+        />
+        <TextField
+          select
+          size="small"
+          label={t('accommodations.type')}
+          value={type}
+          onChange={(event) => setType(event.target.value as AccommodationType | '')}
+          sx={{ minWidth: 180 }}
+        >
+          <MenuItem value="">{t('accommodations.allTypes')}</MenuItem>
+          {accommodationTypes.map((value) => (
+            <MenuItem key={value} value={value}>
+              {enumLabel('accommodationType', value)}
+            </MenuItem>
+          ))}
+        </TextField>
+        <FormControlLabel
+          control={<Switch checked={activeOnly} onChange={(event) => setActiveOnly(event.target.checked)} />}
+          label={t('accommodations.activeOnly')}
         />
       </Stack>
 
@@ -117,7 +149,9 @@ export function AccommodationsListPage() {
         open={!!remove.pending}
         title={t('accommodations.deleteTitle')}
         description={
-          remove.pending ? t('accommodations.deleteBody', { name: remove.pending.address }) : ''
+          remove.pending
+            ? t('accommodations.deleteBody', { name: remove.pending.name || remove.pending.address })
+            : ''
         }
         confirmLabel={t('common.delete')}
         destructive
@@ -152,7 +186,10 @@ function AccommodationRow({
   onDelete: () => void;
 }) {
   const t = useT();
+  const enumLabel = useEnumLabel();
   const hasActiveRate = accommodation.currentMonthlyAmount !== null;
+  const beds = accommodation.beds;
+  const over = beds !== null && accommodation.currentOccupants > beds;
 
   return (
     <Stack
@@ -164,6 +201,7 @@ function AccommodationRow({
         py: 1.25,
         px: 2,
         cursor: 'pointer',
+        opacity: accommodation.isActive ? 1 : 0.6,
         '&:hover': { bgcolor: 'action.hover' },
       }}
     >
@@ -171,14 +209,34 @@ function AccommodationRow({
 
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
-          {accommodation.address}
+          {accommodation.name || accommodation.address}
         </Typography>
-        {accommodation.currentProvider && (
-          <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
-            {accommodation.currentProvider}
-          </Typography>
-        )}
+        <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
+          {[
+            accommodation.name ? accommodation.address : null,
+            accommodation.city,
+            accommodation.currentProvider,
+          ]
+            .filter(Boolean)
+            .join(' · ')}
+        </Typography>
       </Box>
+
+      <Chip
+        size="small"
+        variant="outlined"
+        label={enumLabel('accommodationType', accommodation.type)}
+        sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
+      />
+
+      <Tooltip title={over ? t('accommodations.overCapacity') : t('accommodations.occupancy')}>
+        <Chip
+          size="small"
+          variant={accommodation.currentOccupants > 0 ? 'filled' : 'outlined'}
+          color={over ? 'error' : 'default'}
+          label={beds === null ? accommodation.currentOccupants : `${accommodation.currentOccupants} / ${beds}`}
+        />
+      </Tooltip>
 
       {hasActiveRate ? (
         <Chip

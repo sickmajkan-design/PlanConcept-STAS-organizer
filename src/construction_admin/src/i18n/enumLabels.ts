@@ -49,6 +49,8 @@ export type EnumKind =
   | 'weeklyReportStatus'
   | 'auditAction'
   | 'auditEntity'
+  | 'accommodationType'
+  | 'accommodationChargeKind'
   | 'materialImportRowStatus'
   | 'organizationRank';
 

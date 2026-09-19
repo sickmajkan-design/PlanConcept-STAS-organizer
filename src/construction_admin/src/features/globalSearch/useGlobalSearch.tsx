@@ -119,7 +119,8 @@ async function runGlobalSearch(
       })),
       searchEntity(() => accommodationsApi.list(listQuery), (a) => ({
         id: a.id,
-        label: a.address,
+        label: a.name || a.address,
+        sublabel: a.name ? a.address : (a.city ?? undefined),
         path: paths.accommodationDetail(a.id),
       })),
       // Accounts and groups are administration: only searched for those who

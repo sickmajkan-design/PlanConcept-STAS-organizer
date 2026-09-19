@@ -47,6 +47,7 @@ import { useAllProjectsQuery } from '../../features/projects/useProjects';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { useRecordVisit } from '../../layout/useRecentRecords';
 import { canAdministerAccounts } from '../../auth/authHelpers';
+import { EmployeeHousingCard } from '../accommodations/EmployeeHousingCard';
 import { useAuth } from '../../auth/useAuth';
 import { paths } from '../../routes/paths';
 import { formatDate, initialsOf } from '../../utils/formatting';
@@ -195,6 +196,10 @@ export function EmployeeDetailPage() {
               </Stack>
             </CardContent>
           </Card>
+        </Grid>
+
+        <Grid size={12}>
+          <EmployeeHousingCard employeeId={employee.id} />
         </Grid>
 
         <Grid size={12}>

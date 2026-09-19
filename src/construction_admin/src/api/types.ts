@@ -1428,11 +1428,42 @@ export interface GeneralExpenseSummary {
   totalAmount: number;
 }
 
+export const accommodationTypes = ['Apartment', 'House', 'Room', 'Hotel', 'Other'] as const;
+
+export type AccommodationType = (typeof accommodationTypes)[number];
+
+/** How a charge is counted: per month for the unit, per person per day, or once. */
+export const accommodationChargeKinds = ['Monthly', 'DailyPerPerson', 'OneOff'] as const;
+
+export type AccommodationChargeKind = (typeof accommodationChargeKinds)[number];
+
 export interface Accommodation {
   id: string;
   address: string;
+  /** What people call it. The address is shown when this is empty. */
+  name: string | null;
+  type: AccommodationType;
+  city: string | null;
+  floor: string | null;
+  rooms: number | null;
+  /** How many people can sleep there; occupancy is measured against it. */
+  beds: number | null;
+  areaSquareMeters: number | null;
+  landlordName: string | null;
+  landlordPhone: string | null;
+  landlordEmail: string | null;
+  contractNumber: string | null;
+  /** `YYYY-MM-DD`. */
+  contractStart: string | null;
+  contractEnd: string | null;
+  depositAmount: number | null;
+  utilitiesIncluded: boolean;
+  /** False once the firm no longer rents it. */
+  isActive: boolean;
   note: string | null;
-  /** Set when a rate is currently in force. Null for one with no rate on file. */
+  /** How many people live there today. */
+  currentOccupants: number;
+  /** Set when a monthly rate is currently in force. Null for one with no rate on file. */
   currentMonthlyAmount: number | null;
   currentProvider: string | null;
   createdAt: string;
@@ -1441,6 +1472,22 @@ export interface Accommodation {
 
 export interface AccommodationInput {
   address: string;
+  name?: string | null;
+  type: AccommodationType;
+  city?: string | null;
+  floor?: string | null;
+  rooms?: number | null;
+  beds?: number | null;
+  areaSquareMeters?: number | null;
+  landlordName?: string | null;
+  landlordPhone?: string | null;
+  landlordEmail?: string | null;
+  contractNumber?: string | null;
+  contractStart?: string | null;
+  contractEnd?: string | null;
+  depositAmount?: number | null;
+  utilitiesIncluded: boolean;
+  isActive: boolean;
   note?: string | null;
 }
 
@@ -1448,7 +1495,9 @@ export interface AccommodationRate {
   id: string;
   accommodationId: string;
   accommodationAddress: string;
-  monthlyAmount: number;
+  kind: AccommodationChargeKind;
+  /** Per month, per person per day, or once, depending on `kind`. */
+  amount: number;
   provider: string | null;
   /** `YYYY-MM-DD`. */
   startDate: string;
@@ -1461,11 +1510,66 @@ export interface AccommodationRate {
 
 export interface AccommodationRateInput {
   accommodationId: string;
-  monthlyAmount: number;
+  kind: AccommodationChargeKind;
+  amount: number;
   provider?: string | null;
   startDate?: string | null;
   endDate?: string | null;
   note?: string | null;
+}
+
+export interface AccommodationStay {
+  id: string;
+  accommodationId: string;
+  accommodationName: string;
+  accommodationAddress: string;
+  employeeId: string;
+  employeeName: string;
+  /** `YYYY-MM-DD`. */
+  startDate: string;
+  /** `YYYY-MM-DD`, or null while they still live there. */
+  endDate: string | null;
+  projectId: string | null;
+  projectName: string | null;
+  note: string | null;
+  createdAt: string;
+}
+
+export interface AccommodationStayInput {
+  employeeId?: string;
+  startDate?: string | null;
+  endDate?: string | null;
+  projectId?: string | null;
+  note?: string | null;
+}
+
+export interface AccommodationEmployeeCost {
+  employeeId: string;
+  employeeName: string;
+  personDays: number;
+  cost: number;
+}
+
+export interface AccommodationProjectCost {
+  projectId: string | null;
+  projectName: string | null;
+  cost: number;
+}
+
+export interface AccommodationCostSummary {
+  from: string;
+  to: string;
+  days: number;
+  total: number;
+  monthlyPortion: number;
+  dailyPortion: number;
+  oneOffPortion: number;
+  /** Monthly rent for days when the place stood empty. */
+  vacancyCost: number;
+  vacantDays: number;
+  occupiedPersonDays: number;
+  byEmployee: AccommodationEmployeeCost[];
+  byProject: AccommodationProjectCost[];
 }
 
 export interface AccommodationRateSummary {

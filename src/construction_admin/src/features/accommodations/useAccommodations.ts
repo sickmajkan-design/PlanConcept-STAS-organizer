@@ -1,7 +1,11 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { accommodationsApi, type AccommodationListQuery } from '../../api/accommodations';
-import type { AccommodationInput } from '../../api/types';
+import {
+  accommodationsApi,
+  type AccommodationListQuery,
+  type AccommodationStayListQuery,
+} from '../../api/accommodations';
+import type { AccommodationInput, AccommodationStayInput } from '../../api/types';
 import {
   createResourceKeys,
   useResourceDetail,
@@ -10,6 +14,10 @@ import {
 } from '../resourceQueries';
 
 export const accommodationKeys = createResourceKeys<AccommodationListQuery>('accommodations');
+export const accommodationStayKeys = createResourceKeys<AccommodationStayListQuery>('accommodationStays');
+
+/** A stay changes who lives where, so the occupancy and the cost split follow. */
+const stayCaches = [accommodationStayKeys.all, accommodationKeys.all, ['accommodationCosts']];
 
 /** The largest page the API will serve, used by the picker query below. */
 const PICKER_QUERY: AccommodationListQuery = {
@@ -53,4 +61,48 @@ export function useDeleteAccommodation() {
   return useResourceMutation((id: string) => accommodationsApi.remove(id), [
     accommodationKeys.all,
   ]);
+}
+
+export function useAccommodationStaysQuery(query: AccommodationStayListQuery, enabled = true) {
+  return useResourceList(accommodationStayKeys, accommodationsApi.stays.list, query, { enabled });
+}
+
+export function useAddAccommodationStay() {
+  return useResourceMutation(
+    (variables: { accommodationId: string; input: AccommodationStayInput }) =>
+      accommodationsApi.stays.add(variables.accommodationId, variables.input),
+    stayCaches,
+  );
+}
+
+export function useUpdateAccommodationStay() {
+  return useResourceMutation(
+    (variables: { id: string; input: AccommodationStayInput }) =>
+      accommodationsApi.stays.update(variables.id, variables.input),
+    stayCaches,
+  );
+}
+
+export function useDeleteAccommodationStay() {
+  return useResourceMutation((id: string) => accommodationsApi.stays.remove(id), stayCaches);
+}
+
+/** What an accommodation cost over a period. Only for those who may see spending. */
+export function useAccommodationCostsQuery(
+  id: string | undefined,
+  period: { from: string; to: string },
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ['accommodationCosts', id, period],
+    queryFn: () => accommodationsApi.costs(id!, period),
+    enabled: !!id && enabled,
+  });
+}
+
+/** Refresh hook for callers that changed rates and want the cost summary to follow. */
+export function useRefreshAccommodationCosts() {
+  const queryClient = useQueryClient();
+
+  return () => queryClient.invalidateQueries({ queryKey: ['accommodationCosts'] });
 }
