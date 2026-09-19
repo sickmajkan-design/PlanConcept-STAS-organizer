@@ -225,6 +225,8 @@ export const sr: Record<MessageKey, Message> = {
   'common.viewAll': 'Pogledaj sve',
   'common.shownOfTotal': 'Prikazano {shown} od {total}',
   'common.showMore': 'Prikaži još',
+  'common.sortBy': 'Sortiraj po',
+  'common.sortDirection': 'Obrni redosled sortiranja',
   'common.narrowSearch': 'Suzite pretragu ili filter da vidite ostalo.',
   'common.noRows': 'Nema redova',
   'common.signOut': 'Odjavi se',

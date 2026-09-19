@@ -202,6 +202,8 @@ export const en = {
   'common.viewAll': 'View all',
   'common.shownOfTotal': 'Showing {shown} of {total}',
   'common.showMore': 'Show more',
+  'common.sortBy': 'Sort by',
+  'common.sortDirection': 'Reverse sort order',
   'common.narrowSearch': 'Narrow the search or filter to see the rest.',
   'common.noRows': 'No rows',
   'common.signOut': 'Sign out',

@@ -10,6 +10,7 @@ import {
 
 import type { PagedList } from '../api/types';
 import { ErrorState } from './ErrorState';
+import { ResourceCardList } from './ResourceCardList';
 import { useT } from '../i18n/useI18n';
 import { PAGE_SIZE_OPTIONS } from '../hooks/useListQueryState';
 
@@ -87,9 +88,23 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
       : {};
 
   return (
-    <Paper sx={{ height, display: 'flex', flexDirection: 'column' }}>
+    <Paper
+      sx={isCompact ? { p: 1.5 } : { height, display: 'flex', flexDirection: 'column' }}
+    >
       {isError ? (
         <ErrorState error={error} onRetry={onRetry} />
+      ) : isCompact ? (
+        <ResourceCardList
+          rows={data?.items ?? []}
+          columns={columns}
+          isLoading={isLoading}
+          sortModel={sortModel}
+          onSortModelChange={onSortModelChange}
+          onRowClick={onRowClick ?? onRowDoubleClick}
+          rowSelectionModel={rowSelectionModel}
+          onRowSelectionModelChange={onRowSelectionModelChange}
+          highlightedId={highlightedId}
+        />
       ) : (
         <Box sx={{ flex: 1, minHeight: 0 }}>
         <DataGrid
