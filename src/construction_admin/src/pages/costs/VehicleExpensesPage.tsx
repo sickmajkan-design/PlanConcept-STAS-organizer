@@ -429,7 +429,17 @@ export function VehicleExpensesPage() {
           // Left fire-and-forget, a refused approval (the API will not let you
           // approve a cost you recorded) left the dialog open and silent —
           // a button that seemed to do nothing.
-          await review.mutateAsync({ id: approving.id, input: { approve: true } });
+          try {
+            await review.mutateAsync({ id: approving.id, input: { approve: true } });
+          } catch (err) {
+            // A refusal usually means the row on screen is out of date — somebody
+            // else already reviewed it — so bring the list up to date too,
+            // instead of leaving it saying "pending" beside an error that says
+            // otherwise.
+            void refetch();
+            throw err;
+          }
+
           setApproving(null);
         }}
         onCancel={() => setApproving(null)}
