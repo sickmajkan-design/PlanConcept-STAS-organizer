@@ -1,8 +1,14 @@
-import { BusinessOutlined, ManageAccountsOutlined, SwapVertOutlined } from '@mui/icons-material';
+import {
+  AutoFixHighOutlined,
+  BusinessOutlined,
+  ManageAccountsOutlined,
+  SwapVertOutlined,
+} from '@mui/icons-material';
 import {
   Avatar,
   Box,
   Button,
+  Checkbox,
   Chip,
   CircularProgress,
   Dialog,
@@ -10,6 +16,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControlLabel,
   IconButton,
   MenuItem,
   Paper,
@@ -41,6 +48,7 @@ import {
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
+import { suggestRank } from './suggestRank';
 
 /**
  * Where somebody with no rank picked is placed, going by their login role.
@@ -101,7 +109,10 @@ function PersonCard({
       variant="outlined"
       onClick={onOpen}
       sx={{
-        width: 196,
+        // Wide enough for a full name on two lines: at 196px "Darijo
+        // Stanković" and most surnames were cut to "Darijo Stan…", on a chart
+        // whose only job is to say who is who.
+        width: { xs: '100%', sm: 248 },
         p: 1.25,
         display: 'flex',
         alignItems: 'center',
@@ -116,10 +127,28 @@ function PersonCard({
         {initials(node.fullName)}
       </Avatar>
       <Box sx={{ minWidth: 0, flex: 1 }}>
-        <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
+        <Typography
+          variant="body2"
+          title={node.fullName}
+          sx={{
+            fontWeight: 600,
+            lineHeight: 1.25,
+            overflowWrap: 'anywhere',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}
+        >
           {node.fullName}
         </Typography>
-        <Typography variant="caption" color="text.secondary" noWrap component="div">
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          noWrap
+          component="div"
+          title={node.position}
+        >
           {node.position}
         </Typography>
       </Box>
@@ -316,6 +345,112 @@ function RankDialog({
   );
 }
 
+interface RankSuggestion {
+  node: OrganizationHierarchyNode;
+  rank: OrganizationRank;
+}
+
+/**
+ * Ranks guessed from job titles, applied only for the people ticked.
+ *
+ * A title is free text typed by whoever entered the employee, so this proposes
+ * and never decides: nothing is written until the button is pressed, and the
+ * person who knows the company can untick anybody who is wrong.
+ */
+function SuggestRanksDialog({
+  suggestions,
+  open,
+  onClose,
+}: {
+  suggestions: RankSuggestion[];
+  open: boolean;
+  onClose: () => void;
+}) {
+  const t = useT();
+  const enumLabel = useEnumLabel();
+  const setRank = useSetEmployeeRank();
+  const [unticked, setUnticked] = useState<Set<string>>(new Set());
+  const [error, setError] = useState<string | null>(null);
+  const [applying, setApplying] = useState(false);
+
+  const chosen = suggestions.filter((s) => !unticked.has(s.node.employeeId));
+
+  const close = () => {
+    setUnticked(new Set());
+    setError(null);
+    onClose();
+  };
+
+  const apply = async () => {
+    setApplying(true);
+    setError(null);
+
+    try {
+      // One after another rather than all at once: the person at the keyboard
+      // should see a failure stop the run, not a dozen requests race.
+      for (const { node, rank } of chosen) {
+        await setRank.mutateAsync({ id: node.employeeId, rank });
+      }
+
+      close();
+    } catch (err) {
+      setError(toApiError(err).message);
+    } finally {
+      setApplying(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={close} fullWidth maxWidth="sm">
+      <DialogTitle>{t('hierarchy.suggestTitle')}</DialogTitle>
+      <DialogContent>
+        <DialogContentText sx={{ mb: 1 }}>{t('hierarchy.suggestHint')}</DialogContentText>
+        <Stack>
+          {suggestions.map(({ node, rank }) => (
+            <FormControlLabel
+              key={node.employeeId}
+              control={
+                <Checkbox
+                  checked={!unticked.has(node.employeeId)}
+                  onChange={(event) =>
+                    setUnticked((prev) => {
+                      const next = new Set(prev);
+                      if (event.target.checked) next.delete(node.employeeId);
+                      else next.add(node.employeeId);
+                      return next;
+                    })
+                  }
+                />
+              }
+              label={
+                <Typography variant="body2">
+                  <strong>{node.fullName}</strong> · {node.position} →{' '}
+                  {enumLabel('organizationRank', rank)}
+                </Typography>
+              }
+            />
+          ))}
+        </Stack>
+        {error && (
+          <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+            {error}
+          </Typography>
+        )}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={close}>{t('common.cancel')}</Button>
+        <Button
+          variant="contained"
+          disabled={chosen.length === 0 || applying}
+          onClick={() => void apply()}
+        >
+          {t('hierarchy.suggestApply', { count: chosen.length })}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
 export function HierarchyPage() {
   const t = useT();
   const enumLabel = useEnumLabel();
@@ -324,8 +459,18 @@ export function HierarchyPage() {
   const { data, isLoading, isError, error, refetch } = useOrganizationHierarchyQuery();
   const { data: branding } = useCompanyBrandingQuery();
   const [editing, setEditing] = useState<OrganizationHierarchyNode | null>(null);
+  const [suggesting, setSuggesting] = useState(false);
 
   const canEdit = canAdministerAccounts(user);
+
+  const suggestions = useMemo<RankSuggestion[]>(
+    () =>
+      (data?.people ?? []).flatMap((node) => {
+        const rank = node.rank === null ? suggestRank(node.position) : null;
+        return rank ? [{ node, rank }] : [];
+      }),
+    [data],
+  );
 
   const { tiers, unplaced } = useMemo(() => {
     const byRank = new Map<OrganizationRank, OrganizationHierarchyNode[]>();
@@ -358,6 +503,18 @@ export function HierarchyPage() {
   return (
     <Box>
       <PageHeader title={t('hierarchy.title')} description={t('hierarchy.description')} />
+
+      {canEdit && suggestions.length > 0 && (
+        <Box sx={{ mb: 2 }}>
+          <Button
+            variant="outlined"
+            startIcon={<AutoFixHighOutlined />}
+            onClick={() => setSuggesting(true)}
+          >
+            {t('hierarchy.suggest', { count: suggestions.length })}
+          </Button>
+        </Box>
+      )}
 
       {isLoading && (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -456,6 +613,11 @@ export function HierarchyPage() {
       )}
 
       <RankDialog node={editing} onClose={() => setEditing(null)} />
+      <SuggestRanksDialog
+        suggestions={suggestions}
+        open={suggesting}
+        onClose={() => setSuggesting(false)}
+      />
     </Box>
   );
 }

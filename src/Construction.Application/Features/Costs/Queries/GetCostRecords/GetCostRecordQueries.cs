@@ -435,7 +435,7 @@ public record GetVehicleExpensesQuery : ISortablePagedQuery, IRequest<PagedList<
     public static readonly string[] AllowedSortFields =
     [
         "occurredOn", "vehicleName", "kind", "amount", "litres", "odometerKm",
-        "recordedByName", "createdAt"
+        "recordedByName", "createdAt", "status"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -541,6 +541,8 @@ public class GetVehicleExpensesQueryHandler
                 .OrderByDescending(e => e.Vehicle.Brand).ThenByDescending(e => e.Vehicle.Model),
             ("kind", false) => query.OrderBy(e => e.Kind),
             ("kind", true) => query.OrderByDescending(e => e.Kind),
+            ("status", false) => query.OrderBy(e => e.Status),
+            ("status", true) => query.OrderByDescending(e => e.Status),
             ("amount", false) => query.OrderBy(e => e.Amount),
             ("amount", true) => query.OrderByDescending(e => e.Amount),
             ("litres", false) => query.OrderBy(e => e.Litres == null).ThenBy(e => e.Litres),

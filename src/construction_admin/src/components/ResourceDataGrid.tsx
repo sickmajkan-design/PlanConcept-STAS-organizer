@@ -1,4 +1,4 @@
-import { Paper } from '@mui/material';
+import { Paper, useMediaQuery, useTheme } from '@mui/material';
 import {
   DataGrid,
   type GridColDef,
@@ -35,7 +35,14 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
   rowSelectionModel,
   onRowSelectionModelChange,
   highlightedId,
+  compactHiddenFields,
 }: {
+  /**
+   * Columns to drop on a phone-width screen, so the ones that matter fit
+   * without scrolling sideways. Opt-in per page: only the page knows which of
+   * its columns are the ones a person came for. Omit it and nothing changes.
+   */
+  compactHiddenFields?: readonly string[];
   data: PagedList<T> | undefined;
   columns: GridColDef<T>[];
   isLoading: boolean;
@@ -62,6 +69,15 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
   highlightedId?: string | null;
 }) {
   const t = useT();
+  const theme = useTheme();
+  const isCompact = useMediaQuery(theme.breakpoints.down('sm'));
+
+  // Always a model, empty when nothing is hidden: switching a grid between
+  // controlled and uncontrolled as the window is resized draws a warning.
+  const columnVisibilityModel: Record<string, boolean> =
+    isCompact && compactHiddenFields
+      ? Object.fromEntries(compactHiddenFields.map((field) => [field, false]))
+      : {};
 
   return (
     <Paper sx={{ height }}>
@@ -72,6 +88,7 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
           rows={data?.items ?? []}
           columns={columns}
           loading={isLoading}
+          columnVisibilityModel={columnVisibilityModel}
           rowCount={data?.totalCount ?? 0}
           paginationMode="server"
           paginationModel={paginationModel}

@@ -52,6 +52,15 @@ export const sr: Record<MessageKey, Message> = {
   'hierarchy.accountsHint':
     'Nisu povezani sa zapisom zaposlenog, pa im se još ne može dodeliti rang. Poveži ih u Korisnicima.',
   'hierarchy.people':{ one: '{count} osoba', few: '{count} osobe', other: '{count} osoba' },
+  'hierarchy.suggest': {
+    one: 'Predloži rang po poziciji ({count})',
+    few: 'Predloži rangove po pozicijama ({count})',
+    other: 'Predloži rangove po pozicijama ({count})',
+  },
+  'hierarchy.suggestTitle': 'Predloženi rangovi',
+  'hierarchy.suggestHint':
+    'Pogođeno po nazivu pozicije svake osobe. Ništa se ne menja dok ne primeniš, a onoga ko je pogrešan možeš da odčekiraš.',
+  'hierarchy.suggestApply': { one: 'Primeni {count}', few: 'Primeni {count}', other: 'Primeni {count}' },
   'hierarchy.changeRank': 'Promeni rang',
   'hierarchy.rankDialogTitle': 'Rasporedi: {name}',
   'hierarchy.rankDialogHint': 'Pomera ih samo na ovoj stranici — ne menja šta smeju u aplikaciji.',

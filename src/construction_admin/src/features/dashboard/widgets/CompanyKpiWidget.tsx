@@ -1,6 +1,6 @@
-import { Box, Divider, Stack, Typography } from '@mui/material';
+﻿import { Box, Divider, Link as MuiLink, Stack, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 
 import { costsApi } from '../../../api/costs';
 import { employeesApi } from '../../../api/employees';
@@ -14,7 +14,7 @@ import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
 
 // Same page sizes and query keys FleetStatusWidget already uses for these two
-// lists — mounting both widgets on one board shares a single fetch instead of
+// lists â€” mounting both widgets on one board shares a single fetch instead of
 // doubling it.
 const FLEET_PAGE_SIZE = 100;
 
@@ -137,7 +137,7 @@ export function CompanyKpiWidget({
       dragHandleProps={dragHandleProps}
     >
       <Stack spacing={2}>
-        {/* Plain stat tiles, not links — a drag handle is the only thing on
+        {/* Plain stat tiles, not links â€” a drag handle is the only thing on
             this card that should ever pick up a pointer gesture. Navigation
             lives in the plain text links below instead, exactly like every
             other widget on this board (see FleetStatusWidget). */}
@@ -169,19 +169,19 @@ export function CompanyKpiWidget({
 
         <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap' }}>
           <Typography variant="body2">
-            <Link to={paths.costs}>{t('nav.costs')}</Link>
+            <MuiLink component={RouterLink} to={paths.costs} underline="hover">{t('nav.costs')}</MuiLink>
           </Typography>
           <Typography variant="body2">
-            <Link to={paths.employees}>{t('nav.employees')}</Link>
+            <MuiLink component={RouterLink} to={paths.employees} underline="hover">{t('nav.employees')}</MuiLink>
           </Typography>
           <Typography variant="body2">
-            <Link to={paths.workItems}>{t('nav.workItems')}</Link>
+            <MuiLink component={RouterLink} to={paths.workItems} underline="hover">{t('nav.workItems')}</MuiLink>
           </Typography>
           <Typography variant="body2">
-            <Link to={paths.vehicles}>{t('nav.vehicles')}</Link>
+            <MuiLink component={RouterLink} to={paths.vehicles} underline="hover">{t('nav.vehicles')}</MuiLink>
           </Typography>
           <Typography variant="body2">
-            <Link to={paths.tools}>{t('nav.tools')}</Link>
+            <MuiLink component={RouterLink} to={paths.tools} underline="hover">{t('nav.tools')}</MuiLink>
           </Typography>
         </Stack>
       </Stack>

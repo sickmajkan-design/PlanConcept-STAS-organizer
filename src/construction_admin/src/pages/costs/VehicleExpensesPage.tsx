@@ -1,4 +1,4 @@
-import { AddOutlined, CheckOutlined, CloseOutlined, DeleteOutlined } from '@mui/icons-material';
+﻿import { AddOutlined, CheckOutlined, CloseOutlined, DeleteOutlined } from '@mui/icons-material';
 import {
   Alert,
   AlertTitle,
@@ -56,7 +56,17 @@ import { useSavedViews } from '../../hooks/useSavedViews';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
-import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../utils/formatting';
+import { formatDate, formatMoney, formatQuantity } from '../../utils/formatting';
+
+/** What a phone-width screen keeps: which vehicle, how much, and where it stands in review. */
+const compactHiddenFields = [
+  'occurredOn',
+  'kind',
+  'litres',
+  'pricePerLitre',
+  'odometerKm',
+  'recordedByName',
+] as const;
 
 interface VehicleExpenseViewState {
   sortModel: GridSortModel;
@@ -106,30 +116,47 @@ export function VehicleExpensesPage() {
   const remove = useDeleteWithConfirm<VehicleExpense>(useDeleteVehicleExpense());
   const review = useReviewVehicleExpense();
 
+  // Order is the order of importance, and the total width is kept under what a
+  // laptop screen has: the status and the approve/reject buttons are the point
+  // of this page, and when they sat at the far right of eleven columns they
+  // were off-screen until somebody scrolled sideways. The recorded-at time and
+  // the fuel type used to have columns of their own; the type now sits with the
+  // kind it qualifies and the timestamp is in the audit trail.
   const columns: GridColDef<VehicleExpense>[] = useMemo(
     () => [
       {
         field: 'occurredOn',
         headerName: t('vehicleExpenses.occurredOn'),
-        width: 120,
+        width: 110,
         valueGetter: (value) => formatDate(value),
+      },
+      {
+        field: 'status',
+        headerName: t('vehicleExpenses.status'),
+        width: 140,
+        renderCell: (params) => (
+          <StatusChip status={params.value} kind="vehicleExpenseStatus" />
+        ),
       },
       {
         field: 'vehicleName',
         headerName: t('vehicleExpenses.vehicle'),
         flex: 1,
-        minWidth: 200,
+        minWidth: 170,
       },
       {
         field: 'kind',
         headerName: t('vehicleExpenses.kind'),
-        width: 130,
-        valueGetter: (_value, row) => enumLabel('vehicleExpenseKind', row.kind),
+        width: 150,
+        valueGetter: (_value, row) =>
+          row.fuelProductType
+            ? `${enumLabel('vehicleExpenseKind', row.kind)} · ${row.fuelProductType}`
+            : enumLabel('vehicleExpenseKind', row.kind),
       },
       {
         field: 'amount',
         headerName: t('vehicleExpenses.amount'),
-        width: 130,
+        width: 110,
         align: 'right',
         headerAlign: 'right',
         valueGetter: (value) => formatMoney(value as number, locale),
@@ -137,7 +164,7 @@ export function VehicleExpensesPage() {
       {
         field: 'litres',
         headerName: t('vehicleExpenses.litres'),
-        width: 100,
+        width: 90,
         align: 'right',
         headerAlign: 'right',
         valueGetter: (value) =>
@@ -146,7 +173,7 @@ export function VehicleExpensesPage() {
       {
         field: 'pricePerLitre',
         headerName: t('vehicleExpenses.pricePerLitre'),
-        width: 120,
+        width: 100,
         align: 'right',
         headerAlign: 'right',
         sortable: false,
@@ -155,44 +182,23 @@ export function VehicleExpensesPage() {
       {
         field: 'odometerKm',
         headerName: t('vehicleExpenses.odometer'),
-        width: 130,
+        width: 110,
         align: 'right',
         headerAlign: 'right',
         valueGetter: (value) =>
           value === null ? '—' : formatQuantity(value as number, locale),
       },
       {
-        field: 'fuelProductType',
-        headerName: t('vehicleExpenses.fuelProductType'),
-        width: 130,
-        valueGetter: (value) => value || '—',
-      },
-      {
         field: 'recordedByName',
         headerName: t('vehicleExpenses.recordedBy'),
         flex: 1,
-        minWidth: 160,
+        minWidth: 130,
         valueGetter: (value) => value || '—',
-      },
-      {
-        field: 'createdAt',
-        headerName: t('vehicleExpenses.createdAt'),
-        width: 160,
-        valueGetter: (value) => formatDateTime(value as string),
-      },
-      {
-        field: 'status',
-        headerName: t('vehicleExpenses.status'),
-        width: 140,
-        sortable: false,
-        renderCell: (params) => (
-          <StatusChip status={params.value} kind="vehicleExpenseStatus" />
-        ),
       },
       {
         field: 'actions',
         headerName: '',
-        width: 110,
+        width: 112,
         sortable: false,
         filterable: false,
         align: 'right',
@@ -362,6 +368,7 @@ export function VehicleExpensesPage() {
         sortModel={list.sortModel}
         onSortModelChange={list.setSortModel}
         onRowDoubleClick={(row) => setEditing(row)}
+        compactHiddenFields={compactHiddenFields}
       />
 
       <VehicleExpenseDialog open={recording} onClose={() => setRecording(false)} />

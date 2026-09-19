@@ -1,4 +1,4 @@
-import { Button, Chip, Divider, List, ListItem, ListItemText, Stack, Typography } from '@mui/material';
+﻿import { Button, Chip, Divider, List, ListItem, ListItemText, Stack, Typography } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -8,11 +8,12 @@ import { timeEntriesApi } from '../../../api/timeEntries';
 import { useT } from '../../../i18n/useI18n';
 import { paths } from '../../../routes/paths';
 import { formatDate } from '../../../utils/formatting';
+import { chartPalette } from '../../../theme';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
 
 const today = () => new Date().toISOString().slice(0, 10);
-// 100 is GetTimeEntriesQuery's own max page size — a bigger request 400s.
+// 100 is GetTimeEntriesQuery's own max page size â€” a bigger request 400s.
 const ON_SITE_PAGE_SIZE = 100;
 const TOP_PROJECTS_SHOWN = 6;
 
@@ -20,7 +21,7 @@ const TOP_PROJECTS_SHOWN = 6;
 function headcountByProject(entries: { projectName: string | null }[]) {
   const counts = new Map<string, number>();
   for (const entry of entries) {
-    const key = entry.projectName ?? '—';
+    const key = entry.projectName ?? 'â€”';
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
   return [...counts.entries()]
@@ -98,6 +99,7 @@ export function AbsencesBalanceWidget({
       {byProject.length > 0 && (
         <BarChart
           height={160}
+          colors={chartPalette}
           series={[{ data: byProject.map(([, count]) => count), label: t('dashboard.absencesBalance.onSiteNow', { count: onSiteEntries.length }) }]}
           xAxis={[{ scaleType: 'band', data: byProject.map(([name]) => name) }]}
           margin={{ top: 10, bottom: 50, left: 30, right: 10 }}
@@ -112,7 +114,7 @@ export function AbsencesBalanceWidget({
               <ListItem key={absence.id} disableGutters>
                 <ListItemText
                   primary={absence.employeeName}
-                  secondary={`${absence.type} · ${formatDate(absence.startDate)} — ${formatDate(absence.endDate)}`}
+                  secondary={`${absence.type} Â· ${formatDate(absence.startDate)} â€” ${formatDate(absence.endDate)}`}
                 />
               </ListItem>
             ))}

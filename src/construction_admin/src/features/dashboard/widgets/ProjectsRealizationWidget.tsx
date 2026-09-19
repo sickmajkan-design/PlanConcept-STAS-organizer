@@ -8,6 +8,7 @@ import { costsApi } from '../../../api/costs';
 import { realizationApi } from '../../../api/projects';
 import { useI18n } from '../../../i18n/useI18n';
 import { paths } from '../../../routes/paths';
+import { chartPalette } from '../../../theme';
 import { formatMoney } from '../../../utils/formatting';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
@@ -130,9 +131,16 @@ export function ProjectsRealizationWidget({
         <Typography color="text.secondary" variant="body2">
           {t('dashboard.projectsRealization.noCostData')}
         </Typography>
+      ) : costSlices.length === 1 ? (
+        // One category is not a composition: a full ring says nothing a
+        // number does not say better.
+        <Typography variant="body2" sx={{ mt: 1 }}>
+          {costSlices[0].label}: <strong>{formatMoney(costSlices[0].value, locale)}</strong>
+        </Typography>
       ) : (
         <PieChart
           height={180}
+          colors={chartPalette}
           series={[{ data: costSlices, innerRadius: 30 }]}
           hideLegend={false}
         />
@@ -150,6 +158,7 @@ export function ProjectsRealizationWidget({
       ) : (
         <BarChart
           height={160}
+          colors={chartPalette}
           series={[{ data: monthly, label: t('dashboard.projectsRealization.revenue') }]}
           xAxis={[{ scaleType: 'band', data: monthLabels }]}
           margin={{ top: 10, bottom: 30, left: 40, right: 10 }}

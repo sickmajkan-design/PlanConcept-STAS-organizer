@@ -1,4 +1,4 @@
-import { List, ListItem, ListItemText, Stack, Typography } from '@mui/material';
+﻿import { List, ListItem, ListItemText, Stack, Typography } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -9,10 +9,11 @@ import { vehiclesApi } from '../../../api/vehicles';
 import { useI18n } from '../../../i18n/useI18n';
 import { useEnumLabel } from '../../../i18n/enumLabels';
 import { paths } from '../../../routes/paths';
+import { chartPalette } from '../../../theme';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
 
-// 100 is GetVehiclesQuery/GetToolsQuery's own max page size — a bigger request 400s.
+// 100 is GetVehiclesQuery/GetToolsQuery's own max page size â€” a bigger request 400s.
 const FLEET_PAGE_SIZE = 100;
 
 /** Statuses worth calling out as a short "needs attention" list. */
@@ -102,6 +103,7 @@ export function FleetStatusWidget({
       <Stack spacing={2}>
         <BarChart
           height={160}
+          colors={chartPalette}
           series={[{ data: vehicleCounts.map((c) => c.count), label: t('dashboard.fleet.vehicles') }]}
           xAxis={[
             {
@@ -114,6 +116,7 @@ export function FleetStatusWidget({
 
         <BarChart
           height={160}
+          colors={chartPalette}
           series={[{ data: toolCounts.map((c) => c.count), label: t('dashboard.fleet.tools') }]}
           xAxis={[
             { scaleType: 'band', data: toolCounts.map((c) => enumLabel('toolStatus', c.status)) },

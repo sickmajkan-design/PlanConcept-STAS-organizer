@@ -45,6 +45,14 @@ export const en = {
   'hierarchy.accountsHint':
     'Not linked to an employee record, so they cannot be ranked yet. Link them from Users.',
   'hierarchy.people':{ one: '{count} person', other: '{count} people' },
+  'hierarchy.suggest': {
+    one: 'Suggest a rank from job title ({count})',
+    other: 'Suggest ranks from job titles ({count})',
+  },
+  'hierarchy.suggestTitle': 'Suggested ranks',
+  'hierarchy.suggestHint':
+    'Guessed from each person’s job title. Nothing changes until you apply, and you can untick anyone who is wrong.',
+  'hierarchy.suggestApply': { one: 'Apply {count}', other: 'Apply {count}' },
   'hierarchy.changeRank': 'Change rank',
   'hierarchy.rankDialogTitle': 'Place {name} on the chart',
   'hierarchy.rankDialogHint': 'Only moves them on this page — it does not change what they may do in the app.',
