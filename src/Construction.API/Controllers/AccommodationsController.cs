@@ -1,6 +1,8 @@
 using Construction.API.Authorization;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.Accommodations.Commands.CreateAccommodation;
+using Construction.Application.Features.Accommodations.Costs;
+using Construction.Application.Features.Accommodations.Stays;
 using Construction.Application.Features.Accommodations.Commands.DeleteAccommodation;
 using Construction.Application.Features.Accommodations.Commands.UpdateAccommodation;
 using Construction.Application.Features.Accommodations.Models;
@@ -26,6 +28,69 @@ public class AccommodationsController : ApiControllerBase
     }
 
     /// <summary>Returns one accommodation.</summary>
+    /// <summary>Who lives (or lived) where. Filter by accommodation or by person.</summary>
+    [HttpGet("stays")]
+    [Authorize(Policy = Policies.ForemanAndAbove)]
+    [ProducesResponseType(typeof(PagedList<AccommodationStayDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PagedList<AccommodationStayDto>>> GetStays(
+        [FromQuery] GetAccommodationStaysQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>Puts a person into this accommodation.</summary>
+    [HttpPost("{id:guid}/stays")]
+    [Authorize(Policy = Policies.ProjectManagerAndAbove)]
+    [ProducesResponseType(typeof(AccommodationStayDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<AccommodationStayDto>> AddStay(
+        Guid id,
+        AddAccommodationStayCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { AccommodationId = id }, cancellationToken));
+    }
+
+    /// <summary>Corrects a stay: moves its dates, ends it, or changes the project it is charged to.</summary>
+    [HttpPut("stays/{stayId:guid}")]
+    [Authorize(Policy = Policies.ProjectManagerAndAbove)]
+    [ProducesResponseType(typeof(AccommodationStayDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<AccommodationStayDto>> UpdateStay(
+        Guid stayId,
+        UpdateAccommodationStayCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { Id = stayId }, cancellationToken));
+    }
+
+    /// <summary>Removes a stay that should never have been recorded.</summary>
+    [HttpDelete("stays/{stayId:guid}")]
+    [Authorize(Policy = Policies.ProjectManagerAndAbove)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeleteStay(Guid stayId, CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new DeleteAccommodationStayCommand(stayId), cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>What this accommodation cost over a period, and who it was for.</summary>
+    [HttpGet("{id:guid}/costs")]
+    [Authorize(Policy = Policies.ForemanAndAbove)]
+    [ProducesResponseType(typeof(AccommodationCostSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<AccommodationCostSummaryDto>> GetCosts(
+        Guid id,
+        [FromQuery] GetAccommodationCostsQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query with { AccommodationId = id }, cancellationToken));
+    }
+
     [HttpGet("{id:guid}")]
     [Authorize(Policy = Policies.ForemanAndAbove)]
     [ProducesResponseType(typeof(AccommodationDto), StatusCodes.Status200OK)]

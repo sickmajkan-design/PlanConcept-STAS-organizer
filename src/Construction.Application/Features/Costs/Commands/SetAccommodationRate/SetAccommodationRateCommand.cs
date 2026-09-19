@@ -2,6 +2,7 @@ using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Costs.Models;
 using Construction.Domain.Entities;
+using Construction.Domain.Enums;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +20,11 @@ public record SetAccommodationRateCommand : IRequest<AccommodationRateDto>
 {
     public Guid AccommodationId { get; init; }
 
-    public decimal MonthlyAmount { get; init; }
+    /// <summary>What the amount counts. Monthly unless said otherwise.</summary>
+    public AccommodationChargeKind Kind { get; init; } = AccommodationChargeKind.Monthly;
+
+    /// <summary>Per month, per person per day, or once, depending on <see cref="Kind"/>.</summary>
+    public decimal Amount { get; init; }
 
     public string? Provider { get; init; }
 
@@ -38,10 +43,12 @@ public class SetAccommodationRateCommandValidator : AbstractValidator<SetAccommo
     {
         RuleFor(x => x.AccommodationId).NotEmpty();
 
-        RuleFor(x => x.MonthlyAmount)
-            .GreaterThan(0).WithMessage("A month has to cost something.")
+        RuleFor(x => x.Kind).IsInEnum();
+
+        RuleFor(x => x.Amount)
+            .GreaterThan(0).WithMessage("A charge has to cost something.")
             .LessThanOrEqualTo(CostRules.MaxHourlyRate)
-            .WithMessage("That amount looks like a typo rather than a monthly rate.");
+            .WithMessage("That amount looks like a typo.");
 
         RuleFor(x => x.Provider).MaximumLength(200);
 
@@ -86,13 +93,19 @@ public class SetAccommodationRateCommandHandler
         }
 
         var startDate = request.StartDate ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+
+        // A one-off charge is a single day: nothing to chain or to overlap.
+        var isOneOff = request.Kind == AccommodationChargeKind.OneOff;
+        var endDate = isOneOff ? startDate : request.EndDate;
+
         var rate = new AccommodationRate
         {
             AccommodationId = request.AccommodationId,
-            MonthlyAmount = request.MonthlyAmount,
+            Kind = request.Kind,
+            Amount = request.Amount,
             Provider = request.Provider?.Trim(),
             StartDate = startDate,
-            EndDate = request.EndDate,
+            EndDate = endDate,
             Note = request.Note?.Trim(),
             SetByUserId = _currentUserService.UserId
         };
@@ -100,8 +113,16 @@ public class SetAccommodationRateCommandHandler
         await _context.ExecuteInTransactionAsync(
             async token =>
             {
+                if (isOneOff)
+                {
+                    _context.AccommodationRates.Add(rate);
+                    await _context.SaveChangesAsync(token);
+                    return;
+                }
+
                 var predecessor = await _context.AccommodationRates
                     .Where(r => r.AccommodationId == request.AccommodationId
+                        && r.Kind == request.Kind
                         && r.EndDate == null
                         && r.StartDate < startDate)
                     .OrderByDescending(r => r.StartDate)
@@ -117,6 +138,7 @@ public class SetAccommodationRateCommandHandler
                 var clashes = await _context.AccommodationRates
                     .AnyAsync(
                         r => r.AccommodationId == request.AccommodationId
+                            && r.Kind == request.Kind
                             && (predecessor == null || r.Id != predecessor.Id)
                             && r.StartDate <= (request.EndDate ?? DateOnly.MaxValue)
                             && (r.EndDate == null || r.EndDate >= startDate),

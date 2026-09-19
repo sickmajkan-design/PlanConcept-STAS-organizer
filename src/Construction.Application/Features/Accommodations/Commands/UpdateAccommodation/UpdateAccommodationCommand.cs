@@ -20,10 +20,14 @@ public class UpdateAccommodationCommandHandler
     : IRequestHandler<UpdateAccommodationCommand, AccommodationDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
-    public UpdateAccommodationCommandHandler(IApplicationDbContext context)
+    public UpdateAccommodationCommandHandler(
+        IApplicationDbContext context,
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<AccommodationDto> Handle(
@@ -34,15 +38,22 @@ public class UpdateAccommodationCommandHandler
             .FirstOrDefaultAsync(a => a.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(Accommodation), request.Id);
 
-        accommodation.Address = request.Address.Trim();
-        accommodation.Note = request.Note?.Trim();
+        AccommodationFieldMapper.Apply(accommodation, request);
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return await _context.Accommodations
+        var dto = await _context.Accommodations
             .AsNoTracking()
             .Where(a => a.Id == accommodation.Id)
             .Select(AccommodationMapping.Projection)
             .FirstAsync(cancellationToken);
+
+        await AccommodationOccupancy.FillCurrentOccupantsAsync(
+            _context,
+            [dto],
+            DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+            cancellationToken);
+
+        return dto;
     }
 }

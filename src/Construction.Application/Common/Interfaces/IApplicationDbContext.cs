@@ -27,6 +27,8 @@ public interface IApplicationDbContext
 
     DbSet<AccommodationRate> AccommodationRates { get; }
 
+    DbSet<AccommodationStay> AccommodationStays { get; }
+
     DbSet<Ledger> Ledgers { get; }
 
     DbSet<LedgerColumn> LedgerColumns { get; }

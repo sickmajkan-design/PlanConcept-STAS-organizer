@@ -52,7 +52,7 @@ public class GetLedgerPromotionsQueryHandler
                 SectionName = r.Section.Name,
                 Target = "AccommodationRate",
                 TargetId = r.PromotedAccommodationRateId!.Value,
-                Amount = r.PromotedAccommodationRate!.MonthlyAmount,
+                Amount = r.PromotedAccommodationRate!.Amount,
                 OccurredOn = r.PromotedAccommodationRate!.StartDate,
             })
             .ToListAsync(cancellationToken);

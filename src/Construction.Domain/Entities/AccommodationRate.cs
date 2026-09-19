@@ -1,4 +1,5 @@
 using Construction.Domain.Common;
+using Construction.Domain.Enums;
 
 namespace Construction.Domain.Entities;
 
@@ -18,7 +19,10 @@ public class AccommodationRate : BaseEntity, IAuditable
     public Accommodation Accommodation { get; set; } = null!;
 
     /// <summary>What the landlord/agency gets per month, in the system's single currency.</summary>
-    public decimal MonthlyAmount { get; set; }
+    /// <summary>What <see cref="Kind"/> counts: per month, per person per day, or once.</summary>
+    public decimal Amount { get; set; }
+
+    public AccommodationChargeKind Kind { get; set; } = AccommodationChargeKind.Monthly;
 
     /// <summary>Who the apartment is rented from.</summary>
     public string? Provider { get; set; }

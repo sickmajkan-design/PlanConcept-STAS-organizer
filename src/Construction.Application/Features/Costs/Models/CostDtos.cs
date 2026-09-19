@@ -549,7 +549,10 @@ public class AccommodationRateDto
 
     public string AccommodationAddress { get; init; } = null!;
 
-    public decimal MonthlyAmount { get; init; }
+    public AccommodationChargeKind Kind { get; init; }
+
+    /// <summary>Per month, per person per day, or once, depending on <see cref="Kind"/>.</summary>
+    public decimal Amount { get; init; }
 
     public string? Provider { get; init; }
 
@@ -580,7 +583,8 @@ public static class AccommodationRateMapping
             Id = rate.Id,
             AccommodationId = rate.AccommodationId,
             AccommodationAddress = rate.Accommodation.Address,
-            MonthlyAmount = rate.MonthlyAmount,
+            Kind = rate.Kind,
+            Amount = rate.Amount,
             Provider = rate.Provider,
             StartDate = rate.StartDate,
             EndDate = rate.EndDate,

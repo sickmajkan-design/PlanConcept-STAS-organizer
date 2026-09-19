@@ -1604,7 +1604,7 @@ public record GetAccommodationRatesQuery : ISortablePagedQuery, IRequest<PagedLi
 {
     public static readonly string[] AllowedSortFields =
     [
-        "accommodationAddress", "monthlyAmount", "provider", "startDate", "endDate", "setByName", "createdAt"
+        "accommodationAddress", "kind", "amount", "provider", "startDate", "endDate", "setByName", "createdAt"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -1687,8 +1687,10 @@ public class GetAccommodationRatesQueryHandler
         {
             ("accommodationaddress", false) => query.OrderBy(r => r.Accommodation.Address),
             ("accommodationaddress", true) => query.OrderByDescending(r => r.Accommodation.Address),
-            ("monthlyamount", false) => query.OrderBy(r => r.MonthlyAmount),
-            ("monthlyamount", true) => query.OrderByDescending(r => r.MonthlyAmount),
+            ("kind", false) => query.OrderBy(r => r.Kind),
+            ("kind", true) => query.OrderByDescending(r => r.Kind),
+            ("amount", false) => query.OrderBy(r => r.Amount),
+            ("amount", true) => query.OrderByDescending(r => r.Amount),
             ("provider", false) => query.OrderBy(r => r.Provider == null).ThenBy(r => r.Provider),
             ("provider", true) => query
                 .OrderByDescending(r => r.Provider == null).ThenByDescending(r => r.Provider),
@@ -1757,9 +1759,11 @@ public class GetAccommodationRatesSummaryQueryHandler
         }
 
         var count = await query.CountAsync(cancellationToken);
-        var totalMonthlyAmount = count > 0
-            ? await query.SumAsync(r => r.MonthlyAmount, cancellationToken)
-            : 0m;
+        // Only the monthly rates are a monthly commitment; a per-day or one-off
+        // charge is not something that recurs on a calendar.
+        var totalMonthlyAmount = await query
+            .Where(r => r.Kind == AccommodationChargeKind.Monthly)
+            .SumAsync(r => (decimal?)r.Amount, cancellationToken) ?? 0m;
 
         return new AccommodationRateSummaryDto
         {

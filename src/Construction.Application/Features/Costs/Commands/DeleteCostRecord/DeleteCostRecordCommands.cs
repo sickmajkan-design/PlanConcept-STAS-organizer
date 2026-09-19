@@ -518,8 +518,11 @@ public class DeleteAccommodationRateCommandHandler : IRequestHandler<DeleteAccom
         // Same reopening rule as DeleteVehicleRentalRateCommand: deleting the
         // rate that closed a predecessor must not leave that predecessor
         // stuck ending the day before a rate that no longer exists.
-        var predecessor = await _context.AccommodationRates
+        var predecessor = rate.Kind == AccommodationChargeKind.OneOff
+            ? null
+            : await _context.AccommodationRates
             .Where(r => r.AccommodationId == rate.AccommodationId
+                && r.Kind == rate.Kind
                 && r.Id != rate.Id
                 && r.EndDate == rate.StartDate.AddDays(-1))
             .FirstOrDefaultAsync(cancellationToken);
@@ -529,6 +532,7 @@ public class DeleteAccommodationRateCommandHandler : IRequestHandler<DeleteAccom
             var somethingElseFollows = await _context.AccommodationRates
                 .AnyAsync(
                     r => r.AccommodationId == rate.AccommodationId
+                        && r.Kind == rate.Kind
                         && r.Id != rate.Id
                         && r.Id != predecessor.Id
                         && r.StartDate > predecessor.EndDate!.Value,

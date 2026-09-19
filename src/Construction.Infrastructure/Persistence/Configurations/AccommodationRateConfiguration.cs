@@ -15,7 +15,7 @@ public class AccommodationRateConfiguration : IEntityTypeConfiguration<Accommoda
         // Rates for a deleted accommodation are not chargeable to anything.
         builder.HasQueryFilter(r => !r.Accommodation.IsDeleted);
 
-        builder.Property(r => r.MonthlyAmount).HasPrecision(18, 2);
+        builder.Property(r => r.Amount).HasPrecision(18, 2);
 
         builder.Property(r => r.Provider).HasMaxLength(200);
 
@@ -38,7 +38,7 @@ public class AccommodationRateConfiguration : IEntityTypeConfiguration<Accommoda
                 "\"EndDate\" IS NULL OR \"EndDate\" >= \"StartDate\"");
 
             t.HasCheckConstraint(
-                "ck_accommodation_rates_positive", "\"MonthlyAmount\" > 0");
+                "ck_accommodation_rates_positive", "\"Amount\" > 0");
         });
 
         // "What is this apartment costing us on day D" — same shape as the

@@ -12,10 +12,14 @@ public record GetAccommodationByIdQuery(Guid Id) : IRequest<AccommodationDto>;
 public class GetAccommodationByIdQueryHandler : IRequestHandler<GetAccommodationByIdQuery, AccommodationDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
-    public GetAccommodationByIdQueryHandler(IApplicationDbContext context)
+    public GetAccommodationByIdQueryHandler(
+        IApplicationDbContext context,
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<AccommodationDto> Handle(
@@ -28,6 +32,17 @@ public class GetAccommodationByIdQueryHandler : IRequestHandler<GetAccommodation
             .Select(AccommodationMapping.Projection)
             .FirstOrDefaultAsync(cancellationToken);
 
-        return accommodation ?? throw new NotFoundException(nameof(Accommodation), request.Id);
+        if (accommodation is null)
+        {
+            throw new NotFoundException(nameof(Accommodation), request.Id);
+        }
+
+        await AccommodationOccupancy.FillCurrentOccupantsAsync(
+            _context,
+            [accommodation],
+            DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+            cancellationToken);
+
+        return accommodation;
     }
 }

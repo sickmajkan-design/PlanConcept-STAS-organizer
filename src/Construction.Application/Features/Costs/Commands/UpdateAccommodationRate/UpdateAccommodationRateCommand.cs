@@ -2,6 +2,7 @@ using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Costs.Models;
 using Construction.Domain.Entities;
+using Construction.Domain.Enums;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -22,7 +23,7 @@ public record UpdateAccommodationRateCommand : IRequest<AccommodationRateDto>
 {
     public Guid Id { get; init; }
 
-    public decimal MonthlyAmount { get; init; }
+    public decimal Amount { get; init; }
 
     public string? Provider { get; init; }
 
@@ -39,10 +40,10 @@ public class UpdateAccommodationRateCommandValidator : AbstractValidator<UpdateA
     {
         RuleFor(x => x.Id).NotEmpty();
 
-        RuleFor(x => x.MonthlyAmount)
-            .GreaterThan(0).WithMessage("A month has to cost something.")
+        RuleFor(x => x.Amount)
+            .GreaterThan(0).WithMessage("A charge has to cost something.")
             .LessThanOrEqualTo(CostRules.MaxHourlyRate)
-            .WithMessage("That amount looks like a typo rather than a monthly rate.");
+            .WithMessage("That amount looks like a typo.");
 
         RuleFor(x => x.Provider).MaximumLength(200);
 
@@ -82,9 +83,13 @@ public class UpdateAccommodationRateCommandHandler
             .FirstOrDefaultAsync(r => r.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(AccommodationRate), request.Id);
 
-        var clashes = await _context.AccommodationRates
+        var isOneOff = rate.Kind == AccommodationChargeKind.OneOff;
+        var endDate = isOneOff ? request.StartDate : request.EndDate;
+
+        var clashes = !isOneOff && await _context.AccommodationRates
             .AnyAsync(
                 r => r.AccommodationId == rate.AccommodationId
+                    && r.Kind == rate.Kind
                     && r.Id != rate.Id
                     && r.StartDate <= (request.EndDate ?? DateOnly.MaxValue)
                     && (r.EndDate == null || r.EndDate >= request.StartDate),
@@ -95,10 +100,10 @@ public class UpdateAccommodationRateCommandHandler
             throw new ConflictException("Another rate already covers those dates.");
         }
 
-        rate.MonthlyAmount = request.MonthlyAmount;
+        rate.Amount = request.Amount;
         rate.Provider = request.Provider?.Trim();
         rate.StartDate = request.StartDate;
-        rate.EndDate = request.EndDate;
+        rate.EndDate = endDate;
         rate.Note = request.Note?.Trim();
 
         await _context.SaveChangesAsync(cancellationToken);

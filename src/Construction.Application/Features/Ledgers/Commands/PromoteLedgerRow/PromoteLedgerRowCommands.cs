@@ -145,7 +145,7 @@ public class PromoteLedgerRowToAccommodationRateCommandHandler
             new SetAccommodationRateCommand
             {
                 AccommodationId = request.AccommodationId,
-                MonthlyAmount = request.MonthlyAmount,
+                Amount = request.MonthlyAmount,
                 Provider = request.Provider,
                 StartDate = request.StartDate,
                 EndDate = request.EndDate,

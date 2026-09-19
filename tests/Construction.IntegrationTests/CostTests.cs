@@ -1567,6 +1567,194 @@ public class CostTests : IntegrationTestBase
             .Where(m => m.Id == material.Id).Select(m => m.Quantity).SingleAsync()));
     }
 
+    // ---- accommodation --------------------------------------------------
+
+    private static readonly DateOnly Jan1 = new(2026, 1, 1);
+
+    [Fact]
+    public async Task A_person_cannot_be_in_two_accommodations_at_once_and_is_told_where()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+        var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var first = await InScope(scope => TestData.SeedAccommodationAsync(scope));
+        var second = await InScope(scope => TestData.SeedAccommodationAsync(scope));
+
+        await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Construction.Application.Features.Accommodations.Stays.AddAccommodationStayCommand
+            {
+                AccommodationId = first.Id,
+                EmployeeId = employee.Id,
+                StartDate = Jan1
+            });
+        });
+
+        var ex = await Assert.ThrowsAsync<ConflictException>(() => InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Construction.Application.Features.Accommodations.Stays.AddAccommodationStayCommand
+            {
+                AccommodationId = second.Id,
+                EmployeeId = employee.Id,
+                StartDate = Jan1.AddDays(10)
+            });
+        }));
+
+        Assert.Contains(first.Address, ex.Message);
+    }
+
+    [Fact]
+    public async Task Ending_a_stay_frees_the_person_for_the_next_one()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+        var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var first = await InScope(scope => TestData.SeedAccommodationAsync(scope));
+        var second = await InScope(scope => TestData.SeedAccommodationAsync(scope));
+
+        var stay = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Construction.Application.Features.Accommodations.Stays.AddAccommodationStayCommand
+            {
+                AccommodationId = first.Id,
+                EmployeeId = employee.Id,
+                StartDate = Jan1
+            });
+        });
+
+        await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Construction.Application.Features.Accommodations.Stays.UpdateAccommodationStayCommand
+            {
+                Id = stay.Id,
+                StartDate = Jan1,
+                EndDate = Jan1.AddDays(9)
+            });
+        });
+
+        var next = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Construction.Application.Features.Accommodations.Stays.AddAccommodationStayCommand
+            {
+                AccommodationId = second.Id,
+                EmployeeId = employee.Id,
+                StartDate = Jan1.AddDays(10)
+            });
+        });
+
+        Assert.Equal(second.Id, next.AccommodationId);
+    }
+
+    [Fact]
+    public async Task Monthly_and_per_day_charges_each_keep_their_own_chain_and_a_one_off_keeps_none()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+        var accommodation = await InScope(scope => TestData.SeedAccommodationAsync(scope));
+
+        Task Set(Construction.Domain.Enums.AccommodationChargeKind kind, decimal amount, DateOnly start) =>
+            InScope(scope =>
+            {
+                ActAs(scope, admin);
+                return scope.Send(new Construction.Application.Features.Costs.Commands.SetAccommodationRate.SetAccommodationRateCommand
+                {
+                    AccommodationId = accommodation.Id,
+                    Kind = kind,
+                    Amount = amount,
+                    StartDate = start
+                });
+            });
+
+        await Set(AccommodationChargeKind.Monthly, 300m, Jan1);
+        await Set(AccommodationChargeKind.DailyPerPerson, 15m, Jan1);
+        await Set(AccommodationChargeKind.OneOff, 200m, Jan1.AddDays(3));
+
+        // A new monthly rent closes only the monthly one before it.
+        await Set(AccommodationChargeKind.Monthly, 350m, Jan1.AddMonths(2));
+
+        var rates = await InScope(scope => scope.Db.AccommodationRates
+            .Where(r => r.AccommodationId == accommodation.Id)
+            .OrderBy(r => r.Kind).ThenBy(r => r.StartDate)
+            .ToListAsync());
+
+        var monthly = rates.Where(r => r.Kind == AccommodationChargeKind.Monthly).ToList();
+        Assert.Equal(2, monthly.Count);
+        Assert.Equal(Jan1.AddMonths(2).AddDays(-1), monthly[0].EndDate);
+
+        var daily = Assert.Single(rates, r => r.Kind == AccommodationChargeKind.DailyPerPerson);
+        Assert.Null(daily.EndDate);
+
+        var oneOff = Assert.Single(rates, r => r.Kind == AccommodationChargeKind.OneOff);
+        Assert.Equal(oneOff.StartDate, oneOff.EndDate);
+    }
+
+    [Fact]
+    public async Task The_cost_summary_splits_the_rent_between_the_people_who_lived_there()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+        var accommodation = await InScope(scope => TestData.SeedAccommodationAsync(scope));
+        var ana = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var ivo = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+
+        await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Construction.Application.Features.Costs.Commands.SetAccommodationRate.SetAccommodationRateCommand
+            {
+                AccommodationId = accommodation.Id,
+                Amount = 310m,
+                StartDate = new DateOnly(2026, 3, 1)
+            });
+        });
+
+        foreach (var person in new[] { ana, ivo })
+        {
+            await InScope(scope =>
+            {
+                ActAs(scope, admin);
+                return scope.Send(new Construction.Application.Features.Accommodations.Stays.AddAccommodationStayCommand
+                {
+                    AccommodationId = accommodation.Id,
+                    EmployeeId = person.Id,
+                    StartDate = new DateOnly(2026, 3, 1)
+                });
+            });
+        }
+
+        var summary = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Construction.Application.Features.Accommodations.Costs.GetAccommodationCostsQuery
+            {
+                AccommodationId = accommodation.Id,
+                From = new DateOnly(2026, 3, 1),
+                To = new DateOnly(2026, 3, 31)
+            });
+        });
+
+        Assert.Equal(310m, summary.Total);
+        Assert.Equal(2, summary.ByEmployee.Count);
+        Assert.All(summary.ByEmployee, e => Assert.Equal(155m, e.Cost));
+    }
+
+    [Fact]
+    public async Task Someone_who_may_not_see_spending_cannot_read_what_an_accommodation_cost()
+    {
+        var worker = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Worker));
+        var accommodation = await InScope(scope => TestData.SeedAccommodationAsync(scope));
+
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => InScope(scope =>
+        {
+            ActAs(scope, worker);
+            return scope.Send(new Construction.Application.Features.Accommodations.Costs.GetAccommodationCostsQuery
+            {
+                AccommodationId = accommodation.Id
+            });
+        }));
+    }
+
     [Fact]
     public async Task The_owner_may_approve_a_cost_they_recorded_themselves()
     {

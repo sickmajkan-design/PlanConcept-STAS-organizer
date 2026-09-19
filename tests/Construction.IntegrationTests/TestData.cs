@@ -202,7 +202,7 @@ public static class TestData
         var rate = new AccommodationRate
         {
             AccommodationId = accommodationId ?? (await SeedAccommodationAsync(scope)).Id,
-            MonthlyAmount = 300m,
+            Amount = 300m,
             StartDate = new DateOnly(2026, 1, 1)
         };
 

@@ -32,6 +32,7 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Accommodation> Accommodations => Set<Accommodation>();
 
     public DbSet<AccommodationRate> AccommodationRates => Set<AccommodationRate>();
+    public DbSet<AccommodationStay> AccommodationStays => Set<AccommodationStay>();
 
     public DbSet<Ledger> Ledgers => Set<Ledger>();
 

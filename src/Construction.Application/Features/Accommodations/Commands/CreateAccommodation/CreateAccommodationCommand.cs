@@ -25,11 +25,8 @@ public class CreateAccommodationCommandHandler
         CreateAccommodationCommand request,
         CancellationToken cancellationToken)
     {
-        var accommodation = new Accommodation
-        {
-            Address = request.Address.Trim(),
-            Note = request.Note?.Trim(),
-        };
+        var accommodation = new Accommodation();
+        AccommodationFieldMapper.Apply(accommodation, request);
 
         _context.Accommodations.Add(accommodation);
 
