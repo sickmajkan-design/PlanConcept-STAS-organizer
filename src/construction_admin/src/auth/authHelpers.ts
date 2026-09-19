@@ -57,6 +57,16 @@ export function canSeeLabourCost(user: User | null | undefined): boolean {
 }
 
 /**
+ * Roles the API lets approve or send back a recorded cost
+ * (`CostRules.CanReviewSpending`) — one tier above those who record one. The
+ * other half of the rule, that nobody reviews a cost they recorded themselves,
+ * is a comparison the caller makes against the cost's author.
+ */
+export function canReviewSpending(user: User | null | undefined): boolean {
+  return !!user && ASSIGNMENT_ROLES.has(user.role);
+}
+
+/**
  * Roles that may record and read spending (`CostRules.CanRecordSpending`).
  *
  * Wide on purpose: the person who signed for the delivery is the one who knows

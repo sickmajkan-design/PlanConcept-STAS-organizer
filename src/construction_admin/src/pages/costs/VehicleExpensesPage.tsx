@@ -31,7 +31,7 @@ import {
   type VehicleExpenseKind,
   type VehicleExpenseStatus,
 } from '../../api/types';
-import { canAdministerAccounts } from '../../auth/authHelpers';
+import { canAdministerAccounts, canReviewSpending } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { AttachmentList } from '../../components/AttachmentList';
 import { AuditHistoryCard } from '../../components/AuditHistoryCard';
@@ -115,6 +115,9 @@ export function VehicleExpensesPage() {
   const { data: consumptionFlags } = useFuelConsumptionFlagsQuery({});
   const remove = useDeleteWithConfirm<VehicleExpense>(useDeleteVehicleExpense());
   const review = useReviewVehicleExpense();
+  // A foreman records costs but does not review them; showing them buttons the
+  // API will refuse is a trap, not a courtesy.
+  const reviewer = canReviewSpending(user);
 
   // Order is the order of importance, and the total width is kept under what a
   // laptop screen has: the status and the approve/reject buttons are the point
@@ -207,39 +210,53 @@ export function VehicleExpensesPage() {
         headerAlign: 'right',
         renderCell: (params) => {
           const isPending = params.row.status === 'Pending';
+          // The recorder is shown by email, which is also what the account
+          // signs in with. Never your own — the API refuses it, so the button
+          // says why up front instead of failing after a click.
+          const isOwn = !!user && params.row.recordedByName === user.email;
+          const canAct = isPending && !isOwn;
+          const reason = !isPending
+            ? t('vehicleExpenses.answered')
+            : isOwn
+              ? t('vehicleExpenses.reviewOwnCost')
+              : null;
 
           return (
             <Stack direction="row" spacing={0.5}>
-              <Tooltip title={isPending ? t('vehicleExpenses.approve') : t('vehicleExpenses.answered')}>
-                <span>
-                  <IconButton
-                    size="small"
-                    color="success"
-                    disabled={!isPending}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setApproving(params.row);
-                    }}
-                  >
-                    <CheckOutlined fontSize="small" />
-                  </IconButton>
-                </span>
-              </Tooltip>
-              <Tooltip title={isPending ? t('vehicleExpenses.reject') : t('vehicleExpenses.answered')}>
-                <span>
-                  <IconButton
-                    size="small"
-                    color="warning"
-                    disabled={!isPending}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setRejecting(params.row);
-                    }}
-                  >
-                    <CloseOutlined fontSize="small" />
-                  </IconButton>
-                </span>
-              </Tooltip>
+              {reviewer && (
+                <>
+                  <Tooltip title={reason ?? t('vehicleExpenses.approve')}>
+                    <span>
+                      <IconButton
+                        size="small"
+                        color="success"
+                        disabled={!canAct}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setApproving(params.row);
+                        }}
+                      >
+                        <CheckOutlined fontSize="small" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                  <Tooltip title={reason ?? t('vehicleExpenses.reject')}>
+                    <span>
+                      <IconButton
+                        size="small"
+                        color="warning"
+                        disabled={!canAct}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setRejecting(params.row);
+                        }}
+                      >
+                        <CloseOutlined fontSize="small" />
+                      </IconButton>
+                    </span>
+                  </Tooltip>
+                </>
+              )}
               <IconButton
                 size="small"
                 onClick={(event) => {
@@ -254,7 +271,7 @@ export function VehicleExpensesPage() {
         },
       },
     ],
-    [enumLabel, locale, remove, t],
+    [enumLabel, locale, remove, reviewer, t, user],
   );
 
   return (
@@ -405,14 +422,15 @@ export function VehicleExpensesPage() {
         title={t('vehicleExpenses.approveTitle')}
         description={t('vehicleExpenses.approveBody')}
         confirmLabel={t('vehicleExpenses.approve')}
-        loading={review.isPending}
-        onConfirm={() => {
+        onConfirm={async () => {
           if (!approving) return;
 
-          review.mutate(
-            { id: approving.id, input: { approve: true } },
-            { onSuccess: () => setApproving(null) },
-          );
+          // Awaited, so a refusal is thrown to the dialog and shown there.
+          // Left fire-and-forget, a refused approval (the API will not let you
+          // approve a cost you recorded) left the dialog open and silent —
+          // a button that seemed to do nothing.
+          await review.mutateAsync({ id: approving.id, input: { approve: true } });
+          setApproving(null);
         }}
         onCancel={() => setApproving(null)}
       />

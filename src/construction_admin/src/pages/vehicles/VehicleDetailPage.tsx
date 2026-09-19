@@ -572,9 +572,11 @@ function FuelCardsCard({ vehicleId }: { vehicleId: string }) {
   const { data } = useFuelCardsQuery(query);
   const rows = data?.items ?? [];
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleting) return;
-    deleteCard.mutate(deleting.id, { onSuccess: () => setDeleting(null) });
+    // Awaited so a failure reaches the confirm dialog instead of vanishing.
+    await deleteCard.mutateAsync(deleting.id);
+    setDeleting(null);
   };
 
   return (

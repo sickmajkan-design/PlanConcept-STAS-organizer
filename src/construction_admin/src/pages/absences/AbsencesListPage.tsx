@@ -458,14 +458,13 @@ function ApproveDialog({
         balanceLine ? `${t('absences.approveBody')} ${balanceLine}.` : t('absences.approveBody')
       }
       confirmLabel={t('absences.approve')}
-      loading={review.isPending}
-      onConfirm={() => {
+      onConfirm={async () => {
         if (!absence) return;
 
-        review.mutate(
-          { id: absence.id, input: { approve: true } },
-          { onSuccess: onClose },
-        );
+        // Awaited, so a refusal (a conflict, a lost connection) is thrown to
+        // the dialog and shown there. Fire-and-forget left it open and silent.
+        await review.mutateAsync({ id: absence.id, input: { approve: true } });
+        onClose();
       }}
       onCancel={onClose}
     />
