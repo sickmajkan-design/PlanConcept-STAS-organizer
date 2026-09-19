@@ -142,7 +142,9 @@ export function VehicleExpensesPage() {
         field: 'vehicleName',
         headerName: t('vehicleExpenses.vehicle'),
         flex: 1,
-        minWidth: 170,
+        // Small on purpose: the name is truncated with an ellipsis anyway, and
+        // on a phone every pixel here is one the amount column loses.
+        minWidth: 105,
       },
       {
         field: 'kind',

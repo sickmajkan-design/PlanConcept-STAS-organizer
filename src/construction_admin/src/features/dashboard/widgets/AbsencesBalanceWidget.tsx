@@ -13,7 +13,7 @@ import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
 
 const today = () => new Date().toISOString().slice(0, 10);
-// 100 is GetTimeEntriesQuery's own max page size â€” a bigger request 400s.
+// 100 is GetTimeEntriesQuery's own max page size — a bigger request 400s.
 const ON_SITE_PAGE_SIZE = 100;
 const TOP_PROJECTS_SHOWN = 6;
 
@@ -21,7 +21,7 @@ const TOP_PROJECTS_SHOWN = 6;
 function headcountByProject(entries: { projectName: string | null }[]) {
   const counts = new Map<string, number>();
   for (const entry of entries) {
-    const key = entry.projectName ?? 'â€”';
+    const key = entry.projectName ?? '—';
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }
   return [...counts.entries()]
@@ -114,7 +114,7 @@ export function AbsencesBalanceWidget({
               <ListItem key={absence.id} disableGutters>
                 <ListItemText
                   primary={absence.employeeName}
-                  secondary={`${absence.type} Â· ${formatDate(absence.startDate)} â€” ${formatDate(absence.endDate)}`}
+                  secondary={`${absence.type} · ${formatDate(absence.startDate)} — ${formatDate(absence.endDate)}`}
                 />
               </ListItem>
             ))}

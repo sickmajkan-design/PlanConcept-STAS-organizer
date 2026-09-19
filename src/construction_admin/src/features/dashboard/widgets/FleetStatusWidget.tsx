@@ -13,7 +13,7 @@ import { chartPalette } from '../../../theme';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
 
-// 100 is GetVehiclesQuery/GetToolsQuery's own max page size â€” a bigger request 400s.
+// 100 is GetVehiclesQuery/GetToolsQuery's own max page size — a bigger request 400s.
 const FLEET_PAGE_SIZE = 100;
 
 /** Statuses worth calling out as a short "needs attention" list. */

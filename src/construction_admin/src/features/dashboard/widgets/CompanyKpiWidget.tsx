@@ -14,7 +14,7 @@ import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
 
 // Same page sizes and query keys FleetStatusWidget already uses for these two
-// lists â€” mounting both widgets on one board shares a single fetch instead of
+// lists — mounting both widgets on one board shares a single fetch instead of
 // doubling it.
 const FLEET_PAGE_SIZE = 100;
 
@@ -137,7 +137,7 @@ export function CompanyKpiWidget({
       dragHandleProps={dragHandleProps}
     >
       <Stack spacing={2}>
-        {/* Plain stat tiles, not links â€” a drag handle is the only thing on
+        {/* Plain stat tiles, not links — a drag handle is the only thing on
             this card that should ever pick up a pointer gesture. Navigation
             lives in the plain text links below instead, exactly like every
             other widget on this board (see FleetStatusWidget). */}
