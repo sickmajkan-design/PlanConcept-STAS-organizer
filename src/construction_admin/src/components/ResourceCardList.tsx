@@ -75,6 +75,97 @@ function cellContent<T extends GridValidRowModel>(column: GridColDef<T>, row: T)
 }
 
 /**
+ * One row as a card: the first column is the title, the rest are labelled
+ * lines, and the actions column sits along the bottom. Shared by the phone
+ * list and the status board so a row looks the same in both.
+ */
+export function RowCard<T extends GridValidRowModel>({
+  row,
+  columns,
+  hideFields = [],
+  highlighted = false,
+  onClick,
+  selection,
+}: {
+  row: T;
+  columns: GridColDef<T>[];
+  /** Columns left off the card, e.g. a status the board's own column already states. */
+  hideFields?: readonly string[];
+  highlighted?: boolean;
+  onClick?: () => void;
+  selection?: { checked: boolean; onToggle: () => void };
+}) {
+  const actionsColumn = columns.find((column) => column.field === 'actions');
+  const [titleColumn, ...detailColumns] = columns.filter(
+    (column) => column.field !== 'actions' && !hideFields.includes(column.field),
+  );
+  const details = detailColumns
+    .map((column) => ({ column, content: cellContent(column, row) }))
+    .filter(({ content }) => !isBlank(content));
+
+  return (
+    <Box
+      onClick={onClick}
+      sx={{
+        border: 1,
+        borderColor: 'divider',
+        borderRadius: 1,
+        bgcolor: highlighted ? 'action.hover' : 'background.paper',
+        p: 1.5,
+        cursor: onClick ? 'pointer' : 'default',
+      }}
+    >
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+        {selection && (
+          <Checkbox
+            size="small"
+            checked={selection.checked}
+            onClick={(event) => event.stopPropagation()}
+            onChange={selection.onToggle}
+            sx={{ p: 0.5, ml: -0.5 }}
+          />
+        )}
+        <Box sx={{ fontWeight: 600, minWidth: 0, flex: 1, overflowWrap: 'anywhere' }}>
+          {titleColumn ? cellContent(titleColumn, row) : rowId(row)}
+        </Box>
+      </Stack>
+
+      {details.length > 0 && (
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: 'minmax(96px, 38%) 1fr',
+            columnGap: 1.5,
+            rowGap: 0.5,
+            mt: 1,
+          }}
+        >
+          {details.map(({ column, content }) => (
+            <Box key={column.field} sx={{ display: 'contents' }}>
+              <Typography variant="caption" color="text.secondary" sx={{ pt: 0.25 }}>
+                {column.headerName}
+              </Typography>
+              <Box sx={{ typography: 'body2', minWidth: 0, overflowWrap: 'anywhere' }}>
+                {content}
+              </Box>
+            </Box>
+          ))}
+        </Box>
+      )}
+
+      {actionsColumn && (
+        <Box
+          onClick={(event) => event.stopPropagation()}
+          sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}
+        >
+          {cellContent(actionsColumn, row)}
+        </Box>
+      )}
+    </Box>
+  );
+}
+
+/**
  * The phone-width view of a list: one card per row instead of a table that
  * scrolls sideways. The first column is the card's title, the rest are
  * labelled lines, and the row's action buttons sit along the bottom.
@@ -102,9 +193,7 @@ export function ResourceCardList<T extends GridValidRowModel>({
 }) {
   const t = useT();
 
-  const actionsColumn = columns.find((column) => column.field === 'actions');
   const dataColumns = columns.filter((column) => column.field !== 'actions');
-  const [titleColumn, ...detailColumns] = dataColumns;
   const sortable = dataColumns.filter((column) => column.sortable !== false && column.headerName);
 
   const currentSort = sortModel[0];
@@ -165,70 +254,20 @@ export function ResourceCardList<T extends GridValidRowModel>({
       <Stack spacing={1.25}>
         {rows.map((row) => {
           const id = rowId(row);
-          const details = detailColumns
-            .map((column) => ({ column, content: cellContent(column, row) }))
-            .filter(({ content }) => !isBlank(content));
 
           return (
-            <Box
+            <RowCard
               key={id}
+              row={row}
+              columns={columns}
+              highlighted={highlightedId === id}
               onClick={onRowClick ? () => onRowClick(row) : undefined}
-              sx={{
-                border: 1,
-                borderColor: 'divider',
-                borderRadius: 1,
-                bgcolor: highlightedId === id ? 'action.hover' : 'background.paper',
-                p: 1.5,
-                cursor: onRowClick ? 'pointer' : 'default',
-              }}
-            >
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                {selectable && (
-                  <Checkbox
-                    size="small"
-                    checked={selectedIds.has(id)}
-                    onClick={(event) => event.stopPropagation()}
-                    onChange={() => toggle(id)}
-                    sx={{ p: 0.5, ml: -0.5 }}
-                  />
-                )}
-                <Box sx={{ fontWeight: 600, minWidth: 0, flex: 1, overflowWrap: 'anywhere' }}>
-                  {titleColumn ? cellContent(titleColumn, row) : id}
-                </Box>
-              </Stack>
-
-              {details.length > 0 && (
-                <Box
-                  sx={{
-                    display: 'grid',
-                    gridTemplateColumns: 'minmax(96px, 38%) 1fr',
-                    columnGap: 1.5,
-                    rowGap: 0.5,
-                    mt: 1,
-                  }}
-                >
-                  {details.map(({ column, content }) => (
-                    <Box key={column.field} sx={{ display: 'contents' }}>
-                      <Typography variant="caption" color="text.secondary" sx={{ pt: 0.25 }}>
-                        {column.headerName}
-                      </Typography>
-                      <Box sx={{ typography: 'body2', minWidth: 0, overflowWrap: 'anywhere' }}>
-                        {content}
-                      </Box>
-                    </Box>
-                  ))}
-                </Box>
-              )}
-
-              {actionsColumn && (
-                <Box
-                  onClick={(event) => event.stopPropagation()}
-                  sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}
-                >
-                  {cellContent(actionsColumn, row)}
-                </Box>
-              )}
-            </Box>
+              selection={
+                selectable
+                  ? { checked: selectedIds.has(id), onToggle: () => toggle(id) }
+                  : undefined
+              }
+            />
           );
         })}
       </Stack>

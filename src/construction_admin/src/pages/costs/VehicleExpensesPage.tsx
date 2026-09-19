@@ -36,6 +36,12 @@ import { AttachmentList } from '../../components/AttachmentList';
 import { AuditHistoryCard } from '../../components/AuditHistoryCard';
 import { BulkActionsBar } from '../../components/BulkActionsBar';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import {
+  StatusBoard,
+  ViewModeToggle,
+  useViewMode,
+  type BoardColumn,
+} from '../../components/StatusBoard';
 import { ReasonDialog } from '../../components/ReasonDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
@@ -114,7 +120,32 @@ export function VehicleExpensesPage() {
     [kind, status, list.query],
   );
 
-  const { data, isLoading, isError, error, refetch } = useVehicleExpensesQuery(query);
+  const [viewMode, setViewMode] = useViewMode('vehicle-expenses');
+  const isBoard = viewMode === 'board';
+
+  // The board shows every status side by side, so it asks for one big page of
+  // the newest costs rather than a page of whichever status is filtered.
+  const boardQuery: VehicleExpenseListQuery = useMemo(
+    () => ({
+      ...query,
+      pageNumber: 1,
+      pageSize: 100,
+      status: undefined,
+      sortBy: 'occurredOn',
+      sortDescending: true,
+    }),
+    [query],
+  );
+
+  const { data, isLoading, isError, error, refetch } = useVehicleExpensesQuery(
+    isBoard ? boardQuery : query,
+  );
+
+  const boardColumns: BoardColumn[] = [
+    { status: 'Pending', label: enumLabel('vehicleExpenseStatus', 'Pending'), color: 'warning' },
+    { status: 'Approved', label: enumLabel('vehicleExpenseStatus', 'Approved'), color: 'success' },
+    { status: 'Rejected', label: enumLabel('vehicleExpenseStatus', 'Rejected'), color: 'error' },
+  ];
   const { data: summary } = useVehicleExpensesSummaryQuery(query);
   const { data: consumptionFlags } = useFuelConsumptionFlagsQuery({});
   const remove = useDeleteWithConfirm<VehicleExpense>(useDeleteVehicleExpense());
@@ -323,6 +354,7 @@ export function VehicleExpensesPage() {
             </MenuItem>
           ))}
         </TextField>
+        {!isBoard && (
         <TextField
           select
           size="small"
@@ -341,9 +373,11 @@ export function VehicleExpensesPage() {
             </MenuItem>
           ))}
         </TextField>
+        )}
         <Button variant="outlined" onClick={() => navigate(paths.fuelImport)}>
           {t('fuelImport.title')}
         </Button>
+        <ViewModeToggle value={viewMode} onChange={setViewMode} />
       </Stack>
 
       {consumptionFlags && consumptionFlags.length > 0 && (
@@ -392,7 +426,7 @@ export function VehicleExpensesPage() {
         </Paper>
       )}
 
-      {reviewer && (
+      {reviewer && !isBoard && (
         <BulkActionsBar
           count={selection.count}
           onApprove={() => setBulkApproving(true)}
@@ -400,22 +434,35 @@ export function VehicleExpensesPage() {
         />
       )}
 
-      <ResourceDataGrid
-        data={data}
-        columns={columns}
-        isLoading={isLoading}
-        isError={isError}
-        error={error}
-        onRetry={() => void refetch()}
-        paginationModel={list.paginationModel}
-        onPaginationModelChange={list.setPaginationModel}
-        sortModel={list.sortModel}
-        onSortModelChange={list.setSortModel}
-        onRowDoubleClick={(row) => setEditing(row)}
-        compactHiddenFields={compactHiddenFields}
-        rowSelectionModel={reviewer ? selection.model : undefined}
-        onRowSelectionModelChange={reviewer ? selection.setModel : undefined}
-      />
+      {isBoard ? (
+        <StatusBoard
+          rows={data?.items ?? []}
+          totalCount={data?.totalCount ?? 0}
+          columns={columns}
+          boardColumns={boardColumns}
+          getStatus={(row) => row.status}
+          hideFields={['status']}
+          isLoading={isLoading}
+          onCardClick={(row) => setEditing(row)}
+        />
+      ) : (
+        <ResourceDataGrid
+          data={data}
+          columns={columns}
+          isLoading={isLoading}
+          isError={isError}
+          error={error}
+          onRetry={() => void refetch()}
+          paginationModel={list.paginationModel}
+          onPaginationModelChange={list.setPaginationModel}
+          sortModel={list.sortModel}
+          onSortModelChange={list.setSortModel}
+          onRowDoubleClick={(row) => setEditing(row)}
+          compactHiddenFields={compactHiddenFields}
+          rowSelectionModel={reviewer ? selection.model : undefined}
+          onRowSelectionModelChange={reviewer ? selection.setModel : undefined}
+        />
+      )}
 
       <VehicleExpenseDialog open={recording} onClose={() => setRecording(false)} />
       <VehicleExpenseDialog

@@ -30,6 +30,12 @@ import type { AbsenceListQuery } from '../../api/absences';
 import { exportsApi } from '../../api/exports';
 import { absenceStatuses, absenceTypes, type Absence, type AbsenceType } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import {
+  StatusBoard,
+  ViewModeToggle,
+  useViewMode,
+  type BoardColumn,
+} from '../../components/StatusBoard';
 import { ReasonDialog } from '../../components/ReasonDialog';
 import { DateQuickFilters } from '../../components/DateQuickFilters';
 import { ExportButton } from '../../components/ExportButton';
@@ -109,7 +115,32 @@ export function AbsencesListPage() {
     [list.query, pendingOnly, quickDate, type],
   );
 
-  const { data, isLoading, isError, error, refetch } = useAbsencesQuery(query);
+  const [viewMode, setViewMode] = useViewMode('absences');
+  const isBoard = viewMode === 'board';
+
+  // One big page of the newest requests, all statuses, for the board.
+  const boardQuery: AbsenceListQuery = useMemo(
+    () => ({
+      ...query,
+      pageNumber: 1,
+      pageSize: 100,
+      status: undefined,
+      sortBy: 'startDate',
+      sortDescending: true,
+    }),
+    [query],
+  );
+
+  const { data, isLoading, isError, error, refetch } = useAbsencesQuery(
+    isBoard ? boardQuery : query,
+  );
+
+  const boardColumns: BoardColumn[] = [
+    { status: 'Requested', label: enumLabel('absenceStatus', 'Requested'), color: 'warning' },
+    { status: 'Approved', label: enumLabel('absenceStatus', 'Approved'), color: 'success' },
+    { status: 'Rejected', label: enumLabel('absenceStatus', 'Rejected'), color: 'error' },
+    { status: 'Cancelled', label: enumLabel('absenceStatus', 'Cancelled'), color: 'inherit' },
+  ];
   const remove = useDeleteWithConfirm<Absence>(useDeleteAbsence());
 
   const [approving, setApproving] = useState<Absence | null>(null);
@@ -220,6 +251,7 @@ export function AbsencesListPage() {
         spacing={2}
         sx={{ mb: 2, alignItems: { sm: 'center' } }}
       >
+        {!isBoard && (
         <FormControlLabel
           control={
             <Switch
@@ -232,6 +264,7 @@ export function AbsencesListPage() {
           }
           label={t('absences.pendingOnly')}
         />
+        )}
         <TextField
           select
           size="small"
@@ -257,6 +290,7 @@ export function AbsencesListPage() {
             list.resetToFirstPage();
           }}
         />
+        <ViewModeToggle value={viewMode} onChange={setViewMode} />
         <StatusLegend kind="absenceStatus" values={absenceStatuses} />
 
         {/* Exports the last year rather than whatever's on screen: a
@@ -275,19 +309,31 @@ export function AbsencesListPage() {
         />
       </Box>
 
-      <ResourceDataGrid
-        data={data}
-        columns={columns}
-        isLoading={isLoading}
-        isError={isError}
-        error={error}
-        onRetry={() => void refetch()}
-        paginationModel={list.paginationModel}
-        onPaginationModelChange={list.setPaginationModel}
-        sortModel={list.sortModel}
-        onSortModelChange={list.setSortModel}
-        highlightedId={targetId && isHighlighted(targetId) ? targetId : null}
-      />
+      {isBoard ? (
+        <StatusBoard
+          rows={data?.items ?? []}
+          totalCount={data?.totalCount ?? 0}
+          columns={columns}
+          boardColumns={boardColumns}
+          getStatus={(row) => row.status}
+          isLoading={isLoading}
+          highlightedId={targetId && isHighlighted(targetId) ? targetId : null}
+        />
+      ) : (
+        <ResourceDataGrid
+          data={data}
+          columns={columns}
+          isLoading={isLoading}
+          isError={isError}
+          error={error}
+          onRetry={() => void refetch()}
+          paginationModel={list.paginationModel}
+          onPaginationModelChange={list.setPaginationModel}
+          sortModel={list.sortModel}
+          onSortModelChange={list.setSortModel}
+          highlightedId={targetId && isHighlighted(targetId) ? targetId : null}
+        />
+      )}
 
       <BookAbsenceDialog open={booking} onClose={() => setBooking(false)} />
       <ApproveDialog absence={approving} onClose={() => setApproving(null)} />
