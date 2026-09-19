@@ -30,6 +30,7 @@ import type { AbsenceListQuery } from '../../api/absences';
 import { exportsApi } from '../../api/exports';
 import { absenceStatuses, absenceTypes, type Absence, type AbsenceType } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { ReasonDialog } from '../../components/ReasonDialog';
 import { DateQuickFilters } from '../../components/DateQuickFilters';
 import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
@@ -482,56 +483,29 @@ function RefuseDialog({
   const t = useT();
   const review = useReviewAbsence();
   const balanceLine = useAbsenceBalanceLine(absence);
-  const [note, setNote] = useState('');
-
-  const close = () => {
-    setNote('');
-    onClose();
-  };
 
   return (
-    <Dialog open={!!absence} onClose={close} fullWidth maxWidth="sm">
-      <DialogTitle>{t('absences.rejectTitle')}</DialogTitle>
-      <DialogContent>
-        <DialogContentText sx={{ mb: balanceLine ? 0.5 : 2 }}>
-          {t('absences.rejectHint')}
-        </DialogContentText>
-        {balanceLine && (
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+    <ReasonDialog
+      open={!!absence}
+      title={t('absences.rejectTitle')}
+      hint={t('absences.rejectHint')}
+      extra={
+        balanceLine ? (
+          <Typography variant="body2" color="text.secondary">
             {balanceLine}
           </Typography>
-        )}
-        <TextField
-          autoFocus
-          fullWidth
-          multiline
-          minRows={2}
-          label={t('absences.rejectReason')}
-          value={note}
-          onChange={(event) => setNote(event.target.value)}
-          error={!!review.error}
-          helperText={review.error?.message}
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={close}>{t('common.cancel')}</Button>
-        <Button
-          variant="contained"
-          color="warning"
-          disabled={!note.trim() || review.isPending}
-          onClick={() => {
-            if (!absence) return;
+        ) : undefined
+      }
+      label={t('absences.rejectReason')}
+      submitLabel={t('absences.reject')}
+      onClose={onClose}
+      onSubmit={async (note) => {
+        if (!absence) return;
 
-            review.mutate(
-              { id: absence.id, input: { approve: false, note: note.trim() } },
-              { onSuccess: close },
-            );
-          }}
-        >
-          {t('absences.reject')}
-        </Button>
-      </DialogActions>
-    </Dialog>
+        await review.mutateAsync({ id: absence.id, input: { approve: false, note } });
+        onClose();
+      }}
+    />
   );
 }
 

@@ -7,7 +7,6 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
   Grid,
   IconButton,
@@ -35,7 +34,9 @@ import { canAdministerAccounts, canReviewSpending } from '../../auth/authHelpers
 import { useAuth } from '../../auth/useAuth';
 import { AttachmentList } from '../../components/AttachmentList';
 import { AuditHistoryCard } from '../../components/AuditHistoryCard';
+import { BulkActionsBar } from '../../components/BulkActionsBar';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { ReasonDialog } from '../../components/ReasonDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { SavedViewsBar } from '../../components/SavedViewsBar';
@@ -51,6 +52,7 @@ import {
 } from '../../features/costs/useCosts';
 import { useAllVehiclesQuery } from '../../features/vehicles/useVehicles';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
+import { useBulkSelection } from '../../hooks/useBulkSelection';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { useSavedViews } from '../../hooks/useSavedViews';
 import { useEnumLabel } from '../../i18n/enumLabels';
@@ -87,6 +89,8 @@ export function VehicleExpensesPage() {
   const [editing, setEditing] = useState<VehicleExpense | null>(null);
   const [approving, setApproving] = useState<VehicleExpense | null>(null);
   const [rejecting, setRejecting] = useState<VehicleExpense | null>(null);
+  const [bulkApproving, setBulkApproving] = useState(false);
+  const selection = useBulkSelection();
 
   const savedViews = useSavedViews<VehicleExpenseViewState>('vehicle-expenses');
 
@@ -118,6 +122,17 @@ export function VehicleExpensesPage() {
   // A foreman records costs but does not review them; showing them buttons the
   // API will refuse is a trap, not a courtesy.
   const reviewer = canReviewSpending(user);
+
+  // Bulk approval only takes what a person could approve one by one without a
+  // second thought: pending, and not their own entry. A cost that was sent
+  // back needs the deliberate single approval that overrides the rejection.
+  const selectedRows = (data?.items ?? []).filter((row) => selection.selectedIds.includes(row.id));
+  const bulkEligible = selectedRows.filter(
+    (row) =>
+      row.status === 'Pending' &&
+      !(user && user.role !== 'SuperAdmin' && row.recordedByName === user.email),
+  );
+  const bulkSkipped = selectedRows.length - bulkEligible.length;
 
   // Order is the order of importance, and the total width is kept under what a
   // laptop screen has: the status and the approve/reject buttons are the point
@@ -377,6 +392,14 @@ export function VehicleExpensesPage() {
         </Paper>
       )}
 
+      {reviewer && (
+        <BulkActionsBar
+          count={selection.count}
+          onApprove={() => setBulkApproving(true)}
+          onClear={selection.clear}
+        />
+      )}
+
       <ResourceDataGrid
         data={data}
         columns={columns}
@@ -390,6 +413,8 @@ export function VehicleExpensesPage() {
         onSortModelChange={list.setSortModel}
         onRowDoubleClick={(row) => setEditing(row)}
         compactHiddenFields={compactHiddenFields}
+        rowSelectionModel={reviewer ? selection.model : undefined}
+        onRowSelectionModelChange={reviewer ? selection.setModel : undefined}
       />
 
       <VehicleExpenseDialog open={recording} onClose={() => setRecording(false)} />
@@ -418,6 +443,47 @@ export function VehicleExpensesPage() {
           </Typography>
         </Box>
       )}
+
+      <ConfirmDialog
+        open={bulkApproving}
+        title={t('bulk.approveTitle')}
+        description={
+          bulkEligible.length === 0
+            ? t('bulk.approveNothing')
+            : [
+                t('bulk.approveBody', { count: bulkEligible.length }),
+                bulkSkipped > 0 ? t('bulk.approveSkipped', { count: bulkSkipped }) : '',
+              ]
+                .filter(Boolean)
+                .join(' ')
+        }
+        confirmLabel={t('vehicleExpenses.approve')}
+        onConfirm={async () => {
+          if (bulkEligible.length === 0) {
+            setBulkApproving(false);
+            return;
+          }
+
+          // One at a time: each is its own reviewed decision on the server.
+          let failed = 0;
+          for (const row of bulkEligible) {
+            try {
+              await review.mutateAsync({ id: row.id, input: { approve: true } });
+            } catch {
+              failed += 1;
+            }
+          }
+
+          if (failed > 0) {
+            void refetch();
+            throw new Error(t('bulk.approvePartial', { count: failed }));
+          }
+
+          selection.clear();
+          setBulkApproving(false);
+        }}
+        onCancel={() => setBulkApproving(false)}
+      />
 
       <ConfirmDialog
         open={!!approving}
@@ -461,50 +527,22 @@ function RejectVehicleExpenseDialog({
 }) {
   const t = useT();
   const review = useReviewVehicleExpense();
-  const [note, setNote] = useState('');
-
-  const close = () => {
-    setNote('');
-    review.reset();
-    onClose();
-  };
 
   return (
-    <Dialog open={!!expense} onClose={close} fullWidth maxWidth="sm">
-      <DialogTitle>{t('vehicleExpenses.rejectTitle')}</DialogTitle>
-      <DialogContent>
-        <DialogContentText sx={{ mb: 2 }}>{t('vehicleExpenses.rejectHint')}</DialogContentText>
-        <TextField
-          autoFocus
-          fullWidth
-          multiline
-          minRows={2}
-          label={t('vehicleExpenses.rejectReason')}
-          value={note}
-          onChange={(event) => setNote(event.target.value)}
-          error={!!review.error}
-          helperText={review.error ? toApiError(review.error).message : undefined}
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={close}>{t('common.cancel')}</Button>
-        <Button
-          variant="contained"
-          color="warning"
-          disabled={!note.trim() || review.isPending}
-          onClick={() => {
-            if (!expense) return;
+    <ReasonDialog
+      open={!!expense}
+      title={t('vehicleExpenses.rejectTitle')}
+      hint={t('vehicleExpenses.rejectHint')}
+      label={t('vehicleExpenses.rejectReason')}
+      submitLabel={t('vehicleExpenses.reject')}
+      onClose={onClose}
+      onSubmit={async (note) => {
+        if (!expense) return;
 
-            review.mutate(
-              { id: expense.id, input: { approve: false, note: note.trim() } },
-              { onSuccess: close },
-            );
-          }}
-        >
-          {t('vehicleExpenses.reject')}
-        </Button>
-      </DialogActions>
-    </Dialog>
+        await review.mutateAsync({ id: expense.id, input: { approve: false, note } });
+        onClose();
+      }}
+    />
   );
 }
 

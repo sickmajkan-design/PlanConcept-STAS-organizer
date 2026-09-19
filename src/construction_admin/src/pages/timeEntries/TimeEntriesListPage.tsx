@@ -10,11 +10,6 @@ import {
   Button,
   Chip,
   CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   FormControl,
   FormControlLabel,
   IconButton,
@@ -39,6 +34,7 @@ import { timeEntryStatuses } from '../../api/types';
 import { canAdministerAccounts, canReviewTimeEntries, canViewDirectory } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { ReasonDialog } from '../../components/ReasonDialog';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
@@ -614,46 +610,20 @@ function RejectDialog({
 }) {
   const t = useT();
   const review = useReviewFor(entry);
-  const [note, setNote] = useState('');
-
-  const close = () => {
-    setNote('');
-    onClose();
-  };
 
   return (
-    <Dialog open={!!entry} onClose={close} fullWidth maxWidth="sm">
-      <DialogTitle>{t('timeEntries.rejectTitle')}</DialogTitle>
-      <DialogContent>
-        <DialogContentText sx={{ mb: 2 }}>
-          {t('timeEntries.rejectHint')}
-        </DialogContentText>
-        <TextField
-          autoFocus
-          fullWidth
-          multiline
-          minRows={2}
-          label={t('timeEntries.rejectReason')}
-          value={note}
-          onChange={(event) => setNote(event.target.value)}
-          error={!!review.error}
-          helperText={review.error?.message}
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={close}>{t('common.cancel')}</Button>
-        <Button
-          variant="contained"
-          color="warning"
-          disabled={!note.trim() || review.isPending}
-          onClick={() => {
-            review.mutate({ approve: false, note: note.trim() }, { onSuccess: close });
-          }}
-        >
-          {t('timeEntries.reject')}
-        </Button>
-      </DialogActions>
-    </Dialog>
+    <ReasonDialog
+      open={!!entry}
+      title={t('timeEntries.rejectTitle')}
+      hint={t('timeEntries.rejectHint')}
+      label={t('timeEntries.rejectReason')}
+      submitLabel={t('timeEntries.reject')}
+      onClose={onClose}
+      onSubmit={async (note) => {
+        await review.mutateAsync({ approve: false, note });
+        onClose();
+      }}
+    />
   );
 }
 

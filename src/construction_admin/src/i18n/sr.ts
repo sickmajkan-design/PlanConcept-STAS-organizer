@@ -186,6 +186,24 @@ export const sr: Record<MessageKey, Message> = {
   },
   'bulk.deleteSelected': 'Obriši izabrano',
   'bulk.clearSelection': 'Poništi izbor',
+  'bulk.approveSelected': 'Odobri izabrano',
+  'bulk.approveTitle': 'Odobriti izabrane troškove?',
+  'bulk.approveBody': {
+    one: 'Ovo odobrava {count} trošak.',
+    few: 'Ovo odobrava {count} troška.',
+    other: 'Ovo odobrava {count} troškova.',
+  },
+  'bulk.approveSkipped': {
+    one: '{count} izabrani trošak je izostavljen: već pregledan ili ste ga vi uneli.',
+    few: '{count} izabrana troška su izostavljena: već pregledana ili ste ih vi uneli.',
+    other: '{count} izabranih troškova je izostavljeno: već pregledani ili ste ih vi uneli.',
+  },
+  'bulk.approveNothing': 'Ništa od izabranog se ne može odobriti grupno. Pregledani troškovi i vaši unosi se preskaču.',
+  'bulk.approvePartial': {
+    one: '{count} nije mogao biti odobren. Osvežite listu i pokušajte ponovo.',
+    few: '{count} nisu mogla biti odobrena. Osvežite listu i pokušajte ponovo.',
+    other: '{count} nije moglo biti odobreno. Osvežite listu i pokušajte ponovo.',
+  },
   'bulk.deleteConfirmTitle': 'Obrisati izabrane zapise?',
   'bulk.deleteConfirmBody': {
     one: 'Ovo briše {count} zapis. Možete opozvati par sekundi nakon potvrde.',

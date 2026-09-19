@@ -169,6 +169,21 @@ export const en = {
   'bulk.selectedCount': { one: '{count} selected', other: '{count} selected' },
   'bulk.deleteSelected': 'Delete selected',
   'bulk.clearSelection': 'Clear',
+  'bulk.approveSelected': 'Approve selected',
+  'bulk.approveTitle': 'Approve selected costs?',
+  'bulk.approveBody': {
+    one: 'This approves {count} cost.',
+    other: 'This approves {count} costs.',
+  },
+  'bulk.approveSkipped': {
+    one: '{count} selected cost is left out: already reviewed, or recorded by you.',
+    other: '{count} selected costs are left out: already reviewed, or recorded by you.',
+  },
+  'bulk.approveNothing': 'Nothing selected can be approved in bulk. Reviewed costs and your own entries are skipped.',
+  'bulk.approvePartial': {
+    one: '{count} could not be approved. Reload the list and try again.',
+    other: '{count} could not be approved. Reload the list and try again.',
+  },
   'bulk.deleteConfirmTitle': 'Delete selected records?',
   'bulk.deleteConfirmBody': {
     one: 'This deletes {count} record. You can undo it for a few seconds after confirming.',

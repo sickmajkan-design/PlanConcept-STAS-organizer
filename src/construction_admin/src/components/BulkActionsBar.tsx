@@ -1,4 +1,4 @@
-import { DeleteOutlined } from '@mui/icons-material';
+import { CheckOutlined, DeleteOutlined } from '@mui/icons-material';
 import { Button, Paper, Typography } from '@mui/material';
 
 import { useT } from '../i18n/useI18n';
@@ -11,10 +11,14 @@ import { useT } from '../i18n/useI18n';
 export function BulkActionsBar({
   count,
   onDelete,
+  onApprove,
   onClear,
 }: {
   count: number;
-  onDelete: () => void;
+  /** Omit where deleting in bulk makes no sense. */
+  onDelete?: () => void;
+  /** Approving everything selected in one go - for review queues. */
+  onApprove?: () => void;
   onClear: () => void;
 }) {
   const t = useT();
@@ -37,6 +41,17 @@ export function BulkActionsBar({
       <Typography variant="body2" sx={{ fontWeight: 600 }}>
         {t('bulk.selectedCount', { count })}
       </Typography>
+      {onApprove && (
+        <Button
+          size="small"
+          color="success"
+          startIcon={<CheckOutlined fontSize="small" />}
+          onClick={onApprove}
+        >
+          {t('bulk.approveSelected')}
+        </Button>
+      )}
+      {onDelete && (
       <Button
         size="small"
         color="error"
@@ -45,6 +60,7 @@ export function BulkActionsBar({
       >
         {t('bulk.deleteSelected')}
       </Button>
+      )}
       <Button size="small" color="inherit" onClick={onClear}>
         {t('bulk.clearSelection')}
       </Button>
