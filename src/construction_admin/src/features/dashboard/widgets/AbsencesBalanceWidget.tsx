@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 
 import { absencesApi } from '../../../api/absences';
 import { timeEntriesApi } from '../../../api/timeEntries';
+import { useEnumLabel } from '../../../i18n/enumLabels';
 import { useT } from '../../../i18n/useI18n';
 import { paths } from '../../../routes/paths';
 import { formatDate } from '../../../utils/formatting';
@@ -35,6 +36,7 @@ export function AbsencesBalanceWidget({
   onRemove,
 }: DashboardWidgetProps) {
   const t = useT();
+  const enumLabel = useEnumLabel();
 
   const pendingQuery = useQuery({
     queryKey: ['dashboard', 'absences', 'pending'] as const,
@@ -114,7 +116,7 @@ export function AbsencesBalanceWidget({
               <ListItem key={absence.id} disableGutters>
                 <ListItemText
                   primary={absence.employeeName}
-                  secondary={`${absence.type} · ${formatDate(absence.startDate)} — ${formatDate(absence.endDate)}`}
+                  secondary={`${enumLabel('absenceType', absence.type)} · ${formatDate(absence.startDate)} — ${formatDate(absence.endDate)}`}
                 />
               </ListItem>
             ))}
