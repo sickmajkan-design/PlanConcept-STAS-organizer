@@ -1847,6 +1847,27 @@ abstract class AppLocalizations {
   /// **'{reporterName} reported: {title}'**
   String notificationDefectReportedBody(String reporterName, String title);
 
+  /// No description provided for @notificationAccommodationContractExpiringTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Housing contract ending'**
+  String get notificationAccommodationContractExpiringTitle;
+
+  /// No description provided for @notificationAccommodationContractExpiringBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The contract for {accommodationName} ends on {contractEnd}.'**
+  String notificationAccommodationContractExpiringBody(
+    String accommodationName,
+    String contractEnd,
+  );
+
+  /// No description provided for @notificationTypeAccommodationContractExpiring.
+  ///
+  /// In en, this message translates to:
+  /// **'Housing contract ending'**
+  String get notificationTypeAccommodationContractExpiring;
+
   /// No description provided for @notificationMaterialLowStockTitle.
   ///
   /// In en, this message translates to:

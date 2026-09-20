@@ -1654,6 +1654,40 @@ public class CostTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task A_contract_ending_soon_warns_the_office_once_until_its_date_moves()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+        var flat = await InScope(scope => TestData.SeedAccommodationAsync(scope));
+        var end = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(10);
+
+        await InScope(async scope =>
+        {
+            var row = await scope.Db.Accommodations.FirstAsync(x => x.Id == flat.Id);
+            row.ContractEnd = end;
+            await scope.Db.SaveChangesAsync();
+        });
+
+        Task<int> AlertsAsync() => InScope(scope => scope.Db.Notifications.CountAsync(
+            n => n.UserId == admin.Id && n.Type == NotificationType.AccommodationContractExpiring));
+
+        await InScope(scope => scope.Send(new Construction.Application.Features.Accommodations.Reminders.SendContractExpiryRemindersCommand()));
+        Assert.Equal(1, await AlertsAsync());
+
+        await InScope(scope => scope.Send(new Construction.Application.Features.Accommodations.Reminders.SendContractExpiryRemindersCommand()));
+        Assert.Equal(1, await AlertsAsync());
+
+        await InScope(async scope =>
+        {
+            var row = await scope.Db.Accommodations.FirstAsync(x => x.Id == flat.Id);
+            row.ContractEnd = end.AddDays(5);
+            await scope.Db.SaveChangesAsync();
+        });
+
+        await InScope(scope => scope.Send(new Construction.Application.Features.Accommodations.Reminders.SendContractExpiryRemindersCommand()));
+        Assert.Equal(2, await AlertsAsync());
+    }
+
+    [Fact]
     public async Task Ending_a_stay_frees_the_person_for_the_next_one()
     {
         var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));

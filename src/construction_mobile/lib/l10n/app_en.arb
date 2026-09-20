@@ -574,6 +574,12 @@
       "title": { "type": "String" }
     }
   },
+  "notificationAccommodationContractExpiringTitle": "Housing contract ending",
+  "notificationAccommodationContractExpiringBody": "The contract for {accommodationName} ends on {contractEnd}.",
+  "@notificationAccommodationContractExpiringBody": {
+    "placeholders": { "accommodationName": { "type": "String" }, "contractEnd": { "type": "String" } }
+  },
+  "notificationTypeAccommodationContractExpiring": "Housing contract ending",
   "notificationMaterialLowStockTitle": "Low stock",
   "notificationMaterialLowStockBody": "{materialName}: {quantity} {unit} left, below the minimum of {minimum}.",
   "@notificationMaterialLowStockBody": {

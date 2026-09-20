@@ -227,6 +227,16 @@ export function resolveNotificationText(t: T, notification: Notification): Notif
         body: text('notificationDefectReportedBody', { reporterName: d.reporterName, title: d.title }),
       };
 
+    case 'AccommodationContractExpiring':
+      if (!d.accommodationName || !d.contractEnd) return fallback;
+      return {
+        title: text('notificationAccommodationContractExpiringTitle'),
+        body: text('notificationAccommodationContractExpiringBody', {
+          accommodationName: d.accommodationName,
+          contractEnd: isoDate(d.contractEnd),
+        }),
+      };
+
     case 'MaterialLowStock':
       if (!d.materialName || !d.quantity || !d.unit || !d.minimum) return fallback;
       return {

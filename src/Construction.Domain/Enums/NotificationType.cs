@@ -67,5 +67,8 @@ public enum NotificationType
     AbsenceDecided = 25,
 
     /// <summary>A material's stock fell below the minimum set for it.</summary>
-    MaterialLowStock = 26
+    MaterialLowStock = 26,
+
+    /// <summary>A housing contract is about to end, or already has.</summary>
+    AccommodationContractExpiring = 27
 }

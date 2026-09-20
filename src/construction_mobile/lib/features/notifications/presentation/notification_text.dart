@@ -278,6 +278,20 @@ LocalizedNotificationText resolveNotificationText(
         );
       }
 
+    case 'AccommodationContractExpiring':
+      {
+        final name = str('accommodationName');
+        final contractEnd = str('contractEnd');
+        if (name == null || contractEnd == null) {
+          return fallback;
+        }
+
+        return LocalizedNotificationText(
+          title: l10n.notificationAccommodationContractExpiringTitle,
+          body: l10n.notificationAccommodationContractExpiringBody(name, _isoDate(contractEnd)),
+        );
+      }
+
     case 'MaterialLowStock':
       {
         final materialName = str('materialName');

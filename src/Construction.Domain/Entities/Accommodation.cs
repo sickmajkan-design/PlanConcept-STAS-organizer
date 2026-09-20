@@ -40,6 +40,9 @@ public class Accommodation : BaseEntity, ISoftDeletable, IAuditable
 
     public DateOnly? ContractEnd { get; set; }
 
+    /// <summary>The contract end date the expiry warning was already sent for; a changed end date is a new warning.</summary>
+    public DateOnly? ContractExpiryNotifiedFor { get; set; }
+
     /// <summary>The deposit paid to the landlord, for reference. The payment itself is a one-off charge.</summary>
     public decimal? DepositAmount { get; set; }
 

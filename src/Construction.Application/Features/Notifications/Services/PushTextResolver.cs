@@ -241,6 +241,17 @@ public static class PushTextResolver
                     $"{vehicleName} ({IsoDate(occurredOn)}) je vraćen: {note}");
             }
 
+            case NotificationType.AccommodationContractExpiring:
+            {
+                var name = Str("accommodationName");
+                var contractEnd = Str("contractEnd");
+                if (name is null || contractEnd is null) break;
+
+                return (
+                    "Ističe ugovor o smještaju",
+                    $"Ugovor za {name} ističe {IsoDate(contractEnd)}.");
+            }
+
             case NotificationType.MaterialLowStock:
             {
                 var materialName = Str("materialName");

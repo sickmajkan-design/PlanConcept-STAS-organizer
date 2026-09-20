@@ -1008,6 +1008,22 @@ class AppLocalizationsSr extends AppLocalizations {
   }
 
   @override
+  String get notificationAccommodationContractExpiringTitle =>
+      'Ističe ugovor o smještaju';
+
+  @override
+  String notificationAccommodationContractExpiringBody(
+    String accommodationName,
+    String contractEnd,
+  ) {
+    return 'Ugovor za $accommodationName ističe $contractEnd.';
+  }
+
+  @override
+  String get notificationTypeAccommodationContractExpiring =>
+      'Ističe ugovor o smještaju';
+
+  @override
   String get notificationMaterialLowStockTitle => 'Niska zaliha';
 
   @override

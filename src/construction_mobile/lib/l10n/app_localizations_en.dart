@@ -1010,6 +1010,22 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get notificationAccommodationContractExpiringTitle =>
+      'Housing contract ending';
+
+  @override
+  String notificationAccommodationContractExpiringBody(
+    String accommodationName,
+    String contractEnd,
+  ) {
+    return 'The contract for $accommodationName ends on $contractEnd.';
+  }
+
+  @override
+  String get notificationTypeAccommodationContractExpiring =>
+      'Housing contract ending';
+
+  @override
   String get notificationMaterialLowStockTitle => 'Low stock';
 
   @override
