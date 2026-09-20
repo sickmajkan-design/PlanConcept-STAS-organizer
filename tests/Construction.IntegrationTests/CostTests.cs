@@ -1605,6 +1605,55 @@ public class CostTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task A_sites_report_carries_only_its_own_share_of_the_flats_rent()
+    {
+        // Two people sleep in one flat, one on this site and one on another:
+        // the site pays for its person's half, not for the whole flat.
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+        var mine = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var other = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var otherProject = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var flat = await InScope(scope => TestData.SeedAccommodationAsync(scope));
+
+        await InScope(async scope =>
+        {
+            scope.Db.AccommodationRates.Add(new AccommodationRate
+            {
+                AccommodationId = flat.Id,
+                Amount = 3100m,
+                StartDate = Jan1
+            });
+            scope.Db.AccommodationStays.Add(new AccommodationStay
+            {
+                AccommodationId = flat.Id, EmployeeId = mine.Id, ProjectId = project.Id, StartDate = Jan1
+            });
+            scope.Db.AccommodationStays.Add(new AccommodationStay
+            {
+                AccommodationId = flat.Id, EmployeeId = other.Id, ProjectId = otherProject.Id, StartDate = Jan1
+            });
+            await scope.Db.SaveChangesAsync();
+        });
+
+        var report = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new GetProjectCostsQuery
+            {
+                From = Jan1,
+                To = Jan1.AddDays(30),
+                ProjectId = project.Id
+            });
+        });
+
+        var row = Assert.Single(report.Rows);
+
+        Assert.Equal(1_550m, row.AccommodationCost);
+        Assert.Equal(1_550m, row.Total);
+        Assert.Equal(1_550m, report.TotalAccommodationCost);
+    }
+
+    [Fact]
     public async Task Ending_a_stay_frees_the_person_for_the_next_one()
     {
         var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));

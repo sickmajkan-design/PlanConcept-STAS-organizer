@@ -57,6 +57,7 @@ type ProjectCostSortField =
   | 'materialsOnSiteValue'
   | 'manualPayAmount'
   | 'generalExpenseCost'
+  | 'accommodationCost'
   | 'total';
 type VehicleCostSortField =
   | 'vehicleName'
@@ -216,6 +217,8 @@ function ProjectCosts({ period }: { period: Period }) {
           return (a.manualPayAmount - b.manualPayAmount) * factor;
         case 'generalExpenseCost':
           return (a.generalExpenseCost - b.generalExpenseCost) * factor;
+        case 'accommodationCost':
+          return (a.accommodationCost - b.accommodationCost) * factor;
         case 'total':
           return (a.total - b.total) * factor;
         default:
@@ -314,6 +317,18 @@ function ProjectCosts({ period }: { period: Period }) {
                   {t('costs.generalExpense')}
                 </TableSortLabel>
               </TableCell>
+              <TableCell
+                align="right"
+                sortDirection={sortBy === 'accommodationCost' ? sortDirection : false}
+              >
+                <TableSortLabel
+                  active={sortBy === 'accommodationCost'}
+                  direction={sortBy === 'accommodationCost' ? sortDirection : 'asc'}
+                  onClick={() => toggleSort('accommodationCost')}
+                >
+                  {t('costs.accommodation')}
+                </TableSortLabel>
+              </TableCell>
               <TableCell align="right" sortDirection={sortBy === 'total' ? sortDirection : false}>
                 <TableSortLabel
                   active={sortBy === 'total'}
@@ -393,6 +408,9 @@ function ProjectCosts({ period }: { period: Period }) {
                     <TableCell align="right">
                       {formatMoney(row.generalExpenseCost, locale)}
                     </TableCell>
+                    <TableCell align="right">
+                      {formatMoney(row.accommodationCost, locale)}
+                    </TableCell>
                     <TableCell align="right" sx={{ fontWeight: 600 }}>
                       {formatMoney(row.total, locale)}
                     </TableCell>
@@ -408,7 +426,7 @@ function ProjectCosts({ period }: { period: Period }) {
                   {hasDetail && (
                     <TableRow>
                       <TableCell
-                        colSpan={6 + (data.includesLabour ? 3 : 0)}
+                        colSpan={7 + (data.includesLabour ? 3 : 0)}
                         sx={{ py: 0, borderBottom: isExpanded ? undefined : 'none' }}
                       >
                         <Collapse in={isExpanded} timeout="auto" unmountOnExit>
@@ -442,6 +460,9 @@ function ProjectCosts({ period }: { period: Period }) {
               </TableCell>
               <TableCell align="right" sx={{ fontWeight: 700 }}>
                 {formatMoney(data.totalGeneralExpenseCost, locale)}
+              </TableCell>
+              <TableCell align="right" sx={{ fontWeight: 700 }}>
+                {formatMoney(data.totalAccommodationCost, locale)}
               </TableCell>
               <TableCell align="right" sx={{ fontWeight: 700 }}>
                 {formatMoney(data.total, locale)}

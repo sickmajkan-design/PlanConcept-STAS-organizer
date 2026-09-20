@@ -403,6 +403,7 @@ export const en = {
   'dashboard.projectsRealization.labour': 'Labour',
   'dashboard.projectsRealization.material': 'Material',
   'dashboard.projectsRealization.generalExpenses': 'General expenses',
+  'dashboard.projectsRealization.accommodation': 'Accommodation',
   'dashboard.absencesBalance.onSiteNow': {
     one: '{count} person on site now',
     other: '{count} people on site now',
@@ -1330,6 +1331,7 @@ export const en = {
   'costs.labour': 'Labour',
   'costs.material': 'Material',
   'costs.generalExpense': 'Other costs',
+  'costs.accommodation': 'Accommodation',
   'costs.materialsOnSite': 'Material on site',
   'costs.materialsOnSiteHint':
     "Value of material currently assigned to this site, at each material's reference price — not what was actually issued, and not part of the total. Materials sitting there, not yet used.",

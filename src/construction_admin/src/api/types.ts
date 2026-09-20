@@ -1797,6 +1797,8 @@ export interface ProjectCostRow {
    * there's no other source this could double-count against.
    */
   generalExpenseCost: number;
+  /** This site's share of the rent for housing its people stayed in. Part of `total`. */
+  accommodationCost: number;
   total: number;
 }
 
@@ -1811,6 +1813,7 @@ export interface ProjectCostReport {
   totalMaterialsOnSiteValue: number;
   totalManualPayAmount: number;
   totalGeneralExpenseCost: number;
+  totalAccommodationCost: number;
   total: number;
 }
 

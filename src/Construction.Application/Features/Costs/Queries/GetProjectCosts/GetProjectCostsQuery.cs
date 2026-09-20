@@ -1,5 +1,6 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Accommodations.Costs;
 using Construction.Application.Features.Costs.Models;
 using Construction.Domain.Enums;
 using FluentValidation;
@@ -93,6 +94,7 @@ public class GetProjectCostsQueryHandler
             : [];
 
         var generalExpenses = await LoadGeneralExpensesAsync(request, cancellationToken);
+        var accommodations = await LoadAccommodationCostsAsync(request, cancellationToken);
 
         // Every site that had a cost, or has material sitting on it. A site
         // with none of these is not a row of zeroes, it is a site nothing
@@ -102,6 +104,7 @@ public class GetProjectCostsQueryHandler
             .Concat(materialsOnSite.Keys)
             .Concat(manualPay.Keys)
             .Concat(generalExpenses.Keys)
+            .Concat(accommodations.Keys)
             .ToHashSet();
 
         var names = await _context.Projects
@@ -118,6 +121,7 @@ public class GetProjectCostsQueryHandler
                 var onSiteValue = materialsOnSite.GetValueOrDefault(id);
                 var manualPayAmount = manualPay.GetValueOrDefault(id);
                 var generalExpenseCost = generalExpenses.GetValueOrDefault(id);
+                var accommodationCost = accommodations.GetValueOrDefault(id);
 
                 return new ProjectCostRowDto
                 {
@@ -130,7 +134,8 @@ public class GetProjectCostsQueryHandler
                     MaterialsOnSiteValue = decimal.Round(onSiteValue, 2),
                     ManualPayAmount = decimal.Round(manualPayAmount, 2),
                     GeneralExpenseCost = decimal.Round(generalExpenseCost, 2),
-                    Total = decimal.Round(l.Cost + materialCost + generalExpenseCost, 2)
+                    AccommodationCost = decimal.Round(accommodationCost, 2),
+                    Total = decimal.Round(l.Cost + materialCost + generalExpenseCost + accommodationCost, 2)
                 };
             })
             .OrderByDescending(r => r.Total)
@@ -148,6 +153,7 @@ public class GetProjectCostsQueryHandler
             TotalMaterialsOnSiteValue = rows.Sum(r => r.MaterialsOnSiteValue),
             TotalManualPayAmount = rows.Sum(r => r.ManualPayAmount),
             TotalGeneralExpenseCost = rows.Sum(r => r.GeneralExpenseCost),
+            TotalAccommodationCost = rows.Sum(r => r.AccommodationCost),
             Total = rows.Sum(r => r.Total)
         };
     }
@@ -400,5 +406,76 @@ public class GetProjectCostsQueryHandler
             .ToListAsync(cancellationToken);
 
         return rows.ToDictionary(r => r.ProjectId, r => r.Amount);
+    }
+
+    /// <summary>
+    /// What housing cost each site over the period: the share of every
+    /// accommodation's rent that fell on the people staying there for that
+    /// site. Rent for empty days, one-off charges and stays with no project
+    /// belong to no site and stay out of this figure; they are still on the
+    /// accommodation's own cost page.
+    /// </summary>
+    private async Task<Dictionary<Guid, decimal>> LoadAccommodationCostsAsync(
+        GetProjectCostsQuery request,
+        CancellationToken cancellationToken)
+    {
+        var stays = await _context.AccommodationStays
+            .AsNoTracking()
+            .Where(s => s.ProjectId != null
+                && s.StartDate <= request.To
+                && (s.EndDate == null || s.EndDate >= request.From))
+            .ToListAsync(cancellationToken);
+
+        var totals = new Dictionary<Guid, decimal>();
+
+        if (stays.Count == 0)
+        {
+            return totals;
+        }
+
+        // Rent is split among everyone in the place, so stays without a
+        // project have to be loaded too, or a site would be charged for the
+        // whole flat while a colleague on another job slept in it.
+        var accommodationIds = stays.Select(s => s.AccommodationId).Distinct().ToList();
+
+        var allStays = await _context.AccommodationStays
+            .AsNoTracking()
+            .Where(s => accommodationIds.Contains(s.AccommodationId)
+                && s.StartDate <= request.To
+                && (s.EndDate == null || s.EndDate >= request.From))
+            .ToListAsync(cancellationToken);
+
+        var rates = await _context.AccommodationRates
+            .AsNoTracking()
+            .Where(r => accommodationIds.Contains(r.AccommodationId)
+                && r.StartDate <= request.To
+                && (r.EndDate == null || r.EndDate >= request.From))
+            .ToListAsync(cancellationToken);
+
+        var none = new Dictionary<Guid, string>();
+
+        foreach (var accommodationId in accommodationIds)
+        {
+            var summary = AccommodationCostCalculator.Calculate(
+                rates.Where(r => r.AccommodationId == accommodationId).ToList(),
+                allStays.Where(s => s.AccommodationId == accommodationId).ToList(),
+                request.From,
+                request.To,
+                none,
+                none);
+
+            foreach (var share in summary.ByProject)
+            {
+                if (share.ProjectId is not { } projectId
+                    || (request.ProjectId != null && request.ProjectId != projectId))
+                {
+                    continue;
+                }
+
+                totals[projectId] = totals.GetValueOrDefault(projectId) + share.Cost;
+            }
+        }
+
+        return totals;
     }
 }

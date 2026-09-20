@@ -679,6 +679,7 @@ public class ExportProjectCostsQueryHandler
 
         columns.Add(new(ExportLabels.Get("materialCost", english), SpreadsheetValueKind.Money));
         columns.Add(new(ExportLabels.Get("generalExpenseCost", english), SpreadsheetValueKind.Money));
+        columns.Add(new(ExportLabels.Get("accommodationCost", english), SpreadsheetValueKind.Money));
         columns.Add(new(ExportLabels.Get("total", english), SpreadsheetValueKind.Money));
         columns.Add(new(ExportLabels.Get("materialsOnSite", english), SpreadsheetValueKind.Money));
 
@@ -704,6 +705,7 @@ public class ExportProjectCostsQueryHandler
 
             cells.Add(row.MaterialCost);
             cells.Add(row.GeneralExpenseCost);
+            cells.Add(row.AccommodationCost);
             cells.Add(row.Total);
             cells.Add(row.MaterialsOnSiteValue);
 
@@ -731,6 +733,7 @@ public class ExportProjectCostsQueryHandler
 
             totals.Add(report.TotalMaterialCost);
             totals.Add(report.TotalGeneralExpenseCost);
+            totals.Add(report.TotalAccommodationCost);
             totals.Add(report.Total);
             totals.Add(report.TotalMaterialsOnSiteValue);
 

@@ -426,6 +426,7 @@ export const sr: Record<MessageKey, Message> = {
   'dashboard.projectsRealization.labour': 'Rad',
   'dashboard.projectsRealization.material': 'Materijal',
   'dashboard.projectsRealization.generalExpenses': 'Opšti troškovi',
+  'dashboard.projectsRealization.accommodation': 'Smještaj',
   'dashboard.absencesBalance.onSiteNow': {
     one: '{count} osoba trenutno na terenu',
     few: '{count} osobe trenutno na terenu',
@@ -1360,6 +1361,7 @@ export const sr: Record<MessageKey, Message> = {
   'costs.labour': 'Rad',
   'costs.material': 'Materijal',
   'costs.generalExpense': 'Ostali troškovi',
+  'costs.accommodation': 'Smještaj',
   'costs.materialsOnSite': 'Materijal na lageru',
   'costs.materialsOnSiteHint':
     'Vrijednost materijala trenutno dodijeljenog ovom projektu, po referentnoj cijeni svakog materijala — nije stvarno utrošeno, i nije dio ukupnog troška. Materijal koji stoji tamo, još neiskorišten.',

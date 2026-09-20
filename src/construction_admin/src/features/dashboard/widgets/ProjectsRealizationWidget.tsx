@@ -70,6 +70,11 @@ export function ProjectsRealizationWidget({
           label: t('dashboard.projectsRealization.generalExpenses'),
           value: cost.totalGeneralExpenseCost,
         },
+        {
+          id: 'accommodation',
+          label: t('dashboard.projectsRealization.accommodation'),
+          value: cost.totalAccommodationCost,
+        },
       ].filter((slice) => slice.value > 0)
     : [];
 

@@ -43,6 +43,9 @@ public class ProjectCostReportDto
     /// </summary>
     public decimal TotalGeneralExpenseCost { get; init; }
 
+    /// <summary>Housing each site's people used over the period; part of <see cref="Total"/>.</summary>
+    public decimal TotalAccommodationCost { get; init; }
+
     public decimal Total { get; init; }
 }
 
@@ -98,6 +101,9 @@ public class ProjectCostRowDto
     /// nothing else it could double-count against.
     /// </summary>
     public decimal GeneralExpenseCost { get; init; }
+
+    /// <summary>This site's share of the rent for the housing its people stayed in. Folded into <see cref="Total"/>.</summary>
+    public decimal AccommodationCost { get; init; }
 
     public decimal Total { get; init; }
 }

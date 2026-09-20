@@ -64,6 +64,7 @@ public static class ExportLabels
         ["materialsOnSite"] = ("Materijal na lageru", "Material on site"),
         ["manualPay"] = ("Ručni unosi plate", "Manual pay entries"),
         ["generalExpenseCost"] = ("Ostali troškovi", "Other costs"),
+        ["accommodationCost"] = ("Smještaj", "Accommodation"),
         ["supplier"] = ("Dobavljač / odgovorno lice", "Supplier / responsible party"),
         ["total"] = ("Ukupno", "Total"),
         ["grandTotal"] = ("Sve zajedno", "Everything"),
