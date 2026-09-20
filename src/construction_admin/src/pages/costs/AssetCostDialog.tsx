@@ -137,7 +137,9 @@ export function AssetCostDialog({
           {error && <Alert severity="error">{error}</Alert>}
 
           {!loading &&
-            sections.map((section) => (
+            sections
+              .filter((section) => section.lines.length > 0 || section.note)
+              .map((section) => (
               <CostSection
                 key={section.key}
                 title={section.title}

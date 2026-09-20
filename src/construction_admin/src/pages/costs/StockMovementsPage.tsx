@@ -1,22 +1,22 @@
-import { AddOutlined, DeleteOutlined } from '@mui/icons-material';
+import { AddOutlined, SwapVertOutlined } from '@mui/icons-material';
 import {
   Alert,
   Autocomplete,
   Box,
+  Chip,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Grid,
-  IconButton,
   MenuItem,
   Paper,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
-import type { GridColDef, GridSortModel } from '@mui/x-data-grid';
+import type { GridSortModel } from '@mui/x-data-grid';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -38,7 +38,10 @@ import { InvoiceFilePicker } from '../../components/InvoiceFilePicker';
 import { useUploadAttachment } from '../../features/attachments/useAttachments';
 import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
-import { ResourceDataGrid } from '../../components/ResourceDataGrid';
+import { CostLedgerBoard, useLedgerWindow, type LedgerRow } from '../../components/costs/CostLedgerBoard';
+import { Stat } from '../../components/costs/costUi';
+import { ALL_TIME, LedgerPeriodBar, type LedgerPeriod } from '../../components/costs/LedgerPeriodBar';
+import { SortBar } from '../../components/costs/SortBar';
 import { SavedViewsBar } from '../../components/SavedViewsBar';
 import {
   useDeleteMaterialMovement,
@@ -55,7 +58,7 @@ import { useListQueryState } from '../../hooks/useListQueryState';
 import { useSavedViews } from '../../hooks/useSavedViews';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
-import { formatDate, formatDateTime, formatMoney, formatQuantity, lastYearRange } from '../../utils/formatting';
+import { formatDate, formatMoney, formatQuantity, lastYearRange } from '../../utils/formatting';
 
 interface StockMovementViewState {
   sortModel: GridSortModel;
@@ -86,121 +89,53 @@ export function StockMovementsPage() {
     savedViews.saveView(name, { sortModel: list.sortModel, kind });
   };
 
+  const [period, setPeriod] = useState<LedgerPeriod>(ALL_TIME);
+  const window = useLedgerWindow();
+
   const query: MaterialMovementListQuery = useMemo(
     () => ({
       ...list.query,
+      pageNumber: 1,
+      pageSize: window.pageSize,
+      from: period.from || undefined,
+      to: period.to || undefined,
       // The API has no text search on this collection; leaving one in the key
       // would refetch on every keystroke for nothing.
       search: undefined,
       kind: kind || undefined,
     }),
-    [kind, list.query],
+    [kind, list.query, period, window.pageSize],
   );
 
   const { data, isLoading, isError, error, refetch } = useMaterialMovementsQuery(query);
   const { data: summary } = useMaterialMovementsSummaryQuery(query);
   const remove = useDeleteWithConfirm<MaterialMovement>(useDeleteMaterialMovement());
 
-  const columns: GridColDef<MaterialMovement>[] = useMemo(
-    () => [
-      {
-        field: 'occurredOn',
-        headerName: t('movements.occurredOn'),
-        width: 120,
-        valueGetter: (value) => formatDate(value),
-      },
-      {
-        field: 'materialName',
-        headerName: t('movements.material'),
-        flex: 1,
-        minWidth: 160,
-      },
-      {
-        field: 'kind',
-        headerName: t('movements.kind'),
-        width: 150,
-        valueGetter: (_value, row) => enumLabel('materialMovementKind', row.kind),
-      },
-      {
-        field: 'quantity',
-        headerName: t('movements.quantity'),
-        width: 130,
-        align: 'right',
-        headerAlign: 'right',
-        valueGetter: (_value, row) =>
-          `${formatQuantity(row.quantity, locale)} ${row.unit}`,
-      },
-      {
-        field: 'unitPrice',
-        headerName: t('movements.unitPrice'),
-        width: 130,
-        align: 'right',
-        headerAlign: 'right',
-        valueGetter: (value) => formatMoney(value as number | null, locale),
-      },
-      {
-        field: 'supplier',
-        headerName: t('movements.supplier'),
-        width: 170,
-        valueGetter: (value) => value || '—',
-      },
-      {
-        field: 'invoiceNumber',
-        headerName: t('movements.invoiceNumber'),
-        width: 140,
-        valueGetter: (value) => value || '—',
-      },
-      {
-        field: 'totalCost',
-        headerName: t('movements.totalCost'),
-        width: 130,
-        align: 'right',
-        headerAlign: 'right',
-        sortable: false,
-        valueGetter: (value) => formatMoney(value as number | null, locale),
-      },
-      {
-        field: 'projectName',
-        headerName: t('movements.project'),
-        flex: 1,
-        minWidth: 140,
-        valueGetter: (value) => value || t('movements.noProject'),
-      },
-      {
-        field: 'recordedByName',
-        headerName: t('movements.recordedBy'),
-        flex: 1,
-        minWidth: 160,
-        valueGetter: (value) => value || '—',
-      },
-      {
-        field: 'createdAt',
-        headerName: t('movements.createdAt'),
-        width: 160,
-        valueGetter: (value) => formatDateTime(value as string),
-      },
-      {
-        field: 'actions',
-        headerName: '',
-        width: 60,
-        sortable: false,
-        filterable: false,
-        align: 'right',
-        headerAlign: 'right',
-        renderCell: (params) => (
-          <IconButton
-            size="small"
-            onClick={(event) => {
-              event.stopPropagation();
-              remove.request(params.row);
-            }}
-          >
-            <DeleteOutlined fontSize="small" />
-          </IconButton>
-        ),
-      },
-    ],
-    [enumLabel, locale, remove, t],
+  const rows: LedgerRow<MaterialMovement>[] = useMemo(
+    () =>
+      (data?.items ?? []).map((movement) => ({
+        item: movement,
+        id: movement.id,
+        date: movement.occurredOn,
+        icon: <SwapVertOutlined fontSize="small" />,
+        title: movement.materialName,
+        chips: <Chip size="small" variant="outlined" label={enumLabel('materialMovementKind', movement.kind)} />,
+        subtitle: [
+          formatDate(movement.occurredOn),
+          movement.projectName,
+          movement.supplier,
+          movement.invoiceNumber,
+          movement.note,
+        ]
+          .filter(Boolean)
+          .join(' · '),
+        amount: movement.totalCost,
+        meta:
+          movement.unitPrice !== null
+            ? `${formatQuantity(movement.quantity, locale)} ${movement.unit} × ${formatMoney(movement.unitPrice, locale)}`
+            : `${formatQuantity(movement.quantity, locale)} ${movement.unit}`,
+      })),
+    [data, enumLabel, locale],
   );
 
   return (
@@ -257,27 +192,51 @@ export function StockMovementsPage() {
         />
       </Box>
 
-      {summary && (
-        <Paper variant="outlined" sx={{ px: 2, py: 1, mb: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            {t('movements.summaryValue')}:{' '}
-            <strong>{formatMoney(summary.totalCost, locale)}</strong>
-          </Typography>
-        </Paper>
-      )}
+      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+        <Stack direction="row" useFlexGap sx={{ flexWrap: 'wrap', gap: 2, alignItems: 'center', mb: 2 }}>
+          <Stat label={t('movements.summaryValue')} value={formatMoney(summary?.totalCost ?? 0, locale)} />
+          <Stat label={t('costs.entries')} value={String(data?.totalCount ?? 0)} accent="text.disabled" />
+        </Stack>
+        <LedgerPeriodBar
+          value={period}
+          onChange={(next) => {
+            setPeriod(next);
+            list.resetToFirstPage();
+          }}
+        />
+      </Paper>
 
-      <ResourceDataGrid
-        data={data}
-        columns={columns}
+      <Box sx={{ mb: 2 }}>
+        <SortBar
+          value={(list.sortModel[0]?.field ?? 'occurredOn') as string}
+          direction={list.sortModel[0]?.sort === 'asc' ? 'asc' : 'desc'}
+          onChange={(field, dir) => list.setSortModel([{ field, sort: dir }])}
+          options={[
+            { value: 'occurredOn', label: t('movements.occurredOn') },
+            { value: 'materialName', label: t('movements.material') },
+            { value: 'kind', label: t('movements.kind') },
+            { value: 'quantity', label: t('movements.quantity') },
+            { value: 'unitPrice', label: t('movements.unitPrice') },
+            { value: 'supplier', label: t('movements.supplier') },
+            { value: 'invoiceNumber', label: t('movements.invoiceNumber') },
+            { value: 'totalCost', label: t('movements.totalCost') },
+            { value: 'projectName', label: t('movements.project') },
+            { value: 'recordedByName', label: t('movements.recordedBy') },
+            { value: 'createdAt', label: t('movements.createdAt') },
+          ]}
+        />
+      </Box>
+
+      <CostLedgerBoard
+        rows={rows}
+        totalCount={data?.totalCount ?? 0}
         isLoading={isLoading}
         isError={isError}
         error={error}
         onRetry={() => void refetch()}
-        paginationModel={list.paginationModel}
-        onPaginationModelChange={list.setPaginationModel}
-        sortModel={list.sortModel}
-        onSortModelChange={list.setSortModel}
-        onRowDoubleClick={(row) => setEditing(row)}
+        onOpen={(item) => setEditing(item)}
+        onDelete={(item) => remove.request(item)}
+        window={window}
       />
 
       <MovementDialog open={recording} onClose={() => setRecording(false)} />

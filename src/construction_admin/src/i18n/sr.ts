@@ -1431,6 +1431,11 @@ export const sr: Record<MessageKey, Message> = {
   'costs.descending': 'Opadajuće',
   'costs.perDay': 'po danu',
   'costs.rentalsOutOpen': 'Još vani',
+  'costs.entries': 'Unosa',
+  'costs.allTime': 'Sve',
+  'costs.ledgerShowing': 'Prikazano {shown} od {total} unosa.',
+  'costs.ledgerShowMore': 'Prikaži još',
+  'costs.ledgerNarrow': 'Suzite izbor periodom da vidite ostatak.',
   'costs.title': 'Troškovi',
   'costs.subtitle':
     'Automatski izvještaj: rad iz odobrenih sati × cijena rada, plus materijal, vozila i alati. Ne uključuje Finansijske unose — oni se prikazuju kao isplata po ekipi na stranicama Projekta i Zaposlenog.',

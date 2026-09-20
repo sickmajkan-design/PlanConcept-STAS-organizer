@@ -1,4 +1,4 @@
-import { AddOutlined, DeleteOutlined } from '@mui/icons-material';
+import { AddOutlined, PaymentsOutlined } from '@mui/icons-material';
 import {
   Alert,
   Box,
@@ -8,14 +8,13 @@ import {
   DialogContent,
   DialogTitle,
   Grid,
-  IconButton,
   MenuItem,
   Paper,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
-import type { GridColDef, GridSortModel } from '@mui/x-data-grid';
+import type { GridSortModel } from '@mui/x-data-grid';
 import { useEffect, useMemo, useState } from 'react';
 
 import { toApiError } from '../../api/apiError';
@@ -31,7 +30,10 @@ import { AttachmentList } from '../../components/AttachmentList';
 import { AuditHistoryCard } from '../../components/AuditHistoryCard';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
-import { ResourceDataGrid } from '../../components/ResourceDataGrid';
+import { CostLedgerBoard, useLedgerWindow, type LedgerRow } from '../../components/costs/CostLedgerBoard';
+import { Stat } from '../../components/costs/costUi';
+import { ALL_TIME, LedgerPeriodBar, type LedgerPeriod } from '../../components/costs/LedgerPeriodBar';
+import { SortBar } from '../../components/costs/SortBar';
 import { SavedViewsBar } from '../../components/SavedViewsBar';
 import {
   useDeleteGeneralExpense,
@@ -47,7 +49,7 @@ import { useListQueryState } from '../../hooks/useListQueryState';
 import { useSavedViews } from '../../hooks/useSavedViews';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
-import { formatDate, formatDateTime, formatMoney } from '../../utils/formatting';
+import { formatDate, formatMoney } from '../../utils/formatting';
 
 interface GeneralExpenseViewState {
   sortModel: GridSortModel;
@@ -77,97 +79,46 @@ export function GeneralExpensesPage() {
     savedViews.saveView(name, { sortModel: list.sortModel, category });
   };
 
+  const [period, setPeriod] = useState<LedgerPeriod>(ALL_TIME);
+  const window = useLedgerWindow();
+
   const query: GeneralExpenseListQuery = useMemo(
     () => ({
       ...list.query,
+      pageNumber: 1,
+      pageSize: window.pageSize,
+      from: period.from || undefined,
+      to: period.to || undefined,
       search: undefined,
       category: category || undefined,
     }),
-    [category, list.query],
+    [category, list.query, period, window.pageSize],
   );
 
   const { data, isLoading, isError, error, refetch } = useGeneralExpensesQuery(query);
   const { data: summary } = useGeneralExpensesSummaryQuery(query);
   const remove = useDeleteWithConfirm<GeneralExpense>(useDeleteGeneralExpense());
 
-  const columns: GridColDef<GeneralExpense>[] = useMemo(
-    () => [
-      {
-        field: 'occurredOn',
-        headerName: t('generalExpenses.occurredOn'),
-        width: 120,
-        valueGetter: (value) => formatDate(value),
-      },
-      {
-        field: 'category',
-        headerName: t('generalExpenses.category'),
-        width: 150,
-        valueGetter: (_value, row) => enumLabel('generalExpenseCategory', row.category),
-      },
-      {
-        field: 'amount',
-        headerName: t('generalExpenses.amount'),
-        width: 130,
-        align: 'right',
-        headerAlign: 'right',
-        valueGetter: (value) => formatMoney(value as number, locale),
-      },
-      {
-        field: 'projectName',
-        headerName: t('generalExpenses.project'),
-        flex: 1,
-        minWidth: 160,
-        valueGetter: (value) => value || '—',
-      },
-      {
-        field: 'employeeName',
-        headerName: t('generalExpenses.employee'),
-        flex: 1,
-        minWidth: 160,
-        valueGetter: (value) => value || '—',
-      },
-      {
-        field: 'supplier',
-        headerName: t('generalExpenses.supplier'),
-        flex: 1,
-        minWidth: 160,
-        valueGetter: (value) => value || '—',
-      },
-      {
-        field: 'recordedByName',
-        headerName: t('generalExpenses.recordedBy'),
-        flex: 1,
-        minWidth: 160,
-        valueGetter: (value) => value || '—',
-      },
-      {
-        field: 'createdAt',
-        headerName: t('generalExpenses.createdAt'),
-        width: 160,
-        valueGetter: (value) => formatDateTime(value as string),
-      },
-      {
-        field: 'actions',
-        headerName: '',
-        width: 60,
-        sortable: false,
-        filterable: false,
-        align: 'right',
-        headerAlign: 'right',
-        renderCell: (params) => (
-          <IconButton
-            size="small"
-            onClick={(event) => {
-              event.stopPropagation();
-              remove.request(params.row);
-            }}
-          >
-            <DeleteOutlined fontSize="small" />
-          </IconButton>
-        ),
-      },
-    ],
-    [enumLabel, locale, remove, t],
+  const rows: LedgerRow<GeneralExpense>[] = useMemo(
+    () =>
+      (data?.items ?? []).map((expense) => ({
+        item: expense,
+        id: expense.id,
+        date: expense.occurredOn,
+        icon: <PaymentsOutlined fontSize="small" />,
+        title: enumLabel('generalExpenseCategory', expense.category),
+        subtitle: [
+          formatDate(expense.occurredOn),
+          expense.projectName,
+          expense.employeeName,
+          expense.supplier,
+          expense.note,
+        ]
+          .filter(Boolean)
+          .join(' · '),
+        amount: expense.amount,
+      })),
+    [data, enumLabel, locale],
   );
 
   return (
@@ -213,27 +164,48 @@ export function GeneralExpensesPage() {
         />
       </Box>
 
-      {summary && (
-        <Paper variant="outlined" sx={{ px: 2, py: 1, mb: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            {t('generalExpenses.summaryTotal')}:{' '}
-            <strong>{formatMoney(summary.totalAmount, locale)}</strong>
-          </Typography>
-        </Paper>
-      )}
+      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+        <Stack direction="row" useFlexGap sx={{ flexWrap: 'wrap', gap: 2, alignItems: 'center', mb: 2 }}>
+          <Stat label={t('generalExpenses.summaryTotal')} value={formatMoney(summary?.totalAmount ?? 0, locale)} />
+          <Stat label={t('costs.entries')} value={String(data?.totalCount ?? 0)} accent="text.disabled" />
+        </Stack>
+        <LedgerPeriodBar
+          value={period}
+          onChange={(next) => {
+            setPeriod(next);
+            list.resetToFirstPage();
+          }}
+        />
+      </Paper>
 
-      <ResourceDataGrid
-        data={data}
-        columns={columns}
+      <Box sx={{ mb: 2 }}>
+        <SortBar
+          value={(list.sortModel[0]?.field ?? 'occurredOn') as string}
+          direction={list.sortModel[0]?.sort === 'asc' ? 'asc' : 'desc'}
+          onChange={(field, dir) => list.setSortModel([{ field, sort: dir }])}
+          options={[
+            { value: 'occurredOn', label: t('generalExpenses.occurredOn') },
+            { value: 'category', label: t('generalExpenses.category') },
+            { value: 'amount', label: t('generalExpenses.amount') },
+            { value: 'projectName', label: t('generalExpenses.project') },
+            { value: 'employeeName', label: t('generalExpenses.employee') },
+            { value: 'supplier', label: t('generalExpenses.supplier') },
+            { value: 'recordedByName', label: t('generalExpenses.recordedBy') },
+            { value: 'createdAt', label: t('generalExpenses.createdAt') },
+          ]}
+        />
+      </Box>
+
+      <CostLedgerBoard
+        rows={rows}
+        totalCount={data?.totalCount ?? 0}
         isLoading={isLoading}
         isError={isError}
         error={error}
         onRetry={() => void refetch()}
-        paginationModel={list.paginationModel}
-        onPaginationModelChange={list.setPaginationModel}
-        sortModel={list.sortModel}
-        onSortModelChange={list.setSortModel}
-        onRowDoubleClick={(row) => setEditing(row)}
+        onOpen={(item) => setEditing(item)}
+        onDelete={(item) => remove.request(item)}
+        window={window}
       />
 
       <GeneralExpenseDialog open={recording} onClose={() => setRecording(false)} />

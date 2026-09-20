@@ -1,21 +1,21 @@
-import { AddOutlined, DeleteOutlined } from '@mui/icons-material';
+import { AddOutlined, RequestQuoteOutlined } from '@mui/icons-material';
 import {
   Alert,
   Box,
+  Chip,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Grid,
-  IconButton,
   MenuItem,
   Paper,
   Stack,
   TextField,
   Typography,
 } from '@mui/material';
-import type { GridColDef, GridSortModel } from '@mui/x-data-grid';
+import type { GridSortModel } from '@mui/x-data-grid';
 import { useEffect, useMemo, useState } from 'react';
 
 import { toApiError } from '../../api/apiError';
@@ -29,7 +29,10 @@ import { AuditHistoryCard } from '../../components/AuditHistoryCard';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
-import { ResourceDataGrid } from '../../components/ResourceDataGrid';
+import { CostLedgerBoard, useLedgerWindow, type LedgerRow } from '../../components/costs/CostLedgerBoard';
+import { Stat } from '../../components/costs/costUi';
+import { ALL_TIME, LedgerPeriodBar, type LedgerPeriod } from '../../components/costs/LedgerPeriodBar';
+import { SortBar } from '../../components/costs/SortBar';
 import { SavedViewsBar } from '../../components/SavedViewsBar';
 import {
   useDeleteFinanceEntry,
@@ -45,7 +48,7 @@ import { useListQueryState } from '../../hooks/useListQueryState';
 import { useSavedViews } from '../../hooks/useSavedViews';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
-import { formatDate, formatDateTime, formatMoney, lastYearRange } from '../../utils/formatting';
+import { formatDate, formatMoney, lastYearRange } from '../../utils/formatting';
 
 interface FinanceEntryViewState {
   sortModel: GridSortModel;
@@ -75,97 +78,46 @@ export function FinanceEntriesPage() {
     savedViews.saveView(name, { sortModel: list.sortModel, kind });
   };
 
+  const [period, setPeriod] = useState<LedgerPeriod>(ALL_TIME);
+  const window = useLedgerWindow();
+
   const query: FinanceEntryListQuery = useMemo(
     () => ({
       ...list.query,
+      pageNumber: 1,
+      pageSize: window.pageSize,
+      from: period.from || undefined,
+      to: period.to || undefined,
       search: undefined,
       kind: kind || undefined,
     }),
-    [kind, list.query],
+    [kind, list.query, period, window.pageSize],
   );
 
   const { data, isLoading, isError, error, refetch } = useFinanceEntriesQuery(query);
   const { data: summary } = useFinanceEntriesSummaryQuery(query);
   const remove = useDeleteWithConfirm<FinanceEntry>(useDeleteFinanceEntry());
 
-  const columns: GridColDef<FinanceEntry>[] = useMemo(
-    () => [
-      {
-        field: 'employeeName',
-        headerName: t('financeEntries.employee'),
-        flex: 1,
-        minWidth: 180,
-      },
-      {
-        field: 'kind',
-        headerName: t('financeEntries.kind'),
-        width: 120,
-        valueGetter: (_value, row) => enumLabel('financeEntryKind', row.kind),
-      },
-      {
-        field: 'amount',
-        headerName: t('financeEntries.amount'),
-        width: 130,
-        align: 'right',
-        headerAlign: 'right',
-        valueGetter: (value) => formatMoney(value as number, locale),
-      },
-      {
-        field: 'hoursWorked',
-        headerName: t('financeEntries.hoursWorked'),
-        width: 90,
-        align: 'right',
-        headerAlign: 'right',
-        valueGetter: (value) => (value === null ? '—' : value),
-      },
-      {
-        field: 'occurredOn',
-        headerName: t('financeEntries.occurredOn'),
-        width: 120,
-        valueGetter: (value) => formatDate(value),
-      },
-      {
-        field: 'projectName',
-        headerName: t('financeEntries.project'),
-        flex: 1,
-        minWidth: 160,
-        valueGetter: (value) => value || t('financeEntries.noProject'),
-      },
-      {
-        field: 'recordedByName',
-        headerName: t('financeEntries.recordedBy'),
-        flex: 1,
-        minWidth: 160,
-        valueGetter: (value) => value || '—',
-      },
-      {
-        field: 'createdAt',
-        headerName: t('financeEntries.createdAt'),
-        width: 160,
-        valueGetter: (value) => formatDateTime(value as string),
-      },
-      {
-        field: 'actions',
-        headerName: '',
-        width: 60,
-        sortable: false,
-        filterable: false,
-        align: 'right',
-        headerAlign: 'right',
-        renderCell: (params) => (
-          <IconButton
-            size="small"
-            onClick={(event) => {
-              event.stopPropagation();
-              remove.request(params.row);
-            }}
-          >
-            <DeleteOutlined fontSize="small" />
-          </IconButton>
-        ),
-      },
-    ],
-    [enumLabel, locale, remove, t],
+  const rows: LedgerRow<FinanceEntry>[] = useMemo(
+    () =>
+      (data?.items ?? []).map((entry) => ({
+        item: entry,
+        id: entry.id,
+        date: entry.occurredOn,
+        icon: <RequestQuoteOutlined fontSize="small" />,
+        title: entry.employeeName,
+        chips: <Chip size="small" variant="outlined" label={enumLabel('financeEntryKind', entry.kind)} />,
+        subtitle: [
+          formatDate(entry.occurredOn),
+          entry.projectName,
+          entry.hoursWorked === null ? null : `${entry.hoursWorked} h`,
+          entry.note,
+        ]
+          .filter(Boolean)
+          .join(' · '),
+        amount: entry.amount,
+      })),
+    [data, enumLabel, locale],
   );
 
   return (
@@ -219,33 +171,48 @@ export function FinanceEntriesPage() {
         />
       </Box>
 
-      {summary && (
-        <Paper variant="outlined" sx={{ px: 2, py: 1, mb: 2 }}>
-          <Stack direction="row" spacing={3}>
-            <Typography variant="body2" color="text.secondary">
-              {t('financeEntries.summaryTotal')}:{' '}
-              <strong>{formatMoney(summary.totalAmount, locale)}</strong>
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {t('financeEntries.summaryHours')}:{' '}
-              <strong>{summary.totalHoursWorked}</strong>
-            </Typography>
-          </Stack>
-        </Paper>
-      )}
+      <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
+        <Stack direction="row" useFlexGap sx={{ flexWrap: 'wrap', gap: 2, alignItems: 'center', mb: 2 }}>
+          <Stat label={t('financeEntries.summaryTotal')} value={formatMoney(summary?.totalAmount ?? 0, locale)} />
+          <Stat label={t('costs.entries')} value={String(data?.totalCount ?? 0)} accent="text.disabled" />
+        </Stack>
+        <LedgerPeriodBar
+          value={period}
+          onChange={(next) => {
+            setPeriod(next);
+            list.resetToFirstPage();
+          }}
+        />
+      </Paper>
 
-      <ResourceDataGrid
-        data={data}
-        columns={columns}
+      <Box sx={{ mb: 2 }}>
+        <SortBar
+          value={(list.sortModel[0]?.field ?? 'occurredOn') as string}
+          direction={list.sortModel[0]?.sort === 'asc' ? 'asc' : 'desc'}
+          onChange={(field, dir) => list.setSortModel([{ field, sort: dir }])}
+          options={[
+            { value: 'employeeName', label: t('financeEntries.employee') },
+            { value: 'kind', label: t('financeEntries.kind') },
+            { value: 'amount', label: t('financeEntries.amount') },
+            { value: 'hoursWorked', label: t('financeEntries.hoursWorked') },
+            { value: 'occurredOn', label: t('financeEntries.occurredOn') },
+            { value: 'projectName', label: t('financeEntries.project') },
+            { value: 'recordedByName', label: t('financeEntries.recordedBy') },
+            { value: 'createdAt', label: t('financeEntries.createdAt') },
+          ]}
+        />
+      </Box>
+
+      <CostLedgerBoard
+        rows={rows}
+        totalCount={data?.totalCount ?? 0}
         isLoading={isLoading}
         isError={isError}
         error={error}
         onRetry={() => void refetch()}
-        paginationModel={list.paginationModel}
-        onPaginationModelChange={list.setPaginationModel}
-        sortModel={list.sortModel}
-        onSortModelChange={list.setSortModel}
-        onRowDoubleClick={(row) => setEditing(row)}
+        onOpen={(item) => setEditing(item)}
+        onDelete={(item) => remove.request(item)}
+        window={window}
       />
 
       <RecordFinanceEntryDialog open={recording} onClose={() => setRecording(false)} />

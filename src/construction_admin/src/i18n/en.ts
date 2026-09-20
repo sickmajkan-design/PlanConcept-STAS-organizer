@@ -1401,6 +1401,11 @@ export const en = {
   'costs.descending': 'Descending',
   'costs.perDay': 'per day',
   'costs.rentalsOutOpen': 'Still out',
+  'costs.entries': 'Entries',
+  'costs.allTime': 'All',
+  'costs.ledgerShowing': 'Showing {shown} of {total} entries.',
+  'costs.ledgerShowMore': 'Show more',
+  'costs.ledgerNarrow': 'Narrow it down with a period to see the rest.',
   'costs.title': 'Costs',
   'costs.subtitle':
     "Automatic report: labour from approved hours × pay rate, plus material, vehicle and tool ledgers. Doesn't include Finance entries — those show as pay per crew posting on the Project and Employee pages instead.",
