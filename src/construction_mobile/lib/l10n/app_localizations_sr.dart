@@ -1015,7 +1015,7 @@ class AppLocalizationsSr extends AppLocalizations {
     String accommodationName,
     String startDate,
   ) {
-    return 'Smješteni ste na adresi $accommodationName od $startDate.';
+    return 'Smješteni ste na adresi $accommodationName od $startDate';
   }
 
   @override
@@ -1030,7 +1030,7 @@ class AppLocalizationsSr extends AppLocalizations {
     String accommodationName,
     String contractEnd,
   ) {
-    return 'Ugovor za $accommodationName ističe $contractEnd.';
+    return 'Ugovor za $accommodationName ističe $contractEnd';
   }
 
   @override
@@ -1377,6 +1377,27 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get roleWorker => 'Radnik';
+
+  @override
+  String get relativeNever => 'nikad';
+
+  @override
+  String get relativeJustNow => 'upravo sada';
+
+  @override
+  String relativeMinutes(int count) {
+    return 'prije $count min';
+  }
+
+  @override
+  String relativeHours(int count) {
+    return 'prije $count h';
+  }
+
+  @override
+  String relativeDays(int count) {
+    return 'prije $count d';
+  }
 
   @override
   String get employeeStatusActive => 'Aktivan';

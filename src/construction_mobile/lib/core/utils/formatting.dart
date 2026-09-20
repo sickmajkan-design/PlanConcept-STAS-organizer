@@ -1,3 +1,5 @@
+import '../../l10n/app_localizations.dart';
+
 /// Turns API enum names such as `ProjectManager` or `OnLeave` into
 /// `Project Manager` / `On Leave` for display.
 String humanizeEnum(String value) {
@@ -61,27 +63,27 @@ String formatTime(DateTime? value) {
 }
 
 /// Compact "how long ago" label for timestamps such as the last GPS fix.
-String formatRelative(DateTime? value) {
+String formatRelative(DateTime? value, AppLocalizations l10n) {
   if (value == null) {
-    return 'never';
+    return l10n.relativeNever;
   }
 
   final elapsed = DateTime.now().toUtc().difference(value.toUtc());
 
   if (elapsed.isNegative || elapsed.inSeconds < 60) {
-    return 'just now';
+    return l10n.relativeJustNow;
   }
 
   if (elapsed.inMinutes < 60) {
-    return '${elapsed.inMinutes} min ago';
+    return l10n.relativeMinutes(elapsed.inMinutes);
   }
 
   if (elapsed.inHours < 24) {
-    return '${elapsed.inHours} h ago';
+    return l10n.relativeHours(elapsed.inHours);
   }
 
   if (elapsed.inDays < 7) {
-    return '${elapsed.inDays} d ago';
+    return l10n.relativeDays(elapsed.inDays);
   }
 
   return formatDate(value);

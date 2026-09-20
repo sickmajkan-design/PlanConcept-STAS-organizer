@@ -1,3 +1,4 @@
+import '../../../core/l10n/enum_labels.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -423,7 +424,7 @@ class _ProfileCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   Chip(
-                    label: Text(humanizeEnum(user.role)),
+                    label: Text(enumLabel(context.l10n, EnumKind.role, user.role)),
                     visualDensity: VisualDensity.compact,
                     padding: EdgeInsets.zero,
                   ),

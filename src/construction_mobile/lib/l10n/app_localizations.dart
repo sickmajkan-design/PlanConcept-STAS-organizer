@@ -1856,7 +1856,7 @@ abstract class AppLocalizations {
   /// No description provided for @notificationAccommodationAssignedBody.
   ///
   /// In en, this message translates to:
-  /// **'You have been housed at {accommodationName} from {startDate}.'**
+  /// **'You have been housed at {accommodationName} from {startDate}'**
   String notificationAccommodationAssignedBody(
     String accommodationName,
     String startDate,
@@ -1877,7 +1877,7 @@ abstract class AppLocalizations {
   /// No description provided for @notificationAccommodationContractExpiringBody.
   ///
   /// In en, this message translates to:
-  /// **'The contract for {accommodationName} ends on {contractEnd}.'**
+  /// **'The contract for {accommodationName} ends on {contractEnd}'**
   String notificationAccommodationContractExpiringBody(
     String accommodationName,
     String contractEnd,
@@ -2422,6 +2422,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Worker'**
   String get roleWorker;
+
+  /// No description provided for @relativeNever.
+  ///
+  /// In en, this message translates to:
+  /// **'never'**
+  String get relativeNever;
+
+  /// No description provided for @relativeJustNow.
+  ///
+  /// In en, this message translates to:
+  /// **'just now'**
+  String get relativeJustNow;
+
+  /// No description provided for @relativeMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} min ago'**
+  String relativeMinutes(int count);
+
+  /// No description provided for @relativeHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} h ago'**
+  String relativeHours(int count);
+
+  /// No description provided for @relativeDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} d ago'**
+  String relativeDays(int count);
 
   /// No description provided for @employeeStatusActive.
   ///

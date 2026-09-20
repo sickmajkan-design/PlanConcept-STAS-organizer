@@ -575,13 +575,13 @@
     }
   },
   "notificationAccommodationAssignedTitle": "New accommodation",
-  "notificationAccommodationAssignedBody": "You have been housed at {accommodationName} from {startDate}.",
+  "notificationAccommodationAssignedBody": "You have been housed at {accommodationName} from {startDate}",
   "@notificationAccommodationAssignedBody": {
     "placeholders": { "accommodationName": { "type": "String" }, "startDate": { "type": "String" } }
   },
   "notificationTypeAccommodationAssigned": "New accommodation",
   "notificationAccommodationContractExpiringTitle": "Housing contract ending",
-  "notificationAccommodationContractExpiringBody": "The contract for {accommodationName} ends on {contractEnd}.",
+  "notificationAccommodationContractExpiringBody": "The contract for {accommodationName} ends on {contractEnd}",
   "@notificationAccommodationContractExpiringBody": {
     "placeholders": { "accommodationName": { "type": "String" }, "contractEnd": { "type": "String" } }
   },
@@ -760,6 +760,14 @@
   "roleProjectManager": "Project Manager",
   "roleForeman": "Foreman",
   "roleWorker": "Worker",
+  "relativeNever": "never",
+  "relativeJustNow": "just now",
+  "relativeMinutes": "{count} min ago",
+  "@relativeMinutes": { "placeholders": { "count": { "type": "int" } } },
+  "relativeHours": "{count} h ago",
+  "@relativeHours": { "placeholders": { "count": { "type": "int" } } },
+  "relativeDays": "{count} d ago",
+  "@relativeDays": { "placeholders": { "count": { "type": "int" } } },
   "employeeStatusActive": "Active",
   "employeeStatusOnLeave": "On leave",
   "employeeStatusSuspended": "Suspended",

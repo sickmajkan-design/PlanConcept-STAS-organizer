@@ -249,7 +249,7 @@ public static class PushTextResolver
 
                 return (
                     "Novi smještaj",
-                    $"Smješteni ste na adresi {name} od {IsoDate(startDate)}.");
+                    $"Smješteni ste na adresi {name} od {IsoDate(startDate)}");
             }
 
             case NotificationType.AccommodationContractExpiring:
@@ -260,7 +260,7 @@ public static class PushTextResolver
 
                 return (
                     "Ističe ugovor o smještaju",
-                    $"Ugovor za {name} ističe {IsoDate(contractEnd)}.");
+                    $"Ugovor za {name} ističe {IsoDate(contractEnd)}");
             }
 
             case NotificationType.MaterialLowStock:

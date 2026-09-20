@@ -136,7 +136,7 @@ class LocationStatusCard extends ConsumerWidget {
 
     final parts = <String>[
       l10n.locationSharingOnBody,
-      l10n.locationLastSent(formatRelative(state.lastReportedAt)),
+      l10n.locationLastSent(formatRelative(state.lastReportedAt, l10n)),
       // Serbian inflects this by count, so it is a plural message rather than
       // a number glued to a noun.
       if (state.pendingCount > 0) l10n.locationPending(state.pendingCount),

@@ -1,4 +1,5 @@
 import 'package:construction_mobile/core/utils/formatting.dart';
+import 'package:construction_mobile/l10n/app_localizations_en.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -47,23 +48,25 @@ void main() {
     test('describes recent instants', () {
       final now = DateTime.now().toUtc();
 
-      expect(formatRelative(now), 'just now');
+      final l10n = AppLocalizationsEn();
+
+      expect(formatRelative(now, l10n), 'just now');
       expect(
-        formatRelative(now.subtract(const Duration(minutes: 5))),
+        formatRelative(now.subtract(const Duration(minutes: 5)), l10n),
         '5 min ago',
       );
-      expect(formatRelative(now.subtract(const Duration(hours: 3))), '3 h ago');
-      expect(formatRelative(now.subtract(const Duration(days: 2))), '2 d ago');
+      expect(formatRelative(now.subtract(const Duration(hours: 3)), l10n), '3 h ago');
+      expect(formatRelative(now.subtract(const Duration(days: 2)), l10n), '2 d ago');
     });
 
     test('falls back to a date beyond a week', () {
       final old = DateTime.now().toUtc().subtract(const Duration(days: 30));
 
-      expect(formatRelative(old), formatDate(old));
+      expect(formatRelative(old, AppLocalizationsEn()), formatDate(old));
     });
 
     test('handles a never-reported value', () {
-      expect(formatRelative(null), 'never');
+      expect(formatRelative(null, AppLocalizationsEn()), 'never');
     });
   });
 

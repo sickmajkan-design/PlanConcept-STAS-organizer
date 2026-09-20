@@ -1017,7 +1017,7 @@ class AppLocalizationsEn extends AppLocalizations {
     String accommodationName,
     String startDate,
   ) {
-    return 'You have been housed at $accommodationName from $startDate.';
+    return 'You have been housed at $accommodationName from $startDate';
   }
 
   @override
@@ -1032,7 +1032,7 @@ class AppLocalizationsEn extends AppLocalizations {
     String accommodationName,
     String contractEnd,
   ) {
-    return 'The contract for $accommodationName ends on $contractEnd.';
+    return 'The contract for $accommodationName ends on $contractEnd';
   }
 
   @override
@@ -1375,6 +1375,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get roleWorker => 'Worker';
+
+  @override
+  String get relativeNever => 'never';
+
+  @override
+  String get relativeJustNow => 'just now';
+
+  @override
+  String relativeMinutes(int count) {
+    return '$count min ago';
+  }
+
+  @override
+  String relativeHours(int count) {
+    return '$count h ago';
+  }
+
+  @override
+  String relativeDays(int count) {
+    return '$count d ago';
+  }
 
   @override
   String get employeeStatusActive => 'Active';

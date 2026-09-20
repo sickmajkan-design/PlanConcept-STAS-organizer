@@ -187,7 +187,7 @@ class _NotificationCard extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              formatRelative(notification.createdAt),
+                              formatRelative(notification.createdAt, context.l10n),
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
                               ),
