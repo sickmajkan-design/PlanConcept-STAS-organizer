@@ -1002,6 +1002,21 @@ public class CostsController : ApiControllerBase
         return Ok(await Mediator.Send(query, cancellationToken));
     }
 
+    /// <summary>How one housing charge has played out: cost to date, projection, monthly trail, who it was for.</summary>
+    [HttpGet("/api/v{version:apiVersion}/accommodation-rates/{id:guid}/tracking")]
+    [HttpGet("/api/accommodation-rates/{id:guid}/tracking")]
+    [ProducesResponseType(typeof(Construction.Application.Features.Accommodations.Costs.AccommodationChargeTrackingDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<Construction.Application.Features.Accommodations.Costs.AccommodationChargeTrackingDto>> GetAccommodationChargeTracking(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(
+            new Construction.Application.Features.Accommodations.Costs.GetAccommodationChargeTrackingQuery(id),
+            cancellationToken));
+    }
+
     /// <summary>The count and total monthly amount of whatever the accommodation-rates list is currently filtered to.</summary>
     [HttpGet("/api/v{version:apiVersion}/accommodation-rates/summary")]
     [HttpGet("/api/accommodation-rates/summary")]

@@ -517,6 +517,15 @@ export function useAccommodationRatesSummaryQuery(query: AccommodationRateListQu
   });
 }
 
+/** One charge's cost to date, projection, monthly trail and who it was for. */
+export function useAccommodationChargeTrackingQuery(id: string | undefined) {
+  return useQuery({
+    queryKey: [...accommodationRateKeys.all, 'tracking', id],
+    queryFn: () => costsApi.accommodationRates.tracking(id!),
+    enabled: !!id,
+  });
+}
+
 export function useSetAccommodationRate() {
   return useResourceMutation(
     (input: AccommodationRateInput, key: string) =>

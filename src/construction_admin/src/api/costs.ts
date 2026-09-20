@@ -2,6 +2,7 @@ import { request } from './client';
 import { idempotencyHeaders } from './idempotency';
 import { listParams } from './resource';
 import type {
+  AccommodationChargeTracking,
   AccommodationRate,
   AccommodationRateInput,
   AccommodationRateSummary,
@@ -538,6 +539,12 @@ export const costsApi = {
   },
 
   accommodationRates: {
+    tracking: (id: string) =>
+      request<AccommodationChargeTracking>({
+        method: 'GET',
+        url: `/api/v1/accommodation-rates/${id}/tracking`,
+      }),
+
     list: (query: AccommodationRateListQuery) =>
       request<PagedList<AccommodationRate>>({
         method: 'GET',

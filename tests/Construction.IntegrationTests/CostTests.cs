@@ -1800,6 +1800,42 @@ public class CostTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task A_closed_monthly_charge_reports_what_it_cost_and_who_it_was_for()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+        var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var flat = await InScope(scope => TestData.SeedAccommodationAsync(scope));
+        Guid rateId = Guid.Empty;
+
+        await InScope(async scope =>
+        {
+            var rate = new AccommodationRate
+            {
+                AccommodationId = flat.Id, Amount = 3100m, StartDate = Jan1, EndDate = Jan1.AddDays(30)
+            };
+            scope.Db.AccommodationRates.Add(rate);
+            scope.Db.AccommodationStays.Add(new AccommodationStay
+            {
+                AccommodationId = flat.Id, EmployeeId = employee.Id, StartDate = Jan1
+            });
+            await scope.Db.SaveChangesAsync();
+            rateId = rate.Id;
+        });
+
+        var tracking = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Construction.Application.Features.Accommodations.Costs.GetAccommodationChargeTrackingQuery(rateId));
+        });
+
+        Assert.Equal(3_100m, tracking.ChargedToDate);
+        Assert.Equal(3_100m, tracking.ProjectedTotal);
+        Assert.Equal(31, tracking.ElapsedDays);
+        Assert.Single(tracking.Months);
+        Assert.Equal(3_100m, Assert.Single(tracking.ByEmployee).Cost);
+    }
+
+    [Fact]
     public async Task Ending_a_stay_frees_the_person_for_the_next_one()
     {
         var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));

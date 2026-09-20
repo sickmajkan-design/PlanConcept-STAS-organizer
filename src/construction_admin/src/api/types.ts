@@ -1617,6 +1617,38 @@ export interface AccommodationCostSummary {
   byProject: AccommodationProjectCost[];
 }
 
+export interface AccommodationChargeMonth {
+  year: number;
+  month: number;
+  total: number;
+  vacancyCost: number;
+  personDays: number;
+}
+
+/** How one housing charge has played out so far. */
+export interface AccommodationChargeTracking {
+  rateId: string;
+  accommodationId: string;
+  accommodationName: string;
+  kind: AccommodationChargeKind;
+  amount: number;
+  startDate: string;
+  endDate: string | null;
+  asOf: string;
+  notStarted: boolean;
+  elapsedDays: number;
+  totalDays: number | null;
+  chargedToDate: number;
+  /** Null while the charge has no end date. */
+  projectedTotal: number | null;
+  vacancyCost: number;
+  vacantDays: number;
+  personDays: number;
+  months: AccommodationChargeMonth[];
+  byEmployee: { employeeId: string; employeeName: string; personDays: number; cost: number }[];
+  byProject: { projectId: string | null; projectName: string | null; cost: number }[];
+}
+
 export interface AccommodationRateSummary {
   count: number;
   totalMonthlyAmount: number;
