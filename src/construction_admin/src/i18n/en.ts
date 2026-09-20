@@ -1343,7 +1343,6 @@ export const en = {
   'charge.details': 'Details',
   'charge.recordedBy': 'Recorded by',
   'charge.recordedOn': 'Recorded on',
-  'charge.documents': 'Documents',
   'accommodationCosts.monthlyTotalLabel': 'Monthly rent in force',
   'accommodationCosts.recorded': 'Recorded charges',
   'accommodationCosts.places': 'Places with charges',

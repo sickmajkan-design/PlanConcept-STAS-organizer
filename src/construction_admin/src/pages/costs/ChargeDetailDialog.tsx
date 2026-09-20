@@ -47,7 +47,7 @@ function Tile({ label, value, hint, tone }: { label: string; value: string; hint
   return (
     <Box
       sx={(theme) => ({
-        flex: '1 1 160px',
+        flex: '1 1 140px',
         minWidth: 0,
         p: 1.75,
         borderRadius: 2,
@@ -366,8 +366,7 @@ export function ChargeDetailDialog({
                 </Box>
 
                 <Box>
-                  <SectionTitle>{t('charge.documents')}</SectionTitle>
-                  <Box sx={{ mt: 1 }}>
+                  <Box>
                     <AttachmentList
                       ownerType="AccommodationRate"
                       ownerId={rate.id}

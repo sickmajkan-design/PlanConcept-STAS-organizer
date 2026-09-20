@@ -1374,7 +1374,6 @@ export const sr: Record<MessageKey, Message> = {
   'charge.details': 'Detalji',
   'charge.recordedBy': 'Unio/la',
   'charge.recordedOn': 'Uneseno',
-  'charge.documents': 'Dokumenti',
   'accommodationCosts.monthlyTotalLabel': 'Važeća mjesečna kirija',
   'accommodationCosts.recorded': 'Evidentirane naknade',
   'accommodationCosts.places': 'Smještaja s troškom',
