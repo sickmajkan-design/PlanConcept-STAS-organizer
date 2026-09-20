@@ -36,7 +36,7 @@ import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
-import { formatDate, formatMoney } from '../../utils/formatting';
+import { dateOnlyOffset, formatDate, formatMoney } from '../../utils/formatting';
 import { ChargeDialog, KIND_UNIT } from '../accommodations/AccommodationDetailPage';
 
 // A firm houses a few dozen places at most: one board, no page numbers.
@@ -142,7 +142,7 @@ export function AccommodationCostsPage() {
                     <TableCell>
                       {row.kind === 'OneOff' ? (
                         <Chip size="small" variant="outlined" label={t('accommodations.once')} />
-                      ) : row.endDate ? (
+                      ) : row.endDate && row.endDate < dateOnlyOffset(0) ? (
                         <Chip size="small" variant="outlined" label={t('rates.ended')} />
                       ) : (
                         <Chip size="small" color="success" variant="outlined" label={t('rates.active')} />

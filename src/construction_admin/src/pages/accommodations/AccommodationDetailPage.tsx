@@ -749,7 +749,7 @@ function ChargesCard({ accommodationId }: { accommodationId: string }) {
                     <TableCell>
                       {row.kind === 'OneOff' ? (
                         <Chip size="small" variant="outlined" label={t('accommodations.once')} />
-                      ) : row.endDate ? (
+                      ) : row.endDate && row.endDate < dateOnlyOffset(0) ? (
                         <Chip size="small" variant="outlined" label={t('rates.ended')} />
                       ) : (
                         <Chip size="small" color="success" variant="outlined" label={t('rates.active')} />
