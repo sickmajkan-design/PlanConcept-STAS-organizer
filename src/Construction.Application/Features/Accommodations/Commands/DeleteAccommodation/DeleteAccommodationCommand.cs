@@ -24,6 +24,14 @@ public class DeleteAccommodationCommandHandler : IRequestHandler<DeleteAccommoda
             .FirstOrDefaultAsync(a => a.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(Accommodation), request.Id);
 
+        // Stays are not occupancy once the place is gone, but the database's
+        // "one place at a time" rule would still count them and block the same
+        // person from being housed anywhere else. The stays are not kept for
+        // history; the rate history and the deletion itself are.
+        await _context.AccommodationStays
+            .Where(s => s.AccommodationId == request.Id)
+            .ExecuteDeleteAsync(cancellationToken);
+
         _context.Accommodations.Remove(accommodation);
 
         await _context.SaveChangesAsync(cancellationToken);

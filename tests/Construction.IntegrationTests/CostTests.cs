@@ -1770,6 +1770,36 @@ public class CostTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task Deleting_an_accommodation_frees_the_people_who_lived_in_it()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+        var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var first = await InScope(scope => TestData.SeedAccommodationAsync(scope));
+        var second = await InScope(scope => TestData.SeedAccommodationAsync(scope));
+
+        Task AddStay(Guid accommodationId) => InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Construction.Application.Features.Accommodations.Stays.AddAccommodationStayCommand
+            {
+                AccommodationId = accommodationId,
+                EmployeeId = employee.Id,
+                StartDate = Jan1
+            });
+        });
+
+        await AddStay(first.Id);
+
+        await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Construction.Application.Features.Accommodations.Commands.DeleteAccommodation.DeleteAccommodationCommand(first.Id));
+        });
+
+        await AddStay(second.Id);
+    }
+
+    [Fact]
     public async Task Ending_a_stay_frees_the_person_for_the_next_one()
     {
         var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));

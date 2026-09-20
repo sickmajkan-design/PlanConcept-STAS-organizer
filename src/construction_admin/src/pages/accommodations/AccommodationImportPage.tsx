@@ -228,7 +228,7 @@ export function AccommodationImportPage() {
                     <TableRow>
                       <TableCell>#</TableCell>
                       <TableCell>{t('accommodations.address')}</TableCell>
-                      <TableCell align="right">{t('accommodations.currentMonthlyAmount')}</TableCell>
+                      <TableCell align="right">{t('accommodationImport.rent')}</TableCell>
                       <TableCell>{t('employees.title')}</TableCell>
                       <TableCell>{t('accommodations.startDate')}</TableCell>
                       <TableCell>{t('accommodationImport.creates')}</TableCell>

@@ -745,6 +745,7 @@ export const en = {
   'accommodationImport.problemCount': { one: '{count} row with a problem', other: '{count} rows with a problem' },
   'accommodationImport.import': 'Import',
   'accommodationImport.result': 'Result',
+  'accommodationImport.rent': 'Rent',
   'accommodationImport.creates': 'Creates',
   'accommodationImport.createsAccommodation': 'accommodation',
   'accommodationImport.createsStay': 'stay',

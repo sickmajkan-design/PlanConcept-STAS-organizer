@@ -773,6 +773,7 @@ export const sr: Record<MessageKey, Message> = {
   'accommodationImport.problemCount': { one: '{count} red sa problemom', few: '{count} reda sa problemom', other: '{count} redova sa problemom' },
   'accommodationImport.import': 'Uvezi',
   'accommodationImport.result': 'Rezultat',
+  'accommodationImport.rent': 'Kirija',
   'accommodationImport.creates': 'Kreira',
   'accommodationImport.createsAccommodation': 'smještaj',
   'accommodationImport.createsStay': 'boravak',
