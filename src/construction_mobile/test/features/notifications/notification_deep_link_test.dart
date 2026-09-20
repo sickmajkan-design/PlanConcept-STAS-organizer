@@ -86,9 +86,7 @@ void main() {
       );
     });
 
-    test('has no link for vehicle and tool assignments', () {
-      // Those modules have no mobile screen yet, so the notification is
-      // informational only.
+    test('links a vehicle assignment to the vehicle, for those who can open the directory', () {
       expect(
         deepLinkFor(
           _notification(
@@ -97,8 +95,23 @@ void main() {
           ),
           canViewDirectory: true,
         ),
-        isNull,
+        '/vehicles/019fad8c-3333-7000-8000-000000000004',
       );
+    });
+
+    test('takes a worker to their own screens without needing the directory', () {
+      String? link(String type) => deepLinkFor(
+            _notification(type: type, dataJson: '{"x":"y"}'),
+            canViewDirectory: false,
+          );
+
+      expect(link('AccommodationAssigned'), '/my-housing');
+      expect(link('TimeEntryRejected'), '/time-entries');
+      expect(link('AbsenceDecided'), '/absences');
+      expect(link('WeeklyReportDue'), '/weekly-reports');
+      expect(link('BulletinPosted'), '/bulletin');
+      expect(link('TaskAssigned'), '/work-items');
+      expect(link('VehicleAssigned'), isNull);
     });
   });
 }
