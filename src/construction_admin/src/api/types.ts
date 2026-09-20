@@ -1879,12 +1879,36 @@ export interface ProjectCostRow {
   total: number;
 }
 
+export const labourBases = [
+  'Regular',
+  'Weekend',
+  'Holiday',
+  'Overtime',
+  'Travel',
+  'DailyRate',
+  'NoRate',
+] as const;
+
+export type LabourBasis = (typeof labourBases)[number];
+
+export interface LabourDay {
+  /** `YYYY-MM-DD`. */
+  date: string;
+  minutes: number;
+  cost: number;
+  basis: LabourBasis;
+  /** The hourly (or daily) rate used; null when no rate covered the day. */
+  rate: number | null;
+}
+
 export interface LabourLine {
   employeeId: string;
   employeeName: string;
   minutes: number;
   cost: number;
   unpricedMinutes: number;
+  /** Day by day, newest first. */
+  days: LabourDay[];
 }
 
 export interface MaterialLine {
@@ -1894,8 +1918,9 @@ export interface MaterialLine {
   materialName: string;
   unit: string;
   quantity: number;
-  unitPrice: number;
-  total: number;
+  /** Null when the material had no price at issue: it is not in the total. */
+  unitPrice: number | null;
+  total: number | null;
   note: string | null;
 }
 
@@ -1909,9 +1934,25 @@ export interface GeneralExpenseLine {
   note: string | null;
 }
 
+export interface AccommodationPersonLine {
+  employeeId: string;
+  employeeName: string;
+  personDays: number;
+  cost: number;
+}
+
 export interface AccommodationLine {
   accommodationId: string;
   accommodationName: string;
+  cost: number;
+  people: AccommodationPersonLine[];
+}
+
+/** A vehicle or tool assigned to the site right now, with its cost for the period. */
+export interface AssignedAssetLine {
+  kind: 'vehicle' | 'tool';
+  id: string;
+  name: string;
   cost: number;
 }
 
@@ -1939,6 +1980,7 @@ export interface ProjectCostBreakdown {
   generalExpenses: GeneralExpenseLine[];
   accommodation: AccommodationLine[];
   manualPay: ManualPayLine[];
+  assignedAssets: AssignedAssetLine[];
 }
 
 export interface ProjectCostReport {

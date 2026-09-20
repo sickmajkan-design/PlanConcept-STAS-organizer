@@ -44,6 +44,7 @@ import {
 } from '../../features/costs/useCosts';
 import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
+import { readLedgerDeepLinkPeriod, useOpenEntryFromLink } from '../../hooks/useLedgerDeepLink';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { useSavedViews } from '../../hooks/useSavedViews';
@@ -79,7 +80,7 @@ export function GeneralExpensesPage() {
     savedViews.saveView(name, { sortModel: list.sortModel, category });
   };
 
-  const [period, setPeriod] = useState<LedgerPeriod>(ALL_TIME);
+  const [period, setPeriod] = useState<LedgerPeriod>(() => readLedgerDeepLinkPeriod() ?? ALL_TIME);
   const window = useLedgerWindow();
 
   const query: GeneralExpenseListQuery = useMemo(
@@ -96,6 +97,7 @@ export function GeneralExpensesPage() {
   );
 
   const { data, isLoading, isError, error, refetch } = useGeneralExpensesQuery(query);
+  useOpenEntryFromLink(data?.items, (item) => setEditing(item));
   const { data: summary } = useGeneralExpensesSummaryQuery(query);
   const remove = useDeleteWithConfirm<GeneralExpense>(useDeleteGeneralExpense());
 

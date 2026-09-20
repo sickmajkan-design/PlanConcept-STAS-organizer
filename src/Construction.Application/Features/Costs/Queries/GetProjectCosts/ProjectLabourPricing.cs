@@ -10,7 +10,22 @@ public sealed record PricedLabourEntry(
     Guid ProjectId,
     int Minutes,
     decimal Cost,
-    int UnpricedMinutes);
+    int UnpricedMinutes,
+    DateOnly Day,
+    LabourBasis Basis,
+    decimal? Rate);
+
+/// <summary>Which price a piece of labour was priced at, so a breakdown can say why.</summary>
+public enum LabourBasis
+{
+    Regular = 1,
+    Weekend = 2,
+    Holiday = 3,
+    Overtime = 4,
+    Travel = 5,
+    DailyRate = 6,
+    NoRate = 7
+}
 
 /// <summary>
 /// Approved hours per site, priced by the rate in force on the day — weekend
@@ -105,24 +120,35 @@ public static class ProjectLabourPricing
         // the weekend/holiday premium.
         var hourly = priced
             .Where(t => t.Rate is null || t.Rate.RateType == RateType.Hourly)
-            .Select(t => new PricedLabourEntry(
-                t.EmployeeId,
-                t.ProjectId,
-                t.Minutes,
-                t.Rate is null
-                    ? 0m
-                    : (t.WorkType == WorkType.Overtime
-                        ? t.Rate.OvertimeHourlyRate ?? t.Rate.HourlyRate
+            .Select(t =>
+            {
+                if (t.Rate is null)
+                {
+                    return new PricedLabourEntry(
+                        t.EmployeeId, t.ProjectId, t.Minutes, 0m, t.Minutes, t.Day, LabourBasis.NoRate, null);
+                }
+
+                var (rate, basis) =
+                    t.WorkType == WorkType.Overtime
+                        ? (t.Rate.OvertimeHourlyRate ?? t.Rate.HourlyRate, LabourBasis.Overtime)
                     : t.WorkType == WorkType.Travel
-                        ? t.Rate.TravelHourlyRate ?? t.Rate.HourlyRate
+                        ? (t.Rate.TravelHourlyRate ?? t.Rate.HourlyRate, LabourBasis.Travel)
                     : t.ProjectCountryCode != null && holidays.Contains((t.ProjectCountryCode, t.Day))
-                        ? t.Rate.HolidayHourlyRate ?? t.Rate.HourlyRate
+                        ? (t.Rate.HolidayHourlyRate ?? t.Rate.HourlyRate, LabourBasis.Holiday)
                     : t.Day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday
-                        ? t.Rate.WeekendHourlyRate ?? t.Rate.HourlyRate
-                    : t.Rate.HourlyRate) is { } rate
-                        ? rate * t.Minutes / 60m
-                        : 0m,
-                t.Rate is null ? t.Minutes : 0));
+                        ? (t.Rate.WeekendHourlyRate ?? t.Rate.HourlyRate, LabourBasis.Weekend)
+                    : (t.Rate.HourlyRate, LabourBasis.Regular);
+
+                return new PricedLabourEntry(
+                    t.EmployeeId,
+                    t.ProjectId,
+                    t.Minutes,
+                    rate is { } hourlyRate ? hourlyRate * t.Minutes / 60m : 0m,
+                    0,
+                    t.Day,
+                    basis,
+                    rate);
+            });
 
         var daily = priced
             .Where(t => t.Rate is not null && t.Rate.RateType == RateType.Daily)
@@ -132,7 +158,10 @@ public static class ProjectLabourPricing
                 g.OrderByDescending(x => x.Minutes).First().ProjectId,
                 g.Sum(x => x.Minutes),
                 g.First().Rate!.DailyRate ?? 0m,
-                0));
+                0,
+                g.Key.Day,
+                LabourBasis.DailyRate,
+                g.First().Rate!.DailyRate));
 
         return hourly.Concat(daily).ToList();
     }

@@ -30,6 +30,9 @@ import { paths } from '../../routes/paths';
 import { formatDate, formatMoney, formatQuantity } from '../../utils/formatting';
 import { splitHours, type Period } from './monthWindow';
 
+/** The ledger page that holds an entry, opened on it: the period is narrowed to its day so it is on the first page. */
+const entryLink = (page: string, id: string, date: string) => `${page}?open=${id}&from=${date}&to=${date}`;
+
 const hoursText = (minutes: number) => {
   const { hours, minutes: rest } = splitHours(minutes);
   return `${hours}:${String(rest).padStart(2, '0')} h`;
@@ -57,6 +60,7 @@ export function ProjectCostDialog({
   const data = query.data;
   const money = (value: number) => formatMoney(value, locale);
   const total = data?.summary.total ?? 0;
+  const unpricedMaterials = data?.materials.filter((m) => m.total === null).length ?? 0;
   const share = (value: number) => (total > 0 ? (value / total) * 100 : 0);
 
   const segments = data
@@ -176,6 +180,35 @@ export function ProjectCostDialog({
                       }
                       amount={money(line.cost)}
                       meta={hoursText(line.minutes)}
+                      details={
+                        <Box sx={{ py: 0.5 }}>
+                          <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
+                            {t('costs.dayDetails')}
+                          </Typography>
+                          {line.days.map((day) => (
+                            <Stack
+                              key={`${day.date}-${day.basis}-${day.rate}`}
+                              direction="row"
+                              spacing={1.5}
+                              sx={{ py: 0.5, justifyContent: 'space-between', alignItems: 'baseline' }}
+                            >
+                              <Typography variant="body2">
+                                {formatDate(day.date)}
+                                <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                                  {enumLabel('labourBasis', day.basis)}
+                                  {day.rate !== null && day.basis !== 'DailyRate' ? ` · ${money(day.rate)}/h` : ''}
+                                </Typography>
+                              </Typography>
+                              <Typography variant="body2" sx={{ fontWeight: 600, ...numeric }}>
+                                {money(day.cost)}
+                                <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                                  {hoursText(day.minutes)}
+                                </Typography>
+                              </Typography>
+                            </Stack>
+                          ))}
+                        </Box>
+                      }
                     />
                   ))
                 )}
@@ -189,6 +222,11 @@ export function ProjectCostDialog({
               share={share(data.summary.materialCost)}
               note={t('costs.materialNote')}
             >
+              {unpricedMaterials > 0 && (
+                <Alert severity="warning" sx={{ my: 1 }}>
+                  {t('costs.unpricedMaterialWarning', { count: unpricedMaterials })}
+                </Alert>
+              )}
               {data.materials.length === 0 ? (
                 <EmptyLine>{t('costs.noEntries')}</EmptyLine>
               ) : (
@@ -197,8 +235,14 @@ export function ProjectCostDialog({
                     key={line.id}
                     primary={line.materialName}
                     secondary={[formatDate(line.occurredOn), line.note].filter(Boolean).join(' · ')}
-                    amount={money(line.total)}
-                    meta={`${formatQuantity(line.quantity, locale)} ${line.unit} × ${money(line.unitPrice)}`}
+                    amount={line.total === null ? t('costs.unpricedMaterial') : money(line.total)}
+                    meta={
+                      line.unitPrice === null
+                        ? `${formatQuantity(line.quantity, locale)} ${line.unit}`
+                        : `${formatQuantity(line.quantity, locale)} ${line.unit} × ${money(line.unitPrice)}`
+                    }
+                    muted={line.total === null}
+                    to={entryLink(paths.stockMovements, line.id, line.occurredOn)}
                   />
                 ))
               )}
@@ -221,6 +265,7 @@ export function ProjectCostDialog({
                       .filter(Boolean)
                       .join(' · ')}
                     amount={money(line.amount)}
+                    to={entryLink(paths.generalExpenses, line.id, line.occurredOn)}
                   />
                 ))
               )}
@@ -239,18 +284,40 @@ export function ProjectCostDialog({
                 data.accommodation.map((line) => (
                   <CostLine
                     key={line.accommodationId}
-                    primary={
-                      <Link
-                        component={RouterLink}
-                        to={paths.accommodationDetail(line.accommodationId)}
-                        underline="hover"
-                        color="inherit"
-                        onClick={onClose}
-                      >
-                        {line.accommodationName}
-                      </Link>
-                    }
+                    primary={line.accommodationName}
                     amount={money(line.cost)}
+                    meta={t('costs.personDaysShort', { days: line.people.reduce((sum, p) => sum + p.personDays, 0) })}
+                    details={
+                      <Box sx={{ py: 0.5 }}>
+                        {line.people.map((person) => (
+                          <Stack
+                            key={person.employeeId}
+                            direction="row"
+                            spacing={1.5}
+                            sx={{ py: 0.5, justifyContent: 'space-between', alignItems: 'baseline' }}
+                          >
+                            <Typography variant="body2">
+                              {person.employeeName}
+                              <Typography component="span" variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                                {t('costs.personDaysShort', { days: person.personDays })}
+                              </Typography>
+                            </Typography>
+                            <Typography variant="body2" sx={{ fontWeight: 600, ...numeric }}>
+                              {money(person.cost)}
+                            </Typography>
+                          </Stack>
+                        ))}
+                        <Link
+                          component={RouterLink}
+                          to={paths.accommodationDetail(line.accommodationId)}
+                          underline="hover"
+                          variant="caption"
+                          onClick={onClose}
+                        >
+                          {t('costs.openAccommodation')}
+                        </Link>
+                      </Box>
+                    }
                   />
                 ))
               )}
@@ -278,9 +345,24 @@ export function ProjectCostDialog({
                         .join(' · ')}
                       amount={money(line.amount)}
                       meta={line.hoursWorked === null ? undefined : `${line.hoursWorked} h`}
+                      to={entryLink(paths.financeEntries, line.id, line.occurredOn)}
                     />
                   ))
                 )}
+              </CostSection>
+            )}
+
+            {data.assignedAssets.length > 0 && (
+              <CostSection title={t('costs.assignedAssets')} note={t('costs.assignedAssetsNote')}>
+                {data.assignedAssets.map((asset) => (
+                  <CostLine
+                    key={`${asset.kind}-${asset.id}`}
+                    primary={asset.name}
+                    secondary={asset.kind === 'vehicle' ? t('costs.vehicle') : t('costs.tool')}
+                    amount={money(asset.cost)}
+                    to={asset.kind === 'vehicle' ? paths.vehicleDetail(asset.id) : paths.toolDetail(asset.id)}
+                  />
+                ))}
               </CostSection>
             )}
           </Stack>

@@ -24,6 +24,21 @@ public class ProjectCostShare
     public decimal Cost { get; init; }
 }
 
+/// <summary>One person's share of a place's cost while charged to one project.</summary>
+public class ProjectEmployeeShare
+{
+    /// <summary>Null for stays not charged to any project.</summary>
+    public Guid? ProjectId { get; init; }
+
+    public Guid EmployeeId { get; init; }
+
+    public string EmployeeName { get; init; } = null!;
+
+    public int PersonDays { get; init; }
+
+    public decimal Cost { get; init; }
+}
+
 public class AccommodationCostSummaryDto
 {
     public DateOnly From { get; init; }
@@ -51,6 +66,9 @@ public class AccommodationCostSummaryDto
     public IReadOnlyList<EmployeeCostShare> ByEmployee { get; init; } = [];
 
     public IReadOnlyList<ProjectCostShare> ByProject { get; init; } = [];
+
+    /// <summary>Who the project shares were made of.</summary>
+    public IReadOnlyList<ProjectEmployeeShare> ByProjectEmployee { get; init; } = [];
 }
 
 /// <summary>
@@ -89,6 +107,8 @@ public static class AccommodationCostCalculator
         var employeeDays = new Dictionary<Guid, int>();
         // Guid.Empty stands for "not charged to any project": a dictionary cannot key on null.
         var projectCost = new Dictionary<Guid, decimal>();
+        var projectEmployeeCost = new Dictionary<(Guid, Guid), decimal>();
+        var projectEmployeeDays = new Dictionary<(Guid, Guid), int>();
 
         var days = to.DayNumber - from.DayNumber + 1;
 
@@ -128,6 +148,9 @@ public static class AccommodationCostCalculator
                 employeeDays[stay.EmployeeId] = employeeDays.GetValueOrDefault(stay.EmployeeId) + 1;
                 var projectKey = stay.ProjectId ?? Guid.Empty;
                 projectCost[projectKey] = projectCost.GetValueOrDefault(projectKey) + eachShare;
+                var pairKey = (projectKey, stay.EmployeeId);
+                projectEmployeeCost[pairKey] = projectEmployeeCost.GetValueOrDefault(pairKey) + eachShare;
+                projectEmployeeDays[pairKey] = projectEmployeeDays.GetValueOrDefault(pairKey) + 1;
             }
         }
 
@@ -149,6 +172,17 @@ public static class AccommodationCostCalculator
                     EmployeeId = e.Key,
                     EmployeeName = employeeNames.GetValueOrDefault(e.Key, "?"),
                     PersonDays = employeeDays[e.Key],
+                    Cost = Math.Round(e.Value, 2)
+                })
+                .OrderByDescending(e => e.Cost)
+                .ToList(),
+            ByProjectEmployee = projectEmployeeCost
+                .Select(e => new ProjectEmployeeShare
+                {
+                    ProjectId = e.Key.Item1 == Guid.Empty ? null : e.Key.Item1,
+                    EmployeeId = e.Key.Item2,
+                    EmployeeName = employeeNames.GetValueOrDefault(e.Key.Item2, "?"),
+                    PersonDays = projectEmployeeDays[e.Key],
                     Cost = Math.Round(e.Value, 2)
                 })
                 .OrderByDescending(e => e.Cost)

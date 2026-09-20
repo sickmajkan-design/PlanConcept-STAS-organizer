@@ -53,6 +53,7 @@ export type EnumKind =
   | 'accommodationChargeKind'
   | 'materialImportRowStatus'
   | 'accommodationImportRowStatus'
+  | 'labourBasis'
   | 'organizationRank';
 
 export function useEnumLabel() {

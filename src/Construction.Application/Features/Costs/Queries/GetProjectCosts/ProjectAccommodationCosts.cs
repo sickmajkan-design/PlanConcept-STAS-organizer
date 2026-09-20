@@ -5,11 +5,14 @@ using Microsoft.EntityFrameworkCore;
 namespace Construction.Application.Features.Costs.Queries.GetProjectCosts;
 
 /// <summary>What one site paid towards one accommodation over a period.</summary>
+public sealed record ProjectAccommodationPerson(Guid EmployeeId, string EmployeeName, int PersonDays, decimal Cost);
+
 public sealed record ProjectAccommodationShare(
     Guid ProjectId,
     Guid AccommodationId,
     string AccommodationName,
-    decimal Cost);
+    decimal Cost,
+    IReadOnlyList<ProjectAccommodationPerson> People);
 
 /// <summary>
 /// What housing cost each site over the period: the share of every
@@ -69,6 +72,13 @@ public static class ProjectAccommodationCosts
                 a => string.IsNullOrWhiteSpace(a.Name) ? a.Address : a.Name!,
                 cancellationToken);
 
+        var employeeIds = allStays.Select(s => s.EmployeeId).Distinct().ToList();
+
+        var employeeNames = await context.Employees
+            .AsNoTracking()
+            .Where(e => employeeIds.Contains(e.Id))
+            .ToDictionaryAsync(e => e.Id, e => e.FirstName + " " + e.LastName, cancellationToken);
+
         var none = new Dictionary<Guid, string>();
 
         foreach (var accommodationId in accommodationIds)
@@ -78,7 +88,7 @@ public static class ProjectAccommodationCosts
                 allStays.Where(s => s.AccommodationId == accommodationId).ToList(),
                 from,
                 to,
-                none,
+                employeeNames,
                 none);
 
             foreach (var share in summary.ByProject)
@@ -89,11 +99,17 @@ public static class ProjectAccommodationCosts
                     continue;
                 }
 
+                var people = summary.ByProjectEmployee
+                    .Where(e => e.ProjectId == shareProject)
+                    .Select(e => new ProjectAccommodationPerson(e.EmployeeId, e.EmployeeName, e.PersonDays, e.Cost))
+                    .ToList();
+
                 shares.Add(new ProjectAccommodationShare(
                     shareProject,
                     accommodationId,
                     names.GetValueOrDefault(accommodationId, "?"),
-                    share.Cost));
+                    share.Cost,
+                    people));
             }
         }
 

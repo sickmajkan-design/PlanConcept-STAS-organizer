@@ -53,6 +53,7 @@ import {
 } from '../../features/costs/useCosts';
 import { useAllMaterialsQuery } from '../../features/materials/useMaterials';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
+import { readLedgerDeepLinkPeriod, useOpenEntryFromLink } from '../../hooks/useLedgerDeepLink';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { useSavedViews } from '../../hooks/useSavedViews';
@@ -89,7 +90,7 @@ export function StockMovementsPage() {
     savedViews.saveView(name, { sortModel: list.sortModel, kind });
   };
 
-  const [period, setPeriod] = useState<LedgerPeriod>(ALL_TIME);
+  const [period, setPeriod] = useState<LedgerPeriod>(() => readLedgerDeepLinkPeriod() ?? ALL_TIME);
   const window = useLedgerWindow();
 
   const query: MaterialMovementListQuery = useMemo(
@@ -108,6 +109,7 @@ export function StockMovementsPage() {
   );
 
   const { data, isLoading, isError, error, refetch } = useMaterialMovementsQuery(query);
+  useOpenEntryFromLink(data?.items, (item) => setEditing(item));
   const { data: summary } = useMaterialMovementsSummaryQuery(query);
   const remove = useDeleteWithConfirm<MaterialMovement>(useDeleteMaterialMovement());
 

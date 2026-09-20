@@ -450,6 +450,11 @@ public class CostTests : IntegrationTestBase
         Assert.Equal(employee.Id, person.EmployeeId);
         Assert.Equal(breakdown.Summary.LabourCost, breakdown.Labour.Sum(l => l.Cost));
         Assert.Equal(6_400m, person.Cost);
+        var day = Assert.Single(person.Days);
+        Assert.Equal(March.AddDays(3), day.Date);
+        Assert.Equal(Construction.Application.Features.Costs.Queries.GetProjectCosts.LabourBasis.Regular, day.Basis);
+        Assert.Equal(800m, day.Rate);
+        Assert.Equal(person.Cost, day.Cost);
         Assert.Equal(125m, Assert.Single(breakdown.GeneralExpenses).Amount);
         Assert.Equal(breakdown.Summary.GeneralExpenseCost, breakdown.GeneralExpenses.Sum(e => e.Amount));
         Assert.Equal(6_525m, breakdown.Summary.Total);

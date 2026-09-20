@@ -1,5 +1,7 @@
+import { ChevronRightOutlined, ExpandMoreOutlined } from '@mui/icons-material';
 import { Box, Stack, Typography, alpha, useTheme } from '@mui/material';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 /** Money and quantities line up in columns when the digits share a width. */
 export const numeric = { fontVariantNumeric: 'tabular-nums' } as const;
@@ -212,58 +214,111 @@ export function CostSection({
   );
 }
 
-/** One itemised cost: what it is, the detail underneath, the amount on the right. */
+/**
+ * One itemised cost: what it is, the detail underneath, the amount on the right.
+ * A line can open the entry it came from (`to`), or unfold the figures it is
+ * made of (`details`) — never both.
+ */
 export function CostLine({
   primary,
   secondary,
   amount,
   meta,
-  onClick,
+  to,
+  details,
+  muted,
 }: {
   primary: ReactNode;
   secondary?: ReactNode;
   amount: string;
   /** A small right-aligned line under the amount (quantity × price, hours). */
   meta?: ReactNode;
-  onClick?: () => void;
+  /** Where clicking the line goes: the entry it came from. */
+  to?: string;
+  /** What the line unfolds into when clicked. */
+  details?: ReactNode;
+  muted?: boolean;
 }) {
+  const [open, setOpen] = useState(false);
+  const navigate = useNavigate();
+  const interactive = !!to || !!details;
+
+  const activate = () => {
+    if (to) navigate(to);
+    else if (details) setOpen((value) => !value);
+  };
+
   return (
-    <Stack
-      direction="row"
-      spacing={2}
-      onClick={onClick}
-      sx={{
-        py: 1,
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderBottom: 1,
-        borderColor: 'divider',
-        '&:last-child': { borderBottom: 0 },
-        cursor: onClick ? 'pointer' : 'default',
-        '&:hover': onClick ? { bgcolor: 'action.hover' } : undefined,
-      }}
-    >
-      <Box sx={{ minWidth: 0 }}>
-        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-          {primary}
-        </Typography>
-        {secondary && (
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-            {secondary}
+    <Box sx={{ borderBottom: 1, borderColor: 'divider', '&:last-child': { borderBottom: 0 }, opacity: muted ? 0.65 : 1 }}>
+      <Stack
+        direction="row"
+        spacing={1.5}
+        role={interactive ? 'button' : undefined}
+        tabIndex={interactive ? 0 : undefined}
+        aria-expanded={details ? open : undefined}
+        onClick={interactive ? activate : undefined}
+        onKeyDown={
+          interactive
+            ? (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  activate();
+                }
+              }
+            : undefined
+        }
+        sx={{
+          py: 1,
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          cursor: interactive ? 'pointer' : 'default',
+          '&:hover, &:focus-visible': interactive ? { bgcolor: 'action.hover', outline: 'none' } : undefined,
+        }}
+      >
+        <Box sx={{ minWidth: 0 }}>
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+            {primary}
           </Typography>
-        )}
-      </Box>
-      <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
-        <Typography variant="body2" sx={{ fontWeight: 700, ...numeric }}>
-          {amount}
-        </Typography>
-        {meta && (
-          <Typography variant="caption" color="text.secondary" sx={numeric}>
-            {meta}
-          </Typography>
-        )}
-      </Box>
-    </Stack>
+          {secondary && (
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+              {secondary}
+            </Typography>
+          )}
+        </Box>
+        <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', flexShrink: 0 }}>
+          <Box sx={{ textAlign: 'right' }}>
+            <Typography variant="body2" sx={{ fontWeight: 700, ...numeric }}>
+              {amount}
+            </Typography>
+            {meta && (
+              <Typography variant="caption" color="text.secondary" sx={numeric}>
+                {meta}
+              </Typography>
+            )}
+          </Box>
+          {to && <ChevronRightOutlined fontSize="small" sx={{ color: 'text.disabled' }} />}
+          {details && (
+            <ExpandMoreOutlined
+              fontSize="small"
+              sx={{ color: 'text.disabled', transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 120ms' }}
+            />
+          )}
+        </Stack>
+      </Stack>
+      {details && open && (
+        <Box
+          sx={(theme) => ({
+            mb: 1,
+            ml: 1,
+            pl: 1.5,
+            borderLeft: 2,
+            borderColor: alpha(theme.palette.text.primary, 0.12),
+          })}
+        >
+          {details}
+        </Box>
+      )}
+    </Box>
   );
 }
 

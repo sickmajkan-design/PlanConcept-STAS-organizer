@@ -1,6 +1,8 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Costs.Models;
+using Construction.Application.Features.Costs.Queries.GetToolCosts;
+using Construction.Application.Features.Costs.Queries.GetVehicleCosts;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
 using FluentValidation;
@@ -8,6 +10,20 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Construction.Application.Features.Costs.Queries.GetProjectCosts;
+
+public class LabourDayDto
+{
+    public DateOnly Date { get; init; }
+
+    public int Minutes { get; init; }
+
+    public decimal Cost { get; init; }
+
+    public LabourBasis Basis { get; init; }
+
+    /// <summary>The hourly (or daily) rate used; null when no rate covered the day.</summary>
+    public decimal? Rate { get; init; }
+}
 
 public class LabourLineDto
 {
@@ -21,6 +37,9 @@ public class LabourLineDto
 
     /// <summary>Hours no rate covered — reported rather than treated as free.</summary>
     public int UnpricedMinutes { get; init; }
+
+    /// <summary>Day by day, newest first, so it is clear which rate priced which day.</summary>
+    public IReadOnlyList<LabourDayDto> Days { get; init; } = [];
 }
 
 public class MaterialLineDto
@@ -35,9 +54,10 @@ public class MaterialLineDto
 
     public decimal Quantity { get; init; }
 
-    public decimal UnitPrice { get; init; }
+    /// <summary>Null when the material had no price at issue: it is not in the total.</summary>
+    public decimal? UnitPrice { get; init; }
 
-    public decimal Total { get; init; }
+    public decimal? Total { get; init; }
 
     public string? Note { get; init; }
 }
@@ -64,6 +84,32 @@ public class AccommodationLineDto
     public Guid AccommodationId { get; init; }
 
     public string AccommodationName { get; init; } = null!;
+
+    public decimal Cost { get; init; }
+
+    public IReadOnlyList<AccommodationPersonLineDto> People { get; init; } = [];
+}
+
+public class AccommodationPersonLineDto
+{
+    public Guid EmployeeId { get; init; }
+
+    public string EmployeeName { get; init; } = null!;
+
+    public int PersonDays { get; init; }
+
+    public decimal Cost { get; init; }
+}
+
+/// <summary>A vehicle or tool currently assigned to the site, with what it cost in the period.</summary>
+public class AssignedAssetLineDto
+{
+    /// <summary>"vehicle" or "tool".</summary>
+    public string Kind { get; init; } = null!;
+
+    public Guid Id { get; init; }
+
+    public string Name { get; init; } = null!;
 
     public decimal Cost { get; init; }
 }
@@ -110,6 +156,13 @@ public class ProjectCostBreakdownDto
     public IReadOnlyList<AccommodationLineDto> Accommodation { get; init; } = [];
 
     public IReadOnlyList<ManualPayLineDto> ManualPay { get; init; } = [];
+
+    /// <summary>
+    /// Vehicles and tools assigned to the site right now. Their cost is the
+    /// fleet's own for the period, not attributed to the site: an asset carries
+    /// only its current assignment, not the history a fair split would need.
+    /// </summary>
+    public IReadOnlyList<AssignedAssetLineDto> AssignedAssets { get; init; } = [];
 }
 
 public record GetProjectCostBreakdownQuery : IRequest<ProjectCostBreakdownDto>
@@ -200,7 +253,19 @@ public class GetProjectCostBreakdownQueryHandler
                     EmployeeName = names.GetValueOrDefault(g.Key, "?"),
                     Minutes = g.Sum(e => e.Minutes),
                     Cost = decimal.Round(g.Sum(e => e.Cost), 2),
-                    UnpricedMinutes = g.Sum(e => e.UnpricedMinutes)
+                    UnpricedMinutes = g.Sum(e => e.UnpricedMinutes),
+                    Days = g
+                        .GroupBy(e => new { e.Day, e.Basis, e.Rate })
+                        .Select(d => new LabourDayDto
+                        {
+                            Date = d.Key.Day,
+                            Basis = d.Key.Basis,
+                            Rate = d.Key.Rate,
+                            Minutes = d.Sum(e => e.Minutes),
+                            Cost = decimal.Round(d.Sum(e => e.Cost), 2)
+                        })
+                        .OrderByDescending(d => d.Date)
+                        .ToList()
                 })
                 .OrderByDescending(l => l.Cost)
                 .ThenBy(l => l.EmployeeName)
@@ -211,7 +276,6 @@ public class GetProjectCostBreakdownQueryHandler
             .AsNoTracking()
             .Where(m => m.Kind == MaterialMovementKind.Out
                 && m.ProjectId == request.ProjectId
-                && m.UnitPrice != null
                 && m.OccurredOn >= request.From
                 && m.OccurredOn <= request.To)
             .OrderByDescending(m => m.OccurredOn)
@@ -222,8 +286,8 @@ public class GetProjectCostBreakdownQueryHandler
                 MaterialName = m.Material.Name,
                 Unit = m.Material.Unit,
                 Quantity = m.Quantity,
-                UnitPrice = m.UnitPrice!.Value,
-                Total = decimal.Round(m.UnitPrice!.Value * m.Quantity, 2),
+                UnitPrice = m.UnitPrice,
+                Total = m.UnitPrice == null ? null : decimal.Round(m.UnitPrice.Value * m.Quantity, 2),
                 Note = m.Note
             })
             .ToListAsync(cancellationToken);
@@ -252,7 +316,16 @@ public class GetProjectCostBreakdownQueryHandler
             {
                 AccommodationId = s.AccommodationId,
                 AccommodationName = s.AccommodationName,
-                Cost = s.Cost
+                Cost = s.Cost,
+                People = s.People
+                    .Select(p => new AccommodationPersonLineDto
+                    {
+                        EmployeeId = p.EmployeeId,
+                        EmployeeName = p.EmployeeName,
+                        PersonDays = p.PersonDays,
+                        Cost = p.Cost
+                    })
+                    .ToList()
             })
             .OrderByDescending(a => a.Cost)
             .ToList();
@@ -280,6 +353,44 @@ public class GetProjectCostBreakdownQueryHandler
                 .ToListAsync(cancellationToken);
         }
 
+        var assignedVehicles = await _context.Vehicles
+            .AsNoTracking()
+            .Where(v => v.AssignedProjectId == request.ProjectId)
+            .Select(v => new { v.Id, Name = v.Brand + " " + v.Model })
+            .ToListAsync(cancellationToken);
+
+        var assignedTools = await _context.Tools
+            .AsNoTracking()
+            .Where(t => t.AssignedProjectId == request.ProjectId)
+            .Select(t => new { t.Id, t.Name })
+            .ToListAsync(cancellationToken);
+
+        var assets = new List<AssignedAssetLineDto>();
+
+        if (assignedVehicles.Count > 0)
+        {
+            var fleet = await _sender.Send(
+                new GetVehicleCostsQuery { From = request.From, To = request.To }, cancellationToken);
+            var costs = fleet.Rows.ToDictionary(r => r.VehicleId, r => r.Total);
+
+            assets.AddRange(assignedVehicles.Select(v => new AssignedAssetLineDto
+            {
+                Kind = "vehicle", Id = v.Id, Name = v.Name, Cost = costs.GetValueOrDefault(v.Id)
+            }));
+        }
+
+        if (assignedTools.Count > 0)
+        {
+            var toolReport = await _sender.Send(
+                new GetToolCostsQuery { From = request.From, To = request.To }, cancellationToken);
+            var costs = toolReport.Rows.ToDictionary(r => r.ToolId, r => r.Total);
+
+            assets.AddRange(assignedTools.Select(t => new AssignedAssetLineDto
+            {
+                Kind = "tool", Id = t.Id, Name = t.Name, Cost = costs.GetValueOrDefault(t.Id)
+            }));
+        }
+
         return new ProjectCostBreakdownDto
         {
             From = request.From,
@@ -292,7 +403,8 @@ public class GetProjectCostBreakdownQueryHandler
             Materials = materials,
             GeneralExpenses = general,
             Accommodation = accommodation,
-            ManualPay = manualPay
+            ManualPay = manualPay,
+            AssignedAssets = assets.OrderByDescending(a => a.Cost).ToList()
         };
     }
 }
