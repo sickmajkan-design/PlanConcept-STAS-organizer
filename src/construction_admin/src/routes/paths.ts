@@ -66,6 +66,7 @@ export const paths = {
   financeEntries: '/finance-entries',
   generalExpenses: '/general-expenses',
 
+  accommodationCosts: '/accommodation-costs',
   accommodations: '/accommodations',
   accommodationDetail: (id: string) => `/accommodations/${id}`,
   accommodationNew: '/accommodations/new',

@@ -679,7 +679,7 @@ const KIND_HINT: Record<AccommodationChargeKind, 'accommodations.chargeMonthlyHi
   OneOff: 'accommodations.chargeOneOffHint',
 };
 
-const KIND_UNIT: Record<AccommodationChargeKind, 'accommodations.perMonth' | 'accommodations.perPersonDay' | 'accommodations.once'> = {
+export const KIND_UNIT: Record<AccommodationChargeKind, 'accommodations.perMonth' | 'accommodations.perPersonDay' | 'accommodations.once'> = {
   Monthly: 'accommodations.perMonth',
   DailyPerPerson: 'accommodations.perPersonDay',
   OneOff: 'accommodations.once',
@@ -809,14 +809,15 @@ function ChargesCard({ accommodationId }: { accommodationId: string }) {
   );
 }
 
-function ChargeDialog({
+export function ChargeDialog({
   open,
   accommodationId,
   editingRate,
   onClose,
 }: {
   open: boolean;
-  accommodationId: string;
+  /** Fixed when opened from an accommodation; picked in the dialog when opened from the costs ledger. */
+  accommodationId?: string;
   editingRate?: AccommodationRate | null;
   onClose: () => void;
 }) {
@@ -825,6 +826,8 @@ function ChargeDialog({
   const set = useSetAccommodationRate();
   const update = useUpdateAccommodationRate();
   const isEditing = !!editingRate;
+  const { data: accommodations } = useAllAccommodationsQuery();
+  const [picked, setPicked] = useState('');
 
   const [kind, setKind] = useState<AccommodationChargeKind>('Monthly');
   const [amount, setAmount] = useState('');
@@ -842,6 +845,8 @@ function ChargeDialog({
     resetSet();
     resetUpdate();
 
+    setPicked(accommodationId ?? '');
+
     if (editingRate) {
       setKind(editingRate.kind);
       setAmount(String(editingRate.amount));
@@ -857,20 +862,21 @@ function ChargeDialog({
       setEndDate('');
       setNote('');
     }
-  }, [open, editingRate, resetSet, resetUpdate]);
+  }, [open, editingRate, accommodationId, resetSet, resetUpdate]);
 
   const isOneOff = kind === 'OneOff';
   const parsedAmount = Number(amount);
   const amountIsValid = amount.trim() !== '' && !Number.isNaN(parsedAmount) && parsedAmount > 0;
   const datesAreValid = isOneOff || !startDate || !endDate || endDate >= startDate;
-  const canSubmit = amountIsValid && datesAreValid && (!isOneOff || !!startDate || !isEditing);
+  const canSubmit =
+    !!picked && amountIsValid && datesAreValid && (!isOneOff || !!startDate || !isEditing);
 
   const mutation = isEditing ? update : set;
   const error = mutation.isError ? toApiError(mutation.error) : null;
 
   const submit = () => {
     const shared = {
-      accommodationId,
+      accommodationId: picked,
       kind,
       amount: parsedAmount,
       provider: provider.trim() || null,
@@ -903,6 +909,24 @@ function ChargeDialog({
         )}
 
         <Grid container spacing={2} sx={{ mt: 0 }}>
+          {!accommodationId && !isEditing && (
+            <Grid size={12}>
+              <TextField
+                select
+                fullWidth
+                label={t('accommodations.accommodation')}
+                value={picked}
+                onChange={(event) => setPicked(event.target.value)}
+              >
+                {(accommodations?.items ?? []).map((item) => (
+                  <MenuItem key={item.id} value={item.id}>
+                    {accommodationTitle(item)}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+          )}
+
           <Grid size={12}>
             <TextField
               select

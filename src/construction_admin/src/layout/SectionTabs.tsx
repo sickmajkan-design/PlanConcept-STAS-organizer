@@ -66,7 +66,7 @@ export function CostRecordsLayout() {
     { path: paths.toolExpenses, label: t('nav.toolExpenses') },
     { path: paths.generalExpenses, label: t('nav.generalExpenses') },
     { path: paths.stockMovements, label: t('nav.stockMovements') },
-    { path: paths.accommodations, label: t('nav.accommodations') },
+    { path: paths.accommodationCosts, label: t('nav.accommodationCosts') },
     ...(user && canSeeLabourCost(user)
       ? [{ path: paths.financeEntries, label: t('nav.financeEntries') }]
       : []),

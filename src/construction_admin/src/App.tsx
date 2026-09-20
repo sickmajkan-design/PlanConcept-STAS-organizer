@@ -180,6 +180,11 @@ const GeneralExpensesPage = lazy(() =>
     default: m.GeneralExpensesPage,
   })),
 );
+const AccommodationCostsPage = lazy(() =>
+  import('./pages/costs/AccommodationCostsPage').then((m) => ({
+    default: m.AccommodationCostsPage,
+  })),
+);
 const AccommodationImportPage = lazy(() =>
   import('./pages/accommodations/AccommodationImportPage').then((m) => ({
     default: m.AccommodationImportPage,
@@ -374,13 +379,16 @@ function Layout() {
                 <Route path={paths.fuelImport} element={<FuelImportPage />} />
                 <Route path={paths.toolExpenses} element={<ToolExpensesPage />} />
                 <Route path={paths.generalExpenses} element={<GeneralExpensesPage />} />
-
-                <Route path={paths.accommodations} element={<AccommodationsListPage />} />
-                <Route path={paths.accommodationNew} element={<AccommodationFormPage />} />
-                <Route path={paths.accommodationImport} element={<AccommodationImportPage />} />
-                <Route path={`${paths.accommodations}/:id`} element={<AccommodationDetailPage />} />
-                <Route path={`${paths.accommodations}/:id/edit`} element={<AccommodationFormPage />} />
+                <Route path={paths.accommodationCosts} element={<AccommodationCostsPage />} />
               </Route>
+
+              {/* The housing register: places, who lives in them, contracts. It sits with
+                  the directory; what housing costs is the Costs section's tab above. */}
+              <Route path={paths.accommodations} element={<AccommodationsListPage />} />
+              <Route path={paths.accommodationNew} element={<AccommodationFormPage />} />
+              <Route path={paths.accommodationImport} element={<AccommodationImportPage />} />
+              <Route path={`${paths.accommodations}/:id`} element={<AccommodationDetailPage />} />
+              <Route path={`${paths.accommodations}/:id/edit`} element={<AccommodationFormPage />} />
 
               <Route path={paths.schedule} element={<SchedulePage />} />
               <Route path={paths.absences} element={<AbsencesListPage />} />

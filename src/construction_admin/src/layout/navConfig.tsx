@@ -108,6 +108,11 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
                 path: paths.materials,
                 icon: <Inventory2Outlined />,
               },
+              {
+                label: t('nav.accommodations'),
+                path: paths.accommodations,
+                icon: <HomeWorkOutlined />,
+              },
             ],
           } satisfies NavGroup,
           {
@@ -162,7 +167,7 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
                   paths.toolExpenses,
                   paths.generalExpenses,
                   paths.stockMovements,
-                  paths.accommodations,
+                  paths.accommodationCosts,
                   paths.financeEntries,
                 ],
               },
@@ -191,8 +196,8 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
                 inTabs: true,
               },
               {
-                label: t('nav.accommodations'),
-                path: paths.accommodations,
+                label: t('nav.accommodationCosts'),
+                path: paths.accommodationCosts,
                 icon: <HomeWorkOutlined />,
                 inTabs: true,
               },

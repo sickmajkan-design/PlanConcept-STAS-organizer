@@ -6,8 +6,10 @@ ones. If a screen has to break one, say why in the code.
 ## Navigation
 
 - The menu shows one entry per job, not per table. Cost ledgers (vehicle, tool,
-  general, stock, accommodation, finance) live under **Cost records** and move
-  between each other with a tab strip. Pay rates, public holidays and the annual
+  general, stock, housing costs, finance) live under **Cost records** and move
+  between each other with a tab strip. The housing register itself (places, who
+  lives in them, contracts, import) sits in the **Directory** group; the housing
+  costs tab only holds the charges. Pay rates, public holidays and the annual
   plan live under **Billing settings**.
 - The URLs of the tabbed pages did not change. `/cost-records` and
   `/billing-settings` redirect to the first tab. A nav item can be marked
