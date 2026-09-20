@@ -6,6 +6,7 @@ import {
 } from '@mui/icons-material';
 import {
   Box,
+  Button,
   Chip,
   CircularProgress,
   Divider,
@@ -83,6 +84,9 @@ export function AccommodationsListPage() {
       />
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ flexWrap: 'wrap', mb: 2 }}>
+        <Button variant="outlined" onClick={() => navigate(paths.accommodationImport)}>
+          {t('accommodationImport.title')}
+        </Button>
         <SearchField
           value={list.search}
           onChange={list.setSearch}

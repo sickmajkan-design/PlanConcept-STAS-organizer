@@ -180,6 +180,11 @@ const GeneralExpensesPage = lazy(() =>
     default: m.GeneralExpensesPage,
   })),
 );
+const AccommodationImportPage = lazy(() =>
+  import('./pages/accommodations/AccommodationImportPage').then((m) => ({
+    default: m.AccommodationImportPage,
+  })),
+);
 const AccommodationsListPage = lazy(() =>
   import('./pages/accommodations/AccommodationsListPage').then((m) => ({
     default: m.AccommodationsListPage,
@@ -372,6 +377,7 @@ function Layout() {
 
                 <Route path={paths.accommodations} element={<AccommodationsListPage />} />
                 <Route path={paths.accommodationNew} element={<AccommodationFormPage />} />
+                <Route path={paths.accommodationImport} element={<AccommodationImportPage />} />
                 <Route path={`${paths.accommodations}/:id`} element={<AccommodationDetailPage />} />
                 <Route path={`${paths.accommodations}/:id/edit`} element={<AccommodationFormPage />} />
               </Route>

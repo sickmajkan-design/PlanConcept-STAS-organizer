@@ -2,6 +2,8 @@ using Construction.API.Authorization;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.Accommodations.Commands.CreateAccommodation;
 using Construction.Application.Features.Accommodations.Costs;
+using Construction.Application.Features.Accommodations.Import;
+using Construction.Application.Features.FuelCards.Import;
 using Construction.Application.Features.Accommodations.Stays;
 using Construction.Application.Features.Accommodations.Commands.DeleteAccommodation;
 using Construction.Application.Features.Accommodations.Commands.UpdateAccommodation;
@@ -23,6 +25,62 @@ public class AccommodationsController : ApiControllerBase
     public async Task<ActionResult<MyHousingDto?>> GetMine(CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(new GetMyHousingQuery(), cancellationToken));
+    }
+
+    /// <summary>Reads an uploaded housing list and reports what would happen, without writing anything.</summary>
+    [HttpPost("import/preview")]
+    [Authorize(Policy = Policies.ProjectManagerAndAbove)]
+    [RequestSizeLimit(FuelImportRules.MaxSizeBytes + 1024 * 1024)]
+    [ProducesResponseType(typeof(AccommodationImportPreviewDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<AccommodationImportPreviewDto>> PreviewImport(
+        [FromForm] AccommodationImportRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (request.File is null || request.File.Length == 0)
+        {
+            ModelState.AddModelError(nameof(request.File), "A file is required.");
+            return ValidationProblem(ModelState);
+        }
+
+        await using var content = request.File.OpenReadStream();
+
+        return Ok(await Mediator.Send(
+            new PreviewAccommodationImportCommand
+            {
+                FileName = request.File.FileName,
+                SizeBytes = request.File.Length,
+                Content = content
+            },
+            cancellationToken));
+    }
+
+    /// <summary>Creates the accommodations and stays of every row of the list that resolves cleanly.</summary>
+    [HttpPost("import")]
+    [Authorize(Policy = Policies.ProjectManagerAndAbove)]
+    [RequestSizeLimit(FuelImportRules.MaxSizeBytes + 1024 * 1024)]
+    [ProducesResponseType(typeof(AccommodationImportResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<AccommodationImportResultDto>> Import(
+        [FromForm] AccommodationImportRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (request.File is null || request.File.Length == 0)
+        {
+            ModelState.AddModelError(nameof(request.File), "A file is required.");
+            return ValidationProblem(ModelState);
+        }
+
+        await using var content = request.File.OpenReadStream();
+
+        return Ok(await Mediator.Send(
+            new ImportAccommodationsCommand
+            {
+                FileName = request.File.FileName,
+                SizeBytes = request.File.Length,
+                Content = content
+            },
+            cancellationToken));
     }
 
     /// <summary>Lists accommodations with pagination, search and sorting.</summary>
@@ -148,4 +206,9 @@ public class AccommodationsController : ApiControllerBase
         await Mediator.Send(new DeleteAccommodationCommand(id), cancellationToken);
         return NoContent();
     }
+}
+
+public class AccommodationImportRequest
+{
+    public IFormFile? File { get; set; }
 }

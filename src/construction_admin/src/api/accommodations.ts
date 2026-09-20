@@ -2,6 +2,8 @@ import { request } from './client';
 import { createCrudApi, listParams } from './resource';
 import type {
   Accommodation,
+  AccommodationImportPreview,
+  AccommodationImportResult,
   AccommodationCostSummary,
   AccommodationInput,
   AccommodationStay,
@@ -28,8 +30,30 @@ const crud = createCrudApi<Accommodation, Accommodation, AccommodationInput, Acc
   '/api/v1/accommodations',
 );
 
+function fileForm(file: File): FormData {
+  const form = new FormData();
+  form.append('file', file);
+  return form;
+}
+
 export const accommodationsApi = {
   ...crud,
+
+  import: {
+    preview: (file: File) =>
+      request<AccommodationImportPreview>({
+        method: 'POST',
+        url: '/api/v1/accommodations/import/preview',
+        data: fileForm(file),
+      }),
+
+    commit: (file: File) =>
+      request<AccommodationImportResult>({
+        method: 'POST',
+        url: '/api/v1/accommodations/import',
+        data: fileForm(file),
+      }),
+  },
 
   stays: {
     list: (query: AccommodationStayListQuery) =>

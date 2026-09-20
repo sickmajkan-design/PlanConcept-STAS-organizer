@@ -543,6 +543,51 @@ export interface Material {
   updatedAt: string | null;
 }
 
+export type AccommodationImportRowStatus =
+  | 'Ready'
+  | 'MissingAddress'
+  | 'InvalidType'
+  | 'InvalidNumber'
+  | 'InvalidDate'
+  | 'UnknownEmployee'
+  | 'UnknownProject'
+  | 'StayConflict'
+  | 'AlreadyImported';
+
+export interface AccommodationImportRow {
+  rowNumber: number;
+  address: string | null;
+  name: string | null;
+  city: string | null;
+  type: AccommodationType;
+  monthlyRent: number | null;
+  employeeText: string | null;
+  employeeName: string | null;
+  projectText: string | null;
+  /** `YYYY-MM-DD`. */
+  moveIn: string | null;
+  moveOut: string | null;
+  createsAccommodation: boolean;
+  createsStay: boolean;
+  status: AccommodationImportRowStatus;
+}
+
+export interface AccommodationImportPreview {
+  totalRows: number;
+  newAccommodationCount: number;
+  newStayCount: number;
+  problemCount: number;
+  rows: AccommodationImportRow[];
+}
+
+export interface AccommodationImportResult {
+  totalRows: number;
+  createdAccommodations: number;
+  createdStays: number;
+  skippedCount: number;
+  skipped: AccommodationImportRow[];
+}
+
 export type MaterialImportRowStatus =
   | 'Ready'
   | 'NewMaterial'

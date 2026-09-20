@@ -69,6 +69,7 @@ export const paths = {
   accommodations: '/accommodations',
   accommodationDetail: (id: string) => `/accommodations/${id}`,
   accommodationNew: '/accommodations/new',
+  accommodationImport: '/accommodations/import',
   accommodationEdit: (id: string) => `/accommodations/${id}/edit`,
 
   ledgers: '/ledgers',

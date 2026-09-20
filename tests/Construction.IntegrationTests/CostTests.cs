@@ -1724,6 +1724,52 @@ public class CostTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task Importing_a_housing_list_creates_the_flat_its_rent_and_stays_and_a_second_run_adds_nothing()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+        var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var address = $"Importna ulica {Guid.NewGuid():N}";
+
+        var csv = "Adresa;Naziv;Kirija;Radnik;Useljenje\n" +
+                  $"{address};Stan uvoz;450,50;{employee.EmployeeNumber};01.09.2026\n";
+
+        Task<Construction.Application.Features.Accommodations.Import.AccommodationImportResultDto> RunAsync() =>
+            InScope(scope =>
+            {
+                ActAs(scope, admin);
+                return scope.Send(new Construction.Application.Features.Accommodations.Import.ImportAccommodationsCommand
+                {
+                    FileName = "smjestaj.csv",
+                    SizeBytes = csv.Length,
+                    Content = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(csv))
+                });
+            });
+
+        var first = await RunAsync();
+
+        Assert.Equal(1, first.CreatedAccommodations);
+        Assert.Equal(1, first.CreatedStays);
+
+        var stored = await InScope(scope => scope.Db.Accommodations
+            .Where(x => x.Address == address)
+            .Select(x => new
+            {
+                Rates = x.Rates.Select(r => r.Amount).ToList(),
+                Stays = x.Stays.Count
+            })
+            .SingleAsync());
+
+        Assert.Equal([450.50m], stored.Rates);
+        Assert.Equal(1, stored.Stays);
+
+        var second = await RunAsync();
+
+        Assert.Equal(0, second.CreatedAccommodations);
+        Assert.Equal(0, second.CreatedStays);
+        Assert.Equal(1, second.SkippedCount);
+    }
+
+    [Fact]
     public async Task Ending_a_stay_frees_the_person_for_the_next_one()
     {
         var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));

@@ -26,6 +26,19 @@ const PICKER_QUERY: AccommodationListQuery = {
   sortBy: 'address',
 };
 
+/** A fresh read of whatever file is on screen; nothing to cache. */
+export function usePreviewAccommodationImport() {
+  return useResourceMutation((file: File) => accommodationsApi.import.preview(file), []);
+}
+
+/** Importing creates accommodations, stays and rents, so lists, occupancy and cost reports follow. */
+export function useImportAccommodations() {
+  return useResourceMutation(
+    (file: File) => accommodationsApi.import.commit(file),
+    [...stayCaches, ['costReports']],
+  );
+}
+
 export function useAccommodationsQuery(query: AccommodationListQuery) {
   return useResourceList(accommodationKeys, accommodationsApi.list, query);
 }
