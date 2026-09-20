@@ -187,7 +187,7 @@ export function ToolDetailPage() {
                 startIcon={<EditOutlined />}
                 onClick={() => navigate(paths.toolEdit(tool.id))}
               >
-                Edit
+                {t('common.edit')}
               </Button>
               <Button
                 variant="outlined"
@@ -195,7 +195,7 @@ export function ToolDetailPage() {
                 startIcon={<DeleteOutlined />}
                 onClick={() => setConfirmDelete(true)}
               >
-                Delete
+                {t('common.delete')}
               </Button>
             </Stack>
           </Stack>
@@ -207,7 +207,7 @@ export function ToolDetailPage() {
           <Card>
             <CardContent>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700 }}>
-                Tool
+                {t('detail.tool')}
               </Typography>
               <Stack spacing={1.5} sx={{ mt: 1 }}>
                 <InfoRow label={t('tools.serialNumber')} value={tool.serialNumber} flagMissing />
@@ -221,14 +221,13 @@ export function ToolDetailPage() {
           <Card>
             <CardContent>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700 }}>
-                Employee
+                {t('detail.employee')}
               </Typography>
 
               {tool.assignedEmployeeId ? (
                 <Stack spacing={1.5} sx={{ mt: 1 }}>
                   <Typography>
-                    Held by <strong>{tool.assignedEmployeeName}</strong> (
-                    {tool.assignedEmployeeNumber})
+                    {t('detail.heldBy')} <strong>{tool.assignedEmployeeName}</strong> ({tool.assignedEmployeeNumber})
                   </Typography>
                   <Box>
                     <Button
@@ -238,7 +237,7 @@ export function ToolDetailPage() {
                       startIcon={<PersonOffOutlined />}
                       onClick={() => setConfirmUnassignEmployee(true)}
                     >
-                      Unassign
+                      {t('detail.unassign')}
                     </Button>
                   </Box>
                 </Stack>
@@ -253,7 +252,7 @@ export function ToolDetailPage() {
                         onChange={(event) => setSelectedEmployeeId(event.target.value)}
                       >
                         <MenuItem value="">
-                          <em>Select an employee…</em>
+                          <em>{t('detail.selectEmployee')}</em>
                         </MenuItem>
                         {(allEmployees?.items ?? []).map((employee) => (
                           <MenuItem key={employee.id} value={employee.id}>
@@ -268,7 +267,7 @@ export function ToolDetailPage() {
                       loading={assignEmployee.isPending}
                       onClick={handleAssignEmployee}
                     >
-                      Assign
+                      {t('detail.assign')}
                     </Button>
                   </Stack>
                 </Stack>
@@ -287,7 +286,7 @@ export function ToolDetailPage() {
           <Card>
             <CardContent>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700 }}>
-                Project
+                {t('detail.project')}
               </Typography>
               {tool.assignedEmployeeId && (
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
@@ -316,7 +315,7 @@ export function ToolDetailPage() {
                     variant="outlined"
                     onClick={() => setConfirmUnassignProject(true)}
                   >
-                    Remove from project
+                    {t('detail.removeFromProject')}
                   </Button>
                 </Stack>
               ) : (
@@ -345,7 +344,7 @@ export function ToolDetailPage() {
                       loading={assignProject.isPending}
                       onClick={handleAssignProject}
                     >
-                      Place on project
+                      {t('detail.placeOnProject')}
                     </Button>
                   </Stack>
                 </Stack>
@@ -400,8 +399,8 @@ export function ToolDetailPage() {
       <ConfirmDialog
         open={confirmUnassignEmployee}
         title={t('tools.unassignTitle')}
-        description={`${tool.name} will no longer be held by ${tool.assignedEmployeeName ?? 'this employee'}.`}
-        confirmLabel="Unassign"
+        description={t('detail.toolUnassignBody', { name: tool.name, person: tool.assignedEmployeeName ?? t('detail.thisEmployee') })}
+        confirmLabel={t('detail.unassign')}
         destructive
         loading={unassignEmployee.isPending}
         onConfirm={handleUnassignEmployee}
@@ -411,7 +410,7 @@ export function ToolDetailPage() {
       <ConfirmDialog
         open={confirmUnassignProject}
         title={t('tools.unassignProject')}
-        description={`${tool.name} will no longer be placed at ${tool.assignedProjectName ?? 'this project'}.`}
+        description={t('detail.unplaceBody', { name: tool.name, project: tool.assignedProjectName ?? t('detail.thisProject') })}
         confirmLabel={t('employees.removeFromProject')}
         destructive
         loading={unassignProject.isPending}

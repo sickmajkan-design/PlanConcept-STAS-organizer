@@ -55,23 +55,20 @@ export function ChangePasswordPage() {
         <Stack spacing={3}>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              Change password
+              {t('changePassword.title')}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              At least 8 characters with an upper-case letter, a lower-case letter
-              and a digit.
+              {t('changePassword.hint')}
             </Typography>
           </Box>
 
           {done ? (
             <>
               <Alert severity="success">
-                Your password has been updated. For security, all your signed-in
-                sessions were signed out. Please sign in again with the new
-                password.
+                {t('changePassword.done')}
               </Alert>
               <Button variant="contained" size="large" onClick={finishAndSignOut}>
-                Sign in again
+                {t('changePassword.signInAgain')}
               </Button>
             </>
           ) : (
@@ -128,7 +125,7 @@ export function ChangePasswordPage() {
                 />
 
                 <Button type="submit" variant="contained" size="large" loading={isSubmitting}>
-                  Change password
+                  {t('changePassword.title')}
                 </Button>
               </Stack>
             </form>

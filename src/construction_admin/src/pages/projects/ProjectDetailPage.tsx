@@ -253,7 +253,7 @@ export function ProjectDetailPage() {
                 startIcon={<EditOutlined />}
                 onClick={() => navigate(paths.projectEdit(project.id))}
               >
-                Edit
+                {t('common.edit')}
               </Button>
               <Button
                 variant="outlined"
@@ -261,7 +261,7 @@ export function ProjectDetailPage() {
                 startIcon={<DeleteOutlined />}
                 onClick={() => setConfirmDelete(true)}
               >
-                Delete
+                {t('common.delete')}
               </Button>
             </Stack>
           </Stack>
@@ -279,7 +279,7 @@ export function ProjectDetailPage() {
           <Card>
             <CardContent>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700 }}>
-                Details
+                {t('common.details')}
               </Typography>
               <Stack spacing={1.5} sx={{ mt: 1 }}>
                 <InfoRow label={t('projects.customer')} value={project.customerName} />

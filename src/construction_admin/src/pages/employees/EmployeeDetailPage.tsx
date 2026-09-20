@@ -147,7 +147,7 @@ export function EmployeeDetailPage() {
                 startIcon={<EditOutlined />}
                 onClick={() => navigate(paths.employeeEdit(employee.id))}
               >
-                Edit
+                {t('common.edit')}
               </Button>
               <Button
                 variant="outlined"
@@ -155,7 +155,7 @@ export function EmployeeDetailPage() {
                 startIcon={<DeleteOutlined />}
                 onClick={() => setConfirmDelete(true)}
               >
-                Delete
+                {t('common.delete')}
               </Button>
             </Stack>
           </Stack>
@@ -167,7 +167,7 @@ export function EmployeeDetailPage() {
           <Card>
             <CardContent>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700 }}>
-                Contact
+                {t('employees.contact')}
               </Typography>
               <Stack spacing={1.5} sx={{ mt: 1 }}>
                 <InfoRow label={t('employees.phone')} value={employee.phone} />
@@ -181,7 +181,7 @@ export function EmployeeDetailPage() {
           <Card>
             <CardContent>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700 }}>
-                Employment
+                {t('employees.employment')}
               </Typography>
               <Stack spacing={1.5} sx={{ mt: 1 }}>
                 <InfoRow label={t('employees.employedSince')} value={formatDate(employee.employmentDate)} />
@@ -283,7 +283,7 @@ export function EmployeeDetailPage() {
                   loading={assign.isPending}
                   onClick={handleAssign}
                 >
-                  Assign to project
+                  {t('employees.assignToProject')}
                 </Button>
               </Stack>
 
@@ -352,7 +352,7 @@ export function EmployeeDetailPage() {
         title={t('employees.removeAssignmentTitle')}
         description={
           removeTarget
-            ? `${employee.fullName} will no longer be assigned to ${removeTarget.name}.`
+            ? t('employees.removeAssignmentBody', { name: employee.fullName, project: removeTarget.name })
             : ''
         }
         confirmLabel={t('employees.removeFromProject')}

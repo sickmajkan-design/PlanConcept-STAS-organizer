@@ -220,7 +220,7 @@ export function VehicleDetailPage() {
                 startIcon={<EditOutlined />}
                 onClick={() => navigate(paths.vehicleEdit(vehicle.id))}
               >
-                Edit
+                {t('common.edit')}
               </Button>
               <Button
                 variant="outlined"
@@ -228,7 +228,7 @@ export function VehicleDetailPage() {
                 startIcon={<DeleteOutlined />}
                 onClick={() => setConfirmDelete(true)}
               >
-                Delete
+                {t('common.delete')}
               </Button>
             </Stack>
           </Stack>
@@ -240,7 +240,7 @@ export function VehicleDetailPage() {
           <Card>
             <CardContent>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700 }}>
-                Vehicle
+                {t('detail.vehicle')}
               </Typography>
               <Stack spacing={1.5} sx={{ mt: 1 }}>
                 <InfoRow label={t('vehicles.vin')} value={vehicle.vin} flagMissing />
@@ -255,14 +255,13 @@ export function VehicleDetailPage() {
           <Card>
             <CardContent>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700 }}>
-                Assignment
+                {t('detail.assignment')}
               </Typography>
 
               {vehicle.assignedEmployeeId ? (
                 <Stack spacing={1.5} sx={{ mt: 1 }}>
                   <Typography>
-                    Assigned to <strong>{vehicle.assignedEmployeeName}</strong> (
-                    {vehicle.assignedEmployeeNumber})
+                    {t('detail.assignedTo')} <strong>{vehicle.assignedEmployeeName}</strong> ({vehicle.assignedEmployeeNumber})
                   </Typography>
                   <Box>
                     <Button
@@ -272,7 +271,7 @@ export function VehicleDetailPage() {
                       startIcon={<PersonOffOutlined />}
                       onClick={() => setConfirmUnassign(true)}
                     >
-                      Unassign
+                      {t('detail.unassign')}
                     </Button>
                   </Box>
                 </Stack>
@@ -287,7 +286,7 @@ export function VehicleDetailPage() {
                         onChange={(event) => setSelectedEmployeeId(event.target.value)}
                       >
                         <MenuItem value="">
-                          <em>Select an employee…</em>
+                          <em>{t('detail.selectEmployee')}</em>
                         </MenuItem>
                         {(allEmployees?.items ?? []).map((employee) => (
                           <MenuItem key={employee.id} value={employee.id}>
@@ -302,7 +301,7 @@ export function VehicleDetailPage() {
                       loading={assign.isPending}
                       onClick={handleAssign}
                     >
-                      Assign
+                      {t('detail.assign')}
                     </Button>
                   </Stack>
                 </Stack>
@@ -321,7 +320,7 @@ export function VehicleDetailPage() {
           <Card>
             <CardContent>
               <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700 }}>
-                Project
+                {t('detail.project')}
               </Typography>
               {vehicle.assignedEmployeeId && (
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
@@ -350,7 +349,7 @@ export function VehicleDetailPage() {
                     variant="outlined"
                     onClick={() => setConfirmUnassignProject(true)}
                   >
-                    Remove from project
+                    {t('detail.removeFromProject')}
                   </Button>
                 </Stack>
               ) : (
@@ -379,7 +378,7 @@ export function VehicleDetailPage() {
                       loading={assignProject.isPending}
                       onClick={handleAssignProject}
                     >
-                      Place on project
+                      {t('detail.placeOnProject')}
                     </Button>
                   </Stack>
                 </Stack>
@@ -438,8 +437,8 @@ export function VehicleDetailPage() {
       <ConfirmDialog
         open={confirmUnassign}
         title={t('vehicles.unassignTitle')}
-        description={`${vehicle.brand} ${vehicle.model} will no longer be assigned to ${vehicle.assignedEmployeeName ?? 'this employee'}.`}
-        confirmLabel="Unassign"
+        description={t('detail.vehicleUnassignBody', { name: `${vehicle.brand} ${vehicle.model}`, person: vehicle.assignedEmployeeName ?? t('detail.thisEmployee') })}
+        confirmLabel={t('detail.unassign')}
         destructive
         loading={unassign.isPending}
         onConfirm={handleUnassign}
@@ -449,7 +448,7 @@ export function VehicleDetailPage() {
       <ConfirmDialog
         open={confirmUnassignProject}
         title={t('vehicles.unassignProject')}
-        description={`${vehicle.brand} ${vehicle.model} will no longer be placed at ${vehicle.assignedProjectName ?? 'this project'}.`}
+        description={t('detail.unplaceBody', { name: `${vehicle.brand} ${vehicle.model}`, project: vehicle.assignedProjectName ?? t('detail.thisProject') })}
         confirmLabel={t('employees.removeFromProject')}
         destructive
         loading={unassignProject.isPending}
