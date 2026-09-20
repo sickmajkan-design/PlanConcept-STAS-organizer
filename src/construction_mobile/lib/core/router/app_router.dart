@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/absences/presentation/my_absences_screen.dart';
 import '../../features/absences/presentation/my_schedule_screen.dart';
 import '../../features/bulletin/presentation/bulletin_screen.dart';
+import '../../features/housing/presentation/my_housing_screen.dart';
 import '../../features/company_settings/presentation/company_settings_screen.dart';
 import '../../features/ledgers/presentation/ledger_detail_screen.dart';
 import '../../features/ledgers/presentation/ledgers_screen.dart';
@@ -159,6 +160,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.weeklyReports,
         builder: (context, state) => const WeeklyReportsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.myHousing,
+        builder: (context, state) => const MyHousingScreen(),
       ),
       GoRoute(
         path: AppRoutes.teamToday,

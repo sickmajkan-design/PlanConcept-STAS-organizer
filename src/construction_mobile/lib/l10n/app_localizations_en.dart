@@ -1792,6 +1792,55 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navWeeklyReports => 'Weekly reports';
 
   @override
+  String get navMyHousing => 'My housing';
+
+  @override
+  String get myHousingTitle => 'My housing';
+
+  @override
+  String get myHousingEmpty => 'You have no housing assigned.';
+
+  @override
+  String myHousingFloor(String floor) {
+    return 'Floor $floor';
+  }
+
+  @override
+  String myHousingRooms(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rooms',
+      one: '1 room',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String myHousingStarts(String date) {
+    return 'Moving in $date';
+  }
+
+  @override
+  String myHousingSince(String date) {
+    return 'Living here since $date';
+  }
+
+  @override
+  String myHousingUntil(String date) {
+    return 'Until $date';
+  }
+
+  @override
+  String get myHousingNotes => 'Keys and house rules';
+
+  @override
+  String get myHousingLandlord => 'Landlord';
+
+  @override
+  String get myHousingRoommates => 'Living with you';
+
+  @override
   String get navBulletin => 'Bulletin board';
 
   @override

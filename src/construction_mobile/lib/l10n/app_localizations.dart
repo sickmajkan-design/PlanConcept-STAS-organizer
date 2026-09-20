@@ -3182,6 +3182,72 @@ abstract class AppLocalizations {
   /// **'Weekly reports'**
   String get navWeeklyReports;
 
+  /// No description provided for @navMyHousing.
+  ///
+  /// In en, this message translates to:
+  /// **'My housing'**
+  String get navMyHousing;
+
+  /// No description provided for @myHousingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My housing'**
+  String get myHousingTitle;
+
+  /// No description provided for @myHousingEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'You have no housing assigned.'**
+  String get myHousingEmpty;
+
+  /// No description provided for @myHousingFloor.
+  ///
+  /// In en, this message translates to:
+  /// **'Floor {floor}'**
+  String myHousingFloor(String floor);
+
+  /// No description provided for @myHousingRooms.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 room} other{{count} rooms}}'**
+  String myHousingRooms(int count);
+
+  /// No description provided for @myHousingStarts.
+  ///
+  /// In en, this message translates to:
+  /// **'Moving in {date}'**
+  String myHousingStarts(String date);
+
+  /// No description provided for @myHousingSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Living here since {date}'**
+  String myHousingSince(String date);
+
+  /// No description provided for @myHousingUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Until {date}'**
+  String myHousingUntil(String date);
+
+  /// No description provided for @myHousingNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Keys and house rules'**
+  String get myHousingNotes;
+
+  /// No description provided for @myHousingLandlord.
+  ///
+  /// In en, this message translates to:
+  /// **'Landlord'**
+  String get myHousingLandlord;
+
+  /// No description provided for @myHousingRoommates.
+  ///
+  /// In en, this message translates to:
+  /// **'Living with you'**
+  String get myHousingRoommates;
+
   /// No description provided for @navBulletin.
   ///
   /// In en, this message translates to:

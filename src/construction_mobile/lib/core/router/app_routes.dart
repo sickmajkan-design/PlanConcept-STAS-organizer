@@ -34,6 +34,9 @@ class AppRoutes {
   /// for a site they are posted to.
   static const weeklyReports = '/weekly-reports';
 
+  /// Open to every employee-linked account: where they live, without any cost.
+  static const myHousing = '/my-housing';
+
   /// Foreman and above: who clocked in/out today, scoped to a Foreman's own
   /// site(s). Read-only oversight, not the review/approve screen (desktop
   /// only, for now).

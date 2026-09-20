@@ -8,6 +8,7 @@ using Construction.Application.Features.Accommodations.Commands.UpdateAccommodat
 using Construction.Application.Features.Accommodations.Models;
 using Construction.Application.Features.Accommodations.Queries.GetAccommodationById;
 using Construction.Application.Features.Accommodations.Queries.GetAccommodations;
+using Construction.Application.Features.Accommodations.Queries.GetMyHousing;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,6 +16,15 @@ namespace Construction.API.Controllers;
 
 public class AccommodationsController : ApiControllerBase
 {
+    /// <summary>Where the caller lives now (or will next): the worker-facing view, without any cost figures.</summary>
+    [HttpGet("mine")]
+    [ProducesResponseType(typeof(MyHousingDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<ActionResult<MyHousingDto?>> GetMine(CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetMyHousingQuery(), cancellationToken));
+    }
+
     /// <summary>Lists accommodations with pagination, search and sorting.</summary>
     [HttpGet]
     [Authorize(Policy = Policies.ForemanAndAbove)]

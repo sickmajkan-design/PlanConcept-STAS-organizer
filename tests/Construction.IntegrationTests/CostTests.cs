@@ -1688,6 +1688,42 @@ public class CostTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task A_worker_sees_their_own_housing_and_never_its_cost()
+    {
+        var mine = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var other = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var worker = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Worker, mine.Id));
+        var stranger = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Worker, other.Id));
+        var flat = await InScope(scope => TestData.SeedAccommodationAsync(scope));
+
+        await InScope(async scope =>
+        {
+            scope.Db.AccommodationStays.Add(new AccommodationStay
+            {
+                AccommodationId = flat.Id, EmployeeId = mine.Id, StartDate = Jan1
+            });
+            await scope.Db.SaveChangesAsync();
+        });
+
+        var housing = await InScope(scope =>
+        {
+            scope.CurrentUser.SignInAs(worker.Id, worker.Role, mine.Id, worker.Email);
+            return scope.Send(new Construction.Application.Features.Accommodations.Queries.GetMyHousing.GetMyHousingQuery());
+        });
+
+        Assert.NotNull(housing);
+        Assert.Equal(flat.Address, housing!.Address);
+
+        var none = await InScope(scope =>
+        {
+            scope.CurrentUser.SignInAs(stranger.Id, stranger.Role, other.Id, stranger.Email);
+            return scope.Send(new Construction.Application.Features.Accommodations.Queries.GetMyHousing.GetMyHousingQuery());
+        });
+
+        Assert.Null(none);
+    }
+
+    [Fact]
     public async Task Ending_a_stay_frees_the_person_for_the_next_one()
     {
         var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));

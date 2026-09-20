@@ -1794,6 +1794,56 @@ class AppLocalizationsSr extends AppLocalizations {
   String get navWeeklyReports => 'Sedmični izvještaji';
 
   @override
+  String get navMyHousing => 'Moj smještaj';
+
+  @override
+  String get myHousingTitle => 'Moj smještaj';
+
+  @override
+  String get myHousingEmpty => 'Nemate dodijeljen smještaj.';
+
+  @override
+  String myHousingFloor(String floor) {
+    return 'Sprat $floor';
+  }
+
+  @override
+  String myHousingRooms(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count soba',
+      few: '$count sobe',
+      one: '1 soba',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String myHousingStarts(String date) {
+    return 'Useljenje $date';
+  }
+
+  @override
+  String myHousingSince(String date) {
+    return 'Stanujete ovdje od $date';
+  }
+
+  @override
+  String myHousingUntil(String date) {
+    return 'Do $date';
+  }
+
+  @override
+  String get myHousingNotes => 'Ključevi i kućni red';
+
+  @override
+  String get myHousingLandlord => 'Stanodavac';
+
+  @override
+  String get myHousingRoommates => 'Stanuju s vama';
+
+  @override
   String get navBulletin => 'Oglasna ploča';
 
   @override

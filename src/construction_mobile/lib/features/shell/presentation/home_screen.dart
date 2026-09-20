@@ -90,6 +90,13 @@ class HomeScreen extends ConsumerWidget {
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => context.push(AppRoutes.weeklyReports),
                     ),
+                    const Divider(height: 1, indent: 20, endIndent: 20),
+                    ListTile(
+                      leading: const Icon(Icons.home_outlined),
+                      title: Text(context.l10n.navMyHousing),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push(AppRoutes.myHousing),
+                    ),
                   ],
                 ),
               ),
