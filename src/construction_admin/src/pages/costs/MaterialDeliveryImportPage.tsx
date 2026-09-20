@@ -32,7 +32,8 @@ const MAX_BYTES = 10 * 1024 * 1024;
 
 /** The header row and one example line, in the column names the importer looks for. */
 const TEMPLATE =
-  '﻿Materijal;Količina;Jedinica;Nabavna cijena;Broj fakture;Dobavljač;Datum;Napomena\r\n' +
+  '﻿sep=;\r\n' +
+  'Materijal;Količina;Jedinica;Nabavna cijena;Broj fakture;Dobavljač;Datum;Napomena\r\n' +
   'Cement CEM II;40;vreća;9,50;INV-2026-0142;Kastel d.o.o.;01.03.2026;\r\n';
 
 function downloadTemplate() {

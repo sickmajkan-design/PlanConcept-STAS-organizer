@@ -57,7 +57,11 @@ public static class FuelStatementFileParser
         var text = reader.ReadToEnd();
 
         var rows = new List<IReadOnlyList<string>>();
-        var lines = text.Split(["\r\n", "\n"], StringSplitOptions.None);
+        // Excel's "sep=;" hint line, which the templates start with so Excel splits
+        // the columns in any locale, is not data.
+        var lines = text.Split(["\r\n", "\n"], StringSplitOptions.None)
+            .Where(l => !l.StartsWith("sep=", StringComparison.OrdinalIgnoreCase))
+            .ToArray();
 
         // The heading line says which delimiter the file uses. A file with ';'
         // in it is a European-locale export, where a comma is the decimal

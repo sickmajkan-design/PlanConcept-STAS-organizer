@@ -32,7 +32,8 @@ const MAX_BYTES = 10 * 1024 * 1024;
 
 /** The header row and two example lines (two people in one flat), in the column names the importer looks for. */
 const TEMPLATE =
-  '﻿Adresa;Naziv;Grad;Tip;Sprat;Sobe;Ležajevi;Kirija;Radnik;Useljenje;Iseljenje;Gradilište\r\n' +
+  '﻿sep=;\r\n' +
+  'Adresa;Naziv;Grad;Tip;Sprat;Sobe;Ležajevi;Kirija;Radnik;Useljenje;Iseljenje;Gradilište\r\n' +
   'Ulica Kralja Petra 12;Stan Petra;Banja Luka;Stan;3;3;4;650,00;R-001;01.09.2026;;Naziv gradilišta\r\n' +
   'Ulica Kralja Petra 12;;;;;;;;R-002;01.09.2026;;Naziv gradilišta\r\n';
 

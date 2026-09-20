@@ -98,4 +98,17 @@ public class AccommodationRowResolverTests
             ],
             rows.Select(r => r.Status).ToArray());
     }
+
+    [Fact]
+    public void The_excel_separator_hint_line_of_a_template_is_not_read_as_data()
+    {
+        var csv = "﻿sep=;\r\nAdresa;Radnik\r\nUlica 1;E-1\r\n";
+
+        var parsed = Construction.Application.Features.FuelCards.Import.FuelStatementFileParser.Parse(
+            "sablon.csv", new MemoryStream(System.Text.Encoding.UTF8.GetBytes(csv)), null!);
+
+        Assert.Equal(2, parsed.Rows.Count);
+        Assert.Equal("Adresa", parsed.Rows[0][0]);
+        Assert.Equal("E-1", parsed.Rows[1][1]);
+    }
 }
