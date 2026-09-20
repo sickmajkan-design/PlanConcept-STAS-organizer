@@ -279,6 +279,7 @@ function VehicleCostDialog({
     id: e.id,
     primary: `${enumLabel('vehicleExpenseKind', e.kind)}${e.fuelProductType ? ` · ${e.fuelProductType}` : ''}`,
     secondary: [
+      e.status === 'Approved' ? null : enumLabel('vehicleExpenseStatus', e.status),
       formatDate(e.occurredOn),
       e.supplier,
       e.odometerKm !== null ? `${formatQuantity(e.odometerKm, locale)} km` : null,
@@ -293,9 +294,8 @@ function VehicleCostDialog({
         : undefined,
   });
 
-  const approved = items.filter((e) => e.status === 'Approved');
-  const notCounted = items.filter((e) => e.status !== 'Approved');
-  const groupTotal = (kinds: string[]) => approved.filter((e) => kinds.includes(e.kind)).reduce((s, e) => s + e.amount, 0);
+  // The fleet report counts every recorded expense whatever its review status, so this list does too; a line still under review says so.
+  const groupTotal = (kinds: string[]) => items.filter((e) => kinds.includes(e.kind)).reduce((s, e) => s + e.amount, 0);
 
   const segments: Segment[] = [
     { key: 'fuel', label: t('costs.fuel'), value: row.fuelCost, color: colors.fuel },
@@ -311,7 +311,7 @@ function VehicleCostDialog({
       color: colors[g.key === 'fuel' ? 'fuel' : g.key === 'service' ? 'service' : 'other'],
       total: money(groupTotal(g.kinds)),
       share: row.total > 0 ? (groupTotal(g.kinds) / row.total) * 100 : 0,
-      lines: approved.filter((e) => g.kinds.includes(e.kind)).map(line),
+      lines: items.filter((e) => g.kinds.includes(e.kind)).map(line),
     })),
     ...(row.rentalCost > 0
       ? [
@@ -323,19 +323,6 @@ function VehicleCostDialog({
             share: row.total > 0 ? (row.rentalCost / row.total) * 100 : 0,
             note: t('costs.rentalNote'),
             lines: [],
-          },
-        ]
-      : []),
-    ...(notCounted.length > 0
-      ? [
-          {
-            key: 'pending',
-            title: t('costs.notCounted'),
-            note: t('costs.notCountedNote'),
-            lines: notCounted.map((e) => ({
-              ...line(e),
-              secondary: `${enumLabel('vehicleExpenseStatus', e.status)} · ${line(e).secondary}`,
-            })),
           },
         ]
       : []),
@@ -478,8 +465,8 @@ export function ToolCostBoard({ period }: { period: Period }) {
 
 const TOOL_GROUPS: { key: 'repair' | 'maintenance' | 'other'; kinds: string[] }[] = [
   { key: 'repair', kinds: ['Repair'] },
-  { key: 'maintenance', kinds: ['Maintenance', 'Calibration'] },
-  { key: 'other', kinds: ['Other'] },
+  { key: 'maintenance', kinds: ['Maintenance'] },
+  { key: 'other', kinds: ['Calibration', 'Other'] },
 ];
 
 function ToolCostDialog({

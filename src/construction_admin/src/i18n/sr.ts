@@ -1425,8 +1425,6 @@ export const sr: Record<MessageKey, Message> = {
   'costs.materialNote': 'Materijal izdat na gradilište, po cijeni zabilježenoj pri izdavanju.',
   'costs.accommodationNote': 'Dio kirije koji pripada ovom gradilištu, za radnike koji su tamo stanovali dok su radili na njemu.',
   'costs.rentalNote': 'Renta ili lizing za period, prema evidentiranoj cijeni najma.',
-  'costs.notCounted': 'Nije uračunato',
-  'costs.notCountedNote': 'Troškovi koji još čekaju pregled ili su vraćeni.',
   'costs.sortBy': 'Sortiraj po',
   'costs.sortDirection': 'Promijeni smjer',
   'costs.ascending': 'Rastuće',

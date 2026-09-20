@@ -1395,8 +1395,6 @@ export const en = {
   'costs.materialNote': 'Material issued to the site, at the price recorded when it was issued.',
   'costs.accommodationNote': "The site's share of the rent, for the people who lived there while working on it.",
   'costs.rentalNote': 'Lease or rental for the period, from the rental rate on file.',
-  'costs.notCounted': 'Not in the total',
-  'costs.notCountedNote': 'Costs still waiting for review, or sent back.',
   'costs.sortBy': 'Sort by',
   'costs.sortDirection': 'Change direction',
   'costs.ascending': 'Ascending',
