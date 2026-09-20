@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 
 import { useAbsencesQuery } from '../../absences/useAbsences';
 import { useExpiringDocumentsQuery } from '../../attachments/useAttachments';
+import { useEnumLabel } from '../../../i18n/enumLabels';
 import { useT } from '../../../i18n/useI18n';
 import { paths } from '../../../routes/paths';
 import { formatDate } from '../../../utils/formatting';
@@ -29,6 +30,7 @@ export function NeedsAttentionWidget({
   onRemove,
 }: DashboardWidgetProps) {
   const t = useT();
+  const enumLabel = useEnumLabel();
 
   // Same query hooks the nav badge and each module's own list page use —
   // not a separate "dashboard" cache — so resolving one of these anywhere on
@@ -95,7 +97,7 @@ export function NeedsAttentionWidget({
                   <ListItemText
                     primary={absence.employeeName}
                     secondary={t('dashboard.needsAttention.absencePending', {
-                      type: absence.type,
+                      type: enumLabel('absenceType', absence.type),
                     })}
                   />
                 </ListItem>
