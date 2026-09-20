@@ -1,6 +1,5 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
-using Construction.Application.Features.Accommodations.Costs;
 using Construction.Application.Features.Costs.Models;
 using Construction.Domain.Enums;
 using FluentValidation;
@@ -158,147 +157,21 @@ public class GetProjectCostsQueryHandler
         };
     }
 
-    /// <summary>
-    /// Approved hours per site, priced by the rate in force on the day —
-    /// weekend and public-holiday hours at that rate's own premium, when it
-    /// sets one; a subcontractor on a daily rate instead earns one flat
-    /// amount per day worked, whatever the hours.
-    /// </summary>
-    /// <remarks>
-    /// The covering rate is found per entry with a correlated subquery rather
-    /// than loading every rate and matching in memory, so the work stays in
-    /// the database where the index is; the subquery returns every price the
-    /// rate might carry (hourly, its weekend/holiday premiums, daily) at
-    /// once. Which applies is decided afterwards, in memory, because that
-    /// decision needs the holiday calendar, a plain <c>DayOfWeek</c> check,
-    /// and — for daily rates — grouping entries by employee and day, none of
-    /// which translate cleanly into the same query. An entry no rate covers
-    /// still contributes its minutes to <c>UnpricedMinutes</c> and nothing to
-    /// the cost — reported, not silently free.
-    ///
-    /// The holiday calendar is per country, because this company runs sites
-    /// in more than one at once: a date only counts as a holiday for a shift
-    /// whose <see cref="Project.CountryCode"/> matches the calendar row's own.
-    /// A project with no country set never gets the holiday rate — nothing to
-    /// match it against — whatever the calendar says for any country.
-    ///
-    /// The day is taken from the shift's start in UTC, exactly as before this
-    /// premium existed. A shift beginning after midnight local time therefore
-    /// prices — and is weekend/holiday-classified — against the previous day,
-    /// which only matters right at a boundary.
-    /// </remarks>
+    /// <summary>Approved hours per site — priced in <see cref="ProjectLabourPricing"/>, grouped by site here.</summary>
     private async Task<Dictionary<Guid, (int Minutes, decimal Cost, int UnpricedMinutes)>>
         LoadLabourAsync(GetProjectCostsQuery request, CancellationToken cancellationToken)
     {
-        // Keyed by (country, date): sites in different countries do not share
-        // a holiday calendar, so a date only counts as a holiday for a shift
-        // whose project's own CountryCode matches the row it came from.
-        var holidays = (await _context.PublicHolidays
-                .AsNoTracking()
-                .Where(h => h.Date >= request.From && h.Date <= request.To)
-                .Select(h => new { h.CountryCode, h.Date })
-                .ToListAsync(cancellationToken))
-            .Select(h => (h.CountryCode, h.Date))
-            .ToHashSet();
+        var entries = await ProjectLabourPricing.LoadAsync(
+            _context, request.From, request.To, request.ProjectId, cancellationToken);
 
-        var priced = await _context.TimeEntries
-            .AsNoTracking()
-            .Where(t => t.Status == TimeEntryStatus.Approved
-                && t.ProjectId != null
-                && t.EndedAt != null)
-            .Where(t => request.ProjectId == null || t.ProjectId == request.ProjectId)
-            .Where(t => DateOnly.FromDateTime(t.StartedAt) >= request.From
-                && DateOnly.FromDateTime(t.StartedAt) <= request.To)
-            .Select(t => new
-            {
-                t.EmployeeId,
-                ProjectId = t.ProjectId!.Value,
-                ProjectCountryCode = t.Project!.CountryCode,
-                Day = DateOnly.FromDateTime(t.StartedAt),
-                t.WorkType,
-                // Npgsql turns the subtraction into an interval and
-                // TotalMinutes into the epoch extraction; the same shape the
-                // timesheet summary already uses.
-                Minutes = (int)((t.EndedAt!.Value - t.StartedAt).TotalMinutes
-                    - t.BreakMinutes),
-                Rate = _context.EmployeeRates
-                    .Where(r => r.EmployeeId == t.EmployeeId
-                        && r.StartDate <= DateOnly.FromDateTime(t.StartedAt)
-                        && (r.EndDate == null || r.EndDate >= DateOnly.FromDateTime(t.StartedAt)))
-                    .Select(r => new
-                    {
-                        r.RateType,
-                        r.HourlyRate,
-                        r.WeekendHourlyRate,
-                        r.HolidayHourlyRate,
-                        r.OvertimeHourlyRate,
-                        r.TravelHourlyRate,
-                        r.DailyRate
-                    })
-                    .FirstOrDefault()
-            })
-            .ToListAsync(cancellationToken);
-
-        // Hourly-priced entries (and any with no covering rate at all) are
-        // priced per entry, as before. A daily-priced entry — the usual shape
-        // for a subcontractor — is priced once per employee per calendar day
-        // worked, regardless of hours or entry count that day: that is what
-        // "a day's pay" means. A day split across more than one site (rare,
-        // but not impossible for a subcontractor covering two jobs) puts the
-        // whole day's pay on whichever site they logged the most time at,
-        // rather than splitting one flat amount nobody agreed to split.
-        //
-        // WorkType only enters the price for Overtime and Travel — the two
-        // tags that mean something a date can never tell you. Weekend and
-        // PublicHoliday are deliberately not read here even though a shift
-        // could carry that tag too: the calendar already knows which day a
-        // shift fell on, correctly, every time, and a hand-picked tag that
-        // happened to disagree with the actual date would be the wrong
-        // answer, not a more precise one. An Overtime or Travel shift that
-        // also falls on a weekend or holiday is priced as Overtime/Travel,
-        // not stacked with the weekend/holiday premium — one differently
-        // priced hour, not two premiums added together.
-        var hourly = priced
-            .Where(t => t.Rate is null || t.Rate.RateType == RateType.Hourly)
-            .Select(t => new
-            {
-                t.ProjectId,
-                t.Minutes,
-                Cost = t.Rate is null
-                    ? 0m
-                    : (t.WorkType == WorkType.Overtime
-                        ? t.Rate.OvertimeHourlyRate ?? t.Rate.HourlyRate
-                    : t.WorkType == WorkType.Travel
-                        ? t.Rate.TravelHourlyRate ?? t.Rate.HourlyRate
-                    : t.ProjectCountryCode != null && holidays.Contains((t.ProjectCountryCode, t.Day))
-                        ? t.Rate.HolidayHourlyRate ?? t.Rate.HourlyRate
-                    : t.Day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday
-                        ? t.Rate.WeekendHourlyRate ?? t.Rate.HourlyRate
-                    : t.Rate.HourlyRate) is { } rate
-                        ? rate * t.Minutes / 60m
-                        : 0m,
-                Unpriced = t.Rate is null ? t.Minutes : 0
-            });
-
-        var daily = priced
-            .Where(t => t.Rate is not null && t.Rate.RateType == RateType.Daily)
-            .GroupBy(t => new { t.EmployeeId, t.Day })
-            .Select(g => new
-            {
-                ProjectId = g.OrderByDescending(x => x.Minutes).First().ProjectId,
-                Minutes = g.Sum(x => x.Minutes),
-                Cost = g.First().Rate!.DailyRate ?? 0m,
-                Unpriced = 0
-            });
-
-        return hourly.Concat(daily)
+        return entries
             .GroupBy(t => t.ProjectId)
             .ToDictionary(
                 g => g.Key,
                 g => (
                     Minutes: g.Sum(t => t.Minutes),
                     Cost: g.Sum(t => t.Cost),
-                    UnpricedMinutes: g.Sum(t => t.Unpriced)));
+                    UnpricedMinutes: g.Sum(t => t.UnpricedMinutes)));
     }
 
     /// <summary>
@@ -408,74 +281,16 @@ public class GetProjectCostsQueryHandler
         return rows.ToDictionary(r => r.ProjectId, r => r.Amount);
     }
 
-    /// <summary>
-    /// What housing cost each site over the period: the share of every
-    /// accommodation's rent that fell on the people staying there for that
-    /// site. Rent for empty days, one-off charges and stays with no project
-    /// belong to no site and stay out of this figure; they are still on the
-    /// accommodation's own cost page.
-    /// </summary>
+    /// <summary>What housing cost each site — see <see cref="ProjectAccommodationCosts"/>.</summary>
     private async Task<Dictionary<Guid, decimal>> LoadAccommodationCostsAsync(
         GetProjectCostsQuery request,
         CancellationToken cancellationToken)
     {
-        var stays = await _context.AccommodationStays
-            .AsNoTracking()
-            .Where(s => s.ProjectId != null
-                && s.StartDate <= request.To
-                && (s.EndDate == null || s.EndDate >= request.From))
-            .ToListAsync(cancellationToken);
+        var shares = await ProjectAccommodationCosts.LoadAsync(
+            _context, request.From, request.To, request.ProjectId, cancellationToken);
 
-        var totals = new Dictionary<Guid, decimal>();
-
-        if (stays.Count == 0)
-        {
-            return totals;
-        }
-
-        // Rent is split among everyone in the place, so stays without a
-        // project have to be loaded too, or a site would be charged for the
-        // whole flat while a colleague on another job slept in it.
-        var accommodationIds = stays.Select(s => s.AccommodationId).Distinct().ToList();
-
-        var allStays = await _context.AccommodationStays
-            .AsNoTracking()
-            .Where(s => accommodationIds.Contains(s.AccommodationId)
-                && s.StartDate <= request.To
-                && (s.EndDate == null || s.EndDate >= request.From))
-            .ToListAsync(cancellationToken);
-
-        var rates = await _context.AccommodationRates
-            .AsNoTracking()
-            .Where(r => accommodationIds.Contains(r.AccommodationId)
-                && r.StartDate <= request.To
-                && (r.EndDate == null || r.EndDate >= request.From))
-            .ToListAsync(cancellationToken);
-
-        var none = new Dictionary<Guid, string>();
-
-        foreach (var accommodationId in accommodationIds)
-        {
-            var summary = AccommodationCostCalculator.Calculate(
-                rates.Where(r => r.AccommodationId == accommodationId).ToList(),
-                allStays.Where(s => s.AccommodationId == accommodationId).ToList(),
-                request.From,
-                request.To,
-                none,
-                none);
-
-            foreach (var share in summary.ByProject)
-            {
-                if (share.ProjectId is not { } projectId
-                    || (request.ProjectId != null && request.ProjectId != projectId))
-                {
-                    continue;
-                }
-
-                totals[projectId] = totals.GetValueOrDefault(projectId) + share.Cost;
-            }
-        }
-
-        return totals;
+        return shares
+            .GroupBy(x => x.ProjectId)
+            .ToDictionary(g => g.Key, g => g.Sum(x => x.Cost));
     }
 }

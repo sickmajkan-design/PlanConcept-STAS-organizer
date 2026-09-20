@@ -415,6 +415,47 @@ public class CostTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task A_sites_breakdown_itemises_exactly_what_its_report_row_totals()
+    {
+        var (employee, admin) = await SeedRateSetterAsync();
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+
+        await SetRateAsync(admin, employee.Id, 800m, March);
+        await SeedApprovedShiftAsync(employee.Id, project.Id, March.AddDays(3), hours: 8);
+
+        await InScope(async scope =>
+        {
+            scope.Db.GeneralExpenses.Add(new GeneralExpense
+            {
+                Category = GeneralExpenseCategory.Other,
+                Amount = 125m,
+                OccurredOn = March.AddDays(4),
+                ProjectId = project.Id
+            });
+            await scope.Db.SaveChangesAsync();
+        });
+
+        var breakdown = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new Construction.Application.Features.Costs.Queries.GetProjectCosts.GetProjectCostBreakdownQuery
+            {
+                ProjectId = project.Id,
+                From = March,
+                To = March.AddMonths(1)
+            });
+        });
+
+        var person = Assert.Single(breakdown.Labour);
+        Assert.Equal(employee.Id, person.EmployeeId);
+        Assert.Equal(breakdown.Summary.LabourCost, breakdown.Labour.Sum(l => l.Cost));
+        Assert.Equal(6_400m, person.Cost);
+        Assert.Equal(125m, Assert.Single(breakdown.GeneralExpenses).Amount);
+        Assert.Equal(breakdown.Summary.GeneralExpenseCost, breakdown.GeneralExpenses.Sum(e => e.Amount));
+        Assert.Equal(6_525m, breakdown.Summary.Total);
+    }
+
+    [Fact]
     public async Task Hours_no_rate_covers_are_reported_rather_than_treated_as_free()
     {
         // A total that quietly omits somebody looks exactly like one that does

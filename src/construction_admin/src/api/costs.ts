@@ -3,6 +3,7 @@ import { idempotencyHeaders } from './idempotency';
 import { listParams } from './resource';
 import type {
   AccommodationChargeTracking,
+  ProjectCostBreakdown,
   AccommodationRate,
   AccommodationRateInput,
   AccommodationRateSummary,
@@ -152,6 +153,13 @@ export interface AccommodationRateListQuery extends ListQuery {
 
 /** The five ledgers and the three reports. */
 export const costsApi = {
+  projectBreakdown: (projectId: string, period: { from: string; to: string }) =>
+    request<ProjectCostBreakdown>({
+      method: 'GET',
+      url: `/api/v1/costs/projects/${projectId}/breakdown`,
+      params: period,
+    }),
+
   rates: {
     list: (query: EmployeeRateListQuery) =>
       request<PagedList<EmployeeRate>>({

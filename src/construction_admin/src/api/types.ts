@@ -1879,6 +1879,68 @@ export interface ProjectCostRow {
   total: number;
 }
 
+export interface LabourLine {
+  employeeId: string;
+  employeeName: string;
+  minutes: number;
+  cost: number;
+  unpricedMinutes: number;
+}
+
+export interface MaterialLine {
+  id: string;
+  /** `YYYY-MM-DD`. */
+  occurredOn: string;
+  materialName: string;
+  unit: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+  note: string | null;
+}
+
+export interface GeneralExpenseLine {
+  id: string;
+  occurredOn: string;
+  category: GeneralExpenseCategory;
+  amount: number;
+  employeeName: string | null;
+  supplier: string | null;
+  note: string | null;
+}
+
+export interface AccommodationLine {
+  accommodationId: string;
+  accommodationName: string;
+  cost: number;
+}
+
+export interface ManualPayLine {
+  id: string;
+  occurredOn: string;
+  employeeName: string;
+  kind: FinanceEntryKind;
+  hoursWorked: number | null;
+  amount: number;
+  note: string | null;
+}
+
+/** Every cost behind one row of the project cost report, itemised. */
+export interface ProjectCostBreakdown {
+  from: string;
+  to: string;
+  projectId: string;
+  projectName: string;
+  includesLabour: boolean;
+  /** The same figures the report shows for this site. */
+  summary: ProjectCostRow;
+  labour: LabourLine[];
+  materials: MaterialLine[];
+  generalExpenses: GeneralExpenseLine[];
+  accommodation: AccommodationLine[];
+  manualPay: ManualPayLine[];
+}
+
 export interface ProjectCostReport {
   from: string;
   to: string;

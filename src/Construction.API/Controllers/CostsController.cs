@@ -1168,6 +1168,21 @@ public class CostsController : ApiControllerBase
         return Ok(await Mediator.Send(query, cancellationToken));
     }
 
+    /// <summary>Every cost behind one site's row of the report, itemised: people, materials, other costs, housing, manual pay.</summary>
+    [HttpGet("/api/v{version:apiVersion}/costs/projects/{projectId:guid}/breakdown")]
+    [HttpGet("/api/costs/projects/{projectId:guid}/breakdown")]
+    [ProducesResponseType(typeof(ProjectCostBreakdownDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ProjectCostBreakdownDto>> GetProjectCostBreakdown(
+        Guid projectId,
+        [FromQuery] GetProjectCostBreakdownQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query with { ProjectId = projectId }, cancellationToken));
+    }
+
     /// <summary>What the fleet cost, and what it drank.</summary>
     [HttpGet("/api/v{version:apiVersion}/costs/vehicles")]
     [HttpGet("/api/costs/vehicles")]

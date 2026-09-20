@@ -517,6 +517,18 @@ export function useAccommodationRatesSummaryQuery(query: AccommodationRateListQu
   });
 }
 
+/** Every cost behind one site's row of the project report. */
+export function useProjectCostBreakdownQuery(
+  projectId: string | undefined,
+  period: { from: string; to: string },
+) {
+  return useQuery({
+    queryKey: [...costReportKeys.all, 'projectBreakdown', projectId, period.from, period.to],
+    queryFn: () => costsApi.projectBreakdown(projectId!, period),
+    enabled: !!projectId,
+  });
+}
+
 /** One charge's cost to date, projection, monthly trail and who it was for. */
 export function useAccommodationChargeTrackingQuery(id: string | undefined) {
   return useQuery({
