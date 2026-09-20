@@ -1008,6 +1008,20 @@ class AppLocalizationsSr extends AppLocalizations {
   }
 
   @override
+  String get notificationAccommodationAssignedTitle => 'Novi smještaj';
+
+  @override
+  String notificationAccommodationAssignedBody(
+    String accommodationName,
+    String startDate,
+  ) {
+    return 'Smješteni ste na adresi $accommodationName od $startDate.';
+  }
+
+  @override
+  String get notificationTypeAccommodationAssigned => 'Novi smještaj';
+
+  @override
   String get notificationAccommodationContractExpiringTitle =>
       'Ističe ugovor o smještaju';
 

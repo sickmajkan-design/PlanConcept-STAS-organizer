@@ -241,6 +241,17 @@ public static class PushTextResolver
                     $"{vehicleName} ({IsoDate(occurredOn)}) je vraćen: {note}");
             }
 
+            case NotificationType.AccommodationAssigned:
+            {
+                var name = Str("accommodationName");
+                var startDate = Str("startDate");
+                if (name is null || startDate is null) break;
+
+                return (
+                    "Novi smještaj",
+                    $"Smješteni ste na adresi {name} od {IsoDate(startDate)}.");
+            }
+
             case NotificationType.AccommodationContractExpiring:
             {
                 var name = Str("accommodationName");

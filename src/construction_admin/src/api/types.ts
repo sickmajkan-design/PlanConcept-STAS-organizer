@@ -2113,6 +2113,7 @@ export const notificationTypes = [
   'AbsenceDecided',
   'MaterialLowStock',
   'AccommodationContractExpiring',
+  'AccommodationAssigned',
 ] as const;
 
 export type NotificationType = (typeof notificationTypes)[number];

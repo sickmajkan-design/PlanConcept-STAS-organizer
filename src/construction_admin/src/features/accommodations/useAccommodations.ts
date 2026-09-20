@@ -39,8 +39,8 @@ export function useImportAccommodations() {
   );
 }
 
-export function useAccommodationsQuery(query: AccommodationListQuery) {
-  return useResourceList(accommodationKeys, accommodationsApi.list, query);
+export function useAccommodationsQuery(query: AccommodationListQuery, enabled = true) {
+  return useResourceList(accommodationKeys, accommodationsApi.list, query, { enabled });
 }
 
 export function useAccommodationQuery(id: string | undefined) {

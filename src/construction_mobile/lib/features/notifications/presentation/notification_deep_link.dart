@@ -50,6 +50,22 @@ String? deepLinkForData(
   Map<String, dynamic> data, {
   required bool canViewDirectory,
 }) {
+  // What concerns the person's own work needs no directory access, so a
+  // worker's tap always lands somewhere useful.
+  final own = switch (type) {
+    'AccommodationAssigned' => AppRoutes.myHousing,
+    'TimeEntryRejected' || 'ShiftAutoClosed' => AppRoutes.timeEntries,
+    'AbsenceDecided' || 'AbsenceEditProposed' => AppRoutes.absences,
+    'WeeklyReportDue' => AppRoutes.weeklyReports,
+    'BulletinPosted' => AppRoutes.bulletin,
+    'TaskAssigned' || 'DefectAssigned' || 'WorkItemDue' => AppRoutes.workItems,
+    _ => null,
+  };
+
+  if (own != null) {
+    return own;
+  }
+
   if (!canViewDirectory) {
     return null;
   }
@@ -59,6 +75,13 @@ String? deepLinkForData(
       AppRoutes.projectDetail(data['projectId'] as String),
     'EmployeeAssigned' when data['employeeId'] is String =>
       AppRoutes.employeeDetail(data['employeeId'] as String),
+    'VehicleAssigned' when data['vehicleId'] is String =>
+      AppRoutes.vehicleDetail(data['vehicleId'] as String),
+    'ToolAssigned' when data['toolId'] is String =>
+      AppRoutes.toolDetail(data['toolId'] as String),
+    'MaterialLowStock' when data['materialId'] is String =>
+      AppRoutes.materialDetail(data['materialId'] as String),
+    'VehicleExpenseRejected' || 'VehicleExpenseSubmitted' => AppRoutes.vehicleExpenses,
     _ => null,
   };
 }

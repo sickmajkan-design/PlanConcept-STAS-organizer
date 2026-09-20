@@ -227,6 +227,16 @@ export function resolveNotificationText(t: T, notification: Notification): Notif
         body: text('notificationDefectReportedBody', { reporterName: d.reporterName, title: d.title }),
       };
 
+    case 'AccommodationAssigned':
+      if (!d.accommodationName || !d.startDate) return fallback;
+      return {
+        title: text('notificationAccommodationAssignedTitle'),
+        body: text('notificationAccommodationAssignedBody', {
+          accommodationName: d.accommodationName,
+          startDate: isoDate(d.startDate),
+        }),
+      };
+
     case 'AccommodationContractExpiring':
       if (!d.accommodationName || !d.contractEnd) return fallback;
       return {

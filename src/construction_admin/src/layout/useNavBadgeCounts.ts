@@ -1,6 +1,7 @@
 import type { User } from '../api/types';
 import { useVehicleExpensesQuery } from '../features/costs/useCosts';
 import { useMaterialsQuery } from '../features/materials/useMaterials';
+import { useAccommodationsQuery } from '../features/accommodations/useAccommodations';
 import { useAbsencesQuery } from '../features/absences/useAbsences';
 import { useExpiringDocumentsQuery } from '../features/attachments/useAttachments';
 import { useTimeEntriesQuery } from '../features/timeEntries/useTimeEntries';
@@ -99,6 +100,11 @@ export function useNavBadgeCounts(user: User | null | undefined): Record<string,
   // Materials under their reorder level: only the people who order stock.
   const lowStockQuery = useMaterialsQuery({ ...COUNT_ONLY_PAGE, lowStockOnly: true }, showVehicleExpenses);
 
+  // Housing contracts ending within a month (or already over): the same
+  // number the notification of the same name announces.
+  const contractsQuery = useAccommodationsQuery({ ...COUNT_ONLY_PAGE, contractEndsWithinDays: 30 }, showDocuments);
+  const contractsCount = showDocuments ? (contractsQuery.data?.totalCount ?? 0) : 0;
+
   const documentsCount = showDocuments ? (documentsQuery.data?.length ?? 0) : 0;
   const absencesCount = showAbsences ? (absencesQuery.data?.totalCount ?? 0) : 0;
   const workItemsCount = showWorkItems
@@ -113,7 +119,8 @@ export function useNavBadgeCounts(user: User | null | undefined): Record<string,
   return {
     admin: documentsCount,
     work: absencesCount + workItemsCount + timeEntriesCount,
-    directory: lowStockCount,
+    directory: lowStockCount + contractsCount,
+    [paths.accommodations]: contractsCount,
     [paths.materials]: lowStockCount,
     costs: vehicleExpensesCount,
     [paths.costRecords]: vehicleExpensesCount,

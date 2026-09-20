@@ -278,6 +278,20 @@ LocalizedNotificationText resolveNotificationText(
         );
       }
 
+    case 'AccommodationAssigned':
+      {
+        final name = str('accommodationName');
+        final startDate = str('startDate');
+        if (name == null || startDate == null) {
+          return fallback;
+        }
+
+        return LocalizedNotificationText(
+          title: l10n.notificationAccommodationAssignedTitle,
+          body: l10n.notificationAccommodationAssignedBody(name, _isoDate(startDate)),
+        );
+      }
+
     case 'AccommodationContractExpiring':
       {
         final name = str('accommodationName');

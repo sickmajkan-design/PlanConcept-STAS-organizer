@@ -574,6 +574,12 @@
       "title": { "type": "String" }
     }
   },
+  "notificationAccommodationAssignedTitle": "New accommodation",
+  "notificationAccommodationAssignedBody": "You have been housed at {accommodationName} from {startDate}.",
+  "@notificationAccommodationAssignedBody": {
+    "placeholders": { "accommodationName": { "type": "String" }, "startDate": { "type": "String" } }
+  },
+  "notificationTypeAccommodationAssigned": "New accommodation",
   "notificationAccommodationContractExpiringTitle": "Housing contract ending",
   "notificationAccommodationContractExpiringBody": "The contract for {accommodationName} ends on {contractEnd}.",
   "@notificationAccommodationContractExpiringBody": {

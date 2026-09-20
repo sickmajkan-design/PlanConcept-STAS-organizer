@@ -1,5 +1,6 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
+using Construction.Domain.Enums;
 using Construction.Domain.Entities;
 using FluentValidation;
 using MediatR;
@@ -111,13 +112,16 @@ public class AddAccommodationStayCommandHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly INotificationService _notifications;
 
     public AddAccommodationStayCommandHandler(
         IApplicationDbContext context,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        INotificationService notifications)
     {
         _context = context;
         _dateTimeProvider = dateTimeProvider;
+        _notifications = notifications;
     }
 
     public async Task<AccommodationStayDto> Handle(
@@ -158,11 +162,48 @@ public class AddAccommodationStayCommandHandler
         _context.AccommodationStays.Add(stay);
         await _context.SaveChangesAsync(cancellationToken);
 
+        await NotifyPersonAsync(stay, cancellationToken);
+
         return await _context.AccommodationStays
             .AsNoTracking()
             .Where(s => s.Id == stay.Id)
             .Select(AccommodationStayMapping.Projection)
             .FirstAsync(cancellationToken);
+    }
+
+    /// <summary>Tells the person where they now live; a person with no account has nobody to tell.</summary>
+    private async Task NotifyPersonAsync(AccommodationStay stay, CancellationToken cancellationToken)
+    {
+        var userIds = await _context.Users
+            .Where(u => u.IsActive && u.EmployeeId == stay.EmployeeId)
+            .Select(u => u.Id)
+            .ToListAsync(cancellationToken);
+
+        if (userIds.Count == 0)
+        {
+            return;
+        }
+
+        var place = await _context.Accommodations
+            .AsNoTracking()
+            .Where(a => a.Id == stay.AccommodationId)
+            .Select(a => new { a.Name, a.Address })
+            .FirstAsync(cancellationToken);
+
+        var name = string.IsNullOrWhiteSpace(place.Name) ? place.Address : place.Name;
+
+        await _notifications.NotifyUsersAsync(
+            userIds,
+            NotificationType.AccommodationAssigned,
+            "New accommodation",
+            $"You have been housed at {name} from {stay.StartDate:dd.MM.yyyy}.",
+            new Dictionary<string, string>
+            {
+                ["accommodationId"] = stay.AccommodationId.ToString(),
+                ["accommodationName"] = name,
+                ["startDate"] = stay.StartDate.ToString("yyyy-MM-dd")
+            },
+            cancellationToken: cancellationToken);
     }
 }
 

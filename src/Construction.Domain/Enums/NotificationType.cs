@@ -70,5 +70,8 @@ public enum NotificationType
     MaterialLowStock = 26,
 
     /// <summary>A housing contract is about to end, or already has.</summary>
-    AccommodationContractExpiring = 27
+    AccommodationContractExpiring = 27,
+
+    /// <summary>The person was put into an accommodation.</summary>
+    AccommodationAssigned = 28
 }

@@ -1010,6 +1010,20 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get notificationAccommodationAssignedTitle => 'New accommodation';
+
+  @override
+  String notificationAccommodationAssignedBody(
+    String accommodationName,
+    String startDate,
+  ) {
+    return 'You have been housed at $accommodationName from $startDate.';
+  }
+
+  @override
+  String get notificationTypeAccommodationAssigned => 'New accommodation';
+
+  @override
   String get notificationAccommodationContractExpiringTitle =>
       'Housing contract ending';
 

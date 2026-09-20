@@ -17,6 +17,8 @@ export interface AccommodationListQuery extends ListQuery {
   type?: AccommodationType;
   /** True: only the ones still rented. False: only the ones given up. Omit for both. */
   isActive?: boolean;
+  /** Only rented places whose contract ends within this many days (or already has). */
+  contractEndsWithinDays?: number;
 }
 
 export interface AccommodationStayListQuery extends ListQuery {

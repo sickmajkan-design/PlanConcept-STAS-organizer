@@ -28,6 +28,9 @@ public record GetAccommodationsQuery : ISortablePagedQuery, IRequest<PagedList<A
     /// <summary>True: only the ones still rented. False: only the ones given up. Omit for both.</summary>
     public bool? IsActive { get; init; }
 
+    /// <summary>Only rented places whose contract ends within this many days (or already has).</summary>
+    public int? ContractEndsWithinDays { get; init; }
+
     public string? SortBy { get; init; }
 
     public bool SortDescending { get; init; }
@@ -83,6 +86,12 @@ public class GetAccommodationsQueryHandler
         }
 
         var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+
+        if (request.ContractEndsWithinDays is { } withinDays)
+        {
+            var horizon = today.AddDays(withinDays);
+            query = query.Where(a => a.IsActive && a.ContractEnd != null && a.ContractEnd <= horizon);
+        }
 
         query = ApplySorting(query, request.SortBy, request.SortDescending, today);
 

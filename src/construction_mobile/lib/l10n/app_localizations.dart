@@ -1847,6 +1847,27 @@ abstract class AppLocalizations {
   /// **'{reporterName} reported: {title}'**
   String notificationDefectReportedBody(String reporterName, String title);
 
+  /// No description provided for @notificationAccommodationAssignedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New accommodation'**
+  String get notificationAccommodationAssignedTitle;
+
+  /// No description provided for @notificationAccommodationAssignedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You have been housed at {accommodationName} from {startDate}.'**
+  String notificationAccommodationAssignedBody(
+    String accommodationName,
+    String startDate,
+  );
+
+  /// No description provided for @notificationTypeAccommodationAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'New accommodation'**
+  String get notificationTypeAccommodationAssigned;
+
   /// No description provided for @notificationAccommodationContractExpiringTitle.
   ///
   /// In en, this message translates to:
