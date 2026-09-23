@@ -12,7 +12,17 @@ public class AttachmentConfiguration : IEntityTypeConfiguration<Attachment>
 
         builder.HasKey(a => a.Id);
 
-        builder.HasQueryFilter(a => !a.IsDeleted);
+        // A document goes when the record it hangs off is deleted — otherwise a
+        // deleted employee's certificate keeps counting as expiring, with nobody
+        // left to renew it. Navigating to a soft-deleted owner already yields
+        // null (its own filter applies), so "has an owner id but no owner" is
+        // exactly "the owner is gone".
+        builder.HasQueryFilter(a =>
+            !a.IsDeleted
+            && (a.EmployeeId == null || a.Employee != null)
+            && (a.ProjectId == null || a.Project != null)
+            && (a.VehicleId == null || a.Vehicle != null)
+            && (a.ToolId == null || a.Tool != null));
 
         builder.Property(a => a.FileName)
             .HasMaxLength(512)

@@ -18,7 +18,7 @@ export const notificationKeys = createResourceKeys<NotificationListQuery>('notif
 export const unreadCountKey = ['notifications', 'unread-count'] as const;
 
 /** How often the badge asks again. */
-const UNREAD_POLL_MS = 60_000;
+const UNREAD_POLL_MS = 30_000;
 
 export function useNotificationsQuery(query: NotificationListQuery) {
   return useResourceList(notificationKeys, notificationsApi.list, query);

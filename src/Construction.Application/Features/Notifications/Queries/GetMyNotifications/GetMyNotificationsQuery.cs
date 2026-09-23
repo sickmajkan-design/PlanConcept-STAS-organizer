@@ -3,6 +3,7 @@ using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.Notifications.Models;
 using FluentValidation;
+using Construction.Application.Features.Maintenance.Commands.PurgeOrphanedNotifications;
 using MediatR;
 
 namespace Construction.Application.Features.Notifications.Queries.GetMyNotifications;
@@ -30,13 +31,16 @@ public class GetMyNotificationsQueryHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly ISender _sender;
 
     public GetMyNotificationsQueryHandler(
         IApplicationDbContext context,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        ISender sender)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _sender = sender;
     }
 
     public async Task<PagedList<NotificationDto>> Handle(
@@ -45,6 +49,10 @@ public class GetMyNotificationsQueryHandler
     {
         var userId = _currentUserService.UserId
             ?? throw new UnauthorizedException("User is not authenticated.");
+
+        // Drop notifications whose record was deleted first, so the inbox and the
+        // badge never show something that points at nothing.
+        await PurgeOrphanedNotificationsCommand.TryRunAsync(_sender, cancellationToken);
 
         var query = _context.Notifications
             .Where(n => n.UserId == userId);

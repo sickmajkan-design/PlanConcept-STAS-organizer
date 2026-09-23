@@ -1,8 +1,10 @@
 using Construction.API.Authorization;
 using Construction.Application.Features.Attachments;
 using Construction.Application.Features.Attachments.Commands.DeleteAttachment;
+using Construction.Application.Features.Attachments.Commands.UpdateAttachment;
 using Construction.Application.Features.Attachments.Commands.UploadAttachment;
 using Construction.Application.Features.Attachments.Models;
+using Construction.Application.Features.Attachments.Queries.ExportAttachments;
 using Construction.Application.Features.Attachments.Queries.GetAttachmentContent;
 using Construction.Application.Features.Attachments.Queries.GetAttachments;
 using Construction.Application.Features.Attachments.Queries.GetExpiringDocuments;
@@ -64,6 +66,25 @@ public class AttachmentsController : ApiControllerBase
         return File(file.Content, file.ContentType, file.FileName);
     }
 
+    /// <summary>Downloads the chosen documents as one ZIP, filed by owner and category.</summary>
+    /// <remarks>
+    /// A POST because the ids are a list and a long query string is a poor place
+    /// for it. Nothing is changed. Each document is read-checked individually.
+    /// </remarks>
+    [HttpPost("export")]
+    [Authorize(Policy = Policies.AllEmployees)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Export(
+        [FromBody] ExportAttachmentsRequest request,
+        CancellationToken cancellationToken)
+    {
+        var archive = await Mediator.Send(
+            new ExportAttachmentsQuery(request.Ids ?? []), cancellationToken);
+
+        return File(archive.Content, "application/zip", archive.FileName);
+    }
+
     /// <summary>Attaches a file to a record.</summary>
     /// <remarks>
     /// Multipart rather than JSON, and the stream is handed to storage as it
@@ -107,6 +128,20 @@ public class AttachmentsController : ApiControllerBase
         return CreatedAtAction(nameof(GetContent), new { id = attachment.Id }, attachment);
     }
 
+    /// <summary>Edits a document's type, note, expiry and retention date.</summary>
+    [HttpPut("{id:guid}")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(AttachmentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<AttachmentDto>> Update(
+        Guid id,
+        [FromBody] UpdateAttachmentCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
+    }
+
     /// <summary>Removes an attachment and the file behind it.</summary>
     [HttpDelete("{id:guid}")]
     [Authorize(Policy = Policies.AdminAndAbove)]
@@ -117,6 +152,12 @@ public class AttachmentsController : ApiControllerBase
         await Mediator.Send(new DeleteAttachmentCommand(id), cancellationToken);
         return NoContent();
     }
+}
+
+/// <summary>The documents to pack into an export.</summary>
+public class ExportAttachmentsRequest
+{
+    public List<Guid>? Ids { get; set; }
 }
 
 /// <summary>

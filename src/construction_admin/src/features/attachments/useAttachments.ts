@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import {
   attachmentsApi,
   type AttachmentListQuery,
+  type UpdateAttachmentInput,
   type UploadAttachmentInput,
 } from '../../api/attachments';
 import type { AttachmentOwnerType } from '../../api/types';
@@ -49,6 +50,13 @@ export function useExpiringDocumentsQuery(
 export function useUploadAttachment() {
   return useResourceMutation(
     (input: UploadAttachmentInput) => attachmentsApi.upload(input),
+    attachmentCaches,
+  );
+}
+
+export function useUpdateAttachment() {
+  return useResourceMutation(
+    (input: UpdateAttachmentInput) => attachmentsApi.update(input),
     attachmentCaches,
   );
 }

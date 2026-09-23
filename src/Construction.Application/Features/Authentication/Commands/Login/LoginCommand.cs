@@ -2,10 +2,12 @@ using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Authentication.Models;
 using Construction.Application.Features.Authentication.Services;
+using Construction.Application.Features.Maintenance.Commands.PurgeOrphanedNotifications;
 using Construction.Domain.Entities;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Construction.Application.Features.Authentication.Commands.Login;
 
@@ -46,17 +48,23 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
     private readonly IPasswordHasher _passwordHasher;
     private readonly IAuthTokenService _authTokenService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ISender _sender;
+    private readonly ILogger<LoginCommandHandler> _logger;
 
     public LoginCommandHandler(
         IApplicationDbContext context,
         IPasswordHasher passwordHasher,
         IAuthTokenService authTokenService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        ISender sender,
+        ILogger<LoginCommandHandler> logger)
     {
         _context = context;
         _passwordHasher = passwordHasher;
         _authTokenService = authTokenService;
         _dateTimeProvider = dateTimeProvider;
+        _sender = sender;
+        _logger = logger;
     }
 
     public async Task<AuthResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -110,7 +118,27 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
 
         await _context.SaveChangesAsync(cancellationToken);
 
+        await ReconcileNotificationsAsync(cancellationToken);
+
         return response;
+    }
+
+    /// <summary>
+    /// Drops notifications whose record has since been deleted, so the inbox and
+    /// its badge are right from the first screen after signing in rather than
+    /// after the next periodic sweep. Best effort: a failure here must never
+    /// stop someone from logging in.
+    /// </summary>
+    private async Task ReconcileNotificationsAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _sender.Send(new PurgeOrphanedNotificationsCommand(), cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            _logger.LogWarning(exception, "Notification reconciliation at login failed.");
+        }
     }
 
     /// <summary>

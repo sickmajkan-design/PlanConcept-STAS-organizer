@@ -3,7 +3,7 @@ import {
   DescriptionOutlined,
   DownloadOutlined,
   UploadFileOutlined,
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -16,27 +16,28 @@ import {
   Stack,
   Tooltip,
   Typography,
-} from '@mui/material';
-import { useEffect, useState } from 'react';
+} from "@mui/material";
+import { useEffect, useState } from "react";
 
-import { attachmentsApi } from '../api/attachments';
+import { attachmentsApi } from "../api/attachments";
 import type {
   Attachment,
   AttachmentCategory,
   AttachmentOwnerType,
-} from '../api/types';
+} from "../api/types";
 import {
   useAttachmentsQuery,
   useDeleteAttachment,
-} from '../features/attachments/useAttachments';
-import { useDeleteWithConfirm } from '../hooks/useDeleteWithConfirm';
-import { useEnumLabel } from '../i18n/enumLabels';
-import { useT } from '../i18n/useI18n';
-import { formatDate } from '../utils/formatting';
-import { AttachmentPreviewDialog } from './AttachmentPreviewDialog';
-import { ConfirmDialog } from './ConfirmDialog';
-import { ErrorState } from './ErrorState';
-import { UploadAttachmentDialog } from './UploadAttachmentDialog';
+} from "../features/attachments/useAttachments";
+import { useDeleteWithConfirm } from "../hooks/useDeleteWithConfirm";
+import { useEnumLabel } from "../i18n/enumLabels";
+import { useT } from "../i18n/useI18n";
+import { formatDate } from "../utils/formatting";
+import { AttachmentPreviewDialog } from "./AttachmentPreviewDialog";
+import { ConfirmDialog } from "./ConfirmDialog";
+import { ExportZipButton } from "./ExportZipButton";
+import { ErrorState } from "./ErrorState";
+import { UploadAttachmentDialog } from "./UploadAttachmentDialog";
 
 /** How soon counts as "expiring soon" on a badge. */
 const SOON_DAYS = 30;
@@ -101,25 +102,30 @@ export function AttachmentList({
     <Box>
       <Stack
         direction="row"
-        sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1 }}
+        sx={{ alignItems: "center", justifyContent: "space-between", mb: 1 }}
       >
         <Typography variant="subtitle2" color="text.secondary">
-          {t('attachments.title')}
+          {t("attachments.title")}
         </Typography>
-        {canUpload && (
-          <Button
-            size="small"
-            startIcon={<UploadFileOutlined />}
-            onClick={() => setUploadOpen(true)}
-          >
-            {t('attachments.add')}
-          </Button>
-        )}
+        <Stack direction="row" spacing={1}>
+          {attachments.length > 1 && (
+            <ExportZipButton ids={attachments.map((a) => a.id)} />
+          )}
+          {canUpload && (
+            <Button
+              size="small"
+              startIcon={<UploadFileOutlined />}
+              onClick={() => setUploadOpen(true)}
+            >
+              {t("attachments.add")}
+            </Button>
+          )}
+        </Stack>
       </Stack>
 
       {attachments.length === 0 ? (
         <Typography variant="body2" color="text.secondary">
-          {t('attachments.empty')}
+          {t("attachments.empty")}
         </Typography>
       ) : (
         <List dense disablePadding>
@@ -128,7 +134,7 @@ export function AttachmentList({
               key={attachment.id}
               divider
               onDoubleClick={() => setPreviewing(attachment)}
-              sx={{ cursor: 'pointer' }}
+              sx={{ cursor: "pointer" }}
               secondaryAction={
                 <Stack direction="row" spacing={0.5}>
                   <DownloadButton attachment={attachment} />
@@ -136,10 +142,10 @@ export function AttachmentList({
                     <Tooltip
                       title={
                         isRetained(attachment.retainUntil)
-                          ? t('attachments.retainedCannotDelete', {
+                          ? t("attachments.retainedCannotDelete", {
                               date: formatDate(attachment.retainUntil!),
                             })
-                          : t('common.delete')
+                          : t("common.delete")
                       }
                     >
                       <span>
@@ -157,7 +163,7 @@ export function AttachmentList({
               }
             >
               <ListItemIcon sx={{ minWidth: 36 }}>
-                {attachment.contentType.startsWith('image/') ? (
+                {attachment.contentType.startsWith("image/") ? (
                   <AttachmentThumbnail attachment={attachment} />
                 ) : (
                   <DescriptionOutlined fontSize="small" />
@@ -165,19 +171,23 @@ export function AttachmentList({
               </ListItemIcon>
               <ListItemText
                 primary={
-                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{ alignItems: "center" }}
+                  >
                     <span>{attachment.fileName}</span>
                     <ExpiryChip expiresAt={attachment.expiresAt} />
                     <RetentionChip retainUntil={attachment.retainUntil} />
                   </Stack>
                 }
                 secondary={[
-                  enumLabel('attachmentCategory', attachment.category),
+                  enumLabel("attachmentCategory", attachment.category),
                   formatSize(attachment.sizeBytes),
                   attachment.description,
                 ]
                   .filter(Boolean)
-                  .join(' · ')}
+                  .join(" · ")}
               />
             </ListItem>
           ))}
@@ -199,13 +209,13 @@ export function AttachmentList({
 
       <ConfirmDialog
         open={!!remove.pending}
-        title={t('attachments.deleteTitle')}
+        title={t("attachments.deleteTitle")}
         description={
           remove.pending
-            ? t('attachments.deleteBody', { name: remove.pending.fileName })
-            : ''
+            ? t("attachments.deleteBody", { name: remove.pending.fileName })
+            : ""
         }
-        confirmLabel={t('common.delete')}
+        confirmLabel={t("common.delete")}
         destructive
         loading={remove.isDeleting}
         onConfirm={remove.confirm}
@@ -261,7 +271,7 @@ function AttachmentThumbnail({ attachment }: { attachment: Attachment }) {
         width: 32,
         height: 32,
         borderRadius: 0.5,
-        objectFit: 'cover',
+        objectFit: "cover",
       }}
     />
   );
@@ -282,7 +292,7 @@ function ExpiryChip({ expiresAt }: { expiresAt: string | null }) {
       <Chip
         size="small"
         color="error"
-        label={t('attachments.expiredOn', { date: formatDate(expiresAt) })}
+        label={t("attachments.expiredOn", { date: formatDate(expiresAt) })}
       />
     );
   }
@@ -292,7 +302,7 @@ function ExpiryChip({ expiresAt }: { expiresAt: string | null }) {
       <Chip
         size="small"
         color="warning"
-        label={t('attachments.expiresOn', { date: formatDate(expiresAt) })}
+        label={t("attachments.expiresOn", { date: formatDate(expiresAt) })}
       />
     );
   }
@@ -301,7 +311,7 @@ function ExpiryChip({ expiresAt }: { expiresAt: string | null }) {
     <Chip
       size="small"
       variant="outlined"
-      label={t('attachments.expiresOn', { date: formatDate(expiresAt) })}
+      label={t("attachments.expiresOn", { date: formatDate(expiresAt) })}
     />
   );
 }
@@ -326,7 +336,9 @@ function RetentionChip({ retainUntil }: { retainUntil: string | null }) {
         size="small"
         color="success"
         variant="outlined"
-        label={t('attachments.retentionEnded', { date: formatDate(retainUntil) })}
+        label={t("attachments.retentionEnded", {
+          date: formatDate(retainUntil),
+        })}
       />
     );
   }
@@ -336,7 +348,7 @@ function RetentionChip({ retainUntil }: { retainUntil: string | null }) {
       size="small"
       color="info"
       variant="outlined"
-      label={t('attachments.retainedUntil', { date: formatDate(retainUntil) })}
+      label={t("attachments.retainedUntil", { date: formatDate(retainUntil) })}
     />
   );
 }
@@ -361,7 +373,7 @@ function DownloadButton({ attachment }: { attachment: Attachment }) {
     try {
       url = await attachmentsApi.objectUrl(attachment.id);
 
-      const anchor = document.createElement('a');
+      const anchor = document.createElement("a");
       anchor.href = url;
       anchor.download = attachment.fileName;
       anchor.click();
@@ -375,9 +387,13 @@ function DownloadButton({ attachment }: { attachment: Attachment }) {
   };
 
   return (
-    <Tooltip title={t('attachments.download')}>
+    <Tooltip title={t("attachments.download")}>
       <span>
-        <IconButton size="small" disabled={busy} onClick={() => void download()}>
+        <IconButton
+          size="small"
+          disabled={busy}
+          onClick={() => void download()}
+        >
           <DownloadOutlined fontSize="small" />
         </IconButton>
       </span>

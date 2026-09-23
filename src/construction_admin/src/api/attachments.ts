@@ -25,6 +25,16 @@ export interface UploadAttachmentInput {
   retainUntil?: string | null;
 }
 
+export interface UpdateAttachmentInput {
+  id: string;
+  category: AttachmentCategory;
+  description: string | null;
+  /** `YYYY-MM-DD`, or null for a document that does not lapse. */
+  expiresAt: string | null;
+  /** `YYYY-MM-DD`, or null when no retention applies. */
+  retainUntil: string | null;
+}
+
 /** Mirrors the API's AttachmentRules, so the picker and the limits agree. */
 export const MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024;
 
@@ -83,6 +93,18 @@ export const attachmentsApi = {
     });
   },
 
+  update: (input: UpdateAttachmentInput) =>
+    request<Attachment>({
+      method: 'PUT',
+      url: `/api/v1/attachments/${input.id}`,
+      data: {
+        category: input.category,
+        description: input.description,
+        expiresAt: input.expiresAt,
+        retainUntil: input.retainUntil,
+      },
+    }),
+
   remove: (id: string) =>
     request<void>({ method: 'DELETE', url: `/api/v1/attachments/${id}` }),
 
@@ -114,6 +136,31 @@ export const attachmentsApi = {
    * tell "the file is gone from storage" apart from "we cannot render this
    * format" needs the real status code, not a swallowed exception.
    */
+  /**
+   * Several documents as one ZIP, filed by owner and category. Which of them the
+   * caller may read is decided per document on the server.
+   */
+  exportZip: async (ids: readonly string[]): Promise<{ blob: Blob; fileName: string }> => {
+    try {
+      const response = await apiClient.request<Blob>({
+        method: 'POST',
+        url: '/api/v1/attachments/export',
+        data: { ids },
+        responseType: 'blob',
+      });
+
+      const disposition = String(response.headers['content-disposition'] ?? '');
+      const match = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(disposition);
+
+      return {
+        blob: response.data,
+        fileName: match?.[1] ? decodeURIComponent(match[1]) : 'dokumenti.zip',
+      };
+    } catch (error) {
+      throw toApiError(error);
+    }
+  },
+
   blob: async (id: string): Promise<Blob> => {
     try {
       const response = await apiClient.request<Blob>({

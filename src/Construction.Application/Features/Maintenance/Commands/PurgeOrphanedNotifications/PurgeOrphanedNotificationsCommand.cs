@@ -32,52 +32,41 @@ namespace Construction.Application.Features.Maintenance.Commands.PurgeOrphanedNo
 /// employee is exactly as stale as one about a physically deleted one.
 /// </para>
 /// </remarks>
-public record PurgeOrphanedNotificationsCommand : IRequest<int>;
+public record PurgeOrphanedNotificationsCommand : IRequest<int>
+{
+    /// <summary>
+    /// Runs the sweep for a caller that only wants a fresh view: best effort,
+    /// so a failure here never breaks the request that asked for it.
+    /// </summary>
+    public static async Task TryRunAsync(ISender sender, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await sender.Send(new PurgeOrphanedNotificationsCommand(), cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // The inbox is still correct as of the last sweep.
+        }
+    }
+}
 
 public class PurgeOrphanedNotificationsCommandHandler
     : IRequestHandler<PurgeOrphanedNotificationsCommand, int>
 {
     /// <summary>
-    /// The single id inside each type's <c>DataJson</c> that decides whether
-    /// the notification still points at something real. A few types carry a
-    /// second id alongside this one (e.g. <c>ClockIn</c>'s own
-    /// notifications also record a project) — only the one the frontend's
-    /// deep-link resolver actually navigates to is checked here, because
-    /// that is the one whose absence is what "this notification is broken"
-    /// means in practice.
+    /// Every id a notification's <c>DataJson</c> can point at. A notification is
+    /// stale as soon as <em>any</em> of them refers to a record that is gone —
+    /// "new project assigned" carries both a project and the employee it was
+    /// sent about, and deleting either one makes it wrong. Types with no
+    /// reference at all (announcements, direct messages) have none of these keys
+    /// and are never touched.
     /// </summary>
-    private static readonly IReadOnlyDictionary<NotificationType, string> ReferenceKeyByType =
-        new Dictionary<NotificationType, string>
-        {
-            [NotificationType.ProjectAssigned] = "projectId",
-            [NotificationType.WeeklyReportDue] = "projectId",
-            [NotificationType.EmployeeAssigned] = "employeeId",
-            [NotificationType.EmployeeClockedIn] = "employeeId",
-            [NotificationType.EmployeeClockedOut] = "employeeId",
-            [NotificationType.UnassignedProjectClockIn] = "employeeId",
-            [NotificationType.ClockInLocationMismatch] = "employeeId",
-            [NotificationType.VehicleAssigned] = "vehicleId",
-            [NotificationType.ToolAssigned] = "toolId",
-            [NotificationType.DocumentExpiring] = "attachmentId",
-            [NotificationType.DocumentRetentionEnded] = "attachmentId",
-            [NotificationType.TaskAssigned] = "workItemId",
-            [NotificationType.DefectAssigned] = "workItemId",
-            [NotificationType.DefectReported] = "workItemId",
-            [NotificationType.WorkItemDue] = "workItemId",
-            [NotificationType.ShiftAutoClosed] = "timeEntryId",
-            [NotificationType.BulletinPosted] = "bulletinPostId",
-            [NotificationType.AbsenceEditProposed] = "absenceId",
-            [NotificationType.AbsenceRequested] = "absenceId",
-            [NotificationType.AbsenceDecided] = "absenceId",
-            [NotificationType.MaterialLowStock] = "materialId",
-            [NotificationType.AccommodationContractExpiring] = "accommodationId",
-            [NotificationType.AccommodationAssigned] = "accommodationId",
-
-            // Deliberately absent: GeneralAnnouncement and DirectMessage carry no
-            // entity reference at all (free text), and VehicleExpenseSubmitted/
-            // Rejected and TimeEntryRejected route to a list page rather than one
-            // record, so there is no single id whose disappearance makes them stale.
-        };
+    private static readonly string[] ReferenceKeys =
+    [
+        "projectId", "employeeId", "vehicleId", "toolId", "attachmentId", "workItemId",
+        "timeEntryId", "bulletinPostId", "absenceId", "materialId", "accommodationId",
+    ];
 
     private readonly IApplicationDbContext _context;
 
@@ -90,43 +79,28 @@ public class PurgeOrphanedNotificationsCommandHandler
         PurgeOrphanedNotificationsCommand request,
         CancellationToken cancellationToken)
     {
-        var checkableTypes = ReferenceKeyByType.Keys.ToList();
-
         var candidates = await _context.Notifications
-            .Where(n => n.DataJson != null && checkableTypes.Contains(n.Type))
-            .Select(n => new { n.Id, n.Type, n.DataJson })
+            .Where(n => n.DataJson != null)
+            .Select(n => new { n.Id, n.DataJson })
             .ToListAsync(cancellationToken);
 
-        if (candidates.Count == 0)
-        {
-            return 0;
-        }
-
-        // One (notification id, reference key, referenced id) tuple per
-        // candidate, so each notification is judged against the same key it
-        // was grouped and checked by below.
+        // (notification id, reference key, referenced id) — one per id found.
         var references = new List<(Guid NotificationId, string Key, Guid RefId)>();
         var idsByKey = new Dictionary<string, HashSet<Guid>>();
 
         foreach (var candidate in candidates)
         {
-            var key = ReferenceKeyByType[candidate.Type];
-
-            if (!TryExtractId(candidate.DataJson!, key, out var refId))
+            foreach (var (key, refId) in ExtractReferences(candidate.DataJson!))
             {
-                // Missing or unparseable — nothing to check this one against,
-                // so it is left alone rather than guessed at.
-                continue;
+                references.Add((candidate.Id, key, refId));
+
+                if (!idsByKey.TryGetValue(key, out var set))
+                {
+                    idsByKey[key] = set = [];
+                }
+
+                set.Add(refId);
             }
-
-            references.Add((candidate.Id, key, refId));
-
-            if (!idsByKey.TryGetValue(key, out var set))
-            {
-                idsByKey[key] = set = [];
-            }
-
-            set.Add(refId);
         }
 
         if (references.Count == 0)
@@ -156,21 +130,29 @@ public class PurgeOrphanedNotificationsCommandHandler
             .ExecuteDeleteAsync(cancellationToken);
     }
 
-    private static bool TryExtractId(string dataJson, string key, out Guid id)
+    private static IEnumerable<(string Key, Guid Id)> ExtractReferences(string dataJson)
     {
-        id = Guid.Empty;
+        var found = new List<(string, Guid)>();
 
         try
         {
             using var document = JsonDocument.Parse(dataJson);
 
-            return document.RootElement.TryGetProperty(key, out var property)
-                && Guid.TryParse(property.GetString(), out id);
+            foreach (var key in ReferenceKeys)
+            {
+                if (document.RootElement.TryGetProperty(key, out var property)
+                    && Guid.TryParse(property.GetString(), out var id))
+                {
+                    found.Add((key, id));
+                }
+            }
         }
         catch (JsonException)
         {
-            return false;
+            // Unparseable — nothing to check it against, so it is left alone.
         }
+
+        return found;
     }
 
     /// <summary>

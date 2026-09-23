@@ -12,7 +12,9 @@ public class TimeEntryConfiguration : IEntityTypeConfiguration<TimeEntry>
 
         builder.HasKey(t => t.Id);
 
-        builder.HasQueryFilter(t => !t.IsDeleted);
+        // Hours of a deleted employee disappear with them — from lists, totals
+        // and the pending-review badge alike.
+        builder.HasQueryFilter(t => !t.IsDeleted && !t.Employee.IsDeleted);
 
         // Computed from StartedAt, EndedAt and BreakMinutes; nothing to store.
         builder.Ignore(t => t.WorkedMinutes);

@@ -19,7 +19,7 @@ namespace Construction.API.BackgroundServices;
 /// before, now pointing at nothing. This sweep is what actually notices.
 /// </para>
 /// <para>
-/// Two hours rather than daily: the table this reads is small (one row per
+/// Fifteen minutes rather than daily: the table this reads is small (one row per
 /// notification sent, not one per GPS ping), so a frequent, cheap pass costs
 /// nothing, and a stale notification sitting in someone's inbox for the rest
 /// of the day is exactly the complaint this exists to fix.
@@ -34,7 +34,7 @@ namespace Construction.API.BackgroundServices;
 /// </remarks>
 public class NotificationReconciliationService : BackgroundService
 {
-    private static readonly TimeSpan Interval = TimeSpan.FromHours(2);
+    private static readonly TimeSpan Interval = TimeSpan.FromMinutes(15);
 
     /// <summary>
     /// Delay before the first sweep, so startup is not competing with

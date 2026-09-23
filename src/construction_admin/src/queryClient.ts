@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/react-query';
+import { MutationCache, QueryClient } from '@tanstack/react-query';
 
 import { ApiError } from './api/apiError';
 
@@ -13,7 +13,17 @@ function shouldRetry(failureCount: number, error: unknown): boolean {
   return true;
 }
 
-export const queryClient = new QueryClient({
+export const queryClient: QueryClient = new QueryClient({
+  // Any successful change — an approval, a deletion, a notification read —
+  // can alter what the sidebar badges, the notification bell and the open
+  // page should show. Marking everything stale refetches only what is on
+  // screen, so the platform follows an action live without each mutation
+  // having to list every place its effect shows up.
+  mutationCache: new MutationCache({
+    onSuccess: () => {
+      void queryClient.invalidateQueries();
+    },
+  }),
   defaultOptions: {
     queries: {
       retry: shouldRetry,

@@ -1,7 +1,9 @@
-import { UploadFileOutlined } from '@mui/icons-material';
+import { DeleteOutlined, EditOutlined, UploadFileOutlined } from '@mui/icons-material';
 import {
   Box,
   Chip,
+  IconButton,
+  Tooltip,
   FormControl,
   FormControlLabel,
   InputLabel,
@@ -23,10 +25,14 @@ import { useEffect, useMemo, useState } from 'react';
 import type { Attachment, AttachmentCategory, AttachmentOwnerType } from '../../api/types';
 import { attachmentCategories, attachmentOwnerTypes } from '../../api/types';
 import { AttachmentPreviewDialog } from '../../components/AttachmentPreviewDialog';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { EditDocumentDialog } from '../../components/EditDocumentDialog';
+import { ExportZipButton } from '../../components/ExportZipButton';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
 import { UploadDocumentDialog } from '../../components/UploadDocumentDialog';
-import { useExpiringDocumentsQuery } from '../../features/attachments/useAttachments';
+import { useDeleteAttachment, useExpiringDocumentsQuery } from '../../features/attachments/useAttachments';
+import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useHighlightTarget } from '../../hooks/useHighlightTarget';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
@@ -37,6 +43,10 @@ const WINDOWS = [7, 30, 90, 180] as const;
 const ALL_WINDOW = 'all';
 
 type WindowValue = (typeof WINDOWS)[number] | typeof ALL_WINDOW;
+
+/** A retention date still in the future blocks deletion, same as on the record's own page. */
+const isRetained = (retainUntil: string | null) =>
+  !!retainUntil && new Date(`${retainUntil}T00:00`).getTime() > Date.now();
 
 type SortField = 'fileName' | 'ownerName' | 'category' | 'expiresAt' | 'retainUntil';
 type SortDirection = 'asc' | 'desc';
@@ -61,6 +71,8 @@ export function ExpiringDocumentsPage() {
   const [categoryFilter, setCategoryFilter] = useState<AttachmentCategory | ''>('');
   const [uploading, setUploading] = useState(false);
   const [previewing, setPreviewing] = useState<Attachment | null>(null);
+  const [editing, setEditing] = useState<Attachment | null>(null);
+  const remove = useDeleteWithConfirm<Attachment>(useDeleteAttachment());
 
   const { data, isError, error, refetch, isLoading } = useExpiringDocumentsQuery(
     windowValue === ALL_WINDOW ? null : windowValue,
@@ -199,12 +211,37 @@ export function ExpiringDocumentsPage() {
         </FormControl>
       </Stack>
 
+      <Stack direction="row" sx={{ mb: 1, justifyContent: 'flex-end' }}>
+        <ExportZipButton ids={(sortedData ?? []).map((document) => document.id)} />
+      </Stack>
+
       <UploadDocumentDialog open={uploading} onClose={() => setUploading(false)} />
 
       <AttachmentPreviewDialog
         attachment={previewing}
         onClose={() => setPreviewing(null)}
       />
+
+      <EditDocumentDialog attachment={editing} onClose={() => setEditing(null)} />
+
+      <ConfirmDialog
+        open={!!remove.pending}
+        title={t('attachments.deleteTitle')}
+        description={
+          remove.pending ? t('attachments.deleteBody', { name: remove.pending.fileName }) : ''
+        }
+        confirmLabel={t('common.delete')}
+        destructive
+        loading={remove.isDeleting}
+        onConfirm={remove.confirm}
+        onCancel={remove.cancel}
+      />
+
+      {remove.error && (
+        <Typography variant="body2" color="error" sx={{ mb: 1 }}>
+          {remove.error.message}
+        </Typography>
+      )}
 
       {isError && <ErrorState error={error} onRetry={() => void refetch()} />}
 
@@ -258,6 +295,7 @@ export function ExpiringDocumentsPage() {
                     {t('attachments.retainUntil')}
                   </TableSortLabel>
                 </TableCell>
+                <TableCell align="right" />
               </TableRow>
             </TableHead>
             <TableBody>
@@ -330,13 +368,39 @@ export function ExpiringDocumentsPage() {
                         </Typography>
                       )}
                     </TableCell>
+                    <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                      <Tooltip title={t('common.edit')}>
+                        <IconButton size="small" onClick={() => setEditing(document)}>
+                          <EditOutlined fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip
+                        title={
+                          isRetained(document.retainUntil)
+                            ? t('attachments.retainedCannotDelete', {
+                                date: formatDate(document.retainUntil!),
+                              })
+                            : t('common.delete')
+                        }
+                      >
+                        <span>
+                          <IconButton
+                            size="small"
+                            disabled={isRetained(document.retainUntil)}
+                            onClick={() => remove.request(document)}
+                          >
+                            <DeleteOutlined fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    </TableCell>
                   </TableRow>
                 );
               })}
 
               {sortedData.length === 0 && !isLoading && (
                 <TableRow>
-                  <TableCell colSpan={5}>
+                  <TableCell colSpan={6}>
                     <Typography variant="body2" color="text.secondary">
                       {t('attachments.expiringEmpty')}
                     </Typography>
