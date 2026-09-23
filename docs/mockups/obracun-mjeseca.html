@@ -1,0 +1,418 @@
+<title>Obračun mjeseca</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --bg: #eef1f4; --panel: #ffffff; --ink: #15202b; --muted: #5b6875; --line: #d7dde3;
+    --accent: #0a6c86; --accent-soft: #ddeff4; --accent-ink: #ffffff;
+    --good: #1e7b4b; --warn: #8a5200; --warn-bg: #fbefd6; --bad: #b3261e; --bad-bg: #fbe3e1;
+    --t-montir: #b45309; --t-koop: #6d3fb4; --t-kanc: #4b5b69; --t-radnik: #0a6c86;
+    --shadow: 0 1px 0 rgba(20,32,43,.04), 0 6px 18px -10px rgba(20,32,43,.25);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f161c; --panel: #172029; --ink: #e6ecf1; --muted: #93a1ae; --line: #263340;
+      --accent: #4fb6d1; --accent-soft: #16323b; --accent-ink: #08222a;
+      --good: #5cc58a; --warn: #e2a74a; --warn-bg: #33270f; --bad: #f08a82; --bad-bg: #3a1c1a;
+      --t-montir: #f0a45a; --t-koop: #b79af0; --t-kanc: #a5b3bf; --t-radnik: #4fb6d1;
+      --shadow: none; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f161c; --panel: #172029; --ink: #e6ecf1; --muted: #93a1ae; --line: #263340;
+    --accent: #4fb6d1; --accent-soft: #16323b; --accent-ink: #08222a;
+    --good: #5cc58a; --warn: #e2a74a; --warn-bg: #33270f; --bad: #f08a82; --bad-bg: #3a1c1a;
+    --t-montir: #f0a45a; --t-koop: #b79af0; --t-kanc: #a5b3bf; --t-radnik: #4fb6d1;
+    --shadow: none; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font-family: "IBM Plex Sans", system-ui, sans-serif; font-size: 14px; line-height: 1.45; padding-inline: 16px; padding-block: 20px 56px; }
+  .wrap { max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+  h1, h2, h3 { font-family: "IBM Plex Sans Condensed", "IBM Plex Sans", sans-serif; font-weight: 600; margin: 0; text-wrap: balance; }
+  .num { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  .muted { color: var(--muted); }
+
+  .bar { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: center; justify-content: space-between; }
+  .crumb { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  h1 { font-size: 28px; letter-spacing: -.01em; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .btn { font: inherit; font-weight: 500; border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 6px; padding: 7px 12px; cursor: pointer; }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .btn:focus-visible, input:focus-visible, summary:focus-visible, .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  select.btn { padding-right: 8px; }
+
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); }
+
+  .hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 0; }
+  @media (max-width: 860px) { .hero { grid-template-columns: 1fr; } }
+  .hero-l { padding: 20px 22px; border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+  @media (max-width: 860px) { .hero-l { border-right: 0; border-bottom: 1px solid var(--line); } }
+  .hero-l .label { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .big { font-size: 44px; line-height: 1.05; font-weight: 500; letter-spacing: -.02em; }
+  .big.neg { color: var(--bad); } .big.pos { color: var(--good); }
+  .hero-l p { margin: 4px 0 0; max-width: 46ch; }
+  .calc { padding: 14px 22px 16px; display: flex; flex-direction: column; }
+  .calc-row { display: grid; grid-template-columns: 22px minmax(0,1fr) auto auto; gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px dashed var(--line); }
+  .calc-row:last-child { border-bottom: 0; }
+  .calc-row .op { color: var(--muted); text-align: center; font-family: "IBM Plex Mono", monospace; }
+  .calc-row input { width: 92px; }
+  .chip { display: inline-block; font-size: 11px; line-height: 1; padding: 3px 6px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+  .chip.auto { background: var(--accent-soft); border-color: transparent; color: var(--accent); }
+  .chip.manual { background: var(--warn-bg); border-color: transparent; color: var(--warn); }
+
+  .check { padding: 14px 18px; }
+  .check-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .badge { min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: var(--warn-bg); color: var(--warn); display: inline-grid; place-items: center; font-weight: 600; font-size: 12px; }
+  .badge.ok { background: var(--accent-soft); color: var(--good); }
+  .issue { display: grid; grid-template-columns: 4px minmax(0,1fr) auto; gap: 12px; padding: 8px 0; align-items: start; border-top: 1px solid var(--line); }
+  .issue i { width: 4px; align-self: stretch; border-radius: 2px; background: var(--warn); }
+  .issue b { font-weight: 600; }
+  .issue button { align-self: center; }
+
+  .tabs { display: flex; gap: 4px; padding: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; width: fit-content; max-width: 100%; overflow-x: auto; }
+  .tab { font: inherit; font-weight: 500; border: 0; background: transparent; color: var(--muted); padding: 8px 16px; border-radius: 5px; cursor: pointer; white-space: nowrap; }
+  .tab[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+  .how { color: var(--muted); }
+  .how summary { cursor: pointer; width: fit-content; }
+  .how p { margin: 6px 0 0; max-width: 78ch; }
+  .tabrow { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: flex-start; justify-content: space-between; }
+
+  .sec-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  .sec-head h3 { font-size: 18px; }
+  .sec-tot { display: flex; gap: 6px 18px; flex-wrap: wrap; align-items: baseline; }
+  .sec-tot span small { display: block; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; min-width: 720px; }
+  th { text-align: right; font-weight: 500; font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); padding: 8px 10px; white-space: nowrap; border-bottom: 1px solid var(--line); }
+  th:first-child, td:first-child { text-align: left; padding-left: 16px; }
+  td { padding: 4px 10px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.name { min-width: 210px; }
+  td.name .n { display: flex; align-items: center; gap: 8px; }
+  .tag { font-size: 11px; padding: 2px 7px; border-radius: 4px; border: 1px solid currentColor; font-weight: 500; }
+  .tag.montir { color: var(--t-montir); } .tag.kooperant { color: var(--t-koop); } .tag.kancelarija { color: var(--t-kanc); } .tag.radnik { color: var(--t-radnik); }
+  td input { width: 74px; font: inherit; font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; text-align: right; color: var(--ink); background: transparent; border: 1px solid transparent; border-radius: 4px; padding: 5px 6px; }
+  td input:hover { border-color: var(--line); }
+  td input:focus { border-color: var(--accent); background: var(--panel); }
+  td input.auto { background: var(--accent-soft); }
+  td input.warn { border-color: var(--warn); background: var(--warn-bg); }
+  td.calc-c { font-family: "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; }
+  td.strong { font-weight: 500; }
+  tfoot td { font-weight: 600; background: color-mix(in srgb, var(--accent-soft) 55%, transparent); border-top: 1px solid var(--line); }
+  .neg { color: var(--bad); }
+  .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .sw { width: 22px; height: 14px; border-radius: 3px; display: inline-block; }
+
+  .notes { padding: 16px 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px 28px; }
+  .notes h3 { font-size: 15px; margin-bottom: 4px; }
+  .notes p { margin: 0; color: var(--muted); }
+  .toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 9px 14px; border-radius: 6px; font-weight: 500; opacity: 0; pointer-events: none; transition: opacity .2s; max-width: calc(100vw - 32px); }
+  .toast.show { opacity: 1; }
+  @media (prefers-reduced-motion: reduce) { .toast { transition: none; } }
+</style>
+
+<div class="wrap">
+  <div class="bar">
+    <div>
+      <div class="crumb">Evidencija · samo Super Admin · maketa sa izmišljenim podacima</div>
+      <h1>Obračun — septembar 2026</h1>
+    </div>
+    <div class="actions">
+      <select class="btn" id="period" aria-label="Mjesec"><option>Septembar 2026</option><option>Avgust 2026</option><option>Juli 2026</option></select>
+      <button class="btn" data-toast="Prenosi klijente, radnike i cijene iz avgusta. Sati ostaju prazni.">Kopiraj prošli mjesec</button>
+      <button class="btn primary" data-toast="Excel za knjigovođu: jedan list, sekcije po klijentu, isti raspored kao ovdje.">Izvezi u Excel</button>
+    </div>
+  </div>
+
+  <section class="panel hero" aria-label="Sažetak mjeseca">
+    <div class="hero-l">
+      <div class="label">Zarada firme</div>
+      <div class="big num" id="zarada">—</div>
+      <p class="muted" id="zaradaText"></p>
+    </div>
+    <div class="calc" id="calc"></div>
+  </section>
+
+  <section class="panel check" aria-label="Za provjeru">
+    <div class="check-head"><h2 style="font-size:18px">Za provjeru prije zaključivanja</h2><span class="badge" id="issueCount">0</span></div>
+    <div id="issues"></div>
+  </section>
+
+  <div class="tabrow">
+    <div class="tabs" role="tablist" aria-label="Prikaz">
+      <button class="tab" role="tab" id="tab-sati" aria-selected="true" data-tab="sati">Sati</button>
+      <button class="tab" role="tab" id="tab-zarada" aria-selected="false" data-tab="zarada">Zarada</button>
+      <button class="tab" role="tab" id="tab-odbici" aria-selected="false" data-tab="odbici">Troškovi</button>
+    </div>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--accent-soft)"></i> upisano iz aplikacije (radno vrijeme)</span>
+      <span><i class="sw" style="border:1px solid var(--warn);background:var(--warn-bg)"></i> traži pažnju</span>
+    </div>
+  </div>
+  <details class="how"><summary id="howSum">Kako se računa</summary><p id="howText"></p></details>
+
+  <div id="sections" style="display:flex;flex-direction:column;gap:16px"></div>
+
+  <section class="panel notes" aria-label="Šta je drugačije od Excela">
+    <div><h3>Zbir uvijek obuhvata sve sekcije</h3><p>Novi klijent je nova sekcija — ne mijenja se nikakva formula. Nijedan iznos ne može ostati izvan sažetka.</p></div>
+    <div><h3>Ručna korekcija je označena</h3><p>Ako se iznos upiše preko računa (kao kod kancelarije), ostaje žuta oznaka “ručno” dok neko ne potvrdi.</p></div>
+    <div><h3>Ulazi dolaze iz sistema</h3><p>Sati iz radnog vremena, gorivo iz uvoza goriva, stanovanje iz smještaja. Ručno se upisuje samo ono što sistem ne zna.</p></div>
+    <div><h3>Kooperanti u jednom redu</h3><p>“Kooperanti × 4” umjesto četiri identična reda: jedna cijena, jedan broj sati, količina.</p></div>
+  </section>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function () {
+  var WEEKS = ['KW36', 'KW37', 'KW38', 'KW39', 'KW40'];
+  var EXPECTED_HOURS = 176; // radnih sati u mjesecu, po jednom radniku
+
+  // Izmišljeni podaci. Formule su iste kao u tabeli klijenta.
+  function row(name, type, o) {
+    var r = { name: name, type: type, qty: 1, rate: 0, bill: 0, weeks: [0, 0, 0, 0, 0], auto: false,
+      prisp: 0, rent: 0, gorivo: 0, stan: 0, akont: 0, razlika: 0, godisnji: 0, regres: 0, manualZarada: null };
+    for (var k in o) r[k] = o[k];
+    return r;
+  }
+  var data = [
+    { name: 'Nordbau GmbH', rows: [
+      row('Marko Vidić', 'montir', { rate: 20, bill: 33, weeks: [40, 42, 38, 40, 0], auto: true, prisp: 1000, stan: 600, regres: 100 }),
+      row('Ivo Barišić', 'montir', { rate: 15, bill: 33, weeks: [40, 40, 36, 40, 0], auto: true, prisp: 850, regres: 100 }),
+      row('Sanel Hodžić', 'radnik', { rate: 16, bill: 35, weeks: [40, 38, 40, 40, 0], auto: true, prisp: 1000, regres: 100 }),
+      row('Luka Petrak', 'radnik', { rate: 14, bill: 0, weeks: [40, 40, 40, 40, 0], auto: true, prisp: 600, regres: 100 }),
+      row('Kooperanti (Elektro Kern)', 'kooperant', { qty: 4, rate: 31, bill: 37.5, weeks: [40, 40, 40, 40, 0] })
+    ]},
+    { name: 'Elektro Kern', rows: [
+      row('Dario Kovač', 'radnik', { rate: 16, bill: 30.5, weeks: [38, 40, 40, 40, 0], auto: true, prisp: 1000, regres: 100, gorivo: 120 }),
+      row('Emir Zukić', 'radnik', { rate: 18, bill: 30.5, weeks: [40, 40, 40, 44, 0], auto: true, prisp: 1000, regres: 100, akont: 300 }),
+      row('Ivo Barišić', 'montir', { rate: 15, bill: 30.5, weeks: [8, 8, 8, 8, 0], auto: true, regres: 0 })
+    ]},
+    { name: 'Werk & Söhne', rows: [
+      row('Nenad Ilić', 'radnik', { rate: 17, bill: 33, weeks: [40, 40, 40, 40, 0], auto: true, prisp: 1000, regres: 100, rent: 250 }),
+      row('Josip Radić', 'radnik', { rate: 15, bill: 33, weeks: [40, 40, 32, 40, 0], auto: true, prisp: 600, regres: 100, razlika: 150 })
+    ]},
+    { name: 'Kancelarija', rows: [
+      row('Ana Marić', 'kancelarija', { rate: 0, weeks: [0, 0, 0, 0, 0], prisp: 850, regres: 100, manualZarada: 3000 }),
+      row('Tomo Šarić', 'kancelarija', { rate: 0, weeks: [0, 0, 0, 0, 0], prisp: 1000, regres: 100, manualZarada: 1900 })
+    ]}
+  ];
+  var fixed = { slo: 6500, de: 0, hr: 500, alat: 0 };
+  var GORIVO_UVOZ = 4934.42;
+
+  var tab = 'sati';
+  var TAGS = { montir: 'Montir', kooperant: 'Kooperant', kancelarija: 'Kancelarija', radnik: 'Radnik' };
+
+  // Formule (isti redoslijed kao u Excelu klijenta)
+  function hours(r) { return r.weeks.reduce(function (a, b) { return a + b; }, 0) * r.qty; }
+  function zarada(r) { return r.manualZarada !== null ? r.manualZarada : r.rate * hours(r) - r.akont + r.razlika + r.godisnji; }
+  function naplata(r) { return hours(r) * r.bill; }
+  function prihod(r) { return naplata(r) - zarada(r); }
+  function rezultat(r) { return prihod(r) - r.prisp - r.rent - r.gorivo - r.stan - r.akont - r.regres; }
+  function sum(rows, fn) { return rows.reduce(function (a, r) { return a + fn(r); }, 0); }
+
+  function fmt(n, d) {
+    var neg = n < 0; n = Math.abs(n);
+    var s = n.toFixed(d === undefined ? 2 : d).split('.');
+    s[0] = s[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    var out = s.length > 1 ? s[0] + ',' + s[1] : s[0];
+    return (neg ? '−' : '') + out;
+  }
+  function money(n) { return fmt(n, 2) + ' €'; }
+  function $(id) { return document.getElementById(id); }
+
+  var COLS = {
+    sati: {
+      how: 'Sati = zbir sedmica (KW) × količina. Sati radnika koji se prijavljuju u aplikaciji dolaze iz radnog vremena i označeni su plavo; kooperante i kancelariju upisuje vlasnik.',
+      heads: function () { return ['Radnik', 'Cijena / h'].concat(WEEKS, ['Sati ukupno']); }
+    },
+    zarada: {
+      how: 'Zarada radnika = cijena radnika × sati − akontacija + razlika/bonus + godišnji. Naplata klijentu = sati × cijena za klijenta. Marža = naplata − zarada radnika. Doprinosi (Prispevke) se upisuju po radniku.',
+      heads: function () { return ['Radnik', 'Sati', 'Cijena radnika', 'Cijena klijentu', 'Zarada radnika', 'Naplata', 'Marža', 'Doprinosi']; }
+    },
+    odbici: {
+      how: 'Rezultat sekcije = marža − doprinosi − rent a car − gorivo − stanovanje − akontacija − regres. Gorivo i stanovanje se povlače iz uvoza goriva i smještaja kad postoje; ostalo se upisuje ručno.',
+      heads: function () { return ['Radnik', 'Rent a car', 'Gorivo', 'Stanovanje', 'Akontacija', 'Razlika / bonus', 'Godišnji', 'Regres', 'Rezultat']; }
+    }
+  };
+
+  function inputCell(si, ri, field, cls, idx) {
+    var r = data[si].rows[ri];
+    var v = idx === undefined ? r[field] : r.weeks[idx];
+    return '<td><input type="number" step="any" inputmode="decimal" class="' + (cls || '') + '" data-s="' + si + '" data-r="' + ri + '" data-f="' + field + '"' +
+      (idx === undefined ? '' : ' data-w="' + idx + '"') + ' value="' + (v === 0 ? '' : v) + '" placeholder="0" aria-label="' + field + '"></td>';
+  }
+  function bind(k, cls) { return '<td class="calc-c ' + (cls || '') + '" data-b="' + k + '"></td>'; }
+
+  function renderSections() {
+    var html = '';
+    data.forEach(function (sec, si) {
+      var heads = COLS[tab].heads().map(function (h) { return '<th scope="col">' + h + '</th>'; }).join('');
+      var body = '';
+      sec.rows.forEach(function (r, ri) {
+        var nameCell = '<td class="name"><div class="n"><span>' + r.name + (r.qty > 1 ? ' <span class="muted">× ' + r.qty + '</span>' : '') + '</span><span class="tag ' + r.type + '">' + TAGS[r.type] + '</span></div></td>';
+        var cells = '';
+        var k = si + '.' + ri;
+        if (tab === 'sati') {
+          cells = inputCell(si, ri, 'rate') + r.weeks.map(function (_, wi) {
+            return inputCell(si, ri, 'weeks', r.auto ? 'auto' : '', wi);
+          }).join('') + bind(k + '.hours', 'strong');
+        } else if (tab === 'zarada') {
+          cells = bind(k + '.hours') + inputCell(si, ri, 'rate') + inputCell(si, ri, 'bill', r.bill === 0 && hours(r) > 0 ? 'warn' : '') +
+            (r.manualZarada !== null
+              ? '<td>' + '<span class="chip manual">ručno</span> <input type="number" step="any" data-s="' + si + '" data-r="' + ri + '" data-f="manualZarada" value="' + r.manualZarada + '" aria-label="Zarada radnika (ručno)"></td>'
+              : bind(k + '.zarada')) +
+            bind(k + '.naplata') + bind(k + '.prihod', 'strong') + inputCell(si, ri, 'prisp');
+        } else {
+          cells = inputCell(si, ri, 'rent') + inputCell(si, ri, 'gorivo') + inputCell(si, ri, 'stan') + inputCell(si, ri, 'akont') +
+            inputCell(si, ri, 'razlika') + inputCell(si, ri, 'godisnji') + inputCell(si, ri, 'regres') + bind(k + '.rez', 'strong');
+        }
+        body += '<tr>' + nameCell + cells + '</tr>';
+      });
+      // zbir sekcije
+      var foot = '<td>Zbir sekcije</td>';
+      if (tab === 'sati') foot += '<td></td>' + WEEKS.map(function (_, wi) { return bind(si + '.w' + wi); }).join('') + bind(si + '.hours');
+      else if (tab === 'zarada') foot += bind(si + '.hours') + '<td></td><td></td>' + bind(si + '.zarada') + bind(si + '.naplata') + bind(si + '.prihod') + bind(si + '.prisp');
+      else foot += bind(si + '.rent') + bind(si + '.gorivo') + bind(si + '.stan') + bind(si + '.akont') + bind(si + '.razlika') + bind(si + '.godisnji') + bind(si + '.regres') + bind(si + '.rez');
+
+      html += '<section class="panel" aria-label="' + sec.name + '"><div class="sec-head"><h3>' + sec.name + '</h3>' +
+        '<div class="sec-tot"><span><small>Sati</small><b class="num" data-b="' + si + '.hours"></b></span>' +
+        '<span><small>Marža</small><b class="num" data-b="' + si + '.prihod"></b></span>' +
+        '<span><small>Rezultat sekcije</small><b class="num" data-b="' + si + '.rez"></b></span></div></div>' +
+        '<div class="tablewrap"><table><thead><tr>' + heads + '</tr></thead><tbody>' + body + '</tbody><tfoot><tr>' + foot + '</tr></tfoot></table></div></section>';
+    });
+    $('sections').innerHTML = html;
+    $('howText').textContent = COLS[tab].how;
+  }
+
+  function setB(k, text, neg) {
+    var els = document.querySelectorAll('[data-b="' + k + '"]');
+    for (var i = 0; i < els.length; i++) {
+      els[i].textContent = text;
+      els[i].classList.toggle('neg', !!neg);
+    }
+  }
+
+  function issues() {
+    var list = [];
+    // isti radnik u više sekcija: zbir sati preko očekivanog
+    var byName = {};
+    data.forEach(function (sec) { sec.rows.forEach(function (r) {
+      if (r.qty > 1 || r.type === 'kancelarija') return;
+      byName[r.name] = byName[r.name] || { h: 0, secs: [] };
+      byName[r.name].h += hours(r); byName[r.name].secs.push(sec.name);
+    }); });
+    Object.keys(byName).forEach(function (n) {
+      var b = byName[n];
+      if (b.secs.length > 1 && b.h > EXPECTED_HOURS) list.push({ t: n + ' ima ' + fmt(b.h, 0) + ' h kod ' + b.secs.join(' i '), d: 'Više od očekivanih ' + EXPECTED_HOURS + ' h u mjesecu. Provjeri da sati nisu upisani dva puta.', go: 'sati' });
+    });
+    // red sa satima, a bez cijene za klijenta
+    data.forEach(function (sec) { sec.rows.forEach(function (r) {
+      if (r.manualZarada === null && hours(r) > 0 && r.bill === 0) list.push({ t: r.name + ' (' + sec.name + ') nema cijenu za klijenta', d: 'Ima ' + fmt(hours(r), 0) + ' h, ali se ne naplaćuje ništa. Marža ovog reda je negativna.', go: 'zarada' });
+    }); });
+    // ručne korekcije
+    data.forEach(function (sec) { var m = sec.rows.filter(function (r) { return r.manualZarada !== null; });
+      if (m.length) list.push({ t: sec.name + ': ' + m.length + ' zarade upisane ručno', d: 'Iznos nije izračunat iz sati. Potvrdi da je tako i dodaj napomenu.', go: 'zarada' });
+    });
+    return list;
+  }
+
+  function update() {
+    var all = [];
+    data.forEach(function (sec, si) {
+      sec.rows.forEach(function (r, ri) {
+        var k = si + '.' + ri;
+        setB(k + '.hours', fmt(hours(r), 1).replace(',0', ''));
+        setB(k + '.zarada', fmt(zarada(r)), zarada(r) < 0);
+        setB(k + '.naplata', fmt(naplata(r)));
+        setB(k + '.prihod', fmt(prihod(r)), prihod(r) < 0);
+        setB(k + '.rez', fmt(rezultat(r)), rezultat(r) < 0);
+        all.push(r);
+      });
+      var rows = sec.rows;
+      WEEKS.forEach(function (_, wi) { setB(si + '.w' + wi, fmt(sum(rows, function (r) { return r.weeks[wi] * r.qty; }), 0)); });
+      setB(si + '.hours', fmt(sum(rows, hours), 0));
+      setB(si + '.zarada', fmt(sum(rows, zarada)));
+      setB(si + '.naplata', fmt(sum(rows, naplata)));
+      setB(si + '.prihod', fmt(sum(rows, prihod)), sum(rows, prihod) < 0);
+      setB(si + '.rez', fmt(sum(rows, rezultat)), sum(rows, rezultat) < 0);
+      ['prisp', 'rent', 'gorivo', 'stan', 'akont', 'razlika', 'godisnji', 'regres'].forEach(function (f) {
+        setB(si + '.' + f, fmt(sum(rows, function (r) { return r[f]; })));
+      });
+    });
+
+    // sažetak firme — isti izraz kao u Excelu, ali nad svim sekcijama odjednom
+    var prihodUk = sum(all, prihod);
+    var regres = sum(all, function (r) { return r.regres; });
+    var prisp = sum(all, function (r) { return r.prisp; });
+    var stan = sum(all, function (r) { return r.stan; });
+    var auta = sum(all, function (r) { return r.rent; });
+    var gorivoRed = sum(all, function (r) { return r.gorivo; });
+    var gorivo = GORIVO_UVOZ + gorivoRed;
+    var zar = prihodUk - gorivo - regres - prisp - stan - auta - fixed.slo - fixed.de - fixed.hr - fixed.alat;
+
+    var el = $('zarada');
+    el.textContent = money(zar);
+    el.classList.toggle('neg', zar < 0);
+    el.classList.toggle('pos', zar >= 0);
+    $('zaradaText').textContent = 'Marža radnika ' + money(prihodUk) + ', minus svi troškovi ispod. Broji ' + data.length + ' sekcije i ' + all.length + ' redova.';
+
+    function line(op, label, chip, val, input) {
+      return '<div class="calc-row"><span class="op">' + op + '</span><span>' + label + ' ' + chip + '</span>' +
+        (input ? '<span></span><input type="number" step="any" data-fx="' + input + '" value="' + fixed[input] + '" aria-label="' + label + '">' : '<span></span><span class="num">' + val + '</span>') + '</div>';
+    }
+    var auto = '<span class="chip auto">auto</span>', man = '<span class="chip manual">ručno</span>';
+    var calcFocus = document.activeElement && document.activeElement.getAttribute && document.activeElement.getAttribute('data-fx');
+    if (!calcFocus) {
+      $('calc').innerHTML =
+        line('', 'Marža radnika (ukupan prihod)', auto, money(prihodUk)) +
+        line('−', 'Gorivo', '<span class="chip auto">iz uvoza goriva</span>', money(gorivo)) +
+        line('−', 'Regres', auto, money(regres)) +
+        line('−', 'Doprinosi', auto, money(prisp)) +
+        line('−', 'Stanovi', '<span class="chip auto">iz smještaja</span>', money(stan)) +
+        line('−', 'Auta (rent a car)', auto, money(auta)) +
+        line('−', 'Fiksni troškovi Slovenija', man, '', 'slo') +
+        line('−', 'Fiksni troškovi Njemačka', man, '', 'de') +
+        line('−', 'Fiksni troškovi Hrvatska', man, '', 'hr') +
+        line('−', 'Alat i uniforme', man, '', 'alat');
+    }
+
+    var is = issues();
+    $('issueCount').textContent = is.length;
+    $('issueCount').className = 'badge' + (is.length ? '' : ' ok');
+    $('issues').innerHTML = is.length ? is.map(function (i) {
+      return '<div class="issue"><i></i><div><b>' + i.t + '</b><div class="muted">' + i.d + '</div></div><button class="btn" data-go="' + i.go + '">Otvori</button></div>';
+    }).join('') : '<div class="muted">Sve je uredu. Nema reda bez cijene, dvostrukih sati ni ručnih korekcija.</div>';
+  }
+
+  function toast(msg) {
+    var t = $('toast'); t.textContent = msg; t.classList.add('show');
+    clearTimeout(toast.h); toast.h = setTimeout(function () { t.classList.remove('show'); }, 3200);
+  }
+
+  document.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t.getAttribute('data-fx')) { fixed[t.getAttribute('data-fx')] = parseFloat(t.value) || 0; update(); return; }
+    var s = t.getAttribute('data-s'); if (s === null) return;
+    var r = data[+s].rows[+t.getAttribute('data-r')], f = t.getAttribute('data-f'), v = parseFloat(t.value);
+    v = isNaN(v) ? 0 : v;
+    if (t.hasAttribute('data-w')) r.weeks[+t.getAttribute('data-w')] = v; else r[f] = v;
+    update();
+    // stanje upozorenja na polju cijene
+    if (f === 'bill') t.classList.toggle('warn', v === 0 && hours(r) > 0);
+  });
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-tab],[data-go],[data-toast]'); if (!b) return;
+    if (b.hasAttribute('data-toast')) { toast(b.getAttribute('data-toast')); return; }
+    var to = b.getAttribute('data-tab') || b.getAttribute('data-go');
+    tab = to;
+    ['sati', 'zarada', 'odbici'].forEach(function (k) { $('tab-' + k).setAttribute('aria-selected', String(k === tab)); });
+    renderSections(); update();
+    if (b.hasAttribute('data-go')) $('sections').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  renderSections(); update();
+})();
+</script>
