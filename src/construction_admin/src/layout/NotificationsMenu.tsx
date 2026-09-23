@@ -1,8 +1,8 @@
-import { NotificationsNoneOutlined } from '@mui/icons-material';
+import { ArrowForwardOutlined, NotificationsNoneOutlined } from '@mui/icons-material';
 import {
   Badge,
   Box,
-  Chip,
+  Button,
   Divider,
   IconButton,
   Menu,
@@ -76,12 +76,41 @@ export function NotificationsMenu() {
         onClose={() => setAnchor(null)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        slotProps={{ paper: { sx: { width: 360, maxHeight: 480 } } }}
+        slotProps={{
+          paper: { sx: { width: 360, maxHeight: 480, overflowY: 'auto' } },
+          list: { sx: { py: 0 } },
+        }}
       >
-        <Box sx={{ px: 2, py: 1 }}>
+        {/* "Prikaži sve" used to sit as the very last row, below up to 8
+            previews — reachable only after scrolling past all of them. It now
+            lives in the header instead, pinned above the scrolling list, so
+            it's the first thing visible the instant the menu opens. */}
+        <Box
+          sx={{
+            px: 2,
+            py: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 1,
+            position: 'sticky',
+            top: 0,
+            bgcolor: 'background.paper',
+            zIndex: 1,
+          }}
+        >
           <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
             {t('notifications.title')}
           </Typography>
+          <Button
+            component={Link}
+            to={paths.notifications}
+            onClick={() => setAnchor(null)}
+            size="small"
+            endIcon={<ArrowForwardOutlined fontSize="small" />}
+          >
+            {t('notifications.viewAll')}
+          </Button>
         </Box>
         <Divider />
 
@@ -138,11 +167,6 @@ export function NotificationsMenu() {
             </MenuItem>
           );
         })}
-
-        <Divider />
-        <MenuItem component={Link} to={paths.notifications} onClick={() => setAnchor(null)}>
-          <Chip size="small" label={t('notifications.viewAll')} sx={{ mx: 'auto' }} />
-        </MenuItem>
       </Menu>
     </>
   );

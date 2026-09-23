@@ -28,6 +28,10 @@ public class SaveDashboardLayoutCommandValidator : AbstractValidator<SaveDashboa
             widget.RuleFor(w => w.Type)
                 .Must(type => DashboardWidgetTypes.All.Contains(type))
                 .WithMessage("Unknown widget type.");
+            widget.RuleFor(w => w.W).GreaterThanOrEqualTo(1);
+            widget.RuleFor(w => w.H).GreaterThanOrEqualTo(1);
+            widget.RuleFor(w => w.X).GreaterThanOrEqualTo(0);
+            widget.RuleFor(w => w.Y).GreaterThanOrEqualTo(0);
         });
     }
 }

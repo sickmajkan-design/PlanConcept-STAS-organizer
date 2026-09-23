@@ -7,15 +7,25 @@ export const dashboardWidgetTypes = [
   'DocumentExpiry',
   'FleetStatus',
   'NeedsAttention',
+  'LiveMap',
+  'TodayAttendance',
+  'CostTrend',
 ] as const;
 
 export type DashboardWidgetType = (typeof dashboardWidgetTypes)[number];
 
+/**
+ * Position and size on the free-form board, in grid units (see GRID_COLS /
+ * ROW_HEIGHT_PX in DashboardGrid.tsx) — not fixed columns. The user drags to
+ * (x, y) and resizes to (w, h) directly; nothing here is a preset bucket.
+ */
 export interface DashboardWidgetConfig {
   id: string;
   type: DashboardWidgetType;
-  column: number;
-  order: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
 }
 
 export interface DashboardLayout {
@@ -25,7 +35,7 @@ export interface DashboardLayout {
 /** Every widget component fetches its own data — the grid only positions it. */
 export interface DashboardWidgetProps {
   instanceId: string;
-  /** Spread onto the drag-handle element; undefined when the widget isn't draggable (e.g. a static preview). */
-  dragHandleProps?: Record<string, unknown>;
   onRemove?: () => void;
+  /** Snaps the widget to x:0 and the full column count in one click — the reliable alternative to dragging a resize handle exactly to the grid's edge. */
+  onExpandWidth?: () => void;
 }

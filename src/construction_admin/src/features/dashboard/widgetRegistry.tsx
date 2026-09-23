@@ -3,11 +3,14 @@ import type { ComponentType } from 'react';
 import type { MessageKey } from '../../i18n/en';
 import { AbsencesBalanceWidget } from './widgets/AbsencesBalanceWidget';
 import { CompanyKpiWidget } from './widgets/CompanyKpiWidget';
+import { CostTrendWidget } from './widgets/CostTrendWidget';
 import { DocumentExpiryWidget } from './widgets/DocumentExpiryWidget';
 import { FleetStatusWidget } from './widgets/FleetStatusWidget';
+import { LiveMapWidget } from './widgets/LiveMapWidget';
 import { NeedsAttentionWidget } from './widgets/NeedsAttentionWidget';
 import { NotificationsBulletinWidget } from './widgets/NotificationsBulletinWidget';
 import { ProjectsRealizationWidget } from './widgets/ProjectsRealizationWidget';
+import { TodayAttendanceWidget } from './widgets/TodayAttendanceWidget';
 import type { DashboardWidgetProps, DashboardWidgetType } from './widgetTypes';
 
 interface WidgetRegistryEntry {
@@ -48,5 +51,17 @@ export const widgetRegistry: Record<DashboardWidgetType, WidgetRegistryEntry> = 
   NeedsAttention: {
     component: NeedsAttentionWidget,
     titleKey: 'dashboard.widget.NeedsAttention',
+  },
+  LiveMap: {
+    component: LiveMapWidget,
+    titleKey: 'dashboard.widget.LiveMap',
+  },
+  TodayAttendance: {
+    component: TodayAttendanceWidget,
+    titleKey: 'dashboard.widget.TodayAttendance',
+  },
+  CostTrend: {
+    component: CostTrendWidget,
+    titleKey: 'dashboard.widget.CostTrend',
   },
 };

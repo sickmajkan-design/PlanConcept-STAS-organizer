@@ -1,4 +1,11 @@
-import { Box, Divider, Link as MuiLink, Stack, Typography } from '@mui/material';
+import {
+  AssignmentTurnedInOutlined,
+  BuildOutlined,
+  GroupsOutlined,
+  LocalShippingOutlined,
+  PaidOutlined,
+} from '@mui/icons-material';
+import { Box, Chip, Stack } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { Link as RouterLink } from 'react-router-dom';
 
@@ -11,6 +18,7 @@ import { useI18n } from '../../../i18n/useI18n';
 import { paths } from '../../../routes/paths';
 import { formatMoney } from '../../../utils/formatting';
 import type { DashboardWidgetProps } from '../widgetTypes';
+import { StatTile } from './StatTile';
 import { WidgetShell } from './WidgetShell';
 
 // Same page sizes and query keys FleetStatusWidget already uses for these two
@@ -27,18 +35,7 @@ function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-interface Tile {
-  key: string;
-  label: string;
-  value: string;
-  hint?: string;
-}
-
-export function CompanyKpiWidget({
-  instanceId: _instanceId,
-  dragHandleProps,
-  onRemove,
-}: DashboardWidgetProps) {
+export function CompanyKpiWidget({ instanceId: _instanceId, onRemove, onExpandWidth }: DashboardWidgetProps) {
   const { t, locale } = useI18n();
   const from = startOfMonth();
   const to = today();
@@ -89,100 +86,76 @@ export function CompanyKpiWidget({
     vehiclesQuery.error ??
     toolsQuery.error;
 
-  const vehiclesAvailable =
-    vehiclesQuery.data?.items.filter((v) => v.status === 'Available').length ?? 0;
-  const toolsAvailable =
-    toolsQuery.data?.items.filter((tool) => tool.status === 'Available').length ?? 0;
-
+  const vehiclesAvailable = vehiclesQuery.data?.items.filter((v) => v.status === 'Available').length ?? 0;
+  const toolsAvailable = toolsQuery.data?.items.filter((tool) => tool.status === 'Available').length ?? 0;
   const overdueCount = overdueWorkItemsQuery.data?.totalCount ?? 0;
 
-  const tiles: Tile[] = [
-    {
-      key: 'cost',
-      label: t('dashboard.companyKpi.costThisMonth'),
-      value: formatMoney(costQuery.data?.total ?? 0, locale),
-    },
-    {
-      key: 'employees',
-      label: t('dashboard.companyKpi.activeEmployees'),
-      value: String(employeesQuery.data?.totalCount ?? 0),
-    },
-    {
-      key: 'workItems',
-      label: t('dashboard.companyKpi.openWorkItems'),
-      value: String(openWorkItemsQuery.data?.totalCount ?? 0),
-      hint:
-        overdueCount > 0
-          ? t('dashboard.companyKpi.overdue', { count: overdueCount })
-          : undefined,
-    },
-    {
-      key: 'vehicles',
-      label: t('dashboard.companyKpi.vehiclesAvailable'),
-      value: `${vehiclesAvailable} / ${vehiclesQuery.data?.totalCount ?? 0}`,
-    },
-    {
-      key: 'tools',
-      label: t('dashboard.companyKpi.toolsAvailable'),
-      value: `${toolsAvailable} / ${toolsQuery.data?.totalCount ?? 0}`,
-    },
+  const links = [
+    { to: paths.costs, label: t('nav.costs') },
+    { to: paths.employees, label: t('nav.employees') },
+    { to: paths.workItems, label: t('nav.workItems') },
+    { to: paths.vehicles, label: t('nav.vehicles') },
+    { to: paths.tools, label: t('nav.tools') },
   ];
 
   return (
-    <WidgetShell
-      title={t('dashboard.widget.CompanyKpi')}
-      isLoading={isLoading}
-      error={error}
-      onRemove={onRemove}
-      dragHandleProps={dragHandleProps}
-    >
-      <Stack spacing={2}>
-        {/* Plain stat tiles, not links — a drag handle is the only thing on
-            this card that should ever pick up a pointer gesture. Navigation
-            lives in the plain text links below instead, exactly like every
-            other widget on this board (see FleetStatusWidget). */}
+    <WidgetShell title={t('dashboard.widget.CompanyKpi')} isLoading={isLoading} error={error} onRemove={onRemove} onExpandWidth={onExpandWidth}>
+      <Stack spacing={2} sx={{ flex: 1, minHeight: 0 }}>
         <Box
           sx={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-            gap: 2,
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 1.5,
+            flex: 1,
+            alignContent: 'flex-start',
           }}
         >
-          {tiles.map((tile) => (
-            <Stack key={tile.key} spacing={0.25} sx={{ p: 1.5, borderRadius: 1, bgcolor: 'action.hover' }}>
-              <Typography variant="caption" color="text.secondary" noWrap>
-                {tile.label}
-              </Typography>
-              <Typography variant="h5" sx={{ fontWeight: 700 }}>
-                {tile.value}
-              </Typography>
-              {tile.hint && (
-                <Typography variant="caption" color="warning.main">
-                  {tile.hint}
-                </Typography>
-              )}
-            </Stack>
-          ))}
+          <StatTile
+            icon={<PaidOutlined fontSize="small" />}
+            label={t('dashboard.companyKpi.costThisMonth')}
+            value={formatMoney(costQuery.data?.total ?? 0, locale)}
+            accent="#e65100"
+          />
+          <StatTile
+            icon={<GroupsOutlined fontSize="small" />}
+            label={t('dashboard.companyKpi.activeEmployees')}
+            value={String(employeesQuery.data?.totalCount ?? 0)}
+            accent="#37474f"
+          />
+          <StatTile
+            icon={<AssignmentTurnedInOutlined fontSize="small" />}
+            label={t('dashboard.companyKpi.openWorkItems')}
+            value={String(openWorkItemsQuery.data?.totalCount ?? 0)}
+            hint={overdueCount > 0 ? t('dashboard.companyKpi.overdue', { count: overdueCount }) : undefined}
+            hintColor="warning.main"
+            accent="#f9a825"
+          />
+          <StatTile
+            icon={<LocalShippingOutlined fontSize="small" />}
+            label={t('dashboard.companyKpi.vehiclesAvailable')}
+            value={`${vehiclesAvailable} / ${vehiclesQuery.data?.totalCount ?? 0}`}
+            accent="#00897b"
+          />
+          <StatTile
+            icon={<BuildOutlined fontSize="small" />}
+            label={t('dashboard.companyKpi.toolsAvailable')}
+            value={`${toolsAvailable} / ${toolsQuery.data?.totalCount ?? 0}`}
+            accent="#8d6e63"
+          />
         </Box>
 
-        <Divider />
-
-        <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap' }}>
-          <Typography variant="body2">
-            <MuiLink component={RouterLink} to={paths.costs} underline="hover">{t('nav.costs')}</MuiLink>
-          </Typography>
-          <Typography variant="body2">
-            <MuiLink component={RouterLink} to={paths.employees} underline="hover">{t('nav.employees')}</MuiLink>
-          </Typography>
-          <Typography variant="body2">
-            <MuiLink component={RouterLink} to={paths.workItems} underline="hover">{t('nav.workItems')}</MuiLink>
-          </Typography>
-          <Typography variant="body2">
-            <MuiLink component={RouterLink} to={paths.vehicles} underline="hover">{t('nav.vehicles')}</MuiLink>
-          </Typography>
-          <Typography variant="body2">
-            <MuiLink component={RouterLink} to={paths.tools} underline="hover">{t('nav.tools')}</MuiLink>
-          </Typography>
+        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1, flexShrink: 0 }}>
+          {links.map((link) => (
+            <Chip
+              key={link.to}
+              component={RouterLink}
+              to={link.to}
+              clickable
+              size="small"
+              label={link.label}
+              variant="outlined"
+            />
+          ))}
         </Stack>
       </Stack>
     </WidgetShell>

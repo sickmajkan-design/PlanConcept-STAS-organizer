@@ -1,5 +1,5 @@
 import { EventBusyOutlined, WarningAmberOutlined } from '@mui/icons-material';
-import { List, ListItem, ListItemIcon, ListItemText, Stack, Typography } from '@mui/material';
+import { Avatar, List, ListItem, ListItemAvatar, ListItemText, Stack, Typography } from '@mui/material';
 import { Link } from 'react-router-dom';
 
 import { useAbsencesQuery } from '../../absences/useAbsences';
@@ -12,7 +12,7 @@ import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
 
 const DOCUMENT_WINDOW_DAYS = 30;
-const SHOWN = 5;
+const SHOWN = 6;
 
 /**
  * A single actionable list gathering what the small red badges on the nav
@@ -24,11 +24,7 @@ const SHOWN = 5;
  * permission (e.g. no `AdminAndAbove` for documents) still sees the other
  * section rather than the whole widget falling over on one 403.
  */
-export function NeedsAttentionWidget({
-  instanceId: _instanceId,
-  dragHandleProps,
-  onRemove,
-}: DashboardWidgetProps) {
+export function NeedsAttentionWidget({ instanceId: _instanceId, onRemove, onExpandWidth }: DashboardWidgetProps) {
   const t = useT();
   const enumLabel = useEnumLabel();
 
@@ -49,15 +45,14 @@ export function NeedsAttentionWidget({
       title={t('dashboard.widget.NeedsAttention')}
       isLoading={isLoading}
       error={bothFailed ? documentsQuery.error : undefined}
-      onRemove={onRemove}
-      dragHandleProps={dragHandleProps}
+      onRemove={onRemove} onExpandWidth={onExpandWidth}
     >
       {isEmpty ? (
         <Typography color="text.secondary" variant="body2">
           {t('dashboard.needsAttention.empty')}
         </Typography>
       ) : (
-        <Stack spacing={0.5}>
+        <Stack spacing={0.5} sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
           {!documentsQuery.error && documents.length > 0 && (
             <List dense disablePadding>
               {documents.map((doc) => (
@@ -68,14 +63,15 @@ export function NeedsAttentionWidget({
                   to={paths.expiringDocuments}
                   sx={{ color: 'inherit', textDecoration: 'none' }}
                 >
-                  <ListItemIcon sx={{ minWidth: 32 }}>
-                    <WarningAmberOutlined fontSize="small" color="warning" />
-                  </ListItemIcon>
+                  <ListItemAvatar sx={{ minWidth: 44 }}>
+                    <Avatar sx={{ width: 32, height: 32, bgcolor: 'warning.main' }}>
+                      <WarningAmberOutlined fontSize="small" />
+                    </Avatar>
+                  </ListItemAvatar>
                   <ListItemText
                     primary={doc.fileName}
-                    secondary={t('dashboard.needsAttention.documentExpires', {
-                      date: formatDate(doc.expiresAt),
-                    })}
+                    secondary={t('dashboard.needsAttention.documentExpires', { date: formatDate(doc.expiresAt) })}
+                    slotProps={{ primary: { noWrap: true, sx: { fontWeight: 600 } } }}
                   />
                 </ListItem>
               ))}
@@ -91,14 +87,15 @@ export function NeedsAttentionWidget({
                   to={paths.absences}
                   sx={{ color: 'inherit', textDecoration: 'none' }}
                 >
-                  <ListItemIcon sx={{ minWidth: 32 }}>
-                    <EventBusyOutlined fontSize="small" color="warning" />
-                  </ListItemIcon>
+                  <ListItemAvatar sx={{ minWidth: 44 }}>
+                    <Avatar sx={{ width: 32, height: 32, bgcolor: 'warning.main' }}>
+                      <EventBusyOutlined fontSize="small" />
+                    </Avatar>
+                  </ListItemAvatar>
                   <ListItemText
                     primary={absence.employeeName}
-                    secondary={t('dashboard.needsAttention.absencePending', {
-                      type: enumLabel('absenceType', absence.type),
-                    })}
+                    secondary={t('dashboard.needsAttention.absencePending', { type: enumLabel('absenceType', absence.type) })}
+                    slotProps={{ primary: { sx: { fontWeight: 600 } } }}
                   />
                 </ListItem>
               ))}

@@ -1,0 +1,48 @@
+/* Cosmetic overrides on top of react-grid-layout/css/styles.css: a resize
+   handle styled to the brand's amber instead of the library's plain grey
+   corner tick, and a touch of lift while a card is actively being dragged or
+   resized so the interaction reads as picking something up, not just moving
+   a rectangle. */
+
+/* All eight handles share the same fade-in-on-hover behavior, at whatever
+   size and position the base stylesheet gives their axis (corner handles are
+   20x20 there; side handles are centered via a fixed -10px margin that a
+   different size here would throw off, so this only touches opacity/color,
+   never width/height, on the shared selector). */
+.react-grid-item > .react-resizable-handle {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.react-grid-item:hover > .react-resizable-handle {
+  opacity: 1;
+}
+
+/* The corner the user reaches for by default gets the brand treatment; the
+   other seven stay as plain grey ticks so they read as secondary. */
+.react-grid-item > .react-resizable-handle-se::after {
+  content: '';
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 10px;
+  height: 10px;
+  border: none;
+  border-radius: 3px;
+  background: linear-gradient(135deg, #e65100, #f9a825);
+  clip-path: polygon(100% 0, 0 100%, 100% 100%);
+}
+
+.react-grid-item.react-draggable-dragging {
+  box-shadow: 0 24px 48px -20px rgba(31, 27, 22, 0.32);
+}
+
+.react-grid-item.resizing {
+  box-shadow: 0 24px 48px -20px rgba(230, 81, 0, 0.28);
+}
+
+.react-grid-item.react-grid-placeholder {
+  background: #e65100;
+  border-radius: 12px;
+  opacity: 0.12;
+}

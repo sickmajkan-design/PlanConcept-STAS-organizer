@@ -10,6 +10,7 @@ import { useI18n } from '../../../i18n/useI18n';
 import { paths } from '../../../routes/paths';
 import { chartPalette } from '../../../theme';
 import { formatMoney } from '../../../utils/formatting';
+import { useElementSize } from '../useElementSize';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
 
@@ -29,12 +30,10 @@ function monthlyTotals(entries: { amount: number; occurredOn: string }[]): numbe
   return totals;
 }
 
-export function ProjectsRealizationWidget({
-  instanceId: _instanceId,
-  dragHandleProps,
-  onRemove,
-}: DashboardWidgetProps) {
+export function ProjectsRealizationWidget({ instanceId: _instanceId, onRemove, onExpandWidth }: DashboardWidgetProps) {
   const { t, locale } = useI18n();
+  const pieSize = useElementSize<HTMLDivElement>();
+  const barSize = useElementSize<HTMLDivElement>();
   const year = new Date().getFullYear();
   const { from, to } = yearBounds(year);
 
@@ -88,87 +87,100 @@ export function ProjectsRealizationWidget({
       title={t('dashboard.widget.ProjectsRealization')}
       isLoading={planQuery.isLoading}
       error={planQuery.error}
-      onRemove={onRemove}
-      dragHandleProps={dragHandleProps}
+      onRemove={onRemove} onExpandWidth={onExpandWidth}
     >
-      {rows.length === 0 ? (
-        <Typography color="text.secondary" variant="body2">
-          {t('dashboard.projectsRealization.empty')}
-        </Typography>
-      ) : (
-        <Stack spacing={1.5}>
-          {rows.map((row) => (
-            <Box key={row.projectId}>
-              <Stack direction="row" sx={{ justifyContent: 'space-between', mb: 0.5 }}>
-                <Typography
-                  variant="body2"
-                  noWrap
-                  sx={{ fontWeight: 600, maxWidth: '65%' }}
-                >
-                  {row.projectName}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {formatMoney(row.realizedToDate, locale)} / {formatMoney(row.contractValue, locale)}
-                </Typography>
-              </Stack>
-              <LinearProgress
-                variant="determinate"
-                value={Math.min(100, row.percentOfContract ?? 0)}
-              />
+      <Stack spacing={2} sx={{ flex: 1, minHeight: 0 }}>
+        {rows.length === 0 ? (
+          <Typography color="text.secondary" variant="body2">
+            {t('dashboard.projectsRealization.empty')}
+          </Typography>
+        ) : (
+          <Stack spacing={1.75} sx={{ flexShrink: 0 }}>
+            {rows.map((row) => (
+              <Box key={row.projectId}>
+                <Stack direction="row" sx={{ justifyContent: 'space-between', mb: 0.5, alignItems: 'baseline' }}>
+                  <Typography variant="body1" noWrap sx={{ fontWeight: 700, maxWidth: '60%' }}>
+                    {row.projectName}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    {formatMoney(row.realizedToDate, locale)} / {formatMoney(row.contractValue, locale)}
+                  </Typography>
+                </Stack>
+                <LinearProgress
+                  variant="determinate"
+                  value={Math.min(100, row.percentOfContract ?? 0)}
+                  sx={{ height: 8, borderRadius: 999 }}
+                />
+              </Box>
+            ))}
+          </Stack>
+        )}
+        <Button component={Link} to={paths.annualRealization} size="small" sx={{ flexShrink: 0, alignSelf: 'flex-start' }}>
+          {t('common.viewAll')}
+        </Button>
+
+        <Divider sx={{ flexShrink: 0 }} />
+
+        <Box sx={{ flex: 1, minHeight: 180, display: 'flex', flexDirection: 'column' }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, flexShrink: 0, mb: 0.5 }}>
+            {t('dashboard.projectsRealization.costComposition')}
+          </Typography>
+          {costQuery.error ? (
+            <Alert severity="error" sx={{ mt: 1 }}>
+              {t('common.somethingWentWrong')}
+            </Alert>
+          ) : !costQuery.isLoading && costSlices.length === 0 ? (
+            <Typography color="text.secondary" variant="body2">
+              {t('dashboard.projectsRealization.noCostData')}
+            </Typography>
+          ) : costSlices.length === 1 ? (
+            // One category is not a composition: a full ring says nothing a
+            // number does not say better.
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              {costSlices[0].label}: <strong>{formatMoney(costSlices[0].value, locale)}</strong>
+            </Typography>
+          ) : (
+            <Box ref={pieSize.ref} sx={{ flex: 1, minHeight: 0 }}>
+              {pieSize.width > 0 && pieSize.height > 0 && (
+                <PieChart
+                  width={pieSize.width}
+                  height={pieSize.height}
+                  colors={chartPalette}
+                  series={[{ data: costSlices, innerRadius: 40 }]}
+                  slotProps={{ legend: { direction: 'horizontal', position: { vertical: 'bottom', horizontal: 'center' } } }}
+                />
+              )}
             </Box>
-          ))}
-        </Stack>
-      )}
-      <Button component={Link} to={paths.annualRealization} size="small" sx={{ mt: 2 }}>
-        {t('common.viewAll')}
-      </Button>
+          )}
+        </Box>
 
-      <Divider sx={{ my: 2 }} />
+        <Divider sx={{ flexShrink: 0 }} />
 
-      <Typography variant="caption" color="text.secondary">
-        {t('dashboard.projectsRealization.costComposition')}
-      </Typography>
-      {costQuery.error ? (
-        <Alert severity="error" sx={{ mt: 1 }}>
-          {t('common.somethingWentWrong')}
-        </Alert>
-      ) : !costQuery.isLoading && costSlices.length === 0 ? (
-        <Typography color="text.secondary" variant="body2">
-          {t('dashboard.projectsRealization.noCostData')}
-        </Typography>
-      ) : costSlices.length === 1 ? (
-        // One category is not a composition: a full ring says nothing a
-        // number does not say better.
-        <Typography variant="body2" sx={{ mt: 1 }}>
-          {costSlices[0].label}: <strong>{formatMoney(costSlices[0].value, locale)}</strong>
-        </Typography>
-      ) : (
-        <PieChart
-          height={180}
-          colors={chartPalette}
-          series={[{ data: costSlices, innerRadius: 30 }]}
-          hideLegend={false}
-        />
-      )}
-
-      <Divider sx={{ my: 2 }} />
-
-      <Typography variant="caption" color="text.secondary">
-        {t('dashboard.projectsRealization.monthlyTrend')}
-      </Typography>
-      {revenueQuery.error ? (
-        <Alert severity="error" sx={{ mt: 1 }}>
-          {t('common.somethingWentWrong')}
-        </Alert>
-      ) : (
-        <BarChart
-          height={160}
-          colors={chartPalette}
-          series={[{ data: monthly, label: t('dashboard.projectsRealization.revenue') }]}
-          xAxis={[{ scaleType: 'band', data: monthLabels }]}
-          margin={{ top: 10, bottom: 30, left: 40, right: 10 }}
-        />
-      )}
+        <Box sx={{ flex: 1, minHeight: 180, display: 'flex', flexDirection: 'column' }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, flexShrink: 0, mb: 0.5 }}>
+            {t('dashboard.projectsRealization.monthlyTrend')}
+          </Typography>
+          {revenueQuery.error ? (
+            <Alert severity="error" sx={{ mt: 1 }}>
+              {t('common.somethingWentWrong')}
+            </Alert>
+          ) : (
+            <Box ref={barSize.ref} sx={{ flex: 1, minHeight: 0 }}>
+              {barSize.width > 0 && barSize.height > 0 && (
+                <BarChart
+                  width={barSize.width}
+                  height={barSize.height}
+                  colors={chartPalette}
+                  series={[{ data: monthly, label: t('dashboard.projectsRealization.revenue') }]}
+                  xAxis={[{ scaleType: 'band', data: monthLabels }]}
+                  margin={{ top: 10, bottom: 30, left: 48, right: 10 }}
+                  borderRadius={6}
+                />
+              )}
+            </Box>
+          )}
+        </Box>
+      </Stack>
     </WidgetShell>
   );
 }

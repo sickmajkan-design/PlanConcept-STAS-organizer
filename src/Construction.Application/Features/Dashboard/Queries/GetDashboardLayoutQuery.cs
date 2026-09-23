@@ -45,31 +45,54 @@ public class GetDashboardLayoutQueryHandler
             ? DefaultWidgets()
             : JsonSerializer.Deserialize<List<DashboardWidgetDto>>(json) ?? DefaultWidgets();
 
+        // A layout saved before the board became free-form (position/size
+        // used to be an implicit column+order pair) deserializes with
+        // W/H defaulted to 0 — System.Text.Json leaves properties missing
+        // from the old JSON at their CLR default rather than throwing. That
+        // 0 is unusable as a grid span, so re-arrange those widgets with the
+        // same auto-packing the first-visit default uses, keeping the set
+        // and order of widgets the user actually chose.
+        if (widgets.Any(w => w.W <= 0 || w.H <= 0))
+        {
+            widgets = AutoArrange(widgets.Select(w => w.Type).ToList());
+        }
+
         return new DashboardLayoutDto { Widgets = widgets };
     }
 
-    /// <summary>
-    /// The two-column board a first visit lands on. <see cref="DashboardWidgetTypes.CompanyKpi"/>
-    /// leads the left column — the one glance that answers "how's the
-    /// company doing" — with everything else alternating columns so a wide
-    /// screen isn't left with one tall stack and an empty half.
-    /// </summary>
-    private static List<DashboardWidgetDto> DefaultWidgets()
-    {
-        var columnOrders = new[] { 0, 0 };
+    private const int DefaultWidth = 6;
+    private const int DefaultHeight = 12;
 
-        return DashboardWidgetTypes.All
+    /// <summary>
+    /// The two-column-looking board a first visit (or a pre-freeform-grid
+    /// migration) lands on. <see cref="DashboardWidgetTypes.CompanyKpi"/>
+    /// leads the left column — the one glance that answers "how's the
+    /// company doing" — with everything else alternating columns and
+    /// stacking under whichever side is currently shorter, so a wide screen
+    /// isn't left with one tall stack and an empty half. It's just a starting
+    /// arrangement: the user can drag and resize every widget from here.
+    /// </summary>
+    private static List<DashboardWidgetDto> DefaultWidgets() => AutoArrange(DashboardWidgetTypes.All);
+
+    private static List<DashboardWidgetDto> AutoArrange(IReadOnlyList<string> types)
+    {
+        var columnHeights = new[] { 0, 0 };
+
+        return types
             .Select((type, index) =>
             {
                 var column = type == DashboardWidgetTypes.CompanyKpi ? 0 : index % 2;
-                var order = columnOrders[column]++;
+                var y = columnHeights[column];
+                columnHeights[column] += DefaultHeight;
 
                 return new DashboardWidgetDto
                 {
                     Id = Guid.NewGuid(),
                     Type = type,
-                    Column = column,
-                    Order = order,
+                    X = column * DefaultWidth,
+                    Y = y,
+                    W = DefaultWidth,
+                    H = DefaultHeight,
                 };
             })
             .ToList();

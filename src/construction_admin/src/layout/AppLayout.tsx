@@ -274,26 +274,22 @@ export function AppLayout({ children }: { children: ReactNode }) {
         gap: 0.5,
       }}
     >
-      <IconButton
-        component={Link}
-        to={paths.home}
-        sx={{ mb: 1 }}
-        onMouseEnter={(event) => scheduleLogoPreview(event.currentTarget)}
-        onMouseLeave={cancelLogoPreview}
-      >
-        {branding?.hasLogo ? (
-          <Box
-            component="img"
-            src={`${config.apiBaseUrl}/api/v1/company-settings/logo`}
-            alt=""
-            sx={{ width: 28, height: 28, objectFit: 'contain', borderRadius: 0.5 }}
-          />
-        ) : (
+      {/* The rail keeps a plain "go home" glyph rather than the company logo —
+          the logo itself now lives once, prominently, centred in the top bar
+          (see the Toolbar below) instead of tucked into this top-left corner. */}
+      <Tooltip title={t('nav.home')} placement="right">
+        <IconButton
+          component={Link}
+          to={paths.home}
+          sx={{ mb: 1 }}
+          onMouseEnter={(event) => scheduleLogoPreview(event.currentTarget)}
+          onMouseLeave={cancelLogoPreview}
+        >
           <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: 14 }}>
             {(branding?.name || t('nav.appName')).slice(0, 1)}
           </Avatar>
-        )}
-      </IconButton>
+        </IconButton>
+      </Tooltip>
 
       <Popper
         open={Boolean(logoPreviewAnchor)}
@@ -762,7 +758,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           bgcolor: 'background.paper',
         }}
       >
-        <Toolbar sx={{ gap: 1 }}>
+        <Toolbar sx={{ gap: 1, position: 'relative' }}>
           {!isDesktop && (
             <IconButton edge="start" onClick={() => setMobileOpen(true)}>
               <MenuOutlined />
@@ -776,6 +772,66 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </Tooltip>
           )}
           <Box sx={{ flex: 1 }} />
+
+          {/* The brand mark moved here, centred, from the rail's top-left
+              corner — the one place in the shell every screen shares, so the
+              company's own identity (logo + name) reads as the header of the
+              product rather than a small icon in a corner. Hidden below `lg`
+              so it can never collide with the back button or the action
+              cluster on a narrower viewport. */}
+          <Box
+            component={Link}
+            to={paths.home}
+            sx={{
+              display: { xs: 'none', lg: 'flex' },
+              position: 'absolute',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              alignItems: 'center',
+              gap: 1.25,
+              px: 2,
+              py: 0.5,
+              borderRadius: 999,
+              textDecoration: 'none',
+              color: 'inherit',
+              maxWidth: 420,
+              transition: 'background-color 0.18s',
+              '&:hover': { bgcolor: 'action.hover' },
+            }}
+          >
+            {branding?.hasLogo ? (
+              <Box
+                component="img"
+                src={`${config.apiBaseUrl}/api/v1/company-settings/logo`}
+                alt=""
+                sx={{
+                  width: 36,
+                  height: 36,
+                  objectFit: 'contain',
+                  borderRadius: 1,
+                  flexShrink: 0,
+                }}
+              />
+            ) : (
+              <Avatar
+                variant="rounded"
+                sx={{ width: 36, height: 36, bgcolor: 'primary.main', fontSize: 16 }}
+              >
+                {(branding?.name || t('nav.appName')).slice(0, 1)}
+              </Avatar>
+            )}
+            <Box sx={{ minWidth: 0, textAlign: 'left' }}>
+              <Typography variant="subtitle2" noWrap sx={{ fontWeight: 700, lineHeight: 1.2 }}>
+                {branding?.name || t('nav.appName')}
+              </Typography>
+              {companyDetails?.address && (
+                <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
+                  {companyDetails.address}
+                </Typography>
+              )}
+            </Box>
+          </Box>
+
           <Tooltip title={t('guide.title')}>
             <IconButton onClick={() => setGuideOpen(true)} aria-label={t('guide.title')}>
               <HelpOutlined />

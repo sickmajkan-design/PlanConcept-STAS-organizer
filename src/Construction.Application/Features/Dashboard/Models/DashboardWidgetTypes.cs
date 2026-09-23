@@ -15,6 +15,9 @@ public static class DashboardWidgetTypes
     public const string DocumentExpiry = nameof(DocumentExpiry);
     public const string FleetStatus = nameof(FleetStatus);
     public const string NeedsAttention = nameof(NeedsAttention);
+    public const string LiveMap = nameof(LiveMap);
+    public const string TodayAttendance = nameof(TodayAttendance);
+    public const string CostTrend = nameof(CostTrend);
 
     public static readonly IReadOnlyList<string> All =
     [
@@ -25,5 +28,8 @@ public static class DashboardWidgetTypes
         DocumentExpiry,
         FleetStatus,
         NeedsAttention,
+        LiveMap,
+        TodayAttendance,
+        CostTrend,
     ];
 }

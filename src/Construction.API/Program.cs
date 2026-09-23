@@ -81,6 +81,12 @@ try
     // and a deleted row cannot be deleted again.
     builder.Services.AddHostedService<DailyReminderService>();
 
+    // A notification carries no foreign key to what it's about — see the
+    // doc comment on PurgeOrphanedNotificationsCommand — so nothing cascades
+    // when that record is deleted, through the app or directly in the
+    // database. This is what actually notices and cleans it up.
+    builder.Services.AddHostedService<NotificationReconciliationService>();
+
     builder.Services.Configure<RetentionSettings>(
         builder.Configuration.GetSection(RetentionSettings.SectionName));
     builder.Services.AddHostedService<DataRetentionService>();

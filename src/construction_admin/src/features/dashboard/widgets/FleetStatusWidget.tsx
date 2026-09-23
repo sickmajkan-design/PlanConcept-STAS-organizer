@@ -1,4 +1,4 @@
-import { List, ListItem, ListItemText, Stack, Typography } from '@mui/material';
+import { Box, List, ListItem, ListItemText, Stack, Typography } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -10,6 +10,7 @@ import { useI18n } from '../../../i18n/useI18n';
 import { useEnumLabel } from '../../../i18n/enumLabels';
 import { paths } from '../../../routes/paths';
 import { chartPalette } from '../../../theme';
+import { useElementSize } from '../useElementSize';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
 
@@ -31,30 +32,15 @@ function countByStatus<TStatus extends string>(
   return order.map((status) => ({ status, count: counts.get(status) ?? 0 }));
 }
 
-const VEHICLE_STATUS_ORDER: VehicleStatus[] = [
-  'Available',
-  'Assigned',
-  'InService',
-  'OutOfService',
-  'RentedOut',
-];
+const VEHICLE_STATUS_ORDER: VehicleStatus[] = ['Available', 'Assigned', 'InService', 'OutOfService', 'RentedOut'];
 
-const TOOL_STATUS_ORDER: ToolStatus[] = [
-  'Available',
-  'Assigned',
-  'UnderRepair',
-  'Lost',
-  'Retired',
-  'RentedOut',
-];
+const TOOL_STATUS_ORDER: ToolStatus[] = ['Available', 'Assigned', 'UnderRepair', 'Lost', 'Retired', 'RentedOut'];
 
-export function FleetStatusWidget({
-  instanceId: _instanceId,
-  dragHandleProps,
-  onRemove,
-}: DashboardWidgetProps) {
+export function FleetStatusWidget({ instanceId: _instanceId, onRemove, onExpandWidth }: DashboardWidgetProps) {
   const { t } = useI18n();
   const enumLabel = useEnumLabel();
+  const vehicleChartSize = useElementSize<HTMLDivElement>();
+  const toolChartSize = useElementSize<HTMLDivElement>();
 
   const vehiclesQuery = useQuery({
     queryKey: ['dashboard', 'fleet', 'vehicles'] as const,
@@ -93,48 +79,63 @@ export function FleetStatusWidget({
   ];
 
   return (
-    <WidgetShell
-      title={t('dashboard.widget.FleetStatus')}
-      isLoading={isLoading}
-      error={error}
-      onRemove={onRemove}
-      dragHandleProps={dragHandleProps}
-    >
-      <Stack spacing={2}>
-        <BarChart
-          height={160}
-          colors={chartPalette}
-          series={[{ data: vehicleCounts.map((c) => c.count), label: t('dashboard.fleet.vehicles') }]}
-          xAxis={[
-            {
-              scaleType: 'band',
-              data: vehicleCounts.map((c) => enumLabel('vehicleStatus', c.status)),
-            },
-          ]}
-          margin={{ top: 10, bottom: 40, left: 30, right: 10 }}
-        />
+    <WidgetShell title={t('dashboard.widget.FleetStatus')} isLoading={isLoading} error={error} onRemove={onRemove} onExpandWidth={onExpandWidth}>
+      <Stack spacing={2} sx={{ flex: 1, minHeight: 0 }}>
+        <Box sx={{ flex: 1, minHeight: 150, display: 'flex', flexDirection: 'column' }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, flexShrink: 0 }}>
+            {t('dashboard.fleet.vehicles')}
+          </Typography>
+          <Box ref={vehicleChartSize.ref} sx={{ flex: 1, minHeight: 0 }}>
+            {vehicleChartSize.width > 0 && vehicleChartSize.height > 0 && (
+              <BarChart
+                width={vehicleChartSize.width}
+                height={vehicleChartSize.height}
+                colors={chartPalette}
+                series={[{ data: vehicleCounts.map((c) => c.count), label: t('dashboard.fleet.vehicles') }]}
+                xAxis={[{ scaleType: 'band', data: vehicleCounts.map((c) => enumLabel('vehicleStatus', c.status)) }]}
+                margin={{ top: 10, bottom: 40, left: 32, right: 10 }}
+                borderRadius={6}
+                hideLegend
+              />
+            )}
+          </Box>
+        </Box>
 
-        <BarChart
-          height={160}
-          colors={chartPalette}
-          series={[{ data: toolCounts.map((c) => c.count), label: t('dashboard.fleet.tools') }]}
-          xAxis={[
-            { scaleType: 'band', data: toolCounts.map((c) => enumLabel('toolStatus', c.status)) },
-          ]}
-          margin={{ top: 10, bottom: 40, left: 30, right: 10 }}
-        />
+        <Box sx={{ flex: 1, minHeight: 150, display: 'flex', flexDirection: 'column' }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, flexShrink: 0 }}>
+            {t('dashboard.fleet.tools')}
+          </Typography>
+          <Box ref={toolChartSize.ref} sx={{ flex: 1, minHeight: 0 }}>
+            {toolChartSize.width > 0 && toolChartSize.height > 0 && (
+              <BarChart
+                width={toolChartSize.width}
+                height={toolChartSize.height}
+                colors={chartPalette}
+                series={[{ data: toolCounts.map((c) => c.count), label: t('dashboard.fleet.tools') }]}
+                xAxis={[{ scaleType: 'band', data: toolCounts.map((c) => enumLabel('toolStatus', c.status)) }]}
+                margin={{ top: 10, bottom: 40, left: 32, right: 10 }}
+                borderRadius={6}
+                hideLegend
+              />
+            )}
+          </Box>
+        </Box>
 
         {attention.length > 0 && (
-          <List dense disablePadding>
+          <List dense disablePadding sx={{ flexShrink: 0 }}>
             {attention.map((item) => (
               <ListItem key={item.id} disableGutters>
-                <ListItemText primary={item.label} secondary={item.detail} />
+                <ListItemText
+                  primary={item.label}
+                  secondary={item.detail}
+                  slotProps={{ primary: { sx: { fontWeight: 600 } } }}
+                />
               </ListItem>
             ))}
           </List>
         )}
 
-        <Stack direction="row" spacing={2}>
+        <Stack direction="row" spacing={2} sx={{ flexShrink: 0 }}>
           <Typography variant="body2">
             <Link to={paths.vehicles}>{t('nav.vehicles')}</Link>
           </Typography>
