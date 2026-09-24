@@ -1,5 +1,6 @@
-import { AddOutlined, DeleteOutlined, EditOutlined, VisibilityOutlined } from '@mui/icons-material';
+import { AddOutlined, DeleteOutlined, EditOutlined, UploadFileOutlined, VisibilityOutlined } from '@mui/icons-material';
 import {
+  Button,
   Box,
   Chip,
   FormControl,
@@ -19,9 +20,12 @@ import type { EmployeeListQuery } from '../../api/employees';
 import { exportsApi } from '../../api/exports';
 import type { Employee, EmployeeStatus, EmployeeType } from '../../api/types';
 import { employeeStatuses, employeeTypes } from '../../api/types';
+import { canAdministerAccounts } from '../../auth/authHelpers';
+import { useAuth } from '../../auth/useAuth';
 import { BulkActionsBar } from '../../components/BulkActionsBar';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ExportButton } from '../../components/ExportButton';
+import { ImportEmployeesDialog } from '../../components/ImportEmployeesDialog';
 import { PageHeader } from '../../components/PageHeader';
 import {
   StatusBoard,
@@ -58,6 +62,8 @@ export function EmployeesListPage() {
   const t = useT();
   const enumLabel = useEnumLabel();
   const list = useListQueryState<EmployeeStatus>('lastName');
+  const { user } = useAuth();
+  const [importing, setImporting] = useState(false);
   const [typeFilter, setTypeFilter] = useState<EmployeeType | ''>('');
   const savedViews = useSavedViews<EmployeeViewState>('employees');
 
@@ -191,12 +197,21 @@ export function EmployeesListPage() {
       <PageHeader
         title={t('employees.title')}
         subtitle={data ? t('common.total', { count: data.totalCount }) : undefined}
+        secondaryActions={
+          canAdministerAccounts(user) && (
+            <Button variant="outlined" startIcon={<UploadFileOutlined />} onClick={() => setImporting(true)}>
+              {t('onboarding.import.button')}
+            </Button>
+          )
+        }
         action={{
           label: t('employees.add'),
           icon: <AddOutlined />,
           onClick: () => navigate(paths.employeeNew),
         }}
       />
+
+      <ImportEmployeesDialog open={importing} onClose={() => setImporting(false)} />
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ flexWrap: 'wrap', mb: 2 }}>
         <SearchField

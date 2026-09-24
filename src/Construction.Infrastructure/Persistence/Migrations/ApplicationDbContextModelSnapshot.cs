@@ -908,6 +908,48 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.ToTable("employees", (string)null);
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.EmployeeInvitation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.ToTable("employee_invitations", (string)null);
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.EmployeeProject", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1331,6 +1373,10 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<int>("DataType")
                         .HasColumnType("integer");
 
+                    b.Property<string>("FormulaJson")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
                     b.Property<Guid>("LedgerId")
                         .HasColumnType("uuid");
 
@@ -1344,6 +1390,10 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
                     b.Property<int?>("SourceMetric")
                         .HasColumnType("integer");
+
+                    b.Property<string>("SystemKey")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -3296,6 +3346,17 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.EmployeeInvitation", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.EmployeeProject", b =>

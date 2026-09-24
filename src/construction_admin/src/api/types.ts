@@ -1684,6 +1684,10 @@ export interface LedgerColumn {
   dataType: LedgerColumnDataType;
   /** Null for a manual/free-typed column (default); otherwise the metric its cells are computed from. */
   sourceMetric: LedgerColumnSourceMetric | null;
+  /** Worked out from other columns of the row; typing into it is a manual override. */
+  isFormula: boolean;
+  /** What a template column is (hours, client rate, …), whatever it is called. */
+  systemKey: string | null;
   sortOrder: number;
 }
 
@@ -1696,6 +1700,20 @@ export interface LedgerCell {
   colorTag: string | null;
   /** True when this value was computed from real platform data — never editable. */
   isComputed: boolean;
+  /** A person typed a value over a computed column's calculation. */
+  isOverride?: boolean;
+}
+
+/** One thing worth a second look before a month is closed. */
+export interface LedgerCheck {
+  kind: 'MissingClientRate' | 'ManualOverride' | 'HoursAcrossSections' | 'UnreviewedHours';
+  sectionId: string;
+  sectionName: string;
+  rowId: string | null;
+  rowLabel: string | null;
+  columnName: string | null;
+  amount: number | null;
+  otherSections: string[];
 }
 
 export interface LedgerRow {
@@ -1751,6 +1769,10 @@ export interface CreateLedgerInput {
   note?: string | null;
   /** When set, duplicates that ledger's columns/sections/rows structure (blank cells) into the new one. */
   copyFromLedgerId?: string | null;
+  /** Starts from a ready-made layout instead of an empty table. */
+  template?: 'Payroll' | null;
+  /** With a template: a section per project with people on it, and a row for each. */
+  populateFromProjects?: boolean;
 }
 
 export interface UpdateLedgerInput {

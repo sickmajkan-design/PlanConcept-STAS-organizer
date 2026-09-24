@@ -77,6 +77,8 @@ public class AddLedgerColumnCommandHandler : IRequestHandler<AddLedgerColumnComm
             Name = column.Name,
             DataType = column.DataType.ToString(),
             SourceMetric = column.SourceMetric?.ToString(),
+            IsFormula = column.FormulaJson != null,
+            SystemKey = column.SystemKey,
             SortOrder = column.SortOrder,
         };
     }
@@ -124,8 +126,15 @@ public class UpdateLedgerColumnCommandHandler
             ?? throw new NotFoundException(nameof(LedgerColumn), request.Id);
 
         column.Name = request.Name.Trim();
-        column.DataType = request.SourceMetric is null ? request.DataType : LedgerColumnDataType.Currency;
-        column.SourceMetric = request.SourceMetric;
+
+        // A computed column keeps its type and cannot be turned into a sourced
+        // one; renaming is all that is left to it, since its meaning is in the
+        // formula and the rest of the row depends on it.
+        if (column.FormulaJson is null)
+        {
+            column.DataType = request.SourceMetric is null ? request.DataType : LedgerColumnDataType.Currency;
+            column.SourceMetric = request.SourceMetric;
+        }
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -135,6 +144,8 @@ public class UpdateLedgerColumnCommandHandler
             Name = column.Name,
             DataType = column.DataType.ToString(),
             SourceMetric = column.SourceMetric?.ToString(),
+            IsFormula = column.FormulaJson != null,
+            SystemKey = column.SystemKey,
             SortOrder = column.SortOrder,
         };
     }
@@ -157,6 +168,23 @@ public class DeleteLedgerColumnCommandHandler : IRequestHandler<DeleteLedgerColu
         var column = await _context.LedgerColumns
             .FirstOrDefaultAsync(c => c.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(LedgerColumn), request.Id);
+
+        // Removing a column another column is calculated from would leave that
+        // formula quietly reading zero.
+        var others = await _context.LedgerColumns
+            .AsNoTracking()
+            .Where(c => c.LedgerId == column.LedgerId && c.Id != column.Id && c.FormulaJson != null)
+            .Select(c => new { c.Name, c.FormulaJson })
+            .ToListAsync(cancellationToken);
+
+        var dependent = others.FirstOrDefault(
+            c => LedgerFormula.Parse(c.FormulaJson)?.ReferencedColumns.Contains(column.Id) == true);
+
+        if (dependent is not null)
+        {
+            throw new ConflictException(
+                $"The column '{column.Name}' is used to calculate '{dependent.Name}' and cannot be removed.");
+        }
 
         _context.LedgerColumns.Remove(column);
         await _context.SaveChangesAsync(cancellationToken);

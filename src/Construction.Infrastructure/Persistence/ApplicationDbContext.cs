@@ -60,6 +60,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<Notification> Notifications => Set<Notification>();
 
+    public DbSet<EmployeeInvitation> EmployeeInvitations => Set<EmployeeInvitation>();
+
     public DbSet<NotificationGroup> NotificationGroups => Set<NotificationGroup>();
 
     public DbSet<NotificationGroupMember> NotificationGroupMembers => Set<NotificationGroupMember>();

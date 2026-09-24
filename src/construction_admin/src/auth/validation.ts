@@ -44,6 +44,19 @@ export const resetPasswordSchema = z
 
 export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
+export const acceptInvitationSchema = z
+  .object({
+    email: emailSchema,
+    password: strongPasswordSchema,
+    confirmPassword: z.string().min(1, { error: zodMsg('validation.required') }),
+  })
+  .refine((values) => values.password === values.confirmPassword, {
+    error: zodMsg('validation.passwordsDiffer'),
+    path: ['confirmPassword'],
+  });
+
+export type AcceptInvitationFormValues = z.infer<typeof acceptInvitationSchema>;
+
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, { error: zodMsg('validation.required') }),

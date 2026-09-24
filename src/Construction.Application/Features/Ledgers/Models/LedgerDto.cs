@@ -47,6 +47,9 @@ public class LedgerCellDto
     /// and the API refuses a write to it.
     /// </summary>
     public bool IsComputed { get; init; }
+
+    /// <summary>A person typed a value over a computed column's calculation.</summary>
+    public bool IsOverride { get; init; }
 }
 
 public class LedgerRowDto
@@ -118,6 +121,12 @@ public class LedgerColumnDto
 
     /// <summary>Null for a manual/free-typed column (today's only behavior); otherwise the metric its cells are computed from.</summary>
     public string? SourceMetric { get; init; }
+
+    /// <summary>Worked out from other columns of the row; typing into it is a manual override.</summary>
+    public bool IsFormula { get; init; }
+
+    /// <summary>What a template column is (hours, client rate, …), whatever it is called.</summary>
+    public string? SystemKey { get; init; }
 
     public int SortOrder { get; init; }
 }
@@ -333,12 +342,10 @@ public static class LedgerSummaryBoxMapping
                 .Select(c => c.Name)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            var cellValues = await context.LedgerCells
-                .Where(cell => cell.ColumnId == columnId && cell.Row.Section.LedgerId == box.LedgerId)
-                .Select(cell => cell.Value)
-                .ToListAsync(cancellationToken);
+            var totals = await LedgerColumnTotals.ComputeAsync(
+                context, box.LedgerId, [columnId], cancellationToken);
 
-            value = cellValues.Sum(LedgerCellMath.ParseNumeric);
+            value = totals[columnId];
         }
         else
         {
@@ -388,6 +395,8 @@ public static class LedgerShellMapping
                     Name = c.Name,
                     DataType = c.DataType.ToString(),
                     SourceMetric = c.SourceMetric != null ? c.SourceMetric.ToString() : null,
+                    IsFormula = c.FormulaJson != null,
+                    SystemKey = c.SystemKey,
                     SortOrder = c.SortOrder,
                 })
                 .ToList(),

@@ -3,6 +3,7 @@ import { listParams } from './resource';
 import type {
   CreateLedgerInput,
   LedgerColumn,
+  LedgerCheck,
   LedgerColumnInput,
   LedgerDetail,
   LedgerPromotion,
@@ -48,6 +49,9 @@ export const ledgersApi = {
       url: '/api/v1/ledgers',
       params: listParams(query),
     }),
+
+  checks: (id: string) =>
+    request<LedgerCheck[]>({ method: 'GET', url: `/api/v1/ledgers/${id}/checks` }),
 
   get: (id: string) =>
     request<LedgerDetail>({ method: 'GET', url: `/api/v1/ledgers/${id}` }),

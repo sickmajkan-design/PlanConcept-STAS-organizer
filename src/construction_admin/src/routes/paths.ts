@@ -2,6 +2,8 @@ export const paths = {
   login: '/login',
   forgotPassword: '/forgot-password',
   resetPassword: '/reset-password',
+  inviteRoute: '/invite/:token',
+  invite: (token: string) => `/invite/${token}`,
   changePassword: '/change-password',
 
   home: '/',

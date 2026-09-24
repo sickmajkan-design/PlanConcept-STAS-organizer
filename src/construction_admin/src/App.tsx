@@ -9,6 +9,7 @@ import { BillingSettingsLayout, CostRecordsLayout } from './layout/SectionTabs';
 import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { LoginPage } from './pages/auth/LoginPage';
+import { AcceptInvitationPage } from './pages/auth/AcceptInvitationPage';
 import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 import { HomePage } from './pages/HomePage';
 import { paths } from './routes/paths';
@@ -465,6 +466,9 @@ function Layout() {
 export function App() {
   return (
     <Routes>
+      {/* Open to anyone holding the link, signed in or not. */}
+      <Route path={paths.inviteRoute} element={<AcceptInvitationPage />} />
+
       <Route element={<RequireGuest />}>
         <Route path={paths.login} element={<LoginPage />} />
         <Route path={paths.forgotPassword} element={<ForgotPasswordPage />} />

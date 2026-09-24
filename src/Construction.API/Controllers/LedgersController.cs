@@ -8,7 +8,9 @@ using Construction.Application.Features.Ledgers.Commands.SetLedgerCell;
 using Construction.Application.Features.Ledgers.Commands.SetLedgerColor;
 using Construction.Application.Features.Ledgers.Commands.UpdateLedger;
 using Construction.Application.Features.Ledgers.Models;
+using Construction.Application.Features.Ledgers.Queries.ExportLedger;
 using Construction.Application.Features.Ledgers.Queries.GetLedgerById;
+using Construction.Application.Features.Ledgers.Queries.GetLedgerChecks;
 using Construction.Application.Features.Ledgers.Queries.GetLedgerPromotions;
 using Construction.Application.Features.Ledgers.Queries.GetLedgerSectionRows;
 using Construction.Application.Features.Ledgers.Queries.GetLedgerUnlinkedRows;
@@ -46,6 +48,32 @@ public class LedgersController : ApiControllerBase
     public async Task<ActionResult<LedgerDetailDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(new GetLedgerByIdQuery(id), cancellationToken));
+    }
+
+    /// <summary>What is worth a second look before the month is closed: missing prices, typed-over figures, too many hours.</summary>
+    [HttpGet("{id:guid}/checks")]
+    [ProducesResponseType(typeof(IReadOnlyList<LedgerCheckDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IReadOnlyList<LedgerCheckDto>>> GetChecks(
+        Guid id,
+        [FromQuery] decimal? expectedHours,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(
+            new GetLedgerChecksQuery { LedgerId = id, ExpectedHours = expectedHours ?? 176m },
+            cancellationToken));
+    }
+
+    /// <summary>The month as a spreadsheet, section by section, with totals and the summary on a second sheet.</summary>
+    [HttpGet("{id:guid}/export")]
+    [Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Export(Guid id, CancellationToken cancellationToken)
+    {
+        var file = await Mediator.Send(new ExportLedgerQuery(id), cancellationToken);
+
+        return File(file.Content, file.ContentType, file.FileName);
     }
 
     /// <summary>Starts a new month, optionally copying another ledger's columns/sections/rows.</summary>

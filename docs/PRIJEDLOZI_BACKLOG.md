@@ -43,7 +43,7 @@ Odluka: fajlovi na serveru ostaju pod **neprozirnim ključevima** (`employees/<i
 - **Backup dokumenata na drugi disk / S3**: ČEKA ODLUKU. Dokumenti su osjetljivi (ljekarski nalazi, ugovori).
 - Provjeriti na serveru da li fajlovi starih dokumenata postoje u skladištu (lokalno nisu, pa ZIP sadrži samo napomenu).
 
-## 3. Lakše podešavanje za kupca (onboarding) — PLANIRANO
+## 3. Lakše podešavanje za kupca (onboarding) — sloj 1 URAĐENO (lokalno), ostalo PLANIRANO
 
 Zapažanje iz koda i dokumentacije: nema vodiča za prvo pokretanje; podešavanja su razbacana; tehnički dio (Firebase, keystore, AI ključ, domen, `.env`, backup) prepušten je vlasniku; mobilna aplikacija se povezuje ručnim podešavanjem uz poseban build. **Ovo je pregled koda, ne razgovor sa kupcem** — prije gradnje provjeriti sa jednim kupcem gdje se stvarno zaglavi.
 
@@ -52,9 +52,9 @@ Tri sloja:
 **Sloj 1 — prvi dan (radni sistem za 30 minuta)**
 | # | Stavka | Prioritet |
 |---|---|---|
-| 1 | Uvoz radnika iz Excela/CSV (pregled grešaka prije potvrde, bez duplikata, samo Admin i iznad, audit log) | Must |
-| 2 | Pozivnica radniku preko linka/QR-a (bez ručnog pravljenja naloga i lozinke) | Must |
-| 3 | Lista "šta još fali" na početnoj stranici ("3 radnika bez gradilišta, nema praznika") | Must |
+| 1 | Uvoz radnika iz Excela/CSV (pregled grešaka prije potvrde, bez duplikata, samo Admin i iznad, audit log) | Must — **urađeno** |
+| 2 | Pozivnica radniku preko linka/QR-a (bez ručnog pravljenja naloga i lozinke) | Must — **urađeno** |
+| 3 | Lista "šta još fali" na početnoj stranici ("3 radnika bez gradilišta, nema praznika") | Must — **urađeno** |
 | 4 | Čarobnjak prvog pokretanja: firma → prvo gradilište → uvoz radnika → pozivnice (svaki korak ima "preskoči") | Should |
 
 **Sloj 2 — svakodnevni rad**
@@ -73,6 +73,12 @@ Tri sloja:
 | 11 | Instalacija jednom naredbom za isporučioca (skripta: `.env`, domen, backup) | Could |
 
 **Won't (sada):** self-service registracija novih firmi, plaćanje i pretplata.
+
+**Kako je urađeno (sloj 1):**
+- **Uvoz:** `POST /api/v1/employees/import` (Admin i iznad), pregled bez snimanja (`dryRun`) pa stvarni uvoz. Datoteka se čita u browseru (Excel ili CSV, prepoznaje uobičajene nazive kolona, datume u više formata). Red sa greškom se prijavi i izostavi, ostali se uvoze. Postojeća osoba se nalazi po broju, e-pošti pa imenu; zadano se ne dira, a opcija "dopuni" popunjava samo prazna polja, nikad ne prepisuje. Broj radnika se sam generiše (`R-0001`…). Ograničenje 1000 redova.
+- **Pozivnica:** `POST /api/v1/invitations` pravi jednokratan link (važi 7 dana, novi poništava stari). Server čuva samo hash tokena. Radnik otvara `/invite/<token>`, bira lozinku i nalog se pravi vezan za njegov zapis. Svaki neispravan link (nepoznat, iskorišten, istekao) izgleda isto. Link i QR kod prikazuju se jednom, na stranici radnika, uz dugme Kopiraj. Slanje emailom nije uključeno (email na serveru nije podešen); link se šalje ručno (poruka, Viber, QR). Nova tabela `employee_invitations` (migracija `AddEmployeeInvitations`).
+- **Šta još fali:** `GET /api/v1/setup/checklist` računa iz živih podataka (podaci o firmi, radnici bez naloga, radnici bez gradilišta, gradilišta bez lokacije, nedostaju praznici, nema radnika/gradilišta). Kartica na početnoj stranici, nestaje kad je sve uređeno.
+- **Testovi:** 15 integracionih (uvoz, pozivnice, lista), 11 jediničnih za čitanje tabele, 2 za obavještenja obrisanog zaposlenog. Cijeli skup: 551 jedinični i 712 integracionih prolaze.
 
 **Primjer stavke — Uvoz radnika iz Excela**
 As a Admin, I want to učitati spisak radnika iz fajla, so that ih ne unosim jednog po jednog.

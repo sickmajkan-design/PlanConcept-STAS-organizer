@@ -4,6 +4,7 @@ using Construction.Application.Common.Models;
 using Construction.Application.Features.Employees.Commands.AssignEmployeeToProject;
 using Construction.Application.Features.Employees.Commands.CreateEmployee;
 using Construction.Application.Features.Employees.Commands.DeleteEmployee;
+using Construction.Application.Features.Employees.Commands.ImportEmployees;
 using Construction.Application.Features.Employees.Commands.RemoveEmployeeFromProject;
 using Construction.Application.Features.Employees.Commands.SetEmployeeRank;
 using Construction.Application.Features.Employees.Commands.UpdateEmployee;
@@ -80,6 +81,18 @@ public class EmployeesController : ApiControllerBase
         var employee = await Mediator.Send(command, cancellationToken);
 
         return CreatedAtAction(nameof(GetById), new { id = employee.Id }, employee);
+    }
+
+    /// <summary>Creates or updates employees from a spreadsheet. A dry run reports without saving.</summary>
+    [HttpPost("import")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(ImportEmployeesResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ImportEmployeesResult>> Import(
+        ImportEmployeesCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command, cancellationToken));
     }
 
     /// <summary>Updates an existing employee.</summary>

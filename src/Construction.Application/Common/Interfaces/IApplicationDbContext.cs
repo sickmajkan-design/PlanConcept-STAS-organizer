@@ -55,6 +55,8 @@ public interface IApplicationDbContext
 
     DbSet<Notification> Notifications { get; }
 
+    DbSet<EmployeeInvitation> EmployeeInvitations { get; }
+
     DbSet<NotificationGroup> NotificationGroups { get; }
 
     DbSet<NotificationGroupMember> NotificationGroupMembers { get; }

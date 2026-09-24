@@ -6,6 +6,7 @@ export function PageHeader({
   subtitle,
   description,
   action,
+  secondaryActions,
 }: {
   title: string;
   /** Usually the row count. Rendered small, under the description if there is one. */
@@ -13,6 +14,8 @@ export function PageHeader({
   /** What this screen is and how it connects to the rest of the app — a sentence, not a count. */
   description?: string;
   action?: { label: string; icon?: ReactNode; onClick: () => void };
+  /** Quieter buttons shown beside the main action. */
+  secondaryActions?: ReactNode;
 }) {
   return (
     <Stack
@@ -47,10 +50,15 @@ export function PageHeader({
           </Typography>
         )}
       </Box>
-      {action && (
-        <Button variant="contained" startIcon={action.icon} onClick={action.onClick}>
-          {action.label}
-        </Button>
+      {(action || secondaryActions) && (
+        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
+          {secondaryActions}
+          {action && (
+            <Button variant="contained" startIcon={action.icon} onClick={action.onClick}>
+              {action.label}
+            </Button>
+          )}
+        </Stack>
       )}
     </Stack>
   );

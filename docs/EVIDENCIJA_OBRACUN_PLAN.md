@@ -1,10 +1,43 @@
 # Evidencija → Obračun mjeseca — plan implementacije
 
-Status: **prijedlog, nije implementirano.** Sastavljeno 2026-09-23 na osnovu tabele koju kupac danas vodi u Excelu i modula `/ledgers` ("Evidencija") kakav je sada. Korisnik je vlasnik firme; knjigovođa kasnije pregleda i prepisuje u knjigovodstveni program. Evidencija ostaje **samo za Super Admina**.
+Status: **Faza 1 implementirana lokalno (nije commitovana ni deployovana); Faze 2 i 3 su prijedlog.** Sastavljeno 2026-09-23 na osnovu tabele koju kupac danas vodi u Excelu i modula `/ledgers` ("Evidencija") kakav je sada. Korisnik je vlasnik firme; knjigovođa kasnije pregleda i prepisuje u knjigovodstveni program. Evidencija ostaje **samo za Super Admina**.
 
 Interaktivna maketa (izmišljeni podaci): [mockups/obracun-mjeseca.html](mockups/obracun-mjeseca.html).
 
 ---
+
+## 0. Šta je urađeno (Faza 1)
+
+- **Šablon "Obračun radnika"** pri pravljenju novog mjeseca: 20 kolona (cijena radnika, 5 sedmica, sati, cijena za klijenta, zarada radnika, naplata, marža, doprinosi, rent a car, gorivo, stanovanje, godišnji, razlika/bonus, akontacija, regres, rezultat) i 8 kućica sažetka sa predznacima. Opcija "popuni gradilišta i radnike iz sistema" pravi sekciju za svako gradilište sa radnicima dodijeljenim tog mjeseca.
+- **Računske kolone** sa fiksnim formulama (proizvod dvije kolone plus zbir sa predznacima, bez slobodnog editora): sati = zbir sedmica; zarada = cijena × sati − akontacija + razlika + godišnji; naplata = sati × cijena za klijenta; marža = naplata − zarada; rezultat = marža − troškovi. Kolona od koje zavisi druga ne može se obrisati; izračunata kolona zadržava tip.
+- **Ručna korekcija** upisom preko izračuna: označena narandžasto, sa strelicom za povratak, i ulazi u listu "Za provjeru".
+- **Zbir firme** iz kućica sažetka nad svim sekcijama (izračunate kolone se sabiraju red po red).
+- **Lista "Za provjeru"**: sati bez cijene za klijenta, ručno upisana polja, radnik sa više sati kroz sekcije nego što mjesec ima (zadano 176).
+- **Kopiranje mjeseca** prenosi kolone, formule (sa prevezanim kolonama), kućice (bez ručno upisanih iznosa) i sekcije, bez brojki.
+- **Izvoz u Excel** (`GET /api/v1/ledgers/{id}/export`): sekcija po sekcija sa zbirovima i drugim listom sa sažetkom; brojevi su brojevi, ručne korekcije imenovane u koloni "Napomena".
+- **Testovi:** 15 integracionih i 7 jediničnih za obračun; cijeli skup 558 + 729 prolazi. Brojke iz kupčeve tabele su uzete kao primjer (npr. 160 h × 33 = 5280, zarada 3200, marža 2080, rezultat 380; akontacija ne mijenja rezultat firme).
+### Faza 2 (urađeno lokalno)
+
+- **Sati iz radnog vremena po sedmici.** Kolone sedmica se zovu po kalendarskim sedmicama mjeseca (KW36…KW40) i pune se iz **odobrenih** unosa radnog vremena radnika, i to samo na gradilištu te sekcije (radnik podijeljen na dva gradilišta u svakoj sekciji pokazuje svoj dio). Šest kolona sedmica, jer mjesec može dotaknuti šest sedmica; neiskorištena je prazna.
+- **Cijena rada iz sistema:** važeća satnica radnika na zadnji dan mjeseca (iz cijena rada).
+- **Ručni upis preko automatske vrijednosti** je ručna korekcija (označena), ali se prijavljuje u "Za provjeru" samo ako se **razlikuje** od radnog vremena; sati upisani za nekoga čije je radno vrijeme prazno ništa ne dovode u pitanje. Za redove bez radnika (kooperanti, kancelarija) upis je običan unos, ne korekcija.
+- **Nova provjera:** sati poslani ali neodobreni (ne računaju se, lako se zaborave).
+- **Kopiranje mjeseca** sada prenosi cijene radnika, cijene za klijenta, doprinose i regres (isto su i sljedeći mjesec), prevezuje kolone sedmica na sedmice novog mjeseca i preimenuje ih; sati i ostali iznosi kreću prazni.
+- **Naplata klijentu** nema izvor u sistemu (ne postoji cijena po klijentu), pa se upisuje ručno jednom i prenosi u sljedeće mjesece.
+- Zbirovi sažetka računaju i redove koji imaju samo automatske vrijednosti (bez ijedne upisane ćelije).
+- **Testovi:** 26 integracionih (uključujući sate iz radnog vremena, cijenu, pravila korekcije, neodobrene sate, kopiranje i računanje sedmica mjeseca) i 13 jediničnih za kalkulator.
+### Faza 3 (urađeno lokalno): gorivo, rent a car i stanovanje iz modula
+
+- **Gorivo:** odobreni troškovi goriva vozila **dodijeljenih radniku** u mjesecu.
+- **Rent a car:** mjesečna cijena zakupa tih vozila, srazmjerno danima u kojima je važila (cijeli mjesec = tačan iznos).
+- **Stanovanje:** radnikov dio kirije smještaja, računat istim kalkulatorom kao stranice smještaja (kirija se dijeli na stanare). Boravak vezan za gradilište ide na red tog gradilišta.
+- **Pravilo prvog reda:** trošak koji pripada osobi, a ne gradilištu (gorivo, zakup, boravak bez gradilišta), ide na **prvi red te osobe** u mjesecu. Tako radnik u dvije sekcije nema isti račun za gorivo dvaput.
+- **Ista pravila korekcije kao za sate:** ručni upis preko automatske vrijednosti se označava, a u "Za provjeru" ulazi samo ako se razlikuje od onoga što sistem zna i to nije nula.
+- **Kućica "Gorivo" u sažetku** sada sabira kolonu goriva umjesto ručnog iznosa. Gorivo vozila koja nisu ničija ne ulazi; za to postoji ručna kućica.
+- Šablon prevezuje i ove kolone pri kopiranju mjeseca.
+- **Testovi:** 31 integracioni za obračun (uključujući pet za fazu 3).
+
+**Nije urađeno (ostaje):** vrsta reda (Montir/Kooperant) i količina ("Kooperanti × N"), fiksni troškovi po zemlji iz opštih troškova, uvoz starog mjeseca iz Excela, jednostavan/napredni režim. Otvoreno pitanje: gorivo se sada uzima samo iz **odobrenih** troškova (kao i sati); kupac treba potvrditi da je to željeno.
 
 ## 1. Problem
 

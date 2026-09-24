@@ -287,3 +287,15 @@ export function useReorderLedgerSummaryBoxes(ledgerId: string) {
     [summaryKey(ledgerId)],
   );
 }
+
+/**
+ * What is worth a second look in a month. Recomputed by the server, and stale
+ * after any change (the app's mutation cache invalidates everything), so a
+ * fixed problem leaves the list at once.
+ */
+export function useLedgerChecksQuery(ledgerId: string) {
+  return useQuery({
+    queryKey: ['ledgers', ledgerId, 'checks'],
+    queryFn: () => ledgersApi.checks(ledgerId),
+  });
+}

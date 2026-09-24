@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { canConfigureDashboard, canViewDirectory, displayName } from '../auth/authHelpers';
 import { useAuth } from '../auth/useAuth';
 import { DashboardGrid } from '../features/dashboard/DashboardGrid';
+import { SetupChecklistCard } from '../features/onboarding/SetupChecklistCard';
 import { useT } from '../i18n/useI18n';
 import { paths } from '../routes/paths';
 
@@ -20,6 +21,7 @@ export function HomePage() {
         <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
           {t('home.welcome', { name: displayName(user) })}
         </Typography>
+        <SetupChecklistCard />
         <DashboardGrid />
       </Box>
     );

@@ -44,28 +44,44 @@ public class GetLedgerSectionRowsQueryHandler
             throw new NotFoundException(nameof(LedgerSection), request.SectionId);
         }
 
-        var sourcedColumns = await _context.LedgerColumns
+        var columns = await _context.LedgerColumns
             .AsNoTracking()
-            .Where(c => c.LedgerId == request.LedgerId && c.SourceMetric != null)
-            .Select(c => new { c.Id, Metric = c.SourceMetric!.Value })
+            .Where(c => c.LedgerId == request.LedgerId)
+            .Select(c => new { c.Id, c.SourceMetric, c.FormulaJson })
             .ToListAsync(cancellationToken);
 
-        if (sourcedColumns.Count == 0)
+        var sourcedColumns = columns
+            .Where(c => c.SourceMetric != null)
+            .Select(c => (c.Id, Metric: c.SourceMetric!.Value))
+            .ToList();
+
+        if (sourcedColumns.Count > 0)
         {
-            return section;
+            var ledgerPeriod = await _context.Ledgers
+                .AsNoTracking()
+                .Where(l => l.Id == request.LedgerId)
+                .Select(l => new { l.Year, l.Month })
+                .FirstAsync(cancellationToken);
+
+            var from = new DateOnly(ledgerPeriod.Year, ledgerPeriod.Month, 1);
+            var to = from.AddMonths(1).AddDays(-1);
+
+            section = await LedgerSourcedValues.OverlayAsync(
+                _context, _mediator, section, sourcedColumns, from, to, cancellationToken);
         }
 
-        var ledgerPeriod = await _context.Ledgers
-            .AsNoTracking()
-            .Where(l => l.Id == request.LedgerId)
-            .Select(l => new { l.Year, l.Month })
-            .FirstAsync(cancellationToken);
+        // Computed columns last, so a formula can use a sourced value as an input.
+        var calculator = new LedgerCalculator(
+            columns.Select(c => (c.Id, LedgerFormula.Parse(c.FormulaJson))));
 
-        var from = new DateOnly(ledgerPeriod.Year, ledgerPeriod.Month, 1);
-        var to = from.AddMonths(1).AddDays(-1);
-
-        return await LedgerSourcedValues.OverlayAsync(
-            _context, _mediator, section, sourcedColumns.Select(c => (c.Id, c.Metric)), from, to,
+        // What the system already knows: approved hours on this section's project,
+        // and each person's hourly rate.
+        var auto = await LedgerAutoValues.LoadAsync(
+            _context,
+            LedgerAutoValues.SourcesOf(columns.Select(c => (c.Id, c.FormulaJson))),
+            await LedgerRowRefs.LoadAsync(_context, request.LedgerId, cancellationToken),
             cancellationToken);
+
+        return LedgerFormulaOverlay.Apply(section, calculator, auto);
     }
 }

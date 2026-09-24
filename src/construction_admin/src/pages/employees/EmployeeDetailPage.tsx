@@ -1,4 +1,5 @@
 import {
+  MarkEmailReadOutlined,
   AddOutlined,
   ApartmentOutlined,
   DeleteOutlined,
@@ -47,6 +48,7 @@ import { useAllProjectsQuery } from '../../features/projects/useProjects';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { useRecordVisit } from '../../layout/useRecentRecords';
 import { canAdministerAccounts } from '../../auth/authHelpers';
+import { InviteEmployeeDialog } from '../../components/InviteEmployeeDialog';
 import { EmployeeHousingCard } from '../accommodations/EmployeeHousingCard';
 import { useAuth } from '../../auth/useAuth';
 import { paths } from '../../routes/paths';
@@ -72,6 +74,7 @@ export function EmployeeDetailPage() {
 
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [inviting, setInviting] = useState<{ id: string; name: string } | null>(null);
   const [removeTarget, setRemoveTarget] = useState<{ id: string; name: string } | null>(
     null,
   );
@@ -193,6 +196,20 @@ export function EmployeeDetailPage() {
                   label={t('employees.appAccount')}
                   value={employee.hasUserAccount ? 'Yes' : 'No'}
                 />
+                {!employee.hasUserAccount && canAdministerAccounts(user) && (
+                  <Box>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<MarkEmailReadOutlined />}
+                      onClick={() =>
+                        setInviting({ id: employee.id, name: `${employee.firstName} ${employee.lastName}` })
+                      }
+                    >
+                      {t('onboarding.invite.button')}
+                    </Button>
+                  </Box>
+                )}
               </Stack>
             </CardContent>
           </Card>
@@ -361,6 +378,8 @@ export function EmployeeDetailPage() {
         onConfirm={handleRemove}
         onCancel={() => setRemoveTarget(null)}
       />
+
+      <InviteEmployeeDialog employee={inviting} onClose={() => setInviting(null)} />
 
       <ConfirmDialog
         open={confirmDelete}

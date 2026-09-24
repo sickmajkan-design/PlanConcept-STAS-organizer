@@ -3,13 +3,19 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
   Grid,
   IconButton,
   MenuItem,
+  Radio,
+  RadioGroup,
   Stack,
   TextField,
   Tooltip,
@@ -197,6 +203,10 @@ function CreateLedgerDialog({
   const [month, setMonth] = useState(String(today.getMonth() + 1));
   const [note, setNote] = useState('');
   const [copyFromId, setCopyFromId] = useState('');
+  // Someone opening the first month wants the ready-made layout; someone with earlier
+  // months mostly wants last month's, so that is what is offered first.
+  const [start, setStart] = useState<'payroll' | 'copy' | 'blank'>('payroll');
+  const [populate, setPopulate] = useState(true);
 
   const resetCreate = create.reset;
 
@@ -207,7 +217,9 @@ function CreateLedgerDialog({
     setYear(String(today.getFullYear()));
     setMonth(String(today.getMonth() + 1));
     setNote('');
-    setCopyFromId('');
+    setCopyFromId(existingLedgers[0]?.id ?? '');
+    setStart(existingLedgers.length > 0 ? 'copy' : 'payroll');
+    setPopulate(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, resetCreate]);
 
@@ -216,7 +228,8 @@ function CreateLedgerDialog({
   const canSubmit =
     name.trim() !== ''
     && Number.isInteger(parsedYear) && parsedYear >= 2000 && parsedYear <= 2100
-    && Number.isInteger(parsedMonth) && parsedMonth >= 1 && parsedMonth <= 12;
+    && Number.isInteger(parsedMonth) && parsedMonth >= 1 && parsedMonth <= 12
+    && (start !== 'copy' || copyFromId !== '');
 
   const error = create.isError ? toApiError(create.error) : null;
 
@@ -227,7 +240,9 @@ function CreateLedgerDialog({
         year: parsedYear,
         month: parsedMonth,
         note: note.trim() || null,
-        copyFromLedgerId: copyFromId || null,
+        copyFromLedgerId: start === 'copy' ? copyFromId : null,
+        template: start === 'payroll' ? 'Payroll' : null,
+        populateFromProjects: start === 'payroll' && populate,
       },
       {
         onSuccess: (ledger) => {
@@ -284,8 +299,58 @@ function CreateLedgerDialog({
             </TextField>
           </Grid>
 
-          {existingLedgers.length > 0 && (
-            <Grid size={{ xs: 12, sm: 4 }}>
+          <Grid size={12}>
+            <FormControl>
+              <FormLabel id="ledger-start-label">{t('ledgers.start')}</FormLabel>
+              <RadioGroup
+                aria-labelledby="ledger-start-label"
+                value={start}
+                onChange={(event) => setStart(event.target.value as 'payroll' | 'copy' | 'blank')}
+              >
+                <FormControlLabel
+                  value="payroll"
+                  control={<Radio size="small" />}
+                  label={
+                    <Box>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {t('ledgers.startPayroll')}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {t('ledgers.startPayrollHint')}
+                      </Typography>
+                    </Box>
+                  }
+                />
+                {existingLedgers.length > 0 && (
+                  <FormControlLabel
+                    value="copy"
+                    control={<Radio size="small" />}
+                    label={t('ledgers.startCopy')}
+                  />
+                )}
+                <FormControlLabel value="blank" control={<Radio size="small" />} label={t('ledgers.startBlank')} />
+              </RadioGroup>
+            </FormControl>
+          </Grid>
+
+          {start === 'payroll' && (
+            <Grid size={12}>
+              <FormControlLabel
+                control={<Checkbox checked={populate} onChange={(event) => setPopulate(event.target.checked)} />}
+                label={
+                  <Box>
+                    <Typography variant="body2">{t('ledgers.populate')}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {t('ledgers.populateHint')}
+                    </Typography>
+                  </Box>
+                }
+              />
+            </Grid>
+          )}
+
+          {start === 'copy' && (
+            <Grid size={12}>
               <TextField
                 select
                 fullWidth
@@ -294,9 +359,6 @@ function CreateLedgerDialog({
                 onChange={(event) => setCopyFromId(event.target.value)}
                 helperText={t('ledgers.copyFromHint')}
               >
-                <MenuItem value="">
-                  <em>{t('ledgers.copyFromNone')}</em>
-                </MenuItem>
                 {existingLedgers.map((ledger) => (
                   <MenuItem key={ledger.id} value={ledger.id}>
                     {ledger.name}

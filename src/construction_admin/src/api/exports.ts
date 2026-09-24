@@ -88,6 +88,9 @@ function fileNameFrom(header: unknown): string | null {
 }
 
 export const exportsApi = {
+  /** One month of the ledger, section by section, with the summary on a second sheet. */
+  ledger: (id: string) => download(`/api/v1/ledgers/${id}/export`, {}),
+
   timeEntries: (query: TimeEntryExportQuery) =>
     download('/api/v1/exports/time-entries', query),
 

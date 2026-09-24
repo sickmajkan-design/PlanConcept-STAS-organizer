@@ -19,6 +19,12 @@ public class LedgerColumnConfiguration : IEntityTypeConfiguration<LedgerColumn>
             .HasMaxLength(200)
             .IsRequired();
 
+        builder.Property(c => c.FormulaJson)
+            .HasMaxLength(4000);
+
+        builder.Property(c => c.SystemKey)
+            .HasMaxLength(64);
+
         builder.HasOne(c => c.Ledger)
             .WithMany(l => l.Columns)
             .HasForeignKey(c => c.LedgerId)

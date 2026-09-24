@@ -11,6 +11,7 @@ import {
   LockOutlined,
   ReceiptLongOutlined,
   WarningAmberOutlined,
+  RestartAltOutlined,
 } from '@mui/icons-material';
 import {
   Alert,
@@ -108,6 +109,7 @@ import { useAllVehiclesQuery } from '../../features/vehicles/useVehicles';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import type { MessageKey } from '../../i18n/en';
 import { useI18n, useT } from '../../i18n/useI18n';
+import { LedgerChecksPanel, LedgerExportButton } from './LedgerChecksPanel';
 import { paths } from '../../routes/paths';
 import { formatDate, formatMoney } from '../../utils/formatting';
 
@@ -286,8 +288,13 @@ export function LedgerDetailPage() {
             </Typography>
           )}
         </Box>
-        <Button onClick={() => navigate(paths.ledgers)}>{t('ledgers.backToList')}</Button>
+        <Stack direction="row" spacing={1}>
+          <LedgerExportButton ledgerId={ledger.id} />
+          <Button onClick={() => navigate(paths.ledgers)}>{t('ledgers.backToList')}</Button>
+        </Stack>
       </Stack>
+
+      <LedgerChecksPanel ledgerId={ledger.id} hasHours={ledger.columns.some((c) => c.systemKey === 'hours')} />
 
       <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
         <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
@@ -1281,12 +1288,19 @@ function RowLine({
   // second look before it silently doubles up in the ledger's totals.
   const columnById = new Map(columns.map((c) => [c.id, c]));
   const hasAutomaticAmount = row.cells.some(
-    (cell) => cell.isComputed && parseNumeric(cell.value) > 0,
+    (cell) => !!columnById.get(cell.columnId)?.sourceMetric && parseNumeric(cell.value) > 0,
   );
   const hasManualAmount = row.cells.some((cell) => {
     if (cell.isComputed) return false;
     const column = columnById.get(cell.columnId);
-    return column && NUMERIC_TYPES.includes(column.dataType) && parseNumeric(cell.value) > 0;
+    // A calculated column, or a figure typed over one, is not a second copy of
+    // a sourced cost.
+    return (
+      column
+      && !column.isFormula
+      && NUMERIC_TYPES.includes(column.dataType)
+      && parseNumeric(cell.value) > 0
+    );
   });
   const possibleDuplicate = hasAutomaticAmount && hasManualAmount;
 
@@ -1345,6 +1359,9 @@ function RowLine({
               value={cell?.value ?? ''}
               dataType={column.dataType}
               sourceMetric={column.sourceMetric}
+              isFormula={column.isFormula}
+              isAuto={AUTO_KEYS.has(column.systemKey ?? '') || !!column.systemKey?.startsWith('week')}
+              isOverride={!!cell?.isOverride}
               onCommit={(value) => onSetCell(column.id, value)}
             />
           </TableCell>
@@ -1378,16 +1395,28 @@ function RowLine({
   );
 }
 
+/** Template columns the system fills in from its own records. */
+const AUTO_KEYS = new Set(['workerRate', 'fuel', 'rent', 'housing']);
+
 /** One editable cell — local draft while typing, committed on blur so every keystroke isn't a network call. A sourced (computed) cell is read-only and never drafts. */
 function CellInput({
   value,
   dataType,
   sourceMetric,
+  isFormula = false,
+  isAuto = false,
+  isOverride = false,
   onCommit,
 }: {
   value: string;
   dataType: LedgerColumnDataType;
   sourceMetric: LedgerColumnSourceMetric | null;
+  /** Calculated from other columns; typing a value overrides the calculation. */
+  isFormula?: boolean;
+  /** Read from the system (approved hours, an hourly rate) rather than worked out from other columns. */
+  isAuto?: boolean;
+  /** The value shown was typed over the calculation. */
+  isOverride?: boolean;
   onCommit: (value: string) => void;
 }) {
   const t = useT();
@@ -1420,7 +1449,7 @@ function CellInput({
     );
   }
 
-  return (
+  const field = (
     <TextField
       variant="standard"
       size="small"
@@ -1431,11 +1460,50 @@ function CellInput({
         if (draft !== value) onCommit(draft);
       }}
       slotProps={{
-        htmlInput: { style: { textAlign: 'right', background: 'transparent' } },
+        htmlInput: {
+          style: {
+            textAlign: 'right',
+            background: 'transparent',
+            // A calculated figure reads as a result, a typed-over one as an exception.
+            fontWeight: isFormula ? 600 : undefined,
+          },
+        },
         input: { disableUnderline: false, sx: { bgcolor: 'transparent' } },
       }}
-      sx={{ minWidth: 90 }}
+      sx={{ minWidth: 90, flex: 1 }}
     />
+  );
+
+  if (!isFormula) return field;
+
+  return (
+    <Tooltip
+      title={
+        isOverride
+          ? t('ledgers.overrideCellTooltip')
+          : isAuto
+            ? t('ledgers.autoCellTooltip')
+            : t('ledgers.formulaCellTooltip')
+      }
+    >
+      <Stack
+        direction="row"
+        spacing={0.5}
+        sx={{
+          alignItems: 'center',
+          borderRadius: 0.5,
+          px: 0.5,
+          bgcolor: isOverride ? 'warning.light' : 'action.hover',
+        }}
+      >
+        {field}
+        {isOverride && (
+          <IconButton size="small" aria-label={t('ledgers.overrideBadge')} onClick={() => onCommit('')}>
+            <RestartAltOutlined sx={{ fontSize: 14 }} />
+          </IconButton>
+        )}
+      </Stack>
+    </Tooltip>
   );
 }
 

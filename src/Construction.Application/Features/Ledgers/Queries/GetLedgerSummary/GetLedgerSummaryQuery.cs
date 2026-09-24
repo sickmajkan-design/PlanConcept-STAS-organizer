@@ -50,16 +50,10 @@ public class GetLedgerSummaryQueryHandler : IRequestHandler<GetLedgerSummaryQuer
             .Distinct()
             .ToList();
 
-        // One query for every referenced column's cell values, grouped afterwards —
-        // not one query per box.
-        var cellValuesByColumn = sourceColumnIds.Count == 0
-            ? new Dictionary<Guid, List<string?>>()
-            : await _context.LedgerCells
-                .Where(cell => cell.Row.Section.LedgerId == request.LedgerId
-                    && sourceColumnIds.Contains(cell.ColumnId))
-                .GroupBy(cell => cell.ColumnId)
-                .Select(g => new { ColumnId = g.Key, Values = g.Select(c => c.Value).ToList() })
-                .ToDictionaryAsync(g => g.ColumnId, g => g.Values, cancellationToken);
+        // One read of the ledger serves every referenced column, and computed
+        // columns are summed row by row rather than from stored cells.
+        var totalsByColumn = await LedgerColumnTotals.ComputeAsync(
+            _context, request.LedgerId, sourceColumnIds, cancellationToken);
 
         var boxDtos = new List<LedgerSummaryBoxDto>();
         decimal netTotal = 0m;
@@ -67,9 +61,7 @@ public class GetLedgerSummaryQueryHandler : IRequestHandler<GetLedgerSummaryQuer
         foreach (var box in boxes)
         {
             var value = box.SourceColumnId is { } columnId
-                ? (cellValuesByColumn.TryGetValue(columnId, out var values)
-                    ? values.Sum(LedgerCellMath.ParseNumeric)
-                    : 0m)
+                ? totalsByColumn[columnId]
                 : box.ManualValue ?? 0m;
 
             netTotal += value * box.Sign;
