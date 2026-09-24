@@ -34,6 +34,7 @@ using Construction.Application.Features.Costs.Commands.UpdateVehicleRentalRate;
 using Construction.Application.Features.Costs.Models;
 using Construction.Application.Features.Costs.Queries.GetCostRecords;
 using Construction.Application.Features.Costs.Queries.GetFuelConsumptionFlags;
+using Construction.Application.Features.Costs.Queries.GetCompanyCosts;
 using Construction.Application.Features.Costs.Queries.GetProjectCosts;
 using Construction.Application.Features.Costs.Queries.GetToolCosts;
 using Construction.Application.Features.Costs.Queries.GetVehicleCosts;
@@ -1163,6 +1164,22 @@ public class CostsController : ApiControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<ProjectCostReportDto>> GetProjectCosts(
         [FromQuery] GetProjectCostsQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>
+    /// What the whole company spent, by kind — projects or not: people, material, other costs,
+    /// housing, the fleet and the tools. Below Project Manager the pay half is zero.
+    /// </summary>
+    [HttpGet("/api/v{version:apiVersion}/costs/company")]
+    [HttpGet("/api/costs/company")]
+    [ProducesResponseType(typeof(CompanyCostsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<CompanyCostsDto>> GetCompanyCosts(
+        [FromQuery] GetCompanyCostsQuery query,
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(query, cancellationToken));

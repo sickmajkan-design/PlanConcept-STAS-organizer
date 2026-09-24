@@ -43,8 +43,8 @@ export function ProjectsRealizationWidget({ instanceId: _instanceId, onRemove, o
   });
 
   const costQuery = useQuery({
-    queryKey: ['dashboard', 'cost-composition', year] as const,
-    queryFn: () => costsApi.projectReport({ from, to }),
+    queryKey: ['dashboard', 'company-cost-composition', year] as const,
+    queryFn: () => costsApi.companyReport({ from, to }),
   });
 
   const revenueQuery = useQuery({
@@ -62,18 +62,13 @@ export function ProjectsRealizationWidget({ instanceId: _instanceId, onRemove, o
   const cost = costQuery.data;
   const costSlices = cost
     ? [
-        { id: 'labour', label: t('dashboard.projectsRealization.labour'), value: cost.totalLabourCost },
-        { id: 'material', label: t('dashboard.projectsRealization.material'), value: cost.totalMaterialCost },
-        {
-          id: 'general',
-          label: t('dashboard.projectsRealization.generalExpenses'),
-          value: cost.totalGeneralExpenseCost,
-        },
-        {
-          id: 'accommodation',
-          label: t('dashboard.projectsRealization.accommodation'),
-          value: cost.totalAccommodationCost,
-        },
+        { id: 'labour', label: t('dashboard.projectsRealization.labour'), value: cost.labour },
+        { id: 'manualPay', label: t('dashboard.projectsRealization.manualPay'), value: cost.manualPay },
+        { id: 'material', label: t('dashboard.projectsRealization.material'), value: cost.material },
+        { id: 'general', label: t('dashboard.projectsRealization.generalExpenses'), value: cost.generalExpenses },
+        { id: 'accommodation', label: t('dashboard.projectsRealization.accommodation'), value: cost.accommodation },
+        { id: 'vehicles', label: t('dashboard.projectsRealization.vehicles'), value: cost.vehicles },
+        { id: 'tools', label: t('dashboard.projectsRealization.tools'), value: cost.tools },
       ].filter((slice) => slice.value > 0)
     : [];
 
@@ -119,40 +114,41 @@ export function ProjectsRealizationWidget({ instanceId: _instanceId, onRemove, o
           {t('common.viewAll')}
         </Button>
 
-        <Divider sx={{ flexShrink: 0 }} />
+        {/* No costs recorded this year: the whole section is left out, not shown empty. */}
+        {(costQuery.isLoading || costQuery.error || costSlices.length > 0) && (
+          <>
+          <Divider sx={{ flexShrink: 0 }} />
 
-        <Box sx={{ flex: 1, minHeight: 180, display: 'flex', flexDirection: 'column' }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, flexShrink: 0, mb: 0.5 }}>
-            {t('dashboard.projectsRealization.costComposition')}
-          </Typography>
-          {costQuery.error ? (
-            <Alert severity="error" sx={{ mt: 1 }}>
-              {t('common.somethingWentWrong')}
-            </Alert>
-          ) : !costQuery.isLoading && costSlices.length === 0 ? (
-            <Typography color="text.secondary" variant="body2">
-              {t('dashboard.projectsRealization.noCostData')}
+          <Box sx={{ flex: 1, minHeight: 180, display: 'flex', flexDirection: 'column' }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, flexShrink: 0, mb: 0.5 }}>
+              {t('dashboard.projectsRealization.costComposition')}
             </Typography>
-          ) : costSlices.length === 1 ? (
-            // One category is not a composition: a full ring says nothing a
-            // number does not say better.
-            <Typography variant="body2" sx={{ mt: 1 }}>
-              {costSlices[0].label}: <strong>{formatMoney(costSlices[0].value, locale)}</strong>
-            </Typography>
-          ) : (
-            <Box ref={pieSize.ref} sx={{ flex: 1, minHeight: 0 }}>
-              {pieSize.width > 0 && pieSize.height > 0 && (
-                <PieChart
-                  width={pieSize.width}
-                  height={pieSize.height}
-                  colors={chartPalette}
-                  series={[{ data: costSlices, innerRadius: 40 }]}
-                  slotProps={{ legend: { direction: 'horizontal', position: { vertical: 'bottom', horizontal: 'center' } } }}
-                />
-              )}
-            </Box>
-          )}
-        </Box>
+            {costQuery.error ? (
+              <Alert severity="error" sx={{ mt: 1 }}>
+                {t('common.somethingWentWrong')}
+              </Alert>
+            ) : costSlices.length === 1 ? (
+              // One category is not a composition: a full ring says nothing a
+              // number does not say better.
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                {costSlices[0].label}: <strong>{formatMoney(costSlices[0].value, locale)}</strong>
+              </Typography>
+            ) : (
+              <Box ref={pieSize.ref} sx={{ flex: 1, minHeight: 0 }}>
+                {pieSize.width > 0 && pieSize.height > 0 && (
+                  <PieChart
+                    width={pieSize.width}
+                    height={pieSize.height}
+                    colors={chartPalette}
+                    series={[{ data: costSlices, innerRadius: 40 }]}
+                    slotProps={{ legend: { direction: 'horizontal', position: { vertical: 'bottom', horizontal: 'center' } } }}
+                  />
+                )}
+              </Box>
+            )}
+          </Box>
+          </>
+        )}
 
         <Divider sx={{ flexShrink: 0 }} />
 

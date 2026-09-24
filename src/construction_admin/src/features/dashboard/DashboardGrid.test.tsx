@@ -58,4 +58,51 @@ describe('HomePage dashboard', () => {
     expect(screen.queryByRole('button', { name: 'Add widget' })).toBeNull();
     expect(network.calls.some((call) => call.url.includes('/dashboard-layout'))).toBe(false);
   });
+  describe('costs', () => {
+    const layout = {
+      widgets: [
+        { id: '1', type: 'CompanyKpi', column: 0, order: 0 },
+        { id: '2', type: 'CostTrend', column: 1, order: 0 },
+      ],
+    };
+
+    const emptyPage = { items: [], totalCount: 0, pageNumber: 1, pageSize: 1, totalPages: 0 };
+
+    beforeEach(() => {
+      network.reply('/vehicles', 200, emptyPage);
+      network.reply('/tools', 200, emptyPage);
+    });
+
+    it('shows no cost figure or chart when no cost has been recorded', async () => {
+      network.reply('/dashboard-layout', 200, layout);
+      network.reply('/costs/company', 200, {
+        from: '2026-01-01', to: '2026-01-31', includesLabour: true, unpricedMinutes: 0,
+        labour: 0, manualPay: 0, material: 0, generalExpenses: 0, accommodation: 0, vehicles: 0, tools: 0, total: 0,
+      });
+
+      renderScreen(<HomePage />, { user: signedIn('SuperAdmin') });
+
+      await waitFor(() => {
+        expect(screen.getByText('No costs recorded in the last months.')).toBeDefined();
+      }, { timeout: 5000 });
+
+      expect(screen.queryByText('Cost this month')).toBeNull();
+    });
+
+    it('shows the cost tile once there is a cost to show', async () => {
+      network.reply('/dashboard-layout', 200, layout);
+      network.reply('/costs/company', 200, {
+        from: '2026-01-01', to: '2026-01-31', includesLabour: true, unpricedMinutes: 0,
+        labour: 0, manualPay: 0, material: 0, generalExpenses: 0, accommodation: 0, vehicles: 100, tools: 0, total: 100,
+      });
+
+      renderScreen(<HomePage />, { user: signedIn('SuperAdmin') });
+
+      await waitFor(() => {
+        expect(screen.getByText('Cost this month')).toBeDefined();
+      }, { timeout: 5000 });
+
+      expect(screen.queryByText('No costs recorded in the last months.')).toBeNull();
+    });
+  });
 });

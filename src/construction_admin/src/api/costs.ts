@@ -2,6 +2,7 @@ import { request } from './client';
 import { idempotencyHeaders } from './idempotency';
 import { listParams } from './resource';
 import type {
+  CompanyCostReport,
   AccommodationChargeTracking,
   ProjectCostBreakdown,
   AccommodationRate,
@@ -586,6 +587,14 @@ export const costsApi = {
     remove: (id: string) =>
       request<void>({ method: 'DELETE', url: `/api/v1/accommodation-rates/${id}` }),
   },
+
+  /** Everything the company spent, projects or not — the dashboard's figure. */
+  companyReport: (query: CostReportQuery) =>
+    request<CompanyCostReport>({
+      method: 'GET',
+      url: '/api/v1/costs/company',
+      params: listParams(query),
+    }),
 
   projectReport: (query: CostReportQuery & { projectId?: string }) =>
     request<ProjectCostReport>({

@@ -413,6 +413,7 @@ export const en = {
     other: '{count} pending approvals',
   },
   'dashboard.todayAttendance.empty': 'No one is clocked in right now.',
+  'dashboard.costTrend.empty': 'No costs recorded in the last months.',
   'dashboard.costTrend.totalCost': 'Total cost',
   'dashboard.costTrend.vsPreviousMonth': 'vs previous month',
   'dashboard.projectsRealization.empty': 'No projects with a contract value yet.',
@@ -424,6 +425,9 @@ export const en = {
   'dashboard.projectsRealization.labour': 'Labour',
   'dashboard.projectsRealization.material': 'Material',
   'dashboard.projectsRealization.generalExpenses': 'General expenses',
+  'dashboard.projectsRealization.manualPay': 'Manual pay',
+  'dashboard.projectsRealization.vehicles': 'Vehicles',
+  'dashboard.projectsRealization.tools': 'Tools',
   'dashboard.projectsRealization.accommodation': 'Accommodation',
   'dashboard.absencesBalance.onSiteNow': {
     one: '{count} person on site now',

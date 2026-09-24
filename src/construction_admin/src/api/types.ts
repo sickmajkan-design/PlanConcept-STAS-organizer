@@ -2005,6 +2005,23 @@ export interface ProjectCostBreakdown {
   assignedAssets: AssignedAssetLine[];
 }
 
+/** What the whole company spent in a period, whether or not it belongs to a project. */
+export interface CompanyCostReport {
+  from: string;
+  to: string;
+  /** False when the caller may not see pay rates; the pay figures are then zero. */
+  includesLabour: boolean;
+  labour: number;
+  manualPay: number;
+  material: number;
+  generalExpenses: number;
+  accommodation: number;
+  vehicles: number;
+  tools: number;
+  total: number;
+  unpricedMinutes: number;
+}
+
 export interface ProjectCostReport {
   from: string;
   to: string;

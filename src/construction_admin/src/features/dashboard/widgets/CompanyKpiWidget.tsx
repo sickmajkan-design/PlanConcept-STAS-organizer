@@ -41,8 +41,9 @@ export function CompanyKpiWidget({ instanceId: _instanceId, onRemove, onExpandWi
   const to = today();
 
   const costQuery = useQuery({
-    queryKey: ['dashboard', 'kpi', 'cost-this-month', from, to] as const,
-    queryFn: () => costsApi.projectReport({ from, to }),
+    queryKey: ['dashboard', 'kpi', 'company-cost-this-month', from, to] as const,
+    // Everything the company spent, not only what is tied to a project.
+    queryFn: () => costsApi.companyReport({ from, to }),
   });
 
   const employeesQuery = useQuery({
@@ -110,12 +111,15 @@ export function CompanyKpiWidget({ instanceId: _instanceId, onRemove, onExpandWi
             alignContent: 'flex-start',
           }}
         >
-          <StatTile
-            icon={<PaidOutlined fontSize="small" />}
-            label={t('dashboard.companyKpi.costThisMonth')}
-            value={formatMoney(costQuery.data?.total ?? 0, locale)}
-            accent="#e65100"
-          />
+          {/* A month with no costs recorded shows no cost tile at all, rather than a zero. */}
+          {(costQuery.data?.total ?? 0) > 0 && (
+            <StatTile
+              icon={<PaidOutlined fontSize="small" />}
+              label={t('dashboard.companyKpi.costThisMonth')}
+              value={formatMoney(costQuery.data?.total ?? 0, locale)}
+              accent="#e65100"
+            />
+          )}
           <StatTile
             icon={<GroupsOutlined fontSize="small" />}
             label={t('dashboard.companyKpi.activeEmployees')}

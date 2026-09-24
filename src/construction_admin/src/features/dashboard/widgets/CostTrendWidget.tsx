@@ -35,8 +35,8 @@ export function CostTrendWidget({ instanceId: _instanceId, onRemove, onExpandWid
 
   const results = useQueries({
     queries: months.map((month) => ({
-      queryKey: ['dashboard', 'cost-trend', month.from, month.to] as const,
-      queryFn: () => costsApi.projectReport({ from: month.from, to: month.to }),
+      queryKey: ['dashboard', 'company-cost-trend', month.from, month.to] as const,
+      queryFn: () => costsApi.companyReport({ from: month.from, to: month.to }),
     })),
   });
 
@@ -48,6 +48,9 @@ export function CostTrendWidget({ instanceId: _instanceId, onRemove, onExpandWid
     m.label.toLocaleDateString(locale === 'sr' ? 'sr-Latn' : 'en-GB', { month: 'short' }),
   );
 
+  // Nothing spent in any of the months shown: there is no trend to draw.
+  const hasCosts = totals.some((total) => total > 0);
+
   const latest = totals[totals.length - 1] ?? 0;
   const previous = totals[totals.length - 2] ?? 0;
   const delta = previous > 0 ? ((latest - previous) / previous) * 100 : null;
@@ -55,6 +58,7 @@ export function CostTrendWidget({ instanceId: _instanceId, onRemove, onExpandWid
   return (
     <WidgetShell title={t('dashboard.widget.CostTrend')} isLoading={isLoading} error={error} onRemove={onRemove} onExpandWidth={onExpandWidth}>
       <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
+        {(isLoading || hasCosts) && (
         <Stack direction="row" spacing={2} sx={{ alignItems: 'baseline', flexShrink: 0 }}>
           <Typography sx={{ fontWeight: 800, fontSize: 'clamp(1.5rem, 2.2vw, 2.25rem)', lineHeight: 1 }}>
             {formatMoney(latest, locale)}
@@ -69,9 +73,14 @@ export function CostTrendWidget({ instanceId: _instanceId, onRemove, onExpandWid
             </Typography>
           )}
         </Stack>
+        )}
 
         {error ? (
           <Alert severity="error">{t('common.somethingWentWrong')}</Alert>
+        ) : !isLoading && !hasCosts ? (
+          <Typography color="text.secondary" variant="body2">
+            {t('dashboard.costTrend.empty')}
+          </Typography>
         ) : (
           <Box ref={chartSize.ref} sx={{ flex: 1, minHeight: 150 }}>
             {chartSize.width > 0 && chartSize.height > 0 && (

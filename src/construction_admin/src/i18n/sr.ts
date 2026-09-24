@@ -439,6 +439,7 @@ export const sr: Record<MessageKey, Message> = {
     other: '{count} čeka odobrenje',
   },
   'dashboard.todayAttendance.empty': 'Trenutno niko nije prijavljen na posao.',
+  'dashboard.costTrend.empty': 'U posljednjim mjesecima nema evidentiranih troškova.',
   'dashboard.costTrend.totalCost': 'Ukupan trošak',
   'dashboard.costTrend.vsPreviousMonth': 'u odnosu na prošli mjesec',
   'dashboard.projectsRealization.empty': 'Još nema projekata sa ugovorenom vrijednošću.',
@@ -450,6 +451,9 @@ export const sr: Record<MessageKey, Message> = {
   'dashboard.projectsRealization.labour': 'Rad',
   'dashboard.projectsRealization.material': 'Materijal',
   'dashboard.projectsRealization.generalExpenses': 'Opšti troškovi',
+  'dashboard.projectsRealization.manualPay': 'Ručne isplate',
+  'dashboard.projectsRealization.vehicles': 'Vozila',
+  'dashboard.projectsRealization.tools': 'Alati',
   'dashboard.projectsRealization.accommodation': 'Smještaj',
   'dashboard.absencesBalance.onSiteNow': {
     one: '{count} osoba trenutno na terenu',
