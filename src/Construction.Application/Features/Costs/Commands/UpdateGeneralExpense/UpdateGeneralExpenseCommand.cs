@@ -93,6 +93,14 @@ public class UpdateGeneralExpenseCommandHandler
             throw new NotFoundException(nameof(Employee), employeeId);
         }
 
+        // Only when the category or date is being changed into a clash: an old
+        // row that already overlaps can still have its amount or note corrected.
+        if (request.Category != expense.Category || request.OccurredOn != expense.OccurredOn)
+        {
+            await HousingDoubleEntry.EnsureNotCountedTwiceAsync(
+                _context, request.Category, request.OccurredOn, cancellationToken);
+        }
+
         expense.Category = request.Category;
         expense.Amount = request.Amount;
         expense.OccurredOn = request.OccurredOn;

@@ -424,6 +424,7 @@ export const en = {
   'finance.unallocated': 'No project (fleet, tools, untied costs and pay, rental income)',
   'finance.companyTotal': 'Company total',
   'finance.otherProjects': 'Other projects ({count})',
+  'finance.housingDoubleWarning': '{count} housing expenses fall on days when accommodation rent is already counted from the accommodation rates, so that rent is counted twice. Delete them or move them to another category.',
   'finance.payOverlapWarning': '{count} pay entries tied to no project fall on days the same person clocked hours at a project. Both are counted — check whether one of them should replace the other.',
   'finance.budget.title': 'Budget',
   'finance.budget.contract': 'Contract value',

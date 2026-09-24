@@ -160,6 +160,11 @@ export function ProfitByProjectWidget({ onRemove, onExpandWidth }: DashboardWidg
               </TableFooter>
             )}
           </Table>
+          {data && data.housingDoubleEntries > 0 && (
+            <Alert severity="warning" sx={{ mt: 1 }}>
+              {t('finance.housingDoubleWarning', { count: data.housingDoubleEntries })}
+            </Alert>
+          )}
           {data && data.unassignedPayOverlaps > 0 && (
             <Alert severity="warning" sx={{ mt: 1 }}>
               {t('finance.payOverlapWarning', { count: data.unassignedPayOverlaps })}

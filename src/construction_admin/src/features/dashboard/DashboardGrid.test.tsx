@@ -196,7 +196,7 @@ describe('HomePage dashboard', () => {
     const money = (revenue: number, expense: number) => ({ revenue, expense, profit: revenue - expense });
     const byProject = {
       from: '2026-09-01', to: '2026-09-30', includesLabour: true, rows, totalProjects: 2,
-      company: money(3400, 1620), unallocated: money(400, 120), unassignedPayOverlaps: 0,
+      company: money(3400, 1620), unallocated: money(400, 120), unassignedPayOverlaps: 0, housingDoubleEntries: 0,
     };
 
     it('lists projects by spending with the largest first', async () => {
@@ -236,6 +236,7 @@ describe('HomePage dashboard', () => {
         // A third project (500 in, 100 out) is beyond the list; the company holds all of it.
         company: money(3900, 1720),
         unassignedPayOverlaps: 2,
+        housingDoubleEntries: 3,
       });
 
       renderScreen(<HomePage />, { user: signedIn('SuperAdmin') });
@@ -250,6 +251,7 @@ describe('HomePage dashboard', () => {
       expect(other).toContain('100.00');
       expect(text.some((row) => row.startsWith('Company total') && row.includes('3,900.00') && row.includes('1,720.00'))).toBe(true);
       expect(screen.getByText(/2 pay entries tied to no project/)).toBeDefined();
+      expect(screen.getByText(/3 housing expenses fall on days/)).toBeDefined();
     });
 
     it('is not offered to an Admin without the right', async () => {

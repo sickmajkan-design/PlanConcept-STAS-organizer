@@ -74,6 +74,13 @@ public class FinanceByProjectDto
     /// replaces, so both are counted; someone should look at each.
     /// </summary>
     public int UnassignedPayOverlaps { get; init; }
+
+    /// <summary>
+    /// Housing expenses in the period dated on a day an accommodation rate is in
+    /// force. The rent is already counted from the rate, so each of these counts
+    /// it a second time; new ones are refused, these were entered before that.
+    /// </summary>
+    public int HousingDoubleEntries { get; init; }
 }
 
 /// <summary>Income, spending and profit of each project over a period.</summary>
@@ -223,11 +230,25 @@ public class GetFinanceByProjectQueryHandler : IRequestHandler<GetFinanceByProje
                 Expense = unallocatedExpense,
                 Profit = unallocatedRevenue - unallocatedExpense,
             },
+            HousingDoubleEntries = await CountHousingDoubleEntriesAsync(from, to, cancellationToken),
             UnassignedPayOverlaps = projectCosts.IncludesLabour
                 ? await CountUnassignedPayOverlapsAsync(from, to, cancellationToken)
                 : 0,
         };
     }
+
+    private async Task<int> CountHousingDoubleEntriesAsync(
+        DateOnly from,
+        DateOnly to,
+        CancellationToken cancellationToken) =>
+        await _context.GeneralExpenses
+            .AsNoTracking()
+            .Where(e => e.Category == Construction.Domain.Enums.GeneralExpenseCategory.Housing
+                && e.OccurredOn >= from
+                && e.OccurredOn <= to
+                && _context.AccommodationRates.Any(r =>
+                    r.StartDate <= e.OccurredOn && (r.EndDate == null || r.EndDate >= e.OccurredOn)))
+            .CountAsync(cancellationToken);
 
     private async Task<int> CountUnassignedPayOverlapsAsync(
         DateOnly from,

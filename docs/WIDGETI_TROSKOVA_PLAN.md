@@ -272,5 +272,18 @@ Atribut `[FinanceAccess]` na akcijama (čita pravo iz baze pri svakom pozivu, 40
 
 **Provjera:** integracioni testovi pokrenuti na pravoj PostgreSQL bazi (Docker): **772 od 772 prolazi**, uključujući nove za pravilo (6 kombinacija vrste zaposlenja i unosa, isplata bez projekta) i za zbir projekata = firma. Postojeći testovi izvještaja troškova sada dobijaju pravo Finansije jer testiraju iznose, ne pristup.
 
-**Poznati preostali rizik (podaci, ne kod):** opšti trošak kategorije **Smještaj** (`Housing`) i zakup smještaja iz cijena smještaja oba ulaze u trošak firme. Ako se ista kirija unese na oba mjesta, računa se dvaput. Sistem to ne može razlikovati; treba se držati jednog mjesta unosa ili dodati upozorenje.
+**Poznati preostali rizik (podaci, ne kod):** opšti trošak kategorije **Smještaj** (`Housing`) i zakup smještaja iz cijena smještaja oba ulaze u trošak firme. Ako se ista kirija unese na oba mjesta, računa se dvaput. Riješeno u sekciji 17.
+
+## 17. Ista kirija se ne upisuje dvaput (lokalno)
+
+**Pravilo:** opšti trošak kategorije **Smještaj** (`Housing`) se **odbija** (409) za dan na koji neki smještaj ima cijenu na snazi, jer se kirija već računa iz cijena smještaja. Poruka kaže izlaz: unijeti kiriju u smještaj ili izabrati drugu kategoriju.
+
+- Važi pri unosu i pri izmjeni koja **mijenja kategoriju ili datum**. Stari red koji se već preklapa i dalje se može ispraviti (iznos, napomena), da se ne zaključa ono što je ranije uneseno.
+- Ostale kategorije i dani bez cijene smještaja nisu pogođeni.
+
+**Upozorenje za ranije unesene:** pregled po projektu vraća `housingDoubleEntries` (broj takvih redova u periodu), a widget "Zarada po projektima" ih prijavljuje s uputom da se obrišu ili prebace u drugu kategoriju.
+
+**Ograničenje:** provjera je na nivou "bilo koji smještaj ima cijenu tog dana", jer trošak nije vezan za konkretan smještaj. Kirija za smještaj koji nije unesen u sistem, a ima drugih smještaja s cijenom, biće odbijena u kategoriji Smještaj — treba je unijeti kao drugu kategoriju.
+
+**Provjera:** 776 od 776 integracionih testova prolazi na pravoj bazi (4 nova).
 

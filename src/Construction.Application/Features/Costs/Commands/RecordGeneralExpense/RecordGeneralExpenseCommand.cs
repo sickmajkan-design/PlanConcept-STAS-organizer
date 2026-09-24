@@ -91,12 +91,16 @@ public class RecordGeneralExpenseCommandHandler
             throw new NotFoundException(nameof(Employee), employeeId);
         }
 
+        var occurredOn = request.OccurredOn ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+
+        await HousingDoubleEntry.EnsureNotCountedTwiceAsync(
+            _context, request.Category, occurredOn, cancellationToken);
+
         var expense = new GeneralExpense
         {
             Category = request.Category,
             Amount = request.Amount,
-            OccurredOn = request.OccurredOn
-                ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+            OccurredOn = occurredOn,
             ProjectId = request.ProjectId,
             EmployeeId = request.EmployeeId,
             Supplier = request.Supplier?.Trim(),

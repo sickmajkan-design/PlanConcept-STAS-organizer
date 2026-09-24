@@ -77,6 +77,8 @@ export interface FinanceByProject {
   unallocated: FinanceMoney;
   /** Days a pay entry tied to no site sits beside hours the same person clocked at a site. */
   unassignedPayOverlaps: number;
+  /** Housing expenses dated on a day an accommodation rate is in force — the rent is counted twice. */
+  housingDoubleEntries: number;
 }
 
 export interface ProjectBudget {

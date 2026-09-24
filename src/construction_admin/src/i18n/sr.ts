@@ -447,6 +447,7 @@ export const sr: Record<MessageKey, Message> = {
   'finance.unallocated': 'Bez projekta (vozila, alat, troškovi i isplate bez projekta, najam)',
   'finance.companyTotal': 'Ukupno firma',
   'finance.otherProjects': 'Ostali projekti ({count})',
+  'finance.housingDoubleWarning': '{count} troškova smještaja pada na dane kada je kirija već uračunata iz cijena smještaja, pa se ta kirija računa dvaput. Obrišite ih ili ih prebacite u drugu kategoriju.',
   'finance.payOverlapWarning': '{count} isplata bez projekta pada na dane kada je ista osoba evidentirala sate na projektu. Računaju se oba iznosa — provjerite treba li jedan zamijeniti drugi.',
   'finance.budget.title': 'Budžet',
   'finance.budget.contract': 'Ugovorena vrijednost',
