@@ -76,6 +76,13 @@ import { useNavBadgeCounts } from './useNavBadgeCounts';
 const RAIL_WIDTH = 72;
 const MOBILE_DRAWER_WIDTH = 260;
 const EXPANDED_GROUPS_KEY = 'nav.expandedGroups';
+/**
+ * Height of the top bar on large screens, where the company logo is shown. Taller
+ * than the default so a logo with lettering in it can be read; the spacer under
+ * the bar uses the same value, so page content still starts right below it.
+ */
+const TOP_BAR_HEIGHT_LG = 88;
+
 /** How long the pointer must hover the rail logo before the enlarged preview appears. */
 const LOGO_PREVIEW_HOVER_DELAY_MS = 500;
 
@@ -758,7 +765,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           bgcolor: 'background.paper',
         }}
       >
-        <Toolbar sx={{ gap: 1, position: 'relative' }}>
+        <Toolbar sx={{ gap: 1, position: 'relative', minHeight: { lg: TOP_BAR_HEIGHT_LG } }}>
           {!isDesktop && (
             <IconButton edge="start" onClick={() => setMobileOpen(true)}>
               <MenuOutlined />
@@ -791,10 +798,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
               gap: 1.25,
               px: 2,
               py: 0.5,
-              borderRadius: 999,
+              borderRadius: 3,
               textDecoration: 'none',
               color: 'inherit',
-              maxWidth: 420,
+              maxWidth: 560,
               transition: 'background-color 0.18s',
               '&:hover': { bgcolor: 'action.hover' },
             }}
@@ -805,8 +812,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 src={`${config.apiBaseUrl}/api/v1/company-settings/logo`}
                 alt=""
                 sx={{
-                  width: 36,
-                  height: 36,
+                  // As tall as the bar allows and as wide as the picture wants
+                  // (a wordmark is far wider than a square emblem), so any text
+                  // inside the logo stays legible instead of shrinking to a smudge.
+                  height: 72,
+                  width: 'auto',
+                  maxWidth: 240,
                   objectFit: 'contain',
                   borderRadius: 1,
                   flexShrink: 0,
@@ -815,7 +826,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             ) : (
               <Avatar
                 variant="rounded"
-                sx={{ width: 36, height: 36, bgcolor: 'primary.main', fontSize: 16 }}
+                sx={{ width: 72, height: 72, bgcolor: 'primary.main', fontSize: 28 }}
               >
                 {(branding?.name || t('nav.appName')).slice(0, 1)}
               </Avatar>
@@ -926,7 +937,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           py: 3,
         }}
       >
-        <Toolbar />
+        <Toolbar sx={{ minHeight: { lg: TOP_BAR_HEIGHT_LG } }} />
         {breadcrumbTrail.length > 0 && (
           <Breadcrumbs sx={{ mb: 1.5, fontSize: '0.875rem' }}>
             {breadcrumbTrail.map((segment, index) =>
