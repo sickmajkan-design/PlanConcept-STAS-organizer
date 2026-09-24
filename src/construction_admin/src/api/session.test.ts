@@ -55,6 +55,15 @@ describe('sessionStore', () => {
     expect(sessionStore.read()).toEqual(session);
   });
 
+  it('drops a session stored before accounts carried a finance right, so the refresh brings it', () => {
+    const stale = sessionWith();
+    delete (stale.user as unknown as Record<string, unknown>).financeAccess;
+
+    window.sessionStorage.setItem('construction.admin.session', JSON.stringify(stale));
+
+    expect(sessionStore.read()).toBeNull();
+  });
+
   it('keeps the session where closing the browser removes it', () => {
     // The whole point: in localStorage it outlived the browser, and whoever
     // opened the panel next on a shared machine was signed in as the last

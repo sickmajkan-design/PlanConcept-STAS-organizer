@@ -46,6 +46,15 @@ export const sessionStore = {
         return null;
       }
 
+      // A session stored by a build from before an account carried its finance
+      // right has no such field, and would hide every finance screen from a
+      // SuperAdmin until they signed out and in. Dropping it sends the panel
+      // to the refresh cookie, which answers with the account as it is now.
+      if (session.user && session.user.financeAccess === undefined) {
+        sessionStore.clear();
+        return null;
+      }
+
       return session;
     } catch {
       sessionStore.clear();
