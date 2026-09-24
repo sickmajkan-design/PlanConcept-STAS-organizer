@@ -1,4 +1,15 @@
-import { Box, Table, TableBody, TableCell, TableHead, TableRow, TableSortLabel, Typography } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TableSortLabel,
+  Typography,
+} from '@mui/material';
 import { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 
@@ -38,6 +49,18 @@ export function ProfitByProjectWidget({ onRemove, onExpandWidth }: DashboardWidg
     const order = compare(a, b, sort.key);
     return sort.direction === 'asc' ? order : -order;
   });
+
+  // Projects the list was cut short of. Company = listed + these + unallocated, so the
+  // difference is exact and the table always adds up to its own last line.
+  const hidden =
+    data && data.totalProjects > rows.length
+      ? {
+          revenue: data.company.revenue - data.unallocated.revenue - rows.reduce((sum, row) => sum + row.revenue, 0),
+          expense: data.company.expense - data.unallocated.expense - rows.reduce((sum, row) => sum + row.expense, 0),
+          profit: 0,
+        }
+      : null;
+  if (hidden) hidden.profit = hidden.revenue - hidden.expense;
 
   const header = (key: SortKey, label: string, numeric = true) => (
     <TableCell align={numeric ? 'right' : 'left'} sortDirection={sort.key === key ? sort.direction : false}>
@@ -103,7 +126,45 @@ export function ProfitByProjectWidget({ onRemove, onExpandWidth }: DashboardWidg
                 </TableRow>
               ))}
             </TableBody>
+            {data && (
+              <TableFooter>
+                {hidden && (
+                  <TableRow>
+                    <TableCell>{t('finance.otherProjects', { count: data.totalProjects - rows.length })}</TableCell>
+                    <TableCell align="right">{formatMoney(hidden.revenue, locale)}</TableCell>
+                    <TableCell align="right">{formatMoney(hidden.expense, locale)}</TableCell>
+                    <TableCell align="right" sx={{ color: hidden.profit < 0 ? 'error.main' : 'inherit' }}>
+                      {formatMoney(hidden.profit, locale)}
+                    </TableCell>
+                    <TableCell />
+                  </TableRow>
+                )}
+                <TableRow>
+                  <TableCell>{t('finance.unallocated')}</TableCell>
+                  <TableCell align="right">{formatMoney(data.unallocated.revenue, locale)}</TableCell>
+                  <TableCell align="right">{formatMoney(data.unallocated.expense, locale)}</TableCell>
+                  <TableCell align="right" sx={{ color: data.unallocated.profit < 0 ? 'error.main' : 'inherit' }}>
+                    {formatMoney(data.unallocated.profit, locale)}
+                  </TableCell>
+                  <TableCell />
+                </TableRow>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 700 }}>{t('finance.companyTotal')}</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 700 }}>{formatMoney(data.company.revenue, locale)}</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 700 }}>{formatMoney(data.company.expense, locale)}</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 700, color: data.company.profit < 0 ? 'error.main' : 'inherit' }}>
+                    {formatMoney(data.company.profit, locale)}
+                  </TableCell>
+                  <TableCell />
+                </TableRow>
+              </TableFooter>
+            )}
           </Table>
+          {data && data.unassignedPayOverlaps > 0 && (
+            <Alert severity="warning" sx={{ mt: 1 }}>
+              {t('finance.payOverlapWarning', { count: data.unassignedPayOverlaps })}
+            </Alert>
+          )}
         </Box>
       )}
     </WidgetShell>

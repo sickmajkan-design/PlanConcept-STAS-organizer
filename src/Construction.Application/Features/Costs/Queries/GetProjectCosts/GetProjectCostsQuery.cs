@@ -138,7 +138,8 @@ public class GetProjectCostsQueryHandler
                     ManualPayAmount = decimal.Round(manualPayAmount, 2),
                     GeneralExpenseCost = decimal.Round(generalExpenseCost, 2),
                     AccommodationCost = decimal.Round(accommodationCost, 2),
-                    Total = decimal.Round(l.Cost + materialCost + generalExpenseCost + accommodationCost, 2)
+                    Total = decimal.Round(
+                        l.Cost + manualPayAmount + materialCost + generalExpenseCost + accommodationCost, 2)
                 };
             })
             .OrderByDescending(r => r.Total)
@@ -234,9 +235,9 @@ public class GetProjectCostsQueryHandler
 
     /// <summary>
     /// Manually entered pay (<c>FinanceEntry</c>) attributed to a site over
-    /// the period — see the remarks on <see cref="ProjectCostRowDto.ManualPayAmount"/>
-    /// for why this is kept separate from <see cref="LoadLabourAsync"/> rather
-    /// than added to it.
+    /// the period — part of the site's total. The clocked hours it stands in
+    /// for are left out of <see cref="LoadLabourAsync"/> (see
+    /// <see cref="ProjectLabourPricing"/>), so nothing is paid twice.
     /// </summary>
     private async Task<Dictionary<Guid, decimal>> LoadFinanceEntriesAsync(
         GetProjectCostsQuery request,

@@ -190,10 +190,14 @@ describe('HomePage dashboard', () => {
 
   describe('per-project finance widgets', () => {
     const rows = [
-      { projectId: 'p1', projectName: 'Most', contractValue: null, budget: null, revenue: 3000, expense: 1000, subcontractorPay: 0, profit: 2000, marginPercent: 66.7 },
-      { projectId: 'p2', projectName: 'Loser', contractValue: null, budget: null, revenue: 0, expense: 500, subcontractorPay: 0, profit: -500, marginPercent: null },
+      { projectId: 'p1', projectName: 'Most', contractValue: null, budget: null, revenue: 3000, expense: 1000, profit: 2000, marginPercent: 66.7 },
+      { projectId: 'p2', projectName: 'Loser', contractValue: null, budget: null, revenue: 0, expense: 500, profit: -500, marginPercent: null },
     ];
-    const byProject = { from: '2026-09-01', to: '2026-09-30', includesLabour: true, rows, totalProjects: 2 };
+    const money = (revenue: number, expense: number) => ({ revenue, expense, profit: revenue - expense });
+    const byProject = {
+      from: '2026-09-01', to: '2026-09-30', includesLabour: true, rows, totalProjects: 2,
+      company: money(3400, 1620), unallocated: money(400, 120), unassignedPayOverlaps: 0,
+    };
 
     it('lists projects by spending with the largest first', async () => {
       network.reply('/dashboard-layout', 200, { widgets: [{ id: '1', type: 'TopProjectsByExpense', column: 0, order: 0 }] });
@@ -222,6 +226,30 @@ describe('HomePage dashboard', () => {
       expect(names[1]).toContain('Loser');
       expect(names[1]).toContain('—');
       expect(names[2]).toContain('Most');
+    });
+
+    it('accounts for everything: listed projects, the ones left off, and what no project owns add up to the company', async () => {
+      network.reply('/dashboard-layout', 200, { widgets: [{ id: '1', type: 'ProfitByProject', column: 0, order: 0 }] });
+      network.reply('/finance/by-project', 200, {
+        ...byProject,
+        totalProjects: 3,
+        // A third project (500 in, 100 out) is beyond the list; the company holds all of it.
+        company: money(3900, 1720),
+        unassignedPayOverlaps: 2,
+      });
+
+      renderScreen(<HomePage />, { user: signedIn('SuperAdmin') });
+
+      await waitFor(() => {
+        expect(screen.getByText('Other projects (1)')).toBeDefined();
+      }, { timeout: 5000 });
+
+      const text = screen.getAllByRole('row').map((row) => row.textContent ?? '');
+      const other = text.find((row) => row.startsWith('Other projects'))!;
+      expect(other).toContain('500.00');
+      expect(other).toContain('100.00');
+      expect(text.some((row) => row.startsWith('Company total') && row.includes('3,900.00') && row.includes('1,720.00'))).toBe(true);
+      expect(screen.getByText(/2 pay entries tied to no project/)).toBeDefined();
     });
 
     it('is not offered to an Admin without the right', async () => {

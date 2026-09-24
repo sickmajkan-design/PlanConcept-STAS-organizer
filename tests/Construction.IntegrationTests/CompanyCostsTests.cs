@@ -231,9 +231,10 @@ public class CompanyCostsTests : IntegrationTestBase
         Assert.Equal(0m, report.Total);
     }
 
-    private async Task<CompanyCostsDto> LabourAndFlatPayAsync(
+    private async Task<CompanyCostsDto> LabourAndPayAsync(
         EmployeeType type,
-        FinanceEntryKind kind)
+        FinanceEntryKind kind,
+        bool entryHasProject = true)
     {
         var (from, to) = FreshYear();
         var day = new DateOnly(from.Year, 5, 4);
@@ -263,7 +264,7 @@ public class CompanyCostsTests : IntegrationTestBase
             scope.Db.FinanceEntries.Add(new FinanceEntry
             {
                 EmployeeId = employee.Id,
-                ProjectId = project.Id,
+                ProjectId = entryHasProject ? project.Id : null,
                 Kind = kind,
                 Amount = 500m,
                 OccurredOn = day,
@@ -276,12 +277,23 @@ public class CompanyCostsTests : IntegrationTestBase
         return await ReportAsync(from, to);
     }
 
+    /// <summary>
+    /// What the office entered by hand for a person, site and day is what that
+    /// work cost; the clock for the same person, site and day is not counted
+    /// on top. For everyone, and for every kind of entry.
+    /// </summary>
     [Theory]
-    [InlineData(FinanceEntryKind.WorkerPaymentFixed)]
-    [InlineData(FinanceEntryKind.WorkerPaymentDaily)]
-    public async Task A_subcontractors_flat_pay_replaces_their_clocked_hours_for_that_site_and_day(FinanceEntryKind kind)
+    [InlineData(EmployeeType.Subcontractor, FinanceEntryKind.WorkerPaymentFixed)]
+    [InlineData(EmployeeType.Subcontractor, FinanceEntryKind.WorkerPaymentDaily)]
+    [InlineData(EmployeeType.Subcontractor, FinanceEntryKind.WorkerPaymentHourly)]
+    [InlineData(EmployeeType.Employee, FinanceEntryKind.WorkerPaymentFixed)]
+    [InlineData(EmployeeType.Employee, FinanceEntryKind.WorkerPaymentDaily)]
+    [InlineData(EmployeeType.Employee, FinanceEntryKind.WorkerPaymentHourly)]
+    public async Task A_manual_pay_entry_replaces_the_clocked_hours_of_that_person_site_and_day(
+        EmployeeType type,
+        FinanceEntryKind kind)
     {
-        var report = await LabourAndFlatPayAsync(EmployeeType.Subcontractor, kind);
+        var report = await LabourAndPayAsync(type, kind);
 
         Assert.Equal(0m, report.Labour);
         Assert.Equal(500m, report.ManualPay);
@@ -289,20 +301,13 @@ public class CompanyCostsTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task A_subcontractors_hourly_entry_is_a_correction_and_does_not_replace_the_clock()
+    public async Task A_pay_entry_tied_to_no_site_replaces_no_hours_because_it_cannot_say_whose()
     {
-        var report = await LabourAndFlatPayAsync(EmployeeType.Subcontractor, FinanceEntryKind.WorkerPaymentHourly);
-
-        Assert.Equal(80m, report.Labour);
-    }
-
-    [Fact]
-    public async Task An_employees_flat_pay_does_not_replace_their_clocked_hours()
-    {
-        var report = await LabourAndFlatPayAsync(EmployeeType.Employee, FinanceEntryKind.WorkerPaymentFixed);
+        var report = await LabourAndPayAsync(EmployeeType.Employee, FinanceEntryKind.WorkerPaymentFixed, entryHasProject: false);
 
         Assert.Equal(80m, report.Labour);
         Assert.Equal(500m, report.ManualPay);
+        Assert.Equal(580m, report.Total);
     }
 
     [Fact]

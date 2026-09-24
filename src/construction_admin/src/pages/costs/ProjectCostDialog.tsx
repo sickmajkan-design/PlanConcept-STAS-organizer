@@ -154,7 +154,6 @@ export function ProjectCostDialog({
                 <Tile
                   label={t('costs.manualPay')}
                   value={money(data.summary.manualPayAmount)}
-                  hint={t('costs.notInTotal')}
                 />
               )}
             </Stack>

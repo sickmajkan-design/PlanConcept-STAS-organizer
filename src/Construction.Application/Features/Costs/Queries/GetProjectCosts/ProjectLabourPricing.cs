@@ -106,19 +106,23 @@ public static class ProjectLabourPricing
             })
             .ToListAsync(cancellationToken);
 
-        // A subcontractor paid a flat day or a lump sum for a site on a given
-        // day is paid for that day by that entry. Their clocked hours for the
-        // same site and day would price the same work a second time, so they
-        // are left out here — the manual entry stands in for them. Only
-        // subcontractors, and only the two flat kinds: an hourly entry is a
-        // correction to the clock, not a replacement for it.
+        // What the office entered by hand for a person, site and day is what
+        // that work cost. Their clocked hours for the same site and day would
+        // price the same work a second time, so they are left out here and the
+        // manual entry — which every report adds in — stands in for them. It
+        // holds for everyone, whatever their kind of employment, and for every
+        // kind of entry: a flat day or lump sum replaces the clock outright, and
+        // an hourly entry is the office's own count of the hours for that day.
+        // An hourly entry with no hours says nothing about the day, so it does
+        // not replace anything. An entry tied to no site cannot say which
+        // site's hours it stands in for, so it replaces none (the reports flag
+        // the days where that leaves the same person counted twice).
         var covered = (await context.FinanceEntries
                 .AsNoTracking()
                 .Where(f => f.ProjectId != null
-                    && (f.Kind == FinanceEntryKind.WorkerPaymentDaily || f.Kind == FinanceEntryKind.WorkerPaymentFixed)
-                    && f.Employee.Type == EmployeeType.Subcontractor
                     && f.OccurredOn >= from
-                    && f.OccurredOn <= to)
+                    && f.OccurredOn <= to
+                    && (f.Kind != FinanceEntryKind.WorkerPaymentHourly || f.HoursWorked != null))
                 .Where(f => projectId == null || f.ProjectId == projectId)
                 .Select(f => new { f.EmployeeId, ProjectId = f.ProjectId!.Value, f.OccurredOn })
                 .Distinct()

@@ -32,8 +32,20 @@ public class CostTests : IntegrationTestBase
     private static readonly DateOnly March = new(2026, 3, 2);
     private static readonly DateOnly June = new(2026, 6, 1);
 
-    private static void ActAs(TestScope scope, User user, Guid? employeeId = null) =>
+    /// <summary>
+    /// Signs in as <paramref name="user"/> with the finance right. These tests
+    /// are about what the reports add up to, not about who may open them — that
+    /// is covered by <c>FinanceSeriesTests</c> and <c>CompanyCostsTests</c> —
+    /// so the right is granted up front and each user is otherwise as seeded.
+    /// </summary>
+    private static void ActAs(TestScope scope, User user, Guid? employeeId = null)
+    {
+        scope.Db.Users
+            .Where(u => u.Id == user.Id)
+            .ExecuteUpdate(u => u.SetProperty(x => x.FinanceAccess, FinanceAccess.Full));
+
         scope.CurrentUser.SignInAs(user.Id, user.Role, employeeId, user.Email);
+    }
 
     // ---- rates -----------------------------------------------------------
 

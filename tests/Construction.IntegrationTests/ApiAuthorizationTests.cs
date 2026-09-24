@@ -143,11 +143,10 @@ public class ApiAuthorizationTests
             // The controller carries ForemanAndAbove; CostRules then narrows
             // pay rates to the people who may see somebody's pay.
             new("GET", "/api/employee-rates", UserRole.Foreman, HandlerNarrows: true),
-            // Not flagged, though CostRules narrows this one too: the empty
-            // body fails validation first, so the refusal never gets reached
-            // and a 403 here would be a real regression. The flag marks what
-            // is observably narrowed, not what is narrowed in principle.
-            new("POST", "/api/employee-rates", UserRole.Foreman),
+            // Flagged since the finance right was added: that filter runs
+            // before the body is validated, so a caller without the right is
+            // refused here whatever the role policy says.
+            new("POST", "/api/employee-rates", UserRole.Foreman, HandlerNarrows: true),
             new("DELETE", $"/api/employee-rates/{Id}", UserRole.Foreman, HandlerNarrows: true),
             new("GET", "/api/material-movements", UserRole.Foreman),
             new("POST", "/api/material-movements", UserRole.Foreman),

@@ -30,16 +30,14 @@ public class ProjectCostReportDto
 
     /// <summary>
     /// Manually entered pay (<c>FinanceEntry</c>) attributed to a site over
-    /// the period — not part of <see cref="Total"/>. See the field of the
-    /// same name on <see cref="ProjectCostRowDto"/> for why.
+    /// the period — part of <see cref="Total"/>. See the field of the same
+    /// name on <see cref="ProjectCostRowDto"/>.
     /// </summary>
     public decimal TotalManualPayAmount { get; init; }
 
     /// <summary>
     /// General expenses (housing, bookkeeping, damage, and the like) tied to
-    /// a project over the period — part of <see cref="Total"/>, unlike
-    /// <see cref="TotalManualPayAmount"/>: there is no other source this could
-    /// double-count against.
+    /// a project over the period — part of <see cref="Total"/>.
     /// </summary>
     public decimal TotalGeneralExpenseCost { get; init; }
 
@@ -86,19 +84,16 @@ public class ProjectCostRowDto
 
     /// <summary>
     /// Manually entered pay (<c>FinanceEntry</c>) attributed to this site over
-    /// the period. Deliberately not folded into <see cref="LabourCost"/> or
-    /// <see cref="Total"/>: a `FinanceEntry` is often a correction to hours
-    /// already clocked and priced there — a rounded figure, a flat day rate —
-    /// so adding the two together risks paying the same work twice on paper.
-    /// Shown as its own figure instead of guessed away.
+    /// the period. Part of <see cref="Total"/>, kept as its own figure beside
+    /// <see cref="LabourCost"/>. The clocked hours a manual entry stands in for
+    /// — the same person, site and day — are left out of
+    /// <see cref="LabourCost"/>, so the same work is never paid twice.
     /// </summary>
     public decimal ManualPayAmount { get; init; }
 
     /// <summary>
     /// General expenses (housing, bookkeeping, damage, and the like) tied to
-    /// this project over the period. Folded into <see cref="Total"/> — unlike
-    /// <see cref="ManualPayAmount"/>, this is a genuinely new cost source with
-    /// nothing else it could double-count against.
+    /// this project over the period. Folded into <see cref="Total"/>.
     /// </summary>
     public decimal GeneralExpenseCost { get; init; }
 

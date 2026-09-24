@@ -258,3 +258,19 @@ Atribut `[FinanceAccess]` na akcijama (čita pravo iz baze pri svakom pozivu, 40
 
 **Nije urađeno (faza 3–4):** `settings` po widgetu i B3 Projekat u fokusu, A3 struktura rashoda, A4 trend potrošnje, B4 upozorenje van budžeta (prag % ugovora ili budžet), nivo "samo statistika".
 
+## 16. Tačnost cifara — jedno pravilo za ručne isplate (lokalno)
+
+**Odluka vlasnika:** cifre moraju biti tačne, bez dupliranja; pravilo važi za svakog zaposlenog, bez obzira na vrstu zaposlenja; satni unos ide u istu grupu; isplate bez projekta idu na trošak firme.
+
+**Pravilo:** ono što je ured ručno unio (`FinanceEntry`) za osobu, projekat i dan je ono što je taj rad koštao. Evidentirani sati iste osobe na istom projektu istog dana se **ne računaju povrh toga** (`ProjectLabourPricing`). Važi za sve vrste unosa (paušal, dnevnica, satni unos s unesenim satima) i za sve zaposlene. Ovo zamjenjuje raniju verziju koja je važila samo za kooperante.
+
+**Ručne isplate su sada dio ukupnog troška projekta** (ranije nisu bile — zbog rizika dupliranja koje ovo pravilo uklanja). Time se izvještaj troškova projekta, trošak firme i pregled po projektu slažu.
+
+**Isplata bez projekta** ide samo u trošak firme i ne isključuje ničije sate (ne zna se čije). Takvi dani se **prijavljuju**: pregled po projektu vraća `unassignedPayOverlaps`, a widget "Zarada po projektima" upozorava da provjerite tu isplatu.
+
+**Pregled po projektu sada uvijek zbraja:** projekti na listi + "Ostali projekti (N)" + "Bez projekta" = "Ukupno firma", i za prihod i za rashod. "Bez projekta" je vozila, alat, prazni dani smještaja, troškovi i isplate bez projekta, prihod od najma i sve što pripada obrisanom projektu.
+
+**Provjera:** integracioni testovi pokrenuti na pravoj PostgreSQL bazi (Docker): **772 od 772 prolazi**, uključujući nove za pravilo (6 kombinacija vrste zaposlenja i unosa, isplata bez projekta) i za zbir projekata = firma. Postojeći testovi izvještaja troškova sada dobijaju pravo Finansije jer testiraju iznose, ne pristup.
+
+**Poznati preostali rizik (podaci, ne kod):** opšti trošak kategorije **Smještaj** (`Housing`) i zakup smještaja iz cijena smještaja oba ulaze u trošak firme. Ako se ista kirija unese na oba mjesta, računa se dvaput. Sistem to ne može razlikovati; treba se držati jednog mjesta unosa ili dodati upozorenje.
+

@@ -150,7 +150,7 @@ public class FinanceSeriesTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task By_project_adds_a_subcontractors_flat_pay_to_that_projects_spending_and_puts_revenue_against_it()
+    public async Task By_project_counts_manual_pay_in_that_projects_spending_and_puts_revenue_against_it()
     {
         var year = FreshYear();
         var day = new DateOnly(year, 6, 10);
@@ -191,11 +191,126 @@ public class FinanceSeriesTests : IntegrationTestBase
         }));
 
         var row = Assert.Single(result.Rows, r => r.ProjectId == projectId);
-        Assert.Equal(700m, row.SubcontractorPay);
         Assert.Equal(750m, row.Expense);
         Assert.Equal(2000m, row.Revenue);
         Assert.Equal(1250m, row.Profit);
         Assert.Equal(62.5m, row.MarginPercent);
+    }
+
+    [Fact]
+    public async Task Every_project_row_plus_the_unallocated_part_adds_up_to_the_company_figures_with_nothing_counted_twice()
+    {
+        var year = FreshYear();
+        var day = new DateOnly(year, 7, 8);
+        Guid projectId = default;
+
+        await InScope(async scope =>
+        {
+            var project = await TestData.SeedProjectAsync(scope);
+            projectId = project.Id;
+
+            var worker = await TestData.SeedEmployeeAsync(scope);
+            var start = new DateTime(year, 7, 8, 8, 0, 0, DateTimeKind.Utc);
+
+            // Clocked 8h at 10 = 80, but the office paid that day flat: 300 stands in for the 80.
+            scope.Db.TimeEntries.Add(new TimeEntry
+            {
+                EmployeeId = worker.Id,
+                ProjectId = project.Id,
+                StartedAt = start,
+                EndedAt = start.AddHours(8),
+                Status = TimeEntryStatus.Approved,
+            });
+            scope.Db.EmployeeRates.Add(new EmployeeRate
+            {
+                EmployeeId = worker.Id,
+                RateType = RateType.Hourly,
+                HourlyRate = 10m,
+                StartDate = new DateOnly(year, 1, 1),
+            });
+            scope.Db.FinanceEntries.Add(new FinanceEntry
+            {
+                EmployeeId = worker.Id, ProjectId = project.Id, Kind = FinanceEntryKind.WorkerPaymentDaily, Amount = 300m, OccurredOn = day,
+            });
+
+            // One cost tied to the project, one to none.
+            scope.Db.GeneralExpenses.Add(new GeneralExpense { Category = GeneralExpenseCategory.Bookkeeping, Amount = 50m, ProjectId = project.Id, OccurredOn = day });
+            scope.Db.GeneralExpenses.Add(new GeneralExpense { Category = GeneralExpenseCategory.Bookkeeping, Amount = 20m, OccurredOn = day });
+
+            // Pay tied to no site, for someone who did not clock in.
+            var office = await TestData.SeedEmployeeAsync(scope);
+            scope.Db.FinanceEntries.Add(new FinanceEntry
+            {
+                EmployeeId = office.Id, Kind = FinanceEntryKind.WorkerPaymentFixed, Amount = 100m, OccurredOn = day,
+            });
+
+            scope.Db.ProjectRevenues.Add(new ProjectRevenue { ProjectId = project.Id, Amount = 1000m, OccurredOn = day });
+            scope.Db.CompanyRevenues.Add(new CompanyRevenue { Amount = 400m, OccurredOn = day, Source = CompanyRevenueSource.Other });
+
+            await scope.Db.SaveChangesAsync();
+        });
+
+        var result = await AsAsync(UserRole.SuperAdmin, FinanceAccess.None, scope => scope.Send(new GetFinanceByProjectQuery
+        {
+            From = new DateOnly(year, 1, 1),
+            To = new DateOnly(year, 12, 31),
+            Top = GetFinanceByProjectQuery.MaxTop,
+        }));
+
+        var row = Assert.Single(result.Rows, r => r.ProjectId == projectId);
+
+        // 300 (the office's figure) + 50; the 80 of clocked hours is not added.
+        Assert.Equal(350m, row.Expense);
+        Assert.Equal(1000m, row.Revenue);
+
+        // The company: 300 + 50 + 20 + 100 spent; 1000 + 400 received.
+        Assert.Equal(470m, result.Company.Expense);
+        Assert.Equal(1400m, result.Company.Revenue);
+
+        // What no project owns: 20 of costs, 100 of untied pay, 400 of rental income.
+        Assert.Equal(120m, result.Unallocated.Expense);
+        Assert.Equal(400m, result.Unallocated.Revenue);
+
+        Assert.Equal(result.Company.Expense, result.Rows.Sum(r => r.Expense) + result.Unallocated.Expense);
+        Assert.Equal(result.Company.Revenue, result.Rows.Sum(r => r.Revenue) + result.Unallocated.Revenue);
+        Assert.Equal(0, result.UnassignedPayOverlaps);
+    }
+
+    [Fact]
+    public async Task A_pay_entry_tied_to_no_site_beside_clocked_hours_of_the_same_day_is_flagged()
+    {
+        var year = FreshYear();
+        var day = new DateOnly(year, 9, 3);
+
+        await InScope(async scope =>
+        {
+            var project = await TestData.SeedProjectAsync(scope);
+            var worker = await TestData.SeedEmployeeAsync(scope);
+            var start = new DateTime(year, 9, 3, 8, 0, 0, DateTimeKind.Utc);
+
+            scope.Db.TimeEntries.Add(new TimeEntry
+            {
+                EmployeeId = worker.Id,
+                ProjectId = project.Id,
+                StartedAt = start,
+                EndedAt = start.AddHours(8),
+                Status = TimeEntryStatus.Approved,
+            });
+            scope.Db.FinanceEntries.Add(new FinanceEntry
+            {
+                EmployeeId = worker.Id, Kind = FinanceEntryKind.WorkerPaymentFixed, Amount = 100m, OccurredOn = day,
+            });
+
+            await scope.Db.SaveChangesAsync();
+        });
+
+        var result = await AsAsync(UserRole.SuperAdmin, FinanceAccess.None, scope => scope.Send(new GetFinanceByProjectQuery
+        {
+            From = new DateOnly(year, 1, 1),
+            To = new DateOnly(year, 12, 31),
+        }));
+
+        Assert.Equal(1, result.UnassignedPayOverlaps);
     }
 
     [Fact]

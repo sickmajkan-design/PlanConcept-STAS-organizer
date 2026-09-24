@@ -51,11 +51,16 @@ export interface FinanceProjectRow {
   budget: number | null;
   /** What came in against the project's contract in the period. */
   revenue: number;
-  /** What the project cost in the period, subcontractors' flat pay included. */
+  /** What the project cost in the period — the project cost report's total, manual pay included. */
   expense: number;
-  subcontractorPay: number;
   profit: number;
   marginPercent: number | null;
+}
+
+export interface FinanceMoney {
+  revenue: number;
+  expense: number;
+  profit: number;
 }
 
 export interface FinanceByProject {
@@ -66,6 +71,12 @@ export interface FinanceByProject {
   rows: FinanceProjectRow[];
   /** How many projects had money move in the period, before the list was cut to `top`. */
   totalProjects: number;
+  /** The company's figures — the ones the overview shows. */
+  company: FinanceMoney;
+  /** What the company's figures hold beyond the projects: fleet, tools, empty housing, untied costs and pay, rental income. */
+  unallocated: FinanceMoney;
+  /** Days a pay entry tied to no site sits beside hours the same person clocked at a site. */
+  unassignedPayOverlaps: number;
 }
 
 export interface ProjectBudget {
