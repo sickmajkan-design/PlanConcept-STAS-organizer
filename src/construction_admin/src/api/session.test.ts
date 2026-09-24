@@ -52,16 +52,24 @@ describe('sessionStore', () => {
 
     sessionStore.write(session);
 
-    expect(sessionStore.read()).toEqual(session);
+    // Stamped with the version that wrote it.
+    expect(sessionStore.read()).toEqual({ ...session, version: 2 });
   });
 
-  it('drops a session stored before accounts carried a finance right, so the refresh brings it', () => {
-    const stale = sessionWith();
-    delete (stale.user as unknown as Record<string, unknown>).financeAccess;
-
-    window.sessionStorage.setItem('construction.admin.session', JSON.stringify(stale));
+  it('drops a session stored by an earlier build, so the refresh brings the account as it is now', () => {
+    // Written straight to storage, without the stamp an earlier build did not have.
+    window.sessionStorage.setItem('construction.admin.session', JSON.stringify(sessionWith()));
 
     expect(sessionStore.read()).toBeNull();
+  });
+
+  it('does not drop a session again after it was written by this build, even if the account lacks a field', () => {
+    const session = sessionWith();
+    delete (session.user as unknown as Record<string, unknown>).financeAccess;
+
+    sessionStore.write(session);
+
+    expect(sessionStore.read()).not.toBeNull();
   });
 
   it('keeps the session where closing the browser removes it', () => {

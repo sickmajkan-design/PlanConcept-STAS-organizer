@@ -14,9 +14,14 @@ export interface Session {
   accessTokenExpiresAt: string;
   refreshTokenExpiresAt: string;
   user: User;
+  /** Which build's layout of a session this is — stamped on write, checked on read. */
+  version?: number;
 }
 
 const STORAGE_KEY = 'construction.admin.session';
+
+/** Bumped when what a stored session holds changes, so an older one is not trusted. */
+const SESSION_VERSION = 2;
 
 /**
  * Session persistence for the admin SPA.
@@ -46,11 +51,13 @@ export const sessionStore = {
         return null;
       }
 
-      // A session stored by a build from before an account carried its finance
-      // right has no such field, and would hide every finance screen from a
-      // SuperAdmin until they signed out and in. Dropping it sends the panel
-      // to the refresh cookie, which answers with the account as it is now.
-      if (session.user && session.user.financeAccess === undefined) {
+      // A session stored by a build from before accounts carried their finance
+      // right would hide every finance screen from a SuperAdmin until they signed
+      // out and in. Sessions are stamped with the version that wrote them, and an
+      // older one is dropped, which sends the panel to the refresh cookie for the
+      // account as it is now. The stamp — not the presence of the field — decides,
+      // so an API that does not send the field yet cannot make this repeat forever.
+      if (session.version !== SESSION_VERSION) {
         sessionStore.clear();
         return null;
       }
@@ -63,7 +70,7 @@ export const sessionStore = {
   },
 
   write(session: Session): void {
-    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ ...session, version: SESSION_VERSION }));
   },
 
   clear(): void {
