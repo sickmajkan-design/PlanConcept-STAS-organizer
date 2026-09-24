@@ -239,3 +239,22 @@ Korisnici sa sačuvanim rasporedom ne dobijaju nove widgete automatski — nalaz
 Atribut `[FinanceAccess]` na akcijama (čita pravo iz baze pri svakom pozivu, 403 bez njega): **plate/satnice** (`employee-rates`), **ostali troškovi** (`general-expenses`), **ručne isplate** (`finance-entries`), **prihodi po projektima** (`project-revenues`) i **godišnja realizacija** (`projects/annual-realization`). Stranice i stavke menija za to su sakrivene bez prava; "Postavke obračuna" bez prava otvara Praznike.
 
 **Namjerno NIJE zaključano:** troškovi vozila i alata, najam vozila/alata (i njihove cijene), materijal i cijene smještaja. Mobilna aplikacija ih koristi za unos goriva i najma na terenu; zaključavanje bi je pokvarilo za predradnike i radnike. Ako se žele zaključati, treba prvo odvojiti unos (ostaje otvoren) od pregleda iznosa (zaključan).
+
+## 15. Faza 2 (lokalno) — kooperanti, budžet, widgeti po projektu
+
+**Odstupanje od plana — nema nove evidencije `SubcontractorPayment`.** Postojeća `FinanceEntry` (ručna isplata) već ima ono što je plan tražio: zaposleni, projekat, datum, iznos i vrstu **paušal** (`WorkerPaymentFixed`) ili **dnevnica** (`WorkerPaymentDaily`), i već ulazi u trošak firme. Druga evidencija bi značila dva izvora istine za isti novac. Kooperant je i dalje zaposleni vrste `Subcontractor`; unosi se na stranici Ručne isplate.
+
+**O-6 implementirano:** paušal ili dnevnica **kooperanta** za projekat i dan isključuje njegove evidentirane sate za taj projekat i dan iz obračuna rada (`ProjectLabourPricing`), pa se isti rad ne broji dvaput — i u trošku firme i u trošku projekta. Satnični unos (`WorkerPaymentHourly`) je korekcija sata i ne isključuje ništa; isto važi za paušal/dnevnicu običnog zaposlenog.
+
+**Budžet projekta:** `Project.Budget` (opciono, ≥ 0), migracija `AddProjectBudget`. Namjerno **nije** u DTO-ovima projekta (da ga ne vidi ko nema pravo Finansije); čita se i piše samo kroz `GET/PUT /api/v1/finance/projects/{id}/budget`, a kartica **Budžet** na stranici projekta prikazuje se samo uz pravo.
+
+**Po projektu:** `GET /api/v1/finance/by-project?from&to&top` — prihod (naplata po ugovoru), rashod (izvještaj troškova projekta + paušal/dnevnica kooperanata), zarada, marža, ugovor i budžet; najviše 100 redova, najveći rashod prvi.
+
+**Widgeti:** **Projekti po rashodu** (`TopProjectsByExpense`, prvih 5, klik vodi na projekat) i **Zarada po projektima** (`ProfitByProject`, prvih 10, sortiranje po koloni, gubitak crveno, prazna marža kao crtica). Oba prate zajednički period i traže pravo Finansije.
+
+**Poznato ograničenje:** izvještaj troškova **projekta** ne uključuje ručne isplate u svoj `Total` (namjerno, zbog dupliranja sa satima), dok trošak **firme** uključuje sve ručne isplate. Zbir projekata zato ne mora biti jednak trošku firme. Po projektu se dodaje samo paušal/dnevnica kooperanata, jer ta više ne duplira sate.
+
+**Testovi:** integracioni (nisu pokrenuti — nema baze): isključivanje sati (paušal, dnevnica, satni unos, običan zaposleni), `by-project`, budžet i prava. Frontend: 3 nova testa widgeta.
+
+**Nije urađeno (faza 3–4):** `settings` po widgetu i B3 Projekat u fokusu, A3 struktura rashoda, A4 trend potrošnje, B4 upozorenje van budžeta (prag % ugovora ili budžet), nivo "samo statistika".
+

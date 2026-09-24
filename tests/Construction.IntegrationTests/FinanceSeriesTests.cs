@@ -148,4 +148,73 @@ public class FinanceSeriesTests : IntegrationTestBase
                 });
             }));
     }
+
+    [Fact]
+    public async Task By_project_adds_a_subcontractors_flat_pay_to_that_projects_spending_and_puts_revenue_against_it()
+    {
+        var year = FreshYear();
+        var day = new DateOnly(year, 6, 10);
+        Guid projectId = default;
+
+        await InScope(async scope =>
+        {
+            var project = await TestData.SeedProjectAsync(scope);
+            projectId = project.Id;
+
+            var subcontractor = await TestData.SeedEmployeeAsync(scope);
+            subcontractor.Type = EmployeeType.Subcontractor;
+
+            scope.Db.FinanceEntries.Add(new FinanceEntry
+            {
+                EmployeeId = subcontractor.Id,
+                ProjectId = project.Id,
+                Kind = FinanceEntryKind.WorkerPaymentFixed,
+                Amount = 700m,
+                OccurredOn = day,
+            });
+            scope.Db.GeneralExpenses.Add(new GeneralExpense
+            {
+                Category = GeneralExpenseCategory.Bookkeeping,
+                Amount = 50m,
+                ProjectId = project.Id,
+                OccurredOn = day,
+            });
+            scope.Db.ProjectRevenues.Add(new ProjectRevenue { ProjectId = project.Id, Amount = 2000m, OccurredOn = day });
+
+            await scope.Db.SaveChangesAsync();
+        });
+
+        var result = await AsAsync(UserRole.SuperAdmin, FinanceAccess.None, scope => scope.Send(new GetFinanceByProjectQuery
+        {
+            From = new DateOnly(year, 1, 1),
+            To = new DateOnly(year, 12, 31),
+        }));
+
+        var row = Assert.Single(result.Rows, r => r.ProjectId == projectId);
+        Assert.Equal(700m, row.SubcontractorPay);
+        Assert.Equal(750m, row.Expense);
+        Assert.Equal(2000m, row.Revenue);
+        Assert.Equal(1250m, row.Profit);
+        Assert.Equal(62.5m, row.MarginPercent);
+    }
+
+    [Fact]
+    public async Task A_projects_budget_can_be_set_and_cleared_only_with_the_full_finance_right()
+    {
+        Guid projectId = default;
+
+        await InScope(async scope => projectId = (await TestData.SeedProjectAsync(scope)).Id);
+
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() =>
+            AsAsync(UserRole.Admin, FinanceAccess.StatisticsOnly, scope =>
+                scope.Send(new SetProjectBudgetCommand { ProjectId = projectId, Budget = 1000m })));
+
+        var set = await AsAsync(UserRole.Admin, FinanceAccess.Full, scope =>
+            scope.Send(new SetProjectBudgetCommand { ProjectId = projectId, Budget = 1000m }));
+        Assert.Equal(1000m, set.Budget);
+
+        var cleared = await AsAsync(UserRole.SuperAdmin, FinanceAccess.None, scope =>
+            scope.Send(new SetProjectBudgetCommand { ProjectId = projectId, Budget = null }));
+        Assert.Null(cleared.Budget);
+    }
 }

@@ -55,6 +55,15 @@ public class Project : BaseEntity, ISoftDeletable, IAuditable
     /// <summary>The total agreed value of the contract, in the system's single currency.</summary>
     public decimal? ContractValue { get; set; }
 
+    /// <summary>
+    /// What the office plans to spend on the site, when it has set a figure —
+    /// distinct from <see cref="ContractValue"/>, which is what the customer
+    /// pays. Money the company holds back from anyone without the finance
+    /// right, so it is deliberately absent from the project DTOs and read and
+    /// written only through the finance endpoints.
+    /// </summary>
+    public decimal? Budget { get; set; }
+
     public bool IsDeleted { get; set; }
 
     public DateTime? DeletedAt { get; set; }

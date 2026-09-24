@@ -11,8 +11,10 @@ import { IncomeVsExpenseWidget } from './widgets/IncomeVsExpenseWidget';
 import { LiveMapWidget } from './widgets/LiveMapWidget';
 import { NeedsAttentionWidget } from './widgets/NeedsAttentionWidget';
 import { NotificationsBulletinWidget } from './widgets/NotificationsBulletinWidget';
+import { ProfitByProjectWidget } from './widgets/ProfitByProjectWidget';
 import { ProjectsRealizationWidget } from './widgets/ProjectsRealizationWidget';
 import { TodayAttendanceWidget } from './widgets/TodayAttendanceWidget';
+import { TopProjectsByExpenseWidget } from './widgets/TopProjectsByExpenseWidget';
 import type { DashboardWidgetProps, DashboardWidgetType } from './widgetTypes';
 
 interface WidgetRegistryEntry {
@@ -78,6 +80,16 @@ export const widgetRegistry: Record<DashboardWidgetType, WidgetRegistryEntry> = 
   IncomeVsExpense: {
     component: IncomeVsExpenseWidget,
     titleKey: 'dashboard.widget.IncomeVsExpense',
+    requiresFinance: true,
+  },
+  TopProjectsByExpense: {
+    component: TopProjectsByExpenseWidget,
+    titleKey: 'dashboard.widget.TopProjectsByExpense',
+    requiresFinance: true,
+  },
+  ProfitByProject: {
+    component: ProfitByProjectWidget,
+    titleKey: 'dashboard.widget.ProfitByProject',
     requiresFinance: true,
   },
 };

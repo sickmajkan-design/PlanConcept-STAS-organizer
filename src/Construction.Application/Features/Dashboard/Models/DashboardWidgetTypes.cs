@@ -20,6 +20,8 @@ public static class DashboardWidgetTypes
     public const string CostTrend = nameof(CostTrend);
     public const string FinanceOverview = nameof(FinanceOverview);
     public const string IncomeVsExpense = nameof(IncomeVsExpense);
+    public const string TopProjectsByExpense = nameof(TopProjectsByExpense);
+    public const string ProfitByProject = nameof(ProfitByProject);
 
     public static readonly IReadOnlyList<string> All =
     [
@@ -35,5 +37,7 @@ public static class DashboardWidgetTypes
         CostTrend,
         FinanceOverview,
         IncomeVsExpense,
+        TopProjectsByExpense,
+        ProfitByProject,
     ];
 }

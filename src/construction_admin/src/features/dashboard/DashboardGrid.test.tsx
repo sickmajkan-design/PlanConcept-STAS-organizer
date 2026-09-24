@@ -187,4 +187,52 @@ describe('HomePage dashboard', () => {
       expect(network.calls.some((call) => call.url.includes('/finance/series'))).toBe(false);
     });
   });
+
+  describe('per-project finance widgets', () => {
+    const rows = [
+      { projectId: 'p1', projectName: 'Most', contractValue: null, budget: null, revenue: 3000, expense: 1000, subcontractorPay: 0, profit: 2000, marginPercent: 66.7 },
+      { projectId: 'p2', projectName: 'Loser', contractValue: null, budget: null, revenue: 0, expense: 500, subcontractorPay: 0, profit: -500, marginPercent: null },
+    ];
+    const byProject = { from: '2026-09-01', to: '2026-09-30', includesLabour: true, rows, totalProjects: 2 };
+
+    it('lists projects by spending with the largest first', async () => {
+      network.reply('/dashboard-layout', 200, { widgets: [{ id: '1', type: 'TopProjectsByExpense', column: 0, order: 0 }] });
+      network.reply('/finance/by-project', 200, byProject);
+
+      renderScreen(<HomePage />, { user: signedIn('SuperAdmin') });
+
+      await waitFor(() => {
+        expect(screen.getByText('Most')).toBeDefined();
+      }, { timeout: 5000 });
+      expect(screen.getByText('Loser')).toBeDefined();
+    });
+
+    it('starts the profit table with the project losing the most and shows a dash for a missing margin', async () => {
+      network.reply('/dashboard-layout', 200, { widgets: [{ id: '1', type: 'ProfitByProject', column: 0, order: 0 }] });
+      network.reply('/finance/by-project', 200, byProject);
+
+      renderScreen(<HomePage />, { user: signedIn('SuperAdmin') });
+
+      await waitFor(() => {
+        expect(screen.getByText('Loser')).toBeDefined();
+      }, { timeout: 5000 });
+
+      const names = screen.getAllByRole('row').map((row) => row.textContent ?? '');
+      // Header first, then the loss, then the earner.
+      expect(names[1]).toContain('Loser');
+      expect(names[1]).toContain('—');
+      expect(names[2]).toContain('Most');
+    });
+
+    it('is not offered to an Admin without the right', async () => {
+      network.reply('/dashboard-layout', 200, { widgets: [{ id: '1', type: 'ProfitByProject', column: 0, order: 0 }] });
+
+      renderScreen(<HomePage />, { user: signedIn('Admin') });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Add widget' })).toBeDefined();
+      }, { timeout: 5000 });
+      expect(network.calls.some((call) => call.url.includes('/finance/by-project'))).toBe(false);
+    });
+  });
 });

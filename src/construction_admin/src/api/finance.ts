@@ -44,6 +44,36 @@ export interface FinanceSeriesQuery {
   granularity: FinanceGranularity;
 }
 
+export interface FinanceProjectRow {
+  projectId: string;
+  projectName: string;
+  contractValue: number | null;
+  budget: number | null;
+  /** What came in against the project's contract in the period. */
+  revenue: number;
+  /** What the project cost in the period, subcontractors' flat pay included. */
+  expense: number;
+  subcontractorPay: number;
+  profit: number;
+  marginPercent: number | null;
+}
+
+export interface FinanceByProject {
+  from: string;
+  to: string;
+  includesLabour: boolean;
+  /** Busiest first — by spending, then by revenue. */
+  rows: FinanceProjectRow[];
+  /** How many projects had money move in the period, before the list was cut to `top`. */
+  totalProjects: number;
+}
+
+export interface ProjectBudget {
+  projectId: string;
+  contractValue: number | null;
+  budget: number | null;
+}
+
 export const companyRevenueSources = ['VehicleRental', 'ToolRental', 'Other'] as const;
 export type CompanyRevenueSource = (typeof companyRevenueSources)[number];
 
@@ -84,6 +114,25 @@ export const financeApi = {
       url: '/api/v1/finance/series',
       params: listParams(query),
     }),
+
+  byProject: (query: { from: string; to: string; top?: number }) =>
+    request<FinanceByProject>({
+      method: 'GET',
+      url: '/api/v1/finance/by-project',
+      params: listParams(query),
+    }),
+
+  budget: {
+    get: (projectId: string) =>
+      request<ProjectBudget>({ method: 'GET', url: `/api/v1/finance/projects/${projectId}/budget` }),
+
+    set: (projectId: string, budget: number | null) =>
+      request<ProjectBudget>({
+        method: 'PUT',
+        url: `/api/v1/finance/projects/${projectId}/budget`,
+        data: { budget },
+      }),
+  },
 
   companyRevenues: {
     list: (query: CompanyRevenueListQuery) =>

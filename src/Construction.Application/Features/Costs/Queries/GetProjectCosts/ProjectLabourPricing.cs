@@ -106,6 +106,31 @@ public static class ProjectLabourPricing
             })
             .ToListAsync(cancellationToken);
 
+        // A subcontractor paid a flat day or a lump sum for a site on a given
+        // day is paid for that day by that entry. Their clocked hours for the
+        // same site and day would price the same work a second time, so they
+        // are left out here — the manual entry stands in for them. Only
+        // subcontractors, and only the two flat kinds: an hourly entry is a
+        // correction to the clock, not a replacement for it.
+        var covered = (await context.FinanceEntries
+                .AsNoTracking()
+                .Where(f => f.ProjectId != null
+                    && (f.Kind == FinanceEntryKind.WorkerPaymentDaily || f.Kind == FinanceEntryKind.WorkerPaymentFixed)
+                    && f.Employee.Type == EmployeeType.Subcontractor
+                    && f.OccurredOn >= from
+                    && f.OccurredOn <= to)
+                .Where(f => projectId == null || f.ProjectId == projectId)
+                .Select(f => new { f.EmployeeId, ProjectId = f.ProjectId!.Value, f.OccurredOn })
+                .Distinct()
+                .ToListAsync(cancellationToken))
+            .Select(f => (f.EmployeeId, f.ProjectId, f.OccurredOn))
+            .ToHashSet();
+
+        if (covered.Count > 0)
+        {
+            priced = priced.Where(t => !covered.Contains((t.EmployeeId, t.ProjectId, t.Day))).ToList();
+        }
+
         // Hourly-priced entries (and any with no covering rate at all) are
         // priced per entry. A daily-priced entry is priced once per employee
         // per calendar day worked, regardless of hours or entry count that

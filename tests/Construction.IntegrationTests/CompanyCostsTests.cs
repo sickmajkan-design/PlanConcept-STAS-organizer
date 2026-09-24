@@ -231,6 +231,80 @@ public class CompanyCostsTests : IntegrationTestBase
         Assert.Equal(0m, report.Total);
     }
 
+    private async Task<CompanyCostsDto> LabourAndFlatPayAsync(
+        EmployeeType type,
+        FinanceEntryKind kind)
+    {
+        var (from, to) = FreshYear();
+        var day = new DateOnly(from.Year, 5, 4);
+
+        await InScope(async scope =>
+        {
+            var employee = await TestData.SeedEmployeeAsync(scope);
+            employee.Type = type;
+            var project = await TestData.SeedProjectAsync(scope);
+            var start = new DateTime(day.Year, day.Month, day.Day, 8, 0, 0, DateTimeKind.Utc);
+
+            scope.Db.TimeEntries.Add(new TimeEntry
+            {
+                EmployeeId = employee.Id,
+                ProjectId = project.Id,
+                StartedAt = start,
+                EndedAt = start.AddHours(8),
+                Status = TimeEntryStatus.Approved,
+            });
+            scope.Db.EmployeeRates.Add(new EmployeeRate
+            {
+                EmployeeId = employee.Id,
+                RateType = RateType.Hourly,
+                HourlyRate = 10m,
+                StartDate = new DateOnly(day.Year, 1, 1),
+            });
+            scope.Db.FinanceEntries.Add(new FinanceEntry
+            {
+                EmployeeId = employee.Id,
+                ProjectId = project.Id,
+                Kind = kind,
+                Amount = 500m,
+                OccurredOn = day,
+                HoursWorked = kind == FinanceEntryKind.WorkerPaymentHourly ? 8m : null,
+            });
+
+            await scope.Db.SaveChangesAsync();
+        });
+
+        return await ReportAsync(from, to);
+    }
+
+    [Theory]
+    [InlineData(FinanceEntryKind.WorkerPaymentFixed)]
+    [InlineData(FinanceEntryKind.WorkerPaymentDaily)]
+    public async Task A_subcontractors_flat_pay_replaces_their_clocked_hours_for_that_site_and_day(FinanceEntryKind kind)
+    {
+        var report = await LabourAndFlatPayAsync(EmployeeType.Subcontractor, kind);
+
+        Assert.Equal(0m, report.Labour);
+        Assert.Equal(500m, report.ManualPay);
+        Assert.Equal(500m, report.Total);
+    }
+
+    [Fact]
+    public async Task A_subcontractors_hourly_entry_is_a_correction_and_does_not_replace_the_clock()
+    {
+        var report = await LabourAndFlatPayAsync(EmployeeType.Subcontractor, FinanceEntryKind.WorkerPaymentHourly);
+
+        Assert.Equal(80m, report.Labour);
+    }
+
+    [Fact]
+    public async Task An_employees_flat_pay_does_not_replace_their_clocked_hours()
+    {
+        var report = await LabourAndFlatPayAsync(EmployeeType.Employee, FinanceEntryKind.WorkerPaymentFixed);
+
+        Assert.Equal(80m, report.Labour);
+        Assert.Equal(500m, report.ManualPay);
+    }
+
     [Fact]
     public async Task A_worker_may_not_see_company_costs()
     {

@@ -34,6 +34,13 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
             "ck_projects_contract_value_not_negative",
             "\"ContractValue\" IS NULL OR \"ContractValue\" >= 0"));
 
+        builder.Property(p => p.Budget)
+            .HasPrecision(18, 2);
+
+        builder.ToTable(t => t.HasCheckConstraint(
+            "ck_projects_budget_not_negative",
+            "\"Budget\" IS NULL OR \"Budget\" >= 0"));
+
         builder.HasOne(p => p.Customer)
             .WithMany(c => c.Projects)
             .HasForeignKey(p => p.CustomerId)

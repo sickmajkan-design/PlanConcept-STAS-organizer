@@ -12,6 +12,8 @@ export const dashboardWidgetTypes = [
   'CostTrend',
   'FinanceOverview',
   'IncomeVsExpense',
+  'TopProjectsByExpense',
+  'ProfitByProject',
 ] as const;
 
 export type DashboardWidgetType = (typeof dashboardWidgetTypes)[number];

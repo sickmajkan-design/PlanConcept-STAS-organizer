@@ -31,6 +31,42 @@ public class FinanceController : ApiControllerBase
         return Ok(await Mediator.Send(query, cancellationToken));
     }
 
+    /// <summary>Income, spending and profit of each project over a period, busiest first.</summary>
+    [HttpGet("by-project")]
+    [ProducesResponseType(typeof(FinanceByProjectDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<FinanceByProjectDto>> GetByProject(
+        [FromQuery] GetFinanceByProjectQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>A site's contract value and its planned spending.</summary>
+    [HttpGet("projects/{projectId:guid}/budget")]
+    [ProducesResponseType(typeof(ProjectBudgetDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ProjectBudgetDto>> GetProjectBudget(Guid projectId, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetProjectBudgetQuery(projectId), cancellationToken));
+    }
+
+    /// <summary>Sets, or with a null budget clears, a site's planned spending.</summary>
+    [HttpPut("projects/{projectId:guid}/budget")]
+    [ProducesResponseType(typeof(ProjectBudgetDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ProjectBudgetDto>> SetProjectBudget(
+        Guid projectId,
+        SetProjectBudgetCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { ProjectId = projectId }, cancellationToken));
+    }
+
     /// <summary>Lists money received that belongs to no project — rentals and the like.</summary>
     [HttpGet("company-revenues")]
     [ProducesResponseType(typeof(PagedList<CompanyRevenueDto>), StatusCodes.Status200OK)]

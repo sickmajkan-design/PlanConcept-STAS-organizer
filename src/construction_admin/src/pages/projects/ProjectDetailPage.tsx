@@ -54,8 +54,9 @@ import {
   useVehiclesQuery,
 } from '../../features/vehicles/useVehicles';
 import { useI18n, useT } from '../../i18n/useI18n';
-import { canAdministerAccounts } from '../../auth/authHelpers';
+import { canAdministerAccounts, canViewFinance } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
+import { ProjectBudgetCard } from '../../features/finance/ProjectBudgetCard';
 import { useRecordVisit } from '../../layout/useRecentRecords';
 import { paths } from '../../routes/paths';
 import { formatDate, initialsOf } from '../../utils/formatting';
@@ -303,6 +304,12 @@ export function ProjectDetailPage() {
             </CardContent>
           </Card>
         </Grid>
+
+        {canViewFinance(user) && (
+          <Grid size={12}>
+            <ProjectBudgetCard projectId={project.id} />
+          </Grid>
+        )}
 
         {project.kind === 'Main' && (
           <Grid size={12}>
