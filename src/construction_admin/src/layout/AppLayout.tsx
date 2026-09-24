@@ -68,6 +68,7 @@ import {
   type NavItem,
 } from './navConfig';
 import { NotificationsMenu } from './NotificationsMenu';
+import { ReleaseNotesDialog } from '../features/releaseNotes/ReleaseNotesDialog';
 import { PlatformGuideDialog } from './PlatformGuideDialog';
 import { isTypingTarget, ShortcutsHelpDialog } from './ShortcutsHelpDialog';
 import { useFavorites } from './useFavorites';
@@ -756,6 +757,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <UndoSnackbarHost />
       <ShortcutsHelpDialog open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
       <PlatformGuideDialog open={guideOpen} onClose={() => setGuideOpen(false)} />
+      <ReleaseNotesDialog />
       <AppBar
         position="fixed"
         color="inherit"
