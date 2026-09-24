@@ -274,16 +274,17 @@ Atribut `[FinanceAccess]` na akcijama (čita pravo iz baze pri svakom pozivu, 40
 
 **Poznati preostali rizik (podaci, ne kod):** opšti trošak kategorije **Smještaj** (`Housing`) i zakup smještaja iz cijena smještaja oba ulaze u trošak firme. Ako se ista kirija unese na oba mjesta, računa se dvaput. Riješeno u sekciji 17.
 
-## 17. Ista kirija se ne upisuje dvaput (lokalno)
+## 17. Ista kirija se ne upisuje dvaput — po smještaju (lokalno)
 
-**Pravilo:** opšti trošak kategorije **Smještaj** (`Housing`) se **odbija** (409) za dan na koji neki smještaj ima cijenu na snazi, jer se kirija već računa iz cijena smještaja. Poruka kaže izlaz: unijeti kiriju u smještaj ili izabrati drugu kategoriju.
+**Odluka vlasnika:** cijena/trošak smještaja mora biti vezan za konkretan smještaj, jer će biti uplata za više smještajnih jedinica.
 
-- Važi pri unosu i pri izmjeni koja **mijenja kategoriju ili datum**. Stari red koji se već preklapa i dalje se može ispraviti (iznos, napomena), da se ne zaključa ono što je ranije uneseno.
-- Ostale kategorije i dani bez cijene smještaja nisu pogođeni.
+**Pravilo:** opšti trošak kategorije **Smještaj** (`Housing`) **mora imati smještaj** (`GeneralExpense.AccommodationId`, migracija `AddGeneralExpenseAccommodation`), a ostale kategorije ga ne smiju imati. Trošak se **odbija (409)** ako **taj** smještaj ima cijenu na snazi tog dana — kirija se već računa iz cijena. Cijena drugog smještaja ne smeta. Poruka kaže izlaz: unijeti kiriju u smještaj ili izabrati drugu kategoriju. Smještaj koji ne postoji daje 404.
 
-**Upozorenje za ranije unesene:** pregled po projektu vraća `housingDoubleEntries` (broj takvih redova u periodu), a widget "Zarada po projektima" ih prijavljuje s uputom da se obrišu ili prebace u drugu kategoriju.
+- Provjera važi pri unosu i pri izmjeni koja mijenja kategoriju, datum ili smještaj. **Stari red** koji ne navodi smještaj (uneseno prije ovog pravila) i dalje se može ispraviti (iznos, napomena).
+- **Evidencija (Obračun mjeseca):** pri prebacivanju reda u trošak kategorija Smještaj više nije ponuđena; kirija se prebacuje kao **cijena smještaja**, što je već postojeća druga opcija.
+- **Forma opštih troškova:** za Smještaj se pojavljuje obavezan izbor smještaja (za stari red bez smještaja može ostati prazan); smještaj se prikazuje i u listi.
 
-**Ograničenje:** provjera je na nivou "bilo koji smještaj ima cijenu tog dana", jer trošak nije vezan za konkretan smještaj. Kirija za smještaj koji nije unesen u sistem, a ima drugih smještaja s cijenom, biće odbijena u kategoriji Smještaj — treba je unijeti kao drugu kategoriju.
+**Upozorenje za ranije unesene:** pregled po projektu vraća `housingDoubleEntries`, a widget "Zarada po projektima" ih prijavljuje. Red koji navodi smještaj računa se kao dupli samo ako **taj** smještaj ima cijenu tog dana; stari red bez smještaja računa se kao mogući dupli ako **bilo koji** smještaj ima cijenu tog dana (ne zna se koji).
 
-**Provjera:** 776 od 776 integracionih testova prolazi na pravoj bazi (4 nova).
+**Provjera:** 779 od 779 integracionih testova prolazi na pravoj bazi (7 za ovo pravilo, uključujući "cijena drugog smještaja ne smeta"). Forma nema automatski test ekrana; provjerena je samo tipovima.
 

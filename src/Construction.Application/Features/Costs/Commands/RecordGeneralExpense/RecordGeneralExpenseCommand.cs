@@ -23,6 +23,9 @@ public record RecordGeneralExpenseCommand : IRequest<GeneralExpenseDto>
 
     public Guid? EmployeeId { get; init; }
 
+    /// <summary>Required for a housing expense, and only for one — see <c>HousingDoubleEntry</c>.</summary>
+    public Guid? AccommodationId { get; init; }
+
     public string? Supplier { get; init; }
 
     public string? Note { get; init; }
@@ -93,8 +96,8 @@ public class RecordGeneralExpenseCommandHandler
 
         var occurredOn = request.OccurredOn ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
 
-        await HousingDoubleEntry.EnsureNotCountedTwiceAsync(
-            _context, request.Category, occurredOn, cancellationToken);
+        await HousingDoubleEntry.EnsureValidAsync(
+            _context, request.Category, request.AccommodationId, occurredOn, cancellationToken);
 
         var expense = new GeneralExpense
         {
@@ -103,6 +106,7 @@ public class RecordGeneralExpenseCommandHandler
             OccurredOn = occurredOn,
             ProjectId = request.ProjectId,
             EmployeeId = request.EmployeeId,
+            AccommodationId = request.AccommodationId,
             Supplier = request.Supplier?.Trim(),
             Note = request.Note?.Trim(),
             RecordedByUserId = _currentUserService.UserId

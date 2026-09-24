@@ -33,6 +33,16 @@ public class GeneralExpense : BaseEntity, IAuditable
 
     public Employee? Employee { get; set; }
 
+    /// <summary>
+    /// The accommodation a <see cref="GeneralExpenseCategory.Housing"/> expense is
+    /// for — required for that category and only for it. The rent of an
+    /// accommodation is counted from its rates, so this is how the same rent is
+    /// kept from being entered a second time as an expense.
+    /// </summary>
+    public Guid? AccommodationId { get; set; }
+
+    public Accommodation? Accommodation { get; set; }
+
     /// <summary>Who was paid, or who's responsible — a landlord, an accountant, a customer.</summary>
     public string? Supplier { get; set; }
 

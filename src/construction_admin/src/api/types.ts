@@ -1461,6 +1461,9 @@ export interface GeneralExpense {
   projectName: string | null;
   employeeId: string | null;
   employeeName: string | null;
+  /** The accommodation a housing expense is for; null for every other category. */
+  accommodationId: string | null;
+  accommodationName: string | null;
   supplier: string | null;
   note: string | null;
   recordedByName: string | null;
@@ -1473,6 +1476,8 @@ export interface GeneralExpenseInput {
   occurredOn?: string | null;
   projectId?: string | null;
   employeeId?: string | null;
+  /** Required for a housing expense, and only for one. */
+  accommodationId?: string | null;
   supplier?: string | null;
   note?: string | null;
 }

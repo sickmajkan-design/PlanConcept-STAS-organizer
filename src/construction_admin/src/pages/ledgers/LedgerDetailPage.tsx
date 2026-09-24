@@ -2168,11 +2168,15 @@ function PromoteRowDialog({
                   value={category}
                   onChange={(event) => setCategory(event.target.value as GeneralExpenseCategory)}
                 >
-                  {generalExpenseCategories.map((value) => (
-                    <MenuItem key={value} value={value}>
-                      {enumLabel('generalExpenseCategory', value)}
-                    </MenuItem>
-                  ))}
+                  {/* Rent is promoted as an accommodation rate, not as a housing expense: a housing
+                      expense has to name its accommodation and is refused where a rate already counts it. */}
+                  {generalExpenseCategories
+                    .filter((value) => value !== 'Housing')
+                    .map((value) => (
+                      <MenuItem key={value} value={value}>
+                        {enumLabel('generalExpenseCategory', value)}
+                      </MenuItem>
+                    ))}
                 </TextField>
               </Grid>
 

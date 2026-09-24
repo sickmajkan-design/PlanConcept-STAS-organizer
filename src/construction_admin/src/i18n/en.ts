@@ -2039,6 +2039,8 @@ export const en = {
   'generalExpenses.project': 'Project',
   'generalExpenses.employee': 'Employee',
   'generalExpenses.optionalHint': 'Optional',
+  'generalExpenses.accommodation': 'Accommodation',
+  'generalExpenses.accommodationHint': "Which accommodation this is for. Its rent is already counted from its rates — a housing cost is refused on a day the rate covers.",
   'generalExpenses.supplier': 'Paid to / responsible party',
   'generalExpenses.note': 'Note',
   'generalExpenses.recordedBy': 'Recorded by',

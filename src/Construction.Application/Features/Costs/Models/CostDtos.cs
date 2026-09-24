@@ -498,6 +498,11 @@ public class GeneralExpenseDto
 
     public string? EmployeeName { get; init; }
 
+    /// <summary>The accommodation a housing expense is for; null for every other category.</summary>
+    public Guid? AccommodationId { get; init; }
+
+    public string? AccommodationName { get; init; }
+
     public string? Supplier { get; init; }
 
     public string? Note { get; init; }
@@ -530,6 +535,10 @@ public static class GeneralExpenseMapping
             EmployeeName = expense.Employee != null
                 ? expense.Employee.FirstName + " " + expense.Employee.LastName
                 : null,
+            AccommodationId = expense.AccommodationId,
+            AccommodationName = expense.Accommodation == null
+                ? null
+                : expense.Accommodation.Name ?? expense.Accommodation.Address,
             Supplier = expense.Supplier,
             Note = expense.Note,
             RecordedByName = expense.RecordedByUser != null ? expense.RecordedByUser.Email : null,

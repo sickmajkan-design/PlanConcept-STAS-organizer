@@ -32,6 +32,9 @@ public record PromoteLedgerRowToGeneralExpenseCommand : IRequest<LedgerRowDto>
 
     public Guid? EmployeeId { get; init; }
 
+    /// <summary>Required when the category is housing — see <c>HousingDoubleEntry</c>.</summary>
+    public Guid? AccommodationId { get; init; }
+
     public string? Supplier { get; init; }
 
     public string? Note { get; init; }
@@ -76,6 +79,7 @@ public class PromoteLedgerRowToGeneralExpenseCommandHandler
                 OccurredOn = request.OccurredOn,
                 ProjectId = request.ProjectId,
                 EmployeeId = request.EmployeeId,
+                AccommodationId = request.AccommodationId,
                 Supplier = request.Supplier,
                 Note = request.Note,
             },

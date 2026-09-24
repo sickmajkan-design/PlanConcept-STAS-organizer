@@ -24,6 +24,9 @@ public record UpdateGeneralExpenseCommand : IRequest<GeneralExpenseDto>
 
     public Guid? EmployeeId { get; init; }
 
+    /// <summary>Required for a housing expense, and only for one — see <c>HousingDoubleEntry</c>.</summary>
+    public Guid? AccommodationId { get; init; }
+
     public string? Supplier { get; init; }
 
     public string? Note { get; init; }
@@ -93,12 +96,16 @@ public class UpdateGeneralExpenseCommandHandler
             throw new NotFoundException(nameof(Employee), employeeId);
         }
 
-        // Only when the category or date is being changed into a clash: an old
-        // row that already overlaps can still have its amount or note corrected.
-        if (request.Category != expense.Category || request.OccurredOn != expense.OccurredOn)
+        // Only when the category, date or accommodation is being changed: a row
+        // entered before the rule existed — a housing expense naming no
+        // accommodation, or one already overlapping — can still have its amount
+        // or note corrected.
+        if (request.Category != expense.Category
+            || request.OccurredOn != expense.OccurredOn
+            || request.AccommodationId != expense.AccommodationId)
         {
-            await HousingDoubleEntry.EnsureNotCountedTwiceAsync(
-                _context, request.Category, request.OccurredOn, cancellationToken);
+            await HousingDoubleEntry.EnsureValidAsync(
+                _context, request.Category, request.AccommodationId, request.OccurredOn, cancellationToken);
         }
 
         expense.Category = request.Category;
@@ -106,6 +113,7 @@ public class UpdateGeneralExpenseCommandHandler
         expense.OccurredOn = request.OccurredOn;
         expense.ProjectId = request.ProjectId;
         expense.EmployeeId = request.EmployeeId;
+        expense.AccommodationId = request.AccommodationId;
         expense.Supplier = request.Supplier?.Trim();
         expense.Note = request.Note?.Trim();
 

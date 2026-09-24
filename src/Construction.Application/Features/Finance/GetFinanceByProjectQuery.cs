@@ -246,8 +246,13 @@ public class GetFinanceByProjectQueryHandler : IRequestHandler<GetFinanceByProje
             .Where(e => e.Category == Construction.Domain.Enums.GeneralExpenseCategory.Housing
                 && e.OccurredOn >= from
                 && e.OccurredOn <= to
+                // Naming its accommodation, it overlaps that accommodation's rate. Entered
+                // before that was required, and naming none, it can only be checked
+                // against every rate, so any rate in force that day counts.
                 && _context.AccommodationRates.Any(r =>
-                    r.StartDate <= e.OccurredOn && (r.EndDate == null || r.EndDate >= e.OccurredOn)))
+                    (e.AccommodationId == null || r.AccommodationId == e.AccommodationId)
+                    && r.StartDate <= e.OccurredOn
+                    && (r.EndDate == null || r.EndDate >= e.OccurredOn)))
             .CountAsync(cancellationToken);
 
     private async Task<int> CountUnassignedPayOverlapsAsync(

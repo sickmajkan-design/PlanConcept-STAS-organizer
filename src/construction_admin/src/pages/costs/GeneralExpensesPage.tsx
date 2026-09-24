@@ -42,6 +42,7 @@ import {
   useRecordGeneralExpense,
   useUpdateGeneralExpense,
 } from '../../features/costs/useCosts';
+import { useAllAccommodationsQuery } from '../../features/accommodations/useAccommodations';
 import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
 import { readLedgerDeepLinkPeriod, useOpenEntryFromLink } from '../../hooks/useLedgerDeepLink';
@@ -113,6 +114,7 @@ export function GeneralExpensesPage() {
           formatDate(expense.occurredOn),
           expense.projectName,
           expense.employeeName,
+          expense.accommodationName,
           expense.supplier,
           expense.note,
         ]
@@ -255,6 +257,7 @@ export function GeneralExpenseDialog({
   const enumLabel = useEnumLabel();
   const { data: projects } = useAllProjectsQuery();
   const { data: employees } = useAllEmployeesQuery();
+  const { data: accommodations } = useAllAccommodationsQuery();
   const record = useRecordGeneralExpense();
   const update = useUpdateGeneralExpense();
   const isEditing = !!editingExpense;
@@ -264,6 +267,7 @@ export function GeneralExpenseDialog({
   const [occurredOn, setOccurredOn] = useState('');
   const [projectId, setProjectId] = useState('');
   const [employeeId, setEmployeeId] = useState('');
+  const [accommodationId, setAccommodationId] = useState('');
   const [supplier, setSupplier] = useState('');
   const [note, setNote] = useState('');
 
@@ -282,6 +286,7 @@ export function GeneralExpenseDialog({
       setOccurredOn(editingExpense.occurredOn);
       setProjectId(editingExpense.projectId ?? '');
       setEmployeeId(editingExpense.employeeId ?? '');
+      setAccommodationId(editingExpense.accommodationId ?? '');
       setSupplier(editingExpense.supplier ?? '');
       setNote(editingExpense.note ?? '');
     } else {
@@ -290,6 +295,7 @@ export function GeneralExpenseDialog({
       setOccurredOn('');
       setProjectId('');
       setEmployeeId('');
+      setAccommodationId('');
       setSupplier('');
       setNote('');
     }
@@ -299,7 +305,15 @@ export function GeneralExpenseDialog({
   const amountIsValid =
     amount.trim() !== '' && !Number.isNaN(parsedAmount) && parsedAmount >= 0;
 
-  const canSubmit = amountIsValid && (!isEditing || occurredOn !== '');
+  // A housing expense names its accommodation, so the same rent is not entered
+  // here as well as counted from that accommodation's rates. A row entered before
+  // that was required, naming none, can still be corrected as it is.
+  const isHousing = category === 'Housing';
+  const isLegacyHousing =
+    isEditing && editingExpense.category === 'Housing' && editingExpense.accommodationId === null;
+  const accommodationIsValid = !isHousing || accommodationId !== '' || isLegacyHousing;
+
+  const canSubmit = amountIsValid && accommodationIsValid && (!isEditing || occurredOn !== '');
   const mutation = isEditing ? update : record;
   const error = mutation.isError ? toApiError(mutation.error) : null;
 
@@ -310,6 +324,7 @@ export function GeneralExpenseDialog({
       occurredOn: occurredOn || null,
       projectId: projectId || null,
       employeeId: employeeId || null,
+      accommodationId: isHousing && accommodationId ? accommodationId : null,
       supplier: supplier.trim() || null,
       note: note.trim() || null,
     };
@@ -352,6 +367,31 @@ export function GeneralExpenseDialog({
               ))}
             </TextField>
           </Grid>
+
+          {isHousing && (
+            <Grid size={12}>
+              <TextField
+                select
+                fullWidth
+                required={!isLegacyHousing}
+                label={t('generalExpenses.accommodation')}
+                value={accommodationId}
+                onChange={(event) => setAccommodationId(event.target.value)}
+                helperText={t('generalExpenses.accommodationHint')}
+              >
+                {isLegacyHousing && (
+                  <MenuItem value="">
+                    <em>{t('common.none')}</em>
+                  </MenuItem>
+                )}
+                {(accommodations?.items ?? []).map((accommodation) => (
+                  <MenuItem key={accommodation.id} value={accommodation.id}>
+                    {accommodation.name ?? accommodation.address}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+          )}
 
           <Grid size={{ xs: 12, sm: 6 }}>
             <TextField

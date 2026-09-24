@@ -27,6 +27,13 @@ public class GeneralExpenseConfiguration : IEntityTypeConfiguration<GeneralExpen
             .HasForeignKey(e => e.EmployeeId)
             .OnDelete(DeleteBehavior.SetNull);
 
+        builder.HasOne(e => e.Accommodation)
+            .WithMany()
+            .HasForeignKey(e => e.AccommodationId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasIndex(e => e.AccommodationId);
+
         builder.HasOne(e => e.RecordedByUser)
             .WithMany()
             .HasForeignKey(e => e.RecordedByUserId)

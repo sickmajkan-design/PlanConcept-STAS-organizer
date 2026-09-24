@@ -2077,6 +2077,8 @@ export const sr: Record<MessageKey, Message> = {
   'generalExpenses.project': 'Projekat',
   'generalExpenses.employee': 'Zaposleni',
   'generalExpenses.optionalHint': 'Opciono',
+  'generalExpenses.accommodation': 'Smještaj',
+  'generalExpenses.accommodationHint': 'Za koji smještaj je trošak. Njegova kirija se već računa iz cijena smještaja — trošak smještaja se odbija za dan koji cijena pokriva.',
   'generalExpenses.supplier': 'Plaćeno / odgovoran',
   'generalExpenses.note': 'Napomena',
   'generalExpenses.recordedBy': 'Unio',
