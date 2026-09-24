@@ -5,14 +5,14 @@ import 'react-grid-layout/css/styles.css';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { canViewFinance } from '../../auth/authHelpers';
+import { canViewFinanceStatistics } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { useT } from '../../i18n/useI18n';
 import { FinancePeriodProvider } from '../finance/PeriodContext';
 import { PeriodControl } from '../finance/PeriodControl';
 import { dashboardApi } from './api';
 import './dashboardGrid.css';
-import { widgetRegistry } from './widgetRegistry';
+import { widgetAllowed, widgetRegistry } from './widgetRegistry';
 import type { DashboardWidgetConfig } from './widgetTypes';
 import { WidgetPicker } from './WidgetPicker';
 
@@ -104,7 +104,8 @@ export function DashboardGrid() {
   const viewportHeight = useViewportHeight();
   const rowHeight = useMemo(() => Math.round(Math.min(120, Math.max(28, viewportHeight / 22))), [viewportHeight]);
   const { user } = useAuth();
-  const mayViewFinance = canViewFinance(user);
+  // Whoever may see any of the company's money — amounts or only percentages — gets the period control.
+  const mayViewFinance = canViewFinanceStatistics(user);
   const [widgets, setWidgets] = useState<DashboardWidgetConfig[] | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -140,8 +141,8 @@ export function DashboardGrid() {
   // if the right is granted again); it is simply not drawn, and it never
   // mounts, so it never asks the server for data it would be refused.
   const visibleWidgets = useMemo(
-    () => (widgets ?? []).filter((w) => !widgetRegistry[w.type]?.requiresFinance || mayViewFinance),
-    [widgets, mayViewFinance],
+    () => (widgets ?? []).filter((w) => widgetAllowed(w.type, user)),
+    [widgets, user],
   );
   const layout = useMemo(() => visibleWidgets.map(toLayoutItem), [visibleWidgets]);
   const usedTypes = new Set((widgets ?? []).map((w) => w.type));

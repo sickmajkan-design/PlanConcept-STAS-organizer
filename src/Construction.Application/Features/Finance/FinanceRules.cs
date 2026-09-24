@@ -40,6 +40,21 @@ public static class FinanceRules
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// Refuses unless the caller may see statistics — the derived percentages,
+    /// which <see cref="FinanceAccess.StatisticsOnly"/> and <see cref="FinanceAccess.Full"/> both allow.
+    /// </summary>
+    public static async Task EnsureStatisticsAsync(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        CancellationToken cancellationToken)
+    {
+        if (await ResolveAsync(context, currentUserService, cancellationToken) == FinanceAccess.None)
+        {
+            throw new ForbiddenAccessException("You may not see the company's finances.");
+        }
+    }
+
     /// <summary>Refuses unless the caller may see the amounts themselves.</summary>
     public static async Task EnsureFullAsync(
         IApplicationDbContext context,

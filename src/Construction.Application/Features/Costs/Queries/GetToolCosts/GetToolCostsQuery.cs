@@ -19,6 +19,13 @@ public record GetToolCostsQuery : IRequest<ToolCostReportDto>
     public DateOnly To { get; init; }
 
     public Guid? ToolId { get; init; }
+
+    /// <summary>
+    /// Set only by the company report, which has already checked the caller's
+    /// finance right (or been told to step over it — see <c>GetCompanyCostsQuery</c>).
+    /// Internal, so a request from outside can never bind it.
+    /// </summary>
+    internal bool SkipFinanceCheck { get; init; }
 }
 
 public class GetToolCostsQueryValidator : AbstractValidator<GetToolCostsQuery>
@@ -65,7 +72,10 @@ public class GetToolCostsQueryHandler
         }
 
         // Amounts of the company's money sit behind the finance right, on top of the role check.
-        await FinanceRules.EnsureFullAsync(_context, _currentUserService, cancellationToken);
+        if (!request.SkipFinanceCheck)
+        {
+            await FinanceRules.EnsureFullAsync(_context, _currentUserService, cancellationToken);
+        }
 
         var grouped = await _context.ToolExpenses
             .AsNoTracking()

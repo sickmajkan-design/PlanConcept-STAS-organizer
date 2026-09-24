@@ -305,3 +305,19 @@ Atribut `[FinanceAccess]` na akcijama (čita pravo iz baze pri svakom pozivu, 40
 
 **Nije urađeno (faza 4):** B4 upozorenje van budžeta (prag % ugovora ili budžet — podaci za to sada postoje u sažetku projekta), A4 trend potrošnje, nivo "samo statistika".
 
+## 19. Faza 4 (lokalno) — projekti van budžeta, trend potrošnje, statistika bez iznosa
+
+**Odluka vlasnika iz sekcije 8 (izbor: prag % ugovora ili budžet):** svaki projekat bira **prema čemu** se upozorava — budžetu ili ugovorenoj vrijednosti — i **na kojem procentu** počinje upozorenje. Kartica **Budžet** na stranici projekta ima izbor "Upozori prema" (Automatski / Budžetu / Ugovorenoj vrijednosti) i polje "Počni upozoravati na (%)" (1–99, prazno = 80). Automatski: budžet ako je postavljen, inače ugovor. Nova polja `Project.BudgetAlertBasis` i `Project.BudgetWarnPercent` (migracija `AddProjectBudgetAlert`), kao i `Budget` izvan DTO-ova projekta. Server odbija "prema budžetu" bez postavljenog budžeta (nikad ne bi upozorilo) i upozorenje na 100%.
+
+**Projekti van budžeta (B4):** `GET /finance/budget-alerts`. Projekti **u toku** (ne završeni, ne otkazani) čiji je trošak **od početka projekta do danas** dostigao nivo upozorenja (žuto) ili 100% (crveno, "prekoračen"). Ne prati period table jer je budžet za cijeli posao. Trošak se traži jednom po prozoru za sve projekte odjednom. Traka staje na 100%, broj ide preko. Prazan spisak razlikuje "nema šta da se poredi" od "svi u granicama".
+
+**Trend potrošnje (A4):** rashod po danu/sedmici/mjesecu perioda uz **prosjek** (ukupno / broj tačaka) i najvišu tačku.
+
+**Statistika bez iznosa (nivo "Samo statistika"):** `GET /finance/statistics` vraća samo procente — promjenu prihoda, rashoda i zarade u odnosu na prethodni period i **strukturu** rashoda (udio po vrstama). Nema iznosa, **nema marže** (uz vidljiv prihod otkrila bi zaradu) i nema udjela uz vidljiv ukupni iznos (O-7). Promjena je prazna kad nema prethodne vrijednosti (crtica, ne beskonačnost). Widget **Finansijska statistika** dostupan je nalozima sa "Samo statistika" i "Potpun". Nalog sa "Samo statistika" ne dobija nijedan widget sa iznosima, kontrola perioda mu je vidljiva, a serija, pregled po projektu i razrada mu vraćaju 403 (testirano). Izvještaj troškova se za statistiku poziva unutar aplikacije uz interni prekidač (`SkipFinanceCheck`) koji se ne može vezati iz zahtjeva spolja.
+
+**Ograničenje:** statistika poštuje pravila uloge izvještaja troškova — nalog uloge ispod predradnika (Radnik) dobija 403 čak i s pravom "Samo statistika", a predradnik vidi statistiku bez rada i plata (kao i u izvještajima).
+
+**Provjera:** 799 od 799 integracionih testova na pravoj bazi (11 novih: nivoi upozorenja, budžet naspram ugovora, izbor osnove i procenta, završeni/otkazani/neizmjerivi projekti, validacija, statistika i njena granica); 23 testa table na frontendu (upozorenja, trend, statistika bez ijednog poziva sa iznosima).
+
+**Plan je time završen** — preostaje samo ručni pregled izgleda u pregledniku i na telefonu.
+

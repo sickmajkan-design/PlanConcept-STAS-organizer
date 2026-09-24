@@ -24,6 +24,14 @@ export function canViewFinance(user: User | null | undefined): boolean {
   return user?.financeAccess === 'Full';
 }
 
+/**
+ * Whether the account may see statistics about the company's money — the
+ * percentages, not the amounts. Anyone who may see the amounts may see these too.
+ */
+export function canViewFinanceStatistics(user: User | null | undefined): boolean {
+  return user?.financeAccess === 'StatisticsOnly' || user?.financeAccess === 'Full';
+}
+
 export function canAdministerAccounts(user: User | null | undefined): boolean {
   return !!user && ACCOUNT_ADMIN_ROLES.has(user.role);
 }

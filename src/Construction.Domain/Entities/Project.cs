@@ -64,6 +64,17 @@ public class Project : BaseEntity, ISoftDeletable, IAuditable
     /// </summary>
     public decimal? Budget { get; set; }
 
+    /// <summary>
+    /// What spending is measured against when the office asks to be warned —
+    /// the budget or the contract value. Null lets the budget win when there is
+    /// one and the contract otherwise. Kept off the project DTOs with
+    /// <see cref="Budget"/>.
+    /// </summary>
+    public BudgetAlertBasis? BudgetAlertBasis { get; set; }
+
+    /// <summary>The share of the limit, in percent, at which to start warning. Null means the default.</summary>
+    public int? BudgetWarnPercent { get; set; }
+
     public bool IsDeleted { get; set; }
 
     public DateTime? DeletedAt { get; set; }

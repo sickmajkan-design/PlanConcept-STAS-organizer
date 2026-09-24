@@ -69,6 +69,27 @@ public class FinanceController : ApiControllerBase
         return Ok(await Mediator.Send(query with { ProjectId = projectId }, cancellationToken));
     }
 
+    /// <summary>Which running projects have spent the share of their budget or contract the office asked to be warned at.</summary>
+    [HttpGet("budget-alerts")]
+    [ProducesResponseType(typeof(BudgetAlertsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<BudgetAlertsDto>> GetBudgetAlerts(CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetBudgetAlertsQuery(), cancellationToken));
+    }
+
+    /// <summary>How income, spending and profit moved against the period before, and what spending was on — as percentages only.</summary>
+    [HttpGet("statistics")]
+    [ProducesResponseType(typeof(FinanceStatisticsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<FinanceStatisticsDto>> GetStatistics(
+        [FromQuery] GetFinanceStatisticsQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
     /// <summary>A site's contract value and its planned spending.</summary>
     [HttpGet("projects/{projectId:guid}/budget")]
     [ProducesResponseType(typeof(ProjectBudgetDto), StatusCodes.Status200OK)]

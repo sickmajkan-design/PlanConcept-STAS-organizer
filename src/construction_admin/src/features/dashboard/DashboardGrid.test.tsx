@@ -375,4 +375,111 @@ describe('HomePage dashboard', () => {
       expect(network.calls.some((c) => c.url.includes('/finance/by-project') && Number(c.params.top) === 10)).toBe(true);
     });
   });
+
+  describe('budget alerts, spending trend and statistics', () => {
+    const money = (revenue: number, expense: number) => ({
+      revenue, expense, profit: revenue - expense, marginPercent: null,
+    });
+
+    it('lists projects at or past their warning level, marking the ones over', async () => {
+      network.reply('/dashboard-layout', 200, { widgets: [{ id: '1', type: 'ProjectsOverBudget', x: 0, y: 0, w: 6, h: 12 }] });
+      network.reply('/finance/budget-alerts', 200, {
+        includesLabour: true, measuredProjects: 3,
+        alerts: [
+          { projectId: 'p1', projectName: 'Prekoračen', basis: 'Budget', limit: 1000, spent: 1200, usedPercent: 120, warnPercent: 80, level: 'Over' },
+          { projectId: 'p2', projectName: 'Blizu', basis: 'Contract', limit: 2000, spent: 1700, usedPercent: 85, warnPercent: 80, level: 'Warning' },
+        ],
+      });
+
+      renderScreen(<HomePage />, { user: signedIn('SuperAdmin') });
+
+      await waitFor(() => {
+        expect(screen.getByText('Prekoračen')).toBeDefined();
+      }, { timeout: 5000 });
+
+      // A bar stops at full; the number beside it does not, so an overrun shows.
+      expect(screen.getByText('120.0%')).toBeDefined();
+      expect(screen.getByText('85.0%')).toBeDefined();
+      expect(screen.getByText(/1,200.00 \/ 1,000.00 · of budget/)).toBeDefined();
+      expect(screen.getByText(/1,700.00 \/ 2,000.00 · of contract/)).toBeDefined();
+    });
+
+    it('tells apart "nothing to measure" from "all within"', async () => {
+      network.reply('/dashboard-layout', 200, { widgets: [{ id: '1', type: 'ProjectsOverBudget', x: 0, y: 0, w: 6, h: 12 }] });
+      network.reply('/finance/budget-alerts', 200, { includesLabour: true, alerts: [], measuredProjects: 0 });
+
+      renderScreen(<HomePage />, { user: signedIn('SuperAdmin') });
+
+      await waitFor(() => {
+        expect(screen.getByText(/No running project has a budget or a contract value/)).toBeDefined();
+      }, { timeout: 5000 });
+    });
+
+    it('states the average of the trend as the period total over its points', async () => {
+      network.reply('/dashboard-layout', 200, { widgets: [{ id: '1', type: 'SpendingTrend', x: 0, y: 0, w: 6, h: 12 }] });
+      network.reply('/finance/series', 200, {
+        granularity: 'Day', includesLabour: true,
+        buckets: [
+          { from: '2026-09-01', to: '2026-09-01', ...money(0, 100), revenueProject: 0, revenueOther: 0 },
+          { from: '2026-09-02', to: '2026-09-02', ...money(0, 500), revenueProject: 0, revenueOther: 0 },
+          { from: '2026-09-03', to: '2026-09-03', ...money(0, 0), revenueProject: 0, revenueOther: 0 },
+        ],
+        totals: { from: '2026-09-01', to: '2026-09-03', ...money(0, 600), revenueProject: 0, revenueOther: 0 },
+        previous: { from: '2026-08-29', to: '2026-08-31', ...money(0, 0), revenueProject: 0, revenueOther: 0 },
+      });
+
+      renderScreen(<HomePage />, { user: signedIn('SuperAdmin') });
+
+      await waitFor(() => {
+        expect(screen.getByText('200.00')).toBeDefined();
+      }, { timeout: 5000 });
+
+      expect(screen.getByText('500.00')).toBeDefined();
+    });
+
+    it('gives an account with only the statistics right the percentages and never asks for an amount', async () => {
+      network.reply('/dashboard-layout', 200, {
+        widgets: [
+          { id: '1', type: 'FinanceStatistics', x: 0, y: 0, w: 6, h: 12 },
+          { id: '2', type: 'FinanceOverview', x: 6, y: 0, w: 6, h: 12 },
+          { id: '3', type: 'IncomeVsExpense', x: 0, y: 12, w: 6, h: 12 },
+        ],
+      });
+      network.reply('/finance/statistics', 200, {
+        from: '2026-09-01', to: '2026-09-30', includesLabour: true,
+        revenueChangePercent: 12.5, expenseChangePercent: -4, profitChangePercent: null,
+        shares: [{ kind: 'Labour', sharePercent: 70 }, { kind: 'Material', sharePercent: 30 }],
+      });
+
+      renderScreen(<HomePage />, { user: { ...signedIn('Admin'), financeAccess: 'StatisticsOnly' } });
+
+      await waitFor(() => {
+        expect(screen.getByText('▲ 12.5%')).toBeDefined();
+      }, { timeout: 5000 });
+
+      expect(screen.getByText('▼ 4.0%')).toBeDefined();
+      expect(screen.getByText('70.0%')).toBeDefined();
+      expect(screen.getByText('Percentages only — no amounts are shown.')).toBeDefined();
+      // The period is still theirs to choose, since the statistics follow it.
+      expect(screen.getByLabelText('Period')).toBeDefined();
+
+      // The amount widgets on the same board are never drawn, and never call the server.
+      expect(screen.queryByText(/Finances — overview/)).toBeNull();
+      expect(network.calls.some((c) => c.url.includes('/finance/series'))).toBe(false);
+      expect(network.calls.some((c) => c.url.includes('/finance/by-project'))).toBe(false);
+    });
+
+    it('does not offer amount widgets to an account with only the statistics right', async () => {
+      network.reply('/dashboard-layout', 200, { widgets: [] });
+
+      const user = userEvent.setup();
+      renderScreen(<HomePage />, { user: { ...signedIn('Admin'), financeAccess: 'StatisticsOnly' } });
+
+      await user.click(await screen.findByRole('button', { name: 'Add widget' }, { timeout: 5000 }));
+
+      expect(await screen.findByText('Finance statistics')).toBeDefined();
+      expect(screen.queryByText('Finances — overview')).toBeNull();
+      expect(screen.queryByText('Spending trend')).toBeNull();
+    });
+  });
 });

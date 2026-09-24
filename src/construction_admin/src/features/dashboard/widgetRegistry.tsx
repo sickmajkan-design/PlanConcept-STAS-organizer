@@ -1,5 +1,8 @@
 import type { ComponentType } from 'react';
 
+import { canViewFinance, canViewFinanceStatistics } from '../../auth/authHelpers';
+import type { User } from '../../api/types';
+
 import type { MessageKey } from '../../i18n/en';
 import { AbsencesBalanceWidget } from './widgets/AbsencesBalanceWidget';
 import { CompanyKpiWidget } from './widgets/CompanyKpiWidget';
@@ -13,8 +16,11 @@ import { LiveMapWidget } from './widgets/LiveMapWidget';
 import { NeedsAttentionWidget } from './widgets/NeedsAttentionWidget';
 import { NotificationsBulletinWidget } from './widgets/NotificationsBulletinWidget';
 import { ProfitByProjectWidget } from './widgets/ProfitByProjectWidget';
+import { FinanceStatisticsWidget } from './widgets/FinanceStatisticsWidget';
 import { ProjectFocusWidget } from './widgets/ProjectFocusWidget';
+import { ProjectsOverBudgetWidget } from './widgets/ProjectsOverBudgetWidget';
 import { ProjectsRealizationWidget } from './widgets/ProjectsRealizationWidget';
+import { SpendingTrendWidget } from './widgets/SpendingTrendWidget';
 import { TodayAttendanceWidget } from './widgets/TodayAttendanceWidget';
 import { TopProjectsByExpenseWidget } from './widgets/TopProjectsByExpenseWidget';
 import type { DashboardWidgetProps, DashboardWidgetType } from './widgetTypes';
@@ -22,8 +28,11 @@ import type { DashboardWidgetProps, DashboardWidgetType } from './widgetTypes';
 interface WidgetRegistryEntry {
   component: ComponentType<DashboardWidgetProps>;
   titleKey: MessageKey;
-  /** Shows amounts of the company's money — hidden from anyone without the finance right. */
-  requiresFinance?: boolean;
+  /**
+   * What the widget shows of the company's money, and so what an account needs to see it:
+   * `'full'` for amounts, `'statistics'` for percentages only. Absent for a widget that shows none.
+   */
+  finance?: 'full' | 'statistics';
 }
 
 /**
@@ -39,7 +48,7 @@ export const widgetRegistry: Record<DashboardWidgetType, WidgetRegistryEntry> = 
   ProjectsRealization: {
     component: ProjectsRealizationWidget,
     titleKey: 'dashboard.widget.ProjectsRealization',
-    requiresFinance: true,
+    finance: 'full',
   },
   AbsencesBalance: {
     component: AbsencesBalanceWidget,
@@ -72,36 +81,67 @@ export const widgetRegistry: Record<DashboardWidgetType, WidgetRegistryEntry> = 
   CostTrend: {
     component: CostTrendWidget,
     titleKey: 'dashboard.widget.CostTrend',
-    requiresFinance: true,
+    finance: 'full',
   },
   FinanceOverview: {
     component: FinanceOverviewWidget,
     titleKey: 'dashboard.widget.FinanceOverview',
-    requiresFinance: true,
+    finance: 'full',
   },
   IncomeVsExpense: {
     component: IncomeVsExpenseWidget,
     titleKey: 'dashboard.widget.IncomeVsExpense',
-    requiresFinance: true,
+    finance: 'full',
   },
   TopProjectsByExpense: {
     component: TopProjectsByExpenseWidget,
     titleKey: 'dashboard.widget.TopProjectsByExpense',
-    requiresFinance: true,
+    finance: 'full',
   },
   ProfitByProject: {
     component: ProfitByProjectWidget,
     titleKey: 'dashboard.widget.ProfitByProject',
-    requiresFinance: true,
+    finance: 'full',
   },
   CostBreakdown: {
     component: CostBreakdownWidget,
     titleKey: 'dashboard.widget.CostBreakdown',
-    requiresFinance: true,
+    finance: 'full',
   },
   ProjectFocus: {
     component: ProjectFocusWidget,
     titleKey: 'dashboard.widget.ProjectFocus',
-    requiresFinance: true,
+    finance: 'full',
+  },
+  ProjectsOverBudget: {
+    component: ProjectsOverBudgetWidget,
+    titleKey: 'dashboard.widget.ProjectsOverBudget',
+    finance: 'full',
+  },
+  SpendingTrend: {
+    component: SpendingTrendWidget,
+    titleKey: 'dashboard.widget.SpendingTrend',
+    finance: 'full',
+  },
+  FinanceStatistics: {
+    component: FinanceStatisticsWidget,
+    titleKey: 'dashboard.widget.FinanceStatistics',
+    finance: 'statistics',
   },
 };
+
+/**
+ * Whether the account may have this widget on its board: one that shows amounts needs
+ * the full finance right, one that shows only percentages needs at least the statistics right.
+ * Server-side the calls are refused all the same; this only decides what is drawn and offered.
+ */
+export function widgetAllowed(type: DashboardWidgetType, user: User | null | undefined): boolean {
+  switch (widgetRegistry[type]?.finance) {
+    case 'full':
+      return canViewFinance(user);
+    case 'statistics':
+      return canViewFinanceStatistics(user);
+    default:
+      return true;
+  }
+}

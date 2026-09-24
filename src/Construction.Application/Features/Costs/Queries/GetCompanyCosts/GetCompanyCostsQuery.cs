@@ -72,6 +72,13 @@ public record GetCompanyCostsQuery : IRequest<CompanyCostsDto>
     public DateOnly From { get; init; }
 
     public DateOnly To { get; init; }
+
+    /// <summary>
+    /// Set only by code inside the application that turns the amounts into
+    /// something that is not money (<c>GetFinanceStatisticsQuery</c>). Internal,
+    /// so a request from outside can never bind it.
+    /// </summary>
+    internal bool SkipFinanceCheck { get; init; }
 }
 
 public class GetCompanyCostsQueryValidator : AbstractValidator<GetCompanyCostsQuery>
@@ -117,7 +124,10 @@ public class GetCompanyCostsQueryHandler : IRequestHandler<GetCompanyCostsQuery,
 
         // The company-wide total is the one figure the dashboard widgets and
         // the cost pages share, so it sits behind the finance right.
-        await FinanceRules.EnsureFullAsync(_context, _currentUserService, cancellationToken);
+        if (!request.SkipFinanceCheck)
+        {
+            await FinanceRules.EnsureFullAsync(_context, _currentUserService, cancellationToken);
+        }
 
         var includesLabour = CostRules.CanSeeLabourCost(role);
         var from = request.From;
@@ -158,8 +168,8 @@ public class GetCompanyCostsQueryHandler : IRequestHandler<GetCompanyCostsQuery,
 
         // The fleet and the tools already have their own reports, so the same figures
         // the Costs pages show are the ones counted here.
-        var vehicles = (await _sender.Send(new GetVehicleCostsQuery { From = from, To = to }, cancellationToken)).Total;
-        var tools = (await _sender.Send(new GetToolCostsQuery { From = from, To = to }, cancellationToken)).Total;
+        var vehicles = (await _sender.Send(new GetVehicleCostsQuery { From = from, To = to, SkipFinanceCheck = true }, cancellationToken)).Total;
+        var tools = (await _sender.Send(new GetToolCostsQuery { From = from, To = to, SkipFinanceCheck = true }, cancellationToken)).Total;
 
         var labourRounded = decimal.Round(labour, 2);
         var manualRounded = decimal.Round(manualPay, 2);

@@ -25,6 +25,13 @@ public record GetVehicleCostsQuery : IRequest<VehicleCostReportDto>
     public DateOnly To { get; init; }
 
     public Guid? VehicleId { get; init; }
+
+    /// <summary>
+    /// Set only by the company report, which has already checked the caller's
+    /// finance right (or been told to step over it — see <c>GetCompanyCostsQuery</c>).
+    /// Internal, so a request from outside can never bind it.
+    /// </summary>
+    internal bool SkipFinanceCheck { get; init; }
 }
 
 public class GetVehicleCostsQueryValidator : AbstractValidator<GetVehicleCostsQuery>
@@ -71,7 +78,10 @@ public class GetVehicleCostsQueryHandler
         }
 
         // Amounts of the company's money sit behind the finance right, on top of the role check.
-        await FinanceRules.EnsureFullAsync(_context, _currentUserService, cancellationToken);
+        if (!request.SkipFinanceCheck)
+        {
+            await FinanceRules.EnsureFullAsync(_context, _currentUserService, cancellationToken);
+        }
 
         // One grouped query for the whole fleet. Odometer bounds come back
         // alongside the money so the distance needs no second round trip.

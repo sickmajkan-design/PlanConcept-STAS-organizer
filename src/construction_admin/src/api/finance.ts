@@ -119,10 +119,54 @@ export interface ProjectFinanceSummary {
   contractCollectedPercent: number | null;
 }
 
+export const budgetAlertBases = ['Budget', 'Contract'] as const;
+export type BudgetAlertBasis = (typeof budgetAlertBases)[number];
+
 export interface ProjectBudget {
   projectId: string;
   contractValue: number | null;
   budget: number | null;
+  /** What spending is measured against; null uses the budget when there is one, the contract otherwise. */
+  alertBasis: BudgetAlertBasis | null;
+  /** The share, in percent, at which to start warning; null means the default. */
+  warnPercent: number | null;
+}
+
+export interface ProjectBudgetInput {
+  budget: number | null;
+  alertBasis: BudgetAlertBasis | null;
+  warnPercent: number | null;
+}
+
+export interface BudgetAlert {
+  projectId: string;
+  projectName: string;
+  basis: BudgetAlertBasis;
+  limit: number;
+  /** From the start of the project to today. */
+  spent: number;
+  /** Goes past 100 when the limit is passed. */
+  usedPercent: number;
+  warnPercent: number;
+  level: 'Warning' | 'Over';
+}
+
+export interface BudgetAlerts {
+  includesLabour: boolean;
+  alerts: BudgetAlert[];
+  /** How many projects have anything to be measured against. */
+  measuredProjects: number;
+}
+
+/** Percentages only — no amount can be recovered from any of it. */
+export interface FinanceStatistics {
+  from: string;
+  to: string;
+  includesLabour: boolean;
+  revenueChangePercent: number | null;
+  expenseChangePercent: number | null;
+  profitChangePercent: number | null;
+  shares: { kind: string; sharePercent: number }[];
 }
 
 export const companyRevenueSources = ['VehicleRental', 'ToolRental', 'Other'] as const;
@@ -187,15 +231,24 @@ export const financeApi = {
       params: listParams(query),
     }),
 
+  budgetAlerts: () => request<BudgetAlerts>({ method: 'GET', url: '/api/v1/finance/budget-alerts' }),
+
+  statistics: (query: { from: string; to: string }) =>
+    request<FinanceStatistics>({
+      method: 'GET',
+      url: '/api/v1/finance/statistics',
+      params: listParams(query),
+    }),
+
   budget: {
     get: (projectId: string) =>
       request<ProjectBudget>({ method: 'GET', url: `/api/v1/finance/projects/${projectId}/budget` }),
 
-    set: (projectId: string, budget: number | null) =>
+    set: (projectId: string, input: ProjectBudgetInput) =>
       request<ProjectBudget>({
         method: 'PUT',
         url: `/api/v1/finance/projects/${projectId}/budget`,
-        data: { budget },
+        data: input,
       }),
   },
 

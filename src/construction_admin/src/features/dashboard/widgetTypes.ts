@@ -16,6 +16,9 @@ export const dashboardWidgetTypes = [
   'ProfitByProject',
   'CostBreakdown',
   'ProjectFocus',
+  'ProjectsOverBudget',
+  'SpendingTrend',
+  'FinanceStatistics',
 ] as const;
 
 export type DashboardWidgetType = (typeof dashboardWidgetTypes)[number];

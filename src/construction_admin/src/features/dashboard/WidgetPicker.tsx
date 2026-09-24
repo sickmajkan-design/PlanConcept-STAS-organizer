@@ -8,11 +8,10 @@ import {
   Typography,
 } from '@mui/material';
 
-import { canViewFinance } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { useT } from '../../i18n/useI18n';
 import { dashboardWidgetTypes, type DashboardWidgetType } from './widgetTypes';
-import { widgetRegistry } from './widgetRegistry';
+import { widgetAllowed, widgetRegistry } from './widgetRegistry';
 
 interface WidgetPickerProps {
   open: boolean;
@@ -26,7 +25,7 @@ export function WidgetPicker({ open, excludeTypes, onClose, onPick }: WidgetPick
   const t = useT();
   const { user } = useAuth();
   const available = dashboardWidgetTypes.filter(
-    (type) => !excludeTypes.has(type) && (!widgetRegistry[type].requiresFinance || canViewFinance(user)),
+    (type) => !excludeTypes.has(type) && widgetAllowed(type, user),
   );
 
   return (

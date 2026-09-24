@@ -1,3 +1,4 @@
+using Construction.Domain.Enums;
 using Construction.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -36,6 +37,14 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
 
         builder.Property(p => p.Budget)
             .HasPrecision(18, 2);
+
+        builder.Property(p => p.BudgetAlertBasis)
+            .HasConversion<string>()
+            .HasMaxLength(20);
+
+        builder.ToTable(t => t.HasCheckConstraint(
+            "ck_projects_budget_warn_percent_range",
+            "\"BudgetWarnPercent\" IS NULL OR (\"BudgetWarnPercent\" >= 1 AND \"BudgetWarnPercent\" <= 99)"));
 
         builder.ToTable(t => t.HasCheckConstraint(
             "ck_projects_budget_not_negative",
