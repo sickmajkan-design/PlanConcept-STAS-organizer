@@ -62,19 +62,23 @@ export function WidgetShell({ title, isLoading, error, onRemove, onExpandWidth, 
             {/* Matched by dragConfig.handle in DashboardGrid.tsx — react-grid-layout
                 wires pointer listeners to any element with this class, no
                 per-instance props needed. */}
-            <Tooltip title={t('dashboard.dragToMove')}>
-              <Box
-                className="widget-drag-handle"
-                sx={{
-                  display: 'flex',
-                  cursor: 'grab',
-                  color: 'text.disabled',
-                  '&:active': { cursor: 'grabbing' },
-                }}
-              >
-                <DragIndicatorOutlined fontSize="small" />
-              </Box>
-            </Tooltip>
+            {/* Only in the free-form grid (which passes onRemove); the stacked
+                phone layout can't drag, so a handle there was a dead control. */}
+            {onRemove && (
+              <Tooltip title={t('dashboard.dragToMove')}>
+                <Box
+                  className="widget-drag-handle"
+                  sx={{
+                    display: 'flex',
+                    cursor: 'grab',
+                    color: 'text.disabled',
+                    '&:active': { cursor: 'grabbing' },
+                  }}
+                >
+                  <DragIndicatorOutlined fontSize="small" />
+                </Box>
+              </Tooltip>
+            )}
             {onExpandWidth && (
               <Tooltip title={t('dashboard.expandWidth')}>
                 <IconButton size="small" onClick={onExpandWidth} aria-label={t('dashboard.expandWidth')}>

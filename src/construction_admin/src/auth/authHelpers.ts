@@ -15,6 +15,15 @@ export function displayName(user: User): string {
 /** Roles the API lets administer accounts (its AdminAndAbove policy). */
 const ACCOUNT_ADMIN_ROLES = new Set(['SuperAdmin', 'Admin']);
 
+/**
+ * Whether the account may see the company's amounts — and so the pages and
+ * dashboard widgets that show them. The server reads the grant from the
+ * database on every request; this only decides what is worth offering.
+ */
+export function canViewFinance(user: User | null | undefined): boolean {
+  return user?.financeAccess === 'Full';
+}
+
 export function canAdministerAccounts(user: User | null | undefined): boolean {
   return !!user && ACCOUNT_ADMIN_ROLES.has(user.role);
 }

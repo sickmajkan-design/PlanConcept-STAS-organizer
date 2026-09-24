@@ -1,5 +1,6 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Finance;
 using Construction.Application.Features.Costs.Models;
 using Construction.Domain.Enums;
 using FluentValidation;
@@ -68,6 +69,9 @@ public class GetVehicleCostsQueryHandler
         {
             throw new ForbiddenAccessException("You may not see cost reports.");
         }
+
+        // Amounts of the company's money sit behind the finance right, on top of the role check.
+        await FinanceRules.EnsureFullAsync(_context, _currentUserService, cancellationToken);
 
         // One grouped query for the whole fleet. Odometer bounds come back
         // alongside the money so the distance needs no second round trip.

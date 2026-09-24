@@ -35,6 +35,7 @@ const baseUserSchema = z.object({
   // Only a SuperAdmin caller may actually change this; the API silently
   // ignores it from anyone else, so the field is harmless to always send.
   canViewCustomerTaxDetails: z.boolean().optional(),
+  financeAccess: z.enum(['None', 'StatisticsOnly', 'Full']).optional(),
 });
 
 export const createUserSchema = baseUserSchema.extend({

@@ -9,6 +9,8 @@ import { Box, Chip, Stack } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { Link as RouterLink } from 'react-router-dom';
 
+import { canViewFinance } from '../../../auth/authHelpers';
+import { useAuth } from '../../../auth/useAuth';
 import { costsApi } from '../../../api/costs';
 import { employeesApi } from '../../../api/employees';
 import { toolsApi } from '../../../api/tools';
@@ -40,10 +42,16 @@ export function CompanyKpiWidget({ instanceId: _instanceId, onRemove, onExpandWi
   const from = startOfMonth();
   const to = today();
 
+  const { user } = useAuth();
+  const mayViewFinance = canViewFinance(user);
+
   const costQuery = useQuery({
     queryKey: ['dashboard', 'kpi', 'company-cost-this-month', from, to] as const,
     // Everything the company spent, not only what is tied to a project.
     queryFn: () => costsApi.companyReport({ from, to }),
+    // The server refuses this to anyone without the finance right, which
+    // would put the whole widget into its error state over one tile.
+    enabled: mayViewFinance,
   });
 
   const employeesQuery = useQuery({
@@ -92,7 +100,7 @@ export function CompanyKpiWidget({ instanceId: _instanceId, onRemove, onExpandWi
   const overdueCount = overdueWorkItemsQuery.data?.totalCount ?? 0;
 
   const links = [
-    { to: paths.costs, label: t('nav.costs') },
+    ...(mayViewFinance ? [{ to: paths.costs, label: t('nav.costs') }] : []),
     { to: paths.employees, label: t('nav.employees') },
     { to: paths.workItems, label: t('nav.workItems') },
     { to: paths.vehicles, label: t('nav.vehicles') },

@@ -6,6 +6,7 @@ import {
   Divider,
   FormControl,
   FormControlLabel,
+  FormHelperText,
   Grid,
   InputLabel,
   MenuItem,
@@ -22,7 +23,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
 import type { Role } from '../../api/types';
-import { roles } from '../../api/types';
+import { financeAccessLevels, roles } from '../../api/types';
+import type { MessageKey } from '../../i18n/en';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
 import { isSuperAdmin } from '../../auth/authHelpers';
@@ -103,6 +105,7 @@ export function UserFormPage() {
       customerId: '',
       documentExpiryReminderDays: '',
       canViewCustomerTaxDetails: false,
+      financeAccess: 'None',
     },
   });
 
@@ -119,6 +122,7 @@ export function UserFormPage() {
             ? ''
             : String(existing.documentExpiryReminderDays),
         canViewCustomerTaxDetails: existing.canViewCustomerTaxDetails,
+        financeAccess: existing.financeAccess,
       });
     }
   }, [existing, reset]);
@@ -129,6 +133,8 @@ export function UserFormPage() {
   // A SuperAdmin always sees customer tax details regardless of this flag —
   // offering the toggle on their own row would be a confusing no-op.
   const showTaxGrantField = isEdit && isSuperAdmin(currentUser) && watchRole !== 'SuperAdmin';
+  // Same reasoning for the finance grant: a SuperAdmin always sees everything.
+  const showFinanceField = showTaxGrantField;
 
   const onSubmit = handleSubmit(async (values) => {
     const shared = {
@@ -146,6 +152,7 @@ export function UserFormPage() {
             ? Number(values.documentExpiryReminderDays)
             : null,
           canViewCustomerTaxDetails: values.canViewCustomerTaxDetails ?? false,
+          financeAccess: values.financeAccess ?? 'None',
         });
       } else {
         await createUser.mutateAsync({ ...shared, password: values.password });
@@ -314,6 +321,33 @@ export function UserFormPage() {
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
                   {t('users.canViewCustomerTaxDetailsHelp')}
                 </Typography>
+              </Grid>
+            )}
+
+            {showFinanceField && (
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Controller
+                  name="financeAccess"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControl fullWidth>
+                      <InputLabel id="user-finance-label">{t('users.financeAccess')}</InputLabel>
+                      <Select
+                        {...field}
+                        value={field.value ?? 'None'}
+                        labelId="user-finance-label"
+                        label={t('users.financeAccess')}
+                      >
+                        {financeAccessLevels.map((level) => (
+                          <MenuItem key={level} value={level}>
+                            {t(`users.financeAccess.${level}` as MessageKey)}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      <FormHelperText>{t('users.financeAccessHelp')}</FormHelperText>
+                    </FormControl>
+                  )}
+                />
               </Grid>
             )}
 

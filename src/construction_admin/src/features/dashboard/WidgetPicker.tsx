@@ -8,6 +8,8 @@ import {
   Typography,
 } from '@mui/material';
 
+import { canViewFinance } from '../../auth/authHelpers';
+import { useAuth } from '../../auth/useAuth';
 import { useT } from '../../i18n/useI18n';
 import { dashboardWidgetTypes, type DashboardWidgetType } from './widgetTypes';
 import { widgetRegistry } from './widgetRegistry';
@@ -22,7 +24,10 @@ interface WidgetPickerProps {
 /** JIRA's "Add gadget" dialog — the catalog entries not already on the board. */
 export function WidgetPicker({ open, excludeTypes, onClose, onPick }: WidgetPickerProps) {
   const t = useT();
-  const available = dashboardWidgetTypes.filter((type) => !excludeTypes.has(type));
+  const { user } = useAuth();
+  const available = dashboardWidgetTypes.filter(
+    (type) => !excludeTypes.has(type) && (!widgetRegistry[type].requiresFinance || canViewFinance(user)),
+  );
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">

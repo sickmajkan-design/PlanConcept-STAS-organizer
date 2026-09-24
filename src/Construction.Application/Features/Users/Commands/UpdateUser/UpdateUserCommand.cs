@@ -46,6 +46,12 @@ public record UpdateUserCommand : IRequest<UserDto>
     /// see the handler — so anyone else's request simply leaves it as it was.
     /// </summary>
     public bool CanViewCustomerTaxDetails { get; init; }
+
+    /// <summary>
+    /// How much of the company's money this account may see. Null leaves it as
+    /// it was; only a SuperAdmin caller may change it — see the handler.
+    /// </summary>
+    public FinanceAccess? FinanceAccess { get; init; }
 }
 
 public class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
@@ -146,6 +152,13 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserD
         if (callerRole == UserRole.SuperAdmin)
         {
             user.CanViewCustomerTaxDetails = request.CanViewCustomerTaxDetails;
+
+            // A SuperAdmin already sees everything; a stored value on that
+            // account would only ever mislead the next reader of the row.
+            if (request.FinanceAccess is { } financeAccess && user.Role != UserRole.SuperAdmin)
+            {
+                user.FinanceAccess = financeAccess;
+            }
         }
 
         if (roleChanged)

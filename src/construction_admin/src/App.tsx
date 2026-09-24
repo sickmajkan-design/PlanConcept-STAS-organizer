@@ -6,6 +6,8 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { RouteErrorFallback } from './components/RouteErrorFallback';
 import { AppLayout } from './layout/AppLayout';
 import { BillingSettingsLayout, CostRecordsLayout } from './layout/SectionTabs';
+import { canViewFinance } from './auth/authHelpers';
+import { useAuth } from './auth/useAuth';
 import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { LoginPage } from './pages/auth/LoginPage';
@@ -18,6 +20,7 @@ import {
   RequireAuth,
   RequireCustomer,
   RequireDirectoryAccess,
+  RequireFinanceAccess,
   RequireLabourCostAccess,
   RequireNotCustomer,
   RequireProjectManagerAccess,
@@ -134,6 +137,18 @@ const WeeklySiteReportsListPage = lazy(() =>
   import('./pages/weeklySiteReports/WeeklySiteReportsListPage').then((m) => ({
     default: m.WeeklySiteReportsListPage,
   })),
+);
+/**
+ * The billing-settings tab that opens first: the rates, for whoever may see
+ * money, and otherwise the public holidays — the one tab left that holds none.
+ */
+function BillingSettingsHome() {
+  const { user } = useAuth();
+  return <Navigate to={canViewFinance(user) ? paths.rates : paths.publicHolidays} replace />;
+}
+
+const CompanyRevenuesPage = lazy(() =>
+  import('./pages/finance/CompanyRevenuesPage').then((m) => ({ default: m.CompanyRevenuesPage })),
 );
 const CostsPage = lazy(() =>
   import('./pages/costs/CostsPage').then((m) => ({ default: m.CostsPage })),
@@ -363,7 +378,10 @@ function Layout() {
               <Route path={paths.workItemNew} element={<WorkItemFormPage />} />
               <Route path={`${paths.workItems}/:id/edit`} element={<WorkItemFormPage />} />
 
-              <Route path={paths.costs} element={<CostsPage />} />
+              <Route element={<RequireFinanceAccess />}>
+                <Route path={paths.costs} element={<CostsPage />} />
+                <Route path={paths.companyRevenues} element={<CompanyRevenuesPage />} />
+              </Route>
               <Route
                 path={paths.costRecords}
                 element={<Navigate to={paths.vehicleExpenses} replace />}
@@ -379,7 +397,9 @@ function Layout() {
                 <Route path={paths.vehicleExpenses} element={<VehicleExpensesPage />} />
                 <Route path={paths.fuelImport} element={<FuelImportPage />} />
                 <Route path={paths.toolExpenses} element={<ToolExpensesPage />} />
-                <Route path={paths.generalExpenses} element={<GeneralExpensesPage />} />
+                <Route element={<RequireFinanceAccess />}>
+                  <Route path={paths.generalExpenses} element={<GeneralExpensesPage />} />
+                </Route>
                 <Route path={paths.accommodationCosts} element={<AccommodationCostsPage />} />
               </Route>
 
@@ -410,20 +430,21 @@ function Layout() {
             </Route>
 
             <Route element={<RequireLabourCostAccess />}>
-              <Route
-                path={paths.billingSettings}
-                element={<Navigate to={paths.rates} replace />}
-              />
+              <Route path={paths.billingSettings} element={<BillingSettingsHome />} />
               <Route element={<BillingSettingsLayout />}>
-                <Route path={paths.rates} element={<RatesPage />} />
+                <Route element={<RequireFinanceAccess />}>
+                  <Route path={paths.rates} element={<RatesPage />} />
+                  <Route
+                    path={paths.annualRealization}
+                    element={<AnnualRealizationPlanPage />}
+                  />
+                </Route>
                 <Route path={paths.publicHolidays} element={<PublicHolidaysPage />} />
-                <Route
-                  path={paths.annualRealization}
-                  element={<AnnualRealizationPlanPage />}
-                />
               </Route>
               <Route element={<CostRecordsLayout />}>
-                <Route path={paths.financeEntries} element={<FinanceEntriesPage />} />
+                <Route element={<RequireFinanceAccess />}>
+                  <Route path={paths.financeEntries} element={<FinanceEntriesPage />} />
+                </Route>
               </Route>
             </Route>
 

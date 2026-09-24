@@ -26,13 +26,16 @@ export function useElementSize<T extends HTMLElement>() {
     observerRef.current?.disconnect();
     observerRef.current = null;
 
-    if (!node) return;
+    if (!node || typeof ResizeObserver === 'undefined') return;
 
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (!entry) return;
       const { width, height } = entry.contentRect;
-      setSize({ width: Math.round(width), height: Math.round(height) });
+      const next = { width: Math.round(width), height: Math.round(height) };
+      // Same box, same state object: a fresh object every callback re-rendered
+      // the chart on every observation, even when nothing had moved.
+      setSize((prev) => (prev.width === next.width && prev.height === next.height ? prev : next));
     });
     observer.observe(node);
     observerRef.current = observer;

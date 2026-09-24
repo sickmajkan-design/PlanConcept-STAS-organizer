@@ -53,6 +53,14 @@ public class User : BaseEntity, IAuditable
     public bool CanViewCustomerTaxDetails { get; set; }
 
     /// <summary>
+    /// How much of the company's income, spending and profit this account may
+    /// see. <see cref="FinanceAccess.None"/> by default — a SuperAdmin always
+    /// sees everything regardless of this value; anyone else only once one
+    /// grants it here. Changes are audited like any other column on the user.
+    /// </summary>
+    public FinanceAccess FinanceAccess { get; set; } = FinanceAccess.None;
+
+    /// <summary>
     /// ISO 639-1 code ("sr", "en") for the language a push notification's
     /// text should be rendered in. Null means unset — the same "assume
     /// Serbian" default the mobile app itself falls back to for a device

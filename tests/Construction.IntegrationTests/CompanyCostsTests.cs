@@ -29,11 +29,17 @@ public class CompanyCostsTests : IntegrationTestBase
         return (new DateOnly(year, 1, 1), new DateOnly(year, 12, 31));
     }
 
-    private async Task<CompanyCostsDto> ReportAsync(DateOnly from, DateOnly to, UserRole role = UserRole.SuperAdmin)
+    private async Task<CompanyCostsDto> ReportAsync(
+        DateOnly from,
+        DateOnly to,
+        UserRole role = UserRole.SuperAdmin,
+        FinanceAccess finance = FinanceAccess.Full)
     {
         return await InScope(async scope =>
         {
             var user = await TestData.SeedUserAsync(scope, role);
+            user.FinanceAccess = finance;
+            await scope.Db.SaveChangesAsync();
             scope.CurrentUser.SignInAs(user.Id, role, null, user.Email);
 
             return await scope.Send(new GetCompanyCostsQuery { From = from, To = to });
@@ -202,6 +208,27 @@ public class CompanyCostsTests : IntegrationTestBase
         Assert.Equal(0m, report.Labour);
         Assert.Equal(0m, report.ManualPay);
         Assert.Equal(40m, report.GeneralExpenses);
+    }
+
+    [Theory]
+    [InlineData(FinanceAccess.None)]
+    [InlineData(FinanceAccess.StatisticsOnly)]
+    public async Task Without_the_full_finance_right_even_an_admin_may_not_see_company_costs(FinanceAccess finance)
+    {
+        var (from, to) = FreshYear();
+
+        await Assert.ThrowsAsync<ForbiddenAccessException>(
+            () => ReportAsync(from, to, UserRole.Admin, finance));
+    }
+
+    [Fact]
+    public async Task An_admin_granted_the_full_finance_right_may_see_company_costs()
+    {
+        var (from, to) = FreshYear();
+
+        var report = await ReportAsync(from, to, UserRole.Admin, FinanceAccess.Full);
+
+        Assert.Equal(0m, report.Total);
     }
 
     [Fact]

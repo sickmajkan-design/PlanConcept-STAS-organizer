@@ -39,6 +39,7 @@ function signedIn(role: Role): User {
     lastName: null,
     lastLoginAt: null,
     canViewCustomerTaxDetails: false,
+    financeAccess: 'None',
   };
 }
 

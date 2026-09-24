@@ -44,6 +44,7 @@ import {
   canSeeLabourCost,
   isSuperAdmin,
   canViewDirectory,
+  canViewFinance,
 } from '../auth/authHelpers';
 import type { User } from '../api/types';
 import type { useT } from '../i18n/useI18n';
@@ -157,7 +158,12 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
             label: t('nav.group.costs'),
             icon: <PaidOutlined />,
             items: [
-              { label: t('nav.costs'), path: paths.costs, icon: <PaidOutlined /> },
+              ...(canViewFinance(user)
+                ? [
+                    { label: t('nav.costs'), path: paths.costs, icon: <PaidOutlined /> },
+                    { label: t('nav.companyRevenues'), path: paths.companyRevenues, icon: <TrendingUpOutlined /> },
+                  ]
+                : []),
               {
                 label: t('nav.costRecords'),
                 path: paths.costRecords,
@@ -183,12 +189,16 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
                 icon: <BuildCircleOutlined />,
                 inTabs: true,
               },
-              {
-                label: t('nav.generalExpenses'),
-                path: paths.generalExpenses,
-                icon: <PaymentsOutlined />,
-                inTabs: true,
-              },
+              ...(canViewFinance(user)
+                ? [
+                    {
+                      label: t('nav.generalExpenses'),
+                      path: paths.generalExpenses,
+                      icon: <PaymentsOutlined />,
+                      inTabs: true,
+                    },
+                  ]
+                : []),
               {
                 label: t('nav.stockMovements'),
                 path: paths.stockMovements,
@@ -203,36 +213,48 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
               },
               ...(canSeeLabourCost(user)
                 ? [
-                    {
-                      label: t('nav.financeEntries'),
-                      path: paths.financeEntries,
-                      icon: <ReceiptLongOutlined />,
-                      inTabs: true,
-                    },
+                    ...(canViewFinance(user)
+                      ? [
+                          {
+                            label: t('nav.financeEntries'),
+                            path: paths.financeEntries,
+                            icon: <ReceiptLongOutlined />,
+                            inTabs: true,
+                          },
+                        ]
+                      : []),
                     {
                       label: t('nav.billingSettings'),
                       path: paths.billingSettings,
                       icon: <RequestQuoteOutlined />,
                       alsoActiveOn: [paths.rates, paths.publicHolidays, paths.annualRealization],
                     },
-                    {
-                      label: t('nav.rates'),
-                      path: paths.rates,
-                      icon: <RequestQuoteOutlined />,
-                      inTabs: true,
-                    },
+                    ...(canViewFinance(user)
+                      ? [
+                          {
+                            label: t('nav.rates'),
+                            path: paths.rates,
+                            icon: <RequestQuoteOutlined />,
+                            inTabs: true,
+                          },
+                        ]
+                      : []),
                     {
                       label: t('nav.publicHolidays'),
                       path: paths.publicHolidays,
                       icon: <EventOutlined />,
                       inTabs: true,
                     },
-                    {
-                      label: t('nav.annualRealization'),
-                      path: paths.annualRealization,
-                      icon: <TrendingUpOutlined />,
-                      inTabs: true,
-                    },
+                    ...(canViewFinance(user)
+                      ? [
+                          {
+                            label: t('nav.annualRealization'),
+                            path: paths.annualRealization,
+                            icon: <TrendingUpOutlined />,
+                            inTabs: true,
+                          },
+                        ]
+                      : []),
                   ]
                 : []),
             ],

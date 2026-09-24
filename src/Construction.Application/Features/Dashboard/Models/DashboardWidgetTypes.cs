@@ -18,6 +18,8 @@ public static class DashboardWidgetTypes
     public const string LiveMap = nameof(LiveMap);
     public const string TodayAttendance = nameof(TodayAttendance);
     public const string CostTrend = nameof(CostTrend);
+    public const string FinanceOverview = nameof(FinanceOverview);
+    public const string IncomeVsExpense = nameof(IncomeVsExpense);
 
     public static readonly IReadOnlyList<string> All =
     [
@@ -31,5 +33,7 @@ public static class DashboardWidgetTypes
         LiveMap,
         TodayAttendance,
         CostTrend,
+        FinanceOverview,
+        IncomeVsExpense,
     ];
 }

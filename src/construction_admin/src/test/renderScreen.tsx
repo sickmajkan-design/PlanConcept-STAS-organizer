@@ -165,6 +165,8 @@ export function signedIn(role: Role = 'Admin'): User {
     lastName: 'Rator',
     lastLoginAt: null,
     canViewCustomerTaxDetails: false,
+    // The server reports Full for a SuperAdmin whatever the column holds.
+    financeAccess: role === 'SuperAdmin' ? 'Full' : 'None',
   };
 }
 

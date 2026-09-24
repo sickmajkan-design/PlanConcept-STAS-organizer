@@ -104,5 +104,87 @@ describe('HomePage dashboard', () => {
 
       expect(screen.queryByText('No costs recorded in the last months.')).toBeNull();
     });
+
+    it('does not draw or fetch any cost figure for an Admin without the finance right', async () => {
+      network.reply('/dashboard-layout', 200, layout);
+
+      renderScreen(<HomePage />, { user: signedIn('Admin') });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Add widget' })).toBeDefined();
+      }, { timeout: 5000 });
+
+      expect(screen.queryByText('Cost this month')).toBeNull();
+      expect(screen.queryByText('No costs recorded in the last months.')).toBeNull();
+      expect(network.calls.some((call) => call.url.includes('/costs/company'))).toBe(false);
+    });
+
+    it('draws them for an Admin once the finance right is granted', async () => {
+      network.reply('/dashboard-layout', 200, layout);
+      network.reply('/costs/company', 200, {
+        from: '2026-01-01', to: '2026-01-31', includesLabour: true, unpricedMinutes: 0,
+        labour: 0, manualPay: 0, material: 0, generalExpenses: 0, accommodation: 0, vehicles: 100, tools: 0, total: 100,
+      });
+
+      renderScreen(<HomePage />, { user: { ...signedIn('Admin'), financeAccess: 'Full' } });
+
+      await waitFor(() => {
+        expect(screen.getByText('Cost this month')).toBeDefined();
+      }, { timeout: 5000 });
+    });
+  });
+
+  describe('finance widgets', () => {
+    const layout = { widgets: [{ id: '1', type: 'FinanceOverview', column: 0, order: 0 }] };
+    const totals = (revenue: number, expense: number) => ({
+      from: '2026-09-01', to: '2026-09-30', revenue, expense, revenueProject: revenue, revenueOther: 0,
+      profit: revenue - expense, marginPercent: revenue > 0 ? 20 : null,
+    });
+
+    it('shows income, spending and profit against the previous period', async () => {
+      network.reply('/dashboard-layout', 200, layout);
+      network.reply('/finance/series', 200, {
+        granularity: 'Day', includesLabour: true, buckets: [],
+        totals: totals(1000, 800), previous: totals(500, 800),
+      });
+
+      renderScreen(<HomePage />, { user: signedIn('SuperAdmin') });
+
+      await waitFor(() => {
+        expect(screen.getByText('Income')).toBeDefined();
+      }, { timeout: 5000 });
+
+      expect(screen.getByText('Spending')).toBeDefined();
+      expect(screen.getByText('Profit')).toBeDefined();
+      // Income doubled: a rise, in green territory, not "infinite".
+      expect(screen.getByText(/▲ 100.0%/)).toBeDefined();
+    });
+
+    it('says so when the period holds no money at all', async () => {
+      network.reply('/dashboard-layout', 200, layout);
+      network.reply('/finance/series', 200, {
+        granularity: 'Day', includesLabour: true, buckets: [],
+        totals: totals(0, 0), previous: totals(0, 0),
+      });
+
+      renderScreen(<HomePage />, { user: signedIn('SuperAdmin') });
+
+      await waitFor(() => {
+        expect(screen.getByText('No data for the selected period.')).toBeDefined();
+      }, { timeout: 5000 });
+    });
+
+    it('never asks the server for finance figures on behalf of an Admin without the right', async () => {
+      network.reply('/dashboard-layout', 200, layout);
+
+      renderScreen(<HomePage />, { user: signedIn('Admin') });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Add widget' })).toBeDefined();
+      }, { timeout: 5000 });
+
+      expect(screen.queryByText('Income')).toBeNull();
+      expect(network.calls.some((call) => call.url.includes('/finance/series'))).toBe(false);
+    });
   });
 });

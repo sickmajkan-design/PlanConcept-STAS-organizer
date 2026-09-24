@@ -1,4 +1,5 @@
 using Construction.Domain.Entities;
+using Construction.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -31,6 +32,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.CanViewCustomerTaxDetails)
             .HasDefaultValue(false);
+
+        builder.Property(u => u.FinanceAccess)
+            .HasConversion<string>()
+            .HasMaxLength(20)
+            .HasDefaultValue(FinanceAccess.None);
 
         builder.Property(u => u.PreferredLanguage)
             .HasMaxLength(5);

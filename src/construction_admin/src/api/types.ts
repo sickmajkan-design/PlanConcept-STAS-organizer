@@ -9,6 +9,10 @@ export interface PagedList<T> {
   hasPreviousPage: boolean;
 }
 
+/** How much of the company's income, spending and profit an account may see. */
+export const financeAccessLevels = ['None', 'StatisticsOnly', 'Full'] as const;
+export type FinanceAccess = (typeof financeAccessLevels)[number];
+
 export interface User {
   id: string;
   email: string;
@@ -19,6 +23,8 @@ export interface User {
   lastLoginAt: string | null;
   /** Whether this account may see a customer's tax ID, registration number and VAT number. */
   canViewCustomerTaxDetails: boolean;
+  /** A SuperAdmin always reads "Full". */
+  financeAccess: FinanceAccess;
 }
 
 export interface AuthResponse {
@@ -681,6 +687,7 @@ export interface UserAccount {
   documentExpiryReminderDays: number | null;
   /** Whether this account may see a customer's tax ID, registration number and VAT number. */
   canViewCustomerTaxDetails: boolean;
+  financeAccess: FinanceAccess;
   createdAt: string;
 }
 
@@ -692,6 +699,8 @@ export interface UserAccountInput {
   documentExpiryReminderDays?: number | null;
   /** Only a SuperAdmin caller may actually change this — sent by anyone else, the API leaves it as it was. */
   canViewCustomerTaxDetails?: boolean;
+  /** SuperAdmin only, like the flag above; omitted leaves it as it was. */
+  financeAccess?: FinanceAccess;
 }
 
 export interface CreateUserAccountInput extends UserAccountInput {

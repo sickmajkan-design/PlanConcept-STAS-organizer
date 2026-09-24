@@ -1,5 +1,6 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Finance;
 using Construction.Application.Features.Costs.Models;
 using Construction.Application.Features.Costs.Queries.GetToolCosts;
 using Construction.Application.Features.Costs.Queries.GetVehicleCosts;
@@ -213,6 +214,9 @@ public class GetProjectCostBreakdownQueryHandler
         {
             throw new ForbiddenAccessException("You may not see cost reports.");
         }
+
+        // Amounts of the company's money sit behind the finance right, on top of the role check.
+        await FinanceRules.EnsureFullAsync(_context, _currentUserService, cancellationToken);
 
         var project = await _context.Projects
             .AsNoTracking()

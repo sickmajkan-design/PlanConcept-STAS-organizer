@@ -643,6 +643,59 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.ToTable("bulletin_views", (string)null);
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.CompanyRevenue", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateOnly>("OccurredOn")
+                        .HasColumnType("date");
+
+                    b.Property<Guid?>("RecordedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid?>("ToolId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("VehicleId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OccurredOn");
+
+                    b.HasIndex("RecordedByUserId");
+
+                    b.HasIndex("ToolId");
+
+                    b.HasIndex("VehicleId");
+
+                    b.ToTable("company_revenues", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_company_revenues_amount_positive", "\"Amount\" > 0");
+                        });
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.CompanySettings", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2528,6 +2581,13 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<int>("FailedLoginAttempts")
                         .HasColumnType("integer");
 
+                    b.Property<string>("FinanceAccess")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("None");
+
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -3324,6 +3384,30 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("BulletinPost");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.CompanyRevenue", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.User", "RecordedByUser")
+                        .WithMany()
+                        .HasForeignKey("RecordedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Construction.Domain.Entities.Tool", "Tool")
+                        .WithMany()
+                        .HasForeignKey("ToolId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Construction.Domain.Entities.Vehicle", "Vehicle")
+                        .WithMany()
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("RecordedByUser");
+
+                    b.Navigation("Tool");
+
+                    b.Navigation("Vehicle");
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.DashboardLayout", b =>

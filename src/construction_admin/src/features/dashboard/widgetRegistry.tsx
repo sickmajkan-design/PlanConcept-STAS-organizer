@@ -5,7 +5,9 @@ import { AbsencesBalanceWidget } from './widgets/AbsencesBalanceWidget';
 import { CompanyKpiWidget } from './widgets/CompanyKpiWidget';
 import { CostTrendWidget } from './widgets/CostTrendWidget';
 import { DocumentExpiryWidget } from './widgets/DocumentExpiryWidget';
+import { FinanceOverviewWidget } from './widgets/FinanceOverviewWidget';
 import { FleetStatusWidget } from './widgets/FleetStatusWidget';
+import { IncomeVsExpenseWidget } from './widgets/IncomeVsExpenseWidget';
 import { LiveMapWidget } from './widgets/LiveMapWidget';
 import { NeedsAttentionWidget } from './widgets/NeedsAttentionWidget';
 import { NotificationsBulletinWidget } from './widgets/NotificationsBulletinWidget';
@@ -16,6 +18,8 @@ import type { DashboardWidgetProps, DashboardWidgetType } from './widgetTypes';
 interface WidgetRegistryEntry {
   component: ComponentType<DashboardWidgetProps>;
   titleKey: MessageKey;
+  /** Shows amounts of the company's money — hidden from anyone without the finance right. */
+  requiresFinance?: boolean;
 }
 
 /**
@@ -31,6 +35,7 @@ export const widgetRegistry: Record<DashboardWidgetType, WidgetRegistryEntry> = 
   ProjectsRealization: {
     component: ProjectsRealizationWidget,
     titleKey: 'dashboard.widget.ProjectsRealization',
+    requiresFinance: true,
   },
   AbsencesBalance: {
     component: AbsencesBalanceWidget,
@@ -63,5 +68,16 @@ export const widgetRegistry: Record<DashboardWidgetType, WidgetRegistryEntry> = 
   CostTrend: {
     component: CostTrendWidget,
     titleKey: 'dashboard.widget.CostTrend',
+    requiresFinance: true,
+  },
+  FinanceOverview: {
+    component: FinanceOverviewWidget,
+    titleKey: 'dashboard.widget.FinanceOverview',
+    requiresFinance: true,
+  },
+  IncomeVsExpense: {
+    component: IncomeVsExpenseWidget,
+    titleKey: 'dashboard.widget.IncomeVsExpense',
+    requiresFinance: true,
   },
 };

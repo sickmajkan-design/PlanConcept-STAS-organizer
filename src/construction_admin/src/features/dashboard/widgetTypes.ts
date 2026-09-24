@@ -10,6 +10,8 @@ export const dashboardWidgetTypes = [
   'LiveMap',
   'TodayAttendance',
   'CostTrend',
+  'FinanceOverview',
+  'IncomeVsExpense',
 ] as const;
 
 export type DashboardWidgetType = (typeof dashboardWidgetTypes)[number];

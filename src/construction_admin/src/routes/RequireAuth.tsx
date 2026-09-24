@@ -1,7 +1,7 @@
 import { Box, CircularProgress } from '@mui/material';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
-import { canSeeLabourCost, isSuperAdmin } from '../auth/authHelpers';
+import { canSeeLabourCost, canViewFinance, isSuperAdmin } from '../auth/authHelpers';
 import { useAuth } from '../auth/useAuth';
 import { paths } from './paths';
 
@@ -126,6 +126,24 @@ export function RequireLabourCostAccess() {
   }
 
   if (!canSeeLabourCost(user)) {
+    return <Navigate to={paths.home} replace />;
+  }
+
+  return <Outlet />;
+}
+
+/**
+ * Restricts a route to accounts holding the finance right — the pages that
+ * show the company's amounts. The API refuses the calls regardless.
+ */
+export function RequireFinanceAccess() {
+  const { user } = useAuth();
+
+  if (user === undefined) {
+    return null;
+  }
+
+  if (!canViewFinance(user)) {
     return <Navigate to={paths.home} replace />;
   }
 

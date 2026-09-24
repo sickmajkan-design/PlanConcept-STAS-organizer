@@ -31,6 +31,7 @@ function sessionWith(overrides: Partial<Session> = {}): Session {
       lastName: 'Horvat',
       lastLoginAt: null,
       canViewCustomerTaxDetails: false,
+      financeAccess: 'None',
     },
     ...overrides,
   };

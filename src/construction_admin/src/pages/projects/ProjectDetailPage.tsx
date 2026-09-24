@@ -387,23 +387,6 @@ export function ProjectDetailPage() {
                             divider
                             sx={{ cursor: 'pointer', px: 0 }}
                             onClick={() => navigate(paths.employeeDetail(member.employeeId))}
-                            secondaryAction={
-                              <Tooltip title={t('projects.removeFromCrew')}>
-                                <IconButton
-                                  edge="end"
-                                  size="small"
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    setRemoveEmployeeTarget({
-                                      id: member.employeeId,
-                                      name: member.fullName,
-                                    });
-                                  }}
-                                >
-                                  <DeleteOutlined fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            }
                           >
                             <ListItemAvatar>
                               <Avatar sx={{ bgcolor: 'secondary.main' }}>
@@ -422,7 +405,23 @@ export function ProjectDetailPage() {
                                   .join(' · ')
                               }
                             />
-                            <StatusChip status={member.status} kind="employeeStatus" />
+                            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', ml: 1, flexShrink: 0 }}>
+                              <StatusChip status={member.status} kind="employeeStatus" />
+                              <Tooltip title={t('projects.removeFromCrew')}>
+                                <IconButton
+                                  size="small"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setRemoveEmployeeTarget({
+                                      id: member.employeeId,
+                                      name: member.fullName,
+                                    });
+                                  }}
+                                >
+                                  <DeleteOutlined fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            </Stack>
                           </ListItem>
                         ))}
                       </List>
@@ -486,10 +485,20 @@ export function ProjectDetailPage() {
                             divider
                             sx={{ cursor: 'pointer', px: 0 }}
                             onClick={() => navigate(paths.vehicleDetail(vehicle.id))}
-                            secondaryAction={
+                          >
+                            <ListItemAvatar>
+                              <Avatar sx={{ bgcolor: 'action.selected' }}>
+                                <LocalShippingOutlined fontSize="small" />
+                              </Avatar>
+                            </ListItemAvatar>
+                            <ListItemText
+                              primary={`${vehicle.brand} ${vehicle.model}`}
+                              secondary={vehicle.registrationNumber}
+                            />
+                            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', ml: 1, flexShrink: 0 }}>
+                              <StatusChip status={vehicle.status} kind="vehicleStatus" />
                               <Tooltip title={t('projects.removeVehicle')}>
                                 <IconButton
-                                  edge="end"
                                   size="small"
                                   onClick={(event) => {
                                     event.stopPropagation();
@@ -502,18 +511,7 @@ export function ProjectDetailPage() {
                                   <DeleteOutlined fontSize="small" />
                                 </IconButton>
                               </Tooltip>
-                            }
-                          >
-                            <ListItemAvatar>
-                              <Avatar sx={{ bgcolor: 'action.selected' }}>
-                                <LocalShippingOutlined fontSize="small" />
-                              </Avatar>
-                            </ListItemAvatar>
-                            <ListItemText
-                              primary={`${vehicle.brand} ${vehicle.model}`}
-                              secondary={vehicle.registrationNumber}
-                            />
-                            <StatusChip status={vehicle.status} kind="vehicleStatus" />
+                            </Stack>
                           </ListItem>
                         ))}
                       </List>
@@ -577,10 +575,17 @@ export function ProjectDetailPage() {
                             divider
                             sx={{ cursor: 'pointer', px: 0 }}
                             onClick={() => navigate(paths.toolDetail(tool.id))}
-                            secondaryAction={
+                          >
+                            <ListItemAvatar>
+                              <Avatar sx={{ bgcolor: 'action.selected' }}>
+                                <HandymanOutlined fontSize="small" />
+                              </Avatar>
+                            </ListItemAvatar>
+                            <ListItemText primary={tool.name} secondary={tool.category} />
+                            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', ml: 1, flexShrink: 0 }}>
+                              <StatusChip status={tool.status} kind="toolStatus" />
                               <Tooltip title={t('projects.removeTool')}>
                                 <IconButton
-                                  edge="end"
                                   size="small"
                                   onClick={(event) => {
                                     event.stopPropagation();
@@ -590,15 +595,7 @@ export function ProjectDetailPage() {
                                   <DeleteOutlined fontSize="small" />
                                 </IconButton>
                               </Tooltip>
-                            }
-                          >
-                            <ListItemAvatar>
-                              <Avatar sx={{ bgcolor: 'action.selected' }}>
-                                <HandymanOutlined fontSize="small" />
-                              </Avatar>
-                            </ListItemAvatar>
-                            <ListItemText primary={tool.name} secondary={tool.category} />
-                            <StatusChip status={tool.status} kind="toolStatus" />
+                            </Stack>
                           </ListItem>
                         ))}
                       </List>

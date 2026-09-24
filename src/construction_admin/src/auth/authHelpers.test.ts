@@ -19,6 +19,7 @@ const userWith = (role: Role, rest: Partial<User> = {}): User => ({
   lastName: null,
   lastLoginAt: null,
   canViewCustomerTaxDetails: false,
+  financeAccess: 'None',
   ...rest,
 });
 

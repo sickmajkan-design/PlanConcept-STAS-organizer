@@ -238,22 +238,6 @@ export function EmployeeDetailPage() {
                       divider
                       sx={{ cursor: 'pointer' }}
                       onClick={() => navigate(paths.projectDetail(assignment.projectId))}
-                      secondaryAction={
-                        <Tooltip title={t('employees.removeFromProject')}>
-                          <IconButton
-                            edge="end"
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setRemoveTarget({
-                                id: assignment.projectId,
-                                name: assignment.projectName,
-                              });
-                            }}
-                          >
-                            <DeleteOutlined fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      }
                     >
                       <ListItemAvatar>
                         <Avatar>
@@ -268,7 +252,22 @@ export function EmployeeDetailPage() {
                             .join(' · ')
                         }
                       />
-                      <StatusChip status={assignment.projectStatus} kind="projectStatus" />
+                      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', ml: 1, flexShrink: 0 }}>
+                        <StatusChip status={assignment.projectStatus} kind="projectStatus" />
+                        <Tooltip title={t('employees.removeFromProject')}>
+                          <IconButton
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setRemoveTarget({
+                                id: assignment.projectId,
+                                name: assignment.projectName,
+                              });
+                            }}
+                          >
+                            <DeleteOutlined fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </Stack>
                     </ListItem>
                   ))}
                 </List>

@@ -67,6 +67,7 @@ export const paths = {
   publicHolidays: '/public-holidays',
   financeEntries: '/finance-entries',
   generalExpenses: '/general-expenses',
+  companyRevenues: '/company-revenues',
 
   accommodationCosts: '/accommodation-costs',
   accommodations: '/accommodations',

@@ -102,6 +102,7 @@ const user = {
   lastName: null,
   lastLoginAt: null,
   canViewCustomerTaxDetails: false,
+  financeAccess: 'None' as const,
 };
 
 function storedSession(overrides: Partial<Session> = {}): Session {

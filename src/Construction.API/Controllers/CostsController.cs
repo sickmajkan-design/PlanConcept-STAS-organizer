@@ -65,6 +65,7 @@ public class CostsController : ApiControllerBase
     // ---- pay rates -------------------------------------------------------
 
     /// <summary>Lists pay rates. Refused below Project Manager.</summary>
+    [FinanceAccess]
     [HttpGet("/api/v{version:apiVersion}/employee-rates")]
     [HttpGet("/api/employee-rates")]
     [ProducesResponseType(typeof(PagedList<EmployeeRateDto>), StatusCodes.Status200OK)]
@@ -78,6 +79,7 @@ public class CostsController : ApiControllerBase
     }
 
     /// <summary>The count and average of whatever the rates list is currently filtered to.</summary>
+    [FinanceAccess]
     [HttpGet("/api/v{version:apiVersion}/employee-rates/summary")]
     [HttpGet("/api/employee-rates/summary")]
     [ProducesResponseType(typeof(EmployeeRateSummaryDto), StatusCodes.Status200OK)]
@@ -90,6 +92,7 @@ public class CostsController : ApiControllerBase
     }
 
     /// <summary>Puts a new rate in force, closing off the one before it.</summary>
+    [FinanceAccess]
     [HttpPost("/api/v{version:apiVersion}/employee-rates")]
     [HttpPost("/api/employee-rates")]
     [Idempotent]
@@ -108,6 +111,7 @@ public class CostsController : ApiControllerBase
     }
 
     /// <summary>Corrects a rate that was typed in wrong.</summary>
+    [FinanceAccess]
     [HttpPut("/api/v{version:apiVersion}/employee-rates/{id:guid}")]
     [HttpPut("/api/employee-rates/{id:guid}")]
     [ProducesResponseType(typeof(EmployeeRateDto), StatusCodes.Status200OK)]
@@ -124,6 +128,7 @@ public class CostsController : ApiControllerBase
     }
 
     /// <summary>Removes a rate. Admin and above.</summary>
+    [FinanceAccess]
     [HttpDelete("/api/v{version:apiVersion}/employee-rates/{id:guid}")]
     [HttpDelete("/api/employee-rates/{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -918,6 +923,7 @@ public class CostsController : ApiControllerBase
     // ---- general expenses ---------------------------------------------------
 
     /// <summary>Lists housing, bookkeeping, damage and every other cost with no ledger of its own.</summary>
+    [FinanceAccess]
     [HttpGet("/api/v{version:apiVersion}/general-expenses")]
     [HttpGet("/api/general-expenses")]
     [ProducesResponseType(typeof(PagedList<GeneralExpenseDto>), StatusCodes.Status200OK)]
@@ -931,6 +937,7 @@ public class CostsController : ApiControllerBase
     }
 
     /// <summary>The count and total of whatever the general-expense list is currently filtered to.</summary>
+    [FinanceAccess]
     [HttpGet("/api/v{version:apiVersion}/general-expenses/summary")]
     [HttpGet("/api/general-expenses/summary")]
     [ProducesResponseType(typeof(GeneralExpenseSummaryDto), StatusCodes.Status200OK)]
@@ -943,6 +950,7 @@ public class CostsController : ApiControllerBase
     }
 
     /// <summary>Records a cost that isn't a vehicle's, a tool's or a material's.</summary>
+    [FinanceAccess]
     [HttpPost("/api/v{version:apiVersion}/general-expenses")]
     [HttpPost("/api/general-expenses")]
     [Idempotent]
@@ -960,6 +968,7 @@ public class CostsController : ApiControllerBase
     }
 
     /// <summary>Corrects a general expense that was typed in wrong.</summary>
+    [FinanceAccess]
     [HttpPut("/api/v{version:apiVersion}/general-expenses/{id:guid}")]
     [HttpPut("/api/general-expenses/{id:guid}")]
     [ProducesResponseType(typeof(GeneralExpenseDto), StatusCodes.Status200OK)]
@@ -975,6 +984,7 @@ public class CostsController : ApiControllerBase
     }
 
     /// <summary>Removes a recorded general expense.</summary>
+    [FinanceAccess]
     [HttpDelete("/api/v{version:apiVersion}/general-expenses/{id:guid}")]
     [HttpDelete("/api/general-expenses/{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -1081,6 +1091,7 @@ public class CostsController : ApiControllerBase
     // ---- finance entries ---------------------------------------------------
 
     /// <summary>Lists pay entries. Refused below Project Manager.</summary>
+    [FinanceAccess]
     [HttpGet("/api/v{version:apiVersion}/finance-entries")]
     [HttpGet("/api/finance-entries")]
     [ProducesResponseType(typeof(PagedList<FinanceEntryDto>), StatusCodes.Status200OK)]
@@ -1094,6 +1105,7 @@ public class CostsController : ApiControllerBase
     }
 
     /// <summary>The count and total of whatever the finance-entries list is currently filtered to.</summary>
+    [FinanceAccess]
     [HttpGet("/api/v{version:apiVersion}/finance-entries/summary")]
     [HttpGet("/api/finance-entries/summary")]
     [ProducesResponseType(typeof(FinanceEntrySummaryDto), StatusCodes.Status200OK)]
@@ -1106,6 +1118,7 @@ public class CostsController : ApiControllerBase
     }
 
     /// <summary>Records what an employee is owed for a stretch of work.</summary>
+    [FinanceAccess]
     [HttpPost("/api/v{version:apiVersion}/finance-entries")]
     [HttpPost("/api/finance-entries")]
     [Idempotent]
@@ -1123,6 +1136,7 @@ public class CostsController : ApiControllerBase
     }
 
     /// <summary>Corrects a pay entry that was typed in wrong.</summary>
+    [FinanceAccess]
     [HttpPut("/api/v{version:apiVersion}/finance-entries/{id:guid}")]
     [HttpPut("/api/finance-entries/{id:guid}")]
     [ProducesResponseType(typeof(FinanceEntryDto), StatusCodes.Status200OK)]
@@ -1138,6 +1152,7 @@ public class CostsController : ApiControllerBase
     }
 
     /// <summary>Removes a pay entry.</summary>
+    [FinanceAccess]
     [HttpDelete("/api/v{version:apiVersion}/finance-entries/{id:guid}")]
     [HttpDelete("/api/finance-entries/{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

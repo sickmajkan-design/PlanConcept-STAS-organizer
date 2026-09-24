@@ -101,6 +101,8 @@ public interface IApplicationDbContext
 
     DbSet<ProjectRevenue> ProjectRevenues { get; }
 
+    DbSet<CompanyRevenue> CompanyRevenues { get; }
+
     DbSet<OutboxMessage> OutboxMessages { get; }
 
     DbSet<ScheduledReportSubscription> ScheduledReportSubscriptions { get; }

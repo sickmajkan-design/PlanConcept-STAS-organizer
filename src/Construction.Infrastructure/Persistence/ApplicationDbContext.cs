@@ -106,6 +106,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<ProjectRevenue> ProjectRevenues => Set<ProjectRevenue>();
 
+    public DbSet<CompanyRevenue> CompanyRevenues => Set<CompanyRevenue>();
+
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     public DbSet<ScheduledReportSubscription> ScheduledReportSubscriptions => Set<ScheduledReportSubscription>();

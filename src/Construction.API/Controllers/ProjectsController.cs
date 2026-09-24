@@ -87,6 +87,7 @@ public class ProjectsController : ApiControllerBase
     // need to see what it was sold for.
 
     /// <summary>Contracted value against what has come in, project by project, for one year.</summary>
+    [FinanceAccess]
     [HttpGet("/api/v{version:apiVersion}/projects/annual-realization")]
     [HttpGet("/api/projects/annual-realization")]
     [Authorize(Policy = Policies.ProjectManagerAndAbove)]
@@ -101,6 +102,7 @@ public class ProjectsController : ApiControllerBase
     }
 
     /// <summary>Lists the individual payments the realization plan is built from.</summary>
+    [FinanceAccess]
     [HttpGet("/api/v{version:apiVersion}/project-revenues")]
     [HttpGet("/api/project-revenues")]
     [Authorize(Policy = Policies.ProjectManagerAndAbove)]
@@ -115,6 +117,7 @@ public class ProjectsController : ApiControllerBase
     }
 
     /// <summary>Records money received against a project's contract.</summary>
+    [FinanceAccess]
     [HttpPost("/api/v{version:apiVersion}/project-revenues")]
     [HttpPost("/api/project-revenues")]
     [Authorize(Policy = Policies.ProjectManagerAndAbove)]
@@ -133,6 +136,7 @@ public class ProjectsController : ApiControllerBase
     }
 
     /// <summary>Removes a recorded payment.</summary>
+    [FinanceAccess]
     [HttpDelete("/api/v{version:apiVersion}/project-revenues/{id:guid}")]
     [HttpDelete("/api/project-revenues/{id:guid}")]
     [Authorize(Policy = Policies.ProjectManagerAndAbove)]

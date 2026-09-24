@@ -2,6 +2,7 @@ using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Accommodations.Costs;
 using Construction.Application.Features.Costs.Queries.GetProjectCosts;
+using Construction.Application.Features.Finance;
 using Construction.Application.Features.Costs.Queries.GetToolCosts;
 using Construction.Application.Features.Costs.Queries.GetVehicleCosts;
 using Construction.Domain.Enums;
@@ -113,6 +114,10 @@ public class GetCompanyCostsQueryHandler : IRequestHandler<GetCompanyCostsQuery,
         {
             throw new ForbiddenAccessException("You may not see cost reports.");
         }
+
+        // The company-wide total is the one figure the dashboard widgets and
+        // the cost pages share, so it sits behind the finance right.
+        await FinanceRules.EnsureFullAsync(_context, _currentUserService, cancellationToken);
 
         var includesLabour = CostRules.CanSeeLabourCost(role);
         var from = request.From;

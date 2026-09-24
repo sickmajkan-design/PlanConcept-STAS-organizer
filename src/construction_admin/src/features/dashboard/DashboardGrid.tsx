@@ -5,7 +5,11 @@ import 'react-grid-layout/css/styles.css';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { canViewFinance } from '../../auth/authHelpers';
+import { useAuth } from '../../auth/useAuth';
 import { useT } from '../../i18n/useI18n';
+import { FinancePeriodProvider } from '../finance/PeriodContext';
+import { PeriodControl } from '../finance/PeriodControl';
 import { dashboardApi } from './api';
 import './dashboardGrid.css';
 import { widgetRegistry } from './widgetRegistry';
@@ -31,9 +35,16 @@ const SAVE_DEBOUNCE_MS = 600;
  * gets taller rows, so the same h:12 widget actually fills more of it.
  */
 function useViewportHeight(): number {
-  const [height, setHeight] = useState(() => (typeof window === 'undefined' ? 900 : window.innerHeight));
+  const [height, setHeight] = useState(() => (typeof window === 'undefined' ? 900 : Math.round(window.innerHeight / 50) * 50));
   useEffect(() => {
-    const onResize = () => setHeight(window.innerHeight);
+    // Snapped to 50px steps: on a phone the URL bar sliding in and out changes
+    // innerHeight by a few dozen px on every scroll, and each of those used to
+    // change rowHeight and re-lay-out the whole board — the "twitching".
+    const onResize = () => {
+      const snapped = Math.round(window.innerHeight / 50) * 50;
+      setHeight((prev) => (prev === snapped ? prev : snapped));
+    };
+    onResize();
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
@@ -82,11 +93,18 @@ function layoutsEqual(a: DashboardWidgetConfig[], b: DashboardWidgetConfig[]): b
 export function DashboardGrid() {
   const t = useT();
   const theme = useTheme();
-  const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+  const isDesktop = useMediaQuery(theme.breakpoints.up('md'), {
+    // Without this the first render always answers "no" and only flips after
+    // an effect, so every desktop load painted the mobile stack first and
+    // then re-built the whole board as a grid.
+    noSsr: true,
+  });
   const queryClient = useQueryClient();
   const { width, containerRef, mounted } = useContainerWidth();
   const viewportHeight = useViewportHeight();
   const rowHeight = useMemo(() => Math.round(Math.min(120, Math.max(28, viewportHeight / 22))), [viewportHeight]);
+  const { user } = useAuth();
+  const mayViewFinance = canViewFinance(user);
   const [widgets, setWidgets] = useState<DashboardWidgetConfig[] | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -118,7 +136,14 @@ export function DashboardGrid() {
     };
   }, []);
 
-  const layout = useMemo(() => (widgets ?? []).map(toLayoutItem), [widgets]);
+  // The saved layout keeps a widget the viewer may not see (so it comes back
+  // if the right is granted again); it is simply not drawn, and it never
+  // mounts, so it never asks the server for data it would be refused.
+  const visibleWidgets = useMemo(
+    () => (widgets ?? []).filter((w) => !widgetRegistry[w.type]?.requiresFinance || mayViewFinance),
+    [widgets, mayViewFinance],
+  );
+  const layout = useMemo(() => visibleWidgets.map(toLayoutItem), [visibleWidgets]);
   const usedTypes = new Set((widgets ?? []).map((w) => w.type));
 
   const gridConfig = useMemo(
@@ -188,8 +213,27 @@ export function DashboardGrid() {
   // hook's 1280px fallback forever. Every state below therefore renders
   // inside this same always-mounted Box instead of behind an early return.
   return (
+    <FinancePeriodProvider>
     <Box>
-      <Stack direction="row" sx={{ justifyContent: 'flex-end', mb: 2 }}>
+      {/* Sticky, so on a phone the period stays in reach while the widgets
+          it drives scroll past underneath. */}
+      <Stack
+        direction="row"
+        useFlexGap
+        sx={{
+          justifyContent: mayViewFinance ? 'space-between' : 'flex-end',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: 1,
+          mb: 2,
+          position: 'sticky',
+          top: 0,
+          zIndex: 5,
+          py: 1,
+          bgcolor: 'background.default',
+        }}
+      >
+        {mayViewFinance && <PeriodControl />}
         <Button startIcon={<AddOutlined />} variant="outlined" size="small" onClick={() => setPickerOpen(true)}>
           {t('dashboard.addWidget')}
         </Button>
@@ -202,20 +246,24 @@ export function DashboardGrid() {
           </Box>
         ) : error ? (
           <Alert severity="error">{t('common.somethingWentWrong')}</Alert>
-        ) : widgets.length === 0 ? (
+        ) : visibleWidgets.length === 0 ? (
           <Typography color="text.secondary">{t('dashboard.empty')}</Typography>
         ) : !isDesktop ? (
           // Narrow viewport: no room to drag or resize precisely, so widgets
           // just stack in their saved order, full width, no editing affordances.
           <Stack spacing={2}>
-            {[...widgets]
+            {[...visibleWidgets]
               .sort((a, b) => a.y - b.y || a.x - b.x)
               .map((widget) => {
                 const entry = widgetRegistry[widget.type];
                 if (!entry) return null;
                 const Widget = entry.component;
                 return (
-                  <Box key={widget.id} sx={{ minHeight: 200 }}>
+                  // A definite height, not minHeight: the card is height:100%, and
+                  // a percentage of a box whose height comes from its content
+                  // never resolves, so charts kept re-measuring against a card
+                  // that was itself sized by the charts.
+                  <Box key={widget.id} sx={{ height: Math.max(320, widget.h * 28) }}>
                     <Widget instanceId={widget.id} />
                   </Box>
                 );
@@ -231,7 +279,7 @@ export function DashboardGrid() {
               resizeConfig={resizeConfig}
               onLayoutChange={handleLayoutChange}
             >
-              {widgets.map((widget) => {
+              {visibleWidgets.map((widget) => {
                 const entry = widgetRegistry[widget.type];
                 if (!entry) return null;
                 const Widget = entry.component;
@@ -252,5 +300,6 @@ export function DashboardGrid() {
 
       <WidgetPicker open={pickerOpen} excludeTypes={usedTypes} onClose={() => setPickerOpen(false)} onPick={handleAdd} />
     </Box>
+    </FinancePeriodProvider>
   );
 }

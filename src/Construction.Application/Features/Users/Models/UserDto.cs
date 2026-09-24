@@ -44,6 +44,9 @@ public class UserDto
     /// <summary>Whether this account may see a customer's tax ID, registration number and VAT number.</summary>
     public bool CanViewCustomerTaxDetails { get; init; }
 
+    /// <summary>"None", "StatisticsOnly" or "Full" — see <c>FinanceAccess</c>.</summary>
+    public string FinanceAccess { get; init; } = null!;
+
     /// <summary>ISO 639-1 code the account's push notifications render in. Null means unset.</summary>
     public string? PreferredLanguage { get; init; }
 
@@ -78,6 +81,10 @@ public static class UserMapping
             CustomerName = user.Customer != null ? user.Customer.Name : null,
             DocumentExpiryReminderDays = user.DocumentExpiryReminderDays,
             CanViewCustomerTaxDetails = user.CanViewCustomerTaxDetails,
+            // A SuperAdmin sees everything whatever the stored column says.
+            FinanceAccess = user.Role == Construction.Domain.Enums.UserRole.SuperAdmin
+                ? nameof(Construction.Domain.Enums.FinanceAccess.Full)
+                : user.FinanceAccess.ToString(),
             PreferredLanguage = user.PreferredLanguage,
             CreatedAt = user.CreatedAt,
         };
