@@ -288,3 +288,20 @@ Atribut `[FinanceAccess]` na akcijama (čita pravo iz baze pri svakom pozivu, 40
 
 **Provjera:** 779 od 779 integracionih testova prolazi na pravoj bazi (7 za ovo pravilo, uključujući "cijena drugog smještaja ne smeta"). Forma nema automatski test ekrana; provjerena je samo tipovima.
 
+## 18. Faza 3 (lokalno) — podešavanje po widgetu, Projekat u fokusu, Na šta odlazi novac
+
+**Podešavanje po widgetu (`settings`).** Svaka instanca widgeta može imati vlastita podešavanja (tekst po ključu), sačuvana u rasporedu table zajedno s pozicijom i veličinom. Nema migracije (raspored je već JSON). Server ograničava: najviše 8 podešavanja, ključ ≤ 40, vrijednost ≤ 100 znakova. Widget koji ima podešavanja dobija dugme "Postavke widgeta" u zaglavlju; prazan skup briše podešavanja.
+
+**Novi widgeti:**
+- **Na šta odlazi novac** (`CostBreakdown`, A3): prstenasti grafik po vrstama troška (rad, ručne isplate, materijal, ostali troškovi, smještaj, vozila, alat) uz ukupan iznos. Podešavanje **projekat** (prazno = cijela firma). Za projekat vozila i alat su nula jer ne pripadaju gradilištu.
+- **Projekat u fokusu** (`ProjectFocus`, B3): izabrani projekat — prihod, rashod, zarada i marža za period; **potrošeno od budžeta** i **naplaćeno od ugovora** mjereno od početka projekta do danas (traka staje na 100%, broj ide preko, pa se prekoračenje vidi). Bez izabranog projekta widget traži izbor i ne zove server.
+- **Projekti po rashodu** (B1) sada ima podešavanje **5 ili 10 redova**.
+
+**Endpointi:** `GET /finance/breakdown?from&to[&projectId]` i `GET /finance/projects/{id}/summary?from&to` (period + do danas). "Do danas" počinje od ranijeg od datuma početka i datuma kreiranja projekta, umanjeno za najviše dozvoljeno unazad-datiranje troška (400 dana), i računa se u prozorima ≤ 732 dana koji se ne preklapaju.
+
+**Tačnost cifara:** izvještaj troškova projekta sada svaku stavku zaokružuje jednom, a ukupno je njihov zbir (kao u izvještaju firme). Ranije se zbir stavki i ukupno mogli razlikovati za cent (npr. 8h20m × 10,01 = 83,4166…). Razrada troška zbraja do ukupnog iznosa pregleda po projektu.
+
+**Provjera:** 788 od 788 integracionih testova prolazi na pravoj bazi (9 novih: zbir razrade = trošak firme i = red u pregledu po projektu do centa, projekat bez troška, prava, sažetak do danas, nepostojeći projekat, čuvanje i ograničenje podešavanja); 18 testova table na frontendu, uključujući čuvanje podešavanja kroz stvarni dijalog.
+
+**Nije urađeno (faza 4):** B4 upozorenje van budžeta (prag % ugovora ili budžet — podaci za to sada postoje u sažetku projekta), A4 trend potrošnje, nivo "samo statistika".
+

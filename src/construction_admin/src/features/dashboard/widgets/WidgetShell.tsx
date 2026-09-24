@@ -1,4 +1,4 @@
-import { CloseOutlined, DragIndicatorOutlined, OpenInFullOutlined } from '@mui/icons-material';
+import { CloseOutlined, DragIndicatorOutlined, OpenInFullOutlined, TuneOutlined } from '@mui/icons-material';
 import { Alert, Box, Card, CardContent, CardHeader, CircularProgress, IconButton, Stack, Tooltip } from '@mui/material';
 import type { ReactNode } from 'react';
 
@@ -10,6 +10,8 @@ interface WidgetShellProps {
   error?: unknown;
   onRemove?: () => void;
   onExpandWidth?: () => void;
+  /** Opens the widget's own settings. Only widgets that have any pass it. */
+  onConfigure?: () => void;
   children: ReactNode;
 }
 
@@ -21,7 +23,7 @@ interface WidgetShellProps {
  * fixed column or a preset size. Full 3D treatment (layered gradient, tinted
  * elevation, hover lift) so the board reads as tactile rather than flat.
  */
-export function WidgetShell({ title, isLoading, error, onRemove, onExpandWidth, children }: WidgetShellProps) {
+export function WidgetShell({ title, isLoading, error, onRemove, onExpandWidth, onConfigure, children }: WidgetShellProps) {
   const t = useT();
 
   return (
@@ -77,6 +79,13 @@ export function WidgetShell({ title, isLoading, error, onRemove, onExpandWidth, 
                 >
                   <DragIndicatorOutlined fontSize="small" />
                 </Box>
+              </Tooltip>
+            )}
+            {onConfigure && (
+              <Tooltip title={t('dashboard.configureWidget')}>
+                <IconButton size="small" onClick={onConfigure} aria-label={t('dashboard.configureWidget')}>
+                  <TuneOutlined fontSize="small" />
+                </IconButton>
               </Tooltip>
             )}
             {onExpandWidth && (

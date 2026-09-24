@@ -43,6 +43,32 @@ public class FinanceController : ApiControllerBase
         return Ok(await Mediator.Send(query, cancellationToken));
     }
 
+    /// <summary>What the company's — or one project's — spending in a period was on.</summary>
+    [HttpGet("breakdown")]
+    [ProducesResponseType(typeof(FinanceBreakdownDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<FinanceBreakdownDto>> GetBreakdown(
+        [FromQuery] GetFinanceBreakdownQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>One project's income, spending and profit — in a period, and from its start to today.</summary>
+    [HttpGet("projects/{projectId:guid}/summary")]
+    [ProducesResponseType(typeof(ProjectFinanceSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ProjectFinanceSummaryDto>> GetProjectSummary(
+        Guid projectId,
+        [FromQuery] GetProjectFinanceSummaryQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query with { ProjectId = projectId }, cancellationToken));
+    }
+
     /// <summary>A site's contract value and its planned spending.</summary>
     [HttpGet("projects/{projectId:guid}/budget")]
     [ProducesResponseType(typeof(ProjectBudgetDto), StatusCodes.Status200OK)]

@@ -2,6 +2,7 @@
  * @vitest-environment jsdom
  */
 import { screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { installFakeNetwork, renderScreen, signedIn, type FakeNetwork } from '../../test/renderScreen';
@@ -263,6 +264,115 @@ describe('HomePage dashboard', () => {
         expect(screen.getByRole('button', { name: 'Add widget' })).toBeDefined();
       }, { timeout: 5000 });
       expect(network.calls.some((call) => call.url.includes('/finance/by-project'))).toBe(false);
+    });
+  });
+
+  describe('widgets with settings', () => {
+    const PROJECT_ID = '22222222-2222-2222-2222-222222222222';
+    const money = (revenue: number, expense: number) => ({
+      revenue, expense, profit: revenue - expense, marginPercent: revenue > 0 ? Math.round(((revenue - expense) / revenue) * 1000) / 10 : null,
+    });
+    const projectsPage = {
+      items: [{ id: PROJECT_ID, name: 'Rezidencija', kind: 'Main', status: 'Active' }],
+      totalCount: 1, pageNumber: 1, pageSize: 1000, totalPages: 1,
+    };
+
+    it('shows what the money goes on, with the pieces adding up to the total shown above them', async () => {
+      network.reply('/dashboard-layout', 200, { widgets: [{ id: '1', type: 'CostBreakdown', x: 0, y: 0, w: 6, h: 12 }] });
+      network.reply('/projects', 200, projectsPage);
+      network.reply('/finance/breakdown', 200, {
+        from: '2026-09-01', to: '2026-09-30', projectId: null, includesLabour: true, total: 1000,
+        items: [
+          { kind: 'Labour', amount: 600 }, { kind: 'ManualPay', amount: 0 }, { kind: 'Material', amount: 400 },
+          { kind: 'GeneralExpenses', amount: 0 }, { kind: 'Accommodation', amount: 0 }, { kind: 'Vehicles', amount: 0 }, { kind: 'Tools', amount: 0 },
+        ],
+      });
+
+      renderScreen(<HomePage />, { user: signedIn('SuperAdmin') });
+
+      await waitFor(() => {
+        expect(screen.getByText('1,000.00')).toBeDefined();
+      }, { timeout: 5000 });
+
+      // Whole company: no project on the request.
+      const call = network.calls.find((c) => c.url.includes('/finance/breakdown'))!;
+      expect(call.params.projectId).toBeUndefined();
+    });
+
+    it('asks for one project only when a project is chosen in its settings', async () => {
+      network.reply('/dashboard-layout', 200, {
+        widgets: [{ id: '1', type: 'CostBreakdown', x: 0, y: 0, w: 6, h: 12, settings: { projectId: PROJECT_ID } }],
+      });
+      network.reply('/projects', 200, projectsPage);
+      network.reply('/finance/breakdown', 200, {
+        from: '2026-09-01', to: '2026-09-30', projectId: PROJECT_ID, includesLabour: true, total: 0,
+        items: [{ kind: 'Labour', amount: 0 }],
+      });
+
+      renderScreen(<HomePage />, { user: signedIn('SuperAdmin') });
+
+      await waitFor(() => {
+        expect(network.calls.some((c) => c.url.includes('/finance/breakdown') && c.params.projectId === PROJECT_ID)).toBe(true);
+      }, { timeout: 5000 });
+    });
+
+    it('asks which project to show and does not call the server until one is chosen', async () => {
+      network.reply('/dashboard-layout', 200, { widgets: [{ id: '1', type: 'ProjectFocus', x: 0, y: 0, w: 6, h: 12 }] });
+
+      renderScreen(<HomePage />, { user: signedIn('SuperAdmin') });
+
+      await waitFor(() => {
+        expect(screen.getByText('Choose the project this widget shows.')).toBeDefined();
+      }, { timeout: 5000 });
+
+      expect(network.calls.some((c) => c.url.includes('/summary'))).toBe(false);
+    });
+
+    it('measures the budget against everything to date, and lets an overrun show past 100%', async () => {
+      network.reply('/dashboard-layout', 200, {
+        widgets: [{ id: '1', type: 'ProjectFocus', x: 0, y: 0, w: 6, h: 12, settings: { projectId: PROJECT_ID } }],
+      });
+      network.reply(`/finance/projects/${PROJECT_ID}/summary`, 200, {
+        projectId: PROJECT_ID, projectName: 'Rezidencija', contractValue: 1000, budget: 400, includesLabour: true,
+        period: money(250, 100), toDate: money(500, 480), toDateFrom: '2025-01-01',
+        budgetUsedPercent: 120, contractCollectedPercent: 50,
+      });
+
+      renderScreen(<HomePage />, { user: signedIn('SuperAdmin') });
+
+      await waitFor(() => {
+        expect(screen.getByText('120.0%')).toBeDefined();
+      }, { timeout: 5000 });
+
+      expect(screen.getByText('50.0%')).toBeDefined();
+      expect(screen.getByText('480.00 / 400.00')).toBeDefined();
+      expect(screen.getByText(/Project in focus — Rezidencija/)).toBeDefined();
+    });
+
+    it('keeps a widgets settings in the saved layout when they are changed', async () => {
+      network.reply('/dashboard-layout', 200, { widgets: [{ id: '1', type: 'TopProjectsByExpense', x: 0, y: 0, w: 6, h: 12 }] });
+      network.reply('/finance/by-project', 200, {
+        from: '2026-09-01', to: '2026-09-30', includesLabour: true, rows: [], totalProjects: 0,
+        company: money(0, 0), unallocated: money(0, 0), unassignedPayOverlaps: 0, housingDoubleEntries: 0,
+      });
+
+      const user = userEvent.setup();
+      renderScreen(<HomePage />, { user: signedIn('SuperAdmin') });
+
+      await user.click(await screen.findByRole('button', { name: 'Widget settings' }, { timeout: 5000 }));
+      await user.click(await screen.findByRole('combobox', { name: 'Rows shown' }));
+      await user.click(await screen.findByRole('option', { name: '10' }));
+      await user.click(screen.getByRole('button', { name: 'Save changes' }));
+
+      await waitFor(() => {
+        const save = network.calls.find((c) => c.method === 'PUT' && c.url.includes('/dashboard-layout'));
+        expect(save).toBeDefined();
+        const widgets = (save!.body as { widgets: { settings?: Record<string, string> }[] }).widgets;
+        expect(widgets[0]!.settings).toEqual({ top: '10' });
+      }, { timeout: 5000 });
+
+      // And the widget now asks for ten.
+      expect(network.calls.some((c) => c.url.includes('/finance/by-project') && Number(c.params.top) === 10)).toBe(true);
     });
   });
 });

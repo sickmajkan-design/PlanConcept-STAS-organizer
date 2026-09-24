@@ -22,6 +22,8 @@ public static class DashboardWidgetTypes
     public const string IncomeVsExpense = nameof(IncomeVsExpense);
     public const string TopProjectsByExpense = nameof(TopProjectsByExpense);
     public const string ProfitByProject = nameof(ProfitByProject);
+    public const string CostBreakdown = nameof(CostBreakdown);
+    public const string ProjectFocus = nameof(ProjectFocus);
 
     public static readonly IReadOnlyList<string> All =
     [
@@ -39,5 +41,7 @@ public static class DashboardWidgetTypes
         IncomeVsExpense,
         TopProjectsByExpense,
         ProfitByProject,
+        CostBreakdown,
+        ProjectFocus,
     ];
 }

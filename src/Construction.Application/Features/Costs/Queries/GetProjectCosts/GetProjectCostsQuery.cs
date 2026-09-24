@@ -126,20 +126,28 @@ public class GetProjectCostsQueryHandler
                 var generalExpenseCost = generalExpenses.GetValueOrDefault(id);
                 var accommodationCost = accommodations.GetValueOrDefault(id);
 
+                // Each piece rounded once, and the total their sum, so the pieces of
+                // a row always add up to its total to the cent — the company report
+                // does the same.
+                var labourRounded = decimal.Round(l.Cost, 2);
+                var manualRounded = decimal.Round(manualPayAmount, 2);
+                var materialRounded = decimal.Round(materialCost, 2);
+                var generalRounded = decimal.Round(generalExpenseCost, 2);
+                var accommodationRounded = decimal.Round(accommodationCost, 2);
+
                 return new ProjectCostRowDto
                 {
                     ProjectId = id,
                     ProjectName = names.GetValueOrDefault(id) ?? string.Empty,
                     LabourMinutes = l.Minutes,
-                    LabourCost = decimal.Round(l.Cost, 2),
+                    LabourCost = labourRounded,
                     UnpricedMinutes = l.UnpricedMinutes,
-                    MaterialCost = decimal.Round(materialCost, 2),
+                    MaterialCost = materialRounded,
                     MaterialsOnSiteValue = decimal.Round(onSiteValue, 2),
-                    ManualPayAmount = decimal.Round(manualPayAmount, 2),
-                    GeneralExpenseCost = decimal.Round(generalExpenseCost, 2),
-                    AccommodationCost = decimal.Round(accommodationCost, 2),
-                    Total = decimal.Round(
-                        l.Cost + manualPayAmount + materialCost + generalExpenseCost + accommodationCost, 2)
+                    ManualPayAmount = manualRounded,
+                    GeneralExpenseCost = generalRounded,
+                    AccommodationCost = accommodationRounded,
+                    Total = labourRounded + manualRounded + materialRounded + generalRounded + accommodationRounded
                 };
             })
             .OrderByDescending(r => r.Total)

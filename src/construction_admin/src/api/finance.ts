@@ -81,6 +81,44 @@ export interface FinanceByProject {
   housingDoubleEntries: number;
 }
 
+export interface FinanceBreakdownItem {
+  /** "Labour", "ManualPay", "Material", "GeneralExpenses", "Accommodation", "Vehicles" or "Tools". */
+  kind: string;
+  amount: number;
+}
+
+export interface FinanceBreakdown {
+  from: string;
+  to: string;
+  projectId: string | null;
+  includesLabour: boolean;
+  /** Every kind, zero or not, in a fixed order. */
+  items: FinanceBreakdownItem[];
+  /** The sum of `items`. */
+  total: number;
+}
+
+export interface FinanceMoneyFigures {
+  revenue: number;
+  expense: number;
+  profit: number;
+  marginPercent: number | null;
+}
+
+export interface ProjectFinanceSummary {
+  projectId: string;
+  projectName: string;
+  contractValue: number | null;
+  budget: number | null;
+  includesLabour: boolean;
+  period: FinanceMoneyFigures;
+  /** From the start of the project to today — what a budget is measured against. */
+  toDate: FinanceMoneyFigures;
+  toDateFrom: string;
+  budgetUsedPercent: number | null;
+  contractCollectedPercent: number | null;
+}
+
 export interface ProjectBudget {
   projectId: string;
   contractValue: number | null;
@@ -132,6 +170,20 @@ export const financeApi = {
     request<FinanceByProject>({
       method: 'GET',
       url: '/api/v1/finance/by-project',
+      params: listParams(query),
+    }),
+
+  breakdown: (query: { from: string; to: string; projectId?: string }) =>
+    request<FinanceBreakdown>({
+      method: 'GET',
+      url: '/api/v1/finance/breakdown',
+      params: listParams(query),
+    }),
+
+  projectSummary: (projectId: string, query: { from: string; to: string }) =>
+    request<ProjectFinanceSummary>({
+      method: 'GET',
+      url: `/api/v1/finance/projects/${projectId}/summary`,
       params: listParams(query),
     }),
 

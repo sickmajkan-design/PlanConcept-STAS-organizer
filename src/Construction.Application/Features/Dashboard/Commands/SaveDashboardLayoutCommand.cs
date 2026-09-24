@@ -21,6 +21,10 @@ public record SaveDashboardLayoutCommand : IRequest<DashboardLayoutDto>
 
 public class SaveDashboardLayoutCommandValidator : AbstractValidator<SaveDashboardLayoutCommand>
 {
+    private const int MaxSettings = 8;
+    private const int MaxSettingKeyLength = 40;
+    private const int MaxSettingValueLength = 100;
+
     public SaveDashboardLayoutCommandValidator()
     {
         RuleForEach(x => x.Widgets).ChildRules(widget =>
@@ -32,6 +36,16 @@ public class SaveDashboardLayoutCommandValidator : AbstractValidator<SaveDashboa
             widget.RuleFor(w => w.H).GreaterThanOrEqualTo(1);
             widget.RuleFor(w => w.X).GreaterThanOrEqualTo(0);
             widget.RuleFor(w => w.Y).GreaterThanOrEqualTo(0);
+
+            // Settings are stored as-is in the layout blob, so they are kept small.
+            widget.RuleFor(w => w.Settings)
+                .Must(settings => settings is null || settings.Count <= MaxSettings)
+                .WithMessage($"A widget may have at most {MaxSettings} settings.")
+                .Must(settings => settings is null
+                    || settings.All(s => s.Key.Length is > 0 and <= MaxSettingKeyLength
+                        && s.Value is not null
+                        && s.Value.Length <= MaxSettingValueLength))
+                .WithMessage("A widget setting is too long.");
         });
     }
 }

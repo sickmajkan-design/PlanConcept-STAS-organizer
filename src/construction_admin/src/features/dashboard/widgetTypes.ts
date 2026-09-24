@@ -14,6 +14,8 @@ export const dashboardWidgetTypes = [
   'IncomeVsExpense',
   'TopProjectsByExpense',
   'ProfitByProject',
+  'CostBreakdown',
+  'ProjectFocus',
 ] as const;
 
 export type DashboardWidgetType = (typeof dashboardWidgetTypes)[number];
@@ -30,6 +32,8 @@ export interface DashboardWidgetConfig {
   y: number;
   w: number;
   h: number;
+  /** Choices made on this one widget — which project it shows, how many rows — as plain text. */
+  settings?: Record<string, string>;
 }
 
 export interface DashboardLayout {
@@ -39,6 +43,10 @@ export interface DashboardLayout {
 /** Every widget component fetches its own data — the grid only positions it. */
 export interface DashboardWidgetProps {
   instanceId: string;
+  /** This instance's own choices. Absent when it has made none. */
+  settings?: Record<string, string>;
+  /** Replaces the instance's choices. Absent where the board cannot be edited. */
+  onSettingsChange?: (settings: Record<string, string>) => void;
   onRemove?: () => void;
   /** Snaps the widget to x:0 and the full column count in one click — the reliable alternative to dragging a resize handle exactly to the grid's edge. */
   onExpandWidth?: () => void;

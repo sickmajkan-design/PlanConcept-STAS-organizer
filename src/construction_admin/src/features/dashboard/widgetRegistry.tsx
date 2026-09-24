@@ -4,6 +4,7 @@ import type { MessageKey } from '../../i18n/en';
 import { AbsencesBalanceWidget } from './widgets/AbsencesBalanceWidget';
 import { CompanyKpiWidget } from './widgets/CompanyKpiWidget';
 import { CostTrendWidget } from './widgets/CostTrendWidget';
+import { CostBreakdownWidget } from './widgets/CostBreakdownWidget';
 import { DocumentExpiryWidget } from './widgets/DocumentExpiryWidget';
 import { FinanceOverviewWidget } from './widgets/FinanceOverviewWidget';
 import { FleetStatusWidget } from './widgets/FleetStatusWidget';
@@ -12,6 +13,7 @@ import { LiveMapWidget } from './widgets/LiveMapWidget';
 import { NeedsAttentionWidget } from './widgets/NeedsAttentionWidget';
 import { NotificationsBulletinWidget } from './widgets/NotificationsBulletinWidget';
 import { ProfitByProjectWidget } from './widgets/ProfitByProjectWidget';
+import { ProjectFocusWidget } from './widgets/ProjectFocusWidget';
 import { ProjectsRealizationWidget } from './widgets/ProjectsRealizationWidget';
 import { TodayAttendanceWidget } from './widgets/TodayAttendanceWidget';
 import { TopProjectsByExpenseWidget } from './widgets/TopProjectsByExpenseWidget';
@@ -90,6 +92,16 @@ export const widgetRegistry: Record<DashboardWidgetType, WidgetRegistryEntry> = 
   ProfitByProject: {
     component: ProfitByProjectWidget,
     titleKey: 'dashboard.widget.ProfitByProject',
+    requiresFinance: true,
+  },
+  CostBreakdown: {
+    component: CostBreakdownWidget,
+    titleKey: 'dashboard.widget.CostBreakdown',
+    requiresFinance: true,
+  },
+  ProjectFocus: {
+    component: ProjectFocusWidget,
+    titleKey: 'dashboard.widget.ProjectFocus',
     requiresFinance: true,
   },
 };

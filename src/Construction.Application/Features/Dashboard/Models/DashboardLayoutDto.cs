@@ -23,4 +23,11 @@ public record DashboardWidgetDto
     public int W { get; init; }
 
     public int H { get; init; }
+
+    /// <summary>
+    /// Choices made on this one widget — which project it shows, how many rows
+    /// — as plain text keyed by name. Null when it has none. Bounded on save;
+    /// what the keys mean is the widget's own business.
+    /// </summary>
+    public IReadOnlyDictionary<string, string>? Settings { get; init; }
 }

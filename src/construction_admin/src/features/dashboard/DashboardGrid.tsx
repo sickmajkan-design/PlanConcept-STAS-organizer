@@ -193,6 +193,16 @@ export function DashboardGrid() {
     scheduleSave(next);
   }
 
+  /** Replaces one widget's settings; an empty set clears them, so a widget with none carries none. */
+  function handleSettingsChange(id: string, settings: Record<string, string>) {
+    if (!widgets) return;
+    const next = widgets.map((w) =>
+      w.id === id ? { ...w, settings: Object.keys(settings).length > 0 ? settings : undefined } : w,
+    );
+    setWidgets(next);
+    scheduleSave(next);
+  }
+
   function handleAdd(type: DashboardWidgetConfig['type']) {
     if (!widgets) return;
     const next = [
@@ -264,7 +274,11 @@ export function DashboardGrid() {
                   // never resolves, so charts kept re-measuring against a card
                   // that was itself sized by the charts.
                   <Box key={widget.id} sx={{ height: Math.max(320, widget.h * 28) }}>
-                    <Widget instanceId={widget.id} />
+                    <Widget
+                      instanceId={widget.id}
+                      settings={widget.settings}
+                      onSettingsChange={(settings) => handleSettingsChange(widget.id, settings)}
+                    />
                   </Box>
                 );
               })}
@@ -287,6 +301,8 @@ export function DashboardGrid() {
                   <div key={widget.id}>
                     <Widget
                       instanceId={widget.id}
+                      settings={widget.settings}
+                      onSettingsChange={(settings) => handleSettingsChange(widget.id, settings)}
                       onRemove={() => handleRemove(widget.id)}
                       onExpandWidth={widget.x === 0 && widget.w === GRID_COLS ? undefined : () => handleExpandWidth(widget.id)}
                     />
