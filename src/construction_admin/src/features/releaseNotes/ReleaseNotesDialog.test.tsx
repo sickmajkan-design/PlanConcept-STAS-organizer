@@ -3,13 +3,29 @@
  */
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { installFakeNetwork, renderScreen, signedIn } from '../../test/renderScreen';
 import { ReleaseNotesDialog } from './ReleaseNotesDialog';
 import { RELEASE_ID } from './releaseNotes';
 
+/** Where this installation says the phone app is downloaded; each test sets its own. */
+const deployment = vi.hoisted(() => ({ appDownloadUrl: '' }));
+
+vi.mock('../../config', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../config')>();
+
+  return {
+    ...actual,
+    config: new Proxy(actual.config, {
+      get: (target, key, receiver) =>
+        key === 'appDownloadUrl' ? deployment.appDownloadUrl : Reflect.get(target, key, receiver),
+    }),
+  };
+});
+
 beforeEach(() => {
+  deployment.appDownloadUrl = '';
   window.localStorage.clear();
   installFakeNetwork();
 });
@@ -68,5 +84,23 @@ describe('ReleaseNotesDialog', () => {
     renderScreen(<ReleaseNotesDialog />, { user: operator });
 
     expect(await screen.findByText(/What's new/)).toBeDefined();
+  }, SCREEN_TIMEOUT);
+
+  it('names the address the phone app is downloaded from, as a link, to an administrator', async () => {
+    deployment.appDownloadUrl = 'https://example.test/downloads/';
+
+    renderScreen(<ReleaseNotesDialog />, { user: signedIn('SuperAdmin') });
+
+    const link = await screen.findByRole('link', { name: 'https://example.test/downloads/' });
+
+    expect(link.getAttribute('href')).toBe('https://example.test/downloads/');
+  }, SCREEN_TIMEOUT);
+
+  it('says nothing about a download address this installation does not have', async () => {
+    renderScreen(<ReleaseNotesDialog />, { user: signedIn('SuperAdmin') });
+
+    await screen.findByText('Reminders');
+
+    expect(screen.queryByText(/Download the phone app/)).toBeNull();
   }, SCREEN_TIMEOUT);
 });

@@ -1,9 +1,22 @@
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Stack, Typography } from '@mui/material';
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Link as MuiLink,
+  Stack,
+  Typography,
+} from '@mui/material';
 import { useEffect, useState } from 'react';
 
 import { useAuth } from '../../auth/useAuth';
+import { config } from '../../config';
 import { useT } from '../../i18n/useI18n';
 import { hasSeen, markSeen, sectionsFor } from './releaseNotes';
+
+/** The item that names the address the phone app is downloaded from. */
+const DOWNLOAD_ITEM = 'releaseNotes.setup.downloadLink';
 
 /**
  * "What's new", shown once after signing in — so the people using the platform
@@ -48,11 +61,22 @@ export function ReleaseNotesDialog() {
                 {t(section.titleKey)}
               </Typography>
               <Stack component="ul" spacing={0.75} sx={{ m: 0, pl: 2.5 }}>
-                {section.itemKeys.map((key) => (
-                  <Typography key={key} component="li" variant="body2">
-                    {t(key)}
-                  </Typography>
-                ))}
+                {section.itemKeys
+                  // The download note is about an address this installation may not have.
+                  .filter((key) => key !== DOWNLOAD_ITEM || config.appDownloadUrl)
+                  .map((key) => (
+                    <Typography key={key} component="li" variant="body2">
+                      {t(key)}
+                      {key === DOWNLOAD_ITEM && (
+                        <>
+                          {' '}
+                          <MuiLink href={config.appDownloadUrl} sx={{ wordBreak: 'break-all' }}>
+                            {config.appDownloadUrl}
+                          </MuiLink>
+                        </>
+                      )}
+                    </Typography>
+                  ))}
               </Stack>
             </Stack>
           ))}
