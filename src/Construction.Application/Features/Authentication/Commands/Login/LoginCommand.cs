@@ -2,8 +2,10 @@ using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Authentication.Models;
 using Construction.Application.Features.Authentication.Services;
+using Construction.Application.Features.Maintenance.Commands.CatchUpReminders;
 using Construction.Application.Features.Maintenance.Commands.PurgeOrphanedNotifications;
 using Construction.Domain.Entities;
+using Construction.Domain.Enums;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -120,6 +122,11 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
 
         await ReconcileNotificationsAsync(cancellationToken);
 
+        if (user.Role is UserRole.SuperAdmin or UserRole.Admin)
+        {
+            await CatchUpRemindersAsync(cancellationToken);
+        }
+
         return response;
     }
 
@@ -138,6 +145,23 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
             _logger.LogWarning(exception, "Notification reconciliation at login failed.");
+        }
+    }
+
+    /// <summary>
+    /// Sends the reminders already due for the office, so a document that lapses
+    /// soon is on the bell at the first sign-in rather than at the next daily
+    /// sweep. Best effort, like the reconciliation above.
+    /// </summary>
+    private async Task CatchUpRemindersAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _sender.Send(new CatchUpRemindersCommand(), cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            _logger.LogWarning(exception, "Reminder catch-up at login failed.");
         }
     }
 

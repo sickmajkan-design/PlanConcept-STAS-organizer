@@ -20,7 +20,7 @@ Problem: kad se nešto obriše (zaposleni, dokument, zadatak…), obavještenja 
 | Značke u meniju računaju se iz živih podataka | Već je tako bilo |
 
 **Ostaje (PLANIRANO):**
-- **Ponovno pravljenje obavještenja pri loginu** za dokumente koji ističu, ugovore o smještaju i niske zalihe: izračunati šta treba da postoji i napraviti ono što fali. Prije toga provjeriti kako `DailyReminderService` sprečava duplikate.
+- **Podsjetnici pri loginu — URAĐENO** za dokumente koji ističu i ugovore o smještaju: pri prijavi Admina/Super Admina pokreće se isti prolaz kao dnevni (`CatchUpRemindersCommand`, najviše jednom u 10 min). Šalje se samo ono što još nije poslano (rezervacija u bazi), pa obrisano obavještenje ostaje obrisano. **Niske zalihe nisu uključene**: taj podsjetnik je trenutak prelaska ispod minimuma i ne pamti da je poslan, pa bi se ponavljao.
 - Brisanje direktno u bazi vidi se tek pri sljedećem čitanju/osvježavanju (panel nema push).
 
 ## 2. Dokumenti — URAĐENO, djelimično PLANIRANO

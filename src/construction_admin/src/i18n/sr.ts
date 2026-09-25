@@ -495,6 +495,8 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.fixes.title': 'Ispravljeno',
   'releaseNotes.fixes.deletedProject': 'Kada se projekat obriše, sada zaista nestaju i njegovi troškovi, isplate, izdat materijal i evidentirani sati (raniji popravak nije pokrivao sve slučajeve). Ranije su ostajali u ukupnim iznosima firme, u trendu potrošnje i u njegovom prosjeku, pa su cifre i trend bili pogrešni.',
   'releaseNotes.fixes.demoData': 'Sa testnog servera su uklonjeni demo podaci (demo troškovi i probni smještaj), pa cifre sada prikazuju samo ono što je zaista uneseno.',
+  'releaseNotes.reminders.title': 'Podsjetnici',
+  'releaseNotes.reminders.atLogin': 'Podsjetnici o dokumentima koji ističu i ugovorima o smještaju koji ističu sada stižu u zvonce pri prijavi, umjesto da čekaju sljedeću dnevnu provjeru. Svaki podsjetnik se šalje jednom; obrisan se ne vraća.',
   'releaseNotes.finance.statistics': 'SuperAdmin može nalogu dodijeliti i pravo „Samo statistika“: promjene u procentima i struktura troškova, bez ijednog iznosa.',
   'finance.budget.warnPercentHelp': 'Prazno znači 80%. Od 100% se projekat računa kao prekoračen.',
   'finance.housingDoubleWarning': '{count} troškova smještaja pada na dane kada je kirija već uračunata iz cijena smještaja, pa se ta kirija računa dvaput. Obrišite ih ili ih prebacite u drugu kategoriju.',

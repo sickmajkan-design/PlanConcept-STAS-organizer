@@ -472,6 +472,8 @@ export const en = {
   'releaseNotes.fixes.title': 'Fixed',
   'releaseNotes.fixes.deletedProject': 'When a project is deleted, its costs, pay entries, material issued and clocked hours now really disappear with it (the earlier fix did not cover every case). Before, they stayed in the company totals, in the spending trend and in its average, which made the figures and the trend wrong.',
   'releaseNotes.fixes.demoData': 'The demo data (demo costs and a test accommodation) was removed from the test server, so the figures now show only what was actually entered.',
+  'releaseNotes.reminders.title': 'Reminders',
+  'releaseNotes.reminders.atLogin': 'Reminders about documents about to expire and housing contracts about to end now reach the bell when you sign in, instead of waiting for the next daily check. Each reminder is sent once; one you deleted does not come back.',
   'releaseNotes.finance.statistics': 'A SuperAdmin can also grant an account "Statistics only": changes in percent and the structure of spending, without a single amount.',
   'finance.budget.warnPercentHelp': 'Leave empty for 80%. From 100% the project counts as over.',
   'finance.housingDoubleWarning': '{count} housing expenses fall on days when accommodation rent is already counted from the accommodation rates, so that rent is counted twice. Delete them or move them to another category.',
