@@ -13,7 +13,9 @@ public class WorkItemConfiguration : IEntityTypeConfiguration<WorkItem>
 
         builder.HasKey(w => w.Id);
 
-        builder.HasQueryFilter(w => !w.IsDeleted);
+        // Work on a deleted site goes with it. Project is optional and has a filter of its
+        // own, so a deleted project joins in as null: test the id, not the navigation alone.
+        builder.HasQueryFilter(w => !w.IsDeleted && (w.ProjectId == null || w.Project != null));
 
         builder.Ignore(w => w.IsFinished);
 

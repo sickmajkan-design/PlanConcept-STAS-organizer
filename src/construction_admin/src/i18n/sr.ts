@@ -493,7 +493,7 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.finance.income': 'Nova stranica „Prihodi firme“ za novac koji ne pripada projektu, npr. najam vozila i alata.',
   'releaseNotes.finance.budget': 'Na stranici projekta postoji kartica „Budžet“: planirani trošak i izbor da li se upozorava prema budžetu ili ugovorenoj vrijednosti, i na kojem procentu.',
   'releaseNotes.fixes.title': 'Ispravljeno',
-  'releaseNotes.fixes.deletedProject': 'Kada se projekat obriše, sada zaista nestaju i njegovi troškovi, isplate, izdat materijal i evidentirani sati (raniji popravak nije pokrivao sve slučajeve). Ranije su ostajali u ukupnim iznosima firme, u trendu potrošnje i u njegovom prosjeku, pa su cifre i trend bili pogrešni.',
+  'releaseNotes.fixes.deletedProject': 'Kada se projekat obriše, sada zaista nestaju i njegovi troškovi, isplate, izdat materijal, evidentirani sati i zadaci (raniji popravak nije pokrivao sve slučajeve). Ranije su ostajali u ukupnim iznosima firme, u trendu potrošnje i u njegovom prosjeku, pa su cifre i trend bili pogrešni.',
   'releaseNotes.fixes.demoData': 'Sa testnog servera su uklonjeni demo podaci (demo troškovi i probni smještaj), pa cifre sada prikazuju samo ono što je zaista uneseno.',
   'releaseNotes.reminders.title': 'Podsjetnici',
   'releaseNotes.reminders.atLogin': 'Podsjetnici o dokumentima koji ističu i ugovorima o smještaju koji ističu sada stižu u zvonce pri prijavi, umjesto da čekaju sljedeću dnevnu provjeru. Svaki podsjetnik se šalje jednom; obrisan se ne vraća.',

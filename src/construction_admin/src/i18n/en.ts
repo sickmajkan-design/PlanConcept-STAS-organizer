@@ -470,7 +470,7 @@ export const en = {
   'releaseNotes.finance.income': 'A new "Company income" page for money that belongs to no project, e.g. renting out vehicles and tools.',
   'releaseNotes.finance.budget': 'A "Budget" card on the project page: planned spending, and a choice of whether to warn against the budget or the contract value, and at what percentage.',
   'releaseNotes.fixes.title': 'Fixed',
-  'releaseNotes.fixes.deletedProject': 'When a project is deleted, its costs, pay entries, material issued and clocked hours now really disappear with it (the earlier fix did not cover every case). Before, they stayed in the company totals, in the spending trend and in its average, which made the figures and the trend wrong.',
+  'releaseNotes.fixes.deletedProject': 'When a project is deleted, its costs, pay entries, material issued, clocked hours and tasks now really disappear with it (the earlier fix did not cover every case). Before, they stayed in the company totals, in the spending trend and in its average, which made the figures and the trend wrong.',
   'releaseNotes.fixes.demoData': 'The demo data (demo costs and a test accommodation) was removed from the test server, so the figures now show only what was actually entered.',
   'releaseNotes.reminders.title': 'Reminders',
   'releaseNotes.reminders.atLogin': 'Reminders about documents about to expire and housing contracts about to end now reach the bell when you sign in, instead of waiting for the next daily check. Each reminder is sent once; one you deleted does not come back.',

@@ -617,4 +617,44 @@ public class WorkItemTests : IntegrationTestBase
 
         return (item, worker, employee.Id);
     }
+
+    [Fact]
+    public async Task Deleting_a_project_takes_its_work_items_out_of_the_lists()
+    {
+        var foreman = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Foreman));
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var title = $"Zadatak {Guid.NewGuid():N}";
+
+        await InScope(scope =>
+        {
+            ActAs(scope, foreman);
+            return CreateAsync(scope, projectId: project.Id, title: title);
+        });
+
+        // One that belongs to no project: it must stay.
+        var loose = $"Slobodan {Guid.NewGuid():N}";
+        await InScope(scope =>
+        {
+            ActAs(scope, foreman);
+            return CreateAsync(scope, title: loose);
+        });
+
+        async Task<IReadOnlyList<string>> TitlesAsync() => await InScope(async scope =>
+        {
+            ActAs(scope, foreman);
+            var page = await scope.Send(new GetWorkItemsQuery { PageSize = 100, Search = "Zadatak" });
+            var other = await scope.Send(new GetWorkItemsQuery { PageSize = 100, Search = "Slobodan" });
+            return page.Items.Concat(other.Items).Select(i => i.Title).ToList();
+        });
+
+        var before = await TitlesAsync();
+        Assert.Contains(title, before);
+        Assert.Contains(loose, before);
+
+        await InScope(scope => scope.Send(new Construction.Application.Features.Projects.Commands.DeleteProject.DeleteProjectCommand(project.Id)));
+
+        var after = await TitlesAsync();
+        Assert.DoesNotContain(title, after);
+        Assert.Contains(loose, after);
+    }
 }
