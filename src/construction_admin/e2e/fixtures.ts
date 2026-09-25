@@ -64,6 +64,32 @@ export async function signIn(page: Page) {
   // session, which makes it the honest signal that sign-in finished.
   await expect(page).not.toHaveURL(/\/login/);
   await expect(page.locator('.MuiAppBar-root')).toBeVisible();
+
+  await dismissReleaseNotes(page);
+}
+
+/**
+ * Closes the "what's new" dialog that opens once after signing in.
+ *
+ * It is a modal: while it is open the rest of the page is hidden from the
+ * accessibility tree, so every test that goes on to look for a link or a button
+ * would fail to find it. A fresh browser context has never seen the notes, so
+ * it always appears — a moment after the app bar, hence the short wait. If the
+ * account has nothing to be told (no sections for its role) there is no dialog
+ * and this returns quickly.
+ */
+export async function dismissReleaseNotes(page: Page) {
+  const dialog = page.getByRole('dialog');
+
+  try {
+    await dialog.waitFor({ state: 'visible', timeout: 3_000 });
+  } catch {
+    return;
+  }
+
+  // Its one action, whichever language it is in.
+  await dialog.getByRole('button').last().click();
+  await expect(dialog).toBeHidden();
 }
 
 /**
