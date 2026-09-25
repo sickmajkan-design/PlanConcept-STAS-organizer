@@ -3089,6 +3089,18 @@ abstract class AppLocalizations {
   /// **'Nothing on your list.'**
   String get workItemsEmpty;
 
+  /// No description provided for @shiftPickSiteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Which site are you on?'**
+  String get shiftPickSiteTitle;
+
+  /// No description provided for @shiftPickSiteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'You are posted to more than one site today. Choose where you are working.'**
+  String get shiftPickSiteHint;
+
   /// No description provided for @workItemsSearchHint.
   ///
   /// In en, this message translates to:

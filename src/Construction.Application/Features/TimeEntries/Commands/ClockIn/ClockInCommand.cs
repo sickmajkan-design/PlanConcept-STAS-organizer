@@ -248,18 +248,10 @@ public class ClockInCommandHandler : IRequestHandler<ClockInCommand, TimeEntryDt
     {
         var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
 
-        var projectIds = await _context.EmployeeProjects
-            .AsNoTracking()
-            .Where(a => a.EmployeeId == employeeId
-                && a.StartDate <= today
-                && (a.EndDate == null || a.EndDate >= today)
-                && a.Project.Status == ProjectStatus.Active)
-            .Select(a => a.ProjectId)
-            .Distinct()
-            .Take(2)
-            .ToListAsync(cancellationToken);
+        var sites = await TimeEntryRules.RunningPostingsAsync(
+            _context, employeeId, today, cancellationToken);
 
-        return projectIds.Count == 1 ? projectIds[0] : null;
+        return sites.Count == 1 ? sites[0].Id : null;
     }
 
     /// <summary>

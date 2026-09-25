@@ -29,7 +29,7 @@ public class CompanySettingsController : ApiControllerBase
 
     [HttpGet("/api/v{version:apiVersion}/company-settings")]
     [HttpGet("/api/company-settings")]
-    [Authorize(Policy = Policies.AllEmployees)]
+    [Authorize(Policy = Policies.ForemanAndAbove)]
     [ProducesResponseType(typeof(CompanySettingsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<CompanySettingsDto>> Get(CancellationToken cancellationToken)
     {

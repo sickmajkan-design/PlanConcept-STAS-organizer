@@ -1746,6 +1746,13 @@ class AppLocalizationsSr extends AppLocalizations {
   String get workItemsEmpty => 'Nemate ništa na spisku.';
 
   @override
+  String get shiftPickSiteTitle => 'Na kojem ste gradilištu?';
+
+  @override
+  String get shiftPickSiteHint =>
+      'Danas ste raspoređeni na više gradilišta. Izaberite na kojem radite.';
+
+  @override
   String get workItemsSearchHint => 'Naslov, opis…';
 
   @override

@@ -1744,6 +1744,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get workItemsEmpty => 'Nothing on your list.';
 
   @override
+  String get shiftPickSiteTitle => 'Which site are you on?';
+
+  @override
+  String get shiftPickSiteHint =>
+      'You are posted to more than one site today. Choose where you are working.';
+
+  @override
   String get workItemsSearchHint => 'Title, description…';
 
   @override

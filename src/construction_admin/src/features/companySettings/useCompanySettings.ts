@@ -8,10 +8,15 @@ const keys = createResourceKeys<never>('company-settings');
 const brandingKey = [...keys.all, 'branding'];
 
 /** The full profile — any signed-in role may read it. */
-export function useCompanySettingsQuery() {
+/**
+ * The full company profile. Staff only: the server refuses it to a worker, so asking would only
+ * produce an error — pass `enabled: false` for accounts that may not read it.
+ */
+export function useCompanySettingsQuery(enabled = true) {
   return useQuery({
     queryKey: keys.all,
     queryFn: () => companySettingsApi.get(),
+    enabled,
   });
 }
 

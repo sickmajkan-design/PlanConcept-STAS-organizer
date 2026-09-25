@@ -127,6 +127,41 @@ public class TimeEntryTests : IntegrationTestBase
         Assert.Equal(chosen.Id, entry.ProjectId);
     }
 
+    [Fact]
+    public async Task The_sites_offered_at_clock_in_are_the_running_ones_the_worker_is_posted_to_today()
+    {
+        var (employee, user) = await InScope(SeedWorkerAsync);
+        var first = await InScope(scope => TestData.SeedProjectAsync(scope, name: $"Zeta {Guid.NewGuid():N}"[..14]));
+        var second = await InScope(scope => TestData.SeedProjectAsync(scope, name: $"Alfa {Guid.NewGuid():N}"[..14]));
+        var finished = await InScope(scope => TestData.SeedProjectAsync(scope, status: ProjectStatus.Completed));
+        var later = await InScope(scope => TestData.SeedProjectAsync(scope));
+        await InScope(scope => PostAsync(scope, employee.Id, first.Id));
+        await InScope(scope => PostAsync(scope, employee.Id, second.Id));
+        await InScope(scope => PostAsync(scope, employee.Id, finished.Id));
+        await InScope(scope => PostAsync(scope, employee.Id, later.Id, startDaysAgo: -5));
+
+        var sites = await InScope(scope =>
+        {
+            ActAs(scope, user, employee.Id);
+            return scope.Send(new Construction.Application.Features.TimeEntries.Queries.GetClockInSites.GetClockInSitesQuery());
+        });
+
+        // Only the two running ones, by name, and not the finished or the not-yet-started one.
+        Assert.Equal(new[] { second.Id, first.Id }, sites.Select(s => s.Id).ToArray());
+    }
+
+    [Fact]
+    public async Task An_account_with_no_employee_behind_it_is_refused_the_sites()
+    {
+        var user = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => InScope(scope =>
+        {
+            ActAs(scope, user, null);
+            return scope.Send(new Construction.Application.Features.TimeEntries.Queries.GetClockInSites.GetClockInSitesQuery());
+        }));
+    }
+
     // ---- clocking in and out -------------------------------------------
 
     [Fact]

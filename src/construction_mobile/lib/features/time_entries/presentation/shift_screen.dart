@@ -12,7 +12,9 @@ import '../../../core/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../notifications/presentation/acknowledgment_gate.dart';
+import '../data/models/clock_in_site.dart';
 import '../data/models/time_entry.dart';
+import '../data/time_entry_repository.dart';
 import 'my_time_entries_controller.dart';
 import 'shift_controller.dart';
 
@@ -216,8 +218,39 @@ class _ShiftCardState extends ConsumerState<_ShiftCard> {
   Future<void> _clockIn() async {
     if (blockedByPendingAcknowledgment(context, ref)) return;
 
-    await ref.read(shiftControllerProvider.notifier).clockIn();
+    // A worker posted to several sites today says which one; with one or none the server
+    // places the shift itself, so nothing is asked.
+    final sites = await _sitesToChooseFrom();
+
+    String? projectId;
+
+    if (sites.length > 1) {
+      if (!mounted) return;
+
+      // Not dismissible, for the reason the break sheet is not: a stray tap must not read as a
+      // clock-in that silently did nothing. Cancelling is the explicit button.
+      projectId = await showModalBottomSheet<String>(
+        context: context,
+        isDismissible: false,
+        enableDrag: false,
+        builder: (_) => _SitePickerSheet(sites: sites),
+      );
+
+      if (projectId == null) return;
+    }
+
+    await ref.read(shiftControllerProvider.notifier).clockIn(projectId: projectId);
     ref.read(myTimeEntriesControllerProvider.notifier).refresh();
+  }
+
+  /// Never throws and never holds the shift back: with no signal the answer is "none", and the
+  /// shift is recorded and placed by the server when it arrives.
+  Future<List<ClockInSite>> _sitesToChooseFrom() async {
+    try {
+      return await ref.read(timeEntryRepositoryProvider).fetchClockInSites();
+    } catch (_) {
+      return const [];
+    }
   }
 
   Future<void> _clockOut(BuildContext context) async {
@@ -425,6 +458,55 @@ class _TimeEntryCard extends StatelessWidget {
                     ?.copyWith(color: theme.colorScheme.error),
               ),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Which site the worker is on, when they are posted to more than one.
+class _SitePickerSheet extends StatelessWidget {
+  const _SitePickerSheet({required this.sites});
+
+  final List<ClockInSite> sites;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l10n.shiftPickSiteTitle,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.shiftPickSiteHint,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 8),
+            for (final site in sites)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.apartment_outlined),
+                title: Text(site.name),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).pop(site.id),
+              ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(l10n.commonCancel),
+              ),
+            ),
           ],
         ),
       ),

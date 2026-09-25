@@ -30,10 +30,10 @@ Ozbiljnost: Kritična = korisnik ne može obaviti osnovni posao ili se gube poda
 | ID | Ozbiljnost | Gdje | Opis | Status |
 |---|---|---|---|---|
 | QA-01 | **Kritična** | Aplikacija | U dijalogu „Završetak smjene“ nije se prikazivalo dugme „Potvrdi“ (tema daje dugmetu beskonačnu širinu, što u `Row`-u nestaje bez poruke). Radnik nije mogao završiti smjenu. Isti obrazac u dva ekrana skeniranja i odgovoru na izmjenu odsustva | Ispravljeno (1.1.5) |
-| QA-02 | **Visoka** | Aplikacija + server | Aplikacija pri prijavi na smjenu nikad ne šalje gradilište, pa su svi sati bili „bez gradilišta“ i nisu ulazili u trošak rada nijednog projekta (ni geofence provjera ni obavještenja predradnicima) | Ispravljeno na serveru: bez poslanog gradilišta uzima se jedina aktivna dodjela radnika. **Otvoreno:** radnik s više dodjela mora se rasporediti u kancelariji |
+| QA-02 | **Visoka** | Aplikacija + server | Aplikacija pri prijavi na smjenu nikad ne šalje gradilište, pa su svi sati bili „bez gradilišta“ i nisu ulazili u trošak rada nijednog projekta (ni geofence provjera ni obavještenja predradnicima) | Ispravljeno: bez poslanog gradilišta uzima se jedina aktivna dodjela radnika; **radnik s više dodjela bira gradilište pri prijavi na smjenu** (aplikacija 1.1.7) |
 | QA-03 | **Visoka** | Aplikacija | Liste ostaju u memoriji cijele sesije aplikacije. Kad se na istom telefonu prijavi druga osoba, vidi **listu prethodne** (sate, odsustva, zadatke), i aplikacija uopće ne traži nove podatke. Curenje podataka između korisnika | Ispravljeno (svih 14 lista i 6 pomoćnih provajdera zavise od prijavljenog korisnika) |
 | QA-04 | **Visoka** | Aplikacija | Predradnik i voditelj projekta u „Moje radno vrijeme“, „Odsustva“ i „Moji zadaci“ dobijali su podatke cijele ekipe kao svoje (server sužava samo Radnika), bez imena na karticama | Ispravljeno |
-| QA-05 | Srednja | Aplikacija/server | Radniku se nudi „Sedmični izvještaji“, a server na svaki poziv vraća 403 („Nemate dozvolu“), i pri slanju | Ispravljeno: stavka skrivena radnicima. **Odluka:** treba li radnici smjeti slati (sada ne, prema serveru) |
+| QA-05 | Srednja | Aplikacija/server | Radniku se nudi „Sedmični izvještaji“, a server na svaki poziv vraća 403 („Nemate dozvolu“), i pri slanju | Ispravljeno: stavka skrivena radnicima. **Odluka vlasnika:** radnik ne šalje, poslovođa i iznad šalju (potvrđeno) |
 | QA-06 | Srednja | Aplikacija | Izbornik datuma na ćirilici („Изаберите период“) u aplikaciji na latinici | Ispravljeno |
 | QA-07 | Srednja | Panel | Na telefonu (390 px) početna stranica administratora je šira od ekrana: dugačka e-pošta u naslovu „Welcome, …“ se ne prelama | Ispravljeno |
 | QA-08 | Niska | Aplikacija | Pretraga u „Moji zadaci“ ima tekst „Prikaži i završeno“ umjesto teksta pretrage | Ispravljeno |
@@ -52,7 +52,7 @@ Ozbiljnost: Kritična = korisnik ne može obaviti osnovni posao ili se gube poda
 | OPEN-04 | Niska | Greške servera (npr. „Invalid email or password.“) su na engleskom u srpskoj aplikaciji | Poznato ograničenje: API nije lokalizovan |
 | OPEN-05 | Niska | Na listi odsustva dugme „Zatraži odsustvo“ prekriva zadnju karticu; oznaka „Čeka odgovor“ na vrhu nije jasna | Dodati donji razmak; pojasniti oznaku |
 | OPEN-06 | Niska | Tekst „Nisi tražio nijedno odsustvo“ je u muškom rodu za sve korisnike | Rodno neutralna formulacija |
-| OPEN-07 | Info | Radnik može čitati postavke firme (naziv, PDV/porezni broj, telefon, e-pošta, adresa za prosljeđivanje izvještaja) | Odlučiti treba li ograničiti |
+| OPEN-07 | ~~Info~~ | ~~Radnik može čitati postavke firme (PDV/porezni broj, telefon, e-pošta…)~~ | **Ispravljeno po odluci vlasnika:** samo poslovođa i iznad; radnik je odbijen na svim ostalim provjerenim `{id}` i listama, osim vlastitog rasporeda i oglasne ploče. Javni naziv i logo ostaju |
 | OPEN-08 | Info | Moguća je smjena od nula minuta (prijava pa odmah odjava) | Razmotriti minimalno trajanje |
 | OPEN-09 | Pokrivenost | 15 endpointa s `{id}` (dodjele, aktivacija, označavanje pročitanim…) fuzz je pogodio samo sa nasumičnim ID-jevima, ne s pravim | Dopuniti testom sa stvarnim podacima |
 
@@ -84,6 +84,7 @@ Nije rađeno uopće: iOS aplikacija; push (Firebase nije podešen); slanje e-po�
 
 ## 8. Odluke koje su potrebne od vlasnika
 
-1. Treba li **Radnik** smjeti slati sedmične izvještaje? (Sada ne, jer server to ne dozvoljava; aplikacija ga više ne nudi.)
-2. Radnik s **više aktivnih dodjela**: dodati u aplikaciju izbor gradilišta pri prijavi na smjenu? (Preporučujem.)
-3. Ograničiti **postavke firme** za radnike?
+Sve tri su riješene (odluke vlasnika, 2026-09-25):
+1. **Sedmične izvještaje** ne šalje Radnik; šalju poslovođa i iznad. Već je tako radilo na serveru; aplikacija ih radnicima više ne nudi.
+2. Radnik s **više aktivnih dodjela** bira gradilište pri prijavi na smjenu (aplikacija 1.1.7); s jednom se uzima automatski.
+3. **Postavke firme** čitaju poslovođa i iznad; radnik ne.

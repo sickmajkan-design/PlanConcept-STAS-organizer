@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/paged_list.dart';
 import '../../../core/network/api_repository.dart';
 import '../../../core/network/network_providers.dart';
+import 'models/clock_in_site.dart';
 import 'models/time_entry.dart';
 
 class TimeEntryRepository extends ApiRepository {
@@ -43,6 +44,22 @@ class TimeEntryRepository extends ApiRepository {
       return (response.data ?? [])
           .cast<Map<String, dynamic>>()
           .map(TimeEntry.fromJson)
+          .toList();
+    });
+  }
+
+  /// The running sites the caller is posted to today.
+  ///
+  /// Asked before a shift is started: with more than one the worker says which, since neither
+  /// the phone nor the server can tell. With one or none the server places the shift itself.
+  Future<List<ClockInSite>> fetchClockInSites() {
+    return guard(() async {
+      final response =
+          await dio.get<List<dynamic>>('/api/v1/timeentries/clock-in-sites');
+
+      return (response.data ?? [])
+          .cast<Map<String, dynamic>>()
+          .map(ClockInSite.fromJson)
           .toList();
     });
   }

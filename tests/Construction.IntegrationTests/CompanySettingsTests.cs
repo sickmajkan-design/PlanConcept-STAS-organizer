@@ -172,4 +172,18 @@ public class CompanySettingsTests
         var delete = await admin.DeleteAsync("/api/company-settings/logo");
         Assert.Equal(HttpStatusCode.Forbidden, delete.StatusCode);
     }
+
+    [Fact]
+    public async Task A_worker_cannot_read_the_company_details_but_the_public_branding_stays_open()
+    {
+        // The tax and registration numbers and the office's addresses are for staff; the login
+        // screen still needs the name and logo before anybody has signed in.
+        using var worker = _api.ClientAs(UserRole.Worker);
+        using var foreman = _api.ClientAs(UserRole.Foreman);
+        using var anonymous = _api.AnonymousClient();
+
+        Assert.Equal(HttpStatusCode.Forbidden, (await worker.GetAsync("/api/company-settings")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await foreman.GetAsync("/api/company-settings")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await anonymous.GetAsync("/api/company-settings/branding")).StatusCode);
+    }
 }

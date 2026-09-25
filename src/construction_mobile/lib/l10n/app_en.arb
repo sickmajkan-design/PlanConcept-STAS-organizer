@@ -933,6 +933,8 @@
   "attachmentCategoryOther": "Other",
   "navWorkItems": "My work",
   "workItemsEmpty": "Nothing on your list.",
+  "shiftPickSiteTitle": "Which site are you on?",
+  "shiftPickSiteHint": "You are posted to more than one site today. Choose where you are working.",
   "workItemsSearchHint": "Title, description…",
   "notificationBulletinPostedTitle": "New notice on the bulletin board",
   "workItemsIncludeFinished": "Include finished",

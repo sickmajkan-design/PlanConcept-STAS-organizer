@@ -618,6 +618,8 @@
   "attachmentCategoryOther": "Ostalo",
   "navWorkItems": "Moji zadaci",
   "workItemsEmpty": "Nemate ništa na spisku.",
+  "shiftPickSiteTitle": "Na kojem ste gradilištu?",
+  "shiftPickSiteHint": "Danas ste raspoređeni na više gradilišta. Izaberite na kojem radite.",
   "workItemsSearchHint": "Naslov, opis…",
   "notificationBulletinPostedTitle": "Nova objava na oglasnoj ploči",
   "workItemsIncludeFinished": "Prikaži i završeno",

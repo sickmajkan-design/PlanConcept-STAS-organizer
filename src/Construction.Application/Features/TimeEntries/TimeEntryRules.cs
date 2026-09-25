@@ -158,6 +158,31 @@ public static class TimeEntryRules
     /// fact would change what someone is owed with no trace, so the way back
     /// is to reject the entry first, which is recorded.
     /// </remarks>
+    /// <summary>
+    /// The running sites an employee is posted to on a day — the ones a shift can sensibly be
+    /// clocked in to. One definition, because the app's picker and the server's default when
+    /// none is named must agree on it.
+    /// </summary>
+    public static async Task<List<(Guid Id, string Name)>> RunningPostingsAsync(
+        IApplicationDbContext context,
+        Guid employeeId,
+        DateOnly day,
+        CancellationToken cancellationToken)
+    {
+        var rows = await context.EmployeeProjects
+            .AsNoTracking()
+            .Where(a => a.EmployeeId == employeeId
+                && a.StartDate <= day
+                && (a.EndDate == null || a.EndDate >= day)
+                && a.Project.Status == ProjectStatus.Active)
+            .Select(a => new { a.ProjectId, a.Project.Name })
+            .Distinct()
+            .OrderBy(a => a.Name)
+            .ToListAsync(cancellationToken);
+
+        return rows.Select(a => (a.ProjectId, a.Name)).ToList();
+    }
+
     public static void EnsureEditable(TimeEntry entry)
     {
         if (entry.Status == TimeEntryStatus.Approved)

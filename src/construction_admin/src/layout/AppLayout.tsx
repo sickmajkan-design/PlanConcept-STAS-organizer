@@ -42,7 +42,7 @@ import {
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-import { displayName } from '../auth/authHelpers';
+import { canViewDirectory, displayName } from '../auth/authHelpers';
 import { useAuth } from '../auth/useAuth';
 import { readScoped, storageScope, writeScoped } from '../hooks/userScopedStorage';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
@@ -116,7 +116,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const t = useT();
   const enumLabel = useEnumLabel();
   const { data: branding } = useCompanyBrandingQuery();
-  const { data: companyDetails } = useCompanySettingsQuery();
+  const { data: companyDetails } = useCompanySettingsQuery(canViewDirectory(user));
   const favorites = useFavorites();
   const badgeCounts = useNavBadgeCounts(user);
 

@@ -8,6 +8,7 @@ using Construction.Application.Features.TimeEntries.Commands.DeleteTimeEntry;
 using Construction.Application.Features.TimeEntries.Commands.ReviewTimeEntry;
 using Construction.Application.Features.TimeEntries.Commands.UpdateTimeEntry;
 using Construction.Application.Features.TimeEntries.Models;
+using Construction.Application.Features.TimeEntries.Queries.GetClockInSites;
 using Construction.Application.Features.TimeEntries.Queries.GetCurrentTimeEntry;
 using Construction.Application.Features.TimeEntries.Queries.GetMyTeamTimeEntriesToday;
 using Construction.Application.Features.TimeEntries.Queries.GetTimeEntries;
@@ -61,6 +62,19 @@ public class TimeEntriesController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>
+    /// The running sites the caller is posted to today — what to offer when they clock in.
+    /// </summary>
+    [HttpGet("clock-in-sites")]
+    [Authorize(Policy = Policies.AllEmployees)]
+    [ProducesResponseType(typeof(IReadOnlyList<ClockInSiteDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<IReadOnlyList<ClockInSiteDto>>> GetClockInSites(
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetClockInSitesQuery(), cancellationToken));
     }
 
     /// <summary>

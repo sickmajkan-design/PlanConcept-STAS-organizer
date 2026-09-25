@@ -132,7 +132,7 @@ public class ApiAuthorizationTests
             new("DELETE", $"/api/attachments/{Id}", UserRole.Admin),
 
             // ---- company profile --------------------------------------------
-            new("GET", "/api/company-settings", UserRole.Worker),
+            new("GET", "/api/company-settings", UserRole.Foreman),
             new("PUT", "/api/company-settings", UserRole.SuperAdmin),
             new("GET", "/api/company-settings/branding", null),
             new("GET", "/api/company-settings/logo", null),
@@ -210,6 +210,7 @@ public class ApiAuthorizationTests
             new("GET", "/api/timeentries", UserRole.Worker),
             new("GET", "/api/timeentries/summary", UserRole.Worker),
             new("GET", "/api/timeentries/current", UserRole.Worker),
+            new("GET", "/api/timeentries/clock-in-sites", UserRole.Worker),
             new("GET", $"/api/timeentries/{Id}", UserRole.Worker),
             new("POST", "/api/timeentries/clock-in", UserRole.Worker),
             new("POST", "/api/timeentries/clock-out", UserRole.Worker),

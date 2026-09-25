@@ -7,6 +7,7 @@ import 'package:construction_mobile/core/theme/app_theme.dart';
 import 'package:construction_mobile/features/auth/presentation/auth_controller.dart';
 import 'package:construction_mobile/features/notifications/presentation/pending_acknowledgments_controller.dart';
 import 'package:construction_mobile/features/time_entries/data/clock_queue.dart';
+import 'package:construction_mobile/features/time_entries/data/models/clock_in_site.dart';
 import 'package:construction_mobile/features/time_entries/data/models/time_entry.dart';
 import 'package:construction_mobile/features/time_entries/data/time_entry_repository.dart';
 import 'package:construction_mobile/features/time_entries/presentation/shift_screen.dart';
@@ -64,6 +65,22 @@ class _FakeTimeEntries implements TimeEntryRepository {
 
   final List<int> clockOutBreaks = <int>[];
 
+  /// The sites the server says the worker is posted to today; a failure stands for no signal.
+  List<ClockInSite> sites = const <ClockInSite>[];
+  bool sitesUnavailable = false;
+
+  /// The project each clock-in named, in order — null when none was chosen.
+  final List<String?> clockInProjects = <String?>[];
+
+  @override
+  Future<List<ClockInSite>> fetchClockInSites() async {
+    if (sitesUnavailable) {
+      throw ApiException('no signal', kind: ApiFailureKind.offline);
+    }
+
+    return sites;
+  }
+
   /// The handset's own moment, when one was sent. Null on an online call.
   final List<DateTime?> clockInTimes = <DateTime?>[];
   final List<DateTime?> clockOutTimes = <DateTime?>[];
@@ -104,6 +121,7 @@ class _FakeTimeEntries implements TimeEntryRepository {
   }) async {
     clockIns++;
     clockInTimes.add(occurredAt);
+    clockInProjects.add(projectId);
 
     if (refuseWith != null) {
       throw refuseWith!;
@@ -246,6 +264,77 @@ void main() {
     expect(repository.clockIns, 1);
     expect(find.text('You are clocked in'), findsOneWidget);
     expect(find.widgetWithText(FilledButton, 'Clock out'), findsOneWidget);
+  });
+
+  testWidgets('with several sites today the worker says which one', (tester) async {
+    final repository = _FakeTimeEntries()
+      ..sites = const [
+        ClockInSite(id: 'site-a', name: 'Zgrada A'),
+        ClockInSite(id: 'site-b', name: 'Zgrada B'),
+      ];
+
+    await _pumpShiftScreen(tester, repository);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Clock in'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Which site are you on?'), findsOneWidget);
+    expect(repository.clockIns, 0, reason: 'nothing is recorded until they choose');
+
+    await tester.tap(find.text('Zgrada B'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(repository.clockInProjects, ['site-b']);
+  });
+
+  testWidgets('cancelling the site choice records nothing', (tester) async {
+    final repository = _FakeTimeEntries()
+      ..sites = const [
+        ClockInSite(id: 'site-a', name: 'Zgrada A'),
+        ClockInSite(id: 'site-b', name: 'Zgrada B'),
+      ];
+
+    await _pumpShiftScreen(tester, repository);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Clock in'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(repository.clockIns, 0);
+    expect(find.text('You are not clocked in'), findsOneWidget);
+  });
+
+  testWidgets('one site, or none, is not asked about', (tester) async {
+    final repository = _FakeTimeEntries()
+      ..sites = const [ClockInSite(id: 'site-a', name: 'Zgrada A')];
+
+    await _pumpShiftScreen(tester, repository);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Clock in'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Which site are you on?'), findsNothing);
+    expect(repository.clockInProjects, [null], reason: 'the server places it');
+  });
+
+  testWidgets('with no signal the shift is still recorded, without asking', (tester) async {
+    final repository = _FakeTimeEntries()..sitesUnavailable = true;
+
+    await _pumpShiftScreen(tester, repository);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Clock in'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.text('Which site are you on?'), findsNothing);
+    expect(repository.clockIns, 1);
   });
 
   testWidgets('clocking out asks for the break and sends the number given',
