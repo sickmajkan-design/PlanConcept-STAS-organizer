@@ -14,7 +14,9 @@ public class GeneralExpenseConfiguration : IEntityTypeConfiguration<GeneralExpen
 
         // A cost charged to a deleted site is not chargeable to anything: it
         // would otherwise stay in the company's totals with no project to explain it.
-        builder.HasQueryFilter(e => e.Project == null || !e.Project.IsDeleted);
+        // Project is optional and has a filter of its own, so a deleted project joins in as
+        // null: test the id, not the navigation alone, or its rows would pass as "no project".
+        builder.HasQueryFilter(e => e.ProjectId == null || e.Project != null);
 
         builder.Property(e => e.Amount).HasPrecision(18, 2);
 

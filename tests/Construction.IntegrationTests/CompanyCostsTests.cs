@@ -1,5 +1,6 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Features.Costs.Queries.GetCompanyCosts;
+using Construction.Application.Features.Projects.Commands.DeleteProject;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
 
@@ -101,6 +102,83 @@ public class CompanyCostsTests : IntegrationTestBase
         Assert.Equal(80m, report.Vehicles);
         Assert.Equal(150m, report.GeneralExpenses);
         Assert.Equal(230m, report.Total);
+    }
+
+    /// <summary>
+    /// Deleting a project takes what was charged to it along: its costs and the
+    /// hours clocked on it leave the company's totals rather than lingering
+    /// there with no project to explain them.
+    /// </summary>
+    [Fact]
+    public async Task Deleting_a_project_removes_its_costs_and_hours_from_the_company_total()
+    {
+        var (from, to) = FreshYear();
+        var day = new DateOnly(from.Year, 6, 12);
+        Guid projectId = default;
+
+        await InScope(async scope =>
+        {
+            var employee = await TestData.SeedEmployeeAsync(scope);
+            var project = await TestData.SeedProjectAsync(scope);
+            projectId = project.Id;
+            var start = new DateTime(day.Year, day.Month, day.Day, 8, 0, 0, DateTimeKind.Utc);
+
+            scope.Db.TimeEntries.Add(new TimeEntry
+            {
+                EmployeeId = employee.Id,
+                ProjectId = project.Id,
+                StartedAt = start,
+                EndedAt = start.AddHours(8),
+                Status = TimeEntryStatus.Approved,
+            });
+            scope.Db.EmployeeRates.Add(new EmployeeRate
+            {
+                EmployeeId = employee.Id,
+                RateType = RateType.Hourly,
+                HourlyRate = 10m,
+                StartDate = new DateOnly(day.Year, 1, 1),
+            });
+            scope.Db.FinanceEntries.Add(new FinanceEntry
+            {
+                EmployeeId = employee.Id,
+                ProjectId = project.Id,
+                Kind = FinanceEntryKind.WorkerPaymentFixed,
+                Amount = 500m,
+                OccurredOn = new DateOnly(day.Year, 6, 20),
+            });
+            scope.Db.GeneralExpenses.Add(new GeneralExpense
+            {
+                Category = GeneralExpenseCategory.Damage,
+                Amount = 3500m,
+                OccurredOn = day,
+                ProjectId = project.Id,
+            });
+            // Not tied to any project: it must survive the deletion.
+            scope.Db.GeneralExpenses.Add(new GeneralExpense
+            {
+                Category = GeneralExpenseCategory.Bookkeeping,
+                Amount = 40m,
+                OccurredOn = day,
+            });
+
+            await scope.Db.SaveChangesAsync();
+        });
+
+        var before = await ReportAsync(from, to);
+
+        Assert.Equal(80m, before.Labour);
+        Assert.Equal(500m, before.ManualPay);
+        Assert.Equal(3540m, before.GeneralExpenses);
+        Assert.Equal(4120m, before.Total);
+
+        await InScope(scope => scope.Send(new DeleteProjectCommand(projectId)));
+
+        var after = await ReportAsync(from, to);
+
+        Assert.Equal(40m, after.GeneralExpenses);
+        Assert.Equal(0m, after.ManualPay);
+        Assert.Equal(0m, after.Labour);
+        Assert.Equal(40m, after.Total);
     }
 
     [Fact]

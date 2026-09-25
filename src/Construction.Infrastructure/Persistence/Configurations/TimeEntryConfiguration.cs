@@ -15,7 +15,7 @@ public class TimeEntryConfiguration : IEntityTypeConfiguration<TimeEntry>
         // Hours of a deleted employee, or clocked on a deleted site, disappear
         // with them — from lists, totals and the pending-review badge alike.
         builder.HasQueryFilter(t =>
-            !t.IsDeleted && !t.Employee.IsDeleted && (t.Project == null || !t.Project.IsDeleted));
+            !t.IsDeleted && !t.Employee.IsDeleted && (t.ProjectId == null || t.Project != null));
 
         // Computed from StartedAt, EndedAt and BreakMinutes; nothing to store.
         builder.Ignore(t => t.WorkedMinutes);

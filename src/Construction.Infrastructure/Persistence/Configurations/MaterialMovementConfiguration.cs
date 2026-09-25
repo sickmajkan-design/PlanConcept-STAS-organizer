@@ -15,7 +15,7 @@ public class MaterialMovementConfiguration : IEntityTypeConfiguration<MaterialMo
         // Movements of a deleted material, or onto a deleted site, are not
         // chargeable to anything.
         builder.HasQueryFilter(m =>
-            !m.Material.IsDeleted && (m.Project == null || !m.Project.IsDeleted));
+            !m.Material.IsDeleted && (m.ProjectId == null || m.Project != null));
 
         builder.Ignore(m => m.SignedQuantity);
         builder.Ignore(m => m.TotalCost);

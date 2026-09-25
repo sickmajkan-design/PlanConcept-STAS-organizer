@@ -15,7 +15,7 @@ public class FinanceEntryConfiguration : IEntityTypeConfiguration<FinanceEntry>
         // Pay for a deleted employee, or charged to a deleted site, is not
         // chargeable to anything.
         builder.HasQueryFilter(e =>
-            !e.Employee.IsDeleted && (e.Project == null || !e.Project.IsDeleted));
+            !e.Employee.IsDeleted && (e.ProjectId == null || e.Project != null));
 
         builder.Property(e => e.Amount).HasPrecision(18, 2);
         builder.Property(e => e.HoursWorked).HasPrecision(18, 2);
