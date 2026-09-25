@@ -11,6 +11,7 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/network/idempotency.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/widgets/status_chip.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../employees/data/employee_repository.dart';
 import '../../employees/data/models/employee.dart';
@@ -632,6 +633,7 @@ class _EmployeePickerSheetState extends ConsumerState<_EmployeePickerSheet> {
               ),
               const Spacer(),
               FilledButton(
+                style: AppTheme.inlineFilledButton,
                 onPressed: _employeeId == null
                     ? null
                     : () {
@@ -708,6 +710,7 @@ class _ProjectPickerSheetState extends ConsumerState<_ProjectPickerSheet> {
               ),
               const Spacer(),
               FilledButton(
+                style: AppTheme.inlineFilledButton,
                 onPressed: _projectId == null
                     ? null
                     : () {

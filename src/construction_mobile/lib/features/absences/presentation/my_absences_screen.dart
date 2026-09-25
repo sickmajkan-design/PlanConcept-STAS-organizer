@@ -7,6 +7,7 @@ import '../../../core/l10n/enum_labels.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/paged_list_view.dart';
+import '../../../core/theme/app_theme.dart';
 import '../data/models/absence.dart';
 import 'my_absences_controller.dart';
 import 'propose_absence_edit_sheet.dart';
@@ -341,6 +342,7 @@ class _PendingEditBanner extends ConsumerWidget {
                 ),
                 const SizedBox(width: 4),
                 FilledButton(
+                  style: AppTheme.inlineFilledButton,
                   onPressed: () => _respond(context, ref, approve: true),
                   child: Text(text.confirm),
                 ),

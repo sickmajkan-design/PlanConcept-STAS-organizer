@@ -3,6 +3,7 @@ import 'package:construction_mobile/core/network/api_exception.dart';
 import 'package:construction_mobile/features/auth/data/models/user.dart';
 import 'package:construction_mobile/core/network/network_providers.dart';
 import 'package:construction_mobile/core/network/offline_cache.dart';
+import 'package:construction_mobile/core/theme/app_theme.dart';
 import 'package:construction_mobile/features/auth/presentation/auth_controller.dart';
 import 'package:construction_mobile/features/notifications/presentation/pending_acknowledgments_controller.dart';
 import 'package:construction_mobile/features/time_entries/data/clock_queue.dart';
@@ -180,10 +181,14 @@ Future<void> _pumpShiftScreen(
         pendingAcknowledgmentsProvider.overrideWith((ref) async => const []),
         offlineCacheProvider.overrideWithValue(Future<OfflineCache?>.value(null)),
       ],
-      child: const MaterialApp(
+      child: MaterialApp(
+        // The app's own theme, not Flutter's default: it is the one that gives
+        // every filled button an infinite minimum width, and a button that only
+        // fits under the default theme is one the workers never see.
+        theme: AppTheme.light(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        locale: Locale('en'),
+        locale: const Locale('en'),
         home: ShiftScreen(),
       ),
     ),
@@ -487,10 +492,11 @@ void main() {
           ),
           timeEntryRepositoryProvider.overrideWithValue(_FakeTimeEntries()),
         ],
-        child: const MaterialApp(
+        child: MaterialApp(
+          theme: AppTheme.light(),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          locale: Locale('en'),
+          locale: const Locale('en'),
           home: ShiftScreen(),
         ),
       ),

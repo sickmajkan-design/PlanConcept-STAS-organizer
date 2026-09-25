@@ -503,6 +503,7 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.setup.location': 'Forma gradilišta upozorava kad lokacija nije unesena, jer se tada dolazak ne može provjeriti. Čuvanje bez nje je i dalje moguće.',
   'releaseNotes.setup.employee': 'Forma za novog zaposlenog podsjeća da osobu nakon spremanja dodijelite gradilištu, kako bi mogla da evidentira rad.',
   'releaseNotes.setup.tracking': 'Aplikacija na telefonu sada dijeli položaj radnika samo dok je prijavljen na smjenu, a ne dok god je prijavljen u aplikaciju. Mapa uživo zato prikazuje samo ljude koji su na smjeni. Važi kad radnik instalira novu verziju aplikacije.',
+  'releaseNotes.setup.app': 'Nova verzija aplikacije za telefon 1.1.5: ispravlja dijalog završetka smjene, u kojem se nije prikazivalo dugme za potvrdu, pa se smjena nije mogla završiti iz aplikacije. Instalirajte je sa linka za preuzimanje na serveru; promjena lokacije iznad važi za ovu verziju.',
   'releaseNotes.finance.statistics': 'SuperAdmin može nalogu dodijeliti i pravo „Samo statistika“: promjene u procentima i struktura troškova, bez ijednog iznosa.',
   'finance.budget.warnPercentHelp': 'Prazno znači 80%. Od 100% se projekat računa kao prekoračen.',
   'finance.housingDoubleWarning': '{count} troškova smještaja pada na dane kada je kirija već uračunata iz cijena smještaja, pa se ta kirija računa dvaput. Obrišite ih ili ih prebacite u drugu kategoriju.',

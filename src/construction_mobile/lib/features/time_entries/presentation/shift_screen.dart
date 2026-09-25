@@ -8,6 +8,7 @@ import '../../../core/l10n/app_locales.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/paged_list_view.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../notifications/presentation/acknowledgment_gate.dart';
@@ -307,6 +308,7 @@ class _ClockOutSheetState extends State<_ClockOutSheet> {
               ),
               const Spacer(),
               FilledButton(
+                style: AppTheme.inlineFilledButton,
                 onPressed: () {
                   // A blank or unreadable field means no break, which is the
                   // common case; refusing to close the shift over it would
