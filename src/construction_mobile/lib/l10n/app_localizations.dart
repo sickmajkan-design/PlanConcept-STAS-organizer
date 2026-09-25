@@ -2288,8 +2288,20 @@ abstract class AppLocalizations {
   /// No description provided for @locationSharingOnBody.
   ///
   /// In en, this message translates to:
-  /// **'Your position is sent to the office every minute while you are signed in.'**
+  /// **'Your position is sent to the office every minute while you are on shift.'**
   String get locationSharingOnBody;
+
+  /// No description provided for @locationOffShift.
+  ///
+  /// In en, this message translates to:
+  /// **'Location sharing is off'**
+  String get locationOffShift;
+
+  /// No description provided for @locationOffShiftBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your position is shared with the office only while you are clocked in to a shift.'**
+  String get locationOffShiftBody;
 
   /// No description provided for @locationStarting.
   ///

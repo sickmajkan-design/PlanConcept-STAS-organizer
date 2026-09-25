@@ -5,6 +5,8 @@ import 'package:construction_mobile/features/auth/data/models/user.dart';
 import 'package:construction_mobile/features/auth/presentation/auth_controller.dart';
 import 'package:construction_mobile/features/location/data/location_queue.dart';
 import 'package:construction_mobile/features/location/presentation/location_tracking_controller.dart';
+import 'package:construction_mobile/features/time_entries/data/clock_queue.dart';
+import 'package:construction_mobile/features/time_entries/presentation/shift_controller.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -93,6 +95,18 @@ class _SignedIn extends Notifier<User?> {
 
 final _signedInProvider = NotifierProvider<_SignedIn, User?>(_SignedIn.new);
 
+/// A worker who is on a shift: tracking only runs during one.
+class _RunningShift extends ShiftController {
+  @override
+  Future<ShiftState> build() async => ShiftState(
+        queued: PendingClockAction(
+          action: ClockAction.clockIn,
+          occurredAt: DateTime.utc(2026, 9, 25, 7),
+          idempotencyKey: 'k',
+        ),
+      );
+}
+
 void main() {
   // `AppLocalizations.delegate.load` needs the binding, and the tracking
   // controller loads it to word the Android notification.
@@ -105,6 +119,7 @@ void main() {
     final container = ProviderContainer(
       overrides: [
         currentUserProvider.overrideWith((ref) => ref.watch(_signedInProvider)),
+        shiftControllerProvider.overrideWith(_RunningShift.new),
         locationQueueProvider.overrideWithValue(
           LocationQueue(_MemoryQueueStore()),
         ),
@@ -112,6 +127,9 @@ void main() {
       ],
     );
     addTearDown(container.dispose);
+
+    // Tracking starts once the shift is known.
+    await container.read(shiftControllerProvider.future);
 
     // Starting, and now waiting on the permission check.
     expect(

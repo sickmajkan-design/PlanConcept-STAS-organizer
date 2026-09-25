@@ -502,6 +502,7 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.setup.server': 'Super Admin sada na početnoj stranici vidi kad e-pošta ili push obavještenja nisu podešeni na serveru, uz napomenu da se obrati isporučiocu.',
   'releaseNotes.setup.location': 'Forma gradilišta upozorava kad lokacija nije unesena, jer se tada dolazak ne može provjeriti. Čuvanje bez nje je i dalje moguće.',
   'releaseNotes.setup.employee': 'Forma za novog zaposlenog podsjeća da osobu nakon spremanja dodijelite gradilištu, kako bi mogla da evidentira rad.',
+  'releaseNotes.setup.tracking': 'Aplikacija na telefonu sada dijeli položaj radnika samo dok je prijavljen na smjenu, a ne dok god je prijavljen u aplikaciju. Mapa uživo zato prikazuje samo ljude koji su na smjeni. Važi kad radnik instalira novu verziju aplikacije.',
   'releaseNotes.finance.statistics': 'SuperAdmin može nalogu dodijeliti i pravo „Samo statistika“: promjene u procentima i struktura troškova, bez ijednog iznosa.',
   'finance.budget.warnPercentHelp': 'Prazno znači 80%. Od 100% se projekat računa kao prekoračen.',
   'finance.housingDoubleWarning': '{count} troškova smještaja pada na dane kada je kirija već uračunata iz cijena smještaja, pa se ta kirija računa dvaput. Obrišite ih ili ih prebacite u drugu kategoriju.',

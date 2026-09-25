@@ -11,12 +11,12 @@ Za vlasnika firme. Sastavljeno 2026-09-25. Uz ovaj dokument idu [PRIVACY.md](PRI
 ### A1. Šta sistem tačno radi danas (provjereno u kodu)
 
 - Telefon šalje položaj **svaki minut**, i kad je aplikacija zatvorena.
-- **Praćenje traje dok je radnik prijavljen u aplikaciju**, ne samo dok je prijavljen na smjenu. Aplikacija ne poznaje radno vrijeme. Radnik koji ostane prijavljen poslije posla, preko noći ili vikendom i dalje šalje lokaciju.
+- **Praćenje je sada vezano za smjenu (izmjena od 2026-09-25):** počinje kad se radnik prijavi na smjenu, a završava kad se odjavi. Prije toga je trajalo dok god je radnik prijavljen u aplikaciju, pa je radnik koji ostane prijavljen poslije posla, preko noći ili vikendom i dalje slao lokaciju. **Važi samo za novu verziju aplikacije** (potreban je novi APK); starije verzije i dalje prate po prijavi.
 - Ista lokacija se koristi za mapu uživo i kao dokaz prisustva. Čuva se **180 dana**, pa se briše sama (može se skratiti).
 - Uz to se bilježe koordinate prijave i odjave smjene, uz svaku smjenu.
 - Lokaciju vide: Super Admin, Admin i rukovodioci; predradnik samo ekipe s gradilišta na kojima je i sam.
 
-**Odluka koja je najveća:** hoće li se praćenje ograničiti na vrijeme dok je radnik prijavljen na smjenu (preporučujem). To **jeste izmjena u aplikaciji**, ne podešavanje. Kad je odlučite, mogu je uraditi: praćenje se pali pri prijavi na smjenu i gasi pri odjavi. Posljedica: mapa uživo pokazuje samo one koji su trenutno na smjeni, što je i ono što je potrebno.
+**Odluka je donesena i urađena:** praćenje je ograničeno na vrijeme smjene. Posljedica: mapa uživo pokazuje samo one koji su trenutno na smjeni. Jedna nuspojava koju treba znati: ako se aplikacija pokrene bez signala dok je radnik već na smjeni, praćenje počinje tek kad se smjena učita sa servera.
 
 ### A2. Pravni osnov — preporuka za pravnika
 
@@ -40,13 +40,13 @@ Za vlasnika firme. Sastavljeno 2026-09-25. Uz ovaj dokument idu [PRIVACY.md](PRI
 >
 > **Koliko se čuva:** podaci o kretanju [180 / kraći broj] dana, zatim se automatski brišu. Koordinate smjene čuvaju se uz obračun sati [rok].
 >
-> **Van radnog vremena** položaj se ne prati. [Ovo važi tek nakon izmjene aplikacije — vidi A1.]
+> **Van radnog vremena** položaj se ne prati. [Ovo smije stajati u obavještenju tek kad svi radnici imaju novu verziju aplikacije — vidi A1.]
 >
 > **Vaša prava:** možete tražiti uvid u svoje podatke, ispravku i brisanje, te podnijeti prigovor. Obratite se: [ime i kontakt osobe / e-pošta].
 >
 > Podaci se obrađuju uz pomoć pružaoca usluge [ime hosting kompanije] i, za obavještenja na telefon, Google (Firebase).
 
-Rečenica o "van radnog vremena" ne smije stajati u obavještenju dok aplikacija to zaista ne radi.
+Rečenica o "van radnog vremena" ne smije stajati u obavještenju dok svi radnici ne instaliraju novu verziju aplikacije.
 
 ### A4. Procjena uticaja (DPIA) — šta je već popunjeno
 
@@ -63,7 +63,7 @@ Potreban je ugovor o obradi podataka s: **Google (Firebase)** za push i s **pru�
 
 ### A6. Šta treba da odlučite (odgovorite mi ili pravniku)
 
-1. Praćenje samo za vrijeme smjene: **da / ne**? (Preporuka: da.)
+1. ~~Praćenje samo za vrijeme smjene~~ — urađeno.
 2. Rok čuvanja lokacije: ostaje **180 dana** ili kraće (npr. 30–90)?
 3. Ko je kontakt osoba za zahtjeve radnika (ime i e-pošta)?
 4. Ko je pravnik/savjetnik koji potvrđuje osnov i tekst?

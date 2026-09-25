@@ -1293,7 +1293,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get locationSharingOnBody =>
-      'Your position is sent to the office every minute while you are signed in.';
+      'Your position is sent to the office every minute while you are on shift.';
+
+  @override
+  String get locationOffShift => 'Location sharing is off';
+
+  @override
+  String get locationOffShiftBody =>
+      'Your position is shared with the office only while you are clocked in to a shift.';
 
   @override
   String get locationStarting => 'Starting location sharing…';

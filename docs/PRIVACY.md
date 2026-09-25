@@ -336,13 +336,19 @@ employees' location has no basis.
    ulaze — šta, gdje, koliko, ko — daje odjeljak §1 ovog dokumenta. /
    **A DPIA.** Systematic monitoring of employees normally requires one. The
    technical inputs — what, where, how long, who — are in §1 above.
-4. **Da li se prati van radnog vremena.** Sistem trenutno ne zna za radno vrijeme:
-   mobilna aplikacija šalje fikseve dok je praćenje uključeno. Ako se ne smije
-   pratiti van smjene, to je izmjena u aplikaciji, ne podešavanje. /
-   **Whether tracking runs outside working hours.** The system has no concept of
-   a shift window: the mobile app reports while tracking is on. If tracking
-   outside a shift is not permitted, that is an app change rather than a
-   setting.
+4. ~~**Da li se prati van radnog vremena.**~~ **Riješeno u aplikaciji
+   (2026-09-25):** mobilna aplikacija prati položaj samo dok je radnik prijavljen
+   na smjenu; prijava na smjenu pokreće praćenje, odjava ga zaustavlja, a fiksevi
+   koji su nastali tokom smjene i nisu isporučeni (nema signala) šalju se i
+   poslije. Prije toga je praćenje trajalo dok god je radnik prijavljen u
+   aplikaciju. Važi tek za verziju aplikacije koja sadrži tu izmjenu; starije
+   verzije i dalje prate po prijavi. / **Resolved in the app (2026-09-25):** the
+   mobile app tracks position only while the worker is clocked in to a shift;
+   clocking in starts it, clocking out stops it, and fixes taken during the shift
+   that could not be delivered (no signal) are still sent afterwards. Before
+   this, tracking ran for as long as the worker was signed in to the app. It
+   applies only to app builds containing this change; older builds still track
+   for as long as the worker is signed in.
 5. **Ugovori sa obrađivačima** za Firebase (push) i objektno skladište
    (prilozi). / **Processor agreements** for Firebase (push) and object storage
    (attachments).

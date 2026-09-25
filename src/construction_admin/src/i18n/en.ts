@@ -479,6 +479,7 @@ export const en = {
   'releaseNotes.setup.server': 'A SuperAdmin now sees on the home page when e-mail or push notifications are not set up on the server, with a note to contact the provider.',
   'releaseNotes.setup.location': 'The project form warns when no location is entered, since arrival then cannot be checked. Saving without one is still possible.',
   'releaseNotes.setup.employee': 'The new-employee form reminds you to assign the person to a project after saving, so they are able to clock in.',
+  'releaseNotes.setup.tracking': 'The phone app now shares a worker\'s position only while they are clocked in to a shift, no longer for as long as they are signed in. The live map therefore shows only people who are on shift. This applies once the worker has the new version of the app.',
   'releaseNotes.finance.statistics': 'A SuperAdmin can also grant an account "Statistics only": changes in percent and the structure of spending, without a single amount.',
   'finance.budget.warnPercentHelp': 'Leave empty for 80%. From 100% the project counts as over.',
   'finance.housingDoubleWarning': '{count} housing expenses fall on days when accommodation rent is already counted from the accommodation rates, so that rent is counted twice. Delete them or move them to another category.',

@@ -1295,7 +1295,14 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get locationSharingOnBody =>
-      'Vaša pozicija se šalje kancelariji svakog minuta dok ste prijavljeni.';
+      'Vaša pozicija se šalje kancelariji svakog minuta dok ste na smjeni.';
+
+  @override
+  String get locationOffShift => 'Dijeljenje lokacije je isključeno';
+
+  @override
+  String get locationOffShiftBody =>
+      'Vaša pozicija se dijeli sa kancelarijom samo dok ste prijavljeni na smjenu.';
 
   @override
   String get locationStarting => 'Pokretanje dijeljenja lokacije…';

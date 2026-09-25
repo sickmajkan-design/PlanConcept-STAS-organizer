@@ -37,6 +37,11 @@ class LocationStatusCard extends ConsumerWidget {
           theme.colorScheme.tertiary,
           l10n.locationSharingOn,
         ),
+      LocationTrackingStatus.offShift => (
+          Icons.location_off_outlined,
+          theme.colorScheme.onSurfaceVariant,
+          l10n.locationOffShift,
+        ),
       LocationTrackingStatus.starting => (
           Icons.location_searching,
           theme.colorScheme.onSurfaceVariant,
@@ -130,6 +135,10 @@ class LocationStatusCard extends ConsumerWidget {
       status == LocationTrackingStatus.error;
 
   static String _subtitle(AppLocalizations l10n, LocationTrackingState state) {
+    if (state.status == LocationTrackingStatus.offShift) {
+      return l10n.locationOffShiftBody;
+    }
+
     if (state.status != LocationTrackingStatus.active) {
       return l10n.locationNotShared;
     }

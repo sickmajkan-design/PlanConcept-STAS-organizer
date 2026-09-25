@@ -9,6 +9,7 @@ import '../../../core/l10n/locale_controller.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../time_entries/presentation/shift_controller.dart';
 import '../data/background_location_settings.dart';
 import '../data/location_queue.dart';
 import '../data/location_repository.dart';
@@ -16,6 +17,10 @@ import '../data/location_repository.dart';
 enum LocationTrackingStatus {
   /// Nobody is signed in, or the account is not linked to an employee.
   off,
+
+  /// Signed in, but not on a shift. Nothing is captured: the office may know
+  /// where somebody is only while they are clocked in.
+  offShift,
   starting,
   active,
 
@@ -77,7 +82,14 @@ class LocationTrackingState {
 }
 
 /// Reports the device position to the API while an employee-linked account is
-/// signed in, including with the app off screen.
+/// on a shift, including with the app off screen.
+///
+/// Only during a shift, never merely because somebody is signed in: a worker
+/// who stays signed in after work, overnight or at the weekend is not at work
+/// and is not tracked. Clocking in starts the capture and clocking out stops
+/// it, so the tracking follows the same fact the payroll does. Fixes still
+/// waiting in the queue when the shift ends are delivered — they were taken
+/// during it.
 ///
 /// The platform, not a timer, drives capture: [backgroundLocationSettings]
 /// attaches the stream to an Android foreground service or Apple background
@@ -92,25 +104,47 @@ class LocationTrackingController extends Notifier<LocationTrackingState> {
   StreamSubscription<Position>? _subscription;
   bool _busy = false;
 
-  /// Set once this notifier has been thrown away.
+  /// Which build this is; every build and every disposal moves it on.
   ///
-  /// Which happens on every sign-out, because [build] watches who is signed
-  /// in. Starting is a sequence of awaits — restoring the queue, asking for
-  /// permission, loading the notification's wording — and the session can end
+  /// Builds happen on every sign-out and on every shift start or end, because
+  /// [build] watches who is signed in and whether they are on a shift. Starting
+  /// is a sequence of awaits — restoring the queue, asking for permission,
+  /// loading the notification's wording — and the session or the shift can end
   /// at any point in it. `onDispose` alone does not cover that: it cancels a
   /// subscription that does not exist yet, and the one attached a moment later
-  /// belongs to an object nobody holds a reference to any more. On Android
-  /// that is a foreground service, its permanent notification and a GPS fix
-  /// still running for somebody who has signed out, with nothing left alive to
+  /// belongs to a start nobody wants any more. On Android that is a foreground
+  /// service, its permanent notification and a GPS fix still running for
+  /// somebody who has signed out or gone home, with nothing left alive to
   /// stop them.
-  bool _abandoned = false;
+  ///
+  /// A start remembers the number it began under and gives up as soon as it
+  /// differs. A plain "abandoned" flag cannot do this: the same notifier is
+  /// built again for the next shift, and a flag reset for that one would also
+  /// revive the start of the last.
+  int _generation = 0;
 
   @override
   LocationTrackingState build() {
     final user = ref.watch(currentUserProvider);
 
+    // Only the yes/no of "on a shift", not the whole shift state: that one
+    // changes whenever a button is pressed or a sync fails, and each change
+    // would otherwise tear the stream down and start it again.
+    //
+    // Until the shift is known — still loading, or it could not be fetched —
+    // the answer is "not on a shift": the office is told nothing it has not
+    // been shown to be entitled to. It starts as soon as the shift is known.
+    final onShift = ref.watch(
+      shiftControllerProvider.select(
+        (shift) => shift.hasValue && shift.requireValue.isRunning,
+      ),
+    );
+
+    // Whatever was starting under the last build is out of date now.
+    _generation++;
+
     ref.onDispose(() {
-      _abandoned = true;
+      _generation++;
       _stopStream();
     });
 
@@ -120,23 +154,46 @@ class LocationTrackingController extends Notifier<LocationTrackingState> {
       return const LocationTrackingState(status: LocationTrackingStatus.off);
     }
 
+    if (!onShift) {
+      // Not capturing, but a shift that has just ended may leave fixes taken
+      // during it that never got out (no coverage on site). Those still go.
+      scheduleMicrotask(_deliverLeftovers);
+      return const LocationTrackingState(status: LocationTrackingStatus.offShift);
+    }
+
     scheduleMicrotask(_start);
     return const LocationTrackingState(status: LocationTrackingStatus.starting);
   }
 
+  /// Sends what an earlier shift captured and could not deliver, without
+  /// starting any capture of its own.
+  Future<void> _deliverLeftovers() async {
+    final generation = _generation;
+    final queue = ref.read(locationQueueProvider);
+
+    await queue.restore();
+
+    if (generation != _generation || queue.isEmpty) {
+      return;
+    }
+
+    await _flush();
+  }
+
   Future<void> _start() async {
+    final generation = _generation;
     final queue = ref.read(locationQueueProvider);
 
     // Anything the previous run captured but could not deliver.
     await queue.restore();
 
-    if (_abandoned) {
+    if (generation != _generation) {
       return;
     }
 
     final permission = await _ensurePermission();
 
-    if (_abandoned) {
+    if (generation != _generation) {
       return;
     }
 
@@ -154,11 +211,13 @@ class LocationTrackingController extends Notifier<LocationTrackingState> {
       clearMessage: true,
     );
 
-    await _listen();
+    await _listen(generation);
 
     // A queue carried over from the last run should not wait for the first
-    // fix of this one, which may be minutes away.
-    if (!queue.isEmpty) {
+    // fix of this one, which may be minutes away. Not if this start has been
+    // overtaken meanwhile: a batch posted after a sign-out carries a token the
+    // API has already been asked to revoke.
+    if (generation == _generation && !queue.isEmpty) {
       await _flush();
     }
   }
@@ -166,7 +225,7 @@ class LocationTrackingController extends Notifier<LocationTrackingState> {
   /// Re-runs the permission flow, e.g. after the user returns from settings.
   Future<void> retry() => _start();
 
-  Future<void> _listen() async {
+  Future<void> _listen(int generation) async {
     _stopStream();
 
     // The service notification is text the worker reads all day, so it is
@@ -175,7 +234,7 @@ class LocationTrackingController extends Notifier<LocationTrackingState> {
 
     // Reading the chosen language is one more await the session can end
     // during, and the last one before a stream exists to leak.
-    if (_abandoned) {
+    if (generation != _generation) {
       return;
     }
 
@@ -256,9 +315,7 @@ class LocationTrackingController extends Notifier<LocationTrackingState> {
   }
 
   Future<void> _flush() async {
-    if (_busy || _abandoned) {
-      // Abandoned means signed out, and a batch posted then carries a token
-      // the API has already been asked to revoke.
+    if (_busy) {
       return;
     }
 
@@ -280,7 +337,9 @@ class LocationTrackingController extends Notifier<LocationTrackingState> {
       await queue.acknowledge(batch.length);
 
       state = state.copyWith(
-        status: LocationTrackingStatus.active,
+        status: state.status == LocationTrackingStatus.offShift
+            ? LocationTrackingStatus.offShift
+            : LocationTrackingStatus.active,
         lastReportedAt: DateTime.now().toUtc(),
         pendingCount: queue.length,
         clearMessage: true,
