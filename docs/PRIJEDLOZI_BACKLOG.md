@@ -55,13 +55,13 @@ Tri sloja:
 | 1 | Uvoz radnika iz Excela/CSV (pregled grešaka prije potvrde, bez duplikata, samo Admin i iznad, audit log) | Must — **urađeno** |
 | 2 | Pozivnica radniku preko linka/QR-a (bez ručnog pravljenja naloga i lozinke) | Must — **urađeno** |
 | 3 | Lista "šta još fali" na početnoj stranici ("3 radnika bez gradilišta, nema praznika") | Must — **urađeno** |
-| 4 | Čarobnjak prvog pokretanja: firma → prvo gradilište → uvoz radnika → pozivnice (svaki korak ima "preskoči") | Should |
+| 4 | Čarobnjak prvog pokretanja: firma → prvo gradilište → uvoz radnika → pozivnice (svaki korak ima "preskoči") | Should — **urađeno** (vodič na kartici "Još treba podesiti", samo dok je sistem prazan; koraci se čitaju iz iste liste, ne pamte se; preskočeni korak prelazi u listu) |
 
 **Sloj 2 — svakodnevni rad**
 | # | Stavka | Prioritet |
 |---|---|---|
-| 5 | Razumne zadane vrijednosti (smjena 07–15, praznici za državu, godišnji po zakonu) | Should |
-| 6 | Provjera pri unosu (radnik bez gradilišta, gradilište bez lokacije) | Should |
+| 5 | Razumne zadane vrijednosti (smjena 07–15, praznici za državu, godišnji po zakonu) | Should — **nije urađeno**: postavke firme nemaju polja za zadanu smjenu ni godišnji; smjena je po gradilištu |
+| 6 | Provjera pri unosu (radnik bez gradilišta, gradilište bez lokacije) | Should — **djelimično**: forma gradilišta upozorava na praznu lokaciju; za radnika bez gradilišta i dalje samo lista |
 | 7 | Šabloni gradilišta ("kopiraj iz prošlog") | Could |
 | 8 | Jedno mjesto "Podešavanja" sa grupama: Firma, Ljudi, Obračun, Obavještenja | Could |
 
@@ -69,7 +69,7 @@ Tri sloja:
 | # | Stavka | Prioritet |
 |---|---|---|
 | 9 | Jedan build mobilne aplikacije, povezivanje kodom firme ili QR-om | Should |
-| 10 | Provjera zdravlja u panelu ("push radi / backup je od jučer / mail nije podešen") sa uputstvom na srpskom | Should |
+| 10 | Provjera zdravlja u panelu ("push radi / backup je od jučer / mail nije podešen") sa uputstvom na srpskom | Should — **djelimično**: Super Admin vidi da e-pošta i push nisu podešeni. **Backup nije uključen**: radi u zasebnom kontejneru i API ne vidi njegove fajlove; treba ga montirati samo za čitanje |
 | 11 | Instalacija jednom naredbom za isporučioca (skripta: `.env`, domen, backup) | Could |
 
 **Won't (sada):** self-service registracija novih firmi, plaćanje i pretplata.

@@ -138,6 +138,7 @@ export function ProjectFormPage() {
   }, [existing, reset]);
 
   const selectedParentId = watch('parentProjectId');
+  const noLocation = !watch('latitude')?.trim() || !watch('longitude')?.trim();
   const selectedParent = useMemo(
     () => (mainProjects?.items ?? []).find((project) => project.id === selectedParentId),
     [mainProjects, selectedParentId],
@@ -386,6 +387,11 @@ export function ProjectFormPage() {
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                   {t('projects.checkInSectionHint')}
                 </Typography>
+                {noLocation && (
+                  <Alert severity="info" sx={{ mb: 1 }}>
+                    {t('projects.noLocationWarning')}
+                  </Alert>
+                )}
               </Grid>
               <Grid size={{ xs: 12, sm: 4 }}>
                 <Controller

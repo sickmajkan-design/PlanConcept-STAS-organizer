@@ -143,6 +143,7 @@ public static class DependencyInjection
             .ValidateOnStart();
 
         services.AddSingleton<IPushSender, FcmPushSender>();
+        services.AddScoped<IIntegrationStatus, IntegrationStatus>();
 
         services.AddHttpClient<IPublicHolidaySource, NagerDatePublicHolidaySource>(client =>
         {

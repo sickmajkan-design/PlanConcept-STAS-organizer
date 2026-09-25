@@ -62,7 +62,9 @@ export type SetupChecklistKey =
   | 'employeesWithoutAccount'
   | 'employeesWithoutProject'
   | 'projectsWithoutLocation'
-  | 'holidaysMissing';
+  | 'holidaysMissing'
+  | 'emailNotConfigured'
+  | 'pushNotConfigured';
 
 export interface SetupChecklistItem {
   key: SetupChecklistKey;

@@ -319,4 +319,29 @@ public class OnboardingTests : IntegrationTestBase
         Assert.Equal(withoutAccount - 1, after.Items.SingleOrDefault(i => i.Key == "employeesWithoutAccount")?.Count ?? 0);
         Assert.Equal(withoutProject - 1, after.Items.SingleOrDefault(i => i.Key == "employeesWithoutProject")?.Count ?? 0);
     }
+
+    // ---- the health part of the list --------------------------------------
+
+    [Fact]
+    public async Task A_super_admin_is_told_that_mail_and_push_are_not_set_up()
+    {
+        // The test host leaves SMTP and Firebase unconfigured.
+        using var scope = await AdminScopeAsync(UserRole.SuperAdmin);
+
+        var list = await scope.Send(new GetSetupChecklistQuery());
+
+        Assert.Contains(list.Items, i => i.Key == "emailNotConfigured");
+        Assert.Contains(list.Items, i => i.Key == "pushNotConfigured");
+    }
+
+    [Fact]
+    public async Task An_admin_is_not_told_because_they_cannot_set_them_up()
+    {
+        using var scope = await AdminScopeAsync(UserRole.Admin);
+
+        var list = await scope.Send(new GetSetupChecklistQuery());
+
+        Assert.DoesNotContain(list.Items, i => i.Key == "emailNotConfigured");
+        Assert.DoesNotContain(list.Items, i => i.Key == "pushNotConfigured");
+    }
 }

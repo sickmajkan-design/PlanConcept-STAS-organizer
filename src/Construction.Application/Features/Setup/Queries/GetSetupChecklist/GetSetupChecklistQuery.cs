@@ -31,11 +31,19 @@ public class GetSetupChecklistQueryHandler : IRequestHandler<GetSetupChecklistQu
 {
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IIntegrationStatus _integrations;
 
-    public GetSetupChecklistQueryHandler(IApplicationDbContext context, IDateTimeProvider dateTimeProvider)
+    public GetSetupChecklistQueryHandler(
+        IApplicationDbContext context,
+        IDateTimeProvider dateTimeProvider,
+        ICurrentUserService currentUserService,
+        IIntegrationStatus integrations)
     {
         _context = context;
         _dateTimeProvider = dateTimeProvider;
+        _currentUserService = currentUserService;
+        _integrations = integrations;
     }
 
     public async Task<SetupChecklistDto> Handle(
@@ -124,6 +132,21 @@ public class GetSetupChecklistQueryHandler : IRequestHandler<GetSetupChecklistQu
             if (missing > 0)
             {
                 items.Add(new SetupChecklistItem("holidaysMissing", missing));
+            }
+        }
+
+        // Whoever runs the server sets these up, and that is a SuperAdmin: an Admin
+        // could do nothing about them, so telling one only makes noise.
+        if (_currentUserService.Role == UserRole.SuperAdmin)
+        {
+            if (!_integrations.EmailConfigured)
+            {
+                items.Add(new SetupChecklistItem("emailNotConfigured", 1));
+            }
+
+            if (!_integrations.PushConfigured)
+            {
+                items.Add(new SetupChecklistItem("pushNotConfigured", 1));
             }
         }
 
