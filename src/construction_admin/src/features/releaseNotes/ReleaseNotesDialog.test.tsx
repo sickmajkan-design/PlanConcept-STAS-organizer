@@ -58,6 +58,7 @@ describe('ReleaseNotesDialog', () => {
 
     await screen.findByText('New in finances');
     expect(screen.getByText('Important for administrators and managers')).toBeDefined();
+    expect(screen.getByText('Fixed')).toBeDefined();
   }, SCREEN_TIMEOUT);
 
   it('is shown again for a new release', async () => {

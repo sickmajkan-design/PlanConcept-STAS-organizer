@@ -12,6 +12,10 @@ public class GeneralExpenseConfiguration : IEntityTypeConfiguration<GeneralExpen
 
         builder.HasKey(e => e.Id);
 
+        // A cost charged to a deleted site is not chargeable to anything: it
+        // would otherwise stay in the company's totals with no project to explain it.
+        builder.HasQueryFilter(e => e.Project == null || !e.Project.IsDeleted);
+
         builder.Property(e => e.Amount).HasPrecision(18, 2);
 
         builder.Property(e => e.Supplier).HasMaxLength(200);

@@ -31,8 +31,8 @@ public class FinanceProjectRowDto
 
 /// <summary>
 /// The part of the company's money that belongs to no project in the list:
-/// the fleet, the tools, empty housing, costs and pay tied to no site, income
-/// from renting out, and anything of a project that no longer exists.
+/// the fleet, the tools, empty housing, costs and pay tied to no site, and income
+/// from renting out. Whatever was charged to a deleted project is not here: it goes with the project.
 /// </summary>
 public class FinanceUnallocatedDto
 {
@@ -171,9 +171,8 @@ public class GetFinanceByProjectQueryHandler : IRequestHandler<GetFinanceByProje
 
         foreach (var id in ids)
         {
-            // A project deleted since the money moved has no row to show; its
-            // figures fall into the unallocated part, which is computed against
-            // the company's totals, so they are not lost.
+            // A deleted project's records are filtered out of every query, so it should
+            // not appear here; skip it if a row still names one.
             if (!projects.TryGetValue(id, out var project))
             {
                 continue;
