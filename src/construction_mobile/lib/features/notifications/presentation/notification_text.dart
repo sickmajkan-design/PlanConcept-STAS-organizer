@@ -399,6 +399,14 @@ LocalizedNotificationText resolveNotificationText(
         );
       }
 
+    case 'BulletinPosted':
+      // The notice itself is what someone typed, and stays as stored; the heading over it is
+      // the app's own words and belongs in the reader's language.
+      return LocalizedNotificationText(
+        title: l10n.notificationBulletinPostedTitle,
+        body: notification.body,
+      );
+
     case 'AbsenceRequested':
       {
         final employeeName = str('employeeName');

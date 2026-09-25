@@ -8,10 +8,11 @@ import 'models/time_entry.dart';
 class TimeEntryRepository extends ApiRepository {
   const TimeEntryRepository(super.dio);
 
-  /// The caller's own entries. The API narrows a Worker to their own rows, so
-  /// no employee filter is sent — asking for someone else's would return this
-  /// employee's anyway.
+  /// The caller's own entries. The API narrows only a Worker to their own rows; a foreman or
+  /// manager gets the crew's hours too, so the employee is named here — without it "my working
+  /// time" listed colleagues' shifts, with no name on the card to tell them apart.
   Future<PagedList<TimeEntry>> fetchMine({
+    String? employeeId,
     int pageNumber = 1,
     int pageSize = 20,
     String? sortBy,
@@ -25,6 +26,7 @@ class TimeEntryRepository extends ApiRepository {
         pageSize: pageSize,
         sortBy: sortBy,
         sortDescending: sortDescending,
+        filters: {'employeeId': employeeId},
       ),
     );
   }

@@ -4,6 +4,7 @@ import '../../../core/models/paged_list.dart';
 import '../../../core/pagination/filtered_paged_list_notifier.dart';
 import '../../../core/pagination/paged_list_notifier.dart';
 import '../../../core/pagination/paged_state.dart';
+import '../../auth/presentation/auth_controller.dart';
 import '../data/absence_repository.dart';
 import '../data/models/absence.dart';
 
@@ -20,6 +21,7 @@ class MyAbsencesController extends FilteredPagedListNotifier<Absence> {
     // The endpoint has no text search; the base class still supplies one and
     // sending it would filter on a parameter the API ignores.
     return ref.read(absenceRepositoryProvider).fetchMine(
+          employeeId: ref.read(currentUserProvider)?.employeeId,
           pageNumber: pageNumber,
           pageSize: PagedListNotifier.pageSize,
           status: filter == absencePendingFilter ? 'Requested' : null,

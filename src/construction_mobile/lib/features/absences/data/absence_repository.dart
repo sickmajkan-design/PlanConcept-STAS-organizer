@@ -9,9 +9,10 @@ import 'models/schedule.dart';
 class AbsenceRepository extends ApiRepository {
   const AbsenceRepository(super.dio);
 
-  /// The caller's own leave. The API narrows a Worker to their own rows, so no
-  /// employee filter is sent.
+  /// The caller's own leave. The API narrows only a Worker to their own rows, so the employee
+  /// is named: a foreman or manager would otherwise see everyone's leave as their own.
   Future<PagedList<Absence>> fetchMine({
+    String? employeeId,
     int pageNumber = 1,
     int pageSize = 20,
     String? status,
@@ -24,7 +25,7 @@ class AbsenceRepository extends ApiRepository {
         pageSize: pageSize,
         sortBy: 'startDate',
         sortDescending: true,
-        filters: {'status': status},
+        filters: {'status': status, 'employeeId': employeeId},
       ),
     );
   }

@@ -933,6 +933,8 @@
   "attachmentCategoryOther": "Other",
   "navWorkItems": "My work",
   "workItemsEmpty": "Nothing on your list.",
+  "workItemsSearchHint": "Title, description…",
+  "notificationBulletinPostedTitle": "New notice on the bulletin board",
   "workItemsIncludeFinished": "Include finished",
   "workItemsDue": "Due {date}",
   "@workItemsDue": {

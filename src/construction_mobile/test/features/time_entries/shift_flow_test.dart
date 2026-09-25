@@ -75,6 +75,7 @@ class _FakeTimeEntries implements TimeEntryRepository {
 
   @override
   Future<PagedList<TimeEntry>> fetchMine({
+    String? employeeId,
     int pageNumber = 1,
     int pageSize = 20,
     String? sortBy,

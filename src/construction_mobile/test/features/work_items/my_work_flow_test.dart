@@ -30,6 +30,7 @@ class _FakeWorkItems implements WorkItemRepository {
 
   @override
   Future<PagedList<WorkItem>> fetchMine({
+    String? assignedEmployeeId,
     int pageNumber = 1,
     int pageSize = 20,
     String? search,

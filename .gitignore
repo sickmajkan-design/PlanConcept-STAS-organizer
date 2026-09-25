@@ -78,3 +78,11 @@ deploy/.env
 # Python bytecode, from running the scripts in scripts/
 __pycache__/
 *.pyc
+
+# QA harness output
+scripts/qa/qa_state.json
+scripts/qa/qa_matrix.json
+scripts/qa/qa_fuzz.json
+scripts/qa/__pycache__/
+src/construction_admin/qa_ui_*.json
+src/construction_admin/qa_shot_*.png

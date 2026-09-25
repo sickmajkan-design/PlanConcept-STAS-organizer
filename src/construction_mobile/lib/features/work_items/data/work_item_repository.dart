@@ -8,9 +8,10 @@ import 'models/work_item.dart';
 class WorkItemRepository extends ApiRepository {
   const WorkItemRepository(super.dio);
 
-  /// The caller's own work. The API narrows a Worker to their own rows, so no
-  /// employee filter is sent.
+  /// The caller's own work. The API narrows only a Worker to their own rows, so the employee is
+  /// named: a foreman or manager would otherwise see every open item as theirs.
   Future<PagedList<WorkItem>> fetchMine({
+    String? assignedEmployeeId,
     int pageNumber = 1,
     int pageSize = 20,
     String? search,
@@ -23,7 +24,10 @@ class WorkItemRepository extends ApiRepository {
         pageNumber: pageNumber,
         pageSize: pageSize,
         search: search,
-        filters: {'openOnly': openOnly ? true : null},
+        filters: {
+          'openOnly': openOnly ? true : null,
+          'assignedEmployeeId': assignedEmployeeId,
+        },
       ),
     );
   }

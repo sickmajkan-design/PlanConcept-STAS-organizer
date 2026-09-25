@@ -122,13 +122,20 @@ public class ClockInCommandHandler : IRequestHandler<ClockInCommand, TimeEntryDt
             throw new ConflictException("You are already clocked in.");
         }
 
+        // The phone app never asks which site: it sends no project. A worker posted to exactly
+        // one running site today is at that site, so their hours go there — otherwise they
+        // reach no project at all, and the labour cost of every site is missing them. More
+        // than one posting is ambiguous and stays open for the office to place.
+        var effectiveProjectId = request.ProjectId
+            ?? await ResolveSoleAssignmentAsync(employeeId, cancellationToken);
+
         string? projectName = null;
         double? projectLatitude = null;
         double? projectLongitude = null;
         string? projectCountryCode = null;
         var isAssignedToProject = true;
 
-        if (request.ProjectId is { } projectId)
+        if (effectiveProjectId is { } projectId)
         {
             var project = await _context.Projects
                 .Where(p => p.Id == projectId)
@@ -173,7 +180,7 @@ public class ClockInCommandHandler : IRequestHandler<ClockInCommand, TimeEntryDt
         var entry = new TimeEntry
         {
             EmployeeId = employeeId,
-            ProjectId = request.ProjectId,
+            ProjectId = effectiveProjectId,
             StartedAt = startedAt,
             WorkType = workType,
             Status = TimeEntryStatus.InProgress,
@@ -199,7 +206,7 @@ public class ClockInCommandHandler : IRequestHandler<ClockInCommand, TimeEntryDt
             throw new ConflictException("You are already clocked in.");
         }
 
-        if (request.ProjectId is { } notifyProjectId)
+        if (effectiveProjectId is { } notifyProjectId)
         {
             if (isAssignedToProject)
             {
@@ -229,6 +236,30 @@ public class ClockInCommandHandler : IRequestHandler<ClockInCommand, TimeEntryDt
             .Where(t => t.Id == entry.Id)
             .Select(TimeEntryMapping.Projection)
             .FirstAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// The one running project the employee is posted to today, or null when there is none or
+    /// more than one.
+    /// </summary>
+    private async Task<Guid?> ResolveSoleAssignmentAsync(
+        Guid employeeId,
+        CancellationToken cancellationToken)
+    {
+        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+
+        var projectIds = await _context.EmployeeProjects
+            .AsNoTracking()
+            .Where(a => a.EmployeeId == employeeId
+                && a.StartDate <= today
+                && (a.EndDate == null || a.EndDate >= today)
+                && a.Project.Status == ProjectStatus.Active)
+            .Select(a => a.ProjectId)
+            .Distinct()
+            .Take(2)
+            .ToListAsync(cancellationToken);
+
+        return projectIds.Count == 1 ? projectIds[0] : null;
     }
 
     /// <summary>

@@ -3089,6 +3089,18 @@ abstract class AppLocalizations {
   /// **'Nothing on your list.'**
   String get workItemsEmpty;
 
+  /// No description provided for @workItemsSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Title, description…'**
+  String get workItemsSearchHint;
+
+  /// No description provided for @notificationBulletinPostedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New notice on the bulletin board'**
+  String get notificationBulletinPostedTitle;
+
   /// No description provided for @workItemsIncludeFinished.
   ///
   /// In en, this message translates to:

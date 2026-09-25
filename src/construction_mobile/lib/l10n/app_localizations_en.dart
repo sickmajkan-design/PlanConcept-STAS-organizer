@@ -1744,6 +1744,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get workItemsEmpty => 'Nothing on your list.';
 
   @override
+  String get workItemsSearchHint => 'Title, description…';
+
+  @override
+  String get notificationBulletinPostedTitle =>
+      'New notice on the bulletin board';
+
+  @override
   String get workItemsIncludeFinished => 'Include finished';
 
   @override

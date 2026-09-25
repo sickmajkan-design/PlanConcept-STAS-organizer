@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/l10n/app_locales.dart';
+import 'core/l10n/latin_serbian.dart';
 import 'core/l10n/locale_controller.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
@@ -57,7 +58,10 @@ class _ConstructionAppState extends ConsumerState<ConstructionApp>
       themeMode: ThemeMode.system,
       locale: selected,
       supportedLocales: supportedLocales,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: [
+        ...latinSerbianDelegates,
+        ...AppLocalizations.localizationsDelegates,
+      ],
       localeResolutionCallback: (deviceLocale, supported) =>
           resolveLocale(deviceLocale, supported),
       routerConfig: ref.watch(routerProvider),

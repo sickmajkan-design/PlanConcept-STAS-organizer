@@ -9,6 +9,7 @@ import '../../../core/network/idempotency.dart';
 import '../../tools/data/models/tool.dart';
 import '../../tools/data/tool_repository.dart';
 import 'tool_expenses_controller.dart';
+import '../../auth/presentation/auth_controller.dart';
 
 const _recordableKinds = <String>['Repair', 'Maintenance', 'Calibration', 'Other'];
 
@@ -23,6 +24,8 @@ Future<void> showRecordToolExpenseSheet(BuildContext context) {
 /// The tools a foreman can pick from. Cached for the session: the toolbox
 /// does not change between two repairs.
 final _toolOptionsProvider = FutureProvider<List<Tool>>((ref) async {
+  ref.watch(currentUserProvider.select((user) => user?.id));
+
   final page =
       await ref.read(toolRepositoryProvider).fetchTools(pageSize: 100, sortBy: 'name');
 

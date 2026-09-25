@@ -373,7 +373,7 @@
   "notificationVehicleExpenseRejectedTitle": "Trošak vraćen na doradu",
   "notificationVehicleExpenseRejectedBody": "{vehicleName} ({date}) je vraćen: {note}",
   "notificationAbsenceRequestedTitle": "Zahtjev za odsustvo",
-  "notificationAbsenceRequestedBody": "{employeeName} je zatražio(la) odsustvo, od {startDate} do {endDate}.",
+  "notificationAbsenceRequestedBody": "{employeeName} je zatražio(la) odsustvo, od {startDate} do {endDate}",
   "notificationDocumentRetentionEndedTitle": "Period čuvanja dokumenta je istekao",
   "notificationDocumentRetentionEndedBody": "{fileName} više ne mora biti sačuvan (rok čuvanja je bio do {retainUntil}). Obrišite ga sami ako više nije potreban.",
   "notificationDocumentRetentionEndedBodyWithOwner": "{fileName} — {ownerName} više ne mora biti sačuvan (rok čuvanja je bio do {retainUntil}). Obrišite ga sami ako više nije potreban.",
@@ -618,6 +618,8 @@
   "attachmentCategoryOther": "Ostalo",
   "navWorkItems": "Moji zadaci",
   "workItemsEmpty": "Nemate ništa na spisku.",
+  "workItemsSearchHint": "Naslov, opis…",
+  "notificationBulletinPostedTitle": "Nova objava na oglasnoj ploči",
   "workItemsIncludeFinished": "Prikaži i završeno",
   "workItemsDue": "Rok {date}",
   "@workItemsDue": {

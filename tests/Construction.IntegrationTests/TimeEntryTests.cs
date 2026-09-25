@@ -39,6 +39,94 @@ public class TimeEntryTests : IntegrationTestBase
     private static void ActAs(TestScope scope, User user, Guid? employeeId) =>
         scope.CurrentUser.SignInAs(user.Id, user.Role, employeeId, user.Email);
 
+    // ---- which site a shift with no project belongs to ------------------
+
+    private static async Task PostAsync(TestScope scope, Guid employeeId, Guid projectId, int startDaysAgo = 1, int? endDaysAhead = null)
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        scope.Db.EmployeeProjects.Add(new EmployeeProject
+        {
+            EmployeeId = employeeId,
+            ProjectId = projectId,
+            StartDate = today.AddDays(-startDaysAgo),
+            EndDate = endDaysAhead is { } days ? today.AddDays(days) : null,
+            AssignedAt = DateTime.UtcNow,
+        });
+
+        await scope.Db.SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task A_shift_with_no_project_goes_to_the_one_running_site_the_worker_is_posted_to()
+    {
+        // The phone app sends no project, so without this every hour it records is on no site.
+        var (employee, user) = await InScope(SeedWorkerAsync);
+        var project = await InScope(scope => TestData.SeedProjectAsync(scope));
+        await InScope(scope => PostAsync(scope, employee.Id, project.Id));
+
+        var entry = await InScope(scope =>
+        {
+            ActAs(scope, user, employee.Id);
+            return scope.Send(new ClockInCommand());
+        });
+
+        Assert.Equal(project.Id, entry.ProjectId);
+    }
+
+    [Fact]
+    public async Task A_shift_with_no_project_stays_open_when_the_worker_is_posted_to_two_sites()
+    {
+        var (employee, user) = await InScope(SeedWorkerAsync);
+        var first = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var second = await InScope(scope => TestData.SeedProjectAsync(scope));
+        await InScope(scope => PostAsync(scope, employee.Id, first.Id));
+        await InScope(scope => PostAsync(scope, employee.Id, second.Id));
+
+        var entry = await InScope(scope =>
+        {
+            ActAs(scope, user, employee.Id);
+            return scope.Send(new ClockInCommand());
+        });
+
+        Assert.Null(entry.ProjectId);
+    }
+
+    [Fact]
+    public async Task A_shift_with_no_project_ignores_a_posting_that_is_over_or_on_a_finished_site()
+    {
+        var (employee, user) = await InScope(SeedWorkerAsync);
+        var ended = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var finished = await InScope(scope => TestData.SeedProjectAsync(scope, status: ProjectStatus.Completed));
+        await InScope(scope => PostAsync(scope, employee.Id, ended.Id, startDaysAgo: 10, endDaysAhead: -3));
+        await InScope(scope => PostAsync(scope, employee.Id, finished.Id));
+
+        var entry = await InScope(scope =>
+        {
+            ActAs(scope, user, employee.Id);
+            return scope.Send(new ClockInCommand());
+        });
+
+        Assert.Null(entry.ProjectId);
+    }
+
+    [Fact]
+    public async Task A_project_the_worker_names_wins_over_their_posting()
+    {
+        var (employee, user) = await InScope(SeedWorkerAsync);
+        var posted = await InScope(scope => TestData.SeedProjectAsync(scope));
+        var chosen = await InScope(scope => TestData.SeedProjectAsync(scope));
+        await InScope(scope => PostAsync(scope, employee.Id, posted.Id));
+
+        var entry = await InScope(scope =>
+        {
+            ActAs(scope, user, employee.Id);
+            return scope.Send(new ClockInCommand { ProjectId = chosen.Id });
+        });
+
+        Assert.Equal(chosen.Id, entry.ProjectId);
+    }
+
     // ---- clocking in and out -------------------------------------------
 
     [Fact]

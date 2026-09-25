@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/bulletin_repository.dart';
 import '../data/models/bulletin_post.dart';
+import '../../auth/presentation/auth_controller.dart';
 
 /// The board's current notices — and the passive "seen" tracking.
 ///
@@ -13,6 +14,9 @@ import '../data/models/bulletin_post.dart';
 class BulletinController extends AsyncNotifier<List<BulletinPost>> {
   @override
   Future<List<BulletinPost>> build() async {
+    // Whether a notice is "viewed" is per person.
+    ref.watch(currentUserProvider.select((user) => user?.id));
+
     final repository = ref.read(bulletinRepositoryProvider);
     final posts = await repository.fetchAll();
 

@@ -1,4 +1,5 @@
 import { Box, Button, Paper, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { useMemo } from 'react';
 import {
   DataGrid,
   type GridColDef,
@@ -82,10 +83,29 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
 
   // Always a model, empty when nothing is hidden: switching a grid between
   // controlled and uncontrolled as the window is resized draws a warning.
-  const columnVisibilityModel: Record<string, boolean> =
-    isCompact && compactHiddenFields
-      ? Object.fromEntries(compactHiddenFields.map((field) => [field, false]))
-      : {};
+  //
+  // Memoised, like the locale text below: the grid compares these by reference, and a fresh
+  // object on every render makes it update its own state while this component renders.
+  const columnVisibilityModel = useMemo<Record<string, boolean>>(
+    () =>
+      isCompact && compactHiddenFields
+        ? Object.fromEntries(compactHiddenFields.map((field) => [field, false]))
+        : {},
+    [isCompact, compactHiddenFields],
+  );
+
+  const localeText = useMemo(
+    () => ({
+      noRowsLabel: t('common.noRows'),
+      checkboxSelectionHeaderName: t('grid.checkboxColumn'),
+      checkboxSelectionSelectAllRows: t('grid.selectAllRows'),
+      checkboxSelectionUnselectAllRows: t('grid.unselectAllRows'),
+      checkboxSelectionSelectRow: t('grid.selectRow'),
+      checkboxSelectionUnselectRow: t('grid.unselectRow'),
+      columnHeaderSortIconLabel: t('grid.sortIcon'),
+    }),
+    [t],
+  );
 
   return (
     <Paper
@@ -114,6 +134,9 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
           columnVisibilityModel={columnVisibilityModel}
           rowCount={data?.totalCount ?? 0}
           paginationMode="server"
+          // The grid's own default is 25/50/100, and ours starts at 20: a size that is not one of
+          // its options makes it correct the model while it renders.
+          pageSizeOptions={PAGE_SIZE_OPTIONS}
           paginationModel={paginationModel}
           onPaginationModelChange={onPaginationModelChange}
           hideFooter
@@ -123,15 +146,7 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
           // MUI ships no Serbian locale, so the grid's own chrome — the
           // pagination footer and empty state — has to be handed over
           // explicitly or it stays English inside a translated page.
-          localeText={{
-            noRowsLabel: t('common.noRows'),
-            checkboxSelectionHeaderName: t('grid.checkboxColumn'),
-            checkboxSelectionSelectAllRows: t('grid.selectAllRows'),
-            checkboxSelectionUnselectAllRows: t('grid.unselectAllRows'),
-            checkboxSelectionSelectRow: t('grid.selectRow'),
-            checkboxSelectionUnselectRow: t('grid.unselectRow'),
-            columnHeaderSortIconLabel: t('grid.sortIcon'),
-          }}
+          localeText={localeText}
           disableColumnMenu
           disableRowSelectionOnClick
           // The app's own BulkActionsBar already shows the selected count

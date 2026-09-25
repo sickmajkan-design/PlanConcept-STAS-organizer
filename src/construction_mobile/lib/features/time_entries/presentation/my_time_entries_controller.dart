@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/paged_list.dart';
 import '../../../core/pagination/paged_list_notifier.dart';
 import '../../../core/pagination/paged_state.dart';
+import '../../auth/presentation/auth_controller.dart';
 import '../data/models/time_entry.dart';
 import '../data/time_entry_repository.dart';
 
@@ -18,6 +19,7 @@ class MyTimeEntriesController extends PagedListNotifier<TimeEntry> {
     required String search,
   }) {
     return ref.read(timeEntryRepositoryProvider).fetchMine(
+          employeeId: ref.read(currentUserProvider)?.employeeId,
           pageNumber: pageNumber,
           pageSize: PagedListNotifier.pageSize,
         );

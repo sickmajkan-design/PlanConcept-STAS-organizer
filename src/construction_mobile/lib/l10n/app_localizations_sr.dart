@@ -1128,7 +1128,7 @@ class AppLocalizationsSr extends AppLocalizations {
     String startDate,
     String endDate,
   ) {
-    return '$employeeName je zatražio(la) odsustvo, od $startDate do $endDate.';
+    return '$employeeName je zatražio(la) odsustvo, od $startDate do $endDate';
   }
 
   @override
@@ -1744,6 +1744,12 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get workItemsEmpty => 'Nemate ništa na spisku.';
+
+  @override
+  String get workItemsSearchHint => 'Naslov, opis…';
+
+  @override
+  String get notificationBulletinPostedTitle => 'Nova objava na oglasnoj ploči';
 
   @override
   String get workItemsIncludeFinished => 'Prikaži i završeno';

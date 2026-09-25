@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/absence_repository.dart';
 import '../data/models/schedule.dart';
+import '../../auth/presentation/auth_controller.dart';
 
 /// How far ahead the phone looks. Two weeks is what fits on the screen and
 /// what a worker is actually asking about; the board on the admin panel is
@@ -12,6 +13,8 @@ const scheduleWindowDays = 14;
 class MyScheduleController extends AsyncNotifier<Schedule> {
   @override
   Future<Schedule> build() {
+    ref.watch(currentUserProvider.select((user) => user?.id));
+
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
 

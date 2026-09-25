@@ -18,7 +18,7 @@ export function HomePage() {
   if (canConfigureDashboard(user)) {
     return (
       <Box>
-        <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
+        <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}>
           {t('home.welcome', { name: displayName(user) })}
         </Typography>
         <SetupChecklistCard />
@@ -54,7 +54,7 @@ export function HomePage() {
 
   return (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
+      <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}>
         {t('home.welcome', { name: displayName(user) })}
       </Typography>
       <Typography color="text.secondary" sx={{ mb: 4 }}>

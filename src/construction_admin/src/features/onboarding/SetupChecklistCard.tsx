@@ -156,6 +156,8 @@ export function SetupChecklistCard() {
                     spacing={1.5}
                     sx={{
                       alignItems: 'center',
+                      // On a phone the buttons go under the text instead of squeezing it.
+                      flexWrap: 'wrap',
                       p: 1,
                       borderRadius: 1,
                       border: 1,
@@ -170,7 +172,7 @@ export function SetupChecklistCard() {
                         {index + 1}
                       </Typography>
                     )}
-                    <Box sx={{ flexGrow: 1 }}>
+                    <Box sx={{ flexGrow: 1, flexBasis: { xs: 'calc(100% - 44px)', sm: 0 }, minWidth: 0 }}>
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
                         {t(step.title)}
                       </Typography>
@@ -181,7 +183,7 @@ export function SetupChecklistCard() {
                       )}
                     </Box>
                     {active && (
-                      <Stack direction="row" spacing={1}>
+                      <Stack direction="row" spacing={1} sx={{ ml: { xs: 'auto', sm: 0 } }}>
                         <Button size="small" onClick={() => skip(step.id)}>
                           {t('onboarding.wizard.skip')}
                         </Button>

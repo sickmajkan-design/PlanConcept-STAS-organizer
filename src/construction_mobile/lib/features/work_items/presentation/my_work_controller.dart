@@ -4,6 +4,7 @@ import '../../../core/models/paged_list.dart';
 import '../../../core/pagination/filtered_paged_list_notifier.dart';
 import '../../../core/pagination/paged_list_notifier.dart';
 import '../../../core/pagination/paged_state.dart';
+import '../../auth/presentation/auth_controller.dart';
 import '../data/models/work_item.dart';
 import '../data/work_item_repository.dart';
 
@@ -18,6 +19,7 @@ class MyWorkController extends FilteredPagedListNotifier<WorkItem> {
     required String search,
   }) {
     return ref.read(workItemRepositoryProvider).fetchMine(
+          assignedEmployeeId: ref.read(currentUserProvider)?.employeeId,
           pageNumber: pageNumber,
           pageSize: PagedListNotifier.pageSize,
           search: search,

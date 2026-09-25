@@ -75,13 +75,21 @@ public class AuthController : ApiControllerBase
         TokenRequest? request,
         CancellationToken cancellationToken)
     {
-        await Mediator.Send(
-            new LogoutCommand
-            {
-                RefreshToken = Cookie.Read(HttpContext, request?.RefreshToken)!,
-                IpAddress = ClientIpAddress,
-            },
-            cancellationToken);
+        var refreshToken = Cookie.Read(HttpContext, request?.RefreshToken);
+
+        // Nothing to revoke — a signed-out browser, an expired cookie — is not a bad request:
+        // the panel calls this unconditionally so that no cookie is ever left behind, and
+        // answering 400 to it put an error in every visitor's console.
+        if (!string.IsNullOrWhiteSpace(refreshToken))
+        {
+            await Mediator.Send(
+                new LogoutCommand
+                {
+                    RefreshToken = refreshToken,
+                    IpAddress = ClientIpAddress,
+                },
+                cancellationToken);
+        }
 
         // Unconditionally, not only in cookie mode: signing out has to leave
         // nothing behind, and a client that switched modes mid-session would

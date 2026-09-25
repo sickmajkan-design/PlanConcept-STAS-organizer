@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/paged_list.dart';
 import '../network/api_exception.dart';
 import 'paged_state.dart';
+import '../../features/auth/presentation/auth_controller.dart';
 
 /// Shared behaviour for every searchable, infinitely scrolling list in the
 /// app: debounced search, page appending, and refresh. Subclasses only supply
@@ -28,6 +29,11 @@ abstract class PagedListNotifier<T> extends AsyncNotifier<PagedState<T>> {
   @override
   Future<PagedState<T>> build() async {
     ref.onDispose(() => _debounceTimer?.cancel());
+
+    // A list belongs to whoever is signed in. These providers live as long as the app does, so
+    // without this the next person to sign in on the same phone was shown the previous one's
+    // list — and no request was made at all, since there was already something to show.
+    ref.watch(currentUserProvider.select((user) => user?.id));
 
     final page = await loadPage(pageNumber: 1, search: _searchTerm);
     return PagedState<T>.fromPage(page);

@@ -556,6 +556,8 @@ class _ScanResultCard extends ConsumerWidget {
 /// The employees a caller with transfer rights can pick from. Cached for the
 /// session, like the vehicle picker in the expense sheet.
 final _employeeOptionsProvider = FutureProvider<List<Employee>>((ref) async {
+  ref.watch(currentUserProvider.select((user) => user?.id));
+
   final page = await ref
       .read(employeeRepositoryProvider)
       .fetchEmployees(pageSize: 200, sortBy: 'lastName');
@@ -564,6 +566,8 @@ final _employeeOptionsProvider = FutureProvider<List<Employee>>((ref) async {
 });
 
 final _projectOptionsProvider = FutureProvider<List<Project>>((ref) async {
+  ref.watch(currentUserProvider.select((user) => user?.id));
+
   final page = await ref
       .read(projectRepositoryProvider)
       .fetchProjects(pageSize: 200, sortBy: 'name');

@@ -84,13 +84,18 @@ class HomeScreen extends ConsumerWidget {
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => context.push(AppRoutes.absences),
                     ),
-                    const Divider(height: 1, indent: 20, endIndent: 20),
-                    ListTile(
-                      leading: const Icon(Icons.assignment_turned_in_outlined),
-                      title: Text(context.l10n.navWeeklyReports),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => context.push(AppRoutes.weeklyReports),
-                    ),
+                    // Every weekly-report endpoint is foreman-and-above on the server, so a
+                    // worker who opened this got "you may not do this" on the screen and on
+                    // submitting.
+                    if (user.canViewDirectory) ...[
+                      const Divider(height: 1, indent: 20, endIndent: 20),
+                      ListTile(
+                        leading: const Icon(Icons.assignment_turned_in_outlined),
+                        title: Text(context.l10n.navWeeklyReports),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => context.push(AppRoutes.weeklyReports),
+                      ),
+                    ],
                     const Divider(height: 1, indent: 20, endIndent: 20),
                     ListTile(
                       leading: const Icon(Icons.home_outlined),

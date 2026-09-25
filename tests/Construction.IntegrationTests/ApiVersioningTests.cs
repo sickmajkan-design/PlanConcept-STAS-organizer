@@ -139,4 +139,16 @@ public class ApiVersioningTests
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/health/live")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/v1/health/live")).StatusCode);
     }
+
+    [Fact]
+    public async Task Signing_out_with_no_session_to_end_is_not_a_bad_request()
+    {
+        // The panel calls this unconditionally, so that no refresh cookie is ever left behind;
+        // for a browser that has none, answering 400 put an error in every visitor's console.
+        using var client = _api.AnonymousClient();
+
+        using var response = await client.PostAsJsonAsync("/api/v1/auth/logout", new { });
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    }
 }

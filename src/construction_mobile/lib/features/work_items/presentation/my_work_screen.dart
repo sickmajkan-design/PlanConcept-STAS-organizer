@@ -33,7 +33,7 @@ class MyWorkScreen extends ConsumerWidget {
           emptyMessage: context.l10n.workItemsEmpty,
           emptyIcon: Icons.checklist_outlined,
           header: ListSearchHeader(
-            hintText: context.l10n.workItemsIncludeFinished,
+            hintText: context.l10n.workItemsSearchHint,
             onSearchChanged: controller.search,
             filters: const [workIncludeFinishedFilter],
             selectedFilter: controller.filter,

@@ -9,6 +9,7 @@ import '../../../core/network/idempotency.dart';
 import '../../vehicles/data/models/vehicle.dart';
 import '../../vehicles/data/vehicle_repository.dart';
 import 'vehicle_expenses_controller.dart';
+import '../../auth/presentation/auth_controller.dart';
 
 /// The kinds worth offering on a phone.
 ///
@@ -28,6 +29,8 @@ Future<void> showRecordExpenseSheet(BuildContext context) {
 /// The vehicles a foreman can pick from. Cached for the session: the fleet
 /// does not change between two fill-ups.
 final _vehicleOptionsProvider = FutureProvider<List<Vehicle>>((ref) async {
+  ref.watch(currentUserProvider.select((user) => user?.id));
+
   final page = await ref
       .read(vehicleRepositoryProvider)
       .fetchVehicles(pageSize: 100, sortBy: 'registrationNumber');

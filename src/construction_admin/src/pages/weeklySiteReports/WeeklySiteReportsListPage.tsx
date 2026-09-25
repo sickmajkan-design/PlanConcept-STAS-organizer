@@ -241,7 +241,9 @@ export function WeeklySiteReportsListPage() {
 
   const [submitOpen, setSubmitOpen] = useState(false);
   const list = useListQueryState('createdAt', 'desc');
-  const markProcessed = useMarkWeeklySiteReportProcessed();
+  // `mutate` only: the mutation object is a new one on every render, which would rebuild the
+  // memoised columns each time and make the grid update itself while this page renders.
+  const { mutate: markProcessed } = useMarkWeeklySiteReportProcessed();
 
   const { data, isLoading, isError, error, refetch } = useWeeklySiteReportsQuery({
     ...list.query,
@@ -311,7 +313,7 @@ export function WeeklySiteReportsListPage() {
               <Tooltip title={t('weeklyReports.markProcessed')}>
                 <IconButton
                   size="small"
-                  onClick={() => markProcessed.mutate(params.row.id)}
+                  onClick={() => markProcessed(params.row.id)}
                 >
                   <CheckCircleOutlined fontSize="small" />
                 </IconButton>
