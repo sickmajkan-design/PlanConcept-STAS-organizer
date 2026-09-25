@@ -69,6 +69,12 @@ deploy/.env
 /deploy/downloads/*
 !/deploy/downloads/.gitkeep
 
+# Screenshots and scratch files that browser and device testing leave in the
+# repository root. Only the root: images elsewhere (docs, assets) are real files.
+/*.png
+/test.pdf
+/ui.xml
+
 # Python bytecode, from running the scripts in scripts/
 __pycache__/
 *.pyc

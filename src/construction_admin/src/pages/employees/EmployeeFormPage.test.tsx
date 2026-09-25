@@ -273,4 +273,22 @@ describe('EmployeeFormPage', () => {
     expect(writes()[0].method).toBe('PUT');
     expect(writes()[0].url).toContain(saved.id);
   }, SCREEN_TIMEOUT);
+
+  it('reminds a new employee needs a project, and does not nag when editing one', async () => {
+    await renderForm();
+
+    // Either language: the wording is not what is being tested.
+    await screen.findByText(/assign this person to a project|dodijelite osobu gradilištu/i);
+  }, SCREEN_TIMEOUT);
+
+  it('says nothing about assigning a project on an existing employee', async () => {
+    network.reply('/employees/', 200, saved);
+
+    await renderForm(`/employees/${saved.id}/edit`, '/employees/:id/edit');
+
+    const number = await screen.findByLabelText(/broj radnika|employee number/i);
+    await waitFor(() => expect((number as HTMLInputElement).value).toBe('EMP-001'));
+
+    expect(screen.queryByText(/assign this person to a project|dodijelite osobu gradilištu/i)).toBeNull();
+  }, SCREEN_TIMEOUT);
 });

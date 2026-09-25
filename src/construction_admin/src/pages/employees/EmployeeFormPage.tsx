@@ -186,6 +186,7 @@ export function EmployeeFormPage() {
           <Stack spacing={2.5}>
             {rootError?.message && <Alert severity="error">{rootError.message}</Alert>}
             {!isEdit && <DuplicateWarningAlert candidates={duplicates.candidates} />}
+            {!isEdit && <Alert severity="info">{t('employees.assignAfterCreate')}</Alert>}
 
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, sm: 6 }}>
