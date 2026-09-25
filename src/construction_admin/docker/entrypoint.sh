@@ -21,6 +21,7 @@ target=/usr/share/nginx/html/config.js
 # quietly pointed at localhost with no explanation.
 api_base_url=${API_BASE_URL:-}
 google_maps_api_key=${GOOGLE_MAPS_API_KEY:-}
+app_download_url=${APP_DOWNLOAD_URL:-}
 
 # Escaped, because these values arrive from the environment and are written
 # into JavaScript. A quote or a backslash in a hostname would otherwise end the
@@ -34,7 +35,8 @@ cat > "$target" <<CONFIG
 // this file is overwritten on every restart.
 window.__CONSTRUCTION_CONFIG__ = {
   apiBaseUrl: "$(escape "$api_base_url")",
-  googleMapsApiKey: "$(escape "$google_maps_api_key")"
+  googleMapsApiKey: "$(escape "$google_maps_api_key")",
+  appDownloadUrl: "$(escape "$app_download_url")"
 };
 CONFIG
 

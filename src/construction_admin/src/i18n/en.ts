@@ -369,6 +369,7 @@ export const en = {
 
   'auth.signInToConsole': 'Sign in to the admin console',
   'auth.forgotPasswordShort': 'Forgot password?',
+  'auth.downloadApp': 'Download the phone app',
   'auth.resetPasswordTitle': 'Reset password',
   'auth.forgotIntro': 'Enter the email address of your admin account. If an account exists, we will send a link to choose a new password.',
   'auth.sendAgain': 'Send again',
@@ -481,6 +482,7 @@ export const en = {
   'releaseNotes.setup.employee': 'The new-employee form reminds you to assign the person to a project after saving, so they are able to clock in.',
   'releaseNotes.setup.tracking': 'The phone app now shares a worker\'s position only while they are clocked in to a shift, no longer for as long as they are signed in. The live map therefore shows only people who are on shift. This applies once the worker has the new version of the app.',
   'releaseNotes.setup.app': 'New phone app version 1.1.5: it fixes the end-of-shift dialog, whose confirm button was not shown, so a shift could not be ended from the app. Install it from the download link on the server; the location change above applies to this version.',
+  'releaseNotes.setup.downloadLink': 'The sign-in page now has a "Download the phone app" link. Send that address to anyone who needs the app: it opens a page with the download button and installation steps.',
   'releaseNotes.finance.statistics': 'A SuperAdmin can also grant an account "Statistics only": changes in percent and the structure of spending, without a single amount.',
   'finance.budget.warnPercentHelp': 'Leave empty for 80%. From 100% the project counts as over.',
   'finance.housingDoubleWarning': '{count} housing expenses fall on days when accommodation rent is already counted from the accommodation rates, so that rent is counted twice. Delete them or move them to another category.',

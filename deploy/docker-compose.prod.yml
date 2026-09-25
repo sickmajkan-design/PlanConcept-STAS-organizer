@@ -132,6 +132,9 @@ services:
       # this string is handed to the browser, and a browser cannot guess a port.
       API_BASE_URL: "${PUBLIC_ORIGIN:-https://${DOMAIN:?set DOMAIN in .env}}"
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+      # The proxy already serves whatever is in deploy/downloads/ at /downloads/,
+      # so the sign-in page links there unless APP_DOWNLOAD_URL says otherwise.
+      APP_DOWNLOAD_URL: "${APP_DOWNLOAD_URL:-${PUBLIC_ORIGIN:-https://${DOMAIN:?set DOMAIN in .env}}/downloads/}"
     networks:
       - internal
 

@@ -392,6 +392,7 @@ export const sr: Record<MessageKey, Message> = {
 
   'auth.signInToConsole': 'Prijava na administratorsku konzolu',
   'auth.forgotPasswordShort': 'Zaboravljena lozinka?',
+  'auth.downloadApp': 'Preuzmi aplikaciju za telefon',
   'auth.resetPasswordTitle': 'Resetovanje lozinke',
   'auth.forgotIntro': 'Unesite e-mail adresu svog naloga. Ako nalog postoji, poslaćemo link za izbor nove lozinke.',
   'auth.sendAgain': 'Pošalji ponovo',
@@ -504,6 +505,7 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.setup.employee': 'Forma za novog zaposlenog podsjeća da osobu nakon spremanja dodijelite gradilištu, kako bi mogla da evidentira rad.',
   'releaseNotes.setup.tracking': 'Aplikacija na telefonu sada dijeli položaj radnika samo dok je prijavljen na smjenu, a ne dok god je prijavljen u aplikaciju. Mapa uživo zato prikazuje samo ljude koji su na smjeni. Važi kad radnik instalira novu verziju aplikacije.',
   'releaseNotes.setup.app': 'Nova verzija aplikacije za telefon 1.1.5: ispravlja dijalog završetka smjene, u kojem se nije prikazivalo dugme za potvrdu, pa se smjena nije mogla završiti iz aplikacije. Instalirajte je sa linka za preuzimanje na serveru; promjena lokacije iznad važi za ovu verziju.',
+  'releaseNotes.setup.downloadLink': 'Stranica za prijavu sada ima link „Preuzmi aplikaciju za telefon“. Tu adresu pošaljite svakome kome treba aplikacija: otvara stranicu s dugmetom za preuzimanje i koracima za instalaciju.',
   'releaseNotes.finance.statistics': 'SuperAdmin može nalogu dodijeliti i pravo „Samo statistika“: promjene u procentima i struktura troškova, bez ijednog iznosa.',
   'finance.budget.warnPercentHelp': 'Prazno znači 80%. Od 100% se projekat računa kao prekoračen.',
   'finance.housingDoubleWarning': '{count} troškova smještaja pada na dane kada je kirija već uračunata iz cijena smještaja, pa se ta kirija računa dvaput. Obrišite ih ili ih prebacite u drugu kategoriju.',

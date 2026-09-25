@@ -9,6 +9,7 @@ import { useAuth } from '../../auth/useAuth';
 import { loginSchema, type LoginFormValues } from '../../auth/validation';
 import { AuthCard } from '../../components/AuthCard';
 import { PasswordField } from '../../components/PasswordField';
+import { config } from '../../config';
 import { useCompanyBrandingQuery } from '../../features/companySettings/useCompanySettings';
 import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
@@ -93,6 +94,16 @@ export function LoginPage() {
           >
             {t('auth.forgotPasswordShort')}
           </MuiLink>
+
+          {config.appDownloadUrl && (
+            <MuiLink
+              href={config.appDownloadUrl}
+              variant="body2"
+              sx={{ textAlign: 'center' }}
+            >
+              {t('auth.downloadApp')}
+            </MuiLink>
+          )}
         </Stack>
       </form>
     </AuthCard>

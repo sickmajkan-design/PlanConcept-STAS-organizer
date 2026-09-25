@@ -8,6 +8,7 @@
 interface RuntimeConfig {
   apiBaseUrl?: string;
   googleMapsApiKey?: string;
+  appDownloadUrl?: string;
 }
 
 declare global {
@@ -55,6 +56,13 @@ export const config = {
     runtime.googleMapsApiKey,
     import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
   ),
+
+  /**
+   * Where the phone app can be downloaded. When set, the sign-in page links to
+   * it; when empty (development, or an installation that does not host the app)
+   * there is no link rather than a dead one.
+   */
+  appDownloadUrl: pick(runtime.appDownloadUrl, import.meta.env.VITE_APP_DOWNLOAD_URL),
 
   /** How often the live map re-reads employee positions. */
   liveMapRefreshMs: 30_000,
