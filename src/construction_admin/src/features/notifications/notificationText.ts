@@ -315,6 +315,25 @@ export function resolveNotificationText(t: T, notification: Notification): Notif
         }),
       };
 
+    case 'RefundRequested':
+      if (!d.employeeName || !d.amount) return fallback;
+      return {
+        title: text('notificationRefundRequestedTitle'),
+        body: text('notificationRefundRequestedBody', { name: d.employeeName, amount: d.amount, currency: d.currency ?? '' }),
+      };
+
+    case 'RefundDecided':
+      if (!d.decision || !d.amount) return fallback;
+      return d.decision === 'Approved'
+        ? {
+            title: text('notificationRefundApprovedTitle'),
+            body: text('notificationRefundApprovedBody', { amount: d.amount, currency: d.currency ?? '' }),
+          }
+        : {
+            title: text('notificationRefundRejectedTitle'),
+            body: text('notificationRefundRejectedBody', { amount: d.amount, currency: d.currency ?? '', note: d.note ?? '' }),
+          };
+
     case 'ArticleOrderRequested':
       if (!d.requestedByName) return fallback;
       return {

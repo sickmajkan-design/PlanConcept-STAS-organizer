@@ -139,6 +139,7 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
               },
               { label: t('nav.absences'), path: paths.absences, icon: <EventBusyOutlined /> },
               { label: t('nav.articleOrders'), path: paths.articleOrders, icon: <ShoppingCartOutlined /> },
+              { label: t('nav.refunds'), path: paths.refunds, icon: <RequestQuoteOutlined /> },
               {
                 label: t('nav.weeklyReports'),
                 path: paths.weeklyReports,

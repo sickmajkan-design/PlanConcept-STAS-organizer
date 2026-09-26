@@ -97,6 +97,10 @@ export function resolveNotificationTarget(
       if (!hasDirectory) return null;
       return data.absenceId ? `${paths.absences}?highlight=${data.absenceId}` : paths.absences;
 
+    case 'RefundRequested':
+    case 'RefundDecided':
+      return data.refundId ? `${paths.refunds}?highlight=${data.refundId}` : paths.refunds;
+
     case 'ArticleOrderRequested':
     case 'ArticleOrderStatusChanged':
       return data.articleOrderId ? `${paths.articleOrders}?highlight=${data.articleOrderId}` : paths.articleOrders;

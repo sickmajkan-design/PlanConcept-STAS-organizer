@@ -128,6 +128,11 @@ const SchedulePage = lazy(() =>
     default: m.SchedulePage,
   })),
 );
+const RefundsPage = lazy(() =>
+  import('./pages/refunds/RefundsPage').then((m) => ({
+    default: m.RefundsPage,
+  })),
+);
 const ArticleOrdersPage = lazy(() =>
   import('./pages/articleOrders/ArticleOrdersPage').then((m) => ({
     default: m.ArticleOrdersPage,
@@ -419,6 +424,7 @@ function Layout() {
               <Route path={paths.schedule} element={<SchedulePage />} />
               <Route path={paths.absences} element={<AbsencesListPage />} />
               <Route path={paths.articleOrders} element={<ArticleOrdersPage />} />
+              <Route path={paths.refunds} element={<RefundsPage />} />
               <Route path={paths.weeklyReports} element={<WeeklySiteReportsListPage />} />
 
               <Route path={paths.timeEntrySummary} element={<TimeEntrySummaryPage />} />

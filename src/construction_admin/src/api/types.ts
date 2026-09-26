@@ -802,6 +802,7 @@ export const attachmentOwnerTypes = [
   'Accommodation',
   'AccommodationRate',
   'ToolRentalRate',
+  'Refund',
 ] as const;
 
 export type AttachmentOwnerType = (typeof attachmentOwnerTypes)[number];
@@ -2177,6 +2178,8 @@ export const notificationTypes = [
   'AccommodationAssigned',
   'ArticleOrderRequested',
   'ArticleOrderStatusChanged',
+  'RefundRequested',
+  'RefundDecided',
 ] as const;
 
 export type NotificationType = (typeof notificationTypes)[number];
@@ -2426,4 +2429,38 @@ export interface ArticleOrderInput {
   urgent: boolean;
   note?: string | null;
   items: { name: string; quantity: number; unit?: string | null; note?: string | null }[];
+}
+
+export const refundStatuses = ['Requested', 'Approved', 'Rejected', 'Cancelled'] as const;
+
+export type RefundStatus = (typeof refundStatuses)[number];
+
+/** Money a person spent for the firm and asks to get back, with the reason. Paid with a payroll month once approved. */
+export interface Refund {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  requestedByUserId: string;
+  projectId: string | null;
+  projectName: string | null;
+  amount: number;
+  currency: string;
+  /** `YYYY-MM-DD`. */
+  expenseDate: string;
+  description: string;
+  status: RefundStatus;
+  reviewedByName: string | null;
+  reviewedAt: string | null;
+  reviewNote: string | null;
+  payrollYear: number | null;
+  payrollMonth: number | null;
+  createdAt: string;
+}
+
+export interface RefundInput {
+  amount: number;
+  currency: string;
+  expenseDate: string;
+  description: string;
+  projectId?: string | null;
 }

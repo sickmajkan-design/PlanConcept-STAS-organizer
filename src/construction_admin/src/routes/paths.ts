@@ -54,6 +54,7 @@ export const paths = {
   schedule: '/schedule',
   absences: '/absences',
   articleOrders: '/article-orders',
+  refunds: '/refunds',
   assignmentBoard: '/assignment-board',
 
   costs: '/costs',
