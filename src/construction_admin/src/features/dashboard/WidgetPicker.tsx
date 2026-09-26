@@ -29,7 +29,7 @@ export function WidgetPicker({ open, excludeTypes, onClose, onPick }: WidgetPick
   );
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>{t('dashboard.pickerTitle')}</DialogTitle>
       <DialogContent>
         {available.length === 0 ? (
@@ -40,7 +40,17 @@ export function WidgetPicker({ open, excludeTypes, onClose, onPick }: WidgetPick
           <List>
             {available.map((type) => (
               <ListItemButton key={type} onClick={() => onPick(type)}>
-                <ListItemText primary={t(widgetRegistry[type].titleKey)} />
+                <ListItemText
+                  primary={t(widgetRegistry[type].titleKey)}
+                  secondary={
+                    <>
+                      {t(`dashboard.widgetInfo.${type}`)}
+                      <Typography component="span" variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                        {t(`dashboard.widgetSetup.${type}`)}
+                      </Typography>
+                    </>
+                  }
+                />
               </ListItemButton>
             ))}
           </List>
