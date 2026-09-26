@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
 using Construction.Application.Common.Security;
@@ -49,10 +50,17 @@ public class GetEmployeesQueryValidator : SortablePagedQueryValidator<GetEmploye
 public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, PagedList<EmployeeDto>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
-    public GetEmployeesQueryHandler(IApplicationDbContext context)
+    public GetEmployeesQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
+        _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<PagedList<EmployeeDto>> Handle(
@@ -60,6 +68,20 @@ public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, Paged
         CancellationToken cancellationToken)
     {
         var query = _context.Employees.AsNoTracking();
+
+        // A foreman sees the people posted to their own sites, and themselves.
+        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var ownProjects = await ForemanScope.OwnProjectIdsAsync(
+            _context, _currentUserService, today, cancellationToken);
+
+        if (ownProjects is not null)
+        {
+            var self = _currentUserService.EmployeeId;
+
+            query = query.Where(e => e.Id == self
+                || e.ProjectAssignments.Any(pa => ownProjects.Contains(pa.ProjectId)
+                    && (pa.EndDate == null || pa.EndDate > today)));
+        }
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {

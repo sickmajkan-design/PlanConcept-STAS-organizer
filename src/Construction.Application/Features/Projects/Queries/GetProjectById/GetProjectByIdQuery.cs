@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Costs;
@@ -30,11 +31,21 @@ public class GetProjectByIdQueryHandler : IRequestHandler<GetProjectByIdQuery, P
         GetProjectByIdQuery request,
         CancellationToken cancellationToken)
     {
-        var project = await _context.Projects
-            .AsNoTracking()
-            .Where(p => p.Id == request.Id)
-            .Select(ProjectDetailMapping.Projection)
-            .FirstOrDefaultAsync(cancellationToken);
+        // Not found rather than forbidden: a foreman is not told that a site
+        // they are not posted to exists.
+        var ownProjects = await ForemanScope.OwnProjectIdsAsync(
+            _context,
+            _currentUserService,
+            DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+            cancellationToken);
+
+        var project = ownProjects is not null && !ownProjects.Contains(request.Id)
+            ? null
+            : await _context.Projects
+                .AsNoTracking()
+                .Where(p => p.Id == request.Id)
+                .Select(ProjectDetailMapping.Projection)
+                .FirstOrDefaultAsync(cancellationToken);
 
         if (project is null)
         {

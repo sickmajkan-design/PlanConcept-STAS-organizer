@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Costs;
@@ -30,9 +31,24 @@ public class GetEmployeeByIdQueryHandler : IRequestHandler<GetEmployeeByIdQuery,
         GetEmployeeByIdQuery request,
         CancellationToken cancellationToken)
     {
-        var employee = await _context.Employees
-            .AsNoTracking()
-            .Where(e => e.Id == request.Id)
+        // Not found rather than forbidden, as for a project: a foreman is not
+        // told about people who are not on their sites.
+        var scopeDay = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var ownProjects = await ForemanScope.OwnProjectIdsAsync(
+            _context, _currentUserService, scopeDay, cancellationToken);
+
+        var candidates = _context.Employees.AsNoTracking().Where(e => e.Id == request.Id);
+
+        if (ownProjects is not null)
+        {
+            var self = _currentUserService.EmployeeId;
+
+            candidates = candidates.Where(e => e.Id == self
+                || e.ProjectAssignments.Any(pa => ownProjects.Contains(pa.ProjectId)
+                    && (pa.EndDate == null || pa.EndDate > scopeDay)));
+        }
+
+        var employee = await candidates
             .Select(EmployeeDetailMapping.Projection)
             .FirstOrDefaultAsync(cancellationToken);
 

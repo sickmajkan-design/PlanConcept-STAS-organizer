@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
 using Construction.Application.Common.Security;
@@ -56,10 +57,17 @@ public class GetProjectsQueryValidator : SortablePagedQueryValidator<GetProjects
 public class GetProjectsQueryHandler : IRequestHandler<GetProjectsQuery, PagedList<ProjectDto>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
-    public GetProjectsQueryHandler(IApplicationDbContext context)
+    public GetProjectsQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
+        _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<PagedList<ProjectDto>> Handle(
@@ -67,6 +75,18 @@ public class GetProjectsQueryHandler : IRequestHandler<GetProjectsQuery, PagedLi
         CancellationToken cancellationToken)
     {
         var query = _context.Projects.AsNoTracking();
+
+        // A foreman sees the sites they are posted to and no others.
+        var ownProjects = await ForemanScope.OwnProjectIdsAsync(
+            _context,
+            _currentUserService,
+            DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+            cancellationToken);
+
+        if (ownProjects is not null)
+        {
+            query = query.Where(p => ownProjects.Contains(p.Id));
+        }
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
