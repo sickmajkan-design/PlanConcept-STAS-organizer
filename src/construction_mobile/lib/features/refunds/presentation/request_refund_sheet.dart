@@ -85,6 +85,7 @@ class _RequestRefundSheetState extends ConsumerState<_RequestRefundSheet> {
                   child: TextField(
                     controller: _currency,
                     maxLength: 3,
+                    buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
                     textCapitalization: TextCapitalization.characters,
                     onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(labelText: l10n.refundCurrency),
@@ -102,6 +103,7 @@ class _RequestRefundSheetState extends ConsumerState<_RequestRefundSheet> {
               controller: _description,
               maxLines: 3,
               maxLength: 1000,
+              buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
               onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
                 labelText: l10n.refundReason,

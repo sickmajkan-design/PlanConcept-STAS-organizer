@@ -87,12 +87,14 @@ class _RequestArticlesSheetState extends ConsumerState<_RequestArticlesSheet> {
                     child: TextField(
                       controller: _lines[i].name,
                       maxLength: 200,
+                      buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
                       onChanged: (_) => setState(() {}),
                       decoration: InputDecoration(labelText: l10n.articleOrdersItemName),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
+                    flex: 2,
                     child: TextField(
                       controller: _lines[i].quantity,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -102,9 +104,11 @@ class _RequestArticlesSheetState extends ConsumerState<_RequestArticlesSheet> {
                   ),
                   const SizedBox(width: 8),
                   Expanded(
+                    flex: 2,
                     child: TextField(
                       controller: _lines[i].unit,
                       maxLength: 30,
+                      buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
                       decoration: InputDecoration(labelText: l10n.articleOrdersUnit),
                     ),
                   ),
@@ -113,6 +117,7 @@ class _RequestArticlesSheetState extends ConsumerState<_RequestArticlesSheet> {
               TextField(
                 controller: _lines[i].note,
                 maxLength: 300,
+                buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
                 decoration: InputDecoration(labelText: l10n.articleOrdersItemNote),
               ),
               if (_lines.length > 1)
@@ -138,6 +143,7 @@ class _RequestArticlesSheetState extends ConsumerState<_RequestArticlesSheet> {
               controller: _note,
               maxLines: 2,
               maxLength: 1000,
+              buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
               decoration: InputDecoration(labelText: l10n.articleOrdersNote),
             ),
             SwitchListTile(
