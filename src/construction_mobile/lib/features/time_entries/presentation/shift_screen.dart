@@ -233,7 +233,7 @@ class _ShiftCardState extends ConsumerState<_ShiftCard> {
         context: context,
         isDismissible: false,
         enableDrag: false,
-        builder: (_) => _SitePickerSheet(sites: sites),
+        builder: (_) => SitePickerSheet(sites: sites),
       );
 
       if (projectId == null) return;
@@ -295,6 +295,16 @@ class _ClockOutSheet extends StatefulWidget {
 
 class _ClockOutSheetState extends State<_ClockOutSheet> {
   final _controller = TextEditingController(text: '0');
+
+  @override
+  void initState() {
+    super.initState();
+
+    // The 0 is a default, not something to be typed after: with the cursor
+    // behind it, "30" became "030".
+    _controller.selection =
+        TextSelection(baseOffset: 0, extentOffset: _controller.text.length);
+  }
 
   @override
   void dispose() {
@@ -466,8 +476,8 @@ class _TimeEntryCard extends StatelessWidget {
 }
 
 /// Which site the worker is on, when they are posted to more than one.
-class _SitePickerSheet extends StatelessWidget {
-  const _SitePickerSheet({required this.sites});
+class SitePickerSheet extends StatelessWidget {
+  const SitePickerSheet({super.key, required this.sites});
 
   final List<ClockInSite> sites;
 

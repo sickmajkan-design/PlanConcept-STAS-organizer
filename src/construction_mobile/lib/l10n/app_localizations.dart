@@ -4408,6 +4408,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A leave request made with no signal was refused: {reason}'**
   String outboxAbsenceRefused(String reason);
+
+  /// No description provided for @workItemsNoSiteToday.
+  ///
+  /// In en, this message translates to:
+  /// **'You are not posted to a site today, so there is nothing to report a defect on. Ask the office to post you.'**
+  String get workItemsNoSiteToday;
 }
 
 class _AppLocalizationsDelegate

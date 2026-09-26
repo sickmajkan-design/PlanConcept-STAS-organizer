@@ -1294,5 +1294,6 @@
         "type": "String"
       }
     }
-  }
+  },
+  "workItemsNoSiteToday": "You are not posted to a site today, so there is nothing to report a defect on. Ask the office to post you."
 }

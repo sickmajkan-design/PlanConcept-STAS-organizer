@@ -1,5 +1,8 @@
 import 'package:construction_mobile/core/network/api_exception.dart';
 import 'package:construction_mobile/core/network/network_providers.dart';
+import 'package:construction_mobile/features/time_entries/data/models/clock_in_site.dart';
+import 'package:construction_mobile/features/time_entries/data/time_entry_repository.dart';
+import 'package:construction_mobile/core/theme/app_theme.dart';
 import 'package:construction_mobile/core/network/offline_cache.dart';
 import 'package:construction_mobile/core/outbox/outbox_queue.dart';
 import 'package:construction_mobile/features/notifications/presentation/pending_acknowledgments_controller.dart';
@@ -81,6 +84,18 @@ class _FakeWorkItems implements WorkItemRepository {
 
 const _projectId = '019fad80-0000-7000-8000-000000000003';
 
+class _FakeTimeEntries implements TimeEntryRepository {
+  _FakeTimeEntries(this.sites);
+
+  final List<ClockInSite> sites;
+
+  @override
+  Future<List<ClockInSite>> fetchClockInSites() async => sites;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class _MemoryOutboxStore implements OutboxStore {
   String? value;
 
@@ -105,11 +120,14 @@ Future<void> _pumpButton(
   WidgetTester tester,
   _FakeWorkItems repository, {
   _MemoryOutboxStore? store,
+  bool fromHome = false,
+  List<ClockInSite> sites = const <ClockInSite>[],
 }) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         workItemRepositoryProvider.overrideWithValue(repository),
+        timeEntryRepositoryProvider.overrideWithValue(_FakeTimeEntries(sites)),
         currentUserProvider.overrideWithValue(_worker),
         // A signed-in user makes the button ask whether an unconfirmed notice
         // is blocking it, which opens the API client and, with it, the offline
@@ -120,12 +138,20 @@ Future<void> _pumpButton(
           OutboxQueue(store ?? _MemoryOutboxStore()),
         ),
       ],
-      child: const MaterialApp(
+      child: MaterialApp(
+        // The app's own theme: it gives every filled button an infinite
+        // minimum width, which is what made this sheet's Report button vanish
+        // on a real phone while every test under the default theme passed.
+        theme: AppTheme.light(),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         locale: Locale('en'),
         home: Scaffold(
-          body: Center(child: ReportDefectButton(projectId: _projectId)),
+          body: Center(
+            child: fromHome
+                ? const ReportDefectButton(asTile: true)
+                : const ReportDefectButton(projectId: _projectId),
+          ),
         ),
       ),
     ),
@@ -168,6 +194,80 @@ void main() {
       'Runs the full height, west side',
     );
     expect(find.text('Defect reported.'), findsOneWidget);
+  });
+
+  testWidgets('the Report button is actually drawn, and inside the sheet',
+      (tester) async {
+    await _pumpButton(tester, _FakeWorkItems());
+    await _openSheet(tester);
+
+    final size = tester.getSize(find.widgetWithText(FilledButton, 'Report'));
+    final right = tester.getTopRight(find.widgetWithText(FilledButton, 'Report'));
+
+    expect(size.width, greaterThan(40));
+    expect(size.width, lessThan(300), reason: 'not stretched across the sheet');
+    expect(right.dx, lessThanOrEqualTo(tester.view.physicalSize.width / tester.view.devicePixelRatio));
+  });
+
+  group('from the home screen, where a worker has no project to press it on', () {
+    testWidgets('one site today: the report goes straight to it', (tester) async {
+      final repository = _FakeWorkItems();
+
+      await _pumpButton(
+        tester,
+        repository,
+        fromHome: true,
+        sites: const [ClockInSite(id: 'site-a', name: 'Zgrada A')],
+      );
+      await _openSheet(tester);
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'What is wrong'),
+        'Loose handrail',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Report'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(repository.reported.single.projectId, 'site-a');
+    });
+
+    testWidgets('several sites: they say which one first', (tester) async {
+      final repository = _FakeWorkItems();
+
+      await _pumpButton(
+        tester,
+        repository,
+        fromHome: true,
+        sites: const [
+          ClockInSite(id: 'site-a', name: 'Zgrada A'),
+          ClockInSite(id: 'site-b', name: 'Zgrada B'),
+        ],
+      );
+      await _openSheet(tester);
+
+      await tester.tap(find.text('Zgrada B'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'What is wrong'),
+        'Loose handrail',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Report'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(repository.reported.single.projectId, 'site-b');
+    });
+
+    testWidgets('no site today: says so instead of opening a form', (tester) async {
+      await _pumpButton(tester, _FakeWorkItems(), fromHome: true);
+      await _openSheet(tester);
+
+      expect(find.textContaining('not posted to a site today'), findsOneWidget);
+      expect(find.widgetWithText(FilledButton, 'Report'), findsNothing);
+    });
   });
 
   testWidgets('an empty title is refused here rather than by the server',

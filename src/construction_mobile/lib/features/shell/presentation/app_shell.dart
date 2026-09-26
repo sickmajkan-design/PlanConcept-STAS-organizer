@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/l10n/app_locales.dart';
-import '../../../core/widgets/offline_data_banner.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../auth/presentation/auth_controller.dart';
-import '../../outbox/outbox_banner.dart';
 import '../../notifications/presentation/acknowledgment_banner.dart';
 import '../../notifications/presentation/notifications_controller.dart';
 
@@ -52,8 +50,6 @@ class AppShell extends ConsumerWidget {
       // would be the one showing yesterday's numbers without saying so.
       body: Column(
         children: [
-          const OfflineDataBanner(),
-          const OutboxBanner(),
           const AcknowledgmentBanner(),
           Expanded(child: navigationShell),
         ],

@@ -2503,4 +2503,8 @@ class AppLocalizationsSr extends AppLocalizations {
   String outboxAbsenceRefused(String reason) {
     return 'Zahtjev za odsustvo napravljen bez signala je odbijen: $reason';
   }
+
+  @override
+  String get workItemsNoSiteToday =>
+      'Danas niste raspoređeni na gradilište, pa nema na šta prijaviti nedostatak. Zamolite kancelariju da vas rasporedi.';
 }

@@ -198,6 +198,8 @@ class OutboxController extends Notifier<OutboxState> {
                 fileName: p['photoName'] as String? ?? 'photo.jpg',
               );
 
+          _forget(photoPath);
+
           return false;
         } on ApiException {
           return true;
@@ -213,6 +215,20 @@ class OutboxController extends Notifier<OutboxState> {
             );
 
         return false;
+    }
+  }
+
+  /// Removes a photograph this app copied for the outbox, once it is on the
+  /// server. Only ours: anything else is the camera's or the gallery's.
+  void _forget(String path) {
+    if (!path.contains('outbox-photos')) {
+      return;
+    }
+
+    try {
+      File(path).deleteSync();
+    } catch (_) {
+      // A leftover file is not worth failing a report that has gone.
     }
   }
 
@@ -243,3 +259,8 @@ class OutboxController extends Notifier<OutboxState> {
 
 final outboxControllerProvider =
     NotifierProvider<OutboxController, OutboxState>(OutboxController.new);
+
+/// How many are waiting, for anything that only cares about that.
+final outboxPendingProvider = Provider<int>(
+  (ref) => ref.watch(outboxControllerProvider.select((s) => s.pendingCount)),
+);

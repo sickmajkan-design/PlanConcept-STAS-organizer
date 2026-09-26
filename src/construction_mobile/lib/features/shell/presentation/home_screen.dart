@@ -13,6 +13,7 @@ import '../../auth/data/models/user.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../location/presentation/location_status_card.dart';
 import '../../notifications/presentation/push_controller.dart';
+import '../../work_items/presentation/report_defect.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -70,6 +71,10 @@ class HomeScreen extends ConsumerWidget {
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => context.push(AppRoutes.workItems),
                     ),
+                    const Divider(height: 1, indent: 20, endIndent: 20),
+                    // The one thing every worker may raise, and the one they
+                    // have no project screen to raise it from.
+                    const ReportDefectButton(asTile: true),
                     const Divider(height: 1, indent: 20, endIndent: 20),
                     ListTile(
                       leading: const Icon(Icons.calendar_month_outlined),

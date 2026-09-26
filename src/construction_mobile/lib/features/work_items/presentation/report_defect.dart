@@ -1,14 +1,22 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/outbox/outbox_queue.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../outbox/outbox_controller.dart';
 import '../../notifications/presentation/acknowledgment_gate.dart';
+import '../../time_entries/data/models/clock_in_site.dart';
+import '../../time_entries/data/time_entry_repository.dart';
+import '../../time_entries/presentation/shift_screen.dart';
 import 'my_work_controller.dart';
 
 /// Reports a defect against a site, from the site.
@@ -17,9 +25,19 @@ import 'my_work_controller.dart';
 /// standing in front of a crack is best placed to record it, while handing
 /// out tasks is a supervisor's job.
 class ReportDefectButton extends ConsumerStatefulWidget {
-  const ReportDefectButton({super.key, required this.projectId});
+  const ReportDefectButton({
+    super.key,
+    this.projectId,
+    this.asTile = false,
+  }) : assert(projectId != null || asTile, 'Name the site, or let the person choose');
 
-  final String projectId;
+  /// The site the defect is on. Null means "one of the sites I am posted to
+  /// today", asked for when the button is pressed: a worker has no project
+  /// screen to press it on, so the entry point is the home screen instead.
+  final String? projectId;
+
+  /// A row for a menu rather than a text button.
+  final bool asTile;
 
   @override
   ConsumerState<ReportDefectButton> createState() => _ReportDefectButtonState();
@@ -30,6 +48,16 @@ class _ReportDefectButtonState extends ConsumerState<ReportDefectButton> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.asTile) {
+      return ListTile(
+        leading: const Icon(Icons.report_problem_outlined),
+        title: Text(context.l10n.workItemsReportDefect),
+        trailing: const Icon(Icons.chevron_right),
+        enabled: !_busy,
+        onTap: _open,
+      );
+    }
+
     return TextButton.icon(
       onPressed: _busy ? null : _open,
       icon: const Icon(Icons.report_problem_outlined),
@@ -37,8 +65,59 @@ class _ReportDefectButtonState extends ConsumerState<ReportDefectButton> {
     );
   }
 
+  /// The named site, or the one the person picks from today's postings. Null
+  /// when there is nothing to report against or they backed out.
+  Future<String?> _site() async {
+    final named = widget.projectId;
+
+    if (named != null) {
+      return named;
+    }
+
+    List<ClockInSite> sites;
+
+    try {
+      sites = await ref.read(timeEntryRepositoryProvider).fetchClockInSites();
+    } on ApiException catch (exception) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(exception.describe(context.l10n))),
+        );
+      }
+      return null;
+    }
+
+    if (!mounted) {
+      return null;
+    }
+
+    if (sites.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.workItemsNoSiteToday)),
+      );
+      return null;
+    }
+
+    if (sites.length == 1) {
+      return sites.single.id;
+    }
+
+    return showModalBottomSheet<String>(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      builder: (_) => SitePickerSheet(sites: sites),
+    );
+  }
+
   Future<void> _open() async {
     if (blockedByPendingAcknowledgment(context, ref)) return;
+
+    final projectId = await _site();
+
+    if (projectId == null || !mounted) {
+      return;
+    }
 
     final result =
         await showModalBottomSheet<({String title, String? description, XFile? photo})>(
@@ -60,10 +139,15 @@ class _ReportDefectButtonState extends ConsumerState<ReportDefectButton> {
       return;
     }
 
-    await _report(result.title, result.description, result.photo);
+    await _report(projectId, result.title, result.description, result.photo);
   }
 
-  Future<void> _report(String title, String? description, XFile? photo) async {
+  Future<void> _report(
+    String projectId,
+    String title,
+    String? description,
+    XFile? photo,
+  ) async {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
 
@@ -79,12 +163,12 @@ class _ReportDefectButtonState extends ConsumerState<ReportDefectButton> {
       final result = await ref.read(outboxControllerProvider.notifier).submit(
         OutboxKind.defect,
         <String, dynamic>{
-          'projectId': widget.projectId,
+          'projectId': projectId,
           'title': title,
           'description': description,
           'latitude': position?.latitude,
           'longitude': position?.longitude,
-          'photoPath': photo?.path,
+          'photoPath': await _keep(photo),
           'photoName': photo?.name,
         },
       );
@@ -106,6 +190,37 @@ class _ReportDefectButtonState extends ConsumerState<ReportDefectButton> {
       if (mounted) {
         setState(() => _busy = false);
       }
+    }
+  }
+
+  /// Copies the photograph somewhere the system will not clear.
+  ///
+  /// The camera leaves it in the app's cache, which Android empties when the
+  /// phone is short of space — exactly when a report has been waiting a day for
+  /// signal. Null when there is no photo or it cannot be copied, in which case
+  /// the report goes without it rather than not at all.
+  Future<String?> _keep(XFile? photo) async {
+    if (photo == null) {
+      return null;
+    }
+
+    try {
+      final directory = Directory(
+        p.join((await getApplicationSupportDirectory()).path, 'outbox-photos'),
+      );
+
+      await directory.create(recursive: true);
+
+      final kept = p.join(
+        directory.path,
+        '${DateTime.now().microsecondsSinceEpoch}-${p.basename(photo.path)}',
+      );
+
+      await File(photo.path).copy(kept);
+
+      return kept;
+    } catch (_) {
+      return photo.path;
     }
   }
 
@@ -232,6 +347,9 @@ class _DefectSheetState extends State<_DefectSheet> {
               ),
               const Spacer(),
               FilledButton(
+                // In a Row: the app theme makes a filled button infinitely
+                // wide, which in a Row means it is not drawn at all.
+                style: AppTheme.inlineFilledButton,
                 onPressed: _submit,
                 child: Text(l10n.workItemsDefectSend),
               ),

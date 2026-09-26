@@ -8,6 +8,7 @@ import 'core/l10n/latin_serbian.dart';
 import 'core/l10n/locale_controller.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'core/widgets/status_banners.dart';
 import 'features/outbox/outbox_controller.dart';
 import 'features/time_entries/presentation/shift_controller.dart';
 import 'l10n/app_localizations.dart';
@@ -76,6 +77,7 @@ class _ConstructionAppState extends ConsumerState<ConstructionApp>
       localeResolutionCallback: (deviceLocale, supported) =>
           resolveLocale(deviceLocale, supported),
       routerConfig: ref.watch(routerProvider),
+      builder: (context, child) => StatusBanners(child: child ?? const SizedBox.shrink()),
     );
   }
 }

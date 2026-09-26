@@ -2506,4 +2506,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String outboxAbsenceRefused(String reason) {
     return 'A leave request made with no signal was refused: $reason';
   }
+
+  @override
+  String get workItemsNoSiteToday =>
+      'You are not posted to a site today, so there is nothing to report a defect on. Ask the office to post you.';
 }
