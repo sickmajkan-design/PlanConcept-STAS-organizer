@@ -1,10 +1,12 @@
 import type { ComponentType } from 'react';
 
-import { canViewFinance, canViewFinanceStatistics } from '../../auth/authHelpers';
+import { canViewDirectory, canViewFinance, canViewFinanceStatistics } from '../../auth/authHelpers';
 import type { User } from '../../api/types';
 
 import type { MessageKey } from '../../i18n/en';
+import { AbsenceRequestsWidget } from './widgets/AbsenceRequestsWidget';
 import { AbsencesBalanceWidget } from './widgets/AbsencesBalanceWidget';
+import { ActiveProjectsWidget } from './widgets/ActiveProjectsWidget';
 import { CompanyKpiWidget } from './widgets/CompanyKpiWidget';
 import { CostTrendWidget } from './widgets/CostTrendWidget';
 import { CostBreakdownWidget } from './widgets/CostBreakdownWidget';
@@ -28,6 +30,8 @@ import type { DashboardWidgetProps, DashboardWidgetType } from './widgetTypes';
 interface WidgetRegistryEntry {
   component: ComponentType<DashboardWidgetProps>;
   titleKey: MessageKey;
+  /** An extra condition on who may have this widget, beyond what it shows of the company's money. */
+  allowed?: (user: User | null | undefined) => boolean;
   /**
    * What the widget shows of the company's money, and so what an account needs to see it:
    * `'full'` for amounts, `'statistics'` for percentages only. Absent for a widget that shows none.
@@ -128,6 +132,17 @@ export const widgetRegistry: Record<DashboardWidgetType, WidgetRegistryEntry> = 
     titleKey: 'dashboard.widget.FinanceStatistics',
     finance: 'statistics',
   },
+  AbsenceRequests: {
+    component: AbsenceRequestsWidget,
+    titleKey: 'dashboard.widget.AbsenceRequests',
+    // Answering a request is the API's ForemanAndAbove.
+    allowed: canViewDirectory,
+  },
+  ActiveProjects: {
+    component: ActiveProjectsWidget,
+    titleKey: 'dashboard.widget.ActiveProjects',
+    allowed: canViewDirectory,
+  },
 };
 
 /**
@@ -136,7 +151,13 @@ export const widgetRegistry: Record<DashboardWidgetType, WidgetRegistryEntry> = 
  * Server-side the calls are refused all the same; this only decides what is drawn and offered.
  */
 export function widgetAllowed(type: DashboardWidgetType, user: User | null | undefined): boolean {
-  switch (widgetRegistry[type]?.finance) {
+  const entry = widgetRegistry[type];
+
+  if (entry?.allowed && !entry.allowed(user)) {
+    return false;
+  }
+
+  switch (entry?.finance) {
     case 'full':
       return canViewFinance(user);
     case 'statistics':

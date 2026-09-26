@@ -19,6 +19,7 @@ function describe(t: Translate, check: LedgerCheck): string {
     section: check.sectionName,
     column: check.columnName ?? '',
     hours: check.amount ?? 0,
+    appHours: check.referenceAmount ?? 0,
     sections: [check.sectionName, ...check.otherSections].join(', '),
   });
 }

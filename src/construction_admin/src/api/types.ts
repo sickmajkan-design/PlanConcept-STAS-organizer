@@ -1720,13 +1720,21 @@ export interface LedgerCell {
 
 /** One thing worth a second look before a month is closed. */
 export interface LedgerCheck {
-  kind: 'MissingClientRate' | 'ManualOverride' | 'HoursAcrossSections' | 'UnreviewedHours';
+  kind:
+    | 'MissingClientRate'
+    | 'ManualOverride'
+    | 'HoursAcrossSections'
+    | 'UnreviewedHours'
+    | 'MissingContributions'
+    | 'HoursDifferFromApp';
   sectionId: string;
   sectionName: string;
   rowId: string | null;
   rowLabel: string | null;
   columnName: string | null;
   amount: number | null;
+  /** What the app recorded, where the check compares two figures. */
+  referenceAmount?: number | null;
   otherSections: string[];
 }
 
@@ -1784,7 +1792,7 @@ export interface CreateLedgerInput {
   /** When set, duplicates that ledger's columns/sections/rows structure (blank cells) into the new one. */
   copyFromLedgerId?: string | null;
   /** Starts from a ready-made layout instead of an empty table. */
-  template?: 'Payroll' | null;
+  template?: 'Payroll' | 'PayrollAppHours' | null;
   /** With a template: a section per project with people on it, and a row for each. */
   populateFromProjects?: boolean;
 }

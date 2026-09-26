@@ -22,6 +22,15 @@ public static class LedgerCheckKinds
 
     /// <summary>Hours were worked and submitted but not yet approved, so they are not counted.</summary>
     public const string UnreviewedHours = "UnreviewedHours";
+
+    /// <summary>A person with hours and nothing entered for contributions, which come off the payslip.</summary>
+    public const string MissingContributions = "MissingContributions";
+
+    /// <summary>
+    /// The hours typed from the signed timesheets are far from what the app recorded
+    /// as approved. Only a prompt to look: the signed hours are the record.
+    /// </summary>
+    public const string HoursDifferFromApp = "HoursDifferFromApp";
 }
 
 public class LedgerCheckDto
@@ -42,6 +51,9 @@ public class LedgerCheckDto
     /// <summary>Hours, for the hours check.</summary>
     public decimal? Amount { get; init; }
 
+    /// <summary>What the app recorded, where the check compares the two.</summary>
+    public decimal? ReferenceAmount { get; init; }
+
     /// <summary>The other sections involved, for the hours check.</summary>
     public IReadOnlyList<string> OtherSections { get; init; } = [];
 }
@@ -61,6 +73,12 @@ public record GetLedgerChecksQuery : IRequest<IReadOnlyList<LedgerCheckDto>>
 
     /// <summary>Hours one person can plausibly work in the month.</summary>
     public decimal ExpectedHours { get; init; } = 176m;
+
+    /// <summary>
+    /// How far, in hours, the typed hours may be from the app's before it is worth
+    /// mentioning. A few hours' difference is a forgotten break, not a mistake.
+    /// </summary>
+    public decimal AppHoursTolerance { get; init; } = 4m;
 }
 
 public class GetLedgerChecksQueryValidator : AbstractValidator<GetLedgerChecksQuery>
@@ -69,6 +87,7 @@ public class GetLedgerChecksQueryValidator : AbstractValidator<GetLedgerChecksQu
     {
         RuleFor(x => x.LedgerId).NotEmpty();
         RuleFor(x => x.ExpectedHours).InclusiveBetween(1m, 744m);
+        RuleFor(x => x.AppHoursTolerance).InclusiveBetween(0m, 744m);
     }
 }
 
@@ -99,6 +118,7 @@ public class GetLedgerChecksQueryHandler
 
         var hoursColumn = columns.FirstOrDefault(c => c.SystemKey == LedgerTemplates.Keys.Hours)?.Id;
         var clientRateColumn = columns.FirstOrDefault(c => c.SystemKey == LedgerTemplates.Keys.ClientRate)?.Id;
+        var contributionsColumn = columns.FirstOrDefault(c => c.SystemKey == LedgerTemplates.Keys.Contributions)?.Id;
 
         var formulas = columns.ToDictionary(c => c.Id, c => LedgerFormula.Parse(c.FormulaJson));
 
@@ -142,6 +162,14 @@ public class GetLedgerChecksQueryHandler
         var issues = new List<LedgerCheckDto>();
         var hoursByRow = new Dictionary<Guid, decimal>();
 
+        // Whether the hour columns are filled from the app. Where they are, a figure
+        // typed over one is already flagged as an override, and a second flag for the
+        // same disagreement would be noise.
+        var hoursFromApp = columns.Any(c =>
+            c.SystemKey is not null
+            && c.SystemKey.StartsWith("week", StringComparison.Ordinal)
+            && formulas[c.Id]?.Source is not null);
+
         foreach (var row in rows)
         {
             var stored = cells.TryGetValue(row.Id, out var s) ? s : new Dictionary<Guid, string?>();
@@ -155,6 +183,25 @@ public class GetLedgerChecksQueryHandler
 
             var hours = ValueOf(hoursColumn);
             hoursByRow[row.Id] = hours;
+
+            // Contributions come off the payslip and are entered every month. A worker
+            // with hours and nothing there has not had theirs entered; a zero is an
+            // answer, an empty cell is not.
+            if (contributionsColumn is { } contributionsId
+                && row.EmployeeId is not null
+                && hours > 0
+                && string.IsNullOrWhiteSpace(stored.GetValueOrDefault(contributionsId)))
+            {
+                issues.Add(new LedgerCheckDto
+                {
+                    Kind = LedgerCheckKinds.MissingContributions,
+                    SectionId = row.SectionId,
+                    SectionName = row.SectionName,
+                    RowId = row.Id,
+                    RowLabel = row.Label,
+                    Amount = hours,
+                });
+            }
 
             if (hoursColumn is not null && clientRateColumn is not null && hours > 0 && ValueOf(clientRateColumn) == 0m)
             {
@@ -218,8 +265,54 @@ public class GetLedgerChecksQueryHandler
                 })
                 .ToListAsync(cancellationToken);
 
+            // What the app recorded as approved, for comparison with the signed hours.
+            var approved = hoursColumn is null || hoursFromApp
+                ? []
+                : await _context.TimeEntries
+                    .AsNoTracking()
+                    .Where(t => t.Status == TimeEntryStatus.Approved
+                        && t.EndedAt != null
+                        && t.ProjectId != null
+                        && employeeIds.Contains(t.EmployeeId)
+                        && projectIds.Contains(t.ProjectId.Value))
+                    .Where(t => DateOnly.FromDateTime(t.StartedAt) >= monthStart
+                        && DateOnly.FromDateTime(t.StartedAt) <= monthEnd)
+                    .Select(t => new
+                    {
+                        t.EmployeeId,
+                        ProjectId = t.ProjectId!.Value,
+                        Minutes = (int)((t.EndedAt!.Value - t.StartedAt).TotalMinutes - t.BreakMinutes),
+                    })
+                    .ToListAsync(cancellationToken);
+
             foreach (var row in linked)
             {
+                // Someone with nothing recorded in the app is not a disagreement: the
+                // signed sheet may be the only record there is.
+                var appMinutes = approved
+                    .Where(a => a.EmployeeId == row.EmployeeId && a.ProjectId == row.ProjectId)
+                    .Sum(a => a.Minutes);
+
+                if (appMinutes > 0)
+                {
+                    var appHours = Math.Round(appMinutes / 60m, 2);
+                    var typed = hoursByRow[row.Id];
+
+                    if (Math.Abs(typed - appHours) > request.AppHoursTolerance)
+                    {
+                        issues.Add(new LedgerCheckDto
+                        {
+                            Kind = LedgerCheckKinds.HoursDifferFromApp,
+                            SectionId = row.SectionId,
+                            SectionName = row.SectionName,
+                            RowId = row.Id,
+                            RowLabel = row.Label,
+                            Amount = typed,
+                            ReferenceAmount = appHours,
+                        });
+                    }
+                }
+
                 var minutes = waiting
                     .Where(w => w.EmployeeId == row.EmployeeId && w.ProjectId == row.ProjectId)
                     .Sum(w => w.Minutes);

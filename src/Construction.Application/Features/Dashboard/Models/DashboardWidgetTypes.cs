@@ -27,6 +27,8 @@ public static class DashboardWidgetTypes
     public const string ProjectsOverBudget = nameof(ProjectsOverBudget);
     public const string SpendingTrend = nameof(SpendingTrend);
     public const string FinanceStatistics = nameof(FinanceStatistics);
+    public const string AbsenceRequests = nameof(AbsenceRequests);
+    public const string ActiveProjects = nameof(ActiveProjects);
 
     public static readonly IReadOnlyList<string> All =
     [
@@ -49,5 +51,7 @@ public static class DashboardWidgetTypes
         ProjectsOverBudget,
         SpendingTrend,
         FinanceStatistics,
+        AbsenceRequests,
+        ActiveProjects,
     ];
 }

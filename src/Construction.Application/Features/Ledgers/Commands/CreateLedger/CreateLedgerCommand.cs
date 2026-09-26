@@ -129,6 +129,18 @@ public class CreateLedgerCommandHandler : IRequestHandler<CreateLedgerCommand, L
             foreach (var old in source.Columns)
             {
                 var column = ledger.Columns.Single(c => c.Id == columnMap[old.Id]);
+
+                // An hour column is named for the calendar week it covers, unless the
+                // owner renamed it. Whether or not it is filled from the app: a month
+                // with hours typed by hand still has October's weeks, not September's.
+                if (old.SystemKey is not null
+                    && old.SystemKey.StartsWith("week", StringComparison.Ordinal)
+                    && int.TryParse(old.SystemKey.AsSpan(4), out var number)
+                    && old.Name == LedgerTemplates.WeekName(number, source.Year, source.Month))
+                {
+                    column.Name = LedgerTemplates.WeekName(number, request.Year, request.Month);
+                }
+
                 var formula = LedgerFormula.Parse(column.FormulaJson)?.Remap(columnMap);
 
                 if (formula is null)
@@ -139,14 +151,6 @@ public class CreateLedgerCommandHandler : IRequestHandler<CreateLedgerCommand, L
                 if (formula.Source is not null && LedgerTemplates.SourceFor(old.SystemKey, request.Year, request.Month) is { } fresh)
                 {
                     formula = formula with { Source = fresh };
-
-                    // Named for the calendar week it covers, unless the owner renamed it.
-                    if (old.SystemKey!.StartsWith("week", StringComparison.Ordinal)
-                        && int.TryParse(old.SystemKey.AsSpan(4), out var number)
-                        && old.Name == LedgerTemplates.WeekName(number, source.Year, source.Month))
-                    {
-                        column.Name = LedgerTemplates.WeekName(number, request.Year, request.Month);
-                    }
                 }
 
                 column.FormulaJson = formula.ToJson();
@@ -224,7 +228,7 @@ public class CreateLedgerCommandHandler : IRequestHandler<CreateLedgerCommand, L
 
         if (request.CopyFromLedgerId is null && LedgerTemplates.IsKnown(request.Template))
         {
-            LedgerTemplates.ApplyPayroll(ledger);
+            LedgerTemplates.ApplyPayroll(ledger, LedgerTemplates.HoursFromApp(request.Template));
 
             if (request.PopulateFromProjects)
             {

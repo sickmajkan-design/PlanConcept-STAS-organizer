@@ -207,6 +207,8 @@ function CreateLedgerDialog({
   // months mostly wants last month's, so that is what is offered first.
   const [start, setStart] = useState<'payroll' | 'copy' | 'blank'>('payroll');
   const [populate, setPopulate] = useState(true);
+  // Hours are typed from the signed timesheets. The app's own hours fill the weeks only on request.
+  const [hoursFromApp, setHoursFromApp] = useState(false);
 
   const resetCreate = create.reset;
 
@@ -220,6 +222,7 @@ function CreateLedgerDialog({
     setCopyFromId(existingLedgers[0]?.id ?? '');
     setStart(existingLedgers.length > 0 ? 'copy' : 'payroll');
     setPopulate(true);
+    setHoursFromApp(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, resetCreate]);
 
@@ -241,7 +244,7 @@ function CreateLedgerDialog({
         month: parsedMonth,
         note: note.trim() || null,
         copyFromLedgerId: start === 'copy' ? copyFromId : null,
-        template: start === 'payroll' ? 'Payroll' : null,
+        template: start === 'payroll' ? (hoursFromApp ? 'PayrollAppHours' : 'Payroll') : null,
         populateFromProjects: start === 'payroll' && populate,
       },
       {
@@ -342,6 +345,17 @@ function CreateLedgerDialog({
                     <Typography variant="body2">{t('ledgers.populate')}</Typography>
                     <Typography variant="caption" color="text.secondary">
                       {t('ledgers.populateHint')}
+                    </Typography>
+                  </Box>
+                }
+              />
+              <FormControlLabel
+                control={<Checkbox checked={hoursFromApp} onChange={(event) => setHoursFromApp(event.target.checked)} />}
+                label={
+                  <Box>
+                    <Typography variant="body2">{t('ledgers.hoursFromApp')}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {t('ledgers.hoursFromAppHint')}
                     </Typography>
                   </Box>
                 }

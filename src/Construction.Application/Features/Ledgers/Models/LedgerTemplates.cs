@@ -10,8 +10,20 @@ namespace Construction.Application.Features.Ledgers.Models;
 /// </summary>
 public static class LedgerTemplates
 {
-    /// <summary>Monthly payroll and margin per client.</summary>
+    /// <summary>
+    /// Monthly payroll and margin per client, with hours typed in from the signed
+    /// timesheets. This is the default: the owner's rule is that only the signed
+    /// hours are authoritative for pay, so the app's own hours are a cross-check
+    /// (see the hours-differ-from-app check), not the source.
+    /// </summary>
     public const string Payroll = "Payroll";
+
+    /// <summary>
+    /// The same layout with the hour columns filled from approved time entries,
+    /// which a figure typed over becomes a visible override. For a firm that does
+    /// treat the app's hours as the record.
+    /// </summary>
+    public const string PayrollAppHours = "PayrollAppHours";
 
     /// <summary>The <see cref="LedgerColumn.SystemKey"/> values the payroll template uses.</summary>
     public static class Keys
@@ -35,11 +47,16 @@ public static class LedgerTemplates
         public static string Week(int number) => $"week{number}";
 
         /// <summary>
-        /// The columns whose figures carry from one month to the next: rates and
-        /// the fixed per-person amounts. Everything else is that month's own.
+        /// The columns whose figures carry from one month to the next: the rates and
+        /// the regres. Everything else is that month's own.
         /// </summary>
+        /// <remarks>
+        /// Contributions are not in this list on purpose. They come off the payslip
+        /// and are not always the same, so a figure carried over would sit in the
+        /// new month looking entered when nobody had looked at a payslip.
+        /// </remarks>
         public static readonly IReadOnlyCollection<string> Recurring =
-            [WorkerRate, ClientRate, Contributions, Bonus];
+            [WorkerRate, ClientRate, Bonus];
     }
 
     /// <summary>
@@ -115,7 +132,12 @@ public static class LedgerTemplates
     }
 
     public static bool IsKnown(string? template) =>
-        string.Equals(template, Payroll, StringComparison.OrdinalIgnoreCase);
+        string.Equals(template, Payroll, StringComparison.OrdinalIgnoreCase)
+        || string.Equals(template, PayrollAppHours, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Whether the template fills the hour columns from the app's time entries.</summary>
+    public static bool HoursFromApp(string? template) =>
+        string.Equals(template, PayrollAppHours, StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Adds the payroll columns and summary boxes to a ledger.
@@ -128,7 +150,7 @@ public static class LedgerTemplates
     /// firm's profit is the summary boxes with their signs — income added, every
     /// cost taken away.
     /// </remarks>
-    public static void ApplyPayroll(Ledger ledger)
+    public static void ApplyPayroll(Ledger ledger, bool hoursFromApp = false)
     {
         var columns = new Dictionary<string, LedgerColumn>();
         var order = 0;
@@ -169,9 +191,12 @@ public static class LedgerTemplates
         Add(Keys.Rent, "Rent a car", LedgerColumnDataType.Currency);
         Add(Keys.Fuel, "Gorivo", LedgerColumnDataType.Currency);
         Add(Keys.Housing, "Stanovanje", LedgerColumnDataType.Currency);
-        Add(Keys.Holiday, "Godišnji odmor", LedgerColumnDataType.Currency);
+        // The signs are in the names: leave is added to the pay, an advance already
+        // paid out is taken off it. One column in the old spreadsheet was called
+        // both, depending on the section.
+        Add(Keys.Holiday, "Godišnji odmor (+)", LedgerColumnDataType.Currency);
         Add(Keys.Difference, "Razlika od prošle plate / bonus", LedgerColumnDataType.Currency);
-        Add(Keys.Advance, "Akontacija", LedgerColumnDataType.Currency);
+        Add(Keys.Advance, "Akontacija (−)", LedgerColumnDataType.Currency);
         Add(Keys.Bonus, "Regres", LedgerColumnDataType.Currency);
         Add(Keys.Result, "Rezultat", LedgerColumnDataType.Currency);
 
@@ -183,10 +208,15 @@ public static class LedgerTemplates
         columns[Keys.WorkerRate].FormulaJson =
             new LedgerFormula([], [], SourceFor(Keys.WorkerRate, ledger.Year, ledger.Month)).ToJson();
 
-        for (var week = 1; week <= WeekColumns; week++)
+        // Hours are typed from the signed timesheets unless the template says the
+        // app's approved hours are the record.
+        if (hoursFromApp)
         {
-            columns[Keys.Week(week)].FormulaJson =
-                new LedgerFormula([], [], SourceFor(Keys.Week(week), ledger.Year, ledger.Month)).ToJson();
+            for (var week = 1; week <= WeekColumns; week++)
+            {
+                columns[Keys.Week(week)].FormulaJson =
+                    new LedgerFormula([], [], SourceFor(Keys.Week(week), ledger.Year, ledger.Month)).ToJson();
+            }
         }
 
         // Fuel, rented cars and housing come from their own modules, for the person.

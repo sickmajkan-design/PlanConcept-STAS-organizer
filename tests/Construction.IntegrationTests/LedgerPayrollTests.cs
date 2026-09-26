@@ -39,7 +39,11 @@ public class LedgerPayrollTests : IntegrationTestBase
             Ledger.Columns.Single(c => c.SystemKey == key).Id;
     }
 
-    private async Task<Month> NewMonthAsync(bool populate = false, int year = 2026, int month = 9)
+    private async Task<Month> NewMonthAsync(
+        bool populate = false,
+        int year = 2026,
+        int month = 9,
+        bool hoursFromApp = false)
     {
         var superAdmin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.SuperAdmin));
 
@@ -52,7 +56,9 @@ public class LedgerPayrollTests : IntegrationTestBase
                 Name = $"Obračun {Unique()}",
                 Year = year,
                 Month = month,
-                Template = LedgerTemplates.Payroll,
+                // Hours are typed from the signed timesheets unless a test is
+                // about the template that takes them from the app.
+                Template = hoursFromApp ? LedgerTemplates.PayrollAppHours : LedgerTemplates.Payroll,
                 PopulateFromProjects = populate,
             });
         });
@@ -139,11 +145,11 @@ public class LedgerPayrollTests : IntegrationTestBase
 
         var formulaColumns = month.Ledger.Columns.Where(c => c.IsFormula).Select(c => c.SystemKey).ToList();
 
+        // The hour columns are not formulas: hours are typed from the signed timesheets.
         var expected = new List<string>
         {
             "hours", "pay", "billing", "margin", "result", "workerRate", "fuel", "rent", "housing",
         };
-        expected.AddRange(Enumerable.Range(1, LedgerTemplates.WeekColumns).Select(LedgerTemplates.Keys.Week));
 
         Assert.Equal(expected.OrderBy(k => k), formulaColumns.OrderBy(k => k));
 
@@ -288,9 +294,10 @@ public class LedgerPayrollTests : IntegrationTestBase
 
         Assert.Equal(8, summary.Boxes.Count);
 
-        // The copied worker carries last month's contributions (1000) and regres (100)
-        // but no hours, so costs a further -1100; the row just added earns -80.
-        Assert.Equal(-1180m, summary.NetTotal);
+        // The copied worker carries last month's regres (100) but not the contributions,
+        // which come off each month's payslip, and no hours: a further -100. The row
+        // just added earns -80.
+        Assert.Equal(-180m, summary.NetTotal);
     }
 
     // ---- column safety ---------------------------------------------------
@@ -483,7 +490,7 @@ public class LedgerPayrollTests : IntegrationTestBase
             (8, 10, TimeEntryStatus.Approved),
             (9, 6, TimeEntryStatus.Submitted),   // waiting for approval: not counted
         ]);
-        var month = await NewMonthAsync();
+        var month = await NewMonthAsync(hoursFromApp: true);
 
         var (section, rowId) = await RowForAsync(month, employee, project);
         var row = await ReadRowAsync(month, section, rowId);
@@ -511,7 +518,7 @@ public class LedgerPayrollTests : IntegrationTestBase
     public async Task The_hourly_rate_comes_from_the_employees_rate_in_force()
     {
         var (employee, project) = await SeedWorkerWithShiftsAsync([(1, 10, TimeEntryStatus.Approved)], hourlyRate: 17.5m);
-        var month = await NewMonthAsync();
+        var month = await NewMonthAsync(hoursFromApp: true);
 
         var (section, rowId) = await RowForAsync(month, employee, project);
         await SetAsync(month, rowId, LedgerTemplates.Keys.ClientRate, "30");
@@ -548,7 +555,7 @@ public class LedgerPayrollTests : IntegrationTestBase
     public async Task Typing_over_a_timesheet_figure_is_an_override_and_is_flagged_when_it_disagrees()
     {
         var (employee, project) = await SeedWorkerWithShiftsAsync([(1, 8, TimeEntryStatus.Approved)]);
-        var month = await NewMonthAsync();
+        var month = await NewMonthAsync(hoursFromApp: true);
         var (section, rowId) = await RowForAsync(month, employee, project);
 
         await SetAsync(month, rowId, LedgerTemplates.Keys.Week(1), "12");
@@ -586,7 +593,7 @@ public class LedgerPayrollTests : IntegrationTestBase
     {
         var (employee, project) = await SeedWorkerWithShiftsAsync(
             [(1, 10, TimeEntryStatus.Approved)], hourlyRate: 20m);
-        var month = await NewMonthAsync();
+        var month = await NewMonthAsync(hoursFromApp: true);
         var (_, rowId) = await RowForAsync(month, employee, project);
         await SetAsync(month, rowId, LedgerTemplates.Keys.ClientRate, "33");
 
@@ -594,6 +601,116 @@ public class LedgerPayrollTests : IntegrationTestBase
 
         // 10 h x 33 billed - 10 h x 20 paid: a row with nothing typed except a price.
         Assert.Equal(130m, summary.Boxes.Single(b => b.Label == "Ukupan prihod (marža)").Value);
+    }
+
+    // ---- the customer's rules --------------------------------------------
+
+    [Fact]
+    public async Task Leave_is_added_and_an_advance_is_taken_off_and_the_names_say_so()
+    {
+        var month = await NewMonthAsync();
+        var (section, row) = await SeedTypicalWorkerAsync(month);
+
+        Assert.Equal("Godišnji odmor (+)", month.Ledger.Columns.Single(c => c.SystemKey == LedgerTemplates.Keys.Holiday).Name);
+        Assert.Equal("Akontacija (−)", month.Ledger.Columns.Single(c => c.SystemKey == LedgerTemplates.Keys.Advance).Name);
+
+        // 160 h at 20 is 3200; leave 300 is added, an advance of 500 already paid is taken off.
+        await SetAsync(month, row, LedgerTemplates.Keys.Holiday, "300");
+        await SetAsync(month, row, LedgerTemplates.Keys.Advance, "500");
+
+        var read = await ReadRowAsync(month, section, row);
+
+        Assert.Equal(3000m, Value(month, read, LedgerTemplates.Keys.Pay));
+    }
+
+    [Fact]
+    public async Task Hours_are_typed_from_the_signed_timesheets_and_the_apps_hours_do_not_fill_them()
+    {
+        var (employee, project) = await SeedWorkerWithShiftsAsync([(1, 8, TimeEntryStatus.Approved)]);
+        var month = await NewMonthAsync();
+
+        var (section, rowId) = await RowForAsync(month, employee, project);
+        var row = await ReadRowAsync(month, section, rowId);
+
+        Assert.Equal(0m, Value(month, row, LedgerTemplates.Keys.Hours));
+        Assert.All(
+            Enumerable.Range(1, LedgerTemplates.WeekColumns),
+            week => Assert.False(row.Cells.Any(c => c.ColumnId == month.Column(LedgerTemplates.Keys.Week(week)) && c.IsComputed)));
+    }
+
+    [Fact]
+    public async Task Typed_hours_far_from_the_apps_are_flagged_as_a_prompt_and_close_ones_are_not()
+    {
+        var (employee, project) = await SeedWorkerWithShiftsAsync(
+        [
+            (1, 8, TimeEntryStatus.Approved),
+            (2, 8, TimeEntryStatus.Approved),
+        ]);
+        var month = await NewMonthAsync();
+        var (_, rowId) = await RowForAsync(month, employee, project);
+
+        Task<IReadOnlyList<LedgerCheckDto>> Checks() =>
+            AsSuperAdmin(month, s => s.Send(new GetLedgerChecksQuery { LedgerId = month.Ledger.Id }));
+
+        // The app has 16 h approved. 40 h typed is far from it.
+        await SetAsync(month, rowId, LedgerTemplates.Keys.Week(1), "40");
+        var flagged = Assert.Single(await Checks(), c => c.Kind == LedgerCheckKinds.HoursDifferFromApp);
+        Assert.Equal(40m, flagged.Amount);
+        Assert.Equal(16m, flagged.ReferenceAmount);
+
+        // 18 h is within the tolerance of a few hours: not worth mentioning.
+        await SetAsync(month, rowId, LedgerTemplates.Keys.Week(1), "18");
+        Assert.DoesNotContain(await Checks(), c => c.Kind == LedgerCheckKinds.HoursDifferFromApp);
+    }
+
+    [Fact]
+    public async Task Typed_hours_for_someone_the_app_knows_nothing_about_are_not_a_disagreement()
+    {
+        var month = await NewMonthAsync();
+        var section = await AddSectionAsync(month);
+        var rowId = await AddRowAsync(month, section, "Kooperanti");
+
+        await SetAsync(month, rowId, LedgerTemplates.Keys.Week(1), "80");
+
+        var checks = await AsSuperAdmin(month, s => s.Send(new GetLedgerChecksQuery { LedgerId = month.Ledger.Id }));
+
+        Assert.DoesNotContain(checks, c => c.Kind == LedgerCheckKinds.HoursDifferFromApp);
+    }
+
+    [Fact]
+    public async Task A_worker_with_hours_and_no_contributions_entered_is_flagged_but_zero_is_an_answer()
+    {
+        var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var month = await NewMonthAsync();
+        var section = await AddSectionAsync(month);
+        var rowId = await AddRowAsync(month, section, "Radnik", employee.Id);
+        var loose = await AddRowAsync(month, section, "Kooperanti");
+
+        await SetAsync(month, rowId, LedgerTemplates.Keys.Week(1), "40");
+        await SetAsync(month, loose, LedgerTemplates.Keys.Week(1), "40");
+
+        Task<IReadOnlyList<LedgerCheckDto>> Checks() =>
+            AsSuperAdmin(month, s => s.Send(new GetLedgerChecksQuery { LedgerId = month.Ledger.Id }));
+
+        // Only the person on the payroll is asked; the row with no name is not.
+        var flagged = Assert.Single(await Checks(), c => c.Kind == LedgerCheckKinds.MissingContributions);
+        Assert.Equal(rowId, flagged.RowId);
+
+        await SetAsync(month, rowId, LedgerTemplates.Keys.Contributions, "0");
+
+        Assert.DoesNotContain(await Checks(), c => c.Kind == LedgerCheckKinds.MissingContributions);
+    }
+
+    [Fact]
+    public async Task The_template_that_takes_hours_from_the_app_still_fills_the_weeks()
+    {
+        var month = await NewMonthAsync(hoursFromApp: true);
+
+        var formulaColumns = month.Ledger.Columns.Where(c => c.IsFormula).Select(c => c.SystemKey).ToList();
+
+        Assert.All(
+            Enumerable.Range(1, LedgerTemplates.WeekColumns).Select(LedgerTemplates.Keys.Week),
+            key => Assert.Contains(key, formulaColumns));
     }
 
     // ---- fuel, rented cars and housing -----------------------------------
@@ -788,7 +905,9 @@ public class LedgerPayrollTests : IntegrationTestBase
         // Rates and the fixed per-person amounts carried over; this month's hours did not.
         Assert.Equal(20m, Value(next, newRow, LedgerTemplates.Keys.WorkerRate));
         Assert.Equal(33m, Value(next, newRow, LedgerTemplates.Keys.ClientRate));
-        Assert.Equal(1000m, Value(next, newRow, LedgerTemplates.Keys.Contributions));
+        // Contributions come off the payslip and are not always the same: not carried.
+        Assert.Equal(0m, Value(next, newRow, LedgerTemplates.Keys.Contributions));
+        Assert.Equal(100m, Value(next, newRow, LedgerTemplates.Keys.Bonus));
         Assert.Equal(0m, Value(next, newRow, LedgerTemplates.Keys.Hours));
         Assert.Equal(0m, Value(next, newRow, LedgerTemplates.Keys.Housing));
         Assert.NotEqual(sourceSection, newSection.Id);

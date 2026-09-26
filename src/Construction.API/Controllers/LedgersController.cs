@@ -57,10 +57,16 @@ public class LedgersController : ApiControllerBase
     public async Task<ActionResult<IReadOnlyList<LedgerCheckDto>>> GetChecks(
         Guid id,
         [FromQuery] decimal? expectedHours,
+        [FromQuery] decimal? appHoursTolerance,
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(
-            new GetLedgerChecksQuery { LedgerId = id, ExpectedHours = expectedHours ?? 176m },
+            new GetLedgerChecksQuery
+            {
+                LedgerId = id,
+                ExpectedHours = expectedHours ?? 176m,
+                AppHoursTolerance = appHoursTolerance ?? 4m,
+            },
             cancellationToken));
     }
 
