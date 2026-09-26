@@ -325,6 +325,34 @@ public static class PushTextResolver
                     $"{vehicleName} ({IsoDate(occurredOn)}) čeka pregled.");
             }
 
+            case NotificationType.RefundRequested:
+            {
+                var name = Str("employeeName");
+                var amount = Str("amount");
+                if (name is null || amount is null) break;
+
+                return ("Zahtjev za refundaciju", $"{name} je zatražio(la) refundaciju {amount} {Str("currency")}.");
+            }
+
+            case NotificationType.RefundDecided:
+            {
+                var decision = Str("decision");
+                var amount = Str("amount");
+                if (decision is null || amount is null) break;
+
+                if (decision == "Approved")
+                {
+                    return ("Refundacija odobrena", $"Vaš zahtjev za {amount} {Str("currency")} je odobren.");
+                }
+
+                var note = Str("note");
+                return (
+                    "Refundacija odbijena",
+                    string.IsNullOrEmpty(note)
+                        ? $"Vaš zahtjev za {amount} {Str("currency")} je odbijen."
+                        : $"Vaš zahtjev za {amount} {Str("currency")} je odbijen: {note}");
+            }
+
             case NotificationType.ArticleOrderRequested:
             {
                 var name = Str("requestedByName");

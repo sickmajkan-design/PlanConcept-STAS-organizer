@@ -3299,6 +3299,144 @@ abstract class AppLocalizations {
   /// **'Orders'**
   String get navArticleOrders;
 
+  /// No description provided for @navRefunds.
+  ///
+  /// In en, this message translates to:
+  /// **'Refunds'**
+  String get navRefunds;
+
+  /// No description provided for @refundsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask to be paid back'**
+  String get refundsNew;
+
+  /// No description provided for @refundsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here.'**
+  String get refundsEmpty;
+
+  /// No description provided for @refundAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get refundAmount;
+
+  /// No description provided for @refundCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get refundCurrency;
+
+  /// No description provided for @refundExpenseDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Day it was spent'**
+  String get refundExpenseDate;
+
+  /// No description provided for @refundReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Why should the firm pay it back?'**
+  String get refundReason;
+
+  /// No description provided for @refundReasonHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Required. Say what it was for.'**
+  String get refundReasonHint;
+
+  /// No description provided for @refundAttachReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Photograph the receipt'**
+  String get refundAttachReceipt;
+
+  /// No description provided for @refundSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send request'**
+  String get refundSend;
+
+  /// No description provided for @refundSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Request sent.'**
+  String get refundSent;
+
+  /// No description provided for @refundStatusRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting'**
+  String get refundStatusRequested;
+
+  /// No description provided for @refundStatusApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get refundStatusApproved;
+
+  /// No description provided for @refundStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Declined'**
+  String get refundStatusRejected;
+
+  /// No description provided for @refundStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawn'**
+  String get refundStatusCancelled;
+
+  /// No description provided for @refundApprove.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get refundApprove;
+
+  /// No description provided for @refundDecline.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get refundDecline;
+
+  /// No description provided for @refundWithdraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw'**
+  String get refundWithdraw;
+
+  /// No description provided for @refundDeclineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline the request'**
+  String get refundDeclineTitle;
+
+  /// No description provided for @refundDeclineReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get refundDeclineReason;
+
+  /// No description provided for @refundPaidWith.
+  ///
+  /// In en, this message translates to:
+  /// **'paid with the payroll of {month}'**
+  String refundPaidWith(String month);
+
+  /// No description provided for @notificationTypeRefundRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Request to be paid back'**
+  String get notificationTypeRefundRequested;
+
+  /// No description provided for @notificationTypeRefundDecided.
+  ///
+  /// In en, this message translates to:
+  /// **'Refund decision'**
+  String get notificationTypeRefundDecided;
+
   /// No description provided for @articleOrdersNew.
   ///
   /// In en, this message translates to:

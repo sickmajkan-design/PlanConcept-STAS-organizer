@@ -1865,6 +1865,77 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navArticleOrders => 'Orders';
 
   @override
+  String get navRefunds => 'Refunds';
+
+  @override
+  String get refundsNew => 'Ask to be paid back';
+
+  @override
+  String get refundsEmpty => 'Nothing here.';
+
+  @override
+  String get refundAmount => 'Amount';
+
+  @override
+  String get refundCurrency => 'Currency';
+
+  @override
+  String get refundExpenseDate => 'Day it was spent';
+
+  @override
+  String get refundReason => 'Why should the firm pay it back?';
+
+  @override
+  String get refundReasonHint => 'Required. Say what it was for.';
+
+  @override
+  String get refundAttachReceipt => 'Photograph the receipt';
+
+  @override
+  String get refundSend => 'Send request';
+
+  @override
+  String get refundSent => 'Request sent.';
+
+  @override
+  String get refundStatusRequested => 'Waiting';
+
+  @override
+  String get refundStatusApproved => 'Approved';
+
+  @override
+  String get refundStatusRejected => 'Declined';
+
+  @override
+  String get refundStatusCancelled => 'Withdrawn';
+
+  @override
+  String get refundApprove => 'Approve';
+
+  @override
+  String get refundDecline => 'Decline';
+
+  @override
+  String get refundWithdraw => 'Withdraw';
+
+  @override
+  String get refundDeclineTitle => 'Decline the request';
+
+  @override
+  String get refundDeclineReason => 'Reason';
+
+  @override
+  String refundPaidWith(String month) {
+    return 'paid with the payroll of $month';
+  }
+
+  @override
+  String get notificationTypeRefundRequested => 'Request to be paid back';
+
+  @override
+  String get notificationTypeRefundDecided => 'Refund decision';
+
+  @override
   String get articleOrdersNew => 'Ask for articles';
 
   @override

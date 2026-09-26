@@ -107,6 +107,8 @@ String enumLabel(AppLocalizations l10n, EnumKind kind, String? value) {
       l10n.notificationTypeTimeEntryRejected,
     (EnumKind.notificationType, 'AbsenceDecided') => l10n.notificationTypeAbsenceDecided,
     (EnumKind.notificationType, 'AbsenceRequested') => l10n.notificationTypeAbsenceRequested,
+    (EnumKind.notificationType, 'RefundRequested') => l10n.notificationTypeRefundRequested,
+    (EnumKind.notificationType, 'RefundDecided') => l10n.notificationTypeRefundDecided,
     (EnumKind.notificationType, 'ArticleOrderRequested') => l10n.notificationTypeArticleOrderRequested,
     (EnumKind.notificationType, 'ArticleOrderStatusChanged') =>
       l10n.notificationTypeArticleOrderStatusChanged,

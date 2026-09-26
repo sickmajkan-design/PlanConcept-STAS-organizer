@@ -86,6 +86,13 @@ class MoreScreen extends ConsumerWidget {
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () => context.push(AppRoutes.articleOrders),
                     ),
+                    const Divider(height: 1, indent: 20, endIndent: 20),
+                    ListTile(
+                      leading: const Icon(Icons.request_quote_outlined),
+                      title: Text(context.l10n.navRefunds),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push(AppRoutes.refunds),
+                    ),
                     // Every weekly-report endpoint is foreman-and-above on the server, so a
                     // worker who opened this got "you may not do this" on the screen and on
                     // submitting.

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/absences/presentation/my_absences_screen.dart';
 import '../../features/article_orders/presentation/article_orders_screen.dart';
+import '../../features/refunds/presentation/refunds_screen.dart';
 import '../../features/absences/presentation/my_schedule_screen.dart';
 import '../../features/bulletin/presentation/bulletin_screen.dart';
 import '../../features/housing/presentation/my_housing_screen.dart';
@@ -162,6 +163,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.articleOrders,
         builder: (context, state) => const ArticleOrdersScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.refunds,
+        builder: (context, state) => const RefundsScreen(),
       ),
       GoRoute(
         path: AppRoutes.more,

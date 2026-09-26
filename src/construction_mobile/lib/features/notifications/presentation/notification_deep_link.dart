@@ -57,6 +57,7 @@ String? deepLinkForData(
     'TimeEntryRejected' || 'ShiftAutoClosed' => AppRoutes.timeEntries,
     'AbsenceDecided' || 'AbsenceEditProposed' => AppRoutes.absences,
     'ArticleOrderRequested' || 'ArticleOrderStatusChanged' => AppRoutes.articleOrders,
+    'RefundRequested' || 'RefundDecided' => AppRoutes.refunds,
     'WeeklyReportDue' => AppRoutes.weeklyReports,
     'BulletinPosted' => AppRoutes.bulletin,
     'TaskAssigned' || 'DefectAssigned' || 'WorkItemDue' => AppRoutes.workItems,

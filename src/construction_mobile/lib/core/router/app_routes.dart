@@ -36,6 +36,9 @@ class AppRoutes {
   /// Open to every signed-in account: articles a person needs for the job.
   static const articleOrders = '/article-orders';
 
+  /// Open to every employee-linked account: money they spent for the firm and ask to get back.
+  static const refunds = '/refunds';
+
   /// Open to every employee-linked account: filing the week's proof-of-work
   /// for a site they are posted to.
   static const weeklyReports = '/weekly-reports';

@@ -1868,6 +1868,77 @@ class AppLocalizationsSr extends AppLocalizations {
   String get navArticleOrders => 'Narudžbe';
 
   @override
+  String get navRefunds => 'Refundacije';
+
+  @override
+  String get refundsNew => 'Zatraži refundaciju';
+
+  @override
+  String get refundsEmpty => 'Ovdje nema ničega.';
+
+  @override
+  String get refundAmount => 'Iznos';
+
+  @override
+  String get refundCurrency => 'Valuta';
+
+  @override
+  String get refundExpenseDate => 'Dan kad je plaćeno';
+
+  @override
+  String get refundReason => 'Zašto firma treba da vrati novac?';
+
+  @override
+  String get refundReasonHint => 'Obavezno. Napiši čemu je služilo.';
+
+  @override
+  String get refundAttachReceipt => 'Slikaj račun';
+
+  @override
+  String get refundSend => 'Pošalji zahtjev';
+
+  @override
+  String get refundSent => 'Zahtjev je poslan.';
+
+  @override
+  String get refundStatusRequested => 'Čeka odluku';
+
+  @override
+  String get refundStatusApproved => 'Odobreno';
+
+  @override
+  String get refundStatusRejected => 'Odbijeno';
+
+  @override
+  String get refundStatusCancelled => 'Povučeno';
+
+  @override
+  String get refundApprove => 'Odobri';
+
+  @override
+  String get refundDecline => 'Odbij';
+
+  @override
+  String get refundWithdraw => 'Povuci';
+
+  @override
+  String get refundDeclineTitle => 'Odbij zahtjev';
+
+  @override
+  String get refundDeclineReason => 'Razlog';
+
+  @override
+  String refundPaidWith(String month) {
+    return 'isplata uz platu za $month';
+  }
+
+  @override
+  String get notificationTypeRefundRequested => 'Zahtjev za refundaciju';
+
+  @override
+  String get notificationTypeRefundDecided => 'Odluka o refundaciji';
+
+  @override
   String get articleOrdersNew => 'Zatraži artikle';
 
   @override
