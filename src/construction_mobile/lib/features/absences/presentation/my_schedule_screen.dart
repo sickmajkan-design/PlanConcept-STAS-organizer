@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/app_locales.dart';
+import '../../auth/presentation/auth_controller.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/utils/formatting.dart';
@@ -103,19 +104,22 @@ class _ScheduleBody extends StatelessWidget {
   }
 }
 
-class _PostingCard extends StatelessWidget {
+class _PostingCard extends ConsumerWidget {
   const _PostingCard({required this.assignment});
 
   final ScheduleAssignment assignment;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
+    // The site's own page is the directory, which a worker is not served.
+    final canOpen = ref.watch(currentUserProvider)?.canViewDirectory ?? false;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: ListTile(
+        onTap: canOpen ? () => context.push(AppRoutes.projectDetail(assignment.projectId)) : null,
         leading: Icon(
           Icons.apartment_outlined,
           color: theme.colorScheme.primary,

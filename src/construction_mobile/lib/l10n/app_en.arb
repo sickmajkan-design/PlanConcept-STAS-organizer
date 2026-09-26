@@ -828,6 +828,7 @@
   },
   "shiftClockIn": "Clock in",
   "shiftClockOut": "Clock out",
+  "shiftWorking": "Finding your location…",
   "shiftClockOutTitle": "End the shift",
   "shiftBreakLabel": "Unpaid break (minutes)",
   "shiftBreakHint": "Leave at 0 if you did not take one.",
@@ -947,6 +948,14 @@
     }
   },
   "workItemsOverdue": "Overdue",
+  "workItemsConfirmMoveTitle": "Change the status?",
+  "workItemsConfirmMove": "Mark \"{title}\" as {status}?",
+  "@workItemsConfirmMove": {
+    "placeholders": {
+      "title": {"type": "String"},
+      "status": {"type": "String"}
+    }
+  },
   "workItemsNoDueDate": "No deadline",
   "workItemsNoProject": "No site",
   "workItemsReportDefect": "Report a defect",
@@ -976,6 +985,8 @@
   "workItemPriorityUrgent": "Urgent",
   "navSchedule": "My schedule",
   "navAbsences": "Time off",
+  "projectOpenInMaps": "Open in maps",
+  "projectOpenInMapsFailed": "No maps application could be opened.",
   "navArticleOrders": "Orders",
   "articleOrdersNew": "Ask for articles",
   "articleOrdersEmpty": "Nothing here.",
@@ -1039,7 +1050,7 @@
   "scheduleEmpty": "Nothing scheduled for the next two weeks.",
   "scheduleToday": "Today",
   "scheduleTomorrow": "Tomorrow",
-  "scheduleContinues": "Runs on",
+  "scheduleContinues": "Continues",
   "scheduleUpcoming": "Next two weeks",
   "scheduleDateRange": "{from} – {to}",
   "@scheduleDateRange": {
@@ -1053,7 +1064,7 @@
     }
   },
   "scheduleAway": "Away",
-  "scheduleOnSite": "On site",
+  "scheduleOnSite": "Posted",
   "absencesTitle": "Time off",
   "absencesEmpty": "You have not asked for any time off.",
   "absencesPendingOnly": "Waiting for an answer",

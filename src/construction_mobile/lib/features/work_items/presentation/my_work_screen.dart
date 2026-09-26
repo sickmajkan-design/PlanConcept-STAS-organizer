@@ -6,6 +6,7 @@ import '../../../core/l10n/app_locales.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/utils/formatting.dart';
+import '../../../core/widgets/confirm_dialog.dart';
 import '../../../core/widgets/paged_list_view.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -110,6 +111,15 @@ class _WorkItemCard extends ConsumerWidget {
                   label: Text(item.projectName ?? l10n.workItemsNoProject),
                   visualDensity: VisualDensity.compact,
                 ),
+                // Only what stands out: a task at the usual priority needs no label.
+                if (item.priority == 'High' || item.priority == 'Urgent')
+                  Chip(
+                    label: Text(enumLabel(l10n, EnumKind.workItemPriority, item.priority)),
+                    backgroundColor: item.priority == 'Urgent'
+                        ? theme.colorScheme.errorContainer
+                        : theme.colorScheme.tertiaryContainer,
+                    visualDensity: VisualDensity.compact,
+                  ),
                 if (item.due != null)
                   Chip(
                     label: Text(
@@ -213,6 +223,18 @@ class _WorkItemCard extends ConsumerWidget {
 
     final messenger = ScaffoldMessenger.of(context);
     final l10n = context.l10n;
+
+    // Finishing or dropping a task is not one the person wants to do with a stray tap.
+    if (status == 'Resolved' || status == 'Closed' || status == 'Cancelled') {
+      final confirmed = await showConfirmDialog(
+        context,
+        title: l10n.workItemsConfirmMoveTitle,
+        body: l10n.workItemsConfirmMove(item.title, enumLabel(l10n, EnumKind.workItemStatus, status)),
+        confirmLabel: enumLabel(l10n, EnumKind.workItemStatus, status),
+      );
+
+      if (!confirmed || !context.mounted) return;
+    }
 
     try {
       await ref.read(myWorkControllerProvider.notifier).changeStatus(item, status);

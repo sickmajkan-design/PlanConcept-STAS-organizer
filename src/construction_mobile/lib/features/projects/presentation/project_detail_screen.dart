@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
@@ -92,44 +93,7 @@ class ProjectDetailScreen extends ConsumerWidget {
                     ),
                   ),
                 ],
-                const SizedBox(height: 20),
-                _Section(
-                  title: context.l10n.commonDetails,
-                  children: [
-                    InfoTile(
-                      icon: Icons.business_outlined,
-                      label: context.l10n.projectClient,
-                      value: project.customerName,
-                    ),
-                    InfoTile(
-                      icon: Icons.place_outlined,
-                      label: context.l10n.employeeAddress,
-                      value: project.address,
-                    ),
-                    InfoTile(
-                      icon: Icons.my_location,
-                      label: context.l10n.projectCoordinates,
-                      value: project.hasCoordinates
-                          ? '${project.latitude!.toStringAsFixed(5)}, '
-                              '${project.longitude!.toStringAsFixed(5)}'
-                          : null,
-                    ),
-                    InfoTile(
-                      icon: Icons.play_circle_outline,
-                      label: context.l10n.projectStartDate,
-                      value: project.startDate == null
-                          ? null
-                          : formatDate(project.startDate),
-                    ),
-                    InfoTile(
-                      icon: Icons.flag_outlined,
-                      label: context.l10n.projectEndDate,
-                      value: project.endDate == null
-                          ? null
-                          : formatDate(project.endDate),
-                    ),
-                  ],
-                ),
+                ..._detailsSection(context, project),
                 const SizedBox(height: 20),
                 _Section(
                   title: context.l10n.attachmentsTitle,
@@ -159,6 +123,76 @@ class ProjectDetailScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// The details that have a value. A field nobody filled in is not worth a row saying so, and
+/// a project with none of them has no section at all.
+List<Widget> _detailsSection(BuildContext context, ProjectDetail project) {
+  final l10n = context.l10n;
+  final tiles = <Widget>[
+    if ((project.customerName ?? '').trim().isNotEmpty)
+      InfoTile(icon: Icons.business_outlined, label: l10n.projectClient, value: project.customerName),
+    if ((project.address ?? '').trim().isNotEmpty)
+      InfoTile(icon: Icons.place_outlined, label: l10n.employeeAddress, value: project.address),
+    if (project.startDate != null)
+      InfoTile(
+        icon: Icons.play_circle_outline,
+        label: l10n.projectStartDate,
+        value: formatDate(project.startDate),
+      ),
+    if (project.endDate != null)
+      InfoTile(
+        icon: Icons.flag_outlined,
+        label: l10n.projectEndDate,
+        value: formatDate(project.endDate),
+      ),
+    // The coordinates are only useful as a way to get there.
+    if (project.hasCoordinates)
+      ListTile(
+        dense: true,
+        leading: const Icon(Icons.map_outlined),
+        title: Text(l10n.projectOpenInMaps),
+        subtitle: Text(
+          '${project.latitude!.toStringAsFixed(5)}, ${project.longitude!.toStringAsFixed(5)}',
+        ),
+        trailing: const Icon(Icons.open_in_new),
+        onTap: () => _openInMaps(context, project),
+      ),
+  ];
+
+  if (tiles.isEmpty) {
+    return const <Widget>[];
+  }
+
+  return [
+    const SizedBox(height: 20),
+    _Section(title: l10n.commonDetails, children: tiles),
+  ];
+}
+
+/// Hands the site to whatever maps application the phone has; a browser page when it has none.
+Future<void> _openInMaps(BuildContext context, ProjectDetail project) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final message = context.l10n.projectOpenInMapsFailed;
+  final point = '${project.latitude},${project.longitude}';
+  final label = Uri.encodeComponent(project.name);
+
+  final candidates = <Uri>[
+    Uri.parse('geo:$point?q=$point($label)'),
+    Uri.parse('https://www.google.com/maps/search/?api=1&query=$point'),
+  ];
+
+  for (final uri in candidates) {
+    try {
+      if (await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        return;
+      }
+    } catch (_) {
+      // Try the next way.
+    }
+  }
+
+  messenger.showSnackBar(SnackBar(content: Text(message)));
 }
 
 Future<void> _deleteProject(

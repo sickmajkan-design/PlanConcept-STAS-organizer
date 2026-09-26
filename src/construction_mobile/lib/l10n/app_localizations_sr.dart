@@ -1535,6 +1535,9 @@ class AppLocalizationsSr extends AppLocalizations {
   String get shiftClockOut => 'Odjavi se sa smjene';
 
   @override
+  String get shiftWorking => 'Određujem lokaciju…';
+
+  @override
   String get shiftClockOutTitle => 'Završetak smjene';
 
   @override
@@ -1771,6 +1774,14 @@ class AppLocalizationsSr extends AppLocalizations {
   String get workItemsOverdue => 'Kasni';
 
   @override
+  String get workItemsConfirmMoveTitle => 'Promijeniti status?';
+
+  @override
+  String workItemsConfirmMove(String title, String status) {
+    return 'Označiti „$title“ kao $status?';
+  }
+
+  @override
   String get workItemsNoDueDate => 'Bez roka';
 
   @override
@@ -1845,6 +1856,13 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get navAbsences => 'Odsustva';
+
+  @override
+  String get projectOpenInMaps => 'Otvori u mapama';
+
+  @override
+  String get projectOpenInMapsFailed =>
+      'Nije bilo moguće otvoriti aplikaciju za mape.';
 
   @override
   String get navArticleOrders => 'Narudžbe';
@@ -2034,7 +2052,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get scheduleAway => 'Odsutan';
 
   @override
-  String get scheduleOnSite => 'Na gradilištu';
+  String get scheduleOnSite => 'Raspoređen(a)';
 
   @override
   String get absencesTitle => 'Odsustva';

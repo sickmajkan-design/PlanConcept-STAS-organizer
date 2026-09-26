@@ -2711,6 +2711,12 @@ abstract class AppLocalizations {
   /// **'Clock out'**
   String get shiftClockOut;
 
+  /// No description provided for @shiftWorking.
+  ///
+  /// In en, this message translates to:
+  /// **'Finding your location…'**
+  String get shiftWorking;
+
   /// No description provided for @shiftClockOutTitle.
   ///
   /// In en, this message translates to:
@@ -3131,6 +3137,18 @@ abstract class AppLocalizations {
   /// **'Overdue'**
   String get workItemsOverdue;
 
+  /// No description provided for @workItemsConfirmMoveTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change the status?'**
+  String get workItemsConfirmMoveTitle;
+
+  /// No description provided for @workItemsConfirmMove.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark \"{title}\" as {status}?'**
+  String workItemsConfirmMove(String title, String status);
+
   /// No description provided for @workItemsNoDueDate.
   ///
   /// In en, this message translates to:
@@ -3262,6 +3280,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Time off'**
   String get navAbsences;
+
+  /// No description provided for @projectOpenInMaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in maps'**
+  String get projectOpenInMaps;
+
+  /// No description provided for @projectOpenInMapsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'No maps application could be opened.'**
+  String get projectOpenInMapsFailed;
 
   /// No description provided for @navArticleOrders.
   ///
@@ -3572,7 +3602,7 @@ abstract class AppLocalizations {
   /// No description provided for @scheduleContinues.
   ///
   /// In en, this message translates to:
-  /// **'Runs on'**
+  /// **'Continues'**
   String get scheduleContinues;
 
   /// No description provided for @scheduleUpcoming.
@@ -3596,7 +3626,7 @@ abstract class AppLocalizations {
   /// No description provided for @scheduleOnSite.
   ///
   /// In en, this message translates to:
-  /// **'On site'**
+  /// **'Posted'**
   String get scheduleOnSite;
 
   /// No description provided for @absencesTitle.

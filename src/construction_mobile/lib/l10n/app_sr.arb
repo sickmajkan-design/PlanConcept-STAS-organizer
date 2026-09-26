@@ -527,6 +527,7 @@
   },
   "shiftClockIn": "Prijavi se na smjenu",
   "shiftClockOut": "Odjavi se sa smjene",
+  "shiftWorking": "Određujem lokaciju…",
   "shiftClockOutTitle": "Završetak smjene",
   "shiftBreakLabel": "Neplaćena pauza (minuta)",
   "shiftBreakHint": "Ostavite 0 ako je niste koristili.",
@@ -632,6 +633,14 @@
     }
   },
   "workItemsOverdue": "Kasni",
+  "workItemsConfirmMoveTitle": "Promijeniti status?",
+  "workItemsConfirmMove": "Označiti „{title}“ kao {status}?",
+  "@workItemsConfirmMove": {
+    "placeholders": {
+      "title": {"type": "String"},
+      "status": {"type": "String"}
+    }
+  },
   "workItemsNoDueDate": "Bez roka",
   "workItemsNoProject": "Bez gradilišta",
   "workItemsReportDefect": "Prijavi nedostatak",
@@ -661,6 +670,8 @@
   "workItemPriorityUrgent": "Hitno",
   "navSchedule": "Moj raspored",
   "navAbsences": "Odsustva",
+  "projectOpenInMaps": "Otvori u mapama",
+  "projectOpenInMapsFailed": "Nije bilo moguće otvoriti aplikaciju za mape.",
   "navArticleOrders": "Narudžbe",
   "articleOrdersNew": "Zatraži artikle",
   "articleOrdersEmpty": "Ovdje nema ničega.",
@@ -733,7 +744,7 @@
     }
   },
   "scheduleAway": "Odsutan",
-  "scheduleOnSite": "Na gradilištu",
+  "scheduleOnSite": "Raspoređen(a)",
   "absencesTitle": "Odsustva",
   "absencesEmpty": "Nisi tražio nijedno odsustvo.",
   "absencesPendingOnly": "Čeka odgovor",

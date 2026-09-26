@@ -199,8 +199,14 @@ class _ShiftCardState extends ConsumerState<ShiftCard> {
                 onPressed: state.isBusy || async.isLoading
                     ? null
                     : () => running ? _clockOut(context) : _clockIn(),
-                icon: Icon(running ? Icons.stop : Icons.play_arrow),
-                label: Text(running ? l10n.shiftClockOut : l10n.shiftClockIn),
+                icon: state.isBusy
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Icon(running ? Icons.stop : Icons.play_arrow),
+                label: Text(state.isBusy ? l10n.shiftWorking : (running ? l10n.shiftClockOut : l10n.shiftClockIn)),
               ),
             ),
           ],
@@ -330,7 +336,7 @@ class _ShiftCardState extends ConsumerState<ShiftCard> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : Icon(running ? Icons.stop : Icons.play_arrow),
-              label: Text(running ? l10n.shiftClockOut : l10n.shiftClockIn),
+              label: Text(state.isBusy ? l10n.shiftWorking : (running ? l10n.shiftClockOut : l10n.shiftClockIn)),
             ),
           ),
         ],

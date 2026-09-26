@@ -1532,6 +1532,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shiftClockOut => 'Clock out';
 
   @override
+  String get shiftWorking => 'Finding your location…';
+
+  @override
   String get shiftClockOutTitle => 'End the shift';
 
   @override
@@ -1769,6 +1772,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get workItemsOverdue => 'Overdue';
 
   @override
+  String get workItemsConfirmMoveTitle => 'Change the status?';
+
+  @override
+  String workItemsConfirmMove(String title, String status) {
+    return 'Mark \"$title\" as $status?';
+  }
+
+  @override
   String get workItemsNoDueDate => 'No deadline';
 
   @override
@@ -1843,6 +1854,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navAbsences => 'Time off';
+
+  @override
+  String get projectOpenInMaps => 'Open in maps';
+
+  @override
+  String get projectOpenInMapsFailed => 'No maps application could be opened.';
 
   @override
   String get navArticleOrders => 'Orders';
@@ -2017,7 +2034,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scheduleTomorrow => 'Tomorrow';
 
   @override
-  String get scheduleContinues => 'Runs on';
+  String get scheduleContinues => 'Continues';
 
   @override
   String get scheduleUpcoming => 'Next two weeks';
@@ -2031,7 +2048,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scheduleAway => 'Away';
 
   @override
-  String get scheduleOnSite => 'On site';
+  String get scheduleOnSite => 'Posted';
 
   @override
   String get absencesTitle => 'Time off';
