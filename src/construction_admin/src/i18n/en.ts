@@ -560,6 +560,7 @@ export const en = {
   'releaseNotes.phone1110.foremanWork': 'A foreman now sees only the tasks and defect reports on their own sites (plus whatever is assigned to them), the same as they already see only their own sites and people.',
   'releaseNotes.payroll1111.title': 'Dashboard widgets and payroll rules',
   'releaseNotes.payroll1111.widgets': 'Two new dashboard widgets: time-off requests waiting for a decision (approve or reject from the dashboard) and active projects.',
+  'releaseNotes.payroll1111.widgetHelp': 'When you add a widget to the dashboard, the list now explains what each one is for, what you can do with it and how it is set up.',
   'releaseNotes.payroll1111.hours': 'Payroll ledger: hours are now typed in from the signed timesheets, which are the record for pay. The option "Fill hours from the app" when creating a month brings back the old behaviour.',
   'releaseNotes.payroll1111.contributions': 'Contributions are no longer carried over to the next month, because they come off each month\'s payslip. The columns are now named "Leave (+)" and "Advance (-)" so the sign is clear.',
   'releaseNotes.payroll1111.checks': 'Two new checks in the ledger: a person with hours but no contributions entered, and typed hours that differ from the app\'s approved hours by more than 4. They are prompts to look, not errors.',

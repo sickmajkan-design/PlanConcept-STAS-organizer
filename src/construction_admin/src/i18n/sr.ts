@@ -583,6 +583,7 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.phone1110.foremanWork': 'Predradnik sada vidi samo zadatke i prijave nedostataka sa svojih gradilišta (uz ono što je dodijeljeno njemu), kao što već vidi samo svoja gradilišta i svoje ljude.',
   'releaseNotes.payroll1111.title': 'Widgeti na početnoj i pravila obračuna',
   'releaseNotes.payroll1111.widgets': 'Dva nova widgeta na početnoj stranici: zahtjevi za odsustvo koji čekaju odluku (odobravanje ili odbijanje direktno s početne) i aktivni projekti.',
+  'releaseNotes.payroll1111.widgetHelp': 'Kad dodaješ widget na početnu stranicu, spisak sada za svaki objašnjava za šta služi, šta se s njim može uraditi i kako se podešava.',
   'releaseNotes.payroll1111.hours': 'Obračun plata: sati se sada upisuju iz potpisanih satnica, koje su mjerodavne za platu. Opcija „Popuni sate iz aplikacije“ pri kreiranju mjeseca vraća raniji način.',
   'releaseNotes.payroll1111.contributions': 'Doprinosi se više ne prenose u sljedeći mjesec jer se uzimaju iz platne liste svakog mjeseca. Kolone se sada zovu „Godišnji odmor (+)“ i „Akontacija (−)“ da je znak jasan.',
   'releaseNotes.payroll1111.checks': 'Dvije nove provjere u obračunu: osoba sa satima a bez upisanih doprinosa, i upisani sati koji se razlikuju od odobrenih sati u aplikaciji za više od 4. To su podsjetnici da pogledate, ne greške.',
