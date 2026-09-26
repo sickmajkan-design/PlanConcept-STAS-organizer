@@ -8,6 +8,9 @@ class AppRoutes {
   static const changePassword = '/change-password';
 
   static const home = '/home';
+
+  /// Everything the home screen no longer lists: the menu behind the avatar.
+  static const more = '/more';
   static const employees = '/employees';
   static const projects = '/projects';
   static const vehicles = '/vehicles';

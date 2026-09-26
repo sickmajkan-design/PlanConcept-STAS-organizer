@@ -1,20 +1,31 @@
-import '../../../core/l10n/enum_labels.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
-import '../../../core/l10n/locale_controller.dart';
+import '../../../core/l10n/enum_labels.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/router/app_routes.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatting.dart';
 import '../../auth/data/models/user.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../location/presentation/location_status_card.dart';
-import '../../notifications/presentation/push_controller.dart';
+import '../../time_entries/presentation/shift_controller.dart';
+import '../../time_entries/presentation/shift_screen.dart';
+import '../../work_items/data/models/work_item.dart';
+import '../../work_items/presentation/my_work_controller.dart';
 import '../../work_items/presentation/report_defect.dart';
+import 'today_data.dart';
 
+/// "Today": what this person is doing right now, and the one thing they may
+/// need to do about it. Everything else lives behind the avatar
+/// (see `MoreScreen`).
+///
+/// A worker sees their shift and their tasks. A foreman or anyone above sees
+/// how the crew stands and what wants a look. Both get the same way to report
+/// a defect, because it is the one thing every site visit may turn up.
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -28,185 +39,109 @@ class HomeScreen extends ConsumerWidget {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    final oversees = user.canViewDirectory;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.appName),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: context.l10n.commonSignOut,
-            onPressed: () => _confirmSignOut(context, ref),
+      body: Stack(
+        children: [
+          RefreshIndicator(
+            edgeOffset: MediaQuery.paddingOf(context).top,
+            onRefresh: () => _refresh(context, ref),
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                Stack(
+                  // The picture runs a little past the card; clipping it there
+                  // cut the end of its fade into a visible line.
+                  clipBehavior: Clip.none,
+                  children: [
+                    const Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: _SiteArtwork(),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            height: MediaQuery.paddingOf(context).top + 12,
+                          ),
+                          _GreetingRow(user: user),
+                          if (oversees && user.isEmployee) const _ShiftBadge(),
+                          SizedBox(
+                            height: user.isEmployee && !oversees ? 96 : 84,
+                          ),
+                          if (user.isEmployee && !oversees)
+                            const ShiftCard(hero: true)
+                          else if (oversees)
+                            const _CrewCard(),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (user.isEmployee && !oversees) const _TasksSection(),
+                      if (oversees) const _AttentionSection(),
+                      if (user.isEmployee) ...[
+                        const SizedBox(height: 20),
+                        const ReportDefectButton(prominent: true),
+                        const SizedBox(height: 12),
+                        const LocationStatusCard(),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Keeps the clock and battery readable when the page has scrolled
+          // up underneath them.
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: MediaQuery.paddingOf(context).top + 12,
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Theme.of(
+                        context,
+                      ).scaffoldBackgroundColor.withValues(alpha: 1),
+                      Theme.of(
+                        context,
+                      ).scaffoldBackgroundColor.withValues(alpha: 0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: () => _refreshProfile(context, ref),
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _ProfileCard(user: user),
-            const SizedBox(height: 16),
-            const LocationStatusCard(),
-            const _PushStatusNotice(),
-            const SizedBox(height: 16),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.campaign_outlined),
-                title: Text(context.l10n.navBulletin),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.push(AppRoutes.bulletin),
-              ),
-            ),
-            // Time Entries itself now lives in the bottom bar — see AppShell
-            // — since it is the one screen almost everyone opens twice a
-            // day and a bottom tab is one fewer step than a card here.
-            if (user.isEmployee) ...[
-              const SizedBox(height: 16),
-              Card(
-                child: Column(
-                  children: [
-                    ListTile(
-                      leading: const Icon(Icons.checklist_outlined),
-                      title: Text(context.l10n.navWorkItems),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => context.push(AppRoutes.workItems),
-                    ),
-                    const Divider(height: 1, indent: 20, endIndent: 20),
-                    // The one thing every worker may raise, and the one they
-                    // have no project screen to raise it from.
-                    const ReportDefectButton(asTile: true),
-                    const Divider(height: 1, indent: 20, endIndent: 20),
-                    ListTile(
-                      leading: const Icon(Icons.calendar_month_outlined),
-                      title: Text(context.l10n.navSchedule),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => context.push(AppRoutes.schedule),
-                    ),
-                    const Divider(height: 1, indent: 20, endIndent: 20),
-                    ListTile(
-                      leading: const Icon(Icons.event_busy_outlined),
-                      title: Text(context.l10n.navAbsences),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => context.push(AppRoutes.absences),
-                    ),
-                    // Every weekly-report endpoint is foreman-and-above on the server, so a
-                    // worker who opened this got "you may not do this" on the screen and on
-                    // submitting.
-                    if (user.canViewDirectory) ...[
-                      const Divider(height: 1, indent: 20, endIndent: 20),
-                      ListTile(
-                        leading: const Icon(Icons.assignment_turned_in_outlined),
-                        title: Text(context.l10n.navWeeklyReports),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () => context.push(AppRoutes.weeklyReports),
-                      ),
-                    ],
-                    const Divider(height: 1, indent: 20, endIndent: 20),
-                    ListTile(
-                      leading: const Icon(Icons.home_outlined),
-                      title: Text(context.l10n.navMyHousing),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => context.push(AppRoutes.myHousing),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            if (user.canViewDirectory) ...[
-              const SizedBox(height: 16),
-              Card(
-                child: ListTile(
-                  leading: const Icon(Icons.groups_outlined),
-                  title: Text(context.l10n.teamTodayAction),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push(AppRoutes.teamToday),
-                ),
-              ),
-            ],
-            const SizedBox(height: 24),
-            _ResourcesSection(canViewDirectory: user.canViewDirectory),
-            if (user.isSuperAdmin) ...[
-              const SizedBox(height: 24),
-              Padding(
-                padding: const EdgeInsets.only(left: 4, bottom: 8),
-                child: Text(
-                  context.l10n.commonCompany,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                ),
-              ),
-              Card(
-                child: Column(
-                  children: [
-                    ListTile(
-                      leading: const Icon(Icons.business_outlined),
-                      title: Text(context.l10n.companySettingsTitle),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => context.push(AppRoutes.companySettings),
-                    ),
-                    const Divider(height: 1, indent: 20, endIndent: 20),
-                    ListTile(
-                      leading: const Icon(Icons.table_chart_outlined),
-                      title: Text(context.l10n.ledgersTitle),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => context.push(AppRoutes.ledgers),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            const SizedBox(height: 24),
-            Padding(
-              padding: const EdgeInsets.only(left: 4, bottom: 8),
-              child: Text(
-                context.l10n.commonAccount,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              ),
-            ),
-            Card(
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.language),
-                    title: Text(context.l10n.settingsLanguage),
-                    trailing: Text(
-                      localeName(Localizations.localeOf(context)),
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
-                    ),
-                    onTap: () => _pickLanguage(context, ref),
-                  ),
-                  const Divider(height: 1, indent: 20, endIndent: 20),
-                  ListTile(
-                    leading: const Icon(Icons.password),
-                    title: Text(context.l10n.authChangePassword),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => context.push(AppRoutes.changePassword),
-                  ),
-                  const Divider(height: 1, indent: 20, endIndent: 20),
-                  ListTile(
-                    leading: const Icon(Icons.logout),
-                    title: Text(context.l10n.commonSignOut),
-                    onTap: () => _confirmSignOut(context, ref),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
 
-  Future<void> _refreshProfile(BuildContext context, WidgetRef ref) async {
+  Future<void> _refresh(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
     // Read before the await, with the messenger and for the same reason: the
     // context may be gone by the time the request fails.
     final l10n = context.l10n;
+
+    ref.invalidate(shiftControllerProvider);
+    ref.invalidate(myWorkControllerProvider);
+    ref.invalidate(crewTodayProvider);
 
     try {
       await ref.read(authControllerProvider.notifier).refreshProfile();
@@ -214,135 +149,104 @@ class HomeScreen extends ConsumerWidget {
       messenger.showSnackBar(SnackBar(content: Text(exception.describe(l10n))));
     }
   }
+}
 
-  /// Lets the user override the device language. On a shared site phone the
-  /// device is often set to whatever the last person left it on, so following
-  /// it blindly is not enough.
-  Future<void> _pickLanguage(BuildContext context, WidgetRef ref) async {
-    final current = Localizations.localeOf(context);
+/// The dawn-over-the-site picture behind the greeting, dissolving into the
+/// page. One picture for everyone: it is atmosphere, not information.
+class _SiteArtwork extends StatelessWidget {
+  const _SiteArtwork();
 
-    final chosen = await showModalBottomSheet<Locale>(
-      context: context,
-      builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final top = MediaQuery.paddingOf(context).top;
+
+    final page = Theme.of(context).scaffoldBackgroundColor;
+
+    return ExcludeSemantics(
+      child: SizedBox(
+        height: top + 330,
+        width: double.infinity,
+        child: Stack(
+          fit: StackFit.expand,
           children: [
-            for (final locale in supportedLocales)
-              ListTile(
-                title: Text(localeName(locale)),
-                trailing: locale.languageCode == current.languageCode
-                    ? const Icon(Icons.check)
-                    : null,
-                onTap: () => Navigator.of(sheetContext).pop(locale),
+            Opacity(
+              opacity: dark ? 0.4 : 1,
+              child: Image.asset(
+                'assets/images/site_dawn.jpg',
+                fit: BoxFit.cover,
+                alignment: Alignment.topCenter,
               ),
+            ),
+            // The page colour laid over the picture, thickening to solid at
+            // the bottom edge, so it ends exactly on the page in either theme.
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [page.withValues(alpha: 0), page],
+                  stops: const [0.45, 1],
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
-
-    if (chosen != null) {
-      await ref.read(localeControllerProvider.notifier).select(chosen);
-    }
-  }
-
-  Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {
-    final shouldSignOut = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(context.l10n.commonSignOutQuestion),
-        content: Text(context.l10n.commonSignOutBody),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(context.l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(context.l10n.commonSignOut),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldSignOut ?? false) {
-      await ref.read(authControllerProvider.notifier).signOut();
-    }
   }
 }
 
-/// Site resources: vehicles, tools and materials. The directory-gated ones
-/// mirror the API's `ForemanAndAbove` policy; tool lookup mirrors the API's
-/// `AllEmployees` policy on `by-qr`, so it stays visible for a Worker too.
-class _ResourcesSection extends StatelessWidget {
-  const _ResourcesSection({required this.canViewDirectory});
+class _GreetingRow extends StatelessWidget {
+  const _GreetingRow({required this.user});
 
-  final bool canViewDirectory;
+  final User user;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final name = (user.firstName?.trim().isNotEmpty ?? false)
+        ? user.firstName!.trim()
+        : user.displayName;
+    final hour = DateTime.now().hour;
+
+    final greeting = hour < 11
+        ? l10n.homeGreetingMorning(name)
+        : hour < 18
+        ? l10n.homeGreetingDay(name)
+        : l10n.homeGreetingEvening(name);
+
+    return Row(
       children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
+        Icon(Icons.engineering_outlined, color: theme.colorScheme.onSurface),
+        const SizedBox(width: 12),
+        Expanded(
           child: Text(
-            context.l10n.commonResources,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+            greeting,
+            style: theme.textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+              height: 1.15,
+            ),
           ),
         ),
-        Card(
-          child: Column(
-            children: [
-              if (canViewDirectory) ...[
-                ListTile(
-                  leading: const Icon(Icons.local_shipping_outlined),
-                  title: Text(context.l10n.navVehicles),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push(AppRoutes.vehicles),
+        const SizedBox(width: 12),
+        Tooltip(
+          message: l10n.moreTitle,
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: () => context.push(AppRoutes.more),
+            child: CircleAvatar(
+              radius: 24,
+              backgroundColor: AppTheme.heroCard,
+              child: Text(
+                initialsOf(user.firstName, user.lastName, fallback: user.email),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: AppTheme.heroCardText,
+                  fontWeight: FontWeight.w700,
                 ),
-                const Divider(height: 1, indent: 20, endIndent: 20),
-                ListTile(
-                  leading: const Icon(Icons.handyman_outlined),
-                  title: Text(context.l10n.navTools),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push(AppRoutes.tools),
-                ),
-                const Divider(height: 1, indent: 20, endIndent: 20),
-                ListTile(
-                  leading: const Icon(Icons.inventory_2_outlined),
-                  title: Text(context.l10n.navMaterials),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push(AppRoutes.materials),
-                ),
-                const Divider(height: 1, indent: 20, endIndent: 20),
-                // Foreman and above, the same set the API lets record
-                // spending. The person filling the tank is standing next to
-                // the receipt and the odometer.
-                ListTile(
-                  leading: const Icon(Icons.local_gas_station_outlined),
-                  title: Text(context.l10n.navVehicleExpenses),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push(AppRoutes.vehicleExpenses),
-                ),
-                const Divider(height: 1, indent: 20, endIndent: 20),
-                ListTile(
-                  leading: const Icon(Icons.build_outlined),
-                  title: Text(context.l10n.navToolExpenses),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push(AppRoutes.toolExpenses),
-                ),
-                const Divider(height: 1, indent: 20, endIndent: 20),
-              ],
-              ListTile(
-                leading: const Icon(Icons.qr_code_scanner_outlined),
-                title: Text(context.l10n.scanTitle),
-                subtitle: Text(context.l10n.toolByQrCode),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () => context.push(AppRoutes.scan),
               ),
-            ],
+            ),
           ),
         ),
       ],
@@ -350,96 +254,435 @@ class _ResourcesSection extends StatelessWidget {
   }
 }
 
-/// Explains why push notifications are silent, when they are. The in-app
-/// inbox keeps working either way, so this is informational only.
-class _PushStatusNotice extends ConsumerWidget {
-  const _PushStatusNotice();
+/// "On shift since 06:45", for a foreman whose main card is the crew's.
+class _ShiftBadge extends ConsumerWidget {
+  const _ShiftBadge();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final push = ref.watch(pushControllerProvider);
+    final state = ref.watch(shiftControllerProvider).value;
+    final since = state?.startedAt;
 
-    final l10n = context.l10n;
-
-    final message = switch (push.status) {
-      PushStatus.permissionDenied => l10n.notificationsBlockedBody,
-      PushStatus.unconfigured => l10n.notificationsNotConfiguredBody,
-      // Either a message of ours or, failing that, whatever the platform said.
-      PushStatus.error =>
-        push.message?.resolve(l10n) ?? push.failure?.describe(l10n) ?? push.detail,
-      _ => null,
-    };
-
-    if (message == null) {
+    if (state == null || !state.isRunning || since == null) {
       return const SizedBox.shrink();
     }
 
     return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: Card(
-        child: ListTile(
-          leading: const Icon(Icons.notifications_off_outlined),
-          title: Text(
-            message,
-            style: Theme.of(context).textTheme.bodySmall,
+      padding: const EdgeInsets.only(top: 6, left: 36),
+      child: Row(
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: const BoxDecoration(
+              color: Color(0xFF3F9B4F),
+              shape: BoxShape.circle,
+            ),
           ),
+          const SizedBox(width: 8),
+          Text(
+            '${context.l10n.homeOnShift} · ${formatTime(since)}',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TasksSection extends ConsumerWidget {
+  const _TasksSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final items =
+        ref.watch(myWorkControllerProvider).value?.items ?? const <WorkItem>[];
+    final shown = items.take(3).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.homeTasksToday,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => context.push(AppRoutes.workItems),
+              child: Text(l10n.homeAllTasks),
+            ),
+          ],
+        ),
+        if (shown.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Text(
+              l10n.homeNoTasks,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          )
+        else
+          for (final item in shown) _TaskRow(item: item),
+      ],
+    );
+  }
+}
+
+class _TaskRow extends StatelessWidget {
+  const _TaskRow({required this.item});
+
+  final WorkItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final high = item.priority == 'High' || item.priority == 'Urgent';
+
+    final detail = [
+      if (high) enumLabel(l10n, EnumKind.workItemPriority, item.priority),
+      if (item.due != null) l10n.workItemsDue(formatDate(item.due)),
+    ];
+
+    return InkWell(
+      onTap: () => context.push(AppRoutes.workItems),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.6),
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                item.kind == 'Defect'
+                    ? Icons.report_problem_outlined
+                    : Icons.construction_outlined,
+                color: AppTheme.heroCard,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.title,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  if (detail.isNotEmpty)
+                    Text(
+                      detail.join(' · '),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: high
+                            ? AppTheme.accent
+                            : theme.colorScheme.onSurfaceVariant,
+                        fontWeight: high ? FontWeight.w600 : null,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _ProfileCard extends StatelessWidget {
-  const _ProfileCard({required this.user});
+/// How the crew stands, in one dark card.
+class _CrewCard extends ConsumerWidget {
+  const _CrewCard();
 
-  final User user;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final crew = ref.watch(crewTodayProvider);
+    const ink = AppTheme.heroCardText;
+    final muted = ink.withValues(alpha: 0.72);
+
+    final data = crew.value;
+
+    final title = data == null || data.siteNames.isEmpty
+        ? l10n.teamTodayAction
+        : data.siteNames.length == 1
+        ? data.siteNames.single
+        : l10n.homeSitesCount(data.siteNames.length);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppTheme.heroCard,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.engineering_outlined, color: ink),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: ink,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (data == null)
+            Text(
+              crew.error is ApiException
+                  ? (crew.error as ApiException).describe(l10n)
+                  : '…',
+              style: theme.textTheme.bodyLarge?.copyWith(color: muted),
+            )
+          else ...[
+            Text(
+              l10n.homeCrewCount(data.onSiteCount, data.crewCount),
+              style: theme.textTheme.displaySmall?.copyWith(
+                color: ink,
+                fontWeight: FontWeight.w800,
+                height: 1.05,
+              ),
+            ),
+            Text(
+              l10n.homeCrewOnSite,
+              style: theme.textTheme.titleMedium?.copyWith(color: muted),
+            ),
+            const SizedBox(height: 14),
+            _Segments(filled: data.onSiteCount, total: data.crewCount),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.homeNotClockedIn(data.notClockedIn.length),
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: data.notClockedIn.isEmpty
+                          ? ink
+                          : const Color(0xFFFF9B62),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                Text(
+                  l10n.homeOutsideSite(data.outsideSiteCount),
+                  style: theme.textTheme.bodyLarge?.copyWith(color: ink),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 18),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppTheme.heroCardText,
+                foregroundColor: AppTheme.heroCard,
+              ),
+              onPressed: () => context.push(AppRoutes.teamToday),
+              child: Text(l10n.teamTodayAction),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One rounded segment per person up to twelve; past that, one bar.
+class _Segments extends StatelessWidget {
+  const _Segments({required this.filled, required this.total});
+
+  final int filled;
+  final int total;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    const ink = AppTheme.heroCardText;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 30,
-              backgroundColor: theme.colorScheme.primaryContainer,
-              child: Text(
-                initialsOf(user.firstName, user.lastName, fallback: user.email),
-                style: theme.textTheme.titleLarge?.copyWith(
-                  color: theme.colorScheme.onPrimaryContainer,
-                  fontWeight: FontWeight.w700,
-                ),
+    if (total <= 0) {
+      return const SizedBox(height: 10);
+    }
+
+    if (total > 12) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(6),
+        child: LinearProgressIndicator(
+          minHeight: 10,
+          value: (filled / total).clamp(0, 1).toDouble(),
+          color: ink,
+          backgroundColor: ink.withValues(alpha: 0.2),
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        for (var i = 0; i < total; i++) ...[
+          if (i > 0) const SizedBox(width: 6),
+          Expanded(
+            child: Container(
+              height: 10,
+              decoration: BoxDecoration(
+                color: i < filled ? ink : Colors.transparent,
+                border: Border.all(color: ink.withValues(alpha: 0.8)),
+                borderRadius: BorderRadius.circular(6),
               ),
             ),
-            const SizedBox(width: 16),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _AttentionSection extends ConsumerWidget {
+  const _AttentionSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final items =
+        ref.watch(crewTodayProvider).value?.attention ??
+        const <AttentionItem>[];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.homeNeedsAttention,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 6),
+        if (items.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Text(
+              l10n.homeAllClear,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          )
+        else
+          for (final item in items) _AttentionRow(item: item),
+      ],
+    );
+  }
+}
+
+class _AttentionRow extends StatelessWidget {
+  const _AttentionRow({required this.item});
+
+  final AttentionItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final missing = item.kind == AttentionKind.notClockedIn;
+
+    return InkWell(
+      onTap: () {
+        if (missing) {
+          context.push(AppRoutes.teamToday);
+        } else if (item.projectId != null) {
+          context.push('${AppRoutes.projects}/${item.projectId}');
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.6),
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: missing ? AppTheme.accent : AppTheme.heroCard,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                missing ? Icons.person_outline : Icons.report_problem_outlined,
+                color: AppTheme.heroCardText,
+              ),
+            ),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    user.displayName,
+                    item.title,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 2),
                   Text(
-                    user.email,
-                    style: theme.textTheme.bodySmall?.copyWith(
+                    missing
+                        ? l10n.homeNoShiftYet
+                        : l10n.homeDefectReported(
+                            formatRelative(item.reportedAt, l10n),
+                          ),
+                    style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Chip(
-                    label: Text(enumLabel(context.l10n, EnumKind.role, user.role)),
-                    visualDensity: VisualDensity.compact,
-                    padding: EdgeInsets.zero,
-                  ),
                 ],
               ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ],
         ),

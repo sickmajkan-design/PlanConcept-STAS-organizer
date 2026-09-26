@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.WorkItems.Models;
@@ -13,13 +14,16 @@ public class GetWorkItemByIdQueryHandler : IRequestHandler<GetWorkItemByIdQuery,
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
     public GetWorkItemByIdQueryHandler(
         IApplicationDbContext context,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<WorkItemDto> Handle(
@@ -38,6 +42,21 @@ public class GetWorkItemByIdQueryHandler : IRequestHandler<GetWorkItemByIdQuery,
 
             query = query.Where(w =>
                 ownEmployeeId != null && w.AssignedEmployeeId == ownEmployeeId);
+        }
+
+        var ownProjects = await ForemanScope.OwnProjectIdsAsync(
+            _context,
+            _currentUserService,
+            DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+            cancellationToken);
+
+        if (ownProjects is not null)
+        {
+            var self = _currentUserService.EmployeeId;
+
+            query = query.Where(w =>
+                (w.ProjectId != null && ownProjects.Contains(w.ProjectId.Value))
+                || (self != null && w.AssignedEmployeeId == self));
         }
 
         return await query

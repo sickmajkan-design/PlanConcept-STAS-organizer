@@ -2510,4 +2510,83 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get workItemsNoSiteToday =>
       'You are not posted to a site today, so there is nothing to report a defect on. Ask the office to post you.';
+
+  @override
+  String homeGreetingMorning(String name) {
+    return 'Good morning, $name';
+  }
+
+  @override
+  String homeGreetingDay(String name) {
+    return 'Hello, $name';
+  }
+
+  @override
+  String homeGreetingEvening(String name) {
+    return 'Good evening, $name';
+  }
+
+  @override
+  String get homeOnShift => 'On shift';
+
+  @override
+  String get homeOffShift => 'You are not on shift';
+
+  @override
+  String get homeOffShiftHint => 'Clock in when you get to the site.';
+
+  @override
+  String get homeTasksToday => 'Today on site';
+
+  @override
+  String get homeAllTasks => 'All tasks';
+
+  @override
+  String get homeNoTasks => 'Nothing is assigned to you today.';
+
+  @override
+  String homeCrewCount(int onSite, int total) {
+    return '$onSite of $total';
+  }
+
+  @override
+  String get homeCrewOnSite => 'on site';
+
+  @override
+  String homeNotClockedIn(int count) {
+    return 'Not clocked in: $count';
+  }
+
+  @override
+  String homeOutsideSite(int count) {
+    return 'Outside the site: $count';
+  }
+
+  @override
+  String get homeNeedsAttention => 'Needs attention';
+
+  @override
+  String get homeAllClear => 'Nothing needs your attention right now.';
+
+  @override
+  String get homeNoShiftYet => 'no shift recorded today';
+
+  @override
+  String homeDefectReported(String when) {
+    return 'defect reported $when';
+  }
+
+  @override
+  String homeSitesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count sites',
+      one: '$count site',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get moreTitle => 'More';
 }

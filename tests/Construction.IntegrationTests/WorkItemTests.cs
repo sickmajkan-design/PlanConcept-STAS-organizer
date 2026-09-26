@@ -449,7 +449,9 @@ public class WorkItemTests : IntegrationTestBase
     public async Task The_overdue_filter_leaves_out_finished_work()
     {
         // Something closed last month is not a problem waiting to be dealt with.
-        var foreman = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Foreman));
+        // Read as a project manager: a foreman sees only the work on their own sites,
+        // and these tests are about the lists, not that boundary.
+        var foreman = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.ProjectManager));
         var yesterday = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
 
         var stillOpen = await InScope(scope =>
@@ -489,7 +491,9 @@ public class WorkItemTests : IntegrationTestBase
     {
         // PostgreSQL puts nulls first on an ascending sort, which would push
         // everything nobody has dated to the top of the board.
-        var foreman = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Foreman));
+        // Read as a project manager: a foreman sees only the work on their own sites,
+        // and these tests are about the lists, not that boundary.
+        var foreman = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.ProjectManager));
         var project = await InScope(scope => TestData.SeedProjectAsync(scope));
 
         await InScope(scope =>
@@ -621,7 +625,9 @@ public class WorkItemTests : IntegrationTestBase
     [Fact]
     public async Task Deleting_a_project_takes_its_work_items_out_of_the_lists()
     {
-        var foreman = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Foreman));
+        // Read as a project manager: a foreman sees only the work on their own sites,
+        // and these tests are about the lists, not that boundary.
+        var foreman = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.ProjectManager));
         var project = await InScope(scope => TestData.SeedProjectAsync(scope));
         var title = $"Zadatak {Guid.NewGuid():N}";
 

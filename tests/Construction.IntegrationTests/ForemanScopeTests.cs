@@ -141,6 +141,28 @@ public class ForemanScopeTests
         Assert.DoesNotContain(ids.OwnSite, await IdsOfAsync(foreman, "/api/v1/projects?pageSize=100"));
     }
 
+    [Fact]
+    public async Task A_foreman_sees_the_work_on_their_own_sites_only()
+    {
+        var ids = await SeedAsync();
+        using var admin = _api.ClientAs(UserRole.SuperAdmin);
+
+        var onOwn = await CreateAsync(admin, "/api/v1/workitems",
+            new { kind = "Task", title = $"Own {Guid.NewGuid():N}"[..14], projectId = ids.OwnSite, priority = "Normal" });
+        var onOther = await CreateAsync(admin, "/api/v1/workitems",
+            new { kind = "Task", title = $"Other {Guid.NewGuid():N}"[..14], projectId = ids.OtherSite, priority = "Normal" });
+
+        using var foreman = _api.ClientAs(UserRole.Foreman);
+
+        var visible = await IdsOfAsync(foreman, "/api/v1/workitems?pageSize=100");
+
+        Assert.Contains(onOwn, visible);
+        Assert.DoesNotContain(onOther, visible);
+
+        Assert.Equal(HttpStatusCode.OK, (await foreman.GetAsync($"/api/v1/workitems/{onOwn}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await foreman.GetAsync($"/api/v1/workitems/{onOther}")).StatusCode);
+    }
+
     [Theory]
     [InlineData(UserRole.SuperAdmin)]
     [InlineData(UserRole.Admin)]

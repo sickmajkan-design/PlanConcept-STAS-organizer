@@ -1295,5 +1295,65 @@
       }
     }
   },
-  "workItemsNoSiteToday": "You are not posted to a site today, so there is nothing to report a defect on. Ask the office to post you."
+  "workItemsNoSiteToday": "You are not posted to a site today, so there is nothing to report a defect on. Ask the office to post you.",
+  "homeGreetingMorning": "Good morning, {name}",
+  "@homeGreetingMorning": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "homeGreetingDay": "Hello, {name}",
+  "@homeGreetingDay": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "homeGreetingEvening": "Good evening, {name}",
+  "@homeGreetingEvening": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "homeOnShift": "On shift",
+  "homeOffShift": "You are not on shift",
+  "homeOffShiftHint": "Clock in when you get to the site.",
+  "homeTasksToday": "Today on site",
+  "homeAllTasks": "All tasks",
+  "homeNoTasks": "Nothing is assigned to you today.",
+  "homeCrewCount": "{onSite} of {total}",
+  "@homeCrewCount": {
+    "placeholders": {
+      "onSite": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "homeCrewOnSite": "on site",
+  "homeNotClockedIn": "Not clocked in: {count}",
+  "@homeNotClockedIn": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "homeOutsideSite": "Outside the site: {count}",
+  "@homeOutsideSite": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "homeNeedsAttention": "Needs attention",
+  "homeAllClear": "Nothing needs your attention right now.",
+  "homeNoShiftYet": "no shift recorded today",
+  "homeDefectReported": "defect reported {when}",
+  "@homeDefectReported": {
+    "placeholders": {
+      "when": {"type": "String"}
+    }
+  },
+  "homeSitesCount": "{count, plural, one{{count} site} other{{count} sites}}",
+  "@homeSitesCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "moreTitle": "More"
 }

@@ -27,6 +27,7 @@ import '../../features/projects/presentation/project_detail_screen.dart';
 import '../../features/projects/presentation/projects_screen.dart';
 import '../../features/shell/presentation/app_shell.dart';
 import '../../features/shell/presentation/home_screen.dart';
+import '../../features/shell/presentation/more_screen.dart';
 import '../../features/shell/presentation/splash_screen.dart';
 import '../../features/scan/presentation/scan_screen.dart';
 import '../../features/tools/presentation/tool_detail_screen.dart';
@@ -156,6 +157,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.absences,
         builder: (context, state) => const MyAbsencesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.more,
+        builder: (context, state) => const MoreScreen(),
       ),
       GoRoute(
         path: AppRoutes.weeklyReports,

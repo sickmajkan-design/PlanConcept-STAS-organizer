@@ -7,6 +7,15 @@ class AppTheme {
 
   static const Color _seed = Color(0xFFF57C00);
 
+  /// The deep brown of the "today" card, and the cream text on it. Fixed in
+  /// both light and dark: the card is the one dark object on the home screen
+  /// and has to read the same in sun and in shade.
+  static const Color heroCard = Color(0xFF3B2416);
+  static const Color heroCardText = Color(0xFFF6EEE4);
+
+  /// The burnt orange that marks what needs doing: a priority, a selection.
+  static const Color accent = Color(0xFFB5541C);
+
   /// A filled button that sits beside another widget in a `Row`.
   ///
   /// The theme gives every filled button `Size.fromHeight(52)`, whose minimum

@@ -910,5 +910,65 @@
   "outboxWaiting": "{count, plural, one{{count} prijava čeka slanje} few{{count} prijave čekaju slanje} other{{count} prijava čeka slanje}}",
   "outboxDefectRefused": "Prijava nedostatka napravljena bez signala je odbijena: {reason}",
   "outboxAbsenceRefused": "Zahtjev za odsustvo napravljen bez signala je odbijen: {reason}",
-  "workItemsNoSiteToday": "Danas niste raspoređeni na gradilište, pa nema na šta prijaviti nedostatak. Zamolite kancelariju da vas rasporedi."
+  "workItemsNoSiteToday": "Danas niste raspoređeni na gradilište, pa nema na šta prijaviti nedostatak. Zamolite kancelariju da vas rasporedi.",
+  "homeGreetingMorning": "Dobro jutro, {name}",
+  "@homeGreetingMorning": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "homeGreetingDay": "Dobar dan, {name}",
+  "@homeGreetingDay": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "homeGreetingEvening": "Dobro veče, {name}",
+  "@homeGreetingEvening": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "homeOnShift": "Na smjeni",
+  "homeOffShift": "Niste na smjeni",
+  "homeOffShiftHint": "Prijavite se kad stignete na gradilište.",
+  "homeTasksToday": "Danas na gradilištu",
+  "homeAllTasks": "Svi zadaci",
+  "homeNoTasks": "Danas vam ništa nije dodijeljeno.",
+  "homeCrewCount": "{onSite} od {total}",
+  "@homeCrewCount": {
+    "placeholders": {
+      "onSite": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "homeCrewOnSite": "na gradilištu",
+  "homeNotClockedIn": "Nisu prijavljeni: {count}",
+  "@homeNotClockedIn": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "homeOutsideSite": "Izvan gradilišta: {count}",
+  "@homeOutsideSite": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "homeNeedsAttention": "Traži pažnju",
+  "homeAllClear": "Trenutno ništa ne traži vašu pažnju.",
+  "homeNoShiftYet": "danas nema prijave",
+  "homeDefectReported": "nedostatak prijavljen {when}",
+  "@homeDefectReported": {
+    "placeholders": {
+      "when": {"type": "String"}
+    }
+  },
+  "homeSitesCount": "{count, plural, one{{count} gradilište} few{{count} gradilišta} other{{count} gradilišta}}",
+  "@homeSitesCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "moreTitle": "Više"
 }

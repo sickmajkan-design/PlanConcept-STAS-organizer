@@ -4414,6 +4414,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You are not posted to a site today, so there is nothing to report a defect on. Ask the office to post you.'**
   String get workItemsNoSiteToday;
+
+  /// No description provided for @homeGreetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning, {name}'**
+  String homeGreetingMorning(String name);
+
+  /// No description provided for @homeGreetingDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello, {name}'**
+  String homeGreetingDay(String name);
+
+  /// No description provided for @homeGreetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening, {name}'**
+  String homeGreetingEvening(String name);
+
+  /// No description provided for @homeOnShift.
+  ///
+  /// In en, this message translates to:
+  /// **'On shift'**
+  String get homeOnShift;
+
+  /// No description provided for @homeOffShift.
+  ///
+  /// In en, this message translates to:
+  /// **'You are not on shift'**
+  String get homeOffShift;
+
+  /// No description provided for @homeOffShiftHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Clock in when you get to the site.'**
+  String get homeOffShiftHint;
+
+  /// No description provided for @homeTasksToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Today on site'**
+  String get homeTasksToday;
+
+  /// No description provided for @homeAllTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'All tasks'**
+  String get homeAllTasks;
+
+  /// No description provided for @homeNoTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is assigned to you today.'**
+  String get homeNoTasks;
+
+  /// No description provided for @homeCrewCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{onSite} of {total}'**
+  String homeCrewCount(int onSite, int total);
+
+  /// No description provided for @homeCrewOnSite.
+  ///
+  /// In en, this message translates to:
+  /// **'on site'**
+  String get homeCrewOnSite;
+
+  /// No description provided for @homeNotClockedIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Not clocked in: {count}'**
+  String homeNotClockedIn(int count);
+
+  /// No description provided for @homeOutsideSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Outside the site: {count}'**
+  String homeOutsideSite(int count);
+
+  /// No description provided for @homeNeedsAttention.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs attention'**
+  String get homeNeedsAttention;
+
+  /// No description provided for @homeAllClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing needs your attention right now.'**
+  String get homeAllClear;
+
+  /// No description provided for @homeNoShiftYet.
+  ///
+  /// In en, this message translates to:
+  /// **'no shift recorded today'**
+  String get homeNoShiftYet;
+
+  /// No description provided for @homeDefectReported.
+  ///
+  /// In en, this message translates to:
+  /// **'defect reported {when}'**
+  String homeDefectReported(String when);
+
+  /// No description provided for @homeSitesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} site} other{{count} sites}}'**
+  String homeSitesCount(int count);
+
+  /// No description provided for @moreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get moreTitle;
 }
 
 class _AppLocalizationsDelegate

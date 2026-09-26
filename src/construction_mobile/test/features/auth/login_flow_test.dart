@@ -82,7 +82,15 @@ void main() {
       (tester) async {
     await _pumpApp(tester, _InMemorySessionStorage(_storedSession()));
 
-    expect(find.text('Ivan Horvat'), findsOneWidget);
+    // The greeting, whichever part of the day it is: "…, Ivan".
+    expect(find.textContaining(', Ivan'), findsOneWidget);
+    // The account details sit behind the avatar now.
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.byTooltip('More'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 1));
+
     expect(find.text('ivan@construction.local'), findsOneWidget);
     // Role names arrive in PascalCase and are humanised for display.
     expect(find.text('Project Manager'), findsOneWidget);

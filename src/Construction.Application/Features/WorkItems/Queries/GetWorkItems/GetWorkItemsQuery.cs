@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
 using Construction.Application.Common.Security;
@@ -96,6 +97,23 @@ public class GetWorkItemsQueryHandler
         else if (request.AssignedEmployeeId is { } employeeId)
         {
             query = query.Where(w => w.AssignedEmployeeId == employeeId);
+        }
+
+        // A foreman sees the work on their own sites, and whatever is assigned
+        // to them wherever it is.
+        var ownProjects = await ForemanScope.OwnProjectIdsAsync(
+            _context,
+            _currentUserService,
+            DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+            cancellationToken);
+
+        if (ownProjects is not null)
+        {
+            var self = _currentUserService.EmployeeId;
+
+            query = query.Where(w =>
+                (w.ProjectId != null && ownProjects.Contains(w.ProjectId.Value))
+                || (self != null && w.AssignedEmployeeId == self));
         }
 
         if (!string.IsNullOrWhiteSpace(request.Search))

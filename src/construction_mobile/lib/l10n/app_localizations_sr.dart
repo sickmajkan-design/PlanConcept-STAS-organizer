@@ -2507,4 +2507,84 @@ class AppLocalizationsSr extends AppLocalizations {
   @override
   String get workItemsNoSiteToday =>
       'Danas niste raspoređeni na gradilište, pa nema na šta prijaviti nedostatak. Zamolite kancelariju da vas rasporedi.';
+
+  @override
+  String homeGreetingMorning(String name) {
+    return 'Dobro jutro, $name';
+  }
+
+  @override
+  String homeGreetingDay(String name) {
+    return 'Dobar dan, $name';
+  }
+
+  @override
+  String homeGreetingEvening(String name) {
+    return 'Dobro veče, $name';
+  }
+
+  @override
+  String get homeOnShift => 'Na smjeni';
+
+  @override
+  String get homeOffShift => 'Niste na smjeni';
+
+  @override
+  String get homeOffShiftHint => 'Prijavite se kad stignete na gradilište.';
+
+  @override
+  String get homeTasksToday => 'Danas na gradilištu';
+
+  @override
+  String get homeAllTasks => 'Svi zadaci';
+
+  @override
+  String get homeNoTasks => 'Danas vam ništa nije dodijeljeno.';
+
+  @override
+  String homeCrewCount(int onSite, int total) {
+    return '$onSite od $total';
+  }
+
+  @override
+  String get homeCrewOnSite => 'na gradilištu';
+
+  @override
+  String homeNotClockedIn(int count) {
+    return 'Nisu prijavljeni: $count';
+  }
+
+  @override
+  String homeOutsideSite(int count) {
+    return 'Izvan gradilišta: $count';
+  }
+
+  @override
+  String get homeNeedsAttention => 'Traži pažnju';
+
+  @override
+  String get homeAllClear => 'Trenutno ništa ne traži vašu pažnju.';
+
+  @override
+  String get homeNoShiftYet => 'danas nema prijave';
+
+  @override
+  String homeDefectReported(String when) {
+    return 'nedostatak prijavljen $when';
+  }
+
+  @override
+  String homeSitesCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gradilišta',
+      few: '$count gradilišta',
+      one: '$count gradilište',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get moreTitle => 'Više';
 }

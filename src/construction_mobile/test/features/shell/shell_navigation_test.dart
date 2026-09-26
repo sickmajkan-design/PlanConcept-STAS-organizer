@@ -80,6 +80,19 @@ Future<void> _pumpSignedIn(
   await tester.pump(const Duration(milliseconds: 50));
 }
 
+/// The links used to sit on the home screen; they are behind the avatar now.
+Future<void> _openMore(WidgetTester tester) async {
+  // Until the route transition finishes the home screen is laid out off to
+  // one side, present to every finder and reachable by no tap.
+  await tester.pump(const Duration(seconds: 1));
+  await tester.pump(const Duration(seconds: 1));
+
+  await tester.tap(find.byTooltip('More'));
+  await tester.pump();
+  await tester.pump(const Duration(seconds: 1));
+  await tester.pump(const Duration(seconds: 1));
+}
+
 void main() {
   testWidgets('offers the directory tabs to a Foreman', (tester) async {
     await _pumpSignedIn(tester, _sessionFor('Foreman'));
@@ -128,6 +141,7 @@ void main() {
   testWidgets('offers vehicles, tools and materials to a Foreman on Home',
       (tester) async {
     await _pumpSignedIn(tester, _sessionFor('Foreman'));
+    await _openMore(tester);
 
     expect(find.text('Vehicles'), findsOneWidget);
     expect(find.text('Tools'), findsOneWidget);
@@ -140,11 +154,13 @@ void main() {
     // Matches the API's CanRecordSpending: the person filling the tank is the
     // one who knows what it cost, and a Worker is not that person.
     await _pumpSignedIn(tester, _sessionFor('Foreman'));
+    await _openMore(tester);
     expect(find.text('Vehicle costs'), findsOneWidget);
   });
 
   testWidgets('hides vehicle costs from a Worker', (tester) async {
     await _pumpSignedIn(tester, _sessionFor('Worker'));
+    await _openMore(tester);
     expect(find.text('Vehicle costs'), findsNothing);
   });
 
@@ -153,6 +169,7 @@ void main() {
     // Both endpoints are open to every employee-linked account: the API
     // narrows them to the caller's own line rather than refusing them.
     await _pumpSignedIn(tester, _sessionFor('Worker'));
+    await _openMore(tester);
 
     expect(find.text('My schedule'), findsOneWidget);
     expect(find.text('Time off'), findsOneWidget);
@@ -166,6 +183,7 @@ void main() {
       tester,
       _sessionFor('Admin', linkedToEmployee: false),
     );
+    await _openMore(tester);
 
     expect(find.text('My schedule'), findsNothing);
     expect(find.text('Time off'), findsNothing);
@@ -177,6 +195,7 @@ void main() {
     // The API answers 403 for the directory-gated list endpoints, but
     // `by-qr` is intentionally open to every employee.
     await _pumpSignedIn(tester, _sessionFor('Worker'));
+    await _openMore(tester);
 
     expect(find.text('Vehicles'), findsNothing);
     expect(find.text('Tools'), findsNothing);

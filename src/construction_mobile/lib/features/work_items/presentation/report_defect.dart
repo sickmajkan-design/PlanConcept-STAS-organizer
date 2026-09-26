@@ -29,7 +29,11 @@ class ReportDefectButton extends ConsumerStatefulWidget {
     super.key,
     this.projectId,
     this.asTile = false,
-  }) : assert(projectId != null || asTile, 'Name the site, or let the person choose');
+    this.prominent = false,
+  }) : assert(
+          projectId != null || asTile || prominent,
+          'Name the site, or let the person choose',
+        );
 
   /// The site the defect is on. Null means "one of the sites I am posted to
   /// today", asked for when the button is pressed: a worker has no project
@@ -38,6 +42,10 @@ class ReportDefectButton extends ConsumerStatefulWidget {
 
   /// A row for a menu rather than a text button.
   final bool asTile;
+
+  /// A full-width outlined button, for where this is the main field action.
+  /// Chooses the site like [asTile] when none is named.
+  final bool prominent;
 
   @override
   ConsumerState<ReportDefectButton> createState() => _ReportDefectButtonState();
@@ -55,6 +63,17 @@ class _ReportDefectButtonState extends ConsumerState<ReportDefectButton> {
         trailing: const Icon(Icons.chevron_right),
         enabled: !_busy,
         onTap: _open,
+      );
+    }
+
+    if (widget.prominent) {
+      return SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          onPressed: _busy ? null : _open,
+          icon: const Icon(Icons.photo_camera_outlined),
+          label: Text(context.l10n.workItemsReportDefect),
+        ),
       );
     }
 

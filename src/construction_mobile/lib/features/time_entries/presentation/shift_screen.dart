@@ -57,7 +57,7 @@ class ShiftScreen extends ConsumerWidget {
           onLoadMore: controller.loadMore,
           emptyMessage: l10n.shiftHistoryEmpty,
           emptyIcon: Icons.schedule_outlined,
-          header: const _ShiftCard(),
+          header: const ShiftCard(),
           itemBuilder: (context, entry) => _TimeEntryCard(entry: entry),
         ),
       ),
@@ -66,14 +66,18 @@ class ShiftScreen extends ConsumerWidget {
 }
 
 /// The running-shift card, with the elapsed time ticking while it is open.
-class _ShiftCard extends ConsumerStatefulWidget {
-  const _ShiftCard();
+class ShiftCard extends ConsumerStatefulWidget {
+  const ShiftCard({super.key, this.hero = false});
+
+  /// The big dark version for the home screen: the timer is the point, and
+  /// the one button under it is the whole interaction.
+  final bool hero;
 
   @override
-  ConsumerState<_ShiftCard> createState() => _ShiftCardState();
+  ConsumerState<ShiftCard> createState() => _ShiftCardState();
 }
 
-class _ShiftCardState extends ConsumerState<_ShiftCard> {
+class _ShiftCardState extends ConsumerState<ShiftCard> {
   Timer? _ticker;
 
   @override
@@ -103,6 +107,10 @@ class _ShiftCardState extends ConsumerState<_ShiftCard> {
     final state = async.value ?? const ShiftState();
     final shift = state.shift;
     final running = state.isRunning;
+
+    if (widget.hero) {
+      return _buildHero(context, async, state);
+    }
 
     return Card(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -197,6 +205,135 @@ class _ShiftCardState extends ConsumerState<_ShiftCard> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildHero(
+    BuildContext context,
+    AsyncValue<ShiftState> async,
+    ShiftState state,
+  ) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final running = state.isRunning;
+    final shift = state.shift;
+
+    const ink = AppTheme.heroCardText;
+    final muted = ink.withValues(alpha: 0.72);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+      decoration: BoxDecoration(
+        color: AppTheme.heroCard,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: const [
+          BoxShadow(color: Color(0x33000000), blurRadius: 18, offset: Offset(0, 8)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              if (running)
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF5DCB6E),
+                    shape: BoxShape.circle,
+                  ),
+                )
+              else
+                Icon(Icons.engineering_outlined, color: ink, size: 22),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  running ? l10n.homeOnShift : l10n.homeOffShift,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: ink,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (running && state.startedAt != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              _elapsedLabel(l10n, state.startedAt!),
+              style: theme.textTheme.displaySmall?.copyWith(
+                color: ink,
+                fontWeight: FontWeight.w800,
+                height: 1.05,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              [
+                l10n.shiftSince(formatTime(state.startedAt!)),
+                if (shift?.projectName != null) shift!.projectName!,
+              ].join(' \u00b7 '),
+              style: theme.textTheme.bodyLarge?.copyWith(color: muted),
+            ),
+          ] else ...[
+            const SizedBox(height: 6),
+            Text(
+              l10n.homeOffShiftHint,
+              style: theme.textTheme.bodyLarge?.copyWith(color: muted),
+            ),
+          ],
+          if (state.isWaitingToSend) ...[
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.cloud_off_outlined, size: 16, color: muted),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    l10n.shiftWaitingToSend,
+                    style: theme.textTheme.bodySmall?.copyWith(color: muted),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (state.failure != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              state.failure!.describe(l10n),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: const Color(0xFFFFB59A),
+              ),
+            ),
+          ],
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppTheme.heroCardText,
+                foregroundColor: AppTheme.heroCard,
+                disabledBackgroundColor: ink.withValues(alpha: 0.3),
+                disabledForegroundColor: AppTheme.heroCard.withValues(alpha: 0.6),
+              ),
+              onPressed: state.isBusy || async.isLoading
+                  ? null
+                  : () => running ? _clockOut(context) : _clockIn(),
+              icon: state.isBusy
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Icon(running ? Icons.stop : Icons.play_arrow),
+              label: Text(running ? l10n.shiftClockOut : l10n.shiftClockIn),
+            ),
+          ),
+        ],
       ),
     );
   }

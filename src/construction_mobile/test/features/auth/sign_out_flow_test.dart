@@ -209,11 +209,18 @@ Future<void> _pumpSignedIn(
   await tester.pump(const Duration(seconds: 1));
   await tester.pump(const Duration(seconds: 1));
 
-  expect(find.text('Ivan Horvat'), findsOneWidget);
+  // The greeting, whichever part of the day it is: "…, Ivan".
+  expect(find.textContaining(', Ivan'), findsOneWidget);
 }
 
 /// Presses Sign out in the Account section and confirms.
 Future<void> _signOut(WidgetTester tester) async {
+  // The account lives behind the avatar now, not on the home screen.
+  await tester.tap(find.byTooltip('More'));
+  await tester.pump();
+  await tester.pump(const Duration(seconds: 1));
+  await tester.pump(const Duration(seconds: 1));
+
   final tile = find.widgetWithText(ListTile, 'Sign out');
 
   // Dragged first to build it, then `ensureVisible`: a ListView builds a
