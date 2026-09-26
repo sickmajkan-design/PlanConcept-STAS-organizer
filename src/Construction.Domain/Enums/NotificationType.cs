@@ -73,5 +73,11 @@ public enum NotificationType
     AccommodationContractExpiring = 27,
 
     /// <summary>The person was put into an accommodation.</summary>
-    AccommodationAssigned = 28
+    AccommodationAssigned = 28,
+
+    /// <summary>Someone asked for articles and the office has to act on it.</summary>
+    ArticleOrderRequested = 29,
+
+    /// <summary>A request for articles moved on: ordered, on its way, delivered or declined.</summary>
+    ArticleOrderStatusChanged = 30
 }

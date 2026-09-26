@@ -73,6 +73,10 @@ public interface IApplicationDbContext
 
     DbSet<Absence> Absences { get; }
 
+    DbSet<ArticleOrder> ArticleOrders { get; }
+
+    DbSet<ArticleOrderItem> ArticleOrderItems { get; }
+
     DbSet<EmployeeRate> EmployeeRates { get; }
 
     DbSet<MaterialMovement> MaterialMovements { get; }

@@ -78,6 +78,10 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<Absence> Absences => Set<Absence>();
 
+    public DbSet<ArticleOrder> ArticleOrders => Set<ArticleOrder>();
+
+    public DbSet<ArticleOrderItem> ArticleOrderItems => Set<ArticleOrderItem>();
+
     public DbSet<EmployeeRate> EmployeeRates => Set<EmployeeRate>();
 
     public DbSet<MaterialMovement> MaterialMovements => Set<MaterialMovement>();
