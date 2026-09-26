@@ -93,12 +93,12 @@ Oznake: **Must** obavezno · **Should** važno · **Could** ako ostane vremena. 
 1. **DKV:** može li poslati jedan izvod sa zaglavljima? Ostaje li mjesečni uvoz ili API?
 2. **Paušal koji traje više mjeseci:** kako se dijeli po mjesecima?
 3. **Aufmaß:** je li dovoljan zbir računa, ili treba vezati račun za aufmaß izvještaj?
-4. **Potpisane satnice:** skeniraju li se, ko ih potpisuje?
-5. **Sedmica preko granice mjeseca:** cijela ili po datumu?
+4. **Potpisane satnice:** skeniraju li se? ~~Ko ih potpisuje~~ — **odgovor (2026-09-26): klijent potpisuje.**
+5. ~~**Sedmica preko granice mjeseca**~~ — **odgovor: dijele se po datumu.** Tako već radi (`MonthWeeks` reže sedmicu na granici mjeseca), bez izmjene.
 6. **Kooperanti:** ostaju li redovi bez imena, kako za njih potpisani sati?
 7. **Prag razlike sati prema aplikaciji:** 4 sata u mjesecu?
 8. **"Uprava"** = Voditelj, Admin, Super Admin?
-9. **Narudžbe:** "svaka rola" znači svaka uloga ili svaka rola materijala?
+9. ~~**Narudžbe:**~~ **odgovor: svaka uloga može naručivati. Naručuju se artikli koje radnik treba za posao (radne hlače, cipele, šljem, alat koji fali), ne građevinski materijal. Uprava naruči i pošalje; kad primalac dobije, sam pritisne „Dostavljeno“. Vidljivi statusi: Naručeno, U dostavi, Dostavljeno.**
 10. **Refundacija:** gornja granica, valuta, uvijek kroz platu?
 11. **Godišnji:** radni ili kalendarski dani, za koje države, koliko dana, srazmjerno pri zaposlenju usred godine, prenos i rok, iznos za dan.
 12. **Klijent sa više firmi:** faktura svakoj posebno? Isti radnik u dvije firme u mjesecu?
