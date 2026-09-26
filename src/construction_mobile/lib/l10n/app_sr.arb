@@ -21,7 +21,7 @@
   "commonSignIn": "Prijavi se",
   "commonSignOut": "Odjavi se",
   "commonSignOutQuestion": "Odjaviti se?",
-  "commonSignOutBody": "Za korišćenje aplikacije moraćete ponovo da se prijavite.",
+  "commonSignOutBody": "Za korištenje aplikacije morat ćete se ponovo prijaviti.",
   "commonNotSet": "—",
   "commonDetails": "Detalji",
   "commonAssignment": "Zaduženje",
@@ -46,7 +46,7 @@
   "authHidePassword": "Sakrij lozinku",
   "authForgotPassword": "Zaboravljena lozinka?",
   "authResetPassword": "Resetovanje lozinke",
-  "authResetIntro": "Unesite e-mail adresu svog radnog naloga. Ako nalog postoji, poslaćemo link za izbor nove lozinke.",
+  "authResetIntro": "Unesite e-mail adresu svog radnog naloga. Ako nalog postoji, poslat ćemo link za izbor nove lozinke.",
   "authResetSent": "Ako ta adresa pripada nalogu, link za resetovanje je na putu.",
   "authSendResetLink": "Pošalji link",
   "authSendAgain": "Pošalji ponovo",
@@ -162,7 +162,7 @@
   "vehicleOwnershipTypeRented": "Iznajmljeno",
   "vehicleRentalProvider": "Iznajmljeno od",
   "vehicleRentalMonthlyAmount": "Mjesečna rata",
-  "vehicleLoanedOutTo": "Izdato na korišćenje: {name}",
+  "vehicleLoanedOutTo": "Izdano na korištenje: {name}",
   "@vehicleLoanedOutTo": {
     "placeholders": {
       "name": {
@@ -417,7 +417,7 @@
   "notificationsOpenSettings": "Otvori podešavanja aplikacije",
   "notificationsTokenFailed": "Nije moguće dobiti token uređaja.",
   "notificationsFirebaseFailed": "Firebase poruke nisu uspjele.",
-  "locationSharingOn": "Deljenje lokacije je uključeno",
+  "locationSharingOn": "Dijeljenje lokacije je uključeno",
   "locationSharingOnBody": "Vaša pozicija se šalje kancelariji svakog minuta dok ste na smjeni.",
   "locationOffShift": "Dijeljenje lokacije je isključeno",
   "locationOffShiftBody": "Vaša pozicija se dijeli sa kancelarijom samo dok ste prijavljeni na smjenu.",
@@ -439,9 +439,9 @@
       }
     }
   },
-  "locationServiceNotificationTitle": "Deljenje lokacije je u toku",
+  "locationServiceNotificationTitle": "Dijeljenje lokacije je u toku",
   "locationServiceNotificationBody": "Kancelarija vidi na kom ste gradilištu. Odjavite se da prekinete.",
-  "locationServiceChannelName": "Deljenje lokacije",
+  "locationServiceChannelName": "Dijeljenje lokacije",
   "locationPending": "{count, plural, =0{Sve je poslato} one{{count} očitavanje čeka slanje} few{{count} očitavanja čekaju slanje} other{{count} očitavanja čeka slanje}}",
   "@locationPending": {
     "placeholders": {

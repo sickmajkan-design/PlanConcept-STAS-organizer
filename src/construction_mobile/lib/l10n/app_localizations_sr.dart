@@ -79,7 +79,7 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get commonSignOutBody =>
-      'Za korišćenje aplikacije moraćete ponovo da se prijavite.';
+      'Za korištenje aplikacije morat ćete se ponovo prijaviti.';
 
   @override
   String get commonNotSet => '—';
@@ -155,7 +155,7 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get authResetIntro =>
-      'Unesite e-mail adresu svog radnog naloga. Ako nalog postoji, poslaćemo link za izbor nove lozinke.';
+      'Unesite e-mail adresu svog radnog naloga. Ako nalog postoji, poslat ćemo link za izbor nove lozinke.';
 
   @override
   String get authResetSent =>
@@ -454,7 +454,7 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String vehicleLoanedOutTo(String name) {
-    return 'Izdato na korišćenje: $name';
+    return 'Izdano na korištenje: $name';
   }
 
   @override
@@ -1291,7 +1291,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get notificationsFirebaseFailed => 'Firebase poruke nisu uspjele.';
 
   @override
-  String get locationSharingOn => 'Deljenje lokacije je uključeno';
+  String get locationSharingOn => 'Dijeljenje lokacije je uključeno';
 
   @override
   String get locationSharingOnBody =>
@@ -1340,14 +1340,15 @@ class AppLocalizationsSr extends AppLocalizations {
   }
 
   @override
-  String get locationServiceNotificationTitle => 'Deljenje lokacije je u toku';
+  String get locationServiceNotificationTitle =>
+      'Dijeljenje lokacije je u toku';
 
   @override
   String get locationServiceNotificationBody =>
       'Kancelarija vidi na kom ste gradilištu. Odjavite se da prekinete.';
 
   @override
-  String get locationServiceChannelName => 'Deljenje lokacije';
+  String get locationServiceChannelName => 'Dijeljenje lokacije';
 
   @override
   String locationPending(int count) {
