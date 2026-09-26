@@ -10,6 +10,7 @@ import 'package:construction_mobile/features/time_entries/data/clock_queue.dart'
 import 'package:construction_mobile/features/time_entries/data/models/clock_in_site.dart';
 import 'package:construction_mobile/features/time_entries/data/models/time_entry.dart';
 import 'package:construction_mobile/features/time_entries/data/time_entry_repository.dart';
+import 'package:construction_mobile/features/time_entries/presentation/shift_controller.dart';
 import 'package:construction_mobile/features/time_entries/presentation/shift_screen.dart';
 import 'package:construction_mobile/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -501,6 +502,67 @@ void main() {
       );
 
       expect(store.value, isNull, reason: 'and it is off the queue');
+      expect(
+        find.text('Recorded on this phone. It will be sent when there is signal.'),
+        findsNothing,
+      );
+    });
+
+    testWidgets('the site the worker chose is the site that is sent',
+        (tester) async {
+      final repository = _FakeTimeEntries(
+        refuseWith: ApiException('offline', kind: ApiFailureKind.offline),
+      )..sites = const [
+          ClockInSite(id: 'site-a', name: 'Zgrada A'),
+          ClockInSite(id: 'site-b', name: 'Zgrada B'),
+        ];
+      final store = _MemoryClockStore();
+
+      await _pumpShiftScreen(tester, repository, queue: ClockQueue(store));
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Clock in'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.text('Zgrada B'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      repository.refuseWith = null;
+      repository.clockInProjects.clear();
+
+      await _reopen(tester, repository, store);
+
+      expect(
+        repository.clockInProjects,
+        ['site-b'],
+        reason: 'losing the choice would leave the shift on no project at all',
+      );
+    });
+
+    testWidgets('a waiting action is tried again without reopening the app',
+        (tester) async {
+      final repository = _FakeTimeEntries(
+        refuseWith: ApiException('offline', kind: ApiFailureKind.offline),
+      );
+      final store = _MemoryClockStore();
+
+      await _pumpShiftScreen(tester, repository, queue: ClockQueue(store));
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Clock in'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+
+      expect(store.value, isNotNull);
+
+      // Signal returns while the phone is still on this screen.
+      repository.refuseWith = null;
+
+      await tester.pump(ShiftController.retryInterval);
+      for (var i = 0; i < 6; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      expect(store.value, isNull, reason: 'it went without anyone touching the app');
       expect(
         find.text('Recorded on this phone. It will be sent when there is signal.'),
         findsNothing,

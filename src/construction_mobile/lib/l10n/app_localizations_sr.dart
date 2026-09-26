@@ -2481,4 +2481,26 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get ackGatedMessage => 'Prvo potvrdite obavještenje koje čeka';
+
+  @override
+  String outboxWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count prijava čeka slanje',
+      few: '$count prijave čekaju slanje',
+      one: '$count prijava čeka slanje',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String outboxDefectRefused(String reason) {
+    return 'Prijava nedostatka napravljena bez signala je odbijena: $reason';
+  }
+
+  @override
+  String outboxAbsenceRefused(String reason) {
+    return 'Zahtjev za odsustvo napravljen bez signala je odbijen: $reason';
+  }
 }

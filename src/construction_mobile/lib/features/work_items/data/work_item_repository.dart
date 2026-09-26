@@ -47,10 +47,12 @@ class WorkItemRepository extends ApiRepository {
     String? description,
     double? latitude,
     double? longitude,
+    String? idempotencyKey,
   }) {
     return postJson(
       '/api/v1/workitems',
       WorkItem.fromJson,
+      idempotencyKey: idempotencyKey,
       data: <String, dynamic>{
         'kind': 'Defect',
         'title': title,

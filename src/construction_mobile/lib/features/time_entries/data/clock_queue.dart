@@ -28,9 +28,38 @@ class PendingClockAction {
     this.breakMinutes = 0,
     this.latitude,
     this.longitude,
+    this.projectId,
+    this.workType = 'Regular',
+    this.ownerId,
   });
 
   final ClockAction action;
+
+  /// Who pressed the button. Site phones are handed around, and a clock-out
+  /// left waiting when one person signs out must not be sent as the next
+  /// person to sign in. Null only for an action written by a build that did
+  /// not record it.
+  final String? ownerId;
+
+  PendingClockAction _ownedBy(String? owner) => PendingClockAction(
+        action: action,
+        occurredAt: occurredAt,
+        idempotencyKey: idempotencyKey,
+        breakMinutes: breakMinutes,
+        latitude: latitude,
+        longitude: longitude,
+        projectId: projectId,
+        workType: workType,
+        ownerId: owner,
+      );
+
+  /// The site the worker picked, for a clock-in. Without it a worker posted to
+  /// several sites who chose one with no signal would be placed by the server
+  /// as "ambiguous", i.e. on no project at all.
+  final String? projectId;
+
+  /// Only meaningful for a clock-in.
+  final String workType;
 
   /// When the handset says it happened, in UTC.
   final DateTime occurredAt;
@@ -48,6 +77,9 @@ class PendingClockAction {
         'occurredAt': occurredAt.toIso8601String(),
         'idempotencyKey': idempotencyKey,
         'breakMinutes': breakMinutes,
+        'workType': workType,
+        'ownerId': ?ownerId,
+        'projectId': ?projectId,
         'latitude': ?latitude,
         'longitude': ?longitude,
       };
@@ -65,6 +97,10 @@ class PendingClockAction {
       breakMinutes: (json['breakMinutes'] as num?)?.toInt() ?? 0,
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
+      projectId: json['projectId'] as String?,
+      // Absent in a queue written by an older build.
+      workType: json['workType'] as String? ?? 'Regular',
+      ownerId: json['ownerId'] as String?,
     );
   }
 }
@@ -93,19 +129,53 @@ class ClockQueue {
   static const int maxActions = 6;
 
   final ClockQueueStore _store;
+
+  /// Everyone's, as stored. What the rest of the app sees is [_mine].
   final List<PendingClockAction> _actions = <PendingClockAction>[];
+
+  String? _owner;
 
   bool _restored = false;
 
+  /// Who the queue is being read for. Everything below answers for this person
+  /// only; what belongs to somebody else stays on disk until they sign in.
+  ///
+  /// An action recorded by a build that did not note its owner is given to
+  /// whoever binds first: the likeliest owner is the person using the handset
+  /// now, and dropping it would lose somebody's hours.
+  Future<void> bindTo(String? owner) async {
+    _owner = owner;
+
+    if (owner == null) {
+      return;
+    }
+
+    var changed = false;
+
+    for (var i = 0; i < _actions.length; i++) {
+      if (_actions[i].ownerId == null) {
+        _actions[i] = _actions[i]._ownedBy(owner);
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      await _persist();
+    }
+  }
+
+  Iterable<PendingClockAction> get _mine =>
+      _actions.where((action) => action.ownerId == _owner);
+
   List<PendingClockAction> get pending =>
-      List<PendingClockAction>.unmodifiable(_actions);
+      List<PendingClockAction>.unmodifiable(_mine);
 
-  bool get isEmpty => _actions.isEmpty;
+  bool get isEmpty => _mine.isEmpty;
 
-  PendingClockAction? get first => _actions.isEmpty ? null : _actions.first;
+  PendingClockAction? get first => _mine.isEmpty ? null : _mine.first;
 
   /// The last thing this handset recorded, which is what the shift card shows.
-  PendingClockAction? get last => _actions.isEmpty ? null : _actions.last;
+  PendingClockAction? get last => _mine.isEmpty ? null : _mine.last;
 
   /// Loads what the previous run left behind. Safe to call more than once.
   Future<void> restore({DateTime? now}) async {
@@ -147,23 +217,25 @@ class ClockQueue {
   }
 
   Future<void> add(PendingClockAction action, {DateTime? now}) async {
-    _actions.add(action);
+    _actions.add(action._ownedBy(_owner));
     await _prune(now: now);
   }
 
   /// Drops the action at the front, once the API has taken it.
   Future<void> acknowledgeFirst() async {
-    if (_actions.isEmpty) {
+    final next = first;
+
+    if (next == null) {
       return;
     }
 
-    _actions.removeAt(0);
+    _actions.remove(next);
     await _persist();
   }
 
   Future<void> clear() async {
-    _actions.clear();
-    await _store.clear();
+    _actions.removeWhere((action) => action.ownerId == _owner);
+    await _persist();
   }
 
   Future<void> _prune({DateTime? now}) async {
@@ -173,8 +245,17 @@ class ClockQueue {
     // for the same refusal tomorrow, with nobody any wiser in between.
     _actions.removeWhere((action) => action.occurredAt.isBefore(cutoff));
 
-    if (_actions.length > maxActions) {
-      _actions.removeRange(0, _actions.length - maxActions);
+    // Per person: one worker's backlog must not push out another's.
+    final owners = _actions.map((action) => action.ownerId).toSet();
+
+    for (final owner in owners) {
+      final theirs = _actions.where((a) => a.ownerId == owner).toList();
+
+      if (theirs.length > maxActions) {
+        theirs
+            .take(theirs.length - maxActions)
+            .forEach(_actions.remove);
+      }
     }
 
     await _persist();

@@ -6,9 +6,9 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/network/api_exception.dart';
-import '../../attachments/data/attachment_repository.dart';
+import '../../../core/outbox/outbox_queue.dart';
+import '../../outbox/outbox_controller.dart';
 import '../../notifications/presentation/acknowledgment_gate.dart';
-import '../data/work_item_repository.dart';
 import 'my_work_controller.dart';
 
 /// Reports a defect against a site, from the site.
@@ -72,41 +72,33 @@ class _ReportDefectButtonState extends ConsumerState<ReportDefectButton> {
     try {
       final position = await _currentPosition();
 
-      final defect = await ref.read(workItemRepositoryProvider).reportDefect(
-            projectId: widget.projectId,
-            title: title,
-            description: description,
-            latitude: position?.latitude,
-            longitude: position?.longitude,
-          );
-
-      // The photo goes on after the defect exists, because it needs the id.
-      // A failure here is reported separately and does not undo the report:
-      // a defect on record without its picture is worth far more than no
-      // defect at all, and the picture can be added afterwards.
-      var photoFailed = false;
-
-      if (photo != null) {
-        try {
-          await ref.read(attachmentRepositoryProvider).uploadPhoto(
-                ownerType: 'WorkItem',
-                ownerId: defect.id,
-                filePath: photo.path,
-                fileName: photo.name,
-              );
-        } on ApiException {
-          photoFailed = true;
-        }
-      }
+      // Sent now, or kept on the phone until there is signal: a crack found
+      // in a basement is not a reason to lose the report. The photo goes on
+      // after the defect exists, because it needs the id; a failure there is
+      // reported separately and does not undo the report.
+      final result = await ref.read(outboxControllerProvider.notifier).submit(
+        OutboxKind.defect,
+        <String, dynamic>{
+          'projectId': widget.projectId,
+          'title': title,
+          'description': description,
+          'latitude': position?.latitude,
+          'longitude': position?.longitude,
+          'photoPath': photo?.path,
+          'photoName': photo?.name,
+        },
+      );
 
       // The reporter may also be the assignee later; refreshing keeps their
       // own list honest without a second trip to the screen.
       ref.invalidate(myWorkControllerProvider);
 
       messenger.showSnackBar(SnackBar(
-        content: Text(photoFailed
-            ? l10n.workItemsDefectPhotoFailed
-            : l10n.workItemsDefectSent),
+        content: Text(result.queued
+            ? l10n.shiftWaitingToSend
+            : result.photoFailed
+                ? l10n.workItemsDefectPhotoFailed
+                : l10n.workItemsDefectSent),
       ));
     } on ApiException catch (exception) {
       messenger.showSnackBar(SnackBar(content: Text(exception.describe(l10n))));

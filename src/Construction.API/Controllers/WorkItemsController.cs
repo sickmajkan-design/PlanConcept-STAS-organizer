@@ -1,4 +1,5 @@
 using Construction.API.Authorization;
+using Construction.API.Filters;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.WorkItems.Commands.ChangeWorkItemStatus;
 using Construction.Application.Features.WorkItems.Commands.CreateWorkItem;
@@ -50,6 +51,7 @@ public class WorkItemsController : ApiControllerBase
     /// Raises a task, or reports a defect. A Worker may do the latter only.
     /// </summary>
     [HttpPost]
+    [Idempotent]
     [Authorize(Policy = Policies.AllEmployees)]
     [ProducesResponseType(typeof(WorkItemDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]

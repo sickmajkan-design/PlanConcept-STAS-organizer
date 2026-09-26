@@ -4,7 +4,9 @@ import '../../../core/models/paged_list.dart';
 import '../../../core/pagination/filtered_paged_list_notifier.dart';
 import '../../../core/pagination/paged_list_notifier.dart';
 import '../../../core/pagination/paged_state.dart';
+import '../../../core/outbox/outbox_queue.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../outbox/outbox_controller.dart';
 import '../data/absence_repository.dart';
 import '../data/models/absence.dart';
 
@@ -29,20 +31,30 @@ class MyAbsencesController extends FilteredPagedListNotifier<Absence> {
   }
 
   /// Asks for time off and reloads, so the new request appears in the list.
-  Future<void> request({
+  ///
+  /// With no signal the request is kept on the phone and sent later, and the
+  /// result says so. A refusal is thrown as before.
+  Future<SubmitResult> request({
     required String type,
     required DateTime startDate,
     required DateTime endDate,
     String? reason,
   }) async {
-    await ref.read(absenceRepositoryProvider).request(
-          type: type,
-          startDate: startDate,
-          endDate: endDate,
-          reason: reason,
-        );
+    final result = await ref.read(outboxControllerProvider.notifier).submit(
+      OutboxKind.absenceRequest,
+      <String, dynamic>{
+        'type': type,
+        'startDate': startDate.toIso8601String(),
+        'endDate': endDate.toIso8601String(),
+        'reason': reason,
+      },
+    );
 
-    await refresh();
+    if (!result.queued) {
+      await refresh();
+    }
+
+    return result;
   }
 
   /// Takes back an unanswered request.

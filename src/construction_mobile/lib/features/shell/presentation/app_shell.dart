@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../auth/presentation/auth_controller.dart';
+import '../../outbox/outbox_banner.dart';
 import '../../notifications/presentation/acknowledgment_banner.dart';
 import '../../notifications/presentation/notifications_controller.dart';
 
@@ -52,6 +53,7 @@ class AppShell extends ConsumerWidget {
       body: Column(
         children: [
           const OfflineDataBanner(),
+          const OutboxBanner(),
           const AcknowledgmentBanner(),
           Expanded(child: navigationShell),
         ],

@@ -1268,9 +1268,12 @@ change, in one place.
   with a panel that says what happened; debug keeps the red screen, which is
   the one place a stack trace is worth reading.
 
-  Not done: neither client detects "connected to a captive portal that goes
-  nowhere", which is a site wireless's favourite state. `navigator.onLine`
-  reports `true` for it and Dio finds out only by timing out.
+  ~~Not done: neither client detects "connected to a captive portal that goes
+  nowhere".~~ **Mobile now does.** A captive portal answers with its login
+  page and a 200, which used to fail on the first line that expected an object.
+  `NonJsonResponseInterceptor` rejects any non-JSON answer to a JSON call as a
+  lost connection, so the cache, the queues and the offline wording all apply
+  to it without knowing it exists. The admin panel still does not detect it.
 
   **Corrected since.** The mobile half of M8 was committed without ever being
   compiled or run — the Flutter toolchain was believed to be unavailable in the
@@ -1321,9 +1324,22 @@ change, in one place.
   move the same refusal to later. A queued action refused on replay is dropped
   and the refusal surfaced rather than retried for ever.
 
-  Still open: every other write. A defect reported with no signal still fails
-  with the offline message from M8, which is the right trade for now — those
-  need conflict rules, and the shift does not.
+  **Defect reports and leave requests are now queued too**, for the same
+  reason as the clock: the person filing them is in a basement and the thing is
+  just as true an hour later. `OutboxQueue` is on disk, carries one idempotency
+  key per item (both endpoints are now `[Idempotent]`), is tried again every
+  minute and on returning to the app, and drops what the server refuses rather
+  than retrying it for ever — telling the person once, since they have long
+  since left the screen. A strip shows how many are waiting. Every other write
+  still asks for a connection: approvals, stock and costs depend on the state of
+  the server at that moment and would need conflict rules.
+
+  Building it turned up a defect in the clock queue: it belonged to the handset,
+  not to the person, so a clock-out left waiting when one worker signed out
+  would have been sent with the next worker's token. Both queues are now tagged
+  with their owner and answer only for whoever is signed in. A choice of site
+  made with no signal was also being lost, so a worker posted to several sites
+  was placed on none.
 - **M10.** Practise an incremental migration and a rollback before the first
   schema change under load. — **done, and now rehearsed on every push.**
 

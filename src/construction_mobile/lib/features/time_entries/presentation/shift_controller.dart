@@ -91,6 +91,24 @@ class ShiftController extends AsyncNotifier<ShiftState> {
   /// there, never a precondition.
   static const positionTimeout = Duration(seconds: 8);
 
+  /// How often a waiting clock action is tried again while the app stays open.
+  ///
+  /// Coming back to the app already re-sends it, but a phone left on the
+  /// shift screen through a coverage hole would otherwise show "waiting to
+  /// send" long after the signal returned.
+  static const retryInterval = Duration(minutes: 1);
+
+  Timer? _retryTimer;
+
+  void _retryLater() {
+    _retryTimer?.cancel();
+    _retryTimer = Timer(retryInterval, () {
+      // Rebuilding runs the flush again, and schedules the next try only if
+      // something is still stuck.
+      ref.invalidateSelf();
+    });
+  }
+
   @override
   Future<ShiftState> build() async {
     final user = ref.watch(currentUserProvider);
@@ -102,7 +120,10 @@ class ShiftController extends AsyncNotifier<ShiftState> {
 
     final queue = ref.read(clockQueueProvider);
 
+    ref.onDispose(() => _retryTimer?.cancel());
+
     await queue.restore();
+    await queue.bindTo(user.id);
 
     // Anything the last run recorded and could not send goes first, so the
     // screen is built from an up-to-date server rather than showing a shift
@@ -111,6 +132,7 @@ class ShiftController extends AsyncNotifier<ShiftState> {
 
     if (queue.last != null) {
       // Still stuck. Show what this handset knows and say it is unsent.
+      _retryLater();
       return ShiftState(queued: queue.last, failure: rejected);
     }
 
@@ -149,6 +171,8 @@ class ShiftController extends AsyncNotifier<ShiftState> {
         switch (action.action) {
           case ClockAction.clockIn:
             await repository.clockIn(
+              projectId: action.projectId,
+              workType: action.workType,
               latitude: action.latitude,
               longitude: action.longitude,
               occurredAt: action.occurredAt,
@@ -186,6 +210,8 @@ class ShiftController extends AsyncNotifier<ShiftState> {
         latitude: position?.latitude,
         longitude: position?.longitude,
       ),
+      projectId: projectId,
+      workType: workType,
     );
   }
 
@@ -205,6 +231,8 @@ class ShiftController extends AsyncNotifier<ShiftState> {
     ClockAction kind,
     Future<TimeEntry> Function(TimeEntryRepository, Position?) attempt, {
     int breakMinutes = 0,
+    String? projectId,
+    String workType = 'Regular',
   }) async {
     final current = state.value ?? const ShiftState();
 
@@ -237,6 +265,8 @@ class ShiftController extends AsyncNotifier<ShiftState> {
           breakMinutes: breakMinutes,
           latitude: position?.latitude,
           longitude: position?.longitude,
+          projectId: projectId,
+          workType: workType,
         );
 
         await ref.read(clockQueueProvider).add(queued);
@@ -244,6 +274,7 @@ class ShiftController extends AsyncNotifier<ShiftState> {
         state = AsyncData(
           current.copyWith(isBusy: false, queued: queued, clearError: true),
         );
+        _retryLater();
         return;
       }
 

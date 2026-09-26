@@ -174,7 +174,7 @@ class _RequestAbsenceSheetState extends ConsumerState<_RequestAbsenceSheet> {
     setState(() => _busy = true);
 
     try {
-      await ref.read(myAbsencesControllerProvider.notifier).request(
+      final result = await ref.read(myAbsencesControllerProvider.notifier).request(
             type: _type,
             startDate: range.start,
             endDate: range.end,
@@ -187,7 +187,9 @@ class _RequestAbsenceSheetState extends ConsumerState<_RequestAbsenceSheet> {
       ref.invalidate(myScheduleControllerProvider);
 
       navigator.pop();
-      messenger.showSnackBar(SnackBar(content: Text(l10n.absencesSent)));
+      messenger.showSnackBar(SnackBar(
+        content: Text(result.queued ? l10n.shiftWaitingToSend : l10n.absencesSent),
+      ));
     } on ApiException catch (exception) {
       messenger.showSnackBar(SnackBar(content: Text(exception.describe(l10n))));
 

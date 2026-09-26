@@ -2485,4 +2485,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ackGatedMessage => 'Confirm the pending notification first';
+
+  @override
+  String outboxWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count reports are waiting to be sent',
+      one: '$count report is waiting to be sent',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String outboxDefectRefused(String reason) {
+    return 'A defect report made with no signal was refused: $reason';
+  }
+
+  @override
+  String outboxAbsenceRefused(String reason) {
+    return 'A leave request made with no signal was refused: $reason';
+  }
 }

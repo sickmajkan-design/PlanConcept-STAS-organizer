@@ -1269,5 +1269,30 @@
   "ackGatedMessage": "Confirm the pending notification first",
   "@ackGatedMessage": {
     "description": "Shown when a mutating action is blocked by an unconfirmed required notification."
+  },
+  "outboxWaiting": "{count, plural, one{{count} report is waiting to be sent} other{{count} reports are waiting to be sent}}",
+  "@outboxWaiting": {
+    "description": "Strip shown while defect reports or leave requests made with no signal are still on the phone.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "outboxDefectRefused": "A defect report made with no signal was refused: {reason}",
+  "@outboxDefectRefused": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "outboxAbsenceRefused": "A leave request made with no signal was refused: {reason}",
+  "@outboxAbsenceRefused": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
   }
 }

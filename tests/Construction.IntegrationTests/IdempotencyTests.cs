@@ -248,6 +248,98 @@ public class IdempotencyTests
         Assert.Equal(100m, await QuantityOf(materialId));
     }
 
+    private async Task<(Guid EmployeeId, Guid ProjectId)> SeedEmployeeAndProjectAsync(HttpClient client)
+    {
+        var employeeResponse = await client.PostAsJsonAsync("/api/v1/employees", new
+        {
+            employeeNumber = $"OUTBOX-{Guid.NewGuid():N}"[..20],
+            firstName = "Ivan",
+            lastName = "Horvat",
+            position = "Zidar",
+            employmentDate = "2024-01-15",
+        });
+
+        employeeResponse.EnsureSuccessStatusCode();
+
+        var projectResponse = await client.PostAsJsonAsync("/api/v1/projects", new
+        {
+            name = $"Site {Guid.NewGuid():N}"[..20],
+            client = "Test client",
+            startDate = "2024-01-01",
+        });
+
+        projectResponse.EnsureSuccessStatusCode();
+
+        return (
+            (await employeeResponse.Content.ReadFromJsonAsync<MaterialResponse>())!.Id,
+            (await projectResponse.Content.ReadFromJsonAsync<MaterialResponse>())!.Id);
+    }
+
+    private static HttpRequestMessage WithKey(string path, object body, string key)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, path)
+        {
+            Content = JsonContent.Create(body),
+        };
+
+        request.Headers.Add(IdempotencyFilter.HeaderName, key);
+
+        return request;
+    }
+
+    [Fact]
+    public async Task A_defect_sent_again_from_the_phones_outbox_is_recorded_once()
+    {
+        // The phone holds a defect report while it has no signal and sends it
+        // when signal returns; a reply lost on the way back makes it send the
+        // same report again, and two identical defects is a crew sent twice.
+        using var client = _api.ClientAs(UserRole.SuperAdmin);
+
+        var (_, projectId) = await SeedEmployeeAndProjectAsync(client);
+        var title = $"Crack {Guid.NewGuid():N}";
+        var key = NewKey();
+
+        var body = new { kind = "Defect", title, projectId, priority = "Normal" };
+
+        var first = await client.SendAsync(WithKey("/api/v1/workitems", body, key));
+        var second = await client.SendAsync(WithKey("/api/v1/workitems", body, key));
+
+        Assert.Equal(HttpStatusCode.Created, first.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, second.StatusCode);
+        Assert.True(second.Headers.Contains(IdempotencyFilter.ReplayHeaderName));
+
+        Assert.Equal(1, await _api.InScope(context =>
+            context.WorkItems.CountAsync(w => w.Title == title)));
+    }
+
+    [Fact]
+    public async Task A_leave_request_sent_again_from_the_phones_outbox_is_recorded_once()
+    {
+        using var client = _api.ClientAs(UserRole.SuperAdmin);
+
+        var (employeeId, _) = await SeedEmployeeAndProjectAsync(client);
+        var key = NewKey();
+
+        var body = new
+        {
+            employeeId,
+            type = "AnnualLeave",
+            startDate = DateTime.UtcNow.AddDays(10).ToString("yyyy-MM-dd"),
+            endDate = DateTime.UtcNow.AddDays(12).ToString("yyyy-MM-dd"),
+        };
+
+        var first = await client.SendAsync(WithKey("/api/v1/absences", body, key));
+        var second = await client.SendAsync(WithKey("/api/v1/absences", body, key));
+
+        Assert.Equal(HttpStatusCode.Created, first.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, second.StatusCode);
+
+        // Without the key the second one answers 409 (overlapping leave) or
+        // books twice; either is the wrong answer to a retry.
+        Assert.Equal(1, await _api.InScope(context =>
+            context.Absences.CountAsync(a => a.EmployeeId == employeeId)));
+    }
+
     [Fact]
     public async Task A_retried_assignment_replays_its_no_content_answer()
     {

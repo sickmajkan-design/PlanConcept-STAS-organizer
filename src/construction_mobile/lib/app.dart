@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -6,6 +8,7 @@ import 'core/l10n/latin_serbian.dart';
 import 'core/l10n/locale_controller.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'features/outbox/outbox_controller.dart';
 import 'features/time_entries/presentation/shift_controller.dart';
 import 'l10n/app_localizations.dart';
 
@@ -40,6 +43,9 @@ class _ConstructionAppState extends ConsumerState<ConstructionApp>
     // coming back to the app is also the moment it is worth checking again.
     if (state == AppLifecycleState.resumed) {
       ref.invalidate(shiftControllerProvider);
+      // Same moment, same reason, for reports and leave requests made with no
+      // signal.
+      unawaited(ref.read(outboxControllerProvider.notifier).flush());
     }
   }
 
@@ -49,6 +55,11 @@ class _ConstructionAppState extends ConsumerState<ConstructionApp>
     // a language explicitly. While the stored choice is still being read the
     // app follows the device too, rather than flashing the wrong language.
     final selected = ref.watch(localeControllerProvider).value;
+
+    // Held for the life of the app so what is waiting is sent even if nobody
+    // opens the screen that made it. Selecting a constant means the app is not
+    // rebuilt every time the outbox changes.
+    ref.watch(outboxControllerProvider.select((_) => 0));
 
     return MaterialApp.router(
       title: 'Construction Organizer',

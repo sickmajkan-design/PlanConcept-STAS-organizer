@@ -4390,6 +4390,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Confirm the pending notification first'**
   String get ackGatedMessage;
+
+  /// Strip shown while defect reports or leave requests made with no signal are still on the phone.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} report is waiting to be sent} other{{count} reports are waiting to be sent}}'**
+  String outboxWaiting(int count);
+
+  /// No description provided for @outboxDefectRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'A defect report made with no signal was refused: {reason}'**
+  String outboxDefectRefused(String reason);
+
+  /// No description provided for @outboxAbsenceRefused.
+  ///
+  /// In en, this message translates to:
+  /// **'A leave request made with no signal was refused: {reason}'**
+  String outboxAbsenceRefused(String reason);
 }
 
 class _AppLocalizationsDelegate

@@ -1,4 +1,5 @@
 using Construction.API.Authorization;
+using Construction.API.Filters;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.Absences.Commands.ConfirmAbsenceEdit;
 using Construction.Application.Features.Absences.Commands.DeleteAbsence;
@@ -70,6 +71,7 @@ public class AbsencesController : ApiControllerBase
 
     /// <summary>Books time off, or records it for somebody else.</summary>
     [HttpPost]
+    [Idempotent]
     [Authorize(Policy = Policies.AllEmployees)]
     [ProducesResponseType(typeof(AbsenceDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]

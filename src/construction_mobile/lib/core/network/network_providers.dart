@@ -10,6 +10,7 @@ import 'auth_interceptor.dart';
 import 'auth_session_manager.dart';
 import 'offline_cache.dart';
 import 'offline_cache_interceptor.dart';
+import 'non_json_response_interceptor.dart';
 import 'offline_data_status.dart';
 
 final secureStorageProvider = Provider<FlutterSecureStorage>((ref) {
@@ -100,6 +101,10 @@ final authSessionManagerProvider = Provider<AuthSessionManager>((ref) {
 /// The authenticated client every feature repository uses.
 final apiClientProvider = Provider<Dio>((ref) {
   final dio = Dio(_baseOptions(ref.watch(serverAddressProvider)));
+
+  // First, so that everything after it — the token refresh, the cache — sees a
+  // login page from a captive portal as the failed connection it is.
+  dio.interceptors.add(const NonJsonResponseInterceptor());
 
   dio.interceptors.add(
     AuthInterceptor(

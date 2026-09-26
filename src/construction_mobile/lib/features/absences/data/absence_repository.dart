@@ -55,10 +55,12 @@ class AbsenceRepository extends ApiRepository {
     required DateTime startDate,
     required DateTime endDate,
     String? reason,
+    String? idempotencyKey,
   }) {
     return postJson(
       '/api/v1/absences',
       Absence.fromJson,
+      idempotencyKey: idempotencyKey,
       data: <String, dynamic>{
         'type': type,
         'startDate': _asDate(startDate),

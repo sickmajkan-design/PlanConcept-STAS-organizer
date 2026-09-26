@@ -906,5 +906,8 @@
   "ackGatedMessage": "Prvo potvrdite obavještenje koje čeka",
   "@ackGatedMessage": {
     "description": "Shown when a mutating action is blocked by an unconfirmed required notification."
-  }
+  },
+  "outboxWaiting": "{count, plural, one{{count} prijava čeka slanje} few{{count} prijave čekaju slanje} other{{count} prijava čeka slanje}}",
+  "outboxDefectRefused": "Prijava nedostatka napravljena bez signala je odbijena: {reason}",
+  "outboxAbsenceRefused": "Zahtjev za odsustvo napravljen bez signala je odbijen: {reason}"
 }

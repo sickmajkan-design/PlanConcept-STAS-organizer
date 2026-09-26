@@ -80,6 +80,116 @@ void main() {
     expect(after.first!.breakMinutes, 45);
   });
 
+  test('the chosen site and work type survive a restart', () async {
+    // A worker on several sites who picked one with no signal: without the
+    // choice the server would place the shift on no project at all.
+    final store = _MemoryStore();
+
+    final before = ClockQueue(store);
+    await before.restore();
+    await before.add(
+      PendingClockAction(
+        action: ClockAction.clockIn,
+        occurredAt: DateTime.now().toUtc(),
+        idempotencyKey: 'k',
+        projectId: 'project-b',
+        workType: 'Overtime',
+      ),
+    );
+
+    final after = ClockQueue(store);
+    await after.restore();
+
+    expect(after.first!.projectId, 'project-b');
+    expect(after.first!.workType, 'Overtime');
+  });
+
+  test('a queue written before site choice existed still loads', () async {
+    final store = _MemoryStore()
+      ..value = jsonEncode([
+        {
+          'action': 'clockIn',
+          'occurredAt': DateTime.now().toUtc().toIso8601String(),
+          'idempotencyKey': 'old',
+          'breakMinutes': 0,
+        }
+      ]);
+
+    final queue = ClockQueue(store);
+    await queue.restore();
+
+    expect(queue.first!.projectId, isNull);
+    expect(queue.first!.workType, 'Regular');
+  });
+
+  test('what one person left waiting is not sent as the next person', () async {
+    // Site phones are handed around. A clock-out left behind when Ana signs
+    // out must not be posted with Marko's token when he signs in.
+    final store = _MemoryStore();
+
+    final queue = ClockQueue(store);
+    await queue.restore();
+    await queue.bindTo('ana');
+    await queue.add(_action(action: ClockAction.clockOut, key: 'anas'));
+
+    final next = ClockQueue(store);
+    await next.restore();
+    await next.bindTo('marko');
+
+    expect(next.isEmpty, isTrue);
+    expect(next.first, isNull);
+
+    // And it is still there for her, not thrown away to make room.
+    final again = ClockQueue(store);
+    await again.restore();
+    await again.bindTo('ana');
+
+    expect(again.first!.idempotencyKey, 'anas');
+  });
+
+  test('an action from a build that did not note its owner goes to whoever '
+      'binds first', () async {
+    final store = _MemoryStore()
+      ..value = jsonEncode([
+        {
+          'action': 'clockIn',
+          'occurredAt': DateTime.now().toUtc().toIso8601String(),
+          'idempotencyKey': 'old',
+          'breakMinutes': 0,
+        }
+      ]);
+
+    final queue = ClockQueue(store);
+    await queue.restore();
+    await queue.bindTo('ana');
+
+    expect(queue.first!.idempotencyKey, 'old');
+
+    final other = ClockQueue(store);
+    await other.restore();
+    await other.bindTo('marko');
+
+    expect(other.isEmpty, isTrue, reason: 'it was claimed once, not shared');
+  });
+
+  test('one backlog does not push out another', () async {
+    final queue = ClockQueue(_MemoryStore());
+    await queue.restore();
+
+    await queue.bindTo('ana');
+    await queue.add(_action(key: 'anas'));
+
+    await queue.bindTo('marko');
+
+    for (var i = 0; i < ClockQueue.maxActions + 2; i++) {
+      await queue.add(_action(key: 'm-$i'));
+    }
+
+    await queue.bindTo('ana');
+
+    expect(queue.first!.idempotencyKey, 'anas');
+  });
+
   test('anything older than the API will accept is dropped', () async {
     final store = _MemoryStore();
     final queue = ClockQueue(store);
