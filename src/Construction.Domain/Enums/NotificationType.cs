@@ -79,5 +79,11 @@ public enum NotificationType
     ArticleOrderRequested = 29,
 
     /// <summary>A request for articles moved on: ordered, on its way, delivered or declined.</summary>
-    ArticleOrderStatusChanged = 30
+    ArticleOrderStatusChanged = 30,
+
+    /// <summary>Someone asked to be paid back for something they bought for the firm.</summary>
+    RefundRequested = 31,
+
+    /// <summary>A request to be paid back was approved or declined.</summary>
+    RefundDecided = 32
 }

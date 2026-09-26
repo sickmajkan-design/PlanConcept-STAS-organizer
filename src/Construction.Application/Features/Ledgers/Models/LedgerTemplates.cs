@@ -39,6 +39,7 @@ public static class LedgerTemplates
         public const string Fuel = "fuel";
         public const string Housing = "housing";
         public const string Holiday = "holiday";
+        public const string Refund = "refund";
         public const string Difference = "difference";
         public const string Advance = "advance";
         public const string Bonus = "regres";
@@ -112,6 +113,8 @@ public static class LedgerTemplates
                 return new LedgerFormulaSource(LedgerSourceKinds.VehicleRentalCost, first, last);
             case Keys.Housing:
                 return new LedgerFormulaSource(LedgerSourceKinds.AccommodationCost, first, last);
+            case Keys.Refund:
+                return new LedgerFormulaSource(LedgerSourceKinds.EmployeeRefunds, first, last);
         }
 
         if (key is not null && key.StartsWith("week", StringComparison.Ordinal)
@@ -195,6 +198,8 @@ public static class LedgerTemplates
         // paid out is taken off it. One column in the old spreadsheet was called
         // both, depending on the section.
         Add(Keys.Holiday, "Godišnji odmor (+)", LedgerColumnDataType.Currency);
+        // What the person spent for the firm and has been approved to get back.
+        Add(Keys.Refund, "Refundacija (+)", LedgerColumnDataType.Currency);
         Add(Keys.Difference, "Razlika od prošle plate / bonus", LedgerColumnDataType.Currency);
         Add(Keys.Advance, "Akontacija (−)", LedgerColumnDataType.Currency);
         Add(Keys.Bonus, "Regres", LedgerColumnDataType.Currency);
@@ -220,7 +225,7 @@ public static class LedgerTemplates
         }
 
         // Fuel, rented cars and housing come from their own modules, for the person.
-        foreach (var key in new[] { Keys.Fuel, Keys.Rent, Keys.Housing })
+        foreach (var key in new[] { Keys.Fuel, Keys.Rent, Keys.Housing, Keys.Refund })
         {
             columns[key].FormulaJson =
                 new LedgerFormula([], [], SourceFor(key, ledger.Year, ledger.Month)).ToJson();
@@ -232,7 +237,7 @@ public static class LedgerTemplates
 
         columns[Keys.Pay].FormulaJson = new LedgerFormula(
             [Id(Keys.WorkerRate), Id(Keys.Hours)],
-            [Minus(Keys.Advance), Plus(Keys.Difference), Plus(Keys.Holiday)]).ToJson();
+            [Minus(Keys.Advance), Plus(Keys.Difference), Plus(Keys.Holiday), Plus(Keys.Refund)]).ToJson();
 
         columns[Keys.Billing].FormulaJson = new LedgerFormula(
             [Id(Keys.Hours), Id(Keys.ClientRate)], []).ToJson();

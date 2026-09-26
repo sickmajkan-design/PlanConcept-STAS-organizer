@@ -82,6 +82,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<ArticleOrderItem> ArticleOrderItems => Set<ArticleOrderItem>();
 
+    public DbSet<Refund> Refunds => Set<Refund>();
+
     public DbSet<EmployeeRate> EmployeeRates => Set<EmployeeRate>();
 
     public DbSet<MaterialMovement> MaterialMovements => Set<MaterialMovement>();

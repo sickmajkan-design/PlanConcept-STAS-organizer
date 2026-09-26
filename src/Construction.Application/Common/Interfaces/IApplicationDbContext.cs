@@ -77,6 +77,8 @@ public interface IApplicationDbContext
 
     DbSet<ArticleOrderItem> ArticleOrderItems { get; }
 
+    DbSet<Refund> Refunds { get; }
+
     DbSet<EmployeeRate> EmployeeRates { get; }
 
     DbSet<MaterialMovement> MaterialMovements { get; }

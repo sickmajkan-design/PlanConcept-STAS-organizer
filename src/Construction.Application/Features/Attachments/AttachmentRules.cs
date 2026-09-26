@@ -125,7 +125,7 @@ public static class AttachmentRules
         // receipt behind a fuel fill-up but not the contract behind a colleague's
         // hourly rate — the file is only ever as sensitive as the record it
         // documents.
-        AttachmentOwnerType.EmployeeRate or AttachmentOwnerType.FinanceEntry =>
+        AttachmentOwnerType.EmployeeRate or AttachmentOwnerType.FinanceEntry or AttachmentOwnerType.Refund =>
             role is UserRole.SuperAdmin or UserRole.Admin or UserRole.ProjectManager,
         _ => role is UserRole.SuperAdmin or UserRole.Admin
             or UserRole.ProjectManager or UserRole.Foreman
@@ -173,6 +173,12 @@ public static class AttachmentRules
             return role is UserRole.SuperAdmin or UserRole.Admin;
         }
 
+        // Anyone may attach a receipt to their own refund; the handler checks it is theirs.
+        if (ownerType == AttachmentOwnerType.Refund)
+        {
+            return role is not null;
+        }
+
         if (role is UserRole.SuperAdmin or UserRole.Admin
             or UserRole.ProjectManager or UserRole.Foreman)
         {
@@ -183,6 +189,15 @@ public static class AttachmentRules
             && category == AttachmentCategory.Photo
             && ownerType is AttachmentOwnerType.Project or AttachmentOwnerType.WorkItem;
     }
+
+    /// <summary>
+    /// Whoever asked to be paid back may attach the receipt to it and read it back, whatever their
+    /// role; the office may do both for anyone's. The receipt is a photograph or a scan.
+    /// </summary>
+    public static bool CanUseRefundFiles(UserRole? role, Guid? callerUserId, Guid requestedByUserId) =>
+        role is UserRole.SuperAdmin or UserRole.Admin or UserRole.ProjectManager
+        || (callerUserId is not null && callerUserId == requestedByUserId);
+
 
     /// <summary>
     /// True when this work item is one the caller may photograph.

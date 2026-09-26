@@ -58,10 +58,15 @@ public class GetAttachmentsQueryHandler
         var isOwnWorkItem = request.OwnerType == AttachmentOwnerType.WorkItem
             && await IsOwnWorkItemAsync(request.OwnerId, cancellationToken);
 
+        // Whoever asked to be paid back must be able to see the receipt they attached.
+        var isOwnRefund = request.OwnerType == AttachmentOwnerType.Refund
+            && await IsOwnRefundAsync(request.OwnerId, cancellationToken);
+
         // An employee always reaches their own file; everyone else needs the
         // role for this kind of owner.
         if (!isOwnRecord
             && !isOwnWorkItem
+            && !isOwnRefund
             && !AttachmentRules.CanRead(_currentUserService.Role, request.OwnerType))
         {
             throw new ForbiddenAccessException(
@@ -101,6 +106,7 @@ public class GetAttachmentsQueryHandler
                 query.Where(a => a.AccommodationRateId == request.OwnerId),
             AttachmentOwnerType.ToolRentalRate =>
                 query.Where(a => a.ToolRentalRateId == request.OwnerId),
+            AttachmentOwnerType.Refund => query.Where(a => a.RefundId == request.OwnerId),
             _ => throw new ArgumentOutOfRangeException(
                 nameof(request),
                 request.OwnerType,
@@ -132,6 +138,18 @@ public class GetAttachmentsQueryHandler
     /// query. A missing item answers false, so a guessed id is refused by the
     /// role check rather than by a lookup that would confirm it exists.
     /// </remarks>
+    private async Task<bool> IsOwnRefundAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var requestedBy = await _context.Refunds
+            .AsNoTracking()
+            .Where(r => r.Id == id)
+            .Select(r => (Guid?)r.RequestedByUserId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return requestedBy is not null
+            && AttachmentRules.CanUseRefundFiles(_currentUserService.Role, _currentUserService.UserId, requestedBy.Value);
+    }
+
     private async Task<bool> IsOwnWorkItemAsync(Guid id, CancellationToken cancellationToken)
     {
         if (_currentUserService.Role is not UserRole.Worker)

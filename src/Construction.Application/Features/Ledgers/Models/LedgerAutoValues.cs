@@ -333,6 +333,41 @@ public static class LedgerAutoValues
             }
         }
 
+        // ---- refunds -----------------------------------------------------
+
+        var refundColumns = columns.Where(c => c.Source.Kind == LedgerSourceKinds.EmployeeRefunds).ToList();
+
+        if (refundColumns.Count > 0 && firstRow.Count > 0)
+        {
+            var employeeIds = firstRow.Keys.ToList();
+
+            var refunds = await context.Refunds
+                .AsNoTracking()
+                .Where(r => r.Status == RefundStatus.Approved
+                    && employeeIds.Contains(r.EmployeeId)
+                    && r.PayrollYear != null
+                    && r.PayrollMonth != null)
+                .Select(r => new { r.EmployeeId, Year = r.PayrollYear!.Value, Month = r.PayrollMonth!.Value, r.Amount })
+                .ToListAsync(cancellationToken);
+
+            foreach (var (columnId, source) in refundColumns)
+            {
+                foreach (var (employeeId, first) in firstRow)
+                {
+                    // A person's own money goes on their first row only, like fuel: someone
+                    // on two clients must not be paid back twice.
+                    For(first.RowId)[columnId] = refunds
+                        .Where(r => r.EmployeeId == employeeId && r.Year == source.From.Year && r.Month == source.From.Month)
+                        .Sum(r => r.Amount);
+                }
+
+                foreach (var row in employeeRows)
+                {
+                    For(row.RowId).TryAdd(columnId, 0m);
+                }
+            }
+        }
+
         return Done();
     }
 

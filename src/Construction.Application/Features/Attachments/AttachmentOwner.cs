@@ -41,7 +41,10 @@ public enum AttachmentOwnerType
     AccommodationRate = 14,
 
     /// <summary>The rental or lease contract behind a tool's rental rate.</summary>
-    ToolRentalRate = 15
+    ToolRentalRate = 15,
+
+    /// <summary>The receipt behind a request to be paid back.</summary>
+    Refund = 16
 }
 
 /// <summary>
@@ -79,6 +82,7 @@ public static class AttachmentOwner
         attachment.AccommodationId = type == AttachmentOwnerType.Accommodation ? id : null;
         attachment.AccommodationRateId = type == AttachmentOwnerType.AccommodationRate ? id : null;
         attachment.ToolRentalRateId = type == AttachmentOwnerType.ToolRentalRate ? id : null;
+        attachment.RefundId = type == AttachmentOwnerType.Refund ? id : null;
     }
 
     /// <summary>Reads the owner back off a stored row.</summary>
@@ -159,6 +163,11 @@ public static class AttachmentOwner
             return (AttachmentOwnerType.ToolRentalRate, toolRentalRateId);
         }
 
+        if (attachment.RefundId is { } refundId)
+        {
+            return (AttachmentOwnerType.Refund, refundId);
+        }
+
         // The table's check constraint makes this unreachable; if it is ever
         // reached, something has bypassed the database and guessing an owner
         // would hide it.
@@ -184,6 +193,7 @@ public static class AttachmentOwner
         AttachmentOwnerType.Accommodation => "accommodations",
         AttachmentOwnerType.AccommodationRate => "accommodation-rates",
         AttachmentOwnerType.ToolRentalRate => "tool-rental-rates",
+        AttachmentOwnerType.Refund => "refunds",
         _ => "other"
     };
 }

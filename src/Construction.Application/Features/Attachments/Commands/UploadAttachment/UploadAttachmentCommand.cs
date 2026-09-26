@@ -103,6 +103,7 @@ public class UploadAttachmentCommandHandler
         await EnsureOwnerExistsAsync(request.OwnerType, request.OwnerId, cancellationToken);
 
         await EnsureWorkItemIsTheirsAsync(request, cancellationToken);
+        await EnsureRefundIsTheirsAsync(request, cancellationToken);
 
         var fileName = AttachmentRules.SanitiseFileName(request.FileName);
 
@@ -191,6 +192,28 @@ public class UploadAttachmentCommandHandler
         }
     }
 
+    /// <summary>A receipt goes on a refund the caller asked for; the office may attach one to anybody's.</summary>
+    private async Task EnsureRefundIsTheirsAsync(
+        UploadAttachmentCommand request,
+        CancellationToken cancellationToken)
+    {
+        if (request.OwnerType != AttachmentOwnerType.Refund)
+        {
+            return;
+        }
+
+        var requestedBy = await _context.Refunds
+            .AsNoTracking()
+            .Where(r => r.Id == request.OwnerId)
+            .Select(r => r.RequestedByUserId)
+            .FirstAsync(cancellationToken);
+
+        if (!AttachmentRules.CanUseRefundFiles(_currentUserService.Role, _currentUserService.UserId, requestedBy))
+        {
+            throw new ForbiddenAccessException("You may only add receipts to your own requests.");
+        }
+    }
+
     private async Task EnsureOwnerExistsAsync(
         AttachmentOwnerType type,
         Guid id,
@@ -228,6 +251,8 @@ public class UploadAttachmentCommandHandler
                 await _context.AccommodationRates.AnyAsync(r => r.Id == id, cancellationToken),
             AttachmentOwnerType.ToolRentalRate =>
                 await _context.ToolRentalRates.AnyAsync(r => r.Id == id, cancellationToken),
+            AttachmentOwnerType.Refund =>
+                await _context.Refunds.AnyAsync(r => r.Id == id, cancellationToken),
             _ => false
         };
 

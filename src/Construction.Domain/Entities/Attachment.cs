@@ -120,6 +120,10 @@ public class Attachment : BaseEntity, ISoftDeletable, IAuditable
 
     public AccommodationRate? AccommodationRate { get; set; }
 
+    public Guid? RefundId { get; set; }
+
+    public Refund? Refund { get; set; }
+
     public Guid? ToolRentalRateId { get; set; }
 
     public ToolRentalRate? ToolRentalRate { get; set; }

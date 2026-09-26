@@ -19,6 +19,9 @@ public static class LedgerSourceKinds
 
     /// <summary>The row's employee's share of accommodation rent, as the accommodation pages work it out.</summary>
     public const string AccommodationCost = "accommodationCost";
+
+    /// <summary>Approved refunds the row's employee is paid back with the payroll of the range's month.</summary>
+    public const string EmployeeRefunds = "employeeRefunds";
 }
 
 /// <summary>A figure the system already knows, offered as the cell's value.</summary>

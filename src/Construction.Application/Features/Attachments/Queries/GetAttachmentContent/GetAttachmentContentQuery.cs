@@ -47,7 +47,8 @@ public class GetAttachmentContentQueryHandler
             // The same carve-out the list query makes: a worker who may
             // photograph their own work item has to be able to open the
             // picture afterwards.
-            || await IsOnOwnWorkItemAsync(attachment, cancellationToken);
+            || await IsOnOwnWorkItemAsync(attachment, cancellationToken)
+            || await IsOnOwnRefundAsync(attachment, cancellationToken);
 
         if (!allowed)
         {
@@ -61,6 +62,24 @@ public class GetAttachmentContentQueryHandler
                 "The file is recorded but its contents are missing from storage.");
 
         return new AttachmentContent(content, attachment.ContentType, attachment.FileName);
+    }
+
+    /// <summary>True when this receipt hangs off a refund the caller asked for.</summary>
+    private async Task<bool> IsOnOwnRefundAsync(Attachment attachment, CancellationToken cancellationToken)
+    {
+        if (attachment.RefundId is not { } refundId)
+        {
+            return false;
+        }
+
+        var requestedBy = await _context.Refunds
+            .AsNoTracking()
+            .Where(r => r.Id == refundId)
+            .Select(r => (Guid?)r.RequestedByUserId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return requestedBy is not null
+            && AttachmentRules.CanUseRefundFiles(_currentUserService.Role, _currentUserService.UserId, requestedBy.Value);
     }
 
     /// <summary>

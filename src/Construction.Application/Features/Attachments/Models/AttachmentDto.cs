@@ -79,6 +79,7 @@ public static class AttachmentMapping
                 : attachment.GeneralExpenseId != null ? AttachmentOwnerType.GeneralExpense
                 : attachment.AccommodationId != null ? AttachmentOwnerType.Accommodation
                 : attachment.AccommodationRateId != null ? AttachmentOwnerType.AccommodationRate
+                : attachment.RefundId != null ? AttachmentOwnerType.Refund
                 : AttachmentOwnerType.ToolRentalRate,
             OwnerId = attachment.EmployeeId != null ? attachment.EmployeeId.Value
                 : attachment.ProjectId != null ? attachment.ProjectId.Value
@@ -94,6 +95,7 @@ public static class AttachmentMapping
                 : attachment.GeneralExpenseId != null ? attachment.GeneralExpenseId.Value
                 : attachment.AccommodationId != null ? attachment.AccommodationId.Value
                 : attachment.AccommodationRateId != null ? attachment.AccommodationRateId.Value
+                : attachment.RefundId != null ? attachment.RefundId.Value
                 : attachment.ToolRentalRateId!.Value,
             OwnerName = attachment.Employee != null
                 ? attachment.Employee.FirstName + " " + attachment.Employee.LastName
@@ -115,6 +117,7 @@ public static class AttachmentMapping
                 : attachment.Accommodation != null ? attachment.Accommodation.Address
                 : attachment.AccommodationRate != null ? attachment.AccommodationRate.Accommodation.Address
                 : attachment.ToolRentalRate != null ? attachment.ToolRentalRate.Tool.Name
+                : attachment.Refund != null ? attachment.Refund.Description
                 : null,
             UploadedByName = attachment.UploadedByUser != null ? attachment.UploadedByUser.Email : null,
             CreatedAt = attachment.CreatedAt,

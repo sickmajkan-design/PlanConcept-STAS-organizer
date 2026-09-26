@@ -148,7 +148,7 @@ public class LedgerPayrollTests : IntegrationTestBase
         // The hour columns are not formulas: hours are typed from the signed timesheets.
         var expected = new List<string>
         {
-            "hours", "pay", "billing", "margin", "result", "workerRate", "fuel", "rent", "housing",
+            "hours", "pay", "billing", "margin", "result", "workerRate", "fuel", "rent", "housing", "refund",
         };
 
         Assert.Equal(expected.OrderBy(k => k), formulaColumns.OrderBy(k => k));
@@ -711,6 +711,46 @@ public class LedgerPayrollTests : IntegrationTestBase
         Assert.All(
             Enumerable.Range(1, LedgerTemplates.WeekColumns).Select(LedgerTemplates.Keys.Week),
             key => Assert.Contains(key, formulaColumns));
+    }
+
+    [Fact]
+    public async Task An_approved_refund_is_paid_back_with_the_payroll_month_it_names_and_only_that_one()
+    {
+        var (employee, project) = await SeedWorkerWithShiftsAsync([(1, 8, TimeEntryStatus.Approved)]);
+
+        await InScope(async scope =>
+        {
+            var requester = await TestData.SeedUserAsync(scope, UserRole.Worker);
+
+            Refund Make(RefundStatus status, int year, int month, decimal amount) => new()
+            {
+                EmployeeId = employee.Id,
+                RequestedByUserId = requester.Id,
+                Amount = amount,
+                Currency = "EUR",
+                ExpenseDate = new DateOnly(2026, 9, 3),
+                Description = "Cipele za posao",
+                Status = status,
+                PayrollYear = status == RefundStatus.Approved ? year : null,
+                PayrollMonth = status == RefundStatus.Approved ? month : null,
+            };
+
+            scope.Db.Refunds.Add(Make(RefundStatus.Approved, 2026, 9, 50m));
+            scope.Db.Refunds.Add(Make(RefundStatus.Approved, 2026, 10, 70m));     // next month's payroll
+            scope.Db.Refunds.Add(Make(RefundStatus.Requested, 2026, 9, 90m));     // not decided yet
+            await scope.Db.SaveChangesAsync();
+        });
+
+        var month = await NewMonthAsync();
+        var (section, rowId) = await RowForAsync(month, employee, project);
+
+        await SetAsync(month, rowId, LedgerTemplates.Keys.WorkerRate, "20");
+        await SetAsync(month, rowId, LedgerTemplates.Keys.Week(1), "10");
+
+        var row = await ReadRowAsync(month, section, rowId);
+
+        Assert.Equal(50m, Value(month, row, LedgerTemplates.Keys.Refund));
+        Assert.Equal(250m, Value(month, row, LedgerTemplates.Keys.Pay));          // 20 x 10 + 50
     }
 
     // ---- fuel, rented cars and housing -----------------------------------
