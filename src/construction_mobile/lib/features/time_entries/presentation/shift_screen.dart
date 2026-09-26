@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/l10n/enum_labels.dart';
+import '../../../core/widgets/status_chip.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/paged_list_view.dart';
 import '../../../core/theme/app_theme.dart';
@@ -563,12 +564,7 @@ class _TimeEntryCard extends StatelessWidget {
               spacing: 8,
               runSpacing: 4,
               children: [
-                Chip(
-                  label: Text(
-                    enumLabel(l10n, EnumKind.timeEntryStatus, entry.status),
-                  ),
-                  visualDensity: VisualDensity.compact,
-                ),
+                StatusChip(status: entry.status, kind: EnumKind.timeEntryStatus),
                 Chip(
                   label:
                       Text(enumLabel(l10n, EnumKind.workType, entry.workType)),

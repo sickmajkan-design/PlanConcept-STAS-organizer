@@ -5,7 +5,9 @@ import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/utils/formatting.dart';
+import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/failure_view.dart';
+import '../../../core/widgets/status_chip.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/article_order.dart';
 import 'article_orders_controller.dart';
@@ -143,15 +145,7 @@ class _OrderCard extends ConsumerWidget {
                   ),
                   const SizedBox(width: 4),
                 ],
-                Chip(
-                  label: Text(articleOrderStatusLabel(context, order.status)),
-                  backgroundColor: switch (order.status) {
-                    'Delivered' => theme.colorScheme.primaryContainer,
-                    'Rejected' => theme.colorScheme.errorContainer,
-                    _ => null,
-                  },
-                  visualDensity: VisualDensity.compact,
-                ),
+                StatusChip(status: order.status, kind: EnumKind.articleOrderStatus),
               ],
             ),
             const SizedBox(height: 4),

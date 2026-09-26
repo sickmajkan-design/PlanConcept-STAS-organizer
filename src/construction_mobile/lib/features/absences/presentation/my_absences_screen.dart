@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/l10n/enum_labels.dart';
+import '../../../core/widgets/status_chip.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/paged_list_view.dart';
@@ -161,17 +162,7 @@ class _AbsenceCard extends ConsumerWidget {
                         ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                 ),
-                Chip(
-                  label: Text(
-                    enumLabel(l10n, EnumKind.absenceStatus, absence.status),
-                  ),
-                  backgroundColor: switch (absence.status) {
-                    'Approved' => theme.colorScheme.primaryContainer,
-                    'Rejected' => theme.colorScheme.errorContainer,
-                    _ => null,
-                  },
-                  visualDensity: VisualDensity.compact,
-                ),
+                StatusChip(status: absence.status, kind: EnumKind.absenceStatus),
               ],
             ),
             const SizedBox(height: 6),

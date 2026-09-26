@@ -208,7 +208,8 @@ class _GreetingRow extends StatelessWidget {
     final theme = Theme.of(context);
     final name = (user.firstName?.trim().isNotEmpty ?? false)
         ? user.firstName!.trim()
-        : user.displayName;
+        // An account with no name behind it: the part of the e-mail before the @ greets better than all of it.
+        : user.displayName.split('@').first;
     final hour = DateTime.now().hour;
 
     final greeting = hour < 11
@@ -224,6 +225,8 @@ class _GreetingRow extends StatelessWidget {
         Expanded(
           child: Text(
             greeting,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w800,
               height: 1.15,

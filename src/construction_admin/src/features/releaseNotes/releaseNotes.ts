@@ -7,7 +7,7 @@ import { canViewFinanceStatistics } from '../../auth/authHelpers';
  * below, when there is something people using the platform should be told about;
  * everybody sees the dialog once more, and only once.
  */
-export const RELEASE_ID = '2026-09-26.7';
+export const RELEASE_ID = '2026-09-26.8';
 
 export interface ReleaseSection {
   id: string;

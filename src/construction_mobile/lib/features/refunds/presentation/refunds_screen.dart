@@ -5,7 +5,9 @@ import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/utils/formatting.dart';
+import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/failure_view.dart';
+import '../../../core/widgets/status_chip.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../data/refund.dart';
 import 'refunds_controller.dart';
@@ -127,14 +129,9 @@ class _RefundCard extends ConsumerWidget {
               style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),
             const SizedBox(height: 8),
-            Chip(
-              label: Text(refundStatusLabel(context, refund.status)),
-              backgroundColor: switch (refund.status) {
-                'Approved' => theme.colorScheme.primaryContainer,
-                'Rejected' => theme.colorScheme.errorContainer,
-                _ => null,
-              },
-              visualDensity: VisualDensity.compact,
+            Align(
+              alignment: Alignment.centerLeft,
+              child: StatusChip(status: refund.status, kind: EnumKind.refundStatus),
             ),
             if (refund.status == 'Rejected' && (refund.reviewNote ?? '').isNotEmpty) ...[
               const SizedBox(height: 4),

@@ -41,6 +41,16 @@ void main() {
     expect(offenders, isEmpty, reason: 'Use FilterChip: $offenders');
   });
 
+  test('a status is the shared StatusChip, never a plain Chip with its own colours', () {
+    final plain = RegExp(r'(?<!Status)Chip\(\s*label:\s*Text\(\s*enumLabel\(l10n, EnumKind\.\w+Status');
+    final offenders = [
+      for (final file in sources)
+        if (plain.hasMatch(file.readAsStringSync())) file.path,
+    ];
+
+    expect(offenders, isEmpty, reason: 'Use StatusChip: $offenders');
+  });
+
   test('an empty list says so with the shared empty view, not a bare line of text', () {
     final offenders = [
       for (final file in sources)

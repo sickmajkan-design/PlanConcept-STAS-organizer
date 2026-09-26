@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/l10n/enum_labels.dart';
+import '../../../core/widgets/status_chip.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/confirm_dialog.dart';
@@ -100,12 +101,7 @@ class _WorkItemCard extends ConsumerWidget {
               spacing: 8,
               runSpacing: 4,
               children: [
-                Chip(
-                  label: Text(
-                    enumLabel(l10n, EnumKind.workItemStatus, item.status),
-                  ),
-                  visualDensity: VisualDensity.compact,
-                ),
+                StatusChip(status: item.status, kind: EnumKind.workItemStatus),
                 Chip(
                   label: Text(item.projectName ?? l10n.workItemsNoProject),
                   visualDensity: VisualDensity.compact,

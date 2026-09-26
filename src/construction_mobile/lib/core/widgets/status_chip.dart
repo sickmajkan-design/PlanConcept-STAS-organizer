@@ -22,11 +22,14 @@ class StatusChip extends StatelessWidget {
   final EnumKind kind;
   final bool dense;
 
-  static const _good = <String>{'Active', 'Available', 'Completed', 'Processed'};
-  static const _caution = <String>{
-    'OnLeave', 'Planned', 'OnHold', 'Assigned', 'InService', 'Submitted',
+  static const _good = <String>{
+    'Active', 'Available', 'Completed', 'Processed', 'Approved', 'Delivered', 'Resolved', 'Closed',
   };
-  static const _bad = <String>{'Suspended', 'UnderRepair', 'Lost'};
+  static const _caution = <String>{
+    'OnLeave', 'Planned', 'OnHold', 'Assigned', 'InService', 'Submitted', 'Requested', 'Ordered',
+    'InDelivery', 'Open', 'InProgress', 'Pending',
+  };
+  static const _bad = <String>{'Suspended', 'UnderRepair', 'Lost', 'Rejected'};
 
   @override
   Widget build(BuildContext context) {

@@ -13,8 +13,8 @@ Aplikacija ima jedan izgled. Ovo su pravila koja ga drže istim; dio ih provjera
 ## Tekst u kartici
 
 - Naslov kartice: `titleMedium`, debljina 600. Sporedni redovi: `bodySmall` u `onSurfaceVariant`.
-- Statusi su `Chip` (kompaktan). Odobreno i dostavljeno `primaryContainer`, odbijeno `errorContainer`,
-  ostalo neutralno. Visok prioritet `secondaryContainer`, hitno `errorContainer`.
+- Status je uvijek `StatusChip` (jedan oblik, boje po značenju: zeleno odobreno/dostavljeno, žuto čeka/u toku,
+  crveno odbijeno). Nikad običan `Chip` s vlastitim bojama. Visok prioritet `secondaryContainer`, hitno `errorContainer`.
 
 ## Kontrole
 

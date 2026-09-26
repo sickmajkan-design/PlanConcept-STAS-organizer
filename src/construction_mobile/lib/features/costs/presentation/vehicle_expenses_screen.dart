@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/l10n/enum_labels.dart';
+import '../../../core/widgets/status_chip.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/paged_list_view.dart';
 import '../data/models/vehicle_expense.dart';
@@ -114,7 +115,7 @@ class _ExpenseCard extends StatelessWidget {
                   label: Text(formatDate(expense.occurred)),
                   visualDensity: VisualDensity.compact,
                 ),
-                _StatusChip(status: expense.status),
+                StatusChip(status: expense.status, kind: EnumKind.vehicleExpenseStatus),
                 if (expense.litres != null)
                   Chip(
                     label: Text(
@@ -157,36 +158,6 @@ class _ExpenseCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-/// Where a cost is in review, coloured the way the admin panel colours it:
-/// amber while it waits, green once signed off, red when sent back.
-class _StatusChip extends StatelessWidget {
-  const _StatusChip({required this.status});
-
-  final String status;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final scheme = Theme.of(context).colorScheme;
-
-    final (Color background, Color foreground) = switch (status) {
-      'Approved' => (Colors.green.shade100, Colors.green.shade900),
-      'Rejected' => (scheme.errorContainer, scheme.onErrorContainer),
-      _ => (Colors.amber.shade100, Colors.amber.shade900),
-    };
-
-    return Chip(
-      label: Text(
-        enumLabel(l10n, EnumKind.vehicleExpenseStatus, status),
-        style: TextStyle(color: foreground, fontWeight: FontWeight.w600),
-      ),
-      backgroundColor: background,
-      side: BorderSide.none,
-      visualDensity: VisualDensity.compact,
     );
   }
 }
