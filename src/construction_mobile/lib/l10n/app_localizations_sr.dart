@@ -1847,6 +1847,100 @@ class AppLocalizationsSr extends AppLocalizations {
   String get navAbsences => 'Odsustva';
 
   @override
+  String get navArticleOrders => 'Narudžbe';
+
+  @override
+  String get articleOrdersNew => 'Zatraži artikle';
+
+  @override
+  String get articleOrdersEmpty => 'Ovdje nema ničega.';
+
+  @override
+  String get articleOrdersOpen => 'Otvoreno';
+
+  @override
+  String get articleOrdersAll => 'Sve';
+
+  @override
+  String get articleOrdersItemName => 'Artikal';
+
+  @override
+  String get articleOrdersQuantity => 'Količina';
+
+  @override
+  String get articleOrdersUnit => 'Jedinica';
+
+  @override
+  String get articleOrdersItemNote => 'Veličina, model, ostalo';
+
+  @override
+  String get articleOrdersAddItem => 'Dodaj još jedan artikal';
+
+  @override
+  String get articleOrdersRemoveItem => 'Ukloni';
+
+  @override
+  String get articleOrdersNote => 'Napomena';
+
+  @override
+  String get articleOrdersUrgent => 'Hitno';
+
+  @override
+  String get articleOrdersSend => 'Pošalji zahtjev';
+
+  @override
+  String get articleOrdersSent => 'Zahtjev je poslan.';
+
+  @override
+  String get articleOrderStatusRequested => 'Zatraženo';
+
+  @override
+  String get articleOrderStatusOrdered => 'Naručeno';
+
+  @override
+  String get articleOrderStatusInDelivery => 'U dostavi';
+
+  @override
+  String get articleOrderStatusDelivered => 'Dostavljeno';
+
+  @override
+  String get articleOrderStatusRejected => 'Odbijeno';
+
+  @override
+  String get articleOrderStatusCancelled => 'Povučeno';
+
+  @override
+  String get articleOrdersActionOrder => 'Označi kao naručeno';
+
+  @override
+  String get articleOrdersActionShip => 'Označi kao u dostavi';
+
+  @override
+  String get articleOrdersActionReceived => 'Primio sam';
+
+  @override
+  String get articleOrdersActionDelivered => 'Označi kao dostavljeno';
+
+  @override
+  String get articleOrdersActionDecline => 'Odbij';
+
+  @override
+  String get articleOrdersActionWithdraw => 'Povuci';
+
+  @override
+  String get articleOrdersDeclineTitle => 'Odbij zahtjev';
+
+  @override
+  String get articleOrdersDeclineReason => 'Razlog';
+
+  @override
+  String get notificationTypeArticleOrderRequested => 'Zahtjev za artikle';
+
+  @override
+  String get notificationTypeArticleOrderStatusChanged =>
+      'Promjena zahtjeva za artikle';
+
+  @override
   String get navWeeklyReports => 'Sedmični izvještaji';
 
   @override

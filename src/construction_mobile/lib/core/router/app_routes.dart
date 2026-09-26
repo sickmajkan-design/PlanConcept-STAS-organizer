@@ -33,6 +33,9 @@ class AppRoutes {
   /// Open to every employee-linked account: their own leave.
   static const absences = '/absences';
 
+  /// Open to every signed-in account: articles a person needs for the job.
+  static const articleOrders = '/article-orders';
+
   /// Open to every employee-linked account: filing the week's proof-of-work
   /// for a site they are posted to.
   static const weeklyReports = '/weekly-reports';

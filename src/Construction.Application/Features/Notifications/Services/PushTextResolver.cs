@@ -325,6 +325,44 @@ public static class PushTextResolver
                     $"{vehicleName} ({IsoDate(occurredOn)}) čeka pregled.");
             }
 
+            case NotificationType.ArticleOrderRequested:
+            {
+                var name = Str("requestedByName");
+                if (name is null) break;
+
+                return (
+                    Str("urgent") == "true" ? "Hitan zahtjev za artikle" : "Zahtjev za artikle",
+                    $"{name} je zatražio(la) artikle ({Str("itemCount") ?? "?"}).");
+            }
+
+            case NotificationType.ArticleOrderStatusChanged:
+            {
+                var name = Str("requestedByName");
+                var status = Str("status");
+                if (name is null || status is null) break;
+
+                if (status == "Rejected")
+                {
+                    var reason = Str("note");
+                    return (
+                        "Zahtjev za artikle odbijen",
+                        string.IsNullOrEmpty(reason)
+                            ? "Vaš zahtjev za artikle je odbijen."
+                            : $"Vaš zahtjev za artikle je odbijen: {reason}");
+                }
+
+                var text = status switch
+                {
+                    "Ordered" => "naručeno",
+                    "InDelivery" => "u dostavi",
+                    "Delivered" => "dostavljeno",
+                    "Cancelled" => "povučeno",
+                    _ => status
+                };
+
+                return ("Zahtjev za artikle", $"Zahtjev osobe {name} je sada: {text}.");
+            }
+
             case NotificationType.AbsenceRequested:
             {
                 var employeeName = Str("employeeName");

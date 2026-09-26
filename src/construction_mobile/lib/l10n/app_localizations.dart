@@ -3263,6 +3263,192 @@ abstract class AppLocalizations {
   /// **'Time off'**
   String get navAbsences;
 
+  /// No description provided for @navArticleOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Orders'**
+  String get navArticleOrders;
+
+  /// No description provided for @articleOrdersNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask for articles'**
+  String get articleOrdersNew;
+
+  /// No description provided for @articleOrdersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here.'**
+  String get articleOrdersEmpty;
+
+  /// No description provided for @articleOrdersOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get articleOrdersOpen;
+
+  /// No description provided for @articleOrdersAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get articleOrdersAll;
+
+  /// No description provided for @articleOrdersItemName.
+  ///
+  /// In en, this message translates to:
+  /// **'Article'**
+  String get articleOrdersItemName;
+
+  /// No description provided for @articleOrdersQuantity.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity'**
+  String get articleOrdersQuantity;
+
+  /// No description provided for @articleOrdersUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Unit'**
+  String get articleOrdersUnit;
+
+  /// No description provided for @articleOrdersItemNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Size, model, other'**
+  String get articleOrdersItemNote;
+
+  /// No description provided for @articleOrdersAddItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add another article'**
+  String get articleOrdersAddItem;
+
+  /// No description provided for @articleOrdersRemoveItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get articleOrdersRemoveItem;
+
+  /// No description provided for @articleOrdersNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get articleOrdersNote;
+
+  /// No description provided for @articleOrdersUrgent.
+  ///
+  /// In en, this message translates to:
+  /// **'Urgent'**
+  String get articleOrdersUrgent;
+
+  /// No description provided for @articleOrdersSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send request'**
+  String get articleOrdersSend;
+
+  /// No description provided for @articleOrdersSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Request sent.'**
+  String get articleOrdersSent;
+
+  /// No description provided for @articleOrderStatusRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested'**
+  String get articleOrderStatusRequested;
+
+  /// No description provided for @articleOrderStatusOrdered.
+  ///
+  /// In en, this message translates to:
+  /// **'Ordered'**
+  String get articleOrderStatusOrdered;
+
+  /// No description provided for @articleOrderStatusInDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'In delivery'**
+  String get articleOrderStatusInDelivery;
+
+  /// No description provided for @articleOrderStatusDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get articleOrderStatusDelivered;
+
+  /// No description provided for @articleOrderStatusRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Declined'**
+  String get articleOrderStatusRejected;
+
+  /// No description provided for @articleOrderStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawn'**
+  String get articleOrderStatusCancelled;
+
+  /// No description provided for @articleOrdersActionOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as ordered'**
+  String get articleOrdersActionOrder;
+
+  /// No description provided for @articleOrdersActionShip.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as in delivery'**
+  String get articleOrdersActionShip;
+
+  /// No description provided for @articleOrdersActionReceived.
+  ///
+  /// In en, this message translates to:
+  /// **'I received it'**
+  String get articleOrdersActionReceived;
+
+  /// No description provided for @articleOrdersActionDelivered.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as delivered'**
+  String get articleOrdersActionDelivered;
+
+  /// No description provided for @articleOrdersActionDecline.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get articleOrdersActionDecline;
+
+  /// No description provided for @articleOrdersActionWithdraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw'**
+  String get articleOrdersActionWithdraw;
+
+  /// No description provided for @articleOrdersDeclineTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline the request'**
+  String get articleOrdersDeclineTitle;
+
+  /// No description provided for @articleOrdersDeclineReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason'**
+  String get articleOrdersDeclineReason;
+
+  /// No description provided for @notificationTypeArticleOrderRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Request for articles'**
+  String get notificationTypeArticleOrderRequested;
+
+  /// No description provided for @notificationTypeArticleOrderStatusChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Request for articles changed'**
+  String get notificationTypeArticleOrderStatusChanged;
+
   /// No description provided for @navWeeklyReports.
   ///
   /// In en, this message translates to:

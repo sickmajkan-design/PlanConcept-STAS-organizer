@@ -1845,6 +1845,100 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navAbsences => 'Time off';
 
   @override
+  String get navArticleOrders => 'Orders';
+
+  @override
+  String get articleOrdersNew => 'Ask for articles';
+
+  @override
+  String get articleOrdersEmpty => 'Nothing here.';
+
+  @override
+  String get articleOrdersOpen => 'Open';
+
+  @override
+  String get articleOrdersAll => 'All';
+
+  @override
+  String get articleOrdersItemName => 'Article';
+
+  @override
+  String get articleOrdersQuantity => 'Quantity';
+
+  @override
+  String get articleOrdersUnit => 'Unit';
+
+  @override
+  String get articleOrdersItemNote => 'Size, model, other';
+
+  @override
+  String get articleOrdersAddItem => 'Add another article';
+
+  @override
+  String get articleOrdersRemoveItem => 'Remove';
+
+  @override
+  String get articleOrdersNote => 'Note';
+
+  @override
+  String get articleOrdersUrgent => 'Urgent';
+
+  @override
+  String get articleOrdersSend => 'Send request';
+
+  @override
+  String get articleOrdersSent => 'Request sent.';
+
+  @override
+  String get articleOrderStatusRequested => 'Requested';
+
+  @override
+  String get articleOrderStatusOrdered => 'Ordered';
+
+  @override
+  String get articleOrderStatusInDelivery => 'In delivery';
+
+  @override
+  String get articleOrderStatusDelivered => 'Delivered';
+
+  @override
+  String get articleOrderStatusRejected => 'Declined';
+
+  @override
+  String get articleOrderStatusCancelled => 'Withdrawn';
+
+  @override
+  String get articleOrdersActionOrder => 'Mark as ordered';
+
+  @override
+  String get articleOrdersActionShip => 'Mark as in delivery';
+
+  @override
+  String get articleOrdersActionReceived => 'I received it';
+
+  @override
+  String get articleOrdersActionDelivered => 'Mark as delivered';
+
+  @override
+  String get articleOrdersActionDecline => 'Decline';
+
+  @override
+  String get articleOrdersActionWithdraw => 'Withdraw';
+
+  @override
+  String get articleOrdersDeclineTitle => 'Decline the request';
+
+  @override
+  String get articleOrdersDeclineReason => 'Reason';
+
+  @override
+  String get notificationTypeArticleOrderRequested => 'Request for articles';
+
+  @override
+  String get notificationTypeArticleOrderStatusChanged =>
+      'Request for articles changed';
+
+  @override
   String get navWeeklyReports => 'Weekly reports';
 
   @override
