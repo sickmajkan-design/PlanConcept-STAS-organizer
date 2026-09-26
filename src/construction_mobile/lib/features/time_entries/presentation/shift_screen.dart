@@ -528,7 +528,6 @@ class _TimeEntryCard extends StatelessWidget {
         : l10n.shiftElapsed(worked ~/ 60, worked % 60);
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

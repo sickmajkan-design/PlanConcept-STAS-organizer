@@ -53,28 +53,23 @@ class _ArticleOrdersScreenState extends ConsumerState<ArticleOrdersScreen> {
             return RefreshIndicator(
               onRefresh: () => ref.read(articleOrdersControllerProvider.notifier).refresh(),
               child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
                 children: [
-                  Wrap(
-                    spacing: 8,
-                    children: [
-                      ChoiceChip(
-                        label: Text(l10n.articleOrdersOpen),
-                        selected: _openOnly,
-                        onSelected: (_) => setState(() => _openOnly = true),
-                      ),
-                      ChoiceChip(
-                        label: Text(l10n.articleOrdersAll),
-                        selected: !_openOnly,
-                        onSelected: (_) => setState(() => _openOnly = false),
-                      ),
-                    ],
+                  // The same chip as the other lists: one filter, on or off.
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: FilterChip(
+                      label: Text(l10n.articleOrdersOpenOnly),
+                      selected: _openOnly,
+                      onSelected: (selected) => setState(() => _openOnly = selected),
+                    ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   if (shown.isEmpty)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 48),
-                      child: Center(child: Text(l10n.articleOrdersEmpty)),
+                    SizedBox(
+                      height: MediaQuery.sizeOf(context).height * 0.5,
+                      child: EmptyView(message: l10n.articleOrdersEmpty, icon: Icons.shopping_bag_outlined),
                     )
                   else
                     for (final order in shown) _OrderCard(order: order),
@@ -126,7 +121,7 @@ class _OrderCard extends ConsumerWidget {
     }
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -137,7 +132,7 @@ class _OrderCard extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     order.requestedByName,
-                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                   ),
                 ),
                 if (order.urgent) ...[
@@ -150,6 +145,11 @@ class _OrderCard extends ConsumerWidget {
                 ],
                 Chip(
                   label: Text(articleOrderStatusLabel(context, order.status)),
+                  backgroundColor: switch (order.status) {
+                    'Delivered' => theme.colorScheme.primaryContainer,
+                    'Rejected' => theme.colorScheme.errorContainer,
+                    _ => null,
+                  },
                   visualDensity: VisualDensity.compact,
                 ),
               ],
@@ -171,15 +171,16 @@ class _OrderCard extends ConsumerWidget {
             ],
             const SizedBox(height: 8),
             Wrap(
+              alignment: WrapAlignment.end,
               spacing: 8,
               runSpacing: 4,
               children: [
                 if (manages && order.status == 'Requested')
-                  FilledButton(onPressed: () => move('Ordered'), child: Text(l10n.articleOrdersActionOrder)),
+                  OutlinedButton(onPressed: () => move('Ordered'), child: Text(l10n.articleOrdersActionOrder)),
                 if (manages && order.status == 'Ordered')
-                  FilledButton(onPressed: () => move('InDelivery'), child: Text(l10n.articleOrdersActionShip)),
+                  OutlinedButton(onPressed: () => move('InDelivery'), child: Text(l10n.articleOrdersActionShip)),
                 if ((own || manages) && order.status == 'InDelivery')
-                  FilledButton(
+                  OutlinedButton(
                     onPressed: () => move('Delivered'),
                     child: Text(own ? l10n.articleOrdersActionReceived : l10n.articleOrdersActionDelivered),
                   ),
@@ -189,7 +190,11 @@ class _OrderCard extends ConsumerWidget {
                     child: Text(l10n.articleOrdersActionDecline),
                   ),
                 if (own && order.status == 'Requested')
-                  TextButton(onPressed: () => move('Cancelled'), child: Text(l10n.articleOrdersActionWithdraw)),
+                  TextButton.icon(
+                    onPressed: () => move('Cancelled'),
+                    icon: const Icon(Icons.undo),
+                    label: Text(l10n.articleOrdersActionWithdraw),
+                  ),
               ],
             ),
           ],

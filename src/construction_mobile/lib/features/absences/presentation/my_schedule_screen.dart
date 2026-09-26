@@ -117,7 +117,7 @@ class _PostingCard extends ConsumerWidget {
     final canOpen = ref.watch(currentUserProvider)?.canViewDirectory ?? false;
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: ListTile(
         onTap: canOpen ? () => context.push(AppRoutes.projectDetail(assignment.projectId)) : null,
         leading: Icon(
@@ -158,7 +158,7 @@ class _AwayCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       color: theme.colorScheme.surfaceContainerHighest,
       child: ListTile(
         leading: Icon(

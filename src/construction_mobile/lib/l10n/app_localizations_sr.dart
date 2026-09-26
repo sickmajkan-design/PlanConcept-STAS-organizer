@@ -1889,7 +1889,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get refundReason => 'Zašto firma treba da vrati novac?';
 
   @override
-  String get refundReasonHint => 'Obavezno. Napiši čemu je služilo.';
+  String get refundReasonHint => 'Obavezno. Napišite čemu je služilo.';
 
   @override
   String get refundAttachReceipt => 'Slikaj račun';
@@ -1945,7 +1945,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get articleOrdersEmpty => 'Ovdje nema ničega.';
 
   @override
-  String get articleOrdersOpen => 'Otvoreno';
+  String get articleOrdersOpenOnly => 'Samo otvoreno';
 
   @override
   String get articleOrdersAll => 'Sve';
@@ -2129,7 +2129,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get absencesTitle => 'Odsustva';
 
   @override
-  String get absencesEmpty => 'Nisi tražio nijedno odsustvo.';
+  String get absencesEmpty => 'Niste tražili nijedno odsustvo.';
 
   @override
   String get absencesPendingOnly => 'Čeka odgovor';

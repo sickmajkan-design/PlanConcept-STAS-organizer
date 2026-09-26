@@ -39,11 +39,12 @@ class RefundsScreen extends ConsumerWidget {
             onRefresh: () => ref.read(refundsControllerProvider.notifier).refresh(),
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+              physics: const AlwaysScrollableScrollPhysics(),
               children: refunds.isEmpty
                   ? [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 48),
-                        child: Center(child: Text(l10n.refundsEmpty)),
+                      SizedBox(
+                        height: MediaQuery.sizeOf(context).height * 0.5,
+                        child: EmptyView(message: l10n.refundsEmpty, icon: Icons.request_quote_outlined),
                       ),
                     ]
                   : [for (final refund in refunds) _RefundCard(refund: refund)],
@@ -92,7 +93,7 @@ class _RefundCard extends ConsumerWidget {
     }
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -103,12 +104,12 @@ class _RefundCard extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     refund.employeeName,
-                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                    style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                   ),
                 ),
                 Text(
                   '${refund.amount.toStringAsFixed(2)} ${refund.currency}',
-                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
                 ),
               ],
             ),
@@ -128,6 +129,11 @@ class _RefundCard extends ConsumerWidget {
             const SizedBox(height: 8),
             Chip(
               label: Text(refundStatusLabel(context, refund.status)),
+              backgroundColor: switch (refund.status) {
+                'Approved' => theme.colorScheme.primaryContainer,
+                'Rejected' => theme.colorScheme.errorContainer,
+                _ => null,
+              },
               visualDensity: VisualDensity.compact,
             ),
             if (refund.status == 'Rejected' && (refund.reviewNote ?? '').isNotEmpty) ...[
@@ -137,18 +143,23 @@ class _RefundCard extends ConsumerWidget {
             if (waiting && (manages || own)) ...[
               const SizedBox(height: 8),
               Wrap(
+                alignment: WrapAlignment.end,
                 spacing: 8,
                 runSpacing: 4,
                 children: [
                   if (manages) ...[
-                    FilledButton(onPressed: () => act('Approved'), child: Text(l10n.refundApprove)),
+                    OutlinedButton(onPressed: () => act('Approved'), child: Text(l10n.refundApprove)),
                     TextButton(
                       onPressed: () => _decline(context, act),
                       child: Text(l10n.refundDecline),
                     ),
                   ],
                   if (own)
-                    TextButton(onPressed: () => act('Cancelled'), child: Text(l10n.refundWithdraw)),
+                    TextButton.icon(
+                      onPressed: () => act('Cancelled'),
+                      icon: const Icon(Icons.undo),
+                      label: Text(l10n.refundWithdraw),
+                    ),
                 ],
               ),
             ],

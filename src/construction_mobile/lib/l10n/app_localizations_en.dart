@@ -1942,7 +1942,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get articleOrdersEmpty => 'Nothing here.';
 
   @override
-  String get articleOrdersOpen => 'Open';
+  String get articleOrdersOpenOnly => 'Open only';
 
   @override
   String get articleOrdersAll => 'All';

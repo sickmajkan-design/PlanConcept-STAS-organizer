@@ -70,7 +70,7 @@ class _BulletinCard extends StatelessWidget {
     final l10n = context.l10n;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

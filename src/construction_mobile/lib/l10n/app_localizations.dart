@@ -3449,11 +3449,11 @@ abstract class AppLocalizations {
   /// **'Nothing here.'**
   String get articleOrdersEmpty;
 
-  /// No description provided for @articleOrdersOpen.
+  /// No description provided for @articleOrdersOpenOnly.
   ///
   /// In en, this message translates to:
-  /// **'Open'**
-  String get articleOrdersOpen;
+  /// **'Open only'**
+  String get articleOrdersOpenOnly;
 
   /// No description provided for @articleOrdersAll.
   ///

@@ -85,7 +85,10 @@ class AppTheme {
           ),
         ),
       ),
+      // A card has no margin of its own: the list around it gives the page inset (16) and
+      // the gap between cards (8), so every screen lines up the same way.
       cardTheme: CardThemeData(
+        margin: EdgeInsets.zero,
         elevation: 0,
         color: scheme.surfaceContainerLow,
         shape: RoundedRectangleBorder(

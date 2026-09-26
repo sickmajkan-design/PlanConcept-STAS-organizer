@@ -1018,7 +1018,7 @@
   "notificationTypeRefundDecided": "Refund decision",
   "articleOrdersNew": "Ask for articles",
   "articleOrdersEmpty": "Nothing here.",
-  "articleOrdersOpen": "Open",
+  "articleOrdersOpenOnly": "Open only",
   "articleOrdersAll": "All",
   "articleOrdersItemName": "Article",
   "articleOrdersQuantity": "Quantity",

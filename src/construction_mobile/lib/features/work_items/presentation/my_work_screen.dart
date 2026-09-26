@@ -60,7 +60,6 @@ class _WorkItemCard extends ConsumerWidget {
     final overdue = item.isOverdueOn(DateTime.now());
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -117,7 +116,7 @@ class _WorkItemCard extends ConsumerWidget {
                     label: Text(enumLabel(l10n, EnumKind.workItemPriority, item.priority)),
                     backgroundColor: item.priority == 'Urgent'
                         ? theme.colorScheme.errorContainer
-                        : theme.colorScheme.tertiaryContainer,
+                        : theme.colorScheme.secondaryContainer,
                     visualDensity: VisualDensity.compact,
                   ),
                 if (item.due != null)
