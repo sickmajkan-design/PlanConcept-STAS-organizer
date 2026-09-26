@@ -12,6 +12,7 @@ import {
   ScheduleOutlined,
   CalendarMonthOutlined,
   EventBusyOutlined,
+  ShoppingCartOutlined,
   PaidOutlined,
   LocalGasStationOutlined,
   SwapVertOutlined,
@@ -137,6 +138,7 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
                 icon: <CalendarMonthOutlined />,
               },
               { label: t('nav.absences'), path: paths.absences, icon: <EventBusyOutlined /> },
+              { label: t('nav.articleOrders'), path: paths.articleOrders, icon: <ShoppingCartOutlined /> },
               {
                 label: t('nav.weeklyReports'),
                 path: paths.weeklyReports,

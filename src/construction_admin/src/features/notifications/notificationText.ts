@@ -315,6 +315,23 @@ export function resolveNotificationText(t: T, notification: Notification): Notif
         }),
       };
 
+    case 'ArticleOrderRequested':
+      if (!d.requestedByName) return fallback;
+      return {
+        title: d.urgent === 'true' ? text('notificationArticleOrderRequestedUrgentTitle') : text('notificationArticleOrderRequestedTitle'),
+        body: text('notificationArticleOrderRequestedBody', { name: d.requestedByName, count: d.itemCount ?? '' }),
+      };
+
+    case 'ArticleOrderStatusChanged':
+      if (!d.requestedByName || !d.status) return fallback;
+      return {
+        title: text('notificationArticleOrderChangedTitle'),
+        body:
+          d.status === 'Rejected'
+            ? text('notificationArticleOrderRejectedBody', { note: d.note ?? '' })
+            : text('notificationArticleOrderChangedBody', { name: d.requestedByName, status: text('articleOrderStatus' + d.status) }),
+      };
+
     case 'AbsenceRequested':
       if (!d.employeeName || !d.startDate || !d.endDate) return fallback;
       return {

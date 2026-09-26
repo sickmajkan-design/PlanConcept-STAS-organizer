@@ -1,10 +1,11 @@
 import type { ComponentType } from 'react';
 
-import { canViewDirectory, canViewFinance, canViewFinanceStatistics } from '../../auth/authHelpers';
+import { canManageArticleOrders, canViewDirectory, canViewFinance, canViewFinanceStatistics } from '../../auth/authHelpers';
 import type { User } from '../../api/types';
 
 import type { MessageKey } from '../../i18n/en';
 import { AbsenceRequestsWidget } from './widgets/AbsenceRequestsWidget';
+import { ArticleOrdersWidget } from './widgets/ArticleOrdersWidget';
 import { AbsencesBalanceWidget } from './widgets/AbsencesBalanceWidget';
 import { ActiveProjectsWidget } from './widgets/ActiveProjectsWidget';
 import { CompanyKpiWidget } from './widgets/CompanyKpiWidget';
@@ -142,6 +143,12 @@ export const widgetRegistry: Record<DashboardWidgetType, WidgetRegistryEntry> = 
     component: ActiveProjectsWidget,
     titleKey: 'dashboard.widget.ActiveProjects',
     allowed: canViewDirectory,
+  },
+  ArticleOrders: {
+    component: ArticleOrdersWidget,
+    titleKey: 'dashboard.widget.ArticleOrders',
+    // Ordering and sending are the API's office roles.
+    allowed: canManageArticleOrders,
   },
 };
 

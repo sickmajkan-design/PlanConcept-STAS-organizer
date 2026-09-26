@@ -128,6 +128,11 @@ const SchedulePage = lazy(() =>
     default: m.SchedulePage,
   })),
 );
+const ArticleOrdersPage = lazy(() =>
+  import('./pages/articleOrders/ArticleOrdersPage').then((m) => ({
+    default: m.ArticleOrdersPage,
+  })),
+);
 const AbsencesListPage = lazy(() =>
   import('./pages/absences/AbsencesListPage').then((m) => ({
     default: m.AbsencesListPage,
@@ -413,6 +418,7 @@ function Layout() {
 
               <Route path={paths.schedule} element={<SchedulePage />} />
               <Route path={paths.absences} element={<AbsencesListPage />} />
+              <Route path={paths.articleOrders} element={<ArticleOrdersPage />} />
               <Route path={paths.weeklyReports} element={<WeeklySiteReportsListPage />} />
 
               <Route path={paths.timeEntrySummary} element={<TimeEntrySummaryPage />} />

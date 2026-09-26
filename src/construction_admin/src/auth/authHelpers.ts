@@ -110,3 +110,8 @@ export function canConfigureDashboard(user: User | null | undefined): boolean {
 export function isSuperAdmin(user: User | null | undefined): boolean {
   return !!user && user.role === 'SuperAdmin';
 }
+
+/** Who runs the orders for articles: orders them, sends them, declines them. Mirrors ArticleOrderRules on the API. */
+export function canManageArticleOrders(user: User | null | undefined): boolean {
+  return !!user && (user.role === 'SuperAdmin' || user.role === 'Admin' || user.role === 'ProjectManager');
+}

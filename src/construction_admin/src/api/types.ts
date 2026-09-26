@@ -2175,6 +2175,8 @@ export const notificationTypes = [
   'MaterialLowStock',
   'AccommodationContractExpiring',
   'AccommodationAssigned',
+  'ArticleOrderRequested',
+  'ArticleOrderStatusChanged',
 ] as const;
 
 export type NotificationType = (typeof notificationTypes)[number];
@@ -2379,4 +2381,49 @@ export interface WeeklySiteReportListQuery extends ListQuery {
 export interface ReportableProject {
   id: string;
   name: string;
+}
+
+export const articleOrderStatuses = [
+  'Requested',
+  'Ordered',
+  'InDelivery',
+  'Delivered',
+  'Rejected',
+  'Cancelled',
+] as const;
+
+export type ArticleOrderStatus = (typeof articleOrderStatuses)[number];
+
+export interface ArticleOrderItem {
+  id: string;
+  name: string;
+  quantity: number;
+  unit: string | null;
+  note: string | null;
+}
+
+/** A request for articles a person needs for the job (work trousers, boots, a helmet, a tool). */
+export interface ArticleOrder {
+  id: string;
+  status: ArticleOrderStatus;
+  urgent: boolean;
+  note: string | null;
+  reviewNote: string | null;
+  requestedByUserId: string;
+  requestedByName: string;
+  projectId: string | null;
+  projectName: string | null;
+  handledByName: string | null;
+  orderedAt: string | null;
+  shippedAt: string | null;
+  deliveredAt: string | null;
+  createdAt: string;
+  items: ArticleOrderItem[];
+}
+
+export interface ArticleOrderInput {
+  projectId?: string | null;
+  urgent: boolean;
+  note?: string | null;
+  items: { name: string; quantity: number; unit?: string | null; note?: string | null }[];
 }
