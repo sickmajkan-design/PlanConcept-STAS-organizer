@@ -192,6 +192,18 @@ Points: 8 · Priority: High
 5. **Očekivani sati po radniku** za upozorenje o dvostrukom unosu (predlog 176 h).
 6. **Značenje kolona "SATNICA" i "SATNICA WH/TRANE":** pretpostavka je cijena radnika i cijena za klijenta — potvrditi.
 
+### Odgovori kupca (2026-09-26)
+
+Plan izvedbe: [PLAN_OBRACUN_ODGOVORI_KUPCA.md](PLAN_OBRACUN_ODGOVORI_KUPCA.md).
+
+1. **Namjerno.** Na satnicu naplata = sati × cijena; kod paušala i aufmaßa unose se ručno izdani računi.
+2. **Godišnji se dodaje** na platu, **akontacija se oduzima** (dobili unaprijed).
+3. **Kancelarija je fiksno.**
+4. **Doprinosi** se računaju iz platnih lista, nisu uvijek isti.
+5. **Sate isključivo ručno** unose iz potpisanih satnica, jer je samo to mjerodavno (sati iz aplikacije samo kao kontrola).
+6. Da: "SATNICA" je cijena radnika, "SATNICA WH/TRANE" cijena za klijenta.
+7. **Gorivo** se može preuzimati sa DKV.
+
 ## 9. Napomena o podacima
 
 Izvorna tabela sadrži stvarna imena i plate radnika. **Nije kopirana u repozitorijum.** Maketa i ovaj dokument koriste izmišljene podatke i samo agregate.
