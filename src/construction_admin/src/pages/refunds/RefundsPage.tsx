@@ -3,46 +3,38 @@ import {
   Alert,
   Box,
   Button,
-  Card,
-  CardContent,
-  Chip,
-  Collapse,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
+  FormControlLabel,
   MenuItem,
   Stack,
-  Tab,
-  Tabs,
+  Switch,
   TextField,
   Typography,
 } from '@mui/material';
-import { useState } from 'react';
+import type { GridColDef } from '@mui/x-data-grid';
+import { useMemo, useState } from 'react';
 
 import { toApiError } from '../../api/apiError';
-import type { Refund, RefundStatus } from '../../api/types';
+import type { Refund } from '../../api/types';
 import { AttachmentList } from '../../components/AttachmentList';
 import { PageHeader } from '../../components/PageHeader';
 import { ReasonDialog } from '../../components/ReasonDialog';
+import { ResourceDataGrid } from '../../components/ResourceDataGrid';
+import { StatusChip } from '../../components/StatusChip';
 import { useAuth } from '../../auth/useAuth';
 import { canManageArticleOrders } from '../../auth/authHelpers';
 import { useRefundsQuery, useReviewRefund } from '../../features/refunds/useRefunds';
 import { useHighlightTarget } from '../../hooks/useHighlightTarget';
+import { useListQueryState } from '../../hooks/useListQueryState';
+import { useOpenOnParam } from '../../hooks/useOpenOnParam';
 import { useI18n } from '../../i18n/useI18n';
 import { formatDate, formatMoney } from '../../utils/formatting';
 import { NewRefundDialog } from './NewRefundDialog';
 
-type TabValue = 'open' | 'approved' | 'all';
-
-const statusColor: Record<RefundStatus, 'default' | 'success' | 'warning' | 'error'> = {
-  Requested: 'warning',
-  Approved: 'success',
-  Rejected: 'error',
-  Cancelled: 'default',
-};
-
-/** The month the payroll pays it with; months around today, since that is what gets picked. */
+/** The months around today, since that is what gets picked as the payroll to pay a refund with. */
 function monthChoices(): { year: number; month: number }[] {
   const now = new Date();
   const choices: { year: number; month: number }[] = [];
@@ -102,136 +94,182 @@ function ApproveDialog({ refund, onClose }: { refund: Refund | null; onClose: ()
   );
 }
 
-function RefundCard({ refund, highlighted }: { refund: Refund; highlighted: boolean }) {
-  const { t, locale } = useI18n();
-  const { user } = useAuth();
-  const review = useReviewRefund();
-  const [showReceipt, setShowReceipt] = useState(false);
-  const [approving, setApproving] = useState(false);
-  const [declining, setDeclining] = useState(false);
-
-  const own = !!user && refund.requestedByUserId === user.id;
-  const manages = canManageArticleOrders(user);
-  const waiting = refund.status === 'Requested';
-
-  return (
-    <Card variant="outlined" sx={highlighted ? { borderColor: 'primary.main', borderWidth: 2 } : undefined}>
-      <CardContent>
-        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', alignItems: 'center', mb: 1 }}>
-          <Typography sx={{ fontWeight: 700, flex: 1, minWidth: 0 }}>{refund.employeeName}</Typography>
-          <Typography sx={{ fontWeight: 700 }}>
-            {formatMoney(refund.amount, locale)} {refund.currency}
-          </Typography>
-          <Chip size="small" color={statusColor[refund.status]} label={t(`refunds.status.${refund.status}`)} />
-        </Stack>
-
-        <Typography variant="body2">{refund.description}</Typography>
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-          {formatDate(refund.expenseDate)}
-          {refund.projectName ? ` · ${refund.projectName}` : ''}
-          {refund.status === 'Approved' && refund.payrollMonth
-            ? ` · ${t('refunds.paidWith', { month: `${String(refund.payrollMonth).padStart(2, '0')}.${refund.payrollYear}` })}`
-            : ''}
-        </Typography>
-        {refund.status === 'Rejected' && refund.reviewNote && (
-          <Alert severity="error" sx={{ mt: 1 }}>
-            {refund.reviewNote}
-          </Alert>
-        )}
-
-        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mt: 1.5 }}>
-          <Button size="small" onClick={() => setShowReceipt((shown) => !shown)}>
-            {t('refunds.receipt')}
-          </Button>
-          {waiting && manages && !own && (
-            <>
-              <Button size="small" variant="contained" onClick={() => setApproving(true)}>
-                {t('refunds.action.approve')}
-              </Button>
-              <Button size="small" color="error" onClick={() => setDeclining(true)}>
-                {t('refunds.action.decline')}
-              </Button>
-            </>
-          )}
-          {waiting && own && (
-            <Button
-              size="small"
-              disabled={review.isPending}
-              onClick={() => review.mutate({ id: refund.id, input: { status: 'Cancelled' } })}
-            >
-              {t('refunds.action.withdraw')}
-            </Button>
-          )}
-        </Stack>
-
-        <Collapse in={showReceipt} unmountOnExit>
-          <Box sx={{ mt: 1 }}>
-            <AttachmentList ownerType="Refund" ownerId={refund.id} categories={['Photo', 'Other']} canUpload={own || manages} />
-          </Box>
-        </Collapse>
-
-        <ApproveDialog refund={approving ? refund : null} onClose={() => setApproving(false)} />
-        <ReasonDialog
-          open={declining}
-          title={t('refunds.declineTitle')}
-          hint={t('refunds.declineHint')}
-          label={t('refunds.declineReason')}
-          submitLabel={t('refunds.action.decline')}
-          onClose={() => setDeclining(false)}
-          onSubmit={async (note) => {
-            await review.mutateAsync({ id: refund.id, input: { status: 'Rejected', note } });
-            setDeclining(false);
-          }}
-        />
-      </CardContent>
-    </Card>
-  );
-}
-
 /**
  * Requests to be paid back for something bought for the firm. Each carries the receipt
  * and the reason; an approved one is paid with the payroll of the month it names.
+ * Laid out like every other list in the panel.
  */
 export function RefundsPage() {
-  const { t } = useI18n();
-  const { targetId } = useHighlightTarget();
-  const [tab, setTab] = useState<TabValue>('open');
-  const [creating, setCreating] = useState(false);
+  const { t, locale } = useI18n();
+  const { user } = useAuth();
+  const list = useListQueryState('createdAt', 'desc');
+  const { targetId, isHighlighted } = useHighlightTarget();
+  const review = useReviewRefund();
 
-  const query = useRefundsQuery({
-    pageNumber: 1,
-    pageSize: 100,
-    status: tab === 'open' ? 'Requested' : tab === 'approved' ? 'Approved' : undefined,
-  });
-  const items = query.data?.items ?? [];
+  const [waitingOnly, setWaitingOnly] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [approving, setApproving] = useState<Refund | null>(null);
+  const [declining, setDeclining] = useState<Refund | null>(null);
+  const [receipt, setReceipt] = useState<Refund | null>(null);
+  useOpenOnParam('new', () => setCreating(true));
+
+  const manages = canManageArticleOrders(user);
+
+  const query = useMemo(
+    () => ({
+      ...list.query,
+      // The API has no text search on this collection.
+      search: undefined,
+      status: waitingOnly ? ('Requested' as const) : undefined,
+    }),
+    [list.query, waitingOnly],
+  );
+
+  const { data, isLoading, isError, error, refetch } = useRefundsQuery(query);
+
+  const columns: GridColDef<Refund>[] = useMemo(
+    () => [
+      { field: 'employeeName', headerName: t('refunds.employee'), flex: 1, minWidth: 160, sortable: false },
+      { field: 'description', headerName: t('refunds.reason'), flex: 2, minWidth: 220, sortable: false },
+      {
+        field: 'amount',
+        headerName: t('refunds.amount'),
+        width: 130,
+        align: 'right',
+        headerAlign: 'right',
+        valueGetter: (_value, row) => `${formatMoney(row.amount, locale)} ${row.currency}`,
+      },
+      { field: 'expenseDate', headerName: t('refunds.expenseDate'), width: 130, valueGetter: (value) => formatDate(value) },
+      {
+        field: 'status',
+        headerName: t('refunds.statusColumn'),
+        width: 150,
+        renderCell: (params) => (
+          <StatusChip status={params.row.status} kind="refundStatus" />
+        ),
+      },
+      {
+        field: 'payroll',
+        headerName: t('refunds.payrollColumn'),
+        width: 120,
+        sortable: false,
+        valueGetter: (_value, row) =>
+          row.status === 'Approved' && row.payrollMonth ? `${String(row.payrollMonth).padStart(2, '0')}.${row.payrollYear}` : '—',
+      },
+      {
+        field: 'actions',
+        headerName: '',
+        width: 330,
+        sortable: false,
+        filterable: false,
+        align: 'right',
+        headerAlign: 'right',
+        renderCell: (params) => {
+          const refund = params.row;
+          const own = !!user && refund.requestedByUserId === user.id;
+          const waiting = refund.status === 'Requested';
+
+          return (
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', height: '100%' }}>
+              <Button size="small" onClick={() => setReceipt(refund)}>
+                {t('refunds.receipt')}
+              </Button>
+              {waiting && manages && !own && (
+                <>
+                  <Button size="small" variant="contained" onClick={() => setApproving(refund)}>
+                    {t('refunds.action.approve')}
+                  </Button>
+                  <Button size="small" color="error" onClick={() => setDeclining(refund)}>
+                    {t('refunds.action.decline')}
+                  </Button>
+                </>
+              )}
+              {waiting && own && (
+                <Button
+                  size="small"
+                  disabled={review.isPending}
+                  onClick={() => review.mutate({ id: refund.id, input: { status: 'Cancelled' } })}
+                >
+                  {t('refunds.action.withdraw')}
+                </Button>
+              )}
+            </Stack>
+          );
+        },
+      },
+    ],
+    [t, locale, user, manages, review],
+  );
 
   return (
-    <>
+    <Box>
       <PageHeader
         title={t('refunds.title')}
+        subtitle={data ? t('common.total', { count: data.totalCount }) : undefined}
         description={t('refunds.description')}
         action={{ label: t('refunds.new'), icon: <AddOutlined />, onClick: () => setCreating(true) }}
       />
 
-      <Tabs value={tab} onChange={(_, value: TabValue) => setTab(value)} sx={{ mb: 2 }}>
-        <Tab value="open" label={t('refunds.tab.open')} />
-        <Tab value="approved" label={t('refunds.tab.approved')} />
-        <Tab value="all" label={t('refunds.tab.all')} />
-      </Tabs>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ flexWrap: 'wrap', mb: 2, alignItems: { sm: 'center' } }}>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={waitingOnly}
+              onChange={(event) => {
+                setWaitingOnly(event.target.checked);
+                list.resetToFirstPage();
+              }}
+            />
+          }
+          label={t('refunds.waitingOnly')}
+        />
+      </Stack>
 
-      {query.isError ? (
-        <Alert severity="error">{t('common.somethingWentWrong')}</Alert>
-      ) : items.length === 0 && !query.isLoading ? (
-        <Typography color="text.secondary">{t('refunds.empty')}</Typography>
-      ) : (
-        <Stack spacing={2}>
-          {items.map((refund) => (
-            <RefundCard key={refund.id} refund={refund} highlighted={refund.id === targetId} />
-          ))}
-        </Stack>
-      )}
+      <ResourceDataGrid
+        data={data}
+        columns={columns}
+        isLoading={isLoading}
+        isError={isError}
+        error={error}
+        onRetry={() => void refetch()}
+        paginationModel={list.paginationModel}
+        onPaginationModelChange={list.setPaginationModel}
+        sortModel={list.sortModel}
+        onSortModelChange={list.setSortModel}
+        highlightedId={targetId && isHighlighted(targetId) ? targetId : null}
+      />
 
       <NewRefundDialog open={creating} onClose={() => setCreating(false)} />
-    </>
+      <ApproveDialog refund={approving} onClose={() => setApproving(null)} />
+      <ReasonDialog
+        open={!!declining}
+        title={t('refunds.declineTitle')}
+        hint={t('refunds.declineHint')}
+        label={t('refunds.declineReason')}
+        submitLabel={t('refunds.action.decline')}
+        onClose={() => setDeclining(null)}
+        onSubmit={async (note) => {
+          if (!declining) return;
+          await review.mutateAsync({ id: declining.id, input: { status: 'Rejected', note } });
+          setDeclining(null);
+        }}
+      />
+      <Dialog open={!!receipt} onClose={() => setReceipt(null)} fullWidth maxWidth="sm">
+        <DialogTitle>{t('refunds.receipt')}</DialogTitle>
+        <DialogContent>
+          {receipt && (
+            <AttachmentList
+              ownerType="Refund"
+              ownerId={receipt.id}
+              categories={['Photo', 'Other']}
+              canUpload={manages || (!!user && receipt.requestedByUserId === user.id)}
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setReceipt(null)}>{t('common.close')}</Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
   );
 }

@@ -33,6 +33,8 @@ export type EnumKind =
   | 'workItemPriority'
   | 'absenceType'
   | 'absenceStatus'
+  | 'articleOrderStatus'
+  | 'refundStatus'
   | 'materialMovementKind'
   | 'vehicleExpenseKind'
   | 'vehicleExpenseStatus'

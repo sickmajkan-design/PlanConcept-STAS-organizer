@@ -1,125 +1,142 @@
 import { AddOutlined } from '@mui/icons-material';
-import { Alert, Box, Card, CardContent, Chip, Stack, Tab, Tabs, Typography } from '@mui/material';
-import { useState } from 'react';
+import { Alert, Box, FormControlLabel, Stack, Switch, Tooltip, Typography } from '@mui/material';
+import type { GridColDef } from '@mui/x-data-grid';
+import { useMemo, useState } from 'react';
 
-import type { ArticleOrder, ArticleOrderStatus } from '../../api/types';
+import type { ArticleOrder } from '../../api/types';
 import { PageHeader } from '../../components/PageHeader';
+import { ResourceDataGrid } from '../../components/ResourceDataGrid';
+import { StatusChip } from '../../components/StatusChip';
 import { ArticleOrderActions } from '../../features/articleOrders/ArticleOrderActions';
 import { useArticleOrdersQuery } from '../../features/articleOrders/useArticleOrders';
 import { useHighlightTarget } from '../../hooks/useHighlightTarget';
+import { useListQueryState } from '../../hooks/useListQueryState';
+import { useOpenOnParam } from '../../hooks/useOpenOnParam';
 import { useT } from '../../i18n/useI18n';
 import { formatDate } from '../../utils/formatting';
 import { NewArticleOrderDialog } from './NewArticleOrderDialog';
 
-type Tab = 'open' | 'done' | 'all';
+/** "1 par Radne cipele (broj 43), 2 kom Sljem": what was asked for, on one line. */
+function itemsSummary(order: ArticleOrder): string {
+  return order.items
+    .map((item) => {
+      const detail = [item.quantity, item.unit].filter((part) => part !== null && part !== '').join(' ');
 
-const statusColor: Record<ArticleOrderStatus, 'default' | 'info' | 'warning' | 'success' | 'error'> = {
-  Requested: 'warning',
-  Ordered: 'info',
-  InDelivery: 'info',
-  Delivered: 'success',
-  Rejected: 'error',
-  Cancelled: 'default',
-};
-
-export function ArticleOrderStatusChip({ status }: { status: ArticleOrderStatus }) {
-  const t = useT();
-
-  return <Chip size="small" color={statusColor[status]} label={t(`articleOrders.status.${status}`)} />;
-}
-
-function OrderCard({ order, highlighted }: { order: ArticleOrder; highlighted: boolean }) {
-  const t = useT();
-
-  return (
-    <Card variant="outlined" sx={highlighted ? { borderColor: 'primary.main', borderWidth: 2 } : undefined}>
-      <CardContent>
-        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', alignItems: 'center', mb: 1 }}>
-          <Typography sx={{ fontWeight: 700, flex: 1, minWidth: 0 }}>{order.requestedByName}</Typography>
-          {order.urgent && <Chip size="small" color="error" variant="outlined" label={t('articleOrders.urgentChip')} />}
-          <ArticleOrderStatusChip status={order.status} />
-        </Stack>
-
-        <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
-          {order.items.map((item) => (
-            <li key={item.id}>
-              <Typography variant="body2">
-                {item.quantity} {item.unit} {item.name}
-                {item.note ? ` (${item.note})` : ''}
-              </Typography>
-            </li>
-          ))}
-        </Box>
-
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-          {formatDate(order.createdAt)}
-          {order.projectName ? ` · ${order.projectName}` : ''}
-        </Typography>
-        {order.note && (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            {order.note}
-          </Typography>
-        )}
-        {order.status === 'Rejected' && order.reviewNote && (
-          <Alert severity="error" sx={{ mt: 1 }}>
-            {order.reviewNote}
-          </Alert>
-        )}
-
-        <Box sx={{ mt: 1.5 }}>
-          <ArticleOrderActions order={order} />
-        </Box>
-      </CardContent>
-    </Card>
-  );
+      return `${detail} ${item.name}${item.note ? ` (${item.note})` : ''}`.trim();
+    })
+    .join(', ');
 }
 
 /**
  * Requests for articles. Anyone signed in asks; the office orders, sends and declines;
- * the person who asked confirms it arrived. Open ones first, since that is what
- * somebody opens the page to deal with.
+ * the person who asked confirms it arrived. Laid out like every other list in the panel:
+ * a header, the one filter people open it for, and the table.
  */
 export function ArticleOrdersPage() {
   const t = useT();
-  const { targetId } = useHighlightTarget();
-  const [tab, setTab] = useState<Tab>('open');
-  const [creating, setCreating] = useState(false);
+  const list = useListQueryState('createdAt', 'desc');
+  const { targetId, isHighlighted } = useHighlightTarget();
 
-  const query = useArticleOrdersQuery({
-    pageNumber: 1,
-    pageSize: 100,
-    openOnly: tab === 'open' || undefined,
-    status: tab === 'done' ? 'Delivered' : undefined,
-  });
-  const items = query.data?.items ?? [];
+  // The one question the page is opened to answer: what is still on its way.
+  const [openOnly, setOpenOnly] = useState(true);
+  const [creating, setCreating] = useState(false);
+  useOpenOnParam('new', () => setCreating(true));
+
+  const query = useMemo(
+    () => ({
+      ...list.query,
+      // The API has no text search on this collection.
+      search: undefined,
+      openOnly: openOnly || undefined,
+    }),
+    [list.query, openOnly],
+  );
+
+  const { data, isLoading, isError, error, refetch } = useArticleOrdersQuery(query);
+
+  const columns: GridColDef<ArticleOrder>[] = useMemo(
+    () => [
+      { field: 'requestedByName', headerName: t('articleOrders.requestedBy'), flex: 1, minWidth: 160, sortable: false },
+      {
+        field: 'items',
+        headerName: t('articleOrders.items'),
+        flex: 2,
+        minWidth: 220,
+        sortable: false,
+        renderCell: (params) => (
+          <Tooltip title={itemsSummary(params.row)}>
+            <Typography variant="body2" noWrap>
+              {itemsSummary(params.row)}
+              {params.row.urgent ? ` · ${t('articleOrders.urgentChip')}` : ''}
+            </Typography>
+          </Tooltip>
+        ),
+      },
+      { field: 'projectName', headerName: t('articleOrders.project'), width: 170, sortable: false, valueGetter: (value) => value ?? '—' },
+      { field: 'createdAt', headerName: t('articleOrders.asked'), width: 120, valueGetter: (value) => formatDate(value) },
+      {
+        field: 'status',
+        headerName: t('articleOrders.statusColumn'),
+        width: 150,
+        renderCell: (params) => <StatusChip status={params.row.status} kind="articleOrderStatus" />,
+      },
+      {
+        field: 'actions',
+        headerName: '',
+        width: 330,
+        sortable: false,
+        filterable: false,
+        align: 'right',
+        headerAlign: 'right',
+        renderCell: (params) => <ArticleOrderActions order={params.row} compact />,
+      },
+    ],
+    [t],
+  );
 
   return (
-    <>
+    <Box>
       <PageHeader
         title={t('articleOrders.title')}
+        subtitle={data ? t('common.total', { count: data.totalCount }) : undefined}
         description={t('articleOrders.description')}
         action={{ label: t('articleOrders.new'), icon: <AddOutlined />, onClick: () => setCreating(true) }}
       />
 
-      <Tabs value={tab} onChange={(_, value: Tab) => setTab(value)} sx={{ mb: 2 }}>
-        <Tab value="open" label={t('articleOrders.tab.open')} />
-        <Tab value="done" label={t('articleOrders.tab.done')} />
-        <Tab value="all" label={t('articleOrders.tab.all')} />
-      </Tabs>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ flexWrap: 'wrap', mb: 2, alignItems: { sm: 'center' } }}>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={openOnly}
+              onChange={(event) => {
+                setOpenOnly(event.target.checked);
+                list.resetToFirstPage();
+              }}
+            />
+          }
+          label={t('articleOrders.openOnly')}
+        />
+      </Stack>
 
-      {query.isError ? (
+      {isError && !data ? (
         <Alert severity="error">{t('common.somethingWentWrong')}</Alert>
-      ) : items.length === 0 && !query.isLoading ? (
-        <Typography color="text.secondary">{t('articleOrders.empty')}</Typography>
-      ) : (
-        <Stack spacing={2}>
-          {items.map((order) => (
-            <OrderCard key={order.id} order={order} highlighted={order.id === targetId} />
-          ))}
-        </Stack>
-      )}
+      ) : null}
+
+      <ResourceDataGrid
+        data={data}
+        columns={columns}
+        isLoading={isLoading}
+        isError={isError}
+        error={error}
+        onRetry={() => void refetch()}
+        paginationModel={list.paginationModel}
+        onPaginationModelChange={list.setPaginationModel}
+        sortModel={list.sortModel}
+        onSortModelChange={list.setSortModel}
+        highlightedId={targetId && isHighlighted(targetId) ? targetId : null}
+      />
 
       <NewArticleOrderDialog open={creating} onClose={() => setCreating(false)} />
-    </>
+    </Box>
   );
 }
