@@ -415,7 +415,7 @@ export const en = {
   'invoices.amountHelp': 'Negative for a credit note.',
   'invoices.issueDate': 'Issue date',
   'invoices.dueDate': 'Due date',
-  'invoices.description': 'Description',
+  'invoices.descriptionField': 'Description',
   'invoices.payrollMonth': 'Counted in payroll month',
   'invoices.payrollMonthHelp': 'Which month’s billing this invoice counts toward.',
   'invoices.sameAsIssued': 'Same as issue date',

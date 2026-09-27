@@ -438,7 +438,7 @@ export const sr: Record<MessageKey, Message> = {
   'invoices.amountHelp': 'Negativan za storno.',
   'invoices.issueDate': 'Datum izdavanja',
   'invoices.dueDate': 'Rok plaćanja',
-  'invoices.description': 'Opis',
+  'invoices.descriptionField': 'Opis',
   'invoices.payrollMonth': 'Ubraja se u mjesec obračuna',
   'invoices.payrollMonthHelp': 'U naplatu kog mjeseca ova faktura ulazi.',
   'invoices.sameAsIssued': 'Isto kao datum izdavanja',

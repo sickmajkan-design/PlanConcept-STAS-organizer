@@ -1,7 +1,7 @@
 import { Box, CircularProgress } from '@mui/material';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
-import { canSeeLabourCost, canViewFinance, isSuperAdmin } from '../auth/authHelpers';
+import { canManageInvoices, canSeeLabourCost, canViewFinance, isSuperAdmin } from '../auth/authHelpers';
 import { useAuth } from '../auth/useAuth';
 import { paths } from './paths';
 

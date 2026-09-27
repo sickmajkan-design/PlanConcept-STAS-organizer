@@ -210,7 +210,7 @@ export function NewInvoiceDialog({ open, onClose }: { open: boolean; onClose: ()
           </TextField>
 
           <TextField
-            label={t('invoices.description')}
+            label={t('invoices.descriptionField')}
             value={description}
             onChange={(event) => setDescription(event.target.value)}
           />
