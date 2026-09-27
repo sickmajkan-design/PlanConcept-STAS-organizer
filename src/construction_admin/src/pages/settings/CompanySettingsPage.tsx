@@ -23,6 +23,7 @@ import type { CompanySettingsInput } from '../../api/types';
 import { useAuth } from '../../auth/useAuth';
 import { ErrorState } from '../../components/ErrorState';
 import { config } from '../../config';
+import { LeaveSettingsCard } from '../../features/absences/LeaveSettingsCard';
 import {
   companySettingsFormSchema,
   type CompanySettingsFormValues,
@@ -494,6 +495,8 @@ export function CompanySettingsPage() {
           </Stack>
         </form>
       </Paper>
+
+      <LeaveSettingsCard />
     </Box>
   );
 }

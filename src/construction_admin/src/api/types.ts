@@ -945,12 +945,47 @@ export interface Absence {
   createdAt: string;
 }
 
+/** An employee's annual leave for one year, in working days. */
 export interface AbsenceBalance {
   employeeId: string;
   year: number;
+  /** Everything that may be used as of today: the year's right, corrections and carried-over days not yet expired. */
   allowanceDays: number;
   usedDays: number;
   remainingDays: number;
+  /** The year's own right (pro rata in the year of starting). */
+  entitlementDays: number;
+  adjustmentDays: number;
+  carriedOverDays: number;
+  carriedOverUsedDays: number;
+  carriedOverExpiredDays: number;
+  /** `YYYY-MM-DD` — the first day a carried-over day can no longer be used. */
+  carryOverExpiresOn: string;
+  carryingIntoNextYearDays: number;
+}
+
+/** One manual correction of somebody's annual leave. */
+export interface LeaveAdjustment {
+  id: string;
+  employeeId: string;
+  year: number;
+  days: number;
+  reason: string;
+  createdAt: string;
+  createdBy: string | null;
+}
+
+export interface LeaveAdjustmentInput {
+  employeeId: string;
+  year: number;
+  days: number;
+  reason: string;
+}
+
+/** What the firm decided about leave. The amount is money, so it needs the finance grant. */
+export interface LeaveSettings {
+  annualLeaveDailyRate: number | null;
+  holidayCountryCode: string | null;
 }
 
 export interface AbsenceInput {

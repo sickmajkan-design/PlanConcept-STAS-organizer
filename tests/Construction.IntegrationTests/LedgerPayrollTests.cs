@@ -11,6 +11,7 @@ using Construction.Application.Features.Ledgers.Queries.GetLedgerSectionRows;
 using Construction.Application.Features.Ledgers.Queries.GetLedgerSummary;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
 
 namespace Construction.IntegrationTests;
 
@@ -148,7 +149,7 @@ public class LedgerPayrollTests : IntegrationTestBase
         // The hour columns are not formulas: hours are typed from the signed timesheets.
         var expected = new List<string>
         {
-            "hours", "pay", "billing", "margin", "result", "workerRate", "fuel", "rent", "housing", "refund",
+            "hours", "pay", "billing", "margin", "result", "workerRate", "fuel", "rent", "housing", "refund", "holiday",
         };
 
         Assert.Equal(expected.OrderBy(k => k), formulaColumns.OrderBy(k => k));
@@ -751,6 +752,75 @@ public class LedgerPayrollTests : IntegrationTestBase
 
         Assert.Equal(50m, Value(month, row, LedgerTemplates.Keys.Refund));
         Assert.Equal(250m, Value(month, row, LedgerTemplates.Keys.Pay));          // 20 x 10 + 50
+    }
+
+    [Fact]
+    public async Task Annual_leave_is_paid_by_the_working_day_at_the_firms_amount_and_only_for_the_month_it_falls_in()
+    {
+        var (employee, project) = await SeedWorkerWithShiftsAsync([(1, 8, TimeEntryStatus.Approved)]);
+
+        await InScope(async scope =>
+        {
+            // The firm decides what a day pays (the customer: 32 EUR net) and whose holidays count.
+            var settings = await scope.Db.CompanySettings.FirstOrDefaultAsync();
+            if (settings is null)
+            {
+                settings = new CompanySettings { Name = "Test firm" };
+                scope.Db.CompanySettings.Add(settings);
+            }
+
+            settings.AnnualLeaveDailyRate = 32m;
+            settings.LeaveHolidayCountryCode = "DE";
+
+            scope.Db.PublicHolidays.Add(new PublicHoliday
+            {
+                Date = new DateOnly(2026, 9, 16), Name = "Test holiday", CountryCode = "DE",
+            });
+
+            // Mon 14 - Fri 18 Sept (one day is a holiday), and Mon 28 Sept - Fri 2 Oct: the last two
+            // days belong to October's payroll.
+            foreach (var (start, end) in new[]
+            {
+                (new DateOnly(2026, 9, 14), new DateOnly(2026, 9, 18)),
+                (new DateOnly(2026, 9, 28), new DateOnly(2026, 10, 2)),
+            })
+            {
+                scope.Db.Absences.Add(new Absence
+                {
+                    EmployeeId = employee.Id,
+                    Type = AbsenceType.AnnualLeave,
+                    Status = AbsenceStatus.Approved,
+                    StartDate = start,
+                    EndDate = end,
+                });
+            }
+
+            await scope.Db.SaveChangesAsync();
+        });
+
+        try
+        {
+            var month = await NewMonthAsync();
+            var (section, rowId) = await RowForAsync(month, employee, project);
+
+            await SetAsync(month, rowId, LedgerTemplates.Keys.WorkerRate, "20");
+            await SetAsync(month, rowId, LedgerTemplates.Keys.Week(1), "10");
+
+            var row = await ReadRowAsync(month, section, rowId);
+
+            // September: 4 working days in the first week (the 16th is a holiday) + 3 (28-30 Sept) = 7.
+            Assert.Equal(224m, Value(month, row, LedgerTemplates.Keys.Holiday));
+            Assert.Equal(424m, Value(month, row, LedgerTemplates.Keys.Pay));      // 20 x 10 + 224
+        }
+        finally
+        {
+            await InScope(async scope =>
+            {
+                await scope.Db.CompanySettings.ExecuteDeleteAsync();
+                await scope.Db.PublicHolidays.Where(h => h.Name == "Test holiday").ExecuteDeleteAsync();
+                await scope.Db.Absences.Where(a => a.EmployeeId == employee.Id).ExecuteDeleteAsync();
+            });
+        }
     }
 
     // ---- fuel, rented cars and housing -----------------------------------

@@ -368,6 +368,43 @@ public static class LedgerAutoValues
             }
         }
 
+        // ---- annual leave pay --------------------------------------------
+
+        var leaveColumns = columns.Where(c => c.Source.Kind == LedgerSourceKinds.EmployeeLeavePay).ToList();
+
+        if (leaveColumns.Count > 0 && firstRow.Count > 0)
+        {
+            var employeeIds = firstRow.Keys.ToList();
+            var from = leaveColumns.Min(c => c.Source.From);
+            var to = leaveColumns.Max(c => c.Source.To);
+
+            var dailyRate = await context.CompanySettings
+                .AsNoTracking()
+                .Select(c => c.AnnualLeaveDailyRate)
+                .FirstOrDefaultAsync(cancellationToken) ?? 0m;
+
+            var taken = await Absences.LeaveData.ApprovedLeaveDaysAsync(
+                context, employeeIds, from, to, cancellationToken);
+
+            foreach (var (columnId, source) in leaveColumns)
+            {
+                foreach (var (employeeId, first) in firstRow)
+                {
+                    // Working days of approved leave inside the month, at the firm's amount for a
+                    // day. On the person's first row only, like refunds: someone on two clients
+                    // must not be paid the same holiday twice.
+                    var days = taken[employeeId].Count(d => d >= source.From && d <= source.To);
+
+                    For(first.RowId)[columnId] = Math.Round(days * dailyRate, 2);
+                }
+
+                foreach (var row in employeeRows)
+                {
+                    For(row.RowId).TryAdd(columnId, 0m);
+                }
+            }
+        }
+
         return Done();
     }
 

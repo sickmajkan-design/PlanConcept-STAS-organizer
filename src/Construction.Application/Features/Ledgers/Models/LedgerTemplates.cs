@@ -115,6 +115,8 @@ public static class LedgerTemplates
                 return new LedgerFormulaSource(LedgerSourceKinds.AccommodationCost, first, last);
             case Keys.Refund:
                 return new LedgerFormulaSource(LedgerSourceKinds.EmployeeRefunds, first, last);
+            case Keys.Holiday:
+                return new LedgerFormulaSource(LedgerSourceKinds.EmployeeLeavePay, first, last);
         }
 
         if (key is not null && key.StartsWith("week", StringComparison.Ordinal)
@@ -225,7 +227,7 @@ public static class LedgerTemplates
         }
 
         // Fuel, rented cars and housing come from their own modules, for the person.
-        foreach (var key in new[] { Keys.Fuel, Keys.Rent, Keys.Housing, Keys.Refund })
+        foreach (var key in new[] { Keys.Fuel, Keys.Rent, Keys.Housing, Keys.Refund, Keys.Holiday })
         {
             columns[key].FormulaJson =
                 new LedgerFormula([], [], SourceFor(key, ledger.Year, ledger.Month)).ToJson();

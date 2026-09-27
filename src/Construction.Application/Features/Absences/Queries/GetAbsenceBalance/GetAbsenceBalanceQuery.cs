@@ -2,7 +2,6 @@ using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Absences.Models;
 using Construction.Domain.Entities;
-using Construction.Domain.Enums;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -10,11 +9,13 @@ using Microsoft.EntityFrameworkCore;
 namespace Construction.Application.Features.Absences.Queries.GetAbsenceBalance;
 
 /// <summary>
-/// How many annual leave days an employee has left in a calendar year.
+/// How many annual leave days an employee has left in a calendar year, in working days.
 /// </summary>
 /// <remarks>
 /// Meant to sit alongside a review decision: granting leave without knowing
-/// what is left of the allowance is a guess, not a decision.
+/// what is left of the allowance is a guess, not a decision. The rules are the customer's:
+/// working days, pro rata in the year of starting, unused days carried over and lost on
+/// 1 June (see <see cref="LeaveCalculator"/>).
 /// </remarks>
 public record GetAbsenceBalanceQuery : IRequest<AbsenceBalanceDto>
 {
@@ -57,41 +58,61 @@ public class GetAbsenceBalanceQueryHandler : IRequestHandler<GetAbsenceBalanceQu
             ? _currentUserService.EmployeeId ?? Guid.Empty
             : request.EmployeeId;
 
-        var year = request.Year ?? _dateTimeProvider.UtcNow.Year;
-        var yearStart = new DateOnly(year, 1, 1);
-        var yearEnd = new DateOnly(year, 12, 31);
+        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var year = request.Year ?? today.Year;
 
-        var allowance = await _context.Employees
+        var employee = await _context.Employees
             .AsNoTracking()
             .Where(e => e.Id == employeeId)
-            .Select(e => (int?)e.AnnualLeaveDaysAllowance)
+            .Select(e => new { e.AnnualLeaveDaysAllowance, e.EmploymentDate })
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException(nameof(Employee), employeeId);
 
-        // Overlap with the year, clipped at both ends, so a run of leave that
-        // crosses New Year's only counts the days that actually fall in it.
-        var overlapping = await _context.Absences
-            .AsNoTracking()
-            .Where(a => a.EmployeeId == employeeId)
-            .Where(a => a.Type == AbsenceType.AnnualLeave)
-            .Where(a => a.Status == AbsenceStatus.Approved)
-            .Where(a => a.StartDate <= yearEnd && a.EndDate >= yearStart)
-            .Select(a => new { a.StartDate, a.EndDate })
-            .ToListAsync(cancellationToken);
+        var firstYear = Math.Max(employee.EmploymentDate.Year, year - LeaveCalculator.MaxCarryYears);
+        firstYear = Math.Min(firstYear, year);
 
-        var usedDays = overlapping.Sum(a =>
-        {
-            var clippedStart = a.StartDate > yearStart ? a.StartDate : yearStart;
-            var clippedEnd = a.EndDate < yearEnd ? a.EndDate : yearEnd;
-            return clippedEnd.DayNumber - clippedStart.DayNumber + 1;
-        });
+        var taken = (await LeaveData.ApprovedLeaveDaysAsync(
+                _context,
+                [employeeId],
+                new DateOnly(firstYear, 1, 1),
+                new DateOnly(year, 12, 31),
+                cancellationToken))[employeeId];
+
+        var adjustments = await _context.LeaveAdjustments
+            .AsNoTracking()
+            .Where(a => a.EmployeeId == employeeId && a.Year >= firstYear && a.Year <= year)
+            .GroupBy(a => a.Year)
+            .Select(g => new { Year = g.Key, Days = g.Sum(a => a.Days) })
+            .ToDictionaryAsync(g => g.Year, g => g.Days, cancellationToken);
+
+        var standing = LeaveCalculator.Standing(
+            employee.AnnualLeaveDaysAllowance,
+            employee.EmploymentDate,
+            year,
+            adjustments,
+            taken);
+
+        // "As of" is today inside the current year; for a year gone by everything has expired,
+        // and for a year to come nothing has.
+        var asOf = year < today.Year ? new DateOnly(year, 12, 31)
+            : year > today.Year ? new DateOnly(year, 1, 1)
+            : today;
+
+        var remaining = LeaveCalculator.Remaining(standing, asOf);
 
         return new AbsenceBalanceDto
         {
             EmployeeId = employeeId,
             Year = year,
-            AllowanceDays = allowance,
-            UsedDays = usedDays,
+            AllowanceDays = remaining + standing.UsedDays,
+            UsedDays = standing.UsedDays,
+            EntitlementDays = standing.Entitlement,
+            AdjustmentDays = standing.Adjustments,
+            CarriedOverDays = standing.CarryIn,
+            CarriedOverUsedDays = standing.CarryInUsed,
+            CarriedOverExpiredDays = LeaveCalculator.CarryExpired(standing, asOf),
+            CarryOverExpiresOn = LeaveCalculator.CarryOverExpiry(year),
+            CarryingIntoNextYearDays = standing.CarryOut,
         };
     }
 }

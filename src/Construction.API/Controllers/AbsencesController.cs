@@ -1,7 +1,9 @@
 using Construction.API.Authorization;
 using Construction.API.Filters;
 using Construction.Application.Common.Models;
+using Construction.Application.Features.Absences;
 using Construction.Application.Features.Absences.Commands.ConfirmAbsenceEdit;
+using Construction.Application.Features.Absences.Commands.CreateLeaveAdjustment;
 using Construction.Application.Features.Absences.Commands.DeleteAbsence;
 using Construction.Application.Features.Absences.Commands.ProposeAbsenceEdit;
 using Construction.Application.Features.Absences.Commands.RequestAbsence;
@@ -9,6 +11,7 @@ using Construction.Application.Features.Absences.Commands.ReviewAbsence;
 using Construction.Application.Features.Absences.Models;
 using Construction.Application.Features.Absences.Queries.GetAbsenceBalance;
 using Construction.Application.Features.Absences.Queries.GetAbsences;
+using Construction.Application.Features.Absences.Queries.GetLeaveAdjustments;
 using Construction.Application.Features.Absences.Queries.GetSchedule;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -140,6 +143,60 @@ public class AbsencesController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
+    }
+
+    /// <summary>The history of manual corrections of somebody's annual leave. A worker sees only their own.</summary>
+    [HttpGet("adjustments")]
+    [Authorize(Policy = Policies.AllEmployees)]
+    [ProducesResponseType(typeof(IReadOnlyList<LeaveAdjustmentDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<IReadOnlyList<LeaveAdjustmentDto>>> GetAdjustments(
+        [FromQuery] GetLeaveAdjustmentsQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>Writes a manual correction of somebody's annual leave (days brought over, a favour, a mistake). Never edited afterwards.</summary>
+    [HttpPost("adjustments")]
+    [Idempotent]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(LeaveAdjustmentDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<LeaveAdjustmentDto>> CreateAdjustment(
+        CreateLeaveAdjustmentCommand command,
+        CancellationToken cancellationToken)
+    {
+        var created = await Mediator.Send(command, cancellationToken);
+
+        return CreatedAtAction(nameof(GetAdjustments), new { employeeId = created.EmployeeId }, created);
+    }
+
+    /// <summary>What the firm decided about leave: the amount a day pays and whose holidays count. Needs the finance grant.</summary>
+    [HttpGet("/api/v{version:apiVersion}/leave-settings")]
+    [HttpGet("/api/leave-settings")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(LeaveSettingsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<LeaveSettingsDto>> GetLeaveSettings(CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetLeaveSettingsQuery(), cancellationToken));
+    }
+
+    /// <summary>Sets what a day of annual leave pays and whose public holidays are not leave days.</summary>
+    [HttpPut("/api/v{version:apiVersion}/leave-settings")]
+    [HttpPut("/api/leave-settings")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(LeaveSettingsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<LeaveSettingsDto>> UpdateLeaveSettings(
+        UpdateLeaveSettingsCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command, cancellationToken));
     }
 
     /// <summary>Withdraws your own unanswered request, or removes one outright.</summary>

@@ -34,6 +34,12 @@ public class CompanySettingsConfiguration : IEntityTypeConfiguration<CompanySett
         builder.Property(c => c.Email)
             .HasMaxLength(256);
 
+        builder.Property(c => c.AnnualLeaveDailyRate)
+            .HasPrecision(10, 2);
+
+        builder.Property(c => c.LeaveHolidayCountryCode)
+            .HasMaxLength(2);
+
         builder.Property(c => c.LogoStorageKey)
             .HasMaxLength(256);
 

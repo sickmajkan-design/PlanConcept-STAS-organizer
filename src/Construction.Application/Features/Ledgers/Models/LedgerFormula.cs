@@ -22,6 +22,9 @@ public static class LedgerSourceKinds
 
     /// <summary>Approved refunds the row's employee is paid back with the payroll of the range's month.</summary>
     public const string EmployeeRefunds = "employeeRefunds";
+
+    /// <summary>The working days of approved annual leave the row's employee takes in the range, at the firm's daily rate.</summary>
+    public const string EmployeeLeavePay = "employeeLeavePay";
 }
 
 /// <summary>A figure the system already knows, offered as the cell's value.</summary>

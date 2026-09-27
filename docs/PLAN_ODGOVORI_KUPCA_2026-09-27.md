@@ -41,7 +41,11 @@ Ulaz: 14 odgovora Darija Stankovića (El Plan Concept GmbH) od 26.–27.9.2026. 
 | 3a. Plate i satnice (zarada radnika, pregledi radnika i projekta, izvoz plata, praznici) traže pravo na iznose, ne samo ulogu | Urađeno |
 | 3b. Ostali iznosi koje vide uloge sa gradilišta (evidencije troškova materijala, vozila, alata, smještaja i njihovi izvozi) | Urađeno: evidentiranje ostaje otvoreno gradilištu, čitanje iznosa traži pravo. Izvještaji troškova su to već tražili. |
 | 4. Voditelj samo svoj projekat, flota, raspored | Nije urađeno |
-| 5–7 | Nije urađeno |
+| 5. Godišnji: radni dani, praznici države iz postavki, 20 dana, srazmjerno u godini zaposlenja, prenos do 1.6., ispravke sa istorijom | Urađeno (kalkulator, upit stanja, ispravke, kartica na stranici radnika) |
+| 6. Godišnji u plati: dani u mjesecu × iznos po danu iz postavki | Urađeno: kolona "Godišnji odmor (+)" se sama popunjava u novim mjesecima obračuna |
+| 7. Widget "Aktivni projekti" (aktivni, planirani, radnici) | Nije urađeno |
+
+Godišnji, pretpostavke koje treba potvrditi s kupcem: (a) "do 01.06." tumačimo tako da je 31.5. posljednji dan za prenesene dane, a 1.6. prvi dan kad propadaju; (b) prenosi se samo neiskorišćeno pravo iz prošle godine, ne gomila iz starijih; (c) praznici se računaju za jednu državu firme (postavka), jer radnik nema vlastitu državu u sistemu; (d) pola dana godišnjeg nije podržano; (e) godišnji se isplaćuje za dane koji padaju u mjesec obračuna, i to samo za direktne radnike, uz mogućnost ručne izmjene u ćeliji.
 
 Napomena: Voditelj i Predradnik bez prava i dalje mogu evidentirati troškove i vide količine, ali ne iznose. Nisu još provjerena sva mjesta gdje se pojavljuje iznos (npr. cijena na kartici materijala, najam vozila i alata, aplikacija na telefonu); to je stavka za prolaz kroz cijelu aplikaciju.
 

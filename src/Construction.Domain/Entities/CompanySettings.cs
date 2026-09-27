@@ -34,6 +34,20 @@ public class CompanySettings : BaseEntity, IAuditable
     /// </summary>
     public string? WeeklyReportsForwardEmail { get; set; }
 
+    /// <summary>
+    /// What one day of annual leave is paid, per working day, in the firm's currency. The firm
+    /// decides it (the customer pays 32 EUR net). Null until set: the payroll then shows no
+    /// leave pay rather than guessing one. It is money, so it is only shown and changed with
+    /// the finance grant, never through the company profile.
+    /// </summary>
+    public decimal? AnnualLeaveDailyRate { get; set; }
+
+    /// <summary>
+    /// Whose public holidays are not leave days (ISO 3166-1 alpha-2, e.g. "DE"). Null counts
+    /// only weekends as non-working.
+    /// </summary>
+    public string? LeaveHolidayCountryCode { get; set; }
+
     /// <summary>The <see cref="Application.Common.Interfaces.IFileStorage"/> key the logo bytes live under.</summary>
     public string? LogoStorageKey { get; set; }
 

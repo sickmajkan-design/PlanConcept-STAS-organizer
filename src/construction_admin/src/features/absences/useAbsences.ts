@@ -7,7 +7,7 @@ import {
   type ReviewAbsenceInput,
   type ScheduleQuery,
 } from '../../api/absences';
-import type { AbsenceInput } from '../../api/types';
+import type { AbsenceInput, LeaveAdjustmentInput, LeaveSettings } from '../../api/types';
 import { createResourceKeys, useResourceList, useResourceMutation } from '../resourceQueries';
 
 export const absenceKeys = createResourceKeys<AbsenceListQuery>('absences');
@@ -36,6 +36,39 @@ export function useAbsenceBalanceQuery(employeeId: string | undefined, year?: nu
     queryFn: () => absencesApi.balance(employeeId!, year),
     enabled: !!employeeId,
   });
+}
+
+/** The history of manual corrections of somebody's leave. */
+export function useLeaveAdjustmentsQuery(employeeId: string | undefined, year?: number) {
+  return useQuery({
+    queryKey: ['absences', 'adjustments', employeeId, year] as const,
+    queryFn: () => absencesApi.adjustments(employeeId!, year),
+    enabled: !!employeeId,
+  });
+}
+
+/** Writing a correction changes the balance and the history, so both are refreshed. */
+export function useCreateLeaveAdjustment() {
+  return useResourceMutation(
+    (input: LeaveAdjustmentInput) => absencesApi.createAdjustment(input),
+    [['absences', 'balance'], ['absences', 'adjustments']],
+  );
+}
+
+/** What a day of leave pays and whose holidays count. Only asked for by those who may see amounts. */
+export function useLeaveSettingsQuery(enabled: boolean) {
+  return useQuery({
+    queryKey: ['leave-settings'] as const,
+    queryFn: () => absencesApi.leaveSettings(),
+    enabled,
+  });
+}
+
+export function useUpdateLeaveSettings() {
+  return useResourceMutation(
+    (input: LeaveSettings) => absencesApi.updateLeaveSettings(input),
+    [['leave-settings']],
+  );
 }
 
 /**

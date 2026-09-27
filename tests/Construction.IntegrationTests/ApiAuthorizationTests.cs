@@ -107,6 +107,12 @@ public class ApiAuthorizationTests
             new("GET", "/api/schedule", UserRole.Worker),
             new("POST", "/api/absences", UserRole.Worker),
             new("POST", $"/api/absences/{Id}/review", UserRole.Admin),
+            new("GET", "/api/absences/adjustments", UserRole.Worker),
+            new("POST", "/api/absences/adjustments", UserRole.Admin),
+            // Admin-and-above at the route; the amount inside is money, so the handler also
+            // wants the finance grant, which a fixture Admin does not have.
+            new("GET", "/api/leave-settings", UserRole.Admin, HandlerNarrows: true),
+            new("PUT", "/api/leave-settings", UserRole.Admin, HandlerNarrows: true),
             new("DELETE", $"/api/absences/{Id}", UserRole.Worker),
 
             // ---- the audit trail -----------------------------------------

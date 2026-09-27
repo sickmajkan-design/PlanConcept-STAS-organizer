@@ -6,6 +6,9 @@ import type {
   AbsenceInput,
   AbsenceStatus,
   AbsenceType,
+  LeaveAdjustment,
+  LeaveAdjustmentInput,
+  LeaveSettings,
   ListQuery,
   PagedList,
   Schedule,
@@ -102,4 +105,20 @@ export const absencesApi = {
       url: '/api/v1/absences/balance',
       params: { employeeId, year },
     }),
+
+  adjustments: (employeeId: string, year?: number) =>
+    request<LeaveAdjustment[]>({
+      method: 'GET',
+      url: '/api/v1/absences/adjustments',
+      params: { employeeId, year },
+    }),
+
+  createAdjustment: (input: LeaveAdjustmentInput) =>
+    request<LeaveAdjustment>({ method: 'POST', url: '/api/v1/absences/adjustments', data: input }),
+
+  leaveSettings: () =>
+    request<LeaveSettings>({ method: 'GET', url: '/api/v1/leave-settings' }),
+
+  updateLeaveSettings: (input: LeaveSettings) =>
+    request<LeaveSettings>({ method: 'PUT', url: '/api/v1/leave-settings', data: input }),
 };
