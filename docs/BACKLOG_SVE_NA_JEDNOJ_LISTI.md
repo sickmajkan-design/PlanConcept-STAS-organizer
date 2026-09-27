@@ -96,7 +96,7 @@ Oznake: **Must** obavezno · **Should** važno · **Could** ako ostane vremena. 
 4. **Potpisane satnice:** skeniraju li se? ~~Ko ih potpisuje~~ — **odgovor (2026-09-26): klijent potpisuje.**
 5. ~~**Sedmica preko granice mjeseca**~~ — **odgovor: dijele se po datumu.** Tako već radi (`MonthWeeks` reže sedmicu na granici mjeseca), bez izmjene.
 6. **Kooperanti:** ostaju li redovi bez imena, kako za njih potpisani sati?
-7. **Prag razlike sati prema aplikaciji:** 4 sata u mjesecu?
+7. ~~**Prag razlike sati prema aplikaciji**~~ — **odgovor (2026-09-27): da, 4 sata u mjesecu.**
 8. **"Uprava"** = Voditelj, Admin, Super Admin?
 9. ~~**Narudžbe:**~~ **odgovor: svaka uloga može naručivati. Naručuju se artikli koje radnik treba za posao (radne hlače, cipele, šljem, alat koji fali), ne građevinski materijal. Uprava naruči i pošalje; kad primalac dobije, sam pritisne „Dostavljeno“. Vidljivi statusi: Naručeno, U dostavi, Dostavljeno.**
 10. **Refundacija:** gornja granica, valuta, uvijek kroz platu?

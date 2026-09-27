@@ -75,6 +75,16 @@ describe('RefundsPage', () => {
     expect(screen.getByRole('button', { name: /^(Decline|Odbij)$/ })).toBeDefined();
   }, SCREEN_TIMEOUT);
 
+  it('does not offer a project manager the decision either, only management decides', async () => {
+    network.reply('/refunds', 200, page([refund()]));
+
+    await renderRefunds('ProjectManager');
+    await screen.findByText('Ana Novak');
+
+    expect(screen.queryByRole('button', { name: /^(Approve|Odobri)$/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /^(Decline|Odbij)$/ })).toBeNull();
+  }, SCREEN_TIMEOUT);
+
   it('does not let anybody decide their own request, only withdraw it', async () => {
     network.reply('/refunds', 200, page([refund({ requestedByUserId: ME })]));
 

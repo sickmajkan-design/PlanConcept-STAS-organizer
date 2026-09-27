@@ -28,6 +28,8 @@ import { useEffect, useMemo, useState } from 'react';
 
 import type { AbsenceListQuery } from '../../api/absences';
 import { exportsApi } from '../../api/exports';
+import { useAuth } from '../../auth/useAuth';
+import { canReviewAbsences } from '../../auth/authHelpers';
 import { absenceStatuses, absenceTypes, type Absence, type AbsenceType } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import {
@@ -390,36 +392,57 @@ function RowActions({
   onConfirmEdit: () => void;
 }) {
   const t = useT();
+  const { user } = useAuth();
+  // Only management answers requests (the API's AdminAndAbove); a site lead
+  // sees the request but has nothing to press.
+  const canReview = canReviewAbsences(user);
   const isPending = absence.status === 'Requested';
 
   // Waiting on management (this side) to confirm what the employee proposed
   // — the only case the admin panel itself has something to click here.
-  const awaitingOurConfirmation = absence.hasPendingEdit && absence.proposedByEmployee;
+  const awaitingOurConfirmation =
+    canReview && absence.hasPendingEdit && absence.proposedByEmployee;
   const canProposeEdit =
     absence.status === 'Approved' && absence.type === 'AnnualLeave' && !absence.hasPendingEdit;
 
   return (
     <Stack direction="row" spacing={0.5}>
-      <Tooltip title={isPending ? t('absences.approve') : t('absences.answered')}>
+      <Tooltip
+        title={
+          !isPending
+            ? t('absences.answered')
+            : canReview
+              ? t('absences.approve')
+              : t('absences.managementOnly')
+        }
+      >
         {/* A disabled button swallows its own events, so the tooltip needs a
             wrapper that still receives them. */}
         <span>
           <IconButton
             size="small"
             color="success"
-            disabled={!isPending}
+            disabled={!isPending || !canReview}
             onClick={onApprove}
           >
             <CheckOutlined fontSize="small" />
           </IconButton>
         </span>
       </Tooltip>
-      <Tooltip title={isPending ? t('absences.reject') : t('absences.answered')}>
+      <Tooltip
+        title={
+          !isPending
+            ? t('absences.answered')
+            : canReview
+              ? t('absences.reject')
+              : t('absences.managementOnly')
+        }
+      >
         <span>
           <IconButton
             size="small"
             color="warning"
-            disabled={!isPending}
+            disabled={!isPending || !canReview}
             onClick={onRefuse}
           >
             <CloseOutlined fontSize="small" />

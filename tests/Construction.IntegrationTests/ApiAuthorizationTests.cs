@@ -106,7 +106,7 @@ public class ApiAuthorizationTests
             new("GET", "/api/absences", UserRole.Worker),
             new("GET", "/api/schedule", UserRole.Worker),
             new("POST", "/api/absences", UserRole.Worker),
-            new("POST", $"/api/absences/{Id}/review", UserRole.Foreman),
+            new("POST", $"/api/absences/{Id}/review", UserRole.Admin),
             new("DELETE", $"/api/absences/{Id}", UserRole.Worker),
 
             // ---- the audit trail -----------------------------------------
@@ -148,10 +148,12 @@ public class ApiAuthorizationTests
             // refused here whatever the role policy says.
             new("POST", "/api/employee-rates", UserRole.Foreman, HandlerNarrows: true),
             new("DELETE", $"/api/employee-rates/{Id}", UserRole.Foreman, HandlerNarrows: true),
-            new("GET", "/api/material-movements", UserRole.Foreman),
+            // Recording is open to the site; reading the amounts back needs the
+            // finance grant, which the handler checks.
+            new("GET", "/api/material-movements", UserRole.Foreman, HandlerNarrows: true),
             new("POST", "/api/material-movements", UserRole.Foreman),
             new("DELETE", $"/api/material-movements/{Id}", UserRole.Foreman, HandlerNarrows: true),
-            new("GET", "/api/vehicle-expenses", UserRole.Foreman),
+            new("GET", "/api/vehicle-expenses", UserRole.Foreman, HandlerNarrows: true),
             new("GET", "/api/vehicle-expenses/fuel-consumption-flags", UserRole.Foreman),
             new("POST", "/api/vehicle-expenses", UserRole.Foreman),
             new("DELETE", $"/api/vehicle-expenses/{Id}", UserRole.Foreman, HandlerNarrows: true),

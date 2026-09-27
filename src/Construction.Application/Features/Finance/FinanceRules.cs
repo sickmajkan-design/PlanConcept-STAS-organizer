@@ -18,6 +18,15 @@ namespace Construction.Application.Features.Finance;
 /// </remarks>
 public static class FinanceRules
 {
+    /// <summary>
+    /// Whether an account of this role may be given a finance grant at all.
+    /// The customer's rule: figures in euro are for the Super Admin and whoever
+    /// they choose, and that choice is fixed so it cannot fall on a worker.
+    /// </summary>
+    public static bool CanBeGranted(UserRole? role) =>
+        role is UserRole.SuperAdmin or UserRole.Admin
+            or UserRole.ProjectManager or UserRole.Foreman;
+
     public static async Task<FinanceAccess> ResolveAsync(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
@@ -28,7 +37,9 @@ public static class FinanceRules
             return FinanceAccess.Full;
         }
 
-        if (currentUserService.UserId is not { } userId)
+        // A grant can never reach a worker or a customer login, even if a
+        // value was stored on the row before that rule existed.
+        if (!CanBeGranted(currentUserService.Role) || currentUserService.UserId is not { } userId)
         {
             return FinanceAccess.None;
         }
@@ -39,6 +50,34 @@ public static class FinanceRules
             .Select(u => u.FinanceAccess)
             .FirstOrDefaultAsync(cancellationToken);
     }
+
+    /// <summary>
+    /// Whether the caller may see what people are paid — rates, pay entries and
+    /// every figure derived from them. Two things at once: a role that pay may
+    /// ever be shown to (<see cref="Costs.CostRules.CanSeeLabourCost"/>), and the
+    /// full finance grant, which only a Super Admin hands out. A project manager
+    /// without the grant sees the hours, never the euro.
+    /// </summary>
+    public static async Task<bool> CanSeePayAsync(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        CancellationToken cancellationToken) =>
+        Costs.CostRules.CanSeeLabourCost(currentUserService.Role)
+        && await ResolveAsync(context, currentUserService, cancellationToken) == FinanceAccess.Full;
+
+    /// <summary>
+    /// Whether the caller may see what was spent — the amounts on recorded
+    /// materials, fuel, tools, vehicles and accommodation. A site role may
+    /// still <em>record</em> spending (<see cref="Costs.CostRules.CanRecordSpending"/>);
+    /// reading the euro back needs the full finance grant, so a foreman sees
+    /// quantities and litres but not what they cost.
+    /// </summary>
+    public static async Task<bool> CanSeeSpendingAsync(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        CancellationToken cancellationToken) =>
+        Costs.CostRules.CanSeeSpending(currentUserService.Role)
+        && await ResolveAsync(context, currentUserService, cancellationToken) == FinanceAccess.Full;
 
     /// <summary>
     /// Refuses unless the caller may see statistics — the derived percentages,

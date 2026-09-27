@@ -129,7 +129,7 @@ public class GetCompanyCostsQueryHandler : IRequestHandler<GetCompanyCostsQuery,
             await FinanceRules.EnsureFullAsync(_context, _currentUserService, cancellationToken);
         }
 
-        var includesLabour = CostRules.CanSeeLabourCost(role);
+        var includesLabour = await FinanceRules.CanSeePayAsync(_context, _currentUserService, cancellationToken);
         var from = request.From;
         var to = request.To;
 

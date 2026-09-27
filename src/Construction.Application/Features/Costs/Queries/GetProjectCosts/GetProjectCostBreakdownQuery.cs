@@ -225,7 +225,7 @@ public class GetProjectCostBreakdownQueryHandler
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException(nameof(Project), request.ProjectId);
 
-        var includesLabour = CostRules.CanSeeLabourCost(role);
+        var includesLabour = await FinanceRules.CanSeePayAsync(_context, _currentUserService, cancellationToken);
 
         // The figures at the top are the report's own, so the two can never disagree.
         var report = await _sender.Send(

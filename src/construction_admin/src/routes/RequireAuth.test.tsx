@@ -39,7 +39,8 @@ function signedIn(role: Role): User {
     lastName: null,
     lastLoginAt: null,
     canViewCustomerTaxDetails: false,
-    financeAccess: 'None',
+    // The server reports Full for a Super Admin whatever the column holds.
+    financeAccess: role === 'SuperAdmin' ? 'Full' : 'None',
   };
 }
 
@@ -148,10 +149,17 @@ describe('the role guards', () => {
     [
       'RequireLabourCostAccess',
       RequireLabourCostAccess,
-      ['SuperAdmin', 'Admin', 'ProjectManager'],
-      ['Foreman', 'Worker'],
+      // Pay is behind the finance grant, so a role alone is not enough.
+      ['SuperAdmin'],
+      ['Admin', 'ProjectManager', 'Foreman', 'Worker'],
     ],
   ];
+
+  it('RequireLabourCostAccess lets a project manager through once granted the figures', () => {
+    renderGuard(RequireLabourCostAccess, { ...signedIn('ProjectManager'), financeAccess: 'Full' });
+
+    expect(showing('the guarded screen')).toBe(true);
+  });
 
   for (const [name, Guard, admitted, refused] of cases) {
     describe(name, () => {

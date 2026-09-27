@@ -1,6 +1,12 @@
 import type { ComponentType } from 'react';
 
-import { canManageArticleOrders, canViewDirectory, canViewFinance, canViewFinanceStatistics } from '../../auth/authHelpers';
+import {
+  canManageArticleOrders,
+  canReviewAbsences,
+  canViewDirectory,
+  canViewFinance,
+  canViewFinanceStatistics,
+} from '../../auth/authHelpers';
 import type { User } from '../../api/types';
 
 import type { MessageKey } from '../../i18n/en';
@@ -136,8 +142,8 @@ export const widgetRegistry: Record<DashboardWidgetType, WidgetRegistryEntry> = 
   AbsenceRequests: {
     component: AbsenceRequestsWidget,
     titleKey: 'dashboard.widget.AbsenceRequests',
-    // Answering a request is the API's ForemanAndAbove.
-    allowed: canViewDirectory,
+    // Answering a request is the API's AdminAndAbove.
+    allowed: canReviewAbsences,
   },
   ActiveProjects: {
     component: ActiveProjectsWidget,

@@ -17,6 +17,8 @@ import { Controller, useForm } from 'react-hook-form';
 
 import { toApiError } from '../../api/apiError';
 import { absenceTypes } from '../../api/types';
+import { canReviewAbsences } from '../../auth/authHelpers';
+import { useAuth } from '../../auth/useAuth';
 import { useBookAbsence } from '../../features/absences/useAbsences';
 import {
   absenceFormSchema,
@@ -43,6 +45,7 @@ export function BookAbsenceDialog({
   onClose: () => void;
 }) {
   const t = useT();
+  const { user } = useAuth();
   const enumLabel = useEnumLabel();
   const { data: allEmployees } = useAllEmployeesQuery();
   const book = useBookAbsence();
@@ -188,6 +191,7 @@ export function BookAbsenceDialog({
             />
           </Grid>
 
+          {canReviewAbsences(user) && (
           <Grid size={12}>
             <Controller
               name="approve"
@@ -210,6 +214,7 @@ export function BookAbsenceDialog({
               {t('absences.approveNowHint')} {t('absences.ownLeaveHint')}
             </Alert>
           </Grid>
+          )}
         </Grid>
       </DialogContent>
       <DialogActions>

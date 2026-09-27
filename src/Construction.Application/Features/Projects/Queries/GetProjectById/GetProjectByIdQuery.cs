@@ -1,3 +1,4 @@
+using Construction.Application.Features.Finance;
 using Construction.Application.Common;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
@@ -54,7 +55,7 @@ public class GetProjectByIdQueryHandler : IRequestHandler<GetProjectByIdQuery, P
 
         // Pay is withheld from a role the API does not show it to — a
         // foreman still sees how long each posting ran, just not its cost.
-        var includesPay = CostRules.CanSeeLabourCost(_currentUserService.Role);
+        var includesPay = await FinanceRules.CanSeePayAsync(_context, _currentUserService, cancellationToken);
         var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
 
         // See the matching note in GetEmployeeByIdQueryHandler: a posting

@@ -32,6 +32,27 @@ export function canViewFinanceStatistics(user: User | null | undefined): boolean
   return user?.financeAccess === 'StatisticsOnly' || user?.financeAccess === 'Full';
 }
 
+/**
+ * Who decides on time off: Super Admin and Admin only
+ * (`AbsenceRules.CanReview`). A project manager or foreman sees requests of
+ * their site but does not answer them.
+ */
+export function canReviewAbsences(user: User | null | undefined): boolean {
+  return !!user && ACCOUNT_ADMIN_ROLES.has(user.role);
+}
+
+/** Who decides on refunds: Super Admin and Admin only (`RefundRules.CanReview`). */
+export function canReviewRefunds(user: User | null | undefined): boolean {
+  return !!user && ACCOUNT_ADMIN_ROLES.has(user.role);
+}
+
+/** Roles a finance grant may be given to; never a worker or a customer (`FinanceRules.CanBeGranted`). */
+const FINANCE_GRANTABLE_ROLES = new Set(['Admin', 'ProjectManager', 'Foreman']);
+
+export function canBeGrantedFinance(role: string): boolean {
+  return FINANCE_GRANTABLE_ROLES.has(role);
+}
+
 export function canAdministerAccounts(user: User | null | undefined): boolean {
   return !!user && ACCOUNT_ADMIN_ROLES.has(user.role);
 }
@@ -70,7 +91,9 @@ export function canReviewTimeEntries(user: User | null | undefined): boolean {
 const LABOUR_COST_ROLES = new Set(['SuperAdmin', 'Admin', 'ProjectManager']);
 
 export function canSeeLabourCost(user: User | null | undefined): boolean {
-  return !!user && LABOUR_COST_ROLES.has(user.role);
+  // Pay is also behind the finance grant a Super Admin hands out
+  // (`FinanceRules.CanSeePayAsync`); the role alone is not enough.
+  return !!user && LABOUR_COST_ROLES.has(user.role) && user.financeAccess === 'Full';
 }
 
 /**
@@ -90,7 +113,9 @@ export function canReviewSpending(user: User | null | undefined): boolean {
  * it arrived, and figures nobody records are worth nothing.
  */
 export function canSeeSpending(user: User | null | undefined): boolean {
-  return canViewDirectory(user);
+  // Recording stays wide, but reading the euro back needs the finance grant
+  // (`FinanceRules.CanSeeSpendingAsync`).
+  return canViewDirectory(user) && user?.financeAccess === 'Full';
 }
 
 /**

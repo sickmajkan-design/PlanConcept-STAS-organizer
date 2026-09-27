@@ -1,3 +1,4 @@
+using Construction.Application.Features.Finance;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Costs;
@@ -50,7 +51,7 @@ public class GetMaterialPricingQueryHandler
         GetMaterialPricingQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        if (!await FinanceRules.CanSeeSpendingAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see stock movements.");
         }

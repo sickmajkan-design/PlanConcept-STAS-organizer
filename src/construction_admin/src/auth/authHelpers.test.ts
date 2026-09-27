@@ -4,6 +4,8 @@ import type { Role, User } from '../api/types';
 import { roles } from '../api/types';
 import {
   canAdministerAccounts,
+  canBeGrantedFinance,
+  canReviewAbsences,
   canSeeLabourCost,
   canSeeSpending,
   canViewDirectory,
@@ -49,15 +51,37 @@ describe('role gates', () => {
   it('keep pay rates from a foreman', () => {
     // Tighter than the directory on purpose: a rate is effectively somebody's
     // pay, and a foreman running a site has no business with it.
-    expect(canSeeLabourCost(userWith('ProjectManager'))).toBe(true);
-    expect(canSeeLabourCost(userWith('Foreman'))).toBe(false);
+    expect(canSeeLabourCost(userWith('ProjectManager', { financeAccess: 'Full' }))).toBe(true);
+    expect(canSeeLabourCost(userWith('Foreman', { financeAccess: 'Full' }))).toBe(false);
   });
 
-  it('let a foreman record spending', () => {
-    // Wide on purpose: the person who signed for the delivery is the one who
-    // knows it arrived.
-    expect(canSeeSpending(userWith('Foreman'))).toBe(true);
-    expect(canSeeSpending(userWith('Worker'))).toBe(false);
+  it('keep pay from anyone the Super Admin has not granted the figures', () => {
+    // The customer's rule: nothing in euro except for the Super Admin and
+    // whoever they choose, however senior the role.
+    expect(canSeeLabourCost(userWith('Admin'))).toBe(false);
+    expect(canSeeLabourCost(userWith('ProjectManager', { financeAccess: 'StatisticsOnly' }))).toBe(false);
+    expect(canSeeLabourCost(userWith('SuperAdmin', { financeAccess: 'Full' }))).toBe(true);
+  });
+
+  it('let management, and only management, answer leave requests', () => {
+    expect(canReviewAbsences(userWith('SuperAdmin'))).toBe(true);
+    expect(canReviewAbsences(userWith('Admin'))).toBe(true);
+    expect(canReviewAbsences(userWith('ProjectManager'))).toBe(false);
+    expect(canReviewAbsences(userWith('Foreman'))).toBe(false);
+  });
+
+  it('never offer the figures grant for a worker or customer', () => {
+    expect(canBeGrantedFinance('Foreman')).toBe(true);
+    expect(canBeGrantedFinance('Worker')).toBe(false);
+    expect(canBeGrantedFinance('Customer')).toBe(false);
+  });
+
+  it('keep what was spent from a foreman until the Super Admin grants the figures', () => {
+    // Recording stays wide (the person who signed for the delivery knows it
+    // arrived); reading the euro back needs the grant.
+    expect(canSeeSpending(userWith('Foreman'))).toBe(false);
+    expect(canSeeSpending(userWith('Foreman', { financeAccess: 'Full' }))).toBe(true);
+    expect(canSeeSpending(userWith('Worker', { financeAccess: 'Full' }))).toBe(false);
   });
 
   it('refuse everything when nobody is signed in', () => {

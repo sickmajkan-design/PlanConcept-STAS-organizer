@@ -89,7 +89,7 @@ public class AbsencesController : ApiControllerBase
 
     /// <summary>Grants or refuses a request. Never your own.</summary>
     [HttpPost("{id:guid}/review")]
-    [Authorize(Policy = Policies.ForemanAndAbove)]
+    [Authorize(Policy = Policies.AdminAndAbove)]
     [ProducesResponseType(typeof(AbsenceDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]

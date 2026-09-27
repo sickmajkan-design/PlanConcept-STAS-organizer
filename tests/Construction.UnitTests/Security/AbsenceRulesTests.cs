@@ -8,17 +8,20 @@ public class AbsenceRulesTests
     [Theory]
     [InlineData(UserRole.SuperAdmin)]
     [InlineData(UserRole.Admin)]
-    [InlineData(UserRole.ProjectManager)]
-    [InlineData(UserRole.Foreman)]
-    public void A_supervisor_may_grant_leave(UserRole role)
+    public void Management_may_grant_leave(UserRole role)
     {
         Assert.True(AbsenceRules.CanReview(role));
     }
 
-    [Fact]
-    public void A_worker_may_not_grant_leave()
+    [Theory]
+    [InlineData(UserRole.ProjectManager)]
+    [InlineData(UserRole.Foreman)]
+    [InlineData(UserRole.Worker)]
+    [InlineData(UserRole.Customer)]
+    public void Nobody_below_the_office_may_grant_leave(UserRole role)
     {
-        Assert.False(AbsenceRules.CanReview(UserRole.Worker));
+        // The customer's answer: only Super Admin and Admin decide leave.
+        Assert.False(AbsenceRules.CanReview(role));
     }
 
     [Fact]
@@ -29,15 +32,20 @@ public class AbsenceRulesTests
     }
 
     [Fact]
-    public void Booking_for_somebody_else_needs_the_same_standing_as_granting()
+    public void Booking_for_somebody_else_is_open_to_everyone_who_may_grant_and_to_the_site()
     {
-        // Recording leave for another person and approving it are the same
-        // authority: both let one person decide another's schedule.
+        // Sick leave is phoned in to the site, so supervisors may record it;
+        // anyone who may grant leave may of course record it too.
         foreach (var role in Enum.GetValues<UserRole>())
         {
-            Assert.Equal(AbsenceRules.CanReview(role), AbsenceRules.CanRequestForOthers(role));
+            if (AbsenceRules.CanReview(role))
+            {
+                Assert.True(AbsenceRules.CanRequestForOthers(role));
+            }
         }
 
+        Assert.True(AbsenceRules.CanRequestForOthers(UserRole.Foreman));
+        Assert.False(AbsenceRules.CanRequestForOthers(UserRole.Worker));
         Assert.False(AbsenceRules.CanRequestForOthers(null));
     }
 

@@ -97,7 +97,7 @@ public class CreateRefundCommandHandler : IRequestHandler<CreateRefundCommand, R
         var recipients = await _context.Users
             .Where(u => u.IsActive
                 && u.Id != userId
-                && (u.Role == UserRole.SuperAdmin || u.Role == UserRole.Admin || u.Role == UserRole.ProjectManager))
+                && (u.Role == UserRole.SuperAdmin || u.Role == UserRole.Admin))
             .Select(u => u.Id)
             .ToListAsync(cancellationToken);
 

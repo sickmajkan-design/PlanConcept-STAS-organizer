@@ -1,3 +1,4 @@
+using Construction.Application.Features.Finance;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Security;
@@ -1291,7 +1292,7 @@ public class ExportMaterialMovementsQueryHandler
         ExportMaterialMovementsQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        if (!await FinanceRules.CanSeeSpendingAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not export stock movements.");
         }
@@ -1507,7 +1508,7 @@ public class ExportFinanceEntriesQueryHandler
         CancellationToken cancellationToken)
     {
         // Same tier as pay rates: this is somebody's wage, not site spending.
-        if (!CostRules.CanSeeLabourCost(_currentUserService.Role))
+        if (!await FinanceRules.CanSeePayAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not export pay entries.");
         }

@@ -23,7 +23,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { toApiError } from '../../api/apiError';
 import type { MaterialInput } from '../../api/types';
 import { useAuth } from '../../auth/useAuth';
-import { canSeeSpending } from '../../auth/authHelpers';
+import { canViewDirectory } from '../../auth/authHelpers';
 import { ErrorState } from '../../components/ErrorState';
 import { InvoiceFilePicker } from '../../components/InvoiceFilePicker';
 import { costsApi } from '../../api/costs';
@@ -91,7 +91,9 @@ export function MaterialFormPage() {
   const { user } = useAuth();
   // Price, supplier and invoice are spending records; without the right to
   // record spending only the quantity is asked for.
-  const showReceiptDetails = canSeeSpending(user);
+  // Entering what a delivery cost is recording, which the site roles may do;
+  // it is reading the euro back (canSeeSpending) that needs the finance grant.
+  const showReceiptDetails = canViewDirectory(user);
 
   const { data: existing, isLoading, isError, error, refetch } = useMaterialQuery(id);
   const { data: allProjects } = useAllProjectsQuery();

@@ -1,3 +1,4 @@
+using Construction.Application.Features.Finance;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Costs;
@@ -39,7 +40,7 @@ public class GetPublicHolidaysQueryHandler
         GetPublicHolidaysQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeLabourCost(_currentUserService.Role))
+        if (!await FinanceRules.CanSeePayAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see the holiday calendar.");
         }

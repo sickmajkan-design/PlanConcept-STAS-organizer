@@ -23,10 +23,13 @@ public static class AbsenceRules
     /// </summary>
     public const int MaxDays = 180;
 
-    /// <summary>Granting or refusing leave is a supervisor's call.</summary>
+    /// <summary>
+    /// Granting or refusing leave is management's call: Super Admin and Admin
+    /// only. A project manager or foreman sees the requests of their site but
+    /// does not decide them.
+    /// </summary>
     public static bool CanReview(UserRole? role) =>
-        role is UserRole.SuperAdmin or UserRole.Admin
-            or UserRole.ProjectManager or UserRole.Foreman;
+        role is UserRole.SuperAdmin or UserRole.Admin;
 
     /// <summary>
     /// True when this caller may record an absence for somebody else.
@@ -34,9 +37,12 @@ public static class AbsenceRules
     /// <remarks>
     /// A worker may ask for their own leave and nothing more. Anyone above
     /// them may record it for anyone, because sick leave is usually phoned in
-    /// and typed by the office.
+    /// and typed by the site. What a supervisor records waits for management
+    /// unless the supervisor is management (see <see cref="CanReview"/>).
     /// </remarks>
-    public static bool CanRequestForOthers(UserRole? role) => CanReview(role);
+    public static bool CanRequestForOthers(UserRole? role) =>
+        role is UserRole.SuperAdmin or UserRole.Admin
+            or UserRole.ProjectManager or UserRole.Foreman;
 
     /// <summary>True for roles that only ever see their own absences.</summary>
     public static bool IsRestrictedToOwnAbsences(UserRole? role) =>

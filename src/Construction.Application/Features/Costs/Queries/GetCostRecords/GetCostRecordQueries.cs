@@ -1,3 +1,4 @@
+using Construction.Application.Features.Finance;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
@@ -68,7 +69,7 @@ public class GetEmployeeRatesQueryHandler
     {
         // Refused rather than narrowed, unlike the rest of the system: there
         // is no useful subset of "everyone's pay" to hand a foreman.
-        if (!CostRules.CanSeeLabourCost(_currentUserService.Role))
+        if (!await FinanceRules.CanSeePayAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see pay rates.");
         }
@@ -183,7 +184,7 @@ public class GetEmployeeRatesSummaryQueryHandler
         GetEmployeeRatesSummaryQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeLabourCost(_currentUserService.Role))
+        if (!await FinanceRules.CanSeePayAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see pay rates.");
         }
@@ -276,7 +277,7 @@ public class GetMaterialMovementsQueryHandler
         GetMaterialMovementsQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        if (!await FinanceRules.CanSeeSpendingAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see stock movements.");
         }
@@ -393,7 +394,7 @@ public class GetMaterialMovementsSummaryQueryHandler
         GetMaterialMovementsSummaryQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        if (!await FinanceRules.CanSeeSpendingAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see stock movements.");
         }
@@ -490,7 +491,7 @@ public class GetVehicleExpensesQueryHandler
         GetVehicleExpensesQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        if (!await FinanceRules.CanSeeSpendingAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see vehicle costs.");
         }
@@ -599,7 +600,7 @@ public class GetVehicleExpensesSummaryQueryHandler
         GetVehicleExpensesSummaryQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        if (!await FinanceRules.CanSeeSpendingAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see vehicle costs.");
         }
@@ -699,7 +700,7 @@ public class GetFinanceEntriesQueryHandler
     {
         // Refused rather than narrowed, like pay rates: there is no useful
         // subset of "everyone's pay" to hand a foreman.
-        if (!CostRules.CanSeeLabourCost(_currentUserService.Role))
+        if (!await FinanceRules.CanSeePayAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see pay entries.");
         }
@@ -810,7 +811,7 @@ public class GetFinanceEntriesSummaryQueryHandler
         GetFinanceEntriesSummaryQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeLabourCost(_currentUserService.Role))
+        if (!await FinanceRules.CanSeePayAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see pay entries.");
         }
@@ -910,7 +911,7 @@ public class GetToolExpensesQueryHandler
         GetToolExpensesQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        if (!await FinanceRules.CanSeeSpendingAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see tool costs.");
         }
@@ -1006,7 +1007,7 @@ public class GetToolExpensesSummaryQueryHandler
         GetToolExpensesSummaryQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        if (!await FinanceRules.CanSeeSpendingAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see tool costs.");
         }
@@ -1090,7 +1091,7 @@ public class GetVehicleRentalRatesQueryHandler
         GetVehicleRentalRatesQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        if (!await FinanceRules.CanSeeSpendingAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see rental rates.");
         }
@@ -1181,7 +1182,7 @@ public class GetVehicleRentalRatesSummaryQueryHandler
         GetVehicleRentalRatesSummaryQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        if (!await FinanceRules.CanSeeSpendingAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see rental rates.");
         }
@@ -1263,7 +1264,7 @@ public class GetToolRentalRatesQueryHandler
         GetToolRentalRatesQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        if (!await FinanceRules.CanSeeSpendingAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see rental rates.");
         }
@@ -1353,7 +1354,7 @@ public class GetToolRentalRatesSummaryQueryHandler
         GetToolRentalRatesSummaryQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        if (!await FinanceRules.CanSeeSpendingAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see rental rates.");
         }
@@ -1441,7 +1442,7 @@ public class GetGeneralExpensesQueryHandler
         GetGeneralExpensesQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        if (!await FinanceRules.CanSeeSpendingAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see costs.");
         }
@@ -1555,7 +1556,7 @@ public class GetGeneralExpensesSummaryQueryHandler
         GetGeneralExpensesSummaryQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        if (!await FinanceRules.CanSeeSpendingAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see costs.");
         }
@@ -1650,7 +1651,7 @@ public class GetAccommodationRatesQueryHandler
         GetAccommodationRatesQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        if (!await FinanceRules.CanSeeSpendingAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see accommodation rates.");
         }
@@ -1739,7 +1740,7 @@ public class GetAccommodationRatesSummaryQueryHandler
         GetAccommodationRatesSummaryQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        if (!await FinanceRules.CanSeeSpendingAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see accommodation rates.");
         }
@@ -1824,7 +1825,7 @@ public class GetVehicleRentalsOutQueryHandler
         GetVehicleRentalsOutQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        if (!await FinanceRules.CanSeeSpendingAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see vehicle rentals.");
         }
@@ -1925,7 +1926,7 @@ public class GetVehicleRentalsOutSummaryQueryHandler
         GetVehicleRentalsOutSummaryQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        if (!await FinanceRules.CanSeeSpendingAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see vehicle rentals.");
         }
@@ -2027,7 +2028,7 @@ public class GetToolRentalsOutQueryHandler
         GetToolRentalsOutQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        if (!await FinanceRules.CanSeeSpendingAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see tool rentals.");
         }
@@ -2128,7 +2129,7 @@ public class GetToolRentalsOutSummaryQueryHandler
         GetToolRentalsOutSummaryQuery request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanSeeSpending(_currentUserService.Role))
+        if (!await FinanceRules.CanSeeSpendingAsync(_context, _currentUserService, cancellationToken))
         {
             throw new ForbiddenAccessException("You may not see tool rentals.");
         }

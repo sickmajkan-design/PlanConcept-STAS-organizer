@@ -8,8 +8,10 @@ import { useTimeEntriesQuery } from '../features/timeEntries/useTimeEntries';
 import { useWorkItemsQuery } from '../features/workItems/useWorkItems';
 import {
   canAdministerAccounts,
+  canReviewAbsences,
   canReviewSpending,
   canReviewTimeEntries,
+  canSeeSpending,
   canViewDirectory,
 } from '../auth/authHelpers';
 import { paths } from '../routes/paths';
@@ -52,10 +54,13 @@ const COUNT_ONLY_PAGE = { pageNumber: 1, pageSize: 1 } as const;
  */
 export function useNavBadgeCounts(user: User | null | undefined): Record<string, number> {
   const showDocuments = canAdministerAccounts(user);
-  const showAbsences = canViewDirectory(user);
+  // Only management answers leave requests, so only they get a "waiting" count.
+  const showAbsences = canReviewAbsences(user);
   const showWorkItems = canViewDirectory(user);
   const showTimeEntries = canReviewTimeEntries(user);
-  const showVehicleExpenses = canReviewSpending(user);
+  // Reading the amounts back needs the finance grant, so a reviewer without it
+  // would only get a 403 for this count.
+  const showVehicleExpenses = canReviewSpending(user) && canSeeSpending(user);
 
   const documentsQuery = useExpiringDocumentsQuery(
     DOCUMENT_EXPIRY_WINDOW_DAYS,

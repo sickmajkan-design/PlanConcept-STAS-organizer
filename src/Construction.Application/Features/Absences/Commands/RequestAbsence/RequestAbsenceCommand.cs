@@ -220,8 +220,7 @@ public class RequestAbsenceCommandHandler : IRequestHandler<RequestAbsenceComman
         var recipientIds = await _context.Users
             .Where(u => u.IsActive &&
                         u.Id != _currentUserService.UserId &&
-                        (u.Role == UserRole.SuperAdmin || u.Role == UserRole.Admin ||
-                         u.Role == UserRole.ProjectManager || u.Role == UserRole.Foreman))
+                        (u.Role == UserRole.SuperAdmin || u.Role == UserRole.Admin))
             .Select(u => u.Id)
             .ToListAsync(cancellationToken);
 

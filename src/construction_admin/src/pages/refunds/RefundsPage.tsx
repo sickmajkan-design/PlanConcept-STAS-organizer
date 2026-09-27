@@ -1,4 +1,4 @@
-import { AddOutlined } from '@mui/icons-material';
+﻿import { AddOutlined } from '@mui/icons-material';
 import {
   Alert,
   Box,
@@ -25,7 +25,7 @@ import { ReasonDialog } from '../../components/ReasonDialog';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { StatusChip } from '../../components/StatusChip';
 import { useAuth } from '../../auth/useAuth';
-import { canManageArticleOrders } from '../../auth/authHelpers';
+import { canReviewRefunds } from '../../auth/authHelpers';
 import { useRefundsQuery, useReviewRefund } from '../../features/refunds/useRefunds';
 import { useHighlightTarget } from '../../hooks/useHighlightTarget';
 import { useListQueryState } from '../../hooks/useListQueryState';
@@ -113,7 +113,7 @@ export function RefundsPage() {
   const [receipt, setReceipt] = useState<Refund | null>(null);
   useOpenOnParam('new', () => setCreating(true));
 
-  const manages = canManageArticleOrders(user);
+  const manages = canReviewRefunds(user);
 
   const query = useMemo(
     () => ({
@@ -154,7 +154,7 @@ export function RefundsPage() {
         width: 120,
         sortable: false,
         valueGetter: (_value, row) =>
-          row.status === 'Approved' && row.payrollMonth ? `${String(row.payrollMonth).padStart(2, '0')}.${row.payrollYear}` : '—',
+          row.status === 'Approved' && row.payrollMonth ? `${String(row.payrollMonth).padStart(2, '0')}.${row.payrollYear}` : 'â€”',
       },
       {
         field: 'actions',

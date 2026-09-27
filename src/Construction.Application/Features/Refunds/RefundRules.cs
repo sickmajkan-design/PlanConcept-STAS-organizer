@@ -11,9 +11,9 @@ public static class RefundRules
     /// <summary>How far back an expense may be. A receipt older than this is an accounting question, not a refund.</summary>
     public const int MaxBackdatingDays = 365;
 
-    /// <summary>The office decides. Nobody decides their own.</summary>
+    /// <summary>Management (Super Admin and Admin) decides. Nobody decides their own.</summary>
     public static bool CanReview(UserRole? role) =>
-        role is UserRole.SuperAdmin or UserRole.Admin or UserRole.ProjectManager;
+        role is UserRole.SuperAdmin or UserRole.Admin;
 
     /// <summary>Approved refunds pay out with a payroll month; only the roles that see the payroll may change which.</summary>
     public static bool CanSetPayrollMonth(UserRole? role) => CanReview(role);

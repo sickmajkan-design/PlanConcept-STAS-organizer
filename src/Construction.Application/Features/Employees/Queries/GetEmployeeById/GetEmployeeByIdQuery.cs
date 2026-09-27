@@ -1,3 +1,4 @@
+using Construction.Application.Features.Finance;
 using Construction.Application.Common;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
@@ -60,7 +61,7 @@ public class GetEmployeeByIdQueryHandler : IRequestHandler<GetEmployeeByIdQuery,
         // Pay is withheld from a role the API does not show it to, the same
         // as everywhere else money appears — the hours a posting ran still
         // show, just not what it cost.
-        var includesPay = CostRules.CanSeeLabourCost(_currentUserService.Role);
+        var includesPay = await FinanceRules.CanSeePayAsync(_context, _currentUserService, cancellationToken);
         var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
 
         // The projection's own split is coarse — "has an EndDate at all" —

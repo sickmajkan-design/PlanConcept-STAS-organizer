@@ -27,7 +27,7 @@ import { financeAccessLevels, roles } from '../../api/types';
 import type { MessageKey } from '../../i18n/en';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
-import { isSuperAdmin } from '../../auth/authHelpers';
+import { canBeGrantedFinance, isSuperAdmin } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { useAllCustomersQuery } from '../../features/customers/useCustomers';
 import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
@@ -134,7 +134,9 @@ export function UserFormPage() {
   // offering the toggle on their own row would be a confusing no-op.
   const showTaxGrantField = isEdit && isSuperAdmin(currentUser) && watchRole !== 'SuperAdmin';
   // Same reasoning for the finance grant: a SuperAdmin always sees everything.
-  const showFinanceField = showTaxGrantField;
+  // And it is never offered for a worker or customer login: figures in euro
+  // are fixed not to reach them.
+  const showFinanceField = showTaxGrantField && canBeGrantedFinance(watchRole);
 
   const onSubmit = handleSubmit(async (values) => {
     const shared = {
@@ -152,7 +154,7 @@ export function UserFormPage() {
             ? Number(values.documentExpiryReminderDays)
             : null,
           canViewCustomerTaxDetails: values.canViewCustomerTaxDetails ?? false,
-          financeAccess: values.financeAccess ?? 'None',
+          financeAccess: canBeGrantedFinance(values.role) ? (values.financeAccess ?? 'None') : 'None',
         });
       } else {
         await createUser.mutateAsync({ ...shared, password: values.password });

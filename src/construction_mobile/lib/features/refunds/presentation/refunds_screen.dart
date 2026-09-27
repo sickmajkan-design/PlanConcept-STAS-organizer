@@ -81,7 +81,7 @@ class _RefundCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final user = ref.watch(currentUserProvider);
     final own = user != null && refund.requestedByUserId == user.id;
-    final manages = (user?.isProjectManagerAndAbove ?? false) && !own;
+    final manages = (user?.isAdminAndAbove ?? false) && !own;
     final waiting = refund.status == 'Requested';
 
     Future<void> act(String status, {String? note}) async {

@@ -1,6 +1,7 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Security;
+using Construction.Application.Features.Finance;
 using Construction.Application.Features.Users.Models;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
@@ -157,8 +158,20 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserD
             // account would only ever mislead the next reader of the row.
             if (request.FinanceAccess is { } financeAccess && user.Role != UserRole.SuperAdmin)
             {
+                if (financeAccess != FinanceAccess.None && !FinanceRules.CanBeGranted(user.Role))
+                {
+                    throw new ConflictException(
+                        "Figures in euro cannot be shown to a worker or customer account.");
+                }
+
                 user.FinanceAccess = financeAccess;
             }
+        }
+
+        // Moving an account to a role that may not hold the grant takes it away.
+        if (!FinanceRules.CanBeGranted(user.Role))
+        {
+            user.FinanceAccess = FinanceAccess.None;
         }
 
         if (roleChanged)

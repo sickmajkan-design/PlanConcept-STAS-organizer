@@ -79,7 +79,7 @@ public class GetProjectCostsQueryHandler
         // Amounts of the company's money sit behind the finance right, on top of the role check.
         await FinanceRules.EnsureFullAsync(_context, _currentUserService, cancellationToken);
 
-        var includesLabour = CostRules.CanSeeLabourCost(role);
+        var includesLabour = await FinanceRules.CanSeePayAsync(_context, _currentUserService, cancellationToken);
         var from = request.From;
         var to = request.To;
 
