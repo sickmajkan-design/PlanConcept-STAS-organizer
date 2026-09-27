@@ -6,6 +6,7 @@ using Construction.Application.Features.Employees.Commands.CreateEmployee;
 using Construction.Application.Features.Employees.Commands.DeleteEmployee;
 using Construction.Application.Features.Employees.Commands.ImportEmployees;
 using Construction.Application.Features.Employees.Commands.RemoveEmployeeFromProject;
+using Construction.Application.Features.Employees.Commands.SetEmployeeProjectCompany;
 using Construction.Application.Features.Employees.Commands.SetEmployeeRank;
 using Construction.Application.Features.Employees.Commands.UpdateEmployee;
 using Construction.Application.Features.Employees.Models;
@@ -163,4 +164,34 @@ public class EmployeesController : ApiControllerBase
         await Mediator.Send(new RemoveEmployeeFromProjectCommand(id, projectId), cancellationToken);
         return NoContent();
     }
+
+    /// <summary>
+    /// Changes which of the client's companies the employee's current posting on this project is
+    /// worked for. Management only — the handler enforces this even though the route accepts any
+    /// project-manager-and-above token, the same split <see cref="AssignToProject"/> uses.
+    /// </summary>
+    [HttpPut("{id:guid}/projects/{projectId:guid}/company")]
+    [Authorize(Policy = Policies.ProjectManagerAndAbove)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetProjectCompany(
+        Guid id,
+        Guid projectId,
+        [FromBody] SetProjectCompanyRequest request,
+        CancellationToken cancellationToken)
+    {
+        await Mediator.Send(
+            new SetEmployeeProjectCompanyCommand(id, projectId, request.CustomerCompanyId),
+            cancellationToken);
+        return NoContent();
+    }
+}
+
+/// <summary>The body <see cref="EmployeesController.SetProjectCompany"/> takes.</summary>
+public class SetProjectCompanyRequest
+{
+    /// <summary>Null clears the posting back to "the client itself".</summary>
+    public Guid? CustomerCompanyId { get; set; }
 }

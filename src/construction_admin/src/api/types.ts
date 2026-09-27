@@ -141,6 +141,9 @@ export interface EmployeeProjectAssignment {
   /** `YYYY-MM-DD`, or null while the posting is still open. */
   endDate: string | null;
   assignedAt: string;
+  /** Which of the client's companies this posting is worked for. Null: the client itself. */
+  customerCompanyId: string | null;
+  customerCompanyName: string | null;
   /** Hours paid for on this posting, from hourly finance entries. */
   workedHours: number;
   /** Days paid for on this posting, from daily finance entries. */
@@ -217,6 +220,9 @@ export interface ProjectEmployee {
   /** `YYYY-MM-DD`, or null while the posting is still open. */
   endDate: string | null;
   assignedAt: string;
+  /** Which of the client's companies this posting is worked for. Null: the client itself. */
+  customerCompanyId: string | null;
+  customerCompanyName: string | null;
   /** Hours paid for on this posting, from hourly finance entries. */
   workedHours: number;
   /** Days paid for on this posting, from daily finance entries. */

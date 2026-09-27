@@ -1,5 +1,6 @@
 import {
   AddOutlined,
+  ApartmentOutlined,
   DeleteOutlined,
   EditOutlined,
   HandymanOutlined,
@@ -30,6 +31,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
+import type { CustomerCompany } from '../../api/invoices';
+import type { ProjectEmployee } from '../../api/types';
 import { countryLabel } from '../../data/countries';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
@@ -39,7 +42,9 @@ import {
   useAllEmployeesQuery,
   useAssignProjectEmployee,
   useRemoveProjectEmployee,
+  useSetEmployeeProjectCompany,
 } from '../../features/employees/useEmployees';
+import { useCustomerCompaniesQuery } from '../../features/invoices/useInvoices';
 import { useDeleteProject, useProjectQuery, useProjectsQuery } from '../../features/projects/useProjects';
 import {
   useAllToolsQuery,
@@ -115,6 +120,13 @@ export function ProjectDetailPage() {
     { id: string; name: string } | null
   >(null);
 
+  // Which of the client's companies a new posting is for — B13. Only ever
+  // meaningful when the client has companies of its own; an empty list here
+  // means every posting is simply "for the client itself", same as before.
+  const { data: customerCompanies } = useCustomerCompaniesQuery(project?.customerId);
+  const activeCustomerCompanies = (customerCompanies ?? []).filter((c) => c.isActive);
+  const [selectedCompanyId, setSelectedCompanyId] = useState('');
+
   const { data: vehiclesOnProject } = useVehiclesQuery({
     ...RESOURCE_PAGE,
     assignedProjectId: projectId || undefined,
@@ -176,8 +188,13 @@ export function ProjectDetailPage() {
 
   const handleAssignEmployee = async () => {
     if (!selectedEmployeeId) return;
-    await assignEmployee.mutateAsync(selectedEmployeeId);
+    await assignEmployee.mutateAsync(
+      selectedCompanyId
+        ? { employeeId: selectedEmployeeId, customerCompanyId: selectedCompanyId }
+        : selectedEmployeeId,
+    );
     setSelectedEmployeeId('');
+    setSelectedCompanyId('');
   };
 
   const handleRemoveEmployee = async () => {
@@ -389,47 +406,18 @@ export function ProjectDetailPage() {
                     ) : (
                       <List disablePadding>
                         {project.employees.map((member) => (
-                          <ListItem
+                          <CrewMemberRow
                             key={member.employeeId}
-                            divider
-                            sx={{ cursor: 'pointer', px: 0 }}
-                            onClick={() => navigate(paths.employeeDetail(member.employeeId))}
-                          >
-                            <ListItemAvatar>
-                              <Avatar sx={{ bgcolor: 'secondary.main' }}>
-                                {crewInitials(member.fullName)}
-                              </Avatar>
-                            </ListItemAvatar>
-                            <ListItemText
-                              primary={member.fullName}
-                              secondary={
-                                [
-                                  `${member.position} · ${member.employeeNumber}`,
-                                  postingRange(member, t),
-                                  workedSummary(member, t, locale),
-                                ]
-                                  .filter(Boolean)
-                                  .join(' · ')
-                              }
-                            />
-                            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', ml: 1, flexShrink: 0 }}>
-                              <StatusChip status={member.status} kind="employeeStatus" />
-                              <Tooltip title={t('projects.removeFromCrew')}>
-                                <IconButton
-                                  size="small"
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    setRemoveEmployeeTarget({
-                                      id: member.employeeId,
-                                      name: member.fullName,
-                                    });
-                                  }}
-                                >
-                                  <DeleteOutlined fontSize="small" />
-                                </IconButton>
-                              </Tooltip>
-                            </Stack>
-                          </ListItem>
+                            member={member}
+                            projectId={projectId}
+                            locale={locale}
+                            canEditCompany={canAdministerAccounts(user) && activeCustomerCompanies.length > 0}
+                            companies={activeCustomerCompanies}
+                            onOpen={() => navigate(paths.employeeDetail(member.employeeId))}
+                            onRemove={() =>
+                              setRemoveEmployeeTarget({ id: member.employeeId, name: member.fullName })
+                            }
+                          />
                         ))}
                       </List>
                     )}
@@ -453,6 +441,26 @@ export function ProjectDetailPage() {
                           ))}
                         </Select>
                       </FormControl>
+                      {/* Only offered when the client actually has companies, and only to
+                          management — same gate the API enforces (CustomerCompanyRules). */}
+                      {canAdministerAccounts(user) && activeCustomerCompanies.length > 0 && (
+                        <FormControl size="small" fullWidth>
+                          <Select
+                            displayEmpty
+                            value={selectedCompanyId}
+                            onChange={(event) => setSelectedCompanyId(event.target.value)}
+                          >
+                            <MenuItem value="">
+                              <em>{t('projects.crewCompanyNone')}</em>
+                            </MenuItem>
+                            {activeCustomerCompanies.map((company) => (
+                              <MenuItem key={company.id} value={company.id}>
+                                {company.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      )}
                       <Button
                         variant="outlined"
                         startIcon={<AddOutlined />}
@@ -764,6 +772,110 @@ export function ProjectDetailPage() {
 function crewInitials(fullName: string): string {
   const [first, last] = fullName.trim().split(/\s+/);
   return initialsOf(first, last, fullName);
+}
+
+/**
+ * One crew member's row, its own component rather than inlined in the map — changing a
+ * posting's company (B13/B14) is per-row state and its own mutation, and a hook cannot be
+ * called from inside a `.map()` callback.
+ */
+function CrewMemberRow({
+  member,
+  projectId,
+  locale,
+  canEditCompany,
+  companies,
+  onOpen,
+  onRemove,
+}: {
+  member: ProjectEmployee;
+  projectId: string;
+  locale: string;
+  canEditCompany: boolean;
+  companies: CustomerCompany[];
+  onOpen: () => void;
+  onRemove: () => void;
+}) {
+  const t = useT();
+  const setCompany = useSetEmployeeProjectCompany(member.employeeId, projectId);
+  const [editingCompany, setEditingCompany] = useState(false);
+
+  return (
+    <ListItem divider sx={{ px: 0, alignItems: 'flex-start' }}>
+      <Box sx={{ cursor: 'pointer', display: 'flex', flex: 1, minWidth: 0 }} onClick={onOpen}>
+        <ListItemAvatar>
+          <Avatar sx={{ bgcolor: 'secondary.main' }}>{crewInitials(member.fullName)}</Avatar>
+        </ListItemAvatar>
+        <ListItemText
+          primary={
+            member.customerCompanyName
+              ? `${member.fullName} · ${member.customerCompanyName}`
+              : member.fullName
+          }
+          secondary={
+            [
+              `${member.position} · ${member.employeeNumber}`,
+              postingRange(member, t),
+              workedSummary(member, t, locale),
+            ]
+              .filter(Boolean)
+              .join(' · ')
+          }
+        />
+      </Box>
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', ml: 1, flexShrink: 0 }}>
+        {canEditCompany &&
+          (editingCompany ? (
+            <FormControl size="small" sx={{ minWidth: 160 }}>
+              <Select
+                autoFocus
+                displayEmpty
+                value={member.customerCompanyId ?? ''}
+                onChange={(event) => {
+                  setCompany.mutate(event.target.value || null, {
+                    onSuccess: () => setEditingCompany(false),
+                  });
+                }}
+                onClose={() => setEditingCompany(false)}
+              >
+                <MenuItem value="">
+                  <em>{t('projects.crewCompanyNone')}</em>
+                </MenuItem>
+                {companies.map((company) => (
+                  <MenuItem key={company.id} value={company.id}>
+                    {company.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          ) : (
+            <Tooltip title={t('projects.crewChangeCompany')}>
+              <IconButton
+                size="small"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setEditingCompany(true);
+                }}
+              >
+                <ApartmentOutlined fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          ))}
+        <StatusChip status={member.status} kind="employeeStatus" />
+        <Tooltip title={t('projects.removeFromCrew')}>
+          <IconButton
+            size="small"
+            onClick={(event) => {
+              event.stopPropagation();
+              onRemove();
+            }}
+          >
+            <DeleteOutlined fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Stack>
+    </ListItem>
+  );
 }
 
 function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {

@@ -34,6 +34,11 @@ public class EmployeeProjectAssignmentDto
 
     public DateTime AssignedAt { get; init; }
 
+    /// <summary>Which of the client's companies this posting is worked for. Null: the client itself.</summary>
+    public Guid? CustomerCompanyId { get; init; }
+
+    public string? CustomerCompanyName { get; init; }
+
     // Filled in by the handler after the projection runs, from finance
     // entries — a second query the single-expression projection above cannot
     // itself join in and stay translatable. Settable rather than init for
@@ -112,6 +117,8 @@ public static class EmployeeDetailMapping
                     StartDate = assignment.StartDate,
                     EndDate = assignment.EndDate,
                     AssignedAt = assignment.AssignedAt,
+                    CustomerCompanyId = assignment.CustomerCompanyId,
+                    CustomerCompanyName = assignment.CustomerCompany != null ? assignment.CustomerCompany.Name : null,
                 })
                 .ToList(),
             // The other half of the same collection: everything the filter
@@ -129,6 +136,8 @@ public static class EmployeeDetailMapping
                     StartDate = assignment.StartDate,
                     EndDate = assignment.EndDate,
                     AssignedAt = assignment.AssignedAt,
+                    CustomerCompanyId = assignment.CustomerCompanyId,
+                    CustomerCompanyName = assignment.CustomerCompany != null ? assignment.CustomerCompany.Name : null,
                 })
                 .ToList(),
         };

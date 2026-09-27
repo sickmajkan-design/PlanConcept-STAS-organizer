@@ -37,6 +37,15 @@ public class EmployeeProject : BaseEntity, IAuditable
 
     public Guid? AssignedByUserId { get; set; }
 
+    /// <summary>
+    /// Which of the project's client's companies this posting is worked for, when the client has
+    /// more than one. Null means "the client itself" — an ordinary posting, and the only kind
+    /// there is for a client with no companies of its own.
+    /// </summary>
+    public Guid? CustomerCompanyId { get; set; }
+
+    public CustomerCompany? CustomerCompany { get; set; }
+
     /// <summary>True when the posting covers the given day.</summary>
     public bool CoversDay(DateOnly day) =>
         StartDate <= day && (EndDate is null || EndDate >= day);

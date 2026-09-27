@@ -34,6 +34,11 @@ public class ProjectEmployeeDto
 
     public DateTime AssignedAt { get; init; }
 
+    /// <summary>Which of the client's companies this posting is worked for. Null: the client itself.</summary>
+    public Guid? CustomerCompanyId { get; init; }
+
+    public string? CustomerCompanyName { get; init; }
+
     // Filled in by the handler after the projection runs — see the matching
     // note on EmployeeProjectAssignmentDto.
 
@@ -104,6 +109,8 @@ public static class ProjectDetailMapping
                     StartDate = assignment.StartDate,
                     EndDate = assignment.EndDate,
                     AssignedAt = assignment.AssignedAt,
+                    CustomerCompanyId = assignment.CustomerCompanyId,
+                    CustomerCompanyName = assignment.CustomerCompany != null ? assignment.CustomerCompany.Name : null,
                 })
                 .ToList(),
             PastEmployees = project.EmployeeAssignments
@@ -119,6 +126,8 @@ public static class ProjectDetailMapping
                     StartDate = assignment.StartDate,
                     EndDate = assignment.EndDate,
                     AssignedAt = assignment.AssignedAt,
+                    CustomerCompanyId = assignment.CustomerCompanyId,
+                    CustomerCompanyName = assignment.CustomerCompany != null ? assignment.CustomerCompany.Name : null,
                 })
                 .ToList(),
         };

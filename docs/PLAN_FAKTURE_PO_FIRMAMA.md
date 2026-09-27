@@ -197,7 +197,11 @@ Isporuka: **FA1 → FA2 → FA6** (ručna faktura hrani obračun), zatim **FA3 �
 
 Urađen je manji, evidencioni oblik plana: gradilište dobija način obračuna (satnica / paušal / aufmaß — `Project.BillingMode`); klijent može imati firme (`CustomerCompany`); faktura (`Invoice`) se evidentira sa brojem, datumom, iznosom, mjesecom obračuna, i dijeli se na jednu ili više firmi (`InvoiceShare`), sa provjerom da dijelovi tačno daju zbir. Obračun (kolona "Naplata klijentu") za paušal/aufmaß gradilište sam čita zbir izdanih (ne stornom) faktura tog mjeseca; satnica gradilište ostaje na formuli sati × cijena. Nema izdate fakture → upozorenje u "Za provjeru" (`MissingInvoice`). Sve je iza prava na iznose (`InvoiceRules`, samo Admin/Super Admin sa finance grant-om); firma sa fakturama se ne briše, samo gasi.
 
-Nije urađeno naspram punog plana: FA3 (sastavljanje nacrta fakture iz sati — sada se faktura upisuje ručno), FA7 (zasebne fakture jednim potezom), FA9 (PDF izvoz), potpisane satnice po KW (FA7 iz starog nazivlja / A3). Panel: nova stranica Fakture (`/invoices`, iza `RequireInvoiceAccess`), i kartica Firme na stranici klijenta.
+Nije urađeno naspram punog plana: FA3 (sastavljanje nacrta fakture iz sati — sada se faktura upisuje ručno), FA4 (zasebne fakture po firmi jednim potezom), FA9 (PDF izvoz). Panel: nova stranica Fakture (`/invoices`, iza `RequireInvoiceAccess`), i kartica Firme na stranici klijenta.
+
+FA7 (potpisane satnice po KW) je urađeno kao A3, ključ projekat + sedmica (klijent je već 1:1 s projektom, pa je ekvivalentno "klijent + projekat + KW").
+
+**B13 urađeno (2026-09-27):** `EmployeeProject` sada nosi `CustomerCompanyId` — koje firme klijenta se radnikov raspored na gradilištu tiče. Postavlja se pri rasporedu (`AssignEmployeeToProjectCommand`) ili naknadno (`SetEmployeeProjectCompanyCommand`), samo uprava (Super Admin/Admin), i samo firma istog klijenta kao projekat. Panel: birač firme na kartici "Ekipa" stranice projekta (pri dodavanju i naknadnoj izmjeni), i naziv firme uz ime na obje strane (stranica projekta i stranica radnika) — izvoz (Excel) i mobilna aplikacija nisu obuhvaćeni. Ovim je FA4 razblokiran na strani podataka, ali sama radnja "izdaj fakturu po firmama" (FA3 → FA4) i dalje nije napravljena.
 
 ## 6. Definition of Done
 

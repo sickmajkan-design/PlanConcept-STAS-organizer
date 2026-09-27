@@ -28,6 +28,14 @@ public class EmployeeProjectConfiguration : IEntityTypeConfiguration<EmployeePro
             .HasForeignKey(ep => ep.ProjectId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // Restrict, not cascade or set-null: a company with postings against it is exactly the
+        // case CustomerCompanyRules keeps from being deleted in the first place (switched off
+        // instead), so this is a backstop, not a path anything is expected to take.
+        builder.HasOne(ep => ep.CustomerCompany)
+            .WithMany()
+            .HasForeignKey(ep => ep.CustomerCompanyId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.ToTable(t => t.HasCheckConstraint(
             "ck_employee_projects_ends_after_start",
             "\"EndDate\" IS NULL OR \"EndDate\" >= \"StartDate\""));

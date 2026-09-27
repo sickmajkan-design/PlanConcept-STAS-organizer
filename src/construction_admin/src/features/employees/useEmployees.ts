@@ -114,10 +114,25 @@ export function useRemoveEmployeeFromProject(employeeId: string) {
 
 // The same relationship, initiated from the project's side instead of the
 // employee's — same endpoint, so both caches are invalidated the same way.
+// A plain employeeId string is still accepted (most callers name no company);
+// an object form adds the company, B13's whole point in being on this side —
+// the project's crew card is where its client's companies are already known.
 export function useAssignProjectEmployee(projectId: string) {
   return useResourceMutation(
-    (employeeId: string, key: string) =>
-      employeesApi.assignToProject(employeeId, projectId, key),
+    (
+      variables: string | { employeeId: string; customerCompanyId?: string | null },
+      key: string,
+    ) => {
+      const { employeeId, customerCompanyId } =
+        typeof variables === 'string' ? { employeeId: variables, customerCompanyId: undefined } : variables;
+
+      return employeesApi.assignToProject(
+        employeeId,
+        projectId,
+        key,
+        customerCompanyId !== undefined ? { customerCompanyId } : undefined,
+      );
+    },
     [projectKeys.detail(projectId), employeeKeys.all, ...assignmentCaches],
   );
 }
@@ -126,5 +141,14 @@ export function useRemoveProjectEmployee(projectId: string) {
   return useResourceMutation(
     (employeeId: string) => employeesApi.removeFromProject(employeeId, projectId),
     [projectKeys.detail(projectId), employeeKeys.all, ...assignmentCaches],
+  );
+}
+
+/** Changes which of the client's companies an existing posting is worked for. Null clears it. */
+export function useSetEmployeeProjectCompany(employeeId: string, projectId: string) {
+  return useResourceMutation(
+    (customerCompanyId: string | null) =>
+      employeesApi.setProjectCompany(employeeId, projectId, customerCompanyId),
+    [employeeKeys.detail(employeeId), projectKeys.detail(projectId)],
   );
 }

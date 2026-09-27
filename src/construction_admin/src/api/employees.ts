@@ -27,7 +27,7 @@ export const employeesApi = {
     employeeId: string,
     projectId: string,
     idempotencyKey?: string,
-    dates?: { startDate?: string | null; endDate?: string | null },
+    dates?: { startDate?: string | null; endDate?: string | null; customerCompanyId?: string | null },
   ) =>
     request<void>({
       method: 'POST',
@@ -40,6 +40,14 @@ export const employeesApi = {
     request<void>({
       method: 'DELETE',
       url: `/api/v1/employees/${employeeId}/projects/${projectId}`,
+    }),
+
+  /** Changes which of the client's companies an existing posting is worked for. Null clears it. */
+  setProjectCompany: (employeeId: string, projectId: string, customerCompanyId: string | null) =>
+    request<void>({
+      method: 'PUT',
+      url: `/api/v1/employees/${employeeId}/projects/${projectId}/company`,
+      data: { customerCompanyId },
     }),
 
   setRank: (id: string, rank: OrganizationRank | null) =>

@@ -39,10 +39,10 @@ Oznake: **Must** obavezno · **Should** važno · **Could** ako ostane vremena. 
 | B9 | Godišnji: stanje i istorija po radniku, korekcije | Must | 8 | B8 |
 | B10 | Godišnji u obračunu plate (dani × sati × cijena) | Should | 5 | B8, A4 |
 | B11 | Godišnji: izvještaj i podsjetnici | Could | 5 | B9 |
-| B12 | Firme ispod klijenta | Should | 5 | |
-| B13 | Raspored radnika u firmu | Should | 8 | B12 |
-| B14 | Naziv firme uz ime radnika (panel, aplikacija, izvoz) | Should | 5 | B13 |
-| B15 | Obračun i naplata po firmi klijenta | Could | 3 | B13, A11 |
+| B12 | Firme ispod klijenta | Should | 5 | Urađeno (ranije) |
+| B13 | Raspored radnika u firmu — Urađeno (2026-09-27) | Should | 8 | B12 |
+| B14 | Naziv firme uz ime radnika (panel; aplikacija i izvoz nisu urađeni) | Should | 5 | B13 |
+| B15 | Obračun i naplata po firmi klijenta | Could | 3 | B13, A11, FA3/FA4 |
 | B16 | Narudžbe: zahtjev za artikle (web i aplikacija) | Should | 8 | |
 | B17 | Narudžbe: odobravanje i statusi do dostave, obavještenja upravi | Should | 8 | B16 |
 | B18 | Narudžbe: widget na kontrolnoj tabli | Could | 5 | B17 |

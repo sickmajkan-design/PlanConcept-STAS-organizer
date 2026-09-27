@@ -252,7 +252,11 @@ export function EmployeeDetailPage() {
                         </Avatar>
                       </ListItemAvatar>
                       <ListItemText
-                        primary={assignment.projectName}
+                        primary={
+                          assignment.customerCompanyName
+                            ? `${assignment.projectName} · ${assignment.customerCompanyName}`
+                            : assignment.projectName
+                        }
                         secondary={
                           [postingRange(assignment, t), workedSummary(assignment, t, locale)]
                             .filter(Boolean)
@@ -340,7 +344,11 @@ export function EmployeeDetailPage() {
                         </Avatar>
                       </ListItemAvatar>
                       <ListItemText
-                        primary={assignment.projectName}
+                        primary={
+                          assignment.customerCompanyName
+                            ? `${assignment.projectName} · ${assignment.customerCompanyName}`
+                            : assignment.projectName
+                        }
                         secondary={
                           [postingRange(assignment, t), workedSummary(assignment, t, locale)]
                             .filter(Boolean)
