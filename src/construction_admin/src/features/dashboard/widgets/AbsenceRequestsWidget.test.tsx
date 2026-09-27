@@ -6,13 +6,12 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { installFakeNetwork, renderScreen, signedIn, type FakeNetwork } from '../../../test/renderScreen';
-import { daysUntil } from './ActiveProjectsWidget';
 
 /**
- * The two widgets added for the board: time-off requests to answer, and the
- * state of the projects. Rendered whole, against a fake network, because what
- * can go wrong in them is silent: buttons that answer the wrong request, a
- * refusal sent without its reason, a person answering their own request.
+ * Time-off requests to answer from the board. Rendered whole, against a fake
+ * network, because what can go wrong here is silent: buttons that answer the
+ * wrong request, a refusal sent without its reason, a person answering their
+ * own request.
  */
 let network: FakeNetwork;
 
@@ -115,20 +114,4 @@ describe('AbsenceRequestsWidget', () => {
 
     expect(await screen.findByText(/No time-off requests|Nijedan zahtjev/)).toBeDefined();
   }, SCREEN_TIMEOUT);
-});
-
-describe('daysUntil', () => {
-  const today = new Date(2026, 8, 26);
-
-  it('counts whole days ahead', () => {
-    expect(daysUntil('2026-10-10', today)).toBe(14);
-  });
-
-  it('is zero on the day itself', () => {
-    expect(daysUntil('2026-09-26', today)).toBe(0);
-  });
-
-  it('is negative once the date has passed', () => {
-    expect(daysUntil('2026-09-20', today)).toBe(-6);
-  });
 });
