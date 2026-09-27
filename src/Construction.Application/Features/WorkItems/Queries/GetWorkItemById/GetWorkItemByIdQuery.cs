@@ -44,7 +44,7 @@ public class GetWorkItemByIdQueryHandler : IRequestHandler<GetWorkItemByIdQuery,
                 ownEmployeeId != null && w.AssignedEmployeeId == ownEmployeeId);
         }
 
-        var ownProjects = await ForemanScope.OwnProjectIdsAsync(
+        var ownProjects = await SiteScope.OwnProjectIdsAsync(
             _context,
             _currentUserService,
             DateOnly.FromDateTime(_dateTimeProvider.UtcNow),

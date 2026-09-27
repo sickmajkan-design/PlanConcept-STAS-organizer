@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Absences.Models;
 using Construction.Domain.Enums;
@@ -20,8 +21,11 @@ namespace Construction.Application.Features.Absences.Queries.GetSchedule;
 /// have work planned around leave nobody granted.
 ///
 /// A worker gets the same query narrowed to their own line, which is what the
-/// phone shows: where am I this week. Narrowed rather than refused, so the
-/// answer to "whose schedule?" is always their own.
+/// phone shows: where am I this week. A foreman or project manager gets it
+/// narrowed to their own sites' crews instead — the same boundary
+/// <see cref="SiteScope"/> draws for the project and employee directories.
+/// Narrowed rather than refused, so the answer to "whose schedule?" is always
+/// something, never a 403.
 /// </remarks>
 public record GetScheduleQuery : IRequest<ScheduleDto>
 {
@@ -61,13 +65,16 @@ public class GetScheduleQueryHandler : IRequestHandler<GetScheduleQuery, Schedul
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
     public GetScheduleQueryHandler(
         IApplicationDbContext context,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<ScheduleDto> Handle(
@@ -76,6 +83,7 @@ public class GetScheduleQueryHandler : IRequestHandler<GetScheduleQuery, Schedul
     {
         var from = request.From;
         var to = request.To;
+        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
 
         // A worker sees their own line only. An account not linked to an
         // employee has no line to see, so it gets an empty board rather than
@@ -89,11 +97,35 @@ public class GetScheduleQueryHandler : IRequestHandler<GetScheduleQuery, Schedul
             return new ScheduleDto { From = from, To = to };
         }
 
+        // A foreman or project manager sees their own sites' crews only — the same boundary
+        // as the project and employee directories, resolved to who is on it rather than to
+        // one employee, since more than one person may be on the board.
+        var ownProjects = restrictedTo is null
+            ? await SiteScope.OwnProjectIdsAsync(_context, _currentUserService, today, cancellationToken)
+            : null;
+
+        IReadOnlyList<Guid>? crew = null;
+
+        if (ownProjects is not null)
+        {
+            var self = _currentUserService.EmployeeId;
+
+            crew = await _context.Employees
+                .AsNoTracking()
+                .Where(e => e.Id == self
+                    || e.ProjectAssignments.Any(pa => ownProjects.Contains(pa.ProjectId)
+                        && (pa.EndDate == null || pa.EndDate > today)))
+                .Select(e => e.Id)
+                .ToListAsync(cancellationToken);
+        }
+
         // Overlap, not containment: a posting that started last month and runs
         // through this week belongs on the board.
         var assignments = await _context.EmployeeProjects
             .AsNoTracking()
             .Where(ep => restrictedTo == null || ep.EmployeeId == restrictedTo)
+            .Where(ep => crew == null || crew.Contains(ep.EmployeeId))
+            .Where(ep => ownProjects == null || ownProjects.Contains(ep.ProjectId))
             .Where(ep => ep.StartDate <= to && (ep.EndDate == null || ep.EndDate >= from))
             .Where(ep => request.ProjectId == null || ep.ProjectId == request.ProjectId)
             .Select(ep => new
@@ -110,6 +142,7 @@ public class GetScheduleQueryHandler : IRequestHandler<GetScheduleQuery, Schedul
         var absences = await _context.Absences
             .AsNoTracking()
             .Where(a => restrictedTo == null || a.EmployeeId == restrictedTo)
+            .Where(a => crew == null || crew.Contains(a.EmployeeId))
             .Where(a => a.Status == AbsenceStatus.Approved)
             .Where(a => a.StartDate <= to && a.EndDate >= from)
             .Select(a => new
@@ -129,8 +162,10 @@ public class GetScheduleQueryHandler : IRequestHandler<GetScheduleQuery, Schedul
         var employees = await _context.Employees
             .AsNoTracking()
             .Where(e => restrictedTo == null || e.Id == restrictedTo)
+            .Where(e => crew == null || crew.Contains(e.Id))
             // The unassigned still belong on the board — they are exactly who
-            // a supervisor is looking for when filling a gap.
+            // an unrestricted supervisor is looking for when filling a gap. A
+            // foreman or project manager has no such pool: only their own crew.
             .Where(e => !request.AssignedOnly || employeeIds.Contains(e.Id))
             .Where(e => e.Status == EmployeeStatus.Active || employeeIds.Contains(e.Id))
             .OrderBy(e => e.LastName)

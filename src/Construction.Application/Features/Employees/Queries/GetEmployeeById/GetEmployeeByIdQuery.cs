@@ -32,10 +32,10 @@ public class GetEmployeeByIdQueryHandler : IRequestHandler<GetEmployeeByIdQuery,
         GetEmployeeByIdQuery request,
         CancellationToken cancellationToken)
     {
-        // Not found rather than forbidden, as for a project: a foreman is not
+        // Not found rather than forbidden, as for a project: a foreman or project manager is not
         // told about people who are not on their sites.
         var scopeDay = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
-        var ownProjects = await ForemanScope.OwnProjectIdsAsync(
+        var ownProjects = await SiteScope.OwnProjectIdsAsync(
             _context, _currentUserService, scopeDay, cancellationToken);
 
         var candidates = _context.Employees.AsNoTracking().Where(e => e.Id == request.Id);

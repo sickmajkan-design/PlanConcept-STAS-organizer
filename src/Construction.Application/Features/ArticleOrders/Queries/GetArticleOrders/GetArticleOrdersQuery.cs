@@ -67,7 +67,7 @@ public class GetArticleOrdersQueryHandler : IRequestHandler<GetArticleOrdersQuer
             var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
             var sites = request.Mine
                 ? null
-                : await ForemanScope.OwnProjectIdsAsync(_context, _currentUserService, today, cancellationToken);
+                : await SiteScope.OwnProjectIdsAsync(_context, _currentUserService, today, cancellationToken);
 
             query = sites is null
                 ? query.Where(o => o.RequestedByUserId == userId)

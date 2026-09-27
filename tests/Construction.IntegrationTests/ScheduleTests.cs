@@ -624,17 +624,24 @@ public class ScheduleTests : IntegrationTestBase
         // same arithmetic.
         var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
         var project = await InScope(scope => TestData.SeedProjectAsync(scope));
-        var foreman = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Foreman));
+        var foremanEmployee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var foreman = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Foreman, foremanEmployee.Id));
 
         await InScope(scope => scope.Send(
             new AssignEmployeeToProjectCommand(employee.Id, project.Id)
             {
                 StartDate = Monday.AddDays(-90)
             }));
+        // The foreman is on the same site, so it is theirs to see (SiteScope).
+        await InScope(scope => scope.Send(
+            new AssignEmployeeToProjectCommand(foremanEmployee.Id, project.Id)
+            {
+                StartDate = Monday.AddDays(-90)
+            }));
 
         var schedule = await InScope(scope =>
         {
-            ActAs(scope, foreman);
+            ActAs(scope, foreman, foremanEmployee.Id);
             return scope.Send(new GetScheduleQuery
             {
                 From = Monday,
@@ -702,13 +709,15 @@ public class ScheduleTests : IntegrationTestBase
     [Fact]
     public async Task The_board_includes_people_with_nothing_on_them()
     {
-        // Exactly who a supervisor is looking for when filling a gap.
+        // Exactly who an unrestricted supervisor is looking for when filling a gap. A foreman
+        // or project manager has no such company-wide pool — only their own crew (SiteScope) —
+        // so this is read as an admin.
         var free = await InScope(scope => TestData.SeedEmployeeAsync(scope));
-        var foreman = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Foreman));
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
 
         var schedule = await InScope(scope =>
         {
-            ActAs(scope, foreman);
+            ActAs(scope, admin);
             return scope.Send(new GetScheduleQuery
             {
                 From = Monday,

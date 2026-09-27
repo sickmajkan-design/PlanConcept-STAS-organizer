@@ -39,6 +39,23 @@ public class ProjectMoneyTests
     private static async Task<JsonElement> GetAsync(HttpClient client, Guid id) =>
         await client.GetFromJsonAsync<JsonElement>($"/api/v1/projects/{id}");
 
+    /// <summary>
+    /// A foreman or project manager only sees a project they are posted to (SiteScope); this
+    /// puts the fixture's own account of <paramref name="role"/> on the project so a check of
+    /// what it may read is not confused with whether it can find the project at all.
+    /// </summary>
+    private async Task PostToProjectAsync(UserRole role, Guid projectId)
+    {
+        using var superAdmin = _api.ClientAs(UserRole.SuperAdmin);
+        var employeeId = await _api.InScope(db => db.Users
+            .Where(u => u.Id == _api.UserIds[role])
+            .Select(u => u.EmployeeId!.Value)
+            .SingleAsync());
+
+        (await superAdmin.PostAsync($"/api/v1/employees/{employeeId}/projects/{projectId}", null))
+            .EnsureSuccessStatusCode();
+    }
+
     [Fact]
     public async Task The_super_admin_sees_the_contract_sum_and_how_the_client_is_billed()
     {
@@ -57,6 +74,7 @@ public class ProjectMoneyTests
     public async Task Without_the_grant_the_contract_sum_is_hidden_but_the_billing_mode_is_not(UserRole role)
     {
         var id = await CreateAsSuperAdminAsync();
+        await PostToProjectAsync(role, id);
         using var client = _api.ClientAs(role);
 
         var project = await GetAsync(client, id);

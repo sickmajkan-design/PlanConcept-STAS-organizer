@@ -77,8 +77,8 @@ public class GetProjectsQueryHandler : IRequestHandler<GetProjectsQuery, PagedLi
     {
         var query = _context.Projects.AsNoTracking();
 
-        // A foreman sees the sites they are posted to and no others.
-        var ownProjects = await ForemanScope.OwnProjectIdsAsync(
+        // A foreman or project manager sees the sites they are posted to and no others.
+        var ownProjects = await SiteScope.OwnProjectIdsAsync(
             _context,
             _currentUserService,
             DateOnly.FromDateTime(_dateTimeProvider.UtcNow),

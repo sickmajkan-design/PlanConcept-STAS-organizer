@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
 using Construction.Application.Common.Security;
@@ -56,10 +57,17 @@ public class GetVehiclesQueryValidator : SortablePagedQueryValidator<GetVehicles
 public class GetVehiclesQueryHandler : IRequestHandler<GetVehiclesQuery, PagedList<VehicleDto>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
-    public GetVehiclesQueryHandler(IApplicationDbContext context)
+    public GetVehiclesQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
+        _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<PagedList<VehicleDto>> Handle(
@@ -67,6 +75,20 @@ public class GetVehiclesQueryHandler : IRequestHandler<GetVehiclesQuery, PagedLi
         CancellationToken cancellationToken)
     {
         var query = _context.Vehicles.AsNoTracking();
+
+        // A foreman or project manager sees their site's fleet — a vehicle on one of their
+        // own projects, or assigned to them personally — never the whole company's.
+        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var ownProjects = await SiteScope.OwnProjectIdsAsync(_context, _currentUserService, today, cancellationToken);
+
+        if (ownProjects is not null)
+        {
+            var ownEmployeeId = _currentUserService.EmployeeId;
+
+            query = query.Where(v =>
+                (v.AssignedProjectId != null && ownProjects.Contains(v.AssignedProjectId.Value))
+                || (ownEmployeeId != null && v.AssignedEmployeeId == ownEmployeeId));
+        }
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {

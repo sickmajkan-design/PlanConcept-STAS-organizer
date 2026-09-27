@@ -40,7 +40,7 @@ Ulaz: 14 odgovora Darija Stankovića (El Plan Concept GmbH) od 26.–27.9.2026. 
 | 3. Pravo na iznose: ne može na Radnika ni Kupca | Urađeno (API, forma, testovi) |
 | 3a. Plate i satnice (zarada radnika, pregledi radnika i projekta, izvoz plata, praznici) traže pravo na iznose, ne samo ulogu | Urađeno |
 | 3b. Ostali iznosi koje vide uloge sa gradilišta (evidencije troškova materijala, vozila, alata, smještaja i njihovi izvozi) | Urađeno: evidentiranje ostaje otvoreno gradilištu, čitanje iznosa traži pravo. Izvještaji troškova su to već tražili. |
-| 4. Voditelj samo svoj projekat, flota, raspored | Nije urađeno |
+| 4. Voditelj samo svoj projekat, flota, raspored | Urađeno: `SiteScope` (bivši `ForemanScope`) sada obuhvata i Voditelja i Predradnika — projekti, radnici, zadaci, narudžbe, vozila, alat i raspored suženi na gradilište na koje je raspoređen (ili dodijeljeno njemu lično za vozila/alat); tuđe gradilište vraća "nije nađeno", ne "zabranjeno" |
 | 5. Godišnji: radni dani, praznici države iz postavki, 20 dana, srazmjerno u godini zaposlenja, prenos do 1.6., ispravke sa istorijom | Urađeno (kalkulator, upit stanja, ispravke, kartica na stranici radnika) |
 | 6. Godišnji u plati: dani u mjesecu × iznos po danu iz postavki | Urađeno: kolona "Godišnji odmor (+)" se sama popunjava u novim mjesecima obračuna |
 | 7. Widget "Aktivni projekti" (aktivni, planirani, radnici) | Urađeno ranije (`ActiveProjectsWidget.tsx`): broj po statusu, aktivni sa brojem radnika, "bez ekipe" / "rok uskoro" / "rok prošao" |

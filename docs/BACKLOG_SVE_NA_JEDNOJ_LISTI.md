@@ -74,7 +74,7 @@ Oznake: **Must** obavezno · **Should** važno · **Could** ako ostane vremena. 
 | D3 | Firebase: `google-services.json` i servisni ključ za push (traži novi APK) | Čeka vlasnika |
 | D4 | SMTP podaci za e-poštu (promjena lozinke, izvještaji) | Čeka vlasnika |
 | D5 | Pravi keystore za potpisivanje APK-a (sada debug ključ; mijenja potpisnika, radnici moraju ponovo instalirati) | Čeka vlasnika |
-| D6 | Predradnik i ostalo ograničenje pristupa: ostali podaci (resursi, odsustva) još nisu sužena po gradilištu | Odluka |
+| D6 | Predradnik i Voditelj: projekti, radnici, zadaci, narudžbe, vozila, alat i raspored su suženi po gradilištu (`SiteScope`, 2026-09-27) | Urađeno |
 | D7 | Test na pravom telefonu: cijela smjena u džepu, GPS u pozadini, kamera na prijavi nedostatka | Novo |
 | D8 | Backup: prvi pravi prijenos na S3 i vraćanje na drugoj mašini | Novo |
 | D9 | Pilot: jedna ekipa, jedno gradilište, dvije sedmice | Novo |

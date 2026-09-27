@@ -99,9 +99,9 @@ public class GetWorkItemsQueryHandler
             query = query.Where(w => w.AssignedEmployeeId == employeeId);
         }
 
-        // A foreman sees the work on their own sites, and whatever is assigned
+        // A foreman or project manager sees the work on their own sites, and whatever is assigned
         // to them wherever it is.
-        var ownProjects = await ForemanScope.OwnProjectIdsAsync(
+        var ownProjects = await SiteScope.OwnProjectIdsAsync(
             _context,
             _currentUserService,
             DateOnly.FromDateTime(_dateTimeProvider.UtcNow),

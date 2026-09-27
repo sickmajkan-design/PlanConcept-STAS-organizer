@@ -69,9 +69,9 @@ public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, Paged
     {
         var query = _context.Employees.AsNoTracking();
 
-        // A foreman sees the people posted to their own sites, and themselves.
+        // A foreman or project manager sees the people posted to their own sites, and themselves.
         var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
-        var ownProjects = await ForemanScope.OwnProjectIdsAsync(
+        var ownProjects = await SiteScope.OwnProjectIdsAsync(
             _context, _currentUserService, today, cancellationToken);
 
         if (ownProjects is not null)

@@ -32,9 +32,9 @@ public class GetProjectByIdQueryHandler : IRequestHandler<GetProjectByIdQuery, P
         GetProjectByIdQuery request,
         CancellationToken cancellationToken)
     {
-        // Not found rather than forbidden: a foreman is not told that a site
+        // Not found rather than forbidden: a foreman or project manager is not told that a site
         // they are not posted to exists.
-        var ownProjects = await ForemanScope.OwnProjectIdsAsync(
+        var ownProjects = await SiteScope.OwnProjectIdsAsync(
             _context,
             _currentUserService,
             DateOnly.FromDateTime(_dateTimeProvider.UtcNow),

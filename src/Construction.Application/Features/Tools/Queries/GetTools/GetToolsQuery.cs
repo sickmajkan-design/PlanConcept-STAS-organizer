@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
 using Construction.Application.Common.Security;
@@ -54,10 +55,17 @@ public class GetToolsQueryValidator : SortablePagedQueryValidator<GetToolsQuery>
 public class GetToolsQueryHandler : IRequestHandler<GetToolsQuery, PagedList<ToolDto>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
-    public GetToolsQueryHandler(IApplicationDbContext context)
+    public GetToolsQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
+        _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<PagedList<ToolDto>> Handle(
@@ -65,6 +73,20 @@ public class GetToolsQueryHandler : IRequestHandler<GetToolsQuery, PagedList<Too
         CancellationToken cancellationToken)
     {
         var query = _context.Tools.AsNoTracking();
+
+        // A foreman or project manager sees their site's tools — one on one of their own
+        // projects, or assigned to them personally — never the whole company's.
+        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var ownProjects = await SiteScope.OwnProjectIdsAsync(_context, _currentUserService, today, cancellationToken);
+
+        if (ownProjects is not null)
+        {
+            var ownEmployeeId = _currentUserService.EmployeeId;
+
+            query = query.Where(t =>
+                (t.AssignedProjectId != null && ownProjects.Contains(t.AssignedProjectId.Value))
+                || (ownEmployeeId != null && t.AssignedEmployeeId == ownEmployeeId));
+        }
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {

@@ -5,28 +5,30 @@ using Microsoft.EntityFrameworkCore;
 namespace Construction.Application.Common;
 
 /// <summary>
-/// What a foreman may see: the sites they are posted to, and the people posted
-/// alongside them.
+/// What a site-level role may see: the sites they are posted to, and the people, work and
+/// equipment on those sites — never the whole company.
 /// </summary>
 /// <remarks>
-/// A foreman runs a site, not the company. Without this they could read every
-/// project and every employee, which is what the office roles are for; the
-/// live location, today's hours and the weekly report were already narrowed to
-/// the foreman's own sites, so the directory was the one place the boundary
-/// did not hold. Every other role is unrestricted here, as before.
+/// A foreman runs a site, not the company, and the customer's own instruction narrowed a
+/// project manager the same way: they see the project they are posted to, its fleet and its
+/// roster, "and the like" — not every site. Both roles are posted to a project exactly the way
+/// a worker is (through <c>EmployeeProject</c>), so one rule covers both. Every other role is
+/// unrestricted here, as before.
 /// </remarks>
-public static class ForemanScope
+public static class SiteScope
 {
+    private static readonly UserRole[] ScopedRoles = [UserRole.ProjectManager, UserRole.Foreman];
+
     /// <summary>
-    /// The projects the caller is currently posted to, or null when the caller
-    /// is not a foreman and so is not restricted at all.
+    /// The projects the caller is currently posted to, or null when the caller holds an
+    /// unrestricted role and so is not scoped at all.
     /// </summary>
     /// <remarks>
     /// "Currently" means the posting has not ended. Removing someone closes a
     /// started posting with today's date, so a posting whose end date is today
     /// has ended (the same rule the site roster uses). A posting that starts next
-    /// week already gives the foreman the site, since the office sets it up
-    /// before the first day and a foreman who cannot see the site they are
+    /// week already gives the account the site, since the office sets it up
+    /// before the first day and someone who cannot see the site they are
     /// about to run cannot prepare for it.
     /// </remarks>
     public static async Task<IReadOnlyList<Guid>?> OwnProjectIdsAsync(
@@ -35,14 +37,14 @@ public static class ForemanScope
         DateOnly today,
         CancellationToken cancellationToken)
     {
-        if (currentUser.Role is not UserRole.Foreman)
+        if (currentUser.Role is not { } role || !ScopedRoles.Contains(role))
         {
             return null;
         }
 
         if (currentUser.EmployeeId is not { } employeeId)
         {
-            // A foreman account with nobody behind it is posted nowhere.
+            // An account with nobody behind it is posted nowhere.
             return Array.Empty<Guid>();
         }
 
