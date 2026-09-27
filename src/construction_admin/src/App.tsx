@@ -403,20 +403,23 @@ function Layout() {
                 element={<Navigate to={paths.vehicleExpenses} replace />}
               />
 
-              {/* One menu entry, a tab strip between the ledgers. */}
+              {/* One menu entry, a tab strip between the ledgers. Reading any of these back is
+                  money now (`FinanceRules.CanSeeSpendingAsync`), so the tabs that read it are
+                  gated the same way `/costs` is; fuel cards alone stay outside it, since
+                  `GetFuelCardsQuery` was deliberately left on the role check, not the grant. */}
               <Route element={<CostRecordsLayout />}>
-                <Route path={paths.stockMovements} element={<StockMovementsPage />} />
-                <Route
-                  path={paths.materialDeliveryImport}
-                  element={<MaterialDeliveryImportPage />}
-                />
-                <Route path={paths.vehicleExpenses} element={<VehicleExpensesPage />} />
-                <Route path={paths.fuelImport} element={<FuelImportPage />} />
-                <Route path={paths.toolExpenses} element={<ToolExpensesPage />} />
                 <Route element={<RequireFinanceAccess />}>
+                  <Route path={paths.stockMovements} element={<StockMovementsPage />} />
+                  <Route
+                    path={paths.materialDeliveryImport}
+                    element={<MaterialDeliveryImportPage />}
+                  />
+                  <Route path={paths.vehicleExpenses} element={<VehicleExpensesPage />} />
+                  <Route path={paths.toolExpenses} element={<ToolExpensesPage />} />
                   <Route path={paths.generalExpenses} element={<GeneralExpensesPage />} />
+                  <Route path={paths.accommodationCosts} element={<AccommodationCostsPage />} />
                 </Route>
-                <Route path={paths.accommodationCosts} element={<AccommodationCostsPage />} />
+                <Route path={paths.fuelImport} element={<FuelImportPage />} />
               </Route>
 
               {/* The housing register: places, who lives in them, contracts. It sits with

@@ -43,6 +43,8 @@ try
         {
             options.JsonSerializerOptions.Converters.Add(
                 new System.Text.Json.Serialization.JsonStringEnumConverter());
+            options.JsonSerializerOptions.Converters.Add(
+                new Construction.API.Json.NoNulCharacterStringConverter());
         });
 
     builder.Services.Configure<RefreshTokenCookieSettings>(

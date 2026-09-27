@@ -171,31 +171,37 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
                     { label: t('nav.companyRevenues'), path: paths.companyRevenues, icon: <TrendingUpOutlined /> },
                   ]
                 : []),
-              {
-                label: t('nav.costRecords'),
-                path: paths.costRecords,
-                icon: <ReceiptLongOutlined />,
-                alsoActiveOn: [
-                  paths.vehicleExpenses,
-                  paths.toolExpenses,
-                  paths.generalExpenses,
-                  paths.stockMovements,
-                  paths.accommodationCosts,
-                  paths.financeEntries,
-                ],
-              },
-              {
-                label: t('nav.vehicleExpenses'),
-                path: paths.vehicleExpenses,
-                icon: <LocalGasStationOutlined />,
-                inTabs: true,
-              },
-              {
-                label: t('nav.toolExpenses'),
-                path: paths.toolExpenses,
-                icon: <BuildCircleOutlined />,
-                inTabs: true,
-              },
+              // Reading any of these back is money now (`FinanceRules.CanSeeSpendingAsync`),
+              // so the whole tab strip needs the finance grant, same as the routes.
+              ...(canViewFinance(user)
+                ? [
+                    {
+                      label: t('nav.costRecords'),
+                      path: paths.costRecords,
+                      icon: <ReceiptLongOutlined />,
+                      alsoActiveOn: [
+                        paths.vehicleExpenses,
+                        paths.toolExpenses,
+                        paths.generalExpenses,
+                        paths.stockMovements,
+                        paths.accommodationCosts,
+                        paths.financeEntries,
+                      ],
+                    },
+                    {
+                      label: t('nav.vehicleExpenses'),
+                      path: paths.vehicleExpenses,
+                      icon: <LocalGasStationOutlined />,
+                      inTabs: true,
+                    },
+                    {
+                      label: t('nav.toolExpenses'),
+                      path: paths.toolExpenses,
+                      icon: <BuildCircleOutlined />,
+                      inTabs: true,
+                    },
+                  ]
+                : []),
               ...(canViewFinance(user)
                 ? [
                     {
@@ -206,18 +212,22 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
                     },
                   ]
                 : []),
-              {
-                label: t('nav.stockMovements'),
-                path: paths.stockMovements,
-                icon: <SwapVertOutlined />,
-                inTabs: true,
-              },
-              {
-                label: t('nav.accommodationCosts'),
-                path: paths.accommodationCosts,
-                icon: <HomeWorkOutlined />,
-                inTabs: true,
-              },
+              ...(canViewFinance(user)
+                ? [
+                    {
+                      label: t('nav.stockMovements'),
+                      path: paths.stockMovements,
+                      icon: <SwapVertOutlined />,
+                      inTabs: true,
+                    },
+                    {
+                      label: t('nav.accommodationCosts'),
+                      path: paths.accommodationCosts,
+                      icon: <HomeWorkOutlined />,
+                      inTabs: true,
+                    },
+                  ]
+                : []),
               ...(canSeeLabourCost(user)
                 ? [
                     ...(canViewFinance(user)

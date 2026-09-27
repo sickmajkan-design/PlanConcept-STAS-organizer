@@ -7,7 +7,7 @@ import { canViewFinanceStatistics } from '../../auth/authHelpers';
  * below, when there is something people using the platform should be told about;
  * everybody sees the dialog once more, and only once.
  */
-export const RELEASE_ID = '2026-09-27.11';
+export const RELEASE_ID = '2026-09-27.12';
 
 export interface ReleaseSection {
   id: string;
@@ -179,6 +179,15 @@ export const releaseSections: ReleaseSection[] = [
       'releaseNotes.invoices1115.payroll',
     ],
     audience: (user) => user.role === 'SuperAdmin' || user.role === 'Admin',
+  },
+  {
+    id: 'fixes1116',
+    titleKey: 'releaseNotes.fixes1116.title',
+    itemKeys: [
+      'releaseNotes.fixes1116.crash',
+      'releaseNotes.fixes1116.costPages',
+    ],
+    audience: (user) => COST_ROLES.has(user.role),
   },
 ];
 

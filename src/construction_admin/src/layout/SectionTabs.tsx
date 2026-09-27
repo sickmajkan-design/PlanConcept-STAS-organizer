@@ -2,7 +2,7 @@ import { Badge, Box, Tab, Tabs } from '@mui/material';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 
 import { useAuth } from '../auth/useAuth';
-import { canSeeLabourCost } from '../auth/authHelpers';
+import { canSeeLabourCost, canSeeSpending } from '../auth/authHelpers';
 import { useT } from '../i18n/useI18n';
 import { paths } from '../routes/paths';
 import { useNavBadgeCounts } from './useNavBadgeCounts';
@@ -57,20 +57,24 @@ export function CostRecordsLayout() {
   const { user } = useAuth();
   const counts = useNavBadgeCounts(user);
 
-  const tabs: SectionTab[] = [
-    {
-      path: paths.vehicleExpenses,
-      label: t('nav.vehicleExpenses'),
-      badge: counts[paths.vehicleExpenses],
-    },
-    { path: paths.toolExpenses, label: t('nav.toolExpenses') },
-    { path: paths.generalExpenses, label: t('nav.generalExpenses') },
-    { path: paths.stockMovements, label: t('nav.stockMovements') },
-    { path: paths.accommodationCosts, label: t('nav.accommodationCosts') },
-    ...(user && canSeeLabourCost(user)
-      ? [{ path: paths.financeEntries, label: t('nav.financeEntries') }]
-      : []),
-  ];
+  // Reading any of these back is money now, gated behind the finance grant
+  // (`RequireFinanceAccess` on the routes); a tab nobody may open is not offered.
+  const tabs: SectionTab[] = user && canSeeSpending(user)
+    ? [
+        {
+          path: paths.vehicleExpenses,
+          label: t('nav.vehicleExpenses'),
+          badge: counts[paths.vehicleExpenses],
+        },
+        { path: paths.toolExpenses, label: t('nav.toolExpenses') },
+        { path: paths.generalExpenses, label: t('nav.generalExpenses') },
+        { path: paths.stockMovements, label: t('nav.stockMovements') },
+        { path: paths.accommodationCosts, label: t('nav.accommodationCosts') },
+        ...(canSeeLabourCost(user)
+          ? [{ path: paths.financeEntries, label: t('nav.financeEntries') }]
+          : []),
+      ]
+    : [];
 
   return (
     <>
