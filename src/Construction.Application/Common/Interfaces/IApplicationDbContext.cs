@@ -83,6 +83,8 @@ public interface IApplicationDbContext
     DbSet<Invoice> Invoices { get; }
     DbSet<InvoiceShare> InvoiceShares { get; }
 
+    DbSet<SignedTimesheet> SignedTimesheets { get; }
+
     DbSet<EmployeeRate> EmployeeRates { get; }
 
     DbSet<MaterialMovement> MaterialMovements { get; }

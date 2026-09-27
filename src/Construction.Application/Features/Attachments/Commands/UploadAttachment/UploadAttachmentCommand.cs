@@ -253,6 +253,8 @@ public class UploadAttachmentCommandHandler
                 await _context.ToolRentalRates.AnyAsync(r => r.Id == id, cancellationToken),
             AttachmentOwnerType.Refund =>
                 await _context.Refunds.AnyAsync(r => r.Id == id, cancellationToken),
+            AttachmentOwnerType.SignedTimesheet =>
+                await _context.SignedTimesheets.AnyAsync(s => s.Id == id, cancellationToken),
             _ => false
         };
 

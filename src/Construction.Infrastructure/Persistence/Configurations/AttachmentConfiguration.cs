@@ -128,6 +128,11 @@ public class AttachmentConfiguration : IEntityTypeConfiguration<Attachment>
             .HasForeignKey(a => a.ToolRentalRateId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne(a => a.SignedTimesheet)
+            .WithMany()
+            .HasForeignKey(a => a.SignedTimesheetId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // Uploader accounts are not hard-deleted, but the file must survive
         // losing the name of who put it there.
         builder.HasOne(a => a.UploadedByUser)
@@ -156,7 +161,8 @@ public class AttachmentConfiguration : IEntityTypeConfiguration<Attachment>
             + CASE WHEN "AccommodationId" IS NULL THEN 0 ELSE 1 END
             + CASE WHEN "AccommodationRateId" IS NULL THEN 0 ELSE 1 END
             + CASE WHEN "ToolRentalRateId" IS NULL THEN 0 ELSE 1 END
-            + CASE WHEN "RefundId" IS NULL THEN 0 ELSE 1 END) = 1
+            + CASE WHEN "RefundId" IS NULL THEN 0 ELSE 1 END
+            + CASE WHEN "SignedTimesheetId" IS NULL THEN 0 ELSE 1 END) = 1
             """));
 
         builder.ToTable(t => t.HasCheckConstraint(

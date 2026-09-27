@@ -65,6 +65,7 @@ const CATEGORIES_BY_OWNER_TYPE: Record<AttachmentOwnerType, readonly AttachmentC
   Accommodation: ['Photo', 'Other'],
   AccommodationRate: ['Contract', 'Other'],
   Refund: ['Photo', 'Other'],
+  SignedTimesheet: ['Other'],
 };
 
 /**

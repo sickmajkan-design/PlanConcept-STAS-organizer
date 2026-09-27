@@ -811,6 +811,7 @@ export const attachmentOwnerTypes = [
   'AccommodationRate',
   'ToolRentalRate',
   'Refund',
+  'SignedTimesheet',
 ] as const;
 
 export type AttachmentOwnerType = (typeof attachmentOwnerTypes)[number];
@@ -1813,6 +1814,20 @@ export interface LedgerSection {
   rowCount: number;
   /** Empty on the ledger shell — populated only once this section is opened and its rows are fetched. */
   rows: LedgerRow[];
+}
+
+/** One calendar week a project/month touches, flagged with whether its scan is filed. */
+export interface SignedTimesheetWeek {
+  isoWeek: number;
+  /** The ISO week's own year — not always the ledger month's calendar year. */
+  isoYear: number;
+  /** `YYYY-MM-DD`. */
+  from: string;
+  /** `YYYY-MM-DD`. */
+  to: string;
+  /** Null until the week's row has been touched. */
+  signedTimesheetId: string | null;
+  hasAttachment: boolean;
 }
 
 export interface LedgerDetail {

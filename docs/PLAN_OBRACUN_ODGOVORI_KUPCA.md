@@ -78,18 +78,20 @@ Predlog isporuke: **Sprint 1** = A + E + G (promjene pravila u onome što već p
 
 **Story Points:** 8 · **Priority:** High
 
-### A3. Potpisana satnica kao prilog
+### A3. Potpisana satnica kao prilog — Urađeno (2026-09-27)
 
 **As a** vlasnik,
 **I want to** prikačiti sken potpisane satnice uz gradilište i sedmicu,
 **So that** se za svaki iznos zna na šta se oslanja.
 
 **Acceptance Criteria:**
-- [ ] Given sekcija i sedmica, when dodam fajl (fotografija ili PDF), then se čuva uz tu sedmicu i vidi se oznaka "satnica priložena".
-- [ ] Given zaključivanje mjeseca, then lista "Za provjeru" navodi sedmice sa satima a bez priloga (samo upozorenje, ne blokira).
-- [ ] Edge: fajl veći od ograničenja se odbija sa porukom; brisanje priloga se upisuje u audit log.
+- [x] Given sekcija i sedmica, when dodam fajl (fotografija ili PDF), then se čuva uz tu sedmicu i vidi se oznaka "satnica priložena".
+- [x] Given zaključivanje mjeseca, then lista "Za provjeru" navodi sedmice sa satima a bez priloga (samo upozorenje, ne blokira).
+- [x] Edge: fajl veći od ograničenja se odbija sa porukom; brisanje priloga se upisuje u audit log.
 
 **Notes / Out of Scope:** Prepoznavanje sati sa slike (OCR) nije u opsegu. Koristi postojeći modul priloga, uz pravila čuvanja iz [PRIVACY.md](PRIVACY.md).
+
+Nova entitet `SignedTimesheet` (projekat + ISO sedmica/godina) drži red za prilog; red se pravi lijeno, prvi put kad neko otvori tu sedmicu. Vidljivo/upload samo Super Admin — isti nivo kao i sam obračun (`LedgersController`). Dugme "Potpisane satnice" na sekciji u obračunu (samo kad sekcija ima gradilište), sa spiskom sedmica i oznakom "Priloženo"/"Nije priloženo"; novi red u "Za provjeru" (`MissingSignedTimesheet`) kad sekcija ima upisane sate za sedmicu bez priloga.
 
 **Story Points:** 8 · **Priority:** Medium
 

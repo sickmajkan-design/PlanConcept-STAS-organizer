@@ -127,6 +127,10 @@ public static class AttachmentRules
         // documents.
         AttachmentOwnerType.EmployeeRate or AttachmentOwnerType.FinanceEntry or AttachmentOwnerType.Refund =>
             role is UserRole.SuperAdmin or UserRole.Admin or UserRole.ProjectManager,
+        // The monthly ledger this backs is Super Admin only (LedgersController's own
+        // policy): a signed timesheet is the payroll's own source document, not site
+        // paperwork, and belongs behind the same door.
+        AttachmentOwnerType.SignedTimesheet => role is UserRole.SuperAdmin,
         _ => role is UserRole.SuperAdmin or UserRole.Admin
             or UserRole.ProjectManager or UserRole.Foreman
     };
@@ -177,6 +181,12 @@ public static class AttachmentRules
         if (ownerType == AttachmentOwnerType.Refund)
         {
             return role is not null;
+        }
+
+        // Same reasoning as CanRead: the ledger this backs is Super Admin only.
+        if (ownerType == AttachmentOwnerType.SignedTimesheet)
+        {
+            return role is UserRole.SuperAdmin;
         }
 
         if (role is UserRole.SuperAdmin or UserRole.Admin

@@ -10,7 +10,7 @@ Oznake: **Must** obavezno · **Should** važno · **Could** ako ostane vremena. 
 |---|---|---|---|---|
 | A1 | Ručni unos sati po sedmici kao zadani izvor ("Izvor sati": Ručno) | Must | 5 | |
 | A2 | Sati iz aplikacije samo kao kontrola pored upisanih | Must | 8 | A1 |
-| A3 | Potpisana satnica kao prilog (sken po gradilištu i sedmici) | Should | 8 | A1 |
+| A3 | Potpisana satnica kao prilog (sken po gradilištu i sedmici) — Urađeno | Should | 8 | A1 |
 | A4 | Godišnji (+) i akontacija (−) kao dvije jasne kolone | Must | 5 | |
 | A5 | Kopiranje mjeseca: ne prenosi sate, doprinose, godišnji, akontaciju, račune | Must | 5 | A1, A6 |
 | A6 | Doprinosi se upisuju svaki mjesec iz platne liste | Must | 3 | |

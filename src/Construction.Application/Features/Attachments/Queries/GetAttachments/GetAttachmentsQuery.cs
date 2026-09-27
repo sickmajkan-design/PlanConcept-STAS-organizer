@@ -107,6 +107,8 @@ public class GetAttachmentsQueryHandler
             AttachmentOwnerType.ToolRentalRate =>
                 query.Where(a => a.ToolRentalRateId == request.OwnerId),
             AttachmentOwnerType.Refund => query.Where(a => a.RefundId == request.OwnerId),
+            AttachmentOwnerType.SignedTimesheet =>
+                query.Where(a => a.SignedTimesheetId == request.OwnerId),
             _ => throw new ArgumentOutOfRangeException(
                 nameof(request),
                 request.OwnerType,

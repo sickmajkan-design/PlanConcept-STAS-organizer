@@ -80,7 +80,8 @@ public static class AttachmentMapping
                 : attachment.AccommodationId != null ? AttachmentOwnerType.Accommodation
                 : attachment.AccommodationRateId != null ? AttachmentOwnerType.AccommodationRate
                 : attachment.RefundId != null ? AttachmentOwnerType.Refund
-                : AttachmentOwnerType.ToolRentalRate,
+                : attachment.ToolRentalRateId != null ? AttachmentOwnerType.ToolRentalRate
+                : AttachmentOwnerType.SignedTimesheet,
             OwnerId = attachment.EmployeeId != null ? attachment.EmployeeId.Value
                 : attachment.ProjectId != null ? attachment.ProjectId.Value
                 : attachment.VehicleId != null ? attachment.VehicleId.Value
@@ -96,7 +97,8 @@ public static class AttachmentMapping
                 : attachment.AccommodationId != null ? attachment.AccommodationId.Value
                 : attachment.AccommodationRateId != null ? attachment.AccommodationRateId.Value
                 : attachment.RefundId != null ? attachment.RefundId.Value
-                : attachment.ToolRentalRateId!.Value,
+                : attachment.ToolRentalRateId != null ? attachment.ToolRentalRateId.Value
+                : attachment.SignedTimesheetId!.Value,
             OwnerName = attachment.Employee != null
                 ? attachment.Employee.FirstName + " " + attachment.Employee.LastName
                 : attachment.Project != null ? attachment.Project.Name
@@ -118,6 +120,7 @@ public static class AttachmentMapping
                 : attachment.AccommodationRate != null ? attachment.AccommodationRate.Accommodation.Address
                 : attachment.ToolRentalRate != null ? attachment.ToolRentalRate.Tool.Name
                 : attachment.Refund != null ? attachment.Refund.Description
+                : attachment.SignedTimesheet != null ? attachment.SignedTimesheet.Project.Name
                 : null,
             UploadedByName = attachment.UploadedByUser != null ? attachment.UploadedByUser.Email : null,
             CreatedAt = attachment.CreatedAt,

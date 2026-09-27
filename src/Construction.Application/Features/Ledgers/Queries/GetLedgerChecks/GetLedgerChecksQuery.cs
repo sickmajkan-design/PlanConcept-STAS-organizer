@@ -37,6 +37,13 @@ public static class LedgerCheckKinds
     /// recorded for it, so nothing is billed.
     /// </summary>
     public const string MissingInvoice = "MissingInvoice";
+
+    /// <summary>
+    /// A site has hours typed for a calendar week and no scanned, client-signed timesheet filed
+    /// against that week — the source those hours are supposed to come from. A prompt to look,
+    /// not a block: the sheet may exist on paper and not be scanned in yet.
+    /// </summary>
+    public const string MissingSignedTimesheet = "MissingSignedTimesheet";
 }
 
 public class LedgerCheckDto
@@ -400,6 +407,85 @@ public class GetLedgerChecksQueryHandler
                         RowLabel = first.Label,
                         Amount = total,
                         OtherSections = sections.Where(n => n != first.SectionName).ToList(),
+                    });
+                }
+            }
+        }
+
+        // A section's calendar week is flagged when it has hours typed and no scanned signed
+        // timesheet filed for that project and week. One flag per section+week, not per person:
+        // the sheet is one document for the whole site's week, not one per worker.
+        var weekColumns = columns
+            .Where(c => c.SystemKey is not null && c.SystemKey.StartsWith("week", StringComparison.Ordinal))
+            .Select(c => (c.Id, Number: int.Parse(c.SystemKey!.AsSpan(4))))
+            .ToList();
+
+        if (weekColumns.Count > 0)
+        {
+            var monthWeeks = LedgerTemplates.MonthWeeks(period.Year, period.Month);
+            var flaggedWeeks = new HashSet<(Guid SectionId, int Number)>();
+
+            foreach (var row in rows.Where(r => r.ProjectId is not null))
+            {
+                var stored = cells.TryGetValue(row.Id, out var s) ? s : new Dictionary<Guid, string?>();
+                var sourced = auto.TryGetValue(row.Id, out var a) ? a : null;
+                var computed = calculator.ComputeRow(stored, sourced);
+
+                foreach (var (columnId, number) in weekColumns)
+                {
+                    var value = computed.TryGetValue(columnId, out var c)
+                        ? c.Value
+                        : LedgerCellMath.ParseNumeric(stored.GetValueOrDefault(columnId));
+
+                    if (value > 0 && number <= monthWeeks.Count)
+                    {
+                        flaggedWeeks.Add((row.SectionId, number));
+                    }
+                }
+            }
+
+            if (flaggedWeeks.Count > 0)
+            {
+                var projectBySection = rows
+                    .Where(r => r.ProjectId is not null)
+                    .GroupBy(r => r.SectionId)
+                    .ToDictionary(g => g.Key, g => g.First().ProjectId!.Value);
+
+                var neededKeys = flaggedWeeks
+                    .Select(f => (
+                        SectionId: f.SectionId,
+                        Number: f.Number,
+                        ProjectId: projectBySection[f.SectionId],
+                        Year: monthWeeks[f.Number - 1].IsoYear,
+                        Week: monthWeeks[f.Number - 1].IsoWeek))
+                    .ToList();
+
+                var neededProjectIds = neededKeys.Select(k => k.ProjectId).Distinct().ToList();
+
+                var signedWithAttachment = (await _context.SignedTimesheets
+                        .AsNoTracking()
+                        .Where(s => neededProjectIds.Contains(s.ProjectId))
+                        .Where(s => _context.Attachments.Any(a => a.SignedTimesheetId == s.Id))
+                        .Select(s => new { s.ProjectId, s.Year, s.IsoWeek })
+                        .ToListAsync(cancellationToken))
+                    .Select(s => (s.ProjectId, s.Year, s.IsoWeek))
+                    .ToHashSet();
+
+                foreach (var key in neededKeys.OrderBy(k => k.Number))
+                {
+                    if (signedWithAttachment.Contains((key.ProjectId, key.Year, key.Week)))
+                    {
+                        continue;
+                    }
+
+                    var section = rows.First(r => r.SectionId == key.SectionId);
+
+                    issues.Add(new LedgerCheckDto
+                    {
+                        Kind = LedgerCheckKinds.MissingSignedTimesheet,
+                        SectionId = key.SectionId,
+                        SectionName = section.SectionName,
+                        ColumnName = columns.First(c => c.Id == weekColumns.First(w => w.Number == key.Number).Id).Name,
                     });
                 }
             }

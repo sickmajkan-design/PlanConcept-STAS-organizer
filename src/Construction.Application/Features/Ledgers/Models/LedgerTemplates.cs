@@ -67,17 +67,24 @@ public static class LedgerTemplates
     public const int WeekColumns = 6;
 
     /// <summary>The calendar weeks a month touches, each cut off at the month's ends.</summary>
-    public static IReadOnlyList<(DateOnly From, DateOnly To, int IsoWeek)> MonthWeeks(int year, int month)
+    /// <remarks>
+    /// <see cref="IsoYear"/> is the ISO week's own year, not necessarily <paramref name="year"/>:
+    /// the first days of January can fall in the last ISO week of the year before. Anything that
+    /// keys a week — such as <see cref="Construction.Domain.Entities.SignedTimesheet"/> — must use
+    /// this, not the month's calendar year, or two Decembers' week 1 collide.
+    /// </remarks>
+    public static IReadOnlyList<(DateOnly From, DateOnly To, int IsoWeek, int IsoYear)> MonthWeeks(int year, int month)
     {
-        var weeks = new List<(DateOnly, DateOnly, int)>();
+        var weeks = new List<(DateOnly, DateOnly, int, int)>();
         var end = new DateOnly(year, month, DateTime.DaysInMonth(year, month));
 
         for (var start = new DateOnly(year, month, 1); start <= end;)
         {
             var toSunday = ((int)DayOfWeek.Sunday - (int)start.DayOfWeek + 7) % 7;
             var last = start.AddDays(toSunday) < end ? start.AddDays(toSunday) : end;
+            var startDateTime = start.ToDateTime(TimeOnly.MinValue);
 
-            weeks.Add((start, last, ISOWeek.GetWeekOfYear(start.ToDateTime(TimeOnly.MinValue))));
+            weeks.Add((start, last, ISOWeek.GetWeekOfYear(startDateTime), ISOWeek.GetYear(startDateTime)));
             start = last.AddDays(1);
         }
 

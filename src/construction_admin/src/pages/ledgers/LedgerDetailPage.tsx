@@ -73,6 +73,7 @@ import {
 import { AuditHistoryCard } from '../../components/AuditHistoryCard';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
+import { SignedTimesheetWeeksDialog } from '../../components/SignedTimesheetWeeksDialog';
 import { useAllAccommodationsQuery } from '../../features/accommodations/useAccommodations';
 import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
 import {
@@ -449,6 +450,8 @@ export function LedgerDetailPage() {
             <SectionCard
               key={section.id}
               ledgerId={ledgerId}
+              year={ledger.year}
+              month={ledger.month}
               section={section}
               columns={columns}
               expanded={expandedSectionIds.has(section.id)}
@@ -659,6 +662,8 @@ export function LedgerDetailPage() {
  */
 function SectionCard({
   ledgerId,
+  year,
+  month,
   section,
   columns,
   expanded,
@@ -676,6 +681,8 @@ function SectionCard({
   onReorderRows,
 }: {
   ledgerId: string;
+  year: number;
+  month: number;
   section: LedgerSection;
   columns: LedgerColumn[];
   expanded: boolean;
@@ -729,6 +736,8 @@ function SectionCard({
     onReorderRows(reordered.map((r) => r.id));
   };
 
+  const [timesheetsOpen, setTimesheetsOpen] = useState(false);
+
   return (
     <Card variant="outlined">
       <Stack
@@ -749,6 +758,16 @@ function SectionCard({
           )}
         </Typography>
         <Chip size="small" variant="outlined" label={t('ledgers.rowCount', { count: section.rowCount })} />
+        {section.projectId && (
+          <Tooltip title={t('signedTimesheets.buttonTooltip')}>
+            <IconButton
+              size="small"
+              onClick={(event) => { event.stopPropagation(); setTimesheetsOpen(true); }}
+            >
+              <ReceiptLongOutlined fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        )}
         {onMoveUp && (
           <IconButton size="small" onClick={(event) => { event.stopPropagation(); onMoveUp(); }}>
             <ArrowUpwardOutlined fontSize="small" />
@@ -832,6 +851,17 @@ function SectionCard({
           </Button>
         </CardContent>
       </Collapse>
+
+      {section.projectId && (
+        <SignedTimesheetWeeksDialog
+          open={timesheetsOpen}
+          onClose={() => setTimesheetsOpen(false)}
+          projectId={section.projectId}
+          projectName={section.projectName ?? section.name}
+          year={year}
+          month={month}
+        />
+      )}
     </Card>
   );
 }

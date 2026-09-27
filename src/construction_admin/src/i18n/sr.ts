@@ -779,6 +779,10 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.sitescope1117.what': 'Voditelj projekta sada vidi samo projekat na koji je raspoređen (isto kao Predradnik već ranije) — njegovu ekipu, zadatke, narudžbe artikala — ne sve projekte firme. Projekat ili osoba van toga ponaša se kao da ne postoji, ne kao odbijen pristup.',
   'releaseNotes.sitescope1117.fleet': 'Isto važi za flotu: Vozila i Alat sada Voditelju ili Predradniku pokazuju samo ono što je dodijeljeno njihovom gradilištu, ili njima lično — ne cijeloj firmi.',
   'releaseNotes.sitescope1117.schedule': 'Raspored je sužen na isti način: Voditelj ili Predradnik vidi ekipu svog gradilišta, ne svih.',
+
+  'releaseNotes.signedTimesheets1127.title': 'Potpisane satnice, po gradilištu i sedmici',
+  'releaseNotes.signedTimesheets1127.what': 'Svaka sekcija obračuna vezana za projekat sada ima dugme "Potpisane satnice" — spisak kalendarskih sedmica tog projekta sa mjestom za sken/PDF po sedmici, izvor iz kojeg se upisuju sati.',
+  'releaseNotes.signedTimesheets1127.check': 'Lista "Za provjeru" sada takođe označava sedmicu sekcije kad su upisani sati a satnica još nije priložena — samo podsjetnik da pogledaš, ne blokira.',
   'releaseNotes.fixes1116.costPages': 'Stranice troškova vozila, alata, zaliha i smještaja su nalogu bez prava na iznose ponekad prikazivale grešku pri učitavanju umjesto uobičajenog preusmjeravanja "nije za vas". Sada je isto kao na ostalim stranicama troškova.',
   'releaseNotes.orders1112.design': 'Aplikacija 1.1.14: isti izgled na svim ekranima. Kartice su svuda poravnate isto, status je svuda ista obojena oznaka, a filteri, prazne liste i dugmad izgledaju isto; tekst je u jednom obraćanju. Stranice Narudžbe i Refundacije u ovom panelu sada izgledaju kao ostale liste (naslov, filter, tabela).',
   'releaseNotes.payroll1111.hours': 'Obračun plata: sati se sada upisuju iz potpisanih satnica, koje su mjerodavne za platu. Opcija „Popuni sate iz aplikacije“ pri kreiranju mjeseca vraća raniji način.',
@@ -1638,6 +1642,12 @@ export const sr: Record<MessageKey, Message> = {
   'attachmentOwnerType.AccommodationRate': 'Cijena smještaja',
   'attachmentOwnerType.ToolRentalRate': 'Cijena rente alata',
   'attachmentOwnerType.VehicleRentalRate': 'Cijena rente vozila',
+
+  'signedTimesheets.buttonTooltip': 'Potpisane satnice',
+  'signedTimesheets.title': 'Potpisane satnice — {project}',
+  'signedTimesheets.noWeeks': 'Ovaj mjesec nema kalendarskih sedmica za prikaz.',
+  'signedTimesheets.filed': 'Priloženo',
+  'signedTimesheets.notFiled': 'Nije priloženo',
 
   'materials.warehouseStock': 'Zalihe u magacinu',
   'employees.projectsCount': 'Projekti ({count})',
@@ -2632,6 +2642,7 @@ export const sr: Record<MessageKey, Message> = {
   'ledgers.hoursFromAppHint': 'Zadano isključeno: sati se upisuju iz potpisanih satnica, koje su mjerodavne za platu. Kad je uključeno, sedmice se pune iz odobrenih unosa radnog vremena, a upisani iznos preko njih se označava.',
   'ledgers.check.MissingContributions': '{row} ({section}) ima {hours} h, a doprinosi nisu upisani. Uzimaju se iz platne liste; upiši 0 ako ih nema.',
   'ledgers.check.HoursDifferFromApp': '{row} ({section}): upisano {hours} h, u aplikaciji je odobreno {appHours} h. Mjerodavna je potpisana satnica; ovo je samo podsjetnik da pogledaš.',
+  'ledgers.check.MissingSignedTimesheet': '{section}: upisani su sati za "{column}", a za tu sedmicu još nije priložena skenirana potpisana satnica.',
   'ledgers.autoCellTooltip': 'Preuzeto iz sistema: odobreni sati na ovom gradilištu, cijena rada, gorivo, iznajmljeno auto ili stanovanje. Upiši vrijednost da ga prepišeš.',
   'ledgers.copyFromNone': 'Ne kopiraj — počni prazno',
   'ledgers.deleteTitle': 'Obrisati ovaj mjesec?',

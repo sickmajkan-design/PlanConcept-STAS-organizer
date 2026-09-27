@@ -128,6 +128,10 @@ public class Attachment : BaseEntity, ISoftDeletable, IAuditable
 
     public ToolRentalRate? ToolRentalRate { get; set; }
 
+    public Guid? SignedTimesheetId { get; set; }
+
+    public SignedTimesheet? SignedTimesheet { get; set; }
+
     public Guid? UploadedByUserId { get; set; }
 
     public User? UploadedByUser { get; set; }

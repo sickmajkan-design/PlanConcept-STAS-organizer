@@ -88,6 +88,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<Invoice> Invoices => Set<Invoice>();
     public DbSet<InvoiceShare> InvoiceShares => Set<InvoiceShare>();
 
+    public DbSet<SignedTimesheet> SignedTimesheets => Set<SignedTimesheet>();
+
     public DbSet<EmployeeRate> EmployeeRates => Set<EmployeeRate>();
 
     public DbSet<MaterialMovement> MaterialMovements => Set<MaterialMovement>();

@@ -752,6 +752,10 @@ export const en = {
   'releaseNotes.sitescope1117.what': 'A Project Manager now sees only the project they are posted to (same as a Foreman already did) — its crew, its work items, its article orders — not every project in the company. A project or a person outside it behaves as if it does not exist, not as a refusal.',
   'releaseNotes.sitescope1117.fleet': 'The same for the fleet: Vehicles and Tools now show a Project Manager or Foreman only what is assigned to their own site, or to them personally — not the whole company’s.',
   'releaseNotes.sitescope1117.schedule': 'The Schedule board is scoped the same way: a Project Manager or Foreman sees their own site’s crew, not everyone’s.',
+
+  'releaseNotes.signedTimesheets1127.title': 'Signed timesheets, filed by site and week',
+  'releaseNotes.signedTimesheets1127.what': 'Each ledger section tied to a project now has a "Signed timesheets" button, listing that project\'s calendar weeks with a scan/PDF upload per week — the client-signed source the hours are typed from.',
+  'releaseNotes.signedTimesheets1127.check': 'The "To check" list now also flags a section\'s week when hours are typed for it and no signed timesheet has been filed yet — a prompt to look, not a block.',
   'releaseNotes.fixes1116.costPages': 'Vehicles, tools, stock and housing cost pages could show a loading error for an account without the amounts right, instead of the normal “not for you” redirect. Now consistent with the other cost pages.',
   'releaseNotes.orders1112.design': 'App 1.1.14: one look on every screen. Cards line up the same way everywhere, statuses are the same coloured pill on every screen, filters, empty lists and buttons look the same, and the wording is in one voice. The Orders and Refunds pages in this panel are now laid out like the other lists (header, filter, table).',
   'releaseNotes.payroll1111.hours': 'Payroll ledger: hours are now typed in from the signed timesheets, which are the record for pay. The option "Fill hours from the app" when creating a month brings back the old behaviour.',
@@ -1603,6 +1607,12 @@ export const en = {
   'attachmentOwnerType.Accommodation': 'Accommodation',
   'attachmentOwnerType.AccommodationRate': 'Accommodation rate',
   'attachmentOwnerType.ToolRentalRate': 'Tool rental rate',
+
+  'signedTimesheets.buttonTooltip': 'Signed timesheets',
+  'signedTimesheets.title': 'Signed timesheets — {project}',
+  'signedTimesheets.noWeeks': 'This month has no calendar weeks to show.',
+  'signedTimesheets.filed': 'Filed',
+  'signedTimesheets.notFiled': 'Not filed',
 
   'materials.warehouseStock': 'Warehouse stock',
   'employees.projectsCount': 'Projects ({count})',
@@ -2590,6 +2600,7 @@ export const en = {
   'ledgers.hoursFromAppHint': 'Off by default: hours are typed from the signed timesheets, which are the record for pay. When on, the weeks are filled from approved time entries and a figure typed over one is marked.',
   'ledgers.check.MissingContributions': '{row} ({section}) has {hours} h but no contributions entered. They come off the payslip; enter 0 if there are none.',
   'ledgers.check.HoursDifferFromApp': '{row} ({section}): {hours} h typed, the app has {appHours} h approved. The signed timesheet is what counts; this is only a prompt to look.',
+  'ledgers.check.MissingSignedTimesheet': '{section}: hours are typed for "{column}" and no signed timesheet scan is filed for that week yet.',
   'ledgers.autoCellTooltip': 'Taken from the system: approved hours on this site, the hourly rate, fuel, a rented car or housing. Type a value to override it.',
   'ledgers.copyFromNone': "Don't copy — start blank",
   'ledgers.deleteTitle': 'Delete this month?',

@@ -44,7 +44,13 @@ public enum AttachmentOwnerType
     ToolRentalRate = 15,
 
     /// <summary>The receipt behind a request to be paid back.</summary>
-    Refund = 16
+    Refund = 16,
+
+    /// <summary>
+    /// The client's signed timesheet for one project and one calendar week — the source the
+    /// monthly payroll's hours are typed from.
+    /// </summary>
+    SignedTimesheet = 17
 }
 
 /// <summary>
@@ -83,6 +89,7 @@ public static class AttachmentOwner
         attachment.AccommodationRateId = type == AttachmentOwnerType.AccommodationRate ? id : null;
         attachment.ToolRentalRateId = type == AttachmentOwnerType.ToolRentalRate ? id : null;
         attachment.RefundId = type == AttachmentOwnerType.Refund ? id : null;
+        attachment.SignedTimesheetId = type == AttachmentOwnerType.SignedTimesheet ? id : null;
     }
 
     /// <summary>Reads the owner back off a stored row.</summary>
@@ -168,6 +175,11 @@ public static class AttachmentOwner
             return (AttachmentOwnerType.Refund, refundId);
         }
 
+        if (attachment.SignedTimesheetId is { } signedTimesheetId)
+        {
+            return (AttachmentOwnerType.SignedTimesheet, signedTimesheetId);
+        }
+
         // The table's check constraint makes this unreachable; if it is ever
         // reached, something has bypassed the database and guessing an owner
         // would hide it.
@@ -194,6 +206,7 @@ public static class AttachmentOwner
         AttachmentOwnerType.AccommodationRate => "accommodation-rates",
         AttachmentOwnerType.ToolRentalRate => "tool-rental-rates",
         AttachmentOwnerType.Refund => "refunds",
+        AttachmentOwnerType.SignedTimesheet => "signed-timesheets",
         _ => "other"
     };
 }
