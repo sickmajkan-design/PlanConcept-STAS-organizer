@@ -41,6 +41,9 @@ public abstract record ProjectCommandBase
 
     public ProjectStatus Status { get; init; } = ProjectStatus.Planned;
 
+    /// <summary>How the client is billed: by the hour (default), a fixed sum, or measured work.</summary>
+    public ProjectBillingMode BillingMode { get; init; } = ProjectBillingMode.Hourly;
+
     /// <summary>The total agreed value of the contract, if one has been set.</summary>
     public decimal? ContractValue { get; init; }
 }
@@ -84,6 +87,9 @@ public abstract class ProjectCommandBaseValidator<T> : AbstractValidator<T>
 
         RuleFor(x => x.Status)
             .IsInEnum().WithMessage("Status is not a valid project status.");
+
+        RuleFor(x => x.BillingMode)
+            .IsInEnum().WithMessage("Billing mode is not valid.");
 
         RuleFor(x => x.ContractValue)
             .GreaterThanOrEqualTo(0).WithMessage("Contract value cannot be negative.")

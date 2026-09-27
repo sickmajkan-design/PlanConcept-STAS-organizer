@@ -50,6 +50,10 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
             "ck_projects_budget_not_negative",
             "\"Budget\" IS NULL OR \"Budget\" >= 0"));
 
+        // Sites that existed before billing modes are billed by the hour, as they always were.
+        builder.Property(p => p.BillingMode)
+            .HasDefaultValue(Construction.Domain.Enums.ProjectBillingMode.Hourly);
+
         builder.HasOne(p => p.Customer)
             .WithMany(c => c.Projects)
             .HasForeignKey(p => p.CustomerId)

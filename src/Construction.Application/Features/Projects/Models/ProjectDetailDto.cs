@@ -82,6 +82,7 @@ public static class ProjectDetailMapping
             EndDate = project.EndDate,
             Status = project.Status.ToString(),
             ContractValue = project.ContractValue,
+            BillingMode = project.BillingMode.ToString(),
             ShiftStartTime = project.ShiftStartTime,
             // Open-ended assignments only — see the matching note in
             // EmployeeDetailMapping.Projection. Without this, a project's

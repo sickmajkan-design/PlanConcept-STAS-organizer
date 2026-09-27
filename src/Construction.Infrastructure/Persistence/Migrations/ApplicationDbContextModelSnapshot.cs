@@ -934,6 +934,41 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.ToTable("customers", (string)null);
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.CustomerCompany", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("customer_companies", (string)null);
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.DashboardLayout", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1459,6 +1494,113 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("idempotency_records", (string)null);
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.Invoice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<string>("CancelReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateOnly?>("DueDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("IssueDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Number")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("PayrollMonth")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("PayrollYear")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("Number")
+                        .IsUnique();
+
+                    b.HasIndex("ProjectId", "PayrollYear", "PayrollMonth");
+
+                    b.ToTable("invoices", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_invoices_amount_not_zero", "\"Amount\" <> 0");
+
+                            t.HasCheckConstraint("ck_invoices_payroll_month", "\"PayrollMonth\" BETWEEN 1 AND 12");
+                        });
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.InvoiceShare", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CustomerCompanyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("InvoiceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomerCompanyId");
+
+                    b.HasIndex("InvoiceId");
+
+                    b.ToTable("invoice_shares", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_invoice_shares_amount_not_zero", "\"Amount\" <> 0");
+                        });
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.LeaveAdjustment", b =>
@@ -2148,6 +2290,11 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<string>("Address")
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)");
+
+                    b.Property<int>("BillingMode")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.Property<decimal?>("Budget")
                         .HasPrecision(18, 2)
@@ -3727,6 +3874,17 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("Vehicle");
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.CustomerCompany", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.DashboardLayout", b =>
                 {
                     b.HasOne("Construction.Domain.Entities.User", "User")
@@ -3862,6 +4020,42 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("Project");
 
                     b.Navigation("RecordedByUser");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.Invoice", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Construction.Domain.Entities.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.InvoiceShare", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.CustomerCompany", "CustomerCompany")
+                        .WithMany()
+                        .HasForeignKey("CustomerCompanyId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Construction.Domain.Entities.Invoice", "Invoice")
+                        .WithMany("Shares")
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CustomerCompany");
+
+                    b.Navigation("Invoice");
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.LeaveAdjustment", b =>
@@ -4514,6 +4708,11 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
 
                     b.Navigation("WorkItems");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.Invoice", b =>
+                {
+                    b.Navigation("Shares");
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.Ledger", b =>

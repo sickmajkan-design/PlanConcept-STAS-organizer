@@ -35,6 +35,8 @@ export type EnumKind =
   | 'absenceStatus'
   | 'articleOrderStatus'
   | 'refundStatus'
+  | 'invoiceStatus'
+  | 'projectBillingMode'
   | 'materialMovementKind'
   | 'vehicleExpenseKind'
   | 'vehicleExpenseStatus'

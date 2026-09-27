@@ -44,6 +44,7 @@ Ulaz: 14 odgovora Darija Stankovića (El Plan Concept GmbH) od 26.–27.9.2026. 
 | 5. Godišnji: radni dani, praznici države iz postavki, 20 dana, srazmjerno u godini zaposlenja, prenos do 1.6., ispravke sa istorijom | Urađeno (kalkulator, upit stanja, ispravke, kartica na stranici radnika) |
 | 6. Godišnji u plati: dani u mjesecu × iznos po danu iz postavki | Urađeno: kolona "Godišnji odmor (+)" se sama popunjava u novim mjesecima obračuna |
 | 7. Widget "Aktivni projekti" (aktivni, planirani, radnici) | Nije urađeno |
+| 8. Paušal i aufmaß: naplata = zbir izdanih računa (B3/B4/FA) | Urađeno: evidencija faktura po gradilištu, podjela na firme klijenta, kolona "Naplata klijentu" se sama popunjava iz faktura mjeseca za takva gradilišta |
 
 Godišnji, pretpostavke koje treba potvrditi s kupcem: (a) "do 01.06." tumačimo tako da je 31.5. posljednji dan za prenesene dane, a 1.6. prvi dan kad propadaju; (b) prenosi se samo neiskorišćeno pravo iz prošle godine, ne gomila iz starijih; (c) praznici se računaju za jednu državu firme (postavka), jer radnik nema vlastitu državu u sistemu; (d) pola dana godišnjeg nije podržano; (e) godišnji se isplaćuje za dane koji padaju u mjesec obračuna, i to samo za direktne radnike, uz mogućnost ručne izmjene u ćeliji.
 

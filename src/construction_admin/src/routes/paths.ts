@@ -55,6 +55,7 @@ export const paths = {
   absences: '/absences',
   articleOrders: '/article-orders',
   refunds: '/refunds',
+  invoices: '/invoices',
   assignmentBoard: '/assignment-board',
 
   costs: '/costs',

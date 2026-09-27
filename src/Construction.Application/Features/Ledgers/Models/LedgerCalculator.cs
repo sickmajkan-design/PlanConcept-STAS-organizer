@@ -75,16 +75,27 @@ public sealed class LedgerCalculator
             {
                 // Typed over an automatic figure is an override; typed into a
                 // sourced column the row has no automatic figure for is just a value.
-                var overrides = formula.Source is null || (sourced?.ContainsKey(columnId) ?? false);
+                var overrides = formula.Source is null
+                    || formula.HasOwnCalculation
+                    || (sourced?.ContainsKey(columnId) ?? false);
 
                 return memo[columnId] = new LedgerComputedValue(LedgerCellMath.ParseNumeric(raw), overrides, IsTyped: true);
             }
 
             if (formula.Source is not null)
             {
-                return memo[columnId] = new LedgerComputedValue(
-                    sourced is not null && sourced.TryGetValue(columnId, out var auto) ? auto : 0m,
-                    false);
+                if (sourced is not null && sourced.TryGetValue(columnId, out var auto))
+                {
+                    return memo[columnId] = new LedgerComputedValue(auto, false);
+                }
+
+                // A column that only reads the system's figure and has none for this row is zero. One
+                // that also calculates (billing: the invoices of a fixed-sum site, hours times a price
+                // otherwise) falls back to its calculation.
+                if (!formula.HasOwnCalculation)
+                {
+                    return memo[columnId] = new LedgerComputedValue(0m, false);
+                }
             }
 
             if (!inProgress.Add(columnId))

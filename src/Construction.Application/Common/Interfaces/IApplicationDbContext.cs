@@ -79,6 +79,9 @@ public interface IApplicationDbContext
 
     DbSet<Refund> Refunds { get; }
     DbSet<LeaveAdjustment> LeaveAdjustments { get; }
+    DbSet<CustomerCompany> CustomerCompanies { get; }
+    DbSet<Invoice> Invoices { get; }
+    DbSet<InvoiceShare> InvoiceShares { get; }
 
     DbSet<EmployeeRate> EmployeeRates { get; }
 

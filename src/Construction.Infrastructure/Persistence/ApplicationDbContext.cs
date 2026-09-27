@@ -84,6 +84,9 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<Refund> Refunds => Set<Refund>();
     public DbSet<LeaveAdjustment> LeaveAdjustments => Set<LeaveAdjustment>();
+    public DbSet<CustomerCompany> CustomerCompanies => Set<CustomerCompany>();
+    public DbSet<Invoice> Invoices => Set<Invoice>();
+    public DbSet<InvoiceShare> InvoiceShares => Set<InvoiceShare>();
 
     public DbSet<EmployeeRate> EmployeeRates => Set<EmployeeRate>();
 

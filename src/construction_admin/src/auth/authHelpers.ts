@@ -41,6 +41,11 @@ export function canReviewAbsences(user: User | null | undefined): boolean {
   return !!user && ACCOUNT_ADMIN_ROLES.has(user.role);
 }
 
+/** Who works with invoices: management holding the finance grant (`InvoiceRules`). */
+export function canManageInvoices(user: User | null | undefined): boolean {
+  return canAdministerAccounts(user) && canViewFinance(user);
+}
+
 /** Who decides on refunds: Super Admin and Admin only (`RefundRules.CanReview`). */
 export function canReviewRefunds(user: User | null | undefined): boolean {
   return !!user && ACCOUNT_ADMIN_ROLES.has(user.role);

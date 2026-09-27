@@ -52,6 +52,12 @@ public class Project : BaseEntity, ISoftDeletable, IAuditable
 
     public ProjectStatus Status { get; set; } = ProjectStatus.Planned;
 
+    /// <summary>
+    /// How the client is billed: by the hour, a fixed sum, or measured work. For the last two
+    /// the billing in the payroll is the sum of the invoices issued, not hours times a price.
+    /// </summary>
+    public ProjectBillingMode BillingMode { get; set; } = ProjectBillingMode.Hourly;
+
     /// <summary>The total agreed value of the contract, in the system's single currency.</summary>
     public decimal? ContractValue { get; set; }
 

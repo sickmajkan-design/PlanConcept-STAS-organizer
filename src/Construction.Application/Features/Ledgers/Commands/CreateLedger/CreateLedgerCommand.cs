@@ -143,13 +143,25 @@ public class CreateLedgerCommandHandler : IRequestHandler<CreateLedgerCommand, L
 
                 var formula = LedgerFormula.Parse(column.FormulaJson)?.Remap(columnMap);
 
+                // A month made before leave pay was worked out by the system has its leave column typed
+                // by hand; the copy takes the new automatic figure (it can still be typed over).
+                if (formula is null && old.SystemKey == LedgerTemplates.Keys.Holiday)
+                {
+                    formula = new LedgerFormula([], []);
+                }
+
                 if (formula is null)
                 {
                     continue;
                 }
 
-                if (formula.Source is not null && LedgerTemplates.SourceFor(old.SystemKey, request.Year, request.Month) is { } fresh)
+                if (LedgerTemplates.SourceFor(old.SystemKey, request.Year, request.Month) is { } fresh
+                    && (formula.Source is not null
+                        || old.SystemKey == LedgerTemplates.Keys.Holiday
+                        || old.SystemKey == LedgerTemplates.Keys.Billing))
                 {
+                    // Re-based to the new month; and for billing and leave pay also added to a month
+                    // made before they had a source, so a copied month bills fixed-sum sites by invoice.
                     formula = formula with { Source = fresh };
                 }
 

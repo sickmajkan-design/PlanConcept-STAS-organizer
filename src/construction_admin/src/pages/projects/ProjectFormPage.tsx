@@ -21,7 +21,9 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
 import type { ProjectInput, ProjectKind } from '../../api/types';
-import { projectStatuses } from '../../api/types';
+import { projectBillingModes, projectStatuses } from '../../api/types';
+import { canViewFinance } from '../../auth/authHelpers';
+import { useAuth } from '../../auth/useAuth';
 import { COUNTRIES, countryLabel, resolveCountryCode } from '../../data/countries';
 import { ErrorState } from '../../components/ErrorState';
 import { useAllCustomersQuery } from '../../features/customers/useCustomers';
@@ -50,6 +52,7 @@ const emptyValues: ProjectFormValues = {
   endDate: '',
   status: 'Planned',
   contractValue: '',
+  billingMode: 'Hourly',
 };
 
 /**
@@ -88,6 +91,9 @@ export function ProjectFormPage() {
   const [searchParams] = useSearchParams();
   const t = useT();
   const enumLabel = useEnumLabel();
+  // Money: the contract sum and how the client is billed are only offered to the finance grant.
+  const { user } = useAuth();
+  const money = canViewFinance(user);
 
   const { data: existing, isLoading, isError, error, refetch } = useProjectQuery(id);
   const { data: customers } = useAllCustomersQuery();
@@ -133,6 +139,7 @@ export function ProjectFormPage() {
         endDate: existing.endDate?.slice(0, 10) ?? '',
         status: existing.status,
         contractValue: existing.contractValue?.toString() ?? '',
+        billingMode: existing.billingMode,
       });
     }
   }, [existing, reset]);
@@ -171,7 +178,13 @@ export function ProjectFormPage() {
       startDate: values.startDate || null,
       endDate: values.endDate || null,
       status: values.status,
-      contractValue: values.contractValue ? Number(values.contractValue) : null,
+      // Money: only the finance grant sends them; for anybody else the server keeps what is stored.
+      ...(money
+        ? {
+            contractValue: values.contractValue ? Number(values.contractValue) : null,
+            billingMode: values.billingMode,
+          }
+        : {}),
     };
 
     try {
@@ -479,22 +492,47 @@ export function ProjectFormPage() {
                   )}
                 />
               </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <Controller
-                  name="contractValue"
-                  control={control}
-                  render={({ field, fieldState }) => (
-                    <TextField
-                      {...field}
-                      type="number"
-                      label={t('projects.contractValue')}
-                      fullWidth
-                      error={!!fieldState.error}
-                      helperText={fieldState.error?.message}
+              {money && (
+                <>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Controller
+                      name="contractValue"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <TextField
+                          {...field}
+                          type="number"
+                          label={t('projects.contractValue')}
+                          fullWidth
+                          error={!!fieldState.error}
+                          helperText={fieldState.error?.message}
+                        />
+                      )}
                     />
-                  )}
-                />
-              </Grid>
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Controller
+                      name="billingMode"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          select
+                          label={t('projects.billingMode')}
+                          fullWidth
+                          helperText={t('projects.billingModeHelp')}
+                        >
+                          {projectBillingModes.map((mode) => (
+                            <MenuItem key={mode} value={mode}>
+                              {enumLabel('projectBillingMode', mode)}
+                            </MenuItem>
+                          ))}
+                        </TextField>
+                      )}
+                    />
+                  </Grid>
+                </>
+              )}
             </Grid>
 
             <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>

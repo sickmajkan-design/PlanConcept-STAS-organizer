@@ -31,6 +31,12 @@ public static class LedgerCheckKinds
     /// as approved. Only a prompt to look: the signed hours are the record.
     /// </summary>
     public const string HoursDifferFromApp = "HoursDifferFromApp";
+
+    /// <summary>
+    /// A site billed by a fixed sum or by measured work has people working in the month and no invoice
+    /// recorded for it, so nothing is billed.
+    /// </summary>
+    public const string MissingInvoice = "MissingInvoice";
 }
 
 public class LedgerCheckDto
@@ -162,6 +168,31 @@ public class GetLedgerChecksQueryHandler
         var issues = new List<LedgerCheckDto>();
         var hoursByRow = new Dictionary<Guid, decimal>();
 
+        // How each site is billed. A price per hour is only expected where the site is billed by the
+        // hour; a fixed-sum or measured site is billed by its invoices instead.
+        var siteIds = rows.Where(r => r.ProjectId is not null).Select(r => r.ProjectId!.Value).Distinct().ToList();
+        var billedByInvoice = (await _context.Projects
+                .AsNoTracking()
+                .Where(p => siteIds.Contains(p.Id) && p.BillingMode != ProjectBillingMode.Hourly)
+                .Select(p => p.Id)
+                .ToListAsync(cancellationToken))
+            .ToHashSet();
+
+        var invoicedByProject = billedByInvoice.Count == 0
+            ? new Dictionary<Guid, decimal>()
+            : (await _context.Invoices
+                    .AsNoTracking()
+                    .Where(i => billedByInvoice.Contains(i.ProjectId)
+                        && i.Status != InvoiceStatus.Cancelled
+                        && i.PayrollYear == period.Year
+                        && i.PayrollMonth == period.Month)
+                    .GroupBy(i => i.ProjectId)
+                    .Select(g => new { ProjectId = g.Key, Total = g.Sum(i => i.Amount) })
+                    .ToListAsync(cancellationToken))
+                .ToDictionary(x => x.ProjectId, x => x.Total);
+
+        var noInvoiceReported = new HashSet<Guid>();
+
         // Whether the hour columns are filled from the app. Where they are, a figure
         // typed over one is already flagged as an override, and a second flag for the
         // same disagreement would be noise.
@@ -203,7 +234,23 @@ public class GetLedgerChecksQueryHandler
                 });
             }
 
-            if (hoursColumn is not null && clientRateColumn is not null && hours > 0 && ValueOf(clientRateColumn) == 0m)
+            var billedByInvoiceRow = row.ProjectId is { } rowProject && billedByInvoice.Contains(rowProject);
+
+            if (billedByInvoiceRow
+                && hours > 0
+                && invoicedByProject.GetValueOrDefault(row.ProjectId!.Value) == 0m
+                && noInvoiceReported.Add(row.SectionId))
+            {
+                issues.Add(new LedgerCheckDto
+                {
+                    Kind = LedgerCheckKinds.MissingInvoice,
+                    SectionId = row.SectionId,
+                    SectionName = row.SectionName,
+                    Amount = hours,
+                });
+            }
+
+            if (!billedByInvoiceRow && hoursColumn is not null && clientRateColumn is not null && hours > 0 && ValueOf(clientRateColumn) == 0m)
             {
                 issues.Add(new LedgerCheckDto
                 {
@@ -221,6 +268,7 @@ public class GetLedgerChecksQueryHandler
             // for someone whose timesheet is empty contradict nothing.
             foreach (var over in computed.Where(kv => kv.Value.IsOverride
                 && (formulas[kv.Key]?.Source is null
+                    || (formulas[kv.Key]!.HasOwnCalculation && !(sourced?.ContainsKey(kv.Key) ?? false))
                     || (sourced is not null
                         && sourced.TryGetValue(kv.Key, out var automatic)
                         && automatic > 0m

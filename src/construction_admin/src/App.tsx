@@ -21,6 +21,7 @@ import {
   RequireCustomer,
   RequireDirectoryAccess,
   RequireFinanceAccess,
+  RequireInvoiceAccess,
   RequireLabourCostAccess,
   RequireNotCustomer,
   RequireProjectManagerAccess,
@@ -131,6 +132,11 @@ const SchedulePage = lazy(() =>
 const RefundsPage = lazy(() =>
   import('./pages/refunds/RefundsPage').then((m) => ({
     default: m.RefundsPage,
+  })),
+);
+const InvoicesPage = lazy(() =>
+  import('./pages/invoices/InvoicesPage').then((m) => ({
+    default: m.InvoicesPage,
   })),
 );
 const ArticleOrdersPage = lazy(() =>
@@ -425,6 +431,9 @@ function Layout() {
               <Route path={paths.absences} element={<AbsencesListPage />} />
               <Route path={paths.articleOrders} element={<ArticleOrdersPage />} />
               <Route path={paths.refunds} element={<RefundsPage />} />
+              <Route element={<RequireInvoiceAccess />}>
+                <Route path={paths.invoices} element={<InvoicesPage />} />
+              </Route>
               <Route path={paths.weeklyReports} element={<WeeklySiteReportsListPage />} />
 
               <Route path={paths.timeEntrySummary} element={<TimeEntrySummaryPage />} />

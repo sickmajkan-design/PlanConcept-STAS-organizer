@@ -172,6 +172,9 @@ export interface EmployeeInput {
 
 export type ProjectKind = 'Main' | 'Sub';
 
+export const projectBillingModes = ['Hourly', 'FlatRate', 'Measured'] as const;
+export type ProjectBillingMode = (typeof projectBillingModes)[number];
+
 export interface Project {
   id: string;
   name: string;
@@ -194,7 +197,10 @@ export interface Project {
   startDate: string | null;
   endDate: string | null;
   status: ProjectStatus;
+  /** Money: null unless the account holds the finance grant. */
   contractValue: number | null;
+  /** How the client is billed: by the hour, a fixed sum, or measured work. */
+  billingMode: ProjectBillingMode;
   employeeCount: number;
   createdAt: string;
   updatedAt: string | null;
@@ -239,7 +245,9 @@ export interface ProjectInput {
   startDate?: string | null;
   endDate?: string | null;
   status: ProjectStatus;
+  /** Only the finance grant sets these two; for anybody else the server keeps what is stored. */
   contractValue?: number | null;
+  billingMode?: ProjectBillingMode;
 }
 
 export interface Customer {

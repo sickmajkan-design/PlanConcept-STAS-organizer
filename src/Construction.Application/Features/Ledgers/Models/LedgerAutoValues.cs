@@ -405,6 +405,58 @@ public static class LedgerAutoValues
             }
         }
 
+        // ---- billing from invoices ---------------------------------------
+
+        var invoiceColumns = columns.Where(c => c.Source.Kind == LedgerSourceKinds.ProjectInvoices).ToList();
+        var projectRows = rows.Where(r => r.ProjectId is not null).ToList();
+
+        if (invoiceColumns.Count > 0 && projectRows.Count > 0)
+        {
+            var projectIds = projectRows.Select(r => r.ProjectId!.Value).Distinct().ToList();
+
+            var billedByInvoice = (await context.Projects
+                    .AsNoTracking()
+                    .Where(p => projectIds.Contains(p.Id) && p.BillingMode != ProjectBillingMode.Hourly)
+                    .Select(p => p.Id)
+                    .ToListAsync(cancellationToken))
+                .ToHashSet();
+
+            if (billedByInvoice.Count > 0)
+            {
+                var invoices = await context.Invoices
+                    .AsNoTracking()
+                    .Where(i => billedByInvoice.Contains(i.ProjectId) && i.Status != InvoiceStatus.Cancelled)
+                    .Select(i => new { i.ProjectId, i.PayrollYear, i.PayrollMonth, i.Amount })
+                    .ToListAsync(cancellationToken);
+
+                foreach (var (columnId, source) in invoiceColumns)
+                {
+                    foreach (var project in billedByInvoice)
+                    {
+                        var ofProject = projectRows.Where(r => r.ProjectId == project).ToList();
+
+                        if (ofProject.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        // What was invoiced for the site goes on the first row of its section; the
+                        // others are billed nothing, so the section adds up to the invoices.
+                        var total = invoices
+                            .Where(i => i.ProjectId == project && i.PayrollYear == source.From.Year && i.PayrollMonth == source.From.Month)
+                            .Sum(i => i.Amount);
+
+                        For(ofProject[0].RowId)[columnId] = total;
+
+                        foreach (var other in ofProject.Skip(1))
+                        {
+                            For(other.RowId)[columnId] = 0m;
+                        }
+                    }
+                }
+            }
+        }
+
         return Done();
     }
 

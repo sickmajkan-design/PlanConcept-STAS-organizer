@@ -20,6 +20,7 @@ import type { CustomerInput } from '../../api/types';
 import { isSuperAdmin } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { DuplicateWarningAlert } from '../../components/DuplicateWarningAlert';
+import { CustomerCompaniesCard } from '../../features/invoices/CustomerCompaniesCard';
 import { ErrorState } from '../../components/ErrorState';
 import { useCreateCustomer, useCustomerQuery, useUpdateCustomer } from '../../features/customers/useCustomers';
 import { customerFormSchema, type CustomerFormValues } from '../../features/customers/validation';
@@ -306,6 +307,12 @@ export function CustomerFormPage() {
           </Stack>
         </form>
       </Paper>
+
+      {isEdit && id && (
+        <Box sx={{ mt: 3 }}>
+          <CustomerCompaniesCard customerId={id} />
+        </Box>
+      )}
     </Box>
   );
 }

@@ -2,6 +2,7 @@ using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
 using Construction.Application.Common.Security;
+using Construction.Application.Features.Finance;
 using Construction.Application.Features.Projects.Models;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
@@ -129,11 +130,23 @@ public class GetProjectsQueryHandler : IRequestHandler<GetProjectsQuery, PagedLi
 
         query = ApplySorting(query, request.SortBy, request.SortDescending);
 
-        return await PagedList<ProjectDto>.CreateAsync(
+        var page = await PagedList<ProjectDto>.CreateAsync(
             query.Select(ProjectMapping.Projection),
             request.PageNumber,
             request.PageSize,
             cancellationToken);
+
+        // The contract sum is money: it rides along on a record everybody may read, but only the
+        // finance grant sees it.
+        if (!await FinanceRules.HasFullAsync(_context, _currentUserService, cancellationToken))
+        {
+            foreach (var project in page.Items)
+            {
+                project.ContractValue = null;
+            }
+        }
+
+        return page;
     }
 
     private static IQueryable<Project> ApplySorting(

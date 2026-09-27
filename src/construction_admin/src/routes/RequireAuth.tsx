@@ -150,6 +150,21 @@ export function RequireFinanceAccess() {
   return <Outlet />;
 }
 
+/** Invoices are money for management: the office role and the finance grant. The API refuses regardless. */
+export function RequireInvoiceAccess() {
+  const { user } = useAuth();
+
+  if (user === undefined) {
+    return null;
+  }
+
+  if (!canManageInvoices(user)) {
+    return <Navigate to={paths.home} replace />;
+  }
+
+  return <Outlet />;
+}
+
 /**
  * Keeps a customer login out of the entire internal-staff app — the sidebar,
  * the home dashboard, every screen `Layout` renders. Mirrors the API's

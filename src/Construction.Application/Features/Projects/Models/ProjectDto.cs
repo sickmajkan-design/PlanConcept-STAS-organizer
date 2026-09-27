@@ -43,7 +43,11 @@ public class ProjectDto
 
     public string Status { get; init; } = null!;
 
-    public decimal? ContractValue { get; init; }
+    /// <summary>The agreed contract sum. Money: filled only for callers with the finance grant, null for everybody else.</summary>
+    public decimal? ContractValue { get; set; }
+
+    /// <summary>"Hourly", "FlatRate" or "Measured": how the client is billed.</summary>
+    public string BillingMode { get; init; } = "Hourly";
 
     public int EmployeeCount { get; init; }
 
@@ -84,6 +88,7 @@ public static class ProjectMapping
             EndDate = project.EndDate,
             Status = project.Status.ToString(),
             ContractValue = project.ContractValue,
+            BillingMode = project.BillingMode.ToString(),
             // Open-ended assignments only — see the note in
             // EmployeeDetailMapping.Projection (Features/Employees/Models).
             EmployeeCount = project.EmployeeAssignments.Count(a => a.EndDate == null),

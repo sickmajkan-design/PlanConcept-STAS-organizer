@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 import { zodMsg } from '../../i18n/zodMessage';
-import { projectStatuses } from '../../api/types';
+import { projectBillingModes, projectStatuses } from '../../api/types';
 
 const optionalCoordinate = z
   .string()
@@ -49,6 +49,7 @@ export const projectFormSchema = z
     endDate: z.string().optional().or(z.literal('')),
     status: z.enum(projectStatuses),
     contractValue: optionalNonNegativeAmount,
+    billingMode: z.enum(projectBillingModes),
   })
   .refine((values) => Boolean(values.latitude) === Boolean(values.longitude), {
     error: zodMsg('validation.latLngTogether'),

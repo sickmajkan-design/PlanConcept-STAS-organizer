@@ -214,6 +214,17 @@ public class ApiAuthorizationTests
             new("PUT", $"/api/projects/{Id}", UserRole.ProjectManager),
             new("DELETE", $"/api/projects/{Id}", UserRole.Admin),
 
+            // ---- invoices and the companies of a client ----------------------
+            // Admin-and-above at the route; the handlers also want the finance grant, which a
+            // fixture Admin does not have.
+            new("GET", "/api/invoices", UserRole.Admin, HandlerNarrows: true),
+            new("POST", "/api/invoices", UserRole.Admin, HandlerNarrows: true),
+            new("POST", $"/api/invoices/{Id}/paid", UserRole.Admin, HandlerNarrows: true),
+            new("POST", $"/api/invoices/{Id}/cancel", UserRole.Admin, HandlerNarrows: true),
+            new("GET", $"/api/customers/{Id}/companies", UserRole.Admin),
+            new("POST", $"/api/customers/{Id}/companies", UserRole.Admin),
+            new("PUT", $"/api/customers/companies/{Id}", UserRole.Admin),
+
             // ---- time entries -------------------------------------------------
             new("GET", "/api/timeentries", UserRole.Worker),
             new("GET", "/api/timeentries/summary", UserRole.Worker),

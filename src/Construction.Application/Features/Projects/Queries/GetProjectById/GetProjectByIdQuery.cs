@@ -53,6 +53,11 @@ public class GetProjectByIdQueryHandler : IRequestHandler<GetProjectByIdQuery, P
             throw new NotFoundException(nameof(Project), request.Id);
         }
 
+        if (!await FinanceRules.HasFullAsync(_context, _currentUserService, cancellationToken))
+        {
+            project.ContractValue = null;
+        }
+
         // Pay is withheld from a role the API does not show it to — a
         // foreman still sees how long each posting ran, just not its cost.
         var includesPay = await FinanceRules.CanSeePayAsync(_context, _currentUserService, cancellationToken);

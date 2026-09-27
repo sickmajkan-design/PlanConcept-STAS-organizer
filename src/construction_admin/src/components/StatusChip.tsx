@@ -2,7 +2,7 @@ import { Chip, type ChipProps } from '@mui/material';
 
 import { useEnumLabel, type EnumKind } from '../i18n/enumLabels';
 
-const GOOD = new Set(['Active', 'Available', 'Completed', 'Approved', 'Closed', 'Resolved', 'Owned', 'Processed', 'Created', 'Delivered']);
+const GOOD = new Set(['Paid', 'Active', 'Available', 'Completed', 'Approved', 'Closed', 'Resolved', 'Owned', 'Processed', 'Created', 'Delivered']);
 const CAUTION = new Set([
   'OnLeave',
   'Planned',
@@ -15,6 +15,8 @@ const CAUTION = new Set([
   // An unanswered leave request is waiting on somebody, the same as a
   // submitted timesheet or an unreviewed cost.
   'Requested',
+  // An invoice that is issued and not yet paid is waiting on the client.
+  'Issued',
   'Pending',
   // An article that is ordered or on its way is still in progress.
   'Ordered',

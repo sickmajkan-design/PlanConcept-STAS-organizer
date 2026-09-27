@@ -823,6 +823,157 @@ public class LedgerPayrollTests : IntegrationTestBase
         }
     }
 
+    // ---- billing by invoice for fixed-sum and measured sites -------------------
+
+    private Task InvoiceAsync(Project project, decimal amount, int year = 2026, int month = 9, InvoiceStatus status = InvoiceStatus.Issued) =>
+        InScope(async scope =>
+        {
+            var invoice = new Invoice
+            {
+                ProjectId = project.Id,
+                Number = $"R-{Unique()}",
+                IssueDate = new DateOnly(year, month, 20),
+                Amount = amount,
+                PayrollYear = year,
+                PayrollMonth = month,
+                Status = status,
+            };
+            invoice.Shares.Add(new InvoiceShare { Amount = amount });
+
+            scope.Db.Invoices.Add(invoice);
+            await scope.Db.SaveChangesAsync();
+        });
+
+    private Task BillBy(Project project, ProjectBillingMode mode) =>
+        InScope(scope => scope.Db.Projects
+            .Where(p => p.Id == project.Id)
+            .ExecuteUpdateAsync(p => p.SetProperty(x => x.BillingMode, mode)));
+
+    [Fact]
+    public async Task A_fixed_sum_site_is_billed_by_its_invoices_of_the_month_and_an_hourly_site_still_by_hours()
+    {
+        var (employee, fixedSite) = await SeedWorkerWithShiftsAsync([(1, 8, TimeEntryStatus.Approved)]);
+        var (other, hourlySite) = await SeedWorkerWithShiftsAsync([(1, 8, TimeEntryStatus.Approved)]);
+
+        await BillBy(fixedSite, ProjectBillingMode.FlatRate);
+        await InvoiceAsync(fixedSite, 5000m);
+        await InvoiceAsync(fixedSite, 900m, status: InvoiceStatus.Cancelled);   // withdrawn: not billed
+        await InvoiceAsync(fixedSite, 700m, month: 10);                          // October's, not September's
+        await InvoiceAsync(fixedSite, 250m, status: InvoiceStatus.Paid);        // paid counts like issued
+
+        var month = await NewMonthAsync();
+        var (fixedSection, firstRow) = await RowForAsync(month, employee, fixedSite);
+        var secondRow = await AddRowAsync(month, fixedSection, "Drugi radnik");
+        var (hourlySection, hourlyRow) = await RowForAsync(month, other, hourlySite);
+
+        await SetAsync(month, firstRow, LedgerTemplates.Keys.WorkerRate, "20");
+        await SetAsync(month, firstRow, LedgerTemplates.Keys.Week(1), "10");
+        await SetAsync(month, firstRow, LedgerTemplates.Keys.ClientRate, "33");       // meant for hourly: ignored here
+        await SetAsync(month, hourlyRow, LedgerTemplates.Keys.WorkerRate, "20");
+        await SetAsync(month, hourlyRow, LedgerTemplates.Keys.Week(1), "10");
+        await SetAsync(month, hourlyRow, LedgerTemplates.Keys.ClientRate, "33");
+
+        var first = await ReadRowAsync(month, fixedSection, firstRow);
+        var second = await ReadRowAsync(month, fixedSection, secondRow);
+        var hourly = await ReadRowAsync(month, hourlySection, hourlyRow);
+
+        // What was invoiced for the site goes on its first row and the section adds up to it.
+        Assert.Equal(5250m, Value(month, first, LedgerTemplates.Keys.Billing));
+        Assert.Equal(0m, Value(month, second, LedgerTemplates.Keys.Billing));
+        Assert.Equal(5050m, Value(month, first, LedgerTemplates.Keys.Margin));        // 5250 - 20 x 10
+
+        // An hourly site is unchanged: 10 h at 33.
+        Assert.Equal(330m, Value(month, hourly, LedgerTemplates.Keys.Billing));
+    }
+
+    [Fact]
+    public async Task A_month_with_no_invoice_for_a_fixed_sum_site_bills_nothing_and_says_so()
+    {
+        var (employee, project) = await SeedWorkerWithShiftsAsync([(1, 8, TimeEntryStatus.Approved)]);
+        await BillBy(project, ProjectBillingMode.Measured);
+
+        var month = await NewMonthAsync();
+        var (section, rowId) = await RowForAsync(month, employee, project);
+        await SetAsync(month, rowId, LedgerTemplates.Keys.Week(1), "10");
+        await SetAsync(month, rowId, LedgerTemplates.Keys.Contributions, "0");
+
+        Task<IReadOnlyList<LedgerCheckDto>> Checks() =>
+            AsSuperAdmin(month, s => s.Send(new GetLedgerChecksQuery { LedgerId = month.Ledger.Id }));
+
+        var row = await ReadRowAsync(month, section, rowId);
+        Assert.Equal(0m, Value(month, row, LedgerTemplates.Keys.Billing));
+
+        var checks = await Checks();
+        var missing = Assert.Single(checks, c => c.Kind == LedgerCheckKinds.MissingInvoice);
+        Assert.Equal(section, missing.SectionId);
+
+        // No price per hour is expected of a site that is not billed by the hour.
+        Assert.DoesNotContain(checks, c => c.Kind == LedgerCheckKinds.MissingClientRate);
+
+        await InvoiceAsync(project, 3000m);
+
+        Assert.DoesNotContain(await Checks(), c => c.Kind == LedgerCheckKinds.MissingInvoice);
+    }
+
+    [Fact]
+    public async Task An_hourly_site_still_asks_for_a_price_per_hour_and_never_for_an_invoice()
+    {
+        var (employee, project) = await SeedWorkerWithShiftsAsync([(1, 8, TimeEntryStatus.Approved)]);
+
+        var month = await NewMonthAsync();
+        var (_, rowId) = await RowForAsync(month, employee, project);
+        await SetAsync(month, rowId, LedgerTemplates.Keys.Week(1), "10");
+
+        var checks = await AsSuperAdmin(month, s => s.Send(new GetLedgerChecksQuery { LedgerId = month.Ledger.Id }));
+
+        Assert.Contains(checks, c => c.Kind == LedgerCheckKinds.MissingClientRate);
+        Assert.DoesNotContain(checks, c => c.Kind == LedgerCheckKinds.MissingInvoice);
+    }
+
+    [Fact]
+    public async Task A_figure_typed_over_billing_is_still_reported_as_an_override()
+    {
+        var (employee, project) = await SeedWorkerWithShiftsAsync([(1, 8, TimeEntryStatus.Approved)]);
+
+        var month = await NewMonthAsync();
+        var (_, rowId) = await RowForAsync(month, employee, project);
+        await SetAsync(month, rowId, LedgerTemplates.Keys.Week(1), "10");
+        await SetAsync(month, rowId, LedgerTemplates.Keys.ClientRate, "33");
+        await SetAsync(month, rowId, LedgerTemplates.Keys.Billing, "999");
+
+        var checks = await AsSuperAdmin(month, s => s.Send(new GetLedgerChecksQuery { LedgerId = month.Ledger.Id }));
+
+        Assert.Contains(checks, c => c.Kind == LedgerCheckKinds.ManualOverride && c.RowId == rowId && c.ColumnName == "Naplata klijentu");
+    }
+
+    [Fact]
+    public async Task A_copied_month_keeps_billing_by_invoice_and_takes_the_new_month()
+    {
+        var (employee, project) = await SeedWorkerWithShiftsAsync([(1, 8, TimeEntryStatus.Approved)]);
+        await BillBy(project, ProjectBillingMode.FlatRate);
+        await InvoiceAsync(project, 4000m, month: 9);
+        await InvoiceAsync(project, 1500m, month: 10);
+
+        var september = await NewMonthAsync();
+        var (_, _) = await RowForAsync(september, employee, project);
+
+        var october = await AsSuperAdmin(september, s => s.Send(new CreateLedgerCommand
+        {
+            Name = $"Obračun {Unique()}",
+            Year = 2026,
+            Month = 10,
+            CopyFromLedgerId = september.Ledger.Id,
+        }));
+
+        var month = new Month { Ledger = october, SuperAdmin = september.SuperAdmin };
+        var section = (await AsSuperAdmin(month, s => s.Send(new GetLedgerByIdQuery(october.Id)))).Sections.Single();
+        var rowId = (await AsSuperAdmin(month, s => s.Send(new GetLedgerSectionRowsQuery(october.Id, section.Id)))).Rows.Single().Id;
+
+        var row = await ReadRowAsync(month, section.Id, rowId);
+
+        Assert.Equal(1500m, Value(month, row, LedgerTemplates.Keys.Billing));
+    }
+
     // ---- fuel, rented cars and housing -----------------------------------
 
     private async Task<Vehicle> SeedVehicleForAsync(Employee employee, decimal fuelApproved, decimal fuelPending = 0m)

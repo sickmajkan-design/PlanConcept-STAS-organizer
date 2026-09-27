@@ -52,6 +52,17 @@ public static class FinanceRules
     }
 
     /// <summary>
+    /// Whether the caller holds the full finance grant (a Super Admin always does). For amounts
+    /// that ride along on records everybody may read, such as a project's contract value: the
+    /// record is served to all, the amount only to those who pass this.
+    /// </summary>
+    public static async Task<bool> HasFullAsync(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        CancellationToken cancellationToken) =>
+        await ResolveAsync(context, currentUserService, cancellationToken) == FinanceAccess.Full;
+
+    /// <summary>
     /// Whether the caller may see what people are paid — rates, pay entries and
     /// every figure derived from them. Two things at once: a role that pay may
     /// ever be shown to (<see cref="Costs.CostRules.CanSeeLabourCost"/>), and the

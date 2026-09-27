@@ -1,5 +1,6 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Finance;
 using Construction.Application.Features.Projects.Models;
 using Construction.Application.Features.PublicHolidays.Services;
 using Construction.Domain.Entities;
@@ -20,11 +21,16 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
 {
     private readonly IApplicationDbContext _context;
     private readonly IHolidayAutoSyncService _holidaySync;
+    private readonly ICurrentUserService _currentUserService;
 
-    public UpdateProjectCommandHandler(IApplicationDbContext context, IHolidayAutoSyncService holidaySync)
+    public UpdateProjectCommandHandler(
+        IApplicationDbContext context,
+        IHolidayAutoSyncService holidaySync,
+        ICurrentUserService currentUserService)
     {
         _context = context;
         _holidaySync = holidaySync;
+        _currentUserService = currentUserService;
     }
 
     public async Task<ProjectDto> Handle(
@@ -98,7 +104,15 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
         project.StartDate = request.StartDate;
         project.EndDate = request.EndDate;
         project.Status = request.Status;
-        project.ContractValue = request.ContractValue;
+        // Money: only the finance grant changes the contract sum and the way the client is billed.
+        // For everybody else the request cannot carry them (they never saw them), so what is stored stays.
+        var money = await FinanceRules.HasFullAsync(_context, _currentUserService, cancellationToken);
+
+        if (money)
+        {
+            project.ContractValue = request.ContractValue;
+            project.BillingMode = request.BillingMode;
+        }
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -107,10 +121,17 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
             await _holidaySync.SyncIfMissingAsync(countryCode, cancellationToken);
         }
 
-        return await _context.Projects
+        var updated = await _context.Projects
             .AsNoTracking()
             .Where(p => p.Id == project.Id)
             .Select(ProjectMapping.Projection)
             .FirstAsync(cancellationToken);
+
+        if (!money)
+        {
+            updated.ContractValue = null;
+        }
+
+        return updated;
     }
 }

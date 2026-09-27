@@ -193,6 +193,12 @@ Isporuka: **FA1 → FA2 → FA6** (ručna faktura hrani obračun), zatim **FA3 �
 - **Zaokruživanje** podjele mora uvijek dati tačan zbir.
 - **Pitanja za Darija:** (1) Izdajete li fakturu u programu ili samo želite nacrt/PDF za knjigovođu? (2) Za dvije firme istog klijenta: jedna faktura ili po jedna za svaku? (3) Ko sve izdaje fakture osim vas? (4) Koji je rok plaćanja i jesu li isti za sve klijente?
 
+## 6a. Stanje implementacije (2026-09-27)
+
+Urađen je manji, evidencioni oblik plana: gradilište dobija način obračuna (satnica / paušal / aufmaß — `Project.BillingMode`); klijent može imati firme (`CustomerCompany`); faktura (`Invoice`) se evidentira sa brojem, datumom, iznosom, mjesecom obračuna, i dijeli se na jednu ili više firmi (`InvoiceShare`), sa provjerom da dijelovi tačno daju zbir. Obračun (kolona "Naplata klijentu") za paušal/aufmaß gradilište sam čita zbir izdanih (ne stornom) faktura tog mjeseca; satnica gradilište ostaje na formuli sati × cijena. Nema izdate fakture → upozorenje u "Za provjeru" (`MissingInvoice`). Sve je iza prava na iznose (`InvoiceRules`, samo Admin/Super Admin sa finance grant-om); firma sa fakturama se ne briše, samo gasi.
+
+Nije urađeno naspram punog plana: FA3 (sastavljanje nacrta fakture iz sati — sada se faktura upisuje ručno), FA7 (zasebne fakture jednim potezom), FA9 (PDF izvoz), potpisane satnice po KW (FA7 iz starog nazivlja / A3). Panel: nova stranica Fakture (`/invoices`, iza `RequireInvoiceAccess`), i kartica Firme na stranici klijenta.
+
 ## 6. Definition of Done
 
 Implementirano i pregledano, testovi prolaze (uključujući podjelu 100 € na 3 firme, storno podijeljene fakture, satnicu iz ručno upisanih sati), kriteriji prihvatanja provjereni, plan ažuriran, release note napisan, isporučeno na test server.

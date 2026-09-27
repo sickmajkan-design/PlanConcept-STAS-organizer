@@ -1,5 +1,6 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Finance;
 using Construction.Application.Features.Projects.Models;
 using Construction.Application.Features.PublicHolidays.Services;
 using Construction.Domain.Entities;
@@ -16,11 +17,16 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
 {
     private readonly IApplicationDbContext _context;
     private readonly IHolidayAutoSyncService _holidaySync;
+    private readonly ICurrentUserService _currentUserService;
 
-    public CreateProjectCommandHandler(IApplicationDbContext context, IHolidayAutoSyncService holidaySync)
+    public CreateProjectCommandHandler(
+        IApplicationDbContext context,
+        IHolidayAutoSyncService holidaySync,
+        ICurrentUserService currentUserService)
     {
         _context = context;
         _holidaySync = holidaySync;
+        _currentUserService = currentUserService;
     }
 
     public async Task<ProjectDto> Handle(
@@ -59,6 +65,10 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
             }
         }
 
+        // The contract sum and how the client is billed are money matters: only somebody with the
+        // finance grant sets them; everybody else creates the site with the defaults.
+        var money = await FinanceRules.HasFullAsync(_context, _currentUserService, cancellationToken);
+
         var project = new Project
         {
             Name = request.Name.Trim(),
@@ -73,7 +83,8 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
             StartDate = request.StartDate,
             EndDate = request.EndDate,
             Status = request.Status,
-            ContractValue = request.ContractValue
+            ContractValue = money ? request.ContractValue : null,
+            BillingMode = money ? request.BillingMode : Domain.Enums.ProjectBillingMode.Hourly,
         };
 
         _context.Projects.Add(project);
@@ -85,10 +96,17 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
         // the holiday page first — see the remarks on HolidayAutoSyncService.
         await _holidaySync.SyncIfMissingAsync(countryCode, cancellationToken);
 
-        return await _context.Projects
+        var created = await _context.Projects
             .AsNoTracking()
             .Where(p => p.Id == project.Id)
             .Select(ProjectMapping.Projection)
             .FirstAsync(cancellationToken);
+
+        if (!money)
+        {
+            created.ContractValue = null;
+        }
+
+        return created;
     }
 }

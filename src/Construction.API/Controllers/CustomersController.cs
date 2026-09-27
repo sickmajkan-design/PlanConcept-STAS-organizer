@@ -1,5 +1,6 @@
 using Construction.API.Authorization;
 using Construction.Application.Common.Models;
+using Construction.Application.Features.CustomerCompanies;
 using Construction.Application.Features.Customers.Commands.CreateCustomer;
 using Construction.Application.Features.Customers.Commands.DeleteCustomer;
 using Construction.Application.Features.Customers.Commands.UpdateCustomer;
@@ -33,6 +34,49 @@ public class CustomersController : ApiControllerBase
     public async Task<ActionResult<CustomerDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(new GetCustomerByIdQuery(id), cancellationToken));
+    }
+
+    /// <summary>The companies of a client, which an invoice can be split among.</summary>
+    [HttpGet("{id:guid}/companies")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(IReadOnlyList<CustomerCompanyDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<CustomerCompanyDto>>> GetCompanies(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetCustomerCompaniesQuery(id), cancellationToken));
+    }
+
+    /// <summary>Adds a company to a client.</summary>
+    [HttpPost("{id:guid}/companies")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(CustomerCompanyDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<CustomerCompanyDto>> CreateCompany(
+        Guid id,
+        CreateCustomerCompanyCommand command,
+        CancellationToken cancellationToken)
+    {
+        var company = await Mediator.Send(command with { CustomerId = id }, cancellationToken);
+
+        return CreatedAtAction(nameof(GetCompanies), new { id }, company);
+    }
+
+    /// <summary>Renames a company, changes its address, or switches it off or on.</summary>
+    [HttpPut("companies/{companyId:guid}")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(CustomerCompanyDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<CustomerCompanyDto>> UpdateCompany(
+        Guid companyId,
+        UpdateCustomerCompanyCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { Id = companyId }, cancellationToken));
     }
 
     /// <summary>Creates a new customer.</summary>

@@ -117,6 +117,8 @@ public static class LedgerTemplates
                 return new LedgerFormulaSource(LedgerSourceKinds.EmployeeRefunds, first, last);
             case Keys.Holiday:
                 return new LedgerFormulaSource(LedgerSourceKinds.EmployeeLeavePay, first, last);
+            case Keys.Billing:
+                return new LedgerFormulaSource(LedgerSourceKinds.ProjectInvoices, first, last);
         }
 
         if (key is not null && key.StartsWith("week", StringComparison.Ordinal)
@@ -241,8 +243,12 @@ public static class LedgerTemplates
             [Id(Keys.WorkerRate), Id(Keys.Hours)],
             [Minus(Keys.Advance), Plus(Keys.Difference), Plus(Keys.Holiday), Plus(Keys.Refund)]).ToJson();
 
+        // Billing is hours times the client's price, unless the site is billed by a fixed sum or by
+        // measured work: then it is what the firm invoiced for the month.
         columns[Keys.Billing].FormulaJson = new LedgerFormula(
-            [Id(Keys.Hours), Id(Keys.ClientRate)], []).ToJson();
+            [Id(Keys.Hours), Id(Keys.ClientRate)],
+            [],
+            SourceFor(Keys.Billing, ledger.Year, ledger.Month)).ToJson();
 
         columns[Keys.Margin].FormulaJson = new LedgerFormula(
             [], [Plus(Keys.Billing), Minus(Keys.Pay)]).ToJson();

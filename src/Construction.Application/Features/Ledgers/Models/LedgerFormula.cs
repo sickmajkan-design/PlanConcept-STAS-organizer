@@ -25,6 +25,13 @@ public static class LedgerSourceKinds
 
     /// <summary>The working days of approved annual leave the row's employee takes in the range, at the firm's daily rate.</summary>
     public const string EmployeeLeavePay = "employeeLeavePay";
+
+    /// <summary>
+    /// The sum of the invoices issued for the row's site in the range's month. Present only for a site
+    /// billed by a fixed sum or by measured work; a site billed by the hour has no figure here, and the
+    /// column's own calculation (hours times the client's price) applies.
+    /// </summary>
+    public const string ProjectInvoices = "projectInvoices";
 }
 
 /// <summary>A figure the system already knows, offered as the cell's value.</summary>
@@ -59,6 +66,14 @@ public sealed record LedgerFormula(
 
     public static LedgerFormula Sum(params Guid[] columns) =>
         new([], columns.Select(c => new LedgerFormulaTerm(c, 1)).ToList());
+
+    /// <summary>
+    /// True when the formula works something out from other columns, as opposed to only reading a
+    /// figure the system knows. A column can be both: it reads the system's figure where there is one
+    /// and calculates where there is not.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public bool HasOwnCalculation => Product.Count > 0 || Terms.Count > 0;
 
     public IEnumerable<Guid> ReferencedColumns => Product.Concat(Terms.Select(t => t.ColumnId));
 
