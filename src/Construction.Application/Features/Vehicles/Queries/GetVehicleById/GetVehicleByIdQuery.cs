@@ -30,14 +30,15 @@ public class GetVehicleByIdQueryHandler : IRequestHandler<GetVehicleByIdQuery, V
         GetVehicleByIdQuery request,
         CancellationToken cancellationToken)
     {
+        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+
         var vehicle = await _context.Vehicles
             .AsNoTracking()
             .Where(v => v.Id == request.Id)
-            .Select(VehicleMapping.Projection)
+            .Select(VehicleMapping.Projection(today))
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException(nameof(Vehicle), request.Id);
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
         var ownProjects = await SiteScope.OwnProjectIdsAsync(_context, _currentUserService, today, cancellationToken);
 
         // Not found rather than forbidden, as for a project: a foreman or project manager is

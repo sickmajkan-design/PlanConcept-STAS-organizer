@@ -55,6 +55,9 @@ public class Vehicle : BaseEntity, ISoftDeletable, IAuditable
     /// <summary>Every time this vehicle went out to another company. See <see cref="VehicleRentalOut"/>.</summary>
     public ICollection<VehicleRentalOut> RentalsOut { get; set; } = new List<VehicleRentalOut>();
 
+    /// <summary>Vignettes, tunnel tolls and road-passage charges this vehicle carries. See <see cref="VehicleToll"/>.</summary>
+    public ICollection<VehicleToll> Tolls { get; set; } = new List<VehicleToll>();
+
     public bool IsDeleted { get; set; }
 
     public DateTime? DeletedAt { get; set; }

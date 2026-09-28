@@ -95,6 +95,12 @@ public interface IApplicationDbContext
 
     DbSet<VehicleRentalRate> VehicleRentalRates { get; }
 
+    DbSet<VehicleToll> VehicleTolls { get; }
+
+    DbSet<VehicleTollPayment> VehicleTollPayments { get; }
+
+    DbSet<VehicleTollExpiryReminder> VehicleTollExpiryReminders { get; }
+
     DbSet<VehicleRentalOut> VehicleRentalsOut { get; }
 
     DbSet<ToolExpense> ToolExpenses { get; }

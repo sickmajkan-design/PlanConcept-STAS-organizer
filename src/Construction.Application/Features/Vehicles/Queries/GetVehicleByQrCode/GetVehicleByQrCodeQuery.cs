@@ -26,20 +26,25 @@ public class GetVehicleByQrCodeQueryValidator : AbstractValidator<GetVehicleByQr
 public class GetVehicleByQrCodeQueryHandler : IRequestHandler<GetVehicleByQrCodeQuery, VehicleDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
-    public GetVehicleByQrCodeQueryHandler(IApplicationDbContext context)
+    public GetVehicleByQrCodeQueryHandler(
+        IApplicationDbContext context,
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<VehicleDto> Handle(GetVehicleByQrCodeQuery request, CancellationToken cancellationToken)
     {
         var qrCode = request.QrCode.Trim();
+        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
 
         var vehicle = await _context.Vehicles
             .AsNoTracking()
             .Where(v => v.QrCode == qrCode)
-            .Select(VehicleMapping.Projection)
+            .Select(VehicleMapping.Projection(today))
             .FirstOrDefaultAsync(cancellationToken);
 
         return vehicle ?? throw new NotFoundException($"No vehicle found for QR code '{qrCode}'.");

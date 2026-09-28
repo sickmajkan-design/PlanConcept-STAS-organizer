@@ -478,8 +478,53 @@ export interface Vehicle {
   assignedEmployeeNumber: string | null;
   assignedProjectId: string | null;
   assignedProjectName: string | null;
+  /** True when a vignette/tunnel/passage on this vehicle is unpaid, expired or about to expire. */
+  hasExpiredOrExpiringTolls: boolean;
   createdAt: string;
   updatedAt: string | null;
+}
+
+export const vehicleTollTypes = ['Vignette', 'Tunnel', 'Passage'] as const;
+
+export type VehicleTollType = (typeof vehicleTollTypes)[number];
+
+/** The state the API works out against today's date; what the badge is driven by. */
+export type VehicleTollComputedState = 'Unpaid' | 'Paid' | 'ExpiringSoon' | 'Expired';
+
+/** A vignette, tunnel toll or road-passage charge carried by a vehicle. */
+export interface VehicleToll {
+  id: string;
+  vehicleId: string;
+  type: VehicleTollType;
+  country: string;
+  routeSegment: string | null;
+  /** Stored status. Display `computedState` instead — it accounts for the date. */
+  status: 'Unpaid' | 'Paid';
+  /** Date-only, `YYYY-MM-DD`. */
+  validUntil: string | null;
+  computedState: VehicleTollComputedState;
+  /** E-mail of the account that recorded the payment. */
+  paidByUserName: string | null;
+  paidAt: string | null;
+  createdAt: string;
+  updatedAt: string | null;
+}
+
+export interface VehicleTollInput {
+  type: VehicleTollType;
+  country: string;
+  routeSegment?: string | null;
+}
+
+export interface AddVehicleTollInput extends VehicleTollInput {
+  vehicleId: string;
+  /** Records the toll already paid; `validUntil` is then required. */
+  markPaid: boolean;
+  validUntil?: string | null;
+}
+
+export interface MarkVehicleTollPaidInput {
+  validUntil: string;
 }
 
 export interface VehicleInput {
@@ -2244,6 +2289,7 @@ export const notificationTypes = [
   'ArticleOrderStatusChanged',
   'RefundRequested',
   'RefundDecided',
+  'VehicleTollExpiring',
 ] as const;
 
 export type NotificationType = (typeof notificationTypes)[number];

@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Construction.Domain.Entities;
+using Construction.Domain.Enums;
 
 namespace Construction.Application.Features.Vehicles.Models;
 
@@ -54,6 +55,14 @@ public class VehicleDto
 
     public string? AssignedProjectName { get; init; }
 
+    /// <summary>
+    /// True when this vehicle has at least one toll (vignette, tunnel,
+    /// road-passage charge) that is unpaid, expired, or expiring soon. Lets
+    /// the vehicles list show a warning badge without a second request per
+    /// row for the full toll list.
+    /// </summary>
+    public bool HasExpiredOrExpiringTolls { get; init; }
+
     public DateTime CreatedAt { get; init; }
 
     public DateTime? UpdatedAt { get; init; }
@@ -67,10 +76,16 @@ public class VehicleDto
 /// into the SELECT list of a query, and <see cref="ToDto"/> runs the same
 /// expression compiled, in memory. See <c>EmployeeMapping</c> for why this
 /// replaced AutoMapper.
+///
+/// Takes <c>today</c> as a parameter, captured into the expression as a
+/// closure, rather than reading <see cref="DateTime.UtcNow"/> inside it
+/// directly — the same pattern <c>GetVehiclesQuery</c> already uses for its
+/// own site-scoping, so a caller controls "today" once and every value
+/// derived from it agrees, including in tests that fix the clock.
 /// </remarks>
 public static class VehicleMapping
 {
-    public static readonly Expression<Func<Vehicle, VehicleDto>> Projection = vehicle =>
+    public static Expression<Func<Vehicle, VehicleDto>> Projection(DateOnly today) => vehicle =>
         new VehicleDto
         {
             Id = vehicle.Id,
@@ -123,12 +138,27 @@ public static class VehicleMapping
                 : null,
             AssignedProjectId = vehicle.AssignedProjectId,
             AssignedProjectName = vehicle.AssignedProject != null ? vehicle.AssignedProject.Name : null,
+            // Unpaid, or paid but within (or past) its own expiring-soon
+            // window — the same comparisons VehicleToll.IsExpiredOn/
+            // IsExpiringSoonOn make, inlined because those instance methods
+            // are not themselves translatable to SQL. "<= today + 7" already
+            // covers "< today", so a lapsed toll counts too.
+            HasExpiredOrExpiringTolls = vehicle.Tolls.Any(t =>
+                t.Status == VehicleTollStatus.Unpaid
+                || t.ValidUntil == null
+                || t.ValidUntil.Value <= today.AddDays(7)),
             CreatedAt = vehicle.CreatedAt,
             UpdatedAt = vehicle.UpdatedAt,
         };
 
-    private static readonly Func<Vehicle, VehicleDto> Compiled = Projection.Compile();
-
-    /// <summary>Maps a record already in memory.</summary>
-    public static VehicleDto ToDto(Vehicle vehicle) => Compiled(vehicle);
+    /// <summary>
+    /// Maps a record already in memory. <c>today</c> defaults to the real
+    /// clock rather than requiring every create/assign/unassign command
+    /// handler to take a dependency on <see cref="Construction.Application.Common.Interfaces.IDateTimeProvider"/>
+    /// just to answer a display-only flag on the command's response — the
+    /// handlers that actually decide anything by "today" (the toll sweep,
+    /// the vehicle list/detail queries) already pass it explicitly.
+    /// </summary>
+    public static VehicleDto ToDto(Vehicle vehicle, DateOnly? today = null) =>
+        Projection(today ?? DateOnly.FromDateTime(DateTime.UtcNow)).Compile()(vehicle);
 }

@@ -85,5 +85,8 @@ public enum NotificationType
     RefundRequested = 31,
 
     /// <summary>A request to be paid back was approved or declined.</summary>
-    RefundDecided = 32
+    RefundDecided = 32,
+
+    /// <summary>A vehicle's vignette, tunnel toll or road-passage charge is about to lapse, or already has.</summary>
+    VehicleTollExpiring = 33
 }

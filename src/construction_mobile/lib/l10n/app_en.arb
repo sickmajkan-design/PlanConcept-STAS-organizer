@@ -242,6 +242,23 @@
   "rentalRatesDeleteTitle": "Delete this rate?",
   "rentalRatesDeleteBody": "This cannot be undone.",
   "rentalRatesSaved": "Rental rate saved.",
+  "vehicleTollsTitle": "Vignettes and tunnels",
+  "vehicleTollsEmpty": "No vignettes or tunnels on file",
+  "vehicleTollValidUntil": "Valid until {date}",
+  "@vehicleTollValidUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "vehicleTollTypeVignette": "Vignette",
+  "vehicleTollTypeTunnel": "Tunnel",
+  "vehicleTollTypePassage": "Passage",
+  "vehicleTollStatePaid": "Paid",
+  "vehicleTollStateUnpaid": "Not paid",
+  "vehicleTollStateExpiringSoon": "Expiring soon",
+  "vehicleTollStateExpired": "Expired",
   "rentalOutTitle": "Loaned out",
   "rentalOutAdd": "Loan it out",
   "rentalOutEditTitle": "Edit loan",

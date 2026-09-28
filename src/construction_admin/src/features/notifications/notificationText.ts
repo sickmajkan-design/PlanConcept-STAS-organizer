@@ -104,6 +104,23 @@ export function resolveNotificationText(t: T, notification: Notification): Notif
       };
     }
 
+    case 'VehicleTollExpiring': {
+      if (!d.vehicleRegistrationNumber || !d.type || !d.country || !d.validUntil) return fallback;
+      const typeKey = `vehicleTollType.${d.type}` as MessageKey;
+
+      return {
+        title: text(
+          d.expired === 'true' ? 'notificationVehicleTollExpiredTitle' : 'notificationVehicleTollExpiringTitle',
+        ),
+        body: text('notificationVehicleTollExpiringBody', {
+          registration: d.vehicleRegistrationNumber,
+          tollType: t(typeKey),
+          country: d.country,
+          validUntil: isoDate(d.validUntil),
+        }),
+      };
+    }
+
     case 'TaskAssigned':
     case 'DefectAssigned':
       if (!d.title) return fallback;

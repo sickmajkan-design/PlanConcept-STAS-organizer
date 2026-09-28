@@ -497,6 +497,38 @@ class AppLocalizationsSr extends AppLocalizations {
   String get rentalRatesSaved => 'Cijena rente sačuvana.';
 
   @override
+  String get vehicleTollsTitle => 'Vinjete i tuneli';
+
+  @override
+  String get vehicleTollsEmpty => 'Nema unesenih vinjeta/tunela';
+
+  @override
+  String vehicleTollValidUntil(String date) {
+    return 'Vrijedi do $date';
+  }
+
+  @override
+  String get vehicleTollTypeVignette => 'Vinjeta';
+
+  @override
+  String get vehicleTollTypeTunnel => 'Tunel';
+
+  @override
+  String get vehicleTollTypePassage => 'Prolaz';
+
+  @override
+  String get vehicleTollStatePaid => 'Plaćeno';
+
+  @override
+  String get vehicleTollStateUnpaid => 'Nije plaćeno';
+
+  @override
+  String get vehicleTollStateExpiringSoon => 'Ističe uskoro';
+
+  @override
+  String get vehicleTollStateExpired => 'Isteklo';
+
+  @override
   String get rentalOutTitle => 'Izdavanje u zakup';
 
   @override

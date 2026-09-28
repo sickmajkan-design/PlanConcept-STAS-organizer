@@ -1010,6 +1010,66 @@ abstract class AppLocalizations {
   /// **'Rental rate saved.'**
   String get rentalRatesSaved;
 
+  /// No description provided for @vehicleTollsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vignettes and tunnels'**
+  String get vehicleTollsTitle;
+
+  /// No description provided for @vehicleTollsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No vignettes or tunnels on file'**
+  String get vehicleTollsEmpty;
+
+  /// No description provided for @vehicleTollValidUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid until {date}'**
+  String vehicleTollValidUntil(String date);
+
+  /// No description provided for @vehicleTollTypeVignette.
+  ///
+  /// In en, this message translates to:
+  /// **'Vignette'**
+  String get vehicleTollTypeVignette;
+
+  /// No description provided for @vehicleTollTypeTunnel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tunnel'**
+  String get vehicleTollTypeTunnel;
+
+  /// No description provided for @vehicleTollTypePassage.
+  ///
+  /// In en, this message translates to:
+  /// **'Passage'**
+  String get vehicleTollTypePassage;
+
+  /// No description provided for @vehicleTollStatePaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get vehicleTollStatePaid;
+
+  /// No description provided for @vehicleTollStateUnpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Not paid'**
+  String get vehicleTollStateUnpaid;
+
+  /// No description provided for @vehicleTollStateExpiringSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiring soon'**
+  String get vehicleTollStateExpiringSoon;
+
+  /// No description provided for @vehicleTollStateExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get vehicleTollStateExpired;
+
   /// No description provided for @rentalOutTitle.
   ///
   /// In en, this message translates to:

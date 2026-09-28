@@ -33,6 +33,8 @@ enum EnumKind {
   vehicleOwnershipType,
   employeeType,
   toolExpenseKind,
+  vehicleTollType,
+  vehicleTollState,
 }
 
 /// Translates one of the API's enum values.
@@ -186,6 +188,13 @@ String enumLabel(AppLocalizations l10n, EnumKind kind, String? value) {
     (EnumKind.toolExpenseKind, 'Maintenance') => l10n.toolExpenseKindMaintenance,
     (EnumKind.toolExpenseKind, 'Calibration') => l10n.toolExpenseKindCalibration,
     (EnumKind.toolExpenseKind, 'Other') => l10n.toolExpenseKindOther,
+    (EnumKind.vehicleTollType, 'Vignette') => l10n.vehicleTollTypeVignette,
+    (EnumKind.vehicleTollType, 'Tunnel') => l10n.vehicleTollTypeTunnel,
+    (EnumKind.vehicleTollType, 'Passage') => l10n.vehicleTollTypePassage,
+    (EnumKind.vehicleTollState, 'Paid') => l10n.vehicleTollStatePaid,
+    (EnumKind.vehicleTollState, 'Unpaid') => l10n.vehicleTollStateUnpaid,
+    (EnumKind.vehicleTollState, 'ExpiringSoon') => l10n.vehicleTollStateExpiringSoon,
+    (EnumKind.vehicleTollState, 'Expired') => l10n.vehicleTollStateExpired,
     _ => null,
   };
 

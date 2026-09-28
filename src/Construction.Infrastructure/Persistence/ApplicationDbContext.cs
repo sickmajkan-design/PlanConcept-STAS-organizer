@@ -100,6 +100,12 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<VehicleRentalRate> VehicleRentalRates => Set<VehicleRentalRate>();
 
+    public DbSet<VehicleToll> VehicleTolls => Set<VehicleToll>();
+
+    public DbSet<VehicleTollPayment> VehicleTollPayments => Set<VehicleTollPayment>();
+
+    public DbSet<VehicleTollExpiryReminder> VehicleTollExpiryReminders => Set<VehicleTollExpiryReminder>();
+
     public DbSet<VehicleRentalOut> VehicleRentalsOut => Set<VehicleRentalOut>();
 
     public DbSet<ToolExpense> ToolExpenses => Set<ToolExpense>();

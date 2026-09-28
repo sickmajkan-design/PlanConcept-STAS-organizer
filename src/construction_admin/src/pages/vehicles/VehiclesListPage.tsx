@@ -151,6 +151,11 @@ export function VehiclesListPage() {
                 <WarningAmberOutlined fontSize="small" color="warning" />
               </Tooltip>
             )}
+            {params.row.hasExpiredOrExpiringTolls && (
+              <Tooltip title={t('vehicles.tollsWarningHint')}>
+                <WarningAmberOutlined fontSize="small" color="error" />
+              </Tooltip>
+            )}
           </Stack>
         ),
       },

@@ -87,6 +87,9 @@ export function resolveNotificationTarget(
     case 'AccommodationContractExpiring':
       return hasDirectory && data.accommodationId ? paths.accommodationDetail(data.accommodationId) : null;
 
+    case 'VehicleTollExpiring':
+      return hasDirectory && data.vehicleId ? paths.vehicleDetail(data.vehicleId) : null;
+
     case 'MaterialLowStock':
       return hasDirectory && data.materialId ? paths.materialDetail(data.materialId) : null;
 

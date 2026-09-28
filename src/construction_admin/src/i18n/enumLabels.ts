@@ -21,6 +21,8 @@ export type EnumKind =
   | 'projectKind'
   | 'vehicleStatus'
   | 'vehicleOwnershipType'
+  | 'vehicleTollType'
+  | 'vehicleTollState'
   | 'toolStatus'
   | 'toolOwnershipType'
   | 'fuelType'

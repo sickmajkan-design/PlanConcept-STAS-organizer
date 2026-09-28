@@ -8,6 +8,7 @@ import {
   EditOutlined,
   LocalShippingOutlined,
   MyLocationOutlined,
+  PaymentsOutlined,
   PersonOffOutlined,
   QrCode2Outlined,
 } from '@mui/icons-material';
@@ -26,11 +27,13 @@ import {
   DialogTitle,
   Divider,
   FormControl,
+  FormControlLabel,
   Grid,
   IconButton,
   MenuItem,
   Select,
   Stack,
+  Switch,
   Table,
   TableBody,
   TableCell,
@@ -45,7 +48,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
-import type { FuelCard, VehicleExpense, VehicleRentalOut, VehicleRentalRate } from '../../api/types';
+import type {
+  FuelCard,
+  VehicleExpense,
+  VehicleRentalOut,
+  VehicleRentalRate,
+  VehicleToll,
+  VehicleTollComputedState,
+} from '../../api/types';
+import { vehicleTollTypes } from '../../api/types';
 import { AuditHistoryCard } from '../../components/AuditHistoryCard';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
@@ -82,6 +93,13 @@ import {
   useUnassignVehicleProject,
   useVehicleQuery,
 } from '../../features/vehicles/useVehicles';
+import {
+  useAddVehicleToll,
+  useDeleteVehicleToll,
+  useMarkVehicleTollPaid,
+  useUpdateVehicleToll,
+  useVehicleTollsQuery,
+} from '../../features/vehicles/useVehicleTolls';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
@@ -91,7 +109,7 @@ import { SiblingNavButtons } from '../../components/SiblingNavButtons';
 import { useSiblingNavigation } from '../../hooks/useSiblingNavigation';
 import { useRecordVisit } from '../../layout/useRecentRecords';
 import { paths } from '../../routes/paths';
-import { formatDate, formatMoney } from '../../utils/formatting';
+import { dateOnlyOffset, formatDate, formatMoney } from '../../utils/formatting';
 import { VehicleExpenseDialog } from '../costs/VehicleExpensesPage';
 
 export function VehicleDetailPage() {
@@ -404,6 +422,10 @@ export function VehicleDetailPage() {
         </Grid>
 
         <Grid size={12}>
+          <VehicleTollsCard vehicleId={vehicle.id} canEdit={canAdministerAccounts(user)} />
+        </Grid>
+
+        <Grid size={12}>
           <VehicleCostsCard vehicleId={vehicle.id} />
         </Grid>
 
@@ -477,6 +499,419 @@ export function VehicleDetailPage() {
         onEdit={() => navigate(paths.vehicleEdit(vehicle.id))}
       />
     </Box>
+  );
+}
+
+/**
+ * Vignettes, tunnels and road passages carried by this vehicle. Every role
+ * reads the list — a driver needs to know what is paid before setting off —
+ * while adding, editing, renewing and deleting are Admin/SuperAdmin only.
+ * Rows stay in the order the API returns them (expired and expiring first).
+ */
+function VehicleTollsCard({ vehicleId, canEdit }: { vehicleId: string; canEdit: boolean }) {
+  const t = useT();
+  const enumLabel = useEnumLabel();
+  const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<VehicleToll | null>(null);
+  const [paying, setPaying] = useState<VehicleToll | null>(null);
+
+  const { data } = useVehicleTollsQuery(vehicleId);
+  const remove = useDeleteWithConfirm<VehicleToll>(useDeleteVehicleToll());
+  const rows = data ?? [];
+
+  return (
+    <Card>
+      <CardContent>
+        <Stack direction="row" useFlexGap sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+            {t('vehicleTolls.title')}
+          </Typography>
+          {canEdit && (
+            <Button size="small" startIcon={<AddOutlined />} onClick={() => setAdding(true)}>
+              {t('vehicleTolls.add')}
+            </Button>
+          )}
+        </Stack>
+
+        {rows.length === 0 ? (
+          <Typography color="text.secondary" sx={{ mt: 1 }}>
+            {t('vehicleTolls.empty')}
+          </Typography>
+        ) : (
+          <TableContainer sx={{ mt: 1 }}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>{t('vehicleTolls.type')}</TableCell>
+                  <TableCell>{t('vehicleTolls.country')}</TableCell>
+                  <TableCell>{t('vehicleTolls.routeSegment')}</TableCell>
+                  <TableCell>{t('vehicleTolls.status')}</TableCell>
+                  <TableCell>{t('vehicleTolls.validUntil')}</TableCell>
+                  {canEdit && <TableCell align="right" />}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {rows.map((row) => (
+                  <TableRow key={row.id} hover>
+                    <TableCell>{enumLabel('vehicleTollType', row.type)}</TableCell>
+                    <TableCell>{row.country}</TableCell>
+                    <TableCell>{row.routeSegment || '—'}</TableCell>
+                    <TableCell>
+                      <VehicleTollStateChip toll={row} />
+                    </TableCell>
+                    <TableCell>{formatDate(row.validUntil)}</TableCell>
+                    {canEdit && (
+                      <TableCell align="right">
+                        <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'flex-end' }}>
+                          <Tooltip title={t('vehicleTolls.markPaid')}>
+                            <IconButton size="small" onClick={() => setPaying(row)}>
+                              <PaymentsOutlined fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title={t('common.edit')}>
+                            <IconButton size="small" onClick={() => setEditing(row)}>
+                              <EditOutlined fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title={t('common.delete')}>
+                            <IconButton size="small" onClick={() => remove.request(row)}>
+                              <DeleteOutlined fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </CardContent>
+
+      {canEdit && (
+        <>
+          <VehicleTollDialog open={adding} vehicleId={vehicleId} onClose={() => setAdding(false)} />
+          <VehicleTollDialog
+            open={!!editing}
+            vehicleId={vehicleId}
+            editingToll={editing}
+            onClose={() => setEditing(null)}
+          />
+          <VehicleTollPayDialog toll={paying} onClose={() => setPaying(null)} />
+
+          <ConfirmDialog
+            open={!!remove.pending}
+            title={t('vehicleTolls.deleteTitle')}
+            description={
+              remove.pending
+                ? t('vehicleTolls.deleteBody', {
+                    name: `${enumLabel('vehicleTollType', remove.pending.type)} — ${remove.pending.country}`,
+                  })
+                : ''
+            }
+            confirmLabel={t('common.delete')}
+            destructive
+            loading={remove.isDeleting}
+            onConfirm={remove.confirm}
+            onCancel={remove.cancel}
+          />
+        </>
+      )}
+    </Card>
+  );
+}
+
+/** Green when paid, amber when about to lapse, red once lapsed, outlined grey when unpaid — driven by the API's `computedState`. */
+function VehicleTollStateChip({ toll }: { toll: VehicleToll }) {
+  const t = useT();
+  const enumLabel = useEnumLabel();
+
+  const colors: Record<VehicleTollComputedState, 'success' | 'warning' | 'error' | 'default'> = {
+    Paid: 'success',
+    ExpiringSoon: 'warning',
+    Expired: 'error',
+    Unpaid: 'default',
+  };
+  const color = colors[toll.computedState] ?? 'default';
+
+  const chip = (
+    <Chip
+      size="small"
+      color={color}
+      variant={color === 'default' ? 'outlined' : 'filled'}
+      label={enumLabel('vehicleTollState', toll.computedState)}
+    />
+  );
+
+  if (!toll.paidByUserName || !toll.paidAt) {
+    return chip;
+  }
+
+  return (
+    <Tooltip
+      title={t('vehicleTolls.paidBy', {
+        name: toll.paidByUserName,
+        date: formatDate(toll.paidAt),
+      })}
+    >
+      <span>{chip}</span>
+    </Tooltip>
+  );
+}
+
+/** A valid-until date has to be today or later for a payment to be recorded — the API enforces the same rule. */
+function useTollValidUntilError(validUntil: string, required: boolean): string | null {
+  const t = useT();
+
+  if (!validUntil) {
+    return required ? t('vehicleTolls.validUntilRequired') : null;
+  }
+
+  return validUntil < dateOnlyOffset(0) ? t('vehicleTolls.validUntilTodayOrLater') : null;
+}
+
+function VehicleTollDialog({
+  open,
+  vehicleId,
+  editingToll,
+  onClose,
+}: {
+  open: boolean;
+  vehicleId: string;
+  editingToll?: VehicleToll | null;
+  onClose: () => void;
+}) {
+  const t = useT();
+  const enumLabel = useEnumLabel();
+  const add = useAddVehicleToll();
+  const update = useUpdateVehicleToll();
+  const isEditing = !!editingToll;
+
+  const [type, setType] = useState<VehicleToll['type']>('Vignette');
+  const [country, setCountry] = useState('');
+  const [routeSegment, setRouteSegment] = useState('');
+  const [paid, setPaid] = useState(false);
+  const [validUntil, setValidUntil] = useState('');
+
+  const resetAdd = add.reset;
+  const resetUpdate = update.reset;
+
+  useEffect(() => {
+    if (!open) return;
+
+    resetAdd();
+    resetUpdate();
+
+    if (editingToll) {
+      setType(editingToll.type);
+      setCountry(editingToll.country);
+      setRouteSegment(editingToll.routeSegment ?? '');
+    } else {
+      setType('Vignette');
+      setCountry('');
+      setRouteSegment('');
+    }
+
+    setPaid(false);
+    setValidUntil('');
+  }, [open, editingToll, resetAdd, resetUpdate]);
+
+  // The date only matters, and is only checked, when a new entry is recorded already paid.
+  const dateRequired = !isEditing && paid;
+  const dateError = useTollValidUntilError(dateRequired ? validUntil : '', dateRequired);
+  const canSubmit = country.trim() !== '' && !dateError;
+
+  const mutation = isEditing ? update : add;
+  const error = mutation.isError ? toApiError(mutation.error) : null;
+
+  const submit = () => {
+    const shared = {
+      type,
+      country: country.trim(),
+      routeSegment: routeSegment.trim() || null,
+    };
+
+    if (editingToll) {
+      update.mutate({ id: editingToll.id, input: shared }, { onSuccess: onClose });
+    } else {
+      add.mutate(
+        { vehicleId, ...shared, markPaid: paid, validUntil: paid ? validUntil : null },
+        { onSuccess: onClose },
+      );
+    }
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+      <DialogTitle>{isEditing ? t('vehicleTolls.editTitle') : t('vehicleTolls.add')}</DialogTitle>
+      <DialogContent>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error.message}
+          </Alert>
+        )}
+
+        <Grid container spacing={2} sx={{ mt: 0 }}>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              select
+              fullWidth
+              label={t('vehicleTolls.type')}
+              value={type}
+              onChange={(event) => setType(event.target.value as VehicleToll['type'])}
+            >
+              {vehicleTollTypes.map((value) => (
+                <MenuItem key={value} value={value}>
+                  {enumLabel('vehicleTollType', value)}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              fullWidth
+              required
+              label={t('vehicleTolls.country')}
+              value={country}
+              onChange={(event) => setCountry(event.target.value)}
+              slotProps={{ htmlInput: { maxLength: 100 } }}
+            />
+          </Grid>
+
+          <Grid size={12}>
+            <TextField
+              fullWidth
+              label={t('vehicleTolls.routeSegment')}
+              value={routeSegment}
+              onChange={(event) => setRouteSegment(event.target.value)}
+              slotProps={{ htmlInput: { maxLength: 200 } }}
+            />
+          </Grid>
+
+          {isEditing ? (
+            <Grid size={12}>
+              <Typography variant="caption" color="text.secondary">
+                {t('vehicleTolls.paymentStateHint')}
+              </Typography>
+            </Grid>
+          ) : (
+            <>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <FormControlLabel
+                  control={
+                    <Switch checked={paid} onChange={(event) => setPaid(event.target.checked)} />
+                  }
+                  label={t('vehicleTolls.paid')}
+                />
+              </Grid>
+
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <TextField
+                  type="date"
+                  fullWidth
+                  required={paid}
+                  disabled={!paid}
+                  label={t('vehicleTolls.validUntil')}
+                  value={validUntil}
+                  onChange={(event) => setValidUntil(event.target.value)}
+                  slotProps={{ inputLabel: { shrink: true } }}
+                  error={paid && !!dateError && validUntil !== ''}
+                  helperText={paid && validUntil !== '' ? (dateError ?? undefined) : undefined}
+                />
+              </Grid>
+            </>
+          )}
+        </Grid>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>{t('common.cancel')}</Button>
+        <Button
+          variant="contained"
+          disabled={!canSubmit}
+          loading={mutation.isPending}
+          onClick={submit}
+        >
+          {t('common.save')}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+/** Marks a toll paid or renews it — deliberately narrow: only the new valid-until date. */
+function VehicleTollPayDialog({
+  toll,
+  onClose,
+}: {
+  toll: VehicleToll | null;
+  onClose: () => void;
+}) {
+  const t = useT();
+  const enumLabel = useEnumLabel();
+  const markPaid = useMarkVehicleTollPaid();
+  const [validUntil, setValidUntil] = useState('');
+
+  const resetMarkPaid = markPaid.reset;
+
+  useEffect(() => {
+    if (!toll) return;
+    resetMarkPaid();
+    setValidUntil('');
+  }, [toll, resetMarkPaid]);
+
+  const dateError = useTollValidUntilError(validUntil, true);
+
+  if (!toll) return null;
+
+  const error = markPaid.isError ? toApiError(markPaid.error) : null;
+
+  const submit = () => {
+    markPaid.mutate({ id: toll.id, input: { validUntil } }, { onSuccess: onClose });
+  };
+
+  return (
+    <Dialog open={!!toll} onClose={onClose} fullWidth maxWidth="xs">
+      <DialogTitle>{t('vehicleTolls.markPaidTitle')}</DialogTitle>
+      <DialogContent>
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error.message}
+          </Alert>
+        )}
+        <Typography color="text.secondary" sx={{ mb: 2 }}>
+          {t('vehicleTolls.markPaidBody')}
+        </Typography>
+        <Typography variant="body2" sx={{ mb: 2, fontWeight: 600 }}>
+          {enumLabel('vehicleTollType', toll.type)} — {toll.country}
+          {toll.routeSegment ? ` (${toll.routeSegment})` : ''}
+        </Typography>
+        <TextField
+          type="date"
+          fullWidth
+          required
+          autoFocus
+          label={t('vehicleTolls.validUntil')}
+          value={validUntil}
+          onChange={(event) => setValidUntil(event.target.value)}
+          slotProps={{ inputLabel: { shrink: true } }}
+          error={validUntil !== '' && !!dateError}
+          helperText={validUntil !== '' ? (dateError ?? undefined) : undefined}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>{t('common.cancel')}</Button>
+        <Button
+          variant="contained"
+          disabled={!!dateError}
+          loading={markPaid.isPending}
+          onClick={submit}
+        >
+          {t('vehicleTolls.markPaid')}
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }
 

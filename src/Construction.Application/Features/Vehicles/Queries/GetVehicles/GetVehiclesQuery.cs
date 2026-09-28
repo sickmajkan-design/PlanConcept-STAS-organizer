@@ -138,7 +138,7 @@ public class GetVehiclesQueryHandler : IRequestHandler<GetVehiclesQuery, PagedLi
         query = ApplySorting(query, request.SortBy, request.SortDescending);
 
         return await PagedList<VehicleDto>.CreateAsync(
-            query.Select(VehicleMapping.Projection),
+            query.Select(VehicleMapping.Projection(today)),
             request.PageNumber,
             request.PageSize,
             cancellationToken);

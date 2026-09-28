@@ -23,13 +23,16 @@ class StatusChip extends StatelessWidget {
   final bool dense;
 
   static const _good = <String>{
-    'Active', 'Available', 'Completed', 'Processed', 'Approved', 'Delivered', 'Resolved', 'Closed',
+    'Active', 'Available', 'Completed', 'Processed', 'Approved', 'Delivered', 'Resolved', 'Closed', 'Paid',
   };
   static const _caution = <String>{
     'OnLeave', 'Planned', 'OnHold', 'Assigned', 'InService', 'Submitted', 'Requested', 'Ordered',
     'InDelivery', 'Open', 'InProgress', 'Pending',
+    'ExpiringSoon',
   };
-  static const _bad = <String>{'Suspended', 'UnderRepair', 'Lost', 'Rejected'};
+  static const _bad = <String>{
+    'Suspended', 'UnderRepair', 'Lost', 'Rejected', 'Expired',
+  };
 
   @override
   Widget build(BuildContext context) {

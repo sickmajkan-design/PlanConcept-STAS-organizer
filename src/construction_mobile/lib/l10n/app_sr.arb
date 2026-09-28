@@ -183,6 +183,23 @@
   "rentalRatesDeleteTitle": "Obrisati ovu cijenu?",
   "rentalRatesDeleteBody": "Ovo se ne može poništiti.",
   "rentalRatesSaved": "Cijena rente sačuvana.",
+  "vehicleTollsTitle": "Vinjete i tuneli",
+  "vehicleTollsEmpty": "Nema unesenih vinjeta/tunela",
+  "vehicleTollValidUntil": "Vrijedi do {date}",
+  "@vehicleTollValidUntil": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "vehicleTollTypeVignette": "Vinjeta",
+  "vehicleTollTypeTunnel": "Tunel",
+  "vehicleTollTypePassage": "Prolaz",
+  "vehicleTollStatePaid": "Plaćeno",
+  "vehicleTollStateUnpaid": "Nije plaćeno",
+  "vehicleTollStateExpiringSoon": "Ističe uskoro",
+  "vehicleTollStateExpired": "Isteklo",
   "rentalOutTitle": "Izdavanje u zakup",
   "rentalOutAdd": "Izdaj u zakup",
   "rentalOutEditTitle": "Izmijeni izdavanje",

@@ -19,6 +19,7 @@ import '../data/vehicle_repository.dart';
 import 'vehicle_form_sheet.dart';
 import 'vehicle_rental_out_section.dart';
 import 'vehicle_rental_rate_section.dart';
+import 'vehicle_toll_section.dart';
 import 'vehicles_controller.dart';
 
 class VehicleDetailScreen extends ConsumerWidget {
@@ -129,6 +130,8 @@ class VehicleDetailScreen extends ConsumerWidget {
                   const SizedBox(height: 20),
                   VehicleRentalRateSection(vehicleId: vehicle.id),
                 ],
+                const SizedBox(height: 20),
+                VehicleTollSection(vehicleId: vehicle.id),
                 const SizedBox(height: 20),
                 VehicleRentalOutSection(vehicle: vehicle),
                 const SizedBox(height: 20),

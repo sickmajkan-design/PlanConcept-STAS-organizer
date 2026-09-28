@@ -503,6 +503,38 @@ class AppLocalizationsEn extends AppLocalizations {
   String get rentalRatesSaved => 'Rental rate saved.';
 
   @override
+  String get vehicleTollsTitle => 'Vignettes and tunnels';
+
+  @override
+  String get vehicleTollsEmpty => 'No vignettes or tunnels on file';
+
+  @override
+  String vehicleTollValidUntil(String date) {
+    return 'Valid until $date';
+  }
+
+  @override
+  String get vehicleTollTypeVignette => 'Vignette';
+
+  @override
+  String get vehicleTollTypeTunnel => 'Tunnel';
+
+  @override
+  String get vehicleTollTypePassage => 'Passage';
+
+  @override
+  String get vehicleTollStatePaid => 'Paid';
+
+  @override
+  String get vehicleTollStateUnpaid => 'Not paid';
+
+  @override
+  String get vehicleTollStateExpiringSoon => 'Expiring soon';
+
+  @override
+  String get vehicleTollStateExpired => 'Expired';
+
+  @override
   String get rentalOutTitle => 'Loaned out';
 
   @override
