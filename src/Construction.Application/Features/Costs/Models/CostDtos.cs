@@ -153,6 +153,12 @@ public class FinanceEntryDto
 
     public string? ProjectName { get; init; }
 
+    public Guid? BranchId { get; init; }
+
+    public string? BranchName { get; init; }
+
+    public string? BranchColor { get; init; }
+
     public decimal? HoursWorked { get; init; }
 
     public string? Note { get; init; }
@@ -446,6 +452,9 @@ public static class FinanceEntryMapping
             OccurredOn = entry.OccurredOn,
             ProjectId = entry.ProjectId,
             ProjectName = entry.Project != null ? entry.Project.Name : null,
+            BranchId = entry.BranchId,
+            BranchName = entry.Branch != null ? entry.Branch.Name : null,
+            BranchColor = entry.Branch != null ? entry.Branch.Color : null,
             HoursWorked = entry.HoursWorked,
             Note = entry.Note,
             RecordedByName = entry.RecordedByUser != null ? entry.RecordedByUser.Email : null,
@@ -494,6 +503,12 @@ public class GeneralExpenseDto
 
     public string? ProjectName { get; init; }
 
+    public Guid? BranchId { get; init; }
+
+    public string? BranchName { get; init; }
+
+    public string? BranchColor { get; init; }
+
     public Guid? EmployeeId { get; init; }
 
     public string? EmployeeName { get; init; }
@@ -531,6 +546,9 @@ public static class GeneralExpenseMapping
             OccurredOn = expense.OccurredOn,
             ProjectId = expense.ProjectId,
             ProjectName = expense.Project != null ? expense.Project.Name : null,
+            BranchId = expense.BranchId,
+            BranchName = expense.Branch != null ? expense.Branch.Name : null,
+            BranchColor = expense.Branch != null ? expense.Branch.Color : null,
             EmployeeId = expense.EmployeeId,
             EmployeeName = expense.Employee != null
                 ? expense.Employee.FirstName + " " + expense.Employee.LastName

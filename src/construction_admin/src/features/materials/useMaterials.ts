@@ -1,3 +1,4 @@
+import { useBranchScoped } from '../branches/BranchContext';
 import { useQuery } from '@tanstack/react-query';
 
 import {
@@ -23,7 +24,8 @@ const PICKER_QUERY: MaterialListQuery = {
 };
 
 export function useMaterialsQuery(query: MaterialListQuery, enabled = true) {
-  return useResourceList(materialKeys, materialsApi.list, query, { enabled });
+  const scoped = useBranchScoped(query);
+  return useResourceList(materialKeys, materialsApi.list, scoped, { enabled });
 }
 
 /** A fresh read of whatever file is on screen; nothing to cache. */

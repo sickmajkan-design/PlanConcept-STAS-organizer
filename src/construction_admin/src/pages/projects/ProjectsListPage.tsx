@@ -34,6 +34,7 @@ import {
   useViewMode,
 } from '../../components/StatusBoard';
 import { exportsApi } from '../../api/exports';
+import { BranchDot } from '../../features/branches/BranchDot';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ExportButton } from '../../components/ExportButton';
 import { ErrorState } from '../../components/ErrorState';
@@ -420,9 +421,18 @@ function ProjectRow({
       )}
 
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography variant="body2" sx={{ fontWeight: isMain ? 700 : 500 }} noWrap>
-          {project.name}
-        </Typography>
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', minWidth: 0 }}>
+          {project.branchColor && (
+            <Tooltip title={project.branchName ?? ''}>
+              <span style={{ display: 'inline-flex' }}>
+                <BranchDot color={project.branchColor} />
+              </span>
+            </Tooltip>
+          )}
+          <Typography variant="body2" sx={{ fontWeight: isMain ? 700 : 500 }} noWrap>
+            {project.name}
+          </Typography>
+        </Stack>
         {project.address && (
           <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
             {project.address}

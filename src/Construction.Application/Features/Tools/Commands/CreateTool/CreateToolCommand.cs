@@ -35,8 +35,12 @@ public class CreateToolCommandHandler : IRequestHandler<CreateToolCommand, ToolD
         await ToolRules.EnsureUniqueAsync(
             _context, serialNumber, qrCode, excludeToolId: null, cancellationToken);
 
+        var branch = await Branches.BranchLookup.LoadAsync(_context, request.BranchId, cancellationToken);
+
         var tool = new Tool
         {
+            BranchId = request.BranchId,
+            Branch = branch,
             Name = request.Name.Trim(),
             Category = request.Category?.Trim(),
             SerialNumber = serialNumber,

@@ -30,6 +30,7 @@ export const accommodationFormSchema = z
     name: optionalText(200),
     type: z.enum(['Apartment', 'House', 'Room', 'Hotel', 'Other']),
     city: optionalText(120),
+    branchId: z.string().optional().or(z.literal('')),
     floor: optionalText(40),
     rooms: optionalPositiveNumber,
     beds: optionalPositiveNumber,

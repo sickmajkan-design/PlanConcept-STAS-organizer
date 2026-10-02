@@ -42,6 +42,13 @@ public class ToolDto
 
     public string? AssignedEmployeeNumber { get; init; }
 
+    /// <summary>The unit the record belongs to in its own right. Null: it follows its project.</summary>
+    public Guid? BranchId { get; init; }
+
+    public string? BranchName { get; init; }
+
+    public string? BranchColor { get; init; }
+
     public Guid? AssignedProjectId { get; init; }
 
     public string? AssignedProjectName { get; init; }
@@ -109,6 +116,9 @@ public static class ToolMapping
             AssignedEmployeeNumber = tool.AssignedEmployee != null
                 ? tool.AssignedEmployee.EmployeeNumber
                 : null,
+            BranchId = tool.BranchId,
+            BranchName = tool.Branch != null ? tool.Branch.Name : null,
+            BranchColor = tool.Branch != null ? tool.Branch.Color : null,
             AssignedProjectId = tool.AssignedProjectId,
             AssignedProjectName = tool.AssignedProject != null ? tool.AssignedProject.Name : null,
             CreatedAt = tool.CreatedAt,

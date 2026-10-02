@@ -46,6 +46,7 @@ export const vehicleFormSchema = z.object({
     .optional()
     .or(z.literal('')),
   fuelType: z.enum(fuelTypes, { error: zodMsg('validation.fuelTypeRequired') }),
+  branchId: z.string().optional().or(z.literal('')),
   status: z.enum(vehicleStatuses),
   ownershipType: z.enum(vehicleOwnershipTypes),
 });

@@ -10,6 +10,7 @@ import type {
 } from './types';
 
 export interface TimeEntryListQuery extends ListQuery {
+  branchId?: string;
   employeeId?: string;
   projectId?: string;
   status?: TimeEntryStatus;

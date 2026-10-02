@@ -11,6 +11,11 @@ public class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
     {
         builder.ToTable("vehicles");
 
+        builder.HasOne(x => x.Branch)
+            .WithMany()
+            .HasForeignKey(x => x.BranchId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasKey(v => v.Id);
 
         builder.HasQueryFilter(v => !v.IsDeleted);

@@ -25,6 +25,11 @@ public class Project : BaseEntity, ISoftDeletable, IAuditable
 
     public ICollection<Project> SubProjects { get; set; } = new List<Project>();
 
+    /// <summary>The operator's own business unit this project belongs to. Null means none is set.</summary>
+    public Guid? BranchId { get; set; }
+
+    public Branch? Branch { get; set; }
+
     public string? Address { get; set; }
 
     public double? Latitude { get; set; }

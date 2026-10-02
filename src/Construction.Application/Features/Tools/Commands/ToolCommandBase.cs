@@ -12,6 +12,9 @@ public abstract record ToolCommandBase
 {
     public string Name { get; init; } = null!;
 
+    /// <summary>The business unit the tool belongs to in its own right; null follows its project.</summary>
+    public Guid? BranchId { get; init; }
+
     public string? Category { get; init; }
 
     public string? SerialNumber { get; init; }

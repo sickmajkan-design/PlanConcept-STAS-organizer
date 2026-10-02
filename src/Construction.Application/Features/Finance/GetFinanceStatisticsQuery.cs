@@ -1,4 +1,5 @@
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Application.Features.Costs.Queries.GetCompanyCosts;
 using FluentValidation;
 using MediatR;
@@ -50,6 +51,9 @@ public record GetFinanceStatisticsQuery : IRequest<FinanceStatisticsDto>
     public DateOnly From { get; init; }
 
     public DateOnly To { get; init; }
+
+    /// <summary>Narrows the figures to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
 }
 
 public class GetFinanceStatisticsQueryValidator : AbstractValidator<GetFinanceStatisticsQuery>
@@ -95,14 +99,14 @@ public class GetFinanceStatisticsQueryHandler : IRequestHandler<GetFinanceStatis
         // own finance check is stepped over; what comes back is turned into percentages here
         // and the amounts go no further. The role rules of the report still apply.
         var current = await _sender.Send(
-            new GetCompanyCostsQuery { From = request.From, To = request.To, SkipFinanceCheck = true },
+            new GetCompanyCostsQuery { From = request.From, To = request.To, BranchId = request.BranchId, SkipFinanceCheck = true },
             cancellationToken);
         var previous = await _sender.Send(
-            new GetCompanyCostsQuery { From = previousFrom, To = previousTo, SkipFinanceCheck = true },
+            new GetCompanyCostsQuery { From = previousFrom, To = previousTo, BranchId = request.BranchId, SkipFinanceCheck = true },
             cancellationToken);
 
-        var revenue = await RevenueAsync(request.From, request.To, cancellationToken);
-        var previousRevenue = await RevenueAsync(previousFrom, previousTo, cancellationToken);
+        var revenue = await RevenueAsync(request.From, request.To, request.BranchId, cancellationToken);
+        var previousRevenue = await RevenueAsync(previousFrom, previousTo, request.BranchId, cancellationToken);
 
         var profit = revenue - current.Total;
         var previousProfit = previousRevenue - previous.Total;
@@ -119,13 +123,13 @@ public class GetFinanceStatisticsQueryHandler : IRequestHandler<GetFinanceStatis
         };
     }
 
-    private async Task<decimal> RevenueAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken)
+    private async Task<decimal> RevenueAsync(DateOnly from, DateOnly to, Guid? branchId, CancellationToken cancellationToken)
     {
-        var project = await _context.ProjectRevenues.AsNoTracking()
+        var project = await _context.ProjectRevenues.AsNoTracking().InBranch(branchId)
             .Where(r => r.OccurredOn >= from && r.OccurredOn <= to)
             .SumAsync(r => (decimal?)r.Amount, cancellationToken) ?? 0m;
 
-        var other = await _context.CompanyRevenues.AsNoTracking()
+        var other = await _context.CompanyRevenues.AsNoTracking().InBranch(branchId)
             .Where(r => r.OccurredOn >= from && r.OccurredOn <= to)
             .SumAsync(r => (decimal?)r.Amount, cancellationToken) ?? 0m;
 

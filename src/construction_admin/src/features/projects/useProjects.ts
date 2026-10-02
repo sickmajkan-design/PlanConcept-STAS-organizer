@@ -1,3 +1,4 @@
+import { useBranchFilter } from '../branches/BranchContext';
 import { useQuery } from '@tanstack/react-query';
 
 import {
@@ -30,7 +31,9 @@ const PICKER_QUERY: ProjectListQuery = {
 };
 
 export function useProjectsQuery(query: ProjectListQuery) {
-  return useResourceList(projectKeys, projectsApi.list, query);
+  // The header's business-unit filter narrows the list unless the caller asks for a unit itself.
+  const { branchId } = useBranchFilter();
+  return useResourceList(projectKeys, projectsApi.list, { ...query, branchId: query.branchId ?? branchId });
 }
 
 export function useProjectQuery(id: string | undefined) {
@@ -57,6 +60,17 @@ export function useAllMainProjectsQuery() {
   return useQuery({
     queryKey: projectKeys.list(MAIN_PROJECTS_PICKER_QUERY),
     queryFn: () => projectsApi.list(MAIN_PROJECTS_PICKER_QUERY),
+    staleTime: 60_000,
+  });
+}
+
+const EVERY_MAIN_PROJECT_QUERY: ProjectListQuery = { ...MAIN_PROJECTS_PICKER_QUERY, pageSize: 500 };
+
+/** Every Main project the API will serve in one page (its cap is 500), for bulk assignment. */
+export function useEveryMainProjectQuery() {
+  return useQuery({
+    queryKey: projectKeys.list(EVERY_MAIN_PROJECT_QUERY),
+    queryFn: () => projectsApi.list(EVERY_MAIN_PROJECT_QUERY),
     staleTime: 60_000,
   });
 }

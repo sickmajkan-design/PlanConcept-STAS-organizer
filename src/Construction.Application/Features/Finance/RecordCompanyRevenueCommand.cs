@@ -22,6 +22,9 @@ public record RecordCompanyRevenueCommand : IRequest<CompanyRevenueDto>
 
     public Guid? ToolId { get; init; }
 
+    /// <summary>The business unit (poslovna jedinica) this is booked to. Null follows the project, if any.</summary>
+    public Guid? BranchId { get; init; }
+
     public string? Note { get; init; }
 }
 
@@ -104,6 +107,7 @@ public class RecordCompanyRevenueCommandHandler : IRequestHandler<RecordCompanyR
     public async Task<CompanyRevenueDto> Handle(RecordCompanyRevenueCommand request, CancellationToken cancellationToken)
     {
         await FinanceRules.EnsureFullAsync(_context, _currentUserService, cancellationToken);
+        await Branches.BranchLookup.EnsureExistsAsync(_context, request.BranchId, cancellationToken);
         await CompanyRevenueRules.EnsureAssetsExistAsync(_context, request.VehicleId, request.ToolId, cancellationToken);
 
         var revenue = new CompanyRevenue
@@ -113,6 +117,7 @@ public class RecordCompanyRevenueCommandHandler : IRequestHandler<RecordCompanyR
             Source = request.Source,
             VehicleId = request.VehicleId,
             ToolId = request.ToolId,
+            BranchId = request.BranchId,
             Note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim(),
             RecordedByUserId = _currentUserService.UserId,
         };

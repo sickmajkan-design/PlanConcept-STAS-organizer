@@ -16,6 +16,12 @@ public abstract record ProjectCommandBase
     public Guid? CustomerId { get; init; }
 
     /// <summary>
+    /// The business unit (poslovna jedinica) this project belongs to. For a sub-project it is
+    /// always taken from the parent, regardless of what was sent.
+    /// </summary>
+    public Guid? BranchId { get; init; }
+
+    /// <summary>
     /// Set to make this project a sub-project of another. The parent must
     /// itself be a Main project — hierarchy is only ever two levels deep.
     /// When set, the customer is always taken from the parent, regardless of

@@ -38,8 +38,12 @@ public class CreateVehicleCommandHandler : IRequestHandler<CreateVehicleCommand,
         await VehicleUniqueness.EnsureUniqueAsync(
             _context, registrationNumber, vin, qrCode, excludeVehicleId: null, cancellationToken);
 
+        var branch = await Branches.BranchLookup.LoadAsync(_context, request.BranchId, cancellationToken);
+
         var vehicle = new Vehicle
         {
+            BranchId = request.BranchId,
+            Branch = branch,
             Brand = request.Brand.Trim(),
             Model = request.Model.Trim(),
             RegistrationNumber = registrationNumber,

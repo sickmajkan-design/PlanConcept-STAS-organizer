@@ -1,3 +1,4 @@
+import { useBranchScoped } from '../branches/BranchContext';
 import { useQuery } from '@tanstack/react-query';
 
 import {
@@ -39,7 +40,8 @@ const timeEntryCaches = [timeEntryKeys.all];
  * map's own `refetchInterval`.
  */
 export function useTimeEntriesQuery(query: TimeEntryListQuery, enabled = true) {
-  return useResourceList(timeEntryKeys, timeEntriesApi.list, query, {
+  const scoped = useBranchScoped(query);
+  return useResourceList(timeEntryKeys, timeEntriesApi.list, scoped, {
     refetchInterval: config.workTimeRefreshMs,
     enabled,
   });

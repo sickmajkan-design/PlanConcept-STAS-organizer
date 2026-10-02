@@ -1,6 +1,7 @@
 using Construction.Application.Features.Finance;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.Costs.Models;
 using Construction.Domain.Entities;
@@ -229,6 +230,9 @@ public record GetMaterialMovementsQuery : ISortablePagedQuery, IRequest<PagedLis
         "recordedByName", "createdAt", "invoiceNumber", "supplier"
     ];
 
+    /// <summary>Narrows the records to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
+
     public int PageNumber { get; init; } = 1;
 
     public int PageSize { get; init; } = 20;
@@ -283,6 +287,8 @@ public class GetMaterialMovementsQueryHandler
         }
 
         var query = _context.MaterialMovements.AsNoTracking();
+
+        query = query.InBranch(request.BranchId);
 
         if (request.MaterialId is { } materialId)
         {
@@ -367,6 +373,9 @@ public record GetMaterialMovementsSummaryQuery : IRequest<MaterialMovementSummar
 {
     public Guid? MaterialId { get; init; }
 
+    /// <summary>Narrows the records to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
+
     public Guid? ProjectId { get; init; }
 
     public MaterialMovementKind? Kind { get; init; }
@@ -400,6 +409,8 @@ public class GetMaterialMovementsSummaryQueryHandler
         }
 
         var query = _context.MaterialMovements.AsNoTracking();
+
+        query = query.InBranch(request.BranchId);
 
         if (request.MaterialId is { } materialId)
         {
@@ -442,6 +453,9 @@ public record GetVehicleExpensesQuery : ISortablePagedQuery, IRequest<PagedList<
         "occurredOn", "vehicleName", "kind", "amount", "litres", "odometerKm",
         "recordedByName", "createdAt", "status"
     ];
+
+    /// <summary>Narrows the records to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
 
     public int PageNumber { get; init; } = 1;
 
@@ -497,6 +511,12 @@ public class GetVehicleExpensesQueryHandler
         }
 
         var query = _context.VehicleExpenses.AsNoTracking();
+
+        var branchVehicles = await BranchScope.VehicleIdsAsync(_context, request.BranchId, cancellationToken);
+        if (branchVehicles is not null)
+        {
+            query = query.Where(e => branchVehicles.Contains(e.VehicleId));
+        }
 
         if (request.VehicleId is { } vehicleId)
         {
@@ -575,6 +595,9 @@ public record GetVehicleExpensesSummaryQuery : IRequest<VehicleExpenseSummaryDto
 {
     public Guid? VehicleId { get; init; }
 
+    /// <summary>Narrows the records to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
+
     public VehicleExpenseKind? Kind { get; init; }
 
     public DateOnly? From { get; init; }
@@ -606,6 +629,12 @@ public class GetVehicleExpensesSummaryQueryHandler
         }
 
         var query = _context.VehicleExpenses.AsNoTracking();
+
+        var branchVehicles = await BranchScope.VehicleIdsAsync(_context, request.BranchId, cancellationToken);
+        if (branchVehicles is not null)
+        {
+            query = query.Where(e => branchVehicles.Contains(e.VehicleId));
+        }
 
         if (request.VehicleId is { } vehicleId)
         {
@@ -649,6 +678,9 @@ public record GetFinanceEntriesQuery : ISortablePagedQuery, IRequest<PagedList<F
         "employeeName", "kind", "amount", "hoursWorked", "occurredOn", "projectName",
         "recordedByName", "createdAt"
     ];
+
+    /// <summary>Narrows the records to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
 
     public int PageNumber { get; init; } = 1;
 
@@ -706,6 +738,8 @@ public class GetFinanceEntriesQueryHandler
         }
 
         var query = _context.FinanceEntries.AsNoTracking();
+
+        query = query.InBranch(request.BranchId);
 
         if (request.EmployeeId is { } employeeId)
         {
@@ -784,6 +818,9 @@ public record GetFinanceEntriesSummaryQuery : IRequest<FinanceEntrySummaryDto>
 {
     public Guid? EmployeeId { get; init; }
 
+    /// <summary>Narrows the records to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
+
     public Guid? ProjectId { get; init; }
 
     public FinanceEntryKind? Kind { get; init; }
@@ -817,6 +854,8 @@ public class GetFinanceEntriesSummaryQueryHandler
         }
 
         var query = _context.FinanceEntries.AsNoTracking();
+
+        query = query.InBranch(request.BranchId);
 
         if (request.EmployeeId is { } employeeId)
         {
@@ -864,6 +903,9 @@ public record GetToolExpensesQuery : ISortablePagedQuery, IRequest<PagedList<Too
     [
         "occurredOn", "toolName", "kind", "amount", "recordedByName", "createdAt"
     ];
+
+    /// <summary>Narrows the records to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
 
     public int PageNumber { get; init; } = 1;
 
@@ -917,6 +959,12 @@ public class GetToolExpensesQueryHandler
         }
 
         var query = _context.ToolExpenses.AsNoTracking();
+
+        var branchTools = await BranchScope.ToolIdsAsync(_context, request.BranchId, cancellationToken);
+        if (branchTools is not null)
+        {
+            query = query.Where(e => branchTools.Contains(e.ToolId));
+        }
 
         if (request.ToolId is { } toolId)
         {
@@ -982,6 +1030,9 @@ public record GetToolExpensesSummaryQuery : IRequest<ToolExpenseSummaryDto>
 {
     public Guid? ToolId { get; init; }
 
+    /// <summary>Narrows the records to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
+
     public ToolExpenseKind? Kind { get; init; }
 
     public DateOnly? From { get; init; }
@@ -1013,6 +1064,12 @@ public class GetToolExpensesSummaryQueryHandler
         }
 
         var query = _context.ToolExpenses.AsNoTracking();
+
+        var branchTools = await BranchScope.ToolIdsAsync(_context, request.BranchId, cancellationToken);
+        if (branchTools is not null)
+        {
+            query = query.Where(e => branchTools.Contains(e.ToolId));
+        }
 
         if (request.ToolId is { } toolId)
         {
@@ -1394,6 +1451,9 @@ public record GetGeneralExpensesQuery : ISortablePagedQuery, IRequest<PagedList<
         "supplier", "recordedByName", "createdAt"
     ];
 
+    /// <summary>Narrows the records to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
+
     public int PageNumber { get; init; } = 1;
 
     public int PageSize { get; init; } = 20;
@@ -1448,6 +1508,8 @@ public class GetGeneralExpensesQueryHandler
         }
 
         var query = _context.GeneralExpenses.AsNoTracking();
+
+        query = query.InBranch(request.BranchId);
 
         if (request.Category is { } category)
         {
@@ -1529,6 +1591,9 @@ public record GetGeneralExpensesSummaryQuery : IRequest<GeneralExpenseSummaryDto
 {
     public GeneralExpenseCategory? Category { get; init; }
 
+    /// <summary>Narrows the records to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
+
     public Guid? ProjectId { get; init; }
 
     public Guid? EmployeeId { get; init; }
@@ -1562,6 +1627,8 @@ public class GetGeneralExpensesSummaryQueryHandler
         }
 
         var query = _context.GeneralExpenses.AsNoTracking();
+
+        query = query.InBranch(request.BranchId);
 
         if (request.Category is { } category)
         {

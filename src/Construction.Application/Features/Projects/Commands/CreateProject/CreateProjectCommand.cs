@@ -34,6 +34,7 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
         CancellationToken cancellationToken)
     {
         var customerId = request.CustomerId;
+        var branchId = request.BranchId;
         var countryCode = request.CountryCode?.Trim().ToUpperInvariant();
 
         if (request.ParentProjectId is { } parentProjectId)
@@ -52,6 +53,7 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
             // sub-project belongs to whichever customer and country its Main
             // project does: it is the same site, just a narrower scope of it.
             customerId = parent.CustomerId;
+            branchId = parent.BranchId;
             countryCode = parent.CountryCode;
         }
         else if (request.CustomerId is { } requestedCustomerId)
@@ -65,6 +67,12 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
             }
         }
 
+        if (branchId is { } requestedBranchId
+            && !await _context.Branches.AnyAsync(b => b.Id == requestedBranchId, cancellationToken))
+        {
+            throw new NotFoundException(nameof(Branch), requestedBranchId);
+        }
+
         // The contract sum and how the client is billed are money matters: only somebody with the
         // finance grant sets them; everybody else creates the site with the defaults.
         var money = await FinanceRules.HasFullAsync(_context, _currentUserService, cancellationToken);
@@ -74,6 +82,7 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
             Name = request.Name.Trim(),
             Description = request.Description?.Trim(),
             CustomerId = customerId,
+            BranchId = branchId,
             ParentProjectId = request.ParentProjectId,
             Address = request.Address?.Trim(),
             Latitude = request.Latitude,

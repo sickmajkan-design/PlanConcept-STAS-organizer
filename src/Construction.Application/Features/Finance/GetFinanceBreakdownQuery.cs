@@ -54,6 +54,9 @@ public record GetFinanceBreakdownQuery : IRequest<FinanceBreakdownDto>
     public DateOnly To { get; init; }
 
     public Guid? ProjectId { get; init; }
+
+    /// <summary>Narrows the figures to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
 }
 
 public class GetFinanceBreakdownQueryValidator : AbstractValidator<GetFinanceBreakdownQuery>
@@ -113,7 +116,7 @@ public class GetFinanceBreakdownQueryHandler : IRequestHandler<GetFinanceBreakdo
         }
 
         var costs = await _sender.Send(
-            new GetCompanyCostsQuery { From = request.From, To = request.To },
+            new GetCompanyCostsQuery { From = request.From, To = request.To, BranchId = request.BranchId },
             cancellationToken);
 
         return Build(request, costs.IncludesLabour,

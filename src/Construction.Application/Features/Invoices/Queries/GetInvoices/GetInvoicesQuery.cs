@@ -20,6 +20,9 @@ public record GetInvoicesQuery : ISortablePagedQuery, IRequest<PagedList<Invoice
 
     public Guid? ProjectId { get; init; }
 
+    /// <summary>Restricts results to records of projects in this business unit.</summary>
+    public Guid? BranchId { get; init; }
+
     public Guid? CustomerId { get; init; }
 
     /// <summary>Only invoices with a part for this company.</summary>
@@ -63,6 +66,11 @@ public class GetInvoicesQueryHandler : IRequestHandler<GetInvoicesQuery, PagedLi
         await InvoiceRules.EnsureAllowedAsync(_context, _currentUserService, cancellationToken);
 
         var query = _context.Invoices.AsNoTracking();
+
+        if (request.BranchId is { } branchId)
+        {
+            query = query.Where(i => i.Project.BranchId == branchId);
+        }
 
         if (request.ProjectId is { } projectId)
         {

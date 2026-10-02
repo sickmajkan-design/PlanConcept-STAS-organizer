@@ -19,6 +19,9 @@ public record GetArticleOrdersQuery : ISortablePagedQuery, IRequest<PagedList<Ar
 
     public ArticleOrderStatus? Status { get; init; }
 
+    /// <summary>Restricts results to orders for projects in this business unit.</summary>
+    public Guid? BranchId { get; init; }
+
     /// <summary>Only the ones not yet in the requester's hands: requested, ordered, on their way.</summary>
     public bool OpenOnly { get; init; }
 
@@ -73,6 +76,11 @@ public class GetArticleOrdersQueryHandler : IRequestHandler<GetArticleOrdersQuer
                 ? query.Where(o => o.RequestedByUserId == userId)
                 : query.Where(o => o.RequestedByUserId == userId
                     || (o.ProjectId != null && sites.Contains(o.ProjectId.Value)));
+        }
+
+        if (request.BranchId is { } branchId)
+        {
+            query = query.Where(o => o.Project != null && o.Project.BranchId == branchId);
         }
 
         if (request.Status is { } status)

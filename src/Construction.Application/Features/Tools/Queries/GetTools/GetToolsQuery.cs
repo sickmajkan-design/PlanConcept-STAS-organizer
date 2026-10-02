@@ -33,6 +33,9 @@ public record GetToolsQuery : ISortablePagedQuery, IRequest<PagedList<ToolDto>>
 
     public Guid? AssignedProjectId { get; init; }
 
+    /// <summary>Restricts results to those assigned to a project of this business unit.</summary>
+    public Guid? BranchId { get; init; }
+
     /// <summary>When true, returns only tools with no employee and no project assignment.</summary>
     public bool? Unassigned { get; init; }
 
@@ -115,6 +118,12 @@ public class GetToolsQueryHandler : IRequestHandler<GetToolsQuery, PagedList<Too
         if (request.AssignedEmployeeId is { } employeeId)
         {
             query = query.Where(t => t.AssignedEmployeeId == employeeId);
+        }
+
+        if (request.BranchId is { } branchId)
+        {
+            query = query.Where(t => t.BranchId == branchId
+                || (t.BranchId == null && t.AssignedProject != null && t.AssignedProject.BranchId == branchId));
         }
 
         if (request.AssignedProjectId is { } projectId)

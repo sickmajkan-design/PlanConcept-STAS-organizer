@@ -42,6 +42,7 @@ export interface FinanceSeriesQuery {
   from: string;
   to: string;
   granularity: FinanceGranularity;
+  branchId?: string;
 }
 
 export interface FinanceProjectRow {
@@ -181,6 +182,9 @@ export interface CompanyRevenue {
   vehicleName: string | null;
   toolId: string | null;
   toolName: string | null;
+  branchId: string | null;
+  branchName: string | null;
+  branchColor: string | null;
   note: string | null;
   createdAt: string;
 }
@@ -191,10 +195,12 @@ export interface CompanyRevenueInput {
   source: CompanyRevenueSource;
   vehicleId?: string | null;
   toolId?: string | null;
+  branchId?: string | null;
   note?: string | null;
 }
 
 export interface CompanyRevenueListQuery {
+  branchId?: string;
   pageNumber: number;
   pageSize: number;
   from?: string;
@@ -210,14 +216,14 @@ export const financeApi = {
       params: listParams(query),
     }),
 
-  byProject: (query: { from: string; to: string; top?: number }) =>
+  byProject: (query: { from: string; to: string; top?: number; branchId?: string }) =>
     request<FinanceByProject>({
       method: 'GET',
       url: '/api/v1/finance/by-project',
       params: listParams(query),
     }),
 
-  breakdown: (query: { from: string; to: string; projectId?: string }) =>
+  breakdown: (query: { from: string; to: string; projectId?: string; branchId?: string }) =>
     request<FinanceBreakdown>({
       method: 'GET',
       url: '/api/v1/finance/breakdown',
@@ -231,9 +237,14 @@ export const financeApi = {
       params: listParams(query),
     }),
 
-  budgetAlerts: () => request<BudgetAlerts>({ method: 'GET', url: '/api/v1/finance/budget-alerts' }),
+  budgetAlerts: (query: { branchId?: string } = {}) =>
+    request<BudgetAlerts>({
+      method: 'GET',
+      url: '/api/v1/finance/budget-alerts',
+      params: listParams(query),
+    }),
 
-  statistics: (query: { from: string; to: string }) =>
+  statistics: (query: { from: string; to: string; branchId?: string }) =>
     request<FinanceStatistics>({
       method: 'GET',
       url: '/api/v1/finance/statistics',

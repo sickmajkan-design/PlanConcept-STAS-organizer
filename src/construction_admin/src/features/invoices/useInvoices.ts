@@ -1,3 +1,4 @@
+import { useBranchScoped } from '../branches/BranchContext';
 import { useQuery } from '@tanstack/react-query';
 
 import {
@@ -11,7 +12,8 @@ import { createResourceKeys, useResourceList, useResourceMutation } from '../res
 export const invoiceKeys = createResourceKeys<InvoiceListQuery>('invoices');
 
 export function useInvoicesQuery(query: InvoiceListQuery, enabled = true) {
-  return useResourceList(invoiceKeys, invoicesApi.list, query, { enabled });
+  const scoped = useBranchScoped(query);
+  return useResourceList(invoiceKeys, invoicesApi.list, scoped, { enabled });
 }
 
 /** An invoice changes what a fixed-sum site is billed in the payroll, so its ledgers are dropped too. */

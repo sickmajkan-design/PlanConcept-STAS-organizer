@@ -38,6 +38,8 @@ public class UpdateAccommodationCommandHandler
             .FirstOrDefaultAsync(a => a.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(Accommodation), request.Id);
 
+        await Branches.BranchLookup.EnsureExistsAsync(_context, request.BranchId, cancellationToken);
+
         AccommodationFieldMapper.Apply(accommodation, request);
 
         await _context.SaveChangesAsync(cancellationToken);

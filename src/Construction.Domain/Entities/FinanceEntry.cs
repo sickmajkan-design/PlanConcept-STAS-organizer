@@ -42,4 +42,9 @@ public class FinanceEntry : BaseEntity, IAuditable
     public Guid? RecordedByUserId { get; set; }
 
     public User? RecordedByUser { get; set; }
+
+    /// <summary>The business unit this entry is booked to. Null means it follows its project, if it has one.</summary>
+    public Guid? BranchId { get; set; }
+
+    public Branch? Branch { get; set; }
 }

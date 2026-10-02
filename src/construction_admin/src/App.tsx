@@ -72,6 +72,11 @@ const UsersListPage = lazy(() =>
 const UserFormPage = lazy(() =>
   import('./pages/users/UserFormPage').then((m) => ({ default: m.UserFormPage })),
 );
+import { BranchFilterProvider } from './features/branches/BranchContext';
+
+const BranchesPage = lazy(() =>
+  import('./pages/settings/BranchesPage').then((m) => ({ default: m.BranchesPage })),
+);
 const NotificationGroupsListPage = lazy(() =>
   import('./pages/notificationGroups/NotificationGroupsListPage').then((m) => ({
     default: m.NotificationGroupsListPage,
@@ -338,6 +343,7 @@ function Layout() {
   const location = useLocation();
 
   return (
+    <BranchFilterProvider>
     <AppLayout>
       {/* Inside the layout, so a screen that throws leaves the drawer and the
           app bar standing and the operator can navigate away from it. Keyed on
@@ -489,6 +495,7 @@ function Layout() {
                 path={`${paths.notificationGroups}/:id/edit`}
                 element={<NotificationGroupFormPage />}
               />
+              <Route path={paths.branches} element={<BranchesPage />} />
               <Route path={paths.scheduledReports} element={<ScheduledReportsListPage />} />
             </Route>
 
@@ -505,6 +512,7 @@ function Layout() {
         </Suspense>
       </ErrorBoundary>
     </AppLayout>
+    </BranchFilterProvider>
   );
 }
 

@@ -67,6 +67,7 @@ import {
   type NavGroup,
   type NavItem,
 } from './navConfig';
+import { BranchSwitcher } from '../features/branches/BranchSwitcher';
 import { NotificationsMenu } from './NotificationsMenu';
 import { ReleaseNotesDialog } from '../features/releaseNotes/ReleaseNotesDialog';
 import { PlatformGuideDialog } from './PlatformGuideDialog';
@@ -855,6 +856,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <KeyboardOutlined />
             </IconButton>
           </Tooltip>
+          <BranchSwitcher />
           <LanguageSwitcher />
           {/* In the bar rather than the drawer: an inbox is personal, it is
               the same on every screen, and the count has to be visible from

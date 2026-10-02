@@ -1,5 +1,6 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Application.Features.Accommodations.Costs;
 using Construction.Application.Features.Costs.Queries.GetProjectCosts;
 using Construction.Application.Features.Finance;
@@ -73,6 +74,9 @@ public record GetCompanyCostsQuery : IRequest<CompanyCostsDto>
 
     public DateOnly To { get; init; }
 
+    /// <summary>Narrows the figures to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
+
     /// <summary>
     /// Set only by code inside the application that turns the amounts into
     /// something that is not money (<c>GetFinanceStatisticsQuery</c>). Internal,
@@ -140,7 +144,7 @@ public class GetCompanyCostsQueryHandler : IRequestHandler<GetCompanyCostsQuery,
 
         if (includesLabour)
         {
-            var entries = await ProjectLabourPricing.LoadAsync(_context, from, to, null, cancellationToken);
+            var entries = await ProjectLabourPricing.LoadAsync(_context, from, to, null, cancellationToken, request.BranchId);
 
             labour = entries.Sum(e => e.Cost);
             unpriced = entries.Sum(e => e.UnpricedMinutes);
@@ -149,27 +153,30 @@ public class GetCompanyCostsQueryHandler : IRequestHandler<GetCompanyCostsQuery,
         var manualPay = includesLabour
             ? await _context.FinanceEntries
                 .AsNoTracking()
+                .InBranch(request.BranchId)
                 .Where(f => f.OccurredOn >= from && f.OccurredOn <= to)
                 .SumAsync(f => (decimal?)f.Amount, cancellationToken) ?? 0m
             : 0m;
 
         var material = await _context.MaterialMovements
             .AsNoTracking()
+            .InBranch(request.BranchId)
             .Where(m => m.Kind == MaterialMovementKind.Out && m.UnitPrice != null)
             .Where(m => m.OccurredOn >= from && m.OccurredOn <= to)
             .SumAsync(m => (decimal?)(m.UnitPrice!.Value * m.Quantity), cancellationToken) ?? 0m;
 
         var general = await _context.GeneralExpenses
             .AsNoTracking()
+            .InBranch(request.BranchId)
             .Where(e => e.OccurredOn >= from && e.OccurredOn <= to)
             .SumAsync(e => (decimal?)e.Amount, cancellationToken) ?? 0m;
 
-        var accommodation = await LoadAccommodationAsync(from, to, cancellationToken);
+        var accommodation = await LoadAccommodationAsync(from, to, request.BranchId, cancellationToken);
 
         // The fleet and the tools already have their own reports, so the same figures
         // the Costs pages show are the ones counted here.
-        var vehicles = (await _sender.Send(new GetVehicleCostsQuery { From = from, To = to, SkipFinanceCheck = true }, cancellationToken)).Total;
-        var tools = (await _sender.Send(new GetToolCostsQuery { From = from, To = to, SkipFinanceCheck = true }, cancellationToken)).Total;
+        var vehicles = (await _sender.Send(new GetVehicleCostsQuery { From = from, To = to, BranchId = request.BranchId, SkipFinanceCheck = true }, cancellationToken)).Total;
+        var tools = (await _sender.Send(new GetToolCostsQuery { From = from, To = to, BranchId = request.BranchId, SkipFinanceCheck = true }, cancellationToken)).Total;
 
         var labourRounded = decimal.Round(labour, 2);
         var manualRounded = decimal.Round(manualPay, 2);
@@ -193,11 +200,12 @@ public class GetCompanyCostsQueryHandler : IRequestHandler<GetCompanyCostsQuery,
     }
 
     /// <summary>The rent of every accommodation for the period, worked out as the accommodation pages do.</summary>
-    private async Task<decimal> LoadAccommodationAsync(DateOnly from, DateOnly to, CancellationToken cancellationToken)
+    private async Task<decimal> LoadAccommodationAsync(DateOnly from, DateOnly to, Guid? branchId, CancellationToken cancellationToken)
     {
         var rates = await _context.AccommodationRates
             .AsNoTracking()
             .Where(r => r.StartDate <= to && (r.EndDate == null || r.EndDate >= from))
+            .Where(r => branchId == null || r.Accommodation.BranchId == branchId)
             .ToListAsync(cancellationToken);
 
         if (rates.Count == 0)

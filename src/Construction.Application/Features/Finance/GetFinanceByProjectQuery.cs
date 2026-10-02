@@ -1,4 +1,5 @@
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Application.Features.Costs.Queries.GetCompanyCosts;
 using Construction.Application.Features.Costs.Queries.GetProjectCosts;
 using FluentValidation;
@@ -100,6 +101,9 @@ public record GetFinanceByProjectQuery : IRequest<FinanceByProjectDto>
     public DateOnly To { get; init; }
 
     public int Top { get; init; } = 10;
+
+    /// <summary>Narrows the figures to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
 }
 
 public class GetFinanceByProjectQueryValidator : AbstractValidator<GetFinanceByProjectQuery>
@@ -142,13 +146,14 @@ public class GetFinanceByProjectQueryHandler : IRequestHandler<GetFinanceByProje
         var from = request.From;
         var to = request.To;
 
-        var projectCosts = await _sender.Send(new GetProjectCostsQuery { From = from, To = to }, cancellationToken);
-        var companyCosts = await _sender.Send(new GetCompanyCostsQuery { From = from, To = to }, cancellationToken);
+        var projectCosts = await _sender.Send(new GetProjectCostsQuery { From = from, To = to, BranchId = request.BranchId }, cancellationToken);
+        var companyCosts = await _sender.Send(new GetCompanyCostsQuery { From = from, To = to, BranchId = request.BranchId }, cancellationToken);
 
         var expenseByProject = projectCosts.Rows.ToDictionary(r => r.ProjectId, r => r.Total);
 
         var revenueByProject = await _context.ProjectRevenues
             .AsNoTracking()
+            .InBranch(request.BranchId)
             .Where(r => r.OccurredOn >= from && r.OccurredOn <= to)
             .GroupBy(r => r.ProjectId)
             .Select(g => new { ProjectId = g.Key, Amount = g.Sum(r => r.Amount) })
@@ -156,6 +161,7 @@ public class GetFinanceByProjectQueryHandler : IRequestHandler<GetFinanceByProje
 
         var otherRevenue = await _context.CompanyRevenues
             .AsNoTracking()
+            .InBranch(request.BranchId)
             .Where(r => r.OccurredOn >= from && r.OccurredOn <= to)
             .SumAsync(r => (decimal?)r.Amount, cancellationToken) ?? 0m;
 
@@ -229,9 +235,9 @@ public class GetFinanceByProjectQueryHandler : IRequestHandler<GetFinanceByProje
                 Expense = unallocatedExpense,
                 Profit = unallocatedRevenue - unallocatedExpense,
             },
-            HousingDoubleEntries = await CountHousingDoubleEntriesAsync(from, to, cancellationToken),
+            HousingDoubleEntries = await CountHousingDoubleEntriesAsync(from, to, request.BranchId, cancellationToken),
             UnassignedPayOverlaps = projectCosts.IncludesLabour
-                ? await CountUnassignedPayOverlapsAsync(from, to, cancellationToken)
+                ? await CountUnassignedPayOverlapsAsync(from, to, request.BranchId, cancellationToken)
                 : 0,
         };
     }
@@ -239,9 +245,11 @@ public class GetFinanceByProjectQueryHandler : IRequestHandler<GetFinanceByProje
     private async Task<int> CountHousingDoubleEntriesAsync(
         DateOnly from,
         DateOnly to,
+        Guid? branchId,
         CancellationToken cancellationToken) =>
         await _context.GeneralExpenses
             .AsNoTracking()
+            .InBranch(branchId)
             .Where(e => e.Category == Construction.Domain.Enums.GeneralExpenseCategory.Housing
                 && e.OccurredOn >= from
                 && e.OccurredOn <= to
@@ -257,10 +265,12 @@ public class GetFinanceByProjectQueryHandler : IRequestHandler<GetFinanceByProje
     private async Task<int> CountUnassignedPayOverlapsAsync(
         DateOnly from,
         DateOnly to,
+        Guid? branchId,
         CancellationToken cancellationToken)
     {
         var entries = await _context.FinanceEntries
             .AsNoTracking()
+            .InBranch(branchId)
             .Where(f => f.ProjectId == null && f.OccurredOn >= from && f.OccurredOn <= to)
             .Select(f => new { f.EmployeeId, f.OccurredOn })
             .Distinct()

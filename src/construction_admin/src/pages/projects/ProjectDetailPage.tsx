@@ -301,6 +301,7 @@ export function ProjectDetailPage() {
               </Typography>
               <Stack spacing={1.5} sx={{ mt: 1 }}>
                 <InfoRow label={t('projects.customer')} value={project.customerName} />
+                <InfoRow label={t('branches.single')} value={project.branchName} />
                 <InfoRow label={t('projects.address')} value={project.address} />
                 <InfoRow label={t('projects.country')} value={countryLabel(project.countryCode) || null} />
                 <InfoRow

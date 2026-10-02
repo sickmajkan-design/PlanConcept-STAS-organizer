@@ -73,9 +73,11 @@ public class FinanceController : ApiControllerBase
     [HttpGet("budget-alerts")]
     [ProducesResponseType(typeof(BudgetAlertsDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
-    public async Task<ActionResult<BudgetAlertsDto>> GetBudgetAlerts(CancellationToken cancellationToken)
+    public async Task<ActionResult<BudgetAlertsDto>> GetBudgetAlerts(
+        [FromQuery] GetBudgetAlertsQuery query,
+        CancellationToken cancellationToken)
     {
-        return Ok(await Mediator.Send(new GetBudgetAlertsQuery(), cancellationToken));
+        return Ok(await Mediator.Send(query, cancellationToken));
     }
 
     /// <summary>How income, spending and profit moved against the period before, and what spending was on — as percentages only.</summary>

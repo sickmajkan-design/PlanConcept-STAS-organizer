@@ -26,6 +26,8 @@ public class CreateAccommodationCommandHandler
         CancellationToken cancellationToken)
     {
         var accommodation = new Accommodation();
+        await Branches.BranchLookup.EnsureExistsAsync(_context, request.BranchId, cancellationToken);
+
         AccommodationFieldMapper.Apply(accommodation, request);
 
         _context.Accommodations.Add(accommodation);

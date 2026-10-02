@@ -1,3 +1,4 @@
+import { BranchSelect } from '../../features/branches/BranchSelect';
 import { AddOutlined, RequestQuoteOutlined } from '@mui/icons-material';
 import {
   Alert,
@@ -271,6 +272,7 @@ function RecordFinanceEntryDialog({
   const [amount, setAmount] = useState('');
   const [occurredOn, setOccurredOn] = useState('');
   const [projectId, setProjectId] = useState('');
+  const [branchId, setBranchId] = useState('');
   const [hoursWorked, setHoursWorked] = useState('');
   const [note, setNote] = useState('');
 
@@ -289,6 +291,7 @@ function RecordFinanceEntryDialog({
       setAmount(String(editingEntry.amount));
       setOccurredOn(editingEntry.occurredOn);
       setProjectId(editingEntry.projectId ?? '');
+      setBranchId(editingEntry.branchId ?? '');
       setHoursWorked(editingEntry.hoursWorked === null ? '' : String(editingEntry.hoursWorked));
       setNote(editingEntry.note ?? '');
     } else {
@@ -297,6 +300,7 @@ function RecordFinanceEntryDialog({
       setAmount('');
       setOccurredOn('');
       setProjectId('');
+      setBranchId('');
       setHoursWorked('');
       setNote('');
     }
@@ -323,6 +327,7 @@ function RecordFinanceEntryDialog({
       amount: parsedAmount,
       occurredOn: occurredOn || null,
       projectId: projectId || null,
+      branchId: branchId || null,
       hoursWorked: isHourly ? parsedHours : null,
       note: note.trim() || null,
     };
@@ -436,6 +441,10 @@ function RecordFinanceEntryDialog({
                 </MenuItem>
               ))}
             </TextField>
+          </Grid>
+
+          <Grid size={12}>
+            <BranchSelect value={branchId} onChange={setBranchId} helperText={t('branches.followsProject')} />
           </Grid>
 
           <Grid size={12}>

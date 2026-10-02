@@ -63,6 +63,7 @@ export interface EmployeeRateListQuery extends ListQuery {
 }
 
 export interface MaterialMovementListQuery extends ListQuery {
+  branchId?: string;
   materialId?: string;
   projectId?: string;
   kind?: MaterialMovementKind;
@@ -72,6 +73,7 @@ export interface MaterialMovementListQuery extends ListQuery {
 }
 
 export interface VehicleExpenseListQuery extends ListQuery {
+  branchId?: string;
   vehicleId?: string;
   kind?: VehicleExpenseKind;
   status?: VehicleExpenseStatus;
@@ -87,6 +89,7 @@ export interface FuelConsumptionFlagsQuery {
 }
 
 export interface ToolExpenseListQuery extends ListQuery {
+  branchId?: string;
   toolId?: string;
   kind?: ToolExpenseKind;
   from?: string;
@@ -126,9 +129,12 @@ export interface ToolRentalOutListQuery extends ListQuery {
 export interface CostReportQuery {
   from: string;
   to: string;
+  /** Narrows the report to one business unit (poslovna jedinica). */
+  branchId?: string;
 }
 
 export interface FinanceEntryListQuery extends ListQuery {
+  branchId?: string;
   employeeId?: string;
   projectId?: string;
   kind?: FinanceEntryKind;
@@ -138,6 +144,7 @@ export interface FinanceEntryListQuery extends ListQuery {
 }
 
 export interface GeneralExpenseListQuery extends ListQuery {
+  branchId?: string;
   category?: GeneralExpenseCategory;
   projectId?: string;
   employeeId?: string;
@@ -596,7 +603,7 @@ export const costsApi = {
       params: listParams(query),
     }),
 
-  projectReport: (query: CostReportQuery & { projectId?: string }) =>
+  projectReport: (query: CostReportQuery & { projectId?: string; branchId?: string }) =>
     request<ProjectCostReport>({
       method: 'GET',
       url: '/api/v1/costs/projects',

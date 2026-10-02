@@ -22,6 +22,9 @@ public record RecordFinanceEntryCommand : IRequest<FinanceEntryDto>
     public DateOnly? OccurredOn { get; init; }
 
     /// <summary>The site the pay is charged against, when there is one.</summary>
+    /// <summary>The business unit (poslovna jedinica) this is booked to. Null follows the project, if any.</summary>
+    public Guid? BranchId { get; init; }
+
     public Guid? ProjectId { get; init; }
 
     /// <summary>Required for hourly pay, refused for everything else.</summary>
@@ -96,6 +99,8 @@ public class RecordFinanceEntryCommandHandler
             throw new NotFoundException(nameof(Employee), request.EmployeeId);
         }
 
+        await Branches.BranchLookup.EnsureExistsAsync(_context, request.BranchId, cancellationToken);
+
         if (request.ProjectId is { } projectId
             && !await _context.Projects.AnyAsync(p => p.Id == projectId, cancellationToken))
         {
@@ -110,6 +115,7 @@ public class RecordFinanceEntryCommandHandler
             OccurredOn = request.OccurredOn
                 ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
             ProjectId = request.ProjectId,
+            BranchId = request.BranchId,
             // Belt and braces with the validator and the check constraint: a
             // future caller that skips validation still cannot put hours on a
             // fixed or daily payment.

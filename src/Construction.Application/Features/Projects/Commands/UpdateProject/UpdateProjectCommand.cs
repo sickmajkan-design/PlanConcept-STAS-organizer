@@ -42,6 +42,7 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
             ?? throw new NotFoundException(nameof(Project), request.Id);
 
         var customerId = request.CustomerId;
+        var branchId = request.BranchId;
         var countryCode = request.CountryCode?.Trim().ToUpperInvariant();
 
         if (request.ParentProjectId is { } parentProjectId)
@@ -77,6 +78,7 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
             // sub-project belongs to whichever customer and country its Main
             // project does.
             customerId = parent.CustomerId;
+            branchId = parent.BranchId;
             countryCode = parent.CountryCode;
         }
         else if (request.CustomerId is { } requestedCustomerId)
@@ -90,11 +92,18 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
             }
         }
 
+        if (branchId is { } requestedBranchId
+            && !await _context.Branches.AnyAsync(b => b.Id == requestedBranchId, cancellationToken))
+        {
+            throw new NotFoundException(nameof(Branch), requestedBranchId);
+        }
+
         var countryChanged = countryCode != project.CountryCode;
 
         project.Name = request.Name.Trim();
         project.Description = request.Description?.Trim();
         project.CustomerId = customerId;
+        project.BranchId = branchId;
         project.ParentProjectId = request.ParentProjectId;
         project.Address = request.Address?.Trim();
         project.Latitude = request.Latitude;
@@ -112,6 +121,19 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
         {
             project.ContractValue = request.ContractValue;
             project.BillingMode = request.BillingMode;
+        }
+
+        // A sub-project always belongs to its parent's unit, so a change here carries down to them.
+        if (project.ParentProjectId is null)
+        {
+            var children = await _context.Projects
+                .Where(p => p.ParentProjectId == project.Id)
+                .ToListAsync(cancellationToken);
+
+            foreach (var child in children)
+            {
+                child.BranchId = branchId;
+            }
         }
 
         await _context.SaveChangesAsync(cancellationToken);

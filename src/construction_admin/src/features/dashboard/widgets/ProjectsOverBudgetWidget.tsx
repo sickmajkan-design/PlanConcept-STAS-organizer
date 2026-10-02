@@ -1,3 +1,4 @@
+import { useBranchFilter } from '../../branches/BranchContext';
 import { Box, LinearProgress, Stack, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { Link as RouterLink } from 'react-router-dom';
@@ -17,9 +18,10 @@ import { WidgetShell } from './WidgetShell';
  */
 export function ProjectsOverBudgetWidget({ onRemove, onExpandWidth }: DashboardWidgetProps) {
   const { t, locale } = useI18n();
+  const { branchId } = useBranchFilter();
   const { data, isLoading, error } = useQuery({
-    queryKey: ['finance', 'budget-alerts'] as const,
-    queryFn: () => financeApi.budgetAlerts(),
+    queryKey: ['finance', 'budget-alerts', branchId ?? null] as const,
+    queryFn: () => financeApi.budgetAlerts({ branchId }),
     staleTime: 60_000,
     refetchInterval: 5 * 60_000,
   });

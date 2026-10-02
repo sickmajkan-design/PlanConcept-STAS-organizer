@@ -1,4 +1,5 @@
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Application.Common.Models;
 using Construction.Domain.Enums;
 using FluentValidation;
@@ -19,6 +20,9 @@ public record GetCompanyRevenuesQuery : IPagedQuery, IRequest<PagedList<CompanyR
     public DateOnly? To { get; init; }
 
     public CompanyRevenueSource? Source { get; init; }
+
+    /// <summary>Narrows the figures to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
 }
 
 public class GetCompanyRevenuesQueryValidator : PagedQueryValidator<GetCompanyRevenuesQuery>
@@ -48,7 +52,7 @@ public class GetCompanyRevenuesQueryHandler : IRequestHandler<GetCompanyRevenues
     {
         await FinanceRules.EnsureFullAsync(_context, _currentUserService, cancellationToken);
 
-        var query = _context.CompanyRevenues.AsNoTracking();
+        var query = _context.CompanyRevenues.AsNoTracking().InBranch(request.BranchId);
 
         if (request.From is { } from)
         {

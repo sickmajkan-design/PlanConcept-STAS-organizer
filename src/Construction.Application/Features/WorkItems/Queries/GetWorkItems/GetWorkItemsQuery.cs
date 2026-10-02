@@ -32,6 +32,9 @@ public record GetWorkItemsQuery : ISortablePagedQuery, IRequest<PagedList<WorkIt
 
     public Guid? ProjectId { get; init; }
 
+    /// <summary>Restricts results to records of projects in this business unit.</summary>
+    public Guid? BranchId { get; init; }
+
     public Guid? AssignedEmployeeId { get; init; }
 
     /// <summary>Only what is still to do — the default view of a board.</summary>
@@ -139,6 +142,11 @@ public class GetWorkItemsQueryHandler
         if (request.Priority is { } priority)
         {
             query = query.Where(w => w.Priority == priority);
+        }
+
+        if (request.BranchId is { } branchId)
+        {
+            query = query.Where(w => w.Project != null && w.Project.BranchId == branchId);
         }
 
         if (request.ProjectId is { } projectId)

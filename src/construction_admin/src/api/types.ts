@@ -184,6 +184,10 @@ export interface Project {
   description: string | null;
   customerId: string | null;
   customerName: string | null;
+  /** The business unit (poslovna jedinica) the project belongs to. */
+  branchId: string | null;
+  branchName: string | null;
+  branchColor: string | null;
   parentProjectId: string | null;
   parentProjectName: string | null;
   /** "Main" when this project has no parent, "Sub" otherwise. */
@@ -237,10 +241,29 @@ export interface ProjectDetail extends Project {
   pastEmployees: ProjectEmployee[];
 }
 
+/** One of the operator's own business units (poslovna jedinica) — never a client's company. */
+export interface Branch {
+  id: string;
+  name: string;
+  /** Hex colour (#RRGGBB) of the dot shown before the name. */
+  color: string;
+  isActive: boolean;
+  /** A unit with projects can only be switched off, not deleted. */
+  projectCount: number;
+}
+
+export interface BranchInput {
+  name: string;
+  color: string;
+  isActive: boolean;
+}
+
 export interface ProjectInput {
   name: string;
   description?: string | null;
   customerId?: string | null;
+  /** Business unit; a sub-project always takes its parent's. */
+  branchId?: string | null;
   /** Set to make this a sub-project of another (Main) project. */
   parentProjectId?: string | null;
   address?: string | null;
@@ -451,6 +474,10 @@ export type VehicleOwnershipType = (typeof vehicleOwnershipTypes)[number];
 
 export interface Vehicle {
   id: string;
+  /** The business unit the vehicle belongs to in its own right; null follows its project. */
+  branchId: string | null;
+  branchName: string | null;
+  branchColor: string | null;
   brand: string;
   model: string;
   registrationNumber: string;
@@ -528,6 +555,7 @@ export interface MarkVehicleTollPaidInput {
 }
 
 export interface VehicleInput {
+  branchId?: string | null;
   brand: string;
   model: string;
   registrationNumber: string;
@@ -557,6 +585,10 @@ export type ToolOwnershipType = (typeof toolOwnershipTypes)[number];
 
 export interface Tool {
   id: string;
+  /** The business unit the tool belongs to in its own right; null follows its project. */
+  branchId: string | null;
+  branchName: string | null;
+  branchColor: string | null;
   name: string;
   category: string | null;
   serialNumber: string | null;
@@ -583,6 +615,7 @@ export interface Tool {
 }
 
 export interface ToolInput {
+  branchId?: string | null;
   name: string;
   category?: string | null;
   serialNumber?: string | null;
@@ -1519,6 +1552,10 @@ export interface FinanceEntry {
   occurredOn: string;
   projectId: string | null;
   projectName: string | null;
+  /** The business unit it is booked to; null follows its project. */
+  branchId: string | null;
+  branchName: string | null;
+  branchColor: string | null;
   /** Only ever set for `WorkerPaymentHourly`. */
   hoursWorked: number | null;
   note: string | null;
@@ -1532,6 +1569,7 @@ export interface FinanceEntryInput {
   amount: number;
   occurredOn?: string | null;
   projectId?: string | null;
+  branchId?: string | null;
   hoursWorked?: number | null;
   note?: string | null;
 }
@@ -1555,6 +1593,10 @@ export interface GeneralExpense {
   occurredOn: string;
   projectId: string | null;
   projectName: string | null;
+  /** The business unit it is booked to; null follows its project. */
+  branchId: string | null;
+  branchName: string | null;
+  branchColor: string | null;
   employeeId: string | null;
   employeeName: string | null;
   /** The accommodation a housing expense is for; null for every other category. */
@@ -1571,6 +1613,7 @@ export interface GeneralExpenseInput {
   amount: number;
   occurredOn?: string | null;
   projectId?: string | null;
+  branchId?: string | null;
   employeeId?: string | null;
   /** Required for a housing expense, and only for one. */
   accommodationId?: string | null;
@@ -1594,6 +1637,10 @@ export type AccommodationChargeKind = (typeof accommodationChargeKinds)[number];
 
 export interface Accommodation {
   id: string;
+  /** The business unit its rent is booked to. */
+  branchId: string | null;
+  branchName: string | null;
+  branchColor: string | null;
   address: string;
   /** What people call it. The address is shown when this is empty. */
   name: string | null;
@@ -1626,6 +1673,7 @@ export interface Accommodation {
 }
 
 export interface AccommodationInput {
+  branchId?: string | null;
   address: string;
   name?: string | null;
   type: AccommodationType;
@@ -2485,6 +2533,7 @@ export interface WeeklySiteReport {
 }
 
 export interface WeeklySiteReportListQuery extends ListQuery {
+  branchId?: string;
   projectId?: string;
   isoYear?: number;
   isoWeek?: number;

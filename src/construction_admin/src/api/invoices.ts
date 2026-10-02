@@ -33,6 +33,7 @@ export interface Invoice {
 }
 
 export interface InvoiceListQuery extends ListQuery {
+  branchId?: string;
   projectId?: string;
   customerId?: string;
   customerCompanyId?: string;

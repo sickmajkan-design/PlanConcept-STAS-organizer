@@ -19,6 +19,9 @@ public record RecordGeneralExpenseCommand : IRequest<GeneralExpenseDto>
     /// <summary>Defaults to today.</summary>
     public DateOnly? OccurredOn { get; init; }
 
+    /// <summary>The business unit (poslovna jedinica) this is booked to. Null follows the project, if any.</summary>
+    public Guid? BranchId { get; init; }
+
     public Guid? ProjectId { get; init; }
 
     public Guid? EmployeeId { get; init; }
@@ -82,6 +85,8 @@ public class RecordGeneralExpenseCommandHandler
             throw new ForbiddenAccessException("You may not record costs.");
         }
 
+        await Branches.BranchLookup.EnsureExistsAsync(_context, request.BranchId, cancellationToken);
+
         if (request.ProjectId is { } projectId
             && !await _context.Projects.AnyAsync(p => p.Id == projectId, cancellationToken))
         {
@@ -105,6 +110,7 @@ public class RecordGeneralExpenseCommandHandler
             Amount = request.Amount,
             OccurredOn = occurredOn,
             ProjectId = request.ProjectId,
+            BranchId = request.BranchId,
             EmployeeId = request.EmployeeId,
             AccommodationId = request.AccommodationId,
             Supplier = request.Supplier?.Trim(),

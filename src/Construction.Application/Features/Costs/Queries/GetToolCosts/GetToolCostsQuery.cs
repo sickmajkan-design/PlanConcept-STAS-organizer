@@ -1,5 +1,6 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Application.Features.Finance;
 using Construction.Application.Features.Costs.Models;
 using Construction.Domain.Enums;
@@ -19,6 +20,9 @@ public record GetToolCostsQuery : IRequest<ToolCostReportDto>
     public DateOnly To { get; init; }
 
     public Guid? ToolId { get; init; }
+
+    /// <summary>Narrows the report to the tools of one business unit.</summary>
+    public Guid? BranchId { get; init; }
 
     /// <summary>
     /// Set only by the company report, which has already checked the caller's
@@ -77,9 +81,12 @@ public class GetToolCostsQueryHandler
             await FinanceRules.EnsureFullAsync(_context, _currentUserService, cancellationToken);
         }
 
+        var toolIdsInBranch = await BranchScope.ToolIdsAsync(_context, request.BranchId, cancellationToken);
+
         var grouped = await _context.ToolExpenses
             .AsNoTracking()
             .Where(e => request.ToolId == null || e.ToolId == request.ToolId)
+            .Where(e => toolIdsInBranch == null || toolIdsInBranch.Contains(e.ToolId))
             .Where(e => e.OccurredOn >= request.From && e.OccurredOn <= request.To)
             .GroupBy(e => new { e.ToolId, e.Tool.Name })
             .Select(g => new
@@ -100,6 +107,7 @@ public class GetToolCostsQueryHandler
         var rentalRates = await _context.ToolRentalRates
             .AsNoTracking()
             .Where(r => request.ToolId == null || r.ToolId == request.ToolId)
+            .Where(r => toolIdsInBranch == null || toolIdsInBranch.Contains(r.ToolId))
             .Where(r => r.StartDate <= request.To && (r.EndDate == null || r.EndDate >= request.From))
             .Select(r => new
             {
@@ -135,6 +143,7 @@ public class GetToolCostsQueryHandler
         var rentalsOut = await _context.ToolRentalsOut
             .AsNoTracking()
             .Where(r => request.ToolId == null || r.ToolId == request.ToolId)
+            .Where(r => toolIdsInBranch == null || toolIdsInBranch.Contains(r.ToolId))
             .Where(r => r.StartDate <= request.To && (r.EndDate == null || r.EndDate >= request.From))
             .Select(r => new
             {

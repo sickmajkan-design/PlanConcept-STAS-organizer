@@ -18,6 +18,9 @@ public abstract record VehicleCommandBase
 
     public string? Vin { get; init; }
 
+    /// <summary>The business unit the vehicle belongs to in its own right; null follows its project.</summary>
+    public Guid? BranchId { get; init; }
+
     public string? QrCode { get; init; }
 
     public string? GpsProvider { get; init; }

@@ -1,3 +1,4 @@
+import { useBranchFilter } from '../../branches/BranchContext';
 import { Box, LinearProgress, Stack, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 
@@ -28,9 +29,10 @@ const KIND_LABEL: Record<string, MessageKey> = {
 export function FinanceStatisticsWidget({ onRemove, onExpandWidth }: DashboardWidgetProps) {
   const { t } = useI18n();
   const { period } = useFinancePeriod();
+  const { branchId } = useBranchFilter();
   const { data, isLoading, error } = useQuery({
-    queryKey: ['finance', 'statistics', period.from, period.to] as const,
-    queryFn: () => financeApi.statistics({ from: period.from, to: period.to }),
+    queryKey: ['finance', 'statistics', period.from, period.to, branchId ?? null] as const,
+    queryFn: () => financeApi.statistics({ from: period.from, to: period.to, branchId }),
     staleTime: 60_000,
     refetchInterval: 5 * 60_000,
   });

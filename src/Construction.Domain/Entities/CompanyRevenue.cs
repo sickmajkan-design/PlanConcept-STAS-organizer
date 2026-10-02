@@ -38,4 +38,9 @@ public class CompanyRevenue : BaseEntity, IAuditable
     public Guid? RecordedByUserId { get; set; }
 
     public User? RecordedByUser { get; set; }
+
+    /// <summary>The business unit this revenue is booked to. Null means no unit.</summary>
+    public Guid? BranchId { get; set; }
+
+    public Branch? Branch { get; set; }
 }

@@ -1,4 +1,5 @@
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Application.Features.Costs;
 using Construction.Application.Features.Costs.Queries.GetProjectCosts;
 using Construction.Domain.Enums;
@@ -52,7 +53,11 @@ public class BudgetAlertsDto
 /// The cost report is asked once per window for every project at once, not once
 /// per project, and its windows do not overlap, so nothing is counted twice.
 /// </remarks>
-public record GetBudgetAlertsQuery : IRequest<BudgetAlertsDto>;
+public record GetBudgetAlertsQuery : IRequest<BudgetAlertsDto>
+{
+    /// <summary>Narrows the alerts to the projects of one business unit.</summary>
+    public Guid? BranchId { get; init; }
+}
 
 public class GetBudgetAlertsQueryHandler : IRequestHandler<GetBudgetAlertsQuery, BudgetAlertsDto>
 {
@@ -79,6 +84,7 @@ public class GetBudgetAlertsQueryHandler : IRequestHandler<GetBudgetAlertsQuery,
 
         var running = await _context.Projects
             .AsNoTracking()
+            .InBranch(request.BranchId)
             .Where(p => p.Status != ProjectStatus.Completed && p.Status != ProjectStatus.Cancelled)
             .Select(p => new
             {
@@ -118,7 +124,7 @@ public class GetBudgetAlertsQueryHandler : IRequestHandler<GetBudgetAlertsQuery,
             }
 
             var report = await _sender.Send(
-                new GetProjectCostsQuery { From = windowStart, To = windowEnd },
+                new GetProjectCostsQuery { From = windowStart, To = windowEnd, BranchId = request.BranchId },
                 cancellationToken);
 
             includesLabour &= report.IncludesLabour;

@@ -4,6 +4,7 @@ import { createCrudApi } from './resource';
 import type { ListQuery, Tool, ToolInput, ToolStatus } from './types';
 
 export interface ToolListQuery extends ListQuery {
+  branchId?: string;
   status?: ToolStatus | '';
   category?: string;
   assignedEmployeeId?: string;

@@ -22,6 +22,9 @@ public record UpdateFinanceEntryCommand : IRequest<FinanceEntryDto>
 
     public DateOnly OccurredOn { get; init; }
 
+    /// <summary>The business unit (poslovna jedinica) this is booked to. Null follows the project, if any.</summary>
+    public Guid? BranchId { get; init; }
+
     public Guid? ProjectId { get; init; }
 
     /// <summary>Required for hourly pay, refused for everything else.</summary>
@@ -95,6 +98,8 @@ public class UpdateFinanceEntryCommandHandler
             throw new NotFoundException(nameof(Employee), request.EmployeeId);
         }
 
+        await Branches.BranchLookup.EnsureExistsAsync(_context, request.BranchId, cancellationToken);
+
         if (request.ProjectId is { } projectId
             && !await _context.Projects.AnyAsync(p => p.Id == projectId, cancellationToken))
         {
@@ -106,6 +111,7 @@ public class UpdateFinanceEntryCommandHandler
         entry.Amount = request.Amount;
         entry.OccurredOn = request.OccurredOn;
         entry.ProjectId = request.ProjectId;
+        entry.BranchId = request.BranchId;
         entry.HoursWorked = request.Kind == FinanceEntryKind.WorkerPaymentHourly
             ? request.HoursWorked
             : null;

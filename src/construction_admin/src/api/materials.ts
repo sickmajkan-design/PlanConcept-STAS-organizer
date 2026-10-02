@@ -11,6 +11,7 @@ import type {
 } from './types';
 
 export interface MaterialListQuery extends ListQuery {
+  branchId?: string;
   projectId?: string;
   warehouse?: string;
   unassignedOnly?: boolean;

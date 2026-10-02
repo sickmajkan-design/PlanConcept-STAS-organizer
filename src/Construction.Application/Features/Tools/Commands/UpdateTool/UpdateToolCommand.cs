@@ -58,6 +58,10 @@ public class UpdateToolCommandHandler : IRequestHandler<UpdateToolCommand, ToolD
                 "The tool is currently assigned; unassign it before changing its status.");
         }
 
+        var branch = await Branches.BranchLookup.LoadAsync(_context, request.BranchId, cancellationToken);
+
+        tool.BranchId = request.BranchId;
+        tool.Branch = branch;
         tool.Name = request.Name.Trim();
         tool.Category = request.Category?.Trim();
         tool.SerialNumber = serialNumber;

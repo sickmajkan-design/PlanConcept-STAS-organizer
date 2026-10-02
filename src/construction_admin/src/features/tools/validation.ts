@@ -28,6 +28,7 @@ export const toolFormSchema = z.object({
     .max(256, { error: zodMsg('validation.maxLength', { max: 256 }) })
     .optional()
     .or(z.literal('')),
+  branchId: z.string().optional().or(z.literal('')),
   status: z.enum(toolStatuses),
   ownershipType: z.enum(toolOwnershipTypes),
 });

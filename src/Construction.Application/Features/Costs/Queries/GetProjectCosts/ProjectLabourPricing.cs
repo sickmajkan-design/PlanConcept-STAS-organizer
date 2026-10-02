@@ -61,7 +61,8 @@ public static class ProjectLabourPricing
         DateOnly from,
         DateOnly to,
         Guid? projectId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Guid? branchId = null)
     {
         var holidays = (await context.PublicHolidays
                 .AsNoTracking()
@@ -77,6 +78,7 @@ public static class ProjectLabourPricing
                 && t.ProjectId != null
                 && t.EndedAt != null)
             .Where(t => projectId == null || t.ProjectId == projectId)
+            .Where(t => branchId == null || t.Project!.BranchId == branchId)
             .Where(t => DateOnly.FromDateTime(t.StartedAt) >= from
                 && DateOnly.FromDateTime(t.StartedAt) <= to)
             .Select(t => new

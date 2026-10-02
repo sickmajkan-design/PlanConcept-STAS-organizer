@@ -8,6 +8,12 @@ public class AccommodationDto
 {
     public Guid Id { get; init; }
 
+    public Guid? BranchId { get; init; }
+
+    public string? BranchName { get; init; }
+
+    public string? BranchColor { get; init; }
+
     public string Address { get; init; } = null!;
 
     public string? Name { get; init; }
@@ -72,6 +78,9 @@ public static class AccommodationMapping
         new AccommodationDto
         {
             Id = accommodation.Id,
+            BranchId = accommodation.BranchId,
+            BranchName = accommodation.Branch != null ? accommodation.Branch.Name : null,
+            BranchColor = accommodation.Branch != null ? accommodation.Branch.Color : null,
             Address = accommodation.Address,
             Name = accommodation.Name,
             Type = accommodation.Type,

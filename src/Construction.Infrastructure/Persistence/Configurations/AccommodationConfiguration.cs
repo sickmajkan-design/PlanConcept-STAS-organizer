@@ -10,6 +10,11 @@ public class AccommodationConfiguration : IEntityTypeConfiguration<Accommodation
     {
         builder.ToTable("accommodations");
 
+        builder.HasOne(x => x.Branch)
+            .WithMany()
+            .HasForeignKey(x => x.BranchId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasKey(a => a.Id);
 
         builder.HasQueryFilter(a => !a.IsDeleted);

@@ -10,6 +10,11 @@ public class CompanyRevenueConfiguration : IEntityTypeConfiguration<CompanyReven
     {
         builder.ToTable("company_revenues");
 
+        builder.HasOne(x => x.Branch)
+            .WithMany()
+            .HasForeignKey(x => x.BranchId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasKey(r => r.Id);
 
         builder.Property(r => r.Amount).HasPrecision(18, 2);

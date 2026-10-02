@@ -59,6 +59,10 @@ public class UpdateVehicleCommandHandler : IRequestHandler<UpdateVehicleCommand,
                 "The vehicle is assigned to an employee; unassign it before changing its status.");
         }
 
+        var branch = await Branches.BranchLookup.LoadAsync(_context, request.BranchId, cancellationToken);
+
+        vehicle.BranchId = request.BranchId;
+        vehicle.Branch = branch;
         vehicle.Brand = request.Brand.Trim();
         vehicle.Model = request.Model.Trim();
         vehicle.RegistrationNumber = registrationNumber;

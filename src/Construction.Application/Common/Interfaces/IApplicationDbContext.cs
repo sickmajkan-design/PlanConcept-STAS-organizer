@@ -111,6 +111,8 @@ public interface IApplicationDbContext
 
     DbSet<PublicHoliday> PublicHolidays { get; }
 
+    DbSet<Branch> Branches { get; }
+
     DbSet<BulletinPost> BulletinPosts { get; }
 
     DbSet<BulletinView> BulletinViews { get; }

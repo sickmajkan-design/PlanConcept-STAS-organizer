@@ -20,6 +20,9 @@ public record UpdateGeneralExpenseCommand : IRequest<GeneralExpenseDto>
 
     public DateOnly OccurredOn { get; init; }
 
+    /// <summary>The business unit (poslovna jedinica) this is booked to. Null follows the project, if any.</summary>
+    public Guid? BranchId { get; init; }
+
     public Guid? ProjectId { get; init; }
 
     public Guid? EmployeeId { get; init; }
@@ -84,6 +87,8 @@ public class UpdateGeneralExpenseCommandHandler
             .FirstOrDefaultAsync(e => e.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(GeneralExpense), request.Id);
 
+        await Branches.BranchLookup.EnsureExistsAsync(_context, request.BranchId, cancellationToken);
+
         if (request.ProjectId is { } projectId
             && !await _context.Projects.AnyAsync(p => p.Id == projectId, cancellationToken))
         {
@@ -112,6 +117,7 @@ public class UpdateGeneralExpenseCommandHandler
         expense.Amount = request.Amount;
         expense.OccurredOn = request.OccurredOn;
         expense.ProjectId = request.ProjectId;
+        expense.BranchId = request.BranchId;
         expense.EmployeeId = request.EmployeeId;
         expense.AccommodationId = request.AccommodationId;
         expense.Supplier = request.Supplier?.Trim();

@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 import { financeApi } from '../../api/finance';
+import { useBranchFilter } from '../branches/BranchContext';
 import { useFinancePeriod } from './PeriodContext';
 
 /**
@@ -9,10 +10,11 @@ import { useFinancePeriod } from './PeriodContext';
  */
 export function useFinanceSeries() {
   const { period, granularity } = useFinancePeriod();
+  const { branchId } = useBranchFilter();
 
   return useQuery({
-    queryKey: ['finance', 'series', period.from, period.to, granularity] as const,
-    queryFn: () => financeApi.series({ from: period.from, to: period.to, granularity }),
+    queryKey: ['finance', 'series', period.from, period.to, granularity, branchId ?? null] as const,
+    queryFn: () => financeApi.series({ from: period.from, to: period.to, granularity, branchId }),
     // Money changes when somebody records it; a few minutes stale is honest.
     staleTime: 60_000,
     refetchInterval: 5 * 60_000,
@@ -22,10 +24,11 @@ export function useFinanceSeries() {
 /** The per-project figures for the board's shared period. */
 export function useFinanceByProject(top: number) {
   const { period } = useFinancePeriod();
+  const { branchId } = useBranchFilter();
 
   return useQuery({
-    queryKey: ['finance', 'by-project', period.from, period.to, top] as const,
-    queryFn: () => financeApi.byProject({ from: period.from, to: period.to, top }),
+    queryKey: ['finance', 'by-project', period.from, period.to, top, branchId ?? null] as const,
+    queryFn: () => financeApi.byProject({ from: period.from, to: period.to, top, branchId }),
     staleTime: 60_000,
     refetchInterval: 5 * 60_000,
   });
@@ -34,10 +37,11 @@ export function useFinanceByProject(top: number) {
 /** What the spending was on — the whole company's, or one project's when a project is given. */
 export function useFinanceBreakdown(projectId?: string) {
   const { period } = useFinancePeriod();
+  const { branchId } = useBranchFilter();
 
   return useQuery({
-    queryKey: ['finance', 'breakdown', period.from, period.to, projectId ?? null] as const,
-    queryFn: () => financeApi.breakdown({ from: period.from, to: period.to, projectId }),
+    queryKey: ['finance', 'breakdown', period.from, period.to, projectId ?? null, branchId ?? null] as const,
+    queryFn: () => financeApi.breakdown({ from: period.from, to: period.to, projectId, branchId }),
     staleTime: 60_000,
     refetchInterval: 5 * 60_000,
   });

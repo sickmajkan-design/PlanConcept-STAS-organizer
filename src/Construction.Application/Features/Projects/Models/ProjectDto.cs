@@ -15,6 +15,12 @@ public class ProjectDto
 
     public string? CustomerName { get; init; }
 
+    public Guid? BranchId { get; init; }
+
+    public string? BranchName { get; init; }
+
+    public string? BranchColor { get; init; }
+
     public Guid? ParentProjectId { get; init; }
 
     public string? ParentProjectName { get; init; }
@@ -75,6 +81,9 @@ public static class ProjectMapping
             Description = project.Description,
             CustomerId = project.CustomerId,
             CustomerName = project.Customer != null ? project.Customer.Name : null,
+            BranchId = project.BranchId,
+            BranchName = project.Branch != null ? project.Branch.Name : null,
+            BranchColor = project.Branch != null ? project.Branch.Color : null,
             ParentProjectId = project.ParentProjectId,
             ParentProjectName = project.ParentProject != null ? project.ParentProject.Name : null,
             Kind = project.ParentProjectId == null ? "Main" : "Sub",

@@ -18,6 +18,7 @@ export interface ProjectListQuery extends ListQuery {
   status?: ProjectStatus | '';
   employeeId?: string;
   customerId?: string;
+  branchId?: string;
   /** Restricts results to the sub-projects of this Main project. */
   parentProjectId?: string;
   kind?: ProjectKind | '';

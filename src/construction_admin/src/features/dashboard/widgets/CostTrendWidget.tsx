@@ -1,3 +1,4 @@
+import { useBranchFilter } from '../../branches/BranchContext';
 import { Alert, Box, Stack, Typography } from '@mui/material';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { useQueries } from '@tanstack/react-query';
@@ -30,13 +31,14 @@ function monthBounds(monthsAgo: number): { from: string; to: string; label: Date
 export function CostTrendWidget({ instanceId: _instanceId, onRemove, onExpandWidth }: DashboardWidgetProps) {
   const { t, locale } = useI18n();
   const chartSize = useElementSize<HTMLDivElement>();
+  const { branchId } = useBranchFilter();
 
   const months = Array.from({ length: MONTHS_SHOWN }, (_, i) => monthBounds(MONTHS_SHOWN - 1 - i));
 
   const results = useQueries({
     queries: months.map((month) => ({
-      queryKey: ['dashboard', 'company-cost-trend', month.from, month.to] as const,
-      queryFn: () => costsApi.companyReport({ from: month.from, to: month.to }),
+      queryKey: ['dashboard', 'company-cost-trend', month.from, month.to, branchId ?? null] as const,
+      queryFn: () => costsApi.companyReport({ from: month.from, to: month.to, branchId }),
     })),
   });
 

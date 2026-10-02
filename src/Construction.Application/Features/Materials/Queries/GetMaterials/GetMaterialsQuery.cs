@@ -25,6 +25,9 @@ public record GetMaterialsQuery : ISortablePagedQuery, IRequest<PagedList<Materi
 
     public Guid? ProjectId { get; init; }
 
+    /// <summary>Restricts results to records of projects in this business unit.</summary>
+    public Guid? BranchId { get; init; }
+
     public string? Warehouse { get; init; }
 
     /// <summary>When true, returns only warehouse stock (materials not tied to a project).</summary>
@@ -77,6 +80,11 @@ public class GetMaterialsQueryHandler : IRequestHandler<GetMaterialsQuery, Paged
             query = query.Where(m =>
                 EF.Functions.Like(m.Name.ToLower(), pattern, SearchPattern.Escape) ||
                 (m.Warehouse != null && EF.Functions.Like(m.Warehouse.ToLower(), pattern, SearchPattern.Escape)));
+        }
+
+        if (request.BranchId is { } branchId)
+        {
+            query = query.Where(m => m.Project != null && m.Project.BranchId == branchId);
         }
 
         if (request.ProjectId is { } projectId)

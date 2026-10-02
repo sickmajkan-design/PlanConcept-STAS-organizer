@@ -135,6 +135,9 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<int?>("Beds")
                         .HasColumnType("integer");
 
+                    b.Property<Guid?>("BranchId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("City")
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
@@ -207,6 +210,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Address");
+
+                    b.HasIndex("BranchId");
 
                     b.ToTable("accommodations", null, t =>
                         {
@@ -697,6 +702,39 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.ToTable("audit_entries", (string)null);
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.Branch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasMaxLength(7)
+                        .HasColumnType("character varying(7)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("branches", (string)null);
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.BulletinPost", b =>
                 {
                     b.Property<Guid>("Id")
@@ -773,6 +811,9 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<Guid?>("BranchId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -801,6 +842,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
 
                     b.HasIndex("OccurredOn");
 
@@ -1306,6 +1349,9 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<Guid?>("BranchId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1336,6 +1382,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
 
                     b.HasIndex("RecordedByUserId");
 
@@ -1413,6 +1461,9 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
+                    b.Property<Guid?>("BranchId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("Category")
                         .HasColumnType("integer");
 
@@ -1445,6 +1496,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AccommodationId");
+
+                    b.HasIndex("BranchId");
 
                     b.HasIndex("EmployeeId");
 
@@ -2306,6 +2359,9 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasDefaultValue(0);
 
+                    b.Property<Guid?>("BranchId")
+                        .HasColumnType("uuid");
+
                     b.Property<decimal?>("Budget")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
@@ -2371,6 +2427,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
 
                     b.HasIndex("CustomerId");
 
@@ -2793,6 +2851,9 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("AssignedProjectId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("BranchId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Category")
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
@@ -2835,6 +2896,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.HasIndex("AssignedEmployeeId");
 
                     b.HasIndex("AssignedProjectId");
+
+                    b.HasIndex("BranchId");
 
                     b.HasIndex("OwnershipType");
 
@@ -3105,6 +3168,9 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("AssignedProjectId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("BranchId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Brand")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -3164,6 +3230,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.HasIndex("AssignedEmployeeId");
 
                     b.HasIndex("AssignedProjectId");
+
+                    b.HasIndex("BranchId");
 
                     b.HasIndex("OwnershipType");
 
@@ -3738,6 +3806,16 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("ReviewedByUser");
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.Accommodation", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Branch");
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.AccommodationRate", b =>
                 {
                     b.HasOne("Construction.Domain.Entities.Accommodation", "Accommodation")
@@ -4024,6 +4102,11 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Construction.Domain.Entities.CompanyRevenue", b =>
                 {
+                    b.HasOne("Construction.Domain.Entities.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Construction.Domain.Entities.User", "RecordedByUser")
                         .WithMany()
                         .HasForeignKey("RecordedByUserId")
@@ -4038,6 +4121,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("VehicleId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Branch");
 
                     b.Navigation("RecordedByUser");
 
@@ -4136,6 +4221,11 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Construction.Domain.Entities.FinanceEntry", b =>
                 {
+                    b.HasOne("Construction.Domain.Entities.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Construction.Domain.Entities.Employee", "Employee")
                         .WithMany("FinanceEntries")
                         .HasForeignKey("EmployeeId")
@@ -4151,6 +4241,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("RecordedByUserId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Branch");
 
                     b.Navigation("Employee");
 
@@ -4177,6 +4269,11 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasForeignKey("AccommodationId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Construction.Domain.Entities.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Construction.Domain.Entities.Employee", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
@@ -4193,6 +4290,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Accommodation");
+
+                    b.Navigation("Branch");
 
                     b.Navigation("Employee");
 
@@ -4473,6 +4572,11 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Construction.Domain.Entities.Project", b =>
                 {
+                    b.HasOne("Construction.Domain.Entities.Branch", "Branch")
+                        .WithMany("Projects")
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("Construction.Domain.Entities.Customer", "Customer")
                         .WithMany("Projects")
                         .HasForeignKey("CustomerId")
@@ -4482,6 +4586,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .WithMany("SubProjects")
                         .HasForeignKey("ParentProjectId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Branch");
 
                     b.Navigation("Customer");
 
@@ -4609,9 +4715,16 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasForeignKey("AssignedProjectId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Construction.Domain.Entities.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("AssignedEmployee");
 
                     b.Navigation("AssignedProject");
+
+                    b.Navigation("Branch");
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.ToolExpense", b =>
@@ -4704,9 +4817,16 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasForeignKey("AssignedProjectId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Construction.Domain.Entities.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("AssignedEmployee");
 
                     b.Navigation("AssignedProject");
+
+                    b.Navigation("Branch");
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.VehicleExpense", b =>
@@ -4919,6 +5039,11 @@ namespace Construction.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Construction.Domain.Entities.ArticleOrder", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.Branch", b =>
+                {
+                    b.Navigation("Projects");
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.BulletinPost", b =>

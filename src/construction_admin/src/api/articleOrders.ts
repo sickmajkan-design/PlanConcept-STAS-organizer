@@ -9,6 +9,7 @@ import type {
 } from './types';
 
 export interface ArticleOrderListQuery extends ListQuery {
+  branchId?: string;
   status?: ArticleOrderStatus;
   /** Requested, ordered and on their way: everything not yet in the requester's hands. */
   openOnly?: boolean;

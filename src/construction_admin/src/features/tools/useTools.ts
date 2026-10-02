@@ -1,3 +1,4 @@
+import { useBranchFilter } from '../branches/BranchContext';
 import { useQuery } from '@tanstack/react-query';
 
 import { toolsApi, type ToolListQuery } from '../../api/tools';
@@ -29,7 +30,9 @@ const PICKER_QUERY: ToolListQuery = {
 };
 
 export function useToolsQuery(query: ToolListQuery) {
-  return useResourceList(toolKeys, toolsApi.list, query);
+  // The header's business-unit filter narrows the list unless the caller asks for a unit itself.
+  const { branchId } = useBranchFilter();
+  return useResourceList(toolKeys, toolsApi.list, { ...query, branchId: query.branchId ?? branchId });
 }
 
 export function useToolQuery(id: string | undefined) {

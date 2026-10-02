@@ -9,6 +9,11 @@ namespace Construction.Domain.Entities;
 /// </summary>
 public class Accommodation : BaseEntity, ISoftDeletable, IAuditable
 {
+    /// <summary>The business unit this accommodation's rent is booked to. Null means no unit.</summary>
+    public Guid? BranchId { get; set; }
+
+    public Branch? Branch { get; set; }
+
     public string Address { get; set; } = null!;
 
     /// <summary>What people call it: "Stan 4, Vidikovac". Falls back to the address when empty.</summary>

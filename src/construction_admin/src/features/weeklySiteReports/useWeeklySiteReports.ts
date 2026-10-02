@@ -1,3 +1,4 @@
+import { useBranchScoped } from '../branches/BranchContext';
 import { useQuery } from '@tanstack/react-query';
 
 import {
@@ -10,7 +11,8 @@ import { createResourceKeys, useResourceList, useResourceMutation } from '../res
 export const weeklySiteReportKeys = createResourceKeys<WeeklySiteReportListQuery>('weeklySiteReports');
 
 export function useWeeklySiteReportsQuery(query: WeeklySiteReportListQuery) {
-  return useResourceList(weeklySiteReportKeys, weeklySiteReportsApi.list, query);
+  const scoped = useBranchScoped(query);
+  return useResourceList(weeklySiteReportKeys, weeklySiteReportsApi.list, scoped);
 }
 
 export function useReportableProjectsQuery() {

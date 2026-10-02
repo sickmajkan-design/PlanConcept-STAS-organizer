@@ -1,3 +1,4 @@
+import { useBranchScoped } from '../branches/BranchContext';
 import {
   articleOrdersApi,
   type ArticleOrderListQuery,
@@ -8,7 +9,8 @@ import { createResourceKeys, useResourceList, useResourceMutation } from '../res
 export const articleOrderKeys = createResourceKeys<ArticleOrderListQuery>('article-orders');
 
 export function useArticleOrdersQuery(query: ArticleOrderListQuery, enabled = true) {
-  return useResourceList(articleOrderKeys, articleOrdersApi.list, query, { enabled });
+  const scoped = useBranchScoped(query);
+  return useResourceList(articleOrderKeys, articleOrdersApi.list, scoped, { enabled });
 }
 
 /** Every write drops every list, so the page, the widget and the badge agree at once. */

@@ -35,6 +35,9 @@ public record GetVehiclesQuery : ISortablePagedQuery, IRequest<PagedList<Vehicle
 
     public Guid? AssignedProjectId { get; init; }
 
+    /// <summary>Restricts results to those assigned to a project of this business unit.</summary>
+    public Guid? BranchId { get; init; }
+
     /// <summary>When true, returns only vehicles with no assigned employee.</summary>
     public bool? Unassigned { get; init; }
 
@@ -118,6 +121,12 @@ public class GetVehiclesQueryHandler : IRequestHandler<GetVehiclesQuery, PagedLi
         if (request.AssignedEmployeeId is { } employeeId)
         {
             query = query.Where(v => v.AssignedEmployeeId == employeeId);
+        }
+
+        if (request.BranchId is { } branchId)
+        {
+            query = query.Where(v => v.BranchId == branchId
+                || (v.BranchId == null && v.AssignedProject != null && v.AssignedProject.BranchId == branchId));
         }
 
         if (request.AssignedProjectId is { } projectId)

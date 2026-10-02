@@ -10,6 +10,7 @@ import type {
 } from './types';
 
 export interface WorkItemListQuery extends ListQuery {
+  branchId?: string;
   kind?: WorkItemKind;
   status?: WorkItemStatus;
   priority?: WorkItemPriority;

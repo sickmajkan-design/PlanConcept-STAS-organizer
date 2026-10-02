@@ -1,5 +1,6 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Application.Features.Finance;
 using Construction.Application.Features.Costs.Models;
 using Construction.Domain.Enums;
@@ -25,6 +26,9 @@ public record GetVehicleCostsQuery : IRequest<VehicleCostReportDto>
     public DateOnly To { get; init; }
 
     public Guid? VehicleId { get; init; }
+
+    /// <summary>Narrows the report to the vehicles of one business unit.</summary>
+    public Guid? BranchId { get; init; }
 
     /// <summary>
     /// Set only by the company report, which has already checked the caller's
@@ -83,11 +87,14 @@ public class GetVehicleCostsQueryHandler
             await FinanceRules.EnsureFullAsync(_context, _currentUserService, cancellationToken);
         }
 
+        var vehicleIdsInBranch = await BranchScope.VehicleIdsAsync(_context, request.BranchId, cancellationToken);
+
         // One grouped query for the whole fleet. Odometer bounds come back
         // alongside the money so the distance needs no second round trip.
         var grouped = await _context.VehicleExpenses
             .AsNoTracking()
             .Where(e => request.VehicleId == null || e.VehicleId == request.VehicleId)
+            .Where(e => vehicleIdsInBranch == null || vehicleIdsInBranch.Contains(e.VehicleId))
             .Where(e => e.OccurredOn >= request.From && e.OccurredOn <= request.To)
             .GroupBy(e => new
             {
@@ -118,6 +125,7 @@ public class GetVehicleCostsQueryHandler
         var rentalRates = await _context.VehicleRentalRates
             .AsNoTracking()
             .Where(r => request.VehicleId == null || r.VehicleId == request.VehicleId)
+            .Where(r => vehicleIdsInBranch == null || vehicleIdsInBranch.Contains(r.VehicleId))
             .Where(r => r.StartDate <= request.To && (r.EndDate == null || r.EndDate >= request.From))
             .Select(r => new
             {
@@ -154,6 +162,7 @@ public class GetVehicleCostsQueryHandler
         var rentalsOut = await _context.VehicleRentalsOut
             .AsNoTracking()
             .Where(r => request.VehicleId == null || r.VehicleId == request.VehicleId)
+            .Where(r => vehicleIdsInBranch == null || vehicleIdsInBranch.Contains(r.VehicleId))
             .Where(r => r.StartDate <= request.To && (r.EndDate == null || r.EndDate >= request.From))
             .Select(r => new
             {

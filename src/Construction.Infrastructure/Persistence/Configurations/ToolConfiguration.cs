@@ -11,6 +11,11 @@ public class ToolConfiguration : IEntityTypeConfiguration<Tool>
     {
         builder.ToTable("tools");
 
+        builder.HasOne(x => x.Branch)
+            .WithMany()
+            .HasForeignKey(x => x.BranchId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasKey(t => t.Id);
 
         builder.HasQueryFilter(t => !t.IsDeleted);

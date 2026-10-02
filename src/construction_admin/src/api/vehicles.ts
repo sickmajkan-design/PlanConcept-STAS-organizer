@@ -11,6 +11,7 @@ import type {
 } from './types';
 
 export interface VehicleListQuery extends ListQuery {
+  branchId?: string;
   status?: VehicleStatus | '';
   fuelType?: FuelType | '';
   ownershipType?: VehicleOwnershipType | '';

@@ -22,6 +22,9 @@ public record GetWeeklySiteReportsQuery : ISortablePagedQuery, IRequest<PagedLis
 
     public Guid? ProjectId { get; init; }
 
+    /// <summary>Restricts results to records of projects in this business unit.</summary>
+    public Guid? BranchId { get; init; }
+
     public int? IsoYear { get; init; }
 
     public int? IsoWeek { get; init; }
@@ -56,6 +59,11 @@ public class GetWeeklySiteReportsQueryHandler
         CancellationToken cancellationToken)
     {
         var query = _context.WeeklySiteReports.AsNoTracking();
+
+        if (request.BranchId is { } branchId)
+        {
+            query = query.Where(r => r.Project.BranchId == branchId);
+        }
 
         if (request.ProjectId is { } projectId)
         {

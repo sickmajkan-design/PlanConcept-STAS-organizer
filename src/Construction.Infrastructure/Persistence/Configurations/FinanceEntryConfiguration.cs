@@ -10,6 +10,11 @@ public class FinanceEntryConfiguration : IEntityTypeConfiguration<FinanceEntry>
     {
         builder.ToTable("finance_entries");
 
+        builder.HasOne(x => x.Branch)
+            .WithMany()
+            .HasForeignKey(x => x.BranchId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasKey(e => e.Id);
 
         // Pay for a deleted employee, or charged to a deleted site, is not

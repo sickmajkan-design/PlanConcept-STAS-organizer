@@ -1,3 +1,4 @@
+import { BranchSelectField } from '../../features/branches/BranchSelectField';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Alert,
@@ -34,6 +35,7 @@ import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 
 const emptyValues: AccommodationFormValues = {
+  branchId: '',
   address: '',
   name: '',
   type: 'Apartment',
@@ -98,6 +100,7 @@ export function AccommodationFormPage() {
         name: existing.name ?? '',
         type: existing.type,
         city: existing.city ?? '',
+        branchId: existing.branchId ?? '',
         floor: existing.floor ?? '',
         rooms: existing.rooms === null ? '' : String(existing.rooms),
         beds: existing.beds === null ? '' : String(existing.beds),
@@ -130,6 +133,7 @@ export function AccommodationFormPage() {
       name: values.name || null,
       type: values.type,
       city: values.city || null,
+      branchId: values.branchId || null,
       floor: values.floor || null,
       rooms: numberOrNull(values.rooms),
       beds: numberOrNull(values.beds),
@@ -223,6 +227,9 @@ export function AccommodationFormPage() {
               </Grid>
               <Grid size={{ xs: 12, sm: 8 }}>{text('address', t('accommodations.address'))}</Grid>
               <Grid size={{ xs: 12, sm: 4 }}>{text('city', t('accommodations.city'))}</Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <BranchSelectField control={control} name="branchId" />
+              </Grid>
               <Grid size={{ xs: 6, sm: 3 }}>{text('floor', t('accommodations.floor'))}</Grid>
               <Grid size={{ xs: 6, sm: 3 }}>
                 {text('rooms', t('accommodations.rooms'), { type: 'number' })}

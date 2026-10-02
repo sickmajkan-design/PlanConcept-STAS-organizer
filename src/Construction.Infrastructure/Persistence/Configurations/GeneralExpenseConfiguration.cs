@@ -10,6 +10,11 @@ public class GeneralExpenseConfiguration : IEntityTypeConfiguration<GeneralExpen
     {
         builder.ToTable("general_expenses");
 
+        builder.HasOne(x => x.Branch)
+            .WithMany()
+            .HasForeignKey(x => x.BranchId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasKey(e => e.Id);
 
         // A cost charged to a deleted site is not chargeable to anything: it

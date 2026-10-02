@@ -32,6 +32,9 @@ public record GetProjectCostsQuery : IRequest<ProjectCostReportDto>
 
     /// <summary>Narrows the report to one site.</summary>
     public Guid? ProjectId { get; init; }
+
+    /// <summary>Narrows the report to the sites of one business unit.</summary>
+    public Guid? BranchId { get; init; }
 }
 
 public class GetProjectCostsQueryValidator : AbstractValidator<GetProjectCostsQuery>
@@ -109,6 +112,17 @@ public class GetProjectCostsQueryHandler
             .Concat(generalExpenses.Keys)
             .Concat(accommodations.Keys)
             .ToHashSet();
+
+        if (request.BranchId is { } branchId)
+        {
+            var inBranch = await _context.Projects
+                .AsNoTracking()
+                .Where(p => p.BranchId == branchId && projectIds.Contains(p.Id))
+                .Select(p => p.Id)
+                .ToListAsync(cancellationToken);
+
+            projectIds = inBranch.ToHashSet();
+        }
 
         var names = await _context.Projects
             .AsNoTracking()

@@ -23,6 +23,9 @@ public record UpdateCompanyRevenueCommand : IRequest<CompanyRevenueDto>
 
     public Guid? ToolId { get; init; }
 
+    /// <summary>The business unit (poslovna jedinica) this is booked to. Null follows the project, if any.</summary>
+    public Guid? BranchId { get; init; }
+
     public string? Note { get; init; }
 }
 
@@ -55,12 +58,14 @@ public class UpdateCompanyRevenueCommandHandler : IRequestHandler<UpdateCompanyR
             .FirstOrDefaultAsync(r => r.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(CompanyRevenue), request.Id);
 
+        await Branches.BranchLookup.EnsureExistsAsync(_context, request.BranchId, cancellationToken);
         await CompanyRevenueRules.EnsureAssetsExistAsync(_context, request.VehicleId, request.ToolId, cancellationToken);
 
         revenue.Amount = request.Amount;
         revenue.Source = request.Source;
         revenue.VehicleId = request.VehicleId;
         revenue.ToolId = request.ToolId;
+        revenue.BranchId = request.BranchId;
         revenue.Note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim();
 
         // Left alone when not sent, so correcting an amount never moves the date.

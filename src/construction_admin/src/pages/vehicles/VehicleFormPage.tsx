@@ -25,6 +25,7 @@ import { useCreateVehicle, useUpdateVehicle, useVehicleQuery } from '../../featu
 import { vehicleFormSchema, type VehicleFormValues } from '../../features/vehicles/validation';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
+import { BranchSelectField } from '../../features/branches/BranchSelectField';
 import { paths } from '../../routes/paths';
 
 const emptyValues: VehicleFormValues = {
@@ -38,6 +39,7 @@ const emptyValues: VehicleFormValues = {
   fuelType: 'Diesel',
   status: 'Available',
   ownershipType: 'Owned',
+  branchId: '',
 };
 
 export function VehicleFormPage() {
@@ -75,6 +77,7 @@ export function VehicleFormPage() {
         fuelType: existing.fuelType,
         status: existing.status,
         ownershipType: existing.ownershipType,
+        branchId: existing.branchId ?? '',
       });
     }
   }, [existing, reset]);
@@ -99,6 +102,7 @@ export function VehicleFormPage() {
       fuelType: values.fuelType,
       status: values.status,
       ownershipType: values.ownershipType,
+      branchId: values.branchId || null,
     };
 
     try {
@@ -303,6 +307,13 @@ export function VehicleFormPage() {
                       </Select>
                     </FormControl>
                   )}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <BranchSelectField
+                  control={control}
+                  name="branchId"
+                  helperText={t('branches.followsProject')}
                 />
               </Grid>
             </Grid>

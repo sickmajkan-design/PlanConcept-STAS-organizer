@@ -25,6 +25,7 @@ import { useCreateTool, useToolQuery, useUpdateTool } from '../../features/tools
 import { toolFormSchema, type ToolFormValues } from '../../features/tools/validation';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
+import { BranchSelectField } from '../../features/branches/BranchSelectField';
 import { paths } from '../../routes/paths';
 
 const emptyValues: ToolFormValues = {
@@ -34,6 +35,7 @@ const emptyValues: ToolFormValues = {
   qrCode: '',
   status: 'Available',
   ownershipType: 'Owned',
+  branchId: '',
 };
 
 export function ToolFormPage() {
@@ -67,6 +69,7 @@ export function ToolFormPage() {
         qrCode: existing.qrCode ?? '',
         status: existing.status,
         ownershipType: existing.ownershipType,
+        branchId: existing.branchId ?? '',
       });
     }
   }, [existing, reset]);
@@ -87,6 +90,7 @@ export function ToolFormPage() {
       qrCode: values.qrCode || null,
       status: values.status,
       ownershipType: values.ownershipType,
+      branchId: values.branchId || null,
     };
 
     try {
@@ -226,6 +230,13 @@ export function ToolFormPage() {
                       </Select>
                     </FormControl>
                   )}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <BranchSelectField
+                  control={control}
+                  name="branchId"
+                  helperText={t('branches.followsProject')}
                 />
               </Grid>
             </Grid>

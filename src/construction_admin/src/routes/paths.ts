@@ -92,6 +92,7 @@ export const paths = {
 
   notifications: '/notifications',
   notificationGroups: '/notification-groups',
+  branches: '/branches',
   notificationGroupNew: '/notification-groups/new',
   notificationGroupEdit: (id: string) => `/notification-groups/${id}/edit`,
 

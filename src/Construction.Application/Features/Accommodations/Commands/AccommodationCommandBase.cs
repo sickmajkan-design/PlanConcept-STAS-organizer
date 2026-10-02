@@ -9,6 +9,9 @@ namespace Construction.Application.Features.Accommodations.Commands;
 /// </summary>
 public abstract record AccommodationCommandBase
 {
+    /// <summary>The business unit (poslovna jedinica) this accommodation's rent is booked to.</summary>
+    public Guid? BranchId { get; init; }
+
     public string Address { get; init; } = null!;
 
     public string? Name { get; init; }
@@ -107,6 +110,7 @@ public static class AccommodationFieldMapper
 
     public static void Apply(Construction.Domain.Entities.Accommodation target, AccommodationCommandBase source)
     {
+        target.BranchId = source.BranchId;
         target.Address = source.Address.Trim();
         target.Name = Clean(source.Name);
         target.Type = source.Type;

@@ -26,6 +26,7 @@ import { canViewFinance } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { COUNTRIES, countryLabel, resolveCountryCode } from '../../data/countries';
 import { ErrorState } from '../../components/ErrorState';
+import { useBranchesQuery } from '../../features/branches/useBranches';
 import { useAllCustomersQuery } from '../../features/customers/useCustomers';
 import {
   useAllMainProjectsQuery,
@@ -42,6 +43,7 @@ const emptyValues: ProjectFormValues = {
   name: '',
   description: '',
   customerId: '',
+  branchId: '',
   parentProjectId: '',
   address: '',
   countryCode: '',
@@ -97,6 +99,7 @@ export function ProjectFormPage() {
 
   const { data: existing, isLoading, isError, error, refetch } = useProjectQuery(id);
   const { data: customers } = useAllCustomersQuery();
+  const { data: branches } = useBranchesQuery();
   const { data: mainProjects } = useAllMainProjectsQuery();
   const createProject = useCreateProject();
   const updateProject = useUpdateProject(id ?? '');
@@ -129,6 +132,7 @@ export function ProjectFormPage() {
         name: existing.name,
         description: existing.description ?? '',
         customerId: existing.customerId ?? '',
+        branchId: existing.branchId ?? '',
         parentProjectId: existing.parentProjectId ?? '',
         address: existing.address ?? '',
         countryCode: countryLabel(existing.countryCode),
@@ -169,6 +173,7 @@ export function ProjectFormPage() {
       name: values.name.trim(),
       description: values.description || null,
       customerId: kind === 'Sub' ? null : values.customerId || null,
+      branchId: kind === 'Sub' ? null : values.branchId || null,
       parentProjectId: kind === 'Sub' ? values.parentProjectId || null : null,
       address: values.address || null,
       countryCode: kind === 'Sub' ? null : resolveCountryCode(values.countryCode ?? ''),
@@ -325,6 +330,31 @@ export function ProjectFormPage() {
                               {customer.name}
                             </MenuItem>
                           ))}
+                        </Select>
+                      </FormControl>
+                    )}
+                  />
+                </Grid>
+              )}
+              {kind === 'Main' && (
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Controller
+                    name="branchId"
+                    control={control}
+                    render={({ field }) => (
+                      <FormControl fullWidth>
+                        <InputLabel id="project-branch-label">{t('branches.single')}</InputLabel>
+                        <Select {...field} labelId="project-branch-label" label={t('branches.single')}>
+                          <MenuItem value="">
+                            <em>{t('common.none')}</em>
+                          </MenuItem>
+                          {(branches ?? [])
+                            .filter((b) => b.isActive || b.id === field.value)
+                            .map((branch) => (
+                              <MenuItem key={branch.id} value={branch.id}>
+                                {branch.name}
+                              </MenuItem>
+                            ))}
                         </Select>
                       </FormControl>
                     )}

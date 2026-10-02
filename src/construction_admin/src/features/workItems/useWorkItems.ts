@@ -1,3 +1,4 @@
+import { useBranchScoped } from '../branches/BranchContext';
 import {
   workItemsApi,
   type WorkItemListQuery,
@@ -21,7 +22,8 @@ export const workItemKeys = createResourceKeys<WorkItemListQuery>('workItems');
 const workItemCaches = [workItemKeys.all];
 
 export function useWorkItemsQuery(query: WorkItemListQuery, enabled = true) {
-  return useResourceList(workItemKeys, workItemsApi.list, query, { enabled });
+  const scoped = useBranchScoped(query);
+  return useResourceList(workItemKeys, workItemsApi.list, scoped, { enabled });
 }
 
 export function useWorkItemQuery(id: string | undefined) {

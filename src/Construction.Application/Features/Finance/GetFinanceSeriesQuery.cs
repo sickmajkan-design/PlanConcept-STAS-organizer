@@ -1,4 +1,5 @@
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Application.Features.Costs.Queries.GetCompanyCosts;
 using FluentValidation;
 using MediatR;
@@ -88,6 +89,9 @@ public record GetFinanceSeriesQuery : IRequest<FinanceSeriesDto>
     public DateOnly To { get; init; }
 
     public FinanceGranularity Granularity { get; init; } = FinanceGranularity.Day;
+
+    /// <summary>Narrows the figures to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
 }
 
 public class GetFinanceSeriesQueryValidator : AbstractValidator<GetFinanceSeriesQuery>
@@ -172,14 +176,14 @@ public class GetFinanceSeriesQueryHandler : IRequestHandler<GetFinanceSeriesQuer
         var ranges = FinanceBuckets.Build(request.From, request.To, request.Granularity);
 
         var projectByDay = await SumByDayAsync(
-            _context.ProjectRevenues.AsNoTracking()
+            _context.ProjectRevenues.AsNoTracking().InBranch(request.BranchId)
                 .Where(r => r.OccurredOn >= request.From && r.OccurredOn <= request.To)
                 .GroupBy(r => r.OccurredOn)
                 .Select(g => new DayAmount(g.Key, g.Sum(r => r.Amount))),
             cancellationToken);
 
         var otherByDay = await SumByDayAsync(
-            _context.CompanyRevenues.AsNoTracking()
+            _context.CompanyRevenues.AsNoTracking().InBranch(request.BranchId)
                 .Where(r => r.OccurredOn >= request.From && r.OccurredOn <= request.To)
                 .GroupBy(r => r.OccurredOn)
                 .Select(g => new DayAmount(g.Key, g.Sum(r => r.Amount))),
@@ -191,7 +195,7 @@ public class GetFinanceSeriesQueryHandler : IRequestHandler<GetFinanceSeriesQuer
         // One at a time: they share this request's DbContext.
         foreach (var (from, to) in ranges)
         {
-            var costs = await _sender.Send(new GetCompanyCostsQuery { From = from, To = to }, cancellationToken);
+            var costs = await _sender.Send(new GetCompanyCostsQuery { From = from, To = to, BranchId = request.BranchId }, cancellationToken);
             includesLabour &= costs.IncludesLabour;
 
             var project = Sum(projectByDay, from, to);
@@ -216,14 +220,14 @@ public class GetFinanceSeriesQueryHandler : IRequestHandler<GetFinanceSeriesQuer
         var previousFrom = previousTo.AddDays(-(days - 1));
 
         var previousCosts = await _sender.Send(
-            new GetCompanyCostsQuery { From = previousFrom, To = previousTo },
+            new GetCompanyCostsQuery { From = previousFrom, To = previousTo, BranchId = request.BranchId },
             cancellationToken);
 
-        var previousProject = await _context.ProjectRevenues.AsNoTracking()
+        var previousProject = await _context.ProjectRevenues.AsNoTracking().InBranch(request.BranchId)
             .Where(r => r.OccurredOn >= previousFrom && r.OccurredOn <= previousTo)
             .SumAsync(r => (decimal?)r.Amount, cancellationToken) ?? 0m;
 
-        var previousOther = await _context.CompanyRevenues.AsNoTracking()
+        var previousOther = await _context.CompanyRevenues.AsNoTracking().InBranch(request.BranchId)
             .Where(r => r.OccurredOn >= previousFrom && r.OccurredOn <= previousTo)
             .SumAsync(r => (decimal?)r.Amount, cancellationToken) ?? 0m;
 

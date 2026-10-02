@@ -116,6 +116,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<PublicHoliday> PublicHolidays => Set<PublicHoliday>();
 
+    public DbSet<Branch> Branches => Set<Branch>();
+
     public DbSet<BulletinPost> BulletinPosts => Set<BulletinPost>();
 
     public DbSet<BulletinView> BulletinViews => Set<BulletinView>();

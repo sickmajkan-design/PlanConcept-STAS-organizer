@@ -1,3 +1,5 @@
+import { useBranchFilter } from '../../features/branches/BranchContext';
+import { BranchSelect } from '../../features/branches/BranchSelect';
 import { DeleteOutlined, EditOutlined } from '@mui/icons-material';
 import {
   Alert,
@@ -49,12 +51,13 @@ const listKey = ['finance', 'company-revenues'] as const;
 export function CompanyRevenuesPage() {
   const { t, locale } = useI18n();
   const queryClient = useQueryClient();
+  const { branchId: filterBranchId } = useBranchFilter();
   const [editing, setEditing] = useState<CompanyRevenue | 'new' | null>(null);
   const [deleting, setDeleting] = useState<CompanyRevenue | null>(null);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: [...listKey, PAGE_SIZE] as const,
-    queryFn: () => financeApi.companyRevenues.list({ pageNumber: 1, pageSize: PAGE_SIZE }),
+    queryKey: [...listKey, PAGE_SIZE, filterBranchId ?? null] as const,
+    queryFn: () => financeApi.companyRevenues.list({ pageNumber: 1, pageSize: PAGE_SIZE, branchId: filterBranchId }),
   });
 
   // The widgets read the same money, so anything recorded here has to reach them.
@@ -176,6 +179,7 @@ function RevenueDialog({
   const [source, setSource] = useState<CompanyRevenueSource>(revenue?.source ?? 'VehicleRental');
   const [vehicleId, setVehicleId] = useState(revenue?.vehicleId ?? '');
   const [toolId, setToolId] = useState(revenue?.toolId ?? '');
+  const [branchId, setBranchId] = useState(revenue?.branchId ?? '');
   const [note, setNote] = useState(revenue?.note ?? '');
 
   const parsed = Number(amount.replace(',', '.'));
@@ -190,6 +194,7 @@ function RevenueDialog({
         // The asset only means something for its own kind of rental.
         vehicleId: source === 'VehicleRental' && vehicleId ? vehicleId : null,
         toolId: source === 'ToolRental' && toolId ? toolId : null,
+        branchId: branchId || null,
         note: note.trim() || null,
       };
       return revenue ? financeApi.companyRevenues.update(revenue.id, input) : financeApi.companyRevenues.record(input);
@@ -269,6 +274,8 @@ function RevenueDialog({
               fullWidth
             />
           </Stack>
+
+          <BranchSelect value={branchId} onChange={setBranchId} />
 
           <TextField
             label={t('finance.revenues.note')}

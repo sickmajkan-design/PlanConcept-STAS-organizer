@@ -1,4 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
+
+import { useBranchScoped } from '../branches/BranchContext';
 import {
   costsApi,
   type AccommodationRateListQuery,
@@ -112,7 +114,8 @@ export function useDeleteEmployeeRate() {
 // ---- stock movements -------------------------------------------------------
 
 export function useMaterialMovementsQuery(query: MaterialMovementListQuery, enabled = true) {
-  return useResourceList(movementKeys, costsApi.movements.list, query, { enabled });
+  const scoped = useBranchScoped(query);
+  return useResourceList(movementKeys, costsApi.movements.list, scoped, { enabled });
 }
 
 export function useMovementSuppliersQuery(enabled = true) {
@@ -125,7 +128,8 @@ export function useMovementSuppliersQuery(enabled = true) {
 }
 
 export function useMaterialMovementsSummaryQuery(query: MaterialMovementListQuery) {
-  const params = summaryParams(query);
+  const scoped = useBranchScoped(query);
+  const params = summaryParams(scoped);
   return useQuery({
     queryKey: [...movementKeys.all, 'summary', params],
     queryFn: () => costsApi.movements.summary(params),
@@ -165,11 +169,13 @@ export function useDeleteMaterialMovement() {
 // ---- vehicle expenses ------------------------------------------------------
 
 export function useVehicleExpensesQuery(query: VehicleExpenseListQuery, enabled = true) {
-  return useResourceList(vehicleExpenseKeys, costsApi.vehicleExpenses.list, query, { enabled });
+  const scoped = useBranchScoped(query);
+  return useResourceList(vehicleExpenseKeys, costsApi.vehicleExpenses.list, scoped, { enabled });
 }
 
 export function useVehicleExpensesSummaryQuery(query: VehicleExpenseListQuery) {
-  const params = summaryParams(query);
+  const scoped = useBranchScoped(query);
+  const params = summaryParams(scoped);
   return useQuery({
     queryKey: [...vehicleExpenseKeys.all, 'summary', params],
     queryFn: () => costsApi.vehicleExpenses.summary(params),
@@ -314,11 +320,13 @@ export function useDeleteVehicleRentalOut() {
 // ---- tool expenses ----------------------------------------------------------
 
 export function useToolExpensesQuery(query: ToolExpenseListQuery) {
-  return useResourceList(toolExpenseKeys, costsApi.toolExpenses.list, query);
+  const scoped = useBranchScoped(query);
+  return useResourceList(toolExpenseKeys, costsApi.toolExpenses.list, scoped);
 }
 
 export function useToolExpensesSummaryQuery(query: ToolExpenseListQuery) {
-  const params = summaryParams(query);
+  const scoped = useBranchScoped(query);
+  const params = summaryParams(scoped);
   return useQuery({
     queryKey: [...toolExpenseKeys.all, 'summary', params],
     queryFn: () => costsApi.toolExpenses.summary(params),
@@ -434,11 +442,13 @@ export function useDeleteToolRentalOut() {
 // ---- finance entries --------------------------------------------------------
 
 export function useFinanceEntriesQuery(query: FinanceEntryListQuery) {
-  return useResourceList(financeEntryKeys, costsApi.financeEntries.list, query);
+  const scoped = useBranchScoped(query);
+  return useResourceList(financeEntryKeys, costsApi.financeEntries.list, scoped);
 }
 
 export function useFinanceEntriesSummaryQuery(query: FinanceEntryListQuery) {
-  const params = summaryParams(query);
+  const scoped = useBranchScoped(query);
+  const params = summaryParams(scoped);
   return useQuery({
     queryKey: [...financeEntryKeys.all, 'summary', params],
     queryFn: () => costsApi.financeEntries.summary(params),
@@ -470,11 +480,13 @@ export function useDeleteFinanceEntry() {
 // ---- general expenses --------------------------------------------------------
 
 export function useGeneralExpensesQuery(query: GeneralExpenseListQuery) {
-  return useResourceList(generalExpenseKeys, costsApi.generalExpenses.list, query);
+  const scoped = useBranchScoped(query);
+  return useResourceList(generalExpenseKeys, costsApi.generalExpenses.list, scoped);
 }
 
 export function useGeneralExpensesSummaryQuery(query: GeneralExpenseListQuery) {
-  const params = summaryParams(query);
+  const scoped = useBranchScoped(query);
+  const params = summaryParams(scoped);
   return useQuery({
     queryKey: [...generalExpenseKeys.all, 'summary', params],
     queryFn: () => costsApi.generalExpenses.summary(params),
@@ -563,23 +575,26 @@ export function useDeleteAccommodationRate() {
 
 // ---- the reports -----------------------------------------------------------
 
-export function useProjectCostReport(query: CostReportQuery & { projectId?: string }) {
+export function useProjectCostReport(query: CostReportQuery & { projectId?: string; branchId?: string }) {
+  const scoped = useBranchScoped(query);
   return useQuery({
-    queryKey: costReportKeys.projects(query),
-    queryFn: () => costsApi.projectReport(query),
+    queryKey: costReportKeys.projects(scoped),
+    queryFn: () => costsApi.projectReport(scoped),
   });
 }
 
 export function useVehicleCostReport(query: CostReportQuery & { vehicleId?: string }) {
+  const scoped = useBranchScoped(query);
   return useQuery({
-    queryKey: costReportKeys.vehicles(query),
-    queryFn: () => costsApi.vehicleReport(query),
+    queryKey: costReportKeys.vehicles(scoped),
+    queryFn: () => costsApi.vehicleReport(scoped),
   });
 }
 
 export function useToolCostReport(query: CostReportQuery & { toolId?: string }) {
+  const scoped = useBranchScoped(query);
   return useQuery({
-    queryKey: costReportKeys.tools(query),
-    queryFn: () => costsApi.toolReport(query),
+    queryKey: costReportKeys.tools(scoped),
+    queryFn: () => costsApi.toolReport(scoped),
   });
 }

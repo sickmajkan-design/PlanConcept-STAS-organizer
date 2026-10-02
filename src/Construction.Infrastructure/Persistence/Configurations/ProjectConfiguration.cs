@@ -54,6 +54,11 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
         builder.Property(p => p.BillingMode)
             .HasDefaultValue(Construction.Domain.Enums.ProjectBillingMode.Hourly);
 
+        builder.HasOne(p => p.Branch)
+            .WithMany(b => b.Projects)
+            .HasForeignKey(p => p.BranchId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasOne(p => p.Customer)
             .WithMany(c => c.Projects)
             .HasForeignKey(p => p.CustomerId)

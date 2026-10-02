@@ -1,3 +1,4 @@
+import { BranchSelect } from '../../features/branches/BranchSelect';
 import { AddOutlined, PaymentsOutlined } from '@mui/icons-material';
 import {
   Alert,
@@ -266,6 +267,7 @@ export function GeneralExpenseDialog({
   const [amount, setAmount] = useState('');
   const [occurredOn, setOccurredOn] = useState('');
   const [projectId, setProjectId] = useState('');
+  const [branchId, setBranchId] = useState('');
   const [employeeId, setEmployeeId] = useState('');
   const [accommodationId, setAccommodationId] = useState('');
   const [supplier, setSupplier] = useState('');
@@ -285,6 +287,7 @@ export function GeneralExpenseDialog({
       setAmount(String(editingExpense.amount));
       setOccurredOn(editingExpense.occurredOn);
       setProjectId(editingExpense.projectId ?? '');
+      setBranchId(editingExpense.branchId ?? '');
       setEmployeeId(editingExpense.employeeId ?? '');
       setAccommodationId(editingExpense.accommodationId ?? '');
       setSupplier(editingExpense.supplier ?? '');
@@ -294,6 +297,7 @@ export function GeneralExpenseDialog({
       setAmount('');
       setOccurredOn('');
       setProjectId('');
+      setBranchId('');
       setEmployeeId('');
       setAccommodationId('');
       setSupplier('');
@@ -323,6 +327,7 @@ export function GeneralExpenseDialog({
       amount: parsedAmount,
       occurredOn: occurredOn || null,
       projectId: projectId || null,
+      branchId: branchId || null,
       employeeId: employeeId || null,
       accommodationId: isHousing && accommodationId ? accommodationId : null,
       supplier: supplier.trim() || null,
@@ -443,6 +448,10 @@ export function GeneralExpenseDialog({
                 </MenuItem>
               ))}
             </TextField>
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <BranchSelect value={branchId} onChange={setBranchId} helperText={t('branches.followsProject')} />
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6 }}>

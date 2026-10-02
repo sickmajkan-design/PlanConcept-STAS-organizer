@@ -30,6 +30,9 @@ public record GetProjectsQuery : ISortablePagedQuery, IRequest<PagedList<Project
 
     public Guid? CustomerId { get; init; }
 
+    /// <summary>Restricts results to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
+
     /// <summary>Restricts results to the sub-projects of this Main project.</summary>
     public Guid? ParentProjectId { get; init; }
 
@@ -107,6 +110,11 @@ public class GetProjectsQueryHandler : IRequestHandler<GetProjectsQuery, PagedLi
         if (request.CustomerId is { } customerId)
         {
             query = query.Where(p => p.CustomerId == customerId);
+        }
+
+        if (request.BranchId is { } branchId)
+        {
+            query = query.Where(p => p.BranchId == branchId);
         }
 
         if (request.ParentProjectId is { } parentProjectId)

@@ -39,4 +39,9 @@ public class Tool : BaseEntity, ISoftDeletable, IAuditable
     public bool IsDeleted { get; set; }
 
     public DateTime? DeletedAt { get; set; }
+
+    /// <summary>The business unit this tool belongs to in its own right. Null means it follows the project it is assigned to.</summary>
+    public Guid? BranchId { get; set; }
+
+    public Branch? Branch { get; set; }
 }

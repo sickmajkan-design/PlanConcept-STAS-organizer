@@ -24,6 +24,12 @@ public class CompanyRevenueDto
 
     public string? ToolName { get; init; }
 
+    public Guid? BranchId { get; init; }
+
+    public string? BranchName { get; init; }
+
+    public string? BranchColor { get; init; }
+
     public string? Note { get; init; }
 
     public DateTime CreatedAt { get; init; }
@@ -43,6 +49,9 @@ public static class CompanyRevenueMapping
             : r.Vehicle.Brand + " " + r.Vehicle.Model + " (" + r.Vehicle.RegistrationNumber + ")",
         ToolId = r.ToolId,
         ToolName = r.Tool == null ? null : r.Tool.Name,
+        BranchId = r.BranchId,
+        BranchName = r.Branch == null ? null : r.Branch.Name,
+        BranchColor = r.Branch == null ? null : r.Branch.Color,
         Note = r.Note,
         CreatedAt = r.CreatedAt,
     };

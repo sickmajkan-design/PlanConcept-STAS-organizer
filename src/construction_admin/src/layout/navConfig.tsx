@@ -291,6 +291,7 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
                 icon: <FolderOutlined />,
               },
               { label: t('nav.users'), path: paths.users, icon: <ManageAccountsOutlined /> },
+              { label: t('nav.branches'), path: paths.branches, icon: <AccountTreeOutlined /> },
               {
                 label: t('nav.notificationGroups'),
                 path: paths.notificationGroups,

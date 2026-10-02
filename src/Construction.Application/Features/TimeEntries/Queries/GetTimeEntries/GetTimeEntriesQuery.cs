@@ -24,6 +24,9 @@ public record GetTimeEntriesQuery : ISortablePagedQuery, IRequest<PagedList<Time
 
     public Guid? ProjectId { get; init; }
 
+    /// <summary>Restricts results to records of projects in this business unit.</summary>
+    public Guid? BranchId { get; init; }
+
     public TimeEntryStatus? Status { get; init; }
 
     public WorkType? WorkType { get; init; }
@@ -96,6 +99,11 @@ public class GetTimeEntriesQueryHandler
         else if (request.EmployeeId is { } employeeId)
         {
             query = query.Where(t => t.EmployeeId == employeeId);
+        }
+
+        if (request.BranchId is { } branchId)
+        {
+            query = query.Where(t => t.Project != null && t.Project.BranchId == branchId);
         }
 
         if (request.ProjectId is { } projectId)

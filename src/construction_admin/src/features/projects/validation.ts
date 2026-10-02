@@ -34,6 +34,7 @@ export const projectFormSchema = z
       .optional()
       .or(z.literal('')),
     customerId: z.string().optional().or(z.literal('')),
+    branchId: z.string().optional().or(z.literal('')),
     parentProjectId: z.string().optional().or(z.literal('')),
     address: z
       .string()

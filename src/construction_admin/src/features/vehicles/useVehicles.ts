@@ -1,3 +1,4 @@
+import { useBranchFilter } from '../branches/BranchContext';
 import { useQuery } from '@tanstack/react-query';
 
 import { vehiclesApi, type VehicleListQuery } from '../../api/vehicles';
@@ -29,7 +30,9 @@ const PICKER_QUERY: VehicleListQuery = {
 };
 
 export function useVehiclesQuery(query: VehicleListQuery) {
-  return useResourceList(vehicleKeys, vehiclesApi.list, query);
+  // The header's business-unit filter narrows the list unless the caller asks for a unit itself.
+  const { branchId } = useBranchFilter();
+  return useResourceList(vehicleKeys, vehiclesApi.list, { ...query, branchId: query.branchId ?? branchId });
 }
 
 export function useVehicleQuery(id: string | undefined) {

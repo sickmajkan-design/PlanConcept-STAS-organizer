@@ -51,6 +51,13 @@ public class VehicleDto
 
     public string? AssignedEmployeeNumber { get; init; }
 
+    /// <summary>The unit the record belongs to in its own right. Null: it follows its project.</summary>
+    public Guid? BranchId { get; init; }
+
+    public string? BranchName { get; init; }
+
+    public string? BranchColor { get; init; }
+
     public Guid? AssignedProjectId { get; init; }
 
     public string? AssignedProjectName { get; init; }
@@ -136,6 +143,9 @@ public static class VehicleMapping
             AssignedEmployeeNumber = vehicle.AssignedEmployee != null
                 ? vehicle.AssignedEmployee.EmployeeNumber
                 : null,
+            BranchId = vehicle.BranchId,
+            BranchName = vehicle.Branch != null ? vehicle.Branch.Name : null,
+            BranchColor = vehicle.Branch != null ? vehicle.Branch.Color : null,
             AssignedProjectId = vehicle.AssignedProjectId,
             AssignedProjectName = vehicle.AssignedProject != null ? vehicle.AssignedProject.Name : null,
             // Unpaid, or paid but within (or past) its own expiring-soon
