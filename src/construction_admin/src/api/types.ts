@@ -1887,6 +1887,10 @@ export type LedgerColumnSourceMetric = (typeof ledgerColumnSourceMetrics)[number
 export interface LedgerSummary {
   id: string;
   name: string;
+  /** The business unit whose payroll this month is; null for a company-wide month. */
+  branchId: string | null;
+  branchName: string | null;
+  branchColor: string | null;
   year: number;
   month: number;
   note: string | null;
@@ -1928,13 +1932,18 @@ export interface LedgerCheck {
     | 'HoursAcrossSections'
     | 'UnreviewedHours'
     | 'MissingContributions'
-    | 'HoursDifferFromApp';
+    | 'HoursDifferFromApp'
+    | 'MissingInvoice'
+    | 'MissingSignedTimesheet'
+    | 'EmployeeInOtherUnit';
   sectionId: string;
   sectionName: string;
   rowId: string | null;
   rowLabel: string | null;
   columnName: string | null;
   amount: number | null;
+  /** For the unit check: the unit that did employ the person that month, or null when none did. */
+  otherBranchName?: string | null;
   /** What the app recorded, where the check compares two figures. */
   referenceAmount?: number | null;
   otherSections: string[];
@@ -1990,6 +1999,9 @@ export interface SignedTimesheetWeek {
 export interface LedgerDetail {
   id: string;
   name: string;
+  branchId: string | null;
+  branchName: string | null;
+  branchColor: string | null;
   year: number;
   month: number;
   note: string | null;
@@ -2002,6 +2014,8 @@ export interface LedgerDetail {
 
 export interface CreateLedgerInput {
   name: string;
+  /** The business unit whose payroll this is. */
+  branchId?: string | null;
   year: number;
   month: number;
   note?: string | null;
@@ -2015,6 +2029,7 @@ export interface CreateLedgerInput {
 
 export interface UpdateLedgerInput {
   name: string;
+  branchId?: string | null;
   year: number;
   month: number;
   note?: string | null;

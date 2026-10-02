@@ -21,6 +21,7 @@ function describe(t: Translate, check: LedgerCheck): string {
     hours: check.amount ?? 0,
     appHours: check.referenceAmount ?? 0,
     sections: [check.sectionName, ...check.otherSections].join(', '),
+    unit: check.otherBranchName ? ` — ${check.otherBranchName}` : '',
   });
 }
 

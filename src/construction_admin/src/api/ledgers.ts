@@ -23,7 +23,10 @@ import type {
   UpdateLedgerInput,
 } from './types';
 
-export type LedgerListQuery = ListQuery;
+export interface LedgerListQuery extends ListQuery {
+  /** One business unit's payrolls. */
+  branchId?: string;
+}
 
 export interface SetLedgerCellInput {
   rowId: string;

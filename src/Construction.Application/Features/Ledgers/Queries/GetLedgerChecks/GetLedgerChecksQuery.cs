@@ -44,6 +44,13 @@ public static class LedgerCheckKinds
     /// not a block: the sheet may exist on paper and not be scanned in yet.
     /// </summary>
     public const string MissingSignedTimesheet = "MissingSignedTimesheet";
+
+    /// <summary>
+    /// A person in a business unit's payroll who that unit did not employ at any time in the month —
+    /// they are on another unit's books, or on none. A prompt to look: the pay may belong here
+    /// anyway, but then their employment in this unit is what is missing.
+    /// </summary>
+    public const string EmployeeInOtherUnit = "EmployeeInOtherUnit";
 }
 
 public class LedgerCheckDto
@@ -69,6 +76,9 @@ public class LedgerCheckDto
 
     /// <summary>The other sections involved, for the hours check.</summary>
     public IReadOnlyList<string> OtherSections { get; init; } = [];
+
+    /// <summary>For the unit check: the unit that did employ the person that month, or null when none did.</summary>
+    public string? OtherBranchName { get; init; }
 }
 
 /// <summary>
@@ -140,7 +150,7 @@ public class GetLedgerChecksQueryHandler
         var period = await _context.Ledgers
             .AsNoTracking()
             .Where(l => l.Id == request.LedgerId)
-            .Select(l => new { l.Year, l.Month })
+            .Select(l => new { l.Year, l.Month, l.BranchId, BranchName = l.Branch != null ? l.Branch.Name : null })
             .FirstAsync(cancellationToken);
 
         var rows = await _context.LedgerRows
@@ -174,6 +184,41 @@ public class GetLedgerChecksQueryHandler
 
         var issues = new List<LedgerCheckDto>();
         var hoursByRow = new Dictionary<Guid, decimal>();
+
+        // A unit's payroll should hold the people that unit employed in the month.
+        if (period.BranchId is { } ledgerBranchId)
+        {
+            var monthStart = new DateOnly(period.Year, period.Month, 1);
+            var monthEnd = monthStart.AddMonths(1).AddDays(-1);
+            var people = rows.Where(r => r.EmployeeId is not null).Select(r => r.EmployeeId!.Value).Distinct().ToList();
+
+            var employed = await _context.EmployeeBranches
+                .AsNoTracking()
+                .Where(p => people.Contains(p.EmployeeId)
+                    && p.StartDate <= monthEnd && (p.EndDate == null || p.EndDate >= monthStart))
+                .Select(p => new { p.EmployeeId, p.BranchId, BranchName = p.Branch.Name })
+                .ToListAsync(cancellationToken);
+
+            foreach (var row in rows.Where(r => r.EmployeeId is not null))
+            {
+                var theirs = employed.Where(e => e.EmployeeId == row.EmployeeId).ToList();
+
+                if (theirs.Any(e => e.BranchId == ledgerBranchId))
+                {
+                    continue;
+                }
+
+                issues.Add(new LedgerCheckDto
+                {
+                    Kind = LedgerCheckKinds.EmployeeInOtherUnit,
+                    SectionId = row.SectionId,
+                    SectionName = row.SectionName,
+                    RowId = row.Id,
+                    RowLabel = row.Label,
+                    OtherBranchName = theirs.Count == 0 ? null : string.Join(", ", theirs.Select(e => e.BranchName).Distinct()),
+                });
+            }
+        }
 
         // How each site is billed. A price per hour is only expected where the site is billed by the
         // hour; a fixed-sum or measured site is billed by its invoices instead.

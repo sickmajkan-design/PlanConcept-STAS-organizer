@@ -19,6 +19,9 @@ public record CreateLedgerCommand : IRequest<LedgerDetailDto>
 {
     public string Name { get; init; } = null!;
 
+    /// <summary>The business unit whose payroll this is. A copied month keeps its source's unit unless one is named.</summary>
+    public Guid? BranchId { get; init; }
+
     public int Year { get; init; }
 
     public int Month { get; init; }
@@ -76,9 +79,12 @@ public class CreateLedgerCommandHandler : IRequestHandler<CreateLedgerCommand, L
         CreateLedgerCommand request,
         CancellationToken cancellationToken)
     {
+        await Branches.BranchLookup.EnsureExistsAsync(_context, request.BranchId, cancellationToken);
+
         var ledger = new Ledger
         {
             Name = request.Name.Trim(),
+            BranchId = request.BranchId,
             Year = request.Year,
             Month = request.Month,
             Note = request.Note?.Trim(),
@@ -94,6 +100,8 @@ public class CreateLedgerCommandHandler : IRequestHandler<CreateLedgerCommand, L
                 .Include(l => l.Sections).ThenInclude(s => s.Rows).ThenInclude(r => r.Cells)
                 .FirstOrDefaultAsync(l => l.Id == sourceId, cancellationToken)
                 ?? throw new NotFoundException(nameof(Ledger), sourceId);
+
+            ledger.BranchId ??= source.BranchId;
 
             // Old column id -> new column id, so a copied row's cells (if we
             // ever copy values, not just structure) would still know which
@@ -270,6 +278,9 @@ public class CreateLedgerCommandHandler : IRequestHandler<CreateLedgerCommand, L
             .AsNoTracking()
             .Where(ep => ep.StartDate <= monthEnd && (ep.EndDate == null || ep.EndDate >= monthStart))
             .Where(ep => ep.Project.Status == ProjectStatus.Planned || ep.Project.Status == ProjectStatus.Active)
+            // A unit's payroll is of the people it employed that month, whatever site they were on.
+            .Where(ep => ledger.BranchId == null || ep.Employee.BranchPeriods.Any(p => p.BranchId == ledger.BranchId
+                && p.StartDate <= monthEnd && (p.EndDate == null || p.EndDate >= monthStart)))
             .Select(ep => new
             {
                 ep.ProjectId,

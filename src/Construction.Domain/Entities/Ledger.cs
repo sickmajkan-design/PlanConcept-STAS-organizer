@@ -11,6 +11,15 @@ public class Ledger : BaseEntity, ISoftDeletable, IAuditable
 {
     public string Name { get; set; } = null!;
 
+    /// <summary>
+    /// The business unit whose payroll this month is, when it is one unit's. Each unit that employs
+    /// people runs its own, so a ledger of a unit is checked against who that unit employed in the month.
+    /// Null means a company-wide month, as before.
+    /// </summary>
+    public Guid? BranchId { get; set; }
+
+    public Branch? Branch { get; set; }
+
     public int Year { get; set; }
 
     public int Month { get; set; }

@@ -19,6 +19,9 @@ public record GetLedgersQuery : ISortablePagedQuery, IRequest<PagedList<LedgerSu
     /// <summary>Matches name (case-insensitive).</summary>
     public string? Search { get; init; }
 
+    /// <summary>Restricts results to the payrolls of one business unit.</summary>
+    public Guid? BranchId { get; init; }
+
     public string? SortBy { get; init; }
 
     public bool SortDescending { get; init; }
@@ -53,6 +56,11 @@ public class GetLedgersQueryHandler : IRequestHandler<GetLedgersQuery, PagedList
 
             query = query.Where(l =>
                 EF.Functions.Like(l.Name.ToLower(), pattern, SearchPattern.Escape));
+        }
+
+        if (request.BranchId is { } branchId)
+        {
+            query = query.Where(l => l.BranchId == branchId);
         }
 
         query = ApplySorting(query, request.SortBy, request.SortDescending);

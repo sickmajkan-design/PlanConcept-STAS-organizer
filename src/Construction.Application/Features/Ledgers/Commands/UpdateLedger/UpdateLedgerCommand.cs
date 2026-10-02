@@ -14,6 +14,9 @@ public record UpdateLedgerCommand : IRequest<LedgerDetailDto>
 
     public string Name { get; init; } = null!;
 
+    /// <summary>The business unit whose payroll this is; null for a company-wide month.</summary>
+    public Guid? BranchId { get; init; }
+
     public int Year { get; init; }
 
     public int Month { get; init; }
@@ -50,7 +53,10 @@ public class UpdateLedgerCommandHandler : IRequestHandler<UpdateLedgerCommand, L
             .FirstOrDefaultAsync(l => l.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(Ledger), request.Id);
 
+        await Branches.BranchLookup.EnsureExistsAsync(_context, request.BranchId, cancellationToken);
+
         ledger.Name = request.Name.Trim();
+        ledger.BranchId = request.BranchId;
         ledger.Year = request.Year;
         ledger.Month = request.Month;
         ledger.Note = request.Note?.Trim();

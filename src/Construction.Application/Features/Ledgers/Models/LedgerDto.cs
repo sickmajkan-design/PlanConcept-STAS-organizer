@@ -13,6 +13,12 @@ public class LedgerSummaryDto
 
     public string Name { get; init; } = null!;
 
+    public Guid? BranchId { get; init; }
+
+    public string? BranchName { get; init; }
+
+    public string? BranchColor { get; init; }
+
     public int Year { get; init; }
 
     public int Month { get; init; }
@@ -212,6 +218,12 @@ public class LedgerDetailDto
 
     public string Name { get; init; } = null!;
 
+    public Guid? BranchId { get; init; }
+
+    public string? BranchName { get; init; }
+
+    public string? BranchColor { get; init; }
+
     public int Year { get; init; }
 
     public int Month { get; init; }
@@ -237,6 +249,9 @@ public static class LedgerSummaryMapping
         {
             Id = ledger.Id,
             Name = ledger.Name,
+            BranchId = ledger.BranchId,
+            BranchName = ledger.Branch != null ? ledger.Branch.Name : null,
+            BranchColor = ledger.Branch != null ? ledger.Branch.Color : null,
             Year = ledger.Year,
             Month = ledger.Month,
             Note = ledger.Note,
@@ -381,6 +396,9 @@ public static class LedgerShellMapping
         {
             Id = ledger.Id,
             Name = ledger.Name,
+            BranchId = ledger.BranchId,
+            BranchName = ledger.Branch != null ? ledger.Branch.Name : null,
+            BranchColor = ledger.Branch != null ? ledger.Branch.Color : null,
             Year = ledger.Year,
             Month = ledger.Month,
             Note = ledger.Note,

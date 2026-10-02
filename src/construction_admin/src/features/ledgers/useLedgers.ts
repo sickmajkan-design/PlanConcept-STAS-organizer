@@ -1,3 +1,4 @@
+import { useBranchScoped } from '../branches/BranchContext';
 import { useQuery } from '@tanstack/react-query';
 
 import {
@@ -61,7 +62,8 @@ const columnCache = (ledgerId: string) => [
 ];
 
 export function useLedgersQuery(query: LedgerListQuery) {
-  return useResourceList(ledgerKeys, ledgersApi.list, query);
+  const scoped = useBranchScoped(query);
+  return useResourceList(ledgerKeys, ledgersApi.list, scoped);
 }
 
 export function useLedgerQuery(id: string | undefined) {

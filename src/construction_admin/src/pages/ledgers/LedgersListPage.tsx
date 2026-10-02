@@ -1,3 +1,6 @@
+import { BranchDot } from '../../features/branches/BranchDot';
+import { useBranchFilter } from '../../features/branches/BranchContext';
+import { BranchSelect } from '../../features/branches/BranchSelect';
 import { AddOutlined, DeleteOutlined, TableChartOutlined } from '@mui/icons-material';
 import {
   Alert,
@@ -63,6 +66,21 @@ export function LedgersListPage() {
   const columns: GridColDef<LedgerSummary>[] = useMemo(
     () => [
       { field: 'name', headerName: t('ledgers.name'), flex: 1, minWidth: 200 },
+      {
+        field: 'branchName',
+        headerName: t('branches.single'),
+        width: 190,
+        sortable: false,
+        renderCell: (params) =>
+          params.row.branchName ? (
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', height: '100%' }}>
+              <BranchDot color={params.row.branchColor ?? '#999999'} />
+              <span>{params.row.branchName}</span>
+            </Stack>
+          ) : (
+            t('ledgers.branch.none')
+          ),
+      },
       {
         field: 'month',
         headerName: t('ledgers.period'),
@@ -209,6 +227,9 @@ function CreateLedgerDialog({
   const [populate, setPopulate] = useState(true);
   // Hours are typed from the signed timesheets. The app's own hours fill the weeks only on request.
   const [hoursFromApp, setHoursFromApp] = useState(false);
+  // A new month starts in the unit chosen in the header, which is usually the one being worked on.
+  const { branchId: headerBranchId } = useBranchFilter();
+  const [branchId, setBranchId] = useState(headerBranchId ?? '');
 
   const resetCreate = create.reset;
 
@@ -223,6 +244,7 @@ function CreateLedgerDialog({
     setStart(existingLedgers.length > 0 ? 'copy' : 'payroll');
     setPopulate(true);
     setHoursFromApp(false);
+    setBranchId(headerBranchId ?? '');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, resetCreate]);
 
@@ -243,6 +265,7 @@ function CreateLedgerDialog({
         year: parsedYear,
         month: parsedMonth,
         note: note.trim() || null,
+        branchId: branchId || null,
         copyFromLedgerId: start === 'copy' ? copyFromId : null,
         template: start === 'payroll' ? (hoursFromApp ? 'PayrollAppHours' : 'Payroll') : null,
         populateFromProjects: start === 'payroll' && populate,
@@ -381,6 +404,14 @@ function CreateLedgerDialog({
               </TextField>
             </Grid>
           )}
+
+          <Grid size={12}>
+            <BranchSelect
+              value={branchId}
+              onChange={setBranchId}
+              helperText={start === 'copy' ? t('ledgers.branch.copyHint') : t('ledgers.branch.createHint')}
+            />
+          </Grid>
 
           <Grid size={12}>
             <TextField

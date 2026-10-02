@@ -10,6 +10,11 @@ public class LedgerConfiguration : IEntityTypeConfiguration<Ledger>
     {
         builder.ToTable("ledgers");
 
+        builder.HasOne(l => l.Branch)
+            .WithMany()
+            .HasForeignKey(l => l.BranchId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasKey(l => l.Id);
 
         builder.HasQueryFilter(l => !l.IsDeleted);

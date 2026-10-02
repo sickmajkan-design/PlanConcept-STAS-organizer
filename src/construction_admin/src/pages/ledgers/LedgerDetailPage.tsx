@@ -1,3 +1,4 @@
+import { LedgerBranchChip } from '../../features/branches/LedgerBranchChip';
 import {
   AddOutlined,
   ArrowDownwardOutlined,
@@ -283,6 +284,9 @@ export function LedgerDetailPage() {
           <Typography variant="h5" sx={{ fontWeight: 700 }}>
             {ledger.name}
           </Typography>
+          <Box sx={{ mt: 0.75 }}>
+            <LedgerBranchChip ledger={ledger} />
+          </Box>
           {ledger.note && (
             <Typography color="text.secondary" sx={{ mt: 0.5 }}>
               {ledger.note}

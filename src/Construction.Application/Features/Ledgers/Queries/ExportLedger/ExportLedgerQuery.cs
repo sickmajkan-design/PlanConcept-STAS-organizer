@@ -53,7 +53,7 @@ public class ExportLedgerQueryHandler : IRequestHandler<ExportLedgerQuery, Expor
         var ledger = await _context.Ledgers
             .AsNoTracking()
             .Where(l => l.Id == request.LedgerId)
-            .Select(l => new { l.Name, l.Year, l.Month })
+            .Select(l => new { l.Name, l.Year, l.Month, BranchName = l.Branch != null ? l.Branch.Name : null })
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException(nameof(Ledger), request.LedgerId);
 
@@ -142,6 +142,12 @@ public class ExportLedgerQueryHandler : IRequestHandler<ExportLedgerQuery, Expor
         var summaryRows = summary.Boxes
             .Select(b => (IReadOnlyList<object?>)new List<object?> { b.Label, b.Sign > 0 ? "+" : "−", b.Value })
             .ToList();
+
+        if (ledger.BranchName is not null)
+        {
+            summaryRows.Insert(0, new List<object?> { "Poslovna jedinica: " + ledger.BranchName, null, null });
+        }
+
         summaryRows.Add(new List<object?> { "Neto zbir (zarada)", null, summary.NetTotal });
 
         var spreadsheet = new Spreadsheet(
