@@ -1,5 +1,6 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Customers;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
 using FluentValidation;
@@ -19,16 +20,52 @@ public class BranchDto
 
     public bool IsActive { get; init; }
 
+    public BranchKind Kind { get; init; }
+
     /// <summary>How many projects belong to this branch. A branch with any can only be switched off, not deleted.</summary>
     public int ProjectCount { get; init; }
+
+    // Everything below is for management only: anyone else reads a unit to filter by it and gets
+    // these as null.
+
+    public string? LegalName { get; init; }
+
+    public string? Address { get; init; }
+
+    public string? City { get; init; }
+
+    public string? PostalCode { get; init; }
+
+    public string? CountryCode { get; init; }
+
+    /// <summary>Tax details — null unless the caller may see them, see <see cref="CustomerRules"/>.</summary>
+    public string? TaxId { get; init; }
+
+    /// <summary>Same visibility as <see cref="TaxId"/>.</summary>
+    public string? RegistrationNumber { get; init; }
+
+    /// <summary>Same visibility as <see cref="TaxId"/>.</summary>
+    public string? VatNumber { get; init; }
+
+    public string? OwnerName { get; init; }
+
+    public string? ContactPerson { get; init; }
+
+    public string? Phone { get; init; }
+
+    public string? Email { get; init; }
+
+    public string? Note { get; init; }
 }
 
 /// <summary>Who may manage branches: management. Everyone else only reads them, to filter by.</summary>
 public static class BranchRules
 {
+    public static bool IsManagement(UserRole? role) => role is UserRole.SuperAdmin or UserRole.Admin;
+
     public static void EnsureManagement(ICurrentUserService currentUserService)
     {
-        if (currentUserService.Role is not (UserRole.SuperAdmin or UserRole.Admin))
+        if (!IsManagement(currentUserService.Role))
         {
             throw new ForbiddenAccessException("Only management may change business units.");
         }
@@ -68,52 +105,199 @@ public static class BranchLookup
     }
 }
 
+/// <summary>How a <see cref="Branch"/> becomes a <see cref="BranchDto"/> for the person asking.</summary>
+public static class BranchView
+{
+    public static BranchDto Map(Branch branch, int projectCount, bool details, bool taxDetails) => new()
+    {
+        Id = branch.Id,
+        Name = branch.Name,
+        Color = branch.Color,
+        IsActive = branch.IsActive,
+        Kind = branch.Kind,
+        ProjectCount = projectCount,
+        LegalName = details ? branch.LegalName : null,
+        Address = details ? branch.Address : null,
+        City = details ? branch.City : null,
+        PostalCode = details ? branch.PostalCode : null,
+        CountryCode = details ? branch.CountryCode : null,
+        TaxId = details && taxDetails ? branch.TaxId : null,
+        RegistrationNumber = details && taxDetails ? branch.RegistrationNumber : null,
+        VatNumber = details && taxDetails ? branch.VatNumber : null,
+        OwnerName = details ? branch.OwnerName : null,
+        ContactPerson = details ? branch.ContactPerson : null,
+        Phone = details ? branch.Phone : null,
+        Email = details ? branch.Email : null,
+        Note = details ? branch.Note : null,
+    };
+
+    public static async Task<BranchDto> ForCallerAsync(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        Branch branch,
+        CancellationToken cancellationToken)
+    {
+        var count = await context.Projects.CountAsync(p => p.BranchId == branch.Id, cancellationToken);
+        var (details, tax) = await AccessAsync(context, currentUserService, cancellationToken);
+
+        return Map(branch, count, details, tax);
+    }
+
+    /// <summary>What the caller may see of a unit: its details at all, and its tax numbers in particular.</summary>
+    public static async Task<(bool Details, bool Tax)> AccessAsync(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        CancellationToken cancellationToken)
+    {
+        var details = BranchRules.IsManagement(currentUserService.Role);
+
+        var tax = details
+            && await CustomerRules.ResolveCanViewTaxDetailsAsync(context, currentUserService, cancellationToken);
+
+        return (details, tax);
+    }
+}
+
+/// <summary>Shared payload for creating and updating a business unit, so the field rules exist once.</summary>
+public abstract record BranchCommandBase
+{
+    public string Name { get; init; } = null!;
+
+    public string Color { get; init; } = "#3457D5";
+
+    public BranchKind Kind { get; init; } = BranchKind.LegalEntity;
+
+    public string? LegalName { get; init; }
+
+    public string? Address { get; init; }
+
+    public string? City { get; init; }
+
+    public string? PostalCode { get; init; }
+
+    /// <summary>ISO 3166-1 alpha-2.</summary>
+    public string? CountryCode { get; init; }
+
+    /// <summary>Tax details are written by a SuperAdmin only; from anyone else they are ignored.</summary>
+    public string? TaxId { get; init; }
+
+    public string? RegistrationNumber { get; init; }
+
+    public string? VatNumber { get; init; }
+
+    public string? OwnerName { get; init; }
+
+    public string? ContactPerson { get; init; }
+
+    public string? Phone { get; init; }
+
+    public string? Email { get; init; }
+
+    public string? Note { get; init; }
+}
+
+public abstract class BranchCommandBaseValidator<T> : AbstractValidator<T>
+    where T : BranchCommandBase
+{
+    protected BranchCommandBaseValidator()
+    {
+        RuleFor(x => x.Name).NotEmpty().WithMessage("The business unit name is required.").MaximumLength(200);
+        RuleFor(x => x.Color).Matches("^#[0-9A-Fa-f]{6}$").WithMessage("The colour must be a hex value like #3457D5.");
+        RuleFor(x => x.Kind).IsInEnum();
+        RuleFor(x => x.LegalName).MaximumLength(300);
+        RuleFor(x => x.Address).MaximumLength(500);
+        RuleFor(x => x.City).MaximumLength(120);
+        RuleFor(x => x.PostalCode).MaximumLength(20);
+        RuleFor(x => x.CountryCode)
+            .Length(2).WithMessage("Use the two-letter country code (ISO 3166-1 alpha-2).")
+            .When(x => !string.IsNullOrWhiteSpace(x.CountryCode));
+        RuleFor(x => x.TaxId).MaximumLength(50);
+        RuleFor(x => x.RegistrationNumber).MaximumLength(50);
+        RuleFor(x => x.VatNumber).MaximumLength(50);
+        RuleFor(x => x.OwnerName).MaximumLength(200);
+        RuleFor(x => x.ContactPerson).MaximumLength(200);
+        RuleFor(x => x.Phone).MaximumLength(50);
+        RuleFor(x => x.Email)
+            .EmailAddress().WithMessage("That is not an email address.")
+            .MaximumLength(200)
+            .When(x => !string.IsNullOrWhiteSpace(x.Email));
+        RuleFor(x => x.Note).MaximumLength(2000);
+    }
+}
+
+/// <summary>Copies the shared fields onto the entity, trimming the text ones.</summary>
+public static class BranchFieldMapper
+{
+    private static string? Clean(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    public static void Apply(Branch target, BranchCommandBase source, bool canEditTaxDetails)
+    {
+        target.Name = source.Name.Trim();
+        target.Color = source.Color.ToUpperInvariant();
+        target.Kind = source.Kind;
+        target.LegalName = Clean(source.LegalName);
+        target.Address = Clean(source.Address);
+        target.City = Clean(source.City);
+        target.PostalCode = Clean(source.PostalCode);
+        target.CountryCode = Clean(source.CountryCode)?.ToUpperInvariant();
+        target.OwnerName = Clean(source.OwnerName);
+        target.ContactPerson = Clean(source.ContactPerson);
+        target.Phone = Clean(source.Phone);
+        target.Email = Clean(source.Email);
+        target.Note = Clean(source.Note);
+
+        // Tax numbers are the one part with a narrower gate: anyone else's request leaves them as stored.
+        if (canEditTaxDetails)
+        {
+            target.TaxId = Clean(source.TaxId);
+            target.RegistrationNumber = Clean(source.RegistrationNumber);
+            target.VatNumber = Clean(source.VatNumber);
+        }
+    }
+}
+
 /// <summary>The business units, active first.</summary>
 public record GetBranchesQuery : IRequest<IReadOnlyList<BranchDto>>;
 
 public class GetBranchesQueryHandler : IRequestHandler<GetBranchesQuery, IReadOnlyList<BranchDto>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public GetBranchesQueryHandler(IApplicationDbContext context)
+    public GetBranchesQueryHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
     {
         _context = context;
+        _currentUserService = currentUserService;
     }
 
     public async Task<IReadOnlyList<BranchDto>> Handle(GetBranchesQuery request, CancellationToken cancellationToken)
     {
-        return await _context.Branches
+        var branches = await _context.Branches
             .AsNoTracking()
             .OrderByDescending(b => b.IsActive)
             .ThenBy(b => b.Name)
-            .Select(b => new BranchDto
-            {
-                Id = b.Id,
-                Name = b.Name,
-                Color = b.Color,
-                IsActive = b.IsActive,
-                ProjectCount = _context.Projects.Count(p => p.BranchId == b.Id),
-            })
             .ToListAsync(cancellationToken);
+
+        var counts = await _context.Projects
+            .AsNoTracking()
+            .Where(p => p.BranchId != null)
+            .GroupBy(p => p.BranchId!.Value)
+            .Select(g => new { BranchId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(g => g.BranchId, g => g.Count, cancellationToken);
+
+        var (details, tax) = await BranchView.AccessAsync(_context, _currentUserService, cancellationToken);
+
+        return branches
+            .Select(b => BranchView.Map(b, counts.GetValueOrDefault(b.Id), details, tax))
+            .ToList();
     }
 }
 
 /// <summary>Adds a business unit.</summary>
-public record CreateBranchCommand : IRequest<BranchDto>
-{
-    public string Name { get; init; } = null!;
+public record CreateBranchCommand : BranchCommandBase, IRequest<BranchDto>;
 
-    public string Color { get; init; } = "#3457D5";
-}
-
-public class CreateBranchCommandValidator : AbstractValidator<CreateBranchCommand>
-{
-    public CreateBranchCommandValidator()
-    {
-        RuleFor(x => x.Name).NotEmpty().WithMessage("The business unit name is required.").MaximumLength(200);
-        RuleFor(x => x.Color).Matches("^#[0-9A-Fa-f]{6}$").WithMessage("The colour must be a hex value like #3457D5.");
-    }
-}
+public class CreateBranchCommandValidator : BranchCommandBaseValidator<CreateBranchCommand>;
 
 public class CreateBranchCommandHandler : IRequestHandler<CreateBranchCommand, BranchDto>
 {
@@ -137,34 +321,29 @@ public class CreateBranchCommandHandler : IRequestHandler<CreateBranchCommand, B
             throw new ConflictException($"A business unit named '{name}' already exists.");
         }
 
-        var branch = new Branch { Name = name, Color = request.Color.ToUpperInvariant() };
+        var branch = new Branch();
+        BranchFieldMapper.Apply(branch, request, CustomerRules.CanEditTaxDetails(_currentUserService.Role));
 
         _context.Branches.Add(branch);
         await _context.SaveChangesAsync(cancellationToken);
 
-        return new BranchDto { Id = branch.Id, Name = branch.Name, Color = branch.Color, IsActive = true };
+        return await BranchView.ForCallerAsync(_context, _currentUserService, branch, cancellationToken);
     }
 }
 
-/// <summary>Renames a business unit, recolours it, or switches it off or on.</summary>
-public record UpdateBranchCommand : IRequest<BranchDto>
+/// <summary>Changes a business unit's name, colour and details, or switches it off or on.</summary>
+public record UpdateBranchCommand : BranchCommandBase, IRequest<BranchDto>
 {
     public Guid Id { get; init; }
-
-    public string Name { get; init; } = null!;
-
-    public string Color { get; init; } = "#3457D5";
 
     public bool IsActive { get; init; } = true;
 }
 
-public class UpdateBranchCommandValidator : AbstractValidator<UpdateBranchCommand>
+public class UpdateBranchCommandValidator : BranchCommandBaseValidator<UpdateBranchCommand>
 {
     public UpdateBranchCommandValidator()
     {
         RuleFor(x => x.Id).NotEmpty();
-        RuleFor(x => x.Name).NotEmpty().WithMessage("The business unit name is required.").MaximumLength(200);
-        RuleFor(x => x.Color).Matches("^#[0-9A-Fa-f]{6}$").WithMessage("The colour must be a hex value like #3457D5.");
     }
 }
 
@@ -193,20 +372,12 @@ public class UpdateBranchCommandHandler : IRequestHandler<UpdateBranchCommand, B
             throw new ConflictException($"A business unit named '{name}' already exists.");
         }
 
-        branch.Name = name;
-        branch.Color = request.Color.ToUpperInvariant();
+        BranchFieldMapper.Apply(branch, request, CustomerRules.CanEditTaxDetails(_currentUserService.Role));
         branch.IsActive = request.IsActive;
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return new BranchDto
-        {
-            Id = branch.Id,
-            Name = branch.Name,
-            Color = branch.Color,
-            IsActive = branch.IsActive,
-            ProjectCount = await _context.Projects.CountAsync(p => p.BranchId == branch.Id, cancellationToken),
-        };
+        return await BranchView.ForCallerAsync(_context, _currentUserService, branch, cancellationToken);
     }
 }
 
@@ -287,13 +458,6 @@ public class SetBranchProjectsCommandHandler : IRequestHandler<SetBranchProjects
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return new BranchDto
-        {
-            Id = branch.Id,
-            Name = branch.Name,
-            Color = branch.Color,
-            IsActive = branch.IsActive,
-            ProjectCount = await _context.Projects.CountAsync(p => p.BranchId == branch.Id, cancellationToken),
-        };
+        return await BranchView.ForCallerAsync(_context, _currentUserService, branch, cancellationToken);
     }
 }

@@ -297,4 +297,167 @@ public class BranchTests : IntegrationTestBase
             Assert.Equal([200m], page.Items.Select(r => r.Amount).ToArray());
         });
     }
+
+    private static async Task SignInWithTaxGrantAsync(TestScope scope, UserRole role, bool granted)
+    {
+        var user = await TestData.SeedUserAsync(scope, role);
+        user.CanViewCustomerTaxDetails = granted;
+        await scope.Db.SaveChangesAsync();
+        scope.CurrentUser.SignInAs(user.Id, role, null, user.Email);
+    }
+
+    private static CreateBranchCommand WithDetails(string name, BranchKind kind = BranchKind.LegalEntity) => new()
+    {
+        Name = name,
+        Color = "#0F8A5F",
+        Kind = kind,
+        LegalName = "Plan Concept d.o.o.",
+        Address = "Zmaja od Bosne 1",
+        City = "Sarajevo",
+        CountryCode = "ba",
+        TaxId = "4200000000001",
+        RegistrationNumber = "65-01-0000-00",
+        VatNumber = "200000000001",
+        OwnerName = "Ime Prezime",
+        ContactPerson = "Kontakt Osoba",
+        Phone = "+387 33 000 000",
+        Email = "ured@example.com",
+    };
+
+    [Fact]
+    public async Task A_super_admin_stores_a_units_details_including_its_tax_numbers()
+    {
+        var name = UniqueName("Details");
+
+        var created = await InScope(async scope =>
+        {
+            await SignInAsync(scope, UserRole.SuperAdmin);
+
+            return await scope.Send(WithDetails(name));
+        });
+
+        Assert.Equal("BA", created.CountryCode);
+        Assert.Equal("Sarajevo", created.City);
+        Assert.Equal("4200000000001", created.TaxId);
+        Assert.Equal("200000000001", created.VatNumber);
+        Assert.Equal("Kontakt Osoba", created.ContactPerson);
+    }
+
+    [Fact]
+    public async Task An_admin_sees_the_details_but_not_the_tax_numbers_until_granted()
+    {
+        var name = UniqueName("Tax");
+
+        await InScope(async scope =>
+        {
+            await SignInAsync(scope, UserRole.SuperAdmin);
+            await scope.Send(WithDetails(name));
+        });
+
+        await InScope(async scope =>
+        {
+            await SignInWithTaxGrantAsync(scope, UserRole.Admin, granted: false);
+            var unit = (await scope.Send(new GetBranchesQuery())).Single(b => b.Name == name);
+
+            Assert.Equal("Sarajevo", unit.City);
+            Assert.Equal("Ime Prezime", unit.OwnerName);
+            Assert.Null(unit.TaxId);
+            Assert.Null(unit.RegistrationNumber);
+            Assert.Null(unit.VatNumber);
+        });
+
+        await InScope(async scope =>
+        {
+            await SignInWithTaxGrantAsync(scope, UserRole.Admin, granted: true);
+            var unit = (await scope.Send(new GetBranchesQuery())).Single(b => b.Name == name);
+
+            Assert.Equal("4200000000001", unit.TaxId);
+        });
+    }
+
+    [Fact]
+    public async Task Anyone_below_management_reads_a_unit_without_its_details()
+    {
+        var name = UniqueName("Basics");
+
+        await InScope(async scope =>
+        {
+            await SignInAsync(scope, UserRole.SuperAdmin);
+            await scope.Send(WithDetails(name));
+        });
+
+        await InScope(async scope =>
+        {
+            // Even with the tax grant: a foreman reads a unit only to filter by it.
+            await SignInWithTaxGrantAsync(scope, UserRole.Foreman, granted: true);
+            var unit = (await scope.Send(new GetBranchesQuery())).Single(b => b.Name == name);
+
+            Assert.Equal(name, unit.Name);
+            Assert.Null(unit.Address);
+            Assert.Null(unit.OwnerName);
+            Assert.Null(unit.Phone);
+            Assert.Null(unit.TaxId);
+        });
+    }
+
+    [Fact]
+    public async Task An_admin_edits_the_details_and_leaves_the_tax_numbers_as_they_were()
+    {
+        var name = UniqueName("Keep");
+
+        var created = await InScope(async scope =>
+        {
+            await SignInAsync(scope, UserRole.SuperAdmin);
+
+            return await scope.Send(WithDetails(name));
+        });
+
+        await InScope(async scope =>
+        {
+            await SignInWithTaxGrantAsync(scope, UserRole.Admin, granted: false);
+
+            await scope.Send(new UpdateBranchCommand
+            {
+                Id = created.Id,
+                Name = name,
+                Color = "#0F8A5F",
+                City = "Mostar",
+                TaxId = "9999999999999",
+            });
+        });
+
+        await InScope(async scope =>
+        {
+            var stored = scope.Db.Branches.Single(b => b.Id == created.Id);
+
+            Assert.Equal("Mostar", stored.City);
+            Assert.Equal("4200000000001", stored.TaxId);
+        });
+    }
+
+    [Fact]
+    public async Task A_representative_office_may_leave_its_numbers_blank_and_a_bad_country_or_email_is_refused()
+    {
+        await InScope(async scope =>
+        {
+            await SignInAsync(scope, UserRole.SuperAdmin);
+
+            var office = await scope.Send(new CreateBranchCommand
+            {
+                Name = UniqueName("Office"),
+                Color = "#7C3AED",
+                Kind = BranchKind.RepresentativeOffice,
+                City = "Berlin",
+                CountryCode = "DE",
+            });
+
+            Assert.Equal(BranchKind.RepresentativeOffice, office.Kind);
+            Assert.Null(office.TaxId);
+
+            await Assert.ThrowsAsync<Construction.Application.Common.Exceptions.ValidationException>(
+                () => scope.Send(new CreateBranchCommand { Name = UniqueName("Bad"), Color = "#7C3AED", CountryCode = "DEU" }));
+            await Assert.ThrowsAsync<Construction.Application.Common.Exceptions.ValidationException>(
+                () => scope.Send(new CreateBranchCommand { Name = UniqueName("Bad"), Color = "#7C3AED", Email = "not-an-email" }));
+        });
+    }
 }

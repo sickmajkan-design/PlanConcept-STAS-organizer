@@ -29,6 +29,13 @@ public class InvoiceDto
 
     public string? CustomerName { get; init; }
 
+    /// <summary>The business unit the invoice's project belongs to — the unit that issues it.</summary>
+    public Guid? BranchId { get; init; }
+
+    public string? BranchName { get; init; }
+
+    public string? BranchColor { get; init; }
+
     public DateOnly IssueDate { get; init; }
 
     public DateOnly? DueDate { get; init; }
@@ -61,6 +68,9 @@ public static class InvoiceMapping
         ProjectName = i.Project.Name,
         CustomerId = i.Project.CustomerId,
         CustomerName = i.Project.Customer != null ? i.Project.Customer.Name : null,
+        BranchId = i.Project.BranchId,
+        BranchName = i.Project.Branch != null ? i.Project.Branch.Name : null,
+        BranchColor = i.Project.Branch != null ? i.Project.Branch.Color : null,
         IssueDate = i.IssueDate,
         DueDate = i.DueDate,
         Description = i.Description,

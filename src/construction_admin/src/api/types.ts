@@ -241,6 +241,9 @@ export interface ProjectDetail extends Project {
   pastEmployees: ProjectEmployee[];
 }
 
+export const branchKinds = ['LegalEntity', 'RepresentativeOffice'] as const;
+export type BranchKind = (typeof branchKinds)[number];
+
 /** One of the operator's own business units (poslovna jedinica) — never a client's company. */
 export interface Branch {
   id: string;
@@ -248,14 +251,47 @@ export interface Branch {
   /** Hex colour (#RRGGBB) of the dot shown before the name. */
   color: string;
   isActive: boolean;
+  /** A separate legal entity, or a representative office that uses the company's numbers where it has none. */
+  kind: BranchKind;
   /** A unit with projects can only be switched off, not deleted. */
   projectCount: number;
+  // The rest is for management only; anyone else gets null.
+  legalName: string | null;
+  address: string | null;
+  city: string | null;
+  postalCode: string | null;
+  /** ISO 3166-1 alpha-2. */
+  countryCode: string | null;
+  /** Tax details: null unless the account may see them. */
+  taxId: string | null;
+  registrationNumber: string | null;
+  vatNumber: string | null;
+  ownerName: string | null;
+  contactPerson: string | null;
+  phone: string | null;
+  email: string | null;
+  note: string | null;
 }
 
 export interface BranchInput {
   name: string;
   color: string;
   isActive: boolean;
+  kind: BranchKind;
+  legalName?: string | null;
+  address?: string | null;
+  city?: string | null;
+  postalCode?: string | null;
+  countryCode?: string | null;
+  /** Only a SuperAdmin writes the tax details; from anyone else the server keeps what is stored. */
+  taxId?: string | null;
+  registrationNumber?: string | null;
+  vatNumber?: string | null;
+  ownerName?: string | null;
+  contactPerson?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  note?: string | null;
 }
 
 export interface ProjectInput {

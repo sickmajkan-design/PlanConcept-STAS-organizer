@@ -1,4 +1,4 @@
-import { AddOutlined } from '@mui/icons-material';
+import { AddOutlined, PrintOutlined } from '@mui/icons-material';
 import { Box, Button, MenuItem, Stack, TextField } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useMemo, useState } from 'react';
@@ -19,6 +19,8 @@ import { useOpenOnParam } from '../../hooks/useOpenOnParam';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n } from '../../i18n/useI18n';
 import { formatDate, formatMoney } from '../../utils/formatting';
+import { BranchDot } from '../../features/branches/BranchDot';
+import { InvoiceDocumentDialog } from './InvoiceDocumentDialog';
 import { NewInvoiceDialog } from './NewInvoiceDialog';
 
 /**
@@ -37,6 +39,7 @@ export function InvoicesPage() {
   const [status, setStatus] = useState<InvoiceStatus | ''>('');
   const [creating, setCreating] = useState(false);
   const [cancelling, setCancelling] = useState<Invoice | null>(null);
+  const [viewing, setViewing] = useState<Invoice | null>(null);
   useOpenOnParam('new', () => setCreating(true));
 
   const query = useMemo(
@@ -56,6 +59,21 @@ export function InvoicesPage() {
         minWidth: 180,
         sortable: false,
         valueGetter: (_value, row) => (row.customerName ? `${row.projectName} · ${row.customerName}` : row.projectName),
+      },
+      {
+        field: 'branchName',
+        headerName: t('branches.single'),
+        width: 190,
+        sortable: false,
+        renderCell: (params) =>
+          params.row.branchName ? (
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', height: '100%' }}>
+              <BranchDot color={params.row.branchColor ?? '#999999'} />
+              <span>{params.row.branchName}</span>
+            </Stack>
+          ) : (
+            '—'
+          ),
       },
       {
         field: 'companies',
@@ -97,7 +115,7 @@ export function InvoicesPage() {
       {
         field: 'actions',
         headerName: '',
-        width: 240,
+        width: 290,
         sortable: false,
         filterable: false,
         align: 'right',
@@ -107,6 +125,9 @@ export function InvoicesPage() {
 
           return (
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', height: '100%' }}>
+              <Button size="small" startIcon={<PrintOutlined />} onClick={() => setViewing(invoice)}>
+                {t('invoices.document.open')}
+              </Button>
               {invoice.status === 'Issued' && (
                 <>
                   <Button size="small" disabled={markPaid.isPending} onClick={() => markPaid.mutate(invoice.id)}>
@@ -170,6 +191,7 @@ export function InvoicesPage() {
       />
 
       <NewInvoiceDialog open={creating} onClose={() => setCreating(false)} />
+      <InvoiceDocumentDialog invoice={viewing} onClose={() => setViewing(null)} />
       <ReasonDialog
         open={!!cancelling}
         title={t('invoices.cancelTitle')}

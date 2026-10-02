@@ -4,6 +4,7 @@ using Construction.Application.Common.Models;
 using Construction.Application.Features.Invoices.Commands.ChangeInvoiceStatus;
 using Construction.Application.Features.Invoices.Commands.CreateInvoice;
 using Construction.Application.Features.Invoices.Models;
+using Construction.Application.Features.Invoices.Queries.GetInvoiceDocument;
 using Construction.Application.Features.Invoices.Queries.GetInvoices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -31,6 +32,19 @@ public class InvoicesController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>
+    /// The data of a printed copy of one recorded invoice, with the issuing business unit's details.
+    /// </summary>
+    [HttpGet("{id:guid}/document")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(InvoiceDocumentDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<InvoiceDocumentDto>> GetDocument(Guid id, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetInvoiceDocumentQuery(id), cancellationToken));
     }
 
     /// <summary>Records an invoice, on one or more companies of the client.</summary>

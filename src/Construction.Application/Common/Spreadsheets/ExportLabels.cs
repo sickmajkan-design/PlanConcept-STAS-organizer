@@ -47,6 +47,7 @@ public static class ExportLabels
 
         ["employee"] = ("Radnik", "Employee"),
         ["project"] = ("Gradilište", "Site"),
+        ["branch"] = ("Poslovna jedinica", "Business unit"),
         ["vehicle"] = ("Vozilo", "Vehicle"),
         ["material"] = ("Materijal", "Material"),
         ["date"] = ("Datum", "Date"),

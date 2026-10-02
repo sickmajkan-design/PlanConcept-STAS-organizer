@@ -231,6 +231,8 @@ export const releaseSections: ReleaseSection[] = [
       'releaseNotes.branches1001.filter',
       'releaseNotes.branches1001.assign',
       'releaseNotes.branches1001.money',
+      'releaseNotes.branches1001.details',
+      'releaseNotes.branches1001.documents',
     ],
     audience: (user) => user.role === 'SuperAdmin' || user.role === 'Admin',
   },

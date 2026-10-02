@@ -1,5 +1,6 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
+import { branchScope } from '../../api/branchScope';
 import { useAuth } from '../../auth/useAuth';
 import { readScoped, storageScope, writeScoped } from '../../hooks/userScopedStorage';
 import { useBranchesQuery } from './useBranches';
@@ -37,6 +38,12 @@ export function BranchFilterProvider({ children }: { children: ReactNode }) {
     },
     [scope],
   );
+
+  // Downloads are started from clicks, outside React, and read the choice from here.
+  useEffect(() => {
+    branchScope.set(branchId);
+    return () => branchScope.set(undefined);
+  }, [branchId]);
 
   const value = useMemo(() => ({ branchId, setBranchId }), [branchId, setBranchId]);
 

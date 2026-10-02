@@ -1,88 +1,40 @@
 import { AccountTreeOutlined, AddOutlined, DeleteOutlined, EditOutlined } from '@mui/icons-material';
 import {
-  Alert,
-  Box,
-  Button,
   Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControlLabel,
   IconButton,
   Paper,
   Stack,
-  Switch,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableRow,
-  TextField,
   Tooltip,
+  Typography,
 } from '@mui/material';
 import { useState } from 'react';
 
-import { toApiError } from '../../api/apiError';
-import type { Branch, BranchInput } from '../../api/types';
+import type { Branch } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
 import { BranchDot } from '../../features/branches/BranchDot';
+import { BranchFormDialog } from '../../features/branches/BranchFormDialog';
 import { BranchProjectsDialog } from '../../features/branches/BranchProjectsDialog';
-import {
-  useBranchesQuery,
-  useCreateBranch,
-  useDeleteBranch,
-  useUpdateBranch,
-} from '../../features/branches/useBranches';
+import { useBranchesQuery, useDeleteBranch } from '../../features/branches/useBranches';
+import { countryLabel } from '../../data/countries';
 import { useT } from '../../i18n/useI18n';
-
-/** The palette offered for a unit's dot; any #RRGGBB the API accepts, these are just the quick picks. */
-const SWATCHES = ['#3457D5', '#0F8A5F', '#C2410C', '#7C3AED', '#0E7490', '#BE185D', '#4D7C0F', '#525252'];
-
-const emptyInput: BranchInput = { name: '', color: SWATCHES[0], isActive: true };
 
 /** Business units (poslovne jedinice) of the operator's own organisation. Admin and above. */
 export function BranchesPage() {
   const t = useT();
   const { data: branches, isLoading, isError, error, refetch } = useBranchesQuery();
-  const createBranch = useCreateBranch();
-  const updateBranch = useUpdateBranch();
   const deleteBranch = useDeleteBranch();
 
-  const [editing, setEditing] = useState<{ id?: string; input: BranchInput } | null>(null);
-  const [formError, setFormError] = useState<string | null>(null);
+  const [editing, setEditing] = useState<Branch | 'new' | null>(null);
   const [toDelete, setToDelete] = useState<Branch | null>(null);
   const [assigning, setAssigning] = useState<Branch | null>(null);
-
-  const open = (branch?: Branch) => {
-    setFormError(null);
-    setEditing(
-      branch
-        ? { id: branch.id, input: { name: branch.name, color: branch.color, isActive: branch.isActive } }
-        : { input: emptyInput },
-    );
-  };
-
-  const save = async () => {
-    if (!editing) return;
-    const input = { ...editing.input, name: editing.input.name.trim() };
-
-    if (!input.name) {
-      setFormError(t('validation.required'));
-      return;
-    }
-
-    try {
-      if (editing.id) await updateBranch.mutateAsync({ id: editing.id, input });
-      else await createBranch.mutateAsync(input);
-      setEditing(null);
-    } catch (e) {
-      setFormError(toApiError(e).message);
-    }
-  };
 
   if (isError) return <ErrorState error={error} onRetry={() => void refetch()} />;
 
@@ -91,7 +43,7 @@ export function BranchesPage() {
       <PageHeader
         title={t('branches.title')}
         description={t('branches.description')}
-        action={{ label: t('branches.add'), icon: <AddOutlined />, onClick: () => open() }}
+        action={{ label: t('branches.add'), icon: <AddOutlined />, onClick: () => setEditing('new') }}
       />
 
       {!isLoading && branches?.length === 0 ? (
@@ -102,6 +54,8 @@ export function BranchesPage() {
             <TableHead>
               <TableRow>
                 <TableCell>{t('branches.name')}</TableCell>
+                <TableCell>{t('branches.kind')}</TableCell>
+                <TableCell>{t('branches.place')}</TableCell>
                 <TableCell>{t('branches.projects')}</TableCell>
                 <TableCell>{t('branches.status')}</TableCell>
                 <TableCell />
@@ -113,8 +67,21 @@ export function BranchesPage() {
                   <TableCell>
                     <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
                       <BranchDot color={branch.color} />
-                      <span>{branch.name}</span>
+                      <Stack>
+                        <span>{branch.name}</span>
+                        {branch.legalName && branch.legalName !== branch.name && (
+                          <Typography variant="caption" color="text.secondary">
+                            {branch.legalName}
+                          </Typography>
+                        )}
+                      </Stack>
                     </Stack>
+                  </TableCell>
+                  <TableCell>
+                    {t(branch.kind === 'LegalEntity' ? 'branches.kindEntity' : 'branches.kindOffice')}
+                  </TableCell>
+                  <TableCell>
+                    {[branch.city, countryLabel(branch.countryCode)].filter(Boolean).join(', ') || '—'}
                   </TableCell>
                   <TableCell>{branch.projectCount}</TableCell>
                   <TableCell>
@@ -131,7 +98,7 @@ export function BranchesPage() {
                       </IconButton>
                     </Tooltip>
                     <Tooltip title={t('common.edit')}>
-                      <IconButton size="small" onClick={() => open(branch)}>
+                      <IconButton size="small" onClick={() => setEditing(branch)}>
                         <EditOutlined fontSize="small" />
                       </IconButton>
                     </Tooltip>
@@ -159,62 +126,7 @@ export function BranchesPage() {
 
       <BranchProjectsDialog branch={assigning} onClose={() => setAssigning(null)} />
 
-      <Dialog open={!!editing} onClose={() => setEditing(null)} fullWidth maxWidth="xs">
-        <DialogTitle>{editing?.id ? t('branches.edit') : t('branches.add')}</DialogTitle>
-        <DialogContent>
-          <Stack spacing={2.5} sx={{ pt: 1 }}>
-            {formError && <Alert severity="error">{formError}</Alert>}
-            <TextField
-              label={t('branches.name')}
-              value={editing?.input.name ?? ''}
-              onChange={(e) => setEditing((s) => s && { ...s, input: { ...s.input, name: e.target.value } })}
-              autoFocus
-              fullWidth
-              slotProps={{ htmlInput: { maxLength: 200 } }}
-            />
-            <Box>
-              <Box sx={{ mb: 1, fontSize: 13, color: 'text.secondary' }}>{t('branches.color')}</Box>
-              <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
-                {SWATCHES.map((color) => (
-                  <IconButton
-                    key={color}
-                    aria-label={color}
-                    aria-pressed={editing?.input.color === color}
-                    onClick={() => setEditing((s) => s && { ...s, input: { ...s.input, color } })}
-                    sx={{
-                      border: 2,
-                      borderColor: editing?.input.color === color ? 'text.primary' : 'transparent',
-                    }}
-                  >
-                    <BranchDot color={color} size={16} />
-                  </IconButton>
-                ))}
-              </Stack>
-            </Box>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={editing?.input.isActive ?? true}
-                  onChange={(e) =>
-                    setEditing((s) => s && { ...s, input: { ...s.input, isActive: e.target.checked } })
-                  }
-                />
-              }
-              label={t('branches.active')}
-            />
-          </Stack>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditing(null)}>{t('common.cancel')}</Button>
-          <Button
-            variant="contained"
-            onClick={() => void save()}
-            disabled={createBranch.isPending || updateBranch.isPending}
-          >
-            {t('common.save')}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <BranchFormDialog target={editing} onClose={() => setEditing(null)} />
 
       <ConfirmDialog
         open={!!toDelete}

@@ -20,6 +20,10 @@ export interface Invoice {
   projectName: string;
   customerId: string | null;
   customerName: string | null;
+  /** The business unit of the project, which issues the invoice. */
+  branchId: string | null;
+  branchName: string | null;
+  branchColor: string | null;
   issueDate: string;
   dueDate: string | null;
   description: string | null;
@@ -30,6 +34,57 @@ export interface Invoice {
   cancelReason: string | null;
   createdAt: string;
   shares: InvoiceShare[];
+}
+
+/** Who stands behind the document: the unit's data, or the company's where the unit has none. */
+export interface InvoiceIssuer {
+  name: string;
+  branchId: string | null;
+  branchName: string | null;
+  kind: 'LegalEntity' | 'RepresentativeOffice' | null;
+  address: string | null;
+  city: string | null;
+  postalCode: string | null;
+  countryCode: string | null;
+  /** Tax numbers are null unless the account may see them. */
+  taxId: string | null;
+  registrationNumber: string | null;
+  vatNumber: string | null;
+  ownerName: string | null;
+  contactPerson: string | null;
+  phone: string | null;
+  email: string | null;
+  /** The numbers shown are the company's, because the unit is an office with none of its own. */
+  usesCompanyNumbers: boolean;
+}
+
+export interface InvoiceDocumentRecipient {
+  name: string;
+  address: string | null;
+  taxId: string | null;
+  registrationNumber: string | null;
+  vatNumber: string | null;
+  amount: number;
+}
+
+/** Everything a printed copy of a recorded invoice shows. */
+export interface InvoiceDocument {
+  invoiceId: string;
+  number: string;
+  issueDate: string;
+  dueDate: string | null;
+  description: string | null;
+  amount: number;
+  status: InvoiceStatus;
+  cancelReason: string | null;
+  payrollYear: number;
+  payrollMonth: number;
+  projectName: string;
+  projectAddress: string | null;
+  customerName: string | null;
+  customerContactPerson: string | null;
+  issuer: InvoiceIssuer;
+  recipients: InvoiceDocumentRecipient[];
 }
 
 export interface InvoiceListQuery extends ListQuery {
@@ -84,6 +139,9 @@ export const invoicesApi = {
 
   create: (input: CreateInvoiceInput) =>
     request<Invoice>({ method: 'POST', url: '/api/v1/invoices', data: input }),
+
+  document: (id: string) =>
+    request<InvoiceDocument>({ method: 'GET', url: `/api/v1/invoices/${id}/document` }),
 
   markPaid: (id: string) =>
     request<Invoice>({ method: 'POST', url: `/api/v1/invoices/${id}/paid` }),

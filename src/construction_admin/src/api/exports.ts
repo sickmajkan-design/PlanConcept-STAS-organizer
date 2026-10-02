@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import { branchScope } from './branchScope';
 import { listParams } from './resource';
 
 export type ExportLanguage = 'sr' | 'en';
@@ -8,6 +9,8 @@ export interface ExportQuery {
   to: string;
   /** Headings in this language. Serbian when unset. */
   language?: ExportLanguage;
+  /** One business unit; defaults to the one chosen in the header. */
+  branchId?: string;
 }
 
 export interface TimeEntryExportQuery extends ExportQuery {
@@ -33,6 +36,8 @@ export interface DirectoryExportQuery {
   search?: string;
   status?: string;
   language?: ExportLanguage;
+  /** One business unit; defaults to the one chosen in the header. */
+  branchId?: string;
 }
 
 /**
@@ -46,11 +51,13 @@ export interface DirectoryExportQuery {
  * The file name comes from the server rather than being guessed here, so the
  * period in the name always matches the period in the file.
  */
-async function download(url: string, query: object): Promise<void> {
+async function download(url: string, query: object, byBranch = false): Promise<void> {
   const response = await apiClient.request<Blob>({
     method: 'GET',
     url,
-    params: listParams(query),
+    // An export that can be narrowed to a business unit follows the header's choice, unless the
+    // caller names one.
+    params: listParams(byBranch ? { branchId: branchScope.id, ...query } : query),
     responseType: 'blob',
   });
 
@@ -92,30 +99,30 @@ export const exportsApi = {
   ledger: (id: string) => download(`/api/v1/ledgers/${id}/export`, {}),
 
   timeEntries: (query: TimeEntryExportQuery) =>
-    download('/api/v1/exports/time-entries', query),
+    download('/api/v1/exports/time-entries', query, true),
 
   projectCosts: (query: ExportQuery & { projectId?: string }) =>
-    download('/api/v1/exports/project-costs', query),
+    download('/api/v1/exports/project-costs', query, true),
 
   vehicleCosts: (query: ExportQuery & { vehicleId?: string }) =>
-    download('/api/v1/exports/vehicle-costs', query),
+    download('/api/v1/exports/vehicle-costs', query, true),
 
   toolCosts: (query: ExportQuery & { toolId?: string }) =>
-    download('/api/v1/exports/tool-costs', query),
+    download('/api/v1/exports/tool-costs', query, true),
 
   materialMovements: (query: ExportQuery & { materialId?: string; projectId?: string }) =>
-    download('/api/v1/exports/material-movements', query),
+    download('/api/v1/exports/material-movements', query, true),
 
   absences: (query: AbsenceExportQuery) => download('/api/v1/exports/absences', query),
 
   financeEntries: (query: FinanceEntryExportQuery) =>
-    download('/api/v1/exports/finance-entries', query),
+    download('/api/v1/exports/finance-entries', query, true),
 
   employees: (query: DirectoryExportQuery) => download('/api/v1/exports/employees', query),
 
-  projects: (query: DirectoryExportQuery) => download('/api/v1/exports/projects', query),
+  projects: (query: DirectoryExportQuery) => download('/api/v1/exports/projects', query, true),
 
-  vehicles: (query: DirectoryExportQuery) => download('/api/v1/exports/vehicles', query),
+  vehicles: (query: DirectoryExportQuery) => download('/api/v1/exports/vehicles', query, true),
 
-  tools: (query: DirectoryExportQuery) => download('/api/v1/exports/tools', query),
+  tools: (query: DirectoryExportQuery) => download('/api/v1/exports/tools', query, true),
 };

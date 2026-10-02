@@ -16,6 +16,15 @@ export function useInvoicesQuery(query: InvoiceListQuery, enabled = true) {
   return useResourceList(invoiceKeys, invoicesApi.list, scoped, { enabled });
 }
 
+/** The data of a printed copy of one invoice. Idle until an invoice is chosen. */
+export function useInvoiceDocumentQuery(id: string | undefined) {
+  return useQuery({
+    queryKey: [...invoiceKeys.all, 'document', id] as const,
+    queryFn: () => invoicesApi.document(id!),
+    enabled: !!id,
+  });
+}
+
 /** An invoice changes what a fixed-sum site is billed in the payroll, so its ledgers are dropped too. */
 const caches = [invoiceKeys.all, ['ledgers'], ['customer-companies']];
 

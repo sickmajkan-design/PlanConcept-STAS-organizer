@@ -1,3 +1,4 @@
+using Construction.Application.Features.Branches;
 using Construction.Application.Features.Finance;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
@@ -77,6 +78,9 @@ public sealed record ExportTimeEntriesQuery : ExportQueryBase, IRequest<ExportFi
 
     public Guid? ProjectId { get; init; }
 
+    /// <summary>Narrows the export to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
+
     /// <summary>
     /// Only hours somebody has signed off. On by default, because an export
     /// that mixes approved and unreviewed hours is not a payroll document.
@@ -139,6 +143,11 @@ public class ExportTimeEntriesQueryHandler
             query = query.Where(t => t.ProjectId == projectId);
         }
 
+        if (request.BranchId is { } branchId)
+        {
+            query = query.Where(t => t.Project != null && t.Project.BranchId == branchId);
+        }
+
         var rows = await query
             .OrderBy(t => t.StartedAt)
             .Select(t => new
@@ -150,7 +159,8 @@ public class ExportTimeEntriesQueryHandler
                 t.BreakMinutes,
                 t.WorkType,
                 t.Status,
-                t.Note
+                t.Note,
+                Branch = t.Project != null && t.Project.Branch != null ? t.Project.Branch.Name : null
             })
             .ToListAsync(cancellationToken);
 
@@ -166,7 +176,8 @@ public class ExportTimeEntriesQueryHandler
                 new(ExportLabels.Get("worked", english), SpreadsheetValueKind.Duration),
                 new(ExportLabels.Get("workType", english), SpreadsheetValueKind.Text),
                 new(ExportLabels.Get("status", english), SpreadsheetValueKind.Text),
-                new(ExportLabels.Get("note", english), SpreadsheetValueKind.Text)
+                new(ExportLabels.Get("note", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("branch", english), SpreadsheetValueKind.Text)
             ],
             rows.Select(r => (IReadOnlyList<object?>)
             [
@@ -182,7 +193,8 @@ public class ExportTimeEntriesQueryHandler
                 (int)(r.EndedAt - r.StartedAt).TotalMinutes - r.BreakMinutes,
                 r.WorkType.ToString(),
                 r.Status.ToString(),
-                r.Note
+                r.Note,
+                r.Branch
             ]).ToList());
 
         return _writer.Render(sheet, "work-hours", request);
@@ -374,6 +386,9 @@ public class ExportEmployeesQueryHandler : IRequestHandler<ExportEmployeesQuery,
 public sealed record ExportProjectsQuery : DirectoryExportQueryBase, IRequest<ExportFile>
 {
     public ProjectStatus? Status { get; init; }
+
+    /// <summary>Narrows the export to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
 }
 
 public class ExportProjectsQueryHandler : IRequestHandler<ExportProjectsQuery, ExportFile>
@@ -413,6 +428,8 @@ public class ExportProjectsQueryHandler : IRequestHandler<ExportProjectsQuery, E
             query = query.Where(p => p.Status == status);
         }
 
+        query = query.InBranch(request.BranchId);
+
         var rows = await query
             .OrderBy(p => p.Name)
             .Select(p => new
@@ -423,7 +440,8 @@ public class ExportProjectsQueryHandler : IRequestHandler<ExportProjectsQuery, E
                 p.Address,
                 p.StartDate,
                 p.EndDate,
-                EmployeeCount = p.EmployeeAssignments.Count(a => a.EndDate == null)
+                EmployeeCount = p.EmployeeAssignments.Count(a => a.EndDate == null),
+                Branch = p.Branch != null ? p.Branch.Name : null
             })
             .ToListAsync(cancellationToken);
 
@@ -436,7 +454,8 @@ public class ExportProjectsQueryHandler : IRequestHandler<ExportProjectsQuery, E
                 new(ExportLabels.Get("address", english), SpreadsheetValueKind.Text),
                 new(ExportLabels.Get("startDate", english), SpreadsheetValueKind.Date),
                 new(ExportLabels.Get("endDate", english), SpreadsheetValueKind.Date),
-                new(ExportLabels.Get("crew", english), SpreadsheetValueKind.Integer)
+                new(ExportLabels.Get("crew", english), SpreadsheetValueKind.Integer),
+                new(ExportLabels.Get("branch", english), SpreadsheetValueKind.Text)
             ],
             rows.Select(r => (IReadOnlyList<object?>)
             [
@@ -446,7 +465,8 @@ public class ExportProjectsQueryHandler : IRequestHandler<ExportProjectsQuery, E
                 r.Address,
                 r.StartDate,
                 r.EndDate,
-                r.EmployeeCount
+                r.EmployeeCount,
+                r.Branch
             ]).ToList());
 
         return _writer.RenderSnapshot(
@@ -457,6 +477,9 @@ public class ExportProjectsQueryHandler : IRequestHandler<ExportProjectsQuery, E
 public sealed record ExportVehiclesQuery : DirectoryExportQueryBase, IRequest<ExportFile>
 {
     public VehicleStatus? Status { get; init; }
+
+    /// <summary>Narrows the export to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
 }
 
 public class ExportVehiclesQueryHandler : IRequestHandler<ExportVehiclesQuery, ExportFile>
@@ -496,6 +519,8 @@ public class ExportVehiclesQueryHandler : IRequestHandler<ExportVehiclesQuery, E
             query = query.Where(v => v.Status == status);
         }
 
+        query = query.InBranch(request.BranchId);
+
         var rows = await query
             .OrderBy(v => v.Brand).ThenBy(v => v.Model)
             .Select(v => new
@@ -507,7 +532,10 @@ public class ExportVehiclesQueryHandler : IRequestHandler<ExportVehiclesQuery, E
                 v.Status,
                 AssignedTo = v.AssignedEmployee != null
                     ? v.AssignedEmployee.FirstName + " " + v.AssignedEmployee.LastName
-                    : null
+                    : null,
+                Branch = v.Branch != null
+                    ? v.Branch.Name
+                    : v.AssignedProject != null && v.AssignedProject.Branch != null ? v.AssignedProject.Branch.Name : null
             })
             .ToListAsync(cancellationToken);
 
@@ -518,7 +546,8 @@ public class ExportVehiclesQueryHandler : IRequestHandler<ExportVehiclesQuery, E
                 new(ExportLabels.Get("registration", english), SpreadsheetValueKind.Text),
                 new(ExportLabels.Get("fuelType", english), SpreadsheetValueKind.Text),
                 new(ExportLabels.Get("status", english), SpreadsheetValueKind.Text),
-                new(ExportLabels.Get("assignedTo", english), SpreadsheetValueKind.Text)
+                new(ExportLabels.Get("assignedTo", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("branch", english), SpreadsheetValueKind.Text)
             ],
             rows.Select(r => (IReadOnlyList<object?>)
             [
@@ -526,7 +555,8 @@ public class ExportVehiclesQueryHandler : IRequestHandler<ExportVehiclesQuery, E
                 r.RegistrationNumber,
                 r.FuelType.ToString(),
                 r.Status.ToString(),
-                r.AssignedTo
+                r.AssignedTo,
+                r.Branch
             ]).ToList());
 
         return _writer.RenderSnapshot(
@@ -537,6 +567,9 @@ public class ExportVehiclesQueryHandler : IRequestHandler<ExportVehiclesQuery, E
 public sealed record ExportToolsQuery : DirectoryExportQueryBase, IRequest<ExportFile>
 {
     public ToolStatus? Status { get; init; }
+
+    /// <summary>Narrows the export to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
 }
 
 public class ExportToolsQueryHandler : IRequestHandler<ExportToolsQuery, ExportFile>
@@ -576,6 +609,8 @@ public class ExportToolsQueryHandler : IRequestHandler<ExportToolsQuery, ExportF
             query = query.Where(tool => tool.Status == status);
         }
 
+        query = query.InBranch(request.BranchId);
+
         var rows = await query
             .OrderBy(tool => tool.Name)
             .Select(tool => new
@@ -586,7 +621,10 @@ public class ExportToolsQueryHandler : IRequestHandler<ExportToolsQuery, ExportF
                 tool.Status,
                 AssignedTo = tool.AssignedEmployee != null
                     ? tool.AssignedEmployee.FirstName + " " + tool.AssignedEmployee.LastName
-                    : tool.AssignedProject != null ? tool.AssignedProject.Name : null
+                    : tool.AssignedProject != null ? tool.AssignedProject.Name : null,
+                Branch = tool.Branch != null
+                    ? tool.Branch.Name
+                    : tool.AssignedProject != null && tool.AssignedProject.Branch != null ? tool.AssignedProject.Branch.Name : null
             })
             .ToListAsync(cancellationToken);
 
@@ -597,7 +635,8 @@ public class ExportToolsQueryHandler : IRequestHandler<ExportToolsQuery, ExportF
                 new(ExportLabels.Get("category", english), SpreadsheetValueKind.Text),
                 new(ExportLabels.Get("serialNumber", english), SpreadsheetValueKind.Text),
                 new(ExportLabels.Get("status", english), SpreadsheetValueKind.Text),
-                new(ExportLabels.Get("heldBy", english), SpreadsheetValueKind.Text)
+                new(ExportLabels.Get("heldBy", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("branch", english), SpreadsheetValueKind.Text)
             ],
             rows.Select(r => (IReadOnlyList<object?>)
             [
@@ -605,7 +644,8 @@ public class ExportToolsQueryHandler : IRequestHandler<ExportToolsQuery, ExportF
                 r.Category,
                 r.SerialNumber,
                 r.Status.ToString(),
-                r.AssignedTo
+                r.AssignedTo,
+                r.Branch
             ]).ToList());
 
         return _writer.RenderSnapshot(
@@ -626,6 +666,9 @@ public class ExportToolsQueryHandler : IRequestHandler<ExportToolsQuery, ExportF
 public sealed record ExportProjectCostsQuery : ExportQueryBase, IRequest<ExportFile>
 {
     public Guid? ProjectId { get; init; }
+
+    /// <summary>Narrows the export to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
 }
 
 public class ExportProjectCostsQueryValidator
@@ -660,11 +703,20 @@ public class ExportProjectCostsQueryHandler
             {
                 From = request.From,
                 To = request.To,
-                ProjectId = request.ProjectId
+                ProjectId = request.ProjectId,
+                BranchId = request.BranchId
             },
             cancellationToken);
 
         var english = ExportLabels.IsEnglish(request.Language);
+
+        // The unit of each site, so a workbook for all units shows which one a row belongs to.
+        var reportProjectIds = report.Rows.Select(r => r.ProjectId).ToList();
+        var branchNames = await _context.Projects
+            .AsNoTracking()
+            .Where(p => reportProjectIds.Contains(p.Id) && p.Branch != null)
+            .Select(p => new { p.Id, Name = p.Branch!.Name })
+            .ToDictionaryAsync(p => p.Id, p => p.Name, cancellationToken);
 
         List<SpreadsheetColumn> columns =
         [
@@ -688,6 +740,8 @@ public class ExportProjectCostsQueryHandler
         {
             columns.Add(new(ExportLabels.Get("manualPay", english), SpreadsheetValueKind.Money));
         }
+
+        columns.Add(new(ExportLabels.Get("branch", english), SpreadsheetValueKind.Text));
 
         var rows = new List<IReadOnlyList<object?>>();
 
@@ -714,6 +768,8 @@ public class ExportProjectCostsQueryHandler
             {
                 cells.Add(row.ManualPayAmount);
             }
+
+            cells.Add(branchNames.GetValueOrDefault(row.ProjectId));
 
             rows.Add(cells);
         }
@@ -742,6 +798,8 @@ public class ExportProjectCostsQueryHandler
             {
                 totals.Add(report.TotalManualPayAmount);
             }
+
+            totals.Add(null);
 
             rows.Add(totals);
         }
@@ -775,6 +833,7 @@ public class ExportProjectCostsQueryHandler
     {
         var query = _context.FinanceEntries
             .AsNoTracking()
+            .InBranch(request.BranchId)
             .Where(e => e.OccurredOn >= request.From && e.OccurredOn <= request.To);
 
         if (request.ProjectId is { } projectId)
@@ -830,6 +889,7 @@ public class ExportProjectCostsQueryHandler
     {
         var query = _context.GeneralExpenses
             .AsNoTracking()
+            .InBranch(request.BranchId)
             .Where(e => e.OccurredOn >= request.From && e.OccurredOn <= request.To);
 
         if (request.ProjectId is { } projectId)
@@ -879,6 +939,9 @@ public class ExportProjectCostsQueryHandler
 public sealed record ExportVehicleCostsQuery : ExportQueryBase, IRequest<ExportFile>
 {
     public Guid? VehicleId { get; init; }
+
+    /// <summary>Narrows the export to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
 }
 
 public class ExportVehicleCostsQueryValidator
@@ -910,7 +973,8 @@ public class ExportVehicleCostsQueryHandler
             {
                 From = request.From,
                 To = request.To,
-                VehicleId = request.VehicleId
+                VehicleId = request.VehicleId,
+                BranchId = request.BranchId
             },
             cancellationToken);
 
@@ -988,8 +1052,11 @@ public class ExportVehicleCostsQueryHandler
     private async Task<SpreadsheetSheet> BuildVehicleExpensesSheet(
         ExportVehicleCostsQuery request, bool english, CancellationToken cancellationToken)
     {
+        var branchVehicles = await BranchScope.VehicleIdsAsync(_context, request.BranchId, cancellationToken);
+
         var query = _context.VehicleExpenses
             .AsNoTracking()
+            .Where(e => branchVehicles == null || branchVehicles.Contains(e.VehicleId))
             .Where(e => e.OccurredOn >= request.From && e.OccurredOn <= request.To);
 
         if (request.VehicleId is { } vehicleId)
@@ -1037,8 +1104,11 @@ public class ExportVehicleCostsQueryHandler
     private async Task<SpreadsheetSheet> BuildVehicleRentalRatesSheet(
         ExportVehicleCostsQuery request, bool english, CancellationToken cancellationToken)
     {
+        var branchVehicles = await BranchScope.VehicleIdsAsync(_context, request.BranchId, cancellationToken);
+
         var query = _context.VehicleRentalRates
             .AsNoTracking()
+            .Where(r => branchVehicles == null || branchVehicles.Contains(r.VehicleId))
             .Where(r => r.StartDate <= request.To && (r.EndDate == null || r.EndDate >= request.From));
 
         if (request.VehicleId is { } vehicleId)
@@ -1083,6 +1153,9 @@ public class ExportVehicleCostsQueryHandler
 public sealed record ExportToolCostsQuery : ExportQueryBase, IRequest<ExportFile>
 {
     public Guid? ToolId { get; init; }
+
+    /// <summary>Narrows the export to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
 }
 
 public class ExportToolCostsQueryValidator
@@ -1114,7 +1187,8 @@ public class ExportToolCostsQueryHandler
             {
                 From = request.From,
                 To = request.To,
-                ToolId = request.ToolId
+                ToolId = request.ToolId,
+                BranchId = request.BranchId
             },
             cancellationToken);
 
@@ -1175,8 +1249,11 @@ public class ExportToolCostsQueryHandler
     private async Task<SpreadsheetSheet> BuildToolExpensesSheet(
         ExportToolCostsQuery request, bool english, CancellationToken cancellationToken)
     {
+        var branchTools = await BranchScope.ToolIdsAsync(_context, request.BranchId, cancellationToken);
+
         var query = _context.ToolExpenses
             .AsNoTracking()
+            .Where(e => branchTools == null || branchTools.Contains(e.ToolId))
             .Where(e => e.OccurredOn >= request.From && e.OccurredOn <= request.To);
 
         if (request.ToolId is { } toolId)
@@ -1219,8 +1296,11 @@ public class ExportToolCostsQueryHandler
     private async Task<SpreadsheetSheet> BuildToolRentalRatesSheet(
         ExportToolCostsQuery request, bool english, CancellationToken cancellationToken)
     {
+        var branchTools = await BranchScope.ToolIdsAsync(_context, request.BranchId, cancellationToken);
+
         var query = _context.ToolRentalRates
             .AsNoTracking()
+            .Where(r => branchTools == null || branchTools.Contains(r.ToolId))
             .Where(r => r.StartDate <= request.To && (r.EndDate == null || r.EndDate >= request.From));
 
         if (request.ToolId is { } toolId)
@@ -1266,6 +1346,9 @@ public sealed record ExportMaterialMovementsQuery : ExportQueryBase, IRequest<Ex
     public Guid? MaterialId { get; init; }
 
     public Guid? ProjectId { get; init; }
+
+    /// <summary>Narrows the export to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
 }
 
 public class ExportMaterialMovementsQueryValidator
@@ -1301,6 +1384,7 @@ public class ExportMaterialMovementsQueryHandler
 
         var query = _context.MaterialMovements
             .AsNoTracking()
+            .InBranch(request.BranchId)
             .Where(m => m.OccurredOn >= request.From && m.OccurredOn <= request.To);
 
         if (request.MaterialId is { } materialId)
@@ -1326,7 +1410,8 @@ public class ExportMaterialMovementsQueryHandler
                 m.UnitPrice,
                 Project = m.Project != null ? m.Project.Name : null,
                 RecordedBy = m.RecordedByUser != null ? m.RecordedByUser.Email : null,
-                m.Note
+                m.Note,
+                Branch = m.Project != null && m.Project.Branch != null ? m.Project.Branch.Name : null
             })
             .ToListAsync(cancellationToken);
 
@@ -1342,7 +1427,8 @@ public class ExportMaterialMovementsQueryHandler
                 new(ExportLabels.Get("value", english), SpreadsheetValueKind.Money),
                 new(ExportLabels.Get("project", english), SpreadsheetValueKind.Text),
                 new(ExportLabels.Get("recordedBy", english), SpreadsheetValueKind.Text),
-                new(ExportLabels.Get("note", english), SpreadsheetValueKind.Text)
+                new(ExportLabels.Get("note", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("branch", english), SpreadsheetValueKind.Text)
             ],
             rows.Select(r => (IReadOnlyList<object?>)
             [
@@ -1357,7 +1443,8 @@ public class ExportMaterialMovementsQueryHandler
                 r.UnitPrice is { } price ? price * Math.Abs(r.Quantity) : null,
                 r.Project,
                 r.RecordedBy,
-                r.Note
+                r.Note,
+                r.Branch
             ]).ToList());
 
         return _writer.Render(sheet, "stock-movements", request);
@@ -1482,6 +1569,9 @@ public sealed record ExportFinanceEntriesQuery : ExportQueryBase, IRequest<Expor
     public Guid? ProjectId { get; init; }
 
     public FinanceEntryKind? Kind { get; init; }
+
+    /// <summary>Narrows the export to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
 }
 
 public class ExportFinanceEntriesQueryValidator : ExportQueryValidator<ExportFinanceEntriesQuery>;
@@ -1517,6 +1607,7 @@ public class ExportFinanceEntriesQueryHandler
 
         var query = _context.FinanceEntries
             .AsNoTracking()
+            .InBranch(request.BranchId)
             .Where(e => e.OccurredOn >= request.From && e.OccurredOn <= request.To);
 
         if (request.EmployeeId is { } employeeId)
@@ -1546,7 +1637,10 @@ public class ExportFinanceEntriesQueryHandler
                 Project = e.Project != null ? e.Project.Name : null,
                 e.HoursWorked,
                 e.Note,
-                RecordedBy = e.RecordedByUser != null ? e.RecordedByUser.Email : null
+                RecordedBy = e.RecordedByUser != null ? e.RecordedByUser.Email : null,
+                Branch = e.Branch != null
+                    ? e.Branch.Name
+                    : e.Project != null && e.Project.Branch != null ? e.Project.Branch.Name : null
             })
             .ToListAsync(cancellationToken);
 
@@ -1560,7 +1654,8 @@ public class ExportFinanceEntriesQueryHandler
                 new(ExportLabels.Get("project", english), SpreadsheetValueKind.Text),
                 new(ExportLabels.Get("hours", english), SpreadsheetValueKind.Quantity),
                 new(ExportLabels.Get("note", english), SpreadsheetValueKind.Text),
-                new(ExportLabels.Get("recordedBy", english), SpreadsheetValueKind.Text)
+                new(ExportLabels.Get("recordedBy", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("branch", english), SpreadsheetValueKind.Text)
             ],
             rows.Select(r => (IReadOnlyList<object?>)
             [
@@ -1571,7 +1666,8 @@ public class ExportFinanceEntriesQueryHandler
                 r.Project,
                 r.HoursWorked,
                 r.Note,
-                r.RecordedBy
+                r.RecordedBy,
+                r.Branch
             ]).ToList());
 
         return _writer.Render(sheet, "finance-entries", request);
