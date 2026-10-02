@@ -15,5 +15,9 @@ export const branchesApi = {
   setProjects: (id: string, projectIds: string[]) =>
     request<Branch>({ method: 'PUT', url: `/api/v1/branches/${id}/projects`, data: { projectIds } }),
 
+  /** Moves these employees into the unit from a date; everyone else keeps their unit. */
+  assignEmployees: (id: string, input: { employeeIds: string[]; from?: string; backdateNewcomers?: boolean }) =>
+    request<Branch>({ method: 'POST', url: `/api/v1/branches/${id}/employees`, data: input }),
+
   remove: (id: string) => request<void>({ method: 'DELETE', url: `/api/v1/branches/${id}` }),
 };

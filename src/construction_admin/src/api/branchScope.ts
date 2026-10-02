@@ -5,12 +5,18 @@
  * Written only by `BranchFilterProvider`; nothing else should set it.
  */
 let current: string | undefined;
+let currentBasis: 'Site' | 'Employer' = 'Site';
 
 export const branchScope = {
   get id(): string | undefined {
     return current;
   },
-  set(id: string | undefined): void {
+  /** Whose hours and pay count for the unit: those worked on its sites, or those of the people it employs. */
+  get basis(): 'Site' | 'Employer' {
+    return currentBasis;
+  },
+  set(id: string | undefined, basis: 'Site' | 'Employer' = 'Site'): void {
     current = id;
+    currentBasis = basis;
   },
 };

@@ -1,4 +1,5 @@
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
@@ -62,7 +63,8 @@ public static class ProjectLabourPricing
         DateOnly to,
         Guid? projectId,
         CancellationToken cancellationToken,
-        Guid? branchId = null)
+        Guid? branchId = null,
+        BranchBasis basis = BranchBasis.Site)
     {
         var holidays = (await context.PublicHolidays
                 .AsNoTracking()
@@ -78,7 +80,7 @@ public static class ProjectLabourPricing
                 && t.ProjectId != null
                 && t.EndedAt != null)
             .Where(t => projectId == null || t.ProjectId == projectId)
-            .Where(t => branchId == null || t.Project!.BranchId == branchId)
+            .InBranch(branchId, basis)
             .Where(t => DateOnly.FromDateTime(t.StartedAt) >= from
                 && DateOnly.FromDateTime(t.StartedAt) <= to)
             .Select(t => new

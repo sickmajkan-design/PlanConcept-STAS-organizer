@@ -11,6 +11,8 @@ import type {
 
 export interface TimeEntryListQuery extends ListQuery {
   branchId?: string;
+  /** With a unit: count hours by the unit that employed the person instead of the site. */
+  basis?: 'Employer';
   employeeId?: string;
   projectId?: string;
   status?: TimeEntryStatus;
@@ -24,6 +26,8 @@ export interface TimeEntryListQuery extends ListQuery {
 export interface TimeEntrySummaryQuery {
   from: string;
   to: string;
+  branchId?: string;
+  basis?: 'Employer';
   employeeId?: string;
   projectId?: string;
   approvedOnly?: boolean;

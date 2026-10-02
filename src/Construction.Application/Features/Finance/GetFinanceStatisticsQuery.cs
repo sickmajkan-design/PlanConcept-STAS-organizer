@@ -54,6 +54,13 @@ public record GetFinanceStatisticsQuery : IRequest<FinanceStatisticsDto>
 
     /// <summary>Narrows the figures to one business unit (poslovna jedinica).</summary>
     public Guid? BranchId { get; init; }
+
+    /// <summary>
+    /// With a business unit chosen: whose hours and pay count for it — those worked on its sites
+    /// (<see cref="BranchBasis.Site"/>, the default) or those of the people it employs on the day
+    /// (<see cref="BranchBasis.Employer"/>).
+    /// </summary>
+    public BranchBasis Basis { get; init; }
 }
 
 public class GetFinanceStatisticsQueryValidator : AbstractValidator<GetFinanceStatisticsQuery>
@@ -99,10 +106,10 @@ public class GetFinanceStatisticsQueryHandler : IRequestHandler<GetFinanceStatis
         // own finance check is stepped over; what comes back is turned into percentages here
         // and the amounts go no further. The role rules of the report still apply.
         var current = await _sender.Send(
-            new GetCompanyCostsQuery { From = request.From, To = request.To, BranchId = request.BranchId, SkipFinanceCheck = true },
+            new GetCompanyCostsQuery { From = request.From, To = request.To, BranchId = request.BranchId, Basis = request.Basis, SkipFinanceCheck = true },
             cancellationToken);
         var previous = await _sender.Send(
-            new GetCompanyCostsQuery { From = previousFrom, To = previousTo, BranchId = request.BranchId, SkipFinanceCheck = true },
+            new GetCompanyCostsQuery { From = previousFrom, To = previousTo, BranchId = request.BranchId, Basis = request.Basis, SkipFinanceCheck = true },
             cancellationToken);
 
         var revenue = await RevenueAsync(request.From, request.To, request.BranchId, cancellationToken);

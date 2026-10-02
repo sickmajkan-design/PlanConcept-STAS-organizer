@@ -1,3 +1,4 @@
+import { BranchSelectField } from '../../features/branches/BranchSelectField';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Alert,
@@ -53,6 +54,7 @@ const emptyValues: EmployeeFormValues = {
   address: '',
   dateOfBirth: '',
   employmentDate: '',
+  branchId: '',
   position: '',
   status: 'Active',
   type: 'Employee',
@@ -132,6 +134,8 @@ export function EmployeeFormPage() {
       position: values.position.trim(),
       status: values.status,
       type: values.type,
+      // Only a new employee is placed here; moving an existing one is done on their page, with a date.
+      branchId: isEdit ? undefined : values.branchId || null,
     };
 
     try {
@@ -295,6 +299,11 @@ export function EmployeeFormPage() {
                   )}
                 />
               </Grid>
+              {!isEdit && (
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <BranchSelectField control={control} name="branchId" helperText={t('employees.branch.createHint')} />
+                </Grid>
+              )}
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Controller
                   name="employmentDate"

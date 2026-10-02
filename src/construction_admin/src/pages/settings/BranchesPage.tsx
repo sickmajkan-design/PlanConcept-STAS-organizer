@@ -1,5 +1,7 @@
-import { AccountTreeOutlined, AddOutlined, DeleteOutlined, EditOutlined } from '@mui/icons-material';
+import { AccountTreeOutlined, AddOutlined, DeleteOutlined, EditOutlined, PeopleOutlined } from '@mui/icons-material';
 import {
+  Box,
+  Button,
   Chip,
   IconButton,
   Paper,
@@ -18,16 +20,16 @@ import type { Branch } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
-import { PageHeader } from '../../components/PageHeader';
 import { BranchDot } from '../../features/branches/BranchDot';
 import { BranchFormDialog } from '../../features/branches/BranchFormDialog';
+import { BranchEmployeesDialog } from '../../features/branches/BranchEmployeesDialog';
 import { BranchProjectsDialog } from '../../features/branches/BranchProjectsDialog';
 import { useBranchesQuery, useDeleteBranch } from '../../features/branches/useBranches';
 import { countryLabel } from '../../data/countries';
 import { useT } from '../../i18n/useI18n';
 
 /** Business units (poslovne jedinice) of the operator's own organisation. Admin and above. */
-export function BranchesPage() {
+export function BranchesPanel() {
   const t = useT();
   const { data: branches, isLoading, isError, error, refetch } = useBranchesQuery();
   const deleteBranch = useDeleteBranch();
@@ -35,16 +37,27 @@ export function BranchesPage() {
   const [editing, setEditing] = useState<Branch | 'new' | null>(null);
   const [toDelete, setToDelete] = useState<Branch | null>(null);
   const [assigning, setAssigning] = useState<Branch | null>(null);
+  const [assigningPeople, setAssigningPeople] = useState<Branch | null>(null);
 
   if (isError) return <ErrorState error={error} onRetry={() => void refetch()} />;
 
   return (
     <>
-      <PageHeader
-        title={t('branches.title')}
-        description={t('branches.description')}
-        action={{ label: t('branches.add'), icon: <AddOutlined />, onClick: () => setEditing('new') }}
-      />
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        spacing={2}
+        useFlexGap
+        sx={{ mb: 2, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' } }}
+      >
+        <Box sx={{ maxWidth: 640 }}>
+          <Typography variant="body2" color="text.secondary">
+            {t('branches.description')}
+          </Typography>
+        </Box>
+        <Button variant="contained" startIcon={<AddOutlined />} onClick={() => setEditing('new')}>
+          {t('branches.add')}
+        </Button>
+      </Stack>
 
       {!isLoading && branches?.length === 0 ? (
         <EmptyState message={t('branches.empty')} />
@@ -57,6 +70,7 @@ export function BranchesPage() {
                 <TableCell>{t('branches.kind')}</TableCell>
                 <TableCell>{t('branches.place')}</TableCell>
                 <TableCell>{t('branches.projects')}</TableCell>
+                <TableCell>{t('branches.employees')}</TableCell>
                 <TableCell>{t('branches.status')}</TableCell>
                 <TableCell />
               </TableRow>
@@ -84,6 +98,7 @@ export function BranchesPage() {
                     {[branch.city, countryLabel(branch.countryCode)].filter(Boolean).join(', ') || '—'}
                   </TableCell>
                   <TableCell>{branch.projectCount}</TableCell>
+                  <TableCell>{branch.employeeCount}</TableCell>
                   <TableCell>
                     <Chip
                       size="small"
@@ -92,6 +107,11 @@ export function BranchesPage() {
                     />
                   </TableCell>
                   <TableCell align="right">
+                    <Tooltip title={t('branches.assignEmployees')}>
+                      <IconButton size="small" onClick={() => setAssigningPeople(branch)}>
+                        <PeopleOutlined fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
                     <Tooltip title={t('branches.assignProjects')}>
                       <IconButton size="small" onClick={() => setAssigning(branch)}>
                         <AccountTreeOutlined fontSize="small" />
@@ -125,6 +145,7 @@ export function BranchesPage() {
       )}
 
       <BranchProjectsDialog branch={assigning} onClose={() => setAssigning(null)} />
+      <BranchEmployeesDialog branch={assigningPeople} onClose={() => setAssigningPeople(null)} />
 
       <BranchFormDialog target={editing} onClose={() => setEditing(null)} />
 

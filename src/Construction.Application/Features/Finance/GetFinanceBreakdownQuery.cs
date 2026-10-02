@@ -1,4 +1,5 @@
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Application.Features.Costs.Queries.GetCompanyCosts;
 using Construction.Application.Features.Costs.Queries.GetProjectCosts;
 using FluentValidation;
@@ -57,6 +58,13 @@ public record GetFinanceBreakdownQuery : IRequest<FinanceBreakdownDto>
 
     /// <summary>Narrows the figures to one business unit (poslovna jedinica).</summary>
     public Guid? BranchId { get; init; }
+
+    /// <summary>
+    /// With a business unit chosen: whose hours and pay count for it — those worked on its sites
+    /// (<see cref="BranchBasis.Site"/>, the default) or those of the people it employs on the day
+    /// (<see cref="BranchBasis.Employer"/>).
+    /// </summary>
+    public BranchBasis Basis { get; init; }
 }
 
 public class GetFinanceBreakdownQueryValidator : AbstractValidator<GetFinanceBreakdownQuery>
@@ -116,7 +124,7 @@ public class GetFinanceBreakdownQueryHandler : IRequestHandler<GetFinanceBreakdo
         }
 
         var costs = await _sender.Send(
-            new GetCompanyCostsQuery { From = request.From, To = request.To, BranchId = request.BranchId },
+            new GetCompanyCostsQuery { From = request.From, To = request.To, BranchId = request.BranchId, Basis = request.Basis },
             cancellationToken);
 
         return Build(request, costs.IncludesLabour,

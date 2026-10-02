@@ -442,12 +442,12 @@ export function useDeleteToolRentalOut() {
 // ---- finance entries --------------------------------------------------------
 
 export function useFinanceEntriesQuery(query: FinanceEntryListQuery) {
-  const scoped = useBranchScoped(query);
+  const scoped = useBranchScoped(query, { people: true });
   return useResourceList(financeEntryKeys, costsApi.financeEntries.list, scoped);
 }
 
 export function useFinanceEntriesSummaryQuery(query: FinanceEntryListQuery) {
-  const scoped = useBranchScoped(query);
+  const scoped = useBranchScoped(query, { people: true });
   const params = summaryParams(scoped);
   return useQuery({
     queryKey: [...financeEntryKeys.all, 'summary', params],

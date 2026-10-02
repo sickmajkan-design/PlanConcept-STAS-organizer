@@ -40,6 +40,36 @@ public static class BranchScope
                 || (e.BranchId == null && e.Project != null && e.Project.BranchId == id))
             : query;
 
+    /// <summary>Hours of one unit, counted by the site they were worked on or by the unit that employed the person.</summary>
+    public static IQueryable<TimeEntry> InBranch(this IQueryable<TimeEntry> query, Guid? branchId, BranchBasis basis)
+    {
+        if (branchId is not { } id)
+        {
+            return query;
+        }
+
+        return basis == BranchBasis.Employer
+            ? query.Where(t => t.Employee.BranchPeriods.Any(p => p.BranchId == id
+                && p.StartDate <= DateOnly.FromDateTime(t.StartedAt)
+                && (p.EndDate == null || p.EndDate >= DateOnly.FromDateTime(t.StartedAt))))
+            : query.Where(t => t.Project != null && t.Project.BranchId == id);
+    }
+
+    /// <summary>Manual pay of one unit, counted by where it was booked or by the unit that employed the person that day.</summary>
+    public static IQueryable<FinanceEntry> InBranch(this IQueryable<FinanceEntry> query, Guid? branchId, BranchBasis basis)
+    {
+        if (branchId is not { } id)
+        {
+            return query;
+        }
+
+        return basis == BranchBasis.Employer
+            ? query.Where(e => e.Employee.BranchPeriods.Any(p => p.BranchId == id
+                && p.StartDate <= e.OccurredOn
+                && (p.EndDate == null || p.EndDate >= e.OccurredOn)))
+            : query.InBranch(branchId);
+    }
+
     public static IQueryable<CompanyRevenue> InBranch(this IQueryable<CompanyRevenue> query, Guid? branchId) =>
         branchId is { } id ? query.Where(r => r.BranchId == id) : query;
 

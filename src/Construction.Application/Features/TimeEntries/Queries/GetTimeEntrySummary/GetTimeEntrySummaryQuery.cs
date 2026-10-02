@@ -1,4 +1,5 @@
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Application.Features.TimeEntries.Models;
 using Construction.Domain.Enums;
 using FluentValidation;
@@ -25,6 +26,16 @@ public record GetTimeEntrySummaryQuery : IRequest<TimeEntrySummaryDto>
     public Guid? EmployeeId { get; init; }
 
     public Guid? ProjectId { get; init; }
+
+    /// <summary>Narrows the summary to one business unit (poslovna jedinica).</summary>
+    public Guid? BranchId { get; init; }
+
+    /// <summary>
+    /// With a business unit chosen: whose hours and pay count for it — those worked on its sites
+    /// (<see cref="BranchBasis.Site"/>, the default) or those of the people it employs on the day
+    /// (<see cref="BranchBasis.Employer"/>).
+    /// </summary>
+    public BranchBasis Basis { get; init; }
 
     /// <summary>
     /// When true, counts only signed-off hours. That is the honest basis for
@@ -107,6 +118,8 @@ public class GetTimeEntrySummaryQueryHandler
         {
             query = query.Where(t => t.ProjectId == projectId);
         }
+
+        query = query.InBranch(request.BranchId, request.Basis);
 
         if (request.ApprovedOnly)
         {

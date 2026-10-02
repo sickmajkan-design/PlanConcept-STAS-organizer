@@ -1,3 +1,4 @@
+import { EmployeeBranchCard } from '../../features/branches/EmployeeBranchCard';
 import {
   MarkEmailReadOutlined,
   AddOutlined,
@@ -214,6 +215,10 @@ export function EmployeeDetailPage() {
               </Stack>
             </CardContent>
           </Card>
+        </Grid>
+
+        <Grid size={12}>
+          <EmployeeBranchCard employeeId={employee.id} employmentDate={employee.employmentDate} history={employee.branchHistory} />
         </Grid>
 
         <Grid size={12}>

@@ -131,10 +131,14 @@ export interface CostReportQuery {
   to: string;
   /** Narrows the report to one business unit (poslovna jedinica). */
   branchId?: string;
+  /** With a unit: count labour and pay by the unit that employed the person instead of the site. */
+  basis?: 'Employer';
 }
 
 export interface FinanceEntryListQuery extends ListQuery {
   branchId?: string;
+  /** With a unit: count pay by the unit that employed the person that day instead of where it was booked. */
+  basis?: 'Employer';
   employeeId?: string;
   projectId?: string;
   kind?: FinanceEntryKind;

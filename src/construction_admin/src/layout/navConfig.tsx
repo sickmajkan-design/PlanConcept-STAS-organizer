@@ -28,7 +28,6 @@ import {
   HomeOutlined,
   HomeWorkOutlined,
   TableChartOutlined,
-  DomainOutlined,
   FolderSharedOutlined,
   ScheduleSendOutlined,
   WorkOutlined,
@@ -291,7 +290,7 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
                 icon: <FolderOutlined />,
               },
               { label: t('nav.users'), path: paths.users, icon: <ManageAccountsOutlined /> },
-              { label: t('nav.branches'), path: paths.branches, icon: <AccountTreeOutlined /> },
+              { label: t('nav.organization'), path: paths.organization, icon: <AccountTreeOutlined /> },
               {
                 label: t('nav.notificationGroups'),
                 path: paths.notificationGroups,
@@ -319,11 +318,6 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
             icon: <SecurityOutlined />,
             items: [
               { label: t('nav.ledgers'), path: paths.ledgers, icon: <TableChartOutlined /> },
-              {
-                label: t('nav.companySettings'),
-                path: paths.companySettings,
-                icon: <DomainOutlined />,
-              },
             ],
           } satisfies NavGroup,
         ]

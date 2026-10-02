@@ -44,6 +44,7 @@ export const employeeFormSchema = z
       .or(z.literal('')),
     dateOfBirth: z.string().optional().or(z.literal('')),
     employmentDate: z.string().min(1, { error: zodMsg('validation.required') }),
+    branchId: z.string().optional().or(z.literal('')),
     position: z
       .string()
       .trim()

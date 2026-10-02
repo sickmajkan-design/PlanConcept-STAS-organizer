@@ -113,6 +113,8 @@ public interface IApplicationDbContext
 
     DbSet<Branch> Branches { get; }
 
+    DbSet<EmployeeBranch> EmployeeBranches { get; }
+
     DbSet<BulletinPost> BulletinPosts { get; }
 
     DbSet<BulletinView> BulletinViews { get; }

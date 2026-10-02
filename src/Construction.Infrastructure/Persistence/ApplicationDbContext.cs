@@ -118,6 +118,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<Branch> Branches => Set<Branch>();
 
+    public DbSet<EmployeeBranch> EmployeeBranches => Set<EmployeeBranch>();
+
     public DbSet<BulletinPost> BulletinPosts => Set<BulletinPost>();
 
     public DbSet<BulletinView> BulletinViews => Set<BulletinView>();

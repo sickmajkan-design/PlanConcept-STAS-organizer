@@ -51,13 +51,22 @@ export interface DirectoryExportQuery {
  * The file name comes from the server rather than being guessed here, so the
  * period in the name always matches the period in the file.
  */
-async function download(url: string, query: object, byBranch = false): Promise<void> {
+async function download(url: string, query: object, byBranch = false, aboutPeople = false): Promise<void> {
   const response = await apiClient.request<Blob>({
     method: 'GET',
     url,
     // An export that can be narrowed to a business unit follows the header's choice, unless the
     // caller names one.
-    params: listParams(byBranch ? { branchId: branchScope.id, ...query } : query),
+    params: listParams(
+      byBranch
+        ? {
+            branchId: branchScope.id,
+            // Hours and pay can be counted by the unit that employed the person instead of the site.
+            basis: aboutPeople && branchScope.id && branchScope.basis === 'Employer' ? 'Employer' : undefined,
+            ...query,
+          }
+        : query,
+    ),
     responseType: 'blob',
   });
 
@@ -99,7 +108,7 @@ export const exportsApi = {
   ledger: (id: string) => download(`/api/v1/ledgers/${id}/export`, {}),
 
   timeEntries: (query: TimeEntryExportQuery) =>
-    download('/api/v1/exports/time-entries', query, true),
+    download('/api/v1/exports/time-entries', query, true, true),
 
   projectCosts: (query: ExportQuery & { projectId?: string }) =>
     download('/api/v1/exports/project-costs', query, true),
@@ -116,9 +125,9 @@ export const exportsApi = {
   absences: (query: AbsenceExportQuery) => download('/api/v1/exports/absences', query),
 
   financeEntries: (query: FinanceEntryExportQuery) =>
-    download('/api/v1/exports/finance-entries', query, true),
+    download('/api/v1/exports/finance-entries', query, true, true),
 
-  employees: (query: DirectoryExportQuery) => download('/api/v1/exports/employees', query),
+  employees: (query: DirectoryExportQuery) => download('/api/v1/exports/employees', query, true),
 
   projects: (query: DirectoryExportQuery) => download('/api/v1/exports/projects', query, true),
 

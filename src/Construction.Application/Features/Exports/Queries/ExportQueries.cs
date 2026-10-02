@@ -82,6 +82,13 @@ public sealed record ExportTimeEntriesQuery : ExportQueryBase, IRequest<ExportFi
     public Guid? BranchId { get; init; }
 
     /// <summary>
+    /// With a business unit chosen: whose hours and pay count for it — those worked on its sites
+    /// (<see cref="BranchBasis.Site"/>, the default) or those of the people it employs on the day
+    /// (<see cref="BranchBasis.Employer"/>).
+    /// </summary>
+    public BranchBasis Basis { get; init; }
+
+    /// <summary>
     /// Only hours somebody has signed off. On by default, because an export
     /// that mixes approved and unreviewed hours is not a payroll document.
     /// </summary>
@@ -143,10 +150,7 @@ public class ExportTimeEntriesQueryHandler
             query = query.Where(t => t.ProjectId == projectId);
         }
 
-        if (request.BranchId is { } branchId)
-        {
-            query = query.Where(t => t.Project != null && t.Project.BranchId == branchId);
-        }
+        query = query.InBranch(request.BranchId, request.Basis);
 
         var rows = await query
             .OrderBy(t => t.StartedAt)
@@ -303,6 +307,9 @@ public abstract record DirectoryExportQueryBase
 public sealed record ExportEmployeesQuery : DirectoryExportQueryBase, IRequest<ExportFile>
 {
     public EmployeeStatus? Status { get; init; }
+
+    /// <summary>Narrows the export to the employees of one business unit — the unit that employs them now.</summary>
+    public Guid? BranchId { get; init; }
 }
 
 public class ExportEmployeesQueryHandler : IRequestHandler<ExportEmployeesQuery, ExportFile>
@@ -342,6 +349,11 @@ public class ExportEmployeesQueryHandler : IRequestHandler<ExportEmployeesQuery,
             query = query.Where(e => e.Status == status);
         }
 
+        if (request.BranchId is { } branchId)
+        {
+            query = query.Where(e => e.BranchPeriods.Any(p => p.BranchId == branchId && p.EndDate == null));
+        }
+
         var rows = await query
             .OrderBy(e => e.LastName).ThenBy(e => e.FirstName)
             .Select(e => new
@@ -352,7 +364,8 @@ public class ExportEmployeesQueryHandler : IRequestHandler<ExportEmployeesQuery,
                 e.Status,
                 e.Phone,
                 e.Email,
-                e.EmploymentDate
+                e.EmploymentDate,
+                Branch = e.BranchPeriods.Where(p => p.EndDate == null).Select(p => p.Branch.Name).FirstOrDefault()
             })
             .ToListAsync(cancellationToken);
 
@@ -365,7 +378,8 @@ public class ExportEmployeesQueryHandler : IRequestHandler<ExportEmployeesQuery,
                 new(ExportLabels.Get("status", english), SpreadsheetValueKind.Text),
                 new(ExportLabels.Get("phone", english), SpreadsheetValueKind.Text),
                 new(ExportLabels.Get("email", english), SpreadsheetValueKind.Text),
-                new(ExportLabels.Get("employedOn", english), SpreadsheetValueKind.Date)
+                new(ExportLabels.Get("employedOn", english), SpreadsheetValueKind.Date),
+                new(ExportLabels.Get("branch", english), SpreadsheetValueKind.Text)
             ],
             rows.Select(r => (IReadOnlyList<object?>)
             [
@@ -375,7 +389,8 @@ public class ExportEmployeesQueryHandler : IRequestHandler<ExportEmployeesQuery,
                 r.Status.ToString(),
                 r.Phone,
                 r.Email,
-                r.EmploymentDate
+                r.EmploymentDate,
+                r.Branch
             ]).ToList());
 
         return _writer.RenderSnapshot(
@@ -1572,6 +1587,13 @@ public sealed record ExportFinanceEntriesQuery : ExportQueryBase, IRequest<Expor
 
     /// <summary>Narrows the export to one business unit (poslovna jedinica).</summary>
     public Guid? BranchId { get; init; }
+
+    /// <summary>
+    /// With a business unit chosen: whose hours and pay count for it — those worked on its sites
+    /// (<see cref="BranchBasis.Site"/>, the default) or those of the people it employs on the day
+    /// (<see cref="BranchBasis.Employer"/>).
+    /// </summary>
+    public BranchBasis Basis { get; init; }
 }
 
 public class ExportFinanceEntriesQueryValidator : ExportQueryValidator<ExportFinanceEntriesQuery>;
@@ -1607,7 +1629,7 @@ public class ExportFinanceEntriesQueryHandler
 
         var query = _context.FinanceEntries
             .AsNoTracking()
-            .InBranch(request.BranchId)
+            .InBranch(request.BranchId, request.Basis)
             .Where(e => e.OccurredOn >= request.From && e.OccurredOn <= request.To);
 
         if (request.EmployeeId is { } employeeId)

@@ -51,6 +51,9 @@ public class Employee : BaseEntity, ISoftDeletable, IAuditable
 
     public ICollection<EmployeeProject> ProjectAssignments { get; set; } = new List<EmployeeProject>();
 
+    /// <summary>The business units this employee has been employed in, dated; see <see cref="EmployeeBranch"/>.</summary>
+    public ICollection<EmployeeBranch> BranchPeriods { get; set; } = new List<EmployeeBranch>();
+
     public ICollection<Vehicle> AssignedVehicles { get; set; } = new List<Vehicle>();
 
     public ICollection<Tool> AssignedTools { get; set; } = new List<Tool>();

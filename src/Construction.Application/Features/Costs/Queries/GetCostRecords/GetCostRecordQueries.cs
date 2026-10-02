@@ -673,6 +673,13 @@ public class GetVehicleExpensesSummaryQueryHandler
 
 public record GetFinanceEntriesQuery : ISortablePagedQuery, IRequest<PagedList<FinanceEntryDto>>
 {
+    /// <summary>
+    /// With a business unit chosen: whose hours and pay count for it — those worked on its sites
+    /// (<see cref="BranchBasis.Site"/>, the default) or those of the people it employs on the day
+    /// (<see cref="BranchBasis.Employer"/>).
+    /// </summary>
+    public BranchBasis Basis { get; init; }
+
     public static readonly string[] AllowedSortFields =
     [
         "employeeName", "kind", "amount", "hoursWorked", "occurredOn", "projectName",
@@ -739,7 +746,7 @@ public class GetFinanceEntriesQueryHandler
 
         var query = _context.FinanceEntries.AsNoTracking();
 
-        query = query.InBranch(request.BranchId);
+        query = query.InBranch(request.BranchId, request.Basis);
 
         if (request.EmployeeId is { } employeeId)
         {
@@ -816,6 +823,13 @@ public class GetFinanceEntriesQueryHandler
 /// <summary>The count and total of whatever the finance-entries list is currently filtered to.</summary>
 public record GetFinanceEntriesSummaryQuery : IRequest<FinanceEntrySummaryDto>
 {
+    /// <summary>
+    /// With a business unit chosen: whose hours and pay count for it — those worked on its sites
+    /// (<see cref="BranchBasis.Site"/>, the default) or those of the people it employs on the day
+    /// (<see cref="BranchBasis.Employer"/>).
+    /// </summary>
+    public BranchBasis Basis { get; init; }
+
     public Guid? EmployeeId { get; init; }
 
     /// <summary>Narrows the records to one business unit (poslovna jedinica).</summary>
@@ -855,7 +869,7 @@ public class GetFinanceEntriesSummaryQueryHandler
 
         var query = _context.FinanceEntries.AsNoTracking();
 
-        query = query.InBranch(request.BranchId);
+        query = query.InBranch(request.BranchId, request.Basis);
 
         if (request.EmployeeId is { } employeeId)
         {

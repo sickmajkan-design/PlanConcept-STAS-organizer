@@ -7,7 +7,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Construction.Application.Features.Employees.Commands.CreateEmployee;
 
-public record CreateEmployeeCommand : EmployeeCommandBase, IRequest<EmployeeDto>;
+public record CreateEmployeeCommand : EmployeeCommandBase, IRequest<EmployeeDto>
+{
+    /// <summary>The business unit that employs them, from their employment date. Optional.</summary>
+    public Guid? BranchId { get; init; }
+}
 
 public class CreateEmployeeCommandValidator : EmployeeCommandBaseValidator<CreateEmployeeCommand>;
 
@@ -49,7 +53,15 @@ public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeComman
             Type = request.Type
         };
 
+        var branch = await Branches.BranchLookup.LoadAsync(_context, request.BranchId, cancellationToken);
+
         _context.Employees.Add(employee);
+
+        if (branch is not null)
+        {
+            // The unit is set as well as its id: the DTO is built from this object, not read back.
+            employee.BranchPeriods.Add(new EmployeeBranch { BranchId = branch.Id, Branch = branch, StartDate = request.EmploymentDate });
+        }
 
         await _context.SaveChangesAsync(cancellationToken);
 

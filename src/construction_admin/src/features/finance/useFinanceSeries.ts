@@ -10,11 +10,12 @@ import { useFinancePeriod } from './PeriodContext';
  */
 export function useFinanceSeries() {
   const { period, granularity } = useFinancePeriod();
-  const { branchId } = useBranchFilter();
+  const { branchId, basis } = useBranchFilter();
+  const people = branchId && basis === 'Employer' ? 'Employer' : undefined;
 
   return useQuery({
-    queryKey: ['finance', 'series', period.from, period.to, granularity, branchId ?? null] as const,
-    queryFn: () => financeApi.series({ from: period.from, to: period.to, granularity, branchId }),
+    queryKey: ['finance', 'series', period.from, period.to, granularity, branchId ?? null, people ?? null] as const,
+    queryFn: () => financeApi.series({ from: period.from, to: period.to, granularity, branchId, basis: people }),
     // Money changes when somebody records it; a few minutes stale is honest.
     staleTime: 60_000,
     refetchInterval: 5 * 60_000,
@@ -24,6 +25,7 @@ export function useFinanceSeries() {
 /** The per-project figures for the board's shared period. */
 export function useFinanceByProject(top: number) {
   const { period } = useFinancePeriod();
+  // Per-site figures stay by site whichever basis is chosen: a site is the unit it belongs to.
   const { branchId } = useBranchFilter();
 
   return useQuery({
@@ -37,11 +39,12 @@ export function useFinanceByProject(top: number) {
 /** What the spending was on — the whole company's, or one project's when a project is given. */
 export function useFinanceBreakdown(projectId?: string) {
   const { period } = useFinancePeriod();
-  const { branchId } = useBranchFilter();
+  const { branchId, basis } = useBranchFilter();
+  const people = branchId && basis === 'Employer' ? 'Employer' : undefined;
 
   return useQuery({
-    queryKey: ['finance', 'breakdown', period.from, period.to, projectId ?? null, branchId ?? null] as const,
-    queryFn: () => financeApi.breakdown({ from: period.from, to: period.to, projectId, branchId }),
+    queryKey: ['finance', 'breakdown', period.from, period.to, projectId ?? null, branchId ?? null, people ?? null] as const,
+    queryFn: () => financeApi.breakdown({ from: period.from, to: period.to, projectId, branchId, basis: people }),
     staleTime: 60_000,
     refetchInterval: 5 * 60_000,
   });

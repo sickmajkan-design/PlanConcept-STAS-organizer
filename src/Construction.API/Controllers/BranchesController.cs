@@ -65,6 +65,25 @@ public class BranchesController : ApiControllerBase
         return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
     }
 
+    /// <summary>
+    /// Moves several employees into a business unit from a date. Everyone else keeps their unit.
+    /// All or nothing. Admin and above.
+    /// </summary>
+    [HttpPost("/api/v{version:apiVersion}/branches/{id:guid}/employees")]
+    [HttpPost("/api/branches/{id:guid}/employees")]
+    [ProducesResponseType(typeof(BranchDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<BranchDto>> AssignEmployees(
+        Guid id,
+        AssignEmployeesToBranchCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
+    }
+
     /// <summary>Deletes a business unit with no projects. Admin and above.</summary>
     [HttpDelete("/api/v{version:apiVersion}/branches/{id:guid}")]
     [HttpDelete("/api/branches/{id:guid}")]

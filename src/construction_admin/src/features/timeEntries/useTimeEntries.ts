@@ -40,7 +40,7 @@ const timeEntryCaches = [timeEntryKeys.all];
  * map's own `refetchInterval`.
  */
 export function useTimeEntriesQuery(query: TimeEntryListQuery, enabled = true) {
-  const scoped = useBranchScoped(query);
+  const scoped = useBranchScoped(query, { people: true });
   return useResourceList(timeEntryKeys, timeEntriesApi.list, scoped, {
     refetchInterval: config.workTimeRefreshMs,
     enabled,
@@ -55,9 +55,10 @@ export function useTimeEntrySummaryQuery(
   query: TimeEntrySummaryQuery,
   enabled = true,
 ) {
+  const scoped = useBranchScoped(query, { people: true });
   return useQuery({
-    queryKey: summaryKey(query),
-    queryFn: () => timeEntriesApi.summary(query),
+    queryKey: summaryKey(scoped),
+    queryFn: () => timeEntriesApi.summary(scoped),
     enabled,
   });
 }

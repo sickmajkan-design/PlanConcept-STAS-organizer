@@ -1,3 +1,4 @@
+import { employeesApi } from '../../api/employees';
 import { useQuery } from '@tanstack/react-query';
 
 import { branchesApi } from '../../api/branches';
@@ -10,7 +11,11 @@ export const branchKeys = createResourceKeys<never>('branches');
 export function useBranchesQuery(enabled = true) {
   return useQuery({
     queryKey: branchKeys.all,
-    queryFn: () => branchesApi.list(),
+    // Always a list: a screen under test, or a proxy answering with something else, must not take a form down.
+    queryFn: async () => {
+      const branches = await branchesApi.list();
+      return Array.isArray(branches) ? branches : [];
+    },
     staleTime: 60_000,
     enabled,
   });
@@ -38,5 +43,30 @@ export function useSetBranchProjects() {
   return useResourceMutation(
     ({ id, projectIds }: { id: string; projectIds: string[] }) => branchesApi.setProjects(id, projectIds),
     [branchKeys.all, ['projects'], ['vehicles'], ['tools']],
+  );
+}
+
+// A move changes who an employee's hours and pay belong to, so everything that groups by unit is dropped.
+const employeeCaches = [branchKeys.all, ['employees'], ['timeEntries'], ['finance'], ['costs']] as const;
+
+export function useSetEmployeeBranch(employeeId: string) {
+  return useResourceMutation(
+    (input: { branchId: string | null; from?: string }) => employeesApi.setBranch(employeeId, input),
+    employeeCaches,
+  );
+}
+
+export function useRemoveEmployeeBranchPeriod(employeeId: string) {
+  return useResourceMutation(
+    (periodId: string) => employeesApi.removeBranchPeriod(employeeId, periodId),
+    employeeCaches,
+  );
+}
+
+export function useAssignEmployeesToBranch() {
+  return useResourceMutation(
+    ({ id, employeeIds, from, backdateNewcomers }: { id: string; employeeIds: string[]; from?: string; backdateNewcomers?: boolean }) =>
+      branchesApi.assignEmployees(id, { employeeIds, from, backdateNewcomers }),
+    employeeCaches,
   );
 }

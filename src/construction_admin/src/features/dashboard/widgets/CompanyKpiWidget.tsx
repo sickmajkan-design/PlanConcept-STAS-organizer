@@ -44,13 +44,14 @@ export function CompanyKpiWidget({ instanceId: _instanceId, onRemove, onExpandWi
   const to = today();
 
   const { user } = useAuth();
-  const { branchId } = useBranchFilter();
+  const { branchId, basis } = useBranchFilter();
+  const people = branchId && basis === 'Employer' ? 'Employer' : undefined;
   const mayViewFinance = canViewFinance(user);
 
   const costQuery = useQuery({
-    queryKey: ['dashboard', 'kpi', 'company-cost-this-month', from, to, branchId ?? null] as const,
+    queryKey: ['dashboard', 'kpi', 'company-cost-this-month', from, to, branchId ?? null, people ?? null] as const,
     // Everything the company spent, not only what is tied to a project.
-    queryFn: () => costsApi.companyReport({ from, to, branchId }),
+    queryFn: () => costsApi.companyReport({ from, to, branchId, basis: people }),
     // The server refuses this to anyone without the finance right, which
     // would put the whole widget into its error state over one tile.
     enabled: mayViewFinance,

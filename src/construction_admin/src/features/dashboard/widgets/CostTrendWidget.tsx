@@ -31,14 +31,15 @@ function monthBounds(monthsAgo: number): { from: string; to: string; label: Date
 export function CostTrendWidget({ instanceId: _instanceId, onRemove, onExpandWidth }: DashboardWidgetProps) {
   const { t, locale } = useI18n();
   const chartSize = useElementSize<HTMLDivElement>();
-  const { branchId } = useBranchFilter();
+  const { branchId, basis } = useBranchFilter();
+  const people = branchId && basis === 'Employer' ? 'Employer' : undefined;
 
   const months = Array.from({ length: MONTHS_SHOWN }, (_, i) => monthBounds(MONTHS_SHOWN - 1 - i));
 
   const results = useQueries({
     queries: months.map((month) => ({
-      queryKey: ['dashboard', 'company-cost-trend', month.from, month.to, branchId ?? null] as const,
-      queryFn: () => costsApi.companyReport({ from: month.from, to: month.to, branchId }),
+      queryKey: ['dashboard', 'company-cost-trend', month.from, month.to, branchId ?? null, people ?? null] as const,
+      queryFn: () => costsApi.companyReport({ from: month.from, to: month.to, branchId, basis: people }),
     })),
   });
 

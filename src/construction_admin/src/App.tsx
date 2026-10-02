@@ -74,8 +74,8 @@ const UserFormPage = lazy(() =>
 );
 import { BranchFilterProvider } from './features/branches/BranchContext';
 
-const BranchesPage = lazy(() =>
-  import('./pages/settings/BranchesPage').then((m) => ({ default: m.BranchesPage })),
+const OrganizationPage = lazy(() =>
+  import('./pages/settings/OrganizationPage').then((m) => ({ default: m.OrganizationPage })),
 );
 const NotificationGroupsListPage = lazy(() =>
   import('./pages/notificationGroups/NotificationGroupsListPage').then((m) => ({
@@ -245,11 +245,6 @@ const AccommodationDetailPage = lazy(() =>
 const LedgersListPage = lazy(() =>
   import('./pages/ledgers/LedgersListPage').then((m) => ({
     default: m.LedgersListPage,
-  })),
-);
-const CompanySettingsPage = lazy(() =>
-  import('./pages/settings/CompanySettingsPage').then((m) => ({
-    default: m.CompanySettingsPage,
   })),
 );
 const LedgerDetailPage = lazy(() =>
@@ -495,7 +490,9 @@ function Layout() {
                 path={`${paths.notificationGroups}/:id/edit`}
                 element={<NotificationGroupFormPage />}
               />
-              <Route path={paths.branches} element={<BranchesPage />} />
+              <Route path={paths.organization} element={<OrganizationPage />} />
+              <Route path={paths.branches} element={<Navigate to={paths.organizationBranches} replace />} />
+              <Route path={paths.companySettings} element={<Navigate to={paths.organizationCompany} replace />} />
               <Route path={paths.scheduledReports} element={<ScheduledReportsListPage />} />
             </Route>
 
@@ -504,7 +501,6 @@ function Layout() {
             <Route element={<RequireSuperAdmin />}>
               <Route path={paths.ledgers} element={<LedgersListPage />} />
               <Route path={`${paths.ledgers}/:id`} element={<LedgerDetailPage />} />
-              <Route path={paths.companySettings} element={<CompanySettingsPage />} />
             </Route>
 
             <Route path="*" element={<Navigate to={paths.home} replace />} />

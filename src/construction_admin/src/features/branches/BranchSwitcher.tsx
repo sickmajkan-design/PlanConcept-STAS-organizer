@@ -1,5 +1,17 @@
 import { CheckOutlined, ExpandMoreOutlined, SettingsOutlined } from '@mui/icons-material';
-import { Box, Button, Divider, ListItemIcon, Menu, MenuItem, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Chip,
+  Divider,
+  ListItemIcon,
+  Menu,
+  MenuItem,
+  ToggleButton,
+  ToggleButtonGroup,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
@@ -19,7 +31,7 @@ export function BranchSwitcher() {
   const t = useT();
   const { user } = useAuth();
   const { data: branches } = useBranchesQuery(!!user);
-  const { branchId, setBranchId } = useBranchFilter();
+  const { branchId, setBranchId, basis, setBasis } = useBranchFilter();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
 
   const active = (branches ?? []).filter((b) => b.isActive || b.id === branchId);
@@ -56,6 +68,11 @@ export function BranchSwitcher() {
         <Box component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {current ? current.name : t('branches.all')}
         </Box>
+        {current && basis === 'Employer' && (
+          <Tooltip title={t('branches.basis.employerHint')}>
+            <Chip size="small" label={t('branches.basis.chip')} sx={{ height: 20, fontSize: 11 }} />
+          </Tooltip>
+        )}
       </Button>
       <Menu anchorEl={anchor} open={!!anchor} onClose={() => setAnchor(null)}>
         <Typography variant="overline" color="text.secondary" sx={{ px: 2 }}>
@@ -74,9 +91,30 @@ export function BranchSwitcher() {
             {branch.id === branchId && <CheckOutlined fontSize="small" sx={{ ml: 2 }} />}
           </MenuItem>
         ))}
+        {branchId && <Divider />}
+        {branchId && (
+          <Box sx={{ px: 2, py: 1, maxWidth: 320 }}>
+            <Typography variant="overline" color="text.secondary">
+              {t('branches.basis.title')}
+            </Typography>
+            <ToggleButtonGroup
+              exclusive
+              fullWidth
+              size="small"
+              value={basis}
+              onChange={(_event, value: 'Site' | 'Employer' | null) => value && setBasis(value)}
+            >
+              <ToggleButton value="Site">{t('branches.basis.site')}</ToggleButton>
+              <ToggleButton value="Employer">{t('branches.basis.employer')}</ToggleButton>
+            </ToggleButtonGroup>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
+              {basis === 'Employer' ? t('branches.basis.employerHint') : t('branches.basis.siteHint')}
+            </Typography>
+          </Box>
+        )}
         {canManage && <Divider />}
         {canManage && (
-          <MenuItem component={Link} to={paths.branches} onClick={() => setAnchor(null)}>
+          <MenuItem component={Link} to={paths.organizationBranches} onClick={() => setAnchor(null)}>
             <ListItemIcon>
               <SettingsOutlined fontSize="small" />
             </ListItemIcon>

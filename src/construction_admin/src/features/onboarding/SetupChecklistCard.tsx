@@ -12,7 +12,7 @@ import { useSetupChecklistQuery } from './useOnboarding';
 
 /** Where each gap is fixed. `import` opens the spreadsheet import instead of a page; `server` has no screen. */
 const DESTINATIONS: Record<SetupChecklistKey, string> = {
-  companyProfile: paths.companySettings,
+  companyProfile: paths.organizationCompany,
   noEmployees: 'import',
   noProjects: paths.projectNew,
   employeesWithoutAccount: paths.employees,

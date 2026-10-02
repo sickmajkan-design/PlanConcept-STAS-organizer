@@ -7,6 +7,10 @@ public class EmployeeDetailDto : EmployeeDto
 {
     public bool HasUserAccount { get; init; }
 
+    /// <summary>The units they have been employed in, dated, most recent first.</summary>
+    public IReadOnlyCollection<Branches.EmployeeBranchPeriodDto> BranchHistory { get; set; } =
+        Array.Empty<Branches.EmployeeBranchPeriodDto>();
+
     // Settable rather than init: the handler re-splits these after the
     // projection runs, to fix up a posting with a future end date that the
     // SQL-level split (no request-scoped "today" to compare against) cannot
@@ -92,6 +96,21 @@ public static class EmployeeDetailMapping
             CreatedAt = employee.CreatedAt,
             UpdatedAt = employee.UpdatedAt,
             HasUserAccount = employee.User != null,
+            BranchId = employee.BranchPeriods.Where(p => p.EndDate == null).Select(p => (Guid?)p.BranchId).FirstOrDefault(),
+            BranchName = employee.BranchPeriods.Where(p => p.EndDate == null).Select(p => p.Branch.Name).FirstOrDefault(),
+            BranchColor = employee.BranchPeriods.Where(p => p.EndDate == null).Select(p => p.Branch.Color).FirstOrDefault(),
+            BranchHistory = employee.BranchPeriods
+                .OrderByDescending(p => p.StartDate)
+                .Select(p => new Branches.EmployeeBranchPeriodDto
+                {
+                    Id = p.Id,
+                    BranchId = p.BranchId,
+                    BranchName = p.Branch.Name,
+                    BranchColor = p.Branch.Color,
+                    StartDate = p.StartDate,
+                    EndDate = p.EndDate,
+                })
+                .ToList(),
             CurrentProjectNames = employee.ProjectAssignments
                 .Where(assignment => assignment.EndDate == null)
                 .Select(assignment => assignment.Project.Name)

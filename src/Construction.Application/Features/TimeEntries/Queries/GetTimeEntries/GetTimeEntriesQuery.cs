@@ -1,4 +1,5 @@
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.TimeEntries.Models;
 using Construction.Domain.Entities;
@@ -26,6 +27,13 @@ public record GetTimeEntriesQuery : ISortablePagedQuery, IRequest<PagedList<Time
 
     /// <summary>Restricts results to records of projects in this business unit.</summary>
     public Guid? BranchId { get; init; }
+
+    /// <summary>
+    /// With a business unit chosen: whose hours and pay count for it — those worked on its sites
+    /// (<see cref="BranchBasis.Site"/>, the default) or those of the people it employs on the day
+    /// (<see cref="BranchBasis.Employer"/>).
+    /// </summary>
+    public BranchBasis Basis { get; init; }
 
     public TimeEntryStatus? Status { get; init; }
 
@@ -101,10 +109,7 @@ public class GetTimeEntriesQueryHandler
             query = query.Where(t => t.EmployeeId == employeeId);
         }
 
-        if (request.BranchId is { } branchId)
-        {
-            query = query.Where(t => t.Project != null && t.Project.BranchId == branchId);
-        }
+        query = query.InBranch(request.BranchId, request.Basis);
 
         if (request.ProjectId is { } projectId)
         {

@@ -46,6 +46,13 @@ public class EmployeeDto
     /// </summary>
     public IReadOnlyCollection<string> CurrentProjectNames { get; init; } = Array.Empty<string>();
 
+    /// <summary>The business unit that employs them now (the open-ended period), or null when they are in none.</summary>
+    public Guid? BranchId { get; init; }
+
+    public string? BranchName { get; init; }
+
+    public string? BranchColor { get; init; }
+
     public DateTime CreatedAt { get; init; }
 
     public DateTime? UpdatedAt { get; init; }
@@ -99,6 +106,9 @@ public static class EmployeeMapping
                 .Where(assignment => assignment.EndDate == null)
                 .Select(assignment => assignment.Project.Name)
                 .ToList(),
+            BranchId = employee.BranchPeriods.Where(p => p.EndDate == null).Select(p => (Guid?)p.BranchId).FirstOrDefault(),
+            BranchName = employee.BranchPeriods.Where(p => p.EndDate == null).Select(p => p.Branch.Name).FirstOrDefault(),
+            BranchColor = employee.BranchPeriods.Where(p => p.EndDate == null).Select(p => p.Branch.Color).FirstOrDefault(),
             CreatedAt = employee.CreatedAt,
             UpdatedAt = employee.UpdatedAt,
         };

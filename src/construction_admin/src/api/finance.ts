@@ -43,6 +43,7 @@ export interface FinanceSeriesQuery {
   to: string;
   granularity: FinanceGranularity;
   branchId?: string;
+  basis?: 'Employer';
 }
 
 export interface FinanceProjectRow {
@@ -223,7 +224,7 @@ export const financeApi = {
       params: listParams(query),
     }),
 
-  breakdown: (query: { from: string; to: string; projectId?: string; branchId?: string }) =>
+  breakdown: (query: { from: string; to: string; projectId?: string; branchId?: string; basis?: 'Employer' }) =>
     request<FinanceBreakdown>({
       method: 'GET',
       url: '/api/v1/finance/breakdown',
@@ -244,7 +245,7 @@ export const financeApi = {
       params: listParams(query),
     }),
 
-  statistics: (query: { from: string; to: string; branchId?: string }) =>
+  statistics: (query: { from: string; to: string; branchId?: string; basis?: 'Employer' }) =>
     request<FinanceStatistics>({
       method: 'GET',
       url: '/api/v1/finance/statistics',

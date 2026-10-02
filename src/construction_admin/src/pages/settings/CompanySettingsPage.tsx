@@ -20,6 +20,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { LOGO_ACCEPTED_EXTENSIONS, MAX_LOGO_BYTES } from '../../api/companySettings';
 import { toApiError } from '../../api/apiError';
 import type { CompanySettingsInput } from '../../api/types';
+import { isSuperAdmin } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { ErrorState } from '../../components/ErrorState';
 import { config } from '../../config';
@@ -51,9 +52,14 @@ const emptyValues: CompanySettingsFormValues = {
   weeklyReportsForwardEmail: '',
 };
 
-export function CompanySettingsPage() {
+/**
+ * The company's own profile — name, address, tax numbers, logo. Everyone who reaches the page reads it;
+ * only a SuperAdmin changes it, so for anyone else every field is locked and there is nothing to save.
+ */
+export function CompanyProfilePanel() {
   const t = useT();
   const { user } = useAuth();
+  const readOnly = !isSuperAdmin(user);
   const { data: existing, isLoading, isError, error, refetch } = useCompanySettingsQuery();
   const updateSettings = useUpdateCompanySettings();
   const uploadLogo = useUploadCompanyLogo();
@@ -205,12 +211,15 @@ export function CompanySettingsPage() {
 
   return (
     <Box sx={{ maxWidth: 720 }}>
-      <Typography variant="h5" gutterBottom sx={{ fontWeight: 700 }}>
-        {t('companySettings.title')}
-      </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         {t('companySettings.subtitle')}
       </Typography>
+
+      {readOnly && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          {t('organization.companyReadOnly')}
+        </Alert>
+      )}
 
       <Paper sx={{ p: 3, mb: 3 }}>
         <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
@@ -323,6 +332,7 @@ export function CompanySettingsPage() {
             )}
           </Popper>
 
+          {!readOnly && (
           <Stack direction="row" spacing={1}>
             <Button
               variant="outlined"
@@ -353,6 +363,7 @@ export function CompanySettingsPage() {
               </Button>
             )}
           </Stack>
+          )}
         </Stack>
       </Paper>
 
@@ -370,6 +381,7 @@ export function CompanySettingsPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
+                      disabled={readOnly}
                       label={t('companySettings.name')}
                       fullWidth
                       error={!!fieldState.error}
@@ -385,6 +397,7 @@ export function CompanySettingsPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
+                      disabled={readOnly}
                       label={t('companySettings.address')}
                       fullWidth
                       error={!!fieldState.error}
@@ -400,6 +413,7 @@ export function CompanySettingsPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
+                      disabled={readOnly}
                       label={t('companySettings.taxId')}
                       fullWidth
                       error={!!fieldState.error}
@@ -415,6 +429,7 @@ export function CompanySettingsPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
+                      disabled={readOnly}
                       label={t('companySettings.registrationNumber')}
                       fullWidth
                       error={!!fieldState.error}
@@ -430,6 +445,7 @@ export function CompanySettingsPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
+                      disabled={readOnly}
                       label={t('companySettings.vatNumber')}
                       fullWidth
                       error={!!fieldState.error}
@@ -445,6 +461,7 @@ export function CompanySettingsPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
+                      disabled={readOnly}
                       label={t('companySettings.phone')}
                       fullWidth
                       error={!!fieldState.error}
@@ -460,6 +477,7 @@ export function CompanySettingsPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
+                      disabled={readOnly}
                       label={t('companySettings.email')}
                       fullWidth
                       error={!!fieldState.error}
@@ -475,6 +493,7 @@ export function CompanySettingsPage() {
                   render={({ field, fieldState }) => (
                     <TextField
                       {...field}
+                      disabled={readOnly}
                       label={t('companySettings.weeklyReportsForwardEmail')}
                       helperText={
                         fieldState.error?.message ?? t('companySettings.weeklyReportsForwardEmailHint')
@@ -487,16 +506,18 @@ export function CompanySettingsPage() {
               </Grid>
             </Grid>
 
-            <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
-              <Button type="submit" variant="contained" loading={isSubmitting}>
-                {t('common.save')}
-              </Button>
-            </Stack>
+            {!readOnly && (
+              <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
+                <Button type="submit" variant="contained" loading={isSubmitting}>
+                  {t('common.save')}
+                </Button>
+              </Stack>
+            )}
           </Stack>
         </form>
       </Paper>
 
-      <LeaveSettingsCard />
+      {!readOnly && <LeaveSettingsCard />}
     </Box>
   );
 }

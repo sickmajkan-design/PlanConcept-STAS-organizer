@@ -92,7 +92,11 @@ export const paths = {
 
   notifications: '/notifications',
   notificationGroups: '/notification-groups',
+  /** Legacy addresses, kept so old bookmarks and links land on the merged page. */
   branches: '/branches',
+  organization: '/organization',
+  organizationCompany: '/organization?tab=company',
+  organizationBranches: '/organization?tab=branches',
   notificationGroupNew: '/notification-groups/new',
   notificationGroupEdit: (id: string) => `/notification-groups/${id}/edit`,
 

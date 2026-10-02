@@ -1,3 +1,4 @@
+import { useBranchScoped } from '../branches/BranchContext';
 import { useQuery } from '@tanstack/react-query';
 
 import { employeesApi, type EmployeeListQuery } from '../../api/employees';
@@ -34,7 +35,9 @@ const PICKER_QUERY: EmployeeListQuery = {
 };
 
 export function useEmployeesQuery(query: EmployeeListQuery) {
-  return useResourceList(employeeKeys, employeesApi.list, query);
+  // Narrowed to the unit chosen in the header: the employees that unit employs now.
+  const scoped = useBranchScoped(query);
+  return useResourceList(employeeKeys, employeesApi.list, scoped);
 }
 
 export function useEmployeeQuery(id: string | undefined) {
@@ -51,6 +54,30 @@ export function useAllEmployeesQuery() {
   return useQuery({
     queryKey: employeeKeys.list(PICKER_QUERY),
     queryFn: () => employeesApi.list(PICKER_QUERY),
+    staleTime: 60_000,
+  });
+}
+
+const EVERY_EMPLOYEE_PAGE = 100;
+
+/**
+ * Every employee, for bulk assignment to a unit. The API serves at most 100 a page, so this reads
+ * the pages one after another and hands back the people as one list.
+ */
+export function useEveryEmployeeQuery() {
+  return useQuery({
+    queryKey: [...employeeKeys.all, 'every'],
+    queryFn: async () => {
+      const first = await employeesApi.list({ pageNumber: 1, pageSize: EVERY_EMPLOYEE_PAGE, sortBy: 'lastName' });
+      const pages = Math.ceil((first.totalCount ?? first.items.length) / EVERY_EMPLOYEE_PAGE);
+      const rest = await Promise.all(
+        Array.from({ length: Math.max(0, pages - 1) }, (_, i) =>
+          employeesApi.list({ pageNumber: i + 2, pageSize: EVERY_EMPLOYEE_PAGE, sortBy: 'lastName' }),
+        ),
+      );
+
+      return { ...first, items: [first, ...rest].flatMap((page) => page.items) };
+    },
     staleTime: 60_000,
   });
 }

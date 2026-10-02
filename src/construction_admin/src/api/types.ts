@@ -128,8 +128,24 @@ export interface Employee {
   rank: OrganizationRank | null;
   /** Every project this employee is currently posted to. Empty means unassigned. */
   currentProjectNames: string[];
+  /** The business unit that employs them now (poslovna jedinica); null when they are in none. */
+  branchId: string | null;
+  branchName: string | null;
+  branchColor: string | null;
   createdAt: string;
   updatedAt: string | null;
+}
+
+/** One stretch of employment of a person in a business unit. */
+export interface EmployeeBranchPeriod {
+  id: string;
+  branchId: string;
+  branchName: string;
+  branchColor: string;
+  /** `YYYY-MM-DD`. */
+  startDate: string;
+  /** `YYYY-MM-DD`, or null while the employment in the unit is ongoing. */
+  endDate: string | null;
 }
 
 export interface EmployeeProjectAssignment {
@@ -154,6 +170,8 @@ export interface EmployeeProjectAssignment {
 
 export interface EmployeeDetail extends Employee {
   hasUserAccount: boolean;
+  /** The units they have been employed in, most recent first. */
+  branchHistory: EmployeeBranchPeriod[];
   projects: EmployeeProjectAssignment[];
   /** Postings that have ended, most recently closed first. */
   pastProjects: EmployeeProjectAssignment[];
@@ -171,6 +189,8 @@ export interface EmployeeInput {
   position: string;
   status: EmployeeStatus;
   type: EmployeeType;
+  /** On creation only: the unit that employs them, from their employment date. */
+  branchId?: string | null;
 }
 
 export type ProjectKind = 'Main' | 'Sub';
@@ -255,6 +275,8 @@ export interface Branch {
   kind: BranchKind;
   /** A unit with projects can only be switched off, not deleted. */
   projectCount: number;
+  /** How many employees the unit employs now. */
+  employeeCount: number;
   // The rest is for management only; anyone else gets null.
   legalName: string | null;
   address: string | null;

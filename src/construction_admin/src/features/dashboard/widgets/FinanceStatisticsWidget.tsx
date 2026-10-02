@@ -29,10 +29,11 @@ const KIND_LABEL: Record<string, MessageKey> = {
 export function FinanceStatisticsWidget({ onRemove, onExpandWidth }: DashboardWidgetProps) {
   const { t } = useI18n();
   const { period } = useFinancePeriod();
-  const { branchId } = useBranchFilter();
+  const { branchId, basis } = useBranchFilter();
+  const people = branchId && basis === 'Employer' ? 'Employer' : undefined;
   const { data, isLoading, error } = useQuery({
-    queryKey: ['finance', 'statistics', period.from, period.to, branchId ?? null] as const,
-    queryFn: () => financeApi.statistics({ from: period.from, to: period.to, branchId }),
+    queryKey: ['finance', 'statistics', period.from, period.to, branchId ?? null, people ?? null] as const,
+    queryFn: () => financeApi.statistics({ from: period.from, to: period.to, branchId, basis: people }),
     staleTime: 60_000,
     refetchInterval: 5 * 60_000,
   });

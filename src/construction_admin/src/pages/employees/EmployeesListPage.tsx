@@ -1,3 +1,4 @@
+import { BranchDot } from '../../features/branches/BranchDot';
 import { AddOutlined, DeleteOutlined, EditOutlined, UploadFileOutlined, VisibilityOutlined } from '@mui/icons-material';
 import {
   Button,
@@ -111,6 +112,21 @@ export function EmployeesListPage() {
       { field: 'employeeNumber', headerName: t('employees.number'), width: 110 },
       { field: 'fullName', headerName: t('employees.name'), flex: 1, minWidth: 180 },
       { field: 'position', headerName: t('employees.position'), flex: 1, minWidth: 150 },
+      {
+        field: 'branchName',
+        headerName: t('branches.single'),
+        width: 190,
+        sortable: false,
+        renderCell: (params) =>
+          params.row.branchName ? (
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', height: '100%' }}>
+              <BranchDot color={params.row.branchColor ?? '#999999'} />
+              <span>{params.row.branchName}</span>
+            </Stack>
+          ) : (
+            '—'
+          ),
+      },
       {
         field: 'type',
         headerName: t('employees.type'),

@@ -78,6 +78,13 @@ public record GetCompanyCostsQuery : IRequest<CompanyCostsDto>
     public Guid? BranchId { get; init; }
 
     /// <summary>
+    /// With a business unit chosen: whose hours and pay count for it — those worked on its sites
+    /// (<see cref="BranchBasis.Site"/>, the default) or those of the people it employs on the day
+    /// (<see cref="BranchBasis.Employer"/>).
+    /// </summary>
+    public BranchBasis Basis { get; init; }
+
+    /// <summary>
     /// Set only by code inside the application that turns the amounts into
     /// something that is not money (<c>GetFinanceStatisticsQuery</c>). Internal,
     /// so a request from outside can never bind it.
@@ -144,7 +151,7 @@ public class GetCompanyCostsQueryHandler : IRequestHandler<GetCompanyCostsQuery,
 
         if (includesLabour)
         {
-            var entries = await ProjectLabourPricing.LoadAsync(_context, from, to, null, cancellationToken, request.BranchId);
+            var entries = await ProjectLabourPricing.LoadAsync(_context, from, to, null, cancellationToken, request.BranchId, request.Basis);
 
             labour = entries.Sum(e => e.Cost);
             unpriced = entries.Sum(e => e.UnpricedMinutes);
@@ -153,7 +160,7 @@ public class GetCompanyCostsQueryHandler : IRequestHandler<GetCompanyCostsQuery,
         var manualPay = includesLabour
             ? await _context.FinanceEntries
                 .AsNoTracking()
-                .InBranch(request.BranchId)
+                .InBranch(request.BranchId, request.Basis)
                 .Where(f => f.OccurredOn >= from && f.OccurredOn <= to)
                 .SumAsync(f => (decimal?)f.Amount, cancellationToken) ?? 0m
             : 0m;

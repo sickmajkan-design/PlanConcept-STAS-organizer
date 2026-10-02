@@ -25,6 +25,9 @@ public class BranchDto
     /// <summary>How many projects belong to this branch. A branch with any can only be switched off, not deleted.</summary>
     public int ProjectCount { get; init; }
 
+    /// <summary>How many employees the unit employs now.</summary>
+    public int EmployeeCount { get; init; }
+
     // Everything below is for management only: anyone else reads a unit to filter by it and gets
     // these as null.
 
@@ -108,7 +111,7 @@ public static class BranchLookup
 /// <summary>How a <see cref="Branch"/> becomes a <see cref="BranchDto"/> for the person asking.</summary>
 public static class BranchView
 {
-    public static BranchDto Map(Branch branch, int projectCount, bool details, bool taxDetails) => new()
+    public static BranchDto Map(Branch branch, int projectCount, bool details, bool taxDetails, int employeeCount = 0) => new()
     {
         Id = branch.Id,
         Name = branch.Name,
@@ -116,6 +119,7 @@ public static class BranchView
         IsActive = branch.IsActive,
         Kind = branch.Kind,
         ProjectCount = projectCount,
+        EmployeeCount = employeeCount,
         LegalName = details ? branch.LegalName : null,
         Address = details ? branch.Address : null,
         City = details ? branch.City : null,
@@ -138,9 +142,12 @@ public static class BranchView
         CancellationToken cancellationToken)
     {
         var count = await context.Projects.CountAsync(p => p.BranchId == branch.Id, cancellationToken);
+        var employees = await context.EmployeeBranches.CountAsync(
+            p => p.BranchId == branch.Id && p.EndDate == null && context.Employees.Any(e => e.Id == p.EmployeeId),
+            cancellationToken);
         var (details, tax) = await AccessAsync(context, currentUserService, cancellationToken);
 
-        return Map(branch, count, details, tax);
+        return Map(branch, count, details, tax, employees);
     }
 
     /// <summary>What the caller may see of a unit: its details at all, and its tax numbers in particular.</summary>
@@ -286,10 +293,18 @@ public class GetBranchesQueryHandler : IRequestHandler<GetBranchesQuery, IReadOn
             .Select(g => new { BranchId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(g => g.BranchId, g => g.Count, cancellationToken);
 
+        // People employed now: open periods of employees that still exist.
+        var employeeCounts = await _context.EmployeeBranches
+            .AsNoTracking()
+            .Where(p => p.EndDate == null && _context.Employees.Any(e => e.Id == p.EmployeeId))
+            .GroupBy(p => p.BranchId)
+            .Select(g => new { BranchId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(g => g.BranchId, g => g.Count, cancellationToken);
+
         var (details, tax) = await BranchView.AccessAsync(_context, _currentUserService, cancellationToken);
 
         return branches
-            .Select(b => BranchView.Map(b, counts.GetValueOrDefault(b.Id), details, tax))
+            .Select(b => BranchView.Map(b, counts.GetValueOrDefault(b.Id), details, tax, employeeCounts.GetValueOrDefault(b.Id)))
             .ToList();
     }
 }

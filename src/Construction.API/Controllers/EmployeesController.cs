@@ -1,6 +1,7 @@
 using Construction.API.Authorization;
 using Construction.API.Filters;
 using Construction.Application.Common.Models;
+using Construction.Application.Features.Branches;
 using Construction.Application.Features.Employees.Commands.AssignEmployeeToProject;
 using Construction.Application.Features.Employees.Commands.CreateEmployee;
 using Construction.Application.Features.Employees.Commands.DeleteEmployee;
@@ -55,6 +56,37 @@ public class EmployeesController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
+    }
+
+    /// <summary>
+    /// Puts an employee in a business unit from a date (or in none), closing the unit they were in
+    /// the day before. Admin and above.
+    /// </summary>
+    [HttpPut("{id:guid}/branch")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(IReadOnlyList<EmployeeBranchPeriodDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<IReadOnlyList<EmployeeBranchPeriodDto>>> SetBranch(
+        Guid id,
+        SetEmployeeBranchCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { EmployeeId = id }, cancellationToken));
+    }
+
+    /// <summary>Removes one wrong period from an employee's business-unit history. Admin and above.</summary>
+    [HttpDelete("{id:guid}/branch-periods/{periodId:guid}")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(IReadOnlyList<EmployeeBranchPeriodDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IReadOnlyList<EmployeeBranchPeriodDto>>> RemoveBranchPeriod(
+        Guid id,
+        Guid periodId,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new RemoveEmployeeBranchPeriodCommand(id, periodId), cancellationToken));
     }
 
     /// <summary>Returns one employee including project assignments.</summary>

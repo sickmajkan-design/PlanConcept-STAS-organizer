@@ -34,6 +34,9 @@ public record GetEmployeesQuery : ISortablePagedQuery, IRequest<PagedList<Employ
     /// <summary>Restricts results to employees assigned to the given project.</summary>
     public Guid? ProjectId { get; init; }
 
+    /// <summary>Restricts results to the employees of one business unit — the unit that employs them now.</summary>
+    public Guid? BranchId { get; init; }
+
     public string? SortBy { get; init; }
 
     public bool SortDescending { get; init; }
@@ -115,6 +118,11 @@ public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, Paged
         if (request.ProjectId is { } projectId)
         {
             query = query.Where(e => e.ProjectAssignments.Any(pa => pa.ProjectId == projectId));
+        }
+
+        if (request.BranchId is { } branchId)
+        {
+            query = query.Where(e => e.BranchPeriods.Any(p => p.BranchId == branchId && p.EndDate == null));
         }
 
         query = ApplySorting(query, request.SortBy, request.SortDescending);

@@ -92,6 +92,13 @@ public record GetFinanceSeriesQuery : IRequest<FinanceSeriesDto>
 
     /// <summary>Narrows the figures to one business unit (poslovna jedinica).</summary>
     public Guid? BranchId { get; init; }
+
+    /// <summary>
+    /// With a business unit chosen: whose hours and pay count for it — those worked on its sites
+    /// (<see cref="BranchBasis.Site"/>, the default) or those of the people it employs on the day
+    /// (<see cref="BranchBasis.Employer"/>).
+    /// </summary>
+    public BranchBasis Basis { get; init; }
 }
 
 public class GetFinanceSeriesQueryValidator : AbstractValidator<GetFinanceSeriesQuery>
@@ -195,7 +202,7 @@ public class GetFinanceSeriesQueryHandler : IRequestHandler<GetFinanceSeriesQuer
         // One at a time: they share this request's DbContext.
         foreach (var (from, to) in ranges)
         {
-            var costs = await _sender.Send(new GetCompanyCostsQuery { From = from, To = to, BranchId = request.BranchId }, cancellationToken);
+            var costs = await _sender.Send(new GetCompanyCostsQuery { From = from, To = to, BranchId = request.BranchId, Basis = request.Basis }, cancellationToken);
             includesLabour &= costs.IncludesLabour;
 
             var project = Sum(projectByDay, from, to);
@@ -220,7 +227,7 @@ public class GetFinanceSeriesQueryHandler : IRequestHandler<GetFinanceSeriesQuer
         var previousFrom = previousTo.AddDays(-(days - 1));
 
         var previousCosts = await _sender.Send(
-            new GetCompanyCostsQuery { From = previousFrom, To = previousTo, BranchId = request.BranchId },
+            new GetCompanyCostsQuery { From = previousFrom, To = previousTo, BranchId = request.BranchId, Basis = request.Basis },
             cancellationToken);
 
         var previousProject = await _context.ProjectRevenues.AsNoTracking().InBranch(request.BranchId)
