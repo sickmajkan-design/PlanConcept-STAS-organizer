@@ -46,6 +46,19 @@ export function PlatformGuideDialog({ open, onClose }: { open: boolean; onClose:
     'guide.usage.step10',
   ];
 
+  const branchSteps: MessageKey[] = [
+    'guide.branches.step1',
+    'guide.branches.step2',
+    'guide.branches.step3',
+    'guide.branches.step4',
+    'guide.branches.step5',
+    'guide.branches.step6',
+    'guide.branches.step7',
+    'guide.branches.step8',
+    'guide.branches.step9',
+    'guide.branches.step10',
+  ];
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -55,11 +68,25 @@ export function PlatformGuideDialog({ open, onClose }: { open: boolean; onClose:
       <Tabs value={tab} onChange={(_, value) => setTab(value)} sx={{ px: 3 }}>
         <Tab label={t('guide.tabUsage')} />
         <Tab label={t('guide.tabRoles')} />
+        <Tab label={t('guide.tabBranches')} />
       </Tabs>
       <DialogContent>
         {tab === 0 && (
           <Stack spacing={0.5}>
             {usageSteps.map((key, index) => (
+              <Stack key={key} direction="row" spacing={1.5}>
+                <Typography variant="body2" color="text.secondary" sx={{ minWidth: 20 }}>
+                  {index + 1}.
+                </Typography>
+                <GuideItem>{t(key)}</GuideItem>
+              </Stack>
+            ))}
+          </Stack>
+        )}
+
+        {tab === 2 && (
+          <Stack spacing={0.5}>
+            {branchSteps.map((key, index) => (
               <Stack key={key} direction="row" spacing={1.5}>
                 <Typography variant="body2" color="text.secondary" sx={{ minWidth: 20 }}>
                   {index + 1}.

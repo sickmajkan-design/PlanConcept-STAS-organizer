@@ -138,15 +138,18 @@ public class SetEmployeeBranchCommandHandler
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly INotificationService _notifications;
 
     public SetEmployeeBranchCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        INotificationService notifications)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
+        _notifications = notifications;
     }
 
     public async Task<IReadOnlyList<EmployeeBranchPeriodDto>> Handle(
@@ -160,14 +163,21 @@ public class SetEmployeeBranchCommandHandler
             throw new NotFoundException(nameof(Employee), request.EmployeeId);
         }
 
-        await BranchLookup.EnsureExistsAsync(_context, request.BranchId, cancellationToken);
+        var branch = await BranchLookup.LoadAsync(_context, request.BranchId, cancellationToken);
 
         var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var from = request.From ?? today;
 
-        await EmployeeBranchRules.MoveAsync(
-            _context, request.EmployeeId, request.BranchId, request.From ?? today, today, cancellationToken);
+        var changed = await EmployeeBranchRules.MoveAsync(
+            _context, request.EmployeeId, request.BranchId, from, today, cancellationToken);
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        if (changed)
+        {
+            await EmployeeBranchNotifier.NotifyAsync(
+                _context, _notifications, [(request.EmployeeId, from)], branch?.Name, cancellationToken);
+        }
 
         return await EmployeeBranchHistory.LoadAsync(_context, request.EmployeeId, cancellationToken);
     }
@@ -261,15 +271,18 @@ public class AssignEmployeesToBranchCommandHandler : IRequestHandler<AssignEmplo
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly INotificationService _notifications;
 
     public AssignEmployeesToBranchCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        INotificationService notifications)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
+        _notifications = notifications;
     }
 
     public async Task<BranchDto> Handle(AssignEmployeesToBranchCommand request, CancellationToken cancellationToken)
@@ -306,16 +319,24 @@ public class AssignEmployeesToBranchCommandHandler : IRequestHandler<AssignEmplo
                 .ToListAsync(cancellationToken)).ToHashSet()
             : [];
 
+        var moved = new List<(Guid EmployeeId, DateOnly From)>();
+
         foreach (var employee in existing)
         {
             var start = request.BackdateNewcomers && !withHistory.Contains(employee.Id)
                 ? (employee.EmploymentDate < today ? employee.EmploymentDate : today)
                 : from;
 
-            await EmployeeBranchRules.MoveAsync(_context, employee.Id, branch.Id, start, today, cancellationToken);
+            if (await EmployeeBranchRules.MoveAsync(_context, employee.Id, branch.Id, start, today, cancellationToken))
+            {
+                moved.Add((employee.Id, start));
+            }
         }
 
         await _context.SaveChangesAsync(cancellationToken);
+
+        // Only people who actually moved are told, and only after everything was saved.
+        await EmployeeBranchNotifier.NotifyAsync(_context, _notifications, moved, branch.Name, cancellationToken);
 
         return await BranchView.ForCallerAsync(_context, _currentUserService, branch, cancellationToken);
     }

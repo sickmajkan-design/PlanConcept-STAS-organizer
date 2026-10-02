@@ -12,6 +12,11 @@ abstract class Project with _$Project {
     String? description,
     String? customerId,
     String? customerName,
+
+    /// The business unit the project belongs to; null when it has none.
+    String? branchId,
+    String? branchName,
+    String? branchColor,
     String? parentProjectId,
     String? parentProjectName,
 
@@ -53,6 +58,11 @@ abstract class ProjectDetail with _$ProjectDetail {
     String? description,
     String? customerId,
     String? customerName,
+
+    /// The business unit the project belongs to; null when it has none.
+    String? branchId,
+    String? branchName,
+    String? branchColor,
     String? parentProjectId,
     String? parentProjectName,
     @Default('Main') String kind,

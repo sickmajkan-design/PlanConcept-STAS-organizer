@@ -1,3 +1,4 @@
+import { useBranchFilter } from '../branches/BranchContext';
 import { useQuery } from '@tanstack/react-query';
 
 import { assignmentsApi } from '../../api/assignments';
@@ -13,9 +14,10 @@ export const assignmentBoardKeys = {
 };
 
 export function useAssignmentBoardQuery() {
+  const { branchId } = useBranchFilter();
   return useQuery({
-    queryKey: assignmentBoardKeys.all,
-    queryFn: assignmentsApi.board,
+    queryKey: [...assignmentBoardKeys.all, branchId ?? null],
+    queryFn: () => assignmentsApi.board({ branchId }),
   });
 }
 

@@ -16,6 +16,8 @@ import type {
 
 export interface AbsenceListQuery extends ListQuery {
   employeeId?: string;
+  /** The unit that employed the person on the day the leave began. */
+  branchId?: string;
   status?: AbsenceStatus;
   type?: AbsenceType;
   /** Undecided requests plus employee-proposed changes awaiting confirmation. */
@@ -28,6 +30,8 @@ export interface AbsenceListQuery extends ListQuery {
 export interface ScheduleQuery {
   from: string;
   to: string;
+  /** The people this unit employed at some point in the window. */
+  branchId?: string;
   projectId?: string;
   /** Leaves out employees with nothing on them in this window. */
   assignedOnly?: boolean;

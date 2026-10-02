@@ -18,8 +18,10 @@ public class AssignmentsController : ApiControllerBase
     [HttpGet("/api/v{version:apiVersion}/assignment-board")]
     [HttpGet("/api/assignment-board")]
     [ProducesResponseType(typeof(AssignmentBoardDto), StatusCodes.Status200OK)]
-    public async Task<ActionResult<AssignmentBoardDto>> GetBoard(CancellationToken cancellationToken)
+    public async Task<ActionResult<AssignmentBoardDto>> GetBoard(
+        [FromQuery] GetAssignmentBoardQuery query,
+        CancellationToken cancellationToken)
     {
-        return Ok(await Mediator.Send(new GetAssignmentBoardQuery(), cancellationToken));
+        return Ok(await Mediator.Send(query, cancellationToken));
     }
 }

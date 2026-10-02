@@ -1,3 +1,4 @@
+import { useBranchFilter } from '../../features/branches/BranchContext';
 import { PersonPinCircle } from '@mui/icons-material';
 import {
   Alert,
@@ -39,6 +40,7 @@ export function LiveMapPage() {
   const { user } = useAuth();
   const t = useT();
   const formatRelative = useFormatRelative();
+  const { branchId } = useBranchFilter();
   const [projectId, setProjectId] = useState('');
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
 
@@ -52,8 +54,8 @@ export function LiveMapPage() {
     refetch,
     dataUpdatedAt,
   } = useQuery({
-    queryKey: ['locations', 'current', projectId],
-    queryFn: () => locationsApi.current({ projectId: projectId || undefined }),
+    queryKey: ['locations', 'current', projectId, branchId ?? null],
+    queryFn: () => locationsApi.current({ projectId: projectId || undefined, branchId }),
     refetchInterval: config.liveMapRefreshMs,
   });
 

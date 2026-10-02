@@ -88,5 +88,8 @@ public enum NotificationType
     RefundDecided = 32,
 
     /// <summary>A vehicle's vignette, tunnel toll or road-passage charge is about to lapse, or already has.</summary>
-    VehicleTollExpiring = 33
+    VehicleTollExpiring = 33,
+
+    /// <summary>The person was moved to another business unit, or out of every unit, from a date.</summary>
+    EmployeeBranchChanged = 34
 }

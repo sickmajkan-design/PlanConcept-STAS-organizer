@@ -1,4 +1,5 @@
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Application.Features.Assignments.Models;
 using Construction.Domain.Enums;
 using MediatR;
@@ -16,7 +17,11 @@ namespace Construction.Application.Features.Assignments.Queries.GetAssignmentBoa
 /// could not see, in one glance, who is free — which is the whole point of
 /// the screen.
 /// </remarks>
-public record GetAssignmentBoardQuery : IRequest<AssignmentBoardDto>;
+public record GetAssignmentBoardQuery : IRequest<AssignmentBoardDto>
+{
+    /// <summary>Narrows the result to one business unit (poslovna jedinica) — the unit that employs the people.</summary>
+    public Guid? BranchId { get; init; }
+}
 
 public class GetAssignmentBoardQueryHandler
     : IRequestHandler<GetAssignmentBoardQuery, AssignmentBoardDto>
@@ -40,6 +45,7 @@ public class GetAssignmentBoardQueryHandler
 
         var employees = await _context.Employees
             .AsNoTracking()
+            .InBranch(request.BranchId)
             .Where(e => e.Status == EmployeeStatus.Active)
             .OrderBy(e => e.LastName).ThenBy(e => e.FirstName)
             .Select(e => new AssignmentBoardEmployeeDto

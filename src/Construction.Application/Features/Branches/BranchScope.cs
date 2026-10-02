@@ -70,6 +70,31 @@ public static class BranchScope
             : query.InBranch(branchId);
     }
 
+    /// <summary>The employees a unit employs now: the open-ended period.</summary>
+    public static IQueryable<Employee> InBranch(this IQueryable<Employee> query, Guid? branchId) =>
+        branchId is { } id
+            ? query.Where(e => e.BranchPeriods.Any(p => p.BranchId == id && p.EndDate == null))
+            : query;
+
+    /// <summary>Absences of the people a unit employed on the day the absence began.</summary>
+    public static IQueryable<Absence> InBranch(this IQueryable<Absence> query, Guid? branchId) =>
+        branchId is { } id
+            ? query.Where(a => a.Employee.BranchPeriods.Any(p => p.BranchId == id
+                && p.StartDate <= a.StartDate && (p.EndDate == null || p.EndDate >= a.StartDate)))
+            : query;
+
+    /// <summary>The ids of the people a unit employed at any time between two days, or null when no unit is asked for.</summary>
+    public static async Task<List<Guid>?> EmployeeIdsAsync(
+        IApplicationDbContext context, Guid? branchId, DateOnly from, DateOnly to, CancellationToken cancellationToken) =>
+        branchId is not { } id
+            ? null
+            : await context.EmployeeBranches
+                .AsNoTracking()
+                .Where(p => p.BranchId == id && p.StartDate <= to && (p.EndDate == null || p.EndDate >= from))
+                .Select(p => p.EmployeeId)
+                .Distinct()
+                .ToListAsync(cancellationToken);
+
     public static IQueryable<CompanyRevenue> InBranch(this IQueryable<CompanyRevenue> query, Guid? branchId) =>
         branchId is { } id ? query.Where(r => r.BranchId == id) : query;
 

@@ -11,6 +11,7 @@ IconData notificationTypeIcon(String type) => switch (type) {
       'GeneralAnnouncement' => Icons.campaign_outlined,
       'BulletinPosted' => Icons.campaign_outlined,
       'AccommodationAssigned' => Icons.home_outlined,
+      'EmployeeBranchChanged' => Icons.account_tree_outlined,
       'AccommodationContractExpiring' => Icons.home_work_outlined,
       'TimeEntryRejected' || 'ShiftAutoClosed' => Icons.schedule_outlined,
       'AbsenceDecided' || 'AbsenceRequested' || 'AbsenceEditProposed' => Icons.event_busy_outlined,

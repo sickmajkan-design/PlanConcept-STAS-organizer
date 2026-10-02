@@ -25,6 +25,9 @@ public record SendAnnouncementCommand : IRequest<int>
     /// <summary>Limit the audience to members of this notification group.</summary>
     public Guid? GroupId { get; init; }
 
+    /// <summary>Limit the audience to the people one business unit (poslovna jedinica) employs now.</summary>
+    public Guid? BranchId { get; init; }
+
     /// <summary>
     /// When true, recipients cannot act on anything else in the app until
     /// they explicitly confirm they saw this.
@@ -78,6 +81,14 @@ public class SendAnnouncementCommandHandler : IRequestHandler<SendAnnouncementCo
                 u.EmployeeId != null &&
                 _context.EmployeeProjects.Any(ep =>
                     ep.ProjectId == projectId && ep.EmployeeId == u.EmployeeId));
+        }
+
+        if (request.BranchId is { } branchId)
+        {
+            users = users.Where(u =>
+                u.EmployeeId != null &&
+                _context.EmployeeBranches.Any(p =>
+                    p.BranchId == branchId && p.EndDate == null && p.EmployeeId == u.EmployeeId));
         }
 
         if (request.GroupId is { } groupId)

@@ -62,6 +62,8 @@ export type SetupChecklistKey =
   | 'employeesWithoutAccount'
   | 'employeesWithoutProject'
   | 'projectsWithoutLocation'
+  | 'employeesWithoutBranch'
+  | 'projectsWithoutBranch'
   | 'holidaysMissing'
   | 'emailNotConfigured'
   | 'pushNotConfigured';

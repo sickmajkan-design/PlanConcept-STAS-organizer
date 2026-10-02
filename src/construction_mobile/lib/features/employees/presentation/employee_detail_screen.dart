@@ -125,6 +125,12 @@ class EmployeeDetailScreen extends ConsumerWidget {
                       label: context.l10n.employeePosition,
                       value: employee.position,
                     ),
+                    if ((employee.branchName ?? '').trim().isNotEmpty)
+                      InfoTile(
+                        icon: Icons.account_tree_outlined,
+                        label: context.l10n.businessUnit,
+                        value: employee.branchName,
+                      ),
                     InfoTile(
                       icon: Icons.event_available_outlined,
                       label: context.l10n.employeeEmployedSince,

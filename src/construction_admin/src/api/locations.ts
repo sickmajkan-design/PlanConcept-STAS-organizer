@@ -14,6 +14,8 @@ export const MAP_PAGE_SIZE = 1000;
 
 export interface CurrentLocationsQuery {
   projectId?: string;
+  /** The people this unit employs now. */
+  branchId?: string;
   /** Ignore fixes older than this many minutes. */
   maxAgeMinutes?: number;
   includeInactive?: boolean;
@@ -26,6 +28,7 @@ export const locationsApi = {
       url: '/api/v1/locations/current',
       params: {
         projectId: query.projectId || undefined,
+        branchId: query.branchId || undefined,
         maxAgeMinutes: query.maxAgeMinutes || undefined,
         includeInactive: query.includeInactive || undefined,
         pageSize: MAP_PAGE_SIZE,

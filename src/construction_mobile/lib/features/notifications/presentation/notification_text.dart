@@ -278,6 +278,23 @@ LocalizedNotificationText resolveNotificationText(
         );
       }
 
+    case 'EmployeeBranchChanged':
+      {
+        final startDate = str('startDate');
+        if (startDate == null) {
+          return fallback;
+        }
+
+        final branchName = str('branchName');
+
+        return LocalizedNotificationText(
+          title: l10n.notificationEmployeeBranchChangedTitle,
+          body: branchName == null
+              ? l10n.notificationEmployeeBranchChangedNoneBody(_isoDate(startDate))
+              : l10n.notificationEmployeeBranchChangedBody(branchName, _isoDate(startDate)),
+        );
+      }
+
     case 'AccommodationAssigned':
       {
         final name = str('accommodationName');

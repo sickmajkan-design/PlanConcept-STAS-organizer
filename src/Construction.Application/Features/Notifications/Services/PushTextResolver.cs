@@ -241,6 +241,18 @@ public static class PushTextResolver
                     $"{vehicleName} ({IsoDate(occurredOn)}) je vraćen: {note}");
             }
 
+            case NotificationType.EmployeeBranchChanged:
+            {
+                var startDate = Str("startDate");
+                if (startDate is null) break;
+
+                var unit = Str("branchName");
+
+                return unit is null
+                    ? ("Promjena poslovne jedinice", $"Od {IsoDate(startDate)} niste raspoređeni ni u jednu poslovnu jedinicu")
+                    : ("Promjena poslovne jedinice", $"Zaposleni ste u jedinici {unit} od {IsoDate(startDate)}");
+            }
+
             case NotificationType.AccommodationAssigned:
             {
                 var name = Str("accommodationName");

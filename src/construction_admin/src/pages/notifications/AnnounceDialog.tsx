@@ -1,3 +1,4 @@
+import { useBranchesQuery } from '../../features/branches/useBranches';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Alert,
@@ -33,6 +34,7 @@ const emptyValues: AnnouncementFormValues = {
   role: '',
   projectId: '',
   groupId: '',
+  branchId: '',
   requiresAcknowledgment: false,
 };
 
@@ -56,6 +58,7 @@ export function AnnounceDialog({
   const enumLabel = useEnumLabel();
   const { data: allProjects } = useAllProjectsQuery();
   const { data: allGroups } = useAllNotificationGroupsQuery();
+  const { data: branches } = useBranchesQuery();
   const send = useSendAnnouncement();
 
   const {
@@ -87,6 +90,7 @@ export function AnnounceDialog({
         role: values.role === '' ? null : values.role,
         projectId: values.projectId === '' ? null : values.projectId,
         groupId: values.groupId === '' ? null : values.groupId,
+        branchId: values.branchId === '' ? null : values.branchId,
         requiresAcknowledgment: values.requiresAcknowledgment,
       },
       {
@@ -205,6 +209,23 @@ export function AnnounceDialog({
                   {allGroups?.items.map((group) => (
                     <MenuItem key={group.id} value={group.id}>
                       {group.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              )}
+            />
+          </Grid>
+
+          <Grid size={12}>
+            <Controller
+              name="branchId"
+              control={control}
+              render={({ field }) => (
+                <TextField {...field} select fullWidth label={t('notifications.audienceBranch')}>
+                  <MenuItem value="">{t('notifications.everyBranch')}</MenuItem>
+                  {(branches ?? []).map((branch) => (
+                    <MenuItem key={branch.id} value={branch.id}>
+                      {branch.name}
                     </MenuItem>
                   ))}
                 </TextField>

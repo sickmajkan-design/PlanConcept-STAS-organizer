@@ -302,4 +302,94 @@ public class EmployeeBranchTests : IntegrationTestBase
         var moved = check.Db.EmployeeBranches.Single(p => p.EmployeeId == veteran.Id && p.BranchId == unit.Id);
         Assert.Equal(new DateOnly(2026, 9, 1), moved.StartDate);
     }
+
+    [Fact]
+    public async Task A_moved_employee_with_an_account_is_told_and_one_who_did_not_move_is_not()
+    {
+        var unit = await NewBranchAsync();
+        var moved = await NewEmployeeAsync();
+        var untouched = await NewEmployeeAsync();
+
+        Guid movedUser;
+        Guid untouchedUser;
+
+        using (var seed = Fixture.CreateScope())
+        {
+            movedUser = (await TestData.SeedUserAsync(seed, UserRole.Worker, moved.Id)).Id;
+            untouchedUser = (await TestData.SeedUserAsync(seed, UserRole.Worker, untouched.Id)).Id;
+        }
+
+        await MoveAsync(moved.Id, unit.Id, new DateOnly(2026, 4, 1));
+        // Nothing changes here (already in the unit), so nothing is sent.
+        await MoveAsync(moved.Id, unit.Id, new DateOnly(2026, 6, 1));
+
+        using var check = Fixture.CreateScope();
+        var sent = check.Db.Notifications
+            .Where(n => n.Type == NotificationType.EmployeeBranchChanged && n.UserId == movedUser)
+            .ToList();
+
+        var notice = Assert.Single(sent);
+        Assert.Contains(unit.Name, notice.Body);
+        Assert.Contains("2026-04-01", notice.DataJson);
+        Assert.DoesNotContain(check.Db.Notifications, n => n.UserId == untouchedUser && n.Type == NotificationType.EmployeeBranchChanged);
+    }
+
+    [Fact]
+    public async Task Leaving_every_unit_tells_the_employee_too_without_naming_one()
+    {
+        var unit = await NewBranchAsync();
+        var employee = await NewEmployeeAsync();
+
+        Guid user;
+
+        using (var seed = Fixture.CreateScope())
+        {
+            user = (await TestData.SeedUserAsync(seed, UserRole.Worker, employee.Id)).Id;
+        }
+
+        await MoveAsync(employee.Id, unit.Id, new DateOnly(2026, 1, 1));
+        await MoveAsync(employee.Id, null, new DateOnly(2026, 9, 1));
+
+        using var check = Fixture.CreateScope();
+        var all = check.Db.Notifications
+            .Where(n => n.Type == NotificationType.EmployeeBranchChanged && n.UserId == user)
+            .ToList();
+
+        // One for joining the unit, one for leaving it; only the second has no unit in it.
+        Assert.Equal(2, all.Count);
+        var leaving = Assert.Single(all, n => n.DataJson!.Contains("2026-09-01"));
+        Assert.DoesNotContain("branchName", leaving.DataJson);
+    }
+
+    [Fact]
+    public async Task An_announcement_can_be_addressed_to_the_people_one_unit_employs()
+    {
+        var unit = await NewBranchAsync();
+        var inside = await NewEmployeeAsync();
+        var outside = await NewEmployeeAsync();
+
+        Guid insideUser;
+        Guid outsideUser;
+
+        using (var seed = Fixture.CreateScope())
+        {
+            insideUser = (await TestData.SeedUserAsync(seed, UserRole.Worker, inside.Id)).Id;
+            outsideUser = (await TestData.SeedUserAsync(seed, UserRole.Worker, outside.Id)).Id;
+        }
+
+        await MoveAsync(inside.Id, unit.Id, new DateOnly(2026, 2, 1));
+
+        var recipients = await InFrozenScope(scope => scope.Send(new Construction.Application.Features.Notifications.Commands.SendAnnouncement.SendAnnouncementCommand
+        {
+            Title = "Sastanak",
+            Body = "Sastanak jedinice u petak.",
+            BranchId = unit.Id,
+        }));
+
+        Assert.Equal(1, recipients);
+
+        using var check = Fixture.CreateScope();
+        Assert.Contains(check.Db.Notifications, n => n.UserId == insideUser && n.Type == NotificationType.GeneralAnnouncement && n.Title == "Sastanak");
+        Assert.DoesNotContain(check.Db.Notifications, n => n.UserId == outsideUser && n.Title == "Sastanak");
+    }
 }

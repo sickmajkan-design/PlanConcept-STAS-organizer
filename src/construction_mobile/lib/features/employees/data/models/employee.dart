@@ -23,6 +23,10 @@ abstract class Employee with _$Employee {
     required String status,
     @Default('Employee') String type,
     String? photoUrl,
+    /// The business unit that employs them now; null when they are in none.
+    String? branchId,
+    String? branchName,
+    String? branchColor,
     required DateTime createdAt,
     DateTime? updatedAt,
   }) = _Employee;
@@ -54,6 +58,10 @@ abstract class EmployeeDetail with _$EmployeeDetail {
     required String status,
     @Default('Employee') String type,
     String? photoUrl,
+    /// The business unit that employs them now; null when they are in none.
+    String? branchId,
+    String? branchName,
+    String? branchColor,
     required DateTime createdAt,
     DateTime? updatedAt,
     @Default(false) bool hasUserAccount,

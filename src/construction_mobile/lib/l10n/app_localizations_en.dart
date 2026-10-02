@@ -1056,6 +1056,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationTypeAccommodationAssigned => 'New accommodation';
 
   @override
+  String get businessUnit => 'Business unit';
+
+  @override
+  String get notificationEmployeeBranchChangedTitle => 'Business unit changed';
+
+  @override
+  String notificationEmployeeBranchChangedBody(
+    String branchName,
+    String startDate,
+  ) {
+    return 'You are employed in $branchName from $startDate';
+  }
+
+  @override
+  String notificationEmployeeBranchChangedNoneBody(String startDate) {
+    return 'From $startDate you are not assigned to any business unit';
+  }
+
+  @override
+  String get notificationTypeEmployeeBranchChanged => 'Business unit';
+
+  @override
   String get notificationAccommodationContractExpiringTitle =>
       'Housing contract ending';
 

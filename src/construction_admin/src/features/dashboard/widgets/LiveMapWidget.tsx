@@ -1,3 +1,4 @@
+import { useBranchFilter } from '../../branches/BranchContext';
 import { Alert, Box, Button, Chip, Stack, Typography } from '@mui/material';
 import { AdvancedMarker, APIProvider, Map, Pin } from '@vis.gl/react-google-maps';
 import { useQuery } from '@tanstack/react-query';
@@ -13,10 +14,11 @@ import { WidgetShell } from './WidgetShell';
 /** A compact preview of the full Live Map page — same query, same marker style, no project filter or click-through info window (that's what "View all" is for). */
 export function LiveMapWidget({ instanceId: _instanceId, onRemove, onExpandWidth }: DashboardWidgetProps) {
   const t = useT();
+  const { branchId } = useBranchFilter();
 
   const { data: page, isLoading, error } = useQuery({
-    queryKey: ['dashboard', 'locations', 'current'] as const,
-    queryFn: () => locationsApi.current({}),
+    queryKey: ['dashboard', 'locations', 'current', branchId ?? null] as const,
+    queryFn: () => locationsApi.current({ branchId }),
     refetchInterval: config.liveMapRefreshMs,
   });
 

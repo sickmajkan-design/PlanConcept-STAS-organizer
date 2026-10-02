@@ -101,6 +101,27 @@ public class GetSetupChecklistQueryHandler : IRequestHandler<GetSetupChecklistQu
             items.Add(new SetupChecklistItem("employeesWithoutProject", withoutProject));
         }
 
+        // Once a company has business units, everybody and every site should belong to one — an
+        // employee in none has hours and pay under no unit, a site in none has costs under no unit.
+        if (await _context.Branches.AnyAsync(b => b.IsActive, cancellationToken))
+        {
+            var withoutBranch = await employees
+                .CountAsync(e => !e.BranchPeriods.Any(p => p.EndDate == null), cancellationToken);
+
+            if (withoutBranch > 0)
+            {
+                items.Add(new SetupChecklistItem("employeesWithoutBranch", withoutBranch));
+            }
+
+            var sitesWithoutBranch = await liveProjects
+                .CountAsync(p => p.ParentProjectId == null && p.BranchId == null, cancellationToken);
+
+            if (sitesWithoutBranch > 0)
+            {
+                items.Add(new SetupChecklistItem("projectsWithoutBranch", sitesWithoutBranch));
+            }
+        }
+
         var withoutLocation = await liveProjects
             .CountAsync(p => p.Latitude == null || p.Longitude == null, cancellationToken);
 

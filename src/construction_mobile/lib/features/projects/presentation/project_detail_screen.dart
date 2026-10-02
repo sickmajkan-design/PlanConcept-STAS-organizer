@@ -132,6 +132,8 @@ List<Widget> _detailsSection(BuildContext context, ProjectDetail project) {
   final tiles = <Widget>[
     if ((project.customerName ?? '').trim().isNotEmpty)
       InfoTile(icon: Icons.business_outlined, label: l10n.projectClient, value: project.customerName),
+    if ((project.branchName ?? '').trim().isNotEmpty)
+      InfoTile(icon: Icons.account_tree_outlined, label: l10n.businessUnit, value: project.branchName),
     if ((project.address ?? '').trim().isNotEmpty)
       InfoTile(icon: Icons.place_outlined, label: l10n.employeeAddress, value: project.address),
     if (project.startDate != null)

@@ -104,6 +104,15 @@ export function resolveNotificationText(t: T, notification: Notification): Notif
       };
     }
 
+    case 'EmployeeBranchChanged':
+      if (!d.startDate) return fallback;
+      return {
+        title: text('notificationEmployeeBranchChangedTitle'),
+        body: d.branchName
+          ? text('notificationEmployeeBranchChangedBody', { branchName: d.branchName, startDate: isoDate(d.startDate) })
+          : text('notificationEmployeeBranchChangedNoneBody', { startDate: isoDate(d.startDate) }),
+      };
+
     case 'VehicleTollExpiring': {
       if (!d.vehicleRegistrationNumber || !d.type || !d.country || !d.validUntil) return fallback;
       const typeKey = `vehicleTollType.${d.type}` as MessageKey;

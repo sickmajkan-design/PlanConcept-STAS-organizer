@@ -7,5 +7,6 @@ import type { AssignmentBoard } from './types';
  * reads the combined picture those writes change.
  */
 export const assignmentsApi = {
-  board: () => request<AssignmentBoard>({ method: 'GET', url: '/api/v1/assignment-board' }),
+  board: (query: { branchId?: string } = {}) =>
+    request<AssignmentBoard>({ method: 'GET', url: '/api/v1/assignment-board', params: query.branchId ? { branchId: query.branchId } : undefined }),
 };

@@ -18,6 +18,8 @@ const DESTINATIONS: Record<SetupChecklistKey, string> = {
   employeesWithoutAccount: paths.employees,
   employeesWithoutProject: paths.employees,
   projectsWithoutLocation: paths.projects,
+  employeesWithoutBranch: paths.organizationBranches,
+  projectsWithoutBranch: paths.organizationBranches,
   holidaysMissing: paths.publicHolidays,
   emailNotConfigured: 'server',
   pushNotConfigured: 'server',

@@ -1,4 +1,5 @@
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Application.Common.Models;
 using Construction.Application.Common.Security;
 using Construction.Application.Features.Locations.Models;
@@ -40,6 +41,9 @@ public record GetCurrentLocationsQuery : IPagedQuery, IRequest<PagedList<Employe
 
     /// <summary>Only employees assigned to this project.</summary>
     public Guid? ProjectId { get; init; }
+
+    /// <summary>Narrows the result to one business unit (poslovna jedinica) — the unit that employs the people.</summary>
+    public Guid? BranchId { get; init; }
 
     /// <summary>Ignore pings older than this many minutes (default: no limit).</summary>
     public int? MaxAgeMinutes { get; init; }
@@ -96,6 +100,8 @@ public class GetCurrentLocationsQueryHandler
             _context.EmployeeProjects,
             _currentUserService,
             DateOnly.FromDateTime(utcNow));
+
+        employees = employees.InBranch(request.BranchId);
 
         if (!request.IncludeInactive)
         {

@@ -1,4 +1,4 @@
-import { useBranchScoped } from '../branches/BranchContext';
+import { useBranchFilter, useBranchScoped } from '../branches/BranchContext';
 import { useQuery } from '@tanstack/react-query';
 
 import { employeesApi, type EmployeeListQuery } from '../../api/employees';
@@ -83,9 +83,10 @@ export function useEveryEmployeeQuery() {
 }
 
 export function useOrganizationHierarchyQuery() {
+  const { branchId } = useBranchFilter();
   return useQuery({
-    queryKey: [...employeeKeys.all, 'hierarchy'],
-    queryFn: () => employeesApi.hierarchy(),
+    queryKey: [...employeeKeys.all, 'hierarchy', branchId ?? null],
+    queryFn: () => employeesApi.hierarchy({ branchId }),
     staleTime: 60_000,
   });
 }

@@ -1928,6 +1928,39 @@ abstract class AppLocalizations {
   /// **'New accommodation'**
   String get notificationTypeAccommodationAssigned;
 
+  /// No description provided for @businessUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Business unit'**
+  String get businessUnit;
+
+  /// No description provided for @notificationEmployeeBranchChangedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Business unit changed'**
+  String get notificationEmployeeBranchChangedTitle;
+
+  /// No description provided for @notificationEmployeeBranchChangedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You are employed in {branchName} from {startDate}'**
+  String notificationEmployeeBranchChangedBody(
+    String branchName,
+    String startDate,
+  );
+
+  /// No description provided for @notificationEmployeeBranchChangedNoneBody.
+  ///
+  /// In en, this message translates to:
+  /// **'From {startDate} you are not assigned to any business unit'**
+  String notificationEmployeeBranchChangedNoneBody(String startDate);
+
+  /// No description provided for @notificationTypeEmployeeBranchChanged.
+  ///
+  /// In en, this message translates to:
+  /// **'Business unit'**
+  String get notificationTypeEmployeeBranchChanged;
+
   /// No description provided for @notificationAccommodationContractExpiringTitle.
   ///
   /// In en, this message translates to:

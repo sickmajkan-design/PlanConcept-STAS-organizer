@@ -23,6 +23,9 @@ _Employee _$EmployeeFromJson(Map<String, dynamic> json) => _Employee(
   status: json['status'] as String,
   type: json['type'] as String? ?? 'Employee',
   photoUrl: json['photoUrl'] as String?,
+  branchId: json['branchId'] as String?,
+  branchName: json['branchName'] as String?,
+  branchColor: json['branchColor'] as String?,
   createdAt: DateTime.parse(json['createdAt'] as String),
   updatedAt: json['updatedAt'] == null
       ? null
@@ -44,6 +47,9 @@ Map<String, dynamic> _$EmployeeToJson(_Employee instance) => <String, dynamic>{
   'status': instance.status,
   'type': instance.type,
   'photoUrl': ?instance.photoUrl,
+  'branchId': ?instance.branchId,
+  'branchName': ?instance.branchName,
+  'branchColor': ?instance.branchColor,
   'createdAt': instance.createdAt.toIso8601String(),
   'updatedAt': ?instance.updatedAt?.toIso8601String(),
 };
@@ -66,6 +72,9 @@ _EmployeeDetail _$EmployeeDetailFromJson(Map<String, dynamic> json) =>
       status: json['status'] as String,
       type: json['type'] as String? ?? 'Employee',
       photoUrl: json['photoUrl'] as String?,
+      branchId: json['branchId'] as String?,
+      branchName: json['branchName'] as String?,
+      branchColor: json['branchColor'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: json['updatedAt'] == null
           ? null
@@ -98,6 +107,9 @@ Map<String, dynamic> _$EmployeeDetailToJson(_EmployeeDetail instance) =>
       'status': instance.status,
       'type': instance.type,
       'photoUrl': ?instance.photoUrl,
+      'branchId': ?instance.branchId,
+      'branchName': ?instance.branchName,
+      'branchColor': ?instance.branchColor,
       'createdAt': instance.createdAt.toIso8601String(),
       'updatedAt': ?instance.updatedAt?.toIso8601String(),
       'hasUserAccount': instance.hasUserAccount,

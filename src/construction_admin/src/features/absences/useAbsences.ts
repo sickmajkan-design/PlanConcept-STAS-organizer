@@ -1,3 +1,4 @@
+import { useBranchScoped } from '../branches/BranchContext';
 import { useQuery } from '@tanstack/react-query';
 import {
   absencesApi,
@@ -18,13 +19,15 @@ export const scheduleKeys = {
 };
 
 export function useAbsencesQuery(query: AbsenceListQuery, enabled = true) {
-  return useResourceList(absenceKeys, absencesApi.list, query, { enabled });
+  const scoped = useBranchScoped(query);
+  return useResourceList(absenceKeys, absencesApi.list, scoped, { enabled });
 }
 
 export function useScheduleQuery(query: ScheduleQuery, enabled = true) {
+  const scoped = useBranchScoped(query);
   return useQuery({
-    queryKey: scheduleKeys.window(query),
-    queryFn: () => absencesApi.schedule(query),
+    queryKey: scheduleKeys.window(scoped),
+    queryFn: () => absencesApi.schedule(scoped),
     enabled,
   });
 }

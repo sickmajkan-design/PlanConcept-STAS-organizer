@@ -1,4 +1,5 @@
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -54,7 +55,11 @@ public class OrganizationHierarchyDto
 /// not a query concern, and it is the one place in the app that already knows
 /// how to translate a role name.
 /// </remarks>
-public record GetOrganizationHierarchyQuery : IRequest<OrganizationHierarchyDto>;
+public record GetOrganizationHierarchyQuery : IRequest<OrganizationHierarchyDto>
+{
+    /// <summary>Narrows the chart to one business unit — the unit that employs the people.</summary>
+    public Guid? BranchId { get; init; }
+}
 
 public class GetOrganizationHierarchyQueryHandler
     : IRequestHandler<GetOrganizationHierarchyQuery, OrganizationHierarchyDto>
@@ -76,6 +81,7 @@ public class GetOrganizationHierarchyQueryHandler
     {
         var people = await _context.Employees
             .AsNoTracking()
+            .InBranch(request.BranchId)
             .OrderBy(e => e.LastName)
             .ThenBy(e => e.FirstName)
             .Select(e => new OrganizationHierarchyNodeDto

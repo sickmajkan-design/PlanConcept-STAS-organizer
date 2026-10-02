@@ -22,6 +22,7 @@ export const announcementFormSchema = z.object({
   role: z.union([z.enum(roles), z.literal('')]),
   projectId: z.string(),
   groupId: z.string(),
+  branchId: z.string().optional(),
   requiresAcknowledgment: z.boolean(),
 });
 

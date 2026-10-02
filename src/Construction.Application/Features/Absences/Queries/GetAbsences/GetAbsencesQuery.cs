@@ -1,4 +1,5 @@
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.Absences.Models;
 using Construction.Domain.Entities;
@@ -20,6 +21,9 @@ public record GetAbsencesQuery : ISortablePagedQuery, IRequest<PagedList<Absence
     public int PageSize { get; init; } = 20;
 
     public Guid? EmployeeId { get; init; }
+
+    /// <summary>Narrows the result to one business unit (poslovna jedinica) — the unit that employs the people.</summary>
+    public Guid? BranchId { get; init; }
 
     public AbsenceStatus? Status { get; init; }
 
@@ -87,6 +91,8 @@ public class GetAbsencesQueryHandler : IRequestHandler<GetAbsencesQuery, PagedLi
         {
             query = query.Where(a => a.EmployeeId == employeeId);
         }
+
+        query = query.InBranch(request.BranchId);
 
         if (request.Status is { } status)
         {

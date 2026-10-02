@@ -2411,6 +2411,7 @@ export const notificationTypes = [
   'RefundRequested',
   'RefundDecided',
   'VehicleTollExpiring',
+  'EmployeeBranchChanged',
 ] as const;
 
 export type NotificationType = (typeof notificationTypes)[number];
@@ -2438,6 +2439,8 @@ export interface AnnouncementInput {
   projectId?: string | null;
   /** Narrows it to the members of one notification group. */
   groupId?: string | null;
+  /** Narrows it to the people one business unit employs now. */
+  branchId?: string | null;
   /** Recipients must confirm they saw it before doing anything else in the app. */
   requiresAcknowledgment?: boolean;
 }

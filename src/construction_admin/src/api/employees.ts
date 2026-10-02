@@ -74,9 +74,10 @@ export const employeesApi = {
       data: { rank },
     }),
 
-  hierarchy: () =>
+  hierarchy: (query: { branchId?: string } = {}) =>
     request<OrganizationHierarchy>({
       method: 'GET',
       url: '/api/v1/employees/hierarchy',
+      params: query.branchId ? { branchId: query.branchId } : undefined,
     }),
 };

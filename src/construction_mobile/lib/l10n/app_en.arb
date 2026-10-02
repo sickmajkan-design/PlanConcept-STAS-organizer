@@ -597,6 +597,17 @@
     "placeholders": { "accommodationName": { "type": "String" }, "startDate": { "type": "String" } }
   },
   "notificationTypeAccommodationAssigned": "New accommodation",
+  "businessUnit": "Business unit",
+  "notificationEmployeeBranchChangedTitle": "Business unit changed",
+  "notificationEmployeeBranchChangedBody": "You are employed in {branchName} from {startDate}",
+  "@notificationEmployeeBranchChangedBody": {
+    "placeholders": { "branchName": { "type": "String" }, "startDate": { "type": "String" } }
+  },
+  "notificationEmployeeBranchChangedNoneBody": "From {startDate} you are not assigned to any business unit",
+  "@notificationEmployeeBranchChangedNoneBody": {
+    "placeholders": { "startDate": { "type": "String" } }
+  },
+  "notificationTypeEmployeeBranchChanged": "Business unit",
   "notificationAccommodationContractExpiringTitle": "Housing contract ending",
   "notificationAccommodationContractExpiringBody": "The contract for {accommodationName} ends on {contractEnd}",
   "@notificationAccommodationContractExpiringBody": {

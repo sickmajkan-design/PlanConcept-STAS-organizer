@@ -1,4 +1,5 @@
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Application.Common.Models;
 using Construction.Application.Common.Security;
 using Construction.Application.Features.Accommodations.Models;
@@ -24,6 +25,9 @@ public record GetAccommodationsQuery : ISortablePagedQuery, IRequest<PagedList<A
     public string? Search { get; init; }
 
     public AccommodationType? Type { get; init; }
+
+    /// <summary>Narrows the result to one business unit (poslovna jedinica) — the unit that employs the people.</summary>
+    public Guid? BranchId { get; init; }
 
     /// <summary>True: only the ones still rented. False: only the ones given up. Omit for both.</summary>
     public bool? IsActive { get; init; }
@@ -62,7 +66,7 @@ public class GetAccommodationsQueryHandler
         GetAccommodationsQuery request,
         CancellationToken cancellationToken)
     {
-        var query = _context.Accommodations.AsNoTracking();
+        var query = _context.Accommodations.AsNoTracking().InBranch(request.BranchId);
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {

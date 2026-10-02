@@ -1,5 +1,6 @@
 using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Application.Features.Absences.Models;
 using Construction.Domain.Enums;
 using FluentValidation;
@@ -38,6 +39,9 @@ public record GetScheduleQuery : IRequest<ScheduleDto>
 
     /// <summary>Narrows the board to one site.</summary>
     public Guid? ProjectId { get; init; }
+
+    /// <summary>Narrows the result to one business unit (poslovna jedinica) — the unit that employs the people.</summary>
+    public Guid? BranchId { get; init; }
 
     /// <summary>
     /// When true, leaves out employees with nothing on them in this window.
@@ -117,6 +121,14 @@ public class GetScheduleQueryHandler : IRequestHandler<GetScheduleQuery, Schedul
                         && (pa.EndDate == null || pa.EndDate > today)))
                 .Select(e => e.Id)
                 .ToListAsync(cancellationToken);
+        }
+
+        // A unit's board holds the people it employed at some point in the window.
+        var inUnit = await BranchScope.EmployeeIdsAsync(_context, request.BranchId, from, to, cancellationToken);
+
+        if (inUnit is not null)
+        {
+            crew = crew is null ? inUnit : crew.Intersect(inUnit).ToList();
         }
 
         // Overlap, not containment: a posting that started last month and runs

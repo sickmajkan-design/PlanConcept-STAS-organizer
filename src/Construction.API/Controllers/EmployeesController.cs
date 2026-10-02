@@ -39,9 +39,10 @@ public class EmployeesController : ApiControllerBase
     [Authorize(Policy = Policies.ForemanAndAbove)]
     [ProducesResponseType(typeof(OrganizationHierarchyDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<OrganizationHierarchyDto>> GetHierarchy(
+        [FromQuery] GetOrganizationHierarchyQuery query,
         CancellationToken cancellationToken)
     {
-        return Ok(await Mediator.Send(new GetOrganizationHierarchyQuery(), cancellationToken));
+        return Ok(await Mediator.Send(query, cancellationToken));
     }
 
     /// <summary>Places someone on the org chart, or clears their placement with a null rank.</summary>

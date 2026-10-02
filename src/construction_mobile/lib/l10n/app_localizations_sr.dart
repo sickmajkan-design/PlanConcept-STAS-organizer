@@ -1054,6 +1054,29 @@ class AppLocalizationsSr extends AppLocalizations {
   String get notificationTypeAccommodationAssigned => 'Novi smještaj';
 
   @override
+  String get businessUnit => 'Poslovna jedinica';
+
+  @override
+  String get notificationEmployeeBranchChangedTitle =>
+      'Promjena poslovne jedinice';
+
+  @override
+  String notificationEmployeeBranchChangedBody(
+    String branchName,
+    String startDate,
+  ) {
+    return 'Zaposleni ste u jedinici $branchName od $startDate';
+  }
+
+  @override
+  String notificationEmployeeBranchChangedNoneBody(String startDate) {
+    return 'Od $startDate niste raspoređeni ni u jednu poslovnu jedinicu';
+  }
+
+  @override
+  String get notificationTypeEmployeeBranchChanged => 'Poslovna jedinica';
+
+  @override
   String get notificationAccommodationContractExpiringTitle =>
       'Ističe ugovor o smještaju';
 

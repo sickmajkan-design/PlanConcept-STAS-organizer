@@ -1,3 +1,4 @@
+import { useBranchScoped } from '../branches/BranchContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
@@ -40,7 +41,8 @@ export function useImportAccommodations() {
 }
 
 export function useAccommodationsQuery(query: AccommodationListQuery, enabled = true) {
-  return useResourceList(accommodationKeys, accommodationsApi.list, query, { enabled });
+  const scoped = useBranchScoped(query);
+  return useResourceList(accommodationKeys, accommodationsApi.list, scoped, { enabled });
 }
 
 export function useAccommodationQuery(id: string | undefined) {
