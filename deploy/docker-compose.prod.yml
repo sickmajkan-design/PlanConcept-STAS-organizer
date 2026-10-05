@@ -192,7 +192,7 @@ services:
   # Publishes no port. Telemetry is internal traffic and a receiver open to the
   # internet is somewhere to post whatever you like.
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.115.1@sha256:d2da12c4336a79758826700be9e21ecf4a9f7d945b7f8a58ba55ee3fa45427c8
+    image: otel/opentelemetry-collector-contrib:0.161.0@sha256:fd328de2552466ad78385e1b1289c3f2402b1c45f265b252aab1955b42845ac1
     profiles: ["telemetry"]
     restart: unless-stopped
     command: ["--config=/etc/otel/config.yaml"]
