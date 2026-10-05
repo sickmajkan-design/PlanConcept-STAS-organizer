@@ -134,7 +134,9 @@ export function AttachmentList({
               key={attachment.id}
               divider
               onDoubleClick={() => setPreviewing(attachment)}
-              sx={{ cursor: "pointer" }}
+              // Room for the two buttons on the right: they are laid over the row, so without it a long
+              // file name or a chip runs underneath them.
+              sx={{ cursor: "pointer", pr: 11 }}
               secondaryAction={
                 <Stack direction="row" spacing={0.5}>
                   <DownloadButton attachment={attachment} />
@@ -174,9 +176,10 @@ export function AttachmentList({
                   <Stack
                     direction="row"
                     spacing={1}
-                    sx={{ alignItems: "center" }}
+                    useFlexGap
+                    sx={{ alignItems: "center", flexWrap: "wrap" }}
                   >
-                    <span>{attachment.fileName}</span>
+                    <span style={{ overflowWrap: "anywhere" }}>{attachment.fileName}</span>
                     <ExpiryChip expiresAt={attachment.expiresAt} />
                     <RetentionChip retainUntil={attachment.retainUntil} />
                   </Stack>
