@@ -11,7 +11,7 @@ RUN dotnet restore src/Construction.API/Construction.API.csproj
 COPY src/ src/
 RUN dotnet publish src/Construction.API/Construction.API.csproj -c Release -o /app/publish /p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/aspnet:9.0@sha256:2680706c9656fafe34876446d694fd25077fd0b5da478f38d56073ac6c21d37e AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0@sha256:222759b391a1aaf241166672c8f99b2d4ada452e7b5319f3c6e8f265a37b5ad4 AS runtime
 WORKDIR /app
 
 RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
