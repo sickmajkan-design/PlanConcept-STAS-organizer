@@ -4,6 +4,7 @@ using Construction.Application.Features.Attachments;
 using Construction.Application.Features.Attachments.Commands.SendExpiryReminders;
 using Construction.Application.Features.Attachments.Commands.UpdateAttachment;
 using Construction.Application.Features.Attachments.Commands.UploadAttachment;
+using Construction.Application.Features.Attachments.Queries.GetAttachmentCounts;
 using Construction.Application.Features.Attachments.Models;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
@@ -173,5 +174,40 @@ public class AttachmentReminderTests : IntegrationTestBase
         await Assert.ThrowsAsync<ValidationException>(() => UploadVisaAsync(admin, employee.Id, Today.AddDays(90), 0));
         await Assert.ThrowsAsync<ValidationException>(() => UploadVisaAsync(admin, employee.Id, Today.AddDays(90), 400));
         await Assert.ThrowsAsync<ValidationException>(() => UploadVisaAsync(admin, employee.Id, Today.AddDays(90), 1, 2, 3, 4, 5, 6));
+    }
+
+    [Fact]
+    public async Task The_counts_for_a_list_say_how_many_documents_each_record_has_and_how_many_lapsed()
+    {
+        var withTwo = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var withNone = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+
+        await UploadVisaAsync(admin, withTwo.Id, Today.AddDays(-3));
+        await UploadVisaAsync(admin, withTwo.Id, Today.AddDays(90));
+
+        var counts = await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new GetAttachmentCountsQuery { OwnerType = AttachmentOwnerType.Employee });
+        });
+
+        var row = Assert.Single(counts, c => c.OwnerId == withTwo.Id);
+        Assert.Equal(2, row.Count);
+        Assert.Equal(1, row.Expired);
+        Assert.DoesNotContain(counts, c => c.OwnerId == withNone.Id);
+    }
+
+    [Fact]
+    public async Task A_worker_may_not_count_other_peoples_documents()
+    {
+        var me = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var worker = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Worker, me.Id));
+
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => InScope(scope =>
+        {
+            scope.CurrentUser.SignInAs(worker.Id, worker.Role, me.Id, worker.Email);
+            return scope.Send(new GetAttachmentCountsQuery { OwnerType = AttachmentOwnerType.Employee });
+        }));
     }
 }

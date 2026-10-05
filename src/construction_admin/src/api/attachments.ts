@@ -45,7 +45,22 @@ export const MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024;
 export const ACCEPTED_EXTENSIONS =
   '.pdf,.jpg,.jpeg,.png,.webp,.heic,.doc,.docx,.xls,.xlsx,.txt';
 
+export interface AttachmentCount {
+  ownerId: string;
+  count: number;
+  /** How many of them have already lapsed. */
+  expired: number;
+}
+
 export const attachmentsApi = {
+  /** The document count of every record of one kind, for a list page. Records with none are absent. */
+  counts: (ownerType: AttachmentOwnerType) =>
+    request<AttachmentCount[]>({
+      method: 'GET',
+      url: '/api/v1/attachments/counts',
+      params: { ownerType },
+    }),
+
   list: (query: AttachmentListQuery) =>
     request<Attachment[]>({
       method: 'GET',

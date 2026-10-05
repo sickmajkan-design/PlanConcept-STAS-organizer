@@ -35,6 +35,21 @@ export function useAttachmentsQuery(query: AttachmentListQuery, enabled = true) 
   });
 }
 
+/**
+ * How many documents each record of one kind has, as a map by id. One request however many rows the
+ * list shows; every attachment write invalidates it with the rest, so the numbers stay current.
+ * Undefined while loading or when the account may not see them, so a row simply shows nothing.
+ */
+export function useAttachmentCountsQuery(ownerType: AttachmentOwnerType) {
+  return useQuery({
+    queryKey: [...attachmentKeys.all, 'counts', ownerType],
+    queryFn: () => attachmentsApi.counts(ownerType),
+    retry: false,
+    staleTime: 15_000,
+    select: (rows) => new Map((Array.isArray(rows) ? rows : []).map((row) => [row.ownerId, row])),
+  });
+}
+
 export function useExpiringDocumentsQuery(
   withinDays: number | null = 30,
   includeUndated = false,

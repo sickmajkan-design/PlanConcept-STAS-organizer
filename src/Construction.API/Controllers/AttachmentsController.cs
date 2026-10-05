@@ -6,6 +6,7 @@ using Construction.Application.Features.Attachments.Commands.UploadAttachment;
 using Construction.Application.Features.Attachments.Models;
 using Construction.Application.Features.Attachments.Queries.ExportAttachments;
 using Construction.Application.Features.Attachments.Queries.GetAttachmentContent;
+using Construction.Application.Features.Attachments.Queries.GetAttachmentCounts;
 using Construction.Application.Features.Attachments.Queries.GetAttachments;
 using Construction.Application.Features.Attachments.Queries.GetExpiringDocuments;
 using Construction.Domain.Enums;
@@ -34,6 +35,18 @@ public class AttachmentsController : ApiControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<IReadOnlyList<AttachmentDto>>> GetList(
         [FromQuery] GetAttachmentsQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>How many documents each record of one kind has, for the numbers on a list page.</summary>
+    [HttpGet("counts")]
+    [Authorize(Policy = Policies.AllEmployees)]
+    [ProducesResponseType(typeof(IReadOnlyList<AttachmentCountDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<IReadOnlyList<AttachmentCountDto>>> GetCounts(
+        [FromQuery] GetAttachmentCountsQuery query,
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(query, cancellationToken));

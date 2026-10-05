@@ -29,6 +29,7 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
+import { DocumentCountBadge } from '../../components/DocumentCountBadge';
 import { RowActions } from '../../components/RowActions';
 import { SavedViewsBar } from '../../components/SavedViewsBar';
 import { SearchField } from '../../components/SearchField';
@@ -254,6 +255,7 @@ function AccommodationRow({
       )}
 
       <RowActions>
+        <DocumentCountBadge ownerType="Accommodation" ownerId={accommodation.id} />
         <Tooltip title={t('common.edit')}>
           <IconButton
             size="small"

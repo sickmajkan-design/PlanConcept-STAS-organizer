@@ -40,6 +40,7 @@ import { ExportButton } from '../../components/ExportButton';
 import { ErrorState } from '../../components/ErrorState';
 import { EmptyState } from '../../components/EmptyState';
 import { PageHeader } from '../../components/PageHeader';
+import { DocumentCountBadge } from '../../components/DocumentCountBadge';
 import { RowActions } from '../../components/RowActions';
 import { SavedViewsBar } from '../../components/SavedViewsBar';
 import { SearchField } from '../../components/SearchField';
@@ -459,6 +460,7 @@ function ProjectRow({
       </Typography>
 
       <RowActions>
+        <DocumentCountBadge ownerType="Project" ownerId={project.id} />
         {isMain && onAddSub && (
           <Tooltip title={t('projects.addSubProject')}>
             <IconButton

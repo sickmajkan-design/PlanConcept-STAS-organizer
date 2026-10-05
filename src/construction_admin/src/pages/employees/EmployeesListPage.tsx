@@ -35,6 +35,7 @@ import {
   useViewMode,
 } from '../../components/StatusBoard';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
+import { DocumentCountBadge } from '../../components/DocumentCountBadge';
 import { RowActions } from '../../components/RowActions';
 import { SavedViewsBar } from '../../components/SavedViewsBar';
 import { SearchField } from '../../components/SearchField';
@@ -179,13 +180,14 @@ export function EmployeesListPage() {
       {
         field: 'actions',
         headerName: '',
-        width: 130,
+        width: 190,
         sortable: false,
         filterable: false,
         align: 'right',
         headerAlign: 'right',
         renderCell: (params) => (
           <RowActions>
+            <DocumentCountBadge ownerType="Employee" ownerId={params.row.id} />
             <Tooltip title={t('common.view')}>
               <IconButton size="small" onClick={() => navigate(paths.employeeDetail(params.row.id))}>
                 <VisibilityOutlined fontSize="small" />
