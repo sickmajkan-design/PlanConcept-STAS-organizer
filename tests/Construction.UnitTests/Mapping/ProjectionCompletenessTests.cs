@@ -49,11 +49,34 @@ public class ProjectionCompletenessTests
             .GetTypes()
             .Where(t => t.IsClass && t.IsAbstract && t.IsSealed) // static
             .Where(t => t.Name.EndsWith("Mapping", StringComparison.Ordinal))
-            .Where(t => ProjectionField(t) is not null)
+            .Where(t => ProjectionOf(t) is not null)
             .OrderBy(t => t.FullName, StringComparer.Ordinal);
 
-    private static FieldInfo? ProjectionField(Type type) =>
-        type.GetField("Projection", BindingFlags.Public | BindingFlags.Static);
+    /// <summary>
+    /// The projection, whether the mapping declares it as a field or — when it
+    /// needs "today" captured into the expression, as <c>VehicleMapping</c>
+    /// does — as a method taking a <see cref="DateOnly"/>.
+    /// </summary>
+    /// <remarks>
+    /// Only looking for the field made <c>VehicleMapping</c> drop out of this
+    /// file without a sound the day it became a method: the completeness check
+    /// kept passing while no longer covering <c>VehicleDto</c>.
+    /// </remarks>
+    private static LambdaExpression? ProjectionOf(Type type)
+    {
+        var field = type.GetField("Projection", BindingFlags.Public | BindingFlags.Static);
+
+        if (field is not null)
+        {
+            return (LambdaExpression)field.GetValue(null)!;
+        }
+
+        var method = type.GetMethod(
+            "Projection", BindingFlags.Public | BindingFlags.Static, [typeof(DateOnly)]);
+
+        return (LambdaExpression?)method?.Invoke(
+            null, [DateOnly.FromDateTime(DateTime.UtcNow)]);
+    }
 
     [Theory]
     [MemberData(nameof(Projections))]
@@ -61,7 +84,7 @@ public class ProjectionCompletenessTests
     {
         var type = typeof(EmployeeMapping).Assembly.GetType(typeName)!;
 
-        var lambda = (LambdaExpression)ProjectionField(type)!.GetValue(null)!;
+        var lambda = ProjectionOf(type)!;
 
         // The projection has to be `entity => new Dto { ... }` for EF to turn
         // it into a SELECT list, so anything else is worth failing on too.
