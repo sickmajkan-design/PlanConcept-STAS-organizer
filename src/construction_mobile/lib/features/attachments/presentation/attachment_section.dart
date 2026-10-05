@@ -92,6 +92,22 @@ class AttachmentSection extends ConsumerWidget {
   }
 }
 
+/// The section heading with how many documents the record has: "Documents (3)".
+///
+/// Reads the same list the section shows, which every upload and delete refreshes, so the
+/// number changes the moment the change is saved.
+String attachmentsTitleWithCount(
+  BuildContext context,
+  WidgetRef ref, {
+  required String ownerType,
+  required String ownerId,
+}) {
+  final title = context.l10n.attachmentsTitle;
+  final count = ref.watch(attachmentsProvider((ownerType: ownerType, ownerId: ownerId))).value?.length;
+
+  return count == null ? title : '$title ($count)';
+}
+
 class _AttachmentTile extends ConsumerWidget {
   const _AttachmentTile({required this.attachment, required this.canDelete});
 

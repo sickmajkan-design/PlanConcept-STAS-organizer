@@ -982,6 +982,8 @@ export interface Attachment {
   expiresAt: string | null;
   /** `YYYY-MM-DD` — a legal retention requirement, null if none applies. */
   retainUntil: string | null;
+  /** The document's own reminder lead times, days before it lapses; empty when the general rule applies. */
+  reminderDays: number[];
   ownerType: AttachmentOwnerType;
   ownerId: string;
   ownerName: string | null;
@@ -1786,6 +1788,8 @@ export interface AccommodationStay {
   accommodationAddress: string;
   employeeId: string;
   employeeName: string;
+  /** Their phone, shown on current stays so the next person can call them. */
+  employeePhone: string | null;
   /** `YYYY-MM-DD`. */
   startDate: string;
   /** `YYYY-MM-DD`, or null while they still live there. */

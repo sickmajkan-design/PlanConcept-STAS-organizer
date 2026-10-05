@@ -24,6 +24,8 @@ public class AttachmentExpiryReminderConfiguration : IEntityTypeConfiguration<At
 
         // The claim itself: one row per (document, admin) is what stops the
         // sweep from telling the same person about the same document twice.
-        builder.HasIndex(r => new { r.AttachmentId, r.UserId }).IsUnique();
+        builder.Property(r => r.DaysBefore).HasDefaultValue(0);
+
+        builder.HasIndex(r => new { r.AttachmentId, r.UserId, r.DaysBefore }).IsUnique();
     }
 }

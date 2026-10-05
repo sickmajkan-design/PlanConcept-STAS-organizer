@@ -81,6 +81,13 @@ class MoreScreen extends ConsumerWidget {
                     ),
                     const Divider(height: 1, indent: 20, endIndent: 20),
                     ListTile(
+                      leading: const Icon(Icons.alarm_outlined),
+                      title: Text(context.l10n.shiftReminderTitle),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => context.push(AppRoutes.shiftReminders),
+                    ),
+                    const Divider(height: 1, indent: 20, endIndent: 20),
+                    ListTile(
                       leading: const Icon(Icons.shopping_bag_outlined),
                       title: Text(context.l10n.navArticleOrders),
                       trailing: const Icon(Icons.chevron_right),

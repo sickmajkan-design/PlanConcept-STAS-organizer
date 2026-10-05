@@ -30,6 +30,9 @@ public record UploadAttachmentCommand : IRequest<AttachmentDto>
     public DateOnly? ExpiresAt { get; init; }
 
     public DateOnly? RetainUntil { get; init; }
+
+    /// <summary>Own reminder lead times, days before expiry. Needs an expiry date.</summary>
+    public List<int>? ReminderDays { get; init; }
 }
 
 public class UploadAttachmentCommandValidator : AbstractValidator<UploadAttachmentCommand>
@@ -66,6 +69,18 @@ public class UploadAttachmentCommandValidator : AbstractValidator<UploadAttachme
         RuleFor(x => x.ExpiresAt)
             .Null().WithMessage("A photograph does not expire.")
             .When(x => x.Category == AttachmentCategory.Photo);
+
+        RuleForEach(x => x.ReminderDays)
+            .InclusiveBetween(1, AttachmentRules.MaxReminderDays)
+            .WithMessage($"A reminder is 1 to {AttachmentRules.MaxReminderDays} days before expiry.");
+
+        RuleFor(x => x.ReminderDays)
+            .Must(d => AttachmentRules.NormaliseReminderDays(d).Length <= AttachmentRules.MaxReminders)
+            .WithMessage($"At most {AttachmentRules.MaxReminders} reminders per document.");
+
+        RuleFor(x => x.ExpiresAt)
+            .NotNull().WithMessage("A reminder needs an expiry date.")
+            .When(x => x.ReminderDays is { Count: > 0 });
 
         // No Photo restriction on RetainUntil, unlike ExpiresAt above — a
         // site photo can be exactly the evidence a legal dispute needs kept.
@@ -123,6 +138,7 @@ public class UploadAttachmentCommandHandler
             Description = request.Description?.Trim(),
             ExpiresAt = request.ExpiresAt,
             RetainUntil = request.RetainUntil,
+            ReminderDays = AttachmentRules.NormaliseReminderDays(request.ReminderDays),
             UploadedByUserId = _currentUserService.UserId
         };
 

@@ -97,10 +97,11 @@ export function resolveNotificationText(t: T, notification: Notification): Notif
         title: text(
           d.expired === 'true' ? 'notificationDocumentExpiredTitle' : 'notificationDocumentExpiringTitle',
         ),
-        body: text(
-          d.ownerName ? 'notificationDocumentExpiringBodyWithOwner' : 'notificationDocumentExpiringBody',
-          values,
-        ),
+        body:
+          text(
+            d.ownerName ? 'notificationDocumentExpiringBodyWithOwner' : 'notificationDocumentExpiringBody',
+            values,
+          ) + (d.addedByYou === 'true' ? ` · ${text('notificationDocumentAddedByYou')}` : ''),
       };
     }
 

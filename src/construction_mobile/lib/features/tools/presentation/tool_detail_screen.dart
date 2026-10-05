@@ -85,7 +85,7 @@ class ToolDetailScreen extends ConsumerWidget {
                 ToolRentalOutSection(tool: tool),
                 const SizedBox(height: 20),
                 _Section(
-                  title: context.l10n.attachmentsTitle,
+                  title: attachmentsTitleWithCount(context, ref, ownerType: 'Tool', ownerId: tool.id),
                   children: [
                     AttachmentSection(ownerType: 'Tool', ownerId: tool.id),
                   ],

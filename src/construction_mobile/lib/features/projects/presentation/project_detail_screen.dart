@@ -96,7 +96,7 @@ class ProjectDetailScreen extends ConsumerWidget {
                 ..._detailsSection(context, project),
                 const SizedBox(height: 20),
                 _Section(
-                  title: context.l10n.attachmentsTitle,
+                  title: attachmentsTitleWithCount(context, ref, ownerType: 'Project', ownerId: project.id),
                   children: [
                     AttachmentSection(
                       ownerType: 'Project',

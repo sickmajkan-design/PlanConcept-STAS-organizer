@@ -2825,4 +2825,68 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get moreTitle => 'More';
+
+  @override
+  String get shiftReminderTitle => 'Shift reminders';
+
+  @override
+  String get shiftReminderIntro =>
+      'Get a reminder on this phone to clock in and out. It is set here and works without a connection.';
+
+  @override
+  String get shiftReminderStartSwitch => 'Remind me to clock in';
+
+  @override
+  String get shiftReminderEndSwitch => 'Remind me to clock out';
+
+  @override
+  String get shiftReminderEndHint =>
+      'Only if I am still clocked in at that time.';
+
+  @override
+  String get shiftReminderTime => 'Time';
+
+  @override
+  String get shiftReminderDays => 'On these days';
+
+  @override
+  String get shiftReminderPermissionDenied =>
+      'Notifications are turned off for this app, so the reminder cannot be turned on. Allow them in the phone settings.';
+
+  @override
+  String get shiftReminderStartTitle => 'Time to clock in';
+
+  @override
+  String get shiftReminderStartBody => 'Open the app and start your shift.';
+
+  @override
+  String get shiftReminderEndTitle => 'Did you forget to clock out?';
+
+  @override
+  String get shiftReminderEndBody =>
+      'You are still clocked in. Open the app to end your shift.';
+
+  @override
+  String get shiftReminderChannel => 'Shift reminders';
+
+  @override
+  String get shiftReminderDayMon => 'Mon';
+
+  @override
+  String get shiftReminderDayTue => 'Tue';
+
+  @override
+  String get shiftReminderDayWed => 'Wed';
+
+  @override
+  String get shiftReminderDayThu => 'Thu';
+
+  @override
+  String get shiftReminderDayFri => 'Fri';
+
+  @override
+  String get shiftReminderDaySat => 'Sat';
+
+  @override
+  String get shiftReminderDaySun => 'Sun';
 }

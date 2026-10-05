@@ -57,6 +57,13 @@ public class Attachment : BaseEntity, ISoftDeletable, IAuditable
     public DateOnly? ExpiresAt { get; set; }
 
     /// <summary>
+    /// This document's own reminder lead times, in days before <see cref="ExpiresAt"/>
+    /// (a visa: 90 and 30). Empty means the general rule applies, which is each
+    /// admin's own setting; when set, these replace it for this one document.
+    /// </summary>
+    public int[] ReminderDays { get; set; } = [];
+
+    /// <summary>
     /// The earliest date this document may be deleted — a legal retention
     /// requirement (an invoice, a contract) rather than an everyday setting.
     /// Null means the ordinary rule applies: anyone allowed to delete may,

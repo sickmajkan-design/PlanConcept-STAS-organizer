@@ -33,6 +33,9 @@ class AppRoutes {
   /// Open to every employee-linked account: their own leave.
   static const absences = '/absences';
 
+  /// Open to every employee-linked account: reminders to clock in and out, kept on the phone.
+  static const shiftReminders = '/shift-reminders';
+
   /// Open to every signed-in account: articles a person needs for the job.
   static const articleOrders = '/article-orders';
 

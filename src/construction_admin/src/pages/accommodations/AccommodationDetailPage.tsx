@@ -51,6 +51,7 @@ import { canAdministerAccounts, canSeeSpending } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { AttachmentList } from '../../components/AttachmentList';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { DocumentCountChip } from '../../components/DocumentCountChip';
 import { ErrorState } from '../../components/ErrorState';
 import {
   useAccommodationCostsQuery,
@@ -135,6 +136,7 @@ export function AccommodationDetailPage() {
                 {!accommodation.isActive && (
                   <Chip size="small" color="default" label={t('accommodations.inactive')} />
                 )}
+                <DocumentCountChip ownerType="Accommodation" ownerId={accommodation.id} />
               </Stack>
               <Typography color="text.secondary" sx={{ mt: 0.5 }}>
                 {[accommodation.name ? accommodation.address : null, accommodation.city]
@@ -425,6 +427,11 @@ function OccupantsCard({ accommodation }: { accommodation: Accommodation }) {
                         </MuiLink>
                         {isCurrent(stay) && <Chip size="small" color="success" variant="outlined" label={t('rates.active')} />}
                       </Stack>
+                      {isCurrent(stay) && stay.employeePhone && (
+                        <MuiLink href={`tel:${stay.employeePhone}`} variant="caption" color="text.secondary" underline="hover">
+                          {stay.employeePhone}
+                        </MuiLink>
+                      )}
                     </TableCell>
                     <TableCell>{formatDate(stay.startDate)}</TableCell>
                     <TableCell>{stay.endDate ? formatDate(stay.endDate) : t('rates.open')}</TableCell>

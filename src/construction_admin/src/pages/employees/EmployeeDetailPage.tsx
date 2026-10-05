@@ -36,6 +36,7 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
 import { AttachmentList } from '../../components/AttachmentList';
 import { SiblingNavButtons } from '../../components/SiblingNavButtons';
+import { DocumentCountChip } from '../../components/DocumentCountChip';
 import { StatusChip } from '../../components/StatusChip';
 import { useSiblingNavigation } from '../../hooks/useSiblingNavigation';
 import { useEnumLabel } from '../../i18n/enumLabels';
@@ -135,6 +136,7 @@ export function EmployeeDetailPage() {
                     label={enumLabel('employeeType', 'Subcontractor')}
                   />
                 )}
+                <DocumentCountChip ownerType="Employee" ownerId={employee.id} />
                 <Typography variant="body2" color="text.secondary">
                   · {employee.employeeNumber}
                 </Typography>

@@ -62,6 +62,7 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
 import { AttachmentList } from '../../components/AttachmentList';
 import { QrLabelDialog } from '../../components/QrLabelDialog';
+import { DocumentCountChip } from '../../components/DocumentCountChip';
 import { StatusChip } from '../../components/StatusChip';
 import { useCoverPhoto } from '../../features/attachments/useAttachments';
 import { useAllCustomersQuery } from '../../features/customers/useCustomers';
@@ -197,6 +198,7 @@ export function VehicleDetailPage() {
               <Stack direction="row" spacing={1} sx={{ mt: 1.5, alignItems: 'center' }}>
                 <StatusChip status={vehicle.status} kind="vehicleStatus" />
                 <StatusChip status={vehicle.ownershipType} kind="vehicleOwnershipType" />
+                <DocumentCountChip ownerType="Vehicle" ownerId={vehicle.id} />
               </Stack>
             </Box>
             <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', alignItems: 'center' }}>

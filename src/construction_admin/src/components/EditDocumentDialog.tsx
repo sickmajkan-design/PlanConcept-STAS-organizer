@@ -20,6 +20,7 @@ import { attachmentCategories } from '../api/types';
 import { useUpdateAttachment } from '../features/attachments/useAttachments';
 import { useEnumLabel } from '../i18n/enumLabels';
 import { useT } from '../i18n/useI18n';
+import { ReminderDaysField } from './ReminderDaysField';
 
 /**
  * Edits a document's details in place — mainly the expiry date, which is how a
@@ -41,6 +42,7 @@ export function EditDocumentDialog({
   const [description, setDescription] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
   const [retainUntil, setRetainUntil] = useState('');
+  const [reminderDays, setReminderDays] = useState<number[]>([]);
 
   const resetUpdate = update.reset;
 
@@ -50,6 +52,7 @@ export function EditDocumentDialog({
       setDescription(attachment.description ?? '');
       setExpiresAt(attachment.expiresAt ?? '');
       setRetainUntil(attachment.retainUntil ?? '');
+      setReminderDays(attachment.reminderDays ?? []);
       resetUpdate();
     }
   }, [attachment, resetUpdate]);
@@ -67,6 +70,7 @@ export function EditDocumentDialog({
         description: description.trim() || null,
         expiresAt: expiryAllowed && expiresAt ? expiresAt : null,
         retainUntil: retainUntil || null,
+        reminderDays: expiryAllowed && expiresAt ? reminderDays : [],
       },
       { onSuccess: onClose },
     );
@@ -106,6 +110,10 @@ export function EditDocumentDialog({
             onChange={(event) => setExpiresAt(event.target.value)}
             slotProps={{ inputLabel: { shrink: true } }}
           />
+
+          {expiryAllowed && expiresAt && (
+            <ReminderDaysField value={reminderDays} onChange={setReminderDays} />
+          )}
 
           <TextField
             size="small"

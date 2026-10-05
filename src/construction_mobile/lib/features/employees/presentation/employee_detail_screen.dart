@@ -155,7 +155,7 @@ class EmployeeDetailScreen extends ConsumerWidget {
                 // and refuses everyone else's below Admin, so this is either
                 // the signed-in worker's own file or an administrator looking.
                 _Section(
-                  title: context.l10n.attachmentsTitle,
+                  title: attachmentsTitleWithCount(context, ref, ownerType: 'Employee', ownerId: employee.id),
                   children: [
                     AttachmentSection(
                       ownerType: 'Employee',

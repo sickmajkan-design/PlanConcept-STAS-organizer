@@ -1062,5 +1062,25 @@
       "count": {"type": "int"}
     }
   },
-  "moreTitle": "Više"
+  "moreTitle": "Više",
+  "shiftReminderTitle": "Podsjetnici za smjenu",
+  "shiftReminderIntro": "Dobijte podsjetnik na ovom telefonu da se prijavite i odjavite. Podešava se ovdje i radi bez interneta.",
+  "shiftReminderStartSwitch": "Podsjeti me da se prijavim",
+  "shiftReminderEndSwitch": "Podsjeti me da se odjavim",
+  "shiftReminderEndHint": "Samo ako sam u to vrijeme još prijavljen.",
+  "shiftReminderTime": "Vrijeme",
+  "shiftReminderDays": "Ovim danima",
+  "shiftReminderPermissionDenied": "Obavještenja su isključena za ovu aplikaciju, pa se podsjetnik ne može uključiti. Dozvolite ih u postavkama telefona.",
+  "shiftReminderStartTitle": "Vrijeme je za prijavu",
+  "shiftReminderStartBody": "Otvorite aplikaciju i započnite smjenu.",
+  "shiftReminderEndTitle": "Jeste li zaboravili da se odjavite?",
+  "shiftReminderEndBody": "Još ste prijavljeni. Otvorite aplikaciju da završite smjenu.",
+  "shiftReminderChannel": "Podsjetnici za smjenu",
+  "shiftReminderDayMon": "Pon",
+  "shiftReminderDayTue": "Uto",
+  "shiftReminderDayWed": "Sri",
+  "shiftReminderDayThu": "Čet",
+  "shiftReminderDayFri": "Pet",
+  "shiftReminderDaySat": "Sub",
+  "shiftReminderDaySun": "Ned"
 }

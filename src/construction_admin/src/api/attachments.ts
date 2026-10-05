@@ -23,6 +23,8 @@ export interface UploadAttachmentInput {
   expiresAt?: string | null;
   /** `YYYY-MM-DD`. Omitted for anything with no mandatory retention. */
   retainUntil?: string | null;
+  /** Own reminder lead times in days before expiry. Needs `expiresAt`. */
+  reminderDays?: number[];
 }
 
 export interface UpdateAttachmentInput {
@@ -33,6 +35,8 @@ export interface UpdateAttachmentInput {
   expiresAt: string | null;
   /** `YYYY-MM-DD`, or null when no retention applies. */
   retainUntil: string | null;
+  /** Own reminder lead times in days before expiry; empty falls back to the general rule. */
+  reminderDays: number[];
 }
 
 /** Mirrors the API's AttachmentRules, so the picker and the limits agree. */
@@ -84,6 +88,10 @@ export const attachmentsApi = {
       form.append('retainUntil', input.retainUntil);
     }
 
+    for (const days of input.reminderDays ?? []) {
+      form.append('reminderDays', String(days));
+    }
+
     // No explicit Content-Type: the browser has to set it, because only it
     // knows the multipart boundary it generated.
     return request<Attachment>({
@@ -102,6 +110,7 @@ export const attachmentsApi = {
         description: input.description,
         expiresAt: input.expiresAt,
         retainUntil: input.retainUntil,
+        reminderDays: input.reminderDays,
       },
     }),
 

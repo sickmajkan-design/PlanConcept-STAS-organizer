@@ -6,6 +6,7 @@ import '../../features/absences/presentation/my_absences_screen.dart';
 import '../../features/article_orders/presentation/article_orders_screen.dart';
 import '../../features/refunds/presentation/refunds_screen.dart';
 import '../../features/absences/presentation/my_schedule_screen.dart';
+import '../../features/reminders/presentation/shift_reminder_screen.dart';
 import '../../features/bulletin/presentation/bulletin_screen.dart';
 import '../../features/housing/presentation/my_housing_screen.dart';
 import '../../features/company_settings/presentation/company_settings_screen.dart';
@@ -159,6 +160,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.absences,
         builder: (context, state) => const MyAbsencesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.shiftReminders,
+        builder: (context, state) => const ShiftReminderScreen(),
       ),
       GoRoute(
         path: AppRoutes.articleOrders,

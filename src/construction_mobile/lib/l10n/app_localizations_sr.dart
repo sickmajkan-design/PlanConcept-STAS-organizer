@@ -2826,4 +2826,69 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get moreTitle => 'Više';
+
+  @override
+  String get shiftReminderTitle => 'Podsjetnici za smjenu';
+
+  @override
+  String get shiftReminderIntro =>
+      'Dobijte podsjetnik na ovom telefonu da se prijavite i odjavite. Podešava se ovdje i radi bez interneta.';
+
+  @override
+  String get shiftReminderStartSwitch => 'Podsjeti me da se prijavim';
+
+  @override
+  String get shiftReminderEndSwitch => 'Podsjeti me da se odjavim';
+
+  @override
+  String get shiftReminderEndHint =>
+      'Samo ako sam u to vrijeme još prijavljen.';
+
+  @override
+  String get shiftReminderTime => 'Vrijeme';
+
+  @override
+  String get shiftReminderDays => 'Ovim danima';
+
+  @override
+  String get shiftReminderPermissionDenied =>
+      'Obavještenja su isključena za ovu aplikaciju, pa se podsjetnik ne može uključiti. Dozvolite ih u postavkama telefona.';
+
+  @override
+  String get shiftReminderStartTitle => 'Vrijeme je za prijavu';
+
+  @override
+  String get shiftReminderStartBody =>
+      'Otvorite aplikaciju i započnite smjenu.';
+
+  @override
+  String get shiftReminderEndTitle => 'Jeste li zaboravili da se odjavite?';
+
+  @override
+  String get shiftReminderEndBody =>
+      'Još ste prijavljeni. Otvorite aplikaciju da završite smjenu.';
+
+  @override
+  String get shiftReminderChannel => 'Podsjetnici za smjenu';
+
+  @override
+  String get shiftReminderDayMon => 'Pon';
+
+  @override
+  String get shiftReminderDayTue => 'Uto';
+
+  @override
+  String get shiftReminderDayWed => 'Sri';
+
+  @override
+  String get shiftReminderDayThu => 'Čet';
+
+  @override
+  String get shiftReminderDayFri => 'Pet';
+
+  @override
+  String get shiftReminderDaySat => 'Sub';
+
+  @override
+  String get shiftReminderDaySun => 'Ned';
 }

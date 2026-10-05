@@ -28,6 +28,7 @@ import type {
 import { useUploadAttachment } from '../features/attachments/useAttachments';
 import { useEnumLabel } from '../i18n/enumLabels';
 import { useT } from '../i18n/useI18n';
+import { ReminderDaysField } from './ReminderDaysField';
 
 export function UploadAttachmentDialog({
   open,
@@ -51,6 +52,7 @@ export function UploadAttachmentDialog({
   const [description, setDescription] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
   const [retainUntil, setRetainUntil] = useState('');
+  const [reminderDays, setReminderDays] = useState<number[]>([]);
   const [localError, setLocalError] = useState<string | null>(null);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(
     null,
@@ -120,6 +122,7 @@ export function UploadAttachmentDialog({
         description: description.trim() || null,
         expiresAt: expiryAllowed && expiresAt ? expiresAt : null,
         retainUntil: retainUntil || null,
+        reminderDays: expiryAllowed && expiresAt ? reminderDays : [],
       });
       setProgress({ done: index + 1, total: files.length });
     }
@@ -206,6 +209,10 @@ export function UploadAttachmentDialog({
                 : t('attachments.photoNoExpiry')
             }
           />
+
+          {expiryAllowed && expiresAt && (
+            <ReminderDaysField value={reminderDays} onChange={setReminderDays} />
+          )}
 
           <TextField
             label={t('attachments.retainUntil')}

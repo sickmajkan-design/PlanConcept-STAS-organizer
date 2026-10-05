@@ -30,6 +30,9 @@ public record UpdateAttachmentCommand : IRequest<AttachmentDto>
     public DateOnly? ExpiresAt { get; init; }
 
     public DateOnly? RetainUntil { get; init; }
+
+    /// <summary>Own reminder lead times, days before expiry; null or empty falls back to the general rule.</summary>
+    public List<int>? ReminderDays { get; init; }
 }
 
 public class UpdateAttachmentCommandValidator : AbstractValidator<UpdateAttachmentCommand>
@@ -43,6 +46,18 @@ public class UpdateAttachmentCommandValidator : AbstractValidator<UpdateAttachme
         RuleFor(x => x.ExpiresAt)
             .Null().WithMessage("A photograph does not expire.")
             .When(x => x.Category == AttachmentCategory.Photo);
+
+        RuleForEach(x => x.ReminderDays)
+            .InclusiveBetween(1, AttachmentRules.MaxReminderDays)
+            .WithMessage($"A reminder is 1 to {AttachmentRules.MaxReminderDays} days before expiry.");
+
+        RuleFor(x => x.ReminderDays)
+            .Must(d => AttachmentRules.NormaliseReminderDays(d).Length <= AttachmentRules.MaxReminders)
+            .WithMessage($"At most {AttachmentRules.MaxReminders} reminders per document.");
+
+        RuleFor(x => x.ExpiresAt)
+            .NotNull().WithMessage("A reminder needs an expiry date.")
+            .When(x => x.ReminderDays is { Count: > 0 });
     }
 }
 
@@ -76,8 +91,20 @@ public class UpdateAttachmentCommandHandler : IRequestHandler<UpdateAttachmentCo
         attachment.Description = string.IsNullOrWhiteSpace(request.Description)
             ? null
             : request.Description.Trim();
+        var renewed = attachment.ExpiresAt != request.ExpiresAt;
+        var reminders = AttachmentRules.NormaliseReminderDays(request.ReminderDays);
+
         attachment.ExpiresAt = request.ExpiresAt;
         attachment.RetainUntil = request.RetainUntil;
+        attachment.ReminderDays = reminders;
+
+        // A new expiry date is a different deadline, so earlier warnings no longer count and
+        // it starts over. Otherwise only the lead times that were taken away are forgotten.
+        var stale = await _context.AttachmentExpiryReminders
+            .Where(r => r.AttachmentId == attachment.Id
+                && (renewed || (r.DaysBefore != 0 && !reminders.Contains(r.DaysBefore))))
+            .ToListAsync(cancellationToken);
+        _context.AttachmentExpiryReminders.RemoveRange(stale);
 
         await _context.SaveChangesAsync(cancellationToken);
 

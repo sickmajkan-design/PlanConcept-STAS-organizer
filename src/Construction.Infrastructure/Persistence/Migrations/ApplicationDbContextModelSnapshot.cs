@@ -493,6 +493,12 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("RefundId")
                         .HasColumnType("uuid");
 
+                    b.PrimitiveCollection<int[]>("ReminderDays")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer[]")
+                        .HasDefaultValueSql("'{}'");
+
                     b.Property<DateOnly?>("RetainUntil")
                         .HasColumnType("date");
 
@@ -599,6 +605,11 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("DaysBefore")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
                     b.Property<DateTime>("SentAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -612,7 +623,7 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.HasIndex("AttachmentId", "UserId")
+                    b.HasIndex("AttachmentId", "UserId", "DaysBefore")
                         .IsUnique();
 
                     b.ToTable("attachment_expiry_reminders", (string)null);

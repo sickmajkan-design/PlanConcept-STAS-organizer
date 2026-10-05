@@ -4975,6 +4975,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'More'**
   String get moreTitle;
+
+  /// No description provided for @shiftReminderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift reminders'**
+  String get shiftReminderTitle;
+
+  /// No description provided for @shiftReminderIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Get a reminder on this phone to clock in and out. It is set here and works without a connection.'**
+  String get shiftReminderIntro;
+
+  /// No description provided for @shiftReminderStartSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me to clock in'**
+  String get shiftReminderStartSwitch;
+
+  /// No description provided for @shiftReminderEndSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me to clock out'**
+  String get shiftReminderEndSwitch;
+
+  /// No description provided for @shiftReminderEndHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Only if I am still clocked in at that time.'**
+  String get shiftReminderEndHint;
+
+  /// No description provided for @shiftReminderTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get shiftReminderTime;
+
+  /// No description provided for @shiftReminderDays.
+  ///
+  /// In en, this message translates to:
+  /// **'On these days'**
+  String get shiftReminderDays;
+
+  /// No description provided for @shiftReminderPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are turned off for this app, so the reminder cannot be turned on. Allow them in the phone settings.'**
+  String get shiftReminderPermissionDenied;
+
+  /// No description provided for @shiftReminderStartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Time to clock in'**
+  String get shiftReminderStartTitle;
+
+  /// No description provided for @shiftReminderStartBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the app and start your shift.'**
+  String get shiftReminderStartBody;
+
+  /// No description provided for @shiftReminderEndTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Did you forget to clock out?'**
+  String get shiftReminderEndTitle;
+
+  /// No description provided for @shiftReminderEndBody.
+  ///
+  /// In en, this message translates to:
+  /// **'You are still clocked in. Open the app to end your shift.'**
+  String get shiftReminderEndBody;
+
+  /// No description provided for @shiftReminderChannel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift reminders'**
+  String get shiftReminderChannel;
+
+  /// No description provided for @shiftReminderDayMon.
+  ///
+  /// In en, this message translates to:
+  /// **'Mon'**
+  String get shiftReminderDayMon;
+
+  /// No description provided for @shiftReminderDayTue.
+  ///
+  /// In en, this message translates to:
+  /// **'Tue'**
+  String get shiftReminderDayTue;
+
+  /// No description provided for @shiftReminderDayWed.
+  ///
+  /// In en, this message translates to:
+  /// **'Wed'**
+  String get shiftReminderDayWed;
+
+  /// No description provided for @shiftReminderDayThu.
+  ///
+  /// In en, this message translates to:
+  /// **'Thu'**
+  String get shiftReminderDayThu;
+
+  /// No description provided for @shiftReminderDayFri.
+  ///
+  /// In en, this message translates to:
+  /// **'Fri'**
+  String get shiftReminderDayFri;
+
+  /// No description provided for @shiftReminderDaySat.
+  ///
+  /// In en, this message translates to:
+  /// **'Sat'**
+  String get shiftReminderDaySat;
+
+  /// No description provided for @shiftReminderDaySun.
+  ///
+  /// In en, this message translates to:
+  /// **'Sun'**
+  String get shiftReminderDaySun;
 }
 
 class _AppLocalizationsDelegate

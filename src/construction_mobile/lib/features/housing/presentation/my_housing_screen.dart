@@ -120,13 +120,29 @@ class _HousingDetails extends StatelessWidget {
               ],
             ),
           ),
-        if (housing.roommates.isNotEmpty)
+        if (housing.roommates.isNotEmpty || housing.roommateContacts.isNotEmpty)
           _Section(
             title: l10n.myHousingRoommates,
             icon: Icons.groups_outlined,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [for (final name in housing.roommates) Text(name)],
+              children: [
+                if (housing.roommateContacts.isNotEmpty)
+                  for (final roommate in housing.roommateContacts)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(roommate.name),
+                          if (roommate.phone != null && roommate.phone!.trim().isNotEmpty)
+                            SelectableText(roommate.phone!, style: theme.textTheme.titleMedium),
+                        ],
+                      ),
+                    )
+                else
+                  for (final name in housing.roommates) Text(name),
+              ],
             ),
           ),
       ],

@@ -35,6 +35,19 @@ public class MyHousingDto
     public bool Upcoming { get; init; }
 
     public IReadOnlyList<string> Roommates { get; init; } = [];
+
+    /// <summary>
+    /// The same people with their phone numbers, so someone newly housed can call whoever already lives
+    /// there. <see cref="Roommates"/> stays for apps that predate it.
+    /// </summary>
+    public IReadOnlyList<RoommateContactDto> RoommateContacts { get; init; } = [];
+}
+
+public class RoommateContactDto
+{
+    public string Name { get; init; } = null!;
+
+    public string? Phone { get; init; }
 }
 
 /// <summary>The caller's current stay, or their next one; null when they have none.</summary>
@@ -99,8 +112,12 @@ public class GetMyHousingQueryHandler : IRequestHandler<GetMyHousingQuery, MyHou
                 && s.EmployeeId != employeeId
                 && s.StartDate <= today
                 && (s.EndDate == null || s.EndDate >= today))
-            .Select(s => s.Employee.FirstName + " " + s.Employee.LastName)
-            .OrderBy(n => n)
+            .Select(s => new RoommateContactDto
+            {
+                Name = s.Employee.FirstName + " " + s.Employee.LastName,
+                Phone = s.Employee.Phone
+            })
+            .OrderBy(c => c.Name)
             .ToListAsync(cancellationToken);
 
         return new MyHousingDto
@@ -116,7 +133,8 @@ public class GetMyHousingQueryHandler : IRequestHandler<GetMyHousingQuery, MyHou
             StartDate = stay.StartDate,
             EndDate = stay.EndDate,
             Upcoming = stay.StartDate > today,
-            Roommates = roommates
+            Roommates = roommates.Select(c => c.Name).ToList(),
+            RoommateContacts = roommates
         };
     }
 }

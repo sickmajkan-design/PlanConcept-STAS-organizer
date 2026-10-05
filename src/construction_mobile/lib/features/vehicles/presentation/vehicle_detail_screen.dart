@@ -156,7 +156,7 @@ class VehicleDetailScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 20),
                 _Section(
-                  title: context.l10n.attachmentsTitle,
+                  title: attachmentsTitleWithCount(context, ref, ownerType: 'Vehicle', ownerId: vehicle.id),
                   children: [
                     AttachmentSection(ownerType: 'Vehicle', ownerId: vehicle.id),
                   ],

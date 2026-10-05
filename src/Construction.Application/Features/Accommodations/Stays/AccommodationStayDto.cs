@@ -17,6 +17,9 @@ public class AccommodationStayDto
 
     public string EmployeeName { get; init; } = null!;
 
+    /// <summary>Their phone, so whoever moves in next can call them.</summary>
+    public string? EmployeePhone { get; init; }
+
     public DateOnly StartDate { get; init; }
 
     public DateOnly? EndDate { get; init; }
@@ -41,6 +44,7 @@ public static class AccommodationStayMapping
             AccommodationAddress = stay.Accommodation.Address,
             EmployeeId = stay.EmployeeId,
             EmployeeName = stay.Employee.FirstName + " " + stay.Employee.LastName,
+            EmployeePhone = stay.Employee.Phone,
             StartDate = stay.StartDate,
             EndDate = stay.EndDate,
             ProjectId = stay.ProjectId,

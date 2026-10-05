@@ -22,6 +22,9 @@ public class AttachmentDto
 
     public DateOnly? RetainUntil { get; init; }
 
+    /// <summary>The document's own reminder lead times in days; empty when the general rule applies.</summary>
+    public int[] ReminderDays { get; init; } = [];
+
     public AttachmentOwnerType OwnerType { get; init; }
 
     public Guid OwnerId { get; init; }
@@ -56,6 +59,7 @@ public static class AttachmentMapping
             Description = attachment.Description,
             ExpiresAt = attachment.ExpiresAt,
             RetainUntil = attachment.RetainUntil,
+            ReminderDays = attachment.ReminderDays,
             // Spelled out as a conditional chain rather than through
             // AttachmentOwner.Of, because this has to become SQL: a method call
             // cannot be translated, and loading every row to ask it in memory is

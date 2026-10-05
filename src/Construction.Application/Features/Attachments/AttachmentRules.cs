@@ -9,6 +9,16 @@ namespace Construction.Application.Features.Attachments;
 /// </summary>
 public static class AttachmentRules
 {
+    /// <summary>The most own reminders one document may carry.</summary>
+    public const int MaxReminders = 5;
+
+    /// <summary>The longest lead time, in days, a document reminder may ask for.</summary>
+    public const int MaxReminderDays = 365;
+
+    /// <summary>Distinct lead times, longest first, as stored.</summary>
+    public static int[] NormaliseReminderDays(IEnumerable<int>? days) =>
+        (days ?? []).Distinct().OrderByDescending(d => d).ToArray();
+
     /// <summary>
     /// Largest file accepted.
     /// </summary>

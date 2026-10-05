@@ -121,7 +121,8 @@ public class AttachmentsController : ApiControllerBase
                 Content = content,
                 Description = request.Description,
                 ExpiresAt = request.ExpiresAt,
-                RetainUntil = request.RetainUntil
+                RetainUntil = request.RetainUntil,
+                ReminderDays = request.ReminderDays
             },
             cancellationToken);
 
@@ -183,4 +184,6 @@ public class UploadAttachmentRequest
     public DateOnly? ExpiresAt { get; set; }
 
     public DateOnly? RetainUntil { get; set; }
+
+    public List<int>? ReminderDays { get; set; }
 }

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../notifications/presentation/acknowledgment_banner.dart';
 import '../../notifications/presentation/notifications_controller.dart';
+import '../../reminders/presentation/shift_reminder_controller.dart';
 
 /// Bottom-navigation frame around the signed-in sections.
 ///
@@ -33,6 +34,9 @@ class AppShell extends ConsumerWidget {
     final canViewDirectory = user?.canViewDirectory ?? false;
     final isEmployee = user?.isEmployee ?? false;
     final unread = ref.watch(unreadNotificationCountProvider).value ?? 0;
+
+    // Keeps the clock-in / clock-out reminders on this phone in step with the shift.
+    ref.watch(shiftReminderSyncProvider);
 
     final branches = <int>[
       _homeBranch,

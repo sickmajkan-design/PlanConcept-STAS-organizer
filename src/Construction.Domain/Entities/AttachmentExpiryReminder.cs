@@ -25,4 +25,10 @@ public class AttachmentExpiryReminder : BaseEntity
     public User User { get; set; } = null!;
 
     public DateTime SentAt { get; set; }
+
+    /// <summary>
+    /// Which of the document's own lead times this claim is for. 0 is the general
+    /// (per-admin) rule, so every row from before per-document reminders stays valid.
+    /// </summary>
+    public int DaysBefore { get; set; }
 }

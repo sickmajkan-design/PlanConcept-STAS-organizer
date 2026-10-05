@@ -37,6 +37,7 @@ import { countryLabel } from '../../data/countries';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
 import { AttachmentList } from '../../components/AttachmentList';
+import { DocumentCountChip } from '../../components/DocumentCountChip';
 import { StatusChip } from '../../components/StatusChip';
 import {
   useAllEmployeesQuery,
@@ -250,6 +251,7 @@ export function ProjectDetailPage() {
               <Stack direction="row" spacing={1} sx={{ mt: 1.5, alignItems: 'center' }}>
                 <StatusChip status={project.status} kind="projectStatus" />
                 <StatusChip status={project.kind} kind="projectKind" />
+                <DocumentCountChip ownerType="Project" ownerId={project.id} />
                 <Typography variant="body2" color="text.secondary">
                   · {project.employeeCount} assigned
                 </Typography>

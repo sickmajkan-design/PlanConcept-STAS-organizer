@@ -1453,5 +1453,25 @@
       "count": {"type": "int"}
     }
   },
-  "moreTitle": "More"
+  "moreTitle": "More",
+  "shiftReminderTitle": "Shift reminders",
+  "shiftReminderIntro": "Get a reminder on this phone to clock in and out. It is set here and works without a connection.",
+  "shiftReminderStartSwitch": "Remind me to clock in",
+  "shiftReminderEndSwitch": "Remind me to clock out",
+  "shiftReminderEndHint": "Only if I am still clocked in at that time.",
+  "shiftReminderTime": "Time",
+  "shiftReminderDays": "On these days",
+  "shiftReminderPermissionDenied": "Notifications are turned off for this app, so the reminder cannot be turned on. Allow them in the phone settings.",
+  "shiftReminderStartTitle": "Time to clock in",
+  "shiftReminderStartBody": "Open the app and start your shift.",
+  "shiftReminderEndTitle": "Did you forget to clock out?",
+  "shiftReminderEndBody": "You are still clocked in. Open the app to end your shift.",
+  "shiftReminderChannel": "Shift reminders",
+  "shiftReminderDayMon": "Mon",
+  "shiftReminderDayTue": "Tue",
+  "shiftReminderDayWed": "Wed",
+  "shiftReminderDayThu": "Thu",
+  "shiftReminderDayFri": "Fri",
+  "shiftReminderDaySat": "Sat",
+  "shiftReminderDaySun": "Sun"
 }

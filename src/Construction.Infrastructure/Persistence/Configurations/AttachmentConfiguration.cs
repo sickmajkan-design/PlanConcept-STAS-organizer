@@ -189,6 +189,10 @@ public class AttachmentConfiguration : IEntityTypeConfiguration<Attachment>
         // The expiry sweep and the all-documents view both filter/sort on
         // this. Partial, because rows without an expiry are most of the
         // table and never match the narrow "what's lapsing" case.
+        builder.Property(a => a.ReminderDays)
+            .HasColumnType("integer[]")
+            .HasDefaultValueSql("'{}'");
+
         builder.HasIndex(a => a.ExpiresAt)
             .HasDatabaseName("ix_attachments_pending_expiry")
             .HasFilter("\"ExpiresAt\" IS NOT NULL AND \"IsDeleted\" = false");

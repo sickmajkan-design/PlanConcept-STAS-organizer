@@ -27,6 +27,7 @@ import { useAllVehiclesQuery } from '../features/vehicles/useVehicles';
 import type { MessageKey } from '../i18n/en';
 import { useEnumLabel } from '../i18n/enumLabels';
 import { useT } from '../i18n/useI18n';
+import { ReminderDaysField } from './ReminderDaysField';
 
 const OWNER_TYPE_LABEL_KEYS: Record<'Employee' | 'Project' | 'Vehicle' | 'Tool', MessageKey> = {
   Employee: 'attachments.ownerTypeEmployee',
@@ -92,6 +93,7 @@ export function UploadDocumentDialog({
   const [description, setDescription] = useState('');
   const [expiresAt, setExpiresAt] = useState('');
   const [retainUntil, setRetainUntil] = useState('');
+  const [reminderDays, setReminderDays] = useState<number[]>([]);
   const [localError, setLocalError] = useState<string | null>(null);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(
     null,
@@ -210,6 +212,7 @@ export function UploadDocumentDialog({
         description: description.trim() || null,
         expiresAt: expiryAllowed && expiresAt ? expiresAt : null,
         retainUntil: retainUntil || null,
+        reminderDays: expiryAllowed && expiresAt ? reminderDays : [],
       });
       setProgress({ done: index + 1, total: files.length });
     }
@@ -334,6 +337,10 @@ export function UploadDocumentDialog({
                 : t('attachments.photoNoExpiry')
             }
           />
+
+          {expiryAllowed && expiresAt && (
+            <ReminderDaysField value={reminderDays} onChange={setReminderDays} />
+          )}
 
           <TextField
             label={t('attachments.retainUntil')}
