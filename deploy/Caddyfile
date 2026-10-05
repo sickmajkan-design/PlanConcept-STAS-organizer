@@ -50,7 +50,25 @@
 		file_server
 	}
 
+	# The panel is the one page here where injected script matters: it is where
+	# the access token lives. Set on this route only, because a plain `header`
+	# would replace the API's own `default-src 'none'` on /api/* with this
+	# looser policy.
+	#
+	# What each allowance is for:
+	#   * 'unsafe-inline' styles: MUI/emotion inject <style> tags at runtime.
+	#   * maps.googleapis.com / gstatic / ggpht: the live map. Drop these if the
+	#     installation has no GOOGLE_MAPS_API_KEY.
+	#   * blob: workers/images: the map's tile workers.
+	# Scripts stay 'self' plus Google Maps: no inline script, no eval.
 	handle {
+		header {
+			Content-Security-Policy "default-src 'self'; script-src 'self' https://maps.googleapis.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com https://*.ggpht.com https://*.googleapis.com; font-src 'self' data:; connect-src 'self' https://maps.googleapis.com https://*.googleapis.com; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
+			X-Content-Type-Options "nosniff"
+			X-Frame-Options "DENY"
+			Referrer-Policy "strict-origin-when-cross-origin"
+			Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		}
 		reverse_proxy admin:8080
 	}
 

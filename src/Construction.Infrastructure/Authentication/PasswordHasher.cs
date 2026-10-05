@@ -12,7 +12,9 @@ namespace Construction.Infrastructure.Authentication;
 /// </summary>
 public class PasswordHasher : IPasswordHasher
 {
-    private const int Iterations = 100_000;
+    // OWASP's current figure for PBKDF2-HMAC-SHA256. Raised from 100,000; older
+    // hashes keep working and are upgraded at the user's next sign-in.
+    private const int Iterations = 600_000;
     private const int SaltSizeBytes = 16;
     private const int KeySizeBytes = 32;
 
@@ -60,6 +62,15 @@ public class PasswordHasher : IPasswordHasher
         var actualSubkey = Derive(password, salt, iterations);
 
         return CryptographicOperations.FixedTimeEquals(actualSubkey, expectedSubkey);
+    }
+
+    public bool NeedsRehash(string passwordHash)
+    {
+        var parts = passwordHash.Split('.', 3);
+
+        return parts.Length != 3
+            || !int.TryParse(parts[0], out var iterations)
+            || iterations < Iterations;
     }
 
     private static byte[] Derive(string password, byte[] salt, int iterations) =>

@@ -34,6 +34,25 @@ public class AuthRateLimitSettings
     public int PermitLimit { get; set; } = 120;
 
     public int WindowSeconds { get; set; } = 60;
+
+    /// <summary>
+    /// Requests of any kind one signed-in account may make per
+    /// <see cref="GlobalWindowSeconds"/>. A backstop against a runaway client or
+    /// a stolen token being used to scrape, not a pacing mechanism: the admin
+    /// panel's busiest screens make a few dozen calls, so ten a second is far
+    /// above anything a person produces.
+    /// </summary>
+    public int AuthenticatedPermitLimit { get; set; } = 600;
+
+    /// <summary>
+    /// Requests without a valid token one address may make per window. Higher
+    /// than it looks necessary because it is shared by everyone behind one
+    /// connection, and a shift change is a hundred people each signing in and
+    /// refreshing at once.
+    /// </summary>
+    public int AnonymousPermitLimit { get; set; } = 600;
+
+    public int GlobalWindowSeconds { get; set; } = 60;
 }
 
 public static class RateLimitingExtensions
@@ -111,9 +130,58 @@ public static class RateLimitingExtensions
             ? TimeSpan.FromSeconds(assistant.RateLimitWindowSeconds)
             : TimeSpan.FromSeconds(new AnthropicSettings().RateLimitWindowSeconds);
 
+        var authenticatedLimit = settings.AuthenticatedPermitLimit > 0
+            ? settings.AuthenticatedPermitLimit
+            : new AuthRateLimitSettings().AuthenticatedPermitLimit;
+
+        var anonymousLimit = settings.AnonymousPermitLimit > 0
+            ? settings.AnonymousPermitLimit
+            : new AuthRateLimitSettings().AnonymousPermitLimit;
+
+        var globalWindow = settings.GlobalWindowSeconds > 0
+            ? TimeSpan.FromSeconds(settings.GlobalWindowSeconds)
+            : TimeSpan.FromMinutes(1);
+
         services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+            // Applies to every request, on top of whichever named policy an
+            // endpoint carries. Partitioned by account when there is one and by
+            // address when there is not — which is why the limiter runs after
+            // authentication, since before it nobody is signed in yet.
+            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+            {
+                // Polled by the orchestrator and an uptime check, and a limiter
+                // that can take the health probe down takes the container with it.
+                if (context.Request.Path.StartsWithSegments("/health"))
+                {
+                    return RateLimitPartition.GetNoLimiter("health");
+                }
+
+                var subject = context.User.Identity?.IsAuthenticated == true
+                    ? context.User.FindFirst(
+                        System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value
+                    : null;
+
+                return subject is not null
+                    ? RateLimitPartition.GetFixedWindowLimiter(
+                        "user:" + subject,
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = authenticatedLimit,
+                            Window = globalWindow,
+                            QueueLimit = 0
+                        })
+                    : RateLimitPartition.GetFixedWindowLimiter(
+                        "ip:" + (context.Connection.RemoteIpAddress?.ToString() ?? "unknown"),
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = anonymousLimit,
+                            Window = globalWindow,
+                            QueueLimit = 0
+                        });
+            });
 
             options.AddPolicy(CredentialsPolicy, context => RateLimitPartition.GetFixedWindowLimiter(
                 partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -161,10 +229,24 @@ public static class RateLimitingExtensions
                 var policy = context.HttpContext.GetEndpoint()?.Metadata
                     .GetMetadata<EnableRateLimitingAttribute>()?.PolicyName;
 
-                var detail = policy == AssistantPolicy
-                    ? "You have asked the assistant a lot of questions in a short time. "
-                        + "Wait a few minutes and ask again."
-                    : CredentialsRejectionDetail;
+                // Only the sign-in endpoints get the sign-in wording. A request
+                // refused by the global limit has no named policy, and telling
+                // somebody who is browsing that they made too many sign-in
+                // attempts would be wrong.
+                var detail = policy switch
+                {
+                    AssistantPolicy =>
+                        "You have asked the assistant a lot of questions in a short time. "
+                        + "Wait a few minutes and ask again.",
+                    CredentialsPolicy => CredentialsRejectionDetail,
+                    _ => "Too many requests in a short time. Wait a minute and try again."
+                };
+
+                if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+                {
+                    context.HttpContext.Response.Headers.RetryAfter =
+                        ((int)Math.Ceiling(retryAfter.TotalSeconds)).ToString();
+                }
 
                 await context.HttpContext.Response.WriteAsJsonAsync(new
                 {

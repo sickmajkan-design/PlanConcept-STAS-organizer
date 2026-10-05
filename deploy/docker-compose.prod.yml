@@ -26,14 +26,21 @@ name: construction
 
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
     restart: unless-stopped
     environment:
       POSTGRES_DB: construction
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      # Optional. When both are set, the first start of an empty volume also
+      # creates the non-superuser role the API uses. For a database that already exists,
+      # see scripts/create-app-role.sh.
+      APP_DB_USER: ${API_DB_USER:-}
+      APP_DB_PASSWORD: ${API_DB_PASSWORD:-}
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ../scripts/create-app-role.sh:/scripts/create-app-role.sh:ro
+      - ./postgres-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d construction"]
       interval: 10s
@@ -51,7 +58,11 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
 
-      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=construction;Username=postgres;Password=${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}"
+      # `postgres` unless API_DB_USER / API_DB_PASSWORD are set, so nothing
+      # changes for a deployment that has not switched. Set, the API runs as an
+      # ordinary role that owns only this database. See
+      # scripts/create-app-role.sh for what that role can and cannot do.
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=construction;Username=${API_DB_USER:-postgres};Password=${API_DB_PASSWORD:-${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}}"
       JwtSettings__SecretKey: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY to at least 32 random characters}
       Seed__SuperAdmin__Email: ${SUPERADMIN_EMAIL:?set SUPERADMIN_EMAIL}
       Seed__SuperAdmin__Password: ${SUPERADMIN_PASSWORD:?set SUPERADMIN_PASSWORD}
@@ -139,7 +150,7 @@ services:
       - internal
 
   caddy:
-    image: caddy:2-alpine
+    image: caddy:2-alpine@sha256:d44355d3c2149dc580ce2cac735955d1c08d3d00882c30489c241aa51a5c10d9
     restart: unless-stopped
     depends_on:
       - api
@@ -181,7 +192,7 @@ services:
   # Publishes no port. Telemetry is internal traffic and a receiver open to the
   # internet is somewhere to post whatever you like.
   otel-collector:
-    image: otel/opentelemetry-collector-contrib:0.115.1
+    image: otel/opentelemetry-collector-contrib:0.115.1@sha256:d2da12c4336a79758826700be9e21ecf4a9f7d945b7f8a58ba55ee3fa45427c8
     profiles: ["telemetry"]
     restart: unless-stopped
     command: ["--config=/etc/otel/config.yaml"]
@@ -194,7 +205,7 @@ services:
   # a profile. A deployment without backups is the failure this whole section
   # exists to prevent.
   backup:
-    image: postgres:16-alpine
+    image: postgres:16-alpine@sha256:721873c34ceb9f8d8fc265984940dc982404c105f19ad51be9fdc5970a6080ea
     restart: unless-stopped
     depends_on:
       postgres:

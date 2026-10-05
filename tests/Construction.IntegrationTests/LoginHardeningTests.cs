@@ -122,6 +122,34 @@ public class LoginHardeningTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task Signing_in_upgrades_a_hash_made_with_fewer_iterations()
+    {
+        var user = await InScope(scope => TestData.SeedUserAsync(scope));
+
+        // Replace the seeded hash with a genuine one at the old work factor.
+        var salt = System.Security.Cryptography.RandomNumberGenerator.GetBytes(16);
+        var subkey = Microsoft.AspNetCore.Cryptography.KeyDerivation.KeyDerivation.Pbkdf2(
+            TestData.Password, salt,
+            Microsoft.AspNetCore.Cryptography.KeyDerivation.KeyDerivationPrf.HMACSHA256, 100_000, 32);
+        var legacy = $"100000.{Convert.ToBase64String(salt)}.{Convert.ToBase64String(subkey)}";
+
+        await InScope(async scope =>
+        {
+            var row = await scope.Db.Users.SingleAsync(u => u.Id == user.Id);
+            row.PasswordHash = legacy;
+            await scope.Db.SaveChangesAsync();
+        });
+
+        await LoginAsync(user.Email, TestData.Password);
+
+        var reloaded = await ReloadAsync(user.Id);
+        Assert.StartsWith("600000.", reloaded.PasswordHash);
+
+        // And the upgraded hash still opens the account.
+        await LoginAsync(user.Email, TestData.Password);
+    }
+
+    [Fact]
     public async Task A_password_reset_clears_a_lockout()
     {
         var user = await InScope(scope => TestData.SeedUserAsync(scope));
@@ -167,6 +195,6 @@ public class LoginHardeningTests : IntegrationTestBase
 
         Assert.False(hasher.Verify("anything at all", hasher.DummyHash));
         Assert.Equal(hasher.DummyHash, hasher.DummyHash);
-        Assert.StartsWith("100000.", hasher.DummyHash);
+        Assert.StartsWith("600000.", hasher.DummyHash);
     }
 }

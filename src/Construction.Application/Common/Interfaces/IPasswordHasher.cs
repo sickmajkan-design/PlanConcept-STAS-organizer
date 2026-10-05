@@ -7,6 +7,13 @@ public interface IPasswordHasher
     bool Verify(string password, string passwordHash);
 
     /// <summary>
+    /// True when the hash was made with fewer iterations than <see cref="Hash"/>
+    /// uses today. Sign-in calls this after a successful <see cref="Verify"/>,
+    /// the only moment the plaintext is in hand, to upgrade the stored hash.
+    /// </summary>
+    bool NeedsRehash(string passwordHash);
+
+    /// <summary>
     /// A real hash of a value nobody knows, for verifying against when no
     /// account matched.
     ///

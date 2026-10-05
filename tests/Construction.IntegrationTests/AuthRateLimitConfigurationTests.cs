@@ -53,7 +53,8 @@ public class AuthRateLimitConfigurationTests
     /// <summary>Fails validation, so it never reaches the handler or a database.</summary>
     private static object NotEvenAnAddress() => new { email = "", password = "" };
 
-    private static WebApplicationFactory<Program> Host(int permitLimit)
+    private static WebApplicationFactory<Program> Host(
+        int permitLimit, int anonymousGlobalLimit = 1_000_000)
     {
         return new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
@@ -74,6 +75,10 @@ public class AuthRateLimitConfigurationTests
             // refills the allowance being counted, which is exactly how the
             // first version of this file failed under load.
             builder.UseSetting("Auth:RateLimit:WindowSeconds", "600");
+
+            builder.UseSetting(
+                "Auth:RateLimit:AnonymousPermitLimit", anonymousGlobalLimit.ToString());
+            builder.UseSetting("Auth:RateLimit:GlobalWindowSeconds", "600");
 
             builder.ConfigureServices(services =>
             {
@@ -113,6 +118,53 @@ public class AuthRateLimitConfigurationTests
         Assert.All(
             statuses.Skip(Limit),
             status => Assert.Equal(HttpStatusCode.TooManyRequests, status));
+    }
+
+    /// <summary>
+    /// Every request is counted, not only the sign-in endpoints — and the
+    /// refusal does not claim the caller was signing in.
+    /// </summary>
+    /// <remarks>
+    /// An anonymous GET to a protected route is answered 401 by authorization,
+    /// which is after the limiter and needs no database, so it counts without
+    /// waiting on anything.
+    /// </remarks>
+    [Fact]
+    public async Task The_global_limit_covers_any_endpoint_and_does_not_mention_sign_in()
+    {
+        using var host = Host(permitLimit: 1000, anonymousGlobalLimit: 3);
+        using var client = host.CreateClient();
+
+        var statuses = new List<HttpStatusCode>();
+        HttpResponseMessage? last = null;
+
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            last = await client.GetAsync("/api/v1/employees");
+            statuses.Add(last.StatusCode);
+        }
+
+        Assert.All(statuses.Take(3), s => Assert.Equal(HttpStatusCode.Unauthorized, s));
+        Assert.All(statuses.Skip(3), s => Assert.Equal(HttpStatusCode.TooManyRequests, s));
+
+        var body = await last!.Content.ReadAsStringAsync();
+        Assert.DoesNotContain("sign-in", body, StringComparison.OrdinalIgnoreCase);
+        Assert.True(last.Headers.Contains("Retry-After"));
+    }
+
+    /// <summary>The probes must keep answering however busy the address is.</summary>
+    [Fact]
+    public async Task The_global_limit_never_applies_to_the_health_probe()
+    {
+        using var host = Host(permitLimit: 1000, anonymousGlobalLimit: 1);
+        using var client = host.CreateClient();
+
+        for (var attempt = 0; attempt < 5; attempt++)
+        {
+            var response = await client.GetAsync("/health/live");
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
     }
 
     /// <summary>

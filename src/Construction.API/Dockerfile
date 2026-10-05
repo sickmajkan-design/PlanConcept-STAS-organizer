@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0@sha256:01fabc4758d1d74e39eda700c8463dae6241a61481f973683692ddcb59a5eeb7 AS build
 WORKDIR /src
 
 COPY Directory.Build.props ./
@@ -11,7 +11,7 @@ RUN dotnet restore src/Construction.API/Construction.API.csproj
 COPY src/ src/
 RUN dotnet publish src/Construction.API/Construction.API.csproj -c Release -o /app/publish /p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:9.0@sha256:2680706c9656fafe34876446d694fd25077fd0b5da478f38d56073ac6c21d37e AS runtime
 WORKDIR /app
 
 RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser

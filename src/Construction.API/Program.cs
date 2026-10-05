@@ -186,9 +186,14 @@ try
 
     app.UseCors("Default");
 
+    // After authentication, not before: the global and assistant limits
+    // partition by account, and until the token is validated nobody is signed
+    // in, so they would all fall back to the client address. The credential
+    // endpoints are anonymous and unaffected by the order.
+    app.UseAuthentication();
+
     app.UseRateLimiter();
 
-    app.UseAuthentication();
     app.UseAuthorization();
 
     app.MapControllers();

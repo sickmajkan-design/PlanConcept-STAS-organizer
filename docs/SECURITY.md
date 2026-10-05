@@ -12,8 +12,10 @@ fixed and re-tested afterwards.
 
 Recording this first, because it shaped where the effort went:
 
-- **Password storage** — PBKDF2-HMAC-SHA256, 100,000 iterations, per-password
-  random salt, iteration count stored with the hash so it can be raised later.
+- **Password storage** — PBKDF2-HMAC-SHA256, 600,000 iterations (raised from
+  100,000 on 2026-10-05), per-password random salt, iteration count stored with
+  the hash. Older hashes keep working and are upgraded at the owner's next
+  successful sign-in.
   Comparison uses `CryptographicOperations.FixedTimeEquals`.
 - **Refresh tokens** — 64 random bytes, stored only as a SHA-256 hash, rotated
   on every use, with reuse detection that revokes every session for the account.
@@ -357,3 +359,33 @@ forwarded-header decision — have **no automated coverage**, because the
 solution has no HTTP-level test host. They were verified by hand against a
 running instance for this review. Adding `WebApplicationFactory` tests is the
 way to keep them verified, and is the second item in the readiness audit.
+
+---
+
+## Hardening pass — 2026-10-05
+
+From a production checklist review (auth, sessions, encryption, rate limiting,
+validation, logging, backup, monitoring, dependencies).
+
+| Change | Where | Notes |
+|---|---|---|
+| Password hashing 100k → 600k PBKDF2 iterations, re-hashed at next sign-in | `PasswordHasher`, `LoginCommand` | Roughly 6× the CPU per sign-in; the credential limit (120/min/address) still covers a shift change. Re-run `scripts/loadtest-login.sh` to re-measure the ceiling. |
+| Global rate limit on every request | `RateLimitingExtensions` | 600/min per account when signed in, 600/min per address otherwise, `/health` exempt, `Auth:RateLimit:*PermitLimit` to tune. The limiter now runs **after** authentication — before it, the assistant's per-user partition silently fell back to the address, because nobody was signed in yet. |
+| CSP and browser headers on the admin panel | `deploy/Caddyfile` | Scoped to the panel route so the API keeps its own `default-src 'none'`. Allows Google Maps and inline styles (MUI). **Check the live map after deploying**; loosen the `maps.*` entries if it breaks. |
+| API connects as a non-superuser database role | `scripts/create-app-role.sh`, `deploy/postgres-init/` | Opt-in via `API_DB_USER` / `API_DB_PASSWORD`; unset keeps the old behaviour. Owns only its database; cannot `COPY … PROGRAM`. New installs get it automatically; existing ones run the script once (steps at the top of it). The backup service still uses `postgres`. |
+| Base images pinned by digest, Actions pinned by commit SHA | Dockerfiles, compose files, `.github/workflows` | Dependabot's `docker`, `docker-compose` and `github-actions` ecosystems propose the bumps. `ghcr.io/…/api` and `admin` stay on `:latest` by design; set `API_IMAGE` / `ADMIN_IMAGE` to pin a release. |
+| axios and test-tooling advisories | `package-lock.json` | `npm audit` is clean. |
+
+Checked and **not** a problem: spreadsheet formula injection. ClosedXML stores
+text beginning `=`, `+`, `-` or `@` as plain text, not as a formula
+(verified by writing and re-reading a workbook).
+
+### Still open from that review
+
+- MFA for Super Admin; a breached-password check; a longer minimum length.
+- Log aggregation, alert rules and an external uptime check (the collector in
+  `deploy/` is scaffolding).
+- Off-site backup has not run against a real S3 provider; `OFFSITE_AGE_RECIPIENT`
+  (encryption) is optional.
+- No image vulnerability scan or SBOM in CI; pub / Dart has no advisory scanning.
+- Location-tracking lawful basis and DPIA (see `PRIVACY.md`).

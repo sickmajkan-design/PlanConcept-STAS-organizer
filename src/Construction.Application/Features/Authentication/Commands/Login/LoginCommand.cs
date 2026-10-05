@@ -116,6 +116,13 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
         user.LockoutEndsAt = null;
         user.LastLoginAt = utcNow;
 
+        // The plaintext is in hand only now. Saved with the same
+        // SaveChangesAsync as the rest of the sign-in below.
+        if (_passwordHasher.NeedsRehash(user.PasswordHash))
+        {
+            user.PasswordHash = _passwordHasher.Hash(request.Password);
+        }
+
         var response = _authTokenService.IssueTokens(user, request.IpAddress, out _);
 
         await _context.SaveChangesAsync(cancellationToken);

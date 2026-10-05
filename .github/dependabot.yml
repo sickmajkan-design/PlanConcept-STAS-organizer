@@ -110,3 +110,26 @@ updates:
       day: monday
       time: '06:00'
     open-pull-requests-limit: 3
+
+  # Base images and the deployment stack are pinned by digest. A pin that
+  # nothing updates is a vulnerability with a delay on it, so these are the
+  # pull requests that keep the pins moving. Each one shows the digest change.
+  - package-ecosystem: docker
+    directories:
+      - /src/Construction.API
+      - /src/construction_admin
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: docker-compose
+    directories:
+      - /
+      - /deploy
+    schedule:
+      interval: weekly
+      day: monday
+      time: '06:00'
+    open-pull-requests-limit: 3

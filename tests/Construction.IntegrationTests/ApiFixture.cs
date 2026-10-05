@@ -73,6 +73,13 @@ public sealed class ApiFixture : IAsyncLifetime
                 // every start.
                 builder.UseSetting("Database:ApplyMigrationsOnStartup", "false");
 
+                // The suite drives every endpoint as every role from one test
+                // server with no remote address, so it would spend the real
+                // global allowance in seconds. The limiter itself is covered
+                // in AuthRateLimitConfigurationTests, with a tiny limit.
+                builder.UseSetting("Auth:RateLimit:AuthenticatedPermitLimit", "1000000");
+                builder.UseSetting("Auth:RateLimit:AnonymousPermitLimit", "1000000");
+
                 builder.ConfigureServices(services =>
                 {
                     // The product's own timers, not every hosted service: the
