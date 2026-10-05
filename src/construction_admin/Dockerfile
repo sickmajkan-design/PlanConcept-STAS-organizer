@@ -19,7 +19,7 @@ COPY . .
 # rather than shipping.
 RUN npm run build
 
-FROM nginx:1.29-alpine@sha256:5616878291a2eed594aee8db4dade5878cf7edcb475e59193904b198d9b830de AS runtime
+FROM nginx:1.31-alpine@sha256:df221db836e1754089190208cee7eeda94f233197056426eda74a43ab1abeac2 AS runtime
 
 # Two things nginx does not do usefully by default for a single-page app:
 # serve index.html for a client-side route, and stay quiet about files it
