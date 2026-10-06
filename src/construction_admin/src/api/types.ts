@@ -2400,6 +2400,7 @@ export const notificationTypes = [
   'UnassignedProjectClockIn',
   'DefectReported',
   'AbsenceRequested',
+  'AbsenceNeedsCover',
   'DocumentRetentionEnded',
   'DirectMessage',
   'ClockInLocationMismatch',

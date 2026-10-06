@@ -125,6 +125,81 @@ function cellFor(employee: ScheduleEmployee, day: string): Cell {
   return { kind: 'free', projects, conflict: false };
 }
 
+/** An approved absence on days someone is posted to a site: the position is empty and needs a replacement. */
+interface Vacancy {
+  key: string;
+  employeeId: string;
+  projectId: string;
+  from: string;
+  to: string;
+  /** Working days in the range. */
+  days: number;
+}
+
+const eachDay = (from: string, to: string) => {
+  const days: string[] = [];
+  for (let d = from; d <= to; d = addDays(d, 1)) days.push(d);
+  return days;
+};
+
+/**
+ * Empty positions: every posting that overlaps an approved absence, from today on. One that
+ * somebody already covers (another worker with a bounded posting on the same site across the
+ * whole stretch) is not listed. That is what "Assign replacement" creates, so the card goes
+ * away once it is done.
+ */
+function buildVacancies(data: AssignmentSchedule | undefined): Vacancy[] {
+  if (!data) return [];
+  const result: Vacancy[] = [];
+
+  for (const e of data.employees) {
+    for (const a of e.absences) {
+      for (const p of e.postings) {
+        const from = [a.startDate, p.startDate, data.today].sort().at(-1)!;
+        const to = [a.endDate, p.endDate ?? a.endDate].sort()[0];
+        const working = eachDay(from, to).filter((d) => !isWeekend(d));
+        if (working.length === 0) continue;
+        const first = working[0];
+        const last = working[working.length - 1];
+
+        const covered = data.employees.some(
+          (o) =>
+            o.id !== e.id &&
+            o.postings.some(
+              (q) => q.projectId === p.projectId && q.endDate !== null && q.startDate <= first && q.endDate >= last,
+            ),
+        );
+        if (covered) continue;
+
+        result.push({ key: `${e.id}-${p.projectId}-${first}`, employeeId: e.id, projectId: p.projectId, from: first, to: last, days: working.length });
+      }
+    }
+  }
+  return result.sort((x, y) => x.from.localeCompare(y.from));
+}
+
+interface Candidate {
+  employee: ScheduleEmployee;
+  freeDays: number;
+  sameTrade: boolean;
+}
+
+/** Workers with at least one free working day in the vacancy, same trade first. */
+function candidatesFor(data: AssignmentSchedule, vacancy: Vacancy): Candidate[] {
+  const absent = data.employees.find((e) => e.id === vacancy.employeeId);
+  const window = eachDay(vacancy.from, vacancy.to).filter((d) => !isWeekend(d));
+  return data.employees
+    .filter((e) => e.id !== vacancy.employeeId)
+    .map((employee) => ({
+      employee,
+      freeDays: window.filter((d) => cellFor(employee, d).kind === 'free').length,
+      sameTrade: employee.position === absent?.position,
+    }))
+    .filter((c) => c.freeDays > 0)
+    .sort((a, b) => Number(b.sameTrade) - Number(a.sameTrade) || b.freeDays - a.freeDays)
+    .slice(0, 5);
+}
+
 interface AttentionItem {
   key: string;
   level: 'crit' | 'warn' | 'info';
@@ -140,7 +215,9 @@ export function AssignmentSchedulePage() {
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
-  const [assignFor, setAssignFor] = useState<{ employeeId: string; date: string } | null>(null);
+  const [assignFor, setAssignFor] = useState<{ employeeId?: string; projectId?: string; date: string } | null>(null);
+  const [view, setView] = useState<'people' | 'sites'>('people');
+  const [replacingKey, setReplacingKey] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -149,6 +226,7 @@ export function AssignmentSchedulePage() {
   const days = weeks * 7;
   const { data, isLoading, isError, error: loadError, refetch } = useAssignmentScheduleQuery(from, days);
   const remove = useRemoveOnBoard();
+  const assignReplacement = useAssignOnBoard();
 
   const dayList = useMemo(() => Array.from({ length: days }, (_, i) => addDays(from, i)), [from, days]);
   const projectsById = useMemo(
@@ -161,7 +239,17 @@ export function AssignmentSchedulePage() {
   };
 
   const attention = useMemo(() => buildAttention(data, t), [data, t]);
-  const flagged = useMemo(() => new Set(attention.filter((a) => a.level !== 'info').map((a) => a.employeeId)), [attention]);
+  const vacancies = useMemo(() => buildVacancies(data), [data]);
+  const vacantDays = useMemo(() => {
+    const set = new Set<string>();
+    for (const v of vacancies) for (const d of eachDay(v.from, v.to)) set.add(`${v.employeeId}|${d}`);
+    return set;
+  }, [vacancies]);
+  const vacancyOf = (employeeId: string, day: string) => vacancies.find((v) => v.employeeId === employeeId && v.from <= day && v.to >= day);
+  const flagged = useMemo(
+    () => new Set([...attention.filter((a) => a.level !== 'info').map((a) => a.employeeId), ...vacancies.map((v) => v.employeeId)]),
+    [attention, vacancies],
+  );
 
   const visible = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -186,9 +274,9 @@ export function AssignmentSchedulePage() {
       on: all.filter((e) => e.status === 'OnSite' || e.status === 'Late' || e.status === 'Expected').length,
       free: all.filter((e) => e.status === 'Free').length,
       away: all.filter((e) => e.status === 'Leave' || e.status === 'Sick').length,
-      issues: attention.filter((a) => a.level !== 'info').length,
+      issues: attention.filter((a) => a.level !== 'info').length + vacancies.length,
     };
-  }, [data, attention]);
+  }, [data, attention, vacancies]);
 
   const groups = useMemo(() => {
     const byProject = new Map<string, ScheduleEmployee[]>();
@@ -203,6 +291,7 @@ export function AssignmentSchedulePage() {
   }, [visible]);
 
   const selected = (data?.employees ?? []).find((e) => e.id === selectedId) ?? null;
+  const replacingVacancy = vacancies.find((v) => v.key === replacingKey) ?? null;
   const columns = `250px repeat(${days}, minmax(${weeks === 1 ? 92 : weeks === 2 ? 56 : 26}px, 1fr))`;
   const compact = weeks === 4;
 
@@ -218,6 +307,7 @@ export function AssignmentSchedulePage() {
   if (isError || !data) return <ErrorState error={loadError} onRetry={() => void refetch()} />;
 
   const siteCells = (e: ScheduleEmployee, day: string, cell: Cell) => {
+    const vacancy = vacantDays.has(`${e.id}|${day}`) ? vacancyOf(e.id, day) : undefined;
     if (cell.kind === 'off') return null;
     if (cell.kind === 'free') {
       return (
@@ -234,15 +324,22 @@ export function AssignmentSchedulePage() {
       const color = cell.kind === 'leave' ? LEAVE_COLOR : SICK_COLOR;
       return (
         <Box
-          title={cell.conflict ? t('schedule.conflictLeave') : undefined}
+          title={vacancy ? t('schedule.vacantHere', { site: projectsById.get(vacancy.projectId)?.name ?? '' }) : cell.conflict ? t('schedule.conflictLeave') : undefined}
           sx={{
             flex: 1, borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', px: 0.5,
             color, fontSize: 12, fontWeight: 600,
-            border: cell.conflict ? '2px solid' : 'none', borderColor: 'error.main',
+            border: vacancy ? '2px dashed' : cell.conflict ? '2px solid' : 'none', borderColor: vacancy ? 'warning.main' : 'error.main',
             background: `repeating-linear-gradient(135deg, ${color}2e 0 5px, ${color}0f 5px 10px)`,
           }}
         >
-          {compact ? '' : t(cell.kind === 'leave' ? 'schedule.leave' : 'schedule.sick')}
+          {compact ? '' : (
+            <Box sx={{ textAlign: 'center', lineHeight: 1.2 }}>
+              {t(cell.kind === 'leave' ? 'schedule.leave' : 'schedule.sick')}
+              {vacancy && weeks === 1 ? (
+                <Box sx={{ color: 'warning.main', fontSize: 10 }}>{t('schedule.vacantShort', { site: projectsById.get(vacancy.projectId)?.name ?? '' })}</Box>
+              ) : null}
+            </Box>
+          )}
         </Box>
       );
     }
@@ -282,7 +379,7 @@ export function AssignmentSchedulePage() {
 
   const renderRow = (e: ScheduleEmployee) => (
     <Box key={e.id} sx={{ display: 'grid', gridTemplateColumns: columns, borderTop: 1, borderColor: 'divider', bgcolor: selectedId === e.id ? 'action.hover' : 'transparent' }}>
-      <ButtonBase onClick={() => setSelectedId(e.id)} sx={{ justifyContent: 'flex-start', textAlign: 'left', px: 2, py: 0.75, gap: 1, minWidth: 0 }}>
+      <ButtonBase onClick={() => { setSelectedId(e.id); setReplacingKey(null); }} sx={{ justifyContent: 'flex-start', textAlign: 'left', px: 2, py: 0.75, gap: 1, minWidth: 0 }}>
         <Box sx={{ minWidth: 0, flex: 1 }}>
           <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>{e.fullName}</Typography>
           <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
@@ -356,6 +453,10 @@ export function AssignmentSchedulePage() {
         <Button size="small" onClick={() => setOffset(0)} disabled={offset === 0}>{t('schedule.today')}</Button>
         <Button size="small" onClick={() => setOffset((o) => o + 1)} aria-label={t('schedule.next')}>›</Button>
         <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'monospace' }}>{periodLabel}</Typography>
+        <ToggleButtonGroup size="small" exclusive value={view} onChange={(_, value: 'people' | 'sites' | null) => { if (value) setView(value); }} aria-label={t('schedule.view')}>
+          <ToggleButton value="people">{t('schedule.viewPeople')}</ToggleButton>
+          <ToggleButton value="sites">{t('schedule.viewSites')}</ToggleButton>
+        </ToggleButtonGroup>
         <Box sx={{ flex: 1 }} />
         <SearchField value={search} onChange={setSearch} placeholder={t('schedule.search')} />
       </Stack>
@@ -379,6 +480,33 @@ export function AssignmentSchedulePage() {
         ))}
       </Box>
 
+      {vacancies.length > 0 && (
+        <Paper variant="outlined" sx={{ p: 1.5, mb: 2, borderColor: 'warning.main' }}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.5 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{t('schedule.vacanciesTitle')}</Typography>
+            <Typography variant="caption" sx={{ fontWeight: 700, color: 'warning.main' }}>{vacancies.length}</Typography>
+          </Stack>
+          {vacancies.map((v) => {
+            const absent = data.employees.find((e) => e.id === v.employeeId);
+            return (
+              <Box key={v.key} sx={{ display: 'flex', gap: 2, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', py: 0.75, borderTop: 1, borderColor: 'divider', bgcolor: replacingKey === v.key ? 'action.hover' : 'transparent' }}>
+                <Box sx={{ minWidth: 240, flex: 1 }}>
+                  <Typography variant="body2">
+                    {t('schedule.vacancyLine', { name: absent?.fullName ?? '', from: shortDate(v.from), to: shortDate(v.to), days: v.days })}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {t('schedule.vacancyHint', { site: projectsById.get(v.projectId)?.name ?? '' })}
+                  </Typography>
+                </Box>
+                <Button size="small" variant="contained" onClick={() => { setReplacingKey(v.key); setSelectedId(v.employeeId); setView('people'); }}>
+                  {t('schedule.findReplacement')}
+                </Button>
+              </Box>
+            );
+          })}
+        </Paper>
+      )}
+
       {attention.length > 0 && (
         <Paper variant="outlined" sx={{ p: 1.5, mb: 2 }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>{t('schedule.attention')}</Typography>
@@ -389,7 +517,7 @@ export function AssignmentSchedulePage() {
                   {t(`schedule.level.${a.level}` as 'schedule.level.crit')}
                 </Typography>
                 <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }}>{a.text}</Typography>
-                <Button size="small" onClick={() => { setSelectedId(a.employeeId); setFilter('all'); setSearch(''); }}>{t('schedule.open')}</Button>
+                <Button size="small" onClick={() => { setSelectedId(a.employeeId); setReplacingKey(null); setFilter('all'); setSearch(''); }}>{t('schedule.open')}</Button>
               </Box>
             ))}
           </Box>
@@ -398,6 +526,18 @@ export function AssignmentSchedulePage() {
 
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', xl: 'minmax(0, 1fr) 320px' }, gap: 2, alignItems: 'start' }}>
         <Paper variant="outlined" sx={{ overflow: 'hidden' }}>
+          {view === 'sites' ? (
+            <SitesView
+              data={data}
+              visible={visible}
+              today={today}
+              colorOf={colorOf}
+              vacancies={vacancies}
+              onPick={(id) => { setSelectedId(id); setReplacingKey(null); }}
+              onReplace={(key, employeeId) => { setReplacingKey(key); setSelectedId(employeeId); }}
+              onAdd={(projectId) => setAssignFor({ projectId, date: today })}
+            />
+          ) : (
           <Box sx={{ overflowX: 'auto' }}>
             <Box sx={{ minWidth: 250 + days * (weeks === 1 ? 92 : weeks === 2 ? 56 : 26) }}>
               <Box sx={{ display: 'grid', gridTemplateColumns: columns, position: 'sticky', top: 0, bgcolor: 'background.paper' }}>
@@ -440,6 +580,7 @@ export function AssignmentSchedulePage() {
               {visible.length === 0 && <Typography color="text.secondary" sx={{ p: 4, textAlign: 'center' }}>{t('common.noResults')}</Typography>}
             </Box>
           </Box>
+          )}
           <Stack direction="row" spacing={2} useFlexGap sx={{ flexWrap: 'wrap', px: 2, py: 1, borderTop: 1, borderColor: 'divider', color: 'text.secondary', fontSize: 12 }}>
             <span>{t('schedule.legend.site')}</span>
             <span>{t('schedule.legend.leave')}</span>
@@ -450,7 +591,25 @@ export function AssignmentSchedulePage() {
         </Paper>
 
         <Paper variant="outlined" sx={{ p: 2, position: { xl: 'sticky' }, top: 12 }}>
-          {selected ? (
+          {replacingVacancy ? (
+            <ReplacementPanel
+              schedule={data}
+              vacancy={replacingVacancy}
+              colorOf={colorOf}
+              pending={assignReplacement.isPending}
+              onCancel={() => setReplacingKey(null)}
+              onPick={(employeeId) => setSelectedId(employeeId)}
+              onAssign={(candidate) =>
+                assignReplacement.mutate(
+                  { employeeId: candidate.id, projectId: replacingVacancy.projectId, startDate: replacingVacancy.from, endDate: replacingVacancy.to },
+                  {
+                    onSuccess: () => { setReplacingKey(null); setSelectedId(candidate.id); setMessage(t('schedule.replacementAssigned', { name: candidate.fullName })); },
+                    onError: (err) => setError(toApiError(err).message),
+                  },
+                )
+              }
+            />
+          ) : selected ? (
             <Inspector
               employee={selected}
               schedule={data}
@@ -473,9 +632,9 @@ export function AssignmentSchedulePage() {
       </Box>
 
       <AssignDialog
-        key={assignFor ? `${assignFor.employeeId}-${assignFor.date}` : 'closed'}
+        key={assignFor ? `${assignFor.employeeId ?? ''}-${assignFor.projectId ?? ''}-${assignFor.date}` : 'closed'}
         target={assignFor}
-        employee={(data.employees ?? []).find((e) => e.id === assignFor?.employeeId)}
+        employees={data.employees}
         projects={data.projects}
         onClose={() => setAssignFor(null)}
         onDone={(name) => { setAssignFor(null); setMessage(t('schedule.assigned', { name })); }}
@@ -504,14 +663,6 @@ function buildAttention(
       items.push({ key: `no-${e.id}`, level: 'crit', employeeId: e.id, text: t('schedule.alert.noShow', { name: e.fullName, site }) });
     } else if (e.status === 'Late') {
       items.push({ key: `late-${e.id}`, level: 'warn', employeeId: e.id, text: t('schedule.alert.late', { name: e.fullName, site, minutes: data.lateToleranceMinutes }) });
-    }
-
-    const conflictDay = Array.from({ length: data.days }, (_, i) => addDays(data.from, i)).find((day) => {
-      const cell = cellFor(e, day);
-      return cell.conflict && !isWeekend(day);
-    });
-    if (conflictDay) {
-      items.push({ key: `conf-${e.id}`, level: 'crit', employeeId: e.id, text: t('schedule.alert.conflict', { name: e.fullName, date: shortDate(conflictDay) }) });
     }
   }
 
@@ -610,16 +761,155 @@ function Inspector({
   );
 }
 
+function ReplacementPanel({
+  schedule,
+  vacancy,
+  colorOf,
+  pending,
+  onCancel,
+  onPick,
+  onAssign,
+}: {
+  schedule: AssignmentSchedule;
+  vacancy: Vacancy;
+  colorOf: (projectId: string) => string;
+  pending: boolean;
+  onCancel: () => void;
+  onPick: (employeeId: string) => void;
+  onAssign: (employee: ScheduleEmployee) => void;
+}) {
+  const t = useT();
+  const absent = schedule.employees.find((e) => e.id === vacancy.employeeId);
+  const site = schedule.projects.find((p) => p.id === vacancy.projectId);
+  const candidates = candidatesFor(schedule, vacancy);
+  const shift = localShift(site?.shiftStartTime ?? null);
+
+  return (
+    <Stack spacing={1.5}>
+      <Box>
+        <Typography variant="caption" color="text.secondary">{t('schedule.replacementFor')}</Typography>
+        <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.15 }}>{absent?.fullName}</Typography>
+      </Box>
+      <Alert severity="warning">
+        {t('schedule.vacancyBanner', { from: shortDate(vacancy.from), to: shortDate(vacancy.to), days: vacancy.days })}
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mt: 0.5 }}>
+          <Box sx={{ width: 10, height: 10, borderRadius: 0.5, bgcolor: colorOf(vacancy.projectId) }} />
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>{site?.name}{shift ? ` · ${t('schedule.from', { time: shift })}` : ''}</Typography>
+        </Stack>
+      </Alert>
+      <Box>
+        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{t('schedule.suggested')}</Typography>
+        <Typography variant="caption" color="text.secondary">{t('schedule.suggestedHint', { trade: absent?.position ?? '' })}</Typography>
+      </Box>
+      <Stack spacing={1}>
+        {candidates.length === 0 && <Typography variant="body2" color="text.secondary">{t('schedule.noCandidates')}</Typography>}
+        {candidates.map((c) => (
+          <Box key={c.employee.id} sx={{ display: 'flex', gap: 1, alignItems: 'center', border: 1, borderColor: 'divider', borderRadius: 2, p: 1 }}>
+            <ButtonBase onClick={() => onPick(c.employee.id)} sx={{ flex: 1, minWidth: 0, textAlign: 'left', flexDirection: 'column', alignItems: 'flex-start' }}>
+              <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>{c.employee.fullName}</Typography>
+              <Typography variant="caption" color="text.secondary" noWrap>
+                {c.employee.position} · {c.sameTrade ? t('schedule.sameTrade') : t('schedule.otherTrade')} · {t('schedule.freeDays', { free: c.freeDays, total: vacancy.days })}
+              </Typography>
+            </ButtonBase>
+            <Button size="small" variant="contained" disabled={pending} onClick={() => onAssign(c.employee)}>{t('schedule.assignShort')}</Button>
+          </Box>
+        ))}
+      </Stack>
+      <Typography variant="caption" color="text.secondary">{t('schedule.replacementNote')}</Typography>
+      <Button onClick={onCancel}>{t('common.cancel')}</Button>
+    </Stack>
+  );
+}
+
+function SitesView({
+  data,
+  visible,
+  today,
+  colorOf,
+  vacancies,
+  onPick,
+  onReplace,
+  onAdd,
+}: {
+  data: AssignmentSchedule;
+  visible: ScheduleEmployee[];
+  today: string;
+  colorOf: (projectId: string) => string;
+  vacancies: Vacancy[];
+  onPick: (employeeId: string) => void;
+  onReplace: (key: string, employeeId: string) => void;
+  onAdd: (projectId: string) => void;
+}) {
+  const t = useT();
+  const shown = new Set(visible.map((e) => e.id));
+
+  return (
+    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(auto-fill, minmax(300px, 1fr))' }, gap: 1.5, p: 1.5 }}>
+      {data.projects.map((project) => {
+        const crew = data.employees.filter((e) => e.postings.some((p) => p.projectId === project.id && covers(p.startDate, p.endDate, today)));
+        const mine = vacancies.filter((v) => v.projectId === project.id);
+        const onSite = crew.filter((e) => e.status === 'OnSite' || e.status === 'Late').length;
+        const shift = localShift(project.shiftStartTime);
+        const vehicles = [...new Set(crew.flatMap((e) => e.vehicles))];
+        const tools = [...new Set(crew.flatMap((e) => e.tools))];
+        const color = colorOf(project.id);
+        if (crew.length === 0 && mine.length === 0 && visible.length !== data.employees.length) return null;
+
+        return (
+          <Paper key={project.id} variant="outlined" sx={{ p: 1.5, display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+              <Box sx={{ width: 10, height: 10, borderRadius: 0.5, bgcolor: color }} />
+              <Typography sx={{ fontWeight: 700, flex: 1 }} noWrap>{project.name}</Typography>
+              {project.endDate && project.endDate < today ? (
+                <Typography variant="caption" color="error" sx={{ fontWeight: 700 }}>{t('schedule.overdue', { date: shortDate(project.endDate) })}</Typography>
+              ) : null}
+            </Stack>
+            <Typography variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
+              {t('schedule.siteCounts', { posted: crew.length, onSite })}{shift ? ` · ${t('schedule.from', { time: shift })}` : ''}
+            </Typography>
+            <Box sx={{ display: 'flex', gap: '3px' }} aria-hidden>
+              {crew.map((e) => (
+                <Box key={e.id} sx={{ flex: 1, height: 8, borderRadius: 0.5, bgcolor: e.status === 'OnSite' ? 'success.main' : e.status === 'Late' ? 'warning.main' : e.status === 'NoShow' ? 'error.main' : 'divider' }} />
+              ))}
+            </Box>
+            <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: 'wrap' }}>
+              {crew.filter((e) => shown.has(e.id)).map((e) => (
+                <ButtonBase key={e.id} onClick={() => onPick(e.id)} sx={{ border: 1, borderColor: 'divider', borderRadius: 4, px: 1, py: 0.25, gap: 0.5, fontSize: 12 }}>
+                  <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: STATUS_COLOR[e.status] }} />
+                  {e.fullName}
+                </ButtonBase>
+              ))}
+              {crew.length === 0 && <Typography variant="caption" color="text.secondary">{t('schedule.noCrew')}</Typography>}
+            </Stack>
+            {mine.map((v) => (
+              <Alert key={v.key} severity="warning" action={<Button color="inherit" size="small" onClick={() => onReplace(v.key, v.employeeId)}>{t('schedule.findReplacement')}</Button>}>
+                {t('schedule.siteVacancy', { name: data.employees.find((e) => e.id === v.employeeId)?.fullName ?? '', from: shortDate(v.from), to: shortDate(v.to) })}
+              </Alert>
+            ))}
+            <Stack direction="row" spacing={1.5} sx={{ color: 'text.secondary', alignItems: 'center' }}>
+              <LocalShippingOutlined fontSize="small" />
+              <Typography variant="caption" noWrap>{vehicles.join(', ') || '—'}</Typography>
+              <HandymanOutlined fontSize="small" />
+              <Typography variant="caption" noWrap>{tools.join(', ') || '—'}</Typography>
+            </Stack>
+            <Button size="small" onClick={() => onAdd(project.id)}>{t('schedule.addWorker')}</Button>
+          </Paper>
+        );
+      })}
+    </Box>
+  );
+}
+
 function AssignDialog({
   target,
-  employee,
+  employees,
   projects,
   onClose,
   onDone,
   onError,
 }: {
-  target: { employeeId: string; date: string } | null;
-  employee: ScheduleEmployee | undefined;
+  target: { employeeId?: string; projectId?: string; date: string } | null;
+  employees: ScheduleEmployee[];
   projects: ScheduleProject[];
   onClose: () => void;
   onDone: (name: string) => void;
@@ -627,16 +917,23 @@ function AssignDialog({
 }) {
   const t = useT();
   const assign = useAssignOnBoard();
-  const [projectId, setProjectId] = useState('');
+  const [employeeId, setEmployeeId] = useState(target?.employeeId ?? '');
+  const [projectId, setProjectId] = useState(target?.projectId ?? '');
   const [start, setStart] = useState(target?.date ?? dateOnlyOffset(0));
   const [end, setEnd] = useState('');
-  const valid = !!projectId && !!start && (!end || end >= start);
+  const employee = employees.find((e) => e.id === employeeId);
+  const valid = !!employeeId && !!projectId && !!start && (!end || end >= start);
 
   return (
-    <Dialog open={!!target && !!employee} onClose={onClose} fullWidth maxWidth="xs">
-      <DialogTitle>{t('schedule.assignTitle', { name: employee?.fullName ?? '' })}</DialogTitle>
+    <Dialog open={!!target} onClose={onClose} fullWidth maxWidth="xs">
+      <DialogTitle>{employee ? t('schedule.assignTitle', { name: employee.fullName }) : t('schedule.addWorker')}</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ pt: 1 }}>
+          {target?.employeeId ? null : (
+            <TextField select label={t('schedule.worker')} value={employeeId} onChange={(e) => setEmployeeId(e.target.value)}>
+              {employees.map((e) => <MenuItem key={e.id} value={e.id}>{e.fullName} · {e.position}</MenuItem>)}
+            </TextField>
+          )}
           <TextField select label={t('schedule.site')} value={projectId} onChange={(e) => setProjectId(e.target.value)}>
             {projects.map((p) => <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>)}
           </TextField>

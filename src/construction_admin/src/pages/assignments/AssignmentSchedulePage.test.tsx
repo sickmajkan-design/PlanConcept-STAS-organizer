@@ -76,24 +76,32 @@ describe('AssignmentSchedulePage', () => {
     expect(screen.queryByText(/Ivan Peric .*(nije|not clocked)/i)).toBeNull();
   }, SCREEN_TIMEOUT);
 
-  it('flags a worker posted on a day of approved leave', async () => {
+  it('lists an empty position and offers replacements who are free', async () => {
+    const day = new Date();
+    // The next working day, so the leave is not on a weekend.
+    do day.setUTCDate(day.getUTCDate() + 1); while ([0, 6].includes(day.getUTCDay()));
+    const leaveDay = day.toISOString().slice(0, 10);
+
     network.reply(
       '/assignment-board/schedule',
       200,
       schedule([
-        employee('e1', 'Emir Delic', 'Expected', {
-          absences: [{ type: 'AnnualLeave', startDate: today, endDate: today }],
-        }),
+        employee('e1', 'Emir Delic', 'Expected', { absences: [{ type: 'AnnualLeave', startDate: leaveDay, endDate: leaveDay }] }),
+        employee('e2', 'Kenan Dizdar', 'Free', { todayProjectId: null, postings: [] }),
       ]),
     );
 
     await renderBoard();
 
-    // Either a weekday is posted during leave (flagged), or today is a weekend and there is nothing to flag.
-    const day = new Date().getUTCDay();
-    if (day === 0 || day === 6) return;
-    expect((await screen.findAllByText(/Emir Delic/)).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/(approved leave|odobreno odsustvo)/i).length).toBeGreaterThan(0);
+    expect(await screen.findByText(/(Approved leave . replacement needed|Odobrena odsustva . treba zamjena)/i)).toBeDefined();
+    await userEvent.click(screen.getByRole('button', { name: /(Find replacement|Nađi zamjenu)/ }));
+
+    expect((await screen.findAllByText('Kenan Dizdar')).length).toBeGreaterThan(0);
+    await userEvent.click(screen.getByRole('button', { name: /^(Assign|Dodijeli)$/ }));
+
+    const posts = network.calls.filter((call) => call.method === 'POST' && call.url.includes('/e2/projects/'));
+    expect(posts).toHaveLength(1);
+    expect(JSON.stringify(posts[0].body)).toContain(leaveDay);
   }, SCREEN_TIMEOUT);
 
   it('asks for a different period when the number of weeks changes', async () => {

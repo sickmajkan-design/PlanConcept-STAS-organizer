@@ -91,5 +91,8 @@ public enum NotificationType
     VehicleTollExpiring = 33,
 
     /// <summary>The person was moved to another business unit, or out of every unit, from a date.</summary>
-    EmployeeBranchChanged = 34
+    EmployeeBranchChanged = 34,
+
+    /// <summary>Time off was approved for someone who is posted to a site during it, so that position is empty and needs a replacement.</summary>
+    AbsenceNeedsCover = 35
 }

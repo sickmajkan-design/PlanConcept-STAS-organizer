@@ -140,10 +140,80 @@ public class ReviewAbsenceCommandHandler : IRequestHandler<ReviewAbsenceCommand,
                 cancellationToken: cancellationToken);
         }
 
+        if (request.Approve)
+        {
+            await NotifyOfEmptyPositionsAsync(absence, cancellationToken);
+        }
+
         return await _context.Absences
             .AsNoTracking()
             .Where(a => a.Id == absence.Id)
             .Select(AbsenceMapping.Projection)
             .FirstAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Tells the office that an approved absence leaves a position empty: the person is posted to a
+    /// site on some of those days. Without it the gap would only be noticed on the day. Best effort:
+    /// notification delivery never throws, and a failure to look the postings up must not undo the
+    /// approval that was just saved.
+    /// </summary>
+    private async Task NotifyOfEmptyPositionsAsync(Absence absence, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var sites = await _context.EmployeeProjects
+                .AsNoTracking()
+                .Where(p => p.EmployeeId == absence.EmployeeId
+                    && p.StartDate <= absence.EndDate
+                    && (p.EndDate == null || p.EndDate >= absence.StartDate))
+                .Select(p => new { p.ProjectId, p.Project.Name })
+                .Distinct()
+                .ToListAsync(cancellationToken);
+
+            if (sites.Count == 0)
+            {
+                return;
+            }
+
+            var employeeName = await _context.Employees
+                .Where(e => e.Id == absence.EmployeeId)
+                .Select(e => e.FirstName + " " + e.LastName)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (employeeName is null)
+            {
+                return;
+            }
+
+            // Everyone in the office, including whoever just approved it: they are the one who has
+            // to find the replacement, and the notice is how they get to the board from here.
+            var recipientIds = await _context.Users
+                .Where(u => u.IsActive && (u.Role == UserRole.SuperAdmin || u.Role == UserRole.Admin))
+                .Select(u => u.Id)
+                .ToListAsync(cancellationToken);
+
+            var siteNames = string.Join(", ", sites.Select(s => s.Name));
+
+            await _notifications.NotifyUsersAsync(
+                recipientIds,
+                NotificationType.AbsenceNeedsCover,
+                "Position needs a replacement",
+                $"{employeeName} is on approved leave and is posted to {siteNames}.",
+                new Dictionary<string, string>
+                {
+                    ["employeeId"] = absence.EmployeeId.ToString(),
+                    ["absenceId"] = absence.Id.ToString(),
+                    ["employeeName"] = employeeName,
+                    ["startDate"] = absence.StartDate.ToString("yyyy-MM-dd"),
+                    ["endDate"] = absence.EndDate.ToString("yyyy-MM-dd"),
+                    ["siteNames"] = siteNames
+                },
+                cancellationToken: cancellationToken);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException)
+        {
+            // Deliberately swallowed: see the summary.
+        }
     }
 }

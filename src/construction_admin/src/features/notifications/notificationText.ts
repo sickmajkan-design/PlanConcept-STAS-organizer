@@ -378,6 +378,18 @@ export function resolveNotificationText(t: T, notification: Notification): Notif
             : text('notificationArticleOrderChangedBody', { name: d.requestedByName, status: text('articleOrderStatus' + d.status) }),
       };
 
+    case 'AbsenceNeedsCover':
+      if (!d.employeeName || !d.siteNames || !d.startDate || !d.endDate) return fallback;
+      return {
+        title: text('notificationAbsenceNeedsCoverTitle'),
+        body: text('notificationAbsenceNeedsCoverBody', {
+          employeeName: d.employeeName,
+          siteNames: d.siteNames,
+          startDate: isoDate(d.startDate),
+          endDate: isoDate(d.endDate),
+        }),
+      };
+
     case 'AbsenceRequested':
       if (!d.employeeName || !d.startDate || !d.endDate) return fallback;
       return {

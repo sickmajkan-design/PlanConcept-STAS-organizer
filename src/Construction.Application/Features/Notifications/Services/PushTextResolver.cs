@@ -415,6 +415,19 @@ public static class PushTextResolver
                     $"{employeeName} je zatražio(la) odsustvo, od {IsoDate(startDate)} do {IsoDate(endDate)}.");
             }
 
+            case NotificationType.AbsenceNeedsCover:
+            {
+                var employeeName = Str("employeeName");
+                var siteNames = Str("siteNames");
+                var startDate = Str("startDate");
+                var endDate = Str("endDate");
+                if (employeeName is null || siteNames is null || startDate is null || endDate is null) break;
+
+                return (
+                    "Treba zamjena",
+                    $"{employeeName} je na odobrenom odsustvu ({IsoDate(startDate)} – {IsoDate(endDate)}) a raspoređen je na: {siteNames}.");
+            }
+
             case NotificationType.DocumentRetentionEnded:
             {
                 var fileName = Str("fileName");

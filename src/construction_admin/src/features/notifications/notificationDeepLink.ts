@@ -112,6 +112,9 @@ export function resolveNotificationTarget(
     case 'ArticleOrderStatusChanged':
       return data.articleOrderId ? `${paths.articleOrders}?highlight=${data.articleOrderId}` : paths.articleOrders;
 
+    case 'AbsenceNeedsCover':
+      return hasDirectory ? paths.assignmentBoard : null;
+
     case 'AbsenceRequested':
     case 'AbsenceEditProposed':
       if (!hasDirectory) return null;
