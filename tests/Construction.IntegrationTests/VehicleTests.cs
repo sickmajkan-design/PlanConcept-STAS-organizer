@@ -483,7 +483,7 @@ public class VehicleTests : IntegrationTestBase
     [Fact]
     public async Task The_list_can_be_sorted_by_td_number_and_by_when_the_registration_runs_out()
     {
-        foreach (var sortBy in new[] { "tdNumber", "registrationValidUntil" })
+        foreach (var sortBy in new[] { "tdNumber", "registrationValidUntil", "rentedUntil" })
         {
             var page = await InScope(scope => scope.Send(new GetVehiclesQuery { SortBy = sortBy, PageSize = 10 }));
 

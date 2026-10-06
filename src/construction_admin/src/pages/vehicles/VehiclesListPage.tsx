@@ -174,6 +174,30 @@ export function VehiclesListPage() {
           ),
       },
       {
+        field: 'rentedUntil',
+        headerName: t('vehicles.rentedUntilShort'),
+        width: 190,
+        renderCell: (params) =>
+          params.row.rentedUntil ? (
+            <VehicleDateChip label={t('vehicles.dateShort')} date={params.row.rentedUntil} />
+          ) : (
+            '—'
+          ),
+      },
+      {
+        field: 'currentRentalOutExpectedEndDate',
+        headerName: t('vehicles.dueBack'),
+        width: 190,
+        // Not sortable: only a vehicle that is out has one, and it lives on the rental, not the vehicle.
+        sortable: false,
+        renderCell: (params) =>
+          params.row.currentRentalOutExpectedEndDate ? (
+            <VehicleDateChip label={t('vehicles.dateShort')} date={params.row.currentRentalOutExpectedEndDate} />
+          ) : (
+            '—'
+          ),
+      },
+      {
         field: 'tdNumber',
         headerName: t('vehicles.tdShort'),
         width: 90,
