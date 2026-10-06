@@ -53,7 +53,8 @@ export function AbsenceHousingChoice({
 
   const stay = impact.data?.hasStay ? impact.data : null;
   const [release, setRelease] = useState(type === 'AnnualLeave');
-  const [returnAfter, setReturnAfter] = useState(true);
+  // Putting them back is the office's call, so it starts unticked.
+  const [returnAfter, setReturnAfter] = useState(false);
 
   // A different kind of leave starts from that kind's default again.
   useEffect(() => {

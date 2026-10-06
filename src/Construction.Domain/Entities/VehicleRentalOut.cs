@@ -40,6 +40,9 @@ public class VehicleRentalOut : BaseEntity, IAuditable
     /// <summary>Null means the vehicle has not come back yet.</summary>
     public DateOnly? EndDate { get; set; }
 
+    /// <summary>When the vehicle is due back, if that was agreed. Not the day it actually returned: that is <see cref="EndDate"/>.</summary>
+    public DateOnly? ExpectedEndDate { get; set; }
+
     public string? Note { get; set; }
 
     public Guid? SetByUserId { get; set; }

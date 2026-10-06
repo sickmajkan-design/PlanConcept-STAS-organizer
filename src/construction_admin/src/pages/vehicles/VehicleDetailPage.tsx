@@ -225,6 +225,12 @@ export function VehicleDetailPage() {
                     })}
                   />
                 )}
+                {vehicle.currentRentalOutRenterName && vehicle.currentRentalOutExpectedEndDate && (
+                  <VehicleDateChip
+                    label={t('vehicles.dueBack')}
+                    date={vehicle.currentRentalOutExpectedEndDate}
+                  />
+                )}
               </Stack>
             </Box>
             <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
@@ -1534,6 +1540,7 @@ function VehicleRentalOutCard({
                   <TableCell>{t('vehicleRentalsOut.renter')}</TableCell>
                   <TableCell align="right">{t('vehicleRentalsOut.dailyRate')}</TableCell>
                   <TableCell>{t('vehicleRentalsOut.startDate')}</TableCell>
+                  <TableCell>{t('vehicleRentalsOut.expectedEndDate')}</TableCell>
                   <TableCell>{t('vehicleRentalsOut.endDate')}</TableCell>
                   <TableCell align="right" />
                 </TableRow>
@@ -1549,6 +1556,7 @@ function VehicleRentalOutCard({
                     <TableCell>{row.renterDisplayName}</TableCell>
                     <TableCell align="right">{formatMoney(row.dailyRate, locale)}</TableCell>
                     <TableCell>{formatDate(row.startDate)}</TableCell>
+                    <TableCell>{formatDate(row.expectedEndDate)}</TableCell>
                     <TableCell>
                       {row.endDate ? (
                         formatDate(row.endDate)
@@ -1645,6 +1653,7 @@ function VehicleRentalOutDialog({
   const [renterName, setRenterName] = useState('');
   const [dailyRate, setDailyRate] = useState('');
   const [startDate, setStartDate] = useState('');
+  const [expectedEndDate, setExpectedEndDate] = useState('');
   const [note, setNote] = useState('');
 
   const resetRecord = record.reset;
@@ -1661,12 +1670,14 @@ function VehicleRentalOutDialog({
       setRenterName(editingRental.renterName);
       setDailyRate(String(editingRental.dailyRate));
       setStartDate(editingRental.startDate);
+      setExpectedEndDate(editingRental.expectedEndDate ?? '');
       setNote(editingRental.note ?? '');
     } else {
       setCustomerId(null);
       setRenterName('');
       setDailyRate('');
       setStartDate('');
+      setExpectedEndDate('');
       setNote('');
     }
   }, [open, editingRental, resetRecord, resetUpdate]);
@@ -1683,6 +1694,7 @@ function VehicleRentalOutDialog({
       customerId,
       renterName: renterName.trim(),
       dailyRate: parsedRate,
+      expectedEndDate: expectedEndDate || null,
       note: note.trim() || null,
     };
 
@@ -1759,6 +1771,18 @@ function VehicleRentalOutDialog({
               value={startDate}
               onChange={(event) => setStartDate(event.target.value)}
               slotProps={{ inputLabel: { shrink: true } }}
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              type="date"
+              fullWidth
+              label={t('vehicleRentalsOut.expectedEndDate')}
+              value={expectedEndDate}
+              onChange={(event) => setExpectedEndDate(event.target.value)}
+              slotProps={{ inputLabel: { shrink: true } }}
+              helperText={t('vehicleRentalsOut.expectedEndDateHelp')}
             />
           </Grid>
 

@@ -415,6 +415,27 @@ public static class PushTextResolver
                     $"{employeeName} je zatražio(la) odsustvo, od {IsoDate(startDate)} do {IsoDate(endDate)}.");
             }
 
+            case NotificationType.VehicleDateExpiring:
+            {
+                var vehicleName = Str("vehicleName");
+                var kind = Str("kind");
+                var date = Str("date");
+                var daysLeft = Str("daysLeft");
+                if (vehicleName is null || kind is null || date is null || daysLeft is null) break;
+
+                var what = kind switch
+                {
+                    "Registration" => "registracija ističe",
+                    "RentedUntil" => "najam ističe",
+                    "RentalOutReturn" => "izdato vozilo treba da se vrati",
+                    _ => "datum se približava"
+                };
+
+                return (
+                    "Rok vozila se približava",
+                    $"{vehicleName}: {what} {IsoDate(date)} (još {daysLeft} dana).");
+            }
+
             case NotificationType.DkvStatementMismatch:
             {
                 var total = Str("total");

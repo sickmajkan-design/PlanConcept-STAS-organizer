@@ -564,6 +564,8 @@ export interface Vehicle {
   currentRentalProvider: string | null;
   /** Set when this vehicle is currently loaned out to another company. */
   currentRentalOutRenterName: string | null;
+  /** When the vehicle that is out is due back, if agreed. */
+  currentRentalOutExpectedEndDate: string | null;
   currentRentalOutDailyRate: number | null;
   currentRentalOutStartDate: string | null;
   /** Renter on the most recently closed rental-out loan. Null if never loaned out. */
@@ -1360,6 +1362,8 @@ export interface VehicleRentalOut {
   startDate: string;
   /** `YYYY-MM-DD`, or null while the vehicle has not come back. */
   endDate: string | null;
+  /** `YYYY-MM-DD`: when it is due back, if that was agreed. */
+  expectedEndDate: string | null;
   isOpen: boolean;
   note: string | null;
   setByName: string | null;
@@ -1372,6 +1376,7 @@ export interface VehicleRentalOutInput {
   renterName: string;
   dailyRate: number;
   startDate?: string | null;
+  expectedEndDate?: string | null;
   note?: string | null;
 }
 
@@ -1381,6 +1386,7 @@ export interface UpdateVehicleRentalOutInput {
   renterName: string;
   dailyRate: number;
   startDate: string;
+  expectedEndDate?: string | null;
   note?: string | null;
 }
 
@@ -2435,6 +2441,7 @@ export const notificationTypes = [
   'RefundRequested',
   'RefundDecided',
   'VehicleTollExpiring',
+  'VehicleDateExpiring',
   'EmployeeBranchChanged',
 ] as const;
 

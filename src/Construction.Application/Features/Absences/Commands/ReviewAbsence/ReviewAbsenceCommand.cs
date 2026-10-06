@@ -26,7 +26,7 @@ public record ReviewAbsenceCommand : IRequest<AbsenceDto>
     /// </summary>
     public bool? ReleaseAccommodation { get; init; }
 
-    /// <summary>Book them back into the same place the day after the leave. Left out, it does.</summary>
+    /// <summary>Book them back into the same place the day after the leave. Left out, it does not: putting them back in is the office's call.</summary>
     public bool? ReturnToAccommodation { get; init; }
 }
 
@@ -116,7 +116,7 @@ public class ReviewAbsenceCommandHandler : IRequestHandler<ReviewAbsenceCommand,
                 absence.EmployeeId,
                 absence.StartDate,
                 absence.EndDate,
-                request.ReturnToAccommodation ?? true,
+                request.ReturnToAccommodation ?? false,
                 cancellationToken);
         }
 

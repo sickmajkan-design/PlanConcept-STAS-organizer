@@ -97,5 +97,8 @@ public enum NotificationType
     AbsenceNeedsCover = 35,
 
     /// <summary>A DKV statement was uploaded and some of its rows do not agree with what drivers recorded.</summary>
-    DkvStatementMismatch = 36
+    DkvStatementMismatch = 36,
+
+    /// <summary>A vehicle's registration or rental is about to end, or a vehicle rented out is about to be due back.</summary>
+    VehicleDateExpiring = 37
 }

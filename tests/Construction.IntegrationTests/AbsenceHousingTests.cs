@@ -93,12 +93,12 @@ public class AbsenceHousingTests : IntegrationTestBase
             .ToListAsync());
 
     [Fact]
-    public async Task Annual_leave_takes_a_housed_person_off_housing_and_books_them_back_after()
+    public async Task Annual_leave_takes_a_housed_person_off_housing_and_books_them_back_when_asked()
     {
         var (admin, employee, place, _) = await SeedHousedAsync(Today.AddDays(-30));
         var leave = await RequestedLeaveAsync(employee, AbsenceType.AnnualLeave);
 
-        await ApproveAsync(admin, leave);
+        await ApproveAsync(admin, leave, returnAfter: true);
 
         var stays = await StaysOfAsync(employee.Id);
 
@@ -146,12 +146,12 @@ public class AbsenceHousingTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task The_return_can_be_declined()
+    public async Task Annual_leave_ends_the_stay_and_leaves_putting_them_back_to_the_office()
     {
         var (admin, employee, _, _) = await SeedHousedAsync(Today.AddDays(-30));
         var leave = await RequestedLeaveAsync(employee, AbsenceType.AnnualLeave);
 
-        await ApproveAsync(admin, leave, returnAfter: false);
+        await ApproveAsync(admin, leave);
 
         var stay = Assert.Single(await StaysOfAsync(employee.Id));
         Assert.Equal(LeaveStart.AddDays(-1), stay.EndDate);
@@ -163,7 +163,7 @@ public class AbsenceHousingTests : IntegrationTestBase
         var (admin, employee, _, _) = await SeedHousedAsync(Today.AddDays(-30), stayEnd: LeaveStart.AddDays(2));
         var leave = await RequestedLeaveAsync(employee, AbsenceType.AnnualLeave);
 
-        await ApproveAsync(admin, leave);
+        await ApproveAsync(admin, leave, returnAfter: true);
 
         var stay = Assert.Single(await StaysOfAsync(employee.Id));
         Assert.Equal(LeaveStart.AddDays(-1), stay.EndDate);
@@ -176,7 +176,7 @@ public class AbsenceHousingTests : IntegrationTestBase
         var (admin, employee, _, _) = await SeedHousedAsync(Today.AddDays(-30), stayEnd: originalEnd);
         var leave = await RequestedLeaveAsync(employee, AbsenceType.AnnualLeave);
 
-        await ApproveAsync(admin, leave);
+        await ApproveAsync(admin, leave, returnAfter: true);
 
         var stays = await StaysOfAsync(employee.Id);
         Assert.Equal(2, stays.Count);
@@ -223,7 +223,8 @@ public class AbsenceHousingTests : IntegrationTestBase
                 Type = AbsenceType.AnnualLeave,
                 StartDate = LeaveStart,
                 EndDate = LeaveEnd,
-                Approve = true
+                Approve = true,
+                ReturnToAccommodation = true
             });
         });
 

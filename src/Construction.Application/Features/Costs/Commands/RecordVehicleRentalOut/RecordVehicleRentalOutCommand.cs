@@ -31,6 +31,9 @@ public record RecordVehicleRentalOutCommand : IRequest<VehicleRentalOutDto>
     /// <summary>Defaults to today.</summary>
     public DateOnly? StartDate { get; init; }
 
+    /// <summary>When the vehicle is due back, if agreed.</summary>
+    public DateOnly? ExpectedEndDate { get; init; }
+
     public string? Note { get; init; }
 }
 
@@ -64,6 +67,11 @@ public class RecordVehicleRentalOutCommandValidator : AbstractValidator<RecordVe
             .LessThanOrEqualTo(today.AddDays(MaxFutureDays))
             .WithMessage($"A loan cannot start more than {MaxFutureDays} days from now.")
             .When(x => x.StartDate is not null);
+
+        RuleFor(x => x.ExpectedEndDate)
+            .GreaterThanOrEqualTo(x => x.StartDate ?? today)
+            .WithMessage("The vehicle cannot be due back before it goes out.")
+            .When(x => x.ExpectedEndDate is not null);
 
         RuleFor(x => x.Note).MaximumLength(500);
     }
@@ -112,6 +120,7 @@ public class RecordVehicleRentalOutCommandHandler
             RenterName = request.RenterName.Trim(),
             DailyRate = request.DailyRate,
             StartDate = request.StartDate ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+            ExpectedEndDate = request.ExpectedEndDate,
             Note = request.Note?.Trim(),
             SetByUserId = _currentUserService.UserId
         };

@@ -96,8 +96,26 @@ describe('ApproveAbsenceDialog', () => {
       expect(review?.body).toMatchObject({
         approve: true,
         releaseAccommodation: true,
-        returnToAccommodation: true,
+        returnToAccommodation: false,
       });
+    });
+  }, SCREEN_TIMEOUT);
+
+  it('books the person back in only when asked to', async () => {
+    network.reply('/absences/housing-impact', 200, housed);
+    network.reply('/absences/a1/review', 200, { id: 'a1' });
+
+    await open('AnnualLeave');
+
+    const comeBack = await screen.findByRole('checkbox', { name: /Book them back into the same place/ });
+    expect((comeBack as HTMLInputElement).checked).toBe(false);
+
+    await userEvent.click(comeBack);
+    await userEvent.click(screen.getByRole('button', { name: 'Grant' }));
+
+    await waitFor(() => {
+      const review = network.calls.find((c) => c.url.includes('/absences/a1/review'));
+      expect(review?.body).toMatchObject({ releaseAccommodation: true, returnToAccommodation: true });
     });
   }, SCREEN_TIMEOUT);
 

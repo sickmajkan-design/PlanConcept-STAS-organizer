@@ -49,6 +49,9 @@ public class VehicleDto
 
     public DateOnly? CurrentRentalOutStartDate { get; init; }
 
+    /// <summary>When the vehicle that is out is due back, if agreed.</summary>
+    public DateOnly? CurrentRentalOutExpectedEndDate { get; init; }
+
     /// <summary>Renter on the most recently closed rental-out loan (EndDate not null). Null if never loaned out.</summary>
     public string? LastRentalOutRenterName { get; init; }
 
@@ -137,6 +140,10 @@ public static class VehicleMapping
             CurrentRentalOutStartDate = vehicle.RentalsOut
                 .Where(r => r.EndDate == null)
                 .Select(r => (DateOnly?)r.StartDate)
+                .FirstOrDefault(),
+            CurrentRentalOutExpectedEndDate = vehicle.RentalsOut
+                .Where(r => r.EndDate == null)
+                .Select(r => r.ExpectedEndDate)
                 .FirstOrDefault(),
             LastRentalOutRenterName = vehicle.RentalsOut
                 .Where(r => r.EndDate != null)

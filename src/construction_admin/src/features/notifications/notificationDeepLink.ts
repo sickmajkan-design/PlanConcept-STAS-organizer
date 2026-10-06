@@ -91,6 +91,7 @@ export function resolveNotificationTarget(
     case 'EmployeeBranchChanged':
       return null;
 
+    case 'VehicleDateExpiring':
     case 'VehicleTollExpiring':
       return hasDirectory && data.vehicleId ? paths.vehicleDetail(data.vehicleId) : null;
 

@@ -36,7 +36,7 @@ public record RequestAbsenceCommand : IRequest<AbsenceDto>
     /// </summary>
     public bool? ReleaseAccommodation { get; init; }
 
-    /// <summary>With <see cref="Approve"/>: book them back into the same place the day after. Left out, it does.</summary>
+    /// <summary>With <see cref="Approve"/>: book them back into the same place the day after. Left out, it does not.</summary>
     public bool? ReturnToAccommodation { get; init; }
 }
 
@@ -155,7 +155,7 @@ public class RequestAbsenceCommandHandler : IRequestHandler<RequestAbsenceComman
                 employeeId,
                 request.StartDate,
                 request.EndDate,
-                request.ReturnToAccommodation ?? true,
+                request.ReturnToAccommodation ?? false,
                 cancellationToken);
         }
 

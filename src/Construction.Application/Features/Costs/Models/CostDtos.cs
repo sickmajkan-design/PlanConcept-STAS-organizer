@@ -647,6 +647,9 @@ public class VehicleRentalOutDto
     /// <summary>Null means the vehicle has not come back yet.</summary>
     public DateOnly? EndDate { get; init; }
 
+    /// <summary>When the vehicle is due back, if that was agreed.</summary>
+    public DateOnly? ExpectedEndDate { get; init; }
+
     public bool IsOpen { get; init; }
 
     public string? Note { get; init; }
@@ -681,6 +684,7 @@ public static class VehicleRentalOutMapping
             DailyRate = rental.DailyRate,
             StartDate = rental.StartDate,
             EndDate = rental.EndDate,
+            ExpectedEndDate = rental.ExpectedEndDate,
             IsOpen = rental.EndDate == null,
             Note = rental.Note,
             SetByName = rental.SetByUser != null ? rental.SetByUser.Email : null,

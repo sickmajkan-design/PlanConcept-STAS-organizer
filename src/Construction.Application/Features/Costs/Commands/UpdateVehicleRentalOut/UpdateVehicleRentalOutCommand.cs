@@ -30,6 +30,9 @@ public record UpdateVehicleRentalOutCommand : IRequest<VehicleRentalOutDto>
 
     public DateOnly StartDate { get; init; }
 
+    /// <summary>When the vehicle is due back, if agreed.</summary>
+    public DateOnly? ExpectedEndDate { get; init; }
+
     public string? Note { get; init; }
 }
 
@@ -47,6 +50,11 @@ public class UpdateVehicleRentalOutCommandValidator : AbstractValidator<UpdateVe
             .GreaterThan(0).WithMessage("A day out has to cost something.")
             .LessThanOrEqualTo(CostRules.MaxHourlyRate)
             .WithMessage("That amount looks like a typo rather than a daily rate.");
+
+        RuleFor(x => x.ExpectedEndDate)
+            .GreaterThanOrEqualTo(x => x.StartDate)
+            .WithMessage("The vehicle cannot be due back before it goes out.")
+            .When(x => x.ExpectedEndDate is not null);
 
         RuleFor(x => x.Note).MaximumLength(500);
     }
@@ -94,6 +102,7 @@ public class UpdateVehicleRentalOutCommandHandler
         rental.RenterName = request.RenterName.Trim();
         rental.DailyRate = request.DailyRate;
         rental.StartDate = request.StartDate;
+        rental.ExpectedEndDate = request.ExpectedEndDate;
         rental.Note = request.Note?.Trim();
 
         await _context.SaveChangesAsync(cancellationToken);

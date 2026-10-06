@@ -114,6 +114,20 @@ export function resolveNotificationText(t: T, notification: Notification): Notif
           : text('notificationEmployeeBranchChangedNoneBody', { startDate: isoDate(d.startDate) }),
       };
 
+    case 'VehicleDateExpiring': {
+      if (!d.vehicleName || !d.kind || !d.date || !d.daysLeft) return fallback;
+
+      return {
+        title: text('notificationVehicleDateExpiringTitle'),
+        body: text('notificationVehicleDateExpiringBody', {
+          vehicleName: d.vehicleName,
+          what: t(`vehicleDateKind.${d.kind}` as MessageKey),
+          date: isoDate(d.date),
+          days: d.daysLeft,
+        }),
+      };
+    }
+
     case 'VehicleTollExpiring': {
       if (!d.vehicleRegistrationNumber || !d.type || !d.country || !d.validUntil) return fallback;
       const typeKey = `vehicleTollType.${d.type}` as MessageKey;
