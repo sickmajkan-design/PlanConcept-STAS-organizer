@@ -29,7 +29,12 @@ public partial class PresenceController : ApiControllerBase
         if (Guid.TryParse(User.FindFirstValue(JwtRegisteredClaimNames.Sub), out var userId)
             && Enum.TryParse<UserRole>(User.FindFirstValue(ClaimTypes.Role), out var role))
         {
-            tracker.Touch(userId, role, "web", Clean(request?.Screen), clock.UtcNow);
+            tracker.Touch(
+                userId,
+                role,
+                PresenceClient.FromUserAgent(Request.Headers.UserAgent.ToString()),
+                Clean(request?.Screen),
+                clock.UtcNow);
         }
 
         return NoContent();

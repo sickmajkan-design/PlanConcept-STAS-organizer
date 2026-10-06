@@ -10,6 +10,7 @@ import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/widgets/status_banners.dart';
 import 'features/outbox/outbox_controller.dart';
+import 'features/presence/presence_reporter.dart';
 import 'features/time_entries/presentation/shift_controller.dart';
 import 'l10n/app_localizations.dart';
 
@@ -26,6 +27,7 @@ class _ConstructionAppState extends ConsumerState<ConstructionApp>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    ref.read(presenceReporterProvider).start();
   }
 
   @override
@@ -47,6 +49,10 @@ class _ConstructionAppState extends ConsumerState<ConstructionApp>
       // Same moment, same reason, for reports and leave requests made with no
       // signal.
       unawaited(ref.read(outboxControllerProvider.notifier).flush());
+      ref.read(presenceReporterProvider).start();
+    } else {
+      // Not in the foreground: not "online". See PresenceReporter.
+      ref.read(presenceReporterProvider).stop();
     }
   }
 
