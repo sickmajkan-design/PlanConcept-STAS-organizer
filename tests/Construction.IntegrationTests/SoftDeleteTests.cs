@@ -119,6 +119,7 @@ public class SoftDeleteTests : IntegrationTestBase
             Brand = "Iveco",
             Model = "Daily",
             RegistrationNumber = registration,
+            TdNumber = $"TD-{registration}",
             FuelType = FuelType.Diesel,
             Status = VehicleStatus.Available
         }));

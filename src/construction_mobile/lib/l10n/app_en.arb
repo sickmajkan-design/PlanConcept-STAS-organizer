@@ -1242,6 +1242,11 @@
   "vehicleExpensesNeedsAmount": "Enter what it cost.",
   "vehicleExpensesFuelNeedsLitres": "Say how many litres went in.",
   "vehicleExpensesOdometerHint": "Optional, but two readings are what give you consumption.",
+  "vehicleExpensesOdometerRequired": "Enter the odometer reading (km).",
+  "vehicleExpensesReceiptAttach": "Photograph the receipt",
+  "vehicleExpensesReceiptNeeded": "A fill-up needs a photo of the receipt.",
+  "vehicleExpensesReceiptUploadFailed": "The cost was saved, but the receipt photo did not upload. Press the button again to send it.",
+  "vehicleExpensesNoVehicle": "No vehicle is signed out to you. Scan its QR label and take it first.",
   "vehicleExpensesPerLitre": "{price} per litre",
   "@vehicleExpensesPerLitre": {
     "placeholders": {

@@ -152,8 +152,30 @@ public class AttachmentRulesTests
             UserRole.Worker, AttachmentOwnerType.Project, AttachmentCategory.Photo));
     }
 
+    [Fact]
+    public void A_worker_may_photograph_the_receipt_of_a_fill_up()
+    {
+        Assert.True(AttachmentRules.CanUpload(
+            UserRole.Worker, AttachmentOwnerType.VehicleExpense, AttachmentCategory.Photo));
+    }
+
+    [Theory]
+    [InlineData(UserRole.Worker, true, false, false)]
+    [InlineData(UserRole.Worker, true, true, true)]
+    [InlineData(UserRole.Worker, false, false, false)]
+    [InlineData(UserRole.Foreman, true, false, true)]
+    public void A_workers_receipt_goes_on_their_own_fill_up_only(
+        UserRole role, bool signedIn, bool recordedByCaller, bool expected)
+    {
+        var caller = signedIn ? Guid.NewGuid() : (Guid?)null;
+        var recordedBy = recordedByCaller ? caller : Guid.NewGuid();
+
+        Assert.Equal(expected, AttachmentRules.CanUploadToVehicleExpense(role, caller, recordedBy));
+    }
+
     [Theory]
     [InlineData(AttachmentOwnerType.Project, AttachmentCategory.Contract)]
+    [InlineData(AttachmentOwnerType.VehicleExpense, AttachmentCategory.Contract)]
     [InlineData(AttachmentOwnerType.Employee, AttachmentCategory.Photo)]
     [InlineData(AttachmentOwnerType.Vehicle, AttachmentCategory.Photo)]
     public void A_worker_may_add_nothing_else(

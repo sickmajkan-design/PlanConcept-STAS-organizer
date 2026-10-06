@@ -1602,6 +1602,144 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.ToTable("fuel_cards", (string)null);
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.FuelImportBatch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DuplicateCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("character varying(260)");
+
+                    b.Property<Guid?>("ImportedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("NewCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TotalRows")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UpdatedCount")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("fuel_import_batches", (string)null);
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.FuelTransaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<string>("CardNumber")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Country")
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)");
+
+                    b.Property<Guid>("ImportBatchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsInvoiced")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Issue")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("IssueDetail")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<TimeOnly>("OccurredAtTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<DateOnly>("OccurredOn")
+                        .HasColumnType("date");
+
+                    b.Property<string>("ProductCode")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("ProductGroup")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ProductType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ResolutionNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ResolvedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("StatementVehicleLabel")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("VehicleExpenseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("VehicleId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ImportBatchId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("VehicleExpenseId");
+
+                    b.HasIndex("VehicleId");
+
+                    b.HasIndex("CardNumber", "OccurredOn", "OccurredAtTime", "ProductCode", "Amount")
+                        .IsUnique();
+
+                    b.ToTable("fuel_transactions", (string)null);
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.GeneralExpense", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3421,6 +3559,10 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
+                    b.Property<string>("TdNumber")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -3447,6 +3589,10 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasFilter("\"IsDeleted\" = false");
 
                     b.HasIndex("Status");
+
+                    b.HasIndex("TdNumber")
+                        .IsUnique()
+                        .HasFilter("\"TdNumber\" IS NOT NULL AND \"IsDeleted\" = false");
 
                     b.HasIndex("Vin")
                         .IsUnique()
@@ -4484,6 +4630,31 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("Vehicle");
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.FuelTransaction", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.FuelImportBatch", "ImportBatch")
+                        .WithMany("Transactions")
+                        .HasForeignKey("ImportBatchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Construction.Domain.Entities.VehicleExpense", "VehicleExpense")
+                        .WithMany()
+                        .HasForeignKey("VehicleExpenseId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Construction.Domain.Entities.Vehicle", "Vehicle")
+                        .WithMany()
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("ImportBatch");
+
+                    b.Navigation("Vehicle");
+
+                    b.Navigation("VehicleExpense");
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.GeneralExpense", b =>
                 {
                     b.HasOne("Construction.Domain.Entities.Accommodation", "Accommodation")
@@ -5321,6 +5492,11 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
 
                     b.Navigation("WorkItems");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.FuelImportBatch", b =>
+                {
+                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.Invoice", b =>

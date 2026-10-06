@@ -14,6 +14,7 @@ internal static class VehicleUniqueness
     public static async Task EnsureUniqueAsync(
         IApplicationDbContext context,
         string registrationNumber,
+        string tdNumber,
         string? vin,
         string? qrCode,
         Guid? excludeVehicleId,
@@ -28,6 +29,16 @@ internal static class VehicleUniqueness
         {
             throw new ConflictException(
                 $"Registration number '{registrationNumber}' is already in use.");
+        }
+
+        var tdTaken = await context.Vehicles.AnyAsync(
+            v => v.TdNumber == tdNumber &&
+                 (excludeVehicleId == null || v.Id != excludeVehicleId),
+            cancellationToken);
+
+        if (tdTaken)
+        {
+            throw new ConflictException($"TD number '{tdNumber}' is already in use.");
         }
 
         if (vin is not null)

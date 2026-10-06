@@ -94,5 +94,8 @@ public enum NotificationType
     EmployeeBranchChanged = 34,
 
     /// <summary>Time off was approved for someone who is posted to a site during it, so that position is empty and needs a replacement.</summary>
-    AbsenceNeedsCover = 35
+    AbsenceNeedsCover = 35,
+
+    /// <summary>A DKV statement was uploaded and some of its rows do not agree with what drivers recorded.</summary>
+    DkvStatementMismatch = 36
 }

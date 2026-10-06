@@ -100,6 +100,7 @@ public class GetVehiclesQueryHandler : IRequestHandler<GetVehiclesQuery, PagedLi
             query = query.Where(v =>
                 EF.Functions.Like((v.Brand + " " + v.Model).ToLower(), pattern, SearchPattern.Escape) ||
                 EF.Functions.Like(v.RegistrationNumber.ToLower(), pattern, SearchPattern.Escape) ||
+                (v.TdNumber != null && EF.Functions.Like(v.TdNumber.ToLower(), pattern, SearchPattern.Escape)) ||
                 (v.Vin != null && EF.Functions.Like(v.Vin.ToLower(), pattern, SearchPattern.Escape)));
         }
 
@@ -164,6 +165,8 @@ public class GetVehiclesQueryHandler : IRequestHandler<GetVehiclesQuery, PagedLi
             ("model", true) => query.OrderByDescending(v => v.Model),
             ("registrationnumber", false) => query.OrderBy(v => v.RegistrationNumber),
             ("registrationnumber", true) => query.OrderByDescending(v => v.RegistrationNumber),
+            ("tdnumber", false) => query.OrderBy(v => v.TdNumber),
+            ("tdnumber", true) => query.OrderByDescending(v => v.TdNumber),
             ("fueltype", false) => query.OrderBy(v => v.FuelType),
             ("fueltype", true) => query.OrderByDescending(v => v.FuelType),
             ("status", false) => query.OrderBy(v => v.Status),

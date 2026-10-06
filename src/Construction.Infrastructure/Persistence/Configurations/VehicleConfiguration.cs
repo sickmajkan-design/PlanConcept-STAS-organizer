@@ -39,6 +39,13 @@ public class VehicleConfiguration : IEntityTypeConfiguration<Vehicle>
             .IsUnique()
             .HasFilter("\"IsDeleted\" = false");
 
+        builder.Property(v => v.TdNumber)
+            .HasMaxLength(32);
+
+        builder.HasIndex(v => v.TdNumber)
+            .IsUnique()
+            .HasFilter("\"TdNumber\" IS NOT NULL AND \"IsDeleted\" = false");
+
         builder.Property(v => v.Vin)
             .HasMaxLength(32);
 

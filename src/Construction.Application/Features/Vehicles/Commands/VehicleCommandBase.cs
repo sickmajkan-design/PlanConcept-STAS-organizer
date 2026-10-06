@@ -16,6 +16,9 @@ public abstract record VehicleCommandBase
 
     public string RegistrationNumber { get; init; } = null!;
 
+    /// <summary>The company's own vehicle number (TD). Required, unique among live vehicles.</summary>
+    public string TdNumber { get; init; } = null!;
+
     public string? Vin { get; init; }
 
     /// <summary>The business unit the vehicle belongs to in its own right; null follows its project.</summary>
@@ -49,6 +52,10 @@ public abstract class VehicleCommandBaseValidator<T> : AbstractValidator<T>
 
         RuleFor(x => x.RegistrationNumber)
             .NotEmpty().WithMessage("Registration number is required.")
+            .MaximumLength(32);
+
+        RuleFor(x => x.TdNumber)
+            .NotEmpty().WithMessage("TD number is required.")
             .MaximumLength(32);
 
         RuleFor(x => x.Vin)

@@ -95,4 +95,31 @@ public static class CostRules
     /// already recorded, not the recording itself.
     /// </summary>
     public static bool CanReviewSpending(UserRole? role) => CanDeleteSpending(role);
+
+    /// <summary>
+    /// Whether someone below Foreman may record this cost: fuel, for the vehicle that is signed out to
+    /// them, and nothing else.
+    /// </summary>
+    /// <remarks>
+    /// A driver is standing next to the receipt and the odometer, which is the whole reason fuel is
+    /// recorded at the pump. It stops there: they cannot book a repair, and cannot book fuel on a
+    /// vehicle somebody else is holding.
+    /// </remarks>
+    public static bool CanRecordOwnFuel(
+        UserRole? role,
+        VehicleExpenseKind kind,
+        Guid? vehicleAssignedEmployeeId,
+        Guid? callerEmployeeId) =>
+        role is UserRole.Worker
+        && kind == VehicleExpenseKind.Fuel
+        && vehicleAssignedEmployeeId is not null
+        && vehicleAssignedEmployeeId == callerEmployeeId;
+
+    /// <summary>
+    /// Who may upload a fuel-card statement and settle what it turns up. The
+    /// statement is the provider's bill for the whole fleet, so this is office
+    /// work only, narrower than reviewing a single cost.
+    /// </summary>
+    public static bool CanImportFuelStatements(UserRole? role) =>
+        role is UserRole.SuperAdmin or UserRole.Admin;
 }

@@ -24,7 +24,7 @@ describe('ReleaseNotesDialog', () => {
     const { unmount } = renderScreen(<ReleaseNotesDialog />, { user: operator });
 
     expect(await screen.findByText(/What's new/)).toBeDefined();
-    expect(screen.getByText('Security improvements')).toBeDefined();
+    expect(screen.getByText('Fuel check against the DKV statement')).toBeDefined();
 
     await user.click(screen.getByRole('button', { name: 'Got it' }));
     await waitFor(() => expect(screen.queryByText(/What's new/)).toBeNull());
@@ -41,7 +41,7 @@ describe('ReleaseNotesDialog', () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('Foreman') });
 
     await new Promise((resolve) => setTimeout(resolve, 50));
-    expect(screen.queryByText('Security improvements')).toBeNull();
+    expect(screen.queryByText('Fuel check against the DKV statement')).toBeNull();
     expect(screen.queryByText('Business units')).toBeNull();
     expect(screen.queryByText('Who is online')).toBeNull();
   }, SCREEN_TIMEOUT);
@@ -56,7 +56,7 @@ describe('ReleaseNotesDialog', () => {
   it('tells an administrator about everything meant for administrators', async () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('SuperAdmin') });
 
-    await screen.findByText('Security improvements');
+    await screen.findByText('Fuel check against the DKV statement');
     expect(screen.getByText('Who is online')).toBeDefined();
     expect(screen.getByText('New assignment board')).toBeDefined();
     expect(screen.getByText('Who is online')).toBeDefined();

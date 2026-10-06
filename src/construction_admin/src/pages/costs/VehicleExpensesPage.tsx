@@ -401,6 +401,11 @@ export function VehicleExpensesPage() {
         <Button variant="outlined" onClick={() => navigate(paths.fuelImport)}>
           {t('fuelImport.title')}
         </Button>
+        {canAdministerAccounts(user) && (
+          <Button variant="outlined" onClick={() => navigate(paths.fuelReconciliation)}>
+            {t('dkv.open')}
+          </Button>
+        )}
         <ViewModeToggle value={viewMode} onChange={setViewMode} />
       </Stack>
 

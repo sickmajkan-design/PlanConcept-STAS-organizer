@@ -14,6 +14,9 @@ public class VehicleDto
 
     public string RegistrationNumber { get; init; } = null!;
 
+    /// <summary>Null only for a vehicle created before the field existed; it must be filled in on its next edit.</summary>
+    public string? TdNumber { get; init; }
+
     public string? Vin { get; init; }
 
     public string? QrCode { get; init; }
@@ -99,6 +102,7 @@ public static class VehicleMapping
             Brand = vehicle.Brand,
             Model = vehicle.Model,
             RegistrationNumber = vehicle.RegistrationNumber,
+            TdNumber = vehicle.TdNumber,
             Vin = vehicle.Vin,
             QrCode = vehicle.QrCode,
             GpsProvider = vehicle.GpsProvider,

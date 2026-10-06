@@ -892,6 +892,11 @@
   "vehicleExpensesNeedsAmount": "Upiši koliko je koštalo.",
   "vehicleExpensesFuelNeedsLitres": "Upiši koliko je litara sipano.",
   "vehicleExpensesOdometerHint": "Nije obavezno, ali dva stanja daju potrošnju.",
+  "vehicleExpensesOdometerRequired": "Upiši stanje kilometraže (km).",
+  "vehicleExpensesReceiptAttach": "Slikaj račun",
+  "vehicleExpensesReceiptNeeded": "Točenje goriva traži sliku računa.",
+  "vehicleExpensesReceiptUploadFailed": "Trošak je snimljen, ali slika računa nije poslana. Pritisni dugme ponovo da je pošalješ.",
+  "vehicleExpensesNoVehicle": "Nijedno vozilo nije zaduženo na vas. Skeniraj njegov QR kod i zaduži ga prvo.",
   "vehicleExpensesPerLitre": "{price} po litru",
   "@vehicleExpensesPerLitre": {
     "placeholders": {

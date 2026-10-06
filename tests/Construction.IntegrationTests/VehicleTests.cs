@@ -32,12 +32,14 @@ public class VehicleTests : IntegrationTestBase
         string registration,
         string? vin = null,
         string brand = "Ford",
-        VehicleStatus status = VehicleStatus.Available) => new()
+        VehicleStatus status = VehicleStatus.Available,
+        string? tdNumber = null) => new()
         {
             Id = id,
             Brand = brand,
             Model = "Transit",
             RegistrationNumber = registration,
+            TdNumber = tdNumber ?? $"TD-{registration.Trim()}",
             Vin = vin,
             FuelType = FuelType.Diesel,
             Status = status
@@ -287,6 +289,33 @@ public class VehicleTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task An_edit_cannot_take_a_td_number_that_another_vehicle_carries()
+    {
+        var first = await InScope(scope => TestData.SeedVehicleAsync(scope));
+        await InScope(scope => scope.Send(Edit(first.Id, first.RegistrationNumber, tdNumber: "td-dupe-1")));
+
+        var second = await InScope(scope => TestData.SeedVehicleAsync(scope));
+
+        var error = await Assert.ThrowsAsync<ConflictException>(() =>
+            InScope(scope => scope.Send(
+                Edit(second.Id, second.RegistrationNumber, tdNumber: "TD-DUPE-1"))));
+
+        Assert.Contains("TD-DUPE-1", error.Message);
+    }
+
+    [Fact]
+    public async Task An_edit_keeping_the_vehicle_s_own_td_number_is_not_a_conflict()
+    {
+        var vehicle = await InScope(scope => TestData.SeedVehicleAsync(scope));
+        await InScope(scope => scope.Send(Edit(vehicle.Id, vehicle.RegistrationNumber, tdNumber: "TD-OWN-1")));
+
+        var updated = await InScope(scope =>
+            scope.Send(Edit(vehicle.Id, vehicle.RegistrationNumber, tdNumber: "TD-OWN-1", brand: "Renault")));
+
+        Assert.Equal("TD-OWN-1", updated.TdNumber);
+    }
+
+    [Fact]
     public async Task An_edit_cannot_take_a_vin_that_another_vehicle_carries()
     {
         const string vin = "WF0XXTT0XXDUPE01";
@@ -362,6 +391,7 @@ public class VehicleTests : IntegrationTestBase
             Brand = "Iveco",
             Model = "Daily",
             RegistrationNumber = "zg-9999-zz",
+            TdNumber = " td-9999 ",
             Vin = "zfa25000002abc123",
             FuelType = FuelType.Diesel,
             Status = VehicleStatus.Available
@@ -372,6 +402,7 @@ public class VehicleTests : IntegrationTestBase
         Assert.Equal("Iveco", detail.Brand);
         Assert.Equal("Daily", detail.Model);
         Assert.Equal("ZG-9999-ZZ", detail.RegistrationNumber);
+        Assert.Equal("TD-9999", detail.TdNumber);
         Assert.Equal("ZFA25000002ABC123", detail.Vin);
         Assert.Equal(nameof(FuelType.Diesel), detail.FuelType);
     }
@@ -393,6 +424,7 @@ public class VehicleTests : IntegrationTestBase
             Brand = "Uniquebrand",
             Model = "Uniquemodel",
             RegistrationNumber = "ZG-FINDME-1",
+            TdNumber = "TD-FINDME-1",
             Vin = "VINFINDME0000001",
             FuelType = FuelType.Petrol,
             Status = VehicleStatus.Available
@@ -456,6 +488,7 @@ public class VehicleTests : IntegrationTestBase
             Brand = "Nissan",
             Model = "e-NV200",
             RegistrationNumber = $"{prefix}-E",
+            TdNumber = $"TD-{prefix}-E",
             FuelType = FuelType.Electric,
             Status = VehicleStatus.Available
         }));

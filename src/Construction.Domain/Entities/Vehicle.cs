@@ -11,6 +11,14 @@ public class Vehicle : BaseEntity, ISoftDeletable, IAuditable
 
     public string RegistrationNumber { get; set; } = null!;
 
+    /// <summary>
+    /// The company's own number for the vehicle (the "TD" printed on a DKV statement next to
+    /// the card). Required on every vehicle so a statement row can be checked against the
+    /// vehicle its card is issued to. Nullable in the database only because vehicles created
+    /// before the field existed have none yet; the API refuses to save one without it.
+    /// </summary>
+    public string? TdNumber { get; set; }
+
     public string? Vin { get; set; }
 
     /// <summary>Value encoded in the QR label attached to the physical vehicle.</summary>

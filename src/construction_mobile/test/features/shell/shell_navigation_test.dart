@@ -149,19 +149,25 @@ void main() {
     expect(find.text('Scan or look up'), findsOneWidget);
   });
 
-  testWidgets('offers vehicle costs to a Foreman but not to a Worker',
+  testWidgets('offers vehicle costs to a Foreman',
       (tester) async {
-    // Matches the API's CanRecordSpending: the person filling the tank is the
-    // one who knows what it cost, and a Worker is not that person.
+    // Matches the API's CanRecordSpending: a Foreman may record any vehicle's costs. A Worker sees
+    // the same entry, narrowed by the API to fuel for the vehicle in their hands.
     await _pumpSignedIn(tester, _sessionFor('Foreman'));
     await _openMore(tester);
     expect(find.text('Vehicle costs'), findsOneWidget);
   });
 
-  testWidgets('hides vehicle costs from a Worker', (tester) async {
+  testWidgets('offers a Worker vehicle costs, for the fuel of the vehicle in their hands',
+      (tester) async {
+    // The API serves a Worker the driver endpoints only: fuel for the vehicle signed out to them,
+    // and their own fill-ups. The rest of the fleet and the other cost screens stay closed.
     await _pumpSignedIn(tester, _sessionFor('Worker'));
     await _openMore(tester);
-    expect(find.text('Vehicle costs'), findsNothing);
+
+    expect(find.text('Vehicle costs'), findsOneWidget);
+    expect(find.text('Tool costs'), findsNothing);
+    expect(find.text('Vehicles'), findsNothing);
   });
 
   testWidgets('offers a Worker their own schedule and time off',

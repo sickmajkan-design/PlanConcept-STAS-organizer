@@ -258,6 +258,7 @@ public class SiteScopeTests
         brand = "Iveco",
         model = "Daily",
         registrationNumber = $"QA-{Guid.NewGuid():N}"[..12],
+        tdNumber = $"TD-{Guid.NewGuid():N}"[..12],
         fuelType = "Diesel",
     };
 

@@ -119,6 +119,7 @@ public class UploadAttachmentCommandHandler
 
         await EnsureWorkItemIsTheirsAsync(request, cancellationToken);
         await EnsureRefundIsTheirsAsync(request, cancellationToken);
+        await EnsureVehicleExpenseIsTheirsAsync(request, cancellationToken);
 
         var fileName = AttachmentRules.SanitiseFileName(request.FileName);
 
@@ -205,6 +206,29 @@ public class UploadAttachmentCommandHandler
         {
             throw new ForbiddenAccessException(
                 "You may only add photographs to your own work.");
+        }
+    }
+
+    /// <summary>A worker's receipt photo goes on a fill-up they recorded; anyone above Worker may use any cost.</summary>
+    private async Task EnsureVehicleExpenseIsTheirsAsync(
+        UploadAttachmentCommand request,
+        CancellationToken cancellationToken)
+    {
+        if (request.OwnerType != AttachmentOwnerType.VehicleExpense)
+        {
+            return;
+        }
+
+        var recordedBy = await _context.VehicleExpenses
+            .AsNoTracking()
+            .Where(e => e.Id == request.OwnerId)
+            .Select(e => e.RecordedByUserId)
+            .FirstAsync(cancellationToken);
+
+        if (!AttachmentRules.CanUploadToVehicleExpense(
+                _currentUserService.Role, _currentUserService.UserId, recordedBy))
+        {
+            throw new ForbiddenAccessException("You may only add receipts to fill-ups you recorded.");
         }
     }
 

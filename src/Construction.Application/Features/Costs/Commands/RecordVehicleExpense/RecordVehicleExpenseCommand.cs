@@ -99,14 +99,27 @@ public class RecordVehicleExpenseCommandHandler
         RecordVehicleExpenseCommand request,
         CancellationToken cancellationToken)
     {
-        if (!CostRules.CanRecordSpending(_currentUserService.Role))
+        var role = _currentUserService.Role;
+        var recordsAnyCost = CostRules.CanRecordSpending(role);
+
+        if (!recordsAnyCost && role != UserRole.Worker)
         {
             throw new ForbiddenAccessException("You may not record vehicle costs.");
         }
 
-        if (!await _context.Vehicles.AnyAsync(v => v.Id == request.VehicleId, cancellationToken))
+        var vehicle = await _context.Vehicles
+            .AsNoTracking()
+            .Where(v => v.Id == request.VehicleId)
+            .Select(v => new { v.AssignedEmployeeId })
+            .FirstOrDefaultAsync(cancellationToken)
+            ?? throw new NotFoundException(nameof(Vehicle), request.VehicleId);
+
+        if (!recordsAnyCost
+            && !CostRules.CanRecordOwnFuel(
+                role, request.Kind, vehicle.AssignedEmployeeId, _currentUserService.EmployeeId))
         {
-            throw new NotFoundException(nameof(Vehicle), request.VehicleId);
+            throw new ForbiddenAccessException(
+                "You may only record fuel for a vehicle that is assigned to you.");
         }
 
         var expense = new VehicleExpense

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/network/idempotency.dart';
+import '../../attachments/data/attachment_repository.dart';
 import '../../vehicles/data/models/vehicle.dart';
 import '../../vehicles/data/vehicle_repository.dart';
 import 'vehicle_expenses_controller.dart';
@@ -30,6 +32,11 @@ Future<void> showRecordExpenseSheet(BuildContext context) {
 /// does not change between two fill-ups.
 final _vehicleOptionsProvider = FutureProvider<List<Vehicle>>((ref) async {
   ref.watch(currentUserProvider.select((user) => user?.id));
+
+  // A Worker is not served the fleet; what they may record fuel for is what is signed out to them.
+  if (ref.watch(currentUserProvider.select((user) => user?.role)) == 'Worker') {
+    return ref.read(vehicleRepositoryProvider).fetchMyVehicles();
+  }
 
   final page = await ref
       .read(vehicleRepositoryProvider)
@@ -56,6 +63,13 @@ class _RecordExpenseSheetState extends ConsumerState<_RecordExpenseSheet> {
   String? _vehicleId;
   bool _busy = false;
 
+  /// The photograph of the receipt. A fill-up is not accepted without one.
+  XFile? _receipt;
+
+  /// Set once the cost itself has reached the server, so that a failed photo
+  /// upload is retried on its own instead of recording the fuel a second time.
+  String? _recordedId;
+
   /// Names this attempt at recording the expense.
   ///
   /// Created once, with the sheet, and deliberately not regenerated on a
@@ -77,18 +91,28 @@ class _RecordExpenseSheetState extends ConsumerState<_RecordExpenseSheet> {
 
   bool get _isFuel => _kind == 'Fuel';
 
+  /// A Worker records fuel and nothing else; the API refuses the rest.
+  List<String> get _kinds => ref.read(currentUserProvider)?.role == 'Worker' ? const ['Fuel'] : _recordableKinds;
+
   double? get _amount => double.tryParse(_amountController.text.replaceAll(',', '.'));
 
   double? get _litres => double.tryParse(_litresController.text.replaceAll(',', '.'));
+
+  int? get _odometer => int.tryParse(_odometerController.text.trim());
 
   bool get _canSubmit {
     if (_vehicleId == null || _amount == null || _amount! < 0) {
       return false;
     }
 
-    // The database refuses a fill-up with no litres, so the button does too
-    // rather than letting the request go and come back as an error.
-    return !_isFuel || (_litres != null && _litres! > 0);
+    if (!_isFuel) {
+      return true;
+    }
+
+    // A fill-up is checked against the fuel-card statement later, so it has to carry
+    // everything that check needs: litres (the database refuses it without them),
+    // the odometer reading, and the receipt itself.
+    return _litres != null && _litres! > 0 && _odometer != null && _odometer! >= 0 && _receipt != null;
   }
 
   @override
@@ -125,7 +149,12 @@ class _RecordExpenseSheetState extends ConsumerState<_RecordExpenseSheet> {
                     : l10n.errorUnknown,
                 style: TextStyle(color: theme.colorScheme.error),
               ),
-              data: (options) => DropdownButtonFormField<String>(
+              data: (options) => options.isEmpty
+                  ? Text(
+                      l10n.vehicleExpensesNoVehicle,
+                      style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.error),
+                    )
+                  : DropdownButtonFormField<String>(
                 initialValue: _vehicleId,
                 decoration: InputDecoration(
                   labelText: l10n.vehicleExpensesVehicle,
@@ -151,7 +180,7 @@ class _RecordExpenseSheetState extends ConsumerState<_RecordExpenseSheet> {
               initialValue: _kind,
               decoration: InputDecoration(labelText: l10n.vehicleExpensesKind),
               items: [
-                for (final kind in _recordableKinds)
+                for (final kind in _kinds)
                   DropdownMenuItem(
                     value: kind,
                     child: Text(
@@ -203,9 +232,28 @@ class _RecordExpenseSheetState extends ConsumerState<_RecordExpenseSheet> {
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 labelText: l10n.vehicleExpensesOdometer,
-                helperText: l10n.vehicleExpensesOdometerHint,
+                helperText: _isFuel
+                    ? l10n.vehicleExpensesOdometerRequired
+                    : l10n.vehicleExpensesOdometerHint,
               ),
+              onChanged: (_) => setState(() {}),
             ),
+            if (_isFuel) ...[
+              const SizedBox(height: 12),
+              OutlinedButton.icon(
+                onPressed: _busy ? null : _pickReceipt,
+                icon: Icon(_receipt == null ? Icons.photo_camera_outlined : Icons.check_circle_outline),
+                label: Text(_receipt == null ? l10n.vehicleExpensesReceiptAttach : _receipt!.name),
+              ),
+              if (_receipt == null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4, left: 12),
+                  child: Text(
+                    l10n.vehicleExpensesReceiptNeeded,
+                    style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  ),
+                ),
+            ],
             const SizedBox(height: 12),
             TextField(
               controller: _supplierController,
@@ -231,6 +279,49 @@ class _RecordExpenseSheetState extends ConsumerState<_RecordExpenseSheet> {
     );
   }
 
+  /// The camera or the gallery, the way the other photo flows in the app offer it.
+  Future<void> _pickReceipt() async {
+    final l10n = context.l10n;
+
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: Text(l10n.attachmentsTakePhoto),
+              onTap: () => Navigator.of(sheetContext).pop(ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: Text(l10n.attachmentsFromGallery),
+              onTap: () => Navigator.of(sheetContext).pop(ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null || !mounted) {
+      return;
+    }
+
+    // Re-encoded on the way out: a phone camera frame is several megabytes, far over the
+    // upload limit and far more than a legible receipt needs.
+    final picked = await ImagePicker().pickImage(
+      source: source,
+      maxWidth: 2048,
+      maxHeight: 2048,
+      imageQuality: 85,
+    );
+
+    if (picked != null && mounted) {
+      setState(() => _receipt = picked);
+    }
+  }
+
   Future<void> _send() async {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
@@ -241,16 +332,44 @@ class _RecordExpenseSheetState extends ConsumerState<_RecordExpenseSheet> {
     setState(() => _busy = true);
 
     try {
-      await ref.read(vehicleExpensesControllerProvider.notifier).record(
-            vehicleId: _vehicleId!,
-            kind: _kind,
-            amount: _amount!,
-            litres: _isFuel ? _litres : null,
-            odometerKm: int.tryParse(_odometerController.text.trim()),
-            supplier: supplier.isEmpty ? null : supplier,
-            note: note.isEmpty ? null : note,
-            idempotencyKey: _idempotencyKey,
-          );
+      if (_recordedId == null) {
+        final expense = await ref.read(vehicleExpensesControllerProvider.notifier).record(
+              vehicleId: _vehicleId!,
+              kind: _kind,
+              amount: _amount!,
+              litres: _isFuel ? _litres : null,
+              odometerKm: _odometer,
+              supplier: supplier.isEmpty ? null : supplier,
+              note: note.isEmpty ? null : note,
+              idempotencyKey: _idempotencyKey,
+            );
+
+        _recordedId = expense.id;
+      }
+
+      final receipt = _receipt;
+
+      if (_isFuel && receipt != null) {
+        try {
+          await ref.read(attachmentRepositoryProvider).upload(
+                ownerType: 'VehicleExpense',
+                ownerId: _recordedId!,
+                category: 'Photo',
+                filePath: receipt.path,
+                fileName: receipt.name,
+              );
+        } on ApiException {
+          // The cost is saved; only the picture is missing. Say so, and keep the sheet open so the
+          // next press sends the picture alone instead of booking the fuel a second time.
+          messenger.showSnackBar(SnackBar(content: Text(l10n.vehicleExpensesReceiptUploadFailed)));
+
+          if (mounted) {
+            setState(() => _busy = false);
+          }
+
+          return;
+        }
+      }
 
       navigator.pop();
       messenger.showSnackBar(SnackBar(content: Text(l10n.vehicleExpensesSent)));

@@ -66,6 +66,7 @@ export const paths = {
   materialDeliveryImport: '/stock-movements/import',
   vehicleExpenses: '/vehicle-expenses',
   fuelImport: '/vehicle-expenses/fuel-import',
+  fuelReconciliation: '/vehicle-expenses/dkv',
   toolExpenses: '/tool-expenses',
   rates: '/rates',
   publicHolidays: '/public-holidays',

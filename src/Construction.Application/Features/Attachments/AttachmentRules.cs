@@ -207,7 +207,8 @@ public static class AttachmentRules
 
         return role is UserRole.Worker
             && category == AttachmentCategory.Photo
-            && ownerType is AttachmentOwnerType.Project or AttachmentOwnerType.WorkItem;
+            && ownerType is AttachmentOwnerType.Project or AttachmentOwnerType.WorkItem
+                or AttachmentOwnerType.VehicleExpense;
     }
 
     /// <summary>
@@ -250,6 +251,23 @@ public static class AttachmentRules
             callerEmployeeId is not null && callerEmployeeId == assignedEmployeeId;
 
         return raisedIt || assignedToIt;
+    }
+
+    /// <summary>
+    /// A Worker may photograph the receipt of a fill-up they recorded themselves, and no one else's.
+    /// Everyone above Worker may attach to any cost.
+    /// </summary>
+    public static bool CanUploadToVehicleExpense(
+        UserRole? role,
+        Guid? callerUserId,
+        Guid? recordedByUserId)
+    {
+        if (role is not UserRole.Worker)
+        {
+            return true;
+        }
+
+        return callerUserId is not null && callerUserId == recordedByUserId;
     }
 
     /// <summary>Deleting a file is Admin and above, whatever it hangs off.</summary>

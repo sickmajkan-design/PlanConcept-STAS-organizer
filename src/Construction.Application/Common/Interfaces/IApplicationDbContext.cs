@@ -97,6 +97,10 @@ public interface IApplicationDbContext
 
     DbSet<FuelCard> FuelCards { get; }
 
+    DbSet<FuelTransaction> FuelTransactions { get; }
+
+    DbSet<FuelImportBatch> FuelImportBatches { get; }
+
     DbSet<VehicleRentalRate> VehicleRentalRates { get; }
 
     DbSet<VehicleToll> VehicleTolls { get; }

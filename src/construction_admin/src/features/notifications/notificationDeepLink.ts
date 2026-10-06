@@ -112,6 +112,9 @@ export function resolveNotificationTarget(
     case 'ArticleOrderStatusChanged':
       return data.articleOrderId ? `${paths.articleOrders}?highlight=${data.articleOrderId}` : paths.articleOrders;
 
+    case 'DkvStatementMismatch':
+      return paths.fuelReconciliation;
+
     case 'AbsenceNeedsCover':
       return hasDirectory ? paths.assignmentBoard : null;
 

@@ -27,7 +27,7 @@ class VehicleExpensesController extends FilteredPagedListNotifier<VehicleExpense
   }
 
   /// Records a cost and reloads, so the new row is on screen straight away.
-  Future<void> record({
+  Future<VehicleExpense> record({
     required String vehicleId,
     required String kind,
     required double amount,
@@ -37,7 +37,7 @@ class VehicleExpensesController extends FilteredPagedListNotifier<VehicleExpense
     String? note,
     required String idempotencyKey,
   }) async {
-    await ref.read(vehicleExpenseRepositoryProvider).record(
+    final expense = await ref.read(vehicleExpenseRepositoryProvider).record(
           vehicleId: vehicleId,
           kind: kind,
           amount: amount,
@@ -49,6 +49,8 @@ class VehicleExpensesController extends FilteredPagedListNotifier<VehicleExpense
         );
 
     await refresh();
+
+    return expense;
   }
 }
 

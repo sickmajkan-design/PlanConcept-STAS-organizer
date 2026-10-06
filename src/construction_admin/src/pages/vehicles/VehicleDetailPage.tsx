@@ -194,7 +194,15 @@ export function VehicleDetailPage() {
               <Typography variant="h5" sx={{ fontWeight: 700 }}>
                 {vehicle.brand} {vehicle.model}
               </Typography>
-              <Typography color="text.secondary">{vehicle.registrationNumber}</Typography>
+              <Typography color="text.secondary">
+                {vehicle.registrationNumber}
+                {vehicle.tdNumber ? ` · ${t('vehicles.tdShort')} ${vehicle.tdNumber}` : ''}
+              </Typography>
+              {!vehicle.tdNumber && (
+                <Typography variant="body2" color="warning.main">
+                  {t('vehicles.tdMissing')}
+                </Typography>
+              )}
               <Stack direction="row" spacing={1} sx={{ mt: 1.5, alignItems: 'center' }}>
                 <StatusChip status={vehicle.status} kind="vehicleStatus" />
                 <StatusChip status={vehicle.ownershipType} kind="vehicleOwnershipType" />

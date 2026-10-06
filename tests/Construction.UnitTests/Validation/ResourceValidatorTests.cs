@@ -16,6 +16,7 @@ public class VehicleValidatorTests
         Brand = "Ford",
         Model = "Transit",
         RegistrationNumber = "ZG1234AB",
+        TdNumber = "12",
         FuelType = FuelType.Diesel,
         Status = VehicleStatus.Available
     };
@@ -24,6 +25,18 @@ public class VehicleValidatorTests
     public void Accepts_a_complete_request()
     {
         ValidationAssert.Valid(_validator, Valid());
+    }
+
+    [Fact]
+    public void Rejects_a_vehicle_without_a_td_number()
+    {
+        ValidationAssert.Invalid(_validator, Valid() with { TdNumber = " " }, "TdNumber");
+    }
+
+    [Fact]
+    public void Rejects_a_td_number_longer_than_32_characters()
+    {
+        ValidationAssert.Invalid(_validator, Valid() with { TdNumber = new string('1', 33) }, "TdNumber");
     }
 
     [Fact]

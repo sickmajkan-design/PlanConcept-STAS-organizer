@@ -2450,6 +2450,25 @@ class AppLocalizationsEn extends AppLocalizations {
       'Optional, but two readings are what give you consumption.';
 
   @override
+  String get vehicleExpensesOdometerRequired =>
+      'Enter the odometer reading (km).';
+
+  @override
+  String get vehicleExpensesReceiptAttach => 'Photograph the receipt';
+
+  @override
+  String get vehicleExpensesReceiptNeeded =>
+      'A fill-up needs a photo of the receipt.';
+
+  @override
+  String get vehicleExpensesReceiptUploadFailed =>
+      'The cost was saved, but the receipt photo did not upload. Press the button again to send it.';
+
+  @override
+  String get vehicleExpensesNoVehicle =>
+      'No vehicle is signed out to you. Scan its QR label and take it first.';
+
+  @override
   String vehicleExpensesPerLitre(String price) {
     return '$price per litre';
   }

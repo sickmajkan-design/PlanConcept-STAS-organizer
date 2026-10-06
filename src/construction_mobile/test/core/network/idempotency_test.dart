@@ -90,6 +90,23 @@ void main() {
       );
     });
 
+    test('a worker records fuel through the driver endpoint, not the cost module', () async {
+      // The cost module is closed to a Worker; the driver endpoint is the one that lets them record
+      // fuel for the vehicle in their hands.
+      final adapter = _RecordingAdapter(_expense());
+      final dio = Dio(BaseOptions(baseUrl: 'https://api.test'))
+        ..httpClientAdapter = adapter;
+
+      await VehicleExpenseRepository(dio, driverOnly: true).record(
+        vehicleId: '019fad65-d635-76f2-880f-d8d25aea67d1',
+        kind: 'Fuel',
+        amount: 88.4,
+        litres: 52.3,
+      );
+
+      expect(adapter.lastRequest!.path, '/api/v1/vehicle-fuel');
+    });
+
     test('sends no header when no key was given', () async {
       // Threading it through is optional at the repository, so the absence
       // has to be as deliberate as the presence.

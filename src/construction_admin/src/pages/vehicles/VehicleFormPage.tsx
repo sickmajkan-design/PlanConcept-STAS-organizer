@@ -32,6 +32,7 @@ const emptyValues: VehicleFormValues = {
   brand: '',
   model: '',
   registrationNumber: '',
+  tdNumber: '',
   vin: '',
   qrCode: '',
   gpsProvider: '',
@@ -70,6 +71,7 @@ export function VehicleFormPage() {
         brand: existing.brand,
         model: existing.model,
         registrationNumber: existing.registrationNumber,
+        tdNumber: existing.tdNumber ?? '',
         vin: existing.vin ?? '',
         qrCode: existing.qrCode ?? '',
         gpsProvider: existing.gpsProvider ?? '',
@@ -95,6 +97,7 @@ export function VehicleFormPage() {
       brand: values.brand.trim(),
       model: values.model.trim(),
       registrationNumber: values.registrationNumber.trim(),
+      tdNumber: values.tdNumber.trim(),
       vin: values.vin || null,
       qrCode: values.qrCode || null,
       gpsProvider: values.gpsProvider || null,
@@ -182,6 +185,22 @@ export function VehicleFormPage() {
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Controller
+                  name="tdNumber"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      {...field}
+                      label={t('vehicles.tdNumber')}
+                      required
+                      fullWidth
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message ?? t('vehicles.tdNumberHelp')}
                     />
                   )}
                 />

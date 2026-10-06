@@ -162,6 +162,12 @@ export function VehiclesListPage() {
       },
       { field: 'registrationNumber', headerName: t('vehicles.registrationShort'), width: 140 },
       {
+        field: 'tdNumber',
+        headerName: t('vehicles.tdShort'),
+        width: 90,
+        valueFormatter: (value: string | null) => value ?? '—',
+      },
+      {
         field: 'fuelType',
         headerName: t('vehicles.fuelShort'),
         width: 110,

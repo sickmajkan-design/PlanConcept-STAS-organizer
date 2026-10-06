@@ -87,6 +87,18 @@ class VehicleRepository extends ApiRepository {
     return deleteVoid('/api/v1/vehicles/$id');
   }
 
+  /// The vehicles signed out to the caller. Open to every employee, since a Worker is not served the
+  /// fleet list but still needs the vehicle in their hands (to record its fuel).
+  Future<List<Vehicle>> fetchMyVehicles() {
+    return guard(() async {
+      final response = await dio.get<List<dynamic>>('/api/v1/vehicle-fuel/vehicles');
+
+      return [
+        for (final json in response.data!) Vehicle.fromJson(json as Map<String, dynamic>),
+      ];
+    });
+  }
+
   /// Looks a vehicle up by its QR label. Open to every authenticated
   /// employee, including roles without directory access.
   Future<Vehicle> fetchVehicleByQrCode(String qrCode) {

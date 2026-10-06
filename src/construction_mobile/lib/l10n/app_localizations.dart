@@ -4358,6 +4358,36 @@ abstract class AppLocalizations {
   /// **'Optional, but two readings are what give you consumption.'**
   String get vehicleExpensesOdometerHint;
 
+  /// No description provided for @vehicleExpensesOdometerRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the odometer reading (km).'**
+  String get vehicleExpensesOdometerRequired;
+
+  /// No description provided for @vehicleExpensesReceiptAttach.
+  ///
+  /// In en, this message translates to:
+  /// **'Photograph the receipt'**
+  String get vehicleExpensesReceiptAttach;
+
+  /// No description provided for @vehicleExpensesReceiptNeeded.
+  ///
+  /// In en, this message translates to:
+  /// **'A fill-up needs a photo of the receipt.'**
+  String get vehicleExpensesReceiptNeeded;
+
+  /// No description provided for @vehicleExpensesReceiptUploadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The cost was saved, but the receipt photo did not upload. Press the button again to send it.'**
+  String get vehicleExpensesReceiptUploadFailed;
+
+  /// No description provided for @vehicleExpensesNoVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'No vehicle is signed out to you. Scan its QR label and take it first.'**
+  String get vehicleExpensesNoVehicle;
+
   /// No description provided for @vehicleExpensesPerLitre.
   ///
   /// In en, this message translates to:

@@ -415,6 +415,17 @@ public static class PushTextResolver
                     $"{employeeName} je zatražio(la) odsustvo, od {IsoDate(startDate)} do {IsoDate(endDate)}.");
             }
 
+            case NotificationType.DkvStatementMismatch:
+            {
+                var total = Str("total");
+                var fileName = Str("fileName");
+                if (total is null || fileName is null) break;
+
+                return (
+                    "DKV izvod se ne slaže",
+                    $"{total} redova iz {fileName} treba provjeriti.");
+            }
+
             case NotificationType.AbsenceNeedsCover:
             {
                 var employeeName = Str("employeeName");

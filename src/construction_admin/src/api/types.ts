@@ -544,6 +544,8 @@ export interface Vehicle {
   brand: string;
   model: string;
   registrationNumber: string;
+  /** The company's own vehicle number (TD). Null only for vehicles created before the field existed. */
+  tdNumber: string | null;
   vin: string | null;
   qrCode: string | null;
   /** Name of whatever GPS tracking platform this vehicle's tracker reports to. Free text. */
@@ -622,6 +624,7 @@ export interface VehicleInput {
   brand: string;
   model: string;
   registrationNumber: string;
+  tdNumber: string;
   vin?: string | null;
   qrCode?: string | null;
   gpsProvider?: string | null;
@@ -2406,6 +2409,7 @@ export const notificationTypes = [
   'DefectReported',
   'AbsenceRequested',
   'AbsenceNeedsCover',
+  'DkvStatementMismatch',
   'DocumentRetentionEnded',
   'DirectMessage',
   'ClockInLocationMismatch',

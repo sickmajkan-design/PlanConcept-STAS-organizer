@@ -378,6 +378,19 @@ export function resolveNotificationText(t: T, notification: Notification): Notif
             : text('notificationArticleOrderChangedBody', { name: d.requestedByName, status: text('articleOrderStatus' + d.status) }),
       };
 
+    case 'DkvStatementMismatch':
+      if (!d.total || !d.fileName) return fallback;
+      return {
+        title: text('notificationDkvStatementMismatchTitle'),
+        body: text('notificationDkvStatementMismatchBody', {
+          total: d.total,
+          fileName: d.fileName,
+          needsReview: d.needsReview ?? '0',
+          noDriverEntry: d.noDriverEntry ?? '0',
+          unknownCard: d.unknownCard ?? '0',
+        }),
+      };
+
     case 'AbsenceNeedsCover':
       if (!d.employeeName || !d.siteNames || !d.startDate || !d.endDate) return fallback;
       return {

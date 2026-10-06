@@ -2454,6 +2454,25 @@ class AppLocalizationsSr extends AppLocalizations {
       'Nije obavezno, ali dva stanja daju potrošnju.';
 
   @override
+  String get vehicleExpensesOdometerRequired =>
+      'Upiši stanje kilometraže (km).';
+
+  @override
+  String get vehicleExpensesReceiptAttach => 'Slikaj račun';
+
+  @override
+  String get vehicleExpensesReceiptNeeded =>
+      'Točenje goriva traži sliku računa.';
+
+  @override
+  String get vehicleExpensesReceiptUploadFailed =>
+      'Trošak je snimljen, ali slika računa nije poslana. Pritisni dugme ponovo da je pošalješ.';
+
+  @override
+  String get vehicleExpensesNoVehicle =>
+      'Nijedno vozilo nije zaduženo na vas. Skeniraj njegov QR kod i zaduži ga prvo.';
+
+  @override
   String vehicleExpensesPerLitre(String price) {
     return '$price po litru';
   }

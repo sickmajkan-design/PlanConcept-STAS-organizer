@@ -100,6 +100,10 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<FuelCard> FuelCards => Set<FuelCard>();
 
+    public DbSet<FuelTransaction> FuelTransactions => Set<FuelTransaction>();
+
+    public DbSet<FuelImportBatch> FuelImportBatches => Set<FuelImportBatch>();
+
     public DbSet<VehicleRentalRate> VehicleRentalRates => Set<VehicleRentalRate>();
 
     public DbSet<VehicleToll> VehicleTolls => Set<VehicleToll>();

@@ -3,10 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/models/paged_list.dart';
 import '../../../core/network/api_repository.dart';
 import '../../../core/network/network_providers.dart';
+import '../../auth/presentation/auth_controller.dart';
 import 'models/vehicle_expense.dart';
 
 class VehicleExpenseRepository extends ApiRepository {
-  const VehicleExpenseRepository(super.dio);
+  /// [driverOnly] is for a Worker, who is served the driver endpoints instead of the cost module:
+  /// their own fill-ups to read and fuel for the vehicle in their hands to record. Everyone above
+  /// Worker uses the full cost endpoints.
+  const VehicleExpenseRepository(super.dio, {this.driverOnly = false});
+
+  final bool driverOnly;
+
+  String get _path => driverOnly ? '/api/v1/vehicle-fuel' : '/api/v1/vehicle-expenses';
 
   Future<PagedList<VehicleExpense>> fetch({
     int pageNumber = 1,
@@ -15,7 +23,7 @@ class VehicleExpenseRepository extends ApiRepository {
     String? kind,
   }) {
     return getPaged(
-      '/api/v1/vehicle-expenses',
+      _path,
       VehicleExpense.fromJson,
       query: pagedQuery(
         pageNumber: pageNumber,
@@ -40,7 +48,7 @@ class VehicleExpenseRepository extends ApiRepository {
     String? idempotencyKey,
   }) {
     return postJson(
-      '/api/v1/vehicle-expenses',
+      _path,
       VehicleExpense.fromJson,
       idempotencyKey: idempotencyKey,
       data: <String, dynamic>{
@@ -57,5 +65,7 @@ class VehicleExpenseRepository extends ApiRepository {
 }
 
 final vehicleExpenseRepositoryProvider = Provider<VehicleExpenseRepository>((ref) {
-  return VehicleExpenseRepository(ref.watch(apiClientProvider));
+  final role = ref.watch(currentUserProvider.select((user) => user?.role));
+
+  return VehicleExpenseRepository(ref.watch(apiClientProvider), driverOnly: role == 'Worker');
 });

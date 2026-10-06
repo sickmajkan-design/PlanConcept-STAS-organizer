@@ -36,6 +36,7 @@ public class UpdateVehicleCommandHandler : IRequestHandler<UpdateVehicleCommand,
             ?? throw new NotFoundException(nameof(Vehicle), request.Id);
 
         var registrationNumber = request.RegistrationNumber.Trim().ToUpperInvariant();
+        var tdNumber = request.TdNumber.Trim().ToUpperInvariant();
         var vin = string.IsNullOrWhiteSpace(request.Vin)
             ? null
             : request.Vin.Trim().ToUpperInvariant();
@@ -51,7 +52,7 @@ public class UpdateVehicleCommandHandler : IRequestHandler<UpdateVehicleCommand,
             : request.QrCode.Trim();
 
         await VehicleUniqueness.EnsureUniqueAsync(
-            _context, registrationNumber, vin, qrCode, request.Id, cancellationToken);
+            _context, registrationNumber, tdNumber, vin, qrCode, request.Id, cancellationToken);
 
         if (request.Status != VehicleStatus.Assigned && vehicle.AssignedEmployeeId is not null)
         {
@@ -66,6 +67,7 @@ public class UpdateVehicleCommandHandler : IRequestHandler<UpdateVehicleCommand,
         vehicle.Brand = request.Brand.Trim();
         vehicle.Model = request.Model.Trim();
         vehicle.RegistrationNumber = registrationNumber;
+        vehicle.TdNumber = tdNumber;
         vehicle.Vin = vin;
         vehicle.QrCode = qrCode;
         vehicle.GpsProvider = string.IsNullOrWhiteSpace(request.GpsProvider)

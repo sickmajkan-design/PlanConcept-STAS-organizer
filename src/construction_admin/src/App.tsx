@@ -194,6 +194,11 @@ const ToolExpensesPage = lazy(() =>
     default: m.ToolExpensesPage,
   })),
 );
+const FuelReconciliationPage = lazy(() =>
+  import('./pages/costs/FuelReconciliationPage').then((m) => ({
+    default: m.FuelReconciliationPage,
+  })),
+);
 const FuelImportPage = lazy(() =>
   import('./pages/costs/FuelImportPage').then((m) => ({
     default: m.FuelImportPage,
@@ -431,6 +436,7 @@ function Layout() {
                   <Route path={paths.accommodationCosts} element={<AccommodationCostsPage />} />
                 </Route>
                 <Route path={paths.fuelImport} element={<FuelImportPage />} />
+                <Route path={paths.fuelReconciliation} element={<FuelReconciliationPage />} />
               </Route>
 
               {/* The housing register: places, who lives in them, contracts. It sits with

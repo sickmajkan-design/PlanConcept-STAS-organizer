@@ -25,6 +25,7 @@ public class CreateVehicleCommandHandler : IRequestHandler<CreateVehicleCommand,
         CancellationToken cancellationToken)
     {
         var registrationNumber = request.RegistrationNumber.Trim().ToUpperInvariant();
+        var tdNumber = request.TdNumber.Trim().ToUpperInvariant();
         var vin = string.IsNullOrWhiteSpace(request.Vin)
             ? null
             : request.Vin.Trim().ToUpperInvariant();
@@ -36,7 +37,7 @@ public class CreateVehicleCommandHandler : IRequestHandler<CreateVehicleCommand,
             : request.QrCode.Trim();
 
         await VehicleUniqueness.EnsureUniqueAsync(
-            _context, registrationNumber, vin, qrCode, excludeVehicleId: null, cancellationToken);
+            _context, registrationNumber, tdNumber, vin, qrCode, excludeVehicleId: null, cancellationToken);
 
         var branch = await Branches.BranchLookup.LoadAsync(_context, request.BranchId, cancellationToken);
 
@@ -47,6 +48,7 @@ public class CreateVehicleCommandHandler : IRequestHandler<CreateVehicleCommand,
             Brand = request.Brand.Trim(),
             Model = request.Model.Trim(),
             RegistrationNumber = registrationNumber,
+            TdNumber = tdNumber,
             Vin = vin,
             QrCode = qrCode,
             GpsProvider = string.IsNullOrWhiteSpace(request.GpsProvider)
