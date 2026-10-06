@@ -14,6 +14,22 @@ abstract class Vehicle with _$Vehicle {
     required String registrationNumber,
     String? vin,
     String? qrCode,
+
+    /// The company's own number for the vehicle, as on the fuel-card statement. Null on a vehicle created
+    /// before it was required.
+    String? tdNumber,
+
+    // Sent back unchanged when the vehicle is edited, so saving from here never wipes what the web panel set.
+    String? gpsProvider,
+    String? gpsTrackingUrl,
+    String? branchId,
+
+    /// `YYYY-MM-DD`. The dates a vehicle has to be renewed by.
+    String? registrationValidUntil,
+    String? rentedUntil,
+    String? technicalInspectionValidUntil,
+    String? insuranceValidUntil,
+    String? nextServiceDue,
     required String fuelType,
     required String status,
 
@@ -31,6 +47,9 @@ abstract class Vehicle with _$Vehicle {
 
     /// `YYYY-MM-DD`.
     String? currentRentalOutStartDate,
+
+    /// `YYYY-MM-DD`: when the vehicle that is out is due back, if agreed.
+    String? currentRentalOutExpectedEndDate,
 
     /// Renter on the most recently closed rental-out loan. Null if never
     /// loaned out.
@@ -55,6 +74,9 @@ abstract class Vehicle with _$Vehicle {
   bool get isAssigned => assignedEmployeeId != null;
 
   bool get isRented => ownershipType == 'Rented';
+
+  /// Rented or leased: the vehicle belongs to somebody else, so a rental end applies.
+  bool get isHeldOnRental => ownershipType != 'Owned';
 
   bool get isLoanedOut => currentRentalOutRenterName != null;
 }

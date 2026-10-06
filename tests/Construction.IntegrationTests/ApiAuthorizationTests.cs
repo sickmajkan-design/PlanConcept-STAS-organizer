@@ -252,6 +252,26 @@ public class ApiAuthorizationTests
             new("POST", $"/api/tools/{Id}/assign-project/{OtherId}", UserRole.Foreman),
             new("POST", $"/api/tools/{Id}/unassign-project", UserRole.Foreman),
 
+            // ---- fuel for the driver ---------------------------------------
+            // Every employee role: the handler narrows a Worker to fuel for the vehicle signed out to them.
+            new("GET", "/api/vehicle-fuel", UserRole.Worker),
+            new("GET", "/api/vehicle-fuel/mine", UserRole.Worker),
+            new("POST", "/api/vehicle-fuel", UserRole.Worker),
+
+            // ---- the DKV statement check: the office only ----------------------
+            new("GET", "/api/fuel-transactions", UserRole.Admin),
+            new("GET", "/api/fuel-transactions/counts", UserRole.Admin),
+            new("GET", "/api/fuel-transactions/batches", UserRole.Admin),
+            new("GET", $"/api/fuel-transactions/{Id}/candidates", UserRole.Admin),
+            new("POST", "/api/fuel-transactions/import/preview", UserRole.Admin),
+            new("POST", "/api/fuel-transactions/import", UserRole.Admin),
+            new("POST", $"/api/fuel-transactions/{Id}/resolve", UserRole.Admin),
+            new("POST", "/api/fuel-transactions/assign-card", UserRole.Admin),
+            new("POST", "/api/fuel-transactions/recheck", UserRole.Admin),
+
+            // ---- where somebody lives, asked before leave is granted -----------
+            new("GET", $"/api/absences/housing-impact?employeeId={Id}&startDate=2027-01-11&endDate=2027-01-15", UserRole.Admin),
+
             // ---- user accounts ------------------------------------------------
             new("GET", "/api/users", UserRole.Admin),
             new("GET", $"/api/users/{Id}", UserRole.Admin),

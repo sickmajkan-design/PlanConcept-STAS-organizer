@@ -764,6 +764,54 @@ abstract class AppLocalizations {
   /// **'Registration number'**
   String get vehicleRegistration;
 
+  /// No description provided for @vehicleTdNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'TD (internal number)'**
+  String get vehicleTdNumber;
+
+  /// No description provided for @vehicleTdNumberHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The company\'s own number for the vehicle, as on the fuel-card statement.'**
+  String get vehicleTdNumberHint;
+
+  /// No description provided for @vehicleRegistrationValidUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Registered until'**
+  String get vehicleRegistrationValidUntil;
+
+  /// No description provided for @vehicleInspectionValidUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection until'**
+  String get vehicleInspectionValidUntil;
+
+  /// No description provided for @vehicleInsuranceValidUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance until'**
+  String get vehicleInsuranceValidUntil;
+
+  /// No description provided for @vehicleNextServiceDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Service due'**
+  String get vehicleNextServiceDue;
+
+  /// No description provided for @vehicleRentedUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Rented until'**
+  String get vehicleRentedUntil;
+
+  /// No description provided for @vehicleDueBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Due back'**
+  String get vehicleDueBack;
+
   /// No description provided for @vehicleOwnershipType.
   ///
   /// In en, this message translates to:

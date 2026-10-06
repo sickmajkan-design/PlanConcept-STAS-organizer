@@ -526,7 +526,8 @@ public class ExportVehiclesQueryHandler : IRequestHandler<ExportVehiclesQuery, E
             query = query.Where(v =>
                 EF.Functions.Like(v.Brand.ToLower(), pattern, SearchPattern.Escape) ||
                 EF.Functions.Like(v.Model.ToLower(), pattern, SearchPattern.Escape) ||
-                EF.Functions.Like(v.RegistrationNumber.ToLower(), pattern, SearchPattern.Escape));
+                EF.Functions.Like(v.RegistrationNumber.ToLower(), pattern, SearchPattern.Escape) ||
+                (v.TdNumber != null && EF.Functions.Like(v.TdNumber.ToLower(), pattern, SearchPattern.Escape)));
         }
 
         if (request.Status is { } status)
@@ -543,6 +544,12 @@ public class ExportVehiclesQueryHandler : IRequestHandler<ExportVehiclesQuery, E
                 v.Brand,
                 v.Model,
                 v.RegistrationNumber,
+                v.TdNumber,
+                v.RegistrationValidUntil,
+                v.TechnicalInspectionValidUntil,
+                v.InsuranceValidUntil,
+                v.NextServiceDue,
+                v.RentedUntil,
                 v.FuelType,
                 v.Status,
                 AssignedTo = v.AssignedEmployee != null
@@ -559,6 +566,12 @@ public class ExportVehiclesQueryHandler : IRequestHandler<ExportVehiclesQuery, E
             [
                 new(ExportLabels.Get("vehicle", english), SpreadsheetValueKind.Text),
                 new(ExportLabels.Get("registration", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("tdNumber", english), SpreadsheetValueKind.Text),
+                new(ExportLabels.Get("registrationValidUntil", english), SpreadsheetValueKind.Date),
+                new(ExportLabels.Get("inspectionValidUntil", english), SpreadsheetValueKind.Date),
+                new(ExportLabels.Get("insuranceValidUntil", english), SpreadsheetValueKind.Date),
+                new(ExportLabels.Get("nextServiceDue", english), SpreadsheetValueKind.Date),
+                new(ExportLabels.Get("rentedUntil", english), SpreadsheetValueKind.Date),
                 new(ExportLabels.Get("fuelType", english), SpreadsheetValueKind.Text),
                 new(ExportLabels.Get("status", english), SpreadsheetValueKind.Text),
                 new(ExportLabels.Get("assignedTo", english), SpreadsheetValueKind.Text),
@@ -568,6 +581,12 @@ public class ExportVehiclesQueryHandler : IRequestHandler<ExportVehiclesQuery, E
             [
                 $"{r.Brand} {r.Model}",
                 r.RegistrationNumber,
+                r.TdNumber,
+                r.RegistrationValidUntil,
+                r.TechnicalInspectionValidUntil,
+                r.InsuranceValidUntil,
+                r.NextServiceDue,
+                r.RentedUntil,
                 r.FuelType.ToString(),
                 r.Status.ToString(),
                 r.AssignedTo,

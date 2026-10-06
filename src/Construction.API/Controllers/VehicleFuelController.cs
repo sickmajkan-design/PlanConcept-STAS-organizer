@@ -24,8 +24,10 @@ namespace Construction.API.Controllers;
 public class VehicleFuelController : ApiControllerBase
 {
     /// <summary>The vehicles signed out to the caller.</summary>
+    [HttpGet("/api/v{version:apiVersion}/vehicle-fuel/mine")]
+    [HttpGet("/api/vehicle-fuel/mine")]
+    // The path app 1.1.18 was released with. Its unversioned twin never matched, so only this one is kept.
     [HttpGet("/api/v{version:apiVersion}/vehicle-fuel/vehicles")]
-    [HttpGet("/api/vehicle-fuel/vehicles")]
     [ProducesResponseType(typeof(List<VehicleDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<VehicleDto>>> GetMyVehicles(CancellationToken cancellationToken)
     {

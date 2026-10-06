@@ -1,3 +1,4 @@
+using Construction.Application.Common.Security;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
@@ -21,6 +22,9 @@ public record GetFuelCardsQuery : ISortablePagedQuery, IRequest<PagedList<FuelCa
     public int PageSize { get; init; } = 20;
 
     public Guid? VehicleId { get; init; }
+
+    /// <summary>Matches the card number, the provider, or the vehicle it is on (name, plate or TD number).</summary>
+    public string? Search { get; init; }
 
     public string? SortBy { get; init; }
 
@@ -62,6 +66,18 @@ public class GetFuelCardsQueryHandler : IRequestHandler<GetFuelCardsQuery, Paged
         if (request.VehicleId is { } vehicleId)
         {
             query = query.Where(c => c.VehicleId == vehicleId);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var pattern = SearchPattern.Contains(request.Search);
+
+            query = query.Where(c =>
+                EF.Functions.Like(c.CardNumber.ToLower(), pattern, SearchPattern.Escape) ||
+                EF.Functions.Like(c.Provider.ToLower(), pattern, SearchPattern.Escape) ||
+                EF.Functions.Like((c.Vehicle.Brand + " " + c.Vehicle.Model).ToLower(), pattern, SearchPattern.Escape) ||
+                EF.Functions.Like(c.Vehicle.RegistrationNumber.ToLower(), pattern, SearchPattern.Escape) ||
+                (c.Vehicle.TdNumber != null && EF.Functions.Like(c.Vehicle.TdNumber.ToLower(), pattern, SearchPattern.Escape)));
         }
 
         query = ApplySorting(query, request.SortBy, request.SortDescending);

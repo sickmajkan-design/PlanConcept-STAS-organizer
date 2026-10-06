@@ -1,3 +1,4 @@
+using Construction.Application.Common.Security;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
@@ -26,6 +27,9 @@ public record GetFuelTransactionsQuery : IPagedQuery, IRequest<PagedList<FuelTra
     public Guid? BatchId { get; init; }
 
     public string? CardNumber { get; init; }
+
+    /// <summary>Matches the card number, the product, or the vehicle (name, plate or TD number).</summary>
+    public string? Search { get; init; }
 }
 
 public class GetFuelTransactionsQueryValidator : PagedQueryValidator<GetFuelTransactionsQuery>
@@ -80,6 +84,20 @@ public class GetFuelTransactionsQueryHandler
         {
             var card = request.CardNumber.Trim();
             query = query.Where(t => t.CardNumber.Contains(card));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var pattern = SearchPattern.Contains(request.Search);
+
+            query = query.Where(t =>
+                EF.Functions.Like(t.CardNumber.ToLower(), pattern, SearchPattern.Escape) ||
+                (t.ProductType != null && EF.Functions.Like(t.ProductType.ToLower(), pattern, SearchPattern.Escape)) ||
+                (t.StatementVehicleLabel != null && EF.Functions.Like(t.StatementVehicleLabel.ToLower(), pattern, SearchPattern.Escape)) ||
+                (t.Vehicle != null && (
+                    EF.Functions.Like((t.Vehicle.Brand + " " + t.Vehicle.Model).ToLower(), pattern, SearchPattern.Escape) ||
+                    EF.Functions.Like(t.Vehicle.RegistrationNumber.ToLower(), pattern, SearchPattern.Escape) ||
+                    (t.Vehicle.TdNumber != null && EF.Functions.Like(t.Vehicle.TdNumber.ToLower(), pattern, SearchPattern.Escape)))));
         }
 
         return await PagedList<FuelTransactionDto>.CreateAsync(

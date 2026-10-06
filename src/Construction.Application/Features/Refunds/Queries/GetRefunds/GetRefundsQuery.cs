@@ -1,3 +1,4 @@
+using Construction.Application.Common.Security;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.Refunds.Models;
@@ -17,6 +18,9 @@ public record GetRefundsQuery : ISortablePagedQuery, IRequest<PagedList<RefundDt
     public int PageSize { get; init; } = 20;
 
     public RefundStatus? Status { get; init; }
+
+    /// <summary>Matches what it was for, or the employee's name.</summary>
+    public string? Search { get; init; }
 
     /// <summary>Only what the caller asked for themselves.</summary>
     public bool Mine { get; init; }
@@ -59,6 +63,15 @@ public class GetRefundsQueryHandler : IRequestHandler<GetRefundsQuery, PagedList
         if (request.Status is { } status)
         {
             query = query.Where(r => r.Status == status);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var pattern = SearchPattern.Contains(request.Search);
+
+            query = query.Where(r =>
+                EF.Functions.Like(r.Description.ToLower(), pattern, SearchPattern.Escape) ||
+                EF.Functions.Like((r.Employee.FirstName + " " + r.Employee.LastName).ToLower(), pattern, SearchPattern.Escape));
         }
 
         IOrderedQueryable<Refund> ordered = (request.SortBy?.ToLowerInvariant(), request.SortDescending) switch

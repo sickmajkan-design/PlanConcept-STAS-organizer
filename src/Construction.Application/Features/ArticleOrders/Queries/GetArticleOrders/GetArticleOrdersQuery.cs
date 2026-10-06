@@ -1,3 +1,4 @@
+using Construction.Application.Common.Security;
 using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
@@ -18,6 +19,9 @@ public record GetArticleOrdersQuery : ISortablePagedQuery, IRequest<PagedList<Ar
     public int PageSize { get; init; } = 20;
 
     public ArticleOrderStatus? Status { get; init; }
+
+    /// <summary>Matches an article asked for, the note, or the employee's name.</summary>
+    public string? Search { get; init; }
 
     /// <summary>Restricts results to orders for projects in this business unit.</summary>
     public Guid? BranchId { get; init; }
@@ -93,6 +97,17 @@ public class GetArticleOrdersQueryHandler : IRequestHandler<GetArticleOrdersQuer
             query = query.Where(o => o.Status == ArticleOrderStatus.Requested
                 || o.Status == ArticleOrderStatus.Ordered
                 || o.Status == ArticleOrderStatus.InDelivery);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var pattern = SearchPattern.Contains(request.Search);
+
+            query = query.Where(o =>
+                o.Items.Any(i => EF.Functions.Like(i.Name.ToLower(), pattern, SearchPattern.Escape)) ||
+                (o.Note != null && EF.Functions.Like(o.Note.ToLower(), pattern, SearchPattern.Escape)) ||
+                (o.Employee != null &&
+                    EF.Functions.Like((o.Employee.FirstName + " " + o.Employee.LastName).ToLower(), pattern, SearchPattern.Escape)));
         }
 
         IOrderedQueryable<ArticleOrder> ordered = (request.SortBy?.ToLowerInvariant(), request.SortDescending) switch

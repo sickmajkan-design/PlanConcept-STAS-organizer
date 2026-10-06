@@ -90,11 +90,23 @@ public class DriverFuelTests
         var someoneElses = await NewVehicleAsync(office);
 
         using var worker = _api.ClientAs(UserRole.Worker);
-        var response = await worker.GetFromJsonAsync<JsonElement>("/api/v1/vehicle-fuel/vehicles");
+        var response = await worker.GetFromJsonAsync<JsonElement>("/api/v1/vehicle-fuel/mine");
         var ids = response.EnumerateArray().Select(v => v.GetProperty("id").GetGuid()).ToList();
 
         Assert.Contains(mine, ids);
         Assert.DoesNotContain(someoneElses, ids);
+    }
+
+    [Fact]
+    public async Task The_path_app_1_1_18_was_released_with_still_answers()
+    {
+        // The app on phones asks for the vehicle in hand at the path it shipped with; renaming it would
+        // have left every installed copy with an empty vehicle list.
+        using var worker = _api.ClientAs(UserRole.Worker);
+
+        var response = await worker.GetAsync("/api/v1/vehicle-fuel/vehicles");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
     [Fact]

@@ -88,6 +88,11 @@ class VehicleDetailScreen extends ConsumerWidget {
                       value: vehicle.registrationNumber,
                     ),
                     InfoTile(
+                      icon: Icons.tag_outlined,
+                      label: context.l10n.vehicleTdNumber,
+                      value: vehicle.tdNumber,
+                    ),
+                    InfoTile(
                       icon: Icons.confirmation_number_outlined,
                       label: 'VIN',
                       value: vehicle.vin,
@@ -102,6 +107,38 @@ class VehicleDetailScreen extends ConsumerWidget {
                       label: context.l10n.vehicleFuelType,
                       value: humanizeEnum(vehicle.fuelType),
                     ),
+                    InfoTile(
+                      icon: Icons.event_available_outlined,
+                      label: context.l10n.vehicleRegistrationValidUntil,
+                      value: _date(vehicle.registrationValidUntil),
+                    ),
+                    InfoTile(
+                      icon: Icons.fact_check_outlined,
+                      label: context.l10n.vehicleInspectionValidUntil,
+                      value: _date(vehicle.technicalInspectionValidUntil),
+                    ),
+                    InfoTile(
+                      icon: Icons.verified_user_outlined,
+                      label: context.l10n.vehicleInsuranceValidUntil,
+                      value: _date(vehicle.insuranceValidUntil),
+                    ),
+                    InfoTile(
+                      icon: Icons.build_circle_outlined,
+                      label: context.l10n.vehicleNextServiceDue,
+                      value: _date(vehicle.nextServiceDue),
+                    ),
+                    if (vehicle.isHeldOnRental)
+                      InfoTile(
+                        icon: Icons.event_busy_outlined,
+                        label: context.l10n.vehicleRentedUntil,
+                        value: _date(vehicle.rentedUntil),
+                      ),
+                    if (vehicle.isLoanedOut && vehicle.currentRentalOutExpectedEndDate != null)
+                      InfoTile(
+                        icon: Icons.assignment_return_outlined,
+                        label: context.l10n.vehicleDueBack,
+                        value: _date(vehicle.currentRentalOutExpectedEndDate),
+                      ),
                     if (vehicle.isRented) ...[
                       InfoTile(
                         icon: Icons.request_quote_outlined,
@@ -168,6 +205,13 @@ class VehicleDetailScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// A `YYYY-MM-DD` date as the app writes dates, or null when there is none.
+String? _date(String? iso) {
+  final parsed = iso == null ? null : DateTime.tryParse(iso);
+
+  return parsed == null ? null : formatDate(parsed);
 }
 
 Future<void> _delete(BuildContext context, WidgetRef ref, Vehicle vehicle) async {

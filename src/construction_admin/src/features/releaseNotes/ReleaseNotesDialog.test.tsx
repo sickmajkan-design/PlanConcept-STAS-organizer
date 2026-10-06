@@ -43,7 +43,7 @@ describe('ReleaseNotesDialog', () => {
     await new Promise((resolve) => setTimeout(resolve, 50));
     expect(screen.queryByText('Fuel check against the DKV statement')).toBeNull();
     expect(screen.queryByText('Business units')).toBeNull();
-    expect(screen.queryByText('Who is online')).toBeNull();
+    expect(screen.queryByText('Search finds everything, and the phone app')).toBeNull();
   }, SCREEN_TIMEOUT);
 
   it('shows nothing to an account none of the sections concern', async () => {
@@ -57,9 +57,9 @@ describe('ReleaseNotesDialog', () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('SuperAdmin') });
 
     await screen.findByText('Fuel check against the DKV statement');
-    expect(screen.getByText('Who is online')).toBeDefined();
+    expect(screen.getByText('Search finds everything, and the phone app')).toBeDefined();
     expect(screen.getByText('New assignment board')).toBeDefined();
-    expect(screen.getByText('Who is online')).toBeDefined();
+    expect(screen.getByText('Search finds everything, and the phone app')).toBeDefined();
   }, SCREEN_TIMEOUT);
 
   it('is shown again for a new release', async () => {

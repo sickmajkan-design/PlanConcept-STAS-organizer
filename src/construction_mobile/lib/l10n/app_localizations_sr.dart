@@ -370,6 +370,31 @@ class AppLocalizationsSr extends AppLocalizations {
   String get vehicleRegistration => 'Registarski broj';
 
   @override
+  String get vehicleTdNumber => 'TD (interni broj)';
+
+  @override
+  String get vehicleTdNumberHint =>
+      'Oznaka vozila u firmi, ista kao na DKV izvodu.';
+
+  @override
+  String get vehicleRegistrationValidUntil => 'Registrovano do';
+
+  @override
+  String get vehicleInspectionValidUntil => 'Tehnički do';
+
+  @override
+  String get vehicleInsuranceValidUntil => 'Osiguranje do';
+
+  @override
+  String get vehicleNextServiceDue => 'Servis do';
+
+  @override
+  String get vehicleRentedUntil => 'Iznajmljeno do';
+
+  @override
+  String get vehicleDueBack => 'Povratak do';
+
+  @override
   String get vehicleOwnershipType => 'Vlasništvo';
 
   @override

@@ -5,6 +5,7 @@ import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/utils/formatting.dart';
 import '../data/models/vehicle.dart';
 import '../data/vehicle_repository.dart';
 import 'vehicles_controller.dart';
@@ -45,6 +46,14 @@ class _VehicleFormSheetState extends ConsumerState<_VehicleFormSheet> {
   late final _registrationController =
       TextEditingController(text: widget.existing?.registrationNumber);
   late final _vinController = TextEditingController(text: widget.existing?.vin);
+  late final _tdController = TextEditingController(text: widget.existing?.tdNumber);
+
+  // `YYYY-MM-DD`, or null when not set.
+  late String? _registrationValidUntil = widget.existing?.registrationValidUntil;
+  late String? _technicalInspectionValidUntil = widget.existing?.technicalInspectionValidUntil;
+  late String? _insuranceValidUntil = widget.existing?.insuranceValidUntil;
+  late String? _nextServiceDue = widget.existing?.nextServiceDue;
+  late String? _rentedUntil = widget.existing?.rentedUntil;
 
   late String _fuelType = widget.existing?.fuelType ?? _fuelTypes.first;
   late String _status = widget.existing?.status ?? 'Available';
@@ -61,6 +70,7 @@ class _VehicleFormSheetState extends ConsumerState<_VehicleFormSheet> {
     _modelController.dispose();
     _registrationController.dispose();
     _vinController.dispose();
+    _tdController.dispose();
     super.dispose();
   }
 
@@ -72,7 +82,8 @@ class _VehicleFormSheetState extends ConsumerState<_VehicleFormSheet> {
     final canSubmit = !_busy &&
         _brandController.text.trim().isNotEmpty &&
         _modelController.text.trim().isNotEmpty &&
-        _registrationController.text.trim().isNotEmpty;
+        _registrationController.text.trim().isNotEmpty &&
+        _tdController.text.trim().isNotEmpty;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -117,6 +128,16 @@ class _VehicleFormSheetState extends ConsumerState<_VehicleFormSheet> {
               controller: _registrationController,
               enabled: !_busy,
               decoration: InputDecoration(labelText: l10n.vehicleRegistration),
+              onChanged: (_) => setState(() {}),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _tdController,
+              enabled: !_busy,
+              decoration: InputDecoration(
+                labelText: l10n.vehicleTdNumber,
+                helperText: l10n.vehicleTdNumberHint,
+              ),
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: 12),
@@ -178,6 +199,43 @@ class _VehicleFormSheetState extends ConsumerState<_VehicleFormSheet> {
                       if (value != null) setState(() => _ownershipType = value);
                     },
             ),
+            const SizedBox(height: 12),
+            _DateField(
+              label: l10n.vehicleRegistrationValidUntil,
+              value: _registrationValidUntil,
+              enabled: !_busy,
+              onChanged: (value) => setState(() => _registrationValidUntil = value),
+            ),
+            const SizedBox(height: 12),
+            _DateField(
+              label: l10n.vehicleInspectionValidUntil,
+              value: _technicalInspectionValidUntil,
+              enabled: !_busy,
+              onChanged: (value) => setState(() => _technicalInspectionValidUntil = value),
+            ),
+            const SizedBox(height: 12),
+            _DateField(
+              label: l10n.vehicleInsuranceValidUntil,
+              value: _insuranceValidUntil,
+              enabled: !_busy,
+              onChanged: (value) => setState(() => _insuranceValidUntil = value),
+            ),
+            const SizedBox(height: 12),
+            _DateField(
+              label: l10n.vehicleNextServiceDue,
+              value: _nextServiceDue,
+              enabled: !_busy,
+              onChanged: (value) => setState(() => _nextServiceDue = value),
+            ),
+            if (_ownershipType != 'Owned') ...[
+              const SizedBox(height: 12),
+              _DateField(
+                label: l10n.vehicleRentedUntil,
+                value: _rentedUntil,
+                enabled: !_busy,
+                onChanged: (value) => setState(() => _rentedUntil = value),
+              ),
+            ],
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
@@ -216,12 +274,22 @@ class _VehicleFormSheetState extends ConsumerState<_VehicleFormSheet> {
           brand: _brandController.text.trim(),
           model: _modelController.text.trim(),
           registrationNumber: _registrationController.text.trim(),
+          tdNumber: _tdController.text.trim(),
           vin: _vinController.text.trim().isEmpty
               ? null
               : _vinController.text.trim(),
           fuelType: _fuelType,
           status: _status,
           ownershipType: _ownershipType,
+          registrationValidUntil: _registrationValidUntil,
+          technicalInspectionValidUntil: _technicalInspectionValidUntil,
+          insuranceValidUntil: _insuranceValidUntil,
+          nextServiceDue: _nextServiceDue,
+          rentedUntil: _ownershipType == 'Owned' ? null : _rentedUntil,
+          qrCode: widget.existing!.qrCode,
+          gpsProvider: widget.existing!.gpsProvider,
+          gpsTrackingUrl: widget.existing!.gpsTrackingUrl,
+          branchId: widget.existing!.branchId,
         );
         ref.invalidate(vehicleDetailProvider(widget.existing!.id));
       } else {
@@ -229,11 +297,17 @@ class _VehicleFormSheetState extends ConsumerState<_VehicleFormSheet> {
           brand: _brandController.text.trim(),
           model: _modelController.text.trim(),
           registrationNumber: _registrationController.text.trim(),
+          tdNumber: _tdController.text.trim(),
           vin: _vinController.text.trim().isEmpty
               ? null
               : _vinController.text.trim(),
           fuelType: _fuelType,
           ownershipType: _ownershipType,
+          registrationValidUntil: _registrationValidUntil,
+          technicalInspectionValidUntil: _technicalInspectionValidUntil,
+          insuranceValidUntil: _insuranceValidUntil,
+          nextServiceDue: _nextServiceDue,
+          rentedUntil: _ownershipType == 'Owned' ? null : _rentedUntil,
         );
       }
 
@@ -249,5 +323,59 @@ class _VehicleFormSheetState extends ConsumerState<_VehicleFormSheet> {
         _busy = false;
       });
     }
+  }
+}
+
+/// A date that can be picked and cleared, shown as DD.MM.YYYY. and carried as `YYYY-MM-DD`.
+class _DateField extends StatelessWidget {
+  const _DateField({
+    required this.label,
+    required this.value,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  final String label;
+  final String? value;
+  final bool enabled;
+  final ValueChanged<String?> onChanged;
+
+  static String _iso(DateTime date) =>
+      '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+  Future<void> _pick(BuildContext context) async {
+    final current = value == null ? null : DateTime.tryParse(value!);
+
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: current ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+
+    if (picked != null) {
+      onChanged(_iso(picked));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final current = value == null ? null : DateTime.tryParse(value!);
+
+    return InkWell(
+      onTap: enabled ? () => _pick(context) : null,
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: label,
+          suffixIcon: current == null
+              ? const Icon(Icons.calendar_today_outlined)
+              : IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: enabled ? () => onChanged(null) : null,
+                ),
+        ),
+        child: Text(current == null ? '—' : formatDate(current)),
+      ),
+    );
   }
 }

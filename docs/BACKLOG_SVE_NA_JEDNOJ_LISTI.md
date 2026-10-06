@@ -21,8 +21,8 @@ Oznake: **Must** obavezno · **Should** važno · **Could** ako ostane vremena. 
 | A11 | Naplata za paušal i aufmaß = zbir izdanih računa | Must | 13 | A9 |
 | A12 | Provjere prilagođene načinu obračuna ("Za provjeru") | Should | 6 | A9, A11 |
 | A13 | Kancelarija kao fiksni red (vrsta reda) | Should | 8 | |
-| A14 | DKV: uvoz izvoda sa predloškom za DKV | Should | 8 | DKV primjer izvoda |
-| A15 | Gorivo u obračunu čita uvezene DKV transakcije | Should | 5 | A14 |
+| A14 | DKV: uvoz izvoda sa predloškom za DKV | **Urađeno 2026-10-06** (Provjera DKV izvoda; vidi `VODIC_GORIVO_VOZILA_SMJESTAJ.md`) | 8 | DKV primjer izvoda |
+| A15 | Gorivo u obračunu čita uvezene DKV transakcije | Drugačije riješeno: unos vozača ostaje evidencija (litri, km, račun), a DKV ga **provjerava**; trošak iz izvoda nastaje samo ručno, uz litre | 5 | A14 |
 
 ## B. Novi zahtjevi kupca
 
@@ -85,12 +85,12 @@ Oznake: **Must** obavezno · **Should** važno · **Could** ako ostane vremena. 
 | # | Stavka | Prioritet |
 |---|---|---|
 | E1 | Testovi ekrana admin panela (5 pada po isteku vremena na sporoj mašini) | Could |
-| E2 | Predložak DKV izvoda (čeka stvarni primjer) | Should |
+| E2 | Predložak DKV izvoda | **Urađeno 2026-10-06** (stvarni izvod primljen) |
 | E3 | Dokumentacija: objediniti planove u ROADMAP nakon odluka kupca | Could |
 
 ## F. Pitanja za kupca (jedna lista)
 
-1. **DKV:** može li poslati jedan izvod sa zaglavljima? Ostaje li mjesečni uvoz ili API?
+1. ~~**DKV:** može li poslati jedan izvod sa zaglavljima?~~ — **odgovor (2026-10-06): poslan; uvoz je sedmični ili mjesečni, radi admin.** API nije u planu.
 2. **Paušal koji traje više mjeseci:** kako se dijeli po mjesecima?
 3. **Aufmaß:** je li dovoljan zbir računa, ili treba vezati račun za aufmaß izvještaj?
 4. **Potpisane satnice:** skeniraju li se? ~~Ko ih potpisuje~~ — **odgovor (2026-09-26): klijent potpisuje.**

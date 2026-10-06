@@ -62,6 +62,14 @@ export function buildPaletteActions(
   }
 
   if (canAdministerAccounts(user)) {
+    // Reached from a button on the vehicle costs page, not from the menu, so it is offered here.
+    actions.push({
+      key: 'dkvCheck',
+      label: t('dkv.open'),
+      path: paths.fuelReconciliation,
+      icon: <LocalGasStationOutlined fontSize="small" />,
+    });
+
     actions.push(
       {
         key: 'announce',

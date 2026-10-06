@@ -1,3 +1,4 @@
+using Construction.Application.Common.Security;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Branches;
 using Construction.Application.Common.Models;
@@ -21,6 +22,9 @@ public record GetAbsencesQuery : ISortablePagedQuery, IRequest<PagedList<Absence
     public int PageSize { get; init; } = 20;
 
     public Guid? EmployeeId { get; init; }
+
+    /// <summary>Matches the employee's name or number.</summary>
+    public string? Search { get; init; }
 
     /// <summary>Narrows the result to one business unit (poslovna jedinica) — the unit that employs the people.</summary>
     public Guid? BranchId { get; init; }
@@ -93,6 +97,15 @@ public class GetAbsencesQueryHandler : IRequestHandler<GetAbsencesQuery, PagedLi
         }
 
         query = query.InBranch(request.BranchId);
+
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var pattern = SearchPattern.Contains(request.Search);
+
+            query = query.Where(a =>
+                EF.Functions.Like((a.Employee.FirstName + " " + a.Employee.LastName).ToLower(), pattern, SearchPattern.Escape) ||
+                EF.Functions.Like(a.Employee.EmployeeNumber.ToLower(), pattern, SearchPattern.Escape));
+        }
 
         if (request.Status is { } status)
         {

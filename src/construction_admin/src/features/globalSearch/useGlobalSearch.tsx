@@ -1,29 +1,52 @@
 import {
   ApartmentOutlined,
   BusinessOutlined,
+  CampaignOutlined,
   ChecklistOutlined,
+  CreditCardOutlined,
+  EventBusyOutlined,
   GroupsOutlined,
+  LocalGasStationOutlined,
   ManageAccountsOutlined,
   HandymanOutlined,
   HomeWorkOutlined,
   Inventory2Outlined,
   LocalShippingOutlined,
   PeopleOutlined,
+  ReceiptLongOutlined,
+  RequestQuoteOutlined,
+  ShoppingCartOutlined,
+  TableChartOutlined,
 } from '@mui/icons-material';
 import { useEffect, useState, type ReactNode } from 'react';
 
+import { absencesApi } from '../../api/absences';
 import { accommodationsApi } from '../../api/accommodations';
+import { articleOrdersApi } from '../../api/articleOrders';
+import { bulletinApi } from '../../api/bulletin';
 import { customersApi } from '../../api/customers';
 import { employeesApi } from '../../api/employees';
+import { fuelCardsApi } from '../../api/fuelCards';
+import { fuelTransactionsApi } from '../../api/fuelTransactions';
+import { invoicesApi } from '../../api/invoices';
+import { ledgersApi } from '../../api/ledgers';
 import { materialsApi } from '../../api/materials';
 import { projectsApi } from '../../api/projects';
+import { refundsApi } from '../../api/refunds';
 import { toolsApi } from '../../api/tools';
 import { vehiclesApi } from '../../api/vehicles';
 import { notificationGroupsApi } from '../../api/notificationGroups';
 import { usersApi } from '../../api/users';
 import { workItemsApi } from '../../api/workItems';
-import { canAdministerAccounts, canViewDirectory } from '../../auth/authHelpers';
+import {
+  canAdministerAccounts,
+  canManageInvoices,
+  canSeeSpending,
+  canViewDirectory,
+  isSuperAdmin,
+} from '../../auth/authHelpers';
 import type { User } from '../../api/types';
+import { humanizeEnum, formatDate } from '../../utils/formatting';
 import { paths } from '../../routes/paths';
 
 export interface GlobalSearchResult {
@@ -56,10 +79,36 @@ async function searchEntity<TItem>(
   }
 }
 
-async function runGlobalSearch(
-  query: string,
-  includeAccounts: boolean,
-): Promise<GlobalSearchGroup[]> {
+/** Which of the role-gated groups this account may search; a result is never a page the reader is refused. */
+interface SearchScope {
+  accounts: boolean;
+  spending: boolean;
+  invoices: boolean;
+  ledgers: boolean;
+  dkv: boolean;
+}
+
+/** Bulletin posts whose title or text contains the words typed. */
+async function searchBulletin(query: string): Promise<GlobalSearchResult[]> {
+  const needle = query.toLowerCase();
+
+  return searchEntity(
+    async () => ({
+      items: (await bulletinApi.list())
+        .filter((p) => p.title.toLowerCase().includes(needle) || p.body.toLowerCase().includes(needle))
+        .slice(0, PAGE_SIZE),
+    }),
+    (p) => ({
+      id: p.id,
+      label: p.title,
+      sublabel: p.createdByName,
+      path: `${paths.bulletin}?highlight=${p.id}`,
+    }),
+  );
+}
+
+async function runGlobalSearch(query: string, scope: SearchScope): Promise<GlobalSearchGroup[]> {
+  const includeAccounts = scope.accounts;
   const listQuery = { search: query, pageNumber: 1, pageSize: PAGE_SIZE };
 
   const [
@@ -73,6 +122,14 @@ async function runGlobalSearch(
     accommodations,
     users,
     notificationGroups,
+    fuelCards,
+    dkvRows,
+    absences,
+    refunds,
+    articleOrders,
+    invoices,
+    ledgers,
+    bulletin,
   ] =
     await Promise.all([
       searchEntity(() => employeesApi.list(listQuery), (e) => ({
@@ -96,7 +153,7 @@ async function runGlobalSearch(
       searchEntity(() => vehiclesApi.list(listQuery), (v) => ({
         id: v.id,
         label: `${v.brand} ${v.model}`,
-        sublabel: v.registrationNumber,
+        sublabel: [v.registrationNumber, v.tdNumber ? `TD ${v.tdNumber}` : null].filter(Boolean).join(' · '),
         path: paths.vehicleDetail(v.id),
       })),
       searchEntity(() => toolsApi.list(listQuery), (tItem) => ({
@@ -140,6 +197,60 @@ async function runGlobalSearch(
             path: paths.notificationGroupEdit(g.id),
           }))
         : Promise.resolve([]),
+      // A fuel card opens the vehicle it is on, which lists its cards.
+      scope.spending
+        ? searchEntity(() => fuelCardsApi.list(listQuery), (c) => ({
+            id: c.id,
+            label: c.cardNumber,
+            sublabel: `${c.provider} · ${c.vehicleName}`,
+            path: paths.vehicleDetail(c.vehicleId),
+          }))
+        : Promise.resolve([]),
+      // A statement row has no page of its own: it opens the statement check, filtered to what was typed.
+      scope.dkv
+        ? searchEntity(() => fuelTransactionsApi.list({ pageNumber: 1, pageSize: PAGE_SIZE, search: query }), (r) => ({
+            id: r.id,
+            label: `${r.cardNumber} · ${r.amount.toFixed(2)} ${r.currency}`,
+            sublabel: [r.vehicleName, formatDate(r.occurredOn), r.productType].filter(Boolean).join(' · '),
+            path: `${paths.fuelReconciliation}?search=${encodeURIComponent(query)}`,
+          }))
+        : Promise.resolve([]),
+      searchEntity(() => absencesApi.list(listQuery), (a) => ({
+        id: a.id,
+        label: a.employeeName,
+        sublabel: `${humanizeEnum(a.type)} · ${formatDate(a.startDate)} - ${formatDate(a.endDate)}`,
+        path: `${paths.absences}?highlight=${a.id}`,
+      })),
+      searchEntity(() => refundsApi.list(listQuery), (r) => ({
+        id: r.id,
+        label: r.description,
+        sublabel: `${r.employeeName} · ${r.amount.toFixed(2)} ${r.currency}`,
+        path: `${paths.refunds}?highlight=${r.id}`,
+      })),
+      searchEntity(() => articleOrdersApi.list(listQuery), (o) => ({
+        id: o.id,
+        label: o.items.map((i) => i.name).slice(0, 3).join(', ') || o.requestedByName,
+        sublabel: [o.requestedByName, o.projectName].filter(Boolean).join(' · '),
+        path: `${paths.articleOrders}?highlight=${o.id}`,
+      })),
+      scope.invoices
+        ? searchEntity(() => invoicesApi.list(listQuery), (i) => ({
+            id: i.id,
+            label: i.number,
+            sublabel: [i.customerName, i.projectName].filter(Boolean).join(' · '),
+            path: `${paths.invoices}?highlight=${i.id}`,
+          }))
+        : Promise.resolve([]),
+      scope.ledgers
+        ? searchEntity(() => ledgersApi.list(listQuery), (l) => ({
+            id: l.id,
+            label: l.name,
+            sublabel: l.branchName ?? undefined,
+            path: paths.ledgerDetail(l.id),
+          }))
+        : Promise.resolve([]),
+      // The bulletin board is a short list, not paged, so it is filtered here instead of on the server.
+      searchBulletin(query),
     ]);
 
   const groups: GlobalSearchGroup[] = [
@@ -153,6 +264,14 @@ async function runGlobalSearch(
     { key: 'accommodations', labelKey: 'nav.accommodations', icon: <HomeWorkOutlined fontSize="small" />, results: accommodations },
     { key: 'users', labelKey: 'nav.users', icon: <ManageAccountsOutlined fontSize="small" />, results: users },
     { key: 'notificationGroups', labelKey: 'nav.notificationGroups', icon: <GroupsOutlined fontSize="small" />, results: notificationGroups },
+    { key: 'fuelCards', labelKey: 'search.fuelCards', icon: <CreditCardOutlined fontSize="small" />, results: fuelCards },
+    { key: 'dkvRows', labelKey: 'search.dkvRows', icon: <LocalGasStationOutlined fontSize="small" />, results: dkvRows },
+    { key: 'absences', labelKey: 'nav.absences', icon: <EventBusyOutlined fontSize="small" />, results: absences },
+    { key: 'refunds', labelKey: 'nav.refunds', icon: <RequestQuoteOutlined fontSize="small" />, results: refunds },
+    { key: 'articleOrders', labelKey: 'nav.articleOrders', icon: <ShoppingCartOutlined fontSize="small" />, results: articleOrders },
+    { key: 'invoices', labelKey: 'nav.invoices', icon: <ReceiptLongOutlined fontSize="small" />, results: invoices },
+    { key: 'ledgers', labelKey: 'nav.ledgers', icon: <TableChartOutlined fontSize="small" />, results: ledgers },
+    { key: 'bulletin', labelKey: 'nav.bulletin', icon: <CampaignOutlined fontSize="small" />, results: bulletin },
   ];
 
   return groups.filter((group) => group.results.length > 0);
@@ -173,7 +292,13 @@ export function useGlobalSearch(query: string, user: User | null | undefined) {
     let cancelled = false;
     setLoading(true);
     const timer = setTimeout(() => {
-      runGlobalSearch(trimmed, canAdministerAccounts(user))
+      runGlobalSearch(trimmed, {
+        accounts: canAdministerAccounts(user),
+        spending: canSeeSpending(user),
+        invoices: canManageInvoices(user),
+        ledgers: isSuperAdmin(user),
+        dkv: canAdministerAccounts(user),
+      })
         .then((result) => {
           if (!cancelled) setGroups(result);
         })

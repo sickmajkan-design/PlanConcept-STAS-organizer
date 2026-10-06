@@ -38,10 +38,16 @@ class VehicleRepository extends ApiRepository {
     required String brand,
     required String model,
     required String registrationNumber,
+    required String tdNumber,
     String? vin,
     required String fuelType,
     String status = 'Available',
     String ownershipType = 'Owned',
+    String? registrationValidUntil,
+    String? rentedUntil,
+    String? technicalInspectionValidUntil,
+    String? insuranceValidUntil,
+    String? nextServiceDue,
   }) {
     return postJson(
       '/api/v1/vehicles',
@@ -50,10 +56,16 @@ class VehicleRepository extends ApiRepository {
         'brand': brand,
         'model': model,
         'registrationNumber': registrationNumber,
+        'tdNumber': tdNumber,
         'vin': ?vin,
         'fuelType': fuelType,
         'status': status,
         'ownershipType': ownershipType,
+        'registrationValidUntil': ?registrationValidUntil,
+        'rentedUntil': ?rentedUntil,
+        'technicalInspectionValidUntil': ?technicalInspectionValidUntil,
+        'insuranceValidUntil': ?insuranceValidUntil,
+        'nextServiceDue': ?nextServiceDue,
       },
     );
   }
@@ -63,10 +75,21 @@ class VehicleRepository extends ApiRepository {
     required String brand,
     required String model,
     required String registrationNumber,
+    required String tdNumber,
     String? vin,
     required String fuelType,
     required String status,
     required String ownershipType,
+    String? registrationValidUntil,
+    String? rentedUntil,
+    String? technicalInspectionValidUntil,
+    String? insuranceValidUntil,
+    String? nextServiceDue,
+    // What the form does not edit, handed back as it was: the update replaces the whole record.
+    String? qrCode,
+    String? gpsProvider,
+    String? gpsTrackingUrl,
+    String? branchId,
   }) {
     return putJson(
       '/api/v1/vehicles/$id',
@@ -75,10 +98,20 @@ class VehicleRepository extends ApiRepository {
         'brand': brand,
         'model': model,
         'registrationNumber': registrationNumber,
+        'tdNumber': tdNumber,
         'vin': ?vin,
         'fuelType': fuelType,
         'status': status,
         'ownershipType': ownershipType,
+        'registrationValidUntil': registrationValidUntil,
+        'rentedUntil': rentedUntil,
+        'technicalInspectionValidUntil': technicalInspectionValidUntil,
+        'insuranceValidUntil': insuranceValidUntil,
+        'nextServiceDue': nextServiceDue,
+        'qrCode': ?qrCode,
+        'gpsProvider': ?gpsProvider,
+        'gpsTrackingUrl': ?gpsTrackingUrl,
+        'branchId': ?branchId,
       },
     );
   }
@@ -91,7 +124,7 @@ class VehicleRepository extends ApiRepository {
   /// fleet list but still needs the vehicle in their hands (to record its fuel).
   Future<List<Vehicle>> fetchMyVehicles() {
     return guard(() async {
-      final response = await dio.get<List<dynamic>>('/api/v1/vehicle-fuel/vehicles');
+      final response = await dio.get<List<dynamic>>('/api/v1/vehicle-fuel/mine');
 
       return [
         for (final json in response.data!) Vehicle.fromJson(json as Map<String, dynamic>),

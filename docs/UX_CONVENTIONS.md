@@ -20,6 +20,16 @@ ones. If a screen has to break one, say why in the code.
   the same role checks as the destination (`layout/paletteActions.tsx`). An
   action that opens a dialog links to `?new=1` (or `?compose=1`); the page
   handles it with `useOpenOnParam`.
+- What Ctrl+K searches is one list in `features/globalSearch/useGlobalSearch.tsx`.
+  A record type belongs there when its list endpoint takes `search`; a group that
+  only some roles may open is gated by the same helper as its page
+  (`SearchScope`), so a result is never a page the reader is refused. A record with
+  no page of its own lands on its list: `?highlight=<id>` flashes the row
+  (`useHighlightTarget`), `?search=` narrows a list that supports it (the DKV
+  statement check). Add a new searchable thing there, with a test in
+  `useGlobalSearch.test.tsx`, not in the palette.
+- The full list of what is searchable, and by whom, is in
+  `VODIC_GORIVO_VOZILA_SMJESTAJ.md` section 6.
 
 ## Things that wait on a decision
 

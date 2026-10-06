@@ -376,6 +376,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vehicleRegistration => 'Registration number';
 
   @override
+  String get vehicleTdNumber => 'TD (internal number)';
+
+  @override
+  String get vehicleTdNumberHint =>
+      'The company\'s own number for the vehicle, as on the fuel-card statement.';
+
+  @override
+  String get vehicleRegistrationValidUntil => 'Registered until';
+
+  @override
+  String get vehicleInspectionValidUntil => 'Inspection until';
+
+  @override
+  String get vehicleInsuranceValidUntil => 'Insurance until';
+
+  @override
+  String get vehicleNextServiceDue => 'Service due';
+
+  @override
+  String get vehicleRentedUntil => 'Rented until';
+
+  @override
+  String get vehicleDueBack => 'Due back';
+
+  @override
   String get vehicleOwnershipType => 'Ownership';
 
   @override

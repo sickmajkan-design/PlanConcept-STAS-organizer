@@ -138,6 +138,8 @@ export interface FuelTransactionListQuery {
   vehicleId?: string;
   batchId?: string;
   cardNumber?: string;
+  /** Card number, product, or the vehicle (name, plate or TD number). */
+  search?: string;
 }
 
 export interface ResolveFuelTransactionInput {

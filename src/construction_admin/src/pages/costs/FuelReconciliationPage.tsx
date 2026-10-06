@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Alert,
   AlertTitle,
@@ -71,6 +72,7 @@ const FILTERS: { key: string; statuses: FuelTransactionStatus[] }[] = [
   { key: 'open', statuses: OPEN_STATUSES },
   { key: 'matched', statuses: ['Matched'] },
   { key: 'settled', statuses: ['Resolved', 'Ignored'] },
+  { key: 'all', statuses: [] },
 ];
 
 const time = (value: string) => value.slice(0, 5);
@@ -388,13 +390,21 @@ type Action =
 function WorkList() {
   const t = useT();
   const { locale } = useI18n();
-  const [filterKey, setFilterKey] = useState('open');
+  // `?search=` is how the Ctrl+K search lands here: every state, narrowed to what was typed.
+  const [params, setParams] = useSearchParams();
+  const search = params.get('search')?.trim() || undefined;
+  const [filterKey, setFilterKey] = useState(search ? 'all' : 'open');
   const [page, setPage] = useState(1);
   const [action, setAction] = useState<Action | null>(null);
   const [rechecked, setRechecked] = useState<number | null>(null);
 
   const filter = FILTERS.find((f) => f.key === filterKey) ?? FILTERS[0];
-  const list = useFuelTransactionsQuery({ pageNumber: page, pageSize: 25, status: filter.statuses });
+  const list = useFuelTransactionsQuery({
+    pageNumber: page,
+    pageSize: 25,
+    status: filter.statuses.length > 0 ? filter.statuses : undefined,
+    search,
+  });
   const counts = useFuelTransactionCountsQuery();
   const recheck = useRecheckDkvTransactions();
 
@@ -429,6 +439,20 @@ function WorkList() {
         </Stack>
       </Stack>
 
+      {search && (
+        <Chip
+          sx={{ mb: 2 }}
+          color="primary"
+          variant="outlined"
+          label={t('dkv.searchFilter', { term: search })}
+          onDelete={() => {
+            setParams({}, { replace: true });
+            setFilterKey('open');
+            setPage(1);
+          }}
+        />
+      )}
+
       <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
         {FILTERS.map((f) => (
           <Chip
@@ -436,7 +460,11 @@ function WorkList() {
             clickable
             color={filterKey === f.key ? 'primary' : 'default'}
             variant={filterKey === f.key ? 'filled' : 'outlined'}
-            label={`${t(`dkv.filter.${f.key as 'open' | 'matched' | 'settled'}`)} (${countFor(f.statuses)})`}
+            label={`${t(`dkv.filter.${f.key as 'all' | 'open' | 'matched' | 'settled'}`)} (${
+              f.statuses.length > 0
+                ? countFor(f.statuses)
+                : countFor(['Matched', 'NeedsReview', 'NoDriverEntry', 'UnknownCard', 'Resolved', 'Ignored'])
+            })`}
             onClick={() => {
               setFilterKey(f.key);
               setPage(1);

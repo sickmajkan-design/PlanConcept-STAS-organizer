@@ -131,6 +131,44 @@ public class ExportTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task The_vehicle_export_carries_the_td_number_and_the_dates_a_vehicle_runs_out()
+    {
+        var admin = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Admin));
+        var td = "TDX" + Guid.NewGuid().ToString("N")[..6];
+
+        await InScope(async scope =>
+        {
+            var v = await TestData.SeedVehicleAsync(scope);
+            v.TdNumber = td;
+            v.RegistrationValidUntil = new DateOnly(2027, 3, 31);
+            v.InsuranceValidUntil = new DateOnly(2027, 5, 1);
+            await scope.Db.SaveChangesAsync();
+        });
+
+        // Found by the TD number alone, which is how the fleet is talked about.
+        var file = await InScope(scope =>
+        {
+            scope.CurrentUser.SignInAs(admin.Id, admin.Role, null, admin.Email);
+            return scope.Send(new ExportVehiclesQuery { Search = td.ToLowerInvariant() });
+        });
+
+        var sheet = Open(file);
+        var headers = Enumerable.Range(1, sheet.LastColumnUsed()!.ColumnNumber())
+            .Select(c => sheet.Cell(1, c).GetString())
+            .ToList();
+
+        var tdColumn = headers.IndexOf("TD") + 1;
+        var registeredColumn = headers.IndexOf("Registrovano do") + 1;
+        var insuranceColumn = headers.IndexOf("Osiguranje do") + 1;
+
+        Assert.True(tdColumn > 0 && registeredColumn > 0 && insuranceColumn > 0, string.Join(", ", headers));
+        Assert.Equal(td, sheet.Cell(2, tdColumn).GetString());
+        Assert.Equal(XLDataType.DateTime, sheet.Cell(2, registeredColumn).DataType);
+        Assert.Equal(new DateTime(2027, 3, 31), sheet.Cell(2, registeredColumn).GetDateTime());
+        Assert.Equal(new DateTime(2027, 5, 1), sheet.Cell(2, insuranceColumn).GetDateTime());
+    }
+
+    [Fact]
     public async Task Headings_come_back_in_the_language_that_was_asked_for()
     {
         // The file outlives the request: it gets emailed to an accountant
