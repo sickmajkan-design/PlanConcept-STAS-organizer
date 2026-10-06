@@ -797,7 +797,7 @@ export const sr: Record<MessageKey, Message> = {
   'finance.budget.basisBudget': 'Budžetu',
   'finance.budget.basisContract': 'Ugovorenoj vrijednosti',
   'finance.budget.warnPercent': 'Počni upozoravati na (%)',
-  'releaseNotes.title': 'Šta je novo — 05.10.2026.',
+  'releaseNotes.title': 'Šta je novo — 06.10.2026.',
   'releaseNotes.intro': 'Na platformi je urađeno nekoliko promjena. Ovo je kratak pregled onoga što se tiče vas.',
   'releaseNotes.close': 'Razumijem',
 
@@ -828,6 +828,8 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.security1005.limit': 'Server sada ograničava koliko zahtjeva jedan nalog ili jedna adresa može poslati u minuti, mnogo iznad uobičajene upotrebe, radi zaštite od zloupotrebe i uređaja koji se zaglave. Ako se pojavi poruka „Previše zahtjeva“, sačekajte minutu pa pokušajte ponovo.',
   'releaseNotes.security1005.panel': 'Administratorski panel sada pregledaču nalaže da izvršava samo svoj kod i da se ne ugrađuje u druge stranice, pa ga je teže napasti. Ako se poslije ovog ažuriranja karta uživo ne učita, javite nam.',
   'releaseNotes.security1005.behindTheScenes': 'U pozadini: server može koristiti nalog baze podataka s ograničenim pravima, a softver od kojeg je sastavljen vezan je za tačne verzije i provjerava se na poznate ranjivosti. Ništa ne treba raditi.',
+  'releaseNotes.layout1006.title': 'Ispravka gornje trake',
+  'releaseNotes.layout1006.fixed': 'Ispravljeno: na užem ekranu naziv i adresa firme u gornjoj traci više ne idu ispod ikona za pomoć i prečice na tastaturi; dugačak naziv se skraćuje.',
   'finance.budget.warnPercentHelp': 'Prazno znači 80%. Od 100% se projekat računa kao prekoračen.',
   'finance.housingDoubleWarning': '{count} troškova smještaja pada na dane kada je kirija već uračunata iz cijena smještaja, pa se ta kirija računa dvaput. Obrišite ih ili ih prebacite u drugu kategoriju.',
   'finance.payOverlapWarning': '{count} isplata bez projekta pada na dane kada je ista osoba evidentirala sate na projektu. Računaju se oba iznosa — provjerite treba li jedan zamijeniti drugi.',

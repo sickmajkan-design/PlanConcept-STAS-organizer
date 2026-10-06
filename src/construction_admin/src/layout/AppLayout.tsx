@@ -794,9 +794,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
             to={paths.home}
             sx={{
               display: { xs: 'none', lg: 'flex' },
-              position: 'absolute',
-              left: '50%',
-              transform: 'translateX(-50%)',
+              // In the flex flow (not absolutely centred) so it shrinks and
+              // truncates before it can ever run under the action icons.
               alignItems: 'center',
               gap: 1.25,
               px: 2,
@@ -805,6 +804,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
               textDecoration: 'none',
               color: 'inherit',
               maxWidth: 560,
+              minWidth: 0,
+              flexShrink: 1,
               transition: 'background-color 0.18s',
               '&:hover': { bgcolor: 'action.hover' },
             }}
@@ -845,6 +846,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
               )}
             </Box>
           </Box>
+          <Box sx={{ flex: 1 }} />
 
           <Tooltip title={t('guide.title')}>
             <IconButton onClick={() => setGuideOpen(true)} aria-label={t('guide.title')}>

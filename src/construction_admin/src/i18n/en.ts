@@ -770,7 +770,7 @@ export const en = {
   'finance.budget.basisBudget': 'Budget',
   'finance.budget.basisContract': 'Contract value',
   'finance.budget.warnPercent': 'Start warning at (%)',
-  'releaseNotes.title': "What's new — 5 Oct 2026",
+  'releaseNotes.title': "What's new — 6 Oct 2026",
   'releaseNotes.intro': 'Several changes were made to the platform. Here is a short summary of what concerns you.',
   'releaseNotes.close': 'Got it',
 
@@ -801,6 +801,8 @@ export const en = {
   'releaseNotes.security1005.limit': 'The server now limits how many requests one account or one address can send per minute, far above normal use, to stop abuse and devices that get stuck in a loop. If a message says "Too many requests", wait a minute and try again.',
   'releaseNotes.security1005.panel': 'The admin panel now tells the browser to run only its own code and not to be embedded in other pages, which makes it harder to attack. If the live map does not load after this update, please tell us.',
   'releaseNotes.security1005.behindTheScenes': 'Behind the scenes: the server can now use a database account with limited rights, and the software it is built from is pinned to exact versions and checked for known vulnerabilities. Nothing to do.',
+  'releaseNotes.layout1006.title': 'Top bar fix',
+  'releaseNotes.layout1006.fixed': 'Fixed: on a narrower screen the company name and address in the top bar no longer run underneath the help and keyboard shortcut icons; a long name is shortened instead.',
   'finance.budget.warnPercentHelp': 'Leave empty for 80%. From 100% the project counts as over.',
   'finance.housingDoubleWarning': '{count} housing expenses fall on days when accommodation rent is already counted from the accommodation rates, so that rent is counted twice. Delete them or move them to another category.',
   'finance.payOverlapWarning': '{count} pay entries tied to no project fall on days the same person clocked hours at a project. Both are counted — check whether one of them should replace the other.',
