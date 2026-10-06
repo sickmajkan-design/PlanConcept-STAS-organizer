@@ -34,6 +34,7 @@ import {
   AdminPanelSettingsOutlined,
   SecurityOutlined,
   HistoryOutlined,
+  WifiTetheringOutlined,
   AccountTreeOutlined,
 } from '@mui/icons-material';
 import type { ReactNode } from 'react';
@@ -305,6 +306,11 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
                 label: t('nav.audit'),
                 path: paths.audit,
                 icon: <HistoryOutlined />,
+              },
+              {
+                label: t('nav.presence'),
+                path: paths.presence,
+                icon: <WifiTetheringOutlined />,
               },
             ],
           } satisfies NavGroup,

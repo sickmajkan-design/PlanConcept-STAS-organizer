@@ -21,6 +21,9 @@ public record LoginCommand : IRequest<AuthResponse>
 
     /// <summary>Set by the API layer from the connection, never from the request body.</summary>
     public string? IpAddress { get; init; }
+
+    /// <summary>Set by the API layer from the User-Agent header, for the sign-in record.</summary>
+    public string? UserAgent { get; init; }
 }
 
 public class LoginCommandValidator : AbstractValidator<LoginCommand>
@@ -124,6 +127,19 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
         }
 
         var response = _authTokenService.IssueTokens(user, request.IpAddress, out _);
+
+        // One row per sign-in, not per request: this is the "who signed in
+        // when" record, and its LastSeenAt is refreshed in the background.
+        _context.UserSessions.Add(new UserSession
+        {
+            UserId = user.Id,
+            IpAddress = request.IpAddress,
+            UserAgent = request.UserAgent is { Length: > 200 } agent
+                ? agent[..200]
+                : request.UserAgent,
+            StartedAt = utcNow,
+            LastSeenAt = utcNow,
+        });
 
         await _context.SaveChangesAsync(cancellationToken);
 

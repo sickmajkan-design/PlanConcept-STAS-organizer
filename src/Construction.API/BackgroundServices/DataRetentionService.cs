@@ -103,6 +103,7 @@ public class DataRetentionService : BackgroundService
                         TimeSpan.FromDays(_settings.PasswordResetTokenGraceDays),
                     LocationRecordRetention = _settings.LocationRetention,
                     AuditEntryRetention = _settings.AuditRetention,
+                    UserSessionRetention = _settings.UserSessionRetention,
                     TimeEntryCoordinateRetention = _settings.TimeEntryCoordinateRetention,
                     SentOutboxMessageRetention =
                         TimeSpan.FromDays(_settings.SentOutboxMessageDays),

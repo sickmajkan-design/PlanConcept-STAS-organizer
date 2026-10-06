@@ -69,6 +69,7 @@ import {
 } from './navConfig';
 import { BranchSwitcher } from '../features/branches/BranchSwitcher';
 import { NotificationsMenu } from './NotificationsMenu';
+import { usePresenceHeartbeat } from '../features/presence/usePresence';
 import { ReleaseNotesDialog } from '../features/releaseNotes/ReleaseNotesDialog';
 import { PlatformGuideDialog } from './PlatformGuideDialog';
 import { isTypingTarget, ShortcutsHelpDialog } from './ShortcutsHelpDialog';
@@ -114,6 +115,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   const navigate = useNavigate();
   const location = useLocation();
+  usePresenceHeartbeat(location.pathname, !!user);
   const t = useT();
   const enumLabel = useEnumLabel();
   const { data: branding } = useCompanyBrandingQuery();

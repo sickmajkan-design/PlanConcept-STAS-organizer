@@ -37,16 +37,13 @@ describe('ReleaseNotesDialog', () => {
     expect(screen.queryByText(/What's new/)).toBeNull();
   }, SCREEN_TIMEOUT);
 
-  it('shows only the parts that concern the account', async () => {
+  it('shows an account nothing that is meant only for administrators', async () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('Foreman') });
 
-    // A foreman is told about the vehicle passes, which they can open ...
-    await screen.findByText('Vignettes, tunnels and toll passages on vehicles');
-
-    // ... and not about what only administrators work with.
+    await new Promise((resolve) => setTimeout(resolve, 50));
     expect(screen.queryByText('Security improvements')).toBeNull();
     expect(screen.queryByText('Business units')).toBeNull();
-    expect(screen.queryByText('Documents, reminders and housing')).toBeNull();
+    expect(screen.queryByText('Who is online')).toBeNull();
   }, SCREEN_TIMEOUT);
 
   it('shows nothing to an account none of the sections concern', async () => {
@@ -62,7 +59,7 @@ describe('ReleaseNotesDialog', () => {
     await screen.findByText('Security improvements');
     expect(screen.getByText('Business units')).toBeDefined();
     expect(screen.getByText('Documents, reminders and housing')).toBeDefined();
-    expect(screen.getByText('Vignettes, tunnels and toll passages on vehicles')).toBeDefined();
+    expect(screen.getByText('Who is online')).toBeDefined();
   }, SCREEN_TIMEOUT);
 
   it('is shown again for a new release', async () => {

@@ -92,6 +92,8 @@ try
     builder.Services.Configure<RetentionSettings>(
         builder.Configuration.GetSection(RetentionSettings.SectionName));
     builder.Services.AddHostedService<DataRetentionService>();
+    builder.Services.AddSingleton<IPresenceTracker, PresenceTracker>();
+    builder.Services.AddHostedService<PresenceFlushService>();
 
     // Sends what the request path queued. Nothing to claim first here either:
     // claiming a message moves it beyond its own lease, so a second worker
@@ -193,6 +195,8 @@ try
     app.UseAuthentication();
 
     app.UseRateLimiter();
+
+    app.UseMiddleware<PresenceMiddleware>();
 
     app.UseAuthorization();
 

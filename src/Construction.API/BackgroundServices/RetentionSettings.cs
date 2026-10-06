@@ -53,6 +53,16 @@ public class RetentionSettings
     public TimeSpan? LocationRetention =>
         LocationRecordDays > 0 ? TimeSpan.FromDays(LocationRecordDays) : null;
 
+    /// <summary>
+    /// Days a sign-in session (who signed in when, from where) is kept. Zero or
+    /// less keeps them forever.
+    /// </summary>
+    public int UserSessionDays { get; set; } = 30;
+
+    /// <summary><see cref="UserSessionDays"/> as a period, or null for "keep everything".</summary>
+    public TimeSpan? UserSessionRetention =>
+        UserSessionDays > 0 ? TimeSpan.FromDays(UserSessionDays) : null;
+
     /// <summary>Days a delivered outbox message is kept.</summary>
     /// <remarks>
     /// Enough to answer "was that email sent, and when?" after somebody asks.

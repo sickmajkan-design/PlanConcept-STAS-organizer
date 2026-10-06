@@ -272,6 +272,11 @@ const AuditPage = lazy(() =>
     default: m.AuditPage,
   })),
 );
+const PresencePage = lazy(() =>
+  import('./pages/presence/PresencePage').then((m) => ({
+    default: m.PresencePage,
+  })),
+);
 const TimeEntriesListPage = lazy(() =>
   import('./pages/timeEntries/TimeEntriesListPage').then((m) => ({
     default: m.TimeEntriesListPage,
@@ -481,6 +486,7 @@ function Layout() {
                   with the directory screens. */}
               <Route path={paths.expiringDocuments} element={<ExpiringDocumentsPage />} />
               <Route path={paths.audit} element={<AuditPage />} />
+              <Route path={paths.presence} element={<PresencePage />} />
               <Route path={paths.users} element={<UsersListPage />} />
               <Route path={paths.userNew} element={<UserFormPage />} />
               <Route path={`${paths.users}/:id/edit`} element={<UserFormPage />} />

@@ -9,6 +9,8 @@ public interface IApplicationDbContext
 
     DbSet<RefreshToken> RefreshTokens { get; }
 
+    DbSet<UserSession> UserSessions { get; }
+
     DbSet<PasswordResetToken> PasswordResetTokens { get; }
 
     DbSet<Employee> Employees { get; }

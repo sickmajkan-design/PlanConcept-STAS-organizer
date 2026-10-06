@@ -27,9 +27,12 @@ public record PurgeResult(
     /// </remarks>
     public int LocationPartitionsDropped { get; init; }
 
+    /// <summary>Sign-in sessions removed once past their retention window.</summary>
+    public int UserSessions { get; init; }
+
     public int Total =>
         RefreshTokens + PasswordResetTokens + LocationRecords + OutboxMessages
-        + AuditEntries + TimeEntryCoordinates + IdempotencyRecords;
+        + AuditEntries + TimeEntryCoordinates + IdempotencyRecords + UserSessions;
 }
 
 /// <summary>
@@ -105,6 +108,12 @@ public record PurgeExpiredDataCommand : IRequest<PurgeResult>
     /// are obliged to make and none should make by accident.
     /// </remarks>
     public TimeSpan? AuditEntryRetention { get; init; }
+
+    /// <summary>
+    /// How long a sign-in session (who signed in when, from where) is kept.
+    /// Null keeps them forever.
+    /// </summary>
+    public TimeSpan? UserSessionRetention { get; init; } = TimeSpan.FromDays(30);
 
     /// <summary>
     /// How long a shift's clock-in and clock-out coordinates are kept. Null —
@@ -314,10 +323,22 @@ public class PurgeExpiredDataCommandHandler
             request,
             cancellationToken);
 
+        var sessions = 0;
+
+        if (request.UserSessionRetention is { } sessionRetention)
+        {
+            sessions = await DeleteInBatchesAsync(
+                _context.UserSessions
+                    .Where(s => s.LastSeenAt < utcNow - sessionRetention),
+                request,
+                cancellationToken);
+        }
+
         return new PurgeResult(
             refreshTokens, resetTokens, locations, outbox, audit, coordinates, idempotency)
         {
             LocationPartitionsDropped = partitionsDropped,
+            UserSessions = sessions,
         };
     }
 

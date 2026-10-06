@@ -86,6 +86,7 @@ export const paths = {
 
   expiringDocuments: '/documents/expiring',
   audit: '/audit',
+  presence: '/presence',
 
   scheduledReports: '/scheduled-reports',
   weeklyReports: '/weekly-reports',

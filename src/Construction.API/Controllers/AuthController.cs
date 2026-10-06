@@ -31,7 +31,7 @@ public class AuthController : ApiControllerBase
         LoginCommand command,
         CancellationToken cancellationToken)
     {
-        var response = await Mediator.Send(command with { IpAddress = ClientIpAddress }, cancellationToken);
+        var response = await Mediator.Send(command with { IpAddress = ClientIpAddress, UserAgent = Request.Headers.UserAgent.ToString() }, cancellationToken);
 
         return Ok(IssueCookieIfAsked(response));
     }

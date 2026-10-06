@@ -10,7 +10,7 @@ import type { MessageKey } from '../../i18n/en';
  * what changed recently, not a changelog: when a release is added, drop the
  * sections older than the fifth (and their `releaseNotes.*` keys in i18n).
  */
-export const RELEASE_ID = '2026-10-06.1';
+export const RELEASE_ID = '2026-10-06.2';
 
 export interface ReleaseSection {
   id: string;
@@ -20,16 +20,7 @@ export interface ReleaseSection {
   audience: (user: User) => boolean;
 }
 
-/** Roles that could read the cost reports before finance became a right of its own. */
-const COST_ROLES = new Set(['SuperAdmin', 'Admin', 'ProjectManager', 'Foreman']);
-
 export const releaseSections: ReleaseSection[] = [
-  {
-    id: 'tolls1128',
-    titleKey: 'releaseNotes.tolls1128.title',
-    itemKeys: ['releaseNotes.tolls1128.what', 'releaseNotes.tolls1128.who'],
-    audience: (user) => COST_ROLES.has(user.role),
-  },
   {
     id: 'branches1001',
     titleKey: 'releaseNotes.branches1001.title',
@@ -75,6 +66,12 @@ export const releaseSections: ReleaseSection[] = [
     id: 'layout1006',
     titleKey: 'releaseNotes.layout1006.title',
     itemKeys: ['releaseNotes.layout1006.fixed'],
+    audience: (user) => user.role === 'SuperAdmin' || user.role === 'Admin',
+  },
+  {
+    id: 'presence1006',
+    titleKey: 'releaseNotes.presence1006.title',
+    itemKeys: ['releaseNotes.presence1006.what', 'releaseNotes.presence1006.keep'],
     audience: (user) => user.role === 'SuperAdmin' || user.role === 'Admin',
   },
 ];
