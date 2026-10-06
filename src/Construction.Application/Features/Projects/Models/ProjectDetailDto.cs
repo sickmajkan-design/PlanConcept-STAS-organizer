@@ -92,6 +92,8 @@ public static class ProjectDetailMapping
             ContractValue = project.ContractValue,
             BillingMode = project.BillingMode.ToString(),
             ShiftStartTime = project.ShiftStartTime,
+            WorksSaturdays = project.WorksSaturdays,
+            WorksSundays = project.WorksSundays,
             // Open-ended assignments only — see the matching note in
             // EmployeeDetailMapping.Projection. Without this, a project's
             // roster and count never shrank: everyone ever taken off the

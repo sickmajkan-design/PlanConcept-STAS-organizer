@@ -29,6 +29,8 @@ export interface ScheduleProject {
   /** Expected clock-in, `HH:mm:ss` in UTC; null when the site has none. */
   shiftStartTime: string | null;
   endDate: string | null;
+  worksSaturdays: boolean;
+  worksSundays: boolean;
 }
 
 export interface ScheduleEmployee {

@@ -221,6 +221,9 @@ export interface Project {
   countryCode: string | null;
   /** The site's expected daily clock-in time, in UTC (`HH:mm:ss`), if one is set. */
   shiftStartTime: string | null;
+  /** The crew works Saturdays / Sundays here (weekdays always count). */
+  worksSaturdays: boolean;
+  worksSundays: boolean;
   startDate: string | null;
   endDate: string | null;
   status: ProjectStatus;
@@ -329,6 +332,8 @@ export interface ProjectInput {
   longitude?: number | null;
   countryCode?: string | null;
   shiftStartTime?: string | null;
+  worksSaturdays?: boolean;
+  worksSundays?: boolean;
   startDate?: string | null;
   endDate?: string | null;
   status: ProjectStatus;

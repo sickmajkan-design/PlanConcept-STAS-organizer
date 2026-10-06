@@ -51,6 +51,24 @@ public class Project : BaseEntity, ISoftDeletable, IAuditable
     /// </summary>
     public TimeOnly? ShiftStartTime { get; set; }
 
+    /// <summary>
+    /// Whether the crew works Saturdays here. Weekdays are always working days. Used by the planning
+    /// board to decide which days an open-ended posting actually covers; it does not stop anyone
+    /// from clocking in on a day off.
+    /// </summary>
+    public bool WorksSaturdays { get; set; }
+
+    /// <summary>Whether the crew works Sundays here. See <see cref="WorksSaturdays"/>.</summary>
+    public bool WorksSundays { get; set; }
+
+    /// <summary>Whether this site's crew works on <paramref name="day"/>.</summary>
+    public bool WorksOn(DateOnly day) => day.DayOfWeek switch
+    {
+        DayOfWeek.Saturday => WorksSaturdays,
+        DayOfWeek.Sunday => WorksSundays,
+        _ => true,
+    };
+
     public DateOnly? StartDate { get; set; }
 
     public DateOnly? EndDate { get; set; }

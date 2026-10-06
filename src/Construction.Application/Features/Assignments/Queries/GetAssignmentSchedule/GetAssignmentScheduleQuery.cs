@@ -78,6 +78,10 @@ public class ScheduleProjectDto
     public TimeOnly? ShiftStartTime { get; init; }
 
     public DateOnly? EndDate { get; init; }
+
+    public bool WorksSaturdays { get; init; }
+
+    public bool WorksSundays { get; init; }
 }
 
 public class ScheduleEmployeeDto
@@ -204,16 +208,28 @@ public class GetAssignmentScheduleQueryHandler
                 Status = p.Status.ToString(),
                 ShiftStartTime = p.ShiftStartTime,
                 EndDate = p.EndDate,
+                WorksSaturdays = p.WorksSaturdays,
+                WorksSundays = p.WorksSundays,
             })
             .ToListAsync(cancellationToken);
 
         var shiftByProject = projects.ToDictionary(p => p.Id, p => p.ShiftStartTime);
+        var worksToday = projects.ToDictionary(p => p.Id, p => today.DayOfWeek switch
+        {
+            DayOfWeek.Saturday => p.WorksSaturdays,
+            DayOfWeek.Sunday => p.WorksSundays,
+            _ => true,
+        });
         var timeNow = TimeOnly.FromDateTime(now);
 
         var rows = employees.Select(e =>
         {
             var mine = absences.Where(a => a.EmployeeId == e.Id).ToList();
-            var todays = e.Postings.Where(p => p.StartDate <= today && (p.EndDate == null || p.EndDate >= today)).ToList();
+            // A posting on a site that does not work today (a Sunday, say) expects nobody.
+            var todays = e.Postings
+                .Where(p => p.StartDate <= today && (p.EndDate == null || p.EndDate >= today)
+                    && (!worksToday.TryGetValue(p.ProjectId, out var works) || works))
+                .ToList();
             var entry = entries.Where(t => t.EmployeeId == e.Id).OrderBy(t => t.StartedAt).FirstOrDefault();
             var absentToday = mine.FirstOrDefault(a => a.StartDate <= today && a.EndDate >= today);
             var projectId = entry?.ProjectId ?? todays.FirstOrDefault()?.ProjectId;

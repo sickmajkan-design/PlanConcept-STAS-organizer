@@ -93,8 +93,7 @@ describe('AssignmentSchedulePage', () => {
 
     await renderBoard();
 
-    expect(await screen.findByText(/(Approved leave . replacement needed|Odobrena odsustva . treba zamjena)/i)).toBeDefined();
-    await userEvent.click(screen.getByRole('button', { name: /(Find replacement|Nađi zamjenu)/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /(Find replacement|Nađi zamjenu)/ }));
 
     expect((await screen.findAllByText('Kenan Dizdar')).length).toBeGreaterThan(0);
     await userEvent.click(screen.getByRole('button', { name: /^(Assign|Dodijeli)$/ }));

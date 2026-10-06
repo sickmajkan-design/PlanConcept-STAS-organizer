@@ -75,9 +75,14 @@ const mondayOf = (value: string) => {
 };
 /** `2026-10-09` as `09.10.` */
 const shortDate = (value: string) => `${value.slice(8)}.${value.slice(5, 7)}.`;
-const isWeekend = (value: string) => {
-  const day = new Date(`${value}T00:00:00Z`).getUTCDay();
-  return day === 0 || day === 6;
+const dayOfWeek = (value: string) => new Date(`${value}T00:00:00Z`).getUTCDay();
+const isSunday = (value: string) => dayOfWeek(value) === 0;
+/** Weekdays always; Saturday and Sunday only on sites that work them. */
+const worksOn = (project: ScheduleProject, day: string) => {
+  const dow = dayOfWeek(day);
+  if (dow === 6) return project.worksSaturdays;
+  if (dow === 0) return project.worksSundays;
+  return true;
 };
 const covers = (start: string, end: string | null, day: string) =>
   start <= day && (end === null || end >= day);
@@ -97,32 +102,47 @@ function localClock(value: string | null): string {
     : '';
 }
 
+/** Everything the day cells need to know about the sites, computed once per load. */
+interface DayContext {
+  project: (id: string) => ScheduleProject | undefined;
+  /** Whether at least one site works that day, so a free day can be offered for posting. */
+  anySiteWorks: (day: string) => boolean;
+}
+
+function makeContext(data: AssignmentSchedule | undefined): DayContext {
+  const byId = new Map((data?.projects ?? []).map((p) => [p.id, p]));
+  return {
+    project: (id) => byId.get(id),
+    anySiteWorks: (day) => {
+      const dow = dayOfWeek(day);
+      if (dow !== 0 && dow !== 6) return true;
+      return (data?.projects ?? []).some((p) => worksOn(p, day));
+    },
+  };
+}
+
 interface Cell {
   kind: 'site' | 'leave' | 'sick' | 'free' | 'off';
   projects: string[];
   conflict: boolean;
-  absence?: string;
 }
 
-function cellFor(employee: ScheduleEmployee, day: string): Cell {
+/** The planning picture of one worker on one day. Sundays and Saturdays count only where a site works them. */
+function cellFor(employee: ScheduleEmployee, day: string, ctx: DayContext): Cell {
   const absence = employee.absences.find((a) => covers(a.startDate, a.endDate, day));
   const projects = employee.postings
     .filter((p) => covers(p.startDate, p.endDate, day))
-    .map((p) => p.projectId);
+    .map((p) => p.projectId)
+    .filter((id) => {
+      const project = ctx.project(id);
+      return project ? worksOn(project, day) : true;
+    });
 
   if (absence) {
-    return {
-      kind: absence.type === 'SickLeave' ? 'sick' : 'leave',
-      projects,
-      // Posted on a day with approved leave: somebody has to decide.
-      conflict: projects.length > 0,
-      absence: absence.type,
-    };
+    return { kind: absence.type === 'SickLeave' ? 'sick' : 'leave', projects, conflict: projects.length > 0 };
   }
-
-  if (isWeekend(day)) return { kind: 'off', projects, conflict: false };
   if (projects.length > 0) return { kind: 'site', projects, conflict: false };
-  return { kind: 'free', projects, conflict: false };
+  return { kind: ctx.anySiteWorks(day) ? 'free' : 'off', projects, conflict: false };
 }
 
 /** An approved absence on days someone is posted to a site: the position is empty and needs a replacement. */
@@ -132,7 +152,7 @@ interface Vacancy {
   projectId: string;
   from: string;
   to: string;
-  /** Working days in the range. */
+  /** Working days of the site in the range. */
   days: number;
 }
 
@@ -143,21 +163,23 @@ const eachDay = (from: string, to: string) => {
 };
 
 /**
- * Empty positions: every posting that overlaps an approved absence, from today on. One that
- * somebody already covers (another worker with a bounded posting on the same site across the
- * whole stretch) is not listed. That is what "Assign replacement" creates, so the card goes
- * away once it is done.
+ * Empty positions: every posting that overlaps an approved absence, from today on, counted over
+ * the days the site actually works. One that somebody already covers (another worker with a
+ * bounded posting on the same site across the whole stretch) is not listed. That is what "Assign
+ * replacement" creates, so the entry goes away once it is done.
  */
 function buildVacancies(data: AssignmentSchedule | undefined): Vacancy[] {
   if (!data) return [];
   const result: Vacancy[] = [];
+  const projects = new Map(data.projects.map((p) => [p.id, p]));
 
   for (const e of data.employees) {
     for (const a of e.absences) {
       for (const p of e.postings) {
+        const project = projects.get(p.projectId);
         const from = [a.startDate, p.startDate, data.today].sort().at(-1)!;
         const to = [a.endDate, p.endDate ?? a.endDate].sort()[0];
-        const working = eachDay(from, to).filter((d) => !isWeekend(d));
+        const working = eachDay(from, to).filter((d) => (project ? worksOn(project, d) : !isSunday(d)));
         if (working.length === 0) continue;
         const first = working[0];
         const last = working[working.length - 1];
@@ -185,14 +207,15 @@ interface Candidate {
 }
 
 /** Workers with at least one free working day in the vacancy, same trade first. */
-function candidatesFor(data: AssignmentSchedule, vacancy: Vacancy): Candidate[] {
+function candidatesFor(data: AssignmentSchedule, vacancy: Vacancy, ctx: DayContext): Candidate[] {
   const absent = data.employees.find((e) => e.id === vacancy.employeeId);
-  const window = eachDay(vacancy.from, vacancy.to).filter((d) => !isWeekend(d));
+  const project = ctx.project(vacancy.projectId);
+  const window = eachDay(vacancy.from, vacancy.to).filter((d) => (project ? worksOn(project, d) : !isSunday(d)));
   return data.employees
     .filter((e) => e.id !== vacancy.employeeId)
     .map((employee) => ({
       employee,
-      freeDays: window.filter((d) => cellFor(employee, d).kind === 'free').length,
+      freeDays: window.filter((d) => cellFor(employee, d, ctx).kind === 'free').length,
       sameTrade: employee.position === absent?.position,
     }))
     .filter((c) => c.freeDays > 0)
@@ -207,6 +230,63 @@ interface AttentionItem {
   employeeId: string;
 }
 
+/** One run of days drawn as a single bar. */
+interface Segment {
+  start: number;
+  length: number;
+  sig: string;
+  cell: Cell;
+  vacancyProject?: string;
+}
+
+/**
+ * A worker's week as bars instead of one box per day: consecutive days with the same site (or the
+ * same absence) are one bar. A day nobody works (a Sunday between two days at the same site) does
+ * not break the bar. Free days stay separate so they can be clicked.
+ */
+function segmentsFor(
+  employee: ScheduleEmployee,
+  dayList: string[],
+  ctx: DayContext,
+  vacancyOf: (employeeId: string, day: string) => Vacancy | undefined,
+): { segments: Segment[]; free: number[] } {
+  const cells = dayList.map((day) => cellFor(employee, day, ctx));
+  const sigs = cells.map((cell, i) => {
+    if (cell.kind === 'free' || cell.kind === 'off') return '';
+    if (cell.kind === 'site') return `site|${[...cell.projects].sort().join(',')}`;
+    return `${cell.kind}|${vacancyOf(employee.id, dayList[i])?.projectId ?? ''}${cell.conflict ? '|x' : ''}`;
+  });
+
+  // Bridge days off between two identical neighbours.
+  for (let i = 0; i < sigs.length; i++) {
+    if (sigs[i] !== '' || cells[i].kind !== 'off') continue;
+    let j = i;
+    while (j < sigs.length && sigs[j] === '' && cells[j].kind === 'off') j++;
+    if (i > 0 && j < sigs.length && sigs[i - 1] !== '' && sigs[i - 1] === sigs[j]) {
+      for (let k = i; k < j; k++) sigs[k] = sigs[j];
+    }
+    i = j;
+  }
+
+  const segments: Segment[] = [];
+  const free: number[] = [];
+  for (let i = 0; i < sigs.length; i++) {
+    if (sigs[i] === '') {
+      if (cells[i].kind === 'free') free.push(i);
+      continue;
+    }
+    const last = segments[segments.length - 1];
+    if (last && last.sig === sigs[i] && last.start + last.length === i) {
+      last.length += 1;
+    } else {
+      segments.push({ start: i, length: 1, sig: sigs[i], cell: cells[i], vacancyProject: vacancyOf(employee.id, dayList[i])?.projectId });
+    }
+  }
+  return { segments, free };
+}
+
+const NAME_COL = 236;
+
 export function AssignmentSchedulePage() {
   const t = useT();
   const [weeks, setWeeks] = useState<1 | 2 | 4>(2);
@@ -218,6 +298,7 @@ export function AssignmentSchedulePage() {
   const [assignFor, setAssignFor] = useState<{ employeeId?: string; projectId?: string; date: string } | null>(null);
   const [view, setView] = useState<'people' | 'sites'>('people');
   const [replacingKey, setReplacingKey] = useState<string | null>(null);
+  const [attentionOpen, setAttentionOpen] = useState<boolean | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -229,10 +310,8 @@ export function AssignmentSchedulePage() {
   const assignReplacement = useAssignOnBoard();
 
   const dayList = useMemo(() => Array.from({ length: days }, (_, i) => addDays(from, i)), [from, days]);
-  const projectsById = useMemo(
-    () => new Map((data?.projects ?? []).map((p) => [p.id, p])),
-    [data],
-  );
+  const ctx = useMemo(() => makeContext(data), [data]);
+  const projectsById = useMemo(() => new Map((data?.projects ?? []).map((p) => [p.id, p])), [data]);
   const colorOf = (projectId: string) => {
     const index = (data?.projects ?? []).findIndex((p) => p.id === projectId);
     return SITE_COLORS[Math.max(index, 0) % SITE_COLORS.length];
@@ -240,11 +319,6 @@ export function AssignmentSchedulePage() {
 
   const attention = useMemo(() => buildAttention(data, t), [data, t]);
   const vacancies = useMemo(() => buildVacancies(data), [data]);
-  const vacantDays = useMemo(() => {
-    const set = new Set<string>();
-    for (const v of vacancies) for (const d of eachDay(v.from, v.to)) set.add(`${v.employeeId}|${d}`);
-    return set;
-  }, [vacancies]);
   const vacancyOf = (employeeId: string, day: string) => vacancies.find((v) => v.employeeId === employeeId && v.from <= day && v.to >= day);
   const flagged = useMemo(
     () => new Set([...attention.filter((a) => a.level !== 'info').map((a) => a.employeeId), ...vacancies.map((v) => v.employeeId)]),
@@ -292,8 +366,11 @@ export function AssignmentSchedulePage() {
 
   const selected = (data?.employees ?? []).find((e) => e.id === selectedId) ?? null;
   const replacingVacancy = vacancies.find((v) => v.key === replacingKey) ?? null;
-  const columns = `250px repeat(${days}, minmax(${weeks === 1 ? 92 : weeks === 2 ? 56 : 26}px, 1fr))`;
   const compact = weeks === 4;
+  const unit = weeks === 1 ? 88 : weeks === 2 ? 52 : 24;
+  const columns = `${NAME_COL}px ${dayList.map((d) => (isSunday(d) ? `minmax(${Math.round(unit * 0.55)}px, 0.55fr)` : `minmax(${unit}px, 1fr)`)).join(' ')}`;
+  const minWidth = NAME_COL + dayList.reduce((sum, d) => sum + (isSunday(d) ? Math.round(unit * 0.55) : unit), 0);
+  const barHeight = compact ? 26 : 34;
 
   const toggleGroup = (key: string) =>
     setCollapsed((prev) => {
@@ -306,70 +383,67 @@ export function AssignmentSchedulePage() {
   if (isLoading) return <Typography color="text.secondary">{t('common.loading')}</Typography>;
   if (isError || !data) return <ErrorState error={loadError} onRetry={() => void refetch()} />;
 
-  const siteCells = (e: ScheduleEmployee, day: string, cell: Cell) => {
-    const vacancy = vacantDays.has(`${e.id}|${day}`) ? vacancyOf(e.id, day) : undefined;
-    if (cell.kind === 'off') return null;
-    if (cell.kind === 'free') {
-      return (
-        <ButtonBase
-          aria-label={t('schedule.assignOn', { name: e.fullName, date: day })}
-          onClick={() => setAssignFor({ employeeId: e.id, date: day })}
-          sx={{ flex: 1, border: '1px dashed', borderColor: 'divider', borderRadius: 1, color: 'transparent', '&:hover': { color: 'primary.main', borderColor: 'primary.main' } }}
-        >
-          {compact ? null : <AddOutlined fontSize="small" />}
-        </ButtonBase>
-      );
-    }
+  const attentionCount = vacancies.length + attention.length;
+  const showAttention = attentionOpen ?? attentionCount <= 4;
+
+  const openReplacement = (v: Vacancy) => { setReplacingKey(v.key); setSelectedId(v.employeeId); setView('people'); };
+
+  const renderBar = (e: ScheduleEmployee, seg: Segment) => {
+    const { cell } = seg;
+    const base = { gridColumn: `${seg.start + 2} / span ${seg.length}`, gridRow: 1, zIndex: 1, my: '3px', mx: '1px', minWidth: 0 } as const;
+
     if (cell.kind === 'leave' || cell.kind === 'sick') {
       const color = cell.kind === 'leave' ? LEAVE_COLOR : SICK_COLOR;
+      const site = seg.vacancyProject ? projectsById.get(seg.vacancyProject)?.name : undefined;
       return (
         <Box
-          title={vacancy ? t('schedule.vacantHere', { site: projectsById.get(vacancy.projectId)?.name ?? '' }) : cell.conflict ? t('schedule.conflictLeave') : undefined}
+          key={`${e.id}-${seg.start}`}
+          title={site ? t('schedule.vacantHere', { site }) : cell.conflict ? t('schedule.conflictLeave') : undefined}
           sx={{
-            flex: 1, borderRadius: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', px: 0.5,
-            color, fontSize: 12, fontWeight: 600,
-            border: vacancy ? '2px dashed' : cell.conflict ? '2px solid' : 'none', borderColor: vacancy ? 'warning.main' : 'error.main',
+            ...base, borderRadius: 1, display: 'flex', alignItems: 'center', gap: 0.75, px: 0.75, overflow: 'hidden',
+            color, fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap',
+            border: site ? '2px dashed' : cell.conflict ? '2px solid' : '1px solid', borderColor: site ? 'warning.main' : cell.conflict ? 'error.main' : `${color}66`,
             background: `repeating-linear-gradient(135deg, ${color}2e 0 5px, ${color}0f 5px 10px)`,
           }}
         >
-          {compact ? '' : (
-            <Box sx={{ textAlign: 'center', lineHeight: 1.2 }}>
-              {t(cell.kind === 'leave' ? 'schedule.leave' : 'schedule.sick')}
-              {vacancy && weeks === 1 ? (
-                <Box sx={{ color: 'warning.main', fontSize: 10 }}>{t('schedule.vacantShort', { site: projectsById.get(vacancy.projectId)?.name ?? '' })}</Box>
-              ) : null}
+          {compact ? null : <span>{t(cell.kind === 'leave' ? 'schedule.leave' : 'schedule.sick')}</span>}
+          {site && !compact && seg.length >= 2 ? (
+            <Box component="span" sx={{ color: 'warning.main', fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {t('schedule.vacantShort', { site })}
             </Box>
-          )}
+          ) : null}
         </Box>
       );
     }
+
+    const split = cell.projects.length > 1;
     return (
-      <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
+      <Box key={`${e.id}-${seg.start}`} sx={{ ...base, display: 'flex', flexDirection: 'column', gap: '2px' }}>
         {cell.projects.map((projectId) => {
           const project = projectsById.get(projectId);
           const color = colorOf(projectId);
           const shift = localShift(project?.shiftStartTime ?? null);
+          const showShift = !compact && !split && seg.length >= 2 && shift;
           return (
             <Box
               key={projectId}
               title={`${project?.name ?? ''}${shift ? ` · ${t('schedule.from', { time: shift })}` : ''}`}
               sx={{
-                flex: 1, borderRadius: compact ? 0.5 : 1, px: compact ? 0 : 0.75, py: compact ? 0 : 0.25, minWidth: 0,
-                fontSize: weeks === 1 ? 12 : 11, fontWeight: 500, lineHeight: 1.25,
-                bgcolor: `${color}29`, border: '1px solid', borderColor: `${color}8c`,
-                display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+                flex: 1, minHeight: 0, borderRadius: compact ? 0.5 : 1, px: compact ? 0 : 0.75, minWidth: 0,
+                display: 'flex', alignItems: 'center', gap: 0.75, fontSize: 12, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden',
+                bgcolor: `${color}26`, borderLeft: `3px solid ${color}`,
               }}
             >
-              {compact ? null : (
-                <>
-                  <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{project?.name}</Box>
-                  {weeks === 1 && shift ? (
-                    <Typography component="span" sx={{ fontSize: 10, fontFamily: 'monospace', color: 'text.secondary' }}>
-                      {t('schedule.from', { time: shift })}
-                    </Typography>
-                  ) : null}
-                </>
-              )}
+              {compact ? null : <Box component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{project?.name}</Box>}
+              {showShift ? (
+                <Typography component="span" sx={{ fontSize: 11, fontFamily: 'monospace', color: 'text.secondary', fontWeight: 400 }}>{shift}</Typography>
+              ) : null}
+              {!compact && seg.length >= 3 && !split ? (
+                <Box component="span" sx={{ ml: 'auto', display: 'inline-flex', gap: 0.5, color: 'text.secondary' }}>
+                  {e.vehicles.length > 0 ? <LocalShippingOutlined sx={{ fontSize: 14 }} /> : null}
+                  {e.tools.length > 0 ? <HandymanOutlined sx={{ fontSize: 14 }} /> : null}
+                </Box>
+              ) : null}
             </Box>
           );
         })}
@@ -377,53 +451,73 @@ export function AssignmentSchedulePage() {
     );
   };
 
-  const renderRow = (e: ScheduleEmployee) => (
-    <Box key={e.id} sx={{ display: 'grid', gridTemplateColumns: columns, borderTop: 1, borderColor: 'divider', bgcolor: selectedId === e.id ? 'action.hover' : 'transparent' }}>
-      <ButtonBase onClick={() => { setSelectedId(e.id); setReplacingKey(null); }} sx={{ justifyContent: 'flex-start', textAlign: 'left', px: 2, py: 0.75, gap: 1, minWidth: 0 }}>
-        <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>{e.fullName}</Typography>
-          <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
-            {e.position}
-          </Typography>
-        </Box>
-        <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', flexShrink: 0 }}>
-          <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: STATUS_COLOR[e.status] }} />
-          <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>
-            {t(`schedule.status.${e.status}` as 'schedule.status.Free')}
-            {e.status === 'OnSite' || e.status === 'Late' ? ` ${localClock(e.clockedInAt)}` : ''}
-          </Typography>
-        </Stack>
-      </ButtonBase>
-      {dayList.map((day) => (
-        <Box
-          key={day}
-          sx={{
-            borderLeft: compact ? 0 : 1, borderColor: 'divider', p: compact ? '2px 1px' : '5px 4px', display: 'flex', minHeight: compact ? 38 : 50,
-            bgcolor: day === today ? 'action.selected' : 'transparent', opacity: isWeekend(day) ? 0.6 : 1,
-          }}
-        >
-          {siteCells(e, day, cellFor(e, day))}
-        </Box>
-      ))}
-    </Box>
-  );
+  const renderRow = (e: ScheduleEmployee) => {
+    const { segments, free } = segmentsFor(e, dayList, ctx, vacancyOf);
+    const hasRequest = vacancies.some((v) => v.employeeId === e.id);
+    return (
+      <Box
+        key={e.id}
+        sx={{ display: 'grid', gridTemplateColumns: columns, borderTop: 1, borderColor: 'divider', bgcolor: selectedId === e.id ? 'action.hover' : 'transparent', minHeight: barHeight + 10 }}
+      >
+        <ButtonBase onClick={() => { setSelectedId(e.id); setReplacingKey(null); }} sx={{ gridColumn: 1, gridRow: 1, justifyContent: 'flex-start', textAlign: 'left', px: 2, py: 0.5, minWidth: 0 }}>
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography variant="body2" noWrap sx={{ fontWeight: 600, lineHeight: 1.2 }}>{e.fullName}</Typography>
+            <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', minWidth: 0 }}>
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: STATUS_COLOR[e.status], flexShrink: 0 }} />
+              <Typography variant="caption" color="text.secondary" noWrap>
+                {e.position} · {t(`schedule.status.${e.status}` as 'schedule.status.Free')}
+                {e.status === 'OnSite' || e.status === 'Late' ? ` ${localClock(e.clockedInAt)}` : ''}
+                {hasRequest ? ` · ${t('schedule.needsCover')}` : ''}
+              </Typography>
+            </Stack>
+          </Box>
+        </ButtonBase>
+
+        {dayList.map((day, i) => (
+          <Box
+            key={day}
+            aria-hidden
+            sx={{
+              gridColumn: i + 2, gridRow: 1, borderLeft: 1, borderColor: day.slice(8) === '01' || dayOfWeek(day) === 1 ? 'divider' : 'transparent',
+              bgcolor: day === today ? 'action.selected' : isSunday(day) ? 'action.hover' : 'transparent',
+              borderLeftWidth: dayOfWeek(day) === 1 ? 2 : 1,
+            }}
+          />
+        ))}
+
+        {free.map((i) => (
+          <ButtonBase
+            key={`f-${i}`}
+            aria-label={t('schedule.assignOn', { name: e.fullName, date: dayList[i] })}
+            onClick={() => setAssignFor({ employeeId: e.id, date: dayList[i] })}
+            sx={{ gridColumn: i + 2, gridRow: 1, zIndex: 1, my: '3px', mx: '1px', borderRadius: 1, color: 'transparent', border: '1px dashed transparent', '&:hover': { color: 'primary.main', borderColor: 'primary.main', bgcolor: 'action.hover' } }}
+          >
+            {compact ? null : <AddOutlined fontSize="small" />}
+          </ButtonBase>
+        ))}
+
+        {segments.map((seg) => renderBar(e, seg))}
+      </Box>
+    );
+  };
 
   const groupHeader = (key: string, title: string, meta: string, color?: string, warn?: string) => (
     <ButtonBase
       key={`h-${key}`}
       onClick={() => toggleGroup(key)}
       aria-expanded={!collapsed.has(key)}
-      sx={{ width: '100%', justifyContent: 'flex-start', gap: 1.25, px: 2, py: 1, borderTop: 1, borderColor: 'divider', bgcolor: 'action.hover', textAlign: 'left' }}
+      sx={{ width: '100%', justifyContent: 'flex-start', gap: 1, px: 1.5, py: 0.5, borderTop: 1, borderColor: 'divider', bgcolor: 'action.hover', textAlign: 'left', position: 'sticky', left: 0 }}
     >
       <ExpandMoreOutlined fontSize="small" sx={{ transform: collapsed.has(key) ? 'rotate(-90deg)' : 'none', transition: 'transform .15s' }} />
       {color ? <Box sx={{ width: 10, height: 10, borderRadius: 0.5, bgcolor: color }} /> : null}
-      <Typography sx={{ fontWeight: 600 }}>{title}</Typography>
+      <Typography variant="body2" sx={{ fontWeight: 700 }}>{title}</Typography>
       <Typography variant="caption" color="text.secondary">{meta}</Typography>
       {warn ? <Typography variant="caption" color="error" sx={{ fontWeight: 600 }}>{warn}</Typography> : null}
     </ButtonBase>
   );
 
   const periodLabel = `${shortDate(dayList[0])} – ${shortDate(dayList[dayList.length - 1])}${dayList[dayList.length - 1].slice(0, 4)}`;
+  const filters: Filter[] = ['all', 'on', 'free', 'away', 'issues'];
 
   return (
     <Box>
@@ -437,14 +531,8 @@ export function AssignmentSchedulePage() {
         }
       />
 
-      <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 2, alignItems: 'center' }}>
-        <ToggleButtonGroup
-          size="small"
-          exclusive
-          value={weeks}
-          onChange={(_, value: 1 | 2 | 4 | null) => { if (value) { setWeeks(value); setOffset(0); } }}
-          aria-label={t('schedule.range')}
-        >
+      <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 1.5, alignItems: 'center' }}>
+        <ToggleButtonGroup size="small" exclusive value={weeks} onChange={(_, value: 1 | 2 | 4 | null) => { if (value) { setWeeks(value); setOffset(0); } }} aria-label={t('schedule.range')}>
           <ToggleButton value={1}>{t('schedule.weeks1')}</ToggleButton>
           <ToggleButton value={2}>{t('schedule.weeks2')}</ToggleButton>
           <ToggleButton value={4}>{t('schedule.weeks4')}</ToggleButton>
@@ -461,70 +549,66 @@ export function AssignmentSchedulePage() {
         <SearchField value={search} onChange={setSearch} placeholder={t('schedule.search')} />
       </Stack>
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(5, 1fr)' }, gap: 1, mb: 2 }}>
-        {(['all', 'on', 'free', 'away', 'issues'] as Filter[]).map((key) => (
+      <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: 'wrap', mb: 1.5, alignItems: 'center' }}>
+        {filters.map((key) => (
           <ButtonBase
             key={key}
             onClick={() => setFilter(key)}
             aria-pressed={filter === key}
             sx={{
-              flexDirection: 'column', alignItems: 'flex-start', p: 1.5, borderRadius: 2, border: 1,
-              borderColor: filter === key ? 'text.primary' : 'divider', bgcolor: 'background.paper',
+              gap: 0.75, px: 1.25, py: 0.5, borderRadius: 4, border: 1, fontSize: 13,
+              borderColor: filter === key ? 'text.primary' : 'divider', bgcolor: filter === key ? 'action.selected' : 'background.paper',
             }}
           >
-            <Typography variant="h5" sx={{ fontWeight: 700, color: key === 'issues' && counts.issues > 0 ? 'error.main' : 'text.primary' }}>
-              {counts[key]}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">{t(`schedule.filter.${key}` as 'schedule.filter.all')}</Typography>
+            <Box component="span" sx={{ fontWeight: 700, color: key === 'issues' && counts.issues > 0 ? 'error.main' : 'text.primary' }}>{counts[key]}</Box>
+            <Box component="span" sx={{ color: 'text.secondary' }}>{t(`schedule.filter.${key}` as 'schedule.filter.all')}</Box>
           </ButtonBase>
         ))}
-      </Box>
+      </Stack>
 
-      {vacancies.length > 0 && (
-        <Paper variant="outlined" sx={{ p: 1.5, mb: 2, borderColor: 'warning.main' }}>
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.5 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{t('schedule.vacanciesTitle')}</Typography>
-            <Typography variant="caption" sx={{ fontWeight: 700, color: 'warning.main' }}>{vacancies.length}</Typography>
-          </Stack>
-          {vacancies.map((v) => {
-            const absent = data.employees.find((e) => e.id === v.employeeId);
-            return (
-              <Box key={v.key} sx={{ display: 'flex', gap: 2, alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', py: 0.75, borderTop: 1, borderColor: 'divider', bgcolor: replacingKey === v.key ? 'action.hover' : 'transparent' }}>
-                <Box sx={{ minWidth: 240, flex: 1 }}>
-                  <Typography variant="body2">
-                    {t('schedule.vacancyLine', { name: absent?.fullName ?? '', from: shortDate(v.from), to: shortDate(v.to), days: v.days })}
+      {attentionCount > 0 && (
+        <Paper variant="outlined" sx={{ mb: 1.5, borderColor: vacancies.length > 0 ? 'warning.main' : 'divider' }}>
+          <ButtonBase
+            onClick={() => setAttentionOpen(!showAttention)}
+            aria-expanded={showAttention}
+            sx={{ width: '100%', justifyContent: 'flex-start', gap: 1, px: 1.5, py: 0.75, textAlign: 'left' }}
+          >
+            <ExpandMoreOutlined fontSize="small" sx={{ transform: showAttention ? 'none' : 'rotate(-90deg)', transition: 'transform .15s' }} />
+            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{t('schedule.attention')}</Typography>
+            {vacancies.length > 0 && <Typography variant="caption" sx={{ fontWeight: 700, color: 'warning.main' }}>{t('schedule.summaryVacancies', { count: vacancies.length })}</Typography>}
+            {attention.filter((a) => a.level === 'crit').length > 0 && <Typography variant="caption" sx={{ fontWeight: 700, color: 'error.main' }}>{t('schedule.summaryUrgent', { count: attention.filter((a) => a.level === 'crit').length })}</Typography>}
+            {attention.filter((a) => a.level === 'warn').length > 0 && <Typography variant="caption" sx={{ fontWeight: 700, color: 'warning.main' }}>{t('schedule.summaryWarn', { count: attention.filter((a) => a.level === 'warn').length })}</Typography>}
+          </ButtonBase>
+          {showAttention && (
+            <Box sx={{ px: 1.5, pb: 1 }}>
+              {vacancies.map((v) => {
+                const absent = data.employees.find((e) => e.id === v.employeeId);
+                return (
+                  <Box key={v.key} sx={{ display: 'flex', gap: 1.5, alignItems: 'center', py: 0.5, borderTop: 1, borderColor: 'divider', bgcolor: replacingKey === v.key ? 'action.hover' : 'transparent' }}>
+                    <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', color: 'warning.main', flexShrink: 0 }}>{t('schedule.level.vacancy')}</Typography>
+                    <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }}>
+                      {t('schedule.vacancyLine', { name: absent?.fullName ?? '', from: shortDate(v.from), to: shortDate(v.to), days: v.days })}{' '}
+                      <Typography component="span" variant="caption" color="text.secondary">{t('schedule.vacancyHint', { site: projectsById.get(v.projectId)?.name ?? '' })}</Typography>
+                    </Typography>
+                    <Button size="small" variant="contained" onClick={() => openReplacement(v)}>{t('schedule.findReplacement')}</Button>
+                  </Box>
+                );
+              })}
+              {attention.map((a) => (
+                <Box key={a.key} sx={{ display: 'flex', gap: 1.5, alignItems: 'center', py: 0.5, borderTop: 1, borderColor: 'divider' }}>
+                  <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', color: a.level === 'crit' ? 'error.main' : a.level === 'warn' ? 'warning.main' : 'text.secondary', flexShrink: 0 }}>
+                    {t(`schedule.level.${a.level}` as 'schedule.level.crit')}
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {t('schedule.vacancyHint', { site: projectsById.get(v.projectId)?.name ?? '' })}
-                  </Typography>
+                  <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }}>{a.text}</Typography>
+                  <Button size="small" onClick={() => { setSelectedId(a.employeeId); setReplacingKey(null); setFilter('all'); setSearch(''); }}>{t('schedule.open')}</Button>
                 </Box>
-                <Button size="small" variant="contained" onClick={() => { setReplacingKey(v.key); setSelectedId(v.employeeId); setView('people'); }}>
-                  {t('schedule.findReplacement')}
-                </Button>
-              </Box>
-            );
-          })}
+              ))}
+            </Box>
+          )}
         </Paper>
       )}
 
-      {attention.length > 0 && (
-        <Paper variant="outlined" sx={{ p: 1.5, mb: 2 }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5 }}>{t('schedule.attention')}</Typography>
-          <Box component="ul" sx={{ listStyle: 'none', m: 0, p: 0, display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1fr 1fr' }, columnGap: 3 }}>
-            {attention.map((a) => (
-              <Box component="li" key={a.key} sx={{ display: 'flex', gap: 1, alignItems: 'baseline', py: 0.5, borderTop: 1, borderColor: 'divider' }}>
-                <Typography variant="caption" sx={{ fontWeight: 700, textTransform: 'uppercase', color: a.level === 'crit' ? 'error.main' : a.level === 'warn' ? 'warning.main' : 'text.secondary', flexShrink: 0 }}>
-                  {t(`schedule.level.${a.level}` as 'schedule.level.crit')}
-                </Typography>
-                <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }}>{a.text}</Typography>
-                <Button size="small" onClick={() => { setSelectedId(a.employeeId); setReplacingKey(null); setFilter('all'); setSearch(''); }}>{t('schedule.open')}</Button>
-              </Box>
-            ))}
-          </Box>
-        </Paper>
-      )}
-
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', xl: 'minmax(0, 1fr) 320px' }, gap: 2, alignItems: 'start' }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 1fr) 300px' }, gap: 1.5, alignItems: 'start' }}>
         <Paper variant="outlined" sx={{ overflow: 'hidden' }}>
           {view === 'sites' ? (
             <SitesView
@@ -538,62 +622,80 @@ export function AssignmentSchedulePage() {
               onAdd={(projectId) => setAssignFor({ projectId, date: today })}
             />
           ) : (
-          <Box sx={{ overflowX: 'auto' }}>
-            <Box sx={{ minWidth: 250 + days * (weeks === 1 ? 92 : weeks === 2 ? 56 : 26) }}>
-              <Box sx={{ display: 'grid', gridTemplateColumns: columns, position: 'sticky', top: 0, bgcolor: 'background.paper' }}>
-                <Typography variant="caption" color="text.secondary" sx={{ px: 2, py: 1, alignSelf: 'end' }}>{t('schedule.worker')}</Typography>
-                {dayList.map((day) => (
-                  <Box key={day} sx={{ textAlign: 'center', py: 0.75, borderLeft: compact ? 0 : 1, borderColor: 'divider', bgcolor: day === today ? 'action.selected' : 'transparent', opacity: isWeekend(day) ? 0.6 : 1 }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: compact ? 9 : 12 }}>
-                      {new Date(`${day}T00:00:00Z`).toLocaleDateString([], { weekday: compact ? 'narrow' : 'short', timeZone: 'UTC' })}
-                    </Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600, fontSize: compact ? 10 : 14, color: day === today ? 'primary.main' : 'text.primary' }}>
-                      {day.slice(8)}{weeks === 1 ? `.${day.slice(5, 7)}.` : ''}
-                    </Typography>
+            <Box sx={{ overflowX: 'auto' }}>
+              <Box sx={{ minWidth }}>
+                {weeks > 1 && (
+                  <Box sx={{ display: 'grid', gridTemplateColumns: columns }}>
+                    <Box />
+                    {Array.from({ length: weeks }, (_, k) => (
+                      <Box key={k} sx={{ gridColumn: `${k * 7 + 2} / span 7`, px: 1, py: 0.25, fontSize: 11, fontWeight: 600, color: 'text.secondary', borderLeft: 2, borderColor: 'divider' }}>
+                        {t('schedule.weekLabel', { from: shortDate(dayList[k * 7]), to: shortDate(dayList[k * 7 + 6]) })}
+                      </Box>
+                    ))}
                   </Box>
-                ))}
-              </Box>
+                )}
+                <Box sx={{ display: 'grid', gridTemplateColumns: columns, borderBottom: 1, borderColor: 'divider' }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ px: 2, py: 0.75, alignSelf: 'end' }}>{t('schedule.worker')}</Typography>
+                  {dayList.map((day) => (
+                    <Box
+                      key={day}
+                      sx={{
+                        textAlign: 'center', py: 0.5, borderLeft: dayOfWeek(day) === 1 ? 2 : 1, borderColor: dayOfWeek(day) === 1 ? 'divider' : 'transparent',
+                        bgcolor: day === today ? 'action.selected' : isSunday(day) ? 'action.hover' : 'transparent',
+                      }}
+                    >
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.1, fontSize: compact ? 9 : 11 }}>
+                        {new Date(`${day}T00:00:00Z`).toLocaleDateString([], { weekday: compact ? 'narrow' : 'short', timeZone: 'UTC' })}
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 700, fontSize: compact ? 10 : 13, lineHeight: 1.2, color: day === today ? 'primary.main' : 'text.primary' }}>
+                        {day.slice(8)}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
 
-              {[...groups.byProject.entries()].map(([projectId, members]) => {
-                const project: ScheduleProject | undefined = projectsById.get(projectId);
-                const shift = localShift(project?.shiftStartTime ?? null);
-                const over = project?.endDate && project.endDate < today ? t('schedule.overdue', { date: shortDate(project.endDate) }) : undefined;
-                return (
-                  <Box key={projectId}>
-                    {groupHeader(projectId, project?.name ?? t('schedule.unknownSite'), `${members.length}${shift ? ` · ${t('schedule.from', { time: shift })}` : ''}`, colorOf(projectId), over)}
-                    {!collapsed.has(projectId) && members.map(renderRow)}
+                {[...groups.byProject.entries()].map(([projectId, members]) => {
+                  const project: ScheduleProject | undefined = projectsById.get(projectId);
+                  const shift = localShift(project?.shiftStartTime ?? null);
+                  const over = project?.endDate && project.endDate < today ? t('schedule.overdue', { date: shortDate(project.endDate) }) : undefined;
+                  return (
+                    <Box key={projectId}>
+                      {groupHeader(projectId, project?.name ?? t('schedule.unknownSite'), `${members.length}${shift ? ` · ${t('schedule.from', { time: shift })}` : ''}`, colorOf(projectId), over)}
+                      {!collapsed.has(projectId) && members.map(renderRow)}
+                    </Box>
+                  );
+                })}
+                {groups.free.length > 0 && (
+                  <Box>
+                    {groupHeader('free', t('schedule.groupFree'), String(groups.free.length))}
+                    {!collapsed.has('free') && groups.free.map(renderRow)}
                   </Box>
-                );
-              })}
-              {groups.free.length > 0 && (
-                <Box>
-                  {groupHeader('free', t('schedule.groupFree'), String(groups.free.length))}
-                  {!collapsed.has('free') && groups.free.map(renderRow)}
-                </Box>
-              )}
-              {groups.away.length > 0 && (
-                <Box>
-                  {groupHeader('away', t('schedule.groupAway'), String(groups.away.length))}
-                  {!collapsed.has('away') && groups.away.map(renderRow)}
-                </Box>
-              )}
-              {visible.length === 0 && <Typography color="text.secondary" sx={{ p: 4, textAlign: 'center' }}>{t('common.noResults')}</Typography>}
+                )}
+                {groups.away.length > 0 && (
+                  <Box>
+                    {groupHeader('away', t('schedule.groupAway'), String(groups.away.length))}
+                    {!collapsed.has('away') && groups.away.map(renderRow)}
+                  </Box>
+                )}
+                {visible.length === 0 && <Typography color="text.secondary" sx={{ p: 4, textAlign: 'center' }}>{t('common.noResults')}</Typography>}
+              </Box>
             </Box>
-          </Box>
           )}
-          <Stack direction="row" spacing={2} useFlexGap sx={{ flexWrap: 'wrap', px: 2, py: 1, borderTop: 1, borderColor: 'divider', color: 'text.secondary', fontSize: 12 }}>
+          <Stack direction="row" spacing={2} useFlexGap sx={{ flexWrap: 'wrap', px: 2, py: 0.75, borderTop: 1, borderColor: 'divider', color: 'text.secondary', fontSize: 12 }}>
             <span>{t('schedule.legend.site')}</span>
             <span>{t('schedule.legend.leave')}</span>
-            <span>{t('schedule.legend.conflict')}</span>
+            <span>{t('schedule.legend.vacancy')}</span>
             <span>{t('schedule.legend.split')}</span>
+            <span>{t('schedule.legend.weekend')}</span>
             <span>{t('schedule.legend.free')}</span>
           </Stack>
         </Paper>
 
-        <Paper variant="outlined" sx={{ p: 2, position: { xl: 'sticky' }, top: 12 }}>
+        <Paper variant="outlined" sx={{ p: 2, position: { lg: 'sticky' }, top: 12 }}>
           {replacingVacancy ? (
             <ReplacementPanel
               schedule={data}
+              ctx={ctx}
               vacancy={replacingVacancy}
               colorOf={colorOf}
               pending={assignReplacement.isPending}
@@ -763,6 +865,7 @@ function Inspector({
 
 function ReplacementPanel({
   schedule,
+  ctx,
   vacancy,
   colorOf,
   pending,
@@ -771,6 +874,7 @@ function ReplacementPanel({
   onAssign,
 }: {
   schedule: AssignmentSchedule;
+  ctx: DayContext;
   vacancy: Vacancy;
   colorOf: (projectId: string) => string;
   pending: boolean;
@@ -781,7 +885,7 @@ function ReplacementPanel({
   const t = useT();
   const absent = schedule.employees.find((e) => e.id === vacancy.employeeId);
   const site = schedule.projects.find((p) => p.id === vacancy.projectId);
-  const candidates = candidatesFor(schedule, vacancy);
+  const candidates = candidatesFor(schedule, vacancy, ctx);
   const shift = localShift(site?.shiftStartTime ?? null);
 
   return (
@@ -922,7 +1026,8 @@ function AssignDialog({
   const [start, setStart] = useState(target?.date ?? dateOnlyOffset(0));
   const [end, setEnd] = useState('');
   const employee = employees.find((e) => e.id === employeeId);
-  const valid = !!employeeId && !!projectId && !!start && (!end || end >= start);
+  const sites = start ? projects.filter((p) => worksOn(p, start)) : projects;
+  const valid = !!employeeId && !!projectId && sites.some((p) => p.id === projectId) && !!start && (!end || end >= start);
 
   return (
     <Dialog open={!!target} onClose={onClose} fullWidth maxWidth="xs">
@@ -935,7 +1040,7 @@ function AssignDialog({
             </TextField>
           )}
           <TextField select label={t('schedule.site')} value={projectId} onChange={(e) => setProjectId(e.target.value)}>
-            {projects.map((p) => <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>)}
+            {sites.map((p) => <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>)}
           </TextField>
           <TextField type="date" label={t('schedule.startDate')} value={start} onChange={(e) => setStart(e.target.value)} slotProps={{ inputLabel: { shrink: true } }} />
           <TextField
@@ -943,6 +1048,9 @@ function AssignDialog({
             slotProps={{ inputLabel: { shrink: true } }}
             error={!!end && end < start} helperText={end && end < start ? t('schedule.endsBeforeStart') : t('schedule.endOptional')}
           />
+          {start && dayOfWeek(start) === 6 || start && dayOfWeek(start) === 0 ? (
+            <Typography variant="caption" color="text.secondary">{t('schedule.weekendHint')}</Typography>
+          ) : null}
           <Typography variant="caption" color="text.secondary">{t('schedule.splitHint')}</Typography>
         </Stack>
       </DialogContent>

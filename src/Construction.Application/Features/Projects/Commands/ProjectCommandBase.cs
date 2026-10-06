@@ -41,6 +41,12 @@ public abstract record ProjectCommandBase
     /// <summary>The site's expected daily clock-in time, in UTC, if one is set.</summary>
     public TimeOnly? ShiftStartTime { get; init; }
 
+    /// <summary>The crew works Saturdays on this site.</summary>
+    public bool WorksSaturdays { get; init; }
+
+    /// <summary>The crew works Sundays on this site.</summary>
+    public bool WorksSundays { get; init; }
+
     public DateOnly? StartDate { get; init; }
 
     public DateOnly? EndDate { get; init; }

@@ -4,8 +4,10 @@ import {
   Autocomplete,
   Box,
   Button,
+  Checkbox,
   Divider,
   FormControl,
+  FormControlLabel,
   Grid,
   InputLabel,
   MenuItem,
@@ -50,6 +52,8 @@ const emptyValues: ProjectFormValues = {
   latitude: '',
   longitude: '',
   shiftStartTime: '',
+  worksSaturdays: false,
+  worksSundays: false,
   startDate: '',
   endDate: '',
   status: 'Planned',
@@ -139,6 +143,8 @@ export function ProjectFormPage() {
         latitude: existing.latitude?.toString() ?? '',
         longitude: existing.longitude?.toString() ?? '',
         shiftStartTime: utcTimeToLocalInput(existing.shiftStartTime),
+        worksSaturdays: existing.worksSaturdays,
+        worksSundays: existing.worksSundays,
         startDate: existing.startDate?.slice(0, 10) ?? '',
         endDate: existing.endDate?.slice(0, 10) ?? '',
         status: existing.status,
@@ -180,6 +186,8 @@ export function ProjectFormPage() {
       latitude: values.latitude ? Number(values.latitude) : null,
       longitude: values.longitude ? Number(values.longitude) : null,
       shiftStartTime: localInputToUtcTime(values.shiftStartTime ?? ''),
+      worksSaturdays: !!values.worksSaturdays,
+      worksSundays: !!values.worksSundays,
       startDate: values.startDate || null,
       endDate: values.endDate || null,
       status: values.status,
@@ -484,6 +492,31 @@ export function ProjectFormPage() {
                     />
                   )}
                 />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 8 }}>
+                <Stack direction="row" spacing={2} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                  <Controller
+                    name="worksSaturdays"
+                    control={control}
+                    render={({ field }) => (
+                      <FormControlLabel
+                        control={<Checkbox checked={!!field.value} onChange={(event) => field.onChange(event.target.checked)} />}
+                        label={t('projects.worksSaturdays')}
+                      />
+                    )}
+                  />
+                  <Controller
+                    name="worksSundays"
+                    control={control}
+                    render={({ field }) => (
+                      <FormControlLabel
+                        control={<Checkbox checked={!!field.value} onChange={(event) => field.onChange(event.target.checked)} />}
+                        label={t('projects.worksSundays')}
+                      />
+                    )}
+                  />
+                  <Typography variant="caption" color="text.secondary">{t('projects.workingDaysHint')}</Typography>
+                </Stack>
               </Grid>
               <Grid size={12}>
                 <Divider sx={{ my: 0.5 }} />

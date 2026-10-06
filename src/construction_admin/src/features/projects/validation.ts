@@ -46,6 +46,8 @@ export const projectFormSchema = z
     latitude: optionalCoordinate,
     longitude: optionalCoordinate,
     shiftStartTime: z.string().optional().or(z.literal('')),
+    worksSaturdays: z.boolean().optional(),
+    worksSundays: z.boolean().optional(),
     startDate: z.string().optional().or(z.literal('')),
     endDate: z.string().optional().or(z.literal('')),
     status: z.enum(projectStatuses),

@@ -110,6 +110,8 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
         project.Longitude = request.Longitude;
         project.CountryCode = countryCode;
         project.ShiftStartTime = request.ShiftStartTime;
+        project.WorksSaturdays = request.WorksSaturdays;
+        project.WorksSundays = request.WorksSundays;
         project.StartDate = request.StartDate;
         project.EndDate = request.EndDate;
         project.Status = request.Status;

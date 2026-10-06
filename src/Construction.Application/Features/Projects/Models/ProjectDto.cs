@@ -43,6 +43,10 @@ public class ProjectDto
     /// <summary>The site's expected daily clock-in time, in UTC, if one is set.</summary>
     public TimeOnly? ShiftStartTime { get; init; }
 
+    public bool WorksSaturdays { get; init; }
+
+    public bool WorksSundays { get; init; }
+
     public DateOnly? StartDate { get; init; }
 
     public DateOnly? EndDate { get; init; }
@@ -93,6 +97,8 @@ public static class ProjectMapping
             Longitude = project.Longitude,
             CountryCode = project.CountryCode,
             ShiftStartTime = project.ShiftStartTime,
+            WorksSaturdays = project.WorksSaturdays,
+            WorksSundays = project.WorksSundays,
             StartDate = project.StartDate,
             EndDate = project.EndDate,
             Status = project.Status.ToString(),
