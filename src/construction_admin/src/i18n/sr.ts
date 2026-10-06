@@ -1815,7 +1815,7 @@ export const sr: Record<MessageKey, Message> = {
   'presence.reason.WrongPassword': 'Pogrešna lozinka',
   'presence.reason.LockedOut': 'Nalog zaključan',
   'presence.reason.Deactivated': 'Nalog deaktiviran',
-  'schedule.title': 'Tabla raspoređivanja',
+  'schedule.boardTitle': 'Tabla raspoređivanja',
   'schedule.description': 'Svaki radnik, raspoređen ili ne, sedmicu po sedmicu: gdje je raspoređen, ko je odsutan, ko se prijavio i ko kasni (više od {minutes} min poslije početka smjene).',
   'schedule.classic': 'Klasična tabla s povlačenjem',
   'schedule.range': 'Broj sedmica',

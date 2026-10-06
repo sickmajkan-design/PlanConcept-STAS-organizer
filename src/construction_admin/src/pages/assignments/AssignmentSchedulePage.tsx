@@ -331,7 +331,7 @@ export function AssignmentSchedulePage() {
   return (
     <Box>
       <PageHeader
-        title={t('schedule.title')}
+        title={t('schedule.boardTitle')}
         description={t('schedule.description', { minutes: data.lateToleranceMinutes })}
         secondaryActions={
           <Button component={Link} to={paths.assignmentBoardClassic} size="small">

@@ -1779,7 +1779,7 @@ export const en = {
   'presence.reason.WrongPassword': 'Wrong password',
   'presence.reason.LockedOut': 'Account locked',
   'presence.reason.Deactivated': 'Account deactivated',
-  'schedule.title': 'Assignment board',
+  'schedule.boardTitle': 'Assignment board',
   'schedule.description': 'Every worker, assigned or not, week by week: where they are posted, who is absent, who clocked in and who is late (more than {minutes} min after the shift start).',
   'schedule.classic': 'Classic drag-and-drop board',
   'schedule.range': 'Number of weeks',
