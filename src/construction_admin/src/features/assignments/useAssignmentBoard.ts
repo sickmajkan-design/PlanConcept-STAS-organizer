@@ -59,3 +59,15 @@ export function useRemoveOnBoard() {
     boardCaches,
   );
 }
+
+/** The planning board: one to four weeks of postings, absences and today's status. */
+export function useAssignmentScheduleQuery(from: string, days: number) {
+  const { branchId } = useBranchFilter();
+  return useQuery({
+    // Under the board's own key so a drop or a removal refreshes it too.
+    queryKey: [...assignmentBoardKeys.all, 'schedule', branchId ?? null, from, days],
+    queryFn: () => assignmentsApi.schedule({ from, days, branchId }),
+    // Today's status moves while the page is open.
+    refetchInterval: 60_000,
+  });
+}

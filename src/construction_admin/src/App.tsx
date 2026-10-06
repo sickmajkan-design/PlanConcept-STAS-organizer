@@ -257,6 +257,11 @@ const AnnualRealizationPlanPage = lazy(() =>
     default: m.AnnualRealizationPlanPage,
   })),
 );
+const AssignmentSchedulePage = lazy(() =>
+  import('./pages/assignments/AssignmentSchedulePage').then((m) => ({
+    default: m.AssignmentSchedulePage,
+  })),
+);
 const AssignmentBoardPage = lazy(() =>
   import('./pages/assignments/AssignmentBoardPage').then((m) => ({
     default: m.AssignmentBoardPage,
@@ -456,7 +461,8 @@ function Layout() {
             {/* Reading the roster is directory access; moving people between
                 sites is a staffing call, so it gets its own narrower gate. */}
             <Route element={<RequireProjectManagerAccess />}>
-              <Route path={paths.assignmentBoard} element={<AssignmentBoardPage />} />
+              <Route path={paths.assignmentBoard} element={<AssignmentSchedulePage />} />
+              <Route path={paths.assignmentBoardClassic} element={<AssignmentBoardPage />} />
             </Route>
 
             <Route element={<RequireLabourCostAccess />}>

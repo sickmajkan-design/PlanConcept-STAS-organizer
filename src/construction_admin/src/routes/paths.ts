@@ -57,6 +57,7 @@ export const paths = {
   refunds: '/refunds',
   invoices: '/invoices',
   assignmentBoard: '/assignment-board',
+  assignmentBoardClassic: '/assignment-board/classic',
 
   costs: '/costs',
   costRecords: '/cost-records',

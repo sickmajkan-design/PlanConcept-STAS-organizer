@@ -58,7 +58,7 @@ describe('ReleaseNotesDialog', () => {
 
     await screen.findByText('Security improvements');
     expect(screen.getByText('Who is online')).toBeDefined();
-    expect(screen.getByText('Documents, reminders and housing')).toBeDefined();
+    expect(screen.getByText('New assignment board')).toBeDefined();
     expect(screen.getByText('Who is online')).toBeDefined();
   }, SCREEN_TIMEOUT);
 
