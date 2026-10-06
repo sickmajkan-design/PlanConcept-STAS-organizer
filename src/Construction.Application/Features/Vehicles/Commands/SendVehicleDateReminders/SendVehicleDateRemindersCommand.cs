@@ -47,21 +47,48 @@ public class SendVehicleDateRemindersCommandHandler : IRequestHandler<SendVehicl
 
         var due = new List<Due>();
 
-        due.AddRange((await _context.Vehicles
-                .AsNoTracking()
-                .Where(v => v.RegistrationValidUntil != null
-                    && v.RegistrationValidUntil >= today && v.RegistrationValidUntil <= horizon)
-                .Select(v => new { v.Id, Name = v.Brand + " " + v.Model + " (" + v.RegistrationNumber + ")", v.RegistrationValidUntil })
-                .ToListAsync(cancellationToken))
-            .Select(v => new Due(v.Id, v.Name, VehicleDateKind.Registration, v.RegistrationValidUntil!.Value)));
+        // Every date a vehicle carries itself, read in one pass: the ones inside the window are announced.
+        var vehicles = await _context.Vehicles
+            .AsNoTracking()
+            .Where(v => (v.RegistrationValidUntil >= today && v.RegistrationValidUntil <= horizon)
+                || (v.TechnicalInspectionValidUntil >= today && v.TechnicalInspectionValidUntil <= horizon)
+                || (v.InsuranceValidUntil >= today && v.InsuranceValidUntil <= horizon)
+                || (v.NextServiceDue >= today && v.NextServiceDue <= horizon)
+                || (v.OwnershipType != VehicleOwnershipType.Owned
+                    && v.RentedUntil >= today && v.RentedUntil <= horizon))
+            .Select(v => new
+            {
+                v.Id,
+                Name = v.Brand + " " + v.Model + " (" + v.RegistrationNumber + ")",
+                v.OwnershipType,
+                v.RegistrationValidUntil,
+                v.TechnicalInspectionValidUntil,
+                v.InsuranceValidUntil,
+                v.NextServiceDue,
+                v.RentedUntil
+            })
+            .ToListAsync(cancellationToken);
 
-        due.AddRange((await _context.Vehicles
-                .AsNoTracking()
-                .Where(v => v.OwnershipType != VehicleOwnershipType.Owned && v.RentedUntil != null
-                    && v.RentedUntil >= today && v.RentedUntil <= horizon)
-                .Select(v => new { v.Id, Name = v.Brand + " " + v.Model + " (" + v.RegistrationNumber + ")", v.RentedUntil })
-                .ToListAsync(cancellationToken))
-            .Select(v => new Due(v.Id, v.Name, VehicleDateKind.RentedUntil, v.RentedUntil!.Value)));
+        foreach (var v in vehicles)
+        {
+            void Add(VehicleDateKind kind, DateOnly? date)
+            {
+                if (date is { } d && d >= today && d <= horizon)
+                {
+                    due.Add(new Due(v.Id, v.Name, kind, d));
+                }
+            }
+
+            Add(VehicleDateKind.Registration, v.RegistrationValidUntil);
+            Add(VehicleDateKind.TechnicalInspection, v.TechnicalInspectionValidUntil);
+            Add(VehicleDateKind.Insurance, v.InsuranceValidUntil);
+            Add(VehicleDateKind.Service, v.NextServiceDue);
+
+            if (v.OwnershipType != VehicleOwnershipType.Owned)
+            {
+                Add(VehicleDateKind.RentedUntil, v.RentedUntil);
+            }
+        }
 
         due.AddRange((await _context.VehicleRentalsOut
                 .AsNoTracking()

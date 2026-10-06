@@ -211,6 +211,9 @@ export function VehicleDetailPage() {
               </Stack>
               <Stack direction="row" spacing={1} useFlexGap sx={{ mt: 1, flexWrap: 'wrap', alignItems: 'center' }}>
                 <VehicleDateChip label={t('vehicles.registeredUntil')} date={vehicle.registrationValidUntil} />
+                <VehicleDateChip label={t('vehicles.inspectionUntil')} date={vehicle.technicalInspectionValidUntil} />
+                <VehicleDateChip label={t('vehicles.insuranceUntil')} date={vehicle.insuranceValidUntil} />
+                <VehicleDateChip label={t('vehicles.serviceDue')} date={vehicle.nextServiceDue} />
                 {vehicle.ownershipType !== 'Owned' && (
                   <VehicleDateChip label={t('vehicles.rentedUntilShort')} date={vehicle.rentedUntil} />
                 )}

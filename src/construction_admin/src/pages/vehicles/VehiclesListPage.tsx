@@ -174,6 +174,42 @@ export function VehiclesListPage() {
           ),
       },
       {
+        field: 'technicalInspectionValidUntil',
+        headerName: t('vehicles.inspectionUntil'),
+        width: 190,
+        sortable: false,
+        renderCell: (params) =>
+          params.row.technicalInspectionValidUntil ? (
+            <VehicleDateChip label={t('vehicles.dateShort')} date={params.row.technicalInspectionValidUntil} />
+          ) : (
+            '—'
+          ),
+      },
+      {
+        field: 'insuranceValidUntil',
+        headerName: t('vehicles.insuranceUntil'),
+        width: 190,
+        sortable: false,
+        renderCell: (params) =>
+          params.row.insuranceValidUntil ? (
+            <VehicleDateChip label={t('vehicles.dateShort')} date={params.row.insuranceValidUntil} />
+          ) : (
+            '—'
+          ),
+      },
+      {
+        field: 'nextServiceDue',
+        headerName: t('vehicles.serviceDue'),
+        width: 190,
+        sortable: false,
+        renderCell: (params) =>
+          params.row.nextServiceDue ? (
+            <VehicleDateChip label={t('vehicles.dateShort')} date={params.row.nextServiceDue} />
+          ) : (
+            '—'
+          ),
+      },
+      {
         field: 'rentedUntil',
         headerName: t('vehicles.rentedUntilShort'),
         width: 190,

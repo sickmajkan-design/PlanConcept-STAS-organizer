@@ -31,6 +31,15 @@ public class VehicleDto
     /// <summary>The last day of the rental or lease. Null for an owned vehicle or when no end is agreed.</summary>
     public DateOnly? RentedUntil { get; init; }
 
+    /// <summary>The last day the technical inspection is valid. Null when not entered.</summary>
+    public DateOnly? TechnicalInspectionValidUntil { get; init; }
+
+    /// <summary>The last day the insurance is valid. Null when not entered.</summary>
+    public DateOnly? InsuranceValidUntil { get; init; }
+
+    /// <summary>When the next service is due. Null when not entered.</summary>
+    public DateOnly? NextServiceDue { get; init; }
+
     public string FuelType { get; init; } = null!;
 
     public string Status { get; init; } = null!;
@@ -118,6 +127,9 @@ public static class VehicleMapping
             GpsTrackingUrl = vehicle.GpsTrackingUrl,
             RegistrationValidUntil = vehicle.RegistrationValidUntil,
             RentedUntil = vehicle.RentedUntil,
+            TechnicalInspectionValidUntil = vehicle.TechnicalInspectionValidUntil,
+            InsuranceValidUntil = vehicle.InsuranceValidUntil,
+            NextServiceDue = vehicle.NextServiceDue,
             FuelType = vehicle.FuelType.ToString(),
             Status = vehicle.Status.ToString(),
             OwnershipType = vehicle.OwnershipType.ToString(),

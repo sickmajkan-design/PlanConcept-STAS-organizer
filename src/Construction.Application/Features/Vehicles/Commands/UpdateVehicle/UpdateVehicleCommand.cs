@@ -77,6 +77,9 @@ public class UpdateVehicleCommandHandler : IRequestHandler<UpdateVehicleCommand,
             ? null
             : request.GpsTrackingUrl.Trim();
         vehicle.RegistrationValidUntil = request.RegistrationValidUntil;
+        vehicle.TechnicalInspectionValidUntil = request.TechnicalInspectionValidUntil;
+        vehicle.InsuranceValidUntil = request.InsuranceValidUntil;
+        vehicle.NextServiceDue = request.NextServiceDue;
         // An owned vehicle has no rental to run out; a stale date from before it was bought must not linger.
         vehicle.RentedUntil = request.OwnershipType == VehicleOwnershipType.Owned ? null : request.RentedUntil;
         vehicle.FuelType = request.FuelType;

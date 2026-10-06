@@ -43,6 +43,15 @@ public class Vehicle : BaseEntity, ISoftDeletable, IAuditable
     /// </summary>
     public DateOnly? RentedUntil { get; set; }
 
+    /// <summary>The last day the technical inspection is valid. Null when nobody has entered it.</summary>
+    public DateOnly? TechnicalInspectionValidUntil { get; set; }
+
+    /// <summary>The last day the insurance is valid. Null when nobody has entered it.</summary>
+    public DateOnly? InsuranceValidUntil { get; set; }
+
+    /// <summary>When the next service is due. Null when nobody has entered it.</summary>
+    public DateOnly? NextServiceDue { get; set; }
+
     public FuelType FuelType { get; set; }
 
     public VehicleStatus Status { get; set; } = VehicleStatus.Available;

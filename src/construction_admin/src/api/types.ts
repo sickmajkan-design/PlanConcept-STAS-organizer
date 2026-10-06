@@ -556,6 +556,12 @@ export interface Vehicle {
   registrationValidUntil: string | null;
   /** The last day of the rental or lease. Null for an owned vehicle or when no end is agreed. */
   rentedUntil: string | null;
+  /** The last day the technical inspection is valid (`YYYY-MM-DD`). Null when not entered. */
+  technicalInspectionValidUntil: string | null;
+  /** The last day the insurance is valid (`YYYY-MM-DD`). Null when not entered. */
+  insuranceValidUntil: string | null;
+  /** When the next service is due (`YYYY-MM-DD`). Null when not entered. */
+  nextServiceDue: string | null;
   fuelType: FuelType;
   status: VehicleStatus;
   ownershipType: VehicleOwnershipType;
@@ -633,6 +639,9 @@ export interface VehicleInput {
   tdNumber: string;
   registrationValidUntil?: string | null;
   rentedUntil?: string | null;
+  technicalInspectionValidUntil?: string | null;
+  insuranceValidUntil?: string | null;
+  nextServiceDue?: string | null;
   vin?: string | null;
   qrCode?: string | null;
   gpsProvider?: string | null;

@@ -36,6 +36,15 @@ public abstract record VehicleCommandBase
     /// <summary>The last day of the rental or lease; only meaningful for a rented or leased vehicle.</summary>
     public DateOnly? RentedUntil { get; init; }
 
+    /// <summary>The last day the technical inspection is valid; null when not known.</summary>
+    public DateOnly? TechnicalInspectionValidUntil { get; init; }
+
+    /// <summary>The last day the insurance is valid; null when not known.</summary>
+    public DateOnly? InsuranceValidUntil { get; init; }
+
+    /// <summary>When the next service is due; null when not known.</summary>
+    public DateOnly? NextServiceDue { get; init; }
+
     public FuelType FuelType { get; init; }
 
     public VehicleStatus Status { get; init; } = VehicleStatus.Available;

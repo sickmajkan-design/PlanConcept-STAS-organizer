@@ -10,5 +10,14 @@ public enum VehicleDateKind
     RentedUntil = 2,
 
     /// <summary>A vehicle the company rented out is due back.</summary>
-    RentalOutReturn = 3
+    RentalOutReturn = 3,
+
+    /// <summary>The technical inspection runs out.</summary>
+    TechnicalInspection = 4,
+
+    /// <summary>The insurance runs out.</summary>
+    Insurance = 5,
+
+    /// <summary>The next service is due.</summary>
+    Service = 6
 }

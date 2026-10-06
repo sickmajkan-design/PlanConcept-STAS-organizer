@@ -429,13 +429,19 @@ public class VehicleTests : IntegrationTestBase
             Status = VehicleStatus.Available,
             OwnershipType = VehicleOwnershipType.Rented,
             RegistrationValidUntil = new DateOnly(2027, 3, 31),
-            RentedUntil = new DateOnly(2027, 6, 30)
+            RentedUntil = new DateOnly(2027, 6, 30),
+            TechnicalInspectionValidUntil = new DateOnly(2027, 4, 15),
+            InsuranceValidUntil = new DateOnly(2027, 5, 1),
+            NextServiceDue = new DateOnly(2027, 2, 20)
         }));
 
         var detail = await InScope(scope => scope.Send(new GetVehicleByIdQuery(created.Id)));
 
         Assert.Equal(new DateOnly(2027, 3, 31), detail.RegistrationValidUntil);
         Assert.Equal(new DateOnly(2027, 6, 30), detail.RentedUntil);
+        Assert.Equal(new DateOnly(2027, 4, 15), detail.TechnicalInspectionValidUntil);
+        Assert.Equal(new DateOnly(2027, 5, 1), detail.InsuranceValidUntil);
+        Assert.Equal(new DateOnly(2027, 2, 20), detail.NextServiceDue);
     }
 
     [Fact]

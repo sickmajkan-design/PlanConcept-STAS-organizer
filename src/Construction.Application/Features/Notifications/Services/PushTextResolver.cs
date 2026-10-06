@@ -428,6 +428,9 @@ public static class PushTextResolver
                     "Registration" => "registracija ističe",
                     "RentedUntil" => "najam ističe",
                     "RentalOutReturn" => "izdato vozilo treba da se vrati",
+                    "TechnicalInspection" => "tehnički pregled ističe",
+                    "Insurance" => "osiguranje ističe",
+                    "Service" => "treba na servis",
                     _ => "datum se približava"
                 };
 

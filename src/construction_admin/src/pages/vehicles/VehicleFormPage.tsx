@@ -39,6 +39,9 @@ const emptyValues: VehicleFormValues = {
   gpsTrackingUrl: '',
   registrationValidUntil: '',
   rentedUntil: '',
+  technicalInspectionValidUntil: '',
+  insuranceValidUntil: '',
+  nextServiceDue: '',
   fuelType: 'Diesel',
   status: 'Available',
   ownershipType: 'Owned',
@@ -84,6 +87,9 @@ export function VehicleFormPage() {
         ownershipType: existing.ownershipType,
         registrationValidUntil: existing.registrationValidUntil ?? '',
         rentedUntil: existing.rentedUntil ?? '',
+        technicalInspectionValidUntil: existing.technicalInspectionValidUntil ?? '',
+        insuranceValidUntil: existing.insuranceValidUntil ?? '',
+        nextServiceDue: existing.nextServiceDue ?? '',
         branchId: existing.branchId ?? '',
       });
     }
@@ -111,6 +117,9 @@ export function VehicleFormPage() {
       status: values.status,
       ownershipType: values.ownershipType,
       registrationValidUntil: values.registrationValidUntil || null,
+      technicalInspectionValidUntil: values.technicalInspectionValidUntil || null,
+      insuranceValidUntil: values.insuranceValidUntil || null,
+      nextServiceDue: values.nextServiceDue || null,
       // An owned vehicle has no rental to run out; the API drops it too, this just keeps the request honest.
       rentedUntil: values.ownershipType === 'Owned' ? null : values.rentedUntil || null,
       branchId: values.branchId || null,
@@ -349,6 +358,57 @@ export function VehicleFormPage() {
                       slotProps={{ inputLabel: { shrink: true } }}
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message ?? t('vehicles.registrationValidUntilHelp')}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Controller
+                  name="technicalInspectionValidUntil"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      {...field}
+                      type="date"
+                      label={t('vehicles.technicalInspectionValidUntil')}
+                      fullWidth
+                      slotProps={{ inputLabel: { shrink: true } }}
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message ?? t('vehicles.dateReminderHelp')}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Controller
+                  name="insuranceValidUntil"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      {...field}
+                      type="date"
+                      label={t('vehicles.insuranceValidUntil')}
+                      fullWidth
+                      slotProps={{ inputLabel: { shrink: true } }}
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message ?? t('vehicles.dateReminderHelp')}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Controller
+                  name="nextServiceDue"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      {...field}
+                      type="date"
+                      label={t('vehicles.nextServiceDue')}
+                      fullWidth
+                      slotProps={{ inputLabel: { shrink: true } }}
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message ?? t('vehicles.dateReminderHelp')}
                     />
                   )}
                 />

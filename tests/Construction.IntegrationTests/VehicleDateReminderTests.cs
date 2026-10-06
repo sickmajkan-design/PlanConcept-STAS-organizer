@@ -67,6 +67,25 @@ public class VehicleDateReminderTests : IntegrationTestBase
         Assert.Equal("20", Field(notice, "daysLeft"));
     }
 
+    [Theory]
+    [InlineData("TechnicalInspection")]
+    [InlineData("Insurance")]
+    [InlineData("Service")]
+    public async Task The_other_dates_a_vehicle_carries_are_announced_too(string kind)
+    {
+        var (admin, vehicle) = await SeedAsync(v =>
+        {
+            v.TechnicalInspectionValidUntil = kind == "TechnicalInspection" ? Today.AddDays(15) : null;
+            v.InsuranceValidUntil = kind == "Insurance" ? Today.AddDays(15) : null;
+            v.NextServiceDue = kind == "Service" ? Today.AddDays(15) : null;
+        });
+
+        await SweepAsync();
+
+        var notice = Assert.Single(await NoticesAboutAsync(admin.Id, vehicle.Id));
+        Assert.Equal(kind, Field(notice, "kind"));
+    }
+
     [Fact]
     public async Task The_final_week_gets_a_second_notice_but_never_a_third()
     {
