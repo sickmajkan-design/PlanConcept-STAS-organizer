@@ -82,7 +82,11 @@ export function useUpdateLeaveSettings() {
  * dashboard's own — so approving or refusing a request drops both of those
  * counts the instant it succeeds too, with nothing extra to list here.
  */
-const absenceCaches = [absenceKeys.all, scheduleKeys.all];
+// Written as literals, like the other cross-feature keys here: granting leave can end a housing stay
+// and book a new one, so what the accommodation screens hold is stale afterwards.
+const housingCaches = [['accommodations'], ['accommodationStays'], ['absenceHousingImpact']] as const;
+
+const absenceCaches = [absenceKeys.all, scheduleKeys.all, ...housingCaches];
 
 export function useBookAbsence() {
   return useResourceMutation(

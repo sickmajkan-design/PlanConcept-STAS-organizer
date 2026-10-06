@@ -10,7 +10,7 @@ import type { MessageKey } from '../../i18n/en';
  * what changed recently, not a changelog: when a release is added, drop the
  * sections older than the fifth (and their `releaseNotes.*` keys in i18n).
  */
-export const RELEASE_ID = '2026-10-06.8';
+export const RELEASE_ID = '2026-10-06.9';
 
 export interface ReleaseSection {
   id: string;
@@ -21,12 +21,6 @@ export interface ReleaseSection {
 }
 
 export const releaseSections: ReleaseSection[] = [
-  {
-    id: 'layout1006',
-    titleKey: 'releaseNotes.layout1006.title',
-    itemKeys: ['releaseNotes.layout1006.fixed'],
-    audience: (user) => user.role === 'SuperAdmin' || user.role === 'Admin',
-  },
   {
     id: 'presence1006',
     titleKey: 'releaseNotes.presence1006.title',
@@ -65,6 +59,12 @@ export const releaseSections: ReleaseSection[] = [
       'releaseNotes.dkv1006.app',
       'releaseNotes.dkv1006.old',
     ],
+    audience: (user) => user.role === 'SuperAdmin' || user.role === 'Admin',
+  },
+  {
+    id: 'stay1006',
+    titleKey: 'releaseNotes.stay1006.title',
+    itemKeys: ['releaseNotes.stay1006.housing', 'releaseNotes.stay1006.vehicle'],
     audience: (user) => user.role === 'SuperAdmin' || user.role === 'Admin',
   },
 ];

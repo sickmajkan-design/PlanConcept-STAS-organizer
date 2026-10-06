@@ -48,6 +48,7 @@ import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
 import { StatusLegend } from '../../components/StatusLegend';
 import { useVehicleRentalsOutSummaryQuery } from '../../features/costs/useCosts';
+import { VehicleDateChip } from '../../features/vehicles/VehicleDateChip';
 import { useDeleteVehicle, useVehiclesQuery } from '../../features/vehicles/useVehicles';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useEnumLabel } from '../../i18n/enumLabels';
@@ -161,6 +162,17 @@ export function VehiclesListPage() {
         ),
       },
       { field: 'registrationNumber', headerName: t('vehicles.registrationShort'), width: 140 },
+      {
+        field: 'registrationValidUntil',
+        headerName: t('vehicles.registeredUntil'),
+        width: 190,
+        renderCell: (params) =>
+          params.row.registrationValidUntil ? (
+            <VehicleDateChip label={t('vehicles.dateShort')} date={params.row.registrationValidUntil} />
+          ) : (
+            '—'
+          ),
+      },
       {
         field: 'tdNumber',
         headerName: t('vehicles.tdShort'),

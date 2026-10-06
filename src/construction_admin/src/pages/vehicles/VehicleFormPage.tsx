@@ -37,6 +37,8 @@ const emptyValues: VehicleFormValues = {
   qrCode: '',
   gpsProvider: '',
   gpsTrackingUrl: '',
+  registrationValidUntil: '',
+  rentedUntil: '',
   fuelType: 'Diesel',
   status: 'Available',
   ownershipType: 'Owned',
@@ -58,6 +60,7 @@ export function VehicleFormPage() {
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { errors, isSubmitting },
     setError,
   } = useForm<VehicleFormValues>({
@@ -79,6 +82,8 @@ export function VehicleFormPage() {
         fuelType: existing.fuelType,
         status: existing.status,
         ownershipType: existing.ownershipType,
+        registrationValidUntil: existing.registrationValidUntil ?? '',
+        rentedUntil: existing.rentedUntil ?? '',
         branchId: existing.branchId ?? '',
       });
     }
@@ -105,6 +110,9 @@ export function VehicleFormPage() {
       fuelType: values.fuelType,
       status: values.status,
       ownershipType: values.ownershipType,
+      registrationValidUntil: values.registrationValidUntil || null,
+      // An owned vehicle has no rental to run out; the API drops it too, this just keeps the request honest.
+      rentedUntil: values.ownershipType === 'Owned' ? null : values.rentedUntil || null,
       branchId: values.branchId || null,
     };
 
@@ -328,6 +336,42 @@ export function VehicleFormPage() {
                   )}
                 />
               </Grid>
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <Controller
+                  name="registrationValidUntil"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <TextField
+                      {...field}
+                      type="date"
+                      label={t('vehicles.registrationValidUntil')}
+                      fullWidth
+                      slotProps={{ inputLabel: { shrink: true } }}
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message ?? t('vehicles.registrationValidUntilHelp')}
+                    />
+                  )}
+                />
+              </Grid>
+              {watch('ownershipType') !== 'Owned' && (
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Controller
+                    name="rentedUntil"
+                    control={control}
+                    render={({ field, fieldState }) => (
+                      <TextField
+                        {...field}
+                        type="date"
+                        label={t('vehicles.rentedUntil')}
+                        fullWidth
+                        slotProps={{ inputLabel: { shrink: true } }}
+                        error={!!fieldState.error}
+                        helperText={fieldState.error?.message ?? t('vehicles.rentedUntilHelp')}
+                      />
+                    )}
+                  />
+                </Grid>
+              )}
               <Grid size={{ xs: 12, sm: 6 }}>
                 <BranchSelectField
                   control={control}

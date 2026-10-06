@@ -29,6 +29,15 @@ public record RequestAbsenceCommand : IRequest<AbsenceDto>
     /// in a phoned-in sick day should not have to approve it afterwards.
     /// </summary>
     public bool Approve { get; init; }
+
+    /// <summary>
+    /// With <see cref="Approve"/>: take the person off their accommodation for the leave. Left out, annual leave
+    /// does it and every other kind does not.
+    /// </summary>
+    public bool? ReleaseAccommodation { get; init; }
+
+    /// <summary>With <see cref="Approve"/>: book them back into the same place the day after. Left out, it does.</summary>
+    public bool? ReturnToAccommodation { get; init; }
 }
 
 public class RequestAbsenceCommandValidator : AbstractValidator<RequestAbsenceCommand>
@@ -137,6 +146,18 @@ public class RequestAbsenceCommandHandler : IRequestHandler<RequestAbsenceComman
         };
 
         _context.Absences.Add(absence);
+
+        if (status == AbsenceStatus.Approved
+            && (request.ReleaseAccommodation ?? AbsenceHousing.ReleasesByDefault(request.Type)))
+        {
+            await AbsenceHousing.ReleaseAsync(
+                _context,
+                employeeId,
+                request.StartDate,
+                request.EndDate,
+                request.ReturnToAccommodation ?? true,
+                cancellationToken);
+        }
 
         await _context.SaveChangesAsync(cancellationToken);
 

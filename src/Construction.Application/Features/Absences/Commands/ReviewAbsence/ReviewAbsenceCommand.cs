@@ -19,6 +19,15 @@ public record ReviewAbsenceCommand : IRequest<AbsenceDto>
 
     /// <summary>Required when refusing, so the person knows why.</summary>
     public string? Note { get; init; }
+
+    /// <summary>
+    /// Take the person off their accommodation for the days of the leave. Left out, annual leave does it and
+    /// every other kind does not: those are for the office to decide, case by case.
+    /// </summary>
+    public bool? ReleaseAccommodation { get; init; }
+
+    /// <summary>Book them back into the same place the day after the leave. Left out, it does.</summary>
+    public bool? ReturnToAccommodation { get; init; }
 }
 
 public class ReviewAbsenceCommandValidator : AbstractValidator<ReviewAbsenceCommand>
@@ -98,6 +107,18 @@ public class ReviewAbsenceCommandHandler : IRequestHandler<ReviewAbsenceCommand,
         absence.ReviewedAt = _dateTimeProvider.UtcNow;
         // An approval note would sit on the row looking like an objection.
         absence.ReviewNote = request.Approve ? null : request.Note!.Trim();
+
+        if (request.Approve
+            && (request.ReleaseAccommodation ?? AbsenceHousing.ReleasesByDefault(absence.Type)))
+        {
+            await AbsenceHousing.ReleaseAsync(
+                _context,
+                absence.EmployeeId,
+                absence.StartDate,
+                absence.EndDate,
+                request.ReturnToAccommodation ?? true,
+                cancellationToken);
+        }
 
         try
         {

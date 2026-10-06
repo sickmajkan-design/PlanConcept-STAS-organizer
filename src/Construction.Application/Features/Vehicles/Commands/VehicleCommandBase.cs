@@ -30,6 +30,12 @@ public abstract record VehicleCommandBase
 
     public string? GpsTrackingUrl { get; init; }
 
+    /// <summary>The last day the registration is valid; null when not known.</summary>
+    public DateOnly? RegistrationValidUntil { get; init; }
+
+    /// <summary>The last day of the rental or lease; only meaningful for a rented or leased vehicle.</summary>
+    public DateOnly? RentedUntil { get; init; }
+
     public FuelType FuelType { get; init; }
 
     public VehicleStatus Status { get; init; } = VehicleStatus.Available;

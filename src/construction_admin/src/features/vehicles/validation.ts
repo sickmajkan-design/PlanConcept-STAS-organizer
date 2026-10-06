@@ -50,6 +50,8 @@ export const vehicleFormSchema = z.object({
     .url({ error: zodMsg('validation.urlInvalid') })
     .optional()
     .or(z.literal('')),
+  registrationValidUntil: z.string().optional().or(z.literal('')),
+  rentedUntil: z.string().optional().or(z.literal('')),
   fuelType: z.enum(fuelTypes, { error: zodMsg('validation.fuelTypeRequired') }),
   branchId: z.string().optional().or(z.literal('')),
   status: z.enum(vehicleStatuses),

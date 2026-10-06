@@ -63,6 +63,7 @@ import { ErrorState } from '../../components/ErrorState';
 import { AttachmentList } from '../../components/AttachmentList';
 import { QrLabelDialog } from '../../components/QrLabelDialog';
 import { DocumentCountChip } from '../../components/DocumentCountChip';
+import { VehicleDateChip } from '../../features/vehicles/VehicleDateChip';
 import { StatusChip } from '../../components/StatusChip';
 import { useCoverPhoto } from '../../features/attachments/useAttachments';
 import { useAllCustomersQuery } from '../../features/customers/useCustomers';
@@ -207,6 +208,23 @@ export function VehicleDetailPage() {
                 <StatusChip status={vehicle.status} kind="vehicleStatus" />
                 <StatusChip status={vehicle.ownershipType} kind="vehicleOwnershipType" />
                 <DocumentCountChip ownerType="Vehicle" ownerId={vehicle.id} />
+              </Stack>
+              <Stack direction="row" spacing={1} useFlexGap sx={{ mt: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+                <VehicleDateChip label={t('vehicles.registeredUntil')} date={vehicle.registrationValidUntil} />
+                {vehicle.ownershipType !== 'Owned' && (
+                  <VehicleDateChip label={t('vehicles.rentedUntilShort')} date={vehicle.rentedUntil} />
+                )}
+                {vehicle.currentRentalOutRenterName && (
+                  <Chip
+                    size="small"
+                    color="info"
+                    variant="outlined"
+                    label={t('vehicles.rentedOutTo', {
+                      renter: vehicle.currentRentalOutRenterName,
+                      date: formatDate(vehicle.currentRentalOutStartDate),
+                    })}
+                  />
+                )}
               </Stack>
             </Box>
             <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', alignItems: 'center' }}>

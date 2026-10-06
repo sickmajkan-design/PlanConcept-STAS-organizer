@@ -76,6 +76,9 @@ public class UpdateVehicleCommandHandler : IRequestHandler<UpdateVehicleCommand,
         vehicle.GpsTrackingUrl = string.IsNullOrWhiteSpace(request.GpsTrackingUrl)
             ? null
             : request.GpsTrackingUrl.Trim();
+        vehicle.RegistrationValidUntil = request.RegistrationValidUntil;
+        // An owned vehicle has no rental to run out; a stale date from before it was bought must not linger.
+        vehicle.RentedUntil = request.OwnershipType == VehicleOwnershipType.Owned ? null : request.RentedUntil;
         vehicle.FuelType = request.FuelType;
         vehicle.Status = request.Status;
         vehicle.OwnershipType = request.OwnershipType;

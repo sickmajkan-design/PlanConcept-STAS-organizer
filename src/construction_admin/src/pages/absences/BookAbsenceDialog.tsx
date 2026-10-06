@@ -12,13 +12,14 @@ import {
   Switch,
   TextField,
 } from '@mui/material';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 
 import { toApiError } from '../../api/apiError';
 import { absenceTypes } from '../../api/types';
 import { canReviewAbsences } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
+import { AbsenceHousingChoice, type HousingChoice } from '../../features/absences/AbsenceHousingChoice';
 import { useBookAbsence } from '../../features/absences/useAbsences';
 import {
   absenceFormSchema,
@@ -49,11 +50,14 @@ export function BookAbsenceDialog({
   const enumLabel = useEnumLabel();
   const { data: allEmployees } = useAllEmployeesQuery();
   const book = useBookAbsence();
+  const [housing, setHousing] = useState<HousingChoice>({});
+  const onHousing = useCallback((choice: HousingChoice) => setHousing(choice), []);
 
   const {
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<AbsenceFormValues>({
     resolver: zodResolver(absenceFormSchema),
@@ -80,6 +84,8 @@ export function BookAbsenceDialog({
         endDate: values.endDate,
         reason: values.reason || null,
         approve: values.approve,
+        // Only meaningful with `approve`, and only when the person is housed (otherwise empty).
+        ...(values.approve ? housing : {}),
       },
       { onSuccess: onClose },
     );
@@ -190,6 +196,18 @@ export function BookAbsenceDialog({
               )}
             />
           </Grid>
+
+          {canReviewAbsences(user) && watch('approve') && (
+            <Grid size={12}>
+              <AbsenceHousingChoice
+                employeeId={watch('employeeId') || undefined}
+                startDate={watch('startDate') || undefined}
+                endDate={watch('endDate') || undefined}
+                type={watch('type')}
+                onChange={onHousing}
+              />
+            </Grid>
+          )}
 
           {canReviewAbsences(user) && (
           <Grid size={12}>

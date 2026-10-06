@@ -2,6 +2,7 @@ using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Vehicles.Models;
 using Construction.Domain.Entities;
+using Construction.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -57,6 +58,8 @@ public class CreateVehicleCommandHandler : IRequestHandler<CreateVehicleCommand,
             GpsTrackingUrl = string.IsNullOrWhiteSpace(request.GpsTrackingUrl)
                 ? null
                 : request.GpsTrackingUrl.Trim(),
+            RegistrationValidUntil = request.RegistrationValidUntil,
+            RentedUntil = request.OwnershipType == VehicleOwnershipType.Owned ? null : request.RentedUntil,
             FuelType = request.FuelType,
             Status = request.Status,
             OwnershipType = request.OwnershipType

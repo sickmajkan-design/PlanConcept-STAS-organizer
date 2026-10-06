@@ -46,6 +46,7 @@ import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { SavedViewsBar } from '../../components/SavedViewsBar';
 import { StatusChip } from '../../components/StatusChip';
 import { StatusLegend } from '../../components/StatusLegend';
+import { ApproveAbsenceDialog } from '../../features/absences/ApproveAbsenceDialog';
 import {
   useAbsenceBalanceQuery,
   useAbsencesQuery,
@@ -519,26 +520,15 @@ function ApproveDialog({
   onClose: () => void;
 }) {
   const t = useT();
-  const review = useReviewAbsence();
   const balanceLine = useAbsenceBalanceLine(absence);
 
   return (
-    <ConfirmDialog
-      open={!!absence}
-      title={t('absences.approveTitle')}
+    <ApproveAbsenceDialog
+      absence={absence}
+      onClose={onClose}
       description={
         balanceLine ? `${t('absences.approveBody')} ${balanceLine}.` : t('absences.approveBody')
       }
-      confirmLabel={t('absences.approve')}
-      onConfirm={async () => {
-        if (!absence) return;
-
-        // Awaited, so a refusal (a conflict, a lost connection) is thrown to
-        // the dialog and shown there. Fire-and-forget left it open and silent.
-        await review.mutateAsync({ id: absence.id, input: { approve: true } });
-        onClose();
-      }}
-      onCancel={onClose}
     />
   );
 }

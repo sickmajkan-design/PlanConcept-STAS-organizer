@@ -41,6 +41,20 @@ export interface ReviewAbsenceInput {
   approve: boolean;
   /** Required when refusing, so the person knows why. */
   note?: string | null;
+  /** Take the person off their accommodation for the leave. Left out: annual leave does, others do not. */
+  releaseAccommodation?: boolean;
+  /** Book them back into the same place the day after. Left out: yes. */
+  returnToAccommodation?: boolean;
+}
+
+/** Where a person lives on the first day of a leave, so the office can decide what granting it does. */
+export interface AbsenceHousingImpact {
+  hasStay: boolean;
+  stayId: string | null;
+  accommodationId: string | null;
+  accommodationName: string | null;
+  stayStartDate: string | null;
+  stayEndDate: string | null;
 }
 
 export interface ProposeAbsenceEditInput {
@@ -71,6 +85,13 @@ export const absencesApi = {
 
   book: (input: AbsenceInput) =>
     request<Absence>({ method: 'POST', url: '/api/v1/absences', data: input }),
+
+  housingImpact: (employeeId: string, startDate: string, endDate: string) =>
+    request<AbsenceHousingImpact>({
+      method: 'GET',
+      url: '/api/v1/absences/housing-impact',
+      params: { employeeId, startDate, endDate },
+    }),
 
   review: (id: string, input: ReviewAbsenceInput) =>
     request<Absence>({

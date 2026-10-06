@@ -25,6 +25,12 @@ public class VehicleDto
 
     public string? GpsTrackingUrl { get; init; }
 
+    /// <summary>The last day the registration is valid. Null when not entered.</summary>
+    public DateOnly? RegistrationValidUntil { get; init; }
+
+    /// <summary>The last day of the rental or lease. Null for an owned vehicle or when no end is agreed.</summary>
+    public DateOnly? RentedUntil { get; init; }
+
     public string FuelType { get; init; } = null!;
 
     public string Status { get; init; } = null!;
@@ -107,6 +113,8 @@ public static class VehicleMapping
             QrCode = vehicle.QrCode,
             GpsProvider = vehicle.GpsProvider,
             GpsTrackingUrl = vehicle.GpsTrackingUrl,
+            RegistrationValidUntil = vehicle.RegistrationValidUntil,
+            RentedUntil = vehicle.RentedUntil,
             FuelType = vehicle.FuelType.ToString(),
             Status = vehicle.Status.ToString(),
             OwnershipType = vehicle.OwnershipType.ToString(),

@@ -5,12 +5,12 @@ import { Link } from 'react-router-dom';
 
 import type { Absence } from '../../../api/types';
 import { useAuth } from '../../../auth/useAuth';
-import { ConfirmDialog } from '../../../components/ConfirmDialog';
 import { ReasonDialog } from '../../../components/ReasonDialog';
 import { useEnumLabel } from '../../../i18n/enumLabels';
 import { useT } from '../../../i18n/useI18n';
 import { paths } from '../../../routes/paths';
 import { formatDate } from '../../../utils/formatting';
+import { ApproveAbsenceDialog } from '../../absences/ApproveAbsenceDialog';
 import { useAbsencesQuery, useReviewAbsence } from '../../absences/useAbsences';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
@@ -112,21 +112,7 @@ export function AbsenceRequestsWidget({ instanceId: _instanceId, onRemove, onExp
         </Button>
       </Typography>
 
-      <ConfirmDialog
-        open={!!granting}
-        title={t('absences.approveTitle')}
-        description={t('absences.approveBody')}
-        confirmLabel={t('absences.approve')}
-        onConfirm={async () => {
-          if (!granting) return;
-
-          // Awaited so a refusal (someone else answered first, a lost
-          // connection) is thrown to the dialog and shown there.
-          await review.mutateAsync({ id: granting.id, input: { approve: true } });
-          setGranting(null);
-        }}
-        onCancel={() => setGranting(null)}
-      />
+      <ApproveAbsenceDialog absence={granting} onClose={() => setGranting(null)} />
 
       <ReasonDialog
         open={!!declining}

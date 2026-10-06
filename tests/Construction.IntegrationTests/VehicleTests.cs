@@ -414,6 +414,83 @@ public class VehicleTests : IntegrationTestBase
             InScope(scope => scope.Send(new GetVehicleByIdQuery(Guid.NewGuid()))));
     }
 
+    // ---- registration and rental dates ------------------------------------
+
+    [Fact]
+    public async Task The_registration_and_rental_end_dates_are_stored_and_read_back()
+    {
+        var created = await InScope(scope => scope.Send(new CreateVehicleCommand
+        {
+            Brand = "Iveco",
+            Model = "Daily",
+            RegistrationNumber = "ZG-DATES-1",
+            TdNumber = "TD-DATES-1",
+            FuelType = FuelType.Diesel,
+            Status = VehicleStatus.Available,
+            OwnershipType = VehicleOwnershipType.Rented,
+            RegistrationValidUntil = new DateOnly(2027, 3, 31),
+            RentedUntil = new DateOnly(2027, 6, 30)
+        }));
+
+        var detail = await InScope(scope => scope.Send(new GetVehicleByIdQuery(created.Id)));
+
+        Assert.Equal(new DateOnly(2027, 3, 31), detail.RegistrationValidUntil);
+        Assert.Equal(new DateOnly(2027, 6, 30), detail.RentedUntil);
+    }
+
+    [Fact]
+    public async Task An_owned_vehicle_has_no_rental_end_even_if_one_is_sent()
+    {
+        var created = await InScope(scope => scope.Send(new CreateVehicleCommand
+        {
+            Brand = "Iveco",
+            Model = "Daily",
+            RegistrationNumber = "ZG-DATES-2",
+            TdNumber = "TD-DATES-2",
+            FuelType = FuelType.Diesel,
+            Status = VehicleStatus.Available,
+            OwnershipType = VehicleOwnershipType.Owned,
+            RentedUntil = new DateOnly(2027, 6, 30)
+        }));
+
+        Assert.Null(created.RentedUntil);
+    }
+
+    [Fact]
+    public async Task Buying_a_rented_vehicle_clears_its_rental_end()
+    {
+        var created = await InScope(scope => scope.Send(new CreateVehicleCommand
+        {
+            Brand = "Iveco",
+            Model = "Daily",
+            RegistrationNumber = "ZG-DATES-3",
+            TdNumber = "TD-DATES-3",
+            FuelType = FuelType.Diesel,
+            Status = VehicleStatus.Available,
+            OwnershipType = VehicleOwnershipType.Leased,
+            RentedUntil = new DateOnly(2027, 6, 30)
+        }));
+
+        var updated = await InScope(scope => scope.Send(Edit(created.Id, "ZG-DATES-3") with
+        {
+            OwnershipType = VehicleOwnershipType.Owned,
+            RentedUntil = new DateOnly(2027, 6, 30)
+        }));
+
+        Assert.Null(updated.RentedUntil);
+    }
+
+    [Fact]
+    public async Task The_list_can_be_sorted_by_td_number_and_by_when_the_registration_runs_out()
+    {
+        foreach (var sortBy in new[] { "tdNumber", "registrationValidUntil" })
+        {
+            var page = await InScope(scope => scope.Send(new GetVehiclesQuery { SortBy = sortBy, PageSize = 10 }));
+
+            Assert.NotNull(page);
+        }
+    }
+
     // ---- listing ---------------------------------------------------------
 
     [Fact]

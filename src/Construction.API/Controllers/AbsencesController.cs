@@ -91,6 +91,21 @@ public class AbsencesController : ApiControllerBase
     }
 
     /// <summary>Grants or refuses a request. Never your own.</summary>
+    /// <summary>Where somebody lives on the first day of a leave: what granting it would take them off.</summary>
+    [HttpGet("housing-impact")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(AbsenceHousingImpactDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<AbsenceHousingImpactDto>> GetHousingImpact(
+        [FromQuery] Guid employeeId,
+        [FromQuery] DateOnly startDate,
+        [FromQuery] DateOnly endDate,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(
+            new GetAbsenceHousingImpactQuery(employeeId, startDate, endDate), cancellationToken));
+    }
+
     [HttpPost("{id:guid}/review")]
     [Authorize(Policy = Policies.AdminAndAbove)]
     [ProducesResponseType(typeof(AbsenceDto), StatusCodes.Status200OK)]

@@ -552,6 +552,10 @@ export interface Vehicle {
   gpsProvider: string | null;
   /** Deep link to this vehicle on its GPS provider's own site. Opened in a new tab. */
   gpsTrackingUrl: string | null;
+  /** The last day the registration is valid (`YYYY-MM-DD`). Null when not entered. */
+  registrationValidUntil: string | null;
+  /** The last day of the rental or lease. Null for an owned vehicle or when no end is agreed. */
+  rentedUntil: string | null;
   fuelType: FuelType;
   status: VehicleStatus;
   ownershipType: VehicleOwnershipType;
@@ -625,6 +629,8 @@ export interface VehicleInput {
   model: string;
   registrationNumber: string;
   tdNumber: string;
+  registrationValidUntil?: string | null;
+  rentedUntil?: string | null;
   vin?: string | null;
   qrCode?: string | null;
   gpsProvider?: string | null;
@@ -1158,6 +1164,10 @@ export interface AbsenceInput {
   reason?: string | null;
   /** Records it as already granted. Supervisors only. */
   approve?: boolean;
+  /** With `approve`: take the person off their accommodation. Left out: annual leave does, others do not. */
+  releaseAccommodation?: boolean;
+  /** With `approve`: book them back into the same place the day after. Left out: yes. */
+  returnToAccommodation?: boolean;
 }
 
 /**

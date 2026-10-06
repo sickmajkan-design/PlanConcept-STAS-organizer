@@ -15,7 +15,7 @@ public record GetVehiclesQuery : ISortablePagedQuery, IRequest<PagedList<Vehicle
 {
     public static readonly string[] AllowedSortFields =
     [
-        "brand", "model", "registrationNumber", "fuelType", "status", "ownershipType", "assignedEmployeeName", "currentRentalOutRenterName", "lastRentalOutRenterName", "createdAt"
+        "brand", "model", "registrationNumber", "tdNumber", "registrationValidUntil", "fuelType", "status", "ownershipType", "assignedEmployeeName", "currentRentalOutRenterName", "lastRentalOutRenterName", "createdAt"
     ];
 
     public int PageNumber { get; init; } = 1;
@@ -165,6 +165,10 @@ public class GetVehiclesQueryHandler : IRequestHandler<GetVehiclesQuery, PagedLi
             ("model", true) => query.OrderByDescending(v => v.Model),
             ("registrationnumber", false) => query.OrderBy(v => v.RegistrationNumber),
             ("registrationnumber", true) => query.OrderByDescending(v => v.RegistrationNumber),
+            ("registrationvaliduntil", false) => query
+                .OrderBy(v => v.RegistrationValidUntil == null).ThenBy(v => v.RegistrationValidUntil),
+            ("registrationvaliduntil", true) => query
+                .OrderByDescending(v => v.RegistrationValidUntil == null).ThenByDescending(v => v.RegistrationValidUntil),
             ("tdnumber", false) => query.OrderBy(v => v.TdNumber),
             ("tdnumber", true) => query.OrderByDescending(v => v.TdNumber),
             ("fueltype", false) => query.OrderBy(v => v.FuelType),

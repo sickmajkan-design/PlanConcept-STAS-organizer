@@ -30,6 +30,19 @@ public class Vehicle : BaseEntity, ISoftDeletable, IAuditable
     /// <summary>Deep link to this vehicle on its GPS provider's own site. Opened in a new tab; no position data is fetched or stored here.</summary>
     public string? GpsTrackingUrl { get; set; }
 
+    /// <summary>
+    /// The last day the vehicle's registration is valid. Null when nobody has entered it yet. Shown in the
+    /// vehicle's header, so the date to renew by is seen without opening a document.
+    /// </summary>
+    public DateOnly? RegistrationValidUntil { get; set; }
+
+    /// <summary>
+    /// The last day of the rental or lease, for a vehicle the company takes from somebody else. Null when no end
+    /// is agreed or the vehicle is owned. Separate from <see cref="VehicleRentalRate"/>, whose end date means the
+    /// rate stopped applying, not that the contract runs out.
+    /// </summary>
+    public DateOnly? RentedUntil { get; set; }
+
     public FuelType FuelType { get; set; }
 
     public VehicleStatus Status { get; set; } = VehicleStatus.Available;
