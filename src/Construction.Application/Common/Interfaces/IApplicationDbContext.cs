@@ -11,6 +11,8 @@ public interface IApplicationDbContext
 
     DbSet<UserSession> UserSessions { get; }
 
+    DbSet<FailedLogin> FailedLogins { get; }
+
     DbSet<PasswordResetToken> PasswordResetTokens { get; }
 
     DbSet<Employee> Employees { get; }

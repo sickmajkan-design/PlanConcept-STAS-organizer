@@ -17,7 +17,13 @@ import { useState } from 'react';
 
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
-import { useOnlineUsersQuery, useUserSessionsQuery } from '../../features/presence/usePresence';
+import { useAuth } from '../../auth/useAuth';
+import { isSuperAdmin } from '../../auth/authHelpers';
+import {
+  useFailedLoginsQuery,
+  useOnlineUsersQuery,
+  useUserSessionsQuery,
+} from '../../features/presence/usePresence';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
 import { formatDateTime } from '../../utils/formatting';
@@ -38,6 +44,9 @@ export function PresencePage() {
 
   const online = useOnlineUsersQuery();
   const sessions = useUserSessionsQuery(days);
+  const { user } = useAuth();
+  const canSeeFailures = isSuperAdmin(user);
+  const failures = useFailedLoginsQuery(days, canSeeFailures);
 
   const clientLabel = (client: string) =>
     client === 'app' ? t('presence.clientApp') : t('presence.clientWeb');
@@ -155,6 +164,51 @@ export function PresencePage() {
             </TableBody>
           </Table>
         </TableContainer>
+      )}
+
+      {canSeeFailures && (
+        <>
+          <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
+            {t('presence.failedTitle')}
+          </Typography>
+          {failures.isError ? (
+            <ErrorState error={failures.error} onRetry={() => void failures.refetch()} />
+          ) : (
+            <TableContainer component={Paper} variant="outlined">
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>{t('presence.failedWhen')}</TableCell>
+                    <TableCell>{t('presence.failedEmail')}</TableCell>
+                    <TableCell>{t('presence.failedReason')}</TableCell>
+                    <TableCell>{t('presence.client')}</TableCell>
+                    <TableCell>{t('presence.ip')}</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {(failures.data ?? []).map((row) => (
+                    <TableRow key={row.id}>
+                      <TableCell>{formatDateTime(row.occurredAt)}</TableCell>
+                      <TableCell>{row.email}</TableCell>
+                      <TableCell>{t(`presence.reason.${row.reason}`)}</TableCell>
+                      <TableCell>{clientLabel(row.client)}</TableCell>
+                      <TableCell>{row.ipAddress ?? '—'}</TableCell>
+                    </TableRow>
+                  ))}
+                  {failures.data?.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5}>
+                        <Typography color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+                          {t('presence.noFailures')}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </>
       )}
     </Box>
   );

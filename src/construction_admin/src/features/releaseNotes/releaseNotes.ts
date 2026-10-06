@@ -10,7 +10,7 @@ import type { MessageKey } from '../../i18n/en';
  * what changed recently, not a changelog: when a release is added, drop the
  * sections older than the fifth (and their `releaseNotes.*` keys in i18n).
  */
-export const RELEASE_ID = '2026-10-06.2';
+export const RELEASE_ID = '2026-10-06.3';
 
 export interface ReleaseSection {
   id: string;
@@ -21,24 +21,6 @@ export interface ReleaseSection {
 }
 
 export const releaseSections: ReleaseSection[] = [
-  {
-    id: 'branches1001',
-    titleKey: 'releaseNotes.branches1001.title',
-    itemKeys: [
-      'releaseNotes.branches1001.what',
-      'releaseNotes.branches1001.filter',
-      'releaseNotes.branches1001.assign',
-      'releaseNotes.branches1001.money',
-      'releaseNotes.branches1001.details',
-      'releaseNotes.branches1001.documents',
-      'releaseNotes.branches1001.employees',
-      'releaseNotes.branches1001.payroll',
-      'releaseNotes.branches1001.screens',
-      'releaseNotes.branches1001.notices',
-      'releaseNotes.branches1001.app',
-    ],
-    audience: (user) => user.role === 'SuperAdmin' || user.role === 'Admin',
-  },
   {
     id: 'documents1005',
     titleKey: 'releaseNotes.documents1005.title',
@@ -73,6 +55,12 @@ export const releaseSections: ReleaseSection[] = [
     titleKey: 'releaseNotes.presence1006.title',
     itemKeys: ['releaseNotes.presence1006.what', 'releaseNotes.presence1006.keep'],
     audience: (user) => user.role === 'SuperAdmin' || user.role === 'Admin',
+  },
+  {
+    id: 'failed1006',
+    titleKey: 'releaseNotes.failed1006.title',
+    itemKeys: ['releaseNotes.failed1006.what'],
+    audience: (user) => user.role === 'SuperAdmin',
   },
 ];
 

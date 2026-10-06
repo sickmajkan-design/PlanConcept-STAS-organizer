@@ -47,3 +47,11 @@ export function useUserSessionsQuery(days: number) {
     queryFn: () => presenceApi.sessions(days),
   });
 }
+
+export function useFailedLoginsQuery(days: number, enabled: boolean) {
+  return useQuery({
+    queryKey: ['presence', 'failedLogins', days],
+    queryFn: () => presenceApi.failedLogins(days),
+    enabled,
+  });
+}

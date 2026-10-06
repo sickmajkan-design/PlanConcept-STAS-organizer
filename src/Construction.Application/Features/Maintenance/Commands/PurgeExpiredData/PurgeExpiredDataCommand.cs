@@ -30,9 +30,12 @@ public record PurgeResult(
     /// <summary>Sign-in sessions removed once past their retention window.</summary>
     public int UserSessions { get; init; }
 
+    /// <summary>Refused sign-in attempts removed once past their retention window.</summary>
+    public int FailedLogins { get; init; }
+
     public int Total =>
         RefreshTokens + PasswordResetTokens + LocationRecords + OutboxMessages
-        + AuditEntries + TimeEntryCoordinates + IdempotencyRecords + UserSessions;
+        + AuditEntries + TimeEntryCoordinates + IdempotencyRecords + UserSessions + FailedLogins;
 }
 
 /// <summary>
@@ -114,6 +117,9 @@ public record PurgeExpiredDataCommand : IRequest<PurgeResult>
     /// Null keeps them forever.
     /// </summary>
     public TimeSpan? UserSessionRetention { get; init; } = TimeSpan.FromDays(30);
+
+    /// <summary>How long a refused sign-in attempt is kept. Null keeps them forever.</summary>
+    public TimeSpan? FailedLoginRetention { get; init; } = TimeSpan.FromDays(30);
 
     /// <summary>
     /// How long a shift's clock-in and clock-out coordinates are kept. Null —
@@ -334,11 +340,23 @@ public class PurgeExpiredDataCommandHandler
                 cancellationToken);
         }
 
+        var failedLogins = 0;
+
+        if (request.FailedLoginRetention is { } failedRetention)
+        {
+            failedLogins = await DeleteInBatchesAsync(
+                _context.FailedLogins
+                    .Where(f => f.OccurredAt < utcNow - failedRetention),
+                request,
+                cancellationToken);
+        }
+
         return new PurgeResult(
             refreshTokens, resetTokens, locations, outbox, audit, coordinates, idempotency)
         {
             LocationPartitionsDropped = partitionsDropped,
             UserSessions = sessions,
+            FailedLogins = failedLogins,
         };
     }
 

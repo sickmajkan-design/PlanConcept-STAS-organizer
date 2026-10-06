@@ -221,3 +221,65 @@ public class GetUserSessionsQueryHandler
             .ToList();
     }
 }
+
+public class FailedLoginDto
+{
+    public Guid Id { get; init; }
+
+    public string Email { get; init; } = null!;
+
+    /// <summary>UnknownAccount, WrongPassword, LockedOut or Deactivated.</summary>
+    public string Reason { get; init; } = null!;
+
+    public string? IpAddress { get; init; }
+
+    public string Client { get; init; } = null!;
+
+    public DateTime OccurredAt { get; init; }
+}
+
+/// <summary>Refused sign-in attempts, newest first. SuperAdmin only (enforced by the controller).</summary>
+public record GetFailedLoginsQuery : IRequest<List<FailedLoginDto>>
+{
+    public int Days { get; init; } = 7;
+
+    public int Limit { get; init; } = 200;
+}
+
+public class GetFailedLoginsQueryHandler
+    : IRequestHandler<GetFailedLoginsQuery, List<FailedLoginDto>>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly IDateTimeProvider _clock;
+
+    public GetFailedLoginsQueryHandler(IApplicationDbContext context, IDateTimeProvider clock)
+    {
+        _context = context;
+        _clock = clock;
+    }
+
+    public async Task<List<FailedLoginDto>> Handle(
+        GetFailedLoginsQuery request, CancellationToken cancellationToken)
+    {
+        var since = _clock.UtcNow.AddDays(-Math.Clamp(request.Days, 1, 365));
+
+        var rows = await _context.FailedLogins
+            .AsNoTracking()
+            .Where(f => f.OccurredAt >= since)
+            .OrderByDescending(f => f.OccurredAt)
+            .Take(Math.Clamp(request.Limit, 1, 500))
+            .ToListAsync(cancellationToken);
+
+        return rows
+            .Select(f => new FailedLoginDto
+            {
+                Id = f.Id,
+                Email = f.Email,
+                Reason = f.Reason,
+                IpAddress = f.IpAddress,
+                Client = PresenceClient.FromUserAgent(f.UserAgent),
+                OccurredAt = f.OccurredAt,
+            })
+            .ToList();
+    }
+}

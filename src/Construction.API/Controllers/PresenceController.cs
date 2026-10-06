@@ -51,6 +51,14 @@ public partial class PresenceController : ApiControllerBase
         Ok(await Mediator.Send(
             new GetUserSessionsQuery { UserId = userId, Days = days }, cancellationToken));
 
+    /// <summary>Refused sign-in attempts. SuperAdmin only.</summary>
+    [HttpGet("failed-logins")]
+    [Authorize(Policy = Policies.SuperAdminOnly)]
+    public async Task<ActionResult<List<FailedLoginDto>>> FailedLogins(
+        [FromQuery] int days = 7,
+        CancellationToken cancellationToken = default) =>
+        Ok(await Mediator.Send(new GetFailedLoginsQuery { Days = days }, cancellationToken));
+
     /// <summary>
     /// The screen name as a path with ids removed, capped in length: it is shown
     /// to administrators, and an id in it would say which record somebody is on.

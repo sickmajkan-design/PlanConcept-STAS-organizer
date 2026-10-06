@@ -104,6 +104,7 @@ public class DataRetentionService : BackgroundService
                     LocationRecordRetention = _settings.LocationRetention,
                     AuditEntryRetention = _settings.AuditRetention,
                     UserSessionRetention = _settings.UserSessionRetention,
+                    FailedLoginRetention = _settings.FailedLoginRetention,
                     TimeEntryCoordinateRetention = _settings.TimeEntryCoordinateRetention,
                     SentOutboxMessageRetention =
                         TimeSpan.FromDays(_settings.SentOutboxMessageDays),

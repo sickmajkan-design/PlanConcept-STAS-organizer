@@ -91,6 +91,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
 
         if (user is null)
         {
+            await RecordFailureAsync(request, null, "UnknownAccount", utcNow, cancellationToken);
             throw new UnauthorizedException(InvalidCredentialsMessage);
         }
 
@@ -99,19 +100,21 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
         // state cannot be used to confirm an address exists.
         if (user.IsLockedOut(utcNow))
         {
+            await RecordFailureAsync(request, user, "LockedOut", utcNow, cancellationToken);
             throw new UnauthorizedException(InvalidCredentialsMessage);
         }
 
         if (!passwordMatches)
         {
             RegisterFailedAttempt(user, utcNow);
-            await _context.SaveChangesAsync(cancellationToken);
+            await RecordFailureAsync(request, user, "WrongPassword", utcNow, cancellationToken);
 
             throw new UnauthorizedException(InvalidCredentialsMessage);
         }
 
         if (!user.IsActive)
         {
+            await RecordFailureAsync(request, user, "Deactivated", utcNow, cancellationToken);
             throw new UnauthorizedException("This account has been deactivated.");
         }
 
@@ -199,6 +202,37 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
     /// service it enables against a known user is bounded.
     /// </para>
     /// </summary>
+    /// <summary>
+    /// Keeps a record of a refused sign-in (and saves any pending lockout
+    /// counter change with it). Every refusal writes exactly one row, so an
+    /// unknown address costs the same as a known one. Purged after
+    /// <c>Retention:FailedLoginDays</c>; the credential endpoints are rate
+    /// limited, which bounds how fast this table can grow.
+    /// </summary>
+    private async Task RecordFailureAsync(
+        LoginCommand request,
+        User? user,
+        string reason,
+        DateTime utcNow,
+        CancellationToken cancellationToken)
+    {
+        var email = request.Email.Trim().ToLowerInvariant();
+
+        _context.FailedLogins.Add(new FailedLogin
+        {
+            UserId = user?.Id,
+            Email = email.Length > 256 ? email[..256] : email,
+            Reason = reason,
+            IpAddress = request.IpAddress,
+            UserAgent = request.UserAgent is { Length: > 200 } agent
+                ? agent[..200]
+                : request.UserAgent,
+            OccurredAt = utcNow,
+        });
+
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
     private static void RegisterFailedAttempt(User user, DateTime utcNow)
     {
         user.FailedLoginAttempts++;
