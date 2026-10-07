@@ -2,7 +2,7 @@
 
 Za administratore i Super Admina; dijelovi 2 i 7 su i za radnike. Opisuje ono što je dodato 6. oktobra 2026: TD broj vozila, unos goriva sa telefona, provjeru DKV izvoda, datume koji ističu, skidanje sa smještaja tokom odsustva i Ctrl+K pretragu.
 
-Aplikacija na telefonu: unos goriva traži verziju **1.1.18**, a TD i datumi vozila u aplikaciji verziju **1.1.19** ili noviju.
+Aplikacija na telefonu: unos goriva traži verziju **1.1.18**, a TD i datumi vozila u aplikaciji verziju **1.1.19**; polje za broj kartice traži **1.1.20** ili noviju.
 
 ---
 
@@ -10,10 +10,10 @@ Aplikacija na telefonu: unos goriva traži verziju **1.1.18**, a TD i datumi voz
 
 **TD** je interni broj vozila u firmi, onaj koji DKV štampa na izvodu uz karticu (npr. `15`).
 
-* Obavezan je pri dodavanju i izmjeni vozila, i **jedinstven** među aktivnim vozilima.
-* Vozila koja su postojala prije nemaju TD. Na njihovom kartonu piše upozorenje, a **dok se TD ne upiše, vozilo se ne može ponovo snimiti** (ni u panelu ni u aplikaciji).
+* **Neobavezan** je (od 7.10.2026.), jer ga radnik na terenu ne zna; kancelarija ga dopunjuje. Ako se upiše, **jedinstven** je među aktivnim vozilima. Izmjena vozila s praznim TD-om ne briše postojeći.
+* Vozila bez TD-a na kartonu imaju napomenu da nedostaje.
 * Vidi se u zaglavlju vozila (`ZG-1234 · TD 15`), kao kolona u listi, i po njemu se pretražuje.
-* TD služi za provjeru DKV izvoda: broj na izvodu mora odgovarati vozilu na koje je kartica upisana.
+* TD je samo dodatna provjera DKV izvoda: ako izvod ispod kartice štampa broj drugog vozila, red se označava. Vozilo bez TD-a se po toj oznaci ne provjerava. Uparivanje ide po **broju kartice**, ne po TD-u.
 
 ## 2. Unos goriva (telefon)
 
@@ -25,6 +25,7 @@ Meni > **Troškovi vozila** > **Evidentiraj trošak**. Za gorivo je obavezno:
 |---|---|
 | Vozilo | Radniku se nudi samo vozilo koje drži. Ako nema nijedno, piše da ga prvo mora zadužiti |
 | Iznos | Iznos s računa |
+| Broj kartice | Broj DKV kartice kojom je plaćeno, očitan s kartice (u aplikaciji 1.1.20+) |
 | Litri | Veći od nule |
 | Kilometraža | Stanje na brojilu |
 | Slika računa | Kamera ili galerija. Šalje se kao prilog tog troška |
@@ -43,7 +44,7 @@ Mjesto: **Troškovi vozila** > dugme **Provjera DKV izvoda** (ili Ctrl+K > "Prov
 
 **Unos vozača je evidencija** (litri, kilometri, slika računa). **DKV izvod ga provjerava**: izvod nema litara, pa se ništa ne prepisuje iz njega, nego se svaki red izvoda uparuje s unosom vozača.
 
-Uparivanje ide po: **vozilo** (preko kartice) + **dan** + **iznos**. Dan prije i dan poslije se tolerišu (točenje oko ponoći često upišu pod prethodni dan). Dva točenja istog dana uparuju se svako sa svojim unosom po iznosu. Jedan unos vozača može potvrditi samo jedan red izvoda.
+Uparivanje ide po: **kartica** + **dan** + **iznos**. Red izvoda ima karticu, a kartica je upisana na vozilo; unos vozača ima vozilo i broj kartice koji je vozač upisao. Unos se uzima u obzir ako je na vozilu te kartice **ili** ako nosi broj te kartice (kartica jednog vozila upotrijebljena na drugom). Među više unosa istog dana i iznosa prednost ima onaj s istim brojem kartice. Pogrešno otkucan broj kartice samo gubi tu prednost; unos i dalje dolazi u obzir preko vozila. Dan prije i dan poslije se tolerišu (točenje oko ponoći često upišu pod prethodni dan). Dva točenja istog dana uparuju se svako sa svojim unosom po iznosu. Jedan unos vozača može potvrditi samo jedan red izvoda.
 
 ### 3.2 Tok
 
@@ -65,7 +66,7 @@ Uparivanje ide po: **vozilo** (preko kartice) + **dan** + **iznos**. Dan prije i
 ### 3.4 Šta se označava kao razlika
 
 * **Drugi iznos**: vozač je za taj dan evidentirao drugi iznos (prikazuju se oba).
-* **TD ne odgovara**: izvod kaže TD drugog vozila nego što je to na kojem je kartica, ili vozilo još nema TD. Oznaka "SD SMART" na izvodu je opća i ne provjerava se.
+* **TD ne odgovara**: izvod kaže TD drugog vozila nego što je to na kojem je kartica. Oznaka "SD SMART" na izvodu je opća i ne provjerava se.
 * **Pogrešno gorivo**: benzin na dizel vozilu i obrnuto. AdBlue se ne provjerava, hibridi su izuzeti.
 * **Nepotpun unos**: unos se slaže, ali nema kilometraže ili slike računa.
 
@@ -89,7 +90,7 @@ Svaka izmjena reda ide u **revizijski trag** (Administracija > Revizija): ko, ka
 
 ### 3.7 Prije prvog uvoza
 
-1. Svako vozilo mora imati **TD broj** (1).
+1. TD broj nije potreban za uparivanje (1).
 2. Svaka DKV kartica mora biti upisana na svoje vozilo (kartice vozila u panelu). Kartice koje nedostaju možeš dodijeliti i tokom uvoza.
 3. Vozači moraju imati vozilo zaduženo da bi mogli evidentirati gorivo.
 

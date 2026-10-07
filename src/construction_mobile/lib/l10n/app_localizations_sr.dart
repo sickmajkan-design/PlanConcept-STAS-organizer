@@ -374,7 +374,7 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get vehicleTdNumberHint =>
-      'Oznaka vozila u firmi, ista kao na DKV izvodu.';
+      'Neobavezno. Ako ne znaš, ostavi prazno, kancelarija će ga dopuniti.';
 
   @override
   String get vehicleRegistrationValidUntil => 'Registrovano do';
@@ -2477,6 +2477,13 @@ class AppLocalizationsSr extends AppLocalizations {
   @override
   String get vehicleExpensesOdometerHint =>
       'Nije obavezno, ali dva stanja daju potrošnju.';
+
+  @override
+  String get vehicleExpensesCardNumber => 'Broj kartice (DKV)';
+
+  @override
+  String get vehicleExpensesCardNumberHint =>
+      'Broj otisnut na kartici kojom si platio/la.';
 
   @override
   String get vehicleExpensesOdometerRequired =>

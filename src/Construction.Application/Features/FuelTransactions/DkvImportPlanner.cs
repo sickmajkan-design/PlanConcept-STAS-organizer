@@ -236,7 +236,7 @@ internal static class DkvImportPlanner
         var expenses = await context.VehicleExpenses
             .AsNoTracking()
             .Where(e => e.Kind == VehicleExpenseKind.Fuel
-                && vehicleIds.Contains(e.VehicleId)
+                && (vehicleIds.Contains(e.VehicleId) || e.FuelCardNumber != null)
                 && e.OccurredOn >= from && e.OccurredOn <= to)
             .Select(e => new
             {
@@ -244,6 +244,7 @@ internal static class DkvImportPlanner
                 e.VehicleId,
                 e.OccurredOn,
                 e.Amount,
+                e.FuelCardNumber,
                 HasOdometer = e.OdometerKm != null,
                 HasReceipt = context.Attachments.Any(a => a.VehicleExpenseId == e.Id)
             })
@@ -251,7 +252,7 @@ internal static class DkvImportPlanner
 
         return expenses
             .Where(e => !takenSet.Contains(e.Id))
-            .Select(e => new DkvExpenseInfo(e.Id, e.VehicleId, e.OccurredOn, e.Amount, e.HasOdometer, e.HasReceipt))
+            .Select(e => new DkvExpenseInfo(e.Id, e.VehicleId, e.OccurredOn, e.Amount, e.HasOdometer, e.HasReceipt, e.FuelCardNumber))
             .ToList();
     }
 

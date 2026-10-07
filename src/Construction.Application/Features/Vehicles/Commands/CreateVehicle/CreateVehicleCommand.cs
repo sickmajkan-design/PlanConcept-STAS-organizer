@@ -26,7 +26,9 @@ public class CreateVehicleCommandHandler : IRequestHandler<CreateVehicleCommand,
         CancellationToken cancellationToken)
     {
         var registrationNumber = request.RegistrationNumber.Trim().ToUpperInvariant();
-        var tdNumber = request.TdNumber.Trim().ToUpperInvariant();
+        var tdNumber = string.IsNullOrWhiteSpace(request.TdNumber)
+            ? null
+            : request.TdNumber.Trim().ToUpperInvariant();
         var vin = string.IsNullOrWhiteSpace(request.Vin)
             ? null
             : request.Vin.Trim().ToUpperInvariant();

@@ -666,6 +666,7 @@ export function VehicleExpenseDialog({
   const [litres, setLitres] = useState('');
   const [odometerKm, setOdometerKm] = useState('');
   const [fuelProductType, setFuelProductType] = useState('');
+  const [fuelCardNumber, setFuelCardNumber] = useState('');
   const [occurredOn, setOccurredOn] = useState('');
   const [supplier, setSupplier] = useState('');
   const [note, setNote] = useState('');
@@ -686,6 +687,7 @@ export function VehicleExpenseDialog({
       setLitres(editingExpense.litres === null ? '' : String(editingExpense.litres));
       setOdometerKm(editingExpense.odometerKm === null ? '' : String(editingExpense.odometerKm));
       setFuelProductType(editingExpense.fuelProductType ?? '');
+      setFuelCardNumber(editingExpense.fuelCardNumber ?? '');
       setOccurredOn(editingExpense.occurredOn);
       setSupplier(editingExpense.supplier ?? '');
       setNote(editingExpense.note ?? '');
@@ -723,6 +725,7 @@ export function VehicleExpenseDialog({
       litres: isFuel ? parsedLitres : null,
       odometerKm: odometerKm.trim() === '' ? null : Number(odometerKm),
       fuelProductType: isFuel ? fuelProductType.trim() || null : null,
+      fuelCardNumber: isFuel ? fuelCardNumber.trim() || null : null,
       occurredOn: occurredOn || null,
       supplier: supplier.trim() || null,
       note: note.trim() || null,
@@ -835,6 +838,19 @@ export function VehicleExpenseDialog({
                 label={t('vehicleExpenses.fuelProductType')}
                 value={fuelProductType}
                 onChange={(event) => setFuelProductType(event.target.value)}
+              />
+            </Grid>
+          )}
+
+          {isFuel && (
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <TextField
+                fullWidth
+                label={t('vehicleExpenses.fuelCardNumber')}
+                value={fuelCardNumber}
+                onChange={(event) => setFuelCardNumber(event.target.value)}
+                helperText={t('vehicleExpenses.fuelCardNumberHelp')}
+                slotProps={{ htmlInput: { maxLength: 64 } }}
               />
             </Grid>
           )}

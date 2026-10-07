@@ -773,7 +773,7 @@ abstract class AppLocalizations {
   /// No description provided for @vehicleTdNumberHint.
   ///
   /// In en, this message translates to:
-  /// **'The company\'s own number for the vehicle, as on the fuel-card statement.'**
+  /// **'Optional. Leave blank if you do not know it; the office will fill it in.'**
   String get vehicleTdNumberHint;
 
   /// No description provided for @vehicleRegistrationValidUntil.
@@ -4405,6 +4405,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Optional, but two readings are what give you consumption.'**
   String get vehicleExpensesOdometerHint;
+
+  /// No description provided for @vehicleExpensesCardNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel card number (DKV)'**
+  String get vehicleExpensesCardNumber;
+
+  /// No description provided for @vehicleExpensesCardNumberHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The number printed on the card you paid with.'**
+  String get vehicleExpensesCardNumberHint;
 
   /// No description provided for @vehicleExpensesOdometerRequired.
   ///

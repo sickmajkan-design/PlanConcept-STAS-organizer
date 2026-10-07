@@ -82,8 +82,7 @@ class _VehicleFormSheetState extends ConsumerState<_VehicleFormSheet> {
     final canSubmit = !_busy &&
         _brandController.text.trim().isNotEmpty &&
         _modelController.text.trim().isNotEmpty &&
-        _registrationController.text.trim().isNotEmpty &&
-        _tdController.text.trim().isNotEmpty;
+        _registrationController.text.trim().isNotEmpty;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -274,7 +273,7 @@ class _VehicleFormSheetState extends ConsumerState<_VehicleFormSheet> {
           brand: _brandController.text.trim(),
           model: _modelController.text.trim(),
           registrationNumber: _registrationController.text.trim(),
-          tdNumber: _tdController.text.trim(),
+          tdNumber: _tdController.text.trim().isEmpty ? null : _tdController.text.trim(),
           vin: _vinController.text.trim().isEmpty
               ? null
               : _vinController.text.trim(),
@@ -297,7 +296,7 @@ class _VehicleFormSheetState extends ConsumerState<_VehicleFormSheet> {
           brand: _brandController.text.trim(),
           model: _modelController.text.trim(),
           registrationNumber: _registrationController.text.trim(),
-          tdNumber: _tdController.text.trim(),
+          tdNumber: _tdController.text.trim().isEmpty ? null : _tdController.text.trim(),
           vin: _vinController.text.trim().isEmpty
               ? null
               : _vinController.text.trim(),

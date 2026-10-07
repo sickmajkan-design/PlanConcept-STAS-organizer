@@ -380,7 +380,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get vehicleTdNumberHint =>
-      'The company\'s own number for the vehicle, as on the fuel-card statement.';
+      'Optional. Leave blank if you do not know it; the office will fill it in.';
 
   @override
   String get vehicleRegistrationValidUntil => 'Registered until';
@@ -2473,6 +2473,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get vehicleExpensesOdometerHint =>
       'Optional, but two readings are what give you consumption.';
+
+  @override
+  String get vehicleExpensesCardNumber => 'Fuel card number (DKV)';
+
+  @override
+  String get vehicleExpensesCardNumberHint =>
+      'The number printed on the card you paid with.';
 
   @override
   String get vehicleExpensesOdometerRequired =>

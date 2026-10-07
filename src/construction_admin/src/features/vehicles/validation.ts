@@ -23,8 +23,9 @@ export const vehicleFormSchema = z.object({
   tdNumber: z
     .string()
     .trim()
-    .min(1, { error: zodMsg('validation.required') })
-    .max(32, { error: zodMsg('validation.maxLength', { max: 32 }) }),
+    .max(32, { error: zodMsg('validation.maxLength', { max: 32 }) })
+    .optional()
+    .or(z.literal('')),
   vin: z
     .string()
     .trim()

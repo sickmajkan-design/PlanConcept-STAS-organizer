@@ -18,7 +18,8 @@ public record DkvExpenseInfo(
     DateOnly OccurredOn,
     decimal Amount,
     bool HasOdometer,
-    bool HasReceipt);
+    bool HasReceipt,
+    string? CardNumber = null);
 
 public record DkvMatch(
     Guid? VehicleId,
@@ -38,6 +39,12 @@ public record DkvMatch(
 /// driver recorded the same amount for that vehicle on that day (or the day
 /// either side, since a fill-up at 00:15 is often entered under the evening
 /// before), and everything else is surfaced for a person to look at.
+///
+/// The driver is also asked for the number of the card they paid with, which they can read
+/// off the plastic. An entry carrying the row's card is a candidate even when it was recorded
+/// on another vehicle (a card lent to a colleague's van), and among several candidates the one
+/// with the same card wins. A mistyped number costs only that tie-break: the vehicle's own
+/// entries stay candidates either way.
 /// </remarks>
 public static class DkvMatcher
 {
@@ -57,6 +64,31 @@ public static class DkvMatcher
         var expensesByVehicle = expenseList
             .GroupBy(e => e.VehicleId)
             .ToDictionary(g => g.Key, g => g.ToList());
+        var expensesByCard = expenseList
+            .Where(e => !string.IsNullOrEmpty(e.CardNumber))
+            .GroupBy(e => FuelCardNumbers.Normalise(e.CardNumber!))
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        // The vehicle's own entries, plus any entry that names this row's card.
+        List<DkvExpenseInfo> CandidatesFor(DkvRow row, DkvVehicleInfo vehicle)
+        {
+            var candidates = expensesByVehicle.TryGetValue(vehicle.VehicleId, out var own)
+                ? new List<DkvExpenseInfo>(own)
+                : [];
+
+            if (expensesByCard.TryGetValue(FuelCardNumbers.Normalise(row.CardNumber), out var sameCard))
+            {
+                candidates.AddRange(sameCard.Where(e => e.VehicleId != vehicle.VehicleId));
+            }
+
+            return candidates;
+        }
+
+        static int CardRank(DkvExpenseInfo expense, DkvRow row) =>
+            expense.CardNumber is not null
+            && FuelCardNumbers.Normalise(expense.CardNumber) == FuelCardNumbers.Normalise(row.CardNumber)
+                ? 0
+                : 1;
 
         var vehicles = new DkvVehicleInfo?[rows.Count];
         var pairedExpense = new Guid?[rows.Count];
@@ -81,19 +113,19 @@ public static class DkvMatcher
         // Pass 1: the same amount. Same day wins over a neighbouring day.
         for (var i = 0; i < rows.Count; i++)
         {
-            if (vehicles[i] is not { } vehicle
-                || !expensesByVehicle.TryGetValue(vehicle.VehicleId, out var candidates))
+            if (vehicles[i] is not { } vehicle)
             {
                 continue;
             }
 
             var row = rows[i];
 
-            var exact = candidates
+            var exact = CandidatesFor(row, vehicle)
                 .Where(e => !claimed.Contains(e.Id)
                     && Math.Abs(e.Amount - row.Amount) <= AmountTolerance
                     && Math.Abs(e.OccurredOn.DayNumber - row.Date.DayNumber) <= 1)
                 .OrderBy(e => Math.Abs(e.OccurredOn.DayNumber - row.Date.DayNumber))
+                .ThenBy(e => CardRank(e, row))
                 .FirstOrDefault();
 
             if (exact is not null)
@@ -106,17 +138,17 @@ public static class DkvMatcher
         // Pass 2: nothing at that amount, but a driver entry on that very day.
         for (var i = 0; i < rows.Count; i++)
         {
-            if (vehicles[i] is not { } vehicle || pairedExpense[i] is not null
-                || !expensesByVehicle.TryGetValue(vehicle.VehicleId, out var candidates))
+            if (vehicles[i] is not { } vehicle || pairedExpense[i] is not null)
             {
                 continue;
             }
 
             var row = rows[i];
 
-            var near = candidates
+            var near = CandidatesFor(row, vehicle)
                 .Where(e => !claimed.Contains(e.Id) && e.OccurredOn == row.Date)
-                .OrderBy(e => Math.Abs(e.Amount - row.Amount))
+                .OrderBy(e => CardRank(e, row))
+                .ThenBy(e => Math.Abs(e.Amount - row.Amount))
                 .FirstOrDefault();
 
             if (near is not null)
@@ -193,11 +225,11 @@ public static class DkvMatcher
             var matchesTd = ownTd is not null && string.Equals(ownTd, claim, StringComparison.OrdinalIgnoreCase);
             var matchesPlate = string.Equals(vehicle.RegistrationNumber, claim, StringComparison.OrdinalIgnoreCase);
 
-            if (!matchesTd && !matchesPlate)
+            // A vehicle without a TD number cannot be checked this way; the card number is the join.
+            if (ownTd is not null && !matchesTd && !matchesPlate)
             {
-                return (FuelTransactionIssue.TdMismatch, ownTd is null
-                    ? $"Statement says {claim}, but {vehicle.Name} has no TD number yet."
-                    : $"Statement says {claim}, but the card is issued to {vehicle.Name} (TD {ownTd}).");
+                return (FuelTransactionIssue.TdMismatch,
+                    $"Statement says {claim}, but the card is issued to {vehicle.Name} (TD {ownTd}).");
             }
         }
 

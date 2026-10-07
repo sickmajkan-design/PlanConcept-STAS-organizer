@@ -108,7 +108,7 @@ export function VehicleFormPage() {
       brand: values.brand.trim(),
       model: values.model.trim(),
       registrationNumber: values.registrationNumber.trim(),
-      tdNumber: values.tdNumber.trim(),
+      tdNumber: (values.tdNumber ?? '').trim(),
       vin: values.vin || null,
       qrCode: values.qrCode || null,
       gpsProvider: values.gpsProvider || null,
@@ -214,7 +214,6 @@ export function VehicleFormPage() {
                     <TextField
                       {...field}
                       label={t('vehicles.tdNumber')}
-                      required
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message ?? t('vehicles.tdNumberHelp')}

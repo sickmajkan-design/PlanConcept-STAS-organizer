@@ -36,7 +36,10 @@ public class UpdateVehicleCommandHandler : IRequestHandler<UpdateVehicleCommand,
             ?? throw new NotFoundException(nameof(Vehicle), request.Id);
 
         var registrationNumber = request.RegistrationNumber.Trim().ToUpperInvariant();
-        var tdNumber = request.TdNumber.Trim().ToUpperInvariant();
+        // Optional, and a blank never wipes one the office already entered (a phone form may not know it).
+        var tdNumber = string.IsNullOrWhiteSpace(request.TdNumber)
+            ? vehicle.TdNumber
+            : request.TdNumber.Trim().ToUpperInvariant();
         var vin = string.IsNullOrWhiteSpace(request.Vin)
             ? null
             : request.Vin.Trim().ToUpperInvariant();

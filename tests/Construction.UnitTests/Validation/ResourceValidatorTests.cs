@@ -28,9 +28,9 @@ public class VehicleValidatorTests
     }
 
     [Fact]
-    public void Rejects_a_vehicle_without_a_td_number()
+    public void Accepts_a_vehicle_without_a_td_number()
     {
-        ValidationAssert.Invalid(_validator, Valid() with { TdNumber = " " }, "TdNumber");
+        ValidationAssert.Valid(_validator, Valid() with { TdNumber = null });
     }
 
     [Fact]

@@ -13,9 +13,9 @@ public class Vehicle : BaseEntity, ISoftDeletable, IAuditable
 
     /// <summary>
     /// The company's own number for the vehicle (the "TD" printed on a DKV statement next to
-    /// the card). Required on every vehicle so a statement row can be checked against the
-    /// vehicle its card is issued to. Nullable in the database only because vehicles created
-    /// before the field existed have none yet; the API refuses to save one without it.
+    /// the card). Optional: the office fills it in, since a driver adding a vehicle on the phone
+    /// cannot know it. Statement rows are paired through the fuel card number, not this; it only
+    /// backs the extra check of the label printed on the statement.
     /// </summary>
     public string? TdNumber { get; set; }
 

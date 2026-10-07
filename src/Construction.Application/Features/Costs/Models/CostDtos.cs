@@ -94,6 +94,8 @@ public class VehicleExpenseDto
 
     public string? FuelProductType { get; init; }
 
+    public string? FuelCardNumber { get; init; }
+
     public string? Supplier { get; init; }
 
     public string? Note { get; init; }
@@ -423,6 +425,7 @@ public static class VehicleExpenseMapping
                 : (decimal?)null,
             OdometerKm = expense.OdometerKm,
             FuelProductType = expense.FuelProductType,
+            FuelCardNumber = expense.FuelCardNumber,
             Supplier = expense.Supplier,
             Note = expense.Note,
             RecordedByName = expense.RecordedByUser != null ? expense.RecordedByUser.Email : null,

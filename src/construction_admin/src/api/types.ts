@@ -636,7 +636,7 @@ export interface VehicleInput {
   brand: string;
   model: string;
   registrationNumber: string;
-  tdNumber: string;
+  tdNumber?: string;
   registrationValidUntil?: string | null;
   rentedUntil?: string | null;
   technicalInspectionValidUntil?: string | null;
@@ -1500,6 +1500,8 @@ export interface VehicleExpense {
   odometerKm: number | null;
   /** What was pumped (diesel, AdBlue, ...). Only ever set on a fill-up. */
   fuelProductType: string | null;
+  /** The fuel card the driver paid with, as typed. Only ever set on a fill-up. */
+  fuelCardNumber?: string | null;
   supplier: string | null;
   note: string | null;
   recordedByName: string | null;
@@ -1543,6 +1545,7 @@ export interface VehicleExpenseInput {
   litres?: number | null;
   odometerKm?: number | null;
   fuelProductType?: string | null;
+  fuelCardNumber?: string | null;
   supplier?: string | null;
   note?: string | null;
 }

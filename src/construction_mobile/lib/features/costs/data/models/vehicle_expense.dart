@@ -20,6 +20,7 @@ abstract class VehicleExpense with _$VehicleExpense {
     double? litres,
     double? pricePerLitre,
     int? odometerKm,
+    String? fuelCardNumber,
     String? supplier,
     String? note,
     String? recordedByName,

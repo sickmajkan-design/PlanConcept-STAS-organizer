@@ -230,15 +230,57 @@ public class DkvMatcherTests
     }
 
     [Fact]
-    public void A_numbered_label_on_a_vehicle_with_no_td_is_flagged_so_the_td_gets_filled_in()
+    public void A_numbered_label_on_a_vehicle_with_no_td_is_not_held_against_it()
     {
         var noTd = new DkvVehicleInfo(VehicleA, "Van A", null, "ZG-1", FuelType.Diesel);
         var cards = new Dictionary<string, DkvVehicleInfo> { ["card-a"] = noTd };
 
         var match = Assert.Single(DkvMatcher.Match([Row(label: "15")], cards, [], Labels));
 
-        Assert.Equal(FuelTransactionIssue.TdMismatch, match.Issue);
-        Assert.Contains("no TD", match.Detail);
+        Assert.NotEqual(FuelTransactionIssue.TdMismatch, match.Issue);
+    }
+
+    [Fact]
+    public void An_entry_naming_the_rows_card_matches_even_when_recorded_on_another_vehicle()
+    {
+        // The card of van A was used to fill van B.
+        var expense = Expense(VehicleB, "2026-09-01", 100m) with { CardNumber = "Card A" };
+
+        var match = Single(Row(card: "card-a"), expense);
+
+        Assert.Equal(FuelTransactionStatus.Matched, match.Status);
+        Assert.Equal(expense.Id, match.ExpenseId);
+    }
+
+    [Fact]
+    public void An_entry_on_another_vehicle_with_another_card_is_not_taken()
+    {
+        var expense = Expense(VehicleB, "2026-09-01", 100m) with { CardNumber = "card-b" };
+
+        var match = Single(Row(card: "card-a"), expense);
+
+        Assert.Equal(FuelTransactionStatus.NoDriverEntry, match.Status);
+    }
+
+    [Fact]
+    public void With_two_equal_entries_the_one_with_the_same_card_is_paired()
+    {
+        var other = Expense(VehicleA, "2026-09-01", 100m) with { CardNumber = "card-x" };
+        var same = Expense(VehicleA, "2026-09-01", 100m) with { CardNumber = "CARD-A" };
+
+        var match = Single(Row(card: "card-a"), other, same);
+
+        Assert.Equal(same.Id, match.ExpenseId);
+    }
+
+    [Fact]
+    public void A_mistyped_card_number_still_matches_on_the_vehicle()
+    {
+        var expense = Expense(VehicleA, "2026-09-01", 100m) with { CardNumber = "typo" };
+
+        var match = Single(Row(card: "card-a"), expense);
+
+        Assert.Equal(FuelTransactionStatus.Matched, match.Status);
     }
 
     [Fact]

@@ -17,7 +17,7 @@ mixin _$VehicleExpense {
 
  String get id; String get vehicleId; String get vehicleName; String get kind; double get amount;/// `YYYY-MM-DD`.
  String get occurredOn;/// Only ever set on a fill-up.
- double? get litres; double? get pricePerLitre; int? get odometerKm; String? get supplier; String? get note; String? get recordedByName; DateTime get createdAt;/// `Pending`, `Approved` or `Rejected`. Pending while an older API that
+ double? get litres; double? get pricePerLitre; int? get odometerKm; String? get fuelCardNumber; String? get supplier; String? get note; String? get recordedByName; DateTime get createdAt;/// `Pending`, `Approved` or `Rejected`. Pending while an older API that
 /// predates the review workflow leaves it out.
  String get status;/// Why a reviewer sent it back. Set only when [status] is `Rejected`.
  String? get reviewNote;
@@ -33,16 +33,16 @@ $VehicleExpenseCopyWith<VehicleExpense> get copyWith => _$VehicleExpenseCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is VehicleExpense&&(identical(other.id, id) || other.id == id)&&(identical(other.vehicleId, vehicleId) || other.vehicleId == vehicleId)&&(identical(other.vehicleName, vehicleName) || other.vehicleName == vehicleName)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.occurredOn, occurredOn) || other.occurredOn == occurredOn)&&(identical(other.litres, litres) || other.litres == litres)&&(identical(other.pricePerLitre, pricePerLitre) || other.pricePerLitre == pricePerLitre)&&(identical(other.odometerKm, odometerKm) || other.odometerKm == odometerKm)&&(identical(other.supplier, supplier) || other.supplier == supplier)&&(identical(other.note, note) || other.note == note)&&(identical(other.recordedByName, recordedByName) || other.recordedByName == recordedByName)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.status, status) || other.status == status)&&(identical(other.reviewNote, reviewNote) || other.reviewNote == reviewNote));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is VehicleExpense&&(identical(other.id, id) || other.id == id)&&(identical(other.vehicleId, vehicleId) || other.vehicleId == vehicleId)&&(identical(other.vehicleName, vehicleName) || other.vehicleName == vehicleName)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.occurredOn, occurredOn) || other.occurredOn == occurredOn)&&(identical(other.litres, litres) || other.litres == litres)&&(identical(other.pricePerLitre, pricePerLitre) || other.pricePerLitre == pricePerLitre)&&(identical(other.odometerKm, odometerKm) || other.odometerKm == odometerKm)&&(identical(other.fuelCardNumber, fuelCardNumber) || other.fuelCardNumber == fuelCardNumber)&&(identical(other.supplier, supplier) || other.supplier == supplier)&&(identical(other.note, note) || other.note == note)&&(identical(other.recordedByName, recordedByName) || other.recordedByName == recordedByName)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.status, status) || other.status == status)&&(identical(other.reviewNote, reviewNote) || other.reviewNote == reviewNote));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,vehicleId,vehicleName,kind,amount,occurredOn,litres,pricePerLitre,odometerKm,supplier,note,recordedByName,createdAt,status,reviewNote);
+int get hashCode => Object.hash(runtimeType,id,vehicleId,vehicleName,kind,amount,occurredOn,litres,pricePerLitre,odometerKm,fuelCardNumber,supplier,note,recordedByName,createdAt,status,reviewNote);
 
 @override
 String toString() {
-  return 'VehicleExpense(id: $id, vehicleId: $vehicleId, vehicleName: $vehicleName, kind: $kind, amount: $amount, occurredOn: $occurredOn, litres: $litres, pricePerLitre: $pricePerLitre, odometerKm: $odometerKm, supplier: $supplier, note: $note, recordedByName: $recordedByName, createdAt: $createdAt, status: $status, reviewNote: $reviewNote)';
+  return 'VehicleExpense(id: $id, vehicleId: $vehicleId, vehicleName: $vehicleName, kind: $kind, amount: $amount, occurredOn: $occurredOn, litres: $litres, pricePerLitre: $pricePerLitre, odometerKm: $odometerKm, fuelCardNumber: $fuelCardNumber, supplier: $supplier, note: $note, recordedByName: $recordedByName, createdAt: $createdAt, status: $status, reviewNote: $reviewNote)';
 }
 
 
@@ -53,7 +53,7 @@ abstract mixin class $VehicleExpenseCopyWith<$Res>  {
   factory $VehicleExpenseCopyWith(VehicleExpense value, $Res Function(VehicleExpense) _then) = _$VehicleExpenseCopyWithImpl;
 @useResult
 $Res call({
- String id, String vehicleId, String vehicleName, String kind, double amount, String occurredOn, double? litres, double? pricePerLitre, int? odometerKm, String? supplier, String? note, String? recordedByName, DateTime createdAt, String status, String? reviewNote
+ String id, String vehicleId, String vehicleName, String kind, double amount, String occurredOn, double? litres, double? pricePerLitre, int? odometerKm, String? fuelCardNumber, String? supplier, String? note, String? recordedByName, DateTime createdAt, String status, String? reviewNote
 });
 
 
@@ -70,7 +70,7 @@ class _$VehicleExpenseCopyWithImpl<$Res>
 
 /// Create a copy of VehicleExpense
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? vehicleId = null,Object? vehicleName = null,Object? kind = null,Object? amount = null,Object? occurredOn = null,Object? litres = freezed,Object? pricePerLitre = freezed,Object? odometerKm = freezed,Object? supplier = freezed,Object? note = freezed,Object? recordedByName = freezed,Object? createdAt = null,Object? status = null,Object? reviewNote = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? vehicleId = null,Object? vehicleName = null,Object? kind = null,Object? amount = null,Object? occurredOn = null,Object? litres = freezed,Object? pricePerLitre = freezed,Object? odometerKm = freezed,Object? fuelCardNumber = freezed,Object? supplier = freezed,Object? note = freezed,Object? recordedByName = freezed,Object? createdAt = null,Object? status = null,Object? reviewNote = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,vehicleId: null == vehicleId ? _self.vehicleId : vehicleId // ignore: cast_nullable_to_non_nullable
@@ -81,7 +81,8 @@ as double,occurredOn: null == occurredOn ? _self.occurredOn : occurredOn // igno
 as String,litres: freezed == litres ? _self.litres : litres // ignore: cast_nullable_to_non_nullable
 as double?,pricePerLitre: freezed == pricePerLitre ? _self.pricePerLitre : pricePerLitre // ignore: cast_nullable_to_non_nullable
 as double?,odometerKm: freezed == odometerKm ? _self.odometerKm : odometerKm // ignore: cast_nullable_to_non_nullable
-as int?,supplier: freezed == supplier ? _self.supplier : supplier // ignore: cast_nullable_to_non_nullable
+as int?,fuelCardNumber: freezed == fuelCardNumber ? _self.fuelCardNumber : fuelCardNumber // ignore: cast_nullable_to_non_nullable
+as String?,supplier: freezed == supplier ? _self.supplier : supplier // ignore: cast_nullable_to_non_nullable
 as String?,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,recordedByName: freezed == recordedByName ? _self.recordedByName : recordedByName // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
@@ -172,10 +173,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String vehicleId,  String vehicleName,  String kind,  double amount,  String occurredOn,  double? litres,  double? pricePerLitre,  int? odometerKm,  String? supplier,  String? note,  String? recordedByName,  DateTime createdAt,  String status,  String? reviewNote)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String vehicleId,  String vehicleName,  String kind,  double amount,  String occurredOn,  double? litres,  double? pricePerLitre,  int? odometerKm,  String? fuelCardNumber,  String? supplier,  String? note,  String? recordedByName,  DateTime createdAt,  String status,  String? reviewNote)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _VehicleExpense() when $default != null:
-return $default(_that.id,_that.vehicleId,_that.vehicleName,_that.kind,_that.amount,_that.occurredOn,_that.litres,_that.pricePerLitre,_that.odometerKm,_that.supplier,_that.note,_that.recordedByName,_that.createdAt,_that.status,_that.reviewNote);case _:
+return $default(_that.id,_that.vehicleId,_that.vehicleName,_that.kind,_that.amount,_that.occurredOn,_that.litres,_that.pricePerLitre,_that.odometerKm,_that.fuelCardNumber,_that.supplier,_that.note,_that.recordedByName,_that.createdAt,_that.status,_that.reviewNote);case _:
   return orElse();
 
 }
@@ -193,10 +194,10 @@ return $default(_that.id,_that.vehicleId,_that.vehicleName,_that.kind,_that.amou
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String vehicleId,  String vehicleName,  String kind,  double amount,  String occurredOn,  double? litres,  double? pricePerLitre,  int? odometerKm,  String? supplier,  String? note,  String? recordedByName,  DateTime createdAt,  String status,  String? reviewNote)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String vehicleId,  String vehicleName,  String kind,  double amount,  String occurredOn,  double? litres,  double? pricePerLitre,  int? odometerKm,  String? fuelCardNumber,  String? supplier,  String? note,  String? recordedByName,  DateTime createdAt,  String status,  String? reviewNote)  $default,) {final _that = this;
 switch (_that) {
 case _VehicleExpense():
-return $default(_that.id,_that.vehicleId,_that.vehicleName,_that.kind,_that.amount,_that.occurredOn,_that.litres,_that.pricePerLitre,_that.odometerKm,_that.supplier,_that.note,_that.recordedByName,_that.createdAt,_that.status,_that.reviewNote);case _:
+return $default(_that.id,_that.vehicleId,_that.vehicleName,_that.kind,_that.amount,_that.occurredOn,_that.litres,_that.pricePerLitre,_that.odometerKm,_that.fuelCardNumber,_that.supplier,_that.note,_that.recordedByName,_that.createdAt,_that.status,_that.reviewNote);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -213,10 +214,10 @@ return $default(_that.id,_that.vehicleId,_that.vehicleName,_that.kind,_that.amou
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String vehicleId,  String vehicleName,  String kind,  double amount,  String occurredOn,  double? litres,  double? pricePerLitre,  int? odometerKm,  String? supplier,  String? note,  String? recordedByName,  DateTime createdAt,  String status,  String? reviewNote)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String vehicleId,  String vehicleName,  String kind,  double amount,  String occurredOn,  double? litres,  double? pricePerLitre,  int? odometerKm,  String? fuelCardNumber,  String? supplier,  String? note,  String? recordedByName,  DateTime createdAt,  String status,  String? reviewNote)?  $default,) {final _that = this;
 switch (_that) {
 case _VehicleExpense() when $default != null:
-return $default(_that.id,_that.vehicleId,_that.vehicleName,_that.kind,_that.amount,_that.occurredOn,_that.litres,_that.pricePerLitre,_that.odometerKm,_that.supplier,_that.note,_that.recordedByName,_that.createdAt,_that.status,_that.reviewNote);case _:
+return $default(_that.id,_that.vehicleId,_that.vehicleName,_that.kind,_that.amount,_that.occurredOn,_that.litres,_that.pricePerLitre,_that.odometerKm,_that.fuelCardNumber,_that.supplier,_that.note,_that.recordedByName,_that.createdAt,_that.status,_that.reviewNote);case _:
   return null;
 
 }
@@ -228,7 +229,7 @@ return $default(_that.id,_that.vehicleId,_that.vehicleName,_that.kind,_that.amou
 @JsonSerializable()
 
 class _VehicleExpense extends VehicleExpense {
-  const _VehicleExpense({required this.id, required this.vehicleId, required this.vehicleName, required this.kind, required this.amount, required this.occurredOn, this.litres, this.pricePerLitre, this.odometerKm, this.supplier, this.note, this.recordedByName, required this.createdAt, this.status = 'Pending', this.reviewNote}): super._();
+  const _VehicleExpense({required this.id, required this.vehicleId, required this.vehicleName, required this.kind, required this.amount, required this.occurredOn, this.litres, this.pricePerLitre, this.odometerKm, this.fuelCardNumber, this.supplier, this.note, this.recordedByName, required this.createdAt, this.status = 'Pending', this.reviewNote}): super._();
   factory _VehicleExpense.fromJson(Map<String, dynamic> json) => _$VehicleExpenseFromJson(json);
 
 @override final  String id;
@@ -242,6 +243,7 @@ class _VehicleExpense extends VehicleExpense {
 @override final  double? litres;
 @override final  double? pricePerLitre;
 @override final  int? odometerKm;
+@override final  String? fuelCardNumber;
 @override final  String? supplier;
 @override final  String? note;
 @override final  String? recordedByName;
@@ -265,16 +267,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _VehicleExpense&&(identical(other.id, id) || other.id == id)&&(identical(other.vehicleId, vehicleId) || other.vehicleId == vehicleId)&&(identical(other.vehicleName, vehicleName) || other.vehicleName == vehicleName)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.occurredOn, occurredOn) || other.occurredOn == occurredOn)&&(identical(other.litres, litres) || other.litres == litres)&&(identical(other.pricePerLitre, pricePerLitre) || other.pricePerLitre == pricePerLitre)&&(identical(other.odometerKm, odometerKm) || other.odometerKm == odometerKm)&&(identical(other.supplier, supplier) || other.supplier == supplier)&&(identical(other.note, note) || other.note == note)&&(identical(other.recordedByName, recordedByName) || other.recordedByName == recordedByName)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.status, status) || other.status == status)&&(identical(other.reviewNote, reviewNote) || other.reviewNote == reviewNote));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _VehicleExpense&&(identical(other.id, id) || other.id == id)&&(identical(other.vehicleId, vehicleId) || other.vehicleId == vehicleId)&&(identical(other.vehicleName, vehicleName) || other.vehicleName == vehicleName)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.amount, amount) || other.amount == amount)&&(identical(other.occurredOn, occurredOn) || other.occurredOn == occurredOn)&&(identical(other.litres, litres) || other.litres == litres)&&(identical(other.pricePerLitre, pricePerLitre) || other.pricePerLitre == pricePerLitre)&&(identical(other.odometerKm, odometerKm) || other.odometerKm == odometerKm)&&(identical(other.fuelCardNumber, fuelCardNumber) || other.fuelCardNumber == fuelCardNumber)&&(identical(other.supplier, supplier) || other.supplier == supplier)&&(identical(other.note, note) || other.note == note)&&(identical(other.recordedByName, recordedByName) || other.recordedByName == recordedByName)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.status, status) || other.status == status)&&(identical(other.reviewNote, reviewNote) || other.reviewNote == reviewNote));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,vehicleId,vehicleName,kind,amount,occurredOn,litres,pricePerLitre,odometerKm,supplier,note,recordedByName,createdAt,status,reviewNote);
+int get hashCode => Object.hash(runtimeType,id,vehicleId,vehicleName,kind,amount,occurredOn,litres,pricePerLitre,odometerKm,fuelCardNumber,supplier,note,recordedByName,createdAt,status,reviewNote);
 
 @override
 String toString() {
-  return 'VehicleExpense(id: $id, vehicleId: $vehicleId, vehicleName: $vehicleName, kind: $kind, amount: $amount, occurredOn: $occurredOn, litres: $litres, pricePerLitre: $pricePerLitre, odometerKm: $odometerKm, supplier: $supplier, note: $note, recordedByName: $recordedByName, createdAt: $createdAt, status: $status, reviewNote: $reviewNote)';
+  return 'VehicleExpense(id: $id, vehicleId: $vehicleId, vehicleName: $vehicleName, kind: $kind, amount: $amount, occurredOn: $occurredOn, litres: $litres, pricePerLitre: $pricePerLitre, odometerKm: $odometerKm, fuelCardNumber: $fuelCardNumber, supplier: $supplier, note: $note, recordedByName: $recordedByName, createdAt: $createdAt, status: $status, reviewNote: $reviewNote)';
 }
 
 
@@ -285,7 +287,7 @@ abstract mixin class _$VehicleExpenseCopyWith<$Res> implements $VehicleExpenseCo
   factory _$VehicleExpenseCopyWith(_VehicleExpense value, $Res Function(_VehicleExpense) _then) = __$VehicleExpenseCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String vehicleId, String vehicleName, String kind, double amount, String occurredOn, double? litres, double? pricePerLitre, int? odometerKm, String? supplier, String? note, String? recordedByName, DateTime createdAt, String status, String? reviewNote
+ String id, String vehicleId, String vehicleName, String kind, double amount, String occurredOn, double? litres, double? pricePerLitre, int? odometerKm, String? fuelCardNumber, String? supplier, String? note, String? recordedByName, DateTime createdAt, String status, String? reviewNote
 });
 
 
@@ -302,7 +304,7 @@ class __$VehicleExpenseCopyWithImpl<$Res>
 
 /// Create a copy of VehicleExpense
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? vehicleId = null,Object? vehicleName = null,Object? kind = null,Object? amount = null,Object? occurredOn = null,Object? litres = freezed,Object? pricePerLitre = freezed,Object? odometerKm = freezed,Object? supplier = freezed,Object? note = freezed,Object? recordedByName = freezed,Object? createdAt = null,Object? status = null,Object? reviewNote = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? vehicleId = null,Object? vehicleName = null,Object? kind = null,Object? amount = null,Object? occurredOn = null,Object? litres = freezed,Object? pricePerLitre = freezed,Object? odometerKm = freezed,Object? fuelCardNumber = freezed,Object? supplier = freezed,Object? note = freezed,Object? recordedByName = freezed,Object? createdAt = null,Object? status = null,Object? reviewNote = freezed,}) {
   return _then(_VehicleExpense(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,vehicleId: null == vehicleId ? _self.vehicleId : vehicleId // ignore: cast_nullable_to_non_nullable
@@ -313,7 +315,8 @@ as double,occurredOn: null == occurredOn ? _self.occurredOn : occurredOn // igno
 as String,litres: freezed == litres ? _self.litres : litres // ignore: cast_nullable_to_non_nullable
 as double?,pricePerLitre: freezed == pricePerLitre ? _self.pricePerLitre : pricePerLitre // ignore: cast_nullable_to_non_nullable
 as double?,odometerKm: freezed == odometerKm ? _self.odometerKm : odometerKm // ignore: cast_nullable_to_non_nullable
-as int?,supplier: freezed == supplier ? _self.supplier : supplier // ignore: cast_nullable_to_non_nullable
+as int?,fuelCardNumber: freezed == fuelCardNumber ? _self.fuelCardNumber : fuelCardNumber // ignore: cast_nullable_to_non_nullable
+as String?,supplier: freezed == supplier ? _self.supplier : supplier // ignore: cast_nullable_to_non_nullable
 as String?,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,recordedByName: freezed == recordedByName ? _self.recordedByName : recordedByName // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable

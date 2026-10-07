@@ -52,6 +52,13 @@ public class VehicleExpense : BaseEntity, IAuditable
     /// </summary>
     public string? FuelProductType { get; set; }
 
+    /// <summary>
+    /// The number printed on the fuel card the driver paid with, as they typed it. What a DKV statement
+    /// row is paired on first: the driver reads it off the card in their hand, where the vehicle's TD
+    /// number is something only the office knows. Only ever set for <see cref="VehicleExpenseKind.Fuel"/>.
+    /// </summary>
+    public string? FuelCardNumber { get; set; }
+
     public string? Supplier { get; set; }
 
     public string? Note { get; set; }

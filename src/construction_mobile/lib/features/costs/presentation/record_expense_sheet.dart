@@ -56,6 +56,7 @@ class _RecordExpenseSheetState extends ConsumerState<_RecordExpenseSheet> {
   final _amountController = TextEditingController();
   final _litresController = TextEditingController();
   final _odometerController = TextEditingController();
+  final _cardController = TextEditingController();
   final _supplierController = TextEditingController();
   final _noteController = TextEditingController();
 
@@ -84,6 +85,7 @@ class _RecordExpenseSheetState extends ConsumerState<_RecordExpenseSheet> {
     _amountController.dispose();
     _litresController.dispose();
     _odometerController.dispose();
+    _cardController.dispose();
     _supplierController.dispose();
     _noteController.dispose();
     super.dispose();
@@ -111,8 +113,13 @@ class _RecordExpenseSheetState extends ConsumerState<_RecordExpenseSheet> {
 
     // A fill-up is checked against the fuel-card statement later, so it has to carry
     // everything that check needs: litres (the database refuses it without them),
-    // the odometer reading, and the receipt itself.
-    return _litres != null && _litres! > 0 && _odometer != null && _odometer! >= 0 && _receipt != null;
+    // the card number, the odometer reading, and the receipt itself.
+    return _cardController.text.trim().isNotEmpty &&
+        _litres != null &&
+        _litres! > 0 &&
+        _odometer != null &&
+        _odometer! >= 0 &&
+        _receipt != null;
   }
 
   @override
@@ -222,6 +229,17 @@ class _RecordExpenseSheetState extends ConsumerState<_RecordExpenseSheet> {
                 decoration: InputDecoration(
                   labelText: l10n.vehicleExpensesLitres,
                   helperText: l10n.vehicleExpensesFuelNeedsLitres,
+                ),
+                onChanged: (_) => setState(() {}),
+              ),
+            ],
+            if (_isFuel) ...[
+              const SizedBox(height: 12),
+              TextField(
+                controller: _cardController,
+                decoration: InputDecoration(
+                  labelText: l10n.vehicleExpensesCardNumber,
+                  helperText: l10n.vehicleExpensesCardNumberHint,
                 ),
                 onChanged: (_) => setState(() {}),
               ),
@@ -339,6 +357,7 @@ class _RecordExpenseSheetState extends ConsumerState<_RecordExpenseSheet> {
               amount: _amount!,
               litres: _isFuel ? _litres : null,
               odometerKm: _odometer,
+              fuelCardNumber: _isFuel ? _cardController.text.trim() : null,
               supplier: supplier.isEmpty ? null : supplier,
               note: note.isEmpty ? null : note,
               idempotencyKey: _idempotencyKey,

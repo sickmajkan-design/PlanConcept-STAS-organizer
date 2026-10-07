@@ -288,7 +288,7 @@ public class DkvHttpTests
     }
 
     [Fact]
-    public async Task A_vehicle_cannot_be_saved_without_a_td_number()
+    public async Task A_vehicle_can_be_saved_without_a_td_number()
     {
         using var office = _api.ClientAs(UserRole.SuperAdmin);
 
@@ -300,7 +300,6 @@ public class DkvHttpTests
             fuelType = "Diesel",
         });
 
-        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Contains("TdNumber", await response.Content.ReadAsStringAsync(), StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 }

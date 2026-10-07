@@ -22,6 +22,7 @@ public class VehicleExpenseConfiguration : IEntityTypeConfiguration<VehicleExpen
 
         builder.Property(e => e.Supplier).HasMaxLength(200);
         builder.Property(e => e.FuelProductType).HasMaxLength(100);
+        builder.Property(e => e.FuelCardNumber).HasMaxLength(64);
         builder.Property(e => e.Note).HasMaxLength(500);
         builder.Property(e => e.ReviewNote).HasMaxLength(1000);
 

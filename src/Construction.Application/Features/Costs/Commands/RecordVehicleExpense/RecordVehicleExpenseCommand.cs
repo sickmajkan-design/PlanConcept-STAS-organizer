@@ -1,6 +1,7 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Costs.Models;
+using Construction.Application.Features.FuelTransactions;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
 using FluentValidation;
@@ -27,6 +28,9 @@ public record RecordVehicleExpenseCommand : IRequest<VehicleExpenseDto>
     public int? OdometerKm { get; init; }
 
     public string? FuelProductType { get; init; }
+
+    /// <summary>The fuel card paid with. Optional, so older app versions keep working; refused for non-fuel.</summary>
+    public string? FuelCardNumber { get; init; }
 
     public string? Supplier { get; init; }
 
@@ -71,6 +75,7 @@ public class RecordVehicleExpenseCommandValidator
 
         RuleFor(x => x.Supplier).MaximumLength(200);
         RuleFor(x => x.FuelProductType).MaximumLength(100);
+        RuleFor(x => x.FuelCardNumber).MaximumLength(64);
         RuleFor(x => x.Note).MaximumLength(500);
     }
 }
@@ -135,6 +140,9 @@ public class RecordVehicleExpenseCommandHandler
             Litres = request.Kind == VehicleExpenseKind.Fuel ? request.Litres : null,
             OdometerKm = request.OdometerKm,
             FuelProductType = request.FuelProductType?.Trim(),
+            FuelCardNumber = request.Kind == VehicleExpenseKind.Fuel
+                ? FuelCardNumbers.Clean(request.FuelCardNumber)
+                : null,
             Supplier = request.Supplier?.Trim(),
             Note = request.Note?.Trim(),
             RecordedByUserId = _currentUserService.UserId,
