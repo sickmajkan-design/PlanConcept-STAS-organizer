@@ -10,9 +10,17 @@ export interface PlanningProject {
   endDate: string | null;
   worksSaturdays: boolean;
   worksSundays: boolean;
+  /** Whose public holidays the site keeps. */
+  countryCode?: string | null;
   needs: PlanningNeed[];
   /** Certificates everybody posted here has to hold. */
   requiredCertificates?: string[];
+}
+
+export interface PlanningHoliday {
+  date: string;
+  name: string;
+  countryCode: string;
 }
 
 export interface PlanningNeed {
@@ -57,6 +65,7 @@ export interface PlanningData {
   employees: PlanningEmployee[];
   positions: string[];
   certificateNames?: string[];
+  holidays?: PlanningHoliday[];
   /** False for a foreman without the right to move people: the screen is then a view. */
   canEdit?: boolean;
   /** True when the caller sees only one business unit. */

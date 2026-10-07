@@ -216,6 +216,20 @@ describe('PlanningPage', () => {
     expect(await screen.findByText('1 have not confirmed')).toBeDefined();
   }, SCREEN_TIMEOUT);
 
+  it('downloads the schedule on paper for the period on screen, in the language of the screen', async () => {
+    network.reply('/planning', 200, plan());
+
+    await renderPage();
+    await userEvent.click(await screen.findByRole('button', { name: 'Export to Excel' }));
+
+    await waitFor(() => {
+      const call = network.calls.find((c) => c.url.includes('/exports/schedule'));
+      expect(call).toBeDefined();
+      expect(String(call?.params.from)).toMatch(/^\d{4}-\d{2}-01$/);
+      expect(call?.params.language).toBe('en');
+    });
+  }, SCREEN_TIMEOUT);
+
   describe('for a foreman', () => {
     const absent = () => plan({ canEdit: false, isScoped: true, scopeBranchName: 'Zagreb unit' });
 

@@ -767,6 +767,9 @@ export const en = {
   'releaseNotes.close': 'Got it',
 
 
+  'releaseNotes.paper1007.title': "Schedule on paper, and real working days",
+  'releaseNotes.paper1007.export': "The Schedule has an Export to Excel button: one sheet with a row per person and a column per day (the site, or leave), and one with what each site has each day. It covers the period on screen, up to 62 days, and a foreman gets only their own unit.",
+  'releaseNotes.paper1007.days': "The Schedule now follows each site's own calendar: a site that works Saturdays or Sundays counts its needs on those days, and public holidays of the country set on the site are not counted as working days. A holiday is marked in the timeline header.",
   'releaseNotes.fm1007.title': "Foremen on the Schedule",
   'releaseNotes.fm1007.view': "A foreman now sees the new Schedule for their own business unit: who is where, who is away, and where the unit is short. It is a view only, with nothing to press, and sick leave shows only as away.",
   'releaseNotes.fm1007.grant': "An administrator can allow a foreman to move people too (Users > the foreman > May move people between sites). It works only inside the foreman's own business unit: people and sites of other units are refused, and what a project needs can still be changed only by a project manager and above.",
@@ -784,10 +787,6 @@ export const en = {
   'releaseNotes.plan1007.cover': "When somebody goes on leave, a Needs a stand-in card suggests a replacement: same position and free, then someone from a site that has more of that position than it needs. The same suggestions appear when you grant the leave. The stand-in goes to the site only for the days of the leave.",
   'releaseNotes.plan1007.guide': "New to it? The Schedule guide button at the top of the page walks you through the page step by step, in about a minute. It is offered the first time you open the page.",
   'releaseNotes.plan1007.limits': "Needs are counted Monday to Friday. Project managers and above use the new page; foremen still see the earlier overview of who is where.",
-  'releaseNotes.card1007.title': "Fuel: card number instead of the TD number",
-  'releaseNotes.card1007.what': "When recording fuel, the worker now enters the number of the DKV card they paid with (besides vehicle, amount, litres, kilometres and the receipt photo). The DKV check pairs the fill-up with a statement row by card, day and amount, so it also works when one vehicle's card was used on another. A mistyped card number does not break pairing: the vehicle still counts.",
-  'releaseNotes.card1007.td': "A vehicle's TD number is no longer required, since a worker in the field does not know it. The office can add it later; a vehicle without one is simply not checked against the label on the statement. Editing a vehicle with a blank TD does not erase an existing one.",
-  'releaseNotes.card1007.app': "App 1.1.20: a \"Card number\" field when recording fuel, and an optional TD when adding a vehicle. Update the phone app. Older versions keep working, without the card number.",
   'finance.budget.warnPercentHelp': 'Leave empty for 80%. From 100% the project counts as over.',
   'finance.housingDoubleWarning': '{count} housing expenses fall on days when accommodation rent is already counted from the accommodation rates, so that rent is counted twice. Delete them or move them to another category.',
   'finance.payOverlapWarning': '{count} pay entries tied to no project fall on days the same person clocked hours at a project. Both are counted — check whether one of them should replace the other.',

@@ -7,13 +7,12 @@ import {
   columnsFor,
   covered,
   freeCount,
-  isWorkday,
   missing,
   needOf,
   positionKey,
   roleCount,
   weekday,
-  workdaysIn,
+  workIndexesIn,
   type Column,
 } from '../../features/planning/planningLogic';
 import { useT } from '../../i18n/useI18n';
@@ -44,9 +43,7 @@ export function NeedView({
   const columnWidth = perDay ? 34 : 78;
 
   const daysOf = (c: Column) =>
-    workdaysIn(c)
-      .map((d) => plan.indexOf(d))
-      .filter((i) => i >= 0 && i < plan.days);
+    workIndexesIn(plan, c);
 
   const rangeDays = useMemo(() => columns.flatMap((c) => daysOf(c)), [columns, plan]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -63,7 +60,7 @@ export function NeedView({
       return (!site.startDate || d >= site.startDate) && (!site.endDate || d <= site.endDate);
     });
 
-    if (workdaysIn(column).length === 0) return <Box key={column.from} component="td" sx={{ bgcolor: 'action.hover' }} />;
+    if (workIndexesIn(plan, column).length === 0) return <Box key={column.from} component="td" sx={{ bgcolor: 'action.hover' }} />;
     if (days.length === 0) return <td key={column.from} />;
 
     const need = position ? count! : needOf(site);
@@ -125,7 +122,7 @@ export function NeedView({
             <tr>
               <th>{t('planning.n.project')}</th>
               {columns.map((c) => (
-                <Box key={c.from} component="th" sx={{ bgcolor: perDay && !isWorkday(c.from) ? 'action.hover !important' : undefined }}>
+                <Box key={c.from} component="th" sx={{ bgcolor: perDay && plan.indexOf(c.from) >= 0 && !plan.isWork[plan.indexOf(c.from)] ? 'action.hover !important' : undefined }}>
                   {perDay ? (
                     <>
                       {WEEKDAYS[weekday(c.from)][0]}

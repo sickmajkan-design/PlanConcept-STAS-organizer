@@ -2,7 +2,6 @@ import { Chip, MenuItem, Paper, Select, Stack, Typography } from '@mui/material'
 import { useState } from 'react';
 
 import { SearchField } from '../../components/SearchField';
-import { isWorkday } from '../../features/planning/planningLogic';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
 import type { ViewProps } from './planningTypes';
@@ -18,7 +17,7 @@ export function ListView({ plan, day, setSite, readOnly }: ViewProps & { day: nu
 
   const date = plan.date(day);
   const options = plan.projects.filter((p) => (!p.startDate || date >= p.startDate) && (!p.endDate || date <= p.endDate));
-  const work = isWorkday(date);
+  const work = plan.isWork[day];
 
   const rows = plan.people.filter((p) => {
     const cell = p.cells[day];

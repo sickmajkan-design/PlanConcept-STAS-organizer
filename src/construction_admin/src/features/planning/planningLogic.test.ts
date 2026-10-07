@@ -13,6 +13,7 @@ import {
   missingCertificates,
   missing,
   periodBounds,
+  siteWorksOn,
   segmentsOf,
   shortage,
   unconfirmedCount,
@@ -366,5 +367,60 @@ describe('certificates', () => {
 
     expect(list.map((c) => c.person.id)).toEqual(['with', 'without']);
     expect(list[1].lacks).toEqual(['Work at height']);
+  });
+});
+
+describe('working days', () => {
+  const withHolidays = (employees: PlanningEmployee[], projects: PlanningProject[], holidays: { date: string; name: string; countryCode: string }[] = []) => ({
+    ...data(employees, projects),
+    holidays,
+  });
+
+  it('counts Saturday for a site that works it, and only for that site', () => {
+    const saturday = site('s1', { Zidar: 2 }, { worksSaturdays: true });
+    const plan = buildPlan(withHolidays([person('a', 'Zidar', [['s1', FROM, null]])], [saturday]));
+
+    // 2026-10-10 is a Saturday: index 5.
+    expect(plan.isWork[5]).toBe(true);
+    expect(shortage(plan, plan.projects[0], 5)).toBe(1);
+    expect(plan.isWork[6]).toBe(false);
+  });
+
+  it('is not a working day when every site is off', () => {
+    const plan = buildPlan(withHolidays([], [site('s1', { Zidar: 1 })]));
+
+    expect(plan.isWork[5]).toBe(false);
+    expect(shortage(plan, plan.projects[0], 5)).toBe(0);
+  });
+
+  it('does not count a public holiday of the country the site keeps, and says what it is', () => {
+    const plan = buildPlan(
+      withHolidays([], [site('s1', { Zidar: 1 }, { countryCode: 'HR' })], [{ date: '2026-10-08', name: 'Independence Day', countryCode: 'HR' }]),
+    );
+
+    // Thursday 2026-10-08: index 3.
+    expect(plan.isWork[3]).toBe(false);
+    expect(shortage(plan, plan.projects[0], 3)).toBe(0);
+    expect(shortage(plan, plan.projects[0], 2)).toBe(1);
+    expect(plan.holidayNames.get('2026-10-08')).toBe('Independence Day');
+  });
+
+  it('keeps working on a holiday of another country, and where the site names no country', () => {
+    const holidays = [{ date: '2026-10-08', name: 'Holiday', countryCode: 'HR' }];
+    const elsewhere = buildPlan(withHolidays([], [site('s1', { Zidar: 1 }, { countryCode: 'SI' })], holidays));
+    const none = buildPlan(withHolidays([], [site('s1', { Zidar: 1 })], holidays));
+
+    expect(elsewhere.isWork[3]).toBe(true);
+    expect(none.isWork[3]).toBe(true);
+  });
+
+  it('works out a site day by day', () => {
+    const holidays = new Set(['HR|2026-10-08']);
+    const hr = site('s1', {}, { countryCode: 'HR', worksSaturdays: true });
+
+    expect(siteWorksOn(hr, '2026-10-07', holidays)).toBe(true);
+    expect(siteWorksOn(hr, '2026-10-08', holidays)).toBe(false);
+    expect(siteWorksOn(hr, '2026-10-10', holidays)).toBe(true);
+    expect(siteWorksOn(hr, '2026-10-11', holidays)).toBe(false);
   });
 });

@@ -146,6 +146,23 @@ public class ExportsController : ApiControllerBase
         return Download(await Mediator.Send(query, cancellationToken));
     }
 
+    /// <summary>
+    /// The schedule on paper: a row per person and a column per day, and a sheet of what each site has each
+    /// day. A foreman gets only their own business unit, as on the screen.
+    /// </summary>
+    [HttpGet("/api/v{version:apiVersion}/exports/schedule")]
+    [HttpGet("/api/exports/schedule")]
+    [Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> ExportSchedule(
+        [FromQuery] ExportScheduleQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Download(await Mediator.Send(query, cancellationToken));
+    }
+
     /// <summary>The fleet as it stands right now.</summary>
     [HttpGet("/api/v{version:apiVersion}/exports/vehicles")]
     [HttpGet("/api/exports/vehicles")]

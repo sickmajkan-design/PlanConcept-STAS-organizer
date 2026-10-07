@@ -4,8 +4,10 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
+import { exportsApi } from '../../api/exports';
 import { useAuth } from '../../auth/useAuth';
 import { ErrorState } from '../../components/ErrorState';
+import { ExportButton } from '../../components/ExportButton';
 import { PageHeader } from '../../components/PageHeader';
 import {
   addDays,
@@ -13,7 +15,6 @@ import {
   candidates,
   conflicts,
   freeCount,
-  isWorkday,
   mondayOf,
   missing,
   unconfirmedCount,
@@ -203,6 +204,11 @@ export function PlanningPage() {
 
   const dayIndex = plan ? plan.indexOf(focusDay) : -1;
 
+  // What goes on paper: the period on screen (as much of it as fits a page), or the week around the day shown.
+  const exportRange = periodView
+    ? { from: range.from, to: diffDays(range.from, range.to) + 1 > 62 ? addDays(range.from, 61) : range.to }
+    : { from: mondayOf(focusDay), to: addDays(mondayOf(focusDay), 6) };
+
   // A foreman without the right to move people sees the same screen with nothing to press.
   const readOnly = !!plan && !plan.canEdit;
 
@@ -219,11 +225,14 @@ export function PlanningPage() {
         title={t('planning.title')}
         description={t('planning.description')}
         secondaryActions={
-          !readOnly ? (
-            <Button variant="outlined" size="small" onClick={() => { rememberTour(); setTourOpen(true); }}>
-              {t('planning.tour.button')}
-            </Button>
-          ) : undefined
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            <ExportButton onExport={(language) => exportsApi.schedule({ ...exportRange, language })} />
+            {!readOnly && (
+              <Button variant="outlined" size="small" onClick={() => { rememberTour(); setTourOpen(true); }}>
+                {t('planning.tour.button')}
+              </Button>
+            )}
+          </Stack>
         }
       />
 
@@ -397,7 +406,7 @@ function Summary({ plan, view, day, range }: { plan: Plan; view: View; day: numb
 
   if (view === 'day' || view === 'list') {
     if (day < 0) return null;
-    if (!isWorkday(plan.date(day))) return <Chip label={t('planning.pill.weekend')} />;
+    if (!plan.isWork[day]) return <Chip label={plan.holidayNames.get(plan.date(day)) ?? t('planning.pill.weekend')} />;
 
     const free = freeCount(plan, day);
     const away = plan.people.filter((p) => p.cells[day].away).length;

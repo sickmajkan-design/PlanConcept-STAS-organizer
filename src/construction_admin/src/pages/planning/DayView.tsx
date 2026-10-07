@@ -6,7 +6,6 @@ import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
 import {
   isActive,
-  isWorkday,
   needOf,
   roleCount,
   shortage,
@@ -84,7 +83,7 @@ export function DayView({ plan, day, openWorker, openSite, readOnly }: ViewProps
   const date = plan.date(day);
   const sites = plan.projects.filter((p) => (!p.startDate || date >= p.startDate) && (!p.endDate || date <= p.endDate));
   const soon = plan.projects.filter((p) => p.startDate && p.startDate > date && p.needs.length > 0);
-  const work = isWorkday(date);
+  const work = plan.isWork[day];
 
   const free = work ? plan.people.filter((p) => !p.cells[day].project && !p.cells[day].away) : [];
   const away = plan.people.filter((p) => p.cells[day].away);

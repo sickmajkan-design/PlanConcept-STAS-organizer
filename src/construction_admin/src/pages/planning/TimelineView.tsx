@@ -6,11 +6,10 @@ import { SearchField } from '../../components/SearchField';
 import {
   columnsFor,
   freeCount,
-  isWorkday,
   missing,
   positionKey,
   weekday,
-  workdaysIn,
+  workIndexesIn,
   type Column,
   type Plan,
   type PlanPerson,
@@ -31,9 +30,7 @@ interface Run {
 }
 
 function valueOf(plan: Plan, person: PlanPerson, column: Column): string {
-  const days = workdaysIn(column)
-    .map((d) => plan.indexOf(d))
-    .filter((i) => i >= 0 && i < plan.days);
+  const days = workIndexesIn(plan, column);
 
   if (days.length === 0) return 'weekend';
 
@@ -93,10 +90,7 @@ export function TimelineView({
 
   const rangeDays = useMemo(
     () =>
-      columns
-        .flatMap((c) => workdaysIn(c))
-        .map((d) => plan.indexOf(d))
-        .filter((i) => i >= 0 && i < plan.days),
+      columns.flatMap((c) => workIndexesIn(plan, c)),
     [columns, plan],
   );
 
@@ -116,9 +110,7 @@ export function TimelineView({
 
   const footer = (pick: (days: number[]) => number, tone: 'good' | 'bad') =>
     columns.map((c) => {
-      const days = workdaysIn(c)
-        .map((d) => plan.indexOf(d))
-        .filter((i) => i >= 0 && i < plan.days);
+      const days = workIndexesIn(plan, c);
 
       if (days.length === 0) return <Box key={c.from} component="td" sx={{ bgcolor: 'action.hover' }} />;
 
@@ -192,12 +184,15 @@ export function TimelineView({
               <th>{t('planning.t.person')}</th>
               {columns.map((c) => {
                 const isToday = c.from <= plan.today && c.to >= plan.today;
-                const weekend = perDay && !isWorkday(c.from);
+                const idx = plan.indexOf(c.from);
+                const weekend = perDay && idx >= 0 && !plan.isWork[idx];
+                const holiday = perDay ? plan.holidayNames.get(c.from) : undefined;
                 return (
                   <Box
                     key={c.from}
                     component="th"
-                    sx={{ bgcolor: weekend ? 'action.hover !important' : undefined, boxShadow: isToday ? (theme: { palette: { primary: { main: string } } }) => `inset 0 -2px 0 ${theme.palette.primary.main}` : undefined, color: isToday ? 'text.primary !important' : undefined }}
+                    title={holiday}
+                    sx={{ textDecoration: holiday ? 'underline dotted' : undefined, bgcolor: weekend ? 'action.hover !important' : undefined, boxShadow: isToday ? (theme: { palette: { primary: { main: string } } }) => `inset 0 -2px 0 ${theme.palette.primary.main}` : undefined, color: isToday ? 'text.primary !important' : undefined }}
                   >
                     {perDay ? (
                       <>

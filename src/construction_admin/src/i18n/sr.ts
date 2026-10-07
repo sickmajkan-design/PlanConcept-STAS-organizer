@@ -794,6 +794,9 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.close': 'Razumijem',
 
 
+  'releaseNotes.paper1007.title': "Raspored na papiru i stvarni radni dani",
+  'releaseNotes.paper1007.export': "Raspored ima dugme Izvoz u Excel: jedan list s redom po radniku i kolonom po danu (gradilište ili odsustvo) i jedan s tim šta svako gradilište ima svaki dan. Obuhvata razdoblje na ekranu, najviše 62 dana, a Predradnik dobija samo svoju jedinicu.",
+  'releaseNotes.paper1007.days': "Raspored sada prati kalendar svakog gradilišta: gradilište koje radi subotom ili nedjeljom računa potrebu i tim danima, a državni praznici zemlje upisane na gradilištu ne računaju se kao radni dani. Praznik je označen u zaglavlju vremenske trake.",
   'releaseNotes.fm1007.title': "Predradnici u Rasporedu",
   'releaseNotes.fm1007.view': "Predradnik sada vidi novi Raspored za svoju poslovnu jedinicu: ko je gdje, ko je odsutan i gdje jedinici fali ljudi. To je samo pregled, bez dugmadi za izmjenu, a bolovanje se prikazuje samo kao odsustvo.",
   'releaseNotes.fm1007.grant': "Administrator može dozvoliti Predradniku da i raspoređuje (Korisnici > Predradnik > Smije raspoređivati radnike). To važi samo unutar poslovne jedinice Predradnika: radnici i gradilišta drugih jedinica se odbijaju, a potrebu projekta i dalje mijenja samo Voditelj i iznad.",
@@ -811,10 +814,6 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.plan1007.cover': "Kad neko ode na odsustvo, kartica Treba zamjenu predlaže zamjenu: ista vještina i slobodan, pa neko s gradilišta koje ima više te vještine nego što mu treba. Isti prijedlozi se nude i pri odobravanju odsustva. Zamjenik ide na gradilište samo za dane odsustva.",
   'releaseNotes.plan1007.guide': "Prvi put ovdje? Dugme Vodič kroz Raspored na vrhu stranice korak po korak, za oko minut, provodi kroz mogućnosti stranice. Nudi se pri prvom otvaranju.",
   'releaseNotes.plan1007.limits': "Potreba se računa od ponedjeljka do petka. Novu stranicu koriste Voditelji i iznad; Predradnici i dalje vide raniji pregled ko je gdje.",
-  'releaseNotes.card1007.title': "Gorivo: broj kartice umjesto TD broja",
-  'releaseNotes.card1007.what': "Radnik pri unosu goriva sada upisuje broj DKV kartice kojom je platio (uz vozilo, iznos, litre, kilometre i sliku računa). DKV provjera uparuje točenje s redom izvoda po kartici, danu i iznosu, pa radi i kad je kartica jednog vozila upotrijebljena na drugom. Pogrešno otkucan broj kartice ne kvari uparivanje: vozilo i dalje dolazi u obzir.",
-  'releaseNotes.card1007.td': "TD broj vozila više nije obavezan, jer ga radnik na terenu ne zna. Kancelarija ga može dopuniti kasnije; vozilo bez TD-a se samo ne provjerava po oznaci na izvodu. Izmjena vozila s praznim TD-om ne briše postojeći.",
-  'releaseNotes.card1007.app': "Aplikacija 1.1.20: polje \"Broj kartice\" pri točenju goriva i neobavezan TD pri dodavanju vozila. Ažuriraj aplikaciju na telefonu. Starije verzije rade, ali bez broja kartice.",
   'finance.budget.warnPercentHelp': 'Prazno znači 80%. Od 100% se projekat računa kao prekoračen.',
   'finance.housingDoubleWarning': '{count} troškova smještaja pada na dane kada je kirija već uračunata iz cijena smještaja, pa se ta kirija računa dvaput. Obrišite ih ili ih prebacite u drugu kategoriju.',
   'finance.payOverlapWarning': '{count} isplata bez projekta pada na dane kada je ista osoba evidentirala sate na projektu. Računaju se oba iznosa — provjerite treba li jedan zamijeniti drugi.',

@@ -23,7 +23,6 @@ import type { PlanningNeed } from '../../api/planning';
 import {
   candidates,
   confirmationOf,
-  isWorkday,
   needOf,
   positionKey,
   shortage,
@@ -158,9 +157,8 @@ function summary(plan: Plan, person: PlanPerson, from: string, to: string, awayT
   const counts = new Map<string, number>();
 
   for (let d = from; d <= to; d = new Date(Date.parse(`${d}T00:00:00Z`) + 864e5).toISOString().slice(0, 10)) {
-    if (!isWorkday(d)) continue;
     const i = plan.indexOf(d);
-    if (i < 0 || i >= plan.days) continue;
+    if (i < 0 || i >= plan.days || !plan.isWork[i]) continue;
 
     const cell = person.cells[i];
     const label = cell.away ? awayText(cell.away) : cell.project ? (plan.projectById.get(cell.project)?.name ?? '?') : freeText;
@@ -205,7 +203,7 @@ export function WorkerDialog({
   const awayText = (type: string) => enumLabel('absenceType', type);
   const days = Array.from({ length: Math.max(0, (Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 864e5 + 1) }, (_, k) =>
     plan.indexOf(new Date(Date.parse(`${from}T00:00:00Z`) + k * 864e5).toISOString().slice(0, 10)),
-  ).filter((i) => i >= 0 && i < plan.days && isWorkday(plan.date(i)));
+  ).filter((i) => i >= 0 && i < plan.days && plan.isWork[i]);
 
   const confirmation = confirmationOf(person, days);
 
@@ -320,7 +318,7 @@ export function SiteDialog({
   const indexes: number[] = [];
   for (let d = from; d <= to; d = new Date(Date.parse(`${d}T00:00:00Z`) + 864e5).toISOString().slice(0, 10)) {
     const i = plan.indexOf(d);
-    if (i >= 0 && i < plan.days && isWorkday(d)) indexes.push(i);
+    if (i >= 0 && i < plan.days && plan.isWork[i]) indexes.push(i);
   }
 
   const lacking = new Set(

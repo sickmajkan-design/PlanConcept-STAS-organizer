@@ -22,6 +22,16 @@ export const weekday = (value: string): number => (new Date(`${value}T00:00:00Z`
 
 export const isWorkday = (value: string): boolean => weekday(value) < 5;
 
+/**
+ * Whether a site works on a date: Monday to Friday always, Saturday and Sunday where the site says so,
+ * and never on a public holiday of the country the site keeps.
+ */
+export function siteWorksOn(project: PlanningProject, date: string, holidays: ReadonlySet<string>): boolean {
+  const wd = weekday(date);
+  const base = wd < 5 || (wd === 5 && project.worksSaturdays) || (wd === 6 && project.worksSundays);
+  return base && !(project.countryCode && holidays.has(`${project.countryCode}|${date}`));
+}
+
 export const mondayOf = (value: string): string => addDays(value, -weekday(value));
 
 /** What makes two position names the same position. */
@@ -58,6 +68,12 @@ export interface Plan {
   projectById: Map<string, PlanningProject>;
   positions: string[];
   certificateNames: string[];
+  /** Whether anybody works on each day of the window: some site does, by its own calendar. */
+  isWork: boolean[];
+  /** `${country}|${date}`, one per public holiday. */
+  holidays: ReadonlySet<string>;
+  /** The name of the holiday on a date, when there is one. */
+  holidayNames: Map<string, string>;
   /** Whether the caller may move people. A foreman without that right gets a read-only screen. */
   canEdit: boolean;
   isScoped: boolean;
@@ -107,6 +123,19 @@ export function buildPlan(data: PlanningData): Plan {
     return { id: e.id, name: e.fullName, position: e.position, key: positionKey(e.position), cells, certificates };
   });
 
+  const holidays = new Set((data.holidays ?? []).map((h) => `${h.countryCode}|${h.date}`));
+  const holidayNames = new Map<string, string>();
+  for (const h of data.holidays ?? []) {
+    holidayNames.set(h.date, holidayNames.has(h.date) ? `${holidayNames.get(h.date)}, ${h.name}` : h.name);
+  }
+
+  // A day counts as one people work on when some site works on it. With no site in view, the ordinary week.
+  const isWork = Array.from({ length: days }, (_, i) =>
+    data.projects.length === 0
+      ? isWorkday(date(i))
+      : data.projects.some((p) => siteWorksOn(p, date(i), holidays)),
+  );
+
   const present: Map<string, number>[] = [];
   const freeByKey: Map<string, number>[] = [];
   const freeTotal: number[] = [];
@@ -115,7 +144,7 @@ export function buildPlan(data: PlanningData): Plan {
     const here = new Map<string, number>();
     const free = new Map<string, number>();
     let freeCount = 0;
-    const work = isWorkday(date(i));
+    const work = isWork[i];
 
     for (const p of people) {
       const cell = p.cells[i];
@@ -144,6 +173,9 @@ export function buildPlan(data: PlanningData): Plan {
     projects: data.projects,
     projectById: new Map(data.projects.map((p) => [p.id, p])),
     positions: data.positions,
+    isWork,
+    holidays,
+    holidayNames,
     certificateNames: data.certificateNames ?? [],
     canEdit: data.canEdit ?? true,
     isScoped: data.isScoped ?? false,
@@ -163,7 +195,7 @@ export const needOf = (project: PlanningProject): number =>
 export function isActive(plan: Plan, project: PlanningProject, index: number): boolean {
   const d = plan.date(index);
   return (
-    isWorkday(d) &&
+    siteWorksOn(project, d, plan.holidays) &&
     (!project.startDate || d >= project.startDate) &&
     (!project.endDate || d <= project.endDate)
   );
@@ -201,7 +233,7 @@ export function freeCount(plan: Plan, index: number, position?: string): number 
 export function workdayIndexes(plan: Plan, from: number, to: number): number[] {
   const out: number[] = [];
   for (let i = Math.max(0, from); i <= Math.min(plan.days - 1, to); i++) {
-    if (isWorkday(plan.date(i))) out.push(i);
+    if (plan.isWork[i]) out.push(i);
   }
   return out;
 }
@@ -387,6 +419,18 @@ export function columnsFor(from: string, to: string): Column[] {
   return out;
 }
 
+/** The days of a column that people work on, as indexes into the window. */
+export function workIndexesIn(plan: Plan, column: Column): number[] {
+  const out: number[] = [];
+
+  for (let d = column.from; d <= column.to; d = addDays(d, 1)) {
+    const i = plan.indexOf(d);
+    if (i >= 0 && i < plan.days && plan.isWork[i]) out.push(i);
+  }
+
+  return out;
+}
+
 export function workdaysIn(column: Column): string[] {
   const out: string[] = [];
   for (let d = column.from; d <= column.to; d = addDays(d, 1)) {
@@ -466,7 +510,7 @@ export function conflicts(plan: Plan, from: number, to: number): Conflict[] {
 
 /** How many people posted to a site on a working day have not yet confirmed it. Leave days are not counted. */
 export function unconfirmedCount(plan: Plan, index: number): number {
-  if (!isWorkday(plan.date(index))) return 0;
+  if (!plan.isWork[index]) return 0;
   return plan.people.filter((p) => p.cells[index].project && !p.cells[index].away && !p.cells[index].acknowledged).length;
 }
 

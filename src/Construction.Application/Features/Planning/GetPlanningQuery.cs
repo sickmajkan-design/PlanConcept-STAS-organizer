@@ -54,6 +54,9 @@ public class PlanningDto
     /// <summary>Every certificate name in use, workers and projects, to offer when one is entered.</summary>
     public IReadOnlyList<string> CertificateNames { get; init; } = [];
 
+    /// <summary>Public holidays inside the window, with the country they are kept in.</summary>
+    public IReadOnlyList<PlanningHolidayDto> Holidays { get; init; } = [];
+
     /// <summary>Whether the caller may move people. False for a foreman without that right.</summary>
     public bool CanEdit { get; init; }
 
@@ -82,10 +85,22 @@ public class PlanningProjectDto
 
     public bool WorksSundays { get; init; }
 
+    /// <summary>Whose public holidays the site keeps. Null: none.</summary>
+    public string? CountryCode { get; init; }
+
     public IReadOnlyList<PlanningNeedDto> Needs { get; init; } = [];
 
     /// <summary>Certificates everybody posted here has to hold.</summary>
     public IReadOnlyList<string> RequiredCertificates { get; init; } = [];
+}
+
+public class PlanningHolidayDto
+{
+    public DateOnly Date { get; init; }
+
+    public string Name { get; init; } = null!;
+
+    public string CountryCode { get; init; } = null!;
 }
 
 public class PlanningNeedDto
@@ -210,6 +225,7 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
                 EndDate = p.EndDate,
                 WorksSaturdays = p.WorksSaturdays,
                 WorksSundays = p.WorksSundays,
+                CountryCode = p.CountryCode,
                 Needs = p.StaffingNeeds
                     .OrderBy(n => n.Position)
                     .Select(n => new PlanningNeedDto { Position = n.Position, Count = n.Count })
@@ -231,6 +247,13 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
             .OrderBy(n => n)
             .ToList();
 
+        var holidays = await _context.PublicHolidays
+            .AsNoTracking()
+            .Where(h => h.Date >= from && h.Date <= to)
+            .OrderBy(h => h.Date)
+            .Select(h => new PlanningHolidayDto { Date = h.Date, Name = h.Name, CountryCode = h.CountryCode })
+            .ToListAsync(cancellationToken);
+
         var positions = employees
             .Select(e => e.Position.Trim())
             .Where(p => p.Length > 0)
@@ -247,6 +270,7 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
             Projects = projects,
             Positions = positions,
             CertificateNames = certificateNames,
+            Holidays = holidays,
             CanEdit = access.CanEdit,
             IsScoped = access.IsScoped,
             ScopeBranchName = access.BranchName,

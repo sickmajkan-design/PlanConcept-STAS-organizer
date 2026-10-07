@@ -104,14 +104,25 @@ Widget na početnoj stranici skuplja šta čeka tebe, samo ono što tvoja uloga 
 * **Pravo raspoređivanja:** Admin ili Super Admin u Korisnici > Predradnik uključe **Smije raspoređivati radnike**. Tada može raspoređivati, osloboditi i zamjenjivati radnike, ali **samo radnike svoje jedinice na gradilištima svoje jedinice**; sve drugo API odbija. Potrebu projekta (vještine i uvjerenja) i dalje mijenja samo Voditelj i iznad. Pravo se vraća na isključeno kad se korisniku promijeni uloga.
 * Radnici i dalje nemaju ovaj ekran.
 
-## 11. Ograničenja ove verzije
+## 11. Radni dani i praznici
 
-* Radni dani su ponedjeljak–petak. Gradilišta koja rade subotom ili nedjeljom imaju te dane ako se radnik rasporedi na njih, ali potreba se tamo ne računa.
+Raspored prati kalendar svakog gradilišta:
+
+* **Ponedjeljak–petak** su radni dani. **Subota i nedjelja** su radni samo za gradilišta koja imaju uključeno "Radi subotom" odnosno "Radi nedjeljom". Za takvo gradilište se potreba računa i tim danima, a vremenska traka tada ne siva te kolone.
+* **Državni praznici** zemlje upisane na gradilištu (polje Zemlja) ne računaju se kao radni dani tog gradilišta: nema potrebe, nema manjka. Praznik je označen u zaglavlju vremenske trake (isprekidana crta, naziv u opisu) i u sažetku dana. Gradilište bez upisane zemlje ne poštuje nijedan praznik.
+* Dan je "radni" za prikaz kad radi barem jedno gradilište u prikazu. Slobodni radnici se broje samo na takve dane.
+
+## 12. Raspored na papiru
+
+Dugme **Izvoz u Excel** (gore desno) pravi datoteku za štampanje ili okačiti na gradilištu: list **Raspored** (red po radniku, kolona po danu, u ćeliji gradilište ili GO/BO) i list **Po gradilištima** (za svako gradilište i dan: potrebno, raspoređeno, imena). Obuhvata razdoblje na ekranu (u prikazima za jedan dan, tu sedmicu), najviše 62 dana, na izabranom jeziku. Predradnik dobija samo svoju jedinicu, a bolovanje piše kao "odsutan".
+
+## 13. Ograničenja ove verzije
+
 * Potreba je jedan broj po vještini za cijeli projekat. Potreba koja se mijenja po sedmicama nije podržana.
 * Radnik ima jednu vještinu (svoju poziciju).
 * Raspored je vidljiv Voditeljima i iznad bez suženja po gradilištu, kao i stara tabla raspoređivanja.
 
-## 12. Za razvoj
+## 14. Za razvoj
 
 | Ruta | Ko | Šta |
 |---|---|---|
@@ -120,6 +131,7 @@ Widget na početnoj stranici skuplja šta čeka tebe, samo ono što tvoja uloga 
 | `POST /api/v1/planning/swap` | Voditelj+, ili Predradnik s pravom (samo svoja jedinica) | `{employeeAId, employeeBId, from, to}`: razmjena u jednoj transakciji |
 | `PUT /api/v1/planning/projects/{id}/needs` | Voditelj+ | `{needs: [{position, count}], requiredCertificates?: string[]}`: zamjenjuje potrebu projekta; bez `requiredCertificates` ostavlja tražena uvjerenja kakva jesu |
 | `POST /api/v1/postings/{id}/acknowledge` | svi zaposleni | Radnik potvrđuje svoj raspored; tuđi vraća 404 |
+| `GET /api/v1/exports/schedule?from&to&language&branchId` | Predradnik+ | Excel: raspored po radniku i po gradilištu, najviše 62 dana |
 | `GET /api/v1/data-quality` | Admin+ | Grupe zapisa za sređivanje |
 | `GET /api/v1/attention` | svi zaposleni | Šta čeka pozivaoca, ograničeno na ono što uloga može riješiti |
 | `GET, PUT /api/v1/employees/{id}/certificates`, `DELETE .../{certificateId}` | Voditelj+ | Uvjerenja radnika; PUT s `id` mijenja postojeće, bez njega dodaje |

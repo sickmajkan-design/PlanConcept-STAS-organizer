@@ -180,6 +180,25 @@ public class PlanningTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task Public_holidays_and_the_country_of_a_site_reach_the_planning_view()
+    {
+        var site = await InScope(scope => TestData.SeedProjectAsync(scope, countryCode: "HR"));
+
+        await InScope(async scope =>
+        {
+            scope.Db.PublicHolidays.Add(new PublicHoliday { Date = D(10), Name = "Test holiday", CountryCode = "HR" });
+            scope.Db.PublicHolidays.Add(new PublicHoliday { Date = D(1).AddDays(60), Name = "Outside the window", CountryCode = "HR" });
+            await scope.Db.SaveChangesAsync();
+        });
+
+        var plan = await InScopeAs(UserRole.Admin, scope => scope.Send(new GetPlanningQuery { From = D(1), To = D(30) }));
+
+        Assert.Equal("HR", plan.Projects.Single(p => p.Id == site.Id).CountryCode);
+        Assert.Contains(plan.Holidays, h => h.Date == D(10) && h.Name == "Test holiday" && h.CountryCode == "HR");
+        Assert.DoesNotContain(plan.Holidays, h => h.Name == "Outside the window");
+    }
+
+    [Fact]
     public async Task A_window_longer_than_the_limit_is_refused()
     {
         await Assert.ThrowsAsync<Construction.Application.Common.Exceptions.ValidationException>(() =>

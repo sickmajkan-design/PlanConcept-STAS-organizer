@@ -122,6 +122,9 @@ export const exportsApi = {
   materialMovements: (query: ExportQuery & { materialId?: string; projectId?: string }) =>
     download('/api/v1/exports/material-movements', query, true),
 
+  /** The schedule on paper: a row per person, a column per day, and what each site has each day. At most 62 days. */
+  schedule: (query: ExportQuery) => download('/api/v1/exports/schedule', query, true),
+
   absences: (query: AbsenceExportQuery) => download('/api/v1/exports/absences', query),
 
   financeEntries: (query: FinanceEntryExportQuery) =>
