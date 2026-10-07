@@ -794,8 +794,8 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.close': 'Razumijem',
 
 
-  'releaseNotes.hist1007.title': "Povijest rasporeda i smještaj",
-  'releaseNotes.hist1007.history': "Raspored ima gumb Povijest: ko je i kada nekoga rasporedio na gradilište, pomjerio ili uklonio, od najnovijeg. Poslovođa vidi samo ljude svoje poslovne jedinice.",
+  'releaseNotes.hist1007.title': "Istorija rasporeda i smještaj",
+  'releaseNotes.hist1007.history': "Raspored ima dugme Istorija: ko je i kada nekoga rasporedio na gradilište, pomjerio ili uklonio, od najnovijeg. Poslovođa vidi samo ljude svoje poslovne jedinice.",
   'releaseNotes.hist1007.housing': "Raspored sada pokazuje gdje je radnik smješten i upozorava na smještene ljude koji radnim danima nisu nigdje raspoređeni.",
   'releaseNotes.cost1007.title': "Planirani trošak rada",
   'releaseNotes.cost1007.what': "Onima koji smiju vidjeti plate Raspored ima novi prikaz Trošak rada: po gradilištu i mjesecu, šta će plan koštati u radu, uz ono što su odobreni sati do sada koštali. To je procjena iz dana u kojima su ljudi raspoređeni na gradilište koje tada radi (bez odsustava i državnih praznika), po cijeni koja važi i pretpostavljenom radnom danu koji možete promijeniti (6 do 10 sati). Dnevnica se računa kao jedan iznos po danu. Radnici bez upisane cijene broje se kao dani i prijavljuju se, pa iznos nikad nije tiho premali.",
@@ -1867,10 +1867,10 @@ export const sr: Record<MessageKey, Message> = {
   'planning.cost.days': "{count} planiranih dana",
   'planning.conflict.housedIdle': "{name} je smješten/a u {place}, a nije nigdje raspoređen/a, {from} – {to}",
   'planning.w.housed': "Smještaj: {list}",
-  'planning.history.button': "Povijest",
+  'planning.history.button': "Istorija",
   'planning.history.title': "Promjene rasporeda",
   'planning.history.empty': "Još ništa nije mijenjano.",
-  'planning.history.failed': "Povijest se nije mogla učitati.",
+  'planning.history.failed': "Istorija se nije mogla učitati.",
   'planning.history.someone': "Netko",
   'planning.history.aSite': "gradilište",
   'planning.history.system': "sistem",
