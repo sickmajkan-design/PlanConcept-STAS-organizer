@@ -47,6 +47,9 @@ public class UserDto
     /// <summary>"None", "StatisticsOnly" or "Full" — see <c>FinanceAccess</c>.</summary>
     public string FinanceAccess { get; init; } = null!;
 
+    /// <summary>Whether a foreman may move people within their business unit.</summary>
+    public bool CanPlan { get; init; }
+
     /// <summary>ISO 639-1 code the account's push notifications render in. Null means unset.</summary>
     public string? PreferredLanguage { get; init; }
 
@@ -82,6 +85,7 @@ public static class UserMapping
             DocumentExpiryReminderDays = user.DocumentExpiryReminderDays,
             CanViewCustomerTaxDetails = user.CanViewCustomerTaxDetails,
             // A SuperAdmin sees everything whatever the stored column says.
+            CanPlan = user.CanPlan,
             FinanceAccess = user.Role == Construction.Domain.Enums.UserRole.SuperAdmin
                 ? nameof(Construction.Domain.Enums.FinanceAccess.Full)
                 : user.FinanceAccess.ToString(),

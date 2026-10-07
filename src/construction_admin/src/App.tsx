@@ -173,7 +173,8 @@ function BillingSettingsHome() {
  */
 function ScheduleRoute() {
   const { user } = useAuth();
-  return canManageAssignments(user) ? <PlanningPage /> : <SchedulePage />;
+  // A foreman gets the same screen, held to their own business unit; whether it lets them move people is the API's say.
+  return canManageAssignments(user) || user?.role === 'Foreman' ? <PlanningPage /> : <SchedulePage />;
 }
 
 const CompanyRevenuesPage = lazy(() =>

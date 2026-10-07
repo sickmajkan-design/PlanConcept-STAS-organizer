@@ -215,4 +215,52 @@ describe('PlanningPage', () => {
 
     expect(await screen.findByText('1 have not confirmed')).toBeDefined();
   }, SCREEN_TIMEOUT);
+
+  describe('for a foreman', () => {
+    const absent = () => plan({ canEdit: false, isScoped: true, scopeBranchName: 'Zagreb unit' });
+
+    it('shows the unit they follow, with nothing to press when they may not move people', async () => {
+      network.reply('/planning', 200, absent());
+
+      await renderPage();
+
+      expect(await screen.findByText(/You are viewing the schedule of Zagreb unit/)).toBeDefined();
+      expect(screen.queryByRole('button', { name: 'Find a stand-in' })).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Schedule guide' })).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Start the tour' })).toBeNull();
+    }, SCREEN_TIMEOUT);
+
+    it('has no way to open a worker for changes', async () => {
+      network.reply('/planning', 200, absent());
+
+      await renderPage();
+      await screen.findByText(/You are viewing the schedule of Zagreb unit/);
+      await userEvent.click(await screen.findByRole('button', { name: /By site/ }));
+
+      const button = (await screen.findByText('Ana Novak')).closest('button');
+      expect(button?.hasAttribute('disabled')).toBe(true);
+    }, SCREEN_TIMEOUT);
+
+    it('says plainly when they belong to no unit yet', async () => {
+      network.reply('/planning', 200, plan({ canEdit: false, isScoped: true, scopeBranchName: null, employees: [], projects: [] }));
+
+      await renderPage();
+
+      expect(await screen.findByText(/not placed in a business unit/)).toBeDefined();
+    }, SCREEN_TIMEOUT);
+
+    it('may move people once granted, but still cannot change what a project needs', async () => {
+      network.reply('/planning', 200, plan({ canEdit: true, isScoped: true, scopeBranchName: 'Zagreb unit' }));
+
+      await renderPage();
+
+      expect(await screen.findByText(/You can move people and sites of Zagreb unit only/)).toBeDefined();
+      expect(await screen.findByRole('button', { name: 'Find a stand-in' })).toBeDefined();
+
+      await userEvent.click(screen.getByRole('button', { name: /Needs by project/ }));
+      await screen.findByText('Aldi Hall');
+      expect(screen.queryByRole('button', { name: 'Edit needs' })).toBeNull();
+      expect(screen.queryByRole('button', { name: 'New project' })).toBeNull();
+    }, SCREEN_TIMEOUT);
+  });
 });

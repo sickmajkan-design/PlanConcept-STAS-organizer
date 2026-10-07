@@ -25,6 +25,8 @@ export interface User {
   canViewCustomerTaxDetails: boolean;
   /** A SuperAdmin always reads "Full". */
   financeAccess: FinanceAccess;
+  /** Whether a foreman may move people within their own business unit. */
+  canPlan?: boolean;
 }
 
 export interface AuthResponse {
@@ -863,6 +865,7 @@ export interface UserAccount {
   /** Whether this account may see a customer's tax ID, registration number and VAT number. */
   canViewCustomerTaxDetails: boolean;
   financeAccess: FinanceAccess;
+  canPlan?: boolean;
   createdAt: string;
 }
 
@@ -876,6 +879,8 @@ export interface UserAccountInput {
   canViewCustomerTaxDetails?: boolean;
   /** SuperAdmin only, like the flag above; omitted leaves it as it was. */
   financeAccess?: FinanceAccess;
+  /** Lets a foreman move people within their own business unit. Ignored for any other role. */
+  canPlan?: boolean;
 }
 
 export interface CreateUserAccountInput extends UserAccountInput {

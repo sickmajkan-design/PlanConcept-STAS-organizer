@@ -79,6 +79,7 @@ export function TimelineView({
   plan,
   range,
   openWorker,
+  readOnly,
 }: ViewProps & { range: { from: string; to: string } }) {
   const t = useT();
   const enumLabel = useEnumLabel();
@@ -254,6 +255,7 @@ export function TimelineView({
                     <Box key={run.from} component="td" colSpan={run.columns} sx={{ p: '4px 2px !important' }}>
                       <ButtonBase
                         onClick={() => openWorker(person.id, run.from, run.to)}
+                        disabled={readOnly}
                         sx={{ width: '100%', borderRadius: 1.5, p: '5px 4px', fontSize: 12, fontWeight: 600, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', '&:hover': { outline: '1px solid', outlineColor: 'text.secondary' }, ...sx }}
                       >
                         {label}

@@ -76,6 +76,9 @@ public class SetEmployeeScheduleCommandHandler : IRequestHandler<SetEmployeeSche
 
     public async Task Handle(SetEmployeeScheduleCommand request, CancellationToken cancellationToken)
     {
+        var access = await PlanningRules.ResolveAsync(_context, _currentUser, cancellationToken);
+        await PlanningRules.EnsureCanMoveAsync(_context, access, [request.EmployeeId], request.ProjectId, cancellationToken);
+
         var employee = await _context.Employees
             .Include(e => e.User)
             .FirstOrDefaultAsync(e => e.Id == request.EmployeeId, cancellationToken)
@@ -182,6 +185,9 @@ public class SwapEmployeeSchedulesCommandHandler : IRequestHandler<SwapEmployeeS
 
     public async Task Handle(SwapEmployeeSchedulesCommand request, CancellationToken cancellationToken)
     {
+        var access = await PlanningRules.ResolveAsync(_context, _currentUser, cancellationToken);
+        await PlanningRules.EnsureCanMoveAsync(_context, access, [request.EmployeeAId, request.EmployeeBId], null, cancellationToken);
+
         var a = await _context.Employees.Include(e => e.User).FirstOrDefaultAsync(e => e.Id == request.EmployeeAId, cancellationToken)
             ?? throw new NotFoundException(nameof(Employee), request.EmployeeAId);
         var b = await _context.Employees.Include(e => e.User).FirstOrDefaultAsync(e => e.Id == request.EmployeeBId, cancellationToken)
@@ -278,11 +284,18 @@ public class SetProjectStaffingNeedsCommandValidator : AbstractValidator<SetProj
 public class SetProjectStaffingNeedsCommandHandler : IRequestHandler<SetProjectStaffingNeedsCommand>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUser;
 
-    public SetProjectStaffingNeedsCommandHandler(IApplicationDbContext context) => _context = context;
+    public SetProjectStaffingNeedsCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser)
+    {
+        _context = context;
+        _currentUser = currentUser;
+    }
 
     public async Task Handle(SetProjectStaffingNeedsCommand request, CancellationToken cancellationToken)
     {
+        PlanningRules.EnsureNotScoped(await PlanningRules.ResolveAsync(_context, _currentUser, cancellationToken));
+
         if (!await _context.Projects.AnyAsync(p => p.Id == request.ProjectId, cancellationToken))
         {
             throw new NotFoundException(nameof(Project), request.ProjectId);

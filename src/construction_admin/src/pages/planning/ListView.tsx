@@ -10,7 +10,7 @@ import type { ViewProps } from './planningTypes';
 type Filter = 'all' | 'on' | 'free' | 'away';
 
 /** One day, one row per person, with the site as a drop-down: the fastest way to tidy up. */
-export function ListView({ plan, day, setSite }: ViewProps & { day: number; setSite: (personId: string, projectId: string | null) => void }) {
+export function ListView({ plan, day, setSite, readOnly }: ViewProps & { day: number; setSite: (personId: string, projectId: string | null) => void }) {
   const t = useT();
   const enumLabel = useEnumLabel();
   const [filter, setFilter] = useState<Filter>('all');
@@ -72,7 +72,7 @@ export function ListView({ plan, day, setSite }: ViewProps & { day: number; setS
                     )}
                   </td>
                   <td style={{ padding: '6px 12px' }}>
-                    {cell.away || !work ? (
+                    {cell.away || !work || readOnly ? (
                       '–'
                     ) : (
                       <Select

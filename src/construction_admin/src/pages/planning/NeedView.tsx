@@ -34,6 +34,7 @@ export function NeedView({
   range,
   openSite,
   editNeeds,
+  readOnly,
 }: ViewProps & { range: { from: string; to: string } }) {
   const t = useT();
   const [open, setOpen] = useState<Record<string, boolean>>({});
@@ -73,6 +74,7 @@ export function NeedView({
       <td key={column.from}>
         <ButtonBase
           onClick={() => openSite(projectId, plan.date(days[0]), plan.date(days[days.length - 1]), position)}
+          disabled={readOnly}
           sx={{ width: '100%', borderRadius: 1.5, py: 0.9, fontSize: 12, fontWeight: 600, fontVariantNumeric: 'tabular-nums', ...toneSx(tone) }}
         >
           {have}/{need}
@@ -161,11 +163,14 @@ export function NeedView({
                           {site.needs.length ? t('planning.n.needs', { count: needOf(site) }) : t('planning.n.noNeeds')}
                         </Typography>
                       </Box>
-                      <Tooltip title={t('planning.n.editNeeds')}>
-                        <IconButton size="small" onClick={() => editNeeds(site.id)} aria-label={t('planning.n.editNeeds')}>
-                          <EditOutlined fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
+                      {/* What a project needs is set by a project manager and above, even where moving people is allowed. */}
+                      {!readOnly && !plan.isScoped && (
+                        <Tooltip title={t('planning.n.editNeeds')}>
+                          <IconButton size="small" onClick={() => editNeeds(site.id)} aria-label={t('planning.n.editNeeds')}>
+                            <EditOutlined fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                     </Stack>
                   </td>
                   {columns.map((c) => (site.needs.length ? cell(site.id, c) : <td key={c.from} />))}

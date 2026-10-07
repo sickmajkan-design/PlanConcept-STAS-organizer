@@ -45,6 +45,22 @@ public abstract class IntegrationTestBase : IDisposable
         return await action(scope);
     }
 
+    /// <summary>Like <see cref="InScope{T}"/>, but signed in as somebody of the given role, for the commands and queries that check one.</summary>
+    protected async Task<T> InScopeAs<T>(Construction.Domain.Enums.UserRole role, Func<TestScope, Task<T>> action)
+    {
+        using var scope = Fixture.CreateScope();
+        scope.CurrentUser.SignInAs(Guid.NewGuid(), role, null, "tests@example.com");
+        return await action(scope);
+    }
+
+    /// <summary>The same for commands that return nothing.</summary>
+    protected async Task InScopeAs(Construction.Domain.Enums.UserRole role, Func<TestScope, Task> action)
+    {
+        using var scope = Fixture.CreateScope();
+        scope.CurrentUser.SignInAs(Guid.NewGuid(), role, null, "tests@example.com");
+        await action(scope);
+    }
+
     /// <summary>Overload for commands that return nothing, such as the deletes.</summary>
     protected async Task InScope(Func<TestScope, Task> action)
     {

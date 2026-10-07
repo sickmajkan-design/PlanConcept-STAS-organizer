@@ -53,6 +53,9 @@ public record UpdateUserCommand : IRequest<UserDto>
     /// it was; only a SuperAdmin caller may change it — see the handler.
     /// </summary>
     public FinanceAccess? FinanceAccess { get; init; }
+
+    /// <summary>Lets a foreman move people within their business unit. Ignored for any other role.</summary>
+    public bool? CanPlan { get; init; }
 }
 
 public class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
@@ -166,6 +169,17 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserD
 
                 user.FinanceAccess = financeAccess;
             }
+        }
+
+        if (request.CanPlan is { } canPlan)
+        {
+            user.CanPlan = canPlan;
+        }
+
+        // Only a foreman holds this grant; any other role either already can or never may.
+        if (user.Role != UserRole.Foreman)
+        {
+            user.CanPlan = false;
         }
 
         // Moving an account to a role that may not hold the grant takes it away.

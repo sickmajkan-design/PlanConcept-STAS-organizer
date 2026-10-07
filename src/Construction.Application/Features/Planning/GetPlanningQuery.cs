@@ -53,6 +53,15 @@ public class PlanningDto
 
     /// <summary>Every certificate name in use, workers and projects, to offer when one is entered.</summary>
     public IReadOnlyList<string> CertificateNames { get; init; } = [];
+
+    /// <summary>Whether the caller may move people. False for a foreman without that right.</summary>
+    public bool CanEdit { get; init; }
+
+    /// <summary>Set when the caller sees only one business unit, which this names.</summary>
+    public string? ScopeBranchName { get; init; }
+
+    /// <summary>True when the caller is held to one business unit, whether or not it has a name.</summary>
+    public bool IsScoped { get; init; }
 }
 
 public class PlanningProjectDto
@@ -134,11 +143,13 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
 {
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _clock;
+    private readonly ICurrentUserService _currentUser;
 
-    public GetPlanningQueryHandler(IApplicationDbContext context, IDateTimeProvider clock)
+    public GetPlanningQueryHandler(IApplicationDbContext context, IDateTimeProvider clock, ICurrentUserService currentUser)
     {
         _context = context;
         _clock = clock;
+        _currentUser = currentUser;
     }
 
     public async Task<PlanningDto> Handle(GetPlanningQuery request, CancellationToken cancellationToken)
@@ -146,9 +157,14 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
         var from = request.From;
         var to = request.To;
 
+        var access = await PlanningRules.ResolveAsync(_context, _currentUser, cancellationToken);
+
+        // A foreman is held to their own unit whatever unit they ask for.
+        var branchId = access.IsScoped ? access.BranchId : request.BranchId;
+
         var employees = await _context.Employees
             .AsNoTracking()
-            .InBranch(request.BranchId)
+            .InBranch(branchId)
             .Where(e => e.Status == EmployeeStatus.Active)
             .OrderBy(e => e.LastName).ThenBy(e => e.FirstName)
             .Select(e => new
@@ -178,7 +194,7 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
 
         var projects = await _context.Projects
             .AsNoTracking()
-            .InBranch(request.BranchId)
+            .InBranch(branchId)
             .Where(p => (p.Status == ProjectStatus.Planned || p.Status == ProjectStatus.Active || p.Status == ProjectStatus.OnHold)
                     && (p.EndDate == null || p.EndDate >= from)
                     && (p.StartDate == null || p.StartDate <= to)
@@ -231,6 +247,9 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
             Projects = projects,
             Positions = positions,
             CertificateNames = certificateNames,
+            CanEdit = access.CanEdit,
+            IsScoped = access.IsScoped,
+            ScopeBranchName = access.BranchName,
             Employees = employees.Select(e => new PlanningEmployeeDto
             {
                 Id = e.Id,
@@ -239,7 +258,7 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
                 Postings = e.Postings,
                 Absences = absences
                     .Where(a => a.EmployeeId == e.Id)
-                    .Select(a => new PlanningAbsenceDto { Type = a.Type.ToString(), StartDate = a.StartDate, EndDate = a.EndDate })
+                    .Select(a => new PlanningAbsenceDto { Type = (access.IsScoped && a.Type == AbsenceType.SickLeave ? AbsenceType.Other : a.Type).ToString(), StartDate = a.StartDate, EndDate = a.EndDate })
                     .ToList(),
                 Certificates = certificates
                     .Where(c => c.EmployeeId == e.Id)

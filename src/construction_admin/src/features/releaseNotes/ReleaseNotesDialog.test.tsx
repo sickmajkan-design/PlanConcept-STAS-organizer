@@ -43,7 +43,7 @@ describe('ReleaseNotesDialog', () => {
     await new Promise((resolve) => setTimeout(resolve, 50));
     expect(screen.queryByText('Data check, schedule warnings and confirmation on the phone')).toBeNull();
     expect(screen.queryByText('Business units')).toBeNull();
-    expect(screen.queryByText('Search finds everything, and the phone app')).toBeNull();
+    expect(screen.queryByText('Needs attention, and certificates')).toBeNull();
   }, SCREEN_TIMEOUT);
 
   it('shows nothing to an account none of the sections concern', async () => {
@@ -57,7 +57,7 @@ describe('ReleaseNotesDialog', () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('SuperAdmin') });
 
     await screen.findByText('Data check, schedule warnings and confirmation on the phone');
-    expect(screen.getByText('Search finds everything, and the phone app')).toBeDefined();
+    expect(screen.getByText('Foremen on the Schedule')).toBeDefined();
     expect(screen.getByText('New schedule: planning the workforce')).toBeDefined();
   }, SCREEN_TIMEOUT);
 

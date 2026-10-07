@@ -13,7 +13,7 @@ namespace Construction.API.Controllers;
 /// Replaces the two older boards. Every action here sets a range of days outright rather than adding
 /// to what is there, so a retried request changes nothing the first one did not.
 /// </remarks>
-[Authorize(Policy = Policies.ProjectManagerAndAbove)]
+[Authorize(Policy = Policies.ForemanAndAbove)]
 public class PlanningController : ApiControllerBase
 {
     /// <summary>Postings, approved absences and needs for <c>[from, to]</c>.</summary>

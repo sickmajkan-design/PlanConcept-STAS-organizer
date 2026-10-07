@@ -24,7 +24,7 @@ public class PlanningTests : IntegrationTestBase
             .ToListAsync());
 
     private Task Assign(Guid employeeId, Guid? projectId, int from, int to, bool onlyFree = false) =>
-        InScope(scope => scope.Send(new SetEmployeeScheduleCommand
+        InScopeAs(UserRole.Admin, scope => scope.Send(new SetEmployeeScheduleCommand
         {
             EmployeeId = employeeId,
             ProjectId = projectId,
@@ -117,7 +117,7 @@ public class PlanningTests : IntegrationTestBase
         await Assign(a.Id, siteA.Id, 1, 20);
         await Assign(b.Id, siteB.Id, 1, 20);
 
-        await InScope(scope => scope.Send(new SwapEmployeeSchedulesCommand
+        await InScopeAs(UserRole.Admin, scope => scope.Send(new SwapEmployeeSchedulesCommand
         {
             EmployeeAId = a.Id,
             EmployeeBId = b.Id,
@@ -140,12 +140,12 @@ public class PlanningTests : IntegrationTestBase
     {
         var site = await InScope(scope => TestData.SeedProjectAsync(scope));
 
-        await InScope(scope => scope.Send(new SetProjectStaffingNeedsCommand
+        await InScopeAs(UserRole.Admin, scope => scope.Send(new SetProjectStaffingNeedsCommand
         {
             ProjectId = site.Id,
             Needs = [new("Zidar", 2), new(" zidar ", 1), new("Električar", 1)],
         }));
-        await InScope(scope => scope.Send(new SetProjectStaffingNeedsCommand
+        await InScopeAs(UserRole.Admin, scope => scope.Send(new SetProjectStaffingNeedsCommand
         {
             ProjectId = site.Id,
             Needs = [new("Zidar", 4), new("Vozač", 0)],
@@ -164,13 +164,13 @@ public class PlanningTests : IntegrationTestBase
         var site = await InScope(scope => TestData.SeedProjectAsync(scope, name: $"Plan {Guid.NewGuid():N}"));
 
         await Assign(employee.Id, site.Id, 2, 25);
-        await InScope(scope => scope.Send(new SetProjectStaffingNeedsCommand
+        await InScopeAs(UserRole.Admin, scope => scope.Send(new SetProjectStaffingNeedsCommand
         {
             ProjectId = site.Id,
             Needs = [new("Site Manager", 2)],
         }));
 
-        var plan = await InScope(scope => scope.Send(new GetPlanningQuery { From = D(1), To = D(30) }));
+        var plan = await InScopeAs(UserRole.Admin, scope => scope.Send(new GetPlanningQuery { From = D(1), To = D(30) }));
 
         var row = plan.Employees.Single(e => e.Id == employee.Id);
         Assert.Equal(site.Id, Assert.Single(row.Postings).ProjectId);
@@ -183,7 +183,7 @@ public class PlanningTests : IntegrationTestBase
     public async Task A_window_longer_than_the_limit_is_refused()
     {
         await Assert.ThrowsAsync<Construction.Application.Common.Exceptions.ValidationException>(() =>
-            InScope(scope => scope.Send(new GetPlanningQuery { From = D(1), To = D(1).AddDays(PlanningLimits.MaxDays + 5) })));
+            InScopeAs(UserRole.Admin, scope => scope.Send(new GetPlanningQuery { From = D(1), To = D(1).AddDays(PlanningLimits.MaxDays + 5) })));
     }
 }
 
@@ -201,7 +201,7 @@ public class PostingAcknowledgementTests : IntegrationTestBase
         var worker = await InScope(scope => TestData.SeedEmployeeAsync(scope));
         var site = await InScope(scope => TestData.SeedProjectAsync(scope));
 
-        await InScope(scope => scope.Send(new SetEmployeeScheduleCommand { EmployeeId = worker.Id, ProjectId = site.Id, From = D(1), To = D(20) }));
+        await InScopeAs(UserRole.Admin, scope => scope.Send(new SetEmployeeScheduleCommand { EmployeeId = worker.Id, ProjectId = site.Id, From = D(1), To = D(20) }));
 
         var id = await InScope(scope => scope.Db.EmployeeProjects.Where(ep => ep.EmployeeId == worker.Id).Select(ep => ep.Id).SingleAsync());
         return (worker, site, id);
@@ -249,11 +249,11 @@ public class PostingAcknowledgementTests : IntegrationTestBase
         await Acknowledge(id, worker.Id);
 
         // The same site over days it already covers: nothing changed.
-        await InScope(scope => scope.Send(new SetEmployeeScheduleCommand { EmployeeId = worker.Id, ProjectId = site.Id, From = D(5), To = D(10) }));
+        await InScopeAs(UserRole.Admin, scope => scope.Send(new SetEmployeeScheduleCommand { EmployeeId = worker.Id, ProjectId = site.Id, From = D(5), To = D(10) }));
         Assert.NotNull(await AcknowledgedAt(id));
 
         // Cutting the posting short is a change the worker has not seen.
-        await InScope(scope => scope.Send(new SetEmployeeScheduleCommand { EmployeeId = worker.Id, ProjectId = null, From = D(15), To = D(20) }));
+        await InScopeAs(UserRole.Admin, scope => scope.Send(new SetEmployeeScheduleCommand { EmployeeId = worker.Id, ProjectId = null, From = D(15), To = D(20) }));
         Assert.Null(await AcknowledgedAt(id));
     }
 
@@ -263,7 +263,7 @@ public class PostingAcknowledgementTests : IntegrationTestBase
         var (worker, _, id) = await PostedAsync();
         await Acknowledge(id, worker.Id);
 
-        var plan = await InScope(scope => scope.Send(new GetPlanningQuery { From = D(1), To = D(30) }));
+        var plan = await InScopeAs(UserRole.Admin, scope => scope.Send(new GetPlanningQuery { From = D(1), To = D(30) }));
 
         Assert.NotNull(plan.Employees.Single(e => e.Id == worker.Id).Postings.Single().AcknowledgedAt);
     }
@@ -280,11 +280,11 @@ public class PlanningHttpTests
     }
 
     [Theory]
-    [InlineData(UserRole.Foreman, HttpStatusCode.Forbidden)]
     [InlineData(UserRole.Worker, HttpStatusCode.Forbidden)]
+    [InlineData(UserRole.Foreman, HttpStatusCode.OK)]
     [InlineData(UserRole.ProjectManager, HttpStatusCode.OK)]
     [InlineData(UserRole.Admin, HttpStatusCode.OK)]
-    public async Task Only_a_project_manager_and_above_may_read_the_plan(UserRole role, HttpStatusCode expected)
+    public async Task Only_a_foreman_and_above_may_read_the_plan(UserRole role, HttpStatusCode expected)
     {
         using var client = _api.ClientAs(role);
 

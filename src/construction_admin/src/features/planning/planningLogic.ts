@@ -58,6 +58,10 @@ export interface Plan {
   projectById: Map<string, PlanningProject>;
   positions: string[];
   certificateNames: string[];
+  /** Whether the caller may move people. A foreman without that right gets a read-only screen. */
+  canEdit: boolean;
+  isScoped: boolean;
+  scopeBranchName: string | null;
   date: (index: number) => string;
   indexOf: (date: string) => number;
   /** People present on a site on a day, by `${projectId}|${positionKey}`. */
@@ -141,6 +145,9 @@ export function buildPlan(data: PlanningData): Plan {
     projectById: new Map(data.projects.map((p) => [p.id, p])),
     positions: data.positions,
     certificateNames: data.certificateNames ?? [],
+    canEdit: data.canEdit ?? true,
+    isScoped: data.isScoped ?? false,
+    scopeBranchName: data.scopeBranchName ?? null,
     date,
     indexOf,
     present,

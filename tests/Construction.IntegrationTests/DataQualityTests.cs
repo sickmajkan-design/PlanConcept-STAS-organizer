@@ -74,7 +74,7 @@ public class DataQualityTests : IntegrationTestBase
         var project = await InScope(scope => TestData.SeedProjectAsync(scope));
         var withNone = (await GroupAsync("projectsNoNeeds")).Count;
 
-        await InScope(scope => scope.Send(new SetProjectStaffingNeedsCommand { ProjectId = project.Id, Needs = [new("Zidar", 2)] }));
+        await InScopeAs(UserRole.Admin, scope => scope.Send(new SetProjectStaffingNeedsCommand { ProjectId = project.Id, Needs = [new("Zidar", 2)] }));
 
         Assert.Equal(withNone - 1, (await GroupAsync("projectsNoNeeds")).Count);
     }

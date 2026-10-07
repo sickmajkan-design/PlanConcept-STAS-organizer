@@ -61,11 +61,11 @@ public class CertificateTests : IntegrationTestBase
         var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
         var site = await InScope(scope => TestData.SeedProjectAsync(scope));
         await Save(employee.Id, "Work at height", new DateOnly(2031, 6, 30));
-        await InScope(scope => scope.Send(new SetEmployeeScheduleCommand { EmployeeId = employee.Id, ProjectId = site.Id, From = new DateOnly(2031, 6, 1), To = new DateOnly(2031, 6, 20) }));
+        await InScopeAs(UserRole.Admin, scope => scope.Send(new SetEmployeeScheduleCommand { EmployeeId = employee.Id, ProjectId = site.Id, From = new DateOnly(2031, 6, 1), To = new DateOnly(2031, 6, 20) }));
 
-        await InScope(scope => scope.Send(new SetProjectStaffingNeedsCommand { ProjectId = site.Id, Needs = [], RequiredCertificates = ["Work at height", " work AT height ", "Welding"] }));
+        await InScopeAs(UserRole.Admin, scope => scope.Send(new SetProjectStaffingNeedsCommand { ProjectId = site.Id, Needs = [], RequiredCertificates = ["Work at height", " work AT height ", "Welding"] }));
 
-        var plan = await InScope(scope => scope.Send(new GetPlanningQuery { From = new DateOnly(2031, 6, 1), To = new DateOnly(2031, 6, 30) }));
+        var plan = await InScopeAs(UserRole.Admin, scope => scope.Send(new GetPlanningQuery { From = new DateOnly(2031, 6, 1), To = new DateOnly(2031, 6, 30) }));
 
         Assert.Equal(["Welding", "Work at height"], plan.Projects.Single(p => p.Id == site.Id).RequiredCertificates);
         var held = Assert.Single(plan.Employees.Single(e => e.Id == employee.Id).Certificates);
@@ -77,14 +77,14 @@ public class CertificateTests : IntegrationTestBase
     public async Task Saving_needs_without_a_list_of_certificates_leaves_the_requirements_alone()
     {
         var site = await InScope(scope => TestData.SeedProjectAsync(scope));
-        await InScope(scope => scope.Send(new SetProjectStaffingNeedsCommand { ProjectId = site.Id, Needs = [], RequiredCertificates = ["Welding"] }));
+        await InScopeAs(UserRole.Admin, scope => scope.Send(new SetProjectStaffingNeedsCommand { ProjectId = site.Id, Needs = [], RequiredCertificates = ["Welding"] }));
 
-        await InScope(scope => scope.Send(new SetProjectStaffingNeedsCommand { ProjectId = site.Id, Needs = [new("Zidar", 1)] }));
+        await InScopeAs(UserRole.Admin, scope => scope.Send(new SetProjectStaffingNeedsCommand { ProjectId = site.Id, Needs = [new("Zidar", 1)] }));
 
         var count = await InScope(scope => scope.Db.ProjectCertificateRequirements.CountAsync(r => r.ProjectId == site.Id));
         Assert.Equal(1, count);
 
-        await InScope(scope => scope.Send(new SetProjectStaffingNeedsCommand { ProjectId = site.Id, Needs = [], RequiredCertificates = [] }));
+        await InScopeAs(UserRole.Admin, scope => scope.Send(new SetProjectStaffingNeedsCommand { ProjectId = site.Id, Needs = [], RequiredCertificates = [] }));
         Assert.Equal(0, await InScope(scope => scope.Db.ProjectCertificateRequirements.CountAsync(r => r.ProjectId == site.Id)));
     }
 

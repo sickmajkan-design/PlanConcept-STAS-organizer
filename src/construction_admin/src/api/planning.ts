@@ -57,6 +57,11 @@ export interface PlanningData {
   employees: PlanningEmployee[];
   positions: string[];
   certificateNames?: string[];
+  /** False for a foreman without the right to move people: the screen is then a view. */
+  canEdit?: boolean;
+  /** True when the caller sees only one business unit. */
+  isScoped?: boolean;
+  scopeBranchName?: string | null;
 }
 
 export interface PlanningQuery {

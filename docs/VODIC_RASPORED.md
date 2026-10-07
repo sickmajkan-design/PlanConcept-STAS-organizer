@@ -98,20 +98,26 @@ Projekat može tražiti uvjerenja od svih koji su raspoređeni na njega: u prika
 
 Widget na početnoj stranici skuplja šta čeka tebe, samo ono što tvoja uloga može riješiti, s brojem i primjerima, a klik otvara stranicu gdje se rješava: zahtjevi za odsustvo, radni sati i troškovi vozila na pregledu, narudžbe i refundacije, DKV redovi koji se ne slažu, nepotvrđeni rasporedi, datumi vozila, dokumenti i uvjerenja koja ističu i zapisi za sređivanje iz Provjere podataka. Radnik i Predradnik ne vide ništa, jer nemaju šta da rješavaju.
 
-## 10. Ograničenja ove verzije
+## 10. Predradnik u Rasporedu
+
+* **Pregled:** Predradnik otvara isti Raspored, ali vidi **samo svoju poslovnu jedinicu** (onu u kojoj trenutno radi, kako je upisana na njegovom radniku). Radnici i gradilišta drugih jedinica mu se ne šalju, bez obzira na to koju jedinicu izabere u zaglavlju. Nema dugmadi za izmjenu; bolovanje vidi samo kao "odsutan". Ako nije smješten ni u jednu jedinicu, stranica to kaže i prazna je.
+* **Pravo raspoređivanja:** Admin ili Super Admin u Korisnici > Predradnik uključe **Smije raspoređivati radnike**. Tada može raspoređivati, osloboditi i zamjenjivati radnike, ali **samo radnike svoje jedinice na gradilištima svoje jedinice**; sve drugo API odbija. Potrebu projekta (vještine i uvjerenja) i dalje mijenja samo Voditelj i iznad. Pravo se vraća na isključeno kad se korisniku promijeni uloga.
+* Radnici i dalje nemaju ovaj ekran.
+
+## 11. Ograničenja ove verzije
 
 * Radni dani su ponedjeljak–petak. Gradilišta koja rade subotom ili nedjeljom imaju te dane ako se radnik rasporedi na njih, ali potreba se tamo ne računa.
 * Potreba je jedan broj po vještini za cijeli projekat. Potreba koja se mijenja po sedmicama nije podržana.
 * Radnik ima jednu vještinu (svoju poziciju).
 * Raspored je vidljiv Voditeljima i iznad bez suženja po gradilištu, kao i stara tabla raspoređivanja.
 
-## 11. Za razvoj
+## 12. Za razvoj
 
 | Ruta | Ko | Šta |
 |---|---|---|
-| `GET /api/v1/planning?from&to&branchId` | Voditelj+ | Radnici s postavljanjima i odobrenim odsustvima, projekti s potrebom, pozicije. Najviše 400 dana |
-| `POST /api/v1/planning/assign` | Voditelj+ | `{employeeId, projectId \| null, from, to, onlyFreeDays}`: postavlja raspored za razdoblje |
-| `POST /api/v1/planning/swap` | Voditelj+ | `{employeeAId, employeeBId, from, to}`: razmjena u jednoj transakciji |
+| `GET /api/v1/planning?from&to&branchId` | Predradnik+ (Predradnik: samo svoja jedinica) | Radnici s postavljanjima i odobrenim odsustvima, projekti s potrebom, pozicije. Najviše 400 dana |
+| `POST /api/v1/planning/assign` | Voditelj+, ili Predradnik s pravom (samo svoja jedinica) | `{employeeId, projectId \| null, from, to, onlyFreeDays}`: postavlja raspored za razdoblje |
+| `POST /api/v1/planning/swap` | Voditelj+, ili Predradnik s pravom (samo svoja jedinica) | `{employeeAId, employeeBId, from, to}`: razmjena u jednoj transakciji |
 | `PUT /api/v1/planning/projects/{id}/needs` | Voditelj+ | `{needs: [{position, count}], requiredCertificates?: string[]}`: zamjenjuje potrebu projekta; bez `requiredCertificates` ostavlja tražena uvjerenja kakva jesu |
 | `POST /api/v1/postings/{id}/acknowledge` | svi zaposleni | Radnik potvrđuje svoj raspored; tuđi vraća 404 |
 | `GET /api/v1/data-quality` | Admin+ | Grupe zapisa za sređivanje |

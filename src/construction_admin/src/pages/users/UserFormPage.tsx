@@ -106,6 +106,7 @@ export function UserFormPage() {
       documentExpiryReminderDays: '',
       canViewCustomerTaxDetails: false,
       financeAccess: 'None',
+      canPlan: false,
     },
   });
 
@@ -123,6 +124,7 @@ export function UserFormPage() {
             : String(existing.documentExpiryReminderDays),
         canViewCustomerTaxDetails: existing.canViewCustomerTaxDetails,
         financeAccess: existing.financeAccess,
+        canPlan: existing.canPlan ?? false,
       });
     }
   }, [existing, reset]);
@@ -137,6 +139,8 @@ export function UserFormPage() {
   // And it is never offered for a worker or customer login: figures in euro
   // are fixed not to reach them.
   const showFinanceField = showTaxGrantField && canBeGrantedFinance(watchRole);
+  // Only a foreman needs this: everybody above already moves people, and a worker never does.
+  const showPlanField = isEdit && watchRole === 'Foreman';
 
   const onSubmit = handleSubmit(async (values) => {
     const shared = {
@@ -155,6 +159,7 @@ export function UserFormPage() {
             : null,
           canViewCustomerTaxDetails: values.canViewCustomerTaxDetails ?? false,
           financeAccess: canBeGrantedFinance(values.role) ? (values.financeAccess ?? 'None') : 'None',
+          canPlan: values.role === 'Foreman' ? (values.canPlan ?? false) : false,
         });
       } else {
         await createUser.mutateAsync({ ...shared, password: values.password });
@@ -350,6 +355,24 @@ export function UserFormPage() {
                     </FormControl>
                   )}
                 />
+              </Grid>
+            )}
+
+            {showPlanField && (
+              <Grid size={{ xs: 12 }}>
+                <Controller
+                  name="canPlan"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControlLabel
+                      control={<Switch checked={field.value ?? false} onChange={field.onChange} />}
+                      label={t('users.canPlan')}
+                    />
+                  )}
+                />
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                  {t('users.canPlanHelp')}
+                </Typography>
               </Grid>
             )}
 

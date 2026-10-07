@@ -9,4 +9,6 @@ export interface PlanningHandlers {
 
 export interface ViewProps extends PlanningHandlers {
   plan: Plan;
+  /** Nothing can be moved: the views draw the same but their buttons do nothing. */
+  readOnly?: boolean;
 }

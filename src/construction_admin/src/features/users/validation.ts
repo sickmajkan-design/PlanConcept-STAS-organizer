@@ -36,6 +36,7 @@ const baseUserSchema = z.object({
   // ignores it from anyone else, so the field is harmless to always send.
   canViewCustomerTaxDetails: z.boolean().optional(),
   financeAccess: z.enum(['None', 'StatisticsOnly', 'Full']).optional(),
+  canPlan: z.boolean().optional(),
 });
 
 export const createUserSchema = baseUserSchema.extend({

@@ -61,6 +61,13 @@ public class User : BaseEntity, IAuditable
     public FinanceAccess FinanceAccess { get; set; } = FinanceAccess.None;
 
     /// <summary>
+    /// Lets a foreman move people between sites, within their own business unit. A foreman may always see
+    /// the schedule of that unit; this is the extra right to change it, given here by an administrator.
+    /// Meaningless for any other role, which either may already or may not.
+    /// </summary>
+    public bool CanPlan { get; set; }
+
+    /// <summary>
     /// ISO 639-1 code ("sr", "en") for the language a push notification's
     /// text should be rendered in. Null means unset — the same "assume
     /// Serbian" default the mobile app itself falls back to for a device

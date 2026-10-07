@@ -22,11 +22,13 @@ function PersonButton({
   onOpen,
   awayLabel,
   showConfirmation,
+  disabled,
 }: {
   person: PlanPerson;
   day: number;
   /** Whether to show if the worker has confirmed; only meaningful for today and later. */
   showConfirmation?: boolean;
+  disabled?: boolean;
   onOpen: () => void;
   awayLabel?: string;
 }) {
@@ -37,6 +39,7 @@ function PersonButton({
   return (
     <ButtonBase
       onClick={onOpen}
+      disabled={disabled}
       sx={{ display: 'flex', gap: 1.25, p: 0.75, borderRadius: 1.5, width: '100%', justifyContent: 'flex-start', textAlign: 'left', '&:hover': { bgcolor: 'action.hover' } }}
     >
       <Avatar
@@ -75,7 +78,7 @@ function PersonButton({
 }
 
 /** Who is where on one day, a card per site, with the places still to fill shown as dashed slots. */
-export function DayView({ plan, day, openWorker, openSite }: ViewProps & { day: number }) {
+export function DayView({ plan, day, openWorker, openSite, readOnly }: ViewProps & { day: number }) {
   const t = useT();
   const enumLabel = useEnumLabel();
   const date = plan.date(day);
@@ -119,7 +122,7 @@ export function DayView({ plan, day, openWorker, openSite }: ViewProps & { day: 
               </Stack>
               <Stack sx={{ p: 0.75 }} spacing={0.25}>
                 {crew.map((p) => (
-                  <PersonButton key={p.id} person={p} day={day} showConfirmation={date >= plan.today} onOpen={() => openWorker(p.id, date, date)} />
+                  <PersonButton key={p.id} person={p} day={day} disabled={readOnly} showConfirmation={date >= plan.today} onOpen={() => openWorker(p.id, date, date)} />
                 ))}
                 {work &&
                   slots.map((position, i) => (
@@ -128,6 +131,7 @@ export function DayView({ plan, day, openWorker, openSite }: ViewProps & { day: 
                       variant="outlined"
                       color="inherit"
                       onClick={() => openSite(site.id, date, date, position)}
+                      disabled={readOnly}
                       sx={{ justifyContent: 'flex-start', borderStyle: 'dashed', color: 'text.secondary', textTransform: 'none' }}
                     >
                       ＋ {position}
@@ -149,7 +153,7 @@ export function DayView({ plan, day, openWorker, openSite }: ViewProps & { day: 
               {t('planning.day.noFree')}
             </Typography>
           ) : (
-            free.map((p) => <PersonButton key={p.id} person={p} day={day} onOpen={() => openWorker(p.id, date, date)} />)
+            free.map((p) => <PersonButton key={p.id} person={p} day={day} disabled={readOnly} onOpen={() => openWorker(p.id, date, date)} />)
           )}
         </Paper>
 
@@ -168,6 +172,7 @@ export function DayView({ plan, day, openWorker, openSite }: ViewProps & { day: 
                 person={p}
                 day={day}
                 awayLabel={enumLabel('absenceType', p.cells[day].away!)}
+                disabled={readOnly}
                 onOpen={() => openWorker(p.id, date, date)}
               />
             ))

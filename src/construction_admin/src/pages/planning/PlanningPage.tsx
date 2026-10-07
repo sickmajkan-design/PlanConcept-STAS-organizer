@@ -203,8 +203,15 @@ export function PlanningPage() {
 
   const dayIndex = plan ? plan.indexOf(focusDay) : -1;
 
-  const openWorker = (personId: string, from: string, to: string) => setPanel({ kind: 'worker', personId, from, to });
-  const openSite = (projectId: string, from: string, to: string, position?: string) => setPanel({ kind: 'site', projectId, from, to, position });
+  // A foreman without the right to move people sees the same screen with nothing to press.
+  const readOnly = !!plan && !plan.canEdit;
+
+  const openWorker = (personId: string, from: string, to: string) => {
+    if (!readOnly) setPanel({ kind: 'worker', personId, from, to });
+  };
+  const openSite = (projectId: string, from: string, to: string, position?: string) => {
+    if (!readOnly) setPanel({ kind: 'site', projectId, from, to, position });
+  };
 
   return (
     <Box>
@@ -212,13 +219,23 @@ export function PlanningPage() {
         title={t('planning.title')}
         description={t('planning.description')}
         secondaryActions={
-          <Button variant="outlined" size="small" onClick={() => { rememberTour(); setTourOpen(true); }}>
-            {t('planning.tour.button')}
-          </Button>
+          !readOnly ? (
+            <Button variant="outlined" size="small" onClick={() => { rememberTour(); setTourOpen(true); }}>
+              {t('planning.tour.button')}
+            </Button>
+          ) : undefined
         }
       />
 
-      {offerTour && (
+      {plan && (readOnly || plan.isScoped) && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          {plan.scopeBranchName
+            ? t(readOnly ? 'planning.readOnly.unit' : 'planning.scoped.unit', { unit: plan.scopeBranchName })
+            : t('planning.readOnly.noUnit')}
+        </Alert>
+      )}
+
+      {offerTour && !readOnly && (
         <Alert
           severity="info"
           sx={{ mb: 2 }}
@@ -260,10 +277,10 @@ export function PlanningPage() {
 
       {plan && (
         <Box data-tour="banner">
-          <NeedBanner plan={plan} today={today} onFind={(item) => setPanel({ kind: 'replace', item })} />
+          <NeedBanner plan={plan} today={today} onFind={readOnly ? undefined : (item) => setPanel({ kind: 'replace', item })} />
         </Box>
       )}
-      {plan && <ConflictBanner plan={plan} today={today} onOpen={(c) => openWorker(c.person.id, c.from, c.to)} />}
+      {plan && <ConflictBanner plan={plan} today={today} onOpen={readOnly ? undefined : (c) => openWorker(c.person.id, c.from, c.to)} />}
 
       <Stack data-tour="controls" direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', my: 2 }}>
         {periodView ? (
@@ -288,7 +305,7 @@ export function PlanningPage() {
                 <TextField type="date" size="small" label={t('planning.to')} value={range.to} onChange={(e) => e.target.value && setRange({ from: e.target.value < range.from ? e.target.value : range.from, to: e.target.value })} slotProps={{ inputLabel: { shrink: true } }} />
               </>
             )}
-            {view === 'need' && (
+            {view === 'need' && !readOnly && !plan?.isScoped && (
               <Button variant="contained" size="small" onClick={() => navigate(paths.projectNew)}>
                 {t('planning.n.newProject')}
               </Button>
@@ -329,11 +346,12 @@ export function PlanningPage() {
 
       {plan && actions && (
         <>
-          {view === 'day' && dayIndex >= 0 && <DayView plan={plan} day={dayIndex} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
-          {view === 'timeline' && <TimelineView plan={plan} range={range} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
-          {view === 'need' && <NeedView plan={plan} range={range} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
+          {view === 'day' && dayIndex >= 0 && <DayView readOnly={readOnly} plan={plan} day={dayIndex} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
+          {view === 'timeline' && <TimelineView readOnly={readOnly} plan={plan} range={range} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
+          {view === 'need' && <NeedView readOnly={readOnly} plan={plan} range={range} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
           {view === 'list' && dayIndex >= 0 && (
             <ListView
+              readOnly={readOnly}
               plan={plan}
               day={dayIndex}
               openWorker={openWorker}
@@ -423,7 +441,7 @@ function Summary({ plan, view, day, range }: { plan: Plan; view: View; day: numb
   );
 }
 
-function NeedBanner({ plan, today, onFind }: { plan: Plan; today: string; onFind: (item: AwayItem) => void }) {
+function NeedBanner({ plan, today, onFind }: { plan: Plan; today: string; onFind?: (item: AwayItem) => void }) {
   const t = useT();
   const enumLabel = useEnumLabel();
 
@@ -455,9 +473,11 @@ function NeedBanner({ plan, today, onFind }: { plan: Plan; today: string; onFind
           </Typography>
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
             <SuggestionCount plan={plan} item={item} />
-            <Button size="small" variant="outlined" onClick={() => onFind(item)}>
-              {t('planning.replace.find')}
-            </Button>
+            {onFind && (
+              <Button size="small" variant="outlined" onClick={() => onFind(item)}>
+                {t('planning.replace.find')}
+              </Button>
+            )}
           </Stack>
         </Stack>
       ))}
@@ -479,7 +499,7 @@ function SuggestionCount({ plan, item }: { plan: Plan; item: AwayItem }) {
 
 const CONFLICT_LIMIT = 4;
 
-function ConflictBanner({ plan, today, onOpen }: { plan: Plan; today: string; onOpen: (conflict: Conflict) => void }) {
+function ConflictBanner({ plan, today, onOpen }: { plan: Plan; today: string; onOpen?: (conflict: Conflict) => void }) {
   const t = useT();
   const [all, setAll] = useState(false);
 
@@ -515,9 +535,11 @@ function ConflictBanner({ plan, today, onOpen }: { plan: Plan; today: string; on
           sx={{ flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', py: 0.5, borderTop: i ? 1 : 0, borderColor: 'divider' }}
         >
           <Typography variant="body2">{text(c)}</Typography>
-          <Button size="small" onClick={() => onOpen(c)}>
-            {t('planning.conflict.open')}
-          </Button>
+          {onOpen && (
+            <Button size="small" onClick={() => onOpen(c)}>
+              {t('planning.conflict.open')}
+            </Button>
+          )}
         </Stack>
       ))}
       {found.length > CONFLICT_LIMIT && (
