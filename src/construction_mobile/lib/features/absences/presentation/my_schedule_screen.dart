@@ -6,7 +6,9 @@ import '../../../core/l10n/app_locales.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/router/app_routes.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/utils/formatting.dart';
+import '../data/absence_repository.dart';
 import '../../../core/widgets/failure_view.dart';
 import '../data/models/schedule.dart';
 import 'my_schedule_controller.dart';
@@ -104,13 +106,39 @@ class _ScheduleBody extends StatelessWidget {
   }
 }
 
-class _PostingCard extends ConsumerWidget {
+class _PostingCard extends ConsumerStatefulWidget {
   const _PostingCard({required this.assignment});
 
   final ScheduleAssignment assignment;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_PostingCard> createState() => _PostingCardState();
+}
+
+class _PostingCardState extends ConsumerState<_PostingCard> {
+  bool _busy = false;
+
+  Future<void> _acknowledge() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+
+    setState(() => _busy = true);
+
+    try {
+      await ref.read(absenceRepositoryProvider).acknowledgePosting(widget.assignment.id);
+      await ref.read(myScheduleControllerProvider.notifier).refresh();
+    } on ApiException {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.scheduleAcknowledgeFailed)));
+
+      if (mounted) {
+        setState(() => _busy = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final assignment = widget.assignment;
     final l10n = context.l10n;
     final theme = Theme.of(context);
     // The site's own page is the directory, which a worker is not served.
@@ -138,10 +166,22 @@ class _PostingCard extends ConsumerWidget {
             suffix: assignment.continuesAfter ? l10n.scheduleContinues : null,
           ),
         ),
-        trailing: Chip(
-          label: Text(l10n.scheduleOnSite),
-          visualDensity: VisualDensity.compact,
-        ),
+        // Until the worker says they have seen it, the card asks; afterwards it shows that they did.
+        trailing: assignment.acknowledgedAt == null
+            // Sized: the app's theme gives every filled button an infinite width, which a ListTile's
+            // trailing slot cannot lay out.
+            ? SizedBox(
+                width: 112,
+                child: FilledButton.tonal(
+                  onPressed: _busy ? null : _acknowledge,
+                  child: Text(l10n.scheduleAcknowledge),
+                ),
+              )
+            : Chip(
+                avatar: const Icon(Icons.check, size: 16),
+                label: Text(l10n.scheduleAcknowledged),
+                visualDensity: VisualDensity.compact,
+              ),
       ),
     );
   }

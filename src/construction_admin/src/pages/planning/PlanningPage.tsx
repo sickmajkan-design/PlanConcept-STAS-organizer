@@ -11,16 +11,19 @@ import {
   addDays,
   awayItems,
   candidates,
+  conflicts,
   freeCount,
   isWorkday,
   mondayOf,
   missing,
+  unconfirmedCount,
   periodBounds,
   segmentsOf,
   diffDays,
   weekday,
   workdayIndexes,
   type AwayItem,
+  type Conflict,
   type Plan,
   type RangeMode,
 } from '../../features/planning/planningLogic';
@@ -259,6 +262,7 @@ export function PlanningPage() {
           <NeedBanner plan={plan} today={today} onFind={(item) => setPanel({ kind: 'replace', item })} />
         </Box>
       )}
+      {plan && <ConflictBanner plan={plan} today={today} onOpen={(c) => openWorker(c.person.id, c.from, c.to)} />}
 
       <Stack data-tour="controls" direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', my: 2 }}>
         {periodView ? (
@@ -386,6 +390,9 @@ function Summary({ plan, view, day, range }: { plan: Plan; view: View; day: numb
         <Chip label={t('planning.pill.free', { count: free })} variant="outlined" />
         <Chip label={t('planning.pill.away', { count: away })} color={away ? 'warning' : 'default'} variant={away ? 'filled' : 'outlined'} />
         <Chip label={miss ? t('planning.pill.openSlots', { count: miss }) : t('planning.pill.allFilled')} color={miss ? 'error' : 'success'} />
+        {plan.date(day) >= plan.today && unconfirmedCount(plan, day) > 0 && (
+          <Chip color="warning" variant="outlined" label={t('planning.pill.unconfirmed', { count: unconfirmedCount(plan, day) })} />
+        )}
       </Stack>
     );
   }
@@ -466,5 +473,56 @@ function SuggestionCount({ plan, item }: { plan: Plan; item: AwayItem }) {
     <Chip size="small" color="success" label={t('planning.replace.suggestions', { count: good })} />
   ) : (
     <Chip size="small" color="error" label={t('planning.replace.none')} />
+  );
+}
+
+const CONFLICT_LIMIT = 4;
+
+function ConflictBanner({ plan, today, onOpen }: { plan: Plan; today: string; onOpen: (conflict: Conflict) => void }) {
+  const t = useT();
+  const [all, setAll] = useState(false);
+
+  const from = Math.max(0, plan.indexOf(today));
+  const found = conflicts(plan, from, plan.days - 1);
+
+  if (found.length === 0) return null;
+
+  const shown = all ? found : found.slice(0, CONFLICT_LIMIT);
+  const name = (id: string | undefined) => plan.projectById.get(id ?? '')?.name ?? '?';
+
+  const text = (c: Conflict): string => {
+    const base = { name: c.person.name, from: formatDate(c.from), to: formatDate(c.to) };
+    const site = plan.projectById.get(c.projectId);
+
+    if (c.kind === 'double') return t('planning.conflict.double', { ...base, a: name(c.projectId), b: name(c.otherProjectId) });
+    if (c.kind === 'afterEnd') return t('planning.conflict.afterEnd', { ...base, site: name(c.projectId), date: formatDate(site?.endDate) });
+    return t('planning.conflict.beforeStart', { ...base, site: name(c.projectId), date: formatDate(site?.startDate) });
+  };
+
+  return (
+    <Paper variant="outlined" sx={{ borderRadius: 2.5, p: 1.5, mt: 1.5 }}>
+      <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, display: 'flex', justifyContent: 'space-between' }}>
+        {t('planning.conflict.title')} <span>{found.length}</span>
+      </Typography>
+      {shown.map((c, i) => (
+        <Stack
+          key={`${c.person.id}-${c.kind}-${c.from}-${i}`}
+          direction="row"
+          spacing={1}
+          useFlexGap
+          sx={{ flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', py: 0.5, borderTop: i ? 1 : 0, borderColor: 'divider' }}
+        >
+          <Typography variant="body2">{text(c)}</Typography>
+          <Button size="small" onClick={() => onOpen(c)}>
+            {t('planning.conflict.open')}
+          </Button>
+        </Stack>
+      ))}
+      {found.length > CONFLICT_LIMIT && (
+        <Button size="small" color="inherit" onClick={() => setAll(!all)} sx={{ mt: 0.5 }}>
+          {all ? t('planning.conflict.less') : t('planning.conflict.more', { count: found.length - CONFLICT_LIMIT })}
+        </Button>
+      )}
+    </Paper>
   );
 }

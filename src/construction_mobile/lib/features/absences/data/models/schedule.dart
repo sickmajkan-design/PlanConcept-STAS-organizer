@@ -54,6 +54,9 @@ abstract class ScheduleAssignment with _$ScheduleAssignment {
 
     /// True when the posting runs on past the end of the window.
     @Default(false) bool continuesAfter,
+
+    /// When this worker confirmed the posting; null while they have not.
+    String? acknowledgedAt,
   }) = _ScheduleAssignment;
 
   const ScheduleAssignment._();

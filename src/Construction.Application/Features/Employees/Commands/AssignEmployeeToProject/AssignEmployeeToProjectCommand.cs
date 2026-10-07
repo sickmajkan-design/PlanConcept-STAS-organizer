@@ -114,6 +114,12 @@ public class AssignEmployeeToProjectCommandHandler : IRequestHandler<AssignEmplo
             if (startDate < overlapping.StartDate)
             {
                 overlapping.StartDate = startDate;
+                overlapping.AcknowledgedAt = null;
+            }
+
+            if (overlapping.EndDate != endDate)
+            {
+                overlapping.AcknowledgedAt = null;
             }
 
             overlapping.EndDate = endDate;

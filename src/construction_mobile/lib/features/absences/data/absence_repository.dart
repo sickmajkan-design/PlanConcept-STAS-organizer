@@ -48,6 +48,11 @@ class AbsenceRepository extends ApiRepository {
     );
   }
 
+  /// Tells the office this posting has been seen. Safe to repeat.
+  Future<void> acknowledgePosting(String postingId) {
+    return postVoid('/api/v1/postings/$postingId/acknowledge');
+  }
+
   /// Asks for time off. A worker may only ask for their own, so no employee is
   /// sent and the server takes it from the token.
   Future<Absence> request({

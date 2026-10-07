@@ -181,4 +181,38 @@ describe('PlanningPage', () => {
     expect(screen.queryByRole('button', { name: 'Start the tour' })).toBeNull();
     expect(screen.getByRole('button', { name: 'Schedule guide' })).toBeDefined();
   }, SCREEN_TIMEOUT);
+
+  it('warns about somebody posted to two sites on the same days, and about days after a site ends', async () => {
+    const both = person('e1', 'Ana Novak', 'Zidar', HALL);
+    both.postings.push({ projectId: BRIDGE, startDate: local(addDays(now, -30)), endDate: null });
+    network.reply('/planning', 200, plan({
+      projects: [site(HALL, 'Aldi Hall', []), { ...site(BRIDGE, 'Sava Bridge', []), endDate: local(addDays(now, -5)) }],
+      employees: [both],
+    }));
+
+    await renderPage();
+
+    expect(await screen.findByText('Worth a look')).toBeDefined();
+    expect(screen.getByText(/Ana Novak is posted to both Aldi Hall and Sava Bridge/)).toBeDefined();
+  }, SCREEN_TIMEOUT);
+
+  it('shows no warnings for an ordinary plan', async () => {
+    network.reply('/planning', 200, plan({ employees: [person('e1', 'Ana Novak', 'Zidar', HALL)] }));
+
+    await renderPage();
+    await screen.findByText('Every absence in the next 30 days is covered');
+
+    expect(screen.queryByText('Worth a look')).toBeNull();
+  }, SCREEN_TIMEOUT);
+
+  it('shows on the day view who has not yet confirmed their posting on the phone', async () => {
+    const confirmed = person('e1', 'Ana Novak', 'Zidar', HALL);
+    confirmed.postings[0] = { ...confirmed.postings[0], acknowledgedAt: '2026-10-01T08:00:00Z' } as typeof confirmed.postings[0];
+    network.reply('/planning', 200, plan({ employees: [confirmed, person('e3', 'Ivo Babić', 'Zidar', HALL)] }));
+
+    await renderPage();
+    await userEvent.click(await screen.findByRole('button', { name: /By site/ }));
+
+    expect(await screen.findByText('1 have not confirmed')).toBeDefined();
+  }, SCREEN_TIMEOUT);
 });

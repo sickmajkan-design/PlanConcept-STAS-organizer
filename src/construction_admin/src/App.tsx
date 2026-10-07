@@ -280,6 +280,11 @@ const ExpiringDocumentsPage = lazy(() =>
     default: m.ExpiringDocumentsPage,
   })),
 );
+const DataQualityPage = lazy(() =>
+  import('./pages/dataQuality/DataQualityPage').then((m) => ({
+    default: m.DataQualityPage,
+  })),
+);
 const AuditPage = lazy(() =>
   import('./pages/audit/AuditPage').then((m) => ({
     default: m.AuditPage,
@@ -500,6 +505,7 @@ function Layout() {
                   with the directory screens. */}
               <Route path={paths.expiringDocuments} element={<ExpiringDocumentsPage />} />
               <Route path={paths.audit} element={<AuditPage />} />
+              <Route path={paths.dataQuality} element={<DataQualityPage />} />
               <Route path={paths.presence} element={<PresencePage />} />
               <Route path={paths.users} element={<UsersListPage />} />
               <Route path={paths.userNew} element={<UserFormPage />} />

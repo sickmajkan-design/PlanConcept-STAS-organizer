@@ -100,6 +100,9 @@ public class PlanningPostingDto
     public DateOnly StartDate { get; init; }
 
     public DateOnly? EndDate { get; init; }
+
+    /// <summary>When the worker confirmed it on their phone. Null while they have not.</summary>
+    public DateTime? AcknowledgedAt { get; init; }
 }
 
 public class PlanningAbsenceDto
@@ -139,7 +142,7 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
                 e.Position,
                 Postings = e.ProjectAssignments
                     .Where(a => a.StartDate <= to && (a.EndDate == null || a.EndDate >= from))
-                    .Select(a => new PlanningPostingDto { ProjectId = a.ProjectId, StartDate = a.StartDate, EndDate = a.EndDate })
+                    .Select(a => new PlanningPostingDto { ProjectId = a.ProjectId, StartDate = a.StartDate, EndDate = a.EndDate, AcknowledgedAt = a.AcknowledgedAt })
                     .ToList(),
             })
             .ToListAsync(cancellationToken);

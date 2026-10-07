@@ -32,6 +32,10 @@ export interface PlanCell {
   project: string | null;
   /** The kind of approved absence that day, if any. */
   away: string | null;
+  /** Other sites the person is posted to the same day, beyond `project`. */
+  others: string[];
+  /** True when the worker has confirmed the posting that `project` comes from. */
+  acknowledged: boolean;
 }
 
 export interface PlanPerson {
@@ -66,14 +70,19 @@ export function buildPlan(data: PlanningData): Plan {
   const indexOf = (d: string) => diffDays(data.from, d);
 
   const people: PlanPerson[] = data.employees.map((e) => {
-    const cells: PlanCell[] = Array.from({ length: days }, () => ({ project: null, away: null }));
+    const cells: PlanCell[] = Array.from({ length: days }, () => ({ project: null, away: null, others: [], acknowledged: false }));
 
     for (const posting of e.postings) {
       const first = Math.max(0, indexOf(posting.startDate));
       const last = Math.min(days - 1, posting.endDate ? indexOf(posting.endDate) : days - 1);
 
       for (let i = first; i <= last; i++) {
-        if (cells[i].project === null) cells[i].project = posting.projectId;
+        if (cells[i].project === null) {
+          cells[i].project = posting.projectId;
+          cells[i].acknowledged = !!posting.acknowledgedAt;
+        } else if (cells[i].project !== posting.projectId && !cells[i].others.includes(posting.projectId)) {
+          cells[i].others.push(posting.projectId);
+        }
       }
     }
 
@@ -356,4 +365,83 @@ export function workdaysIn(column: Column): string[] {
     if (isWorkday(d)) out.push(d);
   }
   return out;
+}
+
+export type ConflictKind = 'double' | 'afterEnd' | 'beforeStart';
+
+export interface Conflict {
+  person: PlanPerson;
+  kind: ConflictKind;
+  projectId: string;
+  /** The second site, for a double booking. */
+  otherProjectId?: string;
+  from: string;
+  to: string;
+}
+
+/**
+ * Things in the plan that look like mistakes: somebody posted to two sites on the same working day, or
+ * to a site on days outside its own start and end dates. Two sites at once is allowed (a supervisor
+ * covering both is real), so these are warnings to look at, never refusals.
+ */
+export function conflicts(plan: Plan, from: number, to: number): Conflict[] {
+  const out: Conflict[] = [];
+
+  for (const person of plan.people) {
+    let open: Conflict | null = null;
+    const close = () => {
+      if (open) out.push(open);
+      open = null;
+    };
+
+    const days = workdayIndexes(plan, from, to);
+
+    const note = (i: number, kind: ConflictKind, projectId: string, otherProjectId?: string) => {
+      const date = plan.date(i);
+      if (open && open.kind === kind && open.projectId === projectId && open.otherProjectId === otherProjectId && diffDays(open.to, date) <= (weekday(open.to) === 4 ? 3 : 1)) {
+        open.to = date;
+      } else {
+        close();
+        open = { person, kind, projectId, otherProjectId, from: date, to: date };
+      }
+    };
+
+    for (const kind of ['double', 'outside'] as const) {
+      close();
+
+      for (const i of days) {
+        const cell = person.cells[i];
+        if (cell.away || !cell.project) continue;
+
+        if (kind === 'double') {
+          for (const other of cell.others) note(i, 'double', cell.project, other);
+        } else {
+          const site = plan.projectById.get(cell.project);
+          const date = plan.date(i);
+          if (site?.endDate && date > site.endDate) note(i, 'afterEnd', cell.project);
+          else if (site?.startDate && date < site.startDate) note(i, 'beforeStart', cell.project);
+        }
+      }
+    }
+
+    close();
+  }
+
+  return out.sort((a, b) => a.from.localeCompare(b.from) || a.person.name.localeCompare(b.person.name));
+}
+
+/** How many people posted to a site on a working day have not yet confirmed it. Leave days are not counted. */
+export function unconfirmedCount(plan: Plan, index: number): number {
+  if (!isWorkday(plan.date(index))) return 0;
+  return plan.people.filter((p) => p.cells[index].project && !p.cells[index].away && !p.cells[index].acknowledged).length;
+}
+
+export type Confirmation = 'none' | 'all' | 'some' | 'nothing';
+
+/** Whether the worker has confirmed what they are posted to across the days: all of it, part, or none; or nothing to confirm. */
+export function confirmationOf(person: PlanPerson, indexes: number[]): Confirmation {
+  const posted = indexes.filter((i) => person.cells[i].project && !person.cells[i].away);
+  if (posted.length === 0) return 'nothing';
+  const confirmed = posted.filter((i) => person.cells[i].acknowledged).length;
+  return confirmed === posted.length ? 'all' : confirmed === 0 ? 'none' : 'some';
 }

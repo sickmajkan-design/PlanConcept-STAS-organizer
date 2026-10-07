@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Construction.Application.Features.Planning;
+using Construction.Application.Features.Postings;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -183,6 +184,88 @@ public class PlanningTests : IntegrationTestBase
     {
         await Assert.ThrowsAsync<Construction.Application.Common.Exceptions.ValidationException>(() =>
             InScope(scope => scope.Send(new GetPlanningQuery { From = D(1), To = D(1).AddDays(PlanningLimits.MaxDays + 5) })));
+    }
+}
+
+[Collection(DatabaseCollection.Name)]
+public class PostingAcknowledgementTests : IntegrationTestBase
+{
+    public PostingAcknowledgementTests(DatabaseFixture fixture) : base(fixture)
+    {
+    }
+
+    private static DateOnly D(int day) => new(2031, 4, day);
+
+    private async Task<(Employee Worker, Project Site, Guid PostingId)> PostedAsync()
+    {
+        var worker = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var site = await InScope(scope => TestData.SeedProjectAsync(scope));
+
+        await InScope(scope => scope.Send(new SetEmployeeScheduleCommand { EmployeeId = worker.Id, ProjectId = site.Id, From = D(1), To = D(20) }));
+
+        var id = await InScope(scope => scope.Db.EmployeeProjects.Where(ep => ep.EmployeeId == worker.Id).Select(ep => ep.Id).SingleAsync());
+        return (worker, site, id);
+    }
+
+    private Task Acknowledge(Guid postingId, Guid asEmployee) =>
+        InScope(scope =>
+        {
+            scope.CurrentUser.SignInAs(Guid.NewGuid(), UserRole.Worker, asEmployee, "worker@example.com");
+            return scope.Send(new AcknowledgePostingCommand(postingId));
+        });
+
+    private Task<DateTime?> AcknowledgedAt(Guid postingId) =>
+        InScope(scope => scope.Db.EmployeeProjects.Where(ep => ep.Id == postingId).Select(ep => ep.AcknowledgedAt).SingleAsync());
+
+    [Fact]
+    public async Task A_new_posting_waits_for_the_worker_and_they_can_confirm_it_once()
+    {
+        var (worker, _, id) = await PostedAsync();
+
+        Assert.Null(await AcknowledgedAt(id));
+
+        await Acknowledge(id, worker.Id);
+        var first = await AcknowledgedAt(id);
+        Assert.NotNull(first);
+
+        await Acknowledge(id, worker.Id);
+        Assert.Equal(first, await AcknowledgedAt(id));
+    }
+
+    [Fact]
+    public async Task Nobody_can_confirm_somebody_elses_posting()
+    {
+        var (_, _, id) = await PostedAsync();
+        var other = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+
+        await Assert.ThrowsAsync<Construction.Application.Common.Exceptions.NotFoundException>(() => Acknowledge(id, other.Id));
+        Assert.Null(await AcknowledgedAt(id));
+    }
+
+    [Fact]
+    public async Task Changing_the_days_of_a_confirmed_posting_asks_for_confirmation_again_but_other_changes_do_not()
+    {
+        var (worker, site, id) = await PostedAsync();
+        await Acknowledge(id, worker.Id);
+
+        // The same site over days it already covers: nothing changed.
+        await InScope(scope => scope.Send(new SetEmployeeScheduleCommand { EmployeeId = worker.Id, ProjectId = site.Id, From = D(5), To = D(10) }));
+        Assert.NotNull(await AcknowledgedAt(id));
+
+        // Cutting the posting short is a change the worker has not seen.
+        await InScope(scope => scope.Send(new SetEmployeeScheduleCommand { EmployeeId = worker.Id, ProjectId = null, From = D(15), To = D(20) }));
+        Assert.Null(await AcknowledgedAt(id));
+    }
+
+    [Fact]
+    public async Task The_planning_view_and_the_phones_schedule_both_say_whether_it_is_confirmed()
+    {
+        var (worker, _, id) = await PostedAsync();
+        await Acknowledge(id, worker.Id);
+
+        var plan = await InScope(scope => scope.Send(new GetPlanningQuery { From = D(1), To = D(30) }));
+
+        Assert.NotNull(plan.Employees.Single(e => e.Id == worker.Id).Postings.Single().AcknowledgedAt);
     }
 }
 

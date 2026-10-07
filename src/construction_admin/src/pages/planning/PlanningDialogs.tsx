@@ -22,6 +22,7 @@ import { toApiError } from '../../api/apiError';
 import type { PlanningNeed } from '../../api/planning';
 import {
   candidates,
+  confirmationOf,
   isWorkday,
   needOf,
   positionKey,
@@ -168,6 +169,13 @@ function summary(plan: Plan, person: PlanPerson, from: string, to: string, awayT
   return [...counts.entries()].map(([label, n]) => `${label} (${n})`).join(', ') || '—';
 }
 
+/** " (until 06.12.)" when the chosen days run past the site's dates, so a plan outside them is not made unawares. */
+function outsideNote(site: { startDate: string | null; endDate: string | null }, from: string, to: string, t: ReturnType<typeof useT>): string {
+  if (site.endDate && to > site.endDate) return ` (${t('planning.w.until', { date: formatDate(site.endDate) })})`;
+  if (site.startDate && from < site.startDate) return ` (${t('planning.w.from', { date: formatDate(site.startDate) })})`;
+  return '';
+}
+
 /** Move one person, or swap them with somebody else, over a stretch of days. */
 export function WorkerDialog({
   plan,
@@ -198,6 +206,8 @@ export function WorkerDialog({
     plan.indexOf(new Date(Date.parse(`${from}T00:00:00Z`) + k * 864e5).toISOString().slice(0, 10)),
   ).filter((i) => i >= 0 && i < plan.days && isWorkday(plan.date(i)));
 
+  const confirmation = confirmationOf(person, days);
+
   const others = plan.people.filter(
     (o) =>
       o.id !== personId &&
@@ -212,6 +222,12 @@ export function WorkerDialog({
           {person.position} · {formatDate(from)}
           {from !== to ? ` – ${formatDate(to)}` : ''} · <b>{summary(plan, person, from, to, awayText, t('planning.l.free'))}</b>
         </Typography>
+
+        {confirmation !== 'nothing' && to >= plan.today && (
+          <Typography variant="body2" sx={{ mb: 2 }} color={confirmation === 'all' ? 'success.main' : 'warning.main'}>
+            {confirmation === 'all' ? t('planning.ack.confirmed') : confirmation === 'none' ? t('planning.ack.waiting') : t('planning.ack.partly')}
+          </Typography>
+        )}
 
         <Stack spacing={2.5}>
           <PeriodFields plan={plan} from={from} to={to} onChange={(f, e) => { setFrom(f); setTo(e); }} />
@@ -233,6 +249,7 @@ export function WorkerDialog({
                   sx={{ textTransform: 'none' }}
                 >
                   {s.name}
+                  {outsideNote(s, from, to, t)}
                 </Button>
               ))}
               <Button variant="outlined" size="small" color="inherit" disabled={pending} onClick={() => void attempt(() => actions.assign(personId, null, from, to))} sx={{ textTransform: 'none' }}>
@@ -336,6 +353,11 @@ export function SiteDialog({
         <Typography variant="body2" color="text.secondary">
           {t('planning.s.needsLine', { total: needOf(site), list: site.needs.map((n) => `${n.count} ${n.position}`).join(', ') || '—' })}
         </Typography>
+        {((site.endDate && to > site.endDate) || (site.startDate && from < site.startDate)) && (
+          <Typography variant="body2" color="warning.main" sx={{ mt: 0.5 }}>
+            {t('planning.s.outside', { from: site.startDate ? formatDate(site.startDate) : '…', to: site.endDate ? formatDate(site.endDate) : '…' })}
+          </Typography>
+        )}
         {lackingNames.length > 0 && (
           <Typography variant="body2" color="error" sx={{ fontWeight: 600, mt: 0.5 }}>
             {t('planning.s.short', { list: lackingNames.join(', ') })}

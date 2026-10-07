@@ -147,7 +147,8 @@ public class GetScheduleQueryHandler : IRequestHandler<GetScheduleQuery, Schedul
                 ep.ProjectId,
                 ProjectName = ep.Project.Name,
                 ep.StartDate,
-                ep.EndDate
+                ep.EndDate,
+                ep.AcknowledgedAt
             })
             .ToListAsync(cancellationToken);
 
@@ -209,7 +210,8 @@ public class GetScheduleQueryHandler : IRequestHandler<GetScheduleQuery, Schedul
                     // repeating this arithmetic.
                     From = a.StartDate > from ? a.StartDate : from,
                     To = a.EndDate is { } end && end < to ? end : to,
-                    ContinuesAfter = a.EndDate is null || a.EndDate > to
+                    ContinuesAfter = a.EndDate is null || a.EndDate > to,
+                    AcknowledgedAt = a.AcknowledgedAt
                 })
                 .ToList(),
             Absences = absencesByEmployee[employee.Id]

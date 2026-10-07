@@ -361,6 +361,11 @@ internal static class PostingWriter
         {
             if (kept.TryGetValue(row.Id, out var span))
             {
+                if (row.StartDate != span.Start || row.EndDate != span.End)
+                {
+                    row.AcknowledgedAt = null;
+                }
+
                 row.StartDate = span.Start;
                 row.EndDate = span.End;
                 row.CustomerCompanyId = span.CustomerCompanyId;

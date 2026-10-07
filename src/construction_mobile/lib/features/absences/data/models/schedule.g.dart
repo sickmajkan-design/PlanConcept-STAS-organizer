@@ -55,6 +55,7 @@ _ScheduleAssignment _$ScheduleAssignmentFromJson(Map<String, dynamic> json) =>
       from: json['from'] as String,
       to: json['to'] as String,
       continuesAfter: json['continuesAfter'] as bool? ?? false,
+      acknowledgedAt: json['acknowledgedAt'] as String?,
     );
 
 Map<String, dynamic> _$ScheduleAssignmentToJson(_ScheduleAssignment instance) =>
@@ -65,6 +66,7 @@ Map<String, dynamic> _$ScheduleAssignmentToJson(_ScheduleAssignment instance) =>
       'from': instance.from,
       'to': instance.to,
       'continuesAfter': instance.continuesAfter,
+      'acknowledgedAt': ?instance.acknowledgedAt,
     };
 
 _ScheduleAbsence _$ScheduleAbsenceFromJson(Map<String, dynamic> json) =>

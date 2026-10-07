@@ -32,6 +32,7 @@ import {
   WorkOutlined,
   AdminPanelSettingsOutlined,
   SecurityOutlined,
+  FactCheckOutlined,
   HistoryOutlined,
   WifiTetheringOutlined,
   AccountTreeOutlined,
@@ -290,6 +291,11 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
                 label: t('nav.scheduledReports'),
                 path: paths.scheduledReports,
                 icon: <ScheduleSendOutlined />,
+              },
+              {
+                label: t('nav.dataQuality'),
+                path: paths.dataQuality,
+                icon: <FactCheckOutlined />,
               },
               {
                 label: t('nav.audit'),

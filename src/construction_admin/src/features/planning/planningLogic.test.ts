@@ -6,12 +6,15 @@ import {
   buildPlan,
   candidates,
   columnsFor,
+  confirmationOf,
+  conflicts,
   covered,
   freeCount,
   missing,
   periodBounds,
   segmentsOf,
   shortage,
+  unconfirmedCount,
 } from './planningLogic';
 
 // Monday 2026-10-05 .. Sunday 2026-10-18.
@@ -207,5 +210,105 @@ describe('periods', () => {
     const weeks = columnsFor('2026-10-01', '2026-12-31');
     expect(weeks[0]).toEqual({ from: '2026-10-01', to: '2026-10-07' });
     expect(weeks[weeks.length - 1].to).toBe('2026-12-31');
+  });
+});
+
+describe('conflicts', () => {
+  it('flags somebody posted to two sites on the same working days, as one stretch', () => {
+    const plan = buildPlan(
+      data(
+        [person('a', 'Zidar', [['s1', FROM, null], ['s2', '2026-10-07', '2026-10-09']])],
+        [site('s1', {}), site('s2', {})],
+      ),
+    );
+
+    const found = conflicts(plan, 0, plan.days - 1);
+
+    expect(found).toHaveLength(1);
+    expect(found[0]).toMatchObject({ kind: 'double', projectId: 's1', otherProjectId: 's2', from: '2026-10-07', to: '2026-10-09' });
+  });
+
+  it('keeps one stretch running across a weekend', () => {
+    const plan = buildPlan(
+      data([person('a', 'Zidar', [['s1', FROM, null], ['s2', FROM, null]])], [site('s1', {}), site('s2', {})]),
+    );
+
+    expect(conflicts(plan, 0, plan.days - 1)).toHaveLength(1);
+  });
+
+  it('flags days outside the dates of the site, and says which side', () => {
+    const plan = buildPlan(
+      data(
+        [person('a', 'Zidar', [['s1', FROM, null]])],
+        [site('s1', {}, { startDate: '2026-10-07', endDate: '2026-10-09' })],
+      ),
+    );
+
+    const found = conflicts(plan, 0, plan.days - 1);
+
+    expect(found.map((c) => [c.kind, c.from, c.to])).toEqual([
+      ['beforeStart', '2026-10-05', '2026-10-06'],
+      ['afterEnd', '2026-10-12', '2026-10-16'],
+    ]);
+  });
+
+  it('ignores days of leave and weekends', () => {
+    const plan = buildPlan(
+      data(
+        [person('a', 'Zidar', [['s1', FROM, null], ['s2', FROM, null]], [['2026-10-05', '2026-10-18']])],
+        [site('s1', {}), site('s2', {})],
+      ),
+    );
+
+    expect(conflicts(plan, 0, plan.days - 1)).toEqual([]);
+  });
+
+  it('says nothing about an ordinary plan', () => {
+    const plan = buildPlan(data([person('a', 'Zidar', [['s1', FROM, null]])], [site('s1', {})]));
+
+    expect(conflicts(plan, 0, plan.days - 1)).toEqual([]);
+  });
+});
+
+describe('confirmation', () => {
+  const posted = (acknowledgedAt: string | null) => ({
+    id: 'a',
+    fullName: 'a',
+    position: 'Zidar',
+    postings: [{ projectId: 's1', startDate: FROM, endDate: null, acknowledgedAt }],
+    absences: [],
+  });
+
+  it('counts the people posted on a working day who have not confirmed, and none on a weekend', () => {
+    const plan = buildPlan(data([posted(null), { ...posted('2026-10-01T08:00:00Z'), id: 'b' }], [site('s1', {})]));
+
+    expect(unconfirmedCount(plan, 0)).toBe(1);
+    expect(unconfirmedCount(plan, 5)).toBe(0);
+  });
+
+  it('says whether a person has confirmed all, some or none of the days they are posted', () => {
+    const none = buildPlan(data([posted(null)], [site('s1', {})]));
+    const all = buildPlan(data([posted('2026-10-01T08:00:00Z')], [site('s1', {})]));
+    const days = [0, 1, 2];
+
+    expect(confirmationOf(none.people[0], days)).toBe('none');
+    expect(confirmationOf(all.people[0], days)).toBe('all');
+
+    const split = buildPlan(
+      data(
+        [{ ...posted(null), postings: [
+          { projectId: 's1', startDate: '2026-10-05', endDate: '2026-10-06', acknowledgedAt: '2026-10-01T08:00:00Z' },
+          { projectId: 's1', startDate: '2026-10-07', endDate: null, acknowledgedAt: null },
+        ] }],
+        [site('s1', {})],
+      ),
+    );
+    expect(confirmationOf(split.people[0], days)).toBe('some');
+  });
+
+  it('has nothing to confirm for somebody posted nowhere', () => {
+    const plan = buildPlan(data([{ ...posted(null), postings: [] }], [site('s1', {})]));
+
+    expect(confirmationOf(plan.people[0], [0, 1])).toBe('nothing');
   });
 });

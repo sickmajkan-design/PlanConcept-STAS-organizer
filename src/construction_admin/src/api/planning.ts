@@ -22,6 +22,8 @@ export interface PlanningPosting {
   projectId: string;
   startDate: string;
   endDate: string | null;
+  /** When the worker confirmed it on their phone. Null while they have not. */
+  acknowledgedAt?: string | null;
 }
 
 export interface PlanningAbsence {

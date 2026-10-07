@@ -581,7 +581,8 @@ as List<ScheduleAbsence>,
 mixin _$ScheduleAssignment {
 
  String get id; String get projectId; String get projectName; String get from; String get to;/// True when the posting runs on past the end of the window.
- bool get continuesAfter;
+ bool get continuesAfter;/// When this worker confirmed the posting; null while they have not.
+ String? get acknowledgedAt;
 /// Create a copy of ScheduleAssignment
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -594,16 +595,16 @@ $ScheduleAssignmentCopyWith<ScheduleAssignment> get copyWith => _$ScheduleAssign
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ScheduleAssignment&&(identical(other.id, id) || other.id == id)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.from, from) || other.from == from)&&(identical(other.to, to) || other.to == to)&&(identical(other.continuesAfter, continuesAfter) || other.continuesAfter == continuesAfter));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ScheduleAssignment&&(identical(other.id, id) || other.id == id)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.from, from) || other.from == from)&&(identical(other.to, to) || other.to == to)&&(identical(other.continuesAfter, continuesAfter) || other.continuesAfter == continuesAfter)&&(identical(other.acknowledgedAt, acknowledgedAt) || other.acknowledgedAt == acknowledgedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,projectId,projectName,from,to,continuesAfter);
+int get hashCode => Object.hash(runtimeType,id,projectId,projectName,from,to,continuesAfter,acknowledgedAt);
 
 @override
 String toString() {
-  return 'ScheduleAssignment(id: $id, projectId: $projectId, projectName: $projectName, from: $from, to: $to, continuesAfter: $continuesAfter)';
+  return 'ScheduleAssignment(id: $id, projectId: $projectId, projectName: $projectName, from: $from, to: $to, continuesAfter: $continuesAfter, acknowledgedAt: $acknowledgedAt)';
 }
 
 
@@ -614,7 +615,7 @@ abstract mixin class $ScheduleAssignmentCopyWith<$Res>  {
   factory $ScheduleAssignmentCopyWith(ScheduleAssignment value, $Res Function(ScheduleAssignment) _then) = _$ScheduleAssignmentCopyWithImpl;
 @useResult
 $Res call({
- String id, String projectId, String projectName, String from, String to, bool continuesAfter
+ String id, String projectId, String projectName, String from, String to, bool continuesAfter, String? acknowledgedAt
 });
 
 
@@ -631,7 +632,7 @@ class _$ScheduleAssignmentCopyWithImpl<$Res>
 
 /// Create a copy of ScheduleAssignment
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? projectId = null,Object? projectName = null,Object? from = null,Object? to = null,Object? continuesAfter = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? projectId = null,Object? projectName = null,Object? from = null,Object? to = null,Object? continuesAfter = null,Object? acknowledgedAt = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
@@ -639,7 +640,8 @@ as String,projectName: null == projectName ? _self.projectName : projectName // 
 as String,from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as String,to: null == to ? _self.to : to // ignore: cast_nullable_to_non_nullable
 as String,continuesAfter: null == continuesAfter ? _self.continuesAfter : continuesAfter // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,acknowledgedAt: freezed == acknowledgedAt ? _self.acknowledgedAt : acknowledgedAt // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -724,10 +726,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String projectId,  String projectName,  String from,  String to,  bool continuesAfter)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String projectId,  String projectName,  String from,  String to,  bool continuesAfter,  String? acknowledgedAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ScheduleAssignment() when $default != null:
-return $default(_that.id,_that.projectId,_that.projectName,_that.from,_that.to,_that.continuesAfter);case _:
+return $default(_that.id,_that.projectId,_that.projectName,_that.from,_that.to,_that.continuesAfter,_that.acknowledgedAt);case _:
   return orElse();
 
 }
@@ -745,10 +747,10 @@ return $default(_that.id,_that.projectId,_that.projectName,_that.from,_that.to,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String projectId,  String projectName,  String from,  String to,  bool continuesAfter)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String projectId,  String projectName,  String from,  String to,  bool continuesAfter,  String? acknowledgedAt)  $default,) {final _that = this;
 switch (_that) {
 case _ScheduleAssignment():
-return $default(_that.id,_that.projectId,_that.projectName,_that.from,_that.to,_that.continuesAfter);case _:
+return $default(_that.id,_that.projectId,_that.projectName,_that.from,_that.to,_that.continuesAfter,_that.acknowledgedAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -765,10 +767,10 @@ return $default(_that.id,_that.projectId,_that.projectName,_that.from,_that.to,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String projectId,  String projectName,  String from,  String to,  bool continuesAfter)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String projectId,  String projectName,  String from,  String to,  bool continuesAfter,  String? acknowledgedAt)?  $default,) {final _that = this;
 switch (_that) {
 case _ScheduleAssignment() when $default != null:
-return $default(_that.id,_that.projectId,_that.projectName,_that.from,_that.to,_that.continuesAfter);case _:
+return $default(_that.id,_that.projectId,_that.projectName,_that.from,_that.to,_that.continuesAfter,_that.acknowledgedAt);case _:
   return null;
 
 }
@@ -780,7 +782,7 @@ return $default(_that.id,_that.projectId,_that.projectName,_that.from,_that.to,_
 @JsonSerializable()
 
 class _ScheduleAssignment extends ScheduleAssignment {
-  const _ScheduleAssignment({required this.id, required this.projectId, required this.projectName, required this.from, required this.to, this.continuesAfter = false}): super._();
+  const _ScheduleAssignment({required this.id, required this.projectId, required this.projectName, required this.from, required this.to, this.continuesAfter = false, this.acknowledgedAt}): super._();
   factory _ScheduleAssignment.fromJson(Map<String, dynamic> json) => _$ScheduleAssignmentFromJson(json);
 
 @override final  String id;
@@ -790,6 +792,8 @@ class _ScheduleAssignment extends ScheduleAssignment {
 @override final  String to;
 /// True when the posting runs on past the end of the window.
 @override@JsonKey() final  bool continuesAfter;
+/// When this worker confirmed the posting; null while they have not.
+@override final  String? acknowledgedAt;
 
 /// Create a copy of ScheduleAssignment
 /// with the given fields replaced by the non-null parameter values.
@@ -804,16 +808,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ScheduleAssignment&&(identical(other.id, id) || other.id == id)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.from, from) || other.from == from)&&(identical(other.to, to) || other.to == to)&&(identical(other.continuesAfter, continuesAfter) || other.continuesAfter == continuesAfter));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ScheduleAssignment&&(identical(other.id, id) || other.id == id)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.from, from) || other.from == from)&&(identical(other.to, to) || other.to == to)&&(identical(other.continuesAfter, continuesAfter) || other.continuesAfter == continuesAfter)&&(identical(other.acknowledgedAt, acknowledgedAt) || other.acknowledgedAt == acknowledgedAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,projectId,projectName,from,to,continuesAfter);
+int get hashCode => Object.hash(runtimeType,id,projectId,projectName,from,to,continuesAfter,acknowledgedAt);
 
 @override
 String toString() {
-  return 'ScheduleAssignment(id: $id, projectId: $projectId, projectName: $projectName, from: $from, to: $to, continuesAfter: $continuesAfter)';
+  return 'ScheduleAssignment(id: $id, projectId: $projectId, projectName: $projectName, from: $from, to: $to, continuesAfter: $continuesAfter, acknowledgedAt: $acknowledgedAt)';
 }
 
 
@@ -824,7 +828,7 @@ abstract mixin class _$ScheduleAssignmentCopyWith<$Res> implements $ScheduleAssi
   factory _$ScheduleAssignmentCopyWith(_ScheduleAssignment value, $Res Function(_ScheduleAssignment) _then) = __$ScheduleAssignmentCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String projectId, String projectName, String from, String to, bool continuesAfter
+ String id, String projectId, String projectName, String from, String to, bool continuesAfter, String? acknowledgedAt
 });
 
 
@@ -841,7 +845,7 @@ class __$ScheduleAssignmentCopyWithImpl<$Res>
 
 /// Create a copy of ScheduleAssignment
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? projectId = null,Object? projectName = null,Object? from = null,Object? to = null,Object? continuesAfter = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? projectId = null,Object? projectName = null,Object? from = null,Object? to = null,Object? continuesAfter = null,Object? acknowledgedAt = freezed,}) {
   return _then(_ScheduleAssignment(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
@@ -849,7 +853,8 @@ as String,projectName: null == projectName ? _self.projectName : projectName // 
 as String,from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as String,to: null == to ? _self.to : to // ignore: cast_nullable_to_non_nullable
 as String,continuesAfter: null == continuesAfter ? _self.continuesAfter : continuesAfter // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,acknowledgedAt: freezed == acknowledgedAt ? _self.acknowledgedAt : acknowledgedAt // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

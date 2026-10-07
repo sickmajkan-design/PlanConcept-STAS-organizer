@@ -3908,6 +3908,30 @@ abstract class AppLocalizations {
   /// **'Posted'**
   String get scheduleOnSite;
 
+  /// No description provided for @scheduleAcknowledge.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get scheduleAcknowledge;
+
+  /// No description provided for @scheduleAcknowledged.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get scheduleAcknowledged;
+
+  /// No description provided for @scheduleAcknowledgeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Confirm to tell the office you have seen this.'**
+  String get scheduleAcknowledgeHint;
+
+  /// No description provided for @scheduleAcknowledgeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not confirm. Check the connection and try again.'**
+  String get scheduleAcknowledgeFailed;
+
   /// No description provided for @absencesTitle.
   ///
   /// In en, this message translates to:

@@ -52,6 +52,9 @@ public class ScheduleAssignmentDto
 
     /// <summary>True when the posting runs on past the end of the window.</summary>
     public bool ContinuesAfter { get; init; }
+
+    /// <summary>When the worker confirmed this posting. Null while they have not.</summary>
+    public DateTime? AcknowledgedAt { get; init; }
 }
 
 public class ScheduleAbsenceDto

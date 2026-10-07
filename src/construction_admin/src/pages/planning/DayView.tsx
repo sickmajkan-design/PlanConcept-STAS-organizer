@@ -1,4 +1,5 @@
-import { Avatar, Box, Button, ButtonBase, Chip, Paper, Stack, Typography } from '@mui/material';
+import { CheckCircleOutlined, HourglassEmpty } from '@mui/icons-material';
+import { Avatar, Box, Button, ButtonBase, Chip, Paper, Stack, Tooltip, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 
 import { useEnumLabel } from '../../i18n/enumLabels';
@@ -20,12 +21,16 @@ function PersonButton({
   day,
   onOpen,
   awayLabel,
+  showConfirmation,
 }: {
   person: PlanPerson;
   day: number;
+  /** Whether to show if the worker has confirmed; only meaningful for today and later. */
+  showConfirmation?: boolean;
   onOpen: () => void;
   awayLabel?: string;
 }) {
+  const t = useT();
   const cell = person.cells[day];
   const color = cell.away ? AWAY_COLOR : cell.project ? siteColor(cell.project) : undefined;
 
@@ -56,6 +61,15 @@ function PersonButton({
           {awayLabel ?? person.position}
         </Typography>
       </Box>
+      {showConfirmation && cell.project && !cell.away && (
+        <Tooltip title={cell.acknowledged ? t('planning.ack.confirmed') : t('planning.ack.waiting')}>
+          {cell.acknowledged ? (
+            <CheckCircleOutlined fontSize="small" color="success" sx={{ ml: 'auto', flex: 'none' }} />
+          ) : (
+            <HourglassEmpty fontSize="small" color="warning" sx={{ ml: 'auto', flex: 'none' }} />
+          )}
+        </Tooltip>
+      )}
     </ButtonBase>
   );
 }
@@ -105,7 +119,7 @@ export function DayView({ plan, day, openWorker, openSite }: ViewProps & { day: 
               </Stack>
               <Stack sx={{ p: 0.75 }} spacing={0.25}>
                 {crew.map((p) => (
-                  <PersonButton key={p.id} person={p} day={day} onOpen={() => openWorker(p.id, date, date)} />
+                  <PersonButton key={p.id} person={p} day={day} showConfirmation={date >= plan.today} onOpen={() => openWorker(p.id, date, date)} />
                 ))}
                 {work &&
                   slots.map((position, i) => (

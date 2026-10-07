@@ -32,6 +32,13 @@ public class EmployeeProject : BaseEntity, IAuditable
     /// <summary>Null while the posting is open-ended.</summary>
     public DateOnly? EndDate { get; set; }
 
+    /// <summary>
+    /// When the worker said they have seen this posting. Cleared whenever the posting's days change, so a
+    /// confirmation always refers to what is currently planned. Postings made before the field existed
+    /// were marked as seen when it was added.
+    /// </summary>
+    public DateTime? AcknowledgedAt { get; set; }
+
     /// <summary>When the posting was recorded, as opposed to when it starts.</summary>
     public DateTime AssignedAt { get; set; }
 

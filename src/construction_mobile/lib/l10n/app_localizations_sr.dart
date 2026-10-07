@@ -2206,6 +2206,20 @@ class AppLocalizationsSr extends AppLocalizations {
   String get scheduleOnSite => 'Raspoređen(a)';
 
   @override
+  String get scheduleAcknowledge => 'Potvrdi';
+
+  @override
+  String get scheduleAcknowledged => 'Potvrđeno';
+
+  @override
+  String get scheduleAcknowledgeHint =>
+      'Pritisni Potvrdi da kancelarija zna da si ovo vidio/la.';
+
+  @override
+  String get scheduleAcknowledgeFailed =>
+      'Potvrda nije poslana. Provjeri vezu i pokušaj ponovo.';
+
+  @override
   String get absencesTitle => 'Odsustva';
 
   @override

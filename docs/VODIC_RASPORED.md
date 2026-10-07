@@ -57,14 +57,41 @@ Kartica **Treba zamjenu** (iznad prikaza) pokazuje odobrena odsustva u narednih 
 * Ako nema nikoga, mjesto ostaje prazno i vidi se u Potrebi po projektima, a gornja oznaka kaže da se slobodnima ne može popuniti (treba angažovati).
 * Obavještenje o odobrenom odsustvu koje ostavlja gradilište bez radnika (*Treba zamjenu*) šalje se kao i do sada.
 
-## 6. Ograničenja ove verzije
+## 6. Upozorenja i potvrda radnika
+
+**Upozorenja ("Provjerite")** pojavljuju se ispod kartice Treba zamjenu kad je neko:
+
+* istih radnih dana raspoređen na **dva gradilišta** (dozvoljeno je, ali je često greška), ili
+* raspoređen na gradilište **prije početka ili poslije kraja** projekta.
+
+To su upozorenja, ne zabrane. Uz svaki red je *Otvori* koji vodi na radnika. Pri raspoređivanju na gradilište čiji rok završava prije izabranog razdoblja, dijalog to piše (npr. "Hala B (do 06.12.)").
+
+**Potvrda na telefonu (aplikacija 1.1.21):** radnik u *Moj raspored* pritiskom na **Potvrdi** javlja da je vidio gdje je raspoređen. U Rasporedu, u prikazu *Po gradilištima*, uz radnika je kvačica (potvrđeno) ili pješčani sat (čeka), brojač *n nije potvrdilo*, a u dijalogu radnika piše stanje. **Izmjena dana** rasporeda (skraćivanje, produženje, premještanje) traži novu potvrdu. Rasporedi koji su postojali prije ove izmjene računaju se kao potvrđeni.
+
+## 7. Provjera podataka
+
+Administracija > **Provjera podataka** (Admin i Super Admin) nabraja zapise koji kvare druge ekrane, najvažnije prvo:
+
+| Provjera | Zašto |
+|---|---|
+| Raspoređeni na završen projekat | Raspored ih prikazuje tamo gdje više ne rade |
+| Radnici bez pozicije | Ne mogu se planirati po vještini ni predložiti kao zamjena |
+| Projekti bez potrebe | Raspored ne može reći gdje fali ljudi |
+| Projekti bez datuma | Računaju se kao da traju zauvijek |
+| Vozila bez datuma registracije, tehničkog ili osiguranja | Podsjetnici ne rade bez datuma |
+| Vozila bez TD broja | Broj sa DKV izvoda se ne može provjeriti prema vozilu |
+| Kartice za gorivo bez vozila | Redovi izvoda ostaju neuparani |
+
+Svaka grupa pokazuje ukupan broj i prvih 50 zapisa, svaki s linkom na mjesto gdje se popravlja. Ništa ovdje ne sprječava rad. Provjere koje su u redu navedene su na dnu.
+
+## 8. Ograničenja ove verzije
 
 * Radni dani su ponedjeljak–petak. Gradilišta koja rade subotom ili nedjeljom imaju te dane ako se radnik rasporedi na njih, ali potreba se tamo ne računa.
 * Potreba je jedan broj po vještini za cijeli projekat. Potreba koja se mijenja po sedmicama nije podržana.
 * Radnik ima jednu vještinu (svoju poziciju).
 * Raspored je vidljiv Voditeljima i iznad bez suženja po gradilištu, kao i stara tabla raspoređivanja.
 
-## 7. Za razvoj
+## 9. Za razvoj
 
 | Ruta | Ko | Šta |
 |---|---|---|
@@ -72,6 +99,8 @@ Kartica **Treba zamjenu** (iznad prikaza) pokazuje odobrena odsustva u narednih 
 | `POST /api/v1/planning/assign` | Voditelj+ | `{employeeId, projectId \| null, from, to, onlyFreeDays}`: postavlja raspored za razdoblje |
 | `POST /api/v1/planning/swap` | Voditelj+ | `{employeeAId, employeeBId, from, to}`: razmjena u jednoj transakciji |
 | `PUT /api/v1/planning/projects/{id}/needs` | Voditelj+ | `{needs: [{position, count}]}`: zamjenjuje potrebu projekta |
+| `POST /api/v1/postings/{id}/acknowledge` | svi zaposleni | Radnik potvrđuje svoj raspored; tuđi vraća 404 |
+| `GET /api/v1/data-quality` | Admin+ | Grupe zapisa za sređivanje |
 
 **Model:** `ProjectStaffingNeed` (projekat, pozicija, broj; u reviziji). Postavljanja i dalje čuva `EmployeeProject`. Rezanje i spajanje razdoblja je u `PostingRanges` (čista logika s testovima), a pravila manjka i prijedloga zamjene u `planningLogic.ts` na klijentu, koju koriste stranica i dijalog odobravanja odsustva.
 

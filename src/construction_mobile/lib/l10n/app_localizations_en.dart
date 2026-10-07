@@ -2201,6 +2201,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get scheduleOnSite => 'Posted';
 
   @override
+  String get scheduleAcknowledge => 'Confirm';
+
+  @override
+  String get scheduleAcknowledged => 'Confirmed';
+
+  @override
+  String get scheduleAcknowledgeHint =>
+      'Tap Confirm to tell the office you have seen this.';
+
+  @override
+  String get scheduleAcknowledgeFailed =>
+      'Could not confirm. Check the connection and try again.';
+
+  @override
   String get absencesTitle => 'Time off';
 
   @override
