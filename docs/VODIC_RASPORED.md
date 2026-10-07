@@ -84,6 +84,12 @@ Administracija > **Provjera podataka** (Admin i Super Admin) nabraja zapise koji
 
 Svaka grupa pokazuje ukupan broj i prvih 50 zapisa, svaki s linkom na mjesto gdje se popravlja. Ništa ovdje ne sprječava rad. Provjere koje su u redu navedene su na dnu.
 
+## 7a. Smještaj u Rasporedu
+
+* U prozoru radnika piše **gdje ga firma smješta** u izabranom razdoblju (naziv smještaja i datumi).
+* Kartica *Provjerite* javlja kad je neko **smješten, a nigdje raspoređen** radnim danima, a nije na odsustvu: ležaj se plaća, a niko ga ne koristi. Odsustvo se ne javlja, jer se smještaj tada rješava pri odobravanju odsustva.
+* Raspored ne zna odakle radnik dolazi, pa ne predlaže smještaj; to je i dalje na stranici Smještaj.
+
 ## 8. Uvjerenja i osposobljenost
 
 Na stranici radnika (Voditelj i iznad) kartica **Uvjerenja i osposobljenost** nabraja za šta je radnik osposobljen i do kada: naziv (rad na visini, vozačka za viljuškar, zavarivanje), datum do kojeg važi (prazno: ne ističe) i napomena. Isto uvjerenje pisano drugačije velikim slovima ili s razmakom je isto uvjerenje, i radnik ga ne može imati dvaput.

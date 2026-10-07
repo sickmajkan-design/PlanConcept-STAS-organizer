@@ -1831,6 +1831,8 @@ export const en = {
   'planning.cost.actual': "Recorded",
   'planning.cost.total': "Total",
   'planning.cost.days': "{count} planned days",
+  'planning.conflict.housedIdle': "{name} is housed at {place} but posted nowhere, {from} – {to}",
+  'planning.w.housed': "Housed: {list}",
   'planning.tour.button': "Schedule guide",
   'planning.tour.offer': "First time here? A short guided tour (about a minute) shows what the Schedule can do.",
   'planning.tour.start': "Start the tour",

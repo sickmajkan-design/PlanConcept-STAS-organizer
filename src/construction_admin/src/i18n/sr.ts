@@ -1866,6 +1866,8 @@ export const sr: Record<MessageKey, Message> = {
   'planning.cost.actual': "Evidentirano",
   'planning.cost.total': "Ukupno",
   'planning.cost.days': "{count} planiranih dana",
+  'planning.conflict.housedIdle': "{name} je smješten/a u {place}, a nije nigdje raspoređen/a, {from} – {to}",
+  'planning.w.housed': "Smještaj: {list}",
   'planning.tour.button': "Vodič kroz Raspored",
   'planning.tour.offer': "Prvi put ovdje? Kratki vodič (oko minut) pokazuje šta sve može Raspored.",
   'planning.tour.start': "Pokreni vodič",

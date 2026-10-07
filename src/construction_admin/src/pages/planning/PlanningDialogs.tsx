@@ -222,6 +222,17 @@ export function WorkerDialog({
           {from !== to ? ` – ${formatDate(to)}` : ''} · <b>{summary(plan, person, from, to, awayText, t('planning.l.free'))}</b>
         </Typography>
 
+        {person.stays.some((s) => s.from <= to && (s.to === null || s.to >= from)) && (
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            {t('planning.w.housed', {
+              list: person.stays
+                .filter((s) => s.from <= to && (s.to === null || s.to >= from))
+                .map((s) => `${s.place} (${formatDate(s.from)} – ${s.to ? formatDate(s.to) : '…'})`)
+                .join(', '),
+            })}
+          </Typography>
+        )}
+
         {confirmation !== 'nothing' && to >= plan.today && (
           <Typography variant="body2" sx={{ mb: 2 }} color={confirmation === 'all' ? 'success.main' : 'warning.main'}>
             {confirmation === 'all' ? t('planning.ack.confirmed') : confirmation === 'none' ? t('planning.ack.waiting') : t('planning.ack.partly')}

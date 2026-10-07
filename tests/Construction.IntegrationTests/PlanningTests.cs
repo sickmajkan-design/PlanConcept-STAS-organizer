@@ -199,6 +199,29 @@ public class PlanningTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task Where_the_company_houses_a_worker_reaches_the_planning_view()
+    {
+        var worker = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+
+        await InScope(async scope =>
+        {
+            var place = new Accommodation { Address = $"Test street {Guid.NewGuid():N}"[..20], Name = "Stan Test" };
+            scope.Db.Accommodations.Add(place);
+            await scope.Db.SaveChangesAsync();
+
+            scope.Db.AccommodationStays.Add(new AccommodationStay { AccommodationId = place.Id, EmployeeId = worker.Id, StartDate = D(5) });
+            await scope.Db.SaveChangesAsync();
+        });
+
+        var plan = await InScopeAs(UserRole.Admin, scope => scope.Send(new GetPlanningQuery { From = D(1), To = D(30) }));
+
+        var stay = Assert.Single(plan.Employees.Single(e => e.Id == worker.Id).Stays);
+        Assert.Equal("Stan Test", stay.Place);
+        Assert.Equal(D(5), stay.StartDate);
+        Assert.Null(stay.EndDate);
+    }
+
+    [Fact]
     public async Task A_window_longer_than_the_limit_is_refused()
     {
         await Assert.ThrowsAsync<Construction.Application.Common.Exceptions.ValidationException>(() =>

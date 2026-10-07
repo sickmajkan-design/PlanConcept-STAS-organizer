@@ -123,6 +123,20 @@ public class PlanningEmployeeDto
     public IReadOnlyList<PlanningAbsenceDto> Absences { get; init; } = [];
 
     public IReadOnlyList<PlanningCertificateDto> Certificates { get; init; } = [];
+
+    /// <summary>Where the worker is housed by the company during the window.</summary>
+    public IReadOnlyList<PlanningStayDto> Stays { get; init; } = [];
+}
+
+public class PlanningStayDto
+{
+    /// <summary>The accommodation: its name, or its address when it has none.</summary>
+    public string Place { get; init; } = null!;
+
+    public DateOnly StartDate { get; init; }
+
+    /// <summary>Null while the stay is open-ended.</summary>
+    public DateOnly? EndDate { get; init; }
 }
 
 public class PlanningCertificateDto
@@ -240,6 +254,12 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
             .Select(c => new { c.EmployeeId, c.Name, c.ValidUntil })
             .ToListAsync(cancellationToken);
 
+        var stays = await _context.AccommodationStays
+            .AsNoTracking()
+            .Where(s => ids.Contains(s.EmployeeId) && s.StartDate <= to && (s.EndDate == null || s.EndDate >= from))
+            .Select(s => new { s.EmployeeId, Place = s.Accommodation.Name ?? s.Accommodation.Address, s.StartDate, s.EndDate })
+            .ToListAsync(cancellationToken);
+
         var certificateNames = certificates.Select(c => c.Name)
             .Concat(projects.SelectMany(p => p.RequiredCertificates))
             .GroupBy(PositionKey.Of)
@@ -287,6 +307,11 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
                 Certificates = certificates
                     .Where(c => c.EmployeeId == e.Id)
                     .Select(c => new PlanningCertificateDto { Name = c.Name, ValidUntil = c.ValidUntil })
+                    .ToList(),
+                Stays = stays
+                    .Where(s => s.EmployeeId == e.Id)
+                    .OrderBy(s => s.StartDate)
+                    .Select(s => new PlanningStayDto { Place = s.Place, StartDate = s.StartDate, EndDate = s.EndDate })
                     .ToList(),
             }).ToList(),
         };

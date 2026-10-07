@@ -424,3 +424,35 @@ describe('working days', () => {
     expect(siteWorksOn(hr, '2026-10-11', holidays)).toBe(false);
   });
 });
+
+describe('housing', () => {
+  const housed = (postings: [string, string, string | null][], stays: { place: string; startDate: string; endDate: string | null }[], absences: [string, string][] = []) => ({
+    ...person('a', 'Zidar', postings, absences),
+    stays,
+  });
+
+  it('flags somebody housed on working days with nothing to do, as one stretch', () => {
+    const plan = buildPlan(data([housed([['s1', '2026-10-05', '2026-10-06']], [{ place: 'Stan 4', startDate: FROM, endDate: null }])], [site('s1', {})]));
+
+    const found = conflicts(plan, 0, plan.days - 1).filter((c) => c.kind === 'housedIdle');
+
+    expect(found).toHaveLength(1);
+    expect(found[0]).toMatchObject({ place: 'Stan 4', from: '2026-10-07', to: '2026-10-16' });
+  });
+
+  it('says nothing about somebody housed and working, or housed and on leave', () => {
+    const working = buildPlan(data([housed([['s1', FROM, null]], [{ place: 'Stan 4', startDate: FROM, endDate: null }])], [site('s1', {})]));
+    const onLeave = buildPlan(data([housed([], [{ place: 'Stan 4', startDate: FROM, endDate: null }], [[FROM, TO]])], [site('s1', {})]));
+
+    expect(conflicts(working, 0, working.days - 1).filter((c) => c.kind === 'housedIdle')).toEqual([]);
+    expect(conflicts(onLeave, 0, onLeave.days - 1).filter((c) => c.kind === 'housedIdle')).toEqual([]);
+  });
+
+  it('does not count days before the stay or after it ended', () => {
+    const plan = buildPlan(data([housed([], [{ place: 'Stan 4', startDate: '2026-10-07', endDate: '2026-10-08' }])], [site('s1', {})]));
+
+    const found = conflicts(plan, 0, plan.days - 1).filter((c) => c.kind === 'housedIdle');
+
+    expect(found.map((c) => [c.from, c.to])).toEqual([['2026-10-07', '2026-10-08']]);
+  });
+});

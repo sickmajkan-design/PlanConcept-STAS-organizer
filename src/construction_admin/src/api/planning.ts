@@ -49,6 +49,14 @@ export interface PlanningEmployee {
   postings: PlanningPosting[];
   absences: PlanningAbsence[];
   certificates?: PlanningCertificate[];
+  /** Where the company houses the worker during the window. */
+  stays?: PlanningStay[];
+}
+
+export interface PlanningStay {
+  place: string;
+  startDate: string;
+  endDate: string | null;
 }
 
 export interface PlanningCertificate {

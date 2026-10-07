@@ -56,6 +56,8 @@ export interface PlanPerson {
   cells: PlanCell[];
   /** Certificates by name key, with the last valid day (null: never runs out). */
   certificates: Map<string, string | null>;
+  /** Where the company houses them, as the days they are housed on each of which place. */
+  stays: { place: string; from: string; to: string | null }[];
 }
 
 export interface Plan {
@@ -120,7 +122,9 @@ export function buildPlan(data: PlanningData): Plan {
 
     const certificates = new Map<string, string | null>((e.certificates ?? []).map((c) => [positionKey(c.name), c.validUntil]));
 
-    return { id: e.id, name: e.fullName, position: e.position, key: positionKey(e.position), cells, certificates };
+    const stays = (e.stays ?? []).map((s) => ({ place: s.place, from: s.startDate, to: s.endDate }));
+
+    return { id: e.id, name: e.fullName, position: e.position, key: positionKey(e.position), cells, certificates, stays };
   });
 
   const holidays = new Set((data.holidays ?? []).map((h) => `${h.countryCode}|${h.date}`));
@@ -236,6 +240,11 @@ export function workdayIndexes(plan: Plan, from: number, to: number): number[] {
     if (plan.isWork[i]) out.push(i);
   }
   return out;
+}
+
+/** The stay that covers a date, if the company houses the person that day. */
+export function stayOn(person: PlanPerson, date: string): { place: string } | undefined {
+  return person.stays.find((s) => s.from <= date && (s.to === null || s.to >= date));
 }
 
 /** The certificates the site requires that the person does not hold, valid, on every one of the days. */
@@ -439,7 +448,7 @@ export function workdaysIn(column: Column): string[] {
   return out;
 }
 
-export type ConflictKind = 'double' | 'afterEnd' | 'beforeStart' | 'certificate';
+export type ConflictKind = 'double' | 'afterEnd' | 'beforeStart' | 'certificate' | 'housedIdle';
 
 export interface Conflict {
   person: PlanPerson;
@@ -449,6 +458,8 @@ export interface Conflict {
   otherProjectId?: string;
   /** The required certificate the person does not hold, for a certificate conflict. */
   certificate?: string;
+  /** Where they are housed, for a person housed with no work. */
+  place?: string;
   from: string;
   to: string;
 }
@@ -470,21 +481,29 @@ export function conflicts(plan: Plan, from: number, to: number): Conflict[] {
 
     const days = workdayIndexes(plan, from, to);
 
-    const note = (i: number, kind: ConflictKind, projectId: string, otherProjectId?: string, certificate?: string) => {
+    const note = (i: number, kind: ConflictKind, projectId: string, otherProjectId?: string, certificate?: string, place?: string) => {
       const date = plan.date(i);
-      if (open && open.kind === kind && open.projectId === projectId && open.otherProjectId === otherProjectId && open.certificate === certificate && diffDays(open.to, date) <= (weekday(open.to) === 4 ? 3 : 1)) {
+      if (open && open.kind === kind && open.projectId === projectId && open.otherProjectId === otherProjectId && open.certificate === certificate && open.place === place && diffDays(open.to, date) <= (weekday(open.to) === 4 ? 3 : 1)) {
         open.to = date;
       } else {
         close();
-        open = { person, kind, projectId, otherProjectId, certificate, from: date, to: date };
+        open = { person, kind, projectId, otherProjectId, certificate, place, from: date, to: date };
       }
     };
 
-    for (const kind of ['double', 'outside', 'certificate'] as const) {
+    for (const kind of ['double', 'outside', 'certificate', 'idle'] as const) {
       close();
 
       for (const i of days) {
         const cell = person.cells[i];
+
+        // Housed at the company's cost on a working day, with nothing to do and not on leave.
+        if (kind === 'idle') {
+          const stay = !cell.away && !cell.project ? stayOn(person, plan.date(i)) : undefined;
+          if (stay) note(i, 'housedIdle', '', undefined, undefined, stay.place);
+          continue;
+        }
+
         if (cell.away || !cell.project) continue;
 
         if (kind === 'double') {
