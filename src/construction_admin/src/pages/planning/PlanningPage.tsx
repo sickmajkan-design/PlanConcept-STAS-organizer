@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
 import { exportsApi } from '../../api/exports';
+import { canSeeLabourCost } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { ErrorState } from '../../components/ErrorState';
 import { ExportButton } from '../../components/ExportButton';
@@ -33,6 +34,7 @@ import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { formatDate } from '../../utils/formatting';
+import { CostView } from './CostView';
 import { DayView } from './DayView';
 import { ListView } from './ListView';
 import { NeedView } from './NeedView';
@@ -41,7 +43,7 @@ import { TimelineView } from './TimelineView';
 import { PlanningTour } from './PlanningTour';
 import { fetchWindow, shortDate, WEEKDAYS } from './planningUi';
 
-type View = 'day' | 'timeline' | 'need' | 'list';
+type View = 'day' | 'timeline' | 'need' | 'list' | 'cost';
 
 type Panel =
   | { kind: 'worker'; personId: string; from: string; to: string }
@@ -105,7 +107,7 @@ export function PlanningPage() {
   const { plan, error, isLoading, refetch } = usePlanningQuery(window_.from, window_.to);
   const mutations = usePlanningActions();
 
-  const periodView = view === 'timeline' || view === 'need';
+  const periodView = view === 'timeline' || view === 'need' || view === 'cost';
 
   /* ---- actions, each remembering how to be taken back ---- */
   const actions: PlanningActions | null = plan
@@ -270,7 +272,7 @@ export function PlanningPage() {
         onChange={(_, next: View | null) => next && setView(next)}
         sx={{ flexWrap: 'wrap', gap: 0.75, mb: 2, '& .MuiToggleButton-root': { border: 1, borderColor: 'divider', borderRadius: '10px !important', textAlign: 'left', textTransform: 'none', alignItems: 'flex-start', px: 1.5, py: 1 } }}
       >
-        {(['day', 'timeline', 'need', 'list'] as const).map((v) => (
+        {(canSeeLabourCost(user) ? (['day', 'timeline', 'need', 'cost', 'list'] as const) : (['day', 'timeline', 'need', 'list'] as const)).map((v) => (
           <ToggleButton key={v} value={v}>
             <Box>
               <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
@@ -357,6 +359,7 @@ export function PlanningPage() {
         <>
           {view === 'day' && dayIndex >= 0 && <DayView readOnly={readOnly} plan={plan} day={dayIndex} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
           {view === 'timeline' && <TimelineView readOnly={readOnly} plan={plan} range={range} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
+          {view === 'cost' && canSeeLabourCost(user) && <CostView range={range} />}
           {view === 'need' && <NeedView readOnly={readOnly} plan={plan} range={range} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
           {view === 'list' && dayIndex >= 0 && (
             <ListView

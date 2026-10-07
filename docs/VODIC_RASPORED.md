@@ -112,17 +112,29 @@ Raspored prati kalendar svakog gradilišta:
 * **Državni praznici** zemlje upisane na gradilištu (polje Zemlja) ne računaju se kao radni dani tog gradilišta: nema potrebe, nema manjka. Praznik je označen u zaglavlju vremenske trake (isprekidana crta, naziv u opisu) i u sažetku dana. Gradilište bez upisane zemlje ne poštuje nijedan praznik.
 * Dan je "radni" za prikaz kad radi barem jedno gradilište u prikazu. Slobodni radnici se broje samo na takve dane.
 
-## 12. Raspored na papiru
+## 12. Trošak rada
+
+Peti prikaz, **Trošak rada**, vide samo oni koji smiju vidjeti plate (Voditelj, Admin ili Super Admin **s punim finansijskim pravom**). Za razdoblje na ekranu pokazuje po gradilištu i mjesecu: **Planirano** (šta će raspored koštati u radu) i **Evidentirano** (šta su odobreni radni sati do danas koštali, po istom obračunu kao izvještaji troškova).
+
+Kako se računa planirano:
+* Svaki dan u kojem je radnik raspoređen na gradilište koje tada radi (kalendar gradilišta, bez državnih praznika), ako nije na odobrenom odsustvu. Ko je raspoređen na dva gradilišta, taj dan se računa na ono koje je počelo ranije.
+* **Satnica:** pretpostavljeni radni dan (6 do 10 sati, zadano 8) puta cijena koja važi tog dana; vikendom cijena za vikend ako je upisana.
+* **Dnevnica:** jedan iznos po danu, bez obzira na sate.
+* **Bez upisane cijene:** dan se računa u "planiranih dana" i javlja upozorenjem, a košta nula. Iznos nikad nije tiho premali.
+
+Prekovremeni sati, putovanje i dnevnice za vikend nisu u procjeni; ona zato služi za red veličine i poređenje s evidentiranim, ne za obračun.
+
+## 13. Raspored na papiru
 
 Dugme **Izvoz u Excel** (gore desno) pravi datoteku za štampanje ili okačiti na gradilištu: list **Raspored** (red po radniku, kolona po danu, u ćeliji gradilište ili GO/BO) i list **Po gradilištima** (za svako gradilište i dan: potrebno, raspoređeno, imena). Obuhvata razdoblje na ekranu (u prikazima za jedan dan, tu sedmicu), najviše 62 dana, na izabranom jeziku. Predradnik dobija samo svoju jedinicu, a bolovanje piše kao "odsutan".
 
-## 13. Ograničenja ove verzije
+## 14. Ograničenja ove verzije
 
 * Potreba je jedan broj po vještini za cijeli projekat. Potreba koja se mijenja po sedmicama nije podržana.
 * Radnik ima jednu vještinu (svoju poziciju).
 * Raspored je vidljiv Voditeljima i iznad bez suženja po gradilištu, kao i stara tabla raspoređivanja.
 
-## 14. Za razvoj
+## 15. Za razvoj
 
 | Ruta | Ko | Šta |
 |---|---|---|
@@ -131,6 +143,7 @@ Dugme **Izvoz u Excel** (gore desno) pravi datoteku za štampanje ili okačiti n
 | `POST /api/v1/planning/swap` | Voditelj+, ili Predradnik s pravom (samo svoja jedinica) | `{employeeAId, employeeBId, from, to}`: razmjena u jednoj transakciji |
 | `PUT /api/v1/planning/projects/{id}/needs` | Voditelj+ | `{needs: [{position, count}], requiredCertificates?: string[]}`: zamjenjuje potrebu projekta; bez `requiredCertificates` ostavlja tražena uvjerenja kakva jesu |
 | `POST /api/v1/postings/{id}/acknowledge` | svi zaposleni | Radnik potvrđuje svoj raspored; tuđi vraća 404 |
+| `GET /api/v1/planning/labour-cost?from&to&hoursPerDay&branchId` | Samo uz pravo da se vide plate | Planirani trošak rada po gradilištu i mjesecu, uz evidentirani |
 | `GET /api/v1/exports/schedule?from&to&language&branchId` | Predradnik+ | Excel: raspored po radniku i po gradilištu, najviše 62 dana |
 | `GET /api/v1/data-quality` | Admin+ | Grupe zapisa za sređivanje |
 | `GET /api/v1/attention` | svi zaposleni | Šta čeka pozivaoca, ograničeno na ono što uloga može riješiti |

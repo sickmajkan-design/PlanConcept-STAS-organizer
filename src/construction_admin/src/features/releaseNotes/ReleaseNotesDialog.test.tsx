@@ -58,7 +58,7 @@ describe('ReleaseNotesDialog', () => {
 
     await screen.findByText('Data check, schedule warnings and confirmation on the phone');
     expect(screen.getByText('Foremen on the Schedule')).toBeDefined();
-    expect(screen.getByText('New schedule: planning the workforce')).toBeDefined();
+    expect(screen.getByText('Planned labour cost')).toBeDefined();
   }, SCREEN_TIMEOUT);
 
   it('is shown again for a new release', async () => {

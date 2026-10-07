@@ -68,9 +68,9 @@ function plan(overrides: Record<string, unknown> = {}) {
   };
 }
 
-async function renderPage() {
+async function renderPage(role: Parameters<typeof signedIn>[0] = 'Admin') {
   const { PlanningPage } = await import('./PlanningPage');
-  return renderScreen(<PlanningPage />, { route: '/', path: '/', user: signedIn('Admin') });
+  return renderScreen(<PlanningPage />, { route: '/', path: '/', user: signedIn(role) });
 }
 
 describe('PlanningPage', () => {
@@ -229,6 +229,48 @@ describe('PlanningPage', () => {
       expect(call?.params.language).toBe('en');
     });
   }, SCREEN_TIMEOUT);
+
+  describe('labour cost', () => {
+    const cost = {
+      from: local(addDays(now, -5)),
+      to: local(addDays(now, 25)),
+      hoursPerDay: 8,
+      months: ['2026-10'],
+      unpricedDays: 3,
+      projects: [
+        {
+          projectId: HALL,
+          name: 'Aldi Hall',
+          plannedDays: 10,
+          plannedCost: 800,
+          actualCost: 350.5,
+          months: [{ month: '2026-10', plannedDays: 10, plannedCost: 800, actualCost: 350.5 }],
+        },
+      ],
+    };
+
+    it('is offered to somebody who may see pay, with planned beside recorded and a warning for unpriced days', async () => {
+      network.reply('/planning/labour-cost', 200, cost);
+      network.reply('/planning', 200, plan());
+
+      await renderPage('SuperAdmin');
+      await userEvent.click(await screen.findByRole('button', { name: /Labour cost/ }));
+
+      expect(await screen.findByText('Aldi Hall')).toBeDefined();
+      expect(screen.getAllByText('800.00').length).toBeGreaterThan(0);
+      expect(screen.getAllByText('350.50').length).toBeGreaterThan(0);
+      expect(screen.getByText(/3 planned working days belong to people with no rate set/)).toBeDefined();
+    }, SCREEN_TIMEOUT);
+
+    it('is not offered to somebody without the full finance grant', async () => {
+      network.reply('/planning', 200, plan());
+
+      await renderPage('Admin');
+      await screen.findByRole('button', { name: /By site/ });
+
+      expect(screen.queryByRole('button', { name: /Labour cost/ })).toBeNull();
+    }, SCREEN_TIMEOUT);
+  });
 
   describe('for a foreman', () => {
     const absent = () => plan({ canEdit: false, isScoped: true, scopeBranchName: 'Zagreb unit' });

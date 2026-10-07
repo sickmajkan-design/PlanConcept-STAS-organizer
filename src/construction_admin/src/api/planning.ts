@@ -79,6 +79,31 @@ export interface PlanningQuery {
   branchId?: string;
 }
 
+export interface PlannedLabourCostMonth {
+  month: string;
+  plannedDays: number;
+  plannedCost: number;
+  actualCost: number;
+}
+
+export interface PlannedLabourCostProject {
+  projectId: string;
+  name: string;
+  months: PlannedLabourCostMonth[];
+  plannedCost: number;
+  actualCost: number;
+  plannedDays: number;
+}
+
+export interface PlannedLabourCost {
+  from: string;
+  to: string;
+  hoursPerDay: number;
+  months: string[];
+  projects: PlannedLabourCostProject[];
+  unpricedDays: number;
+}
+
 export interface AssignInput {
   employeeId: string;
   /** Null frees the person for the range. */
@@ -103,6 +128,13 @@ export const planningApi = {
       method: 'GET',
       url: '/api/v1/planning',
       params: { from: query.from, to: query.to, branchId: query.branchId },
+    }),
+
+  labourCost: (query: { from: string; to: string; hoursPerDay: number; branchId?: string }) =>
+    request<PlannedLabourCost>({
+      method: 'GET',
+      url: '/api/v1/planning/labour-cost',
+      params: { from: query.from, to: query.to, hoursPerDay: query.hoursPerDay, branchId: query.branchId },
     }),
 
   assign: (input: AssignInput) =>

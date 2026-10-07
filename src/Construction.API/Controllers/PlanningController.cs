@@ -26,6 +26,22 @@ public class PlanningController : ApiControllerBase
         return Ok(await Mediator.Send(query, cancellationToken));
     }
 
+    /// <summary>
+    /// What the schedule will cost in labour, per site and month, beside what the approved hours have cost.
+    /// Only for whoever may see what people are paid.
+    /// </summary>
+    [HttpGet("/api/v{version:apiVersion}/planning/labour-cost")]
+    [HttpGet("/api/planning/labour-cost")]
+    [ProducesResponseType(typeof(PlannedLabourCostDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<PlannedLabourCostDto>> LabourCost(
+        [FromQuery] GetPlannedLabourCostQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
     /// <summary>Puts an employee on a project (or frees them) for a range of days.</summary>
     [HttpPost("/api/v{version:apiVersion}/planning/assign")]
     [HttpPost("/api/planning/assign")]

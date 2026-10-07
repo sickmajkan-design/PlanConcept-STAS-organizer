@@ -10,7 +10,7 @@ import type { MessageKey } from '../../i18n/en';
  * what changed recently, not a changelog: when a release is added, drop the
  * sections older than the fifth (and their `releaseNotes.*` keys in i18n).
  */
-export const RELEASE_ID = '2026-10-07.6';
+export const RELEASE_ID = '2026-10-07.7';
 
 export interface ReleaseSection {
   id: string;
@@ -21,6 +21,12 @@ export interface ReleaseSection {
 }
 
 export const releaseSections: ReleaseSection[] = [
+  {
+    id: 'cost1007',
+    titleKey: 'releaseNotes.cost1007.title',
+    itemKeys: ['releaseNotes.cost1007.what'],
+    audience: (user) => user.financeAccess === 'Full' && (user.role === 'SuperAdmin' || user.role === 'Admin' || user.role === 'ProjectManager'),
+  },
   {
     id: 'paper1007',
     titleKey: 'releaseNotes.paper1007.title',
@@ -46,20 +52,6 @@ export const releaseSections: ReleaseSection[] = [
     id: 'tidy1007',
     titleKey: 'releaseNotes.tidy1007.title',
     itemKeys: ['releaseNotes.tidy1007.check', 'releaseNotes.tidy1007.warnings', 'releaseNotes.tidy1007.ack'],
-    audience: (user) =>
-      user.role === 'SuperAdmin' || user.role === 'Admin' || user.role === 'ProjectManager',
-  },
-  {
-    id: 'plan1007',
-    titleKey: 'releaseNotes.plan1007.title',
-    itemKeys: [
-      'releaseNotes.plan1007.what',
-      'releaseNotes.plan1007.move',
-      'releaseNotes.plan1007.need',
-      'releaseNotes.plan1007.cover',
-      'releaseNotes.plan1007.guide',
-      'releaseNotes.plan1007.limits',
-    ],
     audience: (user) =>
       user.role === 'SuperAdmin' || user.role === 'Admin' || user.role === 'ProjectManager',
   },
