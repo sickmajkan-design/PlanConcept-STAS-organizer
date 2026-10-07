@@ -11,6 +11,8 @@ export interface PlanningProject {
   worksSaturdays: boolean;
   worksSundays: boolean;
   needs: PlanningNeed[];
+  /** Certificates everybody posted here has to hold. */
+  requiredCertificates?: string[];
 }
 
 export interface PlanningNeed {
@@ -38,6 +40,13 @@ export interface PlanningEmployee {
   position: string;
   postings: PlanningPosting[];
   absences: PlanningAbsence[];
+  certificates?: PlanningCertificate[];
+}
+
+export interface PlanningCertificate {
+  name: string;
+  /** The last valid day. Null for one that does not expire. */
+  validUntil: string | null;
 }
 
 export interface PlanningData {
@@ -47,6 +56,7 @@ export interface PlanningData {
   projects: PlanningProject[];
   employees: PlanningEmployee[];
   positions: string[];
+  certificateNames?: string[];
 }
 
 export interface PlanningQuery {
@@ -87,10 +97,10 @@ export const planningApi = {
   swap: (input: SwapInput) =>
     request<void>({ method: 'POST', url: '/api/v1/planning/swap', data: input }),
 
-  setNeeds: (projectId: string, needs: PlanningNeed[]) =>
+  setNeeds: (projectId: string, needs: PlanningNeed[], requiredCertificates?: string[]) =>
     request<void>({
       method: 'PUT',
       url: `/api/v1/planning/projects/${projectId}/needs`,
-      data: { needs },
+      data: { needs, requiredCertificates },
     }),
 };

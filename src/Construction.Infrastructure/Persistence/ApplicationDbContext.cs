@@ -52,6 +52,10 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<ProjectStaffingNeed> ProjectStaffingNeeds => Set<ProjectStaffingNeed>();
 
+    public DbSet<EmployeeCertificate> EmployeeCertificates => Set<EmployeeCertificate>();
+
+    public DbSet<ProjectCertificateRequirement> ProjectCertificateRequirements => Set<ProjectCertificateRequirement>();
+
     public DbSet<Vehicle> Vehicles => Set<Vehicle>();
 
     public DbSet<Tool> Tools => Set<Tool>();

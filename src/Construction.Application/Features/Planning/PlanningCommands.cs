@@ -249,6 +249,12 @@ public record SetProjectStaffingNeedsCommand : IRequest
     public Guid ProjectId { get; init; }
 
     public List<StaffingNeedInput> Needs { get; init; } = [];
+
+    /// <summary>
+    /// Certificates everybody posted to the project has to hold. Null leaves the list as it is, so a caller
+    /// that only knows about needs does not wipe it.
+    /// </summary>
+    public List<string>? RequiredCertificates { get; init; }
 }
 
 public record StaffingNeedInput(string Position, int Count);
@@ -259,6 +265,8 @@ public class SetProjectStaffingNeedsCommandValidator : AbstractValidator<SetProj
     {
         RuleFor(x => x.ProjectId).NotEmpty();
         RuleFor(x => x.Needs).Must(n => n.Count <= 40).WithMessage("A project can list at most 40 positions.");
+        RuleFor(x => x.RequiredCertificates).Must(c => c == null || c.Count <= 40).WithMessage("A project can require at most 40 certificates.");
+        RuleForEach(x => x.RequiredCertificates).MaximumLength(100);
         RuleForEach(x => x.Needs).ChildRules(need =>
         {
             need.RuleFor(n => n.Position).NotEmpty().MaximumLength(100);
@@ -311,6 +319,36 @@ public class SetProjectStaffingNeedsCommandHandler : IRequestHandler<SetProjectS
                 Position = need.Position,
                 Count = need.Count,
             });
+        }
+
+        if (request.RequiredCertificates is { } required)
+        {
+            var wantedCertificates = required
+                .Select(c => c.Trim())
+                .Where(c => c.Length > 0)
+                .GroupBy(PositionKey.Of)
+                .ToDictionary(g => g.Key, g => g.First());
+
+            var existingCertificates = await _context.ProjectCertificateRequirements
+                .Where(r => r.ProjectId == request.ProjectId)
+                .ToListAsync(cancellationToken);
+
+            foreach (var row in existingCertificates)
+            {
+                if (wantedCertificates.Remove(PositionKey.Of(row.Name), out var name))
+                {
+                    row.Name = name;
+                }
+                else
+                {
+                    _context.ProjectCertificateRequirements.Remove(row);
+                }
+            }
+
+            foreach (var name in wantedCertificates.Values)
+            {
+                _context.ProjectCertificateRequirements.Add(new ProjectCertificateRequirement { ProjectId = request.ProjectId, Name = name });
+            }
         }
 
         await _context.SaveChangesAsync(cancellationToken);

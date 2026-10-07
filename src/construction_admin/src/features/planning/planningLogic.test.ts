@@ -10,6 +10,7 @@ import {
   conflicts,
   covered,
   freeCount,
+  missingCertificates,
   missing,
   periodBounds,
   segmentsOf,
@@ -310,5 +311,60 @@ describe('confirmation', () => {
     const plan = buildPlan(data([{ ...posted(null), postings: [] }], [site('s1', {})]));
 
     expect(confirmationOf(plan.people[0], [0, 1])).toBe('nothing');
+  });
+});
+
+describe('certificates', () => {
+  const holder = (id: string, certificates: { name: string; validUntil: string | null }[]) => ({
+    ...person(id, 'Zidar', [['s1', FROM, null]]),
+    certificates,
+  });
+
+  const heights = site('s1', {}, { requiredCertificates: ['Work at height'] });
+
+  it('flags somebody posted to a site that requires a certificate they do not hold', () => {
+    const plan = buildPlan(data([holder('a', [])], [heights]));
+
+    const found = conflicts(plan, 0, plan.days - 1);
+
+    expect(found).toHaveLength(1);
+    expect(found[0]).toMatchObject({ kind: 'certificate', certificate: 'Work at height', from: '2026-10-05' });
+  });
+
+  it('accepts a valid one, whatever the spelling, and one that never runs out', () => {
+    const spelled = buildPlan(data([holder('a', [{ name: ' work AT height ', validUntil: '2027-01-01' }])], [heights]));
+    const forever = buildPlan(data([holder('a', [{ name: 'Work at height', validUntil: null }])], [heights]));
+
+    expect(conflicts(spelled, 0, spelled.days - 1)).toEqual([]);
+    expect(conflicts(forever, 0, forever.days - 1)).toEqual([]);
+  });
+
+  it('flags only the days after the certificate ran out', () => {
+    const plan = buildPlan(data([holder('a', [{ name: 'Work at height', validUntil: '2026-10-08' }])], [heights]));
+
+    const found = conflicts(plan, 0, plan.days - 1);
+
+    expect(found.map((c) => [c.kind, c.from, c.to])).toEqual([['certificate', '2026-10-09', '2026-10-16']]);
+  });
+
+  it('says which certificates a person lacks for the days, and ranks those who hold them first among stand-ins', () => {
+    const plan = buildPlan(
+      data(
+        [
+          person('away', 'Zidar', [['s1', FROM, null]], [['2026-10-06', '2026-10-06']]),
+          { ...person('without', 'Zidar'), certificates: [] },
+          { ...person('with', 'Zidar'), certificates: [{ name: 'Work at height', validUntil: null }] },
+        ],
+        [heights],
+      ),
+    );
+
+    expect(missingCertificates(plan, plan.people[1], 's1', [1])).toEqual(['Work at height']);
+    expect(missingCertificates(plan, plan.people[2], 's1', [1])).toEqual([]);
+
+    const list = candidates(plan, 'away', 's1', [1]);
+
+    expect(list.map((c) => c.person.id)).toEqual(['with', 'without']);
+    expect(list[1].lacks).toEqual(['Work at height']);
   });
 });

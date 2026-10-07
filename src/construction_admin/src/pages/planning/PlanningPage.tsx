@@ -143,15 +143,16 @@ export function PlanningPage() {
             },
           });
         },
-        saveNeeds: async (projectId, needs) => {
+        saveNeeds: async (projectId, needs, requiredCertificates) => {
           const before = plan.projectById.get(projectId)?.needs ?? [];
+          const beforeCertificates = plan.projectById.get(projectId)?.requiredCertificates ?? [];
 
-          await mutations.setNeeds.mutateAsync({ projectId, needs });
+          await mutations.setNeeds.mutateAsync({ projectId, needs, requiredCertificates });
 
           setUndo({
             message: t('planning.msg.needsSaved'),
             run: async () => {
-              await mutations.setNeeds.mutateAsync({ projectId, needs: before });
+              await mutations.setNeeds.mutateAsync({ projectId, needs: before, requiredCertificates: beforeCertificates });
             },
           });
         },
@@ -495,6 +496,7 @@ function ConflictBanner({ plan, today, onOpen }: { plan: Plan; today: string; on
     const site = plan.projectById.get(c.projectId);
 
     if (c.kind === 'double') return t('planning.conflict.double', { ...base, a: name(c.projectId), b: name(c.otherProjectId) });
+    if (c.kind === 'certificate') return t('planning.conflict.certificate', { ...base, site: name(c.projectId), certificate: c.certificate ?? '' });
     if (c.kind === 'afterEnd') return t('planning.conflict.afterEnd', { ...base, site: name(c.projectId), date: formatDate(site?.endDate) });
     return t('planning.conflict.beforeStart', { ...base, site: name(c.projectId), date: formatDate(site?.startDate) });
   };

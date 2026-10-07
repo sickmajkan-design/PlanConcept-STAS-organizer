@@ -62,7 +62,7 @@ public class PlanningController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         await Mediator.Send(
-            new SetProjectStaffingNeedsCommand { ProjectId = projectId, Needs = request.Needs },
+            new SetProjectStaffingNeedsCommand { ProjectId = projectId, Needs = request.Needs, RequiredCertificates = request.RequiredCertificates },
             cancellationToken);
         return NoContent();
     }
@@ -72,4 +72,7 @@ public class PlanningController : ApiControllerBase
 public class SetNeedsRequest
 {
     public List<StaffingNeedInput> Needs { get; set; } = [];
+
+    /// <summary>Null leaves the project required certificates as they are.</summary>
+    public List<string>? RequiredCertificates { get; set; }
 }

@@ -1,51 +1,97 @@
-import { EventBusyOutlined, WarningAmberOutlined } from '@mui/icons-material';
-import { Avatar, List, ListItem, ListItemAvatar, ListItemText, Stack, Typography } from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
+import { Box, Chip, Stack, Typography } from '@mui/material';
 import { Link } from 'react-router-dom';
 
-import { useAbsencesQuery } from '../../absences/useAbsences';
-import { useExpiringDocumentsQuery } from '../../attachments/useAttachments';
-import { useEnumLabel } from '../../../i18n/enumLabels';
+import { attentionApi, type AttentionGroup, type AttentionItem } from '../../../api/attention';
+import type { MessageKey } from '../../../i18n/en';
 import { useT } from '../../../i18n/useI18n';
 import { paths } from '../../../routes/paths';
 import { formatDate } from '../../../utils/formatting';
+import { useExpiringDocumentsQuery } from '../../attachments/useAttachments';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
 
 const DOCUMENT_WINDOW_DAYS = 30;
-const SHOWN = 6;
+
+/** Where each kind of thing is dealt with. */
+const DESTINATIONS: Record<string, string> = {
+  absenceRequests: paths.absences,
+  expensesToReview: paths.vehicleExpenses,
+  timeEntriesToReview: paths.timeEntries,
+  unconfirmedPostings: paths.schedule,
+  articleOrders: paths.articleOrders,
+  refunds: paths.refunds,
+  dkvRows: paths.fuelReconciliation,
+  certificatesExpiring: paths.employees,
+  vehicleDates: paths.vehicles,
+  expiringDocuments: paths.expiringDocuments,
+  dataQuality: paths.dataQuality,
+};
+
+/** The order they are shown in: what somebody is waiting on first, housekeeping last. */
+const ORDER = [
+  'absenceRequests',
+  'timeEntriesToReview',
+  'expensesToReview',
+  'articleOrders',
+  'refunds',
+  'dkvRows',
+  'unconfirmedPostings',
+  'vehicleDates',
+  'expiringDocuments',
+  'certificatesExpiring',
+  'dataQuality',
+];
 
 /**
- * A single actionable list gathering what the small red badges on the nav
- * rail only hint at (expiring documents, pending absence requests) — so
- * "something needs attention" has one place to click through from, instead
- * of visiting each section to find out what.
+ * One list of what is waiting for this person, across the platform and limited to what their role can
+ * act on: requests to answer, costs to review, statements that do not match, dates about to pass.
+ * Each line is a kind of work with how much of it there is, and a click goes to where it is done.
  *
- * Each source is queried and rendered independently: a viewer without one
- * permission (e.g. no `AdminAndAbove` for documents) still sees the other
- * section rather than the whole widget falling over on one 403.
+ * Expiring documents come from their own query, as they always have, and are folded into the same list.
+ * A failure of either source leaves the other showing instead of emptying the whole widget.
  */
 export function NeedsAttentionWidget({ instanceId: _instanceId, onRemove, onExpandWidth }: DashboardWidgetProps) {
   const t = useT();
-  const enumLabel = useEnumLabel();
 
-  // Same query hooks the nav badge and each module's own list page use —
-  // not a separate "dashboard" cache — so resolving one of these anywhere on
-  // the platform updates this widget the instant it succeeds too.
-  const documentsQuery = useExpiringDocumentsQuery(DOCUMENT_WINDOW_DAYS);
-  const absencesQuery = useAbsencesQuery({ pageNumber: 1, pageSize: SHOWN, status: 'Requested' });
+  const attention = useQuery({ queryKey: ['attention'], queryFn: attentionApi.get, refetchInterval: 60_000 });
+  const documents = useExpiringDocumentsQuery(DOCUMENT_WINDOW_DAYS);
 
-  const documents = Array.isArray(documentsQuery.data) ? documentsQuery.data.slice(0, SHOWN) : [];
-  const absences = absencesQuery.data?.items ?? [];
-  const isLoading = documentsQuery.isLoading || absencesQuery.isLoading;
-  const bothFailed = !!documentsQuery.error && !!absencesQuery.error;
-  const isEmpty = !isLoading && !bothFailed && documents.length === 0 && absences.length === 0;
+  const documentList = Array.isArray(documents.data) ? documents.data : [];
+  const groups: AttentionGroup[] = [...(attention.data?.groups ?? [])];
+
+  if (documentList.length > 0) {
+    groups.push({
+      key: 'expiringDocuments',
+      count: documentList.length,
+      items: documentList.slice(0, 3).map((d) => ({ label: d.fileName, kind: null, date: d.expiresAt ?? null })),
+    });
+  }
+
+  groups.sort((a, b) => ORDER.indexOf(a.key) - ORDER.indexOf(b.key));
+
+  const isLoading = attention.isLoading || documents.isLoading;
+  const bothFailed = !!attention.error && !!documents.error;
+  const isEmpty = !isLoading && !bothFailed && groups.length === 0;
+
+  const example = (group: AttentionGroup, item: AttentionItem): string => {
+    const date = item.date ? formatDate(item.date) : '';
+
+    if (group.key === 'vehicleDates' && item.kind) {
+      return `${item.label} · ${t(`attention.vehicleDate.${item.kind}` as MessageKey)} ${date}`;
+    }
+
+    if (group.key === 'expiringDocuments') return `${item.label} · ${t('dashboard.needsAttention.documentExpires', { date })}`;
+    return date ? `${item.label} · ${date}` : item.label;
+  };
 
   return (
     <WidgetShell
       title={t('dashboard.widget.NeedsAttention')}
       isLoading={isLoading}
-      error={bothFailed ? documentsQuery.error : undefined}
-      onRemove={onRemove} onExpandWidth={onExpandWidth}
+      error={bothFailed ? attention.error : undefined}
+      onRemove={onRemove}
+      onExpandWidth={onExpandWidth}
     >
       {isEmpty ? (
         <Typography color="text.secondary" variant="body2">
@@ -53,54 +99,26 @@ export function NeedsAttentionWidget({ instanceId: _instanceId, onRemove, onExpa
         </Typography>
       ) : (
         <Stack spacing={0.5} sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-          {!documentsQuery.error && documents.length > 0 && (
-            <List dense disablePadding>
-              {documents.map((doc) => (
-                <ListItem
-                  key={doc.id}
-                  disableGutters
-                  component={Link}
-                  to={paths.expiringDocuments}
-                  sx={{ color: 'inherit', textDecoration: 'none' }}
-                >
-                  <ListItemAvatar sx={{ minWidth: 44 }}>
-                    <Avatar sx={{ width: 32, height: 32, bgcolor: 'warning.main' }}>
-                      <WarningAmberOutlined fontSize="small" />
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={doc.fileName}
-                    secondary={t('dashboard.needsAttention.documentExpires', { date: formatDate(doc.expiresAt) })}
-                    slotProps={{ primary: { noWrap: true, sx: { fontWeight: 600 } } }}
-                  />
-                </ListItem>
+          {groups.map((group) => (
+            <Box
+              key={group.key}
+              component={Link}
+              to={DESTINATIONS[group.key] ?? paths.home}
+              sx={{ display: 'block', color: 'inherit', textDecoration: 'none', borderRadius: 1.5, p: 1, '&:hover': { bgcolor: 'action.hover' } }}
+            >
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <Typography variant="body2" sx={{ fontWeight: 700, flex: 1, minWidth: 0 }}>
+                  {t(`attention.${group.key}` as MessageKey)}
+                </Typography>
+                <Chip size="small" color="warning" label={group.count} sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }} />
+              </Stack>
+              {group.items.map((item, i) => (
+                <Typography key={i} variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
+                  {example(group, item)}
+                </Typography>
               ))}
-            </List>
-          )}
-          {!absencesQuery.error && absences.length > 0 && (
-            <List dense disablePadding>
-              {absences.map((absence) => (
-                <ListItem
-                  key={absence.id}
-                  disableGutters
-                  component={Link}
-                  to={paths.absences}
-                  sx={{ color: 'inherit', textDecoration: 'none' }}
-                >
-                  <ListItemAvatar sx={{ minWidth: 44 }}>
-                    <Avatar sx={{ width: 32, height: 32, bgcolor: 'warning.main' }}>
-                      <EventBusyOutlined fontSize="small" />
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={absence.employeeName}
-                    secondary={t('dashboard.needsAttention.absencePending', { type: enumLabel('absenceType', absence.type) })}
-                    slotProps={{ primary: { sx: { fontWeight: 600 } } }}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          )}
+            </Box>
+          ))}
         </Stack>
       )}
     </WidgetShell>

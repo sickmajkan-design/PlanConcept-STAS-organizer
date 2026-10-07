@@ -49,9 +49,10 @@ import {
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { useRecordVisit } from '../../layout/useRecentRecords';
-import { canAdministerAccounts } from '../../auth/authHelpers';
+import { canAdministerAccounts, canManageAssignments } from '../../auth/authHelpers';
 import { InviteEmployeeDialog } from '../../components/InviteEmployeeDialog';
 import { EmployeeLeaveCard } from '../../features/absences/EmployeeLeaveCard';
+import { EmployeeCertificatesCard } from '../../features/certificates/EmployeeCertificatesCard';
 import { EmployeeHousingCard } from '../accommodations/EmployeeHousingCard';
 import { useAuth } from '../../auth/useAuth';
 import { paths } from '../../routes/paths';
@@ -230,6 +231,12 @@ export function EmployeeDetailPage() {
         {employee.type !== 'Subcontractor' && (
           <Grid size={12}>
             <EmployeeLeaveCard employeeId={employee.id} />
+          </Grid>
+        )}
+
+        {canManageAssignments(user) && (
+          <Grid size={12}>
+            <EmployeeCertificatesCard employeeId={employee.id} />
           </Grid>
         )}
 

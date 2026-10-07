@@ -50,6 +50,9 @@ public class PlanningDto
 
     /// <summary>Every position an employee currently holds, to offer when a project's needs are edited.</summary>
     public IReadOnlyList<string> Positions { get; init; } = [];
+
+    /// <summary>Every certificate name in use, workers and projects, to offer when one is entered.</summary>
+    public IReadOnlyList<string> CertificateNames { get; init; } = [];
 }
 
 public class PlanningProjectDto
@@ -71,6 +74,9 @@ public class PlanningProjectDto
     public bool WorksSundays { get; init; }
 
     public IReadOnlyList<PlanningNeedDto> Needs { get; init; } = [];
+
+    /// <summary>Certificates everybody posted here has to hold.</summary>
+    public IReadOnlyList<string> RequiredCertificates { get; init; } = [];
 }
 
 public class PlanningNeedDto
@@ -91,6 +97,16 @@ public class PlanningEmployeeDto
     public IReadOnlyList<PlanningPostingDto> Postings { get; init; } = [];
 
     public IReadOnlyList<PlanningAbsenceDto> Absences { get; init; } = [];
+
+    public IReadOnlyList<PlanningCertificateDto> Certificates { get; init; } = [];
+}
+
+public class PlanningCertificateDto
+{
+    public string Name { get; init; } = null!;
+
+    /// <summary>The last valid day. Null for one that does not expire.</summary>
+    public DateOnly? ValidUntil { get; init; }
 }
 
 public class PlanningPostingDto
@@ -182,8 +198,22 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
                     .OrderBy(n => n.Position)
                     .Select(n => new PlanningNeedDto { Position = n.Position, Count = n.Count })
                     .ToList(),
+                RequiredCertificates = p.CertificateRequirements.OrderBy(r => r.Name).Select(r => r.Name).ToList(),
             })
             .ToListAsync(cancellationToken);
+
+        var certificates = await _context.EmployeeCertificates
+            .AsNoTracking()
+            .Where(c => ids.Contains(c.EmployeeId))
+            .Select(c => new { c.EmployeeId, c.Name, c.ValidUntil })
+            .ToListAsync(cancellationToken);
+
+        var certificateNames = certificates.Select(c => c.Name)
+            .Concat(projects.SelectMany(p => p.RequiredCertificates))
+            .GroupBy(PositionKey.Of)
+            .Select(g => g.First())
+            .OrderBy(n => n)
+            .ToList();
 
         var positions = employees
             .Select(e => e.Position.Trim())
@@ -200,6 +230,7 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
             Today = DateOnly.FromDateTime(_clock.UtcNow),
             Projects = projects,
             Positions = positions,
+            CertificateNames = certificateNames,
             Employees = employees.Select(e => new PlanningEmployeeDto
             {
                 Id = e.Id,
@@ -209,6 +240,10 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
                 Absences = absences
                     .Where(a => a.EmployeeId == e.Id)
                     .Select(a => new PlanningAbsenceDto { Type = a.Type.ToString(), StartDate = a.StartDate, EndDate = a.EndDate })
+                    .ToList(),
+                Certificates = certificates
+                    .Where(c => c.EmployeeId == e.Id)
+                    .Select(c => new PlanningCertificateDto { Name = c.Name, ValidUntil = c.ValidUntil })
                     .ToList(),
             }).ToList(),
         };

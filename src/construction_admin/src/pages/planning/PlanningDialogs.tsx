@@ -46,7 +46,7 @@ export interface PlanningActions {
     options?: { onlyFree?: boolean },
   ) => Promise<void>;
   swap: (aId: string, bId: string, from: string, to: string) => Promise<void>;
-  saveNeeds: (projectId: string, needs: PlanningNeed[]) => Promise<void>;
+  saveNeeds: (projectId: string, needs: PlanningNeed[], requiredCertificates: string[]) => Promise<void>;
 }
 
 /** Runs an action, closing on success and showing the refusal in the dialog on failure. */
@@ -119,10 +119,11 @@ function useCandidateText() {
             ? t('planning.cand.surplusAt', { site: plan.projectById.get(c.fromProjectId ?? '')?.name ?? '' })
             : t('planning.cand.otherSkill');
 
-    if (c.tier === 3) return note;
+    const lacks = c.lacks.length > 0 ? ` · ${t('planning.cand.lacks', { list: c.lacks.join(', ') })}` : '';
+    if (c.tier === 3) return `${note}${lacks}`;
 
     const fit = c.tier <= 2 ? t('planning.cand.fits') : t('planning.cand.noFit');
-    return `${fit} · ${note}`;
+    return `${fit} · ${note}${lacks}`;
   };
 }
 
@@ -487,6 +488,7 @@ export function NeedsDialog({
   const [rows, setRows] = useState<{ position: string; count: string }[]>(
     () => (site?.needs ?? []).map((n) => ({ position: n.position, count: String(n.count) })),
   );
+  const [certificates, setCertificates] = useState<string[]>(() => site?.requiredCertificates ?? []);
   const { failure, pending, attempt } = useAttempt(onClose);
 
   if (!site) return null;
@@ -534,6 +536,15 @@ export function NeedsDialog({
               {t('planning.nd.add')}
             </Button>
           </Box>
+          <Autocomplete
+            multiple
+            freeSolo
+            size="small"
+            options={plan.certificateNames}
+            value={certificates}
+            onChange={(_, value) => setCertificates(value.map((v) => v.trim()).filter(Boolean))}
+            renderInput={(params) => <TextField {...params} label={t('planning.nd.certificates')} helperText={t('planning.nd.certificatesHelp')} />}
+          />
           {failure && <Alert severity="error">{failure}</Alert>}
         </Stack>
       </DialogContent>
@@ -547,6 +558,7 @@ export function NeedsDialog({
               actions.saveNeeds(
                 projectId,
                 rows.filter((r) => r.position.trim() !== '' && Number(r.count) > 0).map((r) => ({ position: r.position.trim(), count: Number(r.count) })),
+                certificates,
               ),
             )
           }

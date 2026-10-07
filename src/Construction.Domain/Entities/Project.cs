@@ -113,6 +113,9 @@ public class Project : BaseEntity, ISoftDeletable, IAuditable
     /// <summary>How many people of each position the site needs. See <see cref="ProjectStaffingNeed"/>.</summary>
     public ICollection<ProjectStaffingNeed> StaffingNeeds { get; set; } = new List<ProjectStaffingNeed>();
 
+    /// <summary>Certificates everybody posted here has to hold. See <see cref="ProjectCertificateRequirement"/>.</summary>
+    public ICollection<ProjectCertificateRequirement> CertificateRequirements { get; set; } = new List<ProjectCertificateRequirement>();
+
     public ICollection<Tool> AssignedTools { get; set; } = new List<Tool>();
 
     public ICollection<Vehicle> AssignedVehicles { get; set; } = new List<Vehicle>();

@@ -51,8 +51,8 @@ export function usePlanningActions() {
   const assign = useMutation({ mutationFn: (input: AssignInput) => planningApi.assign(input), onSuccess: refresh });
   const swap = useMutation({ mutationFn: (input: SwapInput) => planningApi.swap(input), onSuccess: refresh });
   const setNeeds = useMutation({
-    mutationFn: ({ projectId, needs }: { projectId: string; needs: PlanningNeed[] }) =>
-      planningApi.setNeeds(projectId, needs),
+    mutationFn: ({ projectId, needs, requiredCertificates }: { projectId: string; needs: PlanningNeed[]; requiredCertificates?: string[] }) =>
+      planningApi.setNeeds(projectId, needs, requiredCertificates),
     onSuccess: refresh,
   });
 

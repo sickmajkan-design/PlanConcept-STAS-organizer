@@ -44,6 +44,8 @@ export interface PlanPerson {
   position: string;
   key: string;
   cells: PlanCell[];
+  /** Certificates by name key, with the last valid day (null: never runs out). */
+  certificates: Map<string, string | null>;
 }
 
 export interface Plan {
@@ -55,6 +57,7 @@ export interface Plan {
   projects: PlanningProject[];
   projectById: Map<string, PlanningProject>;
   positions: string[];
+  certificateNames: string[];
   date: (index: number) => string;
   indexOf: (date: string) => number;
   /** People present on a site on a day, by `${projectId}|${positionKey}`. */
@@ -95,7 +98,9 @@ export function buildPlan(data: PlanningData): Plan {
       }
     }
 
-    return { id: e.id, name: e.fullName, position: e.position, key: positionKey(e.position), cells };
+    const certificates = new Map<string, string | null>((e.certificates ?? []).map((c) => [positionKey(c.name), c.validUntil]));
+
+    return { id: e.id, name: e.fullName, position: e.position, key: positionKey(e.position), cells, certificates };
   });
 
   const present: Map<string, number>[] = [];
@@ -135,6 +140,7 @@ export function buildPlan(data: PlanningData): Plan {
     projects: data.projects,
     projectById: new Map(data.projects.map((p) => [p.id, p])),
     positions: data.positions,
+    certificateNames: data.certificateNames ?? [],
     date,
     indexOf,
     present,
@@ -193,6 +199,18 @@ export function workdayIndexes(plan: Plan, from: number, to: number): number[] {
   return out;
 }
 
+/** The certificates the site requires that the person does not hold, valid, on every one of the days. */
+export function missingCertificates(plan: Plan, person: PlanPerson, projectId: string, days: number[]): string[] {
+  const required = plan.projectById.get(projectId)?.requiredCertificates ?? [];
+
+  return required.filter((name) => {
+    const key = positionKey(name);
+    if (!person.certificates.has(key)) return true;
+    const until = person.certificates.get(key);
+    return until !== null && days.some((i) => plan.date(i) > until!);
+  });
+}
+
 export type CandidateKind = 'free' | 'partial' | 'surplus' | 'otherSkill';
 
 export interface Candidate {
@@ -203,6 +221,8 @@ export interface Candidate {
   totalDays: number;
   /** The site the person would be taken from, for a surplus candidate. */
   fromProjectId?: string;
+  /** Certificates the site requires that this person does not hold on every one of the days. */
+  lacks: string[];
 }
 
 /**
@@ -226,7 +246,7 @@ export function candidates(
     if (person.id === personId || days.some((i) => person.cells[i].away)) continue;
 
     const freeDays = days.filter((i) => !person.cells[i].project).length;
-    const base = { person, freeDays, totalDays: days.length };
+    const base = { person, freeDays, totalDays: days.length, lacks: missingCertificates(plan, person, projectId, days) };
 
     if (person.key === subject.key) {
       if (freeDays === days.length) {
@@ -251,7 +271,8 @@ export function candidates(
     }
   }
 
-  return out.sort((a, b) => a.tier - b.tier || b.freeDays - a.freeDays || a.person.name.localeCompare(b.person.name));
+  // Within a kind, somebody who holds what the site requires comes before somebody who does not.
+  return out.sort((a, b) => a.tier - b.tier || a.lacks.length - b.lacks.length || b.freeDays - a.freeDays || a.person.name.localeCompare(b.person.name));
 }
 
 /** A stretch of approved absence of somebody who was posted to a site that is now short of their position. */
@@ -367,7 +388,7 @@ export function workdaysIn(column: Column): string[] {
   return out;
 }
 
-export type ConflictKind = 'double' | 'afterEnd' | 'beforeStart';
+export type ConflictKind = 'double' | 'afterEnd' | 'beforeStart' | 'certificate';
 
 export interface Conflict {
   person: PlanPerson;
@@ -375,6 +396,8 @@ export interface Conflict {
   projectId: string;
   /** The second site, for a double booking. */
   otherProjectId?: string;
+  /** The required certificate the person does not hold, for a certificate conflict. */
+  certificate?: string;
   from: string;
   to: string;
 }
@@ -396,17 +419,17 @@ export function conflicts(plan: Plan, from: number, to: number): Conflict[] {
 
     const days = workdayIndexes(plan, from, to);
 
-    const note = (i: number, kind: ConflictKind, projectId: string, otherProjectId?: string) => {
+    const note = (i: number, kind: ConflictKind, projectId: string, otherProjectId?: string, certificate?: string) => {
       const date = plan.date(i);
-      if (open && open.kind === kind && open.projectId === projectId && open.otherProjectId === otherProjectId && diffDays(open.to, date) <= (weekday(open.to) === 4 ? 3 : 1)) {
+      if (open && open.kind === kind && open.projectId === projectId && open.otherProjectId === otherProjectId && open.certificate === certificate && diffDays(open.to, date) <= (weekday(open.to) === 4 ? 3 : 1)) {
         open.to = date;
       } else {
         close();
-        open = { person, kind, projectId, otherProjectId, from: date, to: date };
+        open = { person, kind, projectId, otherProjectId, certificate, from: date, to: date };
       }
     };
 
-    for (const kind of ['double', 'outside'] as const) {
+    for (const kind of ['double', 'outside', 'certificate'] as const) {
       close();
 
       for (const i of days) {
@@ -415,11 +438,15 @@ export function conflicts(plan: Plan, from: number, to: number): Conflict[] {
 
         if (kind === 'double') {
           for (const other of cell.others) note(i, 'double', cell.project, other);
-        } else {
+        } else if (kind === 'outside') {
           const site = plan.projectById.get(cell.project);
           const date = plan.date(i);
           if (site?.endDate && date > site.endDate) note(i, 'afterEnd', cell.project);
           else if (site?.startDate && date < site.startDate) note(i, 'beforeStart', cell.project);
+        } else {
+          for (const name of missingCertificates(plan, person, cell.project, [i])) {
+            note(i, 'certificate', cell.project, undefined, name);
+          }
         }
       }
     }

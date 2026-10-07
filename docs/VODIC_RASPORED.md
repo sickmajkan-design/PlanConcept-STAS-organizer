@@ -84,24 +84,40 @@ Administracija > **Provjera podataka** (Admin i Super Admin) nabraja zapise koji
 
 Svaka grupa pokazuje ukupan broj i prvih 50 zapisa, svaki s linkom na mjesto gdje se popravlja. Ništa ovdje ne sprječava rad. Provjere koje su u redu navedene su na dnu.
 
-## 8. Ograničenja ove verzije
+## 8. Uvjerenja i osposobljenost
+
+Na stranici radnika (Voditelj i iznad) kartica **Uvjerenja i osposobljenost** nabraja za šta je radnik osposobljen i do kada: naziv (rad na visini, vozačka za viljuškar, zavarivanje), datum do kojeg važi (prazno: ne ističe) i napomena. Isto uvjerenje pisano drugačije velikim slovima ili s razmakom je isto uvjerenje, i radnik ga ne može imati dvaput.
+
+Projekat može tražiti uvjerenja od svih koji su raspoređeni na njega: u prikazu *Potreba po projektima*, olovka pored projekta, polje **Potrebna uvjerenja**.
+
+* **Upozorenje:** Raspored u kartici *Provjerite* piše kad je neko raspoređen na gradilište bez važećeg traženog uvjerenja, računajući dane poslije isteka. To je upozorenje, ne zabrana.
+* **Zamjene:** u listi prijedloga zamjenika, među istom vrstom prijedloga, prvi su oni koji imaju tražena uvjerenja, a ostalima piše šta nemaju.
+* **Ističu:** uvjerenja koja ističu u narednih 30 dana (i ona koja su istekla) prikazuju se u widgetu *Zahtijeva pažnju*. Podsjetnici porukom se ne šalju; za to služe dokumenti (skenovi) koji ističu.
+
+## 9. Zahtijeva pažnju
+
+Widget na početnoj stranici skuplja šta čeka tebe, samo ono što tvoja uloga može riješiti, s brojem i primjerima, a klik otvara stranicu gdje se rješava: zahtjevi za odsustvo, radni sati i troškovi vozila na pregledu, narudžbe i refundacije, DKV redovi koji se ne slažu, nepotvrđeni rasporedi, datumi vozila, dokumenti i uvjerenja koja ističu i zapisi za sređivanje iz Provjere podataka. Radnik i Predradnik ne vide ništa, jer nemaju šta da rješavaju.
+
+## 10. Ograničenja ove verzije
 
 * Radni dani su ponedjeljak–petak. Gradilišta koja rade subotom ili nedjeljom imaju te dane ako se radnik rasporedi na njih, ali potreba se tamo ne računa.
 * Potreba je jedan broj po vještini za cijeli projekat. Potreba koja se mijenja po sedmicama nije podržana.
 * Radnik ima jednu vještinu (svoju poziciju).
 * Raspored je vidljiv Voditeljima i iznad bez suženja po gradilištu, kao i stara tabla raspoređivanja.
 
-## 9. Za razvoj
+## 11. Za razvoj
 
 | Ruta | Ko | Šta |
 |---|---|---|
 | `GET /api/v1/planning?from&to&branchId` | Voditelj+ | Radnici s postavljanjima i odobrenim odsustvima, projekti s potrebom, pozicije. Najviše 400 dana |
 | `POST /api/v1/planning/assign` | Voditelj+ | `{employeeId, projectId \| null, from, to, onlyFreeDays}`: postavlja raspored za razdoblje |
 | `POST /api/v1/planning/swap` | Voditelj+ | `{employeeAId, employeeBId, from, to}`: razmjena u jednoj transakciji |
-| `PUT /api/v1/planning/projects/{id}/needs` | Voditelj+ | `{needs: [{position, count}]}`: zamjenjuje potrebu projekta |
+| `PUT /api/v1/planning/projects/{id}/needs` | Voditelj+ | `{needs: [{position, count}], requiredCertificates?: string[]}`: zamjenjuje potrebu projekta; bez `requiredCertificates` ostavlja tražena uvjerenja kakva jesu |
 | `POST /api/v1/postings/{id}/acknowledge` | svi zaposleni | Radnik potvrđuje svoj raspored; tuđi vraća 404 |
 | `GET /api/v1/data-quality` | Admin+ | Grupe zapisa za sređivanje |
+| `GET /api/v1/attention` | svi zaposleni | Šta čeka pozivaoca, ograničeno na ono što uloga može riješiti |
+| `GET, PUT /api/v1/employees/{id}/certificates`, `DELETE .../{certificateId}` | Voditelj+ | Uvjerenja radnika; PUT s `id` mijenja postojeće, bez njega dodaje |
 
-**Model:** `ProjectStaffingNeed` (projekat, pozicija, broj; u reviziji). Postavljanja i dalje čuva `EmployeeProject`. Rezanje i spajanje razdoblja je u `PostingRanges` (čista logika s testovima), a pravila manjka i prijedloga zamjene u `planningLogic.ts` na klijentu, koju koriste stranica i dijalog odobravanja odsustva.
+**Model:** `ProjectStaffingNeed` (projekat, pozicija, broj), `EmployeeCertificate` (radnik, naziv, važi do), `ProjectCertificateRequirement` (projekat, naziv); sve u reviziji. Postavljanja i dalje čuva `EmployeeProject`. Rezanje i spajanje razdoblja je u `PostingRanges` (čista logika s testovima), a pravila manjka i prijedloga zamjene u `planningLogic.ts` na klijentu, koju koriste stranica i dijalog odobravanja odsustva.
 
 **Testovi:** `PostingRangesTests` (unit), `PlanningTests` (integracijski, treba PostgreSQL), `planningLogic.test.ts`, `PlanningPage.test.tsx`, `ApproveAbsenceDialog.test.tsx`.

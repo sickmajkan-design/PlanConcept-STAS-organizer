@@ -49,6 +49,10 @@ public interface IApplicationDbContext
 
     DbSet<ProjectStaffingNeed> ProjectStaffingNeeds { get; }
 
+    DbSet<EmployeeCertificate> EmployeeCertificates { get; }
+
+    DbSet<ProjectCertificateRequirement> ProjectCertificateRequirements { get; }
+
     DbSet<Vehicle> Vehicles { get; }
 
     DbSet<Tool> Tools { get; }
