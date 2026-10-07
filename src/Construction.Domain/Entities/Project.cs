@@ -110,6 +110,9 @@ public class Project : BaseEntity, ISoftDeletable, IAuditable
 
     public ICollection<EmployeeProject> EmployeeAssignments { get; set; } = new List<EmployeeProject>();
 
+    /// <summary>How many people of each position the site needs. See <see cref="ProjectStaffingNeed"/>.</summary>
+    public ICollection<ProjectStaffingNeed> StaffingNeeds { get; set; } = new List<ProjectStaffingNeed>();
+
     public ICollection<Tool> AssignedTools { get; set; } = new List<Tool>();
 
     public ICollection<Vehicle> AssignedVehicles { get; set; } = new List<Vehicle>();

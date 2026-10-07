@@ -20,7 +20,6 @@ import {
   EventOutlined,
   ReceiptLongOutlined,
   TrendingUpOutlined,
-  DashboardCustomizeOutlined,
   GroupsOutlined,
   PeopleOutlined,
   BusinessOutlined,
@@ -41,7 +40,6 @@ import type { ReactNode } from 'react';
 
 import {
   canAdministerAccounts,
-  canManageAssignments,
   canManageInvoices,
   canSeeLabourCost,
   isSuperAdmin,
@@ -149,15 +147,6 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
                 path: paths.weeklyReports,
                 icon: <ScheduleSendOutlined />,
               },
-              ...(canManageAssignments(user)
-                ? [
-                    {
-                      label: t('nav.assignmentBoard'),
-                      path: paths.assignmentBoard,
-                      icon: <DashboardCustomizeOutlined />,
-                    },
-                  ]
-                : []),
             ],
           } satisfies NavGroup,
           {

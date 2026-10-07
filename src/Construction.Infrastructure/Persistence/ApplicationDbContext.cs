@@ -50,6 +50,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<EmployeeProject> EmployeeProjects => Set<EmployeeProject>();
 
+    public DbSet<ProjectStaffingNeed> ProjectStaffingNeeds => Set<ProjectStaffingNeed>();
+
     public DbSet<Vehicle> Vehicles => Set<Vehicle>();
 
     public DbSet<Tool> Tools => Set<Tool>();

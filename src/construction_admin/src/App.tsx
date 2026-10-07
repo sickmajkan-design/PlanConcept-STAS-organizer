@@ -6,7 +6,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { RouteErrorFallback } from './components/RouteErrorFallback';
 import { AppLayout } from './layout/AppLayout';
 import { BillingSettingsLayout, CostRecordsLayout } from './layout/SectionTabs';
-import { canViewFinance } from './auth/authHelpers';
+import { canManageAssignments, canViewFinance } from './auth/authHelpers';
 import { useAuth } from './auth/useAuth';
 import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
@@ -24,7 +24,6 @@ import {
   RequireInvoiceAccess,
   RequireLabourCostAccess,
   RequireNotCustomer,
-  RequireProjectManagerAccess,
   RequireSuperAdmin,
   RequireGuest,
 } from './routes/RequireAuth';
@@ -168,6 +167,15 @@ function BillingSettingsHome() {
   return <Navigate to={canViewFinance(user) ? paths.rates : paths.publicHolidays} replace />;
 }
 
+/**
+ * The schedule: the full planning screen for whoever may staff sites, and the read-only view of who
+ * is posted where for everybody else, as it has always been.
+ */
+function ScheduleRoute() {
+  const { user } = useAuth();
+  return canManageAssignments(user) ? <PlanningPage /> : <SchedulePage />;
+}
+
 const CompanyRevenuesPage = lazy(() =>
   import('./pages/finance/CompanyRevenuesPage').then((m) => ({ default: m.CompanyRevenuesPage })),
 );
@@ -262,14 +270,9 @@ const AnnualRealizationPlanPage = lazy(() =>
     default: m.AnnualRealizationPlanPage,
   })),
 );
-const AssignmentSchedulePage = lazy(() =>
-  import('./pages/assignments/AssignmentSchedulePage').then((m) => ({
-    default: m.AssignmentSchedulePage,
-  })),
-);
-const AssignmentBoardPage = lazy(() =>
-  import('./pages/assignments/AssignmentBoardPage').then((m) => ({
-    default: m.AssignmentBoardPage,
+const PlanningPage = lazy(() =>
+  import('./pages/planning/PlanningPage').then((m) => ({
+    default: m.PlanningPage,
   })),
 );
 const ExpiringDocumentsPage = lazy(() =>
@@ -447,7 +450,7 @@ function Layout() {
               <Route path={`${paths.accommodations}/:id`} element={<AccommodationDetailPage />} />
               <Route path={`${paths.accommodations}/:id/edit`} element={<AccommodationFormPage />} />
 
-              <Route path={paths.schedule} element={<SchedulePage />} />
+              <Route path={paths.schedule} element={<ScheduleRoute />} />
               <Route path={paths.absences} element={<AbsencesListPage />} />
               <Route path={paths.articleOrders} element={<ArticleOrdersPage />} />
               <Route path={paths.refunds} element={<RefundsPage />} />
@@ -466,10 +469,9 @@ function Layout() {
                 than account administration: project managers price jobs. */}
             {/* Reading the roster is directory access; moving people between
                 sites is a staffing call, so it gets its own narrower gate. */}
-            <Route element={<RequireProjectManagerAccess />}>
-              <Route path={paths.assignmentBoard} element={<AssignmentSchedulePage />} />
-              <Route path={paths.assignmentBoardClassic} element={<AssignmentBoardPage />} />
-            </Route>
+            {/* The two older boards were folded into the schedule; old links and bookmarks land there. */}
+            <Route path={paths.assignmentBoard} element={<Navigate to={paths.schedule} replace />} />
+            <Route path={paths.assignmentBoardClassic} element={<Navigate to={paths.schedule} replace />} />
 
             <Route element={<RequireLabourCostAccess />}>
               <Route path={paths.billingSettings} element={<BillingSettingsHome />} />

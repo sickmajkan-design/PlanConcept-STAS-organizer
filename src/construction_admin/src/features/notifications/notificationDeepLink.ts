@@ -117,7 +117,7 @@ export function resolveNotificationTarget(
       return paths.fuelReconciliation;
 
     case 'AbsenceNeedsCover':
-      return hasDirectory ? paths.assignmentBoard : null;
+      return hasDirectory ? paths.schedule : null;
 
     case 'AbsenceRequested':
     case 'AbsenceEditProposed':

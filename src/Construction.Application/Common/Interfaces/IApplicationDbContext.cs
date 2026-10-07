@@ -47,6 +47,8 @@ public interface IApplicationDbContext
 
     DbSet<EmployeeProject> EmployeeProjects { get; }
 
+    DbSet<ProjectStaffingNeed> ProjectStaffingNeeds { get; }
+
     DbSet<Vehicle> Vehicles { get; }
 
     DbSet<Tool> Tools { get; }

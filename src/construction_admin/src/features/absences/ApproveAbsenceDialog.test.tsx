@@ -132,4 +132,57 @@ describe('ApproveAbsenceDialog', () => {
       expect(review?.body).toEqual({ approve: true });
     });
   }, SCREEN_TIMEOUT);
+
+  describe('stand-in', () => {
+    const plan = {
+      from: '2026-10-20',
+      to: '2026-10-24',
+      today: '2026-10-07',
+      positions: ['Zidar'],
+      projects: [
+        { id: 'p1', name: 'Hala B', status: 'Active', customerName: null, startDate: null, endDate: null, worksSaturdays: false, worksSundays: false, needs: [{ position: 'Zidar', count: 1 }] },
+      ],
+      employees: [
+        { id: 'e1', fullName: 'Ana Novak', position: 'Zidar', postings: [{ projectId: 'p1', startDate: '2026-10-01', endDate: null }], absences: [] },
+        { id: 'e2', fullName: 'Marko Horvat', position: 'Zidar', postings: [], absences: [] },
+      ],
+    };
+
+    it('offers somebody free of the same position and posts them for the days of the leave', async () => {
+      network.reply('/absences/housing-impact', 200, { hasStay: false });
+      network.reply('/planning', 200, plan);
+      network.reply('/absences/a1/review', 200, { id: 'a1' });
+      network.reply('/planning/assign', 204);
+
+      await open('AnnualLeave');
+
+      await userEvent.click(await screen.findByRole('radio', { name: /Marko Horvat/ }));
+      await userEvent.click(screen.getByRole('button', { name: 'Grant' }));
+
+      await waitFor(() => {
+        const assign = network.calls.find((c) => c.url.includes('/planning/assign'));
+        expect(assign?.body).toMatchObject({
+          employeeId: 'e2',
+          projectId: 'p1',
+          from: '2026-10-20',
+          to: '2026-10-23',
+          onlyFreeDays: false,
+        });
+      });
+    }, SCREEN_TIMEOUT);
+
+    it('posts nobody when no stand-in is chosen', async () => {
+      network.reply('/absences/housing-impact', 200, { hasStay: false });
+      network.reply('/planning', 200, plan);
+      network.reply('/absences/a1/review', 200, { id: 'a1' });
+
+      await open('AnnualLeave');
+
+      await screen.findByRole('radio', { name: /Marko Horvat/ });
+      await userEvent.click(screen.getByRole('button', { name: 'Grant' }));
+
+      await waitFor(() => expect(network.calls.some((c) => c.url.includes('/absences/a1/review'))).toBe(true));
+      expect(network.calls.some((c) => c.url.includes('/planning/assign'))).toBe(false);
+    }, SCREEN_TIMEOUT);
+  });
 });

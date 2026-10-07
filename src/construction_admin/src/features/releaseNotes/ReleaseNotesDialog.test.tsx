@@ -58,8 +58,7 @@ describe('ReleaseNotesDialog', () => {
 
     await screen.findByText('Fuel check against the DKV statement');
     expect(screen.getByText('Search finds everything, and the phone app')).toBeDefined();
-    expect(screen.getByText('New assignment board')).toBeDefined();
-    expect(screen.getByText('Search finds everything, and the phone app')).toBeDefined();
+    expect(screen.getByText('New schedule: planning the workforce')).toBeDefined();
   }, SCREEN_TIMEOUT);
 
   it('is shown again for a new release', async () => {

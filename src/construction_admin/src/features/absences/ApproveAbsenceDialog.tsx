@@ -12,6 +12,9 @@ import {
 import { toApiError } from '../../api/apiError';
 import type { Absence } from '../../api/types';
 import { useT } from '../../i18n/useI18n';
+import { planningApi } from '../../api/planning';
+import { useQueryClient } from '@tanstack/react-query';
+import { AbsenceCoverageChoice, type CoverageChoice } from './AbsenceCoverageChoice';
 import { AbsenceHousingChoice, type HousingChoice } from './AbsenceHousingChoice';
 import { useReviewAbsence } from './useAbsences';
 
@@ -32,14 +35,19 @@ export function ApproveAbsenceDialog({
 }) {
   const t = useT();
   const review = useReviewAbsence();
+  const queryClient = useQueryClient();
   const [housing, setHousing] = useState<HousingChoice>({});
+  const [coverage, setCoverage] = useState<CoverageChoice | null>(null);
+  const [approved, setApproved] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
   const onHousing = useCallback((choice: HousingChoice) => setHousing(choice), []);
+  const onCoverage = useCallback((choice: CoverageChoice | null) => setCoverage(choice), []);
 
   const close = () => {
     setFailure(null);
+    setApproved(false);
     onClose();
   };
 
@@ -48,13 +56,33 @@ export function ApproveAbsenceDialog({
 
     setPending(true);
     setFailure(null);
+    let granted = approved;
 
     try {
       // Awaited, so a refusal (a conflict, a lost connection) is shown here instead of closing silently.
-      await review.mutateAsync({ id: absence.id, input: { approve: true, ...housing } });
+      if (!approved) {
+        await review.mutateAsync({ id: absence.id, input: { approve: true, ...housing } });
+        granted = true;
+        setApproved(true);
+      }
+
+      if (coverage) {
+        await planningApi.assign({
+          employeeId: coverage.employeeId,
+          projectId: coverage.projectId,
+          from: coverage.from,
+          to: coverage.to,
+          onlyFreeDays: coverage.onlyFreeDays,
+        });
+        void queryClient.invalidateQueries({ queryKey: ['planning'] });
+      }
+
+      setApproved(false);
       onClose();
     } catch (error) {
-      setFailure(toApiError(error).message);
+      const message = toApiError(error).message;
+      // The leave is already granted once we get here; say so, so it is not granted twice.
+      setFailure(granted ? t('planning.cover.failed', { message }) : message);
     } finally {
       setPending(false);
     }
@@ -72,6 +100,14 @@ export function ApproveAbsenceDialog({
             endDate={absence.endDate}
             type={absence.type}
             onChange={onHousing}
+          />
+        )}
+        {absence && !approved && (
+          <AbsenceCoverageChoice
+            employeeId={absence.employeeId}
+            startDate={absence.startDate}
+            endDate={absence.endDate}
+            onChange={onCoverage}
           />
         )}
         {failure && (
