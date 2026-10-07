@@ -166,7 +166,7 @@ export function TimelineView({
         </Box>
       </Stack>
 
-      <Paper variant="outlined" sx={{ borderRadius: 2.5, overflowX: 'auto' }}>
+      <Paper data-tour="timeline" variant="outlined" sx={{ borderRadius: 2.5, overflowX: 'auto' }}>
         <Box
           component="table"
           sx={{

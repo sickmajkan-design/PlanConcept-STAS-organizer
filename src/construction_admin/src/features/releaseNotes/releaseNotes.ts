@@ -29,6 +29,7 @@ export const releaseSections: ReleaseSection[] = [
       'releaseNotes.plan1007.move',
       'releaseNotes.plan1007.need',
       'releaseNotes.plan1007.cover',
+      'releaseNotes.plan1007.guide',
       'releaseNotes.plan1007.limits',
     ],
     audience: (user) =>

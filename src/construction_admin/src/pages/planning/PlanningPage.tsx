@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
+import { useAuth } from '../../auth/useAuth';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
 import {
@@ -33,6 +34,7 @@ import { ListView } from './ListView';
 import { NeedView } from './NeedView';
 import { NeedsDialog, ReplaceDialog, SiteDialog, WorkerDialog, type PlanningActions } from './PlanningDialogs';
 import { TimelineView } from './TimelineView';
+import { PlanningTour } from './PlanningTour';
 import { fetchWindow, shortDate, WEEKDAYS } from './planningUi';
 
 type View = 'day' | 'timeline' | 'need' | 'list';
@@ -75,6 +77,25 @@ export function PlanningPage() {
   const [panel, setPanel] = useState<Panel | null>(null);
   const [undo, setUndo] = useState<{ message: string; run: () => Promise<void> } | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
+  const { user } = useAuth();
+  const tourKey = `planning.tour.seen.${user?.id ?? ''}`;
+  const [tourOpen, setTourOpen] = useState(false);
+  const [offerTour, setOfferTour] = useState(() => {
+    try {
+      return window.localStorage.getItem(tourKey) !== '1';
+    } catch {
+      return false;
+    }
+  });
+
+  const rememberTour = () => {
+    setOfferTour(false);
+    try {
+      window.localStorage.setItem(tourKey, '1');
+    } catch {
+      /* the offer simply shows again next time */
+    }
+  };
 
   const window_ = fetchWindow(range, focusDay, today, MAX_WINDOW_DAYS);
   const { plan, error, isLoading, refetch } = usePlanningQuery(window_.from, window_.to);
@@ -183,9 +204,37 @@ export function PlanningPage() {
 
   return (
     <Box>
-      <PageHeader title={t('planning.title')} description={t('planning.description')} />
+      <PageHeader
+        title={t('planning.title')}
+        description={t('planning.description')}
+        secondaryActions={
+          <Button variant="outlined" size="small" onClick={() => { rememberTour(); setTourOpen(true); }}>
+            {t('planning.tour.button')}
+          </Button>
+        }
+      />
+
+      {offerTour && (
+        <Alert
+          severity="info"
+          sx={{ mb: 2 }}
+          action={
+            <Stack direction="row" spacing={1}>
+              <Button color="inherit" size="small" onClick={rememberTour}>
+                {t('planning.tour.dismiss')}
+              </Button>
+              <Button variant="contained" size="small" onClick={() => { rememberTour(); setTourOpen(true); }}>
+                {t('planning.tour.start')}
+              </Button>
+            </Stack>
+          }
+        >
+          {t('planning.tour.offer')}
+        </Alert>
+      )}
 
       <ToggleButtonGroup
+        data-tour="tabs"
         exclusive
         value={view}
         onChange={(_, next: View | null) => next && setView(next)}
@@ -205,9 +254,13 @@ export function PlanningPage() {
         ))}
       </ToggleButtonGroup>
 
-      {plan && <NeedBanner plan={plan} today={today} onFind={(item) => setPanel({ kind: 'replace', item })} />}
+      {plan && (
+        <Box data-tour="banner">
+          <NeedBanner plan={plan} today={today} onFind={(item) => setPanel({ kind: 'replace', item })} />
+        </Box>
+      )}
 
-      <Stack direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', my: 2 }}>
+      <Stack data-tour="controls" direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', my: 2 }}>
         {periodView ? (
           <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', alignItems: 'center' }}>
             <ToggleButtonGroup size="small" exclusive value={mode} onChange={(_, next: RangeMode | null) => next && chooseMode(next)} sx={{ maxWidth: '100%', '& .MuiToggleButton-root': { px: { xs: 0.75, sm: 1.5 } } }}>
@@ -255,7 +308,11 @@ export function PlanningPage() {
           </Stack>
         )}
 
-        {plan && <Summary plan={plan} view={view} day={dayIndex} range={range} />}
+        {plan && (
+          <Box data-tour="summary">
+            <Summary plan={plan} view={view} day={dayIndex} range={range} />
+          </Box>
+        )}
       </Stack>
 
       {error && !plan && <ErrorState error={error} onRetry={() => void refetch()} />}
@@ -287,6 +344,8 @@ export function PlanningPage() {
           {panel?.kind === 'needs' && <NeedsDialog key={panel.projectId} plan={plan} projectId={panel.projectId} actions={actions} onClose={() => setPanel(null)} />}
         </>
       )}
+
+      <PlanningTour open={tourOpen} onClose={() => setTourOpen(false)} setView={setView} />
 
       <Snackbar
         open={!!undo}

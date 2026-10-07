@@ -74,7 +74,7 @@ export function DayView({ plan, day, openWorker, openSite }: ViewProps & { day: 
 
   return (
     <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: 'minmax(0,1fr)', md: 'minmax(0,1fr) 280px' }, alignItems: 'start' }}>
-      <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
+      <Box data-tour="day-sites" sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
         {sites.length === 0 && <Typography color="text.secondary">{t('planning.day.noSites')}</Typography>}
 
         {sites.map((site) => {

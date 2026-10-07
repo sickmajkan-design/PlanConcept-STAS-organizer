@@ -150,4 +150,35 @@ describe('PlanningPage', () => {
       expect(restores.length).toBeGreaterThan(0);
     });
   }, SCREEN_TIMEOUT);
+
+  it('offers a guided tour the first time and walks through the views, switching them as it goes', async () => {
+    network.reply('/planning', 200, plan());
+
+    await renderPage();
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Start the tour' }));
+    expect(await screen.findByText('Welcome to the Schedule')).toBeDefined();
+    expect(screen.getByText('Step 1 of 13')).toBeDefined();
+
+    // Through to the needs step: the tour has switched to that view by itself.
+    for (let i = 0; i < 6; i++) await userEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(await screen.findByText('Step 7 of 13')).toBeDefined();
+    expect(await screen.findByText('Aldi Hall')).toBeDefined();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Back' }));
+    expect(screen.getByText('Click to move or swap')).toBeDefined();
+
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByText('Click to move or swap')).toBeNull());
+  }, SCREEN_TIMEOUT);
+
+  it('does not offer the tour again once it has been seen', async () => {
+    network.reply('/planning', 200, plan());
+
+    await renderPage();
+    await userEvent.click(await screen.findByRole('button', { name: 'Not now' }));
+
+    expect(screen.queryByRole('button', { name: 'Start the tour' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Schedule guide' })).toBeDefined();
+  }, SCREEN_TIMEOUT);
 });

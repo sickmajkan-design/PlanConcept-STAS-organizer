@@ -38,7 +38,7 @@ export function ListView({ plan, day, setSite }: ViewProps & { day: number; setS
         ))}
       </Stack>
 
-      <Paper variant="outlined" sx={{ borderRadius: 2.5, overflowX: 'auto' }}>
+      <Paper data-tour="list" variant="outlined" sx={{ borderRadius: 2.5, overflowX: 'auto' }}>
         <table style={{ width: '100%', minWidth: 540, borderCollapse: 'collapse' }}>
           <thead>
             <tr>

@@ -2,6 +2,10 @@
 
 Za Voditelje, Admine i Super Admina. Opisuje novu stranicu **Raspored** (7. oktobar 2026.), koja zamjenjuje stari Raspored i Tablu raspoređivanja. Stari linkovi (`/assignment-board`) vode na nju. Predradnici i niži i dalje vide raniji pregled ko je gdje.
 
+## Vodič kroz stranicu
+
+Dugme **Vodič kroz Raspored** (gore desno) pokreće interaktivni obilazak od 13 koraka, oko minut: osvijetli stvarne dijelove stranice (prikaze, razdoblje, traku, potrebu, zamjenu), sam prebacuje prikaze i opisuje šta se u njima radi. Kreće se dugmadima ili strelicama na tastaturi, a Esc ga prekida. Pri prvom otvaranju stranice nudi se sam, a ako se odbije, ne pita ponovo.
+
 ## 1. Četiri prikaza
 
 | Prikaz | Za šta služi |

@@ -99,7 +99,7 @@ export function NeedView({
         {t('planning.n.note')}
       </Typography>
 
-      <Paper variant="outlined" sx={{ borderRadius: 2.5, overflowX: 'auto' }}>
+      <Paper data-tour="need-table" variant="outlined" sx={{ borderRadius: 2.5, overflowX: 'auto' }}>
         <Box
           component="table"
           sx={{
@@ -197,7 +197,7 @@ export function NeedView({
       </Paper>
 
       {skills.length > 0 && (
-        <Box>
+        <Box data-tour="skills">
           <Typography variant="h6" sx={{ mb: 1 }}>
             {t('planning.n.bySkill')}
           </Typography>
