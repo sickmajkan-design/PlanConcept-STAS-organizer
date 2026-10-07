@@ -24,7 +24,7 @@ describe('ReleaseNotesDialog', () => {
     const { unmount } = renderScreen(<ReleaseNotesDialog />, { user: operator });
 
     expect(await screen.findByText(/What's new/)).toBeDefined();
-    expect(screen.getByText('Data check, schedule warnings and confirmation on the phone')).toBeDefined();
+    expect(screen.getByText('Schedule history and housing')).toBeDefined();
 
     await user.click(screen.getByRole('button', { name: 'Got it' }));
     await waitFor(() => expect(screen.queryByText(/What's new/)).toBeNull());
@@ -41,7 +41,6 @@ describe('ReleaseNotesDialog', () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('Foreman') });
 
     await new Promise((resolve) => setTimeout(resolve, 50));
-    expect(screen.queryByText('Data check, schedule warnings and confirmation on the phone')).toBeNull();
     expect(screen.queryByText('Business units')).toBeNull();
     expect(screen.queryByText('Needs attention, and certificates')).toBeNull();
   }, SCREEN_TIMEOUT);
@@ -56,7 +55,7 @@ describe('ReleaseNotesDialog', () => {
   it('tells an administrator about everything meant for administrators', async () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('SuperAdmin') });
 
-    await screen.findByText('Data check, schedule warnings and confirmation on the phone');
+    await screen.findByText('Schedule history and housing');
     expect(screen.getByText('Foremen on the Schedule')).toBeDefined();
     expect(screen.getByText('Planned labour cost')).toBeDefined();
   }, SCREEN_TIMEOUT);

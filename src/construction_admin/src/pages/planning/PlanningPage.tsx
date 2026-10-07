@@ -38,6 +38,7 @@ import { CostView } from './CostView';
 import { DayView } from './DayView';
 import { ListView } from './ListView';
 import { NeedView } from './NeedView';
+import { HistoryDialog } from './HistoryDialog';
 import { NeedsDialog, ReplaceDialog, SiteDialog, WorkerDialog, type PlanningActions } from './PlanningDialogs';
 import { TimelineView } from './TimelineView';
 import { PlanningTour } from './PlanningTour';
@@ -86,6 +87,7 @@ export function PlanningPage() {
   const { user } = useAuth();
   const tourKey = `planning.tour.seen.${user?.id ?? ''}`;
   const [tourOpen, setTourOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [offerTour, setOfferTour] = useState(() => {
     try {
       return window.localStorage.getItem(tourKey) !== '1';
@@ -229,6 +231,9 @@ export function PlanningPage() {
         secondaryActions={
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
             <ExportButton onExport={(language) => exportsApi.schedule({ ...exportRange, language })} />
+            <Button variant="outlined" size="small" onClick={() => setHistoryOpen(true)}>
+              {t('planning.history.button')}
+            </Button>
             {!readOnly && (
               <Button variant="outlined" size="small" onClick={() => { rememberTour(); setTourOpen(true); }}>
                 {t('planning.tour.button')}
@@ -380,6 +385,7 @@ export function PlanningPage() {
         </>
       )}
 
+      {historyOpen && <HistoryDialog onClose={() => setHistoryOpen(false)} />}
       <PlanningTour open={tourOpen} onClose={() => setTourOpen(false)} setView={setView} />
 
       <Snackbar

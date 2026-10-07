@@ -90,6 +90,10 @@ Svaka grupa pokazuje ukupan broj i prvih 50 zapisa, svaki s linkom na mjesto gdj
 * Kartica *Provjerite* javlja kad je neko **smješten, a nigdje raspoređen** radnim danima, a nije na odsustvu: ležaj se plaća, a niko ga ne koristi. Odsustvo se ne javlja, jer se smještaj tada rješava pri odobravanju odsustva.
 * Raspored ne zna odakle radnik dolazi, pa ne predlaže smještaj; to je i dalje na stranici Smještaj.
 
+## 7b. Povijest promjena
+
+Gumb **Povijest** u zaglavlju Rasporeda otvara popis zadnjih 100 promjena: ko je koga rasporedio na koje gradilište, ko je promijenio dane i ko je raspored uklonio, s datumom i vremenom. Podaci dolaze iz revizijskog zapisa platforme, pa je popis onoliko potpun koliko je i taj zapis. Poslovođa vidi samo ljude svoje poslovne jedinice. Pregled je samo za čitanje.
+
 ## 8. Uvjerenja i osposobljenost
 
 Na stranici radnika (Voditelj i iznad) kartica **Uvjerenja i osposobljenost** nabraja za šta je radnik osposobljen i do kada: naziv (rad na visini, vozačka za viljuškar, zavarivanje), datum do kojeg važi (prazno: ne ističe) i napomena. Isto uvjerenje pisano drugačije velikim slovima ili s razmakom je isto uvjerenje, i radnik ga ne može imati dvaput.

@@ -42,6 +42,18 @@ public class PlanningController : ApiControllerBase
         return Ok(await Mediator.Send(query, cancellationToken));
     }
 
+    /// <summary>Who changed the schedule and when, newest first.</summary>
+    [HttpGet("/api/v{version:apiVersion}/planning/history")]
+    [HttpGet("/api/planning/history")]
+    [ProducesResponseType(typeof(IReadOnlyList<PlanningHistoryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<IReadOnlyList<PlanningHistoryDto>>> History(
+        [FromQuery] GetPlanningHistoryQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
     /// <summary>Puts an employee on a project (or frees them) for a range of days.</summary>
     [HttpPost("/api/v{version:apiVersion}/planning/assign")]
     [HttpPost("/api/planning/assign")]

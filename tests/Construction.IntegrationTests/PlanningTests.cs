@@ -48,6 +48,26 @@ public class PlanningTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task The_history_says_who_posted_somebody_where_and_who_shortened_it()
+    {
+        var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));
+        var site = await InScope(scope => TestData.SeedProjectAsync(scope));
+
+        await Assign(employee.Id, site.Id, 3, 20);
+        await Assign(employee.Id, null, 15, 20);
+
+        var history = await InScopeAs(UserRole.Admin, scope => scope.Send(new GetPlanningHistoryQuery { EmployeeId = employee.Id }));
+
+        Assert.Equal(2, history.Count);
+        Assert.Equal("Created", history[1].Action);
+        Assert.Equal(site.Name, history[1].ProjectName);
+        Assert.Equal(D(3), history[1].StartDate);
+        Assert.Equal("Updated", history[0].Action);
+        Assert.Equal(D(20).ToString("yyyy-MM-dd"), history[0].Changes["EndDate"].From);
+        Assert.Equal(D(14).ToString("yyyy-MM-dd"), history[0].Changes["EndDate"].To);
+    }
+
+    [Fact]
     public async Task Moving_someone_for_a_week_splits_their_longer_stay_and_sending_it_twice_changes_nothing()
     {
         var employee = await InScope(scope => TestData.SeedEmployeeAsync(scope));

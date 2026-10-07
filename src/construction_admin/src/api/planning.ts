@@ -130,7 +130,24 @@ export interface SwapInput {
 }
 
 /** Reads and actions behind the scheduling screen. Every action sets a range outright, so a retry is harmless. */
+export interface PlanningHistoryEntry {
+  id: number;
+  occurredAt: string;
+  action: 'Created' | 'Updated' | 'Deleted';
+  employeeId: string | null;
+  employeeName: string | null;
+  projectId: string | null;
+  projectName: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  byEmail: string | null;
+  changes: Record<string, { from: string | null; to: string | null }>;
+}
+
 export const planningApi = {
+  history: (query: { employeeId?: string; projectId?: string; take?: number } = {}) =>
+    request<PlanningHistoryEntry[]>({ method: 'GET', url: '/api/v1/planning/history', params: query }),
+
   get: (query: PlanningQuery) =>
     request<PlanningData>({
       method: 'GET',
