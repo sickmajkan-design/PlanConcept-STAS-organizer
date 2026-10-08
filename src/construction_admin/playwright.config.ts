@@ -73,7 +73,7 @@ export default defineConfig({
       name: 'desktop',
       // The tablet specs are about a viewport, so running them at 1280 as
       // well would assert nothing and fail on the drawer being visible.
-      testIgnore: /layout\.spec\.ts/,
+      testIgnore: /(layout|phone)\.spec\.ts/,
       use: {
         ...devices['Desktop Chrome'],
         // Set this when the machine already has a Chromium that Playwright
@@ -93,6 +93,19 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 834, height: 1112 },
+        launchOptions: process.env.PLAYWRIGHT_CHROMIUM_PATH
+          ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH }
+          : {},
+      },
+    },
+    {
+      // Opening the platform in a phone's browser has to be enough to run the business
+      // from. Emulates a touch screen, which is also what turns on the theme's 44-pixel
+      // touch targets (`pointer: coarse`).
+      name: 'phone',
+      testMatch: /phone\.spec\.ts/,
+      use: {
+        ...devices['Pixel 7'],
         launchOptions: process.env.PLAYWRIGHT_CHROMIUM_PATH
           ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH }
           : {},

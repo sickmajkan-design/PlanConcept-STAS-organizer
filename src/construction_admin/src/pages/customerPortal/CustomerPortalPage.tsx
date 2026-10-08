@@ -44,7 +44,7 @@ export function CustomerPortalPage() {
   const { data, isLoading, isError, error, refetch } = useMyCustomerProjectsQuery();
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default' }}>
       <AppBar position="static" color="default" elevation={0} sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Toolbar>
           <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 700 }}>

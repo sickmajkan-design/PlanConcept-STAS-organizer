@@ -73,7 +73,7 @@ export function LiveMapPage() {
   const selected = locations?.find((l) => l.employeeId === selectedEmployeeId);
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 112px)' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 112px)' }}>
       <PageHeader
         title={t('map.title')}
         subtitle={

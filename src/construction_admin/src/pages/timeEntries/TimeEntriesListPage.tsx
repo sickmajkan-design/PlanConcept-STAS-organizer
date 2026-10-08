@@ -38,6 +38,7 @@ import { ReasonDialog } from '../../components/ReasonDialog';
 import { EmptyState } from '../../components/EmptyState';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
+import { FilterBar } from '../../components/FilterBar';
 import { SearchField } from '../../components/SearchField';
 import { StatusLegend } from '../../components/StatusLegend';
 import {
@@ -274,9 +275,9 @@ export function TimeEntriesListPage() {
       />
 
       <Stack
-        direction={{ xs: 'column', sm: 'row' }}
+        direction="row"
         spacing={2}
-        sx={{ mb: 2, alignItems: { sm: 'center' }, flexWrap: 'wrap', rowGap: 1.5 }}
+        sx={{ mb: 1.5, alignItems: 'center', flexWrap: 'wrap', rowGap: 1 }}
       >
         <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
           <IconButton size="small" onClick={() => setDate((d) => shiftDate(d, -1))}>
@@ -310,12 +311,31 @@ export function TimeEntriesListPage() {
           label={t('timeEntries.openOnly')}
         />
 
-        <SearchField
-          value={search}
-          onChange={setSearch}
-          placeholder={t('timeEntries.searchProjects')}
-        />
+        {canReview && (
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<PlaylistAddCheckOutlined fontSize="small" />}
+            onClick={() => setReviewQueueOpen(true)}
+          >
+            {t('timeEntries.reviewQueue')}
+          </Button>
+        )}
+      </Stack>
 
+      {/* The day, the two switches and the review queue — what is needed to
+          approve hours from a phone — stay in view; searching, sorting and the
+          legends fold away on a small screen so the cards start above the fold. */}
+      <FilterBar
+        activeCount={cardSort !== 'startedAt' ? 1 : 0}
+        search={
+          <SearchField
+            value={search}
+            onChange={setSearch}
+            placeholder={t('timeEntries.searchProjects')}
+          />
+        }
+      >
         <FormControl size="small" sx={{ minWidth: 180 }}>
           <InputLabel id="te-card-sort-label">{t('timeEntries.sortCards')}</InputLabel>
           <Select
@@ -333,21 +353,11 @@ export function TimeEntriesListPage() {
         <Button size="small" onClick={() => navigate(paths.timeEntrySummary)}>
           {t('timeEntries.summary')}
         </Button>
-        {canReview && (
-          <Button
-            size="small"
-            variant="outlined"
-            startIcon={<PlaylistAddCheckOutlined fontSize="small" />}
-            onClick={() => setReviewQueueOpen(true)}
-          >
-            {t('timeEntries.reviewQueue')}
-          </Button>
-        )}
         <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
           <StatusLegend kind="timeEntryStatus" values={timeEntryStatuses} />
           <CheckInLegend />
         </Stack>
-      </Stack>
+      </FilterBar>
 
       {isError && <ErrorState error={error} onRetry={() => void refetch()} />}
 

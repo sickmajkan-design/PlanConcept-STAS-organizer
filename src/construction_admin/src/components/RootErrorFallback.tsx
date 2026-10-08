@@ -16,7 +16,7 @@ import type { CSSProperties } from 'react';
  * Two short sentences cost less than a screen that cannot render at all.
  */
 const container: CSSProperties = {
-  minHeight: '100vh',
+  minHeight: '100dvh',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',

@@ -15,7 +15,7 @@ export function RequireAuth() {
       <Box
         sx={{
           display: 'flex',
-          height: '100vh',
+          height: '100dvh',
           alignItems: 'center',
           justifyContent: 'center',
         }}

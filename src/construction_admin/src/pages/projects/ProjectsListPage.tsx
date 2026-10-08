@@ -43,6 +43,7 @@ import { PageHeader } from '../../components/PageHeader';
 import { DocumentCountBadge } from '../../components/DocumentCountBadge';
 import { RowActions } from '../../components/RowActions';
 import { SavedViewsBar } from '../../components/SavedViewsBar';
+import { FilterBar } from '../../components/FilterBar';
 import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
 import { StatusLegend } from '../../components/StatusLegend';
@@ -211,12 +212,16 @@ export function ProjectsListPage() {
         }}
       />
 
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ flexWrap: 'wrap', mb: 2 }}>
-        <SearchField
-          value={list.search}
-          onChange={list.setSearch}
-          placeholder={t('projects.searchPlaceholder')}
-        />
+      <FilterBar
+        activeCount={(list.filter ? 1 : 0) + (customerFilter ? 1 : 0)}
+        search={
+          <SearchField
+            value={list.search}
+            onChange={list.setSearch}
+            placeholder={t('projects.searchPlaceholder')}
+          />
+        }
+      >
         {!isBoard && (
         <FormControl size="small" sx={{ minWidth: 180 }}>
           <InputLabel id="project-status-filter-label">{t('projects.status')}</InputLabel>
@@ -266,7 +271,7 @@ export function ProjectsListPage() {
             exportsApi.projects({ search: list.search, status: list.filter, language })
           }
         />
-      </Stack>
+      </FilterBar>
 
       <Box sx={{ mb: 2 }}>
         <SavedViewsBar

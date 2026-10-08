@@ -77,7 +77,13 @@ export function PlanningPage() {
   const navigate = useNavigate();
   const today = useMemo(todayLocal, []);
 
-  const [view, setView] = useState<View>('timeline');
+  // The timeline is a wide grid meant for a desk; on a phone the answer people come
+  // for is "who is on which site today", which the by-site view gives in one column.
+  const [view, setView] = useState<View>(() =>
+    typeof window !== 'undefined' && window.matchMedia?.('(max-width: 599.95px)').matches
+      ? 'day'
+      : 'timeline',
+  );
   const [focusDay, setFocusDay] = useState(today);
   const [mode, setMode] = useState<RangeMode>('M');
   const [range, setRange] = useState(() => rangeFor('M', today, { from: today, to: today }));

@@ -38,6 +38,7 @@ import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { DocumentCountBadge } from '../../components/DocumentCountBadge';
 import { RowActions } from '../../components/RowActions';
 import { SavedViewsBar } from '../../components/SavedViewsBar';
+import { FilterBar } from '../../components/FilterBar';
 import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
 import { StatusLegend } from '../../components/StatusLegend';
@@ -231,12 +232,16 @@ export function EmployeesListPage() {
 
       <ImportEmployeesDialog open={importing} onClose={() => setImporting(false)} />
 
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ flexWrap: 'wrap', mb: 2 }}>
-        <SearchField
-          value={list.search}
-          onChange={list.setSearch}
-          placeholder={t('employees.searchPlaceholder')}
-        />
+      <FilterBar
+        activeCount={(list.filter ? 1 : 0) + (typeFilter ? 1 : 0)}
+        search={
+          <SearchField
+            value={list.search}
+            onChange={list.setSearch}
+            placeholder={t('employees.searchPlaceholder')}
+          />
+        }
+      >
         {!isBoard && (
         <FormControl size="small" sx={{ minWidth: 180 }}>
           <InputLabel id="status-filter-label">{t('employees.status')}</InputLabel>
@@ -286,7 +291,7 @@ export function EmployeesListPage() {
             exportsApi.employees({ search: list.search, status: list.filter, language })
           }
         />
-      </Stack>
+      </FilterBar>
 
       <Box sx={{ mb: 2 }}>
         <SavedViewsBar

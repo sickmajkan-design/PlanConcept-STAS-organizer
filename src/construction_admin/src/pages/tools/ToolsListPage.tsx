@@ -44,6 +44,7 @@ import { DocumentCountBadge } from '../../components/DocumentCountBadge';
 import { RowActions } from '../../components/RowActions';
 import { RowPhotoCell } from '../../components/RowPhotoCell';
 import { SavedViewsBar } from '../../components/SavedViewsBar';
+import { FilterBar } from '../../components/FilterBar';
 import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
 import { StatusLegend } from '../../components/StatusLegend';
@@ -255,12 +256,16 @@ export function ToolsListPage() {
         </Typography>
       )}
 
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ flexWrap: 'wrap', mb: 2 }}>
-        <SearchField
-          value={list.search}
-          onChange={list.setSearch}
-          placeholder={t('tools.searchPlaceholder')}
-        />
+      <FilterBar
+        activeCount={(list.filter ? 1 : 0) + (incompleteOnly ? 1 : 0)}
+        search={
+          <SearchField
+            value={list.search}
+            onChange={list.setSearch}
+            placeholder={t('tools.searchPlaceholder')}
+          />
+        }
+      >
         {!isBoard && (
         <FormControl size="small" sx={{ minWidth: 180 }}>
           <InputLabel id="tool-status-filter-label">{t('tools.status')}</InputLabel>
@@ -307,7 +312,7 @@ export function ToolsListPage() {
             exportsApi.tools({ search: list.search, status: list.filter, language })
           }
         />
-      </Stack>
+      </FilterBar>
 
       <Box sx={{ mb: 2 }}>
         <SavedViewsBar

@@ -27,6 +27,7 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { SavedViewsBar } from '../../components/SavedViewsBar';
+import { FilterBar } from '../../components/FilterBar';
 import { SearchField } from '../../components/SearchField';
 import { useAuth } from '../../auth/useAuth';
 import {
@@ -203,12 +204,16 @@ export function UsersListPage() {
         }}
       />
 
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ flexWrap: 'wrap', mb: 2 }}>
-        <SearchField
-          value={list.search}
-          onChange={list.setSearch}
-          placeholder={t('users.searchPlaceholder')}
-        />
+      <FilterBar
+        activeCount={list.filter ? 1 : 0}
+        search={
+          <SearchField
+            value={list.search}
+            onChange={list.setSearch}
+            placeholder={t('users.searchPlaceholder')}
+          />
+        }
+      >
         <FormControl size="small" sx={{ minWidth: 180 }}>
           <InputLabel id="user-role-filter-label">{t('users.role')}</InputLabel>
           <Select
@@ -227,7 +232,7 @@ export function UsersListPage() {
             ))}
           </Select>
         </FormControl>
-      </Stack>
+      </FilterBar>
 
       {list.savedViews && (
         <Box sx={{ mb: 2 }}>

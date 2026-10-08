@@ -44,6 +44,7 @@ import { DocumentCountBadge } from '../../components/DocumentCountBadge';
 import { RowActions } from '../../components/RowActions';
 import { RowPhotoCell } from '../../components/RowPhotoCell';
 import { SavedViewsBar } from '../../components/SavedViewsBar';
+import { FilterBar } from '../../components/FilterBar';
 import { SearchField } from '../../components/SearchField';
 import { StatusChip } from '../../components/StatusChip';
 import { StatusLegend } from '../../components/StatusLegend';
@@ -356,12 +357,16 @@ export function VehiclesListPage() {
         </Typography>
       )}
 
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ flexWrap: 'wrap', mb: 2 }}>
-        <SearchField
-          value={list.search}
-          onChange={list.setSearch}
-          placeholder={t('vehicles.searchPlaceholder')}
-        />
+      <FilterBar
+        activeCount={(list.filter ? 1 : 0) + (ownershipFilter ? 1 : 0) + (incompleteOnly ? 1 : 0)}
+        search={
+          <SearchField
+            value={list.search}
+            onChange={list.setSearch}
+            placeholder={t('vehicles.searchPlaceholder')}
+          />
+        }
+      >
         {!isBoard && (
         <FormControl size="small" sx={{ minWidth: 180 }}>
           <InputLabel id="vehicle-status-filter-label">{t('vehicles.status')}</InputLabel>
@@ -427,7 +432,7 @@ export function VehiclesListPage() {
             exportsApi.vehicles({ search: list.search, status: list.filter, language })
           }
         />
-      </Stack>
+      </FilterBar>
 
       <Box sx={{ mb: 2 }}>
         <SavedViewsBar

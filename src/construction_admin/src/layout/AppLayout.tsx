@@ -7,6 +7,7 @@ import {
   ExpandMore,
   HelpOutlined,
   KeyboardOutlined,
+  MoreHorizOutlined,
   SearchOutlined,
   StarOutlined,
   StarBorderOutlined,
@@ -15,6 +16,8 @@ import {
   AppBar,
   Avatar,
   Badge,
+  BottomNavigation,
+  BottomNavigationAction,
   Box,
   Breadcrumbs,
   ClickAwayListener,
@@ -76,6 +79,25 @@ import { isTypingTarget, ShortcutsHelpDialog } from './ShortcutsHelpDialog';
 import { useFavorites } from './useFavorites';
 import { useNavBadgeCounts } from './useNavBadgeCounts';
 
+/**
+ * The pages worth one tap on a phone, most useful first. The bottom bar shows the
+ * first four of these that the signed-in role may open, then "More" for the
+ * rest — so a Foreman and a Super Admin each get a bar that never points at a
+ * page that would answer 403.
+ */
+const PHONE_BAR_PATHS = [
+  paths.home,
+  paths.schedule,
+  paths.timeEntries,
+  paths.projects,
+  paths.employees,
+  paths.workItems,
+  paths.absences,
+  paths.notifications,
+];
+const PHONE_BAR_SLOTS = 4;
+const PHONE_BAR_HEIGHT = 64;
+
 const RAIL_WIDTH = 72;
 const MOBILE_DRAWER_WIDTH = 260;
 const EXPANDED_GROUPS_KEY = 'nav.expandedGroups';
@@ -92,6 +114,7 @@ const LOGO_PREVIEW_HOVER_DELAY_MS = 500;
 export function AppLayout({ children }: { children: ReactNode }) {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+  const isPhone = useMediaQuery(theme.breakpoints.down('sm'));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -137,6 +160,13 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   const navEntries = useMemo(() => (user ? buildNavEntries(user, t) : []), [user, t]);
   const flatItems = useMemo(() => flattenNavEntries(navEntries), [navEntries]);
+  const phoneBarItems = useMemo(
+    () =>
+      PHONE_BAR_PATHS.map((path) => flatItems.find((item) => item.path === path))
+        .filter((item): item is NavItem => !!item)
+        .slice(0, PHONE_BAR_SLOTS),
+    [flatItems],
+  );
   const favoriteItems = useMemo(
     () =>
       favorites.favorites
@@ -595,7 +625,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <SearchOutlined fontSize="small" />
           </ListItemIcon>
           <ListItemText primary={t('commandPalette.trigger')} />
-          <Typography variant="caption" sx={{ opacity: 0.7 }}>
+          <Typography variant="caption" sx={{ opacity: 0.7, display: { xs: 'none', md: 'block' } }}>
             Ctrl K
           </Typography>
         </ListItemButton>
@@ -748,7 +778,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   );
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', minHeight: '100dvh' }}>
       <CommandPalette
         open={paletteOpen}
         onClose={() => setPaletteOpen(false)}
@@ -856,7 +886,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </IconButton>
           </Tooltip>
           <Tooltip title={t('shortcuts.title')}>
-            <IconButton onClick={() => setShortcutsOpen(true)} aria-label={t('shortcuts.title')}>
+            <IconButton
+              onClick={() => setShortcutsOpen(true)}
+              aria-label={t('shortcuts.title')}
+              sx={{ display: { xs: 'none', md: 'inline-flex' } }}
+            >
               <KeyboardOutlined />
             </IconButton>
           </Tooltip>
@@ -866,7 +900,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
               the same on every screen, and the count has to be visible from
               wherever the operator happens to be. */}
           <NotificationsMenu />
-          <IconButton onClick={(event) => setMenuAnchor(event.currentTarget)}>
+          <IconButton
+            onClick={(event) => setMenuAnchor(event.currentTarget)}
+            aria-label={`${t('common.account')}: ${displayName(user)}`}
+          >
             <Avatar sx={{ width: 34, height: 34, bgcolor: 'primary.main', fontSize: 14 }}>
               {initialsOf(user.firstName, user.lastName, user.email)}
             </Avatar>
@@ -943,11 +980,15 @@ export function AppLayout({ children }: { children: ReactNode }) {
           width: { md: `calc(100% - ${RAIL_WIDTH}px)` },
           px: { xs: 2, sm: 3 },
           py: 3,
+          // Room for the phone's bottom bar, plus the notch area on an iPhone.
+          pb: { xs: `calc(${PHONE_BAR_HEIGHT + 16}px + env(safe-area-inset-bottom))`, sm: 3 },
         }}
       >
         <Toolbar sx={{ minHeight: { lg: TOP_BAR_HEIGHT_LG } }} />
         {breadcrumbTrail.length > 0 && (
-          <Breadcrumbs sx={{ mb: 1.5, fontSize: '0.875rem' }}>
+          // Hidden on a phone: three tiny links are hard to hit, and the back arrow
+          // in the bar and the bottom navigation already cover where they lead.
+          <Breadcrumbs sx={{ mb: 1.5, fontSize: '0.875rem', display: { xs: 'none', sm: 'block' } }}>
             {breadcrumbTrail.map((segment, index) =>
               segment.path ? (
                 <MuiLink
@@ -981,6 +1022,56 @@ export function AppLayout({ children }: { children: ReactNode }) {
           API key, so this line alone does not turn anything on.
         */}
       </Box>
+
+      {isPhone && (
+        <Paper
+          component="nav"
+          aria-label={t('nav.bottomBar')}
+          elevation={8}
+          sx={{
+            position: 'fixed',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: (t2) => t2.zIndex.appBar,
+            borderTop: '1px solid #e0e0e0',
+            borderRadius: 0,
+            pb: 'env(safe-area-inset-bottom)',
+          }}
+        >
+          <BottomNavigation
+            showLabels
+            value={phoneBarItems.find((item) => isItemSelected(item))?.path ?? false}
+            sx={{ height: PHONE_BAR_HEIGHT }}
+          >
+            {phoneBarItems.map((item) => (
+              <BottomNavigationAction
+                key={item.path}
+                value={item.path}
+                label={item.label}
+                component={Link}
+                to={navItemHref(item.path)}
+                icon={
+                  (badgeCounts[item.path] ?? 0) > 0 ? (
+                    <Badge badgeContent={badgeCounts[item.path]} color="error" max={99} overlap="circular">
+                      {item.icon}
+                    </Badge>
+                  ) : (
+                    item.icon
+                  )
+                }
+                sx={{ minWidth: 0, px: 0.5, '& .MuiBottomNavigationAction-label': { fontSize: '0.75rem' } }}
+              />
+            ))}
+            <BottomNavigationAction
+              label={t('nav.more')}
+              icon={<MoreHorizOutlined />}
+              onClick={() => setMobileOpen(true)}
+              sx={{ minWidth: 0, px: 0.5, '& .MuiBottomNavigationAction-label': { fontSize: '0.75rem' } }}
+            />
+          </BottomNavigation>
+        </Paper>
+      )}
     </Box>
   );
 }
