@@ -15,11 +15,15 @@ export function HomePage() {
 
   if (!user) return null;
 
+  // An account with no name on file would be greeted by its whole e-mail address.
+  const name = displayName(user);
+  const welcome = name.includes('@') ? t('home.welcomeShort') : t('home.welcome', { name });
+
   if (canConfigureDashboard(user)) {
     return (
       <Box>
         <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}>
-          {t('home.welcome', { name: displayName(user) })}
+          {welcome}
         </Typography>
         <SetupChecklistCard />
         <DashboardGrid />
@@ -55,7 +59,7 @@ export function HomePage() {
   return (
     <Box>
       <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}>
-        {t('home.welcome', { name: displayName(user) })}
+        {welcome}
       </Typography>
       <Typography color="text.secondary" sx={{ mb: 4 }}>
         {t('home.subtitle')}

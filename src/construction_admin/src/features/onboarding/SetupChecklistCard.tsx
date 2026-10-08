@@ -1,5 +1,10 @@
-import { CheckCircleOutlined, ChevronRightOutlined } from '@mui/icons-material';
-import { Box, Button, Card, CardContent, Stack, Typography } from '@mui/material';
+import {
+  CheckCircleOutlined,
+  ChevronRightOutlined,
+  ExpandLessOutlined,
+  ExpandMoreOutlined,
+} from '@mui/icons-material';
+import { Box, Button, Card, CardContent, Collapse, Stack, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -92,6 +97,7 @@ export function SetupChecklistCard() {
   const { data } = useSetupChecklistQuery();
   const [importing, setImporting] = useState(false);
   const [skipped, setSkipped] = useState<string[]>(readSkipped);
+  const [serverOpen, setServerOpen] = useState(false);
 
   const items = data?.items ?? [];
 
@@ -222,20 +228,29 @@ export function SetupChecklistCard() {
         )}
 
         {serverProblems.length > 0 && (
+          // Folded away: only whoever runs the server can act on these, and they used to
+          // sit above the numbers an owner opens the page to see.
           <Box sx={{ mt: listed.length > 0 || showWizard ? 2 : 0 }}>
-            {listed.length === 0 && !showWizard && (
-              <Typography variant="h6" sx={{ fontWeight: 700 }}>
-                {t('onboarding.checklist.title')}
+            <Button
+              size="small"
+              color="inherit"
+              onClick={() => setServerOpen((open) => !open)}
+              aria-expanded={serverOpen}
+              endIcon={serverOpen ? <ExpandLessOutlined /> : <ExpandMoreOutlined />}
+              sx={{ color: 'text.secondary', px: 0 }}
+            >
+              {t('onboarding.checklist.serverToggle', { count: serverProblems.length })}
+            </Button>
+            <Collapse in={serverOpen}>
+              {serverProblems.map((item) => (
+                <Typography key={item.key} variant="body2" sx={{ py: 0.5 }}>
+                  {t(`onboarding.checklist.${item.key}` as MessageKey, { count: item.count })}
+                </Typography>
+              ))}
+              <Typography variant="caption" color="text.secondary">
+                {t('onboarding.checklist.serverHint')}
               </Typography>
-            )}
-            {serverProblems.map((item) => (
-              <Typography key={item.key} variant="body2" sx={{ py: 0.5 }}>
-                {t(`onboarding.checklist.${item.key}` as MessageKey, { count: item.count })}
-              </Typography>
-            ))}
-            <Typography variant="caption" color="text.secondary">
-              {t('onboarding.checklist.serverHint')}
-            </Typography>
+            </Collapse>
           </Box>
         )}
       </CardContent>

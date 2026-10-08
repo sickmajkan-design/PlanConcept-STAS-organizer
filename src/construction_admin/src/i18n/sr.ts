@@ -808,9 +808,10 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.paper1007.title': "Raspored na papiru i stvarni radni dani",
   'releaseNotes.paper1007.export': "Raspored ima dugme Izvoz u Excel: jedan list s redom po radniku i kolonom po danu (gradilište ili odsustvo) i jedan s tim šta svako gradilište ima svaki dan. Obuhvata razdoblje na ekranu, najviše 62 dana, a Predradnik dobija samo svoju jedinicu.",
   'releaseNotes.paper1007.days': "Raspored sada prati kalendar svakog gradilišta: gradilište koje radi subotom ili nedjeljom računa potrebu i tim danima, a državni praznici zemlje upisane na gradilištu ne računaju se kao radni dani. Praznik je označen u zaglavlju vremenske trake.",
-  'releaseNotes.fm1007.title': "Predradnici u Rasporedu",
-  'releaseNotes.fm1007.view': "Predradnik sada vidi novi Raspored za svoju poslovnu jedinicu: ko je gdje, ko je odsutan i gdje jedinici fali ljudi. To je samo pregled, bez dugmadi za izmjenu, a bolovanje se prikazuje samo kao odsustvo.",
-  'releaseNotes.fm1007.grant': "Administrator može dozvoliti Predradniku da i raspoređuje (Korisnici > Predradnik > Smije raspoređivati radnike). To važi samo unutar poslovne jedinice Predradnika: radnici i gradilišta drugih jedinica se odbijaju, a potrebu projekta i dalje mijenja samo Voditelj i iznad.",
+  'releaseNotes.nav1008.title': "Čistiji izgled panela",
+  'releaseNotes.nav1008.menu': "Na računaru meni s lijeve strane sada pokazuje nazive stranica, s otvorenim grupama, umjesto samih ikona. Gornja traka je tanja: logo firme je prešao na vrh menija, a prečice na tastaturi su u meniju naloga.",
+  'releaseNotes.nav1008.home': "Početna stranica te pozdravlja imenom umjesto adresom e-pošte, a napomene za onoga ko održava server su sklopljene, pa brojevi dolaze prvi.",
+  'releaseNotes.nav1008.tables': "Oznake i čipovi u tabelama stoje na sredini reda, a brojke se poravnavaju u kolonama.",
   'releaseNotes.mob1008.title': "Platforma na telefonu",
   'releaseNotes.mob1008.bar': "Na telefonu je sada na dnu ekrana traka sa stranicama koje se najčešće koriste (Početna, Raspored, Radni sati, Projekti) i dugme Više za sve ostalo. Prozori za unos se otvaraju odozdo, preko cijele širine.",
   'releaseNotes.mob1008.touch': "Dugmad, polja i prekidači su veći i lakše se pogađaju prstom. Pretraga i filteri iznad liste sklapaju se iza dugmeta Filteri, koje pokazuje koliko ih je uključeno, pa se prvi redovi vide bez pomjeranja.",
@@ -1359,6 +1360,8 @@ export const sr: Record<MessageKey, Message> = {
 
   // --- Home -----------------------------------------------------------------
   'home.welcome': 'Dobrodošli, {name}',
+  'home.welcomeShort': 'Dobrodošli',
+  'onboarding.checklist.serverToggle': 'Za onoga ko održava server ({count})',
   'home.subtitle': 'Izaberite sekciju iz menija.',
 
   'onboarding.import.button': 'Uvoz iz Excela',

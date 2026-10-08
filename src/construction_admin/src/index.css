@@ -9,3 +9,29 @@
 body {
   margin: 0;
 }
+
+/* Figures line up in a column, which matters in a panel that is mostly money and hours. */
+body {
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * A grid cell that holds a chip or a line of text from `renderCell` is block content
+ * in a cell that only centres plain text, so it hung from the top of the row. Centre it,
+ * for exactly those cells so the ellipsis on plain text cells keeps working.
+ */
+.MuiDataGrid-cell:has(> .MuiChip-root),
+.MuiDataGrid-cell:has(> .MuiTypography-root),
+.MuiDataGrid-cell:has(> .MuiStack-root) {
+  display: flex;
+  align-items: center;
+}
+
+/* Chips inside a centred grid cell still shorten with an ellipsis instead of being cut off. */
+.MuiDataGrid-cell > .MuiStack-root {
+  min-width: 0;
+}
+
+.MuiDataGrid-cell .MuiChip-root {
+  max-width: 100%;
+}

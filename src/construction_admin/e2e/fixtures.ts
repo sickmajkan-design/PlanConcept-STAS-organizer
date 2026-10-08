@@ -39,7 +39,14 @@ export async function setLanguage(page: Page, locale: 'sr' | 'en') {
  * "waiting for…" and sends you looking for a link that is right there.
  */
 export function navLink(page: Page, name: string): Locator {
-  return page.getByRole('link', { name, exact: true }).filter({ visible: true });
+  // Inside the navigation only (the phone's temporary drawer is portalled out of the nav
+  // element, hence the second selector): the home page also carries links with the same words (a
+  // chip on a widget, say), and from `lg` up the menu is a labelled sidebar that shows
+  // its links all the time, so a bare role query would find two.
+  return page
+    .locator('nav, .MuiDrawer-root')
+    .getByRole('link', { name, exact: true })
+    .filter({ visible: true });
 }
 
 /** The form's submit control, by role rather than by its label. */

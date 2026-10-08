@@ -781,9 +781,10 @@ export const en = {
   'releaseNotes.paper1007.title': "Schedule on paper, and real working days",
   'releaseNotes.paper1007.export': "The Schedule has an Export to Excel button: one sheet with a row per person and a column per day (the site, or leave), and one with what each site has each day. It covers the period on screen, up to 62 days, and a foreman gets only their own unit.",
   'releaseNotes.paper1007.days': "The Schedule now follows each site's own calendar: a site that works Saturdays or Sundays counts its needs on those days, and public holidays of the country set on the site are not counted as working days. A holiday is marked in the timeline header.",
-  'releaseNotes.fm1007.title': "Foremen on the Schedule",
-  'releaseNotes.fm1007.view': "A foreman now sees the new Schedule for their own business unit: who is where, who is away, and where the unit is short. It is a view only, with nothing to press, and sick leave shows only as away.",
-  'releaseNotes.fm1007.grant': "An administrator can allow a foreman to move people too (Users > the foreman > May move people between sites). It works only inside the foreman's own business unit: people and sites of other units are refused, and what a project needs can still be changed only by a project manager and above.",
+  'releaseNotes.nav1008.title': "A cleaner panel",
+  'releaseNotes.nav1008.menu': "On a computer the menu on the left now shows the names of the pages, with the groups open, instead of icons only. The top bar is slimmer: the company logo moved to the top of the menu and the keyboard shortcuts are in the account menu.",
+  'releaseNotes.nav1008.home': "The home page greets you by name instead of your e-mail address, and the notes for whoever runs the server are folded away so the numbers come first.",
+  'releaseNotes.nav1008.tables': "Labels and chips in tables sit in the middle of their row, and figures line up in columns.",
   'releaseNotes.mob1008.title': "The platform on a phone",
   'releaseNotes.mob1008.bar': "On a phone there is now a bar at the bottom with the pages used most (Home, Schedule, Work time, Projects) and a More button for everything else. Dialogs open from the bottom edge over the full width.",
   'releaseNotes.mob1008.touch': "Buttons, fields and switches are larger and easier to hit with a finger. The search and filters above a list fold behind a Filters button that shows how many are active, so the first rows are visible without scrolling.",
@@ -1324,6 +1325,8 @@ export const en = {
 
   // --- Home -----------------------------------------------------------------
   'home.welcome': 'Welcome, {name}',
+  'home.welcomeShort': 'Welcome',
+  'onboarding.checklist.serverToggle': 'For whoever runs the server ({count})',
   'home.subtitle': 'Pick a section from the menu to get started.',
 
   'onboarding.import.button': 'Import from Excel',

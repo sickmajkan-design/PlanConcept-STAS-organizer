@@ -10,7 +10,7 @@ import type { MessageKey } from '../../i18n/en';
  * what changed recently, not a changelog: when a release is added, drop the
  * sections older than the fifth (and their `releaseNotes.*` keys in i18n).
  */
-export const RELEASE_ID = '2026-10-08.2';
+export const RELEASE_ID = '2026-10-08.3';
 
 export interface ReleaseSection {
   id: string;
@@ -21,6 +21,13 @@ export interface ReleaseSection {
 }
 
 export const releaseSections: ReleaseSection[] = [
+  {
+    id: 'nav1008',
+    titleKey: 'releaseNotes.nav1008.title',
+    itemKeys: ['releaseNotes.nav1008.menu', 'releaseNotes.nav1008.home', 'releaseNotes.nav1008.tables'],
+    audience: (user) =>
+      user.role === 'SuperAdmin' || user.role === 'Admin' || user.role === 'ProjectManager' || user.role === 'Foreman',
+  },
   {
     id: 'mob1008',
     titleKey: 'releaseNotes.mob1008.title',
@@ -45,13 +52,6 @@ export const releaseSections: ReleaseSection[] = [
     id: 'paper1007',
     titleKey: 'releaseNotes.paper1007.title',
     itemKeys: ['releaseNotes.paper1007.export', 'releaseNotes.paper1007.days'],
-    audience: (user) =>
-      user.role === 'SuperAdmin' || user.role === 'Admin' || user.role === 'ProjectManager' || user.role === 'Foreman',
-  },
-  {
-    id: 'fm1007',
-    titleKey: 'releaseNotes.fm1007.title',
-    itemKeys: ['releaseNotes.fm1007.view', 'releaseNotes.fm1007.grant'],
     audience: (user) =>
       user.role === 'SuperAdmin' || user.role === 'Admin' || user.role === 'ProjectManager' || user.role === 'Foreman',
   },

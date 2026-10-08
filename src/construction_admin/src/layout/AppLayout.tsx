@@ -117,14 +117,10 @@ const PHONE_BAR_ACTION_SX = {
 } as const;
 
 const RAIL_WIDTH = 72;
+/** From `lg` up the menu is a labelled sidebar instead of the icon rail. */
+const SIDEBAR_WIDTH = 264;
 const MOBILE_DRAWER_WIDTH = 260;
 const EXPANDED_GROUPS_KEY = 'nav.expandedGroups';
-/**
- * Height of the top bar on large screens, where the company logo is shown. Taller
- * than the default so a logo with lettering in it can be read; the spacer under
- * the bar uses the same value, so page content still starts right below it.
- */
-const TOP_BAR_HEIGHT_LG = 88;
 
 /** How long the pointer must hover the rail logo before the enlarged preview appears. */
 const LOGO_PREVIEW_HOVER_DELAY_MS = 500;
@@ -133,6 +129,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
   const isPhone = useMediaQuery(theme.breakpoints.down('sm'));
+  const isWide = useMediaQuery(theme.breakpoints.up('lg'));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -178,6 +175,15 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   const navEntries = useMemo(() => (user ? buildNavEntries(user, t) : []), [user, t]);
   const flatItems = useMemo(() => flattenNavEntries(navEntries), [navEntries]);
+
+  // A labelled sidebar that opens with every group collapsed hides the structure it exists to
+  // show. Until somebody has opened or closed a group themselves, all of them start open.
+  useEffect(() => {
+    if (!isWide) return; // the drawer on a tablet or phone is long enough with its groups closed
+    if (readScoped<string[] | null>(scope, EXPANDED_GROUPS_KEY, null) !== null) return;
+    const keys = navEntries.filter(isNavGroup).map((entry) => entry.key);
+    if (keys.length > 0) setExpandedGroups(new Set(keys));
+  }, [scope, navEntries, isWide]);
   const phoneBarItems = useMemo(
     () =>
       PHONE_BAR_PATHS.map((path) => flatItems.find((item) => item.path === path))
@@ -615,13 +621,17 @@ export function AppLayout({ children }: { children: ReactNode }) {
         onClick={() => setMobileOpen(false)}
         sx={{ gap: 1, color: 'inherit', textDecoration: 'none' }}
       >
-        {branding?.hasLogo && (
+        {branding?.hasLogo ? (
           <Box
             component="img"
             src={`${config.apiBaseUrl}/api/v1/company-settings/logo`}
             alt=""
-            sx={{ width: 28, height: 28, objectFit: 'contain', flexShrink: 0 }}
+            sx={{ width: 36, height: 36, objectFit: 'contain', flexShrink: 0, borderRadius: 1 }}
           />
+        ) : (
+          <Avatar variant="rounded" sx={{ width: 36, height: 36, bgcolor: 'primary.main', fontSize: 18 }}>
+            {(branding?.name || t('nav.appName')).slice(0, 1)}
+          </Avatar>
         )}
         <Typography variant="subtitle1" noWrap sx={{ fontWeight: 700 }}>
           {branding?.name || t('nav.appName')}
@@ -642,8 +652,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
           <ListItemIcon sx={{ minWidth: 32 }}>
             <SearchOutlined fontSize="small" />
           </ListItemIcon>
-          <ListItemText primary={t('commandPalette.trigger')} />
-          <Typography variant="caption" sx={{ opacity: 0.7, display: { xs: 'none', md: 'block' } }}>
+          <ListItemText primary={t('commandPalette.trigger')} slotProps={{ primary: { noWrap: true } }} />
+          <Typography variant="caption" sx={{ opacity: 0.7, display: { xs: 'none', md: 'block' }, whiteSpace: 'nowrap', ml: 1 }}>
             Ctrl K
           </Typography>
         </ListItemButton>
@@ -813,12 +823,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
         position="fixed"
         color="inherit"
         sx={{
-          width: { md: `calc(100% - ${RAIL_WIDTH}px)` },
-          ml: { md: `${RAIL_WIDTH}px` },
+          width: { md: `calc(100% - ${RAIL_WIDTH}px)`, lg: `calc(100% - ${SIDEBAR_WIDTH}px)` },
+          ml: { md: `${RAIL_WIDTH}px`, lg: `${SIDEBAR_WIDTH}px` },
           bgcolor: 'background.paper',
         }}
       >
-        <Toolbar sx={{ gap: 1, position: 'relative', minHeight: { lg: TOP_BAR_HEIGHT_LG } }}>
+        <Toolbar sx={{ gap: 1, position: 'relative' }}>
           {!isDesktop && (
             <IconButton edge="start" onClick={() => setMobileOpen(true)}>
               <MenuOutlined />
@@ -833,83 +843,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
           )}
           <Box sx={{ flex: 1 }} />
 
-          {/* The brand mark moved here, centred, from the rail's top-left
-              corner — the one place in the shell every screen shares, so the
-              company's own identity (logo + name) reads as the header of the
-              product rather than a small icon in a corner. Hidden below `lg`
-              so it can never collide with the back button or the action
-              cluster on a narrower viewport. */}
-          <Box
-            component={Link}
-            to={paths.home}
-            sx={{
-              display: { xs: 'none', lg: 'flex' },
-              // In the flex flow (not absolutely centred) so it shrinks and
-              // truncates before it can ever run under the action icons.
-              alignItems: 'center',
-              gap: 1.25,
-              px: 2,
-              py: 0.5,
-              borderRadius: 3,
-              textDecoration: 'none',
-              color: 'inherit',
-              maxWidth: 560,
-              minWidth: 0,
-              flexShrink: 1,
-              transition: 'background-color 0.18s',
-              '&:hover': { bgcolor: 'action.hover' },
-            }}
-          >
-            {branding?.hasLogo ? (
-              <Box
-                component="img"
-                src={`${config.apiBaseUrl}/api/v1/company-settings/logo`}
-                alt=""
-                sx={{
-                  // As tall as the bar allows and as wide as the picture wants
-                  // (a wordmark is far wider than a square emblem), so any text
-                  // inside the logo stays legible instead of shrinking to a smudge.
-                  height: 72,
-                  width: 'auto',
-                  maxWidth: 240,
-                  objectFit: 'contain',
-                  borderRadius: 1,
-                  flexShrink: 0,
-                }}
-              />
-            ) : (
-              <Avatar
-                variant="rounded"
-                sx={{ width: 72, height: 72, bgcolor: 'primary.main', fontSize: 28 }}
-              >
-                {(branding?.name || t('nav.appName')).slice(0, 1)}
-              </Avatar>
-            )}
-            <Box sx={{ minWidth: 0, textAlign: 'left' }}>
-              <Typography variant="subtitle2" noWrap sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-                {branding?.name || t('nav.appName')}
-              </Typography>
-              {companyDetails?.address && (
-                <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
-                  {companyDetails.address}
-                </Typography>
-              )}
-            </Box>
-          </Box>
           <Box sx={{ flex: 1 }} />
 
           <Tooltip title={t('guide.title')}>
             <IconButton onClick={() => setGuideOpen(true)} aria-label={t('guide.title')}>
               <HelpOutlined />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={t('shortcuts.title')}>
-            <IconButton
-              onClick={() => setShortcutsOpen(true)}
-              aria-label={t('shortcuts.title')}
-              sx={{ display: { xs: 'none', md: 'inline-flex' } }}
-            >
-              <KeyboardOutlined />
             </IconButton>
           </Tooltip>
           <BranchSwitcher />
@@ -946,6 +884,18 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </Box>
             <Divider />
             <MenuItem
+              onClick={() => {
+                setMenuAnchor(null);
+                setShortcutsOpen(true);
+              }}
+              sx={{ display: { xs: 'none', md: 'flex' } }}
+            >
+              <ListItemIcon>
+                <KeyboardOutlined fontSize="small" />
+              </ListItemIcon>
+              {t('shortcuts.title')}
+            </MenuItem>
+            <MenuItem
               component={Link}
               to={paths.changePassword}
               onClick={() => setMenuAnchor(null)}
@@ -965,7 +915,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         </Toolbar>
       </AppBar>
 
-      <Box component="nav" sx={{ width: { md: RAIL_WIDTH }, flexShrink: { md: 0 } }}>
+      <Box component="nav" sx={{ width: { md: RAIL_WIDTH, lg: SIDEBAR_WIDTH }, flexShrink: { md: 0 } }}>
         <Drawer
           variant="temporary"
           open={mobileOpen}
@@ -981,12 +931,24 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <Drawer
           variant="permanent"
           sx={{
-            display: { xs: 'none', md: 'block' },
+            display: { xs: 'none', md: 'block', lg: 'none' },
             '& .MuiDrawer-paper': { width: RAIL_WIDTH, borderRight: '1px solid #e0e0e0' },
           }}
           open
         >
           {railContent}
+        </Drawer>
+        <Drawer
+          variant="permanent"
+          sx={{
+            display: { xs: 'none', lg: 'block' },
+            '& .MuiDrawer-paper': { width: SIDEBAR_WIDTH, borderRight: '1px solid #e0e0e0' },
+            // Tighter rows than the touch menu, so the whole menu fits without scrolling.
+            '& .MuiDrawer-paper .MuiListItemButton-root.MuiListItemButton-root': { py: '4px' },
+          }}
+          open
+        >
+          {mobileDrawerContent}
         </Drawer>
       </Box>
 
@@ -995,14 +957,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
         sx={{
           flexGrow: 1,
           minWidth: 0,
-          width: { md: `calc(100% - ${RAIL_WIDTH}px)` },
+          width: { md: `calc(100% - ${RAIL_WIDTH}px)`, lg: `calc(100% - ${SIDEBAR_WIDTH}px)` },
           px: { xs: 2, sm: 3 },
           py: 3,
           // Room for the phone's bottom bar, plus the notch area on an iPhone.
           pb: { xs: `calc(${PHONE_BAR_HEIGHT + 16}px + env(safe-area-inset-bottom))`, sm: 3 },
         }}
       >
-        <Toolbar sx={{ minHeight: { lg: TOP_BAR_HEIGHT_LG } }} />
+        <Toolbar />
         {breadcrumbTrail.length > 0 && (
           // Hidden on a phone: three tiny links are hard to hit, and the back arrow
           // in the bar and the bottom navigation already cover where they lead.
