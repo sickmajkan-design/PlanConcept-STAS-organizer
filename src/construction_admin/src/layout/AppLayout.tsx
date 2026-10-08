@@ -98,6 +98,24 @@ const PHONE_BAR_PATHS = [
 const PHONE_BAR_SLOTS = 4;
 const PHONE_BAR_HEIGHT = 64;
 
+/**
+ * Every label the same size, on one line. MUI enlarges the label of the selected
+ * item to 14 px, and on a 360-pixel phone (a Galaxy S9+) five items leave 72 px
+ * each, so a selected "Radno vrijeme" wrapped to two lines and stretched the bar.
+ * A long label is cut with an ellipsis rather than allowed to push its neighbours.
+ */
+const PHONE_BAR_ACTION_SX = {
+  minWidth: 0,
+  px: 0.25,
+  '& .MuiBottomNavigationAction-label, &.Mui-selected .MuiBottomNavigationAction-label': {
+    fontSize: '0.75rem',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    maxWidth: '100%',
+  },
+} as const;
+
 const RAIL_WIDTH = 72;
 const MOBILE_DRAWER_WIDTH = 260;
 const EXPANDED_GROUPS_KEY = 'nav.expandedGroups';
@@ -1048,7 +1066,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <BottomNavigationAction
                 key={item.path}
                 value={item.path}
-                label={item.label}
+                label={item.path === paths.timeEntries ? t('nav.barTimeEntries') : item.label}
                 component={Link}
                 to={navItemHref(item.path)}
                 icon={
@@ -1060,14 +1078,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
                     item.icon
                   )
                 }
-                sx={{ minWidth: 0, px: 0.5, '& .MuiBottomNavigationAction-label': { fontSize: '0.75rem' } }}
+                sx={PHONE_BAR_ACTION_SX}
               />
             ))}
             <BottomNavigationAction
               label={t('nav.more')}
               icon={<MoreHorizOutlined />}
               onClick={() => setMobileOpen(true)}
-              sx={{ minWidth: 0, px: 0.5, '& .MuiBottomNavigationAction-label': { fontSize: '0.75rem' } }}
+              sx={PHONE_BAR_ACTION_SX}
             />
           </BottomNavigation>
         </Paper>
