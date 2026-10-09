@@ -57,7 +57,7 @@ describe('ReleaseNotesDialog', () => {
 
     await screen.findByText('Schedule history and housing');
     expect(screen.getByText('A cleaner panel')).toBeDefined();
-    expect(screen.getByText('Planned labour cost')).toBeDefined();
+    expect(screen.getByText('Company structure')).toBeDefined();
   }, SCREEN_TIMEOUT);
 
   it('is shown again for a new release', async () => {

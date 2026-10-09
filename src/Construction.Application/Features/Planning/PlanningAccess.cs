@@ -1,3 +1,4 @@
+using Construction.Application.Features.Branches;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Enums;
@@ -68,7 +69,7 @@ public static class PlanningRules
         var branchId = access.BranchId!.Value;
 
         var inUnit = await context.EmployeeBranches.AsNoTracking()
-            .Where(p => p.BranchId == branchId && p.EndDate == null && employeeIds.Contains(p.EmployeeId))
+            .Where(p => p.Branch.Path.Contains(BranchTree.Token(branchId)) && p.EndDate == null && employeeIds.Contains(p.EmployeeId))
             .Select(p => p.EmployeeId)
             .Distinct()
             .CountAsync(cancellationToken);
@@ -78,7 +79,7 @@ public static class PlanningRules
             throw new ForbiddenAccessException("You may only move people of your own business unit.");
         }
 
-        if (projectId is { } site && !await context.Projects.AsNoTracking().AnyAsync(p => p.Id == site && p.BranchId == branchId, cancellationToken))
+        if (projectId is { } site && !await context.Projects.AsNoTracking().AnyAsync(p => p.Id == site && p.Branch!.Path.Contains(BranchTree.Token(branchId)), cancellationToken))
         {
             throw new ForbiddenAccessException("You may only post people to sites of your own business unit.");
         }

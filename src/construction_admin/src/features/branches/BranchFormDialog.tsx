@@ -27,7 +27,9 @@ import { useAuth } from '../../auth/useAuth';
 import { COUNTRIES, countryLabel, resolveCountryCode } from '../../data/countries';
 import { useT } from '../../i18n/useI18n';
 import { BranchDot } from './BranchDot';
-import { useCreateBranch, useUpdateBranch } from './useBranches';
+import { useEveryEmployeeQuery } from '../employees/useEmployees';
+import { allowedParents } from './branchTree';
+import { useBranchesQuery, useCreateBranch, useUpdateBranch } from './useBranches';
 
 /** The palette offered for a unit's dot; any #RRGGBB the API accepts, these are just the quick picks. */
 const SWATCHES = ['#3457D5', '#0F8A5F', '#C2410C', '#7C3AED', '#0E7490', '#BE185D', '#4D7C0F', '#525252'];
@@ -50,6 +52,8 @@ interface FormState {
   phone: string;
   email: string;
   note: string;
+  parentBranchId: string;
+  headEmployeeId: string;
 }
 
 const emptyState: FormState = {
@@ -70,6 +74,8 @@ const emptyState: FormState = {
   phone: '',
   email: '',
   note: '',
+  parentBranchId: '',
+  headEmployeeId: '',
 };
 
 function fromBranch(branch: Branch): FormState {
@@ -91,6 +97,8 @@ function fromBranch(branch: Branch): FormState {
     phone: branch.phone ?? '',
     email: branch.email ?? '',
     note: branch.note ?? '',
+    parentBranchId: branch.parentBranchId ?? '',
+    headEmployeeId: branch.headEmployeeId ?? '',
   };
 }
 
@@ -115,6 +123,8 @@ function toInput(state: FormState): BranchInput {
     phone: orNull(state.phone),
     email: orNull(state.email),
     note: orNull(state.note),
+    parentBranchId: state.parentBranchId || null,
+    headEmployeeId: state.headEmployeeId || null,
   };
 }
 
@@ -135,6 +145,8 @@ export function BranchFormDialog({
   const { user } = useAuth();
   const createBranch = useCreateBranch();
   const updateBranch = useUpdateBranch();
+  const { data: branches } = useBranchesQuery();
+  const { data: employees } = useEveryEmployeeQuery();
   const [state, setState] = useState<FormState>(emptyState);
   const [error, setError] = useState<string | null>(null);
 
@@ -217,6 +229,36 @@ export function BranchFormDialog({
                 </MenuItem>
               ))}
             </TextField>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <TextField
+              select
+              fullWidth
+              label={t('branches.parent')}
+              value={state.parentBranchId}
+              onChange={(event) => set('parentBranchId', event.target.value)}
+              helperText={t('branches.parentHint')}
+            >
+              <MenuItem value="">{t('branches.parentNone')}</MenuItem>
+              {allowedParents(branches ?? [], isEdit ? target.id : null).map((parent) => (
+                <MenuItem key={parent.id} value={parent.id}>
+                  {parent.name}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <Autocomplete
+              fullWidth
+              options={employees?.items ?? []}
+              getOptionLabel={(employee) => employee.fullName}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              value={(employees?.items ?? []).find((e) => e.id === state.headEmployeeId) ?? null}
+              onChange={(_event, value) => set('headEmployeeId', value?.id ?? '')}
+              renderInput={(params) => (
+                <TextField {...params} label={t('branches.head')} helperText={t('branches.headHint')} />
+              )}
+            />
           </Grid>
           <Grid size={12}>
             <Box>

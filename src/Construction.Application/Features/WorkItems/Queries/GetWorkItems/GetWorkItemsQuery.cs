@@ -1,3 +1,4 @@
+using Construction.Application.Features.Branches;
 using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
@@ -146,7 +147,7 @@ public class GetWorkItemsQueryHandler
 
         if (request.BranchId is { } branchId)
         {
-            query = query.Where(w => w.Project != null && w.Project.BranchId == branchId);
+            query = query.Where(w => w.Project != null && w.Project.Branch!.Path.Contains(BranchTree.Token(branchId)));
         }
 
         if (request.ProjectId is { } projectId)

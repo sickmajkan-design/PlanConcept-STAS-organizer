@@ -50,6 +50,15 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
             {
                 case EntityState.Added:
                     entry.Entity.CreatedAt = utcNow;
+
+                    // A unit saved without going through the tree rules stands directly under the
+                    // company, so its path is itself: every "this unit and what lies under it" test
+                    // then still finds it.
+                    if (entry.Entity is Construction.Domain.Entities.Branch { Path.Length: 0 } branch)
+                    {
+                        branch.Path = $",{branch.Id:D},";
+                    }
+
                     break;
                 case EntityState.Modified:
                     entry.Entity.UpdatedAt = utcNow;

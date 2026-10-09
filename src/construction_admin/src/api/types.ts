@@ -86,6 +86,8 @@ export interface OrganizationHierarchyNode {
   /** Picked by hand; null means the page places them by `role` where that is unambiguous. */
   rank: OrganizationRank | null;
   role: Role | null;
+  /** The business unit that employs the person now; null when none. */
+  branchId: string | null;
 }
 
 export const employeeStatuses = [
@@ -282,6 +284,11 @@ export interface Branch {
   projectCount: number;
   /** How many employees the unit employs now. */
   employeeCount: number;
+  /** The unit this one stands under; null when it stands directly under the company. */
+  parentBranchId: string | null;
+  /** The employee who runs the unit. */
+  headEmployeeId: string | null;
+  headEmployeeName: string | null;
   // The rest is for management only; anyone else gets null.
   legalName: string | null;
   address: string | null;
@@ -319,6 +326,9 @@ export interface BranchInput {
   phone?: string | null;
   email?: string | null;
   note?: string | null;
+  /** The unit this one is placed under; null puts it directly under the company. */
+  parentBranchId?: string | null;
+  headEmployeeId?: string | null;
 }
 
 export interface ProjectInput {

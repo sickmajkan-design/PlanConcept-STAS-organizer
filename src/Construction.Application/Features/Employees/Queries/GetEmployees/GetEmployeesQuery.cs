@@ -1,3 +1,4 @@
+using Construction.Application.Features.Branches;
 using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
@@ -122,7 +123,7 @@ public class GetEmployeesQueryHandler : IRequestHandler<GetEmployeesQuery, Paged
 
         if (request.BranchId is { } branchId)
         {
-            query = query.Where(e => e.BranchPeriods.Any(p => p.BranchId == branchId && p.EndDate == null));
+            query = query.Where(e => e.BranchPeriods.Any(p => p.Branch.Path.Contains(BranchTree.Token(branchId)) && p.EndDate == null));
         }
 
         query = ApplySorting(query, request.SortBy, request.SortDescending);

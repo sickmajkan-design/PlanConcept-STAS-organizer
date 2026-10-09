@@ -68,6 +68,18 @@ Imaju polje **Poslovna jedinica**.
 * **Ostali troškovi, ručne isplate, prihodi firme**: prazno znači "prati svoje gradilište, ako ga ima".
 * **Smještaj**: jedinica kojoj se knjiži zakup.
 
+### 3.6 Jedinice jedna ispod druge i rukovodilac
+
+Ako imate regije, filijale i urede, jedinicu možete postaviti ispod druge.
+
+* U obrascu jedinice izaberite **Pripada jedinici**. Prazno znači da stoji direktno ispod firme. Najviše su **tri nivoa** (regija, filijala, ured). Program ne dopušta da jedinica bude ispod same sebe ni ispod svoje podjedinice.
+* **Rukovodilac jedinice** je jedan zaposleni koji je vodi. Nije obavezan. Vlasnik i kontakt osoba ostaju kao tekst za dokumente.
+* Jedinica koja ima podjedinice ne može se obrisati dok se one ne premjeste ili uklone.
+
+Izbor jedinice u zaglavlju **obuhvata i sve ispod nje**: regija u listama, izvještajima i troškovima zbraja svoje filijale i urede. Uz izbor stoji oznaka "Obuhvata 2 podjedinice".
+
+**Hijerarhija** se otvara na prikazu **Struktura firme**: firma, jedinice (uvučene prema nivou), ko ih vodi i koliko imaju zaposlenih i gradilišta (podjedinice su uračunate). Klik na jedinicu pokazuje njene ljude po funkcijama. Ljudi koji nisu ni u jednoj jedinici su na kraju, u grupi "Bez poslovne jedinice". Prikaz **Po funkcijama** je raniji pregled po rangovima.
+
 ## 4. Svakodnevni rad
 
 ### 4.1 Izbor jedinice u zaglavlju

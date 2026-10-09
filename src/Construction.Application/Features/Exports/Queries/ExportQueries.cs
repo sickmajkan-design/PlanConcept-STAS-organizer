@@ -351,7 +351,7 @@ public class ExportEmployeesQueryHandler : IRequestHandler<ExportEmployeesQuery,
 
         if (request.BranchId is { } branchId)
         {
-            query = query.Where(e => e.BranchPeriods.Any(p => p.BranchId == branchId && p.EndDate == null));
+            query = query.Where(e => e.BranchPeriods.Any(p => p.Branch.Path.Contains(BranchTree.Token(branchId)) && p.EndDate == null));
         }
 
         var rows = await query

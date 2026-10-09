@@ -62,5 +62,31 @@ public class Branch : BaseEntity, IAuditable
 
     public string? Note { get; set; }
 
+    /// <summary>
+    /// The unit this one belongs to (a region above a branch, a branch above an office), or null
+    /// when it stands directly under the company. At most <see cref="MaxDepth"/> levels deep.
+    /// </summary>
+    public Guid? ParentBranchId { get; set; }
+
+    public Branch? Parent { get; set; }
+
+    public ICollection<Branch> Children { get; set; } = new List<Branch>();
+
+    /// <summary>
+    /// The ids from the top of the tree down to this unit, each wrapped in commas
+    /// (<c>,root,parent,self,</c>). A unit includes everything under it when its id appears in
+    /// another unit's path, which is one string test a query can run without joining the tree.
+    /// Kept by <c>BranchTree</c>; never set by hand.
+    /// </summary>
+    public string Path { get; set; } = string.Empty;
+
+    /// <summary>The person who runs the unit. Optional; the unit's owner and contact stay as text for documents.</summary>
+    public Guid? HeadEmployeeId { get; set; }
+
+    public Employee? HeadEmployee { get; set; }
+
+    /// <summary>Levels a unit may be nested to: a region, a branch, an office.</summary>
+    public const int MaxDepth = 3;
+
     public ICollection<Project> Projects { get; set; } = new List<Project>();
 }

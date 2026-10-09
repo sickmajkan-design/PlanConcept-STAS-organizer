@@ -14,7 +14,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import type { Branch } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
@@ -24,6 +24,7 @@ import { BranchDot } from '../../features/branches/BranchDot';
 import { BranchFormDialog } from '../../features/branches/BranchFormDialog';
 import { BranchEmployeesDialog } from '../../features/branches/BranchEmployeesDialog';
 import { BranchProjectsDialog } from '../../features/branches/BranchProjectsDialog';
+import { buildBranchTree, flattenBranchTree } from '../../features/branches/branchTree';
 import { useBranchesQuery, useDeleteBranch } from '../../features/branches/useBranches';
 import { countryLabel } from '../../data/countries';
 import { useT } from '../../i18n/useI18n';
@@ -33,6 +34,8 @@ export function BranchesPanel() {
   const t = useT();
   const { data: branches, isLoading, isError, error, refetch } = useBranchesQuery();
   const deleteBranch = useDeleteBranch();
+
+  const rows = useMemo(() => flattenBranchTree(buildBranchTree(branches ?? [])), [branches]);
 
   const [editing, setEditing] = useState<Branch | 'new' | null>(null);
   const [toDelete, setToDelete] = useState<Branch | null>(null);
@@ -76,9 +79,9 @@ export function BranchesPanel() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {(branches ?? []).map((branch) => (
+              {rows.map(({ branch, depth }) => (
                 <TableRow key={branch.id} hover>
-                  <TableCell>
+                  <TableCell sx={{ pl: 2 + (depth - 1) * 3 }}>
                     <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
                       <BranchDot color={branch.color} />
                       <Stack>
@@ -86,6 +89,11 @@ export function BranchesPanel() {
                         {branch.legalName && branch.legalName !== branch.name && (
                           <Typography variant="caption" color="text.secondary">
                             {branch.legalName}
+                          </Typography>
+                        )}
+                        {branch.headEmployeeName && (
+                          <Typography variant="caption" color="text.secondary">
+                            {t('branches.headLine', { name: branch.headEmployeeName })}
                           </Typography>
                         )}
                       </Stack>
@@ -129,7 +137,7 @@ export function BranchesPanel() {
                         <IconButton
                           size="small"
                           color="error"
-                          disabled={branch.projectCount > 0}
+                          disabled={branch.projectCount > 0 || rows.some((r) => r.branch.parentBranchId === branch.id)}
                           onClick={() => setToDelete(branch)}
                         >
                           <DeleteOutlined fontSize="small" />

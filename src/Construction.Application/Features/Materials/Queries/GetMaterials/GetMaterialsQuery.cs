@@ -1,3 +1,4 @@
+using Construction.Application.Features.Branches;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
 using Construction.Application.Common.Security;
@@ -84,7 +85,7 @@ public class GetMaterialsQueryHandler : IRequestHandler<GetMaterialsQuery, Paged
 
         if (request.BranchId is { } branchId)
         {
-            query = query.Where(m => m.Project != null && m.Project.BranchId == branchId);
+            query = query.Where(m => m.Project != null && m.Project.Branch!.Path.Contains(BranchTree.Token(branchId)));
         }
 
         if (request.ProjectId is { } projectId)

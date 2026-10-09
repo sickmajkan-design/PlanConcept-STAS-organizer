@@ -1,3 +1,4 @@
+using Construction.Application.Features.Branches;
 using System.Text.Json;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Audit.Models;
@@ -110,7 +111,7 @@ public class GetPlanningHistoryQueryHandler : IRequestHandler<GetPlanningHistory
         {
             var unit = access.BranchId!.Value;
             var mine = await _context.EmployeeBranches.AsNoTracking()
-                .Where(p => p.BranchId == unit && p.EndDate == null)
+                .Where(p => p.Branch.Path.Contains(BranchTree.Token(unit)) && p.EndDate == null)
                 .Select(p => p.EmployeeId)
                 .ToListAsync(cancellationToken);
             resolved = resolved.Where(r => r.EmployeeId is { } id && mine.Contains(id)).ToList();

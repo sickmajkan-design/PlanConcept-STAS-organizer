@@ -23,6 +23,9 @@ public class OrganizationHierarchyNodeDto
     /// often — who therefore has no tier to sit at above "worker" in this view.
     /// </summary>
     public string? Role { get; init; }
+
+    /// <summary>The business unit that employs the person now, so the page can sit them in its tree; null when none.</summary>
+    public Guid? BranchId { get; init; }
 }
 
 /// <summary>A login that belongs to no employee record, so it has nowhere to hold a rank.</summary>
@@ -91,6 +94,7 @@ public class GetOrganizationHierarchyQueryHandler
                 Position = e.Position,
                 Rank = e.Rank,
                 Role = e.User != null ? e.User.Role.ToString() : null,
+                BranchId = e.BranchPeriods.Where(p => p.EndDate == null).Select(p => (Guid?)p.BranchId).FirstOrDefault(),
             })
             .ToListAsync(cancellationToken);
 

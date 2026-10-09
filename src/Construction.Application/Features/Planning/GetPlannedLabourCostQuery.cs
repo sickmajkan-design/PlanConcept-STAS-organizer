@@ -114,11 +114,13 @@ public class GetPlannedLabourCostQueryHandler : IRequestHandler<GetPlannedLabour
         var to = request.To;
         var today = DateOnly.FromDateTime(_clock.UtcNow);
 
+        var branchToken = request.BranchId is { } scopedBranch ? BranchTree.Token(scopedBranch) : string.Empty;
+
         var postings = await _context.EmployeeProjects
             .AsNoTracking()
             .Where(ep => ep.StartDate <= to && (ep.EndDate == null || ep.EndDate >= from)
                 && ep.Employee.Status == EmployeeStatus.Active)
-            .Where(ep => request.BranchId == null || ep.Employee.BranchPeriods.Any(b => b.BranchId == request.BranchId && b.EndDate == null))
+            .Where(ep => request.BranchId == null || ep.Employee.BranchPeriods.Any(b => b.Branch.Path.Contains(branchToken) && b.EndDate == null))
             .Select(ep => new
             {
                 ep.EmployeeId,

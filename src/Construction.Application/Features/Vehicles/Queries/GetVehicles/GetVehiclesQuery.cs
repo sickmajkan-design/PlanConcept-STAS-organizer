@@ -1,3 +1,4 @@
+using Construction.Application.Features.Branches;
 using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
@@ -126,8 +127,7 @@ public class GetVehiclesQueryHandler : IRequestHandler<GetVehiclesQuery, PagedLi
 
         if (request.BranchId is { } branchId)
         {
-            query = query.Where(v => v.BranchId == branchId
-                || (v.BranchId == null && v.AssignedProject != null && v.AssignedProject.BranchId == branchId));
+            query = query.InBranch(branchId);
         }
 
         if (request.AssignedProjectId is { } projectId)

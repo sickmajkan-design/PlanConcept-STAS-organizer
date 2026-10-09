@@ -1,3 +1,4 @@
+using Construction.Application.Features.Branches;
 using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
@@ -122,8 +123,7 @@ public class GetToolsQueryHandler : IRequestHandler<GetToolsQuery, PagedList<Too
 
         if (request.BranchId is { } branchId)
         {
-            query = query.Where(t => t.BranchId == branchId
-                || (t.BranchId == null && t.AssignedProject != null && t.AssignedProject.BranchId == branchId));
+            query = query.InBranch(branchId);
         }
 
         if (request.AssignedProjectId is { } projectId)

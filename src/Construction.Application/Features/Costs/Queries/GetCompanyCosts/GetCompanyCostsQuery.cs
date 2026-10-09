@@ -209,10 +209,12 @@ public class GetCompanyCostsQueryHandler : IRequestHandler<GetCompanyCostsQuery,
     /// <summary>The rent of every accommodation for the period, worked out as the accommodation pages do.</summary>
     private async Task<decimal> LoadAccommodationAsync(DateOnly from, DateOnly to, Guid? branchId, CancellationToken cancellationToken)
     {
+        var branchToken = branchId is { } scoped ? BranchTree.Token(scoped) : string.Empty;
+
         var rates = await _context.AccommodationRates
             .AsNoTracking()
             .Where(r => r.StartDate <= to && (r.EndDate == null || r.EndDate >= from))
-            .Where(r => branchId == null || r.Accommodation.BranchId == branchId)
+            .Where(r => branchId == null || r.Accommodation.Branch!.Path.Contains(branchToken))
             .ToListAsync(cancellationToken);
 
         if (rates.Count == 0)

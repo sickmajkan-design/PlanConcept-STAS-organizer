@@ -1,3 +1,4 @@
+using Construction.Application.Features.Branches;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
 using Construction.Application.Common.Security;
@@ -60,7 +61,7 @@ public class GetLedgersQueryHandler : IRequestHandler<GetLedgersQuery, PagedList
 
         if (request.BranchId is { } branchId)
         {
-            query = query.Where(l => l.BranchId == branchId);
+            query = query.Where(l => l.Branch!.Path.Contains(BranchTree.Token(branchId)));
         }
 
         query = ApplySorting(query, request.SortBy, request.SortDescending);

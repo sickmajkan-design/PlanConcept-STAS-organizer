@@ -28,6 +28,14 @@ public class BranchDto
     /// <summary>How many employees the unit employs now.</summary>
     public int EmployeeCount { get; init; }
 
+    /// <summary>The unit this one stands under, or null when it stands directly under the company.</summary>
+    public Guid? ParentBranchId { get; init; }
+
+    /// <summary>The person who runs the unit, if one is named.</summary>
+    public Guid? HeadEmployeeId { get; init; }
+
+    public string? HeadEmployeeName { get; init; }
+
     // Everything below is for management only: anyone else reads a unit to filter by it and gets
     // these as null.
 
@@ -95,6 +103,18 @@ public static class BranchLookup
             ?? throw new NotFoundException(nameof(Branch), id);
     }
 
+    /// <summary>Refuses a head of unit who is not an employee.</summary>
+    public static async Task EnsureHeadAsync(
+        IApplicationDbContext context,
+        Guid? employeeId,
+        CancellationToken cancellationToken)
+    {
+        if (employeeId is { } id && !await context.Employees.AnyAsync(e => e.Id == id, cancellationToken))
+        {
+            throw new NotFoundException(nameof(Employee), id);
+        }
+    }
+
     /// <summary>Refuses a record that names a business unit that does not exist.</summary>
     public static async Task EnsureExistsAsync(
         IApplicationDbContext context,
@@ -111,8 +131,17 @@ public static class BranchLookup
 /// <summary>How a <see cref="Branch"/> becomes a <see cref="BranchDto"/> for the person asking.</summary>
 public static class BranchView
 {
-    public static BranchDto Map(Branch branch, int projectCount, bool details, bool taxDetails, int employeeCount = 0) => new()
+    public static BranchDto Map(
+        Branch branch,
+        int projectCount,
+        bool details,
+        bool taxDetails,
+        int employeeCount = 0,
+        string? headName = null) => new()
     {
+        ParentBranchId = branch.ParentBranchId,
+        HeadEmployeeId = branch.HeadEmployeeId,
+        HeadEmployeeName = headName,
         Id = branch.Id,
         Name = branch.Name,
         Color = branch.Color,
@@ -147,7 +176,14 @@ public static class BranchView
             cancellationToken);
         var (details, tax) = await AccessAsync(context, currentUserService, cancellationToken);
 
-        return Map(branch, count, details, tax, employees);
+        var headName = branch.HeadEmployeeId is { } head
+            ? await context.Employees
+                .Where(e => e.Id == head)
+                .Select(e => e.FirstName + " " + e.LastName)
+                .FirstOrDefaultAsync(cancellationToken)
+            : null;
+
+        return Map(branch, count, details, tax, employees, headName);
     }
 
     /// <summary>What the caller may see of a unit: its details at all, and its tax numbers in particular.</summary>
@@ -201,6 +237,12 @@ public abstract record BranchCommandBase
     public string? Email { get; init; }
 
     public string? Note { get; init; }
+
+    /// <summary>The unit this one is placed under; null puts it directly under the company.</summary>
+    public Guid? ParentBranchId { get; init; }
+
+    /// <summary>The employee who runs the unit.</summary>
+    public Guid? HeadEmployeeId { get; init; }
 }
 
 public abstract class BranchCommandBaseValidator<T> : AbstractValidator<T>
@@ -303,8 +345,21 @@ public class GetBranchesQueryHandler : IRequestHandler<GetBranchesQuery, IReadOn
 
         var (details, tax) = await BranchView.AccessAsync(_context, _currentUserService, cancellationToken);
 
+        var headIds = branches.Where(b => b.HeadEmployeeId != null).Select(b => b.HeadEmployeeId!.Value).Distinct().ToList();
+        var heads = await _context.Employees
+            .AsNoTracking()
+            .Where(e => headIds.Contains(e.Id))
+            .Select(e => new { e.Id, Name = e.FirstName + " " + e.LastName })
+            .ToDictionaryAsync(e => e.Id, e => e.Name, cancellationToken);
+
         return branches
-            .Select(b => BranchView.Map(b, counts.GetValueOrDefault(b.Id), details, tax, employeeCounts.GetValueOrDefault(b.Id)))
+            .Select(b => BranchView.Map(
+                b,
+                counts.GetValueOrDefault(b.Id),
+                details,
+                tax,
+                employeeCounts.GetValueOrDefault(b.Id),
+                b.HeadEmployeeId is { } h ? heads.GetValueOrDefault(h) : null))
             .ToList();
     }
 }
@@ -338,8 +393,11 @@ public class CreateBranchCommandHandler : IRequestHandler<CreateBranchCommand, B
 
         var branch = new Branch();
         BranchFieldMapper.Apply(branch, request, CustomerRules.CanEditTaxDetails(_currentUserService.Role));
+        await BranchLookup.EnsureHeadAsync(_context, request.HeadEmployeeId, cancellationToken);
+        branch.HeadEmployeeId = request.HeadEmployeeId;
 
         _context.Branches.Add(branch);
+        await BranchTree.PlaceAsync(_context, branch, request.ParentBranchId, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
         return await BranchView.ForCallerAsync(_context, _currentUserService, branch, cancellationToken);
@@ -389,6 +447,9 @@ public class UpdateBranchCommandHandler : IRequestHandler<UpdateBranchCommand, B
 
         BranchFieldMapper.Apply(branch, request, CustomerRules.CanEditTaxDetails(_currentUserService.Role));
         branch.IsActive = request.IsActive;
+        await BranchLookup.EnsureHeadAsync(_context, request.HeadEmployeeId, cancellationToken);
+        branch.HeadEmployeeId = request.HeadEmployeeId;
+        await BranchTree.PlaceAsync(_context, branch, request.ParentBranchId, cancellationToken);
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -416,6 +477,11 @@ public class DeleteBranchCommandHandler : IRequestHandler<DeleteBranchCommand>
 
         var branch = await _context.Branches.FirstOrDefaultAsync(b => b.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(Branch), request.Id);
+
+        if (await _context.Branches.AnyAsync(b => b.ParentBranchId == branch.Id, cancellationToken))
+        {
+            throw new ConflictException("This business unit has sub-units. Move or remove them first.");
+        }
 
         if (await _context.Projects.IgnoreQueryFilters().AnyAsync(p => p.BranchId == branch.Id, cancellationToken))
         {

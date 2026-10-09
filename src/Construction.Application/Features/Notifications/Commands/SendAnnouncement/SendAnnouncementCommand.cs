@@ -1,3 +1,4 @@
+using Construction.Application.Features.Branches;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Enums;
 using FluentValidation;
@@ -88,7 +89,7 @@ public class SendAnnouncementCommandHandler : IRequestHandler<SendAnnouncementCo
             users = users.Where(u =>
                 u.EmployeeId != null &&
                 _context.EmployeeBranches.Any(p =>
-                    p.BranchId == branchId && p.EndDate == null && p.EmployeeId == u.EmployeeId));
+                    p.Branch.Path.Contains(BranchTree.Token(branchId)) && p.EndDate == null && p.EmployeeId == u.EmployeeId));
         }
 
         if (request.GroupId is { } groupId)

@@ -22,6 +22,8 @@ import {
   Paper,
   Stack,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Tooltip,
   Typography,
 } from '@mui/material';
@@ -33,13 +35,13 @@ import {
   organizationRanks,
   type OrganizationHierarchyNode,
   type OrganizationRank,
-  type Role,
   type UnlinkedAccount,
 } from '../../api/types';
 import { canAdministerAccounts } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
+import { useBranchesQuery } from '../../features/branches/useBranches';
 import { useCompanyBrandingQuery } from '../../features/companySettings/useCompanySettings';
 import {
   useOrganizationHierarchyQuery,
@@ -48,30 +50,9 @@ import {
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
+import { HierarchyStructure } from './HierarchyStructure';
+import { groupByRank } from './rankTiers';
 import { suggestRank } from './suggestRank';
-
-/**
- * Where somebody with no rank picked is placed, going by their login role.
- *
- * Only where that is unambiguous. A worker, a foreman and a project manager
- * each map to the one rank that carries their name; an administrator or a
- * super-admin could be anything from the owner to the office clerk, and
- * guessing "Director" for them would put a wrong title on the chart. Those
- * stay unplaced until somebody picks.
- */
-function rankFromRole(role: Role | null): OrganizationRank | null {
-  switch (role) {
-    case null:
-    case 'Worker':
-      return 'Worker';
-    case 'Foreman':
-      return 'Foreman';
-    case 'ProjectManager':
-      return 'ProjectManager';
-    default:
-      return null;
-  }
-}
 
 /**
  * One colour per rank, darkest at the top. A step in lightness rather than a
@@ -460,6 +441,10 @@ export function HierarchyPage() {
   const { data: branding } = useCompanyBrandingQuery();
   const [editing, setEditing] = useState<OrganizationHierarchyNode | null>(null);
   const [suggesting, setSuggesting] = useState(false);
+  const { data: branches } = useBranchesQuery();
+  const [chosenView, setChosenView] = useState<'structure' | 'ranks' | null>(null);
+  // With units set up the structure is the first thing to see; without any, the rank chart is all there is.
+  const view = chosenView ?? ((branches ?? []).length > 0 ? 'structure' : 'ranks');
 
   const canEdit = canAdministerAccounts(user);
 
@@ -472,28 +457,7 @@ export function HierarchyPage() {
     [data],
   );
 
-  const { tiers, unplaced } = useMemo(() => {
-    const byRank = new Map<OrganizationRank, OrganizationHierarchyNode[]>();
-    const loose: OrganizationHierarchyNode[] = [];
-
-    for (const node of data?.people ?? []) {
-      const rank = node.rank ?? rankFromRole(node.role);
-
-      if (!rank) {
-        loose.push(node);
-        continue;
-      }
-
-      byRank.set(rank, [...(byRank.get(rank) ?? []), node]);
-    }
-
-    return {
-      tiers: organizationRanks
-        .map((rank, index) => ({ rank, index, people: byRank.get(rank) ?? [] }))
-        .filter((tier) => tier.people.length > 0),
-      unplaced: loose,
-    };
-  }, [data]);
+  const { tiers, unplaced } = useMemo(() => groupByRank(data?.people ?? []), [data]);
 
   const companyName = branding?.name || t('nav.appName');
   const accounts = data?.unlinkedAccounts ?? [];
@@ -504,7 +468,21 @@ export function HierarchyPage() {
     <Box>
       <PageHeader title={t('hierarchy.title')} description={t('hierarchy.description')} />
 
-      {canEdit && suggestions.length > 0 && (
+      {(branches ?? []).length > 0 && (
+        <ToggleButtonGroup
+          exclusive
+          size="small"
+          value={view}
+          onChange={(_event, value: 'structure' | 'ranks' | null) => value && setChosenView(value)}
+          aria-label={t('hierarchy.viewLabel')}
+          sx={{ mb: 2 }}
+        >
+          <ToggleButton value="structure">{t('hierarchy.viewStructure')}</ToggleButton>
+          <ToggleButton value="ranks">{t('hierarchy.viewRanks')}</ToggleButton>
+        </ToggleButtonGroup>
+      )}
+
+      {view === 'ranks' && canEdit && suggestions.length > 0 && (
         <Box sx={{ mb: 2 }}>
           <Button
             variant="outlined"
@@ -524,13 +502,21 @@ export function HierarchyPage() {
 
       {isError && <ErrorState error={error} onRetry={() => void refetch()} />}
 
-      {nothingToShow && (
+      {view === 'ranks' && nothingToShow && (
         <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
           {t('hierarchy.empty')}
         </Typography>
       )}
 
-      {!isLoading && !isError && !nothingToShow && (
+      {view === 'structure' && !isLoading && !isError && (
+        <HierarchyStructure
+          companyName={companyName}
+          people={data?.people ?? []}
+          onOpenPerson={(node) => navigate(paths.employeeDetail(node.employeeId))}
+        />
+      )}
+
+      {view === 'ranks' && !isLoading && !isError && !nothingToShow && (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <Paper
             elevation={2}

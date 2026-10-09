@@ -35,6 +35,19 @@ public class BranchConfiguration : IEntityTypeConfiguration<Branch>
         builder.Property(b => b.Email).HasMaxLength(200);
         builder.Property(b => b.Note).HasMaxLength(2000);
 
+        builder.Property(b => b.Path).HasMaxLength(300).IsRequired().HasDefaultValue(string.Empty);
+
+        builder.HasOne(b => b.Parent)
+            .WithMany(b => b.Children)
+            .HasForeignKey(b => b.ParentBranchId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(b => b.HeadEmployee)
+            .WithMany()
+            .HasForeignKey(b => b.HeadEmployeeId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasIndex(b => b.ParentBranchId);
         builder.HasIndex(b => b.Name).IsUnique();
     }
 }

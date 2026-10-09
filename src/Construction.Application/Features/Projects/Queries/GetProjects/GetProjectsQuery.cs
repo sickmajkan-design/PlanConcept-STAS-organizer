@@ -1,3 +1,4 @@
+using Construction.Application.Features.Branches;
 using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
@@ -114,7 +115,7 @@ public class GetProjectsQueryHandler : IRequestHandler<GetProjectsQuery, PagedLi
 
         if (request.BranchId is { } branchId)
         {
-            query = query.Where(p => p.BranchId == branchId);
+            query = query.InBranch(branchId);
         }
 
         if (request.ParentProjectId is { } parentProjectId)

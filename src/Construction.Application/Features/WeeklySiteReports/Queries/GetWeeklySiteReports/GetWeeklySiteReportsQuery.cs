@@ -1,3 +1,4 @@
+using Construction.Application.Features.Branches;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.WeeklySiteReports.Models;
@@ -62,7 +63,7 @@ public class GetWeeklySiteReportsQueryHandler
 
         if (request.BranchId is { } branchId)
         {
-            query = query.Where(r => r.Project.BranchId == branchId);
+            query = query.Where(r => r.Project.Branch!.Path.Contains(BranchTree.Token(branchId)));
         }
 
         if (request.ProjectId is { } projectId)

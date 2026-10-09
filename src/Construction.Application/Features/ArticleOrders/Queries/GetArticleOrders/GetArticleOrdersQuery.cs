@@ -1,3 +1,4 @@
+using Construction.Application.Features.Branches;
 using Construction.Application.Common.Security;
 using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
@@ -84,7 +85,7 @@ public class GetArticleOrdersQueryHandler : IRequestHandler<GetArticleOrdersQuer
 
         if (request.BranchId is { } branchId)
         {
-            query = query.Where(o => o.Project != null && o.Project.BranchId == branchId);
+            query = query.Where(o => o.Project != null && o.Project.Branch!.Path.Contains(BranchTree.Token(branchId)));
         }
 
         if (request.Status is { } status)

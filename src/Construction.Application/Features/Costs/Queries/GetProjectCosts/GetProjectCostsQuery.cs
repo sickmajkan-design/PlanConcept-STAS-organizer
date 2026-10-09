@@ -1,3 +1,4 @@
+using Construction.Application.Features.Branches;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Finance;
@@ -117,7 +118,7 @@ public class GetProjectCostsQueryHandler
         {
             var inBranch = await _context.Projects
                 .AsNoTracking()
-                .Where(p => p.BranchId == branchId && projectIds.Contains(p.Id))
+                .Where(p => p.Branch!.Path.Contains(BranchTree.Token(branchId)) && projectIds.Contains(p.Id))
                 .Select(p => p.Id)
                 .ToListAsync(cancellationToken);
 
