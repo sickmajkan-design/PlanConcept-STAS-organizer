@@ -46,7 +46,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-import { keyframes } from '@mui/material/styles';
+import { alpha, keyframes } from '@mui/material/styles';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
@@ -550,19 +550,29 @@ export function AppLayout({ children }: { children: ReactNode }) {
               color={groupContainsActivePath(entry) ? 'primary' : 'default'}
               sx={{
                 position: 'relative',
-                bgcolor:
-                  shownGroup?.key === entry.key || groupContainsActivePath(entry)
+                width: 48,
+                height: 48,
+                borderRadius: 2,
+                // Three looks, so the rail always says where you are: filled for the group the open
+                // page belongs to, a soft tint for the group whose panel is open, and for the
+                // planning group (the one used most) a light orange that is never mistaken for "here".
+                bgcolor: groupContainsActivePath(entry)
+                  ? 'primary.main'
+                  : shownGroup?.key === entry.key
                     ? 'action.selected'
-                    : 'transparent',
-                ...(entry.emphasized && {
-                  width: 52,
-                  height: 52,
-                  borderRadius: 2,
-                  color: 'primary.contrastText',
-                  bgcolor: 'primary.main',
-                  boxShadow: 3,
-                  '&:hover': { bgcolor: 'primary.dark' },
-                }),
+                    : entry.emphasized
+                      ? (theme) => alpha(theme.palette.primary.main, 0.12)
+                      : 'transparent',
+                color: groupContainsActivePath(entry)
+                  ? 'primary.contrastText'
+                  : entry.emphasized
+                    ? 'primary.main'
+                    : 'text.secondary',
+                boxShadow: groupContainsActivePath(entry) ? 3 : 'none',
+                transition: 'background-color 0.18s, color 0.18s, box-shadow 0.18s',
+                '&:hover': {
+                  bgcolor: groupContainsActivePath(entry) ? 'primary.dark' : 'action.hover',
+                },
                 // The marker on the rail's edge for the group the open page belongs to.
                 ...(groupContainsActivePath(entry) && {
                   '&::before': {
