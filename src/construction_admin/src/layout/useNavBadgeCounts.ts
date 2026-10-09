@@ -123,8 +123,9 @@ export function useNavBadgeCounts(user: User | null | undefined): Record<string,
 
   return {
     admin: documentsCount,
-    work: absencesCount + workItemsCount + timeEntriesCount,
-    directory: lowStockCount + contractsCount,
+    planning: absencesCount + workItemsCount + timeEntriesCount,
+    people: contractsCount,
+    equipment: lowStockCount,
     [paths.accommodations]: contractsCount,
     [paths.materials]: lowStockCount,
     costs: vehicleExpensesCount,

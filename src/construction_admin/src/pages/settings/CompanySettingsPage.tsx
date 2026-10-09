@@ -233,19 +233,29 @@ export function CompanyProfilePanel() {
         )}
 
         <Stack direction="row" spacing={2} sx={{ alignItems: 'center' }}>
-          <Avatar
-            src={logoUrl ?? undefined}
-            variant="rounded"
-            sx={{ width: 72, height: 72, bgcolor: 'grey.100', cursor: logoUrl ? 'pointer' : 'default' }}
-            onMouseEnter={(event) => {
-              if (logoUrl) {
-                scheduleLogoPreview(event.currentTarget);
-              }
-            }}
-            onMouseLeave={cancelLogoPreview}
-          >
-            {!logoUrl && (existing?.name?.charAt(0) ?? '?')}
-          </Avatar>
+          {/* The whole picture, not a square crop of it: a wordmark is far wider than tall. */}
+          {logoUrl ? (
+            <Box
+              component="img"
+              src={logoUrl}
+              alt={existing?.name ?? ''}
+              sx={{
+                height: 72,
+                width: 'auto',
+                maxWidth: 220,
+                objectFit: 'contain',
+                borderRadius: 1,
+                bgcolor: 'grey.50',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={(event) => scheduleLogoPreview(event.currentTarget)}
+              onMouseLeave={cancelLogoPreview}
+            />
+          ) : (
+            <Avatar variant="rounded" sx={{ width: 72, height: 72, bgcolor: 'grey.100' }}>
+              {existing?.name?.charAt(0) ?? '?'}
+            </Avatar>
+          )}
 
           <Popper
             open={Boolean(logoAnchor)}

@@ -24,9 +24,9 @@ base.describe('on a tablet', () => {
     await page.locator('.MuiAppBar-root button').first().click();
 
     // The drawer groups its links under collapsible headers — Employees
-    // lives inside "Directory" — so opening the drawer surfaces the group,
+    // lives inside "People" — so opening the drawer surfaces the group,
     // not the link itself.
-    await page.getByRole('button', { name: 'Directory', exact: true }).click();
+    await page.getByRole('button', { name: 'People', exact: true }).click();
 
     await expect(navLink(page, 'Employees')).toBeVisible();
     await navLink(page, 'Employees').click();

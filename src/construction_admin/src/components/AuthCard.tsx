@@ -1,7 +1,7 @@
 import { EngineeringOutlined } from '@mui/icons-material';
 import { Box, Paper, Stack, Typography } from '@mui/material';
 
-import { config } from '../config';
+import { useCompanyLogoUrl } from '../features/companySettings/useCompanyLogoUrl';
 import { useCompanyBrandingQuery } from '../features/companySettings/useCompanySettings';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { OfflineBanner } from './OfflineBanner';
@@ -23,6 +23,7 @@ export function AuthCard({
   children: ReactNode;
 }) {
   const { data: branding } = useCompanyBrandingQuery();
+  const logoUrl = useCompanyLogoUrl();
 
   return (
     <Box
@@ -47,7 +48,7 @@ export function AuthCard({
             {branding?.hasLogo ? (
               <Box
                 component="img"
-                src={`${config.apiBaseUrl}/api/v1/company-settings/logo`}
+                src={logoUrl}
                 alt=""
                 sx={{ width: 56, height: 56, objectFit: 'contain' }}
               />

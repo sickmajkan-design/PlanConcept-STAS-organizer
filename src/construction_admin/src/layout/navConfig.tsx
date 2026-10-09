@@ -25,11 +25,10 @@ import {
   BusinessOutlined,
   PaymentsOutlined,
   HomeOutlined,
+  EventNoteOutlined,
   HomeWorkOutlined,
   TableChartOutlined,
-  FolderSharedOutlined,
   ScheduleSendOutlined,
-  WorkOutlined,
   AdminPanelSettingsOutlined,
   SecurityOutlined,
   FactCheckOutlined,
@@ -63,12 +62,18 @@ export interface NavItem {
   inTabs?: boolean;
   /** Other paths this entry is "current" for, so a hub stays highlighted on its tabs. */
   alsoActiveOn?: string[];
+  /** Heading the flyout panel prints above this item (and the ones after it, until the next heading). */
+  section?: string;
 }
 
 export interface NavGroup {
   key: string;
   label: string;
   icon: ReactNode;
+  /** One line under the group's name in the flyout panel. */
+  sub?: string;
+  /** The group people plan with: drawn as a filled tile on the rail. */
+  emphasized?: boolean;
   items: NavItem[];
 }
 
@@ -87,29 +92,58 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
     ...(canViewDirectory(user)
       ? [
           {
-            key: 'directory',
-            label: t('nav.group.directory'),
-            icon: <FolderSharedOutlined />,
+            key: 'planning',
+            label: t('nav.group.planning'),
+            sub: t('nav.group.planning.sub'),
+            icon: <EventNoteOutlined />,
+            emphasized: true,
+            items: [
+              {
+                label: t('nav.schedule'),
+                path: paths.schedule,
+                icon: <CalendarMonthOutlined />,
+                section: t('nav.section.people'),
+              },
+              {
+                label: t('nav.absences'),
+                path: paths.absences,
+                icon: <EventBusyOutlined />,
+                section: t('nav.section.people'),
+              },
+              {
+                label: t('nav.timeEntries'),
+                path: paths.timeEntries,
+                icon: <ScheduleOutlined />,
+                section: t('nav.section.people'),
+              },
+              {
+                label: t('nav.workItems'),
+                path: paths.workItems,
+                icon: <ChecklistOutlined />,
+                section: t('nav.section.work'),
+              },
+              {
+                label: t('nav.articleOrders'),
+                path: paths.articleOrders,
+                icon: <ShoppingCartOutlined />,
+                section: t('nav.section.work'),
+              },
+              {
+                label: t('nav.weeklyReports'),
+                path: paths.weeklyReports,
+                icon: <ScheduleSendOutlined />,
+                section: t('nav.section.work'),
+              },
+            ],
+          } satisfies NavGroup,
+          {
+            key: 'people',
+            label: t('nav.group.people'),
+            sub: t('nav.group.people.sub'),
+            icon: <PeopleOutlined />,
             items: [
               { label: t('nav.employees'), path: paths.employees, icon: <PeopleOutlined /> },
-              {
-                label: t('nav.hierarchy'),
-                path: paths.hierarchy,
-                icon: <AccountTreeOutlined />,
-              },
-              { label: t('nav.projects'), path: paths.projects, icon: <ApartmentOutlined /> },
-              { label: t('nav.customers'), path: paths.customers, icon: <BusinessOutlined /> },
-              {
-                label: t('nav.vehicles'),
-                path: paths.vehicles,
-                icon: <LocalShippingOutlined />,
-              },
-              { label: t('nav.tools'), path: paths.tools, icon: <HandymanOutlined /> },
-              {
-                label: t('nav.materials'),
-                path: paths.materials,
-                icon: <Inventory2Outlined />,
-              },
+              { label: t('nav.hierarchy'), path: paths.hierarchy, icon: <AccountTreeOutlined /> },
               {
                 label: t('nav.accommodations'),
                 path: paths.accommodations,
@@ -118,41 +152,30 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
             ],
           } satisfies NavGroup,
           {
-            key: 'work',
-            label: t('nav.group.work'),
-            icon: <WorkOutlined />,
+            key: 'projects',
+            label: t('nav.group.projects'),
+            sub: t('nav.group.projects.sub'),
+            icon: <ApartmentOutlined />,
             items: [
-              {
-                label: t('nav.timeEntries'),
-                path: paths.timeEntries,
-                icon: <ScheduleOutlined />,
-              },
-              {
-                label: t('nav.workItems'),
-                path: paths.workItems,
-                icon: <ChecklistOutlined />,
-              },
-              {
-                label: t('nav.schedule'),
-                path: paths.schedule,
-                icon: <CalendarMonthOutlined />,
-              },
-              { label: t('nav.absences'), path: paths.absences, icon: <EventBusyOutlined /> },
-              { label: t('nav.articleOrders'), path: paths.articleOrders, icon: <ShoppingCartOutlined /> },
-              { label: t('nav.refunds'), path: paths.refunds, icon: <RequestQuoteOutlined /> },
-              ...(canManageInvoices(user)
-                ? [{ label: t('nav.invoices'), path: paths.invoices, icon: <ReceiptLongOutlined /> }]
-                : []),
-              {
-                label: t('nav.weeklyReports'),
-                path: paths.weeklyReports,
-                icon: <ScheduleSendOutlined />,
-              },
+              { label: t('nav.projects'), path: paths.projects, icon: <ApartmentOutlined /> },
+              { label: t('nav.customers'), path: paths.customers, icon: <BusinessOutlined /> },
+            ],
+          } satisfies NavGroup,
+          {
+            key: 'equipment',
+            label: t('nav.group.equipment'),
+            sub: t('nav.group.equipment.sub'),
+            icon: <LocalShippingOutlined />,
+            items: [
+              { label: t('nav.vehicles'), path: paths.vehicles, icon: <LocalShippingOutlined /> },
+              { label: t('nav.tools'), path: paths.tools, icon: <HandymanOutlined /> },
+              { label: t('nav.materials'), path: paths.materials, icon: <Inventory2Outlined /> },
             ],
           } satisfies NavGroup,
           {
             key: 'costs',
             label: t('nav.group.costs'),
+            sub: t('nav.group.costs.sub'),
             icon: <PaidOutlined />,
             items: [
               ...(canViewFinance(user)
@@ -160,6 +183,10 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
                     { label: t('nav.costs'), path: paths.costs, icon: <PaidOutlined /> },
                     { label: t('nav.companyRevenues'), path: paths.companyRevenues, icon: <TrendingUpOutlined /> },
                   ]
+                : []),
+              { label: t('nav.refunds'), path: paths.refunds, icon: <RequestQuoteOutlined /> },
+              ...(canManageInvoices(user)
+                ? [{ label: t('nav.invoices'), path: paths.invoices, icon: <ReceiptLongOutlined /> }]
                 : []),
               // Reading any of these back is money now (`FinanceRules.CanSeeSpendingAsync`),
               // so the whole tab strip needs the finance grant, same as the routes.
@@ -273,6 +300,7 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
           {
             key: 'admin',
             label: t('nav.group.admin'),
+            sub: t('nav.group.admin.sub'),
             icon: <AdminPanelSettingsOutlined />,
             items: [
               {
@@ -316,6 +344,7 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
           {
             key: 'superadmin',
             label: t('nav.group.superadmin'),
+            sub: t('nav.group.superadmin.sub'),
             icon: <SecurityOutlined />,
             items: [
               { label: t('nav.ledgers'), path: paths.ledgers, icon: <TableChartOutlined /> },

@@ -32,21 +32,25 @@ export async function setLanguage(page: Page, locale: 'sr' | 'en') {
 /**
  * A navigation link, and only the one that is on screen.
  *
- * The layout keeps *two* drawers in the DOM at all times — a permanent one for
- * wide screens and a temporary one for narrow, mounted eagerly so opening it
- * is instant. So every nav link matches twice, and an unfiltered locator is a
- * strict-mode violation rather than a missing element: the failure reads
- * "waiting for…" and sends you looking for a link that is right there.
+ * The layout keeps *two* menus in the DOM at all times — the rail with its slide-out panel for
+ * wide screens and a temporary drawer for narrow, mounted eagerly so opening it is instant. The
+ * panel's links are only visible once a rail group is open (`openRailGroup`), and the page's own
+ * body can carry links with the same words, so an unfiltered locator is a strict-mode violation
+ * rather than a missing element.
  */
 export function navLink(page: Page, name: string): Locator {
   // Inside the navigation only (the phone's temporary drawer is portalled out of the nav
   // element, hence the second selector): the home page also carries links with the same words (a
-  // chip on a widget, say), and from `lg` up the menu is a labelled sidebar that shows
-  // its links all the time, so a bare role query would find two.
+  // chip on a widget, say), so a bare role query would find two.
   return page
     .locator('nav, .MuiDrawer-root')
     .getByRole('link', { name, exact: true })
     .filter({ visible: true });
+}
+
+/** Slides the panel of a rail group out (desktop), so its links become visible. */
+export async function openRailGroup(page: Page, group: string) {
+  await page.getByRole('button', { name: group, exact: true }).filter({ visible: true }).first().click();
 }
 
 /** The form's submit control, by role rather than by its label. */

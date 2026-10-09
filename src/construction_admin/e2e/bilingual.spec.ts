@@ -1,6 +1,6 @@
 import { expect, test as base } from '@playwright/test';
 
-import { navLink, OPERATOR, signIn, setLanguage } from './fixtures';
+import { navLink, openRailGroup, OPERATOR, signIn, setLanguage } from './fixtures';
 
 /**
  * Both languages, in the browser that has to render them.
@@ -50,12 +50,14 @@ base.describe('language', () => {
     // switch under test is the one a Serbian-speaking operator makes.
     await signIn(page);
 
+    await openRailGroup(page, 'People');
     await expect(navLink(page, 'Employees')).toBeVisible();
 
     await page.getByRole('button', { name: 'Language' }).click();
     await page.getByRole('menuitem', { name: 'Srpski' }).click();
 
     // No reload in between — the whole app re-renders in place.
+    await openRailGroup(page, 'Ljudi');
     await expect(navLink(page, 'Zaposleni')).toBeVisible();
     await expect(page.locator('html')).toHaveAttribute('lang', 'sr-Latn');
 
@@ -64,6 +66,7 @@ base.describe('language', () => {
     // The choice is a preference, not a session setting. Losing it on every
     // reload is the kind of thing people stop reporting and start working
     // around.
+    await openRailGroup(page, 'Ljudi');
     await expect(navLink(page, 'Zaposleni')).toBeVisible();
     await expect(page.locator('html')).toHaveAttribute('lang', 'sr-Latn');
   });

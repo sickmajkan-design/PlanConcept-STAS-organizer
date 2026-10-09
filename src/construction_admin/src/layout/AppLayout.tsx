@@ -1,8 +1,12 @@
 import {
   ArrowBackOutlined,
+  ChevronRightOutlined,
   LogoutOutlined,
   MenuOutlined,
   PasswordOutlined,
+  PlaceOutlined,
+  PushPin,
+  PushPinOutlined,
   ExpandLess,
   ExpandMore,
   HelpOutlined,
@@ -20,6 +24,7 @@ import {
   BottomNavigationAction,
   Box,
   Breadcrumbs,
+  ButtonBase,
   ClickAwayListener,
   Collapse,
   Divider,
@@ -33,7 +38,6 @@ import {
   ListItemText,
   Menu,
   MenuItem,
-  MenuList,
   Paper,
   Popper,
   Toolbar,
@@ -42,6 +46,7 @@ import {
   useMediaQuery,
   useTheme,
 } from '@mui/material';
+import { keyframes } from '@mui/material/styles';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
@@ -51,7 +56,7 @@ import { readScoped, storageScope, writeScoped } from '../hooks/userScopedStorag
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { OfflineBanner } from '../components/OfflineBanner';
 import { UndoSnackbarHost } from '../components/UndoSnackbarHost';
-import { config } from '../config';
+import { useCompanyLogoUrl } from '../features/companySettings/useCompanyLogoUrl';
 import {
   useCompanyBrandingQuery,
   useCompanySettingsQuery,
@@ -78,6 +83,7 @@ import { PlatformGuideDialog } from './PlatformGuideDialog';
 import { isTypingTarget, ShortcutsHelpDialog } from './ShortcutsHelpDialog';
 import { useFavorites } from './useFavorites';
 import { useNavBadgeCounts } from './useNavBadgeCounts';
+import { usePinnedPanel } from './usePinnedPanel';
 
 /**
  * The pages worth one tap on a phone, most useful first. The bottom bar shows the
@@ -117,10 +123,23 @@ const PHONE_BAR_ACTION_SX = {
 } as const;
 
 const RAIL_WIDTH = 72;
-/** From `lg` up the menu is a labelled sidebar instead of the icon rail. */
-const SIDEBAR_WIDTH = 264;
+/** The panel that slides out of the rail with the pages of one group. */
+const PANEL_WIDTH = 320;
+/** Top bar height from `md` up, where the company's logo is shown in its middle. */
+const TOP_BAR_HEIGHT = 80;
+/**
+ * How much room the page area (the screen minus the menu) must have before the company block
+ * in the middle of the top bar shows the logo alone, with the name, and with the address too.
+ * Measured against the room that is left, so a pinned menu panel hides it sooner.
+ */
+const BRAND_MIN_CONTENT = { logo: 760, name: 940, address: 1180 } as const;
 const MOBILE_DRAWER_WIDTH = 260;
 const EXPANDED_GROUPS_KEY = 'nav.expandedGroups';
+
+const panelItemIn = keyframes`
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: none; }
+`;
 
 /** How long the pointer must hover the rail logo before the enlarged preview appears. */
 const LOGO_PREVIEW_HOVER_DELAY_MS = 500;
@@ -135,9 +154,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
-  const [railFlyout, setRailFlyout] = useState<{ key: string; anchorEl: HTMLElement } | null>(
-    null,
-  );
+  // Which group's panel is slid out of the rail; `openTick` replays the items' entrance each time.
+  const [flyoutKey, setFlyoutKey] = useState<string | null>(null);
+  const [openTick, setOpenTick] = useState(0);
+  const { pinned, togglePinned } = usePinnedPanel();
+  const menuWidth = RAIL_WIDTH + (pinned && isWide ? PANEL_WIDTH : 0);
+  const brandRoom = {
+    logo: useMediaQuery(`(min-width:${menuWidth + BRAND_MIN_CONTENT.logo}px)`),
+    name: useMediaQuery(`(min-width:${menuWidth + BRAND_MIN_CONTENT.name}px)`),
+    address: useMediaQuery(`(min-width:${menuWidth + BRAND_MIN_CONTENT.address}px)`),
+  };
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [logoPreviewAnchor, setLogoPreviewAnchor] = useState<HTMLElement | null>(null);
   const logoHoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -157,6 +183,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const t = useT();
   const enumLabel = useEnumLabel();
   const { data: branding } = useCompanyBrandingQuery();
+  const logoUrl = useCompanyLogoUrl();
   const { data: companyDetails } = useCompanySettingsQuery(canViewDirectory(user));
   const favorites = useFavorites();
   const badgeCounts = useNavBadgeCounts(user);
@@ -176,14 +203,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const navEntries = useMemo(() => (user ? buildNavEntries(user, t) : []), [user, t]);
   const flatItems = useMemo(() => flattenNavEntries(navEntries), [navEntries]);
 
-  // A labelled sidebar that opens with every group collapsed hides the structure it exists to
-  // show. Until somebody has opened or closed a group themselves, all of them start open.
-  useEffect(() => {
-    if (!isWide) return; // the drawer on a tablet or phone is long enough with its groups closed
-    if (readScoped<string[] | null>(scope, EXPANDED_GROUPS_KEY, null) !== null) return;
-    const keys = navEntries.filter(isNavGroup).map((entry) => entry.key);
-    if (keys.length > 0) setExpandedGroups(new Set(keys));
-  }, [scope, navEntries, isWide]);
   const phoneBarItems = useMemo(
     () =>
       PHONE_BAR_PATHS.map((path) => flatItems.find((item) => item.path === path))
@@ -313,23 +332,41 @@ export function AppLayout({ children }: { children: ReactNode }) {
     }
   };
 
-  const scheduleFlyoutOpen = (key: string, target: HTMLElement) => {
+  const openFlyout = (key: string) => {
     clearHoverTimer();
-    hoverTimer.current = setTimeout(() => {
-      setRailFlyout({ key, anchorEl: target });
-    }, HOVER_OPEN_DELAY);
+    setFlyoutKey((current) => {
+      if (current !== key) setOpenTick((tick) => tick + 1);
+      return key;
+    });
+  };
+
+  const scheduleFlyoutOpen = (key: string) => {
+    clearHoverTimer();
+    hoverTimer.current = setTimeout(() => openFlyout(key), HOVER_OPEN_DELAY);
   };
 
   const scheduleFlyoutClose = () => {
     clearHoverTimer();
-    hoverTimer.current = setTimeout(() => setRailFlyout(null), HOVER_CLOSE_DELAY);
+    if (menuAnchor) return;
+    hoverTimer.current = setTimeout(() => setFlyoutKey(null), HOVER_CLOSE_DELAY);
   };
 
-  const activeFlyoutGroup =
-    railFlyout && navEntries.find((entry) => isNavGroup(entry) && entry.key === railFlyout.key);
+  // The pinned panel stays beside the rail, so it needs room: only from `lg` up.
+  const panelDocked = pinned && isWide;
+  const navGroups = navEntries.filter(isNavGroup);
+  const activeGroup = navGroups.find(groupContainsActivePath) ?? navGroups[0];
+  const shownGroup = navGroups.find((group) => group.key === flyoutKey) ?? (panelDocked ? activeGroup : undefined);
+  const panelOpen = !!shownGroup;
+  const navWidth = RAIL_WIDTH + (panelDocked ? PANEL_WIDTH : 0);
+  const contentWidth = `calc(100% - ${navWidth}px)`;
+  const showBrandLogo = isDesktop && brandRoom.logo;
+  const showBrandName = showBrandLogo && brandRoom.name;
+  const showBrandAddress = showBrandName && brandRoom.address;
+  const reduceMotion = '@media (prefers-reduced-motion: reduce)';
 
   const railContent = (
     <Box
+      data-nav-rail
       sx={{
         display: 'flex',
         flexDirection: 'column',
@@ -337,11 +374,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
         height: '100%',
         py: 1.5,
         gap: 0.5,
+        overflowY: 'auto',
+        scrollbarWidth: 'none',
       }}
     >
-      {/* The rail keeps a plain "go home" glyph rather than the company logo —
-          the logo itself now lives once, prominently, centred in the top bar
-          (see the Toolbar below) instead of tucked into this top-left corner. */}
       <Tooltip title={t('nav.home')} placement="right">
         <IconButton
           component={Link}
@@ -350,9 +386,27 @@ export function AppLayout({ children }: { children: ReactNode }) {
           onMouseEnter={(event) => scheduleLogoPreview(event.currentTarget)}
           onMouseLeave={cancelLogoPreview}
         >
-          <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: 14 }}>
-            {(branding?.name || t('nav.appName')).slice(0, 1)}
-          </Avatar>
+          {branding?.hasLogo ? (
+            <Box
+              component="img"
+              src={logoUrl}
+              alt=""
+              sx={{
+                width: 48,
+                height: 48,
+                p: 0.5,
+                objectFit: 'contain',
+                borderRadius: 2,
+                bgcolor: 'background.paper',
+                border: '1px solid',
+                borderColor: 'divider',
+              }}
+            />
+          ) : (
+            <Avatar variant="rounded" sx={{ width: 44, height: 44, bgcolor: 'primary.main', fontSize: 20 }}>
+              {(branding?.name || t('nav.appName')).slice(0, 1)}
+            </Avatar>
+          )}
         </IconButton>
       </Tooltip>
 
@@ -378,7 +432,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 {branding?.hasLogo ? (
                   <Box
                     component="img"
-                    src={`${config.apiBaseUrl}/api/v1/company-settings/logo`}
+                    src={logoUrl}
                     alt=""
                     sx={{
                       width: 220,
@@ -479,28 +533,49 @@ export function AppLayout({ children }: { children: ReactNode }) {
         .filter((entry) => isNavGroup(entry) || entry.path !== paths.home)
         .map((entry) =>
           isNavGroup(entry) ? (
-            // No Tooltip here on purpose: the hover-triggered Popper flyout
-            // below already opens on the same hover and shows the group name
-            // as its own header, so a floating tooltip and the flyout used to
-            // land in the same place at once — the exact "elements on top of
-            // each other" a hovered icon produced. `aria-label` keeps the
-            // hint for screen readers without drawing anything on hover.
+            // No Tooltip here on purpose: the panel that slides out on the same hover
+            // names the group as its own header, so a floating tooltip would land in
+            // the same place at once. `aria-label` keeps the name for screen readers.
             <IconButton
               key={entry.key}
-              aria-label={`${entry.label} — ${t('nav.hoverHint')}`}
-              onClick={() => {
-                clearHoverTimer();
-                setRailFlyout(null);
-                navigate(navItemHref(entry.items[0].path));
+              aria-label={entry.label}
+              aria-expanded={shownGroup?.key === entry.key}
+              onClick={() => openFlyout(entry.key)}
+              onMouseEnter={() => {
+                if (!panelDocked) scheduleFlyoutOpen(entry.key);
               }}
-              onMouseEnter={(event) => scheduleFlyoutOpen(entry.key, event.currentTarget)}
-              onMouseLeave={scheduleFlyoutClose}
+              onMouseLeave={() => {
+                if (!panelDocked) scheduleFlyoutClose();
+              }}
               color={groupContainsActivePath(entry) ? 'primary' : 'default'}
               sx={{
+                position: 'relative',
                 bgcolor:
-                  groupContainsActivePath(entry) || railFlyout?.key === entry.key
+                  shownGroup?.key === entry.key || groupContainsActivePath(entry)
                     ? 'action.selected'
                     : 'transparent',
+                ...(entry.emphasized && {
+                  width: 52,
+                  height: 52,
+                  borderRadius: 2,
+                  color: 'primary.contrastText',
+                  bgcolor: 'primary.main',
+                  boxShadow: 3,
+                  '&:hover': { bgcolor: 'primary.dark' },
+                }),
+                // The marker on the rail's edge for the group the open page belongs to.
+                ...(groupContainsActivePath(entry) && {
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    left: -10,
+                    top: 12,
+                    bottom: 12,
+                    width: 4,
+                    borderRadius: '0 4px 4px 0',
+                    bgcolor: 'primary.main',
+                  },
+                }),
               }}
             >
               <Badge
@@ -530,86 +605,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
           ),
         )}
 
-      <Popper
-        open={!!railFlyout}
-        anchorEl={railFlyout?.anchorEl}
-        placement="right-start"
-        transition
-        sx={{ zIndex: (t2) => t2.zIndex.drawer + 2 }}
-      >
-        {({ TransitionProps }) => (
-          <Fade {...TransitionProps} timeout={120}>
-            <Paper
-              elevation={4}
-              onMouseEnter={clearHoverTimer}
-              onMouseLeave={scheduleFlyoutClose}
-              sx={{ minWidth: 220, py: 0.5 }}
-            >
-              <ClickAwayListener onClickAway={() => setRailFlyout(null)}>
-                <MenuList>
-                  {activeFlyoutGroup && isNavGroup(activeFlyoutGroup) && (
-                    <>
-                      <Typography
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ px: 2, pt: 0.5, display: 'block', fontWeight: 600 }}
-                      >
-                        {activeFlyoutGroup.label}
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        color="text.disabled"
-                        sx={{ px: 2, pb: 0.5, display: 'block' }}
-                      >
-                        {t('nav.hoverHint')}
-                      </Typography>
-                      {activeFlyoutGroup.items.filter((item) => !item.inTabs).map((item) => (
-                        // See the mobile drawer's identical fix: a button
-                        // nested inside this link polluted its accessible
-                        // name with the star's own label — siblings inside a
-                        // plain row instead.
-                        <Box key={item.path} sx={{ display: 'flex', alignItems: 'center' }}>
-                          <MenuItem
-                            component={Link}
-                            to={navItemHref(item.path)}
-                            selected={isItemSelected(item)}
-                            onClick={() => setRailFlyout(null)}
-                            sx={{ gap: 1, flex: 1, minWidth: 0 }}
-                          >
-                            <ListItemIcon sx={{ minWidth: 32 }}>
-                              <Badge
-                                badgeContent={badgeCounts[item.path] ?? 0}
-                                color="error"
-                                max={99}
-                                overlap="circular"
-                              >
-                                {item.icon}
-                              </Badge>
-                            </ListItemIcon>
-                            {item.label}
-                          </MenuItem>
-                          <IconButton
-                            size="small"
-                            aria-label={t('nav.togglePin')}
-                            sx={{ mr: 1 }}
-                            onClick={() => favorites.toggleFavorite(item.path)}
-                          >
-                            {favorites.isFavorite(item.path) ? (
-                              <StarOutlined fontSize="inherit" color="warning" />
-                            ) : (
-                              <StarBorderOutlined fontSize="inherit" />
-                            )}
-                          </IconButton>
-                        </Box>
-                      ))}
-                    </>
-                  )}
-                </MenuList>
-              </ClickAwayListener>
-            </Paper>
-          </Fade>
-        )}
-      </Popper>
     </Box>
   );
 
@@ -624,7 +619,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         {branding?.hasLogo ? (
           <Box
             component="img"
-            src={`${config.apiBaseUrl}/api/v1/company-settings/logo`}
+            src={logoUrl}
             alt=""
             sx={{ width: 36, height: 36, objectFit: 'contain', flexShrink: 0, borderRadius: 1 }}
           />
@@ -823,12 +818,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
         position="fixed"
         color="inherit"
         sx={{
-          width: { md: `calc(100% - ${RAIL_WIDTH}px)`, lg: `calc(100% - ${SIDEBAR_WIDTH}px)` },
-          ml: { md: `${RAIL_WIDTH}px`, lg: `${SIDEBAR_WIDTH}px` },
+          width: { md: contentWidth },
+          ml: { md: `${navWidth}px` },
           bgcolor: 'background.paper',
+          transition: 'width .2s, margin .2s',
+          [reduceMotion]: { transition: 'none' },
         }}
       >
-        <Toolbar sx={{ gap: 1, position: 'relative' }}>
+        <Toolbar sx={{ gap: 1, position: 'relative', minHeight: { md: TOP_BAR_HEIGHT } }}>
           {!isDesktop && (
             <IconButton edge="start" onClick={() => setMobileOpen(true)}>
               <MenuOutlined />
@@ -843,6 +840,84 @@ export function AppLayout({ children }: { children: ReactNode }) {
           )}
           <Box sx={{ flex: 1 }} />
 
+          {/* The company's own identity in the middle of the bar. It sits in the flex flow
+              between two spacers, so it can never run under the buttons: it first drops the
+              address, then the name, then the whole block as the page area narrows, and the
+              picture itself scales with the window. */}
+          {showBrandLogo && (
+            <Box
+              component={Link}
+              to={paths.home}
+              aria-label={branding?.name || t('nav.appName')}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.75,
+                // A pill: logo, a hairline, the name and the address as one object.
+                pl: 1.5,
+                pr: showBrandName ? 3 : 1.5,
+                py: 0.75,
+                borderRadius: 999,
+                border: '1px solid',
+                borderColor: 'divider',
+                bgcolor: 'action.hover',
+                textDecoration: 'none',
+                color: 'inherit',
+                minWidth: 0,
+                flexShrink: 1,
+                transition: 'background-color 0.18s, border-color 0.18s',
+                '&:hover': { bgcolor: 'action.selected', borderColor: 'text.disabled' },
+              }}
+            >
+              {branding?.hasLogo ? (
+                <Box
+                  component="img"
+                  src={logoUrl}
+                  alt=""
+                  sx={{
+                    height: 'clamp(36px, 3.2vw, 46px)',
+                    // A logo saved on a white background melts into the tinted pill instead of showing as a white box.
+                    mixBlendMode: (theme) => (theme.palette.mode === 'light' ? 'multiply' : 'normal'),
+                    width: 'auto',
+                    maxWidth: showBrandName ? 220 : 320,
+                    objectFit: 'contain',
+                    flexShrink: 1,
+                    minWidth: 0,
+                  }}
+                />
+              ) : (
+                <Avatar
+                  variant="rounded"
+                  sx={{ width: 48, height: 48, bgcolor: 'primary.main', fontSize: 22, flexShrink: 0 }}
+                >
+                  {(branding?.name || t('nav.appName')).slice(0, 1)}
+                </Avatar>
+              )}
+              {showBrandName && (
+                <>
+                  <Divider orientation="vertical" flexItem sx={{ my: 0.75 }} />
+                  <Box sx={{ minWidth: 0, textAlign: 'left' }}>
+                    <Typography variant="subtitle1" noWrap sx={{ fontWeight: 700, lineHeight: 1.25 }}>
+                      {branding?.name || t('nav.appName')}
+                    </Typography>
+                    {showBrandAddress && companyDetails?.address && (
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        noWrap
+                        sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+                      >
+                        <PlaceOutlined sx={{ fontSize: 15, flexShrink: 0 }} />
+                        <Box component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {companyDetails.address}
+                        </Box>
+                      </Typography>
+                    )}
+                  </Box>
+                </>
+              )}
+            </Box>
+          )}
           <Box sx={{ flex: 1 }} />
 
           <Tooltip title={t('guide.title')}>
@@ -868,8 +943,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
             anchorEl={menuAnchor}
             open={!!menuAnchor}
             onClose={() => setMenuAnchor(null)}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+            anchorOrigin={
+              menuAnchor?.hasAttribute('data-nav-footer')
+                ? { vertical: 'top', horizontal: 'right' }
+                : { vertical: 'bottom', horizontal: 'right' }
+            }
+            transformOrigin={
+              menuAnchor?.hasAttribute('data-nav-footer')
+                ? { vertical: 'bottom', horizontal: 'left' }
+                : { vertical: 'top', horizontal: 'right' }
+            }
           >
             <Box sx={{ px: 2, py: 1, minWidth: 200 }}>
               <Typography variant="subtitle2" noWrap sx={{ fontWeight: 700 }}>
@@ -896,6 +979,18 @@ export function AppLayout({ children }: { children: ReactNode }) {
               {t('shortcuts.title')}
             </MenuItem>
             <MenuItem
+              onClick={() => {
+                setMenuAnchor(null);
+                togglePinned();
+              }}
+              sx={{ display: { xs: 'none', lg: 'flex' } }}
+            >
+              <ListItemIcon>
+                {pinned ? <PushPin fontSize="small" /> : <PushPinOutlined fontSize="small" />}
+              </ListItemIcon>
+              {pinned ? t('nav.unpinPanel') : t('nav.pinPanel')}
+            </MenuItem>
+            <MenuItem
               component={Link}
               to={paths.changePassword}
               onClick={() => setMenuAnchor(null)}
@@ -915,7 +1010,15 @@ export function AppLayout({ children }: { children: ReactNode }) {
         </Toolbar>
       </AppBar>
 
-      <Box component="nav" sx={{ width: { md: RAIL_WIDTH, lg: SIDEBAR_WIDTH }, flexShrink: { md: 0 } }}>
+      <Box
+        component="nav"
+        sx={{
+          width: { md: navWidth },
+          flexShrink: { md: 0 },
+          transition: 'width .2s',
+          [reduceMotion]: { transition: 'none' },
+        }}
+      >
         <Drawer
           variant="temporary"
           open={mobileOpen}
@@ -931,25 +1034,219 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <Drawer
           variant="permanent"
           sx={{
-            display: { xs: 'none', md: 'block', lg: 'none' },
+            display: { xs: 'none', md: 'block' },
             '& .MuiDrawer-paper': { width: RAIL_WIDTH, borderRight: '1px solid #e0e0e0' },
           }}
           open
         >
           {railContent}
         </Drawer>
-        <Drawer
-          variant="permanent"
-          sx={{
-            display: { xs: 'none', lg: 'block' },
-            '& .MuiDrawer-paper': { width: SIDEBAR_WIDTH, borderRight: '1px solid #e0e0e0' },
-            // Tighter rows than the touch menu, so the whole menu fits without scrolling.
-            '& .MuiDrawer-paper .MuiListItemButton-root.MuiListItemButton-root': { py: '4px' },
+        <Paper
+          component="div"
+          square
+          elevation={panelDocked ? 0 : 8}
+          aria-hidden={!panelOpen}
+          onMouseEnter={clearHoverTimer}
+          onMouseLeave={() => {
+            if (!panelDocked) scheduleFlyoutClose();
           }}
-          open
+          onKeyDown={(event) => {
+            if (event.key === 'Escape' && !panelDocked) setFlyoutKey(null);
+          }}
+          sx={{
+            display: { xs: 'none', md: 'block' },
+            position: 'fixed',
+            top: 0,
+            bottom: 0,
+            left: RAIL_WIDTH,
+            width: PANEL_WIDTH,
+            zIndex: (t2) => t2.zIndex.drawer + 1,
+            overflow: 'hidden',
+            borderRight: '1px solid',
+            borderColor: 'divider',
+            transform: panelOpen ? 'none' : 'translateX(-24px)',
+            opacity: panelOpen ? 1 : 0,
+            visibility: panelOpen ? 'visible' : 'hidden',
+            pointerEvents: panelOpen ? 'auto' : 'none',
+            transition: panelOpen
+              ? 'transform .22s cubic-bezier(.2,.8,.2,1), opacity .18s'
+              : 'transform .22s cubic-bezier(.2,.8,.2,1), opacity .18s, visibility 0s .22s',
+            [reduceMotion]: { transition: 'none' },
+          }}
         >
-          {mobileDrawerContent}
-        </Drawer>
+          <ClickAwayListener
+            mouseEvent="onMouseDown"
+            onClickAway={(event) => {
+              if (panelDocked || !flyoutKey) return;
+              // A press on the rail is the rail's own business: it opens, keeps or switches the panel.
+              if ((event.target as Element | null)?.closest?.('[data-nav-rail]')) return;
+              setFlyoutKey(null);
+            }}
+          >
+            <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+              {shownGroup && (
+                <>
+                  <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', px: 1.25, py: 1.75 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', px: 1.25, mb: 1 }}>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography
+                        variant="overline"
+                        component="h2"
+                        color="text.secondary"
+                        sx={{ display: 'block', fontWeight: 600, lineHeight: 1.6 }}
+                      >
+                        {shownGroup.label}
+                      </Typography>
+                      {shownGroup.sub && (
+                        <Typography variant="caption" color="text.secondary">
+                          {shownGroup.sub}
+                        </Typography>
+                      )}
+                    </Box>
+                    {isWide && (
+                      <Tooltip title={pinned ? t('nav.unpinPanel') : t('nav.pinPanel')}>
+                        <IconButton
+                          size="small"
+                          onClick={togglePinned}
+                          aria-label={pinned ? t('nav.unpinPanel') : t('nav.pinPanel')}
+                          aria-pressed={pinned}
+                          color={pinned ? 'primary' : 'default'}
+                        >
+                          {pinned ? <PushPin fontSize="small" /> : <PushPinOutlined fontSize="small" />}
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </Box>
+                  <Box key={`${shownGroup.key}-${openTick}`}>
+                    {(() => {
+                      let index = 0;
+                      let lastSection: string | undefined;
+                      return shownGroup.items
+                        .filter((item) => !item.inTabs)
+                        .map((item) => {
+                          const heading = item.section && item.section !== lastSection ? item.section : null;
+                          lastSection = item.section ?? lastSection;
+                          const count = badgeCounts[item.path] ?? 0;
+                          const delay = `${index++ * 28 + 40}ms`;
+                          return (
+                            <Box key={item.path}>
+                              {heading && (
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                  sx={{
+                                    display: 'block',
+                                    px: 1.25,
+                                    pt: 1.5,
+                                    pb: 0.5,
+                                    fontWeight: 600,
+                                    letterSpacing: '.06em',
+                                    textTransform: 'uppercase',
+                                  }}
+                                >
+                                  {heading}
+                                </Typography>
+                              )}
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  opacity: 0,
+                                  animation: `${panelItemIn} .26s cubic-bezier(.2,.8,.2,1) ${delay} forwards`,
+                                  [reduceMotion]: { animation: 'none', opacity: 1 },
+                                  '&:hover .nav-pin': { opacity: 1 },
+                                }}
+                              >
+                                <ListItemButton
+                                  component={Link}
+                                  to={navItemHref(item.path)}
+                                  selected={isItemSelected(item)}
+                                  onClick={() => setFlyoutKey(null)}
+                                  sx={{ borderRadius: 1.5, flex: 1, minWidth: 0, gap: 0.5 }}
+                                >
+                                  <ListItemIcon sx={{ minWidth: 40, color: 'primary.main' }}>
+                                    {item.icon}
+                                  </ListItemIcon>
+                                  <ListItemText
+                                    primary={item.label}
+                                    slotProps={{ primary: { noWrap: true, sx: { fontWeight: 600 } } }}
+                                  />
+                                  {count > 0 && (
+                                    <Box
+                                      component="span"
+                                      sx={{
+                                        ml: 1,
+                                        px: 0.9,
+                                        borderRadius: 999,
+                                        bgcolor: 'error.main',
+                                        color: 'error.contrastText',
+                                        fontSize: '0.6875rem',
+                                        fontWeight: 600,
+                                        lineHeight: '18px',
+                                      }}
+                                    >
+                                      {count > 99 ? '99+' : count}
+                                    </Box>
+                                  )}
+                                </ListItemButton>
+                                <IconButton
+                                  size="small"
+                                  className="nav-pin"
+                                  aria-label={t('nav.togglePin')}
+                                  sx={{ opacity: favorites.isFavorite(item.path) ? 1 : 0.35, transition: 'opacity 0.15s' }}
+                                  onClick={() => favorites.toggleFavorite(item.path)}
+                                >
+                                  {favorites.isFavorite(item.path) ? (
+                                    <StarOutlined fontSize="inherit" color="warning" />
+                                  ) : (
+                                    <StarBorderOutlined fontSize="inherit" />
+                                  )}
+                                </IconButton>
+                              </Box>
+                            </Box>
+                          );
+                        });
+                    })()}
+                  </Box>
+                  </Box>
+                  {/* Who is signed in, and for which company: at the foot of the panel, so the
+                      top of it belongs to the group alone. Opens the account menu. */}
+                  <ButtonBase
+                    data-nav-footer
+                    onClick={(event) => setMenuAnchor(event.currentTarget)}
+                    aria-label={`${t('common.account')}: ${displayName(user)}`}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1.5,
+                      width: '100%',
+                      px: 2,
+                      py: 1.5,
+                      textAlign: 'left',
+                      borderTop: '1px solid',
+                      borderColor: 'divider',
+                      transition: 'background-color 0.18s',
+                      '&:hover': { bgcolor: 'action.hover' },
+                    }}
+                  >
+                    <Avatar sx={{ width: 36, height: 36, bgcolor: 'primary.main', fontSize: 14, flexShrink: 0 }}>
+                      {initialsOf(user.firstName, user.lastName, user.email)}
+                    </Avatar>
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      <Typography variant="subtitle2" noWrap sx={{ fontWeight: 700, lineHeight: 1.3 }}>
+                        {displayName(user)}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
+                        {[enumLabel('role', user.role), branding?.name].filter(Boolean).join(' · ')}
+                      </Typography>
+                    </Box>
+                    <ChevronRightOutlined fontSize="small" sx={{ color: 'text.secondary', flexShrink: 0 }} />
+                  </ButtonBase>
+                </>
+              )}
+            </Box>
+          </ClickAwayListener>
+        </Paper>
       </Box>
 
       <Box
@@ -957,14 +1254,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
         sx={{
           flexGrow: 1,
           minWidth: 0,
-          width: { md: `calc(100% - ${RAIL_WIDTH}px)`, lg: `calc(100% - ${SIDEBAR_WIDTH}px)` },
+          width: { md: contentWidth },
+          transition: 'width .2s',
+          [reduceMotion]: { transition: 'none' },
           px: { xs: 2, sm: 3 },
           py: 3,
           // Room for the phone's bottom bar, plus the notch area on an iPhone.
           pb: { xs: `calc(${PHONE_BAR_HEIGHT + 16}px + env(safe-area-inset-bottom))`, sm: 3 },
         }}
       >
-        <Toolbar />
+        <Toolbar sx={{ minHeight: { md: TOP_BAR_HEIGHT } }} />
         {breadcrumbTrail.length > 0 && (
           // Hidden on a phone: three tiny links are hard to hit, and the back arrow
           // in the bar and the bottom navigation already cover where they lead.

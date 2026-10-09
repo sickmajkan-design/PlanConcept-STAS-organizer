@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { companySettingsApi } from '../../api/companySettings';
 import type { CompanySettingsInput } from '../../api/types';
 import { createResourceKeys, useResourceMutation } from '../resourceQueries';
+import { bumpCompanyLogoVersion } from './useCompanyLogoUrl';
 
 const keys = createResourceKeys<never>('company-settings');
 const brandingKey = [...keys.all, 'branding'];
@@ -42,14 +43,21 @@ export function useUpdateCompanySettings() {
 
 export function useUploadCompanyLogo() {
   return useResourceMutation(
-    (file: File) => companySettingsApi.uploadLogo(file),
+    async (file: File) => {
+      const result = await companySettingsApi.uploadLogo(file);
+      bumpCompanyLogoVersion();
+      return result;
+    },
     [keys.all, brandingKey],
   );
 }
 
 export function useDeleteCompanyLogo() {
   return useResourceMutation<void, void>(
-    () => companySettingsApi.deleteLogo(),
+    async () => {
+      await companySettingsApi.deleteLogo();
+      bumpCompanyLogoVersion();
+    },
     [keys.all, brandingKey],
   );
 }
