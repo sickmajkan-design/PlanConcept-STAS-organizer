@@ -862,21 +862,31 @@ export function AppLayout({ children }: { children: ReactNode }) {
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 1.75,
-                // A pill: logo, a hairline, the name and the address as one object.
-                pl: 1.5,
-                pr: showBrandName ? 3 : 1.5,
-                py: 0.75,
-                borderRadius: 999,
-                border: '1px solid',
-                borderColor: 'divider',
-                bgcolor: 'action.hover',
+                gap: 2,
+                // No frame: logo, a hairline, the name and the address sit free on the bar, and a
+                // thin line in the accent colour under them fades out towards both ends.
+                px: 1,
+                py: 0.5,
+                position: 'relative',
                 textDecoration: 'none',
                 color: 'inherit',
                 minWidth: 0,
                 flexShrink: 1,
-                transition: 'background-color 0.18s, border-color 0.18s',
-                '&:hover': { bgcolor: 'action.selected', borderColor: 'text.disabled' },
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  left: '-20%',
+                  right: '-20%',
+                  bottom: -14,
+                  height: 3,
+                  borderRadius: 3,
+                  background: (theme) =>
+                    `linear-gradient(90deg, transparent, ${theme.palette.primary.main} 30%, ${theme.palette.primary.main} 70%, transparent)`,
+                  opacity: 0.9,
+                  transition: 'opacity 0.18s',
+                },
+                '&:hover::after': { opacity: 1 },
+                '&:hover .brand-name': { color: 'primary.main' },
               }}
             >
               {branding?.hasLogo ? (
@@ -885,9 +895,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                   src={logoUrl}
                   alt=""
                   sx={{
-                    height: 'clamp(36px, 3.2vw, 46px)',
-                    // A logo saved on a white background melts into the tinted pill instead of showing as a white box.
-                    mixBlendMode: (theme) => (theme.palette.mode === 'light' ? 'multiply' : 'normal'),
+                    height: 'clamp(40px, 3.6vw, 52px)',
                     width: 'auto',
                     maxWidth: showBrandName ? 220 : 320,
                     objectFit: 'contain',
@@ -907,7 +915,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 <>
                   <Divider orientation="vertical" flexItem sx={{ my: 0.75 }} />
                   <Box sx={{ minWidth: 0, textAlign: 'left' }}>
-                    <Typography variant="subtitle1" noWrap sx={{ fontWeight: 700, lineHeight: 1.25 }}>
+                    <Typography
+                      className="brand-name"
+                      variant="subtitle1"
+                      noWrap
+                      sx={{ fontWeight: 700, lineHeight: 1.25, transition: 'color 0.18s' }}
+                    >
                       {branding?.name || t('nav.appName')}
                     </Typography>
                     {showBrandAddress && companyDetails?.address && (
