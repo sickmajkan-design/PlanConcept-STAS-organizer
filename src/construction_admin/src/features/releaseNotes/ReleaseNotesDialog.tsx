@@ -11,7 +11,8 @@ import { useEffect, useState } from 'react';
 
 import { useAuth } from '../../auth/useAuth';
 import { useT } from '../../i18n/useI18n';
-import { hasSeen, markSeen, sectionsFor } from './releaseNotes';
+import { formatDate } from '../../utils/formatting';
+import { hasSeen, markSeen, RELEASE_DATE, sectionsFor } from './releaseNotes';
 
 /**
  * "What's new", shown once after signing in — so the people using the platform
@@ -43,7 +44,7 @@ export function ReleaseNotesDialog() {
 
   return (
     <Dialog open={open && sections.length > 0} onClose={close} fullWidth maxWidth="sm" scroll="paper">
-      <DialogTitle>{t('releaseNotes.title')}</DialogTitle>
+      <DialogTitle>{t('releaseNotes.title', { date: formatDate(RELEASE_DATE) })}</DialogTitle>
       <DialogContent dividers>
         <Stack spacing={2.5}>
           <Typography variant="body2" color="text.secondary">

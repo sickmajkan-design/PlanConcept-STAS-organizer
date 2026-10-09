@@ -1,9 +1,10 @@
-import { BusinessOutlined, ExpandMoreOutlined } from '@mui/icons-material';
-import { Avatar, Box, Chip, Collapse, IconButton, Paper, Stack, Typography } from '@mui/material';
+import { BusinessOutlined, ExpandMoreOutlined, MoreVertOutlined } from '@mui/icons-material';
+import { Avatar, Box, Chip, Collapse, IconButton, ListItemText, Menu, MenuItem, Paper, Stack, Typography } from '@mui/material';
 import { useMemo, useState } from 'react';
 
 import type { OrganizationHierarchyNode } from '../../api/types';
 import { BranchDot } from '../../features/branches/BranchDot';
+import { BranchQuickEditDialog, type QuickEdit } from '../../features/branches/BranchQuickEditDialog';
 import { buildBranchTree, type BranchNode } from '../../features/branches/branchTree';
 import { useBranchesQuery } from '../../features/branches/useBranches';
 import { countryLabel } from '../../data/countries';
@@ -95,15 +96,19 @@ function UnitCard({
   open,
   toggle,
   onOpenPerson,
+  onQuickEdit,
 }: {
   node: BranchNode;
   peopleByUnit: Map<string, OrganizationHierarchyNode[]>;
   open: Set<string>;
   toggle: (id: string) => void;
   onOpenPerson: (node: OrganizationHierarchyNode) => void;
+  /** Present for people who may change units: adds the unit's own menu. */
+  onQuickEdit?: (edit: QuickEdit) => void;
 }) {
   const t = useT();
   const { branch } = node;
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const isOpen = open.has(branch.id);
   const place = [branch.city, countryLabel(branch.countryCode)].filter(Boolean).join(', ');
 
@@ -172,7 +177,39 @@ function UnitCard({
         >
           <ExpandMoreOutlined fontSize="small" />
         </IconButton>
+        {onQuickEdit && (
+          <IconButton
+            size="small"
+            aria-label={t('hierarchy.structure.unitMenu', { name: branch.name })}
+            onClick={(event) => {
+              event.stopPropagation();
+              setMenuAnchor(event.currentTarget);
+            }}
+          >
+            <MoreVertOutlined fontSize="small" />
+          </IconButton>
+        )}
       </Box>
+      {onQuickEdit && (
+        <Menu anchorEl={menuAnchor} open={!!menuAnchor} onClose={() => setMenuAnchor(null)}>
+          <MenuItem
+            onClick={() => {
+              setMenuAnchor(null);
+              onQuickEdit({ branch, mode: 'head' });
+            }}
+          >
+            <ListItemText>{t('hierarchy.structure.setHead')}</ListItemText>
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              setMenuAnchor(null);
+              onQuickEdit({ branch, mode: 'parent' });
+            }}
+          >
+            <ListItemText>{t('hierarchy.structure.move')}</ListItemText>
+          </MenuItem>
+        </Menu>
+      )}
 
       <Collapse in={isOpen} unmountOnExit>
         <Box sx={{ px: 2, py: 1.5, bgcolor: 'action.hover', borderTop: 1, borderColor: 'divider' }}>
@@ -190,6 +227,7 @@ function UnitCard({
               open={open}
               toggle={toggle}
               onOpenPerson={onOpenPerson}
+              onQuickEdit={onQuickEdit}
             />
           ))}
         </Stack>
@@ -206,14 +244,18 @@ export function HierarchyStructure({
   companyName,
   people,
   onOpenPerson,
+  canEdit = false,
 }: {
   companyName: string;
   people: OrganizationHierarchyNode[];
   onOpenPerson: (node: OrganizationHierarchyNode) => void;
+  /** Whether the viewer may change units (set a head, move one). */
+  canEdit?: boolean;
 }) {
   const t = useT();
   const { data: branches } = useBranchesQuery();
   const [open, setOpen] = useState<Set<string>>(new Set());
+  const [quick, setQuick] = useState<QuickEdit | null>(null);
 
   const tree = useMemo(() => buildBranchTree(branches ?? []), [branches]);
 
@@ -285,6 +327,7 @@ export function HierarchyStructure({
               open={open}
               toggle={toggle}
               onOpenPerson={onOpenPerson}
+              onQuickEdit={canEdit ? setQuick : undefined}
             />
           ))}
 
@@ -304,6 +347,8 @@ export function HierarchyStructure({
           )}
         </Stack>
       )}
+
+      <BranchQuickEditDialog target={quick} onClose={() => setQuick(null)} />
     </Stack>
   );
 }

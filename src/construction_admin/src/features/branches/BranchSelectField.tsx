@@ -1,8 +1,10 @@
 import { FormControl, FormHelperText, InputLabel, MenuItem, Select } from '@mui/material';
+import { useMemo } from 'react';
 import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form';
 
 import { useT } from '../../i18n/useI18n';
 import { BranchDot } from './BranchDot';
+import { buildBranchTree, flattenBranchTree } from './branchTree';
 import { useBranchesQuery } from './useBranches';
 
 /**
@@ -22,6 +24,7 @@ export function BranchSelectField<T extends FieldValues>({
   const t = useT();
   const { data: branches } = useBranchesQuery();
   const labelId = `${String(name)}-branch-label`;
+  const all = useMemo(() => flattenBranchTree(buildBranchTree(branches ?? [])), [branches]);
 
   return (
     <Controller
@@ -34,10 +37,10 @@ export function BranchSelectField<T extends FieldValues>({
             <MenuItem value="">
               <em>{t('common.none')}</em>
             </MenuItem>
-            {(branches ?? [])
-              .filter((b) => b.isActive || b.id === field.value)
-              .map((branch) => (
-                <MenuItem key={branch.id} value={branch.id} sx={{ gap: 1 }}>
+            {all
+              .filter(({ branch }) => branch.isActive || branch.id === field.value)
+              .map(({ branch, depth }) => (
+                <MenuItem key={branch.id} value={branch.id} sx={{ gap: 1, pl: 2 + (depth - 1) * 2.5 }}>
                   <BranchDot color={branch.color} />
                   {branch.name}
                 </MenuItem>

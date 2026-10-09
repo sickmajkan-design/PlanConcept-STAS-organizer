@@ -513,6 +513,7 @@ export function HierarchyPage() {
           companyName={companyName}
           people={data?.people ?? []}
           onOpenPerson={(node) => navigate(paths.employeeDetail(node.employeeId))}
+          canEdit={canEdit}
         />
       )}
 

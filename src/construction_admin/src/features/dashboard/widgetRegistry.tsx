@@ -14,6 +14,7 @@ import { AbsenceRequestsWidget } from './widgets/AbsenceRequestsWidget';
 import { ArticleOrdersWidget } from './widgets/ArticleOrdersWidget';
 import { AbsencesBalanceWidget } from './widgets/AbsencesBalanceWidget';
 import { ActiveProjectsWidget } from './widgets/ActiveProjectsWidget';
+import { BranchOverviewWidget } from './widgets/BranchOverviewWidget';
 import { CompanyKpiWidget } from './widgets/CompanyKpiWidget';
 import { CostTrendWidget } from './widgets/CostTrendWidget';
 import { CostBreakdownWidget } from './widgets/CostBreakdownWidget';
@@ -155,6 +156,12 @@ export const widgetRegistry: Record<DashboardWidgetType, WidgetRegistryEntry> = 
     titleKey: 'dashboard.widget.ArticleOrders',
     // Ordering and sending are the API's office roles.
     allowed: canManageArticleOrders,
+  },
+  BranchOverview: {
+    component: BranchOverviewWidget,
+    titleKey: 'dashboard.widget.BranchOverview',
+    // The units, their heads and their head counts: the same people who may open the directory.
+    allowed: canViewDirectory,
   },
 };
 
