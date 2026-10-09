@@ -822,6 +822,7 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.menu1009.planning': "Meni ima nove grupe. Planiranje (narandžasta pločica) sadrži raspored, odsustva, radno vrijeme, zadatke, narudžbe i sedmične izvještaje. Ljudi su zaposleni, hijerarhija i smještaj. Projekti i kupci drže svakog kupca uz njegove projekte. Oprema i zalihe su vozila, alat i materijal. Troškovi se sada zovu Finansije i u njima su i povrati i fakture.",
   'releaseNotes.menu1009.pin': "Ako želiš da panel ostane otvoren, klikni na pribadaču u njegovom uglu (ili u meniju naloga). Na širokim ekranima tada stoji pored trake, a izbor se pamti za tvoj nalog.",
   'releaseNotes.menu1009.logo': "Logo i podaci firme su na sredini gornje trake, a novo otpremljen logo se odmah pojavljuje svuda umjesto starog. Tvoje ime i uloga su u dnu panela menija.",
+  'releaseNotes.menu1009.active': "Traka s lijeve strane sada pokazuje gdje se nalaziš: grupa stranice koju imaš otvorenu je puna narandžasta pločica, a ostale su obične. Planiranje je samo svijetlonarandžasto kad si negdje drugdje.",
   'releaseNotes.nav1008.title': "Čistiji izgled panela",
   'releaseNotes.nav1008.menu': "Na računaru meni s lijeve strane sada pokazuje nazive stranica, s otvorenim grupama, umjesto samih ikona. Gornja traka je tanja: logo firme je prešao na vrh menija, a prečice na tastaturi su u meniju naloga.",
   'releaseNotes.nav1008.home': "Početna stranica te pozdravlja imenom umjesto adresom e-pošte, a napomene za onoga ko održava server su sklopljene, pa brojevi dolaze prvi.",
