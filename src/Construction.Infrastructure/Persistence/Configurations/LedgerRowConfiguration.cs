@@ -21,6 +21,11 @@ public class LedgerRowConfiguration : IEntityTypeConfiguration<LedgerRow>
         builder.Property(r => r.ColorTag)
             .HasMaxLength(20);
 
+        builder.Property(r => r.PayGroup)
+            .HasConversion<string>()
+            .HasMaxLength(20)
+            .HasDefaultValue(Construction.Domain.Enums.PayoutGroup.Workers);
+
         builder.HasOne(r => r.Section)
             .WithMany(s => s.Rows)
             .HasForeignKey(r => r.SectionId)

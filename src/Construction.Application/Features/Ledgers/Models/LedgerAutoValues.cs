@@ -405,6 +405,38 @@ public static class LedgerAutoValues
             }
         }
 
+        // ---- the client's hourly price, from the site ---------------------
+
+        var clientRateColumns = columns.Where(c => c.Source.Kind == LedgerSourceKinds.ProjectClientRate).ToList();
+        var siteRows = rows.Where(r => r.ProjectId is not null).ToList();
+
+        if (clientRateColumns.Count > 0 && siteRows.Count > 0)
+        {
+            var siteIds = siteRows.Select(r => r.ProjectId!.Value).Distinct().ToList();
+
+            var siteRates = await context.Projects
+                .AsNoTracking()
+                .Where(p => siteIds.Contains(p.Id) && p.ClientHourlyRate != null)
+                .Select(p => new { p.Id, Rate = p.ClientHourlyRate!.Value })
+                .ToListAsync(cancellationToken);
+
+            var rateBySite = siteRates.ToDictionary(p => p.Id, p => p.Rate);
+
+            foreach (var row in siteRows)
+            {
+                // A site with no price set offers nothing, so a price typed for it stays ordinary input.
+                if (!rateBySite.TryGetValue(row.ProjectId!.Value, out var rate))
+                {
+                    continue;
+                }
+
+                foreach (var (columnId, _) in clientRateColumns)
+                {
+                    For(row.RowId)[columnId] = rate;
+                }
+            }
+        }
+
         // ---- billing from invoices ---------------------------------------
 
         var invoiceColumns = columns.Where(c => c.Source.Kind == LedgerSourceKinds.ProjectInvoices).ToList();

@@ -1,4 +1,5 @@
 import { request } from './client';
+import { idempotencyHeaders } from './idempotency';
 import { listParams } from './resource';
 import type { ListQuery, PagedList } from './types';
 
@@ -10,6 +11,15 @@ export interface InvoiceShare {
   customerCompanyId: string | null;
   companyName: string | null;
   amount: number;
+}
+
+/** One part-payment a client made against an invoice. */
+export interface InvoicePayment {
+  id: string;
+  amount: number;
+  paidOn: string;
+  method: 'Bank' | 'Cash' | null;
+  note: string | null;
 }
 
 /** An invoice the firm issued to a client, recorded here. Money: only served to the finance grant. */
@@ -34,6 +44,12 @@ export interface Invoice {
   cancelReason: string | null;
   createdAt: string;
   shares: InvoiceShare[];
+  /** What the client has paid; the whole amount for an invoice marked paid. */
+  paidAmount: number;
+  /** What is still to be paid; zero once paid or cancelled. */
+  remainingAmount: number;
+  lastPaymentOn: string | null;
+  payments: InvoicePayment[];
 }
 
 /** Who stands behind the document: the unit's data, or the company's where the unit has none. */
@@ -145,6 +161,21 @@ export const invoicesApi = {
 
   markPaid: (id: string) =>
     request<Invoice>({ method: 'POST', url: `/api/v1/invoices/${id}/paid` }),
+
+  addPayment: (
+    id: string,
+    input: { amount: number; paidOn?: string | null; method?: 'Bank' | 'Cash' | null; note?: string | null },
+    idempotencyKey?: string,
+  ) =>
+    request<Invoice>({
+      method: 'POST',
+      url: `/api/v1/invoices/${id}/payments`,
+      data: input,
+      headers: idempotencyHeaders(idempotencyKey),
+    }),
+
+  removePayment: (id: string, paymentId: string) =>
+    request<Invoice>({ method: 'DELETE', url: `/api/v1/invoices/${id}/payments/${paymentId}` }),
 
   cancel: (id: string, reason: string) =>
     request<Invoice>({ method: 'POST', url: `/api/v1/invoices/${id}/cancel`, data: { reason } }),

@@ -1,7 +1,12 @@
 import {
+  AccountBalanceWalletOutlined,
+  UploadFileOutlined,
+  EventRepeatOutlined,
+  InsightsOutlined,
   ApartmentOutlined,
   BuildCircleOutlined,
   CampaignOutlined,
+  MenuBookOutlined,
   HandymanOutlined,
   Inventory2Outlined,
   LocalShippingOutlined,
@@ -182,6 +187,39 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
                 ? [
                     { label: t('nav.costs'), path: paths.costs, icon: <PaidOutlined /> },
                     { label: t('nav.companyRevenues'), path: paths.companyRevenues, icon: <TrendingUpOutlined /> },
+                    {
+                      label: t('nav.bookOverview'),
+                      path: paths.bookOverview,
+                      icon: <InsightsOutlined />,
+                    },
+                    {
+                      label: t('nav.bookEntries'),
+                      path: paths.bookEntries,
+                      icon: <MenuBookOutlined />,
+                      alsoActiveOn: [paths.bookCategories],
+                    },
+                    {
+                      label: t('nav.bookReceivables'),
+                      path: paths.bookReceivables,
+                      icon: <AccountBalanceWalletOutlined />,
+                    },
+                    {
+                      label: t('nav.bookRecurring'),
+                      path: paths.bookRecurring,
+                      icon: <EventRepeatOutlined />,
+                    },
+                  ]
+                : []),
+              ...(isSuperAdmin(user)
+                ? [{ label: t('nav.bookImport'), path: paths.bookImport, icon: <UploadFileOutlined /> }]
+                : []),
+              ...(canManageInvoices(user) && canViewFinance(user)
+                ? [
+                    {
+                      label: t('nav.bookPayouts'),
+                      path: paths.bookPayouts,
+                      icon: <PaymentsOutlined />,
+                    },
                   ]
                 : []),
               { label: t('nav.refunds'), path: paths.refunds, icon: <RequestQuoteOutlined /> },

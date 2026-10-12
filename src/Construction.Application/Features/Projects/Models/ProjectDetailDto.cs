@@ -90,6 +90,7 @@ public static class ProjectDetailMapping
             EndDate = project.EndDate,
             Status = project.Status.ToString(),
             ContractValue = project.ContractValue,
+            ClientHourlyRate = project.ClientHourlyRate,
             BillingMode = project.BillingMode.ToString(),
             ShiftStartTime = project.ShiftStartTime,
             WorksSaturdays = project.WorksSaturdays,

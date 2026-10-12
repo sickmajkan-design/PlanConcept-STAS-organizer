@@ -56,6 +56,7 @@ public class GetProjectByIdQueryHandler : IRequestHandler<GetProjectByIdQuery, P
         if (!await FinanceRules.HasFullAsync(_context, _currentUserService, cancellationToken))
         {
             project.ContractValue = null;
+            project.ClientHourlyRate = null;
         }
 
         // Pay is withheld from a role the API does not show it to — a

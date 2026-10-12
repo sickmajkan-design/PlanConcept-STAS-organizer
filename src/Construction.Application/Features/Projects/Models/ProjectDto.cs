@@ -56,6 +56,9 @@ public class ProjectDto
     /// <summary>The agreed contract sum. Money: filled only for callers with the finance grant, null for everybody else.</summary>
     public decimal? ContractValue { get; set; }
 
+    /// <summary>What the client is charged per hour. Money: filled only for callers with the finance grant.</summary>
+    public decimal? ClientHourlyRate { get; set; }
+
     /// <summary>"Hourly", "FlatRate" or "Measured": how the client is billed.</summary>
     public string BillingMode { get; init; } = "Hourly";
 
@@ -103,6 +106,7 @@ public static class ProjectMapping
             EndDate = project.EndDate,
             Status = project.Status.ToString(),
             ContractValue = project.ContractValue,
+            ClientHourlyRate = project.ClientHourlyRate,
             BillingMode = project.BillingMode.ToString(),
             // Open-ended assignments only — see the note in
             // EmployeeDetailMapping.Projection (Features/Employees/Models).

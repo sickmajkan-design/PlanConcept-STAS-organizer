@@ -97,6 +97,14 @@ export function useUpdateLedger(id: string) {
   );
 }
 
+export function useLockLedger(_id: string) {
+  return useResourceMutation((id: string) => ledgersApi.lock(id), [ledgerKeys.all]);
+}
+
+export function useUnlockLedger(id: string) {
+  return useResourceMutation((reason: string) => ledgersApi.unlock(id, reason), [ledgerKeys.all]);
+}
+
 export function useDeleteLedger() {
   return useResourceMutation((id: string) => ledgersApi.remove(id), [ledgerKeys.all]);
 }

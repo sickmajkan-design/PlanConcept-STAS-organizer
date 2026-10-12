@@ -85,6 +85,12 @@ public class Project : BaseEntity, ISoftDeletable, IAuditable
     public decimal? ContractValue { get; set; }
 
     /// <summary>
+    /// What the client is charged per hour on a site billed by the hour. The monthly settlement offers it as the
+    /// client's price for the site's rows, so it is not typed month after month. Null when it has not been set.
+    /// </summary>
+    public decimal? ClientHourlyRate { get; set; }
+
+    /// <summary>
     /// What the office plans to spend on the site, when it has set a figure —
     /// distinct from <see cref="ContractValue"/>, which is what the customer
     /// pays. Money the company holds back from anyone without the finance

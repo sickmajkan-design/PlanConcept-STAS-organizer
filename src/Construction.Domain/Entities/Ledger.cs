@@ -30,6 +30,25 @@ public class Ledger : BaseEntity, ISoftDeletable, IAuditable
 
     public User? CreatedByUser { get; set; }
 
+    /// <summary>
+    /// When the month was closed. A locked month refuses changes to its cells, columns, sections and rows, so
+    /// what was reported to the accountant cannot move by accident.
+    /// </summary>
+    public DateTime? LockedAt { get; set; }
+
+    public Guid? LockedByUserId { get; set; }
+
+    public User? LockedByUser { get; set; }
+
+    /// <summary>
+    /// The month's figures as they were when it was closed (see <c>LedgerMonthResult</c>), so a closed month is
+    /// read from here and does not change when prices, rates or the sources it was worked out from do.
+    /// </summary>
+    public string? ResultJson { get; set; }
+
+    /// <summary>Why the month was last reopened. The audit trail keeps the earlier ones.</summary>
+    public string? UnlockNote { get; set; }
+
     public bool IsDeleted { get; set; }
 
     public DateTime? DeletedAt { get; set; }

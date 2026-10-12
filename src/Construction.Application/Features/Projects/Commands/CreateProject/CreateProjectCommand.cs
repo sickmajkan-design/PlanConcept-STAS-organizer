@@ -95,6 +95,7 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
             EndDate = request.EndDate,
             Status = request.Status,
             ContractValue = money ? request.ContractValue : null,
+            ClientHourlyRate = money ? request.ClientHourlyRate : null,
             BillingMode = money ? request.BillingMode : Domain.Enums.ProjectBillingMode.Hourly,
         };
 
@@ -116,6 +117,7 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
         if (!money)
         {
             created.ContractValue = null;
+            created.ClientHourlyRate = null;
         }
 
         return created;

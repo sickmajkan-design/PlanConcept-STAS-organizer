@@ -3,6 +3,7 @@ using Construction.API.Filters;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.Invoices.Commands.ChangeInvoiceStatus;
 using Construction.Application.Features.Invoices.Commands.CreateInvoice;
+using Construction.Application.Features.Invoices.Commands.InvoicePayments;
 using Construction.Application.Features.Invoices.Models;
 using Construction.Application.Features.Invoices.Queries.GetInvoiceDocument;
 using Construction.Application.Features.Invoices.Queries.GetInvoices;
@@ -91,5 +92,37 @@ public class InvoicesController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
+    }
+
+    /// <summary>Records money the client paid against an invoice, in whole or in part.</summary>
+    [HttpPost("{id:guid}/payments")]
+    [Idempotent]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(InvoiceDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<InvoiceDto>> AddPayment(
+        Guid id,
+        AddInvoicePaymentCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { InvoiceId = id }, cancellationToken));
+    }
+
+    /// <summary>Takes back a payment that was recorded by mistake.</summary>
+    [HttpDelete("{id:guid}/payments/{paymentId:guid}")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(InvoiceDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<InvoiceDto>> RemovePayment(
+        Guid id,
+        Guid paymentId,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new RemoveInvoicePaymentCommand(id, paymentId), cancellationToken));
     }
 }

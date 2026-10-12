@@ -31,6 +31,13 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
         builder.Property(p => p.ContractValue)
             .HasPrecision(18, 2);
 
+        builder.Property(p => p.ClientHourlyRate)
+            .HasPrecision(18, 2);
+
+        builder.ToTable(t => t.HasCheckConstraint(
+            "ck_projects_client_hourly_rate_not_negative",
+            "\"ClientHourlyRate\" IS NULL OR \"ClientHourlyRate\" >= 0"));
+
         builder.ToTable(t => t.HasCheckConstraint(
             "ck_projects_contract_value_not_negative",
             "\"ContractValue\" IS NULL OR \"ContractValue\" >= 0"));

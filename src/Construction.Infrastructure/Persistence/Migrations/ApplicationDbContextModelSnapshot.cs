@@ -713,6 +713,405 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.ToTable("audit_entries", (string)null);
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.BookCategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Bucket")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Group")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SystemKey")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SystemKey")
+                        .IsUnique()
+                        .HasFilter("\"SystemKey\" IS NOT NULL");
+
+                    b.HasIndex("Kind", "SortOrder");
+
+                    b.ToTable("book_categories", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0b00-000000000001"),
+                            Bucket = "Collection",
+                            CreatedAt = new DateTime(2026, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Kind = "Income",
+                            Name = "Naplata klijentu",
+                            SortOrder = 1,
+                            SystemKey = "Collection"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0b00-000000000002"),
+                            Bucket = "WorkerEarnings",
+                            CreatedAt = new DateTime(2026, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Kind = "Cost",
+                            Name = "Plata radnika",
+                            SortOrder = 2,
+                            SystemKey = "WorkerPay"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0b00-000000000003"),
+                            Bucket = "WorkerEarnings",
+                            CreatedAt = new DateTime(2026, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Kind = "Cost",
+                            Name = "Kooperanti",
+                            SortOrder = 3,
+                            SystemKey = "Subcontractors"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0b00-000000000004"),
+                            Bucket = "WorkerEarnings",
+                            CreatedAt = new DateTime(2026, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Kind = "Cost",
+                            Name = "Kancelarija",
+                            SortOrder = 4,
+                            SystemKey = "Office"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0b00-000000000005"),
+                            Bucket = "SiteCosts",
+                            CreatedAt = new DateTime(2026, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Kind = "Cost",
+                            Name = "Gorivo",
+                            SortOrder = 5,
+                            SystemKey = "Fuel"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0b00-000000000006"),
+                            Bucket = "SiteCosts",
+                            CreatedAt = new DateTime(2026, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Kind = "Cost",
+                            Name = "Stanovanje",
+                            SortOrder = 6,
+                            SystemKey = "Housing"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0b00-000000000007"),
+                            Bucket = "SiteCosts",
+                            CreatedAt = new DateTime(2026, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Kind = "Cost",
+                            Name = "Rent a car",
+                            SortOrder = 7,
+                            SystemKey = "CarRental"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0b00-000000000008"),
+                            Bucket = "SiteCosts",
+                            CreatedAt = new DateTime(2026, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Kind = "Cost",
+                            Name = "Alat",
+                            SortOrder = 8,
+                            SystemKey = "Tools"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0b00-000000000009"),
+                            Bucket = "SiteCosts",
+                            CreatedAt = new DateTime(2026, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Kind = "Cost",
+                            Name = "Materijal",
+                            SortOrder = 9,
+                            SystemKey = "Materials"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0b00-00000000000a"),
+                            Bucket = "Fixed",
+                            CreatedAt = new DateTime(2026, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Kind = "Cost",
+                            Name = "Fiksni troškovi",
+                            SortOrder = 10,
+                            SystemKey = "FixedCosts"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0b00-00000000000b"),
+                            Bucket = "Fixed",
+                            CreatedAt = new DateTime(2026, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Kind = "Cost",
+                            Name = "Osiguranje",
+                            SortOrder = 11,
+                            SystemKey = "Insurance"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0b00-00000000000c"),
+                            Bucket = "Fixed",
+                            CreatedAt = new DateTime(2026, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            Kind = "Cost",
+                            Name = "Ostalo",
+                            SortOrder = 99,
+                            SystemKey = "Other"
+                        });
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.BookCategoryRule", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("Priority");
+
+                    b.ToTable("book_category_rules", (string)null);
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.BookEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid?>("BranchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ClientRequestId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Counterparty")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("CustomerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateOnly?>("DueDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid?>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Method")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateOnly>("OccurredOn")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("PaidOn")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("PeriodMonth")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("PeriodYear")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("ProjectId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("RecordedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("RecurringExpenseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid?>("SourceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("ClientRequestId")
+                        .IsUnique()
+                        .HasFilter("\"ClientRequestId\" IS NOT NULL");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("OccurredOn");
+
+                    b.HasIndex("RecordedByUserId");
+
+                    b.HasIndex("CategoryId", "OccurredOn");
+
+                    b.HasIndex("ProjectId", "OccurredOn");
+
+                    b.HasIndex("Source", "SourceId")
+                        .IsUnique()
+                        .HasFilter("\"SourceId\" IS NOT NULL");
+
+                    b.HasIndex("RecurringExpenseId", "PeriodYear", "PeriodMonth")
+                        .IsUnique()
+                        .HasFilter("\"RecurringExpenseId\" IS NOT NULL");
+
+                    b.ToTable("book_entries", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_book_entries_amount_positive", "\"Amount\" > 0");
+                        });
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.BookImportBatch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<int>("ImportedCount")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("LedgerCreated")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid?>("LedgerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("RecordedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ReportJson")
+                        .HasColumnType("text");
+
+                    b.Property<int>("RowCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SkippedCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("TargetMonth")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("TargetYear")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordedByUserId");
+
+                    b.HasIndex("TargetYear", "TargetMonth");
+
+                    b.ToTable("book_import_batches", (string)null);
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.Branch", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1980,6 +2379,53 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.InvoicePayment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("InvoiceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Method")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateOnly>("PaidOn")
+                        .HasColumnType("date");
+
+                    b.Property<Guid?>("RecordedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InvoiceId");
+
+                    b.HasIndex("PaidOn");
+
+                    b.HasIndex("RecordedByUserId");
+
+                    b.ToTable("invoice_payments", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_invoice_payments_amount_positive", "\"Amount\" > 0");
+                        });
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.InvoiceShare", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2076,6 +2522,12 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
+                    b.Property<DateTime?>("LockedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("LockedByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("Month")
                         .HasColumnType("integer");
 
@@ -2088,6 +2540,13 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
+                    b.Property<string>("ResultJson")
+                        .HasColumnType("text");
+
+                    b.Property<string>("UnlockNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -2099,6 +2558,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.HasIndex("BranchId");
 
                     b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("LockedByUserId");
 
                     b.HasIndex("Year", "Month");
 
@@ -2208,6 +2669,13 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
                     b.Property<Guid?>("MaterialId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("PayGroup")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Workers");
 
                     b.Property<Guid?>("PromotedAccommodationRateId")
                         .HasColumnType("uuid");
@@ -2726,6 +3194,10 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<int?>("BudgetWarnPercent")
                         .HasColumnType("integer");
 
+                    b.Property<decimal?>("ClientHourlyRate")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
                     b.Property<decimal?>("ContractValue")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
@@ -2802,6 +3274,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
                             t.HasCheckConstraint("ck_projects_budget_not_negative", "\"Budget\" IS NULL OR \"Budget\" >= 0");
 
                             t.HasCheckConstraint("ck_projects_budget_warn_percent_range", "\"BudgetWarnPercent\" IS NULL OR (\"BudgetWarnPercent\" >= 1 AND \"BudgetWarnPercent\" <= 99)");
+
+                            t.HasCheckConstraint("ck_projects_client_hourly_rate_not_negative", "\"ClientHourlyRate\" IS NULL OR \"ClientHourlyRate\" >= 0");
 
                             t.HasCheckConstraint("ck_projects_contract_value_not_negative", "\"ContractValue\" IS NULL OR \"ContractValue\" >= 0");
                         });
@@ -2939,6 +3413,75 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("public_holidays", (string)null);
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.RecurringExpense", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid?>("BranchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CountryCode")
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DayOfMonth")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Frequency")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid?>("ProjectId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("StartMonth")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("recurring_expenses", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_recurring_expenses_amount_positive", "\"Amount\" > 0");
+
+                            t.HasCheckConstraint("ck_recurring_expenses_day", "\"DayOfMonth\" BETWEEN 1 AND 28");
+                        });
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.RefreshToken", b =>
@@ -4093,6 +4636,79 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.ToTable("vehicle_toll_payments", (string)null);
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.WagePayout", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<Guid?>("BranchId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Group")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Method")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateOnly?>("PaidOn")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("PayDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid?>("RecordedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BranchId");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("RecordedByUserId");
+
+                    b.HasIndex("Year", "Month", "Group");
+
+                    b.ToTable("wage_payouts", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_wage_payouts_amount_positive", "\"Amount\" > 0");
+
+                            t.HasCheckConstraint("ck_wage_payouts_month", "\"Month\" BETWEEN 1 AND 12");
+                        });
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.WeeklyReportReminder", b =>
                 {
                     b.Property<Guid>("Id")
@@ -4595,6 +5211,80 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.BookCategoryRule", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.BookCategory", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.BookEntry", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Construction.Domain.Entities.BookCategory", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Construction.Domain.Entities.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Construction.Domain.Entities.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Construction.Domain.Entities.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Construction.Domain.Entities.User", "RecordedByUser")
+                        .WithMany()
+                        .HasForeignKey("RecordedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Construction.Domain.Entities.RecurringExpense", "RecurringExpense")
+                        .WithMany()
+                        .HasForeignKey("RecurringExpenseId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("Project");
+
+                    b.Navigation("RecordedByUser");
+
+                    b.Navigation("RecurringExpense");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.BookImportBatch", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.User", "RecordedByUser")
+                        .WithMany()
+                        .HasForeignKey("RecordedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("RecordedByUser");
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.Branch", b =>
                 {
                     b.HasOne("Construction.Domain.Entities.Employee", "HeadEmployee")
@@ -4915,6 +5605,24 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.InvoicePayment", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.Invoice", "Invoice")
+                        .WithMany("Payments")
+                        .HasForeignKey("InvoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Construction.Domain.Entities.User", "RecordedByUser")
+                        .WithMany()
+                        .HasForeignKey("RecordedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Invoice");
+
+                    b.Navigation("RecordedByUser");
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.InvoiceShare", b =>
                 {
                     b.HasOne("Construction.Domain.Entities.CustomerCompany", "CustomerCompany")
@@ -4963,9 +5671,16 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasForeignKey("CreatedByUserId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("Construction.Domain.Entities.User", "LockedByUser")
+                        .WithMany()
+                        .HasForeignKey("LockedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Branch");
 
                     b.Navigation("CreatedByUser");
+
+                    b.Navigation("LockedByUser");
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.LedgerCell", b =>
@@ -5234,6 +5949,31 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.RecurringExpense", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Construction.Domain.Entities.BookCategory", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Construction.Domain.Entities.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("Category");
 
                     b.Navigation("Project");
                 });
@@ -5601,6 +6341,30 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("VehicleToll");
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.WagePayout", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.Branch", "Branch")
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Construction.Domain.Entities.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Construction.Domain.Entities.User", "RecordedByUser")
+                        .WithMany()
+                        .HasForeignKey("RecordedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Branch");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("RecordedByUser");
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.WeeklyReportReminder", b =>
                 {
                     b.HasOne("Construction.Domain.Entities.Employee", "Employee")
@@ -5740,6 +6504,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Construction.Domain.Entities.Invoice", b =>
                 {
+                    b.Navigation("Payments");
+
                     b.Navigation("Shares");
                 });
 

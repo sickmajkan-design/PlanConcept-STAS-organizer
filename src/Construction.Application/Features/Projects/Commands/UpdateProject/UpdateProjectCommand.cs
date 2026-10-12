@@ -122,6 +122,7 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
         if (money)
         {
             project.ContractValue = request.ContractValue;
+            project.ClientHourlyRate = request.ClientHourlyRate;
             project.BillingMode = request.BillingMode;
         }
 
@@ -154,6 +155,7 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
         if (!money)
         {
             updated.ContractValue = null;
+            updated.ClientHourlyRate = null;
         }
 
         return updated;

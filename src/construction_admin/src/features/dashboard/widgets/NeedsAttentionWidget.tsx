@@ -26,6 +26,8 @@ const DESTINATIONS: Record<string, string> = {
   vehicleDates: paths.vehicles,
   expiringDocuments: paths.expiringDocuments,
   dataQuality: paths.dataQuality,
+  lateInvoices: paths.bookReceivables,
+  lateCosts: paths.bookReceivables,
 };
 
 /** The order they are shown in: what somebody is waiting on first, housekeeping last. */
@@ -35,6 +37,8 @@ const ORDER = [
   'expensesToReview',
   'articleOrders',
   'refunds',
+  'lateInvoices',
+  'lateCosts',
   'dkvRows',
   'unconfirmedPostings',
   'vehicleDates',

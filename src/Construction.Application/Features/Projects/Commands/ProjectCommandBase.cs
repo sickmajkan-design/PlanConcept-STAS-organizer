@@ -58,6 +58,9 @@ public abstract record ProjectCommandBase
 
     /// <summary>The total agreed value of the contract, if one has been set.</summary>
     public decimal? ContractValue { get; init; }
+
+    /// <summary>What the client is charged per hour; offered as the client's price in the monthly settlement.</summary>
+    public decimal? ClientHourlyRate { get; init; }
 }
 
 public abstract class ProjectCommandBaseValidator<T> : AbstractValidator<T>
@@ -106,5 +109,10 @@ public abstract class ProjectCommandBaseValidator<T> : AbstractValidator<T>
         RuleFor(x => x.ContractValue)
             .GreaterThanOrEqualTo(0).WithMessage("Contract value cannot be negative.")
             .When(x => x.ContractValue is not null);
+
+        RuleFor(x => x.ClientHourlyRate)
+            .GreaterThanOrEqualTo(0).WithMessage("The hourly price cannot be negative.")
+            .LessThan(100000).WithMessage("That hourly price is too large.")
+            .When(x => x.ClientHourlyRate is not null);
     }
 }

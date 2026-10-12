@@ -40,11 +40,16 @@ public class ChangeInvoiceStatusHandlers :
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
-    public ChangeInvoiceStatusHandlers(IApplicationDbContext context, ICurrentUserService currentUserService)
+    public ChangeInvoiceStatusHandlers(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<InvoiceDto> Handle(MarkInvoicePaidCommand request, CancellationToken cancellationToken)
@@ -54,6 +59,25 @@ public class ChangeInvoiceStatusHandlers :
         if (invoice.Status != InvoiceStatus.Issued)
         {
             throw new ConflictException($"Only an issued invoice can be marked as paid; this one is {invoice.Status}.");
+        }
+
+        // What is still open is recorded as a payment of today, so the paid amount stays the sum of the
+        // payments whichever way an invoice came to be paid.
+        var paid = await _context.InvoicePayments
+            .Where(p => p.InvoiceId == invoice.Id)
+            .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0m;
+
+        var remaining = invoice.Amount - paid;
+
+        if (invoice.Amount > 0 && remaining > 0)
+        {
+            _context.InvoicePayments.Add(new InvoicePayment
+            {
+                InvoiceId = invoice.Id,
+                Amount = remaining,
+                PaidOn = DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+                RecordedByUserId = _currentUserService.UserId,
+            });
         }
 
         invoice.Status = InvoiceStatus.Paid;
@@ -73,6 +97,12 @@ public class ChangeInvoiceStatusHandlers :
         if (invoice.Status == InvoiceStatus.Paid)
         {
             throw new ConflictException("A paid invoice cannot be cancelled. Record a credit note instead.");
+        }
+
+        if (await _context.InvoicePayments.AnyAsync(p => p.InvoiceId == invoice.Id, cancellationToken))
+        {
+            throw new ConflictException(
+                "Part of this invoice has been paid. Remove the payments first, or record a credit note.");
         }
 
         invoice.Status = InvoiceStatus.Cancelled;

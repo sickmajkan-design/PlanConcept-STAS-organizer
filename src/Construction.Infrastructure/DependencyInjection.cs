@@ -53,6 +53,7 @@ public static class DependencyInjection
         // resolves correctly rather than capturing one request's user for the
         // lifetime of the process.
         services.AddScoped<AuditTrailInterceptor>();
+        services.AddSingleton<LedgerLockInterceptor>();
 
         services.AddDbContext<ApplicationDbContext>((serviceProvider, options) =>
         {
@@ -66,7 +67,8 @@ public static class DependencyInjection
             options.AddInterceptors(
                 serviceProvider.GetRequiredService<AuditableEntityInterceptor>(),
                 serviceProvider.GetRequiredService<SoftDeleteInterceptor>(),
-                serviceProvider.GetRequiredService<AuditTrailInterceptor>());
+                serviceProvider.GetRequiredService<AuditTrailInterceptor>(),
+                serviceProvider.GetRequiredService<LedgerLockInterceptor>());
         });
 
         services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<ApplicationDbContext>());

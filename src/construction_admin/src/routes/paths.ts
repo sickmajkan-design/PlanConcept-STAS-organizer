@@ -73,6 +73,13 @@ export const paths = {
   financeEntries: '/finance-entries',
   generalExpenses: '/general-expenses',
   companyRevenues: '/company-revenues',
+  bookOverview: '/book',
+  bookEntries: '/book/entries',
+  bookCategories: '/book/categories',
+  bookReceivables: '/book/receivables',
+  bookPayouts: '/book/payouts',
+  bookRecurring: '/book/recurring',
+  bookImport: '/book/import',
 
   accommodationCosts: '/accommodation-costs',
   accommodations: '/accommodations',

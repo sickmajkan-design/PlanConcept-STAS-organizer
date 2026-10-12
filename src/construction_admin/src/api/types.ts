@@ -233,6 +233,8 @@ export interface Project {
   status: ProjectStatus;
   /** Money: null unless the account holds the finance grant. */
   contractValue: number | null;
+  /** What the client is charged per hour. Money: null unless the account has the finance grant. */
+  clientHourlyRate: number | null;
   /** How the client is billed: by the hour, a fixed sum, or measured work. */
   billingMode: ProjectBillingMode;
   employeeCount: number;
@@ -351,6 +353,7 @@ export interface ProjectInput {
   status: ProjectStatus;
   /** Only the finance grant sets these two; for anybody else the server keeps what is stored. */
   contractValue?: number | null;
+  clientHourlyRate?: number | null;
   billingMode?: ProjectBillingMode;
 }
 
@@ -2004,9 +2007,14 @@ export interface LedgerCheck {
   otherSections: string[];
 }
 
+export const payoutGroups = ['Workers', 'Subcontractors', 'Office'] as const;
+export type PayoutGroup = (typeof payoutGroups)[number];
+
 export interface LedgerRow {
   id: string;
   label: string;
+  /** Who the row is paid as, so what a group earned is read from the rows. */
+  payGroup: PayoutGroup;
   employeeId: string | null;
   employeeName: string | null;
   vehicleId: string | null;
@@ -2063,6 +2071,10 @@ export interface LedgerDetail {
   createdByName: string | null;
   createdAt: string;
   updatedAt: string | null;
+  /** Set when the month is closed; null while it can still be changed. */
+  lockedAt: string | null;
+  /** Why it was last reopened, when it has been. */
+  unlockNote: string | null;
   columns: LedgerColumn[];
   sections: LedgerSection[];
 }
@@ -2152,6 +2164,8 @@ export interface LedgerSectionInput {
 
 export interface LedgerRowInput {
   label: string;
+  /** Omitted keeps what it was (workers for a new row). */
+  payGroup?: PayoutGroup;
   employeeId?: string | null;
   vehicleId?: string | null;
   toolId?: string | null;

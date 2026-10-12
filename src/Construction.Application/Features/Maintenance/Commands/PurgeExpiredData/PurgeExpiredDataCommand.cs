@@ -351,6 +351,11 @@ public class PurgeExpiredDataCommandHandler
                 cancellationToken);
         }
 
+        // The report of a spreadsheet import holds people's names; the import itself stays as a record.
+        await _context.BookImportBatches
+            .Where(b => b.ReportJson != null && b.CreatedAt < utcNow - TimeSpan.FromDays(180))
+            .ExecuteUpdateAsync(setters => setters.SetProperty(b => b.ReportJson, (string?)null), cancellationToken);
+
         return new PurgeResult(
             refreshTokens, resetTokens, locations, outbox, audit, coordinates, idempotency)
         {

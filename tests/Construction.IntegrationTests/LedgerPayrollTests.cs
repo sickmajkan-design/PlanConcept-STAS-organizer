@@ -149,7 +149,7 @@ public class LedgerPayrollTests : IntegrationTestBase
         // The hour columns are not formulas: hours are typed from the signed timesheets.
         var expected = new List<string>
         {
-            "hours", "pay", "billing", "margin", "result", "workerRate", "fuel", "rent", "housing", "refund", "holiday",
+            "hours", "pay", "billing", "margin", "result", "workerRate", "clientRate", "fuel", "rent", "housing", "refund", "holiday",
         };
 
         Assert.Equal(expected.OrderBy(k => k), formulaColumns.OrderBy(k => k));

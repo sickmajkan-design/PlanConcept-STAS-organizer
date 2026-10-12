@@ -24,6 +24,11 @@ public class DeleteLedgerCommandHandler : IRequestHandler<DeleteLedgerCommand>
             .FirstOrDefaultAsync(l => l.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(Ledger), request.Id);
 
+        if (ledger.LockedAt is not null)
+        {
+            throw new ConflictException("A closed month cannot be deleted. Reopen it first.");
+        }
+
         _context.Ledgers.Remove(ledger);
 
         await _context.SaveChangesAsync(cancellationToken);

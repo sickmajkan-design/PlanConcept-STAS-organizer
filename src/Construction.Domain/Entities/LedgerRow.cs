@@ -1,4 +1,5 @@
 using Construction.Domain.Common;
+using Construction.Domain.Enums;
 
 namespace Construction.Domain.Entities;
 
@@ -52,6 +53,12 @@ public class LedgerRow : BaseEntity, IAuditable
     public Guid? PromotedAccommodationRateId { get; set; }
 
     public AccommodationRate? PromotedAccommodationRate { get; set; }
+
+    /// <summary>
+    /// Who the row is paid as, so what a group earned in the month is read from the rows
+    /// themselves rather than guessed from a section's name.
+    /// </summary>
+    public PayoutGroup PayGroup { get; set; } = PayoutGroup.Workers;
 
     public int SortOrder { get; set; }
 

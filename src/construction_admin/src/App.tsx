@@ -180,6 +180,27 @@ function ScheduleRoute() {
 const CompanyRevenuesPage = lazy(() =>
   import('./pages/finance/CompanyRevenuesPage').then((m) => ({ default: m.CompanyRevenuesPage })),
 );
+const BookOverviewPage = lazy(() =>
+  import('./pages/book/BookOverviewPage').then((m) => ({ default: m.BookOverviewPage })),
+);
+const BookEntriesPage = lazy(() =>
+  import('./pages/book/BookEntriesPage').then((m) => ({ default: m.BookEntriesPage })),
+);
+const BookReceivablesPage = lazy(() =>
+  import('./pages/book/BookReceivablesPage').then((m) => ({ default: m.BookReceivablesPage })),
+);
+const BookPayoutsPage = lazy(() =>
+  import('./pages/book/BookPayoutsPage').then((m) => ({ default: m.BookPayoutsPage })),
+);
+const BookRecurringPage = lazy(() =>
+  import('./pages/book/BookRecurringPage').then((m) => ({ default: m.BookRecurringPage })),
+);
+const BookImportPage = lazy(() =>
+  import('./pages/book/BookImportPage').then((m) => ({ default: m.BookImportPage })),
+);
+const BookCategoriesPage = lazy(() =>
+  import('./pages/book/BookCategoriesPage').then((m) => ({ default: m.BookCategoriesPage })),
+);
 const CostsPage = lazy(() =>
   import('./pages/costs/CostsPage').then((m) => ({ default: m.CostsPage })),
 );
@@ -422,6 +443,12 @@ function Layout() {
               <Route element={<RequireFinanceAccess />}>
                 <Route path={paths.costs} element={<CostsPage />} />
                 <Route path={paths.companyRevenues} element={<CompanyRevenuesPage />} />
+                <Route path={paths.bookOverview} element={<BookOverviewPage />} />
+                <Route path={paths.bookEntries} element={<BookEntriesPage />} />
+                <Route path={paths.bookCategories} element={<BookCategoriesPage />} />
+                <Route path={paths.bookReceivables} element={<BookReceivablesPage />} />
+                <Route path={paths.bookPayouts} element={<BookPayoutsPage />} />
+                <Route path={paths.bookRecurring} element={<BookRecurringPage />} />
               </Route>
               <Route
                 path={paths.costRecords}
@@ -527,6 +554,7 @@ function Layout() {
                 administration; not even Admin reaches this one. */}
             <Route element={<RequireSuperAdmin />}>
               <Route path={paths.ledgers} element={<LedgersListPage />} />
+              <Route path={paths.bookImport} element={<BookImportPage />} />
               <Route path={`${paths.ledgers}/:id`} element={<LedgerDetailPage />} />
             </Route>
 

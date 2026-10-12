@@ -32,6 +32,12 @@ public static class LedgerSourceKinds
     /// column's own calculation (hours times the client's price) applies.
     /// </summary>
     public const string ProjectInvoices = "projectInvoices";
+
+    /// <summary>
+    /// The hourly price the row's site charges its client (<c>Project.ClientHourlyRate</c>). Absent for a site
+    /// where none is set, so the price typed in the cell is then ordinary input, not a correction.
+    /// </summary>
+    public const string ProjectClientRate = "projectClientRate";
 }
 
 /// <summary>A figure the system already knows, offered as the cell's value.</summary>

@@ -58,6 +58,7 @@ const emptyValues: ProjectFormValues = {
   endDate: '',
   status: 'Planned',
   contractValue: '',
+  clientHourlyRate: '',
   billingMode: 'Hourly',
 };
 
@@ -149,6 +150,7 @@ export function ProjectFormPage() {
         endDate: existing.endDate?.slice(0, 10) ?? '',
         status: existing.status,
         contractValue: existing.contractValue?.toString() ?? '',
+        clientHourlyRate: existing.clientHourlyRate?.toString() ?? '',
         billingMode: existing.billingMode,
       });
     }
@@ -195,6 +197,7 @@ export function ProjectFormPage() {
       ...(money
         ? {
             contractValue: values.contractValue ? Number(values.contractValue) : null,
+            clientHourlyRate: values.clientHourlyRate ? Number(values.clientHourlyRate) : null,
             billingMode: values.billingMode,
           }
         : {}),
@@ -591,6 +594,22 @@ export function ProjectFormPage() {
                             </MenuItem>
                           ))}
                         </TextField>
+                      )}
+                    />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Controller
+                      name="clientHourlyRate"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <TextField
+                          {...field}
+                          type="number"
+                          label={t('projects.clientHourlyRate')}
+                          fullWidth
+                          error={!!fieldState.error}
+                          helperText={fieldState.error?.message ?? t('projects.clientHourlyRateHelp')}
+                        />
                       )}
                     />
                   </Grid>

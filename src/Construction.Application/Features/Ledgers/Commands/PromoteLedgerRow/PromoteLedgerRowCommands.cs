@@ -190,6 +190,7 @@ file static class LedgerRowPromotion
             {
                 Id = r.Id,
                 Label = r.Label,
+                PayGroup = r.PayGroup.ToString(),
                 EmployeeId = r.EmployeeId,
                 EmployeeName = r.Employee != null ? r.Employee.FirstName + " " + r.Employee.LastName : null,
                 VehicleId = r.VehicleId,

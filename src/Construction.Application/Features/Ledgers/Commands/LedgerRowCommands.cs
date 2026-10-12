@@ -2,6 +2,7 @@ using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Ledgers.Models;
 using Construction.Domain.Entities;
+using Construction.Domain.Enums;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,9 @@ public record AddLedgerRowCommand : IRequest<LedgerRowDto>
     public Guid? ToolId { get; init; }
 
     public Guid? MaterialId { get; init; }
+
+    /// <summary>Who the row is paid as. Omitted means workers.</summary>
+    public PayoutGroup? PayGroup { get; init; }
 }
 
 public class AddLedgerRowCommandValidator : AbstractValidator<AddLedgerRowCommand>
@@ -70,6 +74,7 @@ public class AddLedgerRowCommandHandler : IRequestHandler<AddLedgerRowCommand, L
             VehicleId = request.VehicleId,
             ToolId = request.ToolId,
             MaterialId = request.MaterialId,
+            PayGroup = request.PayGroup ?? PayoutGroup.Workers,
             SortOrder = nextOrder + 1,
         };
 
@@ -80,6 +85,7 @@ public class AddLedgerRowCommandHandler : IRequestHandler<AddLedgerRowCommand, L
         {
             Id = row.Id,
             Label = row.Label,
+            PayGroup = row.PayGroup.ToString(),
             EmployeeId = row.EmployeeId,
             EmployeeName = subject.EmployeeName,
             VehicleId = row.VehicleId,
@@ -107,6 +113,9 @@ public record UpdateLedgerRowCommand : IRequest<LedgerRowDto>
     public Guid? ToolId { get; init; }
 
     public Guid? MaterialId { get; init; }
+
+    /// <summary>Who the row is paid as. Omitted keeps what it was.</summary>
+    public PayoutGroup? PayGroup { get; init; }
 }
 
 public class UpdateLedgerRowCommandValidator : AbstractValidator<UpdateLedgerRowCommand>
@@ -147,6 +156,7 @@ public class UpdateLedgerRowCommandHandler : IRequestHandler<UpdateLedgerRowComm
         row.VehicleId = request.VehicleId;
         row.ToolId = request.ToolId;
         row.MaterialId = request.MaterialId;
+        row.PayGroup = request.PayGroup ?? row.PayGroup;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -160,6 +170,7 @@ public class UpdateLedgerRowCommandHandler : IRequestHandler<UpdateLedgerRowComm
         {
             Id = row.Id,
             Label = row.Label,
+            PayGroup = row.PayGroup.ToString(),
             EmployeeId = row.EmployeeId,
             EmployeeName = subject.EmployeeName,
             VehicleId = row.VehicleId,

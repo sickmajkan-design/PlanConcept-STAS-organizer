@@ -152,6 +152,7 @@ public class GetProjectsQueryHandler : IRequestHandler<GetProjectsQuery, PagedLi
             foreach (var project in page.Items)
             {
                 project.ContractValue = null;
+                project.ClientHourlyRate = null;
             }
         }
 

@@ -3,6 +3,7 @@ using Construction.API.Observability;
 using Construction.Application.Features.Attachments.Commands.SendExpiryReminders;
 using Construction.Application.Features.Accommodations.Reminders;
 using Construction.Application.Features.Attachments.Commands.SendRetentionEndedReminders;
+using Construction.Application.Features.Recurring;
 using Construction.Application.Features.ScheduledReports.Commands.SendScheduledReports;
 using Construction.Application.Features.TimeEntries.Commands.AutoCloseStaleShifts;
 using Construction.Application.Features.VehicleTolls.Commands.SendVehicleTollExpiryReminders;
@@ -153,6 +154,19 @@ public class DailyReminderService : BackgroundService
             {
                 _logger.LogInformation(
                     "Auto-closed {Count} shift(s) left open past their day.", closed);
+            }
+
+            // The costs that come back on their own are entered by the same daily pass. A second instance
+            // running at the same moment finds each period taken by the unique index.
+            var recurring = await mediator.Send(
+                new GenerateDueRecurringExpensesCommand(), cancellationToken);
+
+            _metrics.RemindersSent("recurring-expenses", recurring);
+
+            if (recurring > 0)
+            {
+                _logger.LogInformation(
+                    "Made {Count} entr(y/ies) of the book from recurring costs.", recurring);
             }
 
             var reports = await mediator.Send(

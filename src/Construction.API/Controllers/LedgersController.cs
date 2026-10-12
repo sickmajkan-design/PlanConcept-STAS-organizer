@@ -3,6 +3,7 @@ using Construction.Application.Common.Models;
 using Construction.Application.Features.Ledgers.Commands;
 using Construction.Application.Features.Ledgers.Commands.CreateLedger;
 using Construction.Application.Features.Ledgers.Commands.DeleteLedger;
+using Construction.Application.Features.Ledgers.Commands.LockLedger;
 using Construction.Application.Features.Ledgers.Commands.PromoteLedgerRow;
 using Construction.Application.Features.Ledgers.Commands.SetLedgerCell;
 using Construction.Application.Features.Ledgers.Commands.SetLedgerColor;
@@ -94,6 +95,30 @@ public class LedgersController : ApiControllerBase
         var ledger = await Mediator.Send(command, cancellationToken);
 
         return CreatedAtAction(nameof(GetById), new { id = ledger.Id }, ledger);
+    }
+
+    /// <summary>Closes a month: its cells, columns, sections and rows can no longer be changed.</summary>
+    [HttpPost("{id:guid}/lock")]
+    [ProducesResponseType(typeof(LockedLedgerDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<LockedLedgerDto>> Lock(Guid id, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new LockLedgerCommand(id), cancellationToken));
+    }
+
+    /// <summary>Reopens a closed month. A reason is required and is kept in the audit trail.</summary>
+    [HttpPost("{id:guid}/unlock")]
+    [ProducesResponseType(typeof(LockedLedgerDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<LockedLedgerDto>> Unlock(
+        Guid id,
+        UnlockLedgerCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
     }
 
     [HttpPut("{id:guid}")]

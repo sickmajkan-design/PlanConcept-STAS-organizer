@@ -141,6 +141,20 @@ public interface IApplicationDbContext
 
     DbSet<CompanyRevenue> CompanyRevenues { get; }
 
+    DbSet<BookCategory> BookCategories { get; }
+
+    DbSet<BookCategoryRule> BookCategoryRules { get; }
+
+    DbSet<BookEntry> BookEntries { get; }
+
+    DbSet<InvoicePayment> InvoicePayments { get; }
+
+    DbSet<WagePayout> WagePayouts { get; }
+
+    DbSet<RecurringExpense> RecurringExpenses { get; }
+
+    DbSet<BookImportBatch> BookImportBatches { get; }
+
     DbSet<OutboxMessage> OutboxMessages { get; }
 
     DbSet<ScheduledReportSubscription> ScheduledReportSubscriptions { get; }

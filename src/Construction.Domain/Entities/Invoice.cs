@@ -47,6 +47,9 @@ public class Invoice : BaseEntity, IAuditable
     public User? CreatedByUser { get; set; }
 
     public ICollection<InvoiceShare> Shares { get; set; } = new List<InvoiceShare>();
+
+    /// <summary>What the client has paid against it so far, in parts.</summary>
+    public ICollection<InvoicePayment> Payments { get; set; } = new List<InvoicePayment>();
 }
 
 /// <summary>One company's part of an invoice.</summary>

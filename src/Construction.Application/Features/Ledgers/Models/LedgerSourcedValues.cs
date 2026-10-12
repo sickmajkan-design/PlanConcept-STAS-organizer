@@ -137,6 +137,7 @@ public static class LedgerSourcedValues
             {
                 Id = row.Id,
                 Label = row.Label,
+                PayGroup = row.PayGroup,
                 EmployeeId = row.EmployeeId,
                 EmployeeName = row.EmployeeName,
                 VehicleId = row.VehicleId,

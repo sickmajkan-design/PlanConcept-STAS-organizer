@@ -126,6 +126,8 @@ public static class LedgerTemplates
                 return new LedgerFormulaSource(LedgerSourceKinds.EmployeeLeavePay, first, last);
             case Keys.Billing:
                 return new LedgerFormulaSource(LedgerSourceKinds.ProjectInvoices, first, last);
+            case Keys.ClientRate:
+                return new LedgerFormulaSource(LedgerSourceKinds.ProjectClientRate, first, last);
         }
 
         if (key is not null && key.StartsWith("week", StringComparison.Ordinal)
@@ -241,6 +243,10 @@ public static class LedgerTemplates
             columns[key].FormulaJson =
                 new LedgerFormula([], [], SourceFor(key, ledger.Year, ledger.Month)).ToJson();
         }
+
+        // The client's price per hour is the site's own, where the site has one.
+        columns[Keys.ClientRate].FormulaJson =
+            new LedgerFormula([], [], SourceFor(Keys.ClientRate, ledger.Year, ledger.Month)).ToJson();
 
         columns[Keys.Hours].FormulaJson = new LedgerFormula(
             [],

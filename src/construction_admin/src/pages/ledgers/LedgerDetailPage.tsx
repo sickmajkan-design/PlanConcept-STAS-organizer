@@ -35,6 +35,7 @@ import {
   MenuItem,
   Paper,
   Popover,
+  Select,
   Stack,
   Table,
   TableBody,
@@ -56,6 +57,7 @@ import {
   generalExpenseCategories,
   ledgerColumnDataTypes,
   ledgerColumnSourceMetrics,
+  payoutGroups,
   type Accommodation,
   type Employee,
   type GeneralExpenseCategory,
@@ -64,6 +66,8 @@ import {
   type LedgerColumnDataType,
   type LedgerColumnSourceMetric,
   type LedgerRow,
+  type LedgerRowInput,
+  type PayoutGroup,
   type LedgerSection,
   type LedgerSummaryBox,
   type Material,
@@ -73,6 +77,7 @@ import {
 } from '../../api/types';
 import { AuditHistoryCard } from '../../components/AuditHistoryCard';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { ReasonDialog } from '../../components/ReasonDialog';
 import { ErrorState } from '../../components/ErrorState';
 import { SignedTimesheetWeeksDialog } from '../../components/SignedTimesheetWeeksDialog';
 import { useAllAccommodationsQuery } from '../../features/accommodations/useAccommodations';
@@ -102,6 +107,8 @@ import {
   useSetLedgerRowColor,
   useUpdateLedgerColumn,
   useUpdateLedgerRow,
+  useLockLedger,
+  useUnlockLedger,
   useUpdateLedgerSummaryBox,
 } from '../../features/ledgers/useLedgers';
 import { useAllMaterialsQuery } from '../../features/materials/useMaterials';
@@ -171,6 +178,8 @@ export function LedgerDetailPage() {
   const addRow = useAddLedgerRow(ledgerId);
   const updateRow = useUpdateLedgerRow(ledgerId);
   const deleteRow = useDeleteLedgerRow(ledgerId);
+  const lockLedger = useLockLedger(ledgerId);
+  const unlockLedger = useUnlockLedger(ledgerId);
   const reorderRows = useReorderLedgerRows(ledgerId);
   const setCell = useSetLedgerCell(ledgerId);
   const setRowColor = useSetLedgerRowColor(ledgerId);
@@ -198,6 +207,8 @@ export function LedgerDetailPage() {
   const materials = materialsPage?.items ?? [];
   const accommodations = accommodationsPage?.items ?? [];
 
+  const [confirmingLock, setConfirmingLock] = useState(false);
+  const [reopening, setReopening] = useState(false);
   const [addingColumn, setAddingColumn] = useState(false);
   const [editingColumn, setEditingColumn] = useState<LedgerColumn | null>(null);
   const [deletingColumn, setDeletingColumn] = useState<LedgerColumn | null>(null);
@@ -295,9 +306,55 @@ export function LedgerDetailPage() {
         </Box>
         <Stack direction="row" spacing={1}>
           <LedgerExportButton ledgerId={ledger.id} />
+          {ledger.lockedAt ? (
+            <Button startIcon={<LockOutlined />} onClick={() => setReopening(true)}>
+              {t('ledgers.reopen')}
+            </Button>
+          ) : (
+            <Button startIcon={<LockOutlined />} onClick={() => setConfirmingLock(true)}>
+              {t('ledgers.lock')}
+            </Button>
+          )}
           <Button onClick={() => navigate(paths.ledgers)}>{t('ledgers.backToList')}</Button>
         </Stack>
       </Stack>
+
+      {ledger.lockedAt && (
+        <Alert severity="info" icon={<LockOutlined />} sx={{ mb: 2 }}>
+          {t('ledgers.lockedBanner', { date: formatDate(ledger.lockedAt) })}
+        </Alert>
+      )}
+      {!ledger.lockedAt && ledger.unlockNote && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          {t('ledgers.reopenedBanner', { reason: ledger.unlockNote })}
+        </Alert>
+      )}
+
+      <ConfirmDialog
+        open={confirmingLock}
+        title={t('ledgers.lockTitle')}
+        description={t('ledgers.lockBody')}
+        confirmLabel={t('ledgers.lock')}
+        loading={lockLedger.isPending}
+        onConfirm={async () => {
+          await lockLedger.mutateAsync(ledger.id);
+          setConfirmingLock(false);
+        }}
+        onCancel={() => setConfirmingLock(false)}
+      />
+
+      <ReasonDialog
+        open={reopening}
+        title={t('ledgers.reopenTitle')}
+        hint={t('ledgers.reopenHint')}
+        label={t('ledgers.reopenReason')}
+        submitLabel={t('ledgers.reopen')}
+        onSubmit={async (reason) => {
+          await unlockLedger.mutateAsync(reason);
+          setReopening(false);
+        }}
+        onClose={() => setReopening(false)}
+      />
 
       <LedgerChecksPanel ledgerId={ledger.id} hasHours={ledger.columns.some((c) => c.systemKey === 'hours')} />
 
@@ -464,7 +521,10 @@ export function LedgerDetailPage() {
               onMoveDown={index < sections.length - 1 ? () => moveSection(index, 1) : undefined}
               onDeleteSection={() => setDeletingSection(section)}
               onAddRow={() => setAddingRowToSectionId(section.id)}
-              onCommitLabel={(rowId, label) => updateRow.mutate({ rowId, input: { label } })}
+              onCommitLabel={(row, label) => updateRow.mutate({ rowId: row.id, input: rowInput(row, { label }) })}
+              onSetPayGroup={(row, payGroup) =>
+                updateRow.mutate({ rowId: row.id, input: rowInput(row, { payGroup }) })
+              }
               onDeleteRow={(row) => setDeletingRow(row)}
               onPromoteRow={(row) => setPromotingRow(row)}
               onSetCell={(rowId, columnId, value) =>
@@ -677,6 +737,7 @@ function SectionCard({
   onDeleteSection,
   onAddRow,
   onCommitLabel,
+  onSetPayGroup,
   onDeleteRow,
   onPromoteRow,
   onSetCell,
@@ -695,7 +756,8 @@ function SectionCard({
   onMoveDown?: () => void;
   onDeleteSection: () => void;
   onAddRow: () => void;
-  onCommitLabel: (rowId: string, label: string) => void;
+  onCommitLabel: (row: LedgerRow, label: string) => void;
+  onSetPayGroup: (row: LedgerRow, payGroup: PayoutGroup) => void;
   onDeleteRow: (row: LedgerRow) => void;
   onPromoteRow: (row: LedgerRow) => void;
   onSetCell: (rowId: string, columnId: string, value: string) => void;
@@ -815,7 +877,8 @@ function SectionCard({
                     key={row.id}
                     row={row}
                     columns={columns}
-                    onCommitLabel={(label) => onCommitLabel(row.id, label)}
+                    onCommitLabel={(label) => onCommitLabel(row, label)}
+                    onSetPayGroup={(group) => onSetPayGroup(row, group)}
                     onDelete={() => onDeleteRow(row)}
                     onPromote={() => onPromoteRow(row)}
                     onSetCell={(columnId, value) => onSetCell(row.id, columnId, value)}
@@ -1288,11 +1351,28 @@ function SummaryBoxDialog({
   );
 }
 
+/**
+ * A row as the update command wants it: the whole row, not only what changed. The command writes the
+ * row's links as it receives them, so a rename that sent only the label would detach the person.
+ */
+function rowInput(row: LedgerRow, patch: Partial<LedgerRowInput>): LedgerRowInput {
+  return {
+    label: row.label,
+    employeeId: row.employeeId,
+    vehicleId: row.vehicleId,
+    toolId: row.toolId,
+    materialId: row.materialId,
+    payGroup: row.payGroup,
+    ...patch,
+  };
+}
+
 /** Purely presentational — every write is a callback into the page's single shared mutation. */
 function RowLine({
   row,
   columns,
   onCommitLabel,
+  onSetPayGroup,
   onDelete,
   onPromote,
   onSetCell,
@@ -1304,6 +1384,7 @@ function RowLine({
   row: LedgerRow;
   columns: LedgerColumn[];
   onCommitLabel: (label: string) => void;
+  onSetPayGroup: (group: PayoutGroup) => void;
   onDelete: () => void;
   onPromote: () => void;
   onSetCell: (columnId: string, value: string) => void;
@@ -1357,6 +1438,21 @@ function RowLine({
                 {subjectName}
               </Typography>
             )}
+            <Select
+              variant="standard"
+              disableUnderline
+              size="small"
+              value={row.payGroup}
+              onChange={(event) => onSetPayGroup(event.target.value as PayoutGroup)}
+              inputProps={{ 'aria-label': t('payouts.rowGroup') }}
+              sx={{ fontSize: 12, color: 'text.secondary' }}
+            >
+              {payoutGroups.map((group) => (
+                <MenuItem key={group} value={group}>
+                  {t(`payouts.group.${group}` as MessageKey)}
+                </MenuItem>
+              ))}
+            </Select>
             {isPromoted && (
               <Typography variant="caption" color="success.main" noWrap sx={{ display: 'block' }}>
                 {row.promotedGeneralExpenseId
@@ -1939,18 +2035,21 @@ function RowDialog({
     vehicleId?: string | null;
     toolId?: string | null;
     materialId?: string | null;
+    payGroup?: PayoutGroup;
   }) => void;
   loading: boolean;
   error: { message: string } | null;
 }) {
   const t = useT();
   const [label, setLabel] = useState('');
+  const [payGroup, setPayGroup] = useState<PayoutGroup>('Workers');
   const [subjectType, setSubjectType] = useState<Exclude<RowSubjectType, 'none'>>('employee');
   const [subjectId, setSubjectId] = useState('');
 
   useEffect(() => {
     if (!open) return;
     setLabel('');
+    setPayGroup('Workers');
     setSubjectType('employee');
     setSubjectId('');
   }, [open]);
@@ -2021,6 +2120,22 @@ function RowDialog({
             <TextField
               select
               fullWidth
+              label={t('payouts.rowGroup')}
+              value={payGroup}
+              onChange={(event) => setPayGroup(event.target.value as PayoutGroup)}
+            >
+              {payoutGroups.map((group) => (
+                <MenuItem key={group} value={group}>
+                  {t(`payouts.group.${group}` as MessageKey)}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+
+          <Grid size={12}>
+            <TextField
+              select
+              fullWidth
               label={subjectLabel}
               value={subjectId}
               onChange={(event) => setSubjectId(event.target.value)}
@@ -2051,6 +2166,7 @@ function RowDialog({
               vehicleId: subjectType === 'vehicle' ? subjectId || null : null,
               toolId: subjectType === 'tool' ? subjectId || null : null,
               materialId: subjectType === 'material' ? subjectId || null : null,
+              payGroup,
             })
           }
         >

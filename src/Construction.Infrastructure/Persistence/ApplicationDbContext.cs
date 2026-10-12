@@ -144,6 +144,20 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<CompanyRevenue> CompanyRevenues => Set<CompanyRevenue>();
 
+    public DbSet<BookCategory> BookCategories => Set<BookCategory>();
+
+    public DbSet<BookCategoryRule> BookCategoryRules => Set<BookCategoryRule>();
+
+    public DbSet<BookEntry> BookEntries => Set<BookEntry>();
+
+    public DbSet<InvoicePayment> InvoicePayments => Set<InvoicePayment>();
+
+    public DbSet<WagePayout> WagePayouts => Set<WagePayout>();
+
+    public DbSet<RecurringExpense> RecurringExpenses => Set<RecurringExpense>();
+
+    public DbSet<BookImportBatch> BookImportBatches => Set<BookImportBatch>();
+
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
     public DbSet<ScheduledReportSubscription> ScheduledReportSubscriptions => Set<ScheduledReportSubscription>();

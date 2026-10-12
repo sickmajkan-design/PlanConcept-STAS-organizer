@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Construction.Domain.Entities;
+using Construction.Domain.Enums;
 
 namespace Construction.Application.Features.Invoices.Models;
 
@@ -12,6 +13,21 @@ public class InvoiceShareDto
     public string? CompanyName { get; init; }
 
     public decimal Amount { get; init; }
+}
+
+/// <summary>One part-payment a client made against an invoice.</summary>
+public class InvoicePaymentDto
+{
+    public Guid Id { get; init; }
+
+    public decimal Amount { get; init; }
+
+    public DateOnly PaidOn { get; init; }
+
+    /// <summary>"Bank" or "Cash", when it was recorded.</summary>
+    public string? Method { get; init; }
+
+    public string? Note { get; init; }
 }
 
 /// <summary>An issued invoice with its parts. Money: only served to the finance grant.</summary>
@@ -56,6 +72,21 @@ public class InvoiceDto
     public DateTime CreatedAt { get; init; }
 
     public IReadOnlyList<InvoiceShareDto> Shares { get; init; } = [];
+
+    /// <summary>
+    /// What the client has paid. For an invoice marked paid before part-payments existed, and so with no
+    /// payment recorded, it is the whole amount.
+    /// </summary>
+    public decimal PaidAmount { get; init; }
+
+    /// <summary>The day of the latest payment, or null when none has been recorded.</summary>
+    public DateOnly? LastPaymentOn { get; init; }
+
+    public IReadOnlyList<InvoicePaymentDto> Payments { get; init; } = [];
+
+    /// <summary>What is still to be paid; zero for a paid or cancelled invoice.</summary>
+    public decimal RemainingAmount =>
+        Status == "Issued" ? Math.Max(0m, Amount - PaidAmount) : 0m;
 }
 
 public static class InvoiceMapping
@@ -80,6 +111,22 @@ public static class InvoiceMapping
         Status = i.Status.ToString(),
         CancelReason = i.CancelReason,
         CreatedAt = i.CreatedAt,
+        PaidAmount = i.Status == InvoiceStatus.Paid && !i.Payments.Any()
+            ? i.Amount
+            : i.Payments.Sum(p => p.Amount),
+        LastPaymentOn = i.Payments.Max(p => (DateOnly?)p.PaidOn),
+        Payments = i.Payments
+            .OrderBy(p => p.PaidOn)
+            .ThenBy(p => p.CreatedAt)
+            .Select(p => new InvoicePaymentDto
+            {
+                Id = p.Id,
+                Amount = p.Amount,
+                PaidOn = p.PaidOn,
+                Method = p.Method == null ? null : p.Method.ToString(),
+                Note = p.Note,
+            })
+            .ToList(),
         Shares = i.Shares
             .OrderBy(s => s.CustomerCompany != null ? s.CustomerCompany.Name : "")
             .Select(s => new InvoiceShareDto

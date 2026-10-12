@@ -19,6 +19,14 @@ public class LedgerConfiguration : IEntityTypeConfiguration<Ledger>
 
         builder.HasQueryFilter(l => !l.IsDeleted);
 
+        builder.Property(l => l.UnlockNote).HasMaxLength(500);
+
+        builder.HasOne(l => l.LockedByUser)
+            .WithMany()
+            .HasForeignKey(l => l.LockedByUserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+
         builder.Property(l => l.Name)
             .HasMaxLength(256)
             .IsRequired();

@@ -180,6 +180,28 @@ public class GetAttentionQueryHandler : IRequestHandler<GetAttentionQuery, Atten
 
             Add("certificatesExpiring", expiring.Count, expiring.Select(c => new AttentionItemDto { Label = c.Name, Date = c.ValidUntil }));
 
+            // Money that is late. Only for those who may see amounts, since a count of late invoices
+            // says something about what the firm is owed.
+            if (await Finance.FinanceRules.HasFullAsync(_context, _currentUser, cancellationToken))
+            {
+                var late = await _context.Invoices.AsNoTracking()
+                    .Where(i => i.Status == InvoiceStatus.Issued && i.Amount > 0 && i.DueDate != null && i.DueDate < today)
+                    .Where(i => i.Amount > (i.Payments.Sum(p => (decimal?)p.Amount) ?? 0m))
+                    .OrderBy(i => i.DueDate)
+                    .Select(i => new { i.Number, Client = i.Project.Customer != null ? i.Project.Customer.Name : i.Project.Name, i.DueDate })
+                    .ToListAsync(cancellationToken);
+
+                Add("lateInvoices", late.Count, late.Select(i => new AttentionItemDto { Label = $"{i.Number} - {i.Client}", Date = i.DueDate }));
+
+                var owed = await _context.BookEntries.AsNoTracking()
+                    .Where(e => e.Kind == BookEntryKind.Cost && e.PaidOn == null && e.DueDate != null && e.DueDate < today)
+                    .OrderBy(e => e.DueDate)
+                    .Select(e => new { Name = e.Counterparty ?? e.Description ?? "", e.DueDate })
+                    .ToListAsync(cancellationToken);
+
+                Add("lateCosts", owed.Count, owed.Select(e => new AttentionItemDto { Label = e.Name, Date = e.DueDate }));
+            }
+
             var quality = await _sender.Send(new GetDataQualityQuery(), cancellationToken);
             Add("dataQuality", quality.Groups.Sum(g => g.Count));
         }

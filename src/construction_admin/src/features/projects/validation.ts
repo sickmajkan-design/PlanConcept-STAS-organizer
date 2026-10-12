@@ -19,6 +19,14 @@ const optionalNonNegativeAmount = z
     error: zodMsg('validation.contractValueNegative'),
   });
 
+const optionalNonNegativeRate = z
+  .string()
+  .optional()
+  .or(z.literal(''))
+  .refine((value) => !value || (!Number.isNaN(Number(value)) && Number(value) >= 0), {
+    error: zodMsg('validation.clientRateNegative'),
+  });
+
 /** Mirrors the API's ProjectCommandBaseValidator so the form catches errors early. */
 export const projectFormSchema = z
   .object({
@@ -52,6 +60,7 @@ export const projectFormSchema = z
     endDate: z.string().optional().or(z.literal('')),
     status: z.enum(projectStatuses),
     contractValue: optionalNonNegativeAmount,
+    clientHourlyRate: optionalNonNegativeRate,
     billingMode: z.enum(projectBillingModes),
   })
   .refine((values) => Boolean(values.latitude) === Boolean(values.longitude), {

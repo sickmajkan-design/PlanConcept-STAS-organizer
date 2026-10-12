@@ -68,6 +68,16 @@ export const ledgersApi = {
   remove: (id: string) =>
     request<void>({ method: 'DELETE', url: `/api/v1/ledgers/${id}` }),
 
+  lock: (id: string) =>
+    request<{ id: string; lockedAt: string | null }>({ method: 'POST', url: `/api/v1/ledgers/${id}/lock` }),
+
+  unlock: (id: string, reason: string) =>
+    request<{ id: string; lockedAt: string | null }>({
+      method: 'POST',
+      url: `/api/v1/ledgers/${id}/unlock`,
+      data: { reason },
+    }),
+
   columns: {
     add: (ledgerId: string, input: LedgerColumnInput) =>
       request<LedgerColumn>({

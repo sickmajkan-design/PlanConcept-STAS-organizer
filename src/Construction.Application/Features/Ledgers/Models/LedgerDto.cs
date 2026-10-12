@@ -28,6 +28,9 @@ public class LedgerSummaryDto
     public string? CreatedByName { get; init; }
 
     public DateTime CreatedAt { get; init; }
+
+    /// <summary>Set when the month is closed; null while it can still be changed.</summary>
+    public DateTime? LockedAt { get; init; }
 }
 
 public class LedgerCellDto
@@ -63,6 +66,9 @@ public class LedgerRowDto
     public Guid Id { get; init; }
 
     public string Label { get; init; } = null!;
+
+    /// <summary>"Workers", "Subcontractors" or "Office": who the row is paid as.</summary>
+    public string PayGroup { get; init; } = "Workers";
 
     public Guid? EmployeeId { get; init; }
 
@@ -236,6 +242,12 @@ public class LedgerDetailDto
 
     public DateTime? UpdatedAt { get; init; }
 
+    /// <summary>Set when the month is closed; null while it can still be changed.</summary>
+    public DateTime? LockedAt { get; init; }
+
+    /// <summary>Why it was last reopened, when it has been.</summary>
+    public string? UnlockNote { get; init; }
+
     public IReadOnlyCollection<LedgerColumnDto> Columns { get; init; } = Array.Empty<LedgerColumnDto>();
 
     public IReadOnlyCollection<LedgerSectionDto> Sections { get; init; } = Array.Empty<LedgerSectionDto>();
@@ -257,6 +269,7 @@ public static class LedgerSummaryMapping
             Note = ledger.Note,
             CreatedByName = ledger.CreatedByUser != null ? ledger.CreatedByUser.Email : null,
             CreatedAt = ledger.CreatedAt,
+            LockedAt = ledger.LockedAt,
         };
 
     private static readonly Func<Ledger, LedgerSummaryDto> Compiled = Projection.Compile();
@@ -282,6 +295,7 @@ public static class LedgerSectionDetailMapping
                 {
                     Id = r.Id,
                     Label = r.Label,
+                    PayGroup = r.PayGroup.ToString(),
                     EmployeeId = r.EmployeeId,
                     EmployeeName = r.Employee != null
                         ? r.Employee.FirstName + " " + r.Employee.LastName
@@ -405,6 +419,8 @@ public static class LedgerShellMapping
             CreatedByName = ledger.CreatedByUser != null ? ledger.CreatedByUser.Email : null,
             CreatedAt = ledger.CreatedAt,
             UpdatedAt = ledger.UpdatedAt,
+            LockedAt = ledger.LockedAt,
+            UnlockNote = ledger.UnlockNote,
             Columns = ledger.Columns
                 .OrderBy(c => c.SortOrder)
                 .Select(c => new LedgerColumnDto

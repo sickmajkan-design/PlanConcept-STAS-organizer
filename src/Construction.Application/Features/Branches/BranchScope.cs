@@ -134,6 +134,21 @@ public static class BranchScope
         return query.Where(r => r.Branch!.Path.Contains(token));
     }
 
+    public static IQueryable<WagePayout> InBranch(this IQueryable<WagePayout> query, Guid? branchId)
+    {
+        if (branchId is not { } id) return query;
+        var token = BranchTree.Token(id);
+        return query.Where(p => p.Branch!.Path.Contains(token));
+    }
+
+    public static IQueryable<BookEntry> InBranch(this IQueryable<BookEntry> query, Guid? branchId)
+    {
+        if (branchId is not { } id) return query;
+        var token = BranchTree.Token(id);
+        return query.Where(e => e.Branch!.Path.Contains(token)
+            || (e.BranchId == null && e.Project != null && e.Project.Branch!.Path.Contains(token)));
+    }
+
     public static IQueryable<Accommodation> InBranch(this IQueryable<Accommodation> query, Guid? branchId)
     {
         if (branchId is not { } id) return query;
