@@ -1,5 +1,6 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Features.Book;
+using Construction.Application.Features.Branches;
 using Construction.Application.Features.Ledgers.Commands;
 using Construction.Application.Features.Ledgers.Commands.CreateLedger;
 using Construction.Application.Features.Ledgers.Commands.DeleteLedger;
@@ -25,7 +26,7 @@ public class OverviewTests : IntegrationTestBase
     {
     }
 
-    private static int nextYear = 2080;
+    private static int nextYear = 2011;
 
     private static int FreshYear() => Interlocked.Increment(ref nextYear);
 
@@ -45,13 +46,21 @@ public class OverviewTests : IntegrationTestBase
     private Task<T> AsSuperAdminAsync<T>(Func<TestScope, Task<T>> action) =>
         AsAsync(UserRole.SuperAdmin, FinanceAccess.None, action);
 
+    /// <summary>
+    /// Every test works in a business unit of its own. The database outlives a run, so a year or a month is
+    /// not private to a test; a unit is.
+    /// </summary>
+    private Task<Guid> SeedBranchAsync() =>
+        AsSuperAdminAsync(async scope =>
+            (await scope.Send(new CreateBranchCommand { Name = $"Jedinica {Guid.NewGuid():N}"[..20], Color = "#3457D5" })).Id);
+
     private sealed record Month(Guid LedgerId, Guid RowId, Guid HoursColumn, Guid RateColumn, int Year, int MonthNumber);
 
     /// <summary>
     /// A month with one worker: 160 hours at 20 earned (3200), billed at 33 an hour (5280).
     /// Profit before fixed costs is 2080.
     /// </summary>
-    private Task<Month> SeedMonthAsync(int year, int month = 3, bool sectionWithProject = false) =>
+    private Task<Month> SeedMonthAsync(int year, int month = 3, Guid? branchId = null) =>
         AsSuperAdminAsync(async scope =>
         {
             var ledger = await scope.Send(new CreateLedgerCommand
@@ -59,6 +68,7 @@ public class OverviewTests : IntegrationTestBase
                 Name = $"Obracun {year}-{month}",
                 Year = year,
                 Month = month,
+                BranchId = branchId,
                 Template = LedgerTemplates.Payroll,
             });
 
@@ -80,18 +90,20 @@ public class OverviewTests : IntegrationTestBase
                 year, month);
         });
 
-    private Task<OverviewDto> OverviewAsync(int year, int fromMonth = 1, int toMonth = 12) =>
+    private Task<OverviewDto> OverviewAsync(int year, Guid branchId, int fromMonth = 1, int toMonth = 12) =>
         AsSuperAdminAsync(scope => scope.Send(new GetOverviewQuery
         {
             From = new DateOnly(year, fromMonth, 1),
             To = new DateOnly(year, toMonth, DateTime.DaysInMonth(year, toMonth)),
+            BranchId = branchId,
         }));
 
     [Fact]
     public async Task Profit_is_billing_less_what_workers_earned_and_the_fixed_costs_of_the_month()
     {
         var year = FreshYear();
-        await SeedMonthAsync(year);
+        var branch = await SeedBranchAsync();
+        await SeedMonthAsync(year, branchId: branch);
 
         await AsSuperAdminAsync(async scope =>
         {
@@ -101,13 +113,13 @@ public class OverviewTests : IntegrationTestBase
             await scope.Send(new CreateBookEntryCommand
             {
                 Kind = BookEntryKind.Cost, Amount = 100m, OccurredOn = new DateOnly(year, 3, 10),
-                CategoryId = fixedCosts, Description = "Knjigovodstvo",
+                CategoryId = fixedCosts, Description = "Knjigovodstvo", BranchId = branch,
             });
 
             return 0;
         });
 
-        var overview = await OverviewAsync(year);
+        var overview = await OverviewAsync(year, branch);
         var march = overview.Months.Single(m => m.Month == 3);
 
         Assert.True(march.HasSettlement);
@@ -132,11 +144,12 @@ public class OverviewTests : IntegrationTestBase
     public async Task A_closed_month_keeps_its_figures_when_the_sources_change()
     {
         var year = FreshYear();
-        var month = await SeedMonthAsync(year);
+        var branch = await SeedBranchAsync();
+        var month = await SeedMonthAsync(year, branchId: branch);
 
         await AsSuperAdminAsync(scope => scope.Send(new LockLedgerCommand(month.LedgerId)));
 
-        var locked = await OverviewAsync(year);
+        var locked = await OverviewAsync(year, branch);
         Assert.True(locked.Months.Single(m => m.Month == 3).Locked);
         Assert.Equal(2080m, locked.Profit);
 
@@ -145,7 +158,7 @@ public class OverviewTests : IntegrationTestBase
             .Where(c => c.RowId == month.RowId && c.ColumnId == month.RateColumn)
             .ExecuteUpdateAsync(c => c.SetProperty(x => x.Value, "50")));
 
-        var after = await OverviewAsync(year);
+        var after = await OverviewAsync(year, branch);
 
         Assert.Equal(2080m, after.Profit);
         Assert.Equal(5280m, after.Income);
@@ -288,12 +301,13 @@ public class OverviewTests : IntegrationTestBase
     public async Task An_account_with_statistics_only_sees_shares_but_no_amounts()
     {
         var year = FreshYear();
-        await SeedMonthAsync(year);
+        var branch = await SeedBranchAsync();
+        await SeedMonthAsync(year, branchId: branch);
 
         var overview = await AsAsync(UserRole.Admin, FinanceAccess.StatisticsOnly, scope =>
             scope.Send(new GetOverviewQuery
             {
-                From = new DateOnly(year, 1, 1), To = new DateOnly(year, 12, 31),
+                From = new DateOnly(year, 1, 1), To = new DateOnly(year, 12, 31), BranchId = branch,
             }));
 
         Assert.False(overview.AmountsVisible);
@@ -307,10 +321,13 @@ public class OverviewTests : IntegrationTestBase
     public async Task Without_a_settlement_the_month_is_read_from_invoices_and_the_book()
     {
         var year = FreshYear();
+        var branch = await SeedBranchAsync();
 
         await InScope(async scope =>
         {
             var project = await TestData.SeedProjectAsync(scope);
+            project.BranchId = branch;
+            await scope.Db.SaveChangesAsync();
 
             scope.Db.Invoices.Add(new Invoice
             {
@@ -325,7 +342,7 @@ public class OverviewTests : IntegrationTestBase
             await scope.Db.SaveChangesAsync();
         });
 
-        var overview = await OverviewAsync(year, 5, 5);
+        var overview = await OverviewAsync(year, branch, 5, 5);
         var may = overview.Months.Single();
 
         Assert.False(may.HasSettlement);
