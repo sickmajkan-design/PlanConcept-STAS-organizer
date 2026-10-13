@@ -13,6 +13,11 @@ public record GetBookCategoriesQuery : IRequest<IReadOnlyList<BookCategoryDto>>
 {
     /// <summary>False leaves out the categories that were switched off, for a pick list.</summary>
     public bool IncludeInactive { get; init; } = true;
+
+    /// <summary>The month whose entries are counted per category. Omitted means the current month.</summary>
+    public int? Year { get; init; }
+
+    public int? Month { get; init; }
 }
 
 public class GetBookCategoriesQueryHandler
@@ -21,10 +26,16 @@ public class GetBookCategoriesQueryHandler
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
 
-    public GetBookCategoriesQueryHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
+    private readonly IDateTimeProvider _dateTimeProvider;
+
+    public GetBookCategoriesQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<IReadOnlyList<BookCategoryDto>> Handle(
@@ -32,6 +43,12 @@ public class GetBookCategoriesQueryHandler
         CancellationToken cancellationToken)
     {
         await BookRules.EnsureReadAsync(_context, _currentUserService, cancellationToken);
+
+        var now = _dateTimeProvider.UtcNow;
+        var year = request.Year ?? now.Year;
+        var month = request.Month ?? now.Month;
+        var first = new DateOnly(year, Math.Clamp(month, 1, 12), 1);
+        var last = first.AddMonths(1).AddDays(-1);
 
         var query = _context.BookCategories.AsNoTracking();
 
@@ -55,6 +72,8 @@ public class GetBookCategoriesQueryHandler
                 IsActive = c.IsActive,
                 SortOrder = c.SortOrder,
                 EntryCount = _context.BookEntries.Count(e => e.CategoryId == c.Id),
+                MonthEntryCount = _context.BookEntries.Count(
+                    e => e.CategoryId == c.Id && e.OccurredOn >= first && e.OccurredOn <= last),
             })
             .ToListAsync(cancellationToken);
     }
@@ -153,6 +172,12 @@ public record UpdateBookCategoryCommand : IRequest<BookCategoryDto>
     public int SortOrder { get; init; }
 
     public bool IsActive { get; init; } = true;
+
+    /// <summary>
+    /// Where the category is counted. Omitted keeps it. It cannot be changed for a category the system
+    /// seeds, because the settlement is built on where those go.
+    /// </summary>
+    public BookCategoryBucket? Bucket { get; init; }
 }
 
 public class UpdateBookCategoryCommandValidator : AbstractValidator<UpdateBookCategoryCommand>
@@ -194,6 +219,24 @@ public class UpdateBookCategoryCommandHandler : IRequestHandler<UpdateBookCatego
         if (await _context.BookCategories.AnyAsync(c => c.Id != category.Id && c.Name == name, cancellationToken))
         {
             throw new ConflictException("A category with that name already exists.");
+        }
+
+        if (request.Bucket is { } bucket && bucket != category.Bucket)
+        {
+            if (category.SystemKey is not null)
+            {
+                throw new ConflictException(
+                    "Where a category the system relies on is counted cannot be changed.");
+            }
+
+            // An income stays in billing and a cost cannot become billing: the settlement is built on it.
+            if ((category.Kind == BookCategoryKind.Income) != (bucket == BookCategoryBucket.Collection))
+            {
+                throw new ConflictException(
+                    "Income is counted in billing, and a cost in worker pay, site costs or fixed costs.");
+            }
+
+            category.Bucket = bucket;
         }
 
         category.Name = name;

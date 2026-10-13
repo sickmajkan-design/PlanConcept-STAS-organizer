@@ -40,6 +40,7 @@ export interface SheetMapping {
 }
 
 export interface ImportRow {
+  [key: string]: string | (string | null)[] | null;
   section: string;
   label: string;
   weeks: (string | null)[];

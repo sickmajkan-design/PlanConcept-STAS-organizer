@@ -180,6 +180,7 @@ public class GetBookEntriesQueryHandler : IRequestHandler<GetBookEntriesQuery, P
             return new BookRowDto
             {
                 Source = r.Source,
+                Origin = r.Origin,
                 Id = r.Id,
                 Kind = r.Kind,
                 OccurredOn = r.OccurredOn,
@@ -214,6 +215,7 @@ public class GetBookEntriesQueryHandler : IRequestHandler<GetBookEntriesQuery, P
             .Select(e => new BookRow
             {
                 Source = "BookEntry",
+                Origin = e.Source.ToString(),
                 Id = e.Id,
                 Kind = e.Kind.ToString(),
                 OccurredOn = e.OccurredOn,
@@ -239,6 +241,7 @@ public class GetBookEntriesQueryHandler : IRequestHandler<GetBookEntriesQuery, P
             .Select(e => new BookRow
             {
                 Source = "VehicleExpense",
+                Origin = e.Kind == VehicleExpenseKind.Fuel ? "Fuel" : "Vehicle",
                 Id = e.Id,
                 Kind = "Cost",
                 OccurredOn = e.OccurredOn,
@@ -263,6 +266,7 @@ public class GetBookEntriesQueryHandler : IRequestHandler<GetBookEntriesQuery, P
             .Select(e => new BookRow
             {
                 Source = "ToolExpense",
+                Origin = "Tool",
                 Id = e.Id,
                 Kind = "Cost",
                 OccurredOn = e.OccurredOn,
@@ -284,6 +288,7 @@ public class GetBookEntriesQueryHandler : IRequestHandler<GetBookEntriesQuery, P
             .Select(e => new BookRow
             {
                 Source = "GeneralExpense",
+                Origin = e.Category.ToString(),
                 Id = e.Id,
                 Kind = "Cost",
                 OccurredOn = e.OccurredOn,
@@ -307,6 +312,7 @@ public class GetBookEntriesQueryHandler : IRequestHandler<GetBookEntriesQuery, P
             .Select(r => new BookRow
             {
                 Source = "ProjectRevenue",
+                Origin = "ProjectRevenue",
                 Id = r.Id,
                 Kind = "Income",
                 OccurredOn = r.OccurredOn,
@@ -328,6 +334,7 @@ public class GetBookEntriesQueryHandler : IRequestHandler<GetBookEntriesQuery, P
             .Select(r => new BookRow
             {
                 Source = "CompanyRevenue",
+                Origin = "CompanyRevenue",
                 Id = r.Id,
                 Kind = "Income",
                 OccurredOn = r.OccurredOn,
@@ -352,6 +359,7 @@ public class GetBookEntriesQueryHandler : IRequestHandler<GetBookEntriesQuery, P
             .Select(i => new BookRow
             {
                 Source = "Invoice",
+                Origin = "Invoice",
                 Id = i.Id,
                 Kind = "Income",
                 OccurredOn = i.IssueDate,
@@ -369,7 +377,33 @@ public class GetBookEntriesQueryHandler : IRequestHandler<GetBookEntriesQuery, P
                 BranchId = i.Project.BranchId,
             });
 
+        var invoicePayments = _context.InvoicePayments.AsNoTracking()
+            .Where(p => p.Invoice.Status != InvoiceStatus.Cancelled)
+            .Where(p => branchId == null
+                || p.Invoice.Project.Branch!.Path.Contains(BranchTree.Token(branchId.Value)))
+            .Select(p => new BookRow
+            {
+                Source = "InvoicePayment",
+                Origin = "InvoicePayment",
+                Id = p.Id,
+                Kind = "Payment",
+                OccurredOn = p.PaidOn,
+                Amount = p.Amount,
+                CategoryId = null,
+                CategoryKey = BookRules.Keys.Collection,
+                ProjectId = p.Invoice.ProjectId,
+                ProjectName = p.Invoice.Project.Name,
+                Counterparty = p.Invoice.Project.Customer != null ? p.Invoice.Project.Customer.Name : null,
+                Description = p.Invoice.Number,
+                Method = p.Method == null ? null : p.Method.ToString(),
+                DueDate = null,
+                PaidOn = p.PaidOn,
+                IsOpen = false,
+                BranchId = p.Invoice.Project.BranchId,
+            });
+
         var rows = entries
+            .Concat(invoicePayments)
             .Concat(vehicleExpenses)
             .Concat(toolExpenses)
             .Concat(generalExpenses)
@@ -383,6 +417,7 @@ public class GetBookEntriesQueryHandler : IRequestHandler<GetBookEntriesQuery, P
                 .Select(e => new BookRow
                 {
                     Source = "FinanceEntry",
+                    Origin = "PayEntry",
                     Id = e.Id,
                     Kind = "Cost",
                     OccurredOn = e.OccurredOn,
@@ -401,6 +436,36 @@ public class GetBookEntriesQueryHandler : IRequestHandler<GetBookEntriesQuery, P
                 }));
         }
 
+        if (canSeePay)
+        {
+            // What was actually paid out to workers: advances and final payments that went out.
+            rows = rows.Concat(_context.WagePayouts.AsNoTracking()
+                .InBranch(branchId)
+                .Where(w => w.PaidOn != null)
+                .Select(w => new BookRow
+                {
+                    Source = "WagePayout",
+                    Origin = w.Kind.ToString(),
+                    Id = w.Id,
+                    Kind = "Payout",
+                    OccurredOn = w.PaidOn!.Value,
+                    Amount = w.Amount,
+                    CategoryId = null,
+                    CategoryKey = w.Group == PayoutGroup.Subcontractors
+                        ? BookRules.Keys.Subcontractors
+                        : w.Group == PayoutGroup.Office ? BookRules.Keys.Office : BookRules.Keys.WorkerPay,
+                    ProjectId = null,
+                    ProjectName = null,
+                    Counterparty = w.Group.ToString(),
+                    Description = w.Note,
+                    Method = w.Method == null ? null : w.Method.ToString(),
+                    DueDate = null,
+                    PaidOn = w.PaidOn,
+                    IsOpen = false,
+                    BranchId = w.BranchId,
+                }));
+        }
+
         return rows;
     }
 }
@@ -414,6 +479,9 @@ public class BookTotalsDto
     public decimal Outflow { get; init; }
 
     public int Count { get; init; }
+
+    /// <summary>How many lines of each kind ("Income", "Cost", "Payment", "Payout") the selection holds.</summary>
+    public IReadOnlyDictionary<string, int> CountsByKind { get; init; } = new Dictionary<string, int>();
 }
 
 /// <summary>
@@ -460,6 +528,17 @@ public class GetBookTotalsQueryHandler : IRequestHandler<GetBookTotalsQuery, Boo
             .SumAsync(r => (decimal?)r.Amount, cancellationToken) ?? 0m;
         var count = await rows.CountAsync(cancellationToken);
 
-        return new BookTotalsDto { Inflow = inflow, Outflow = outflow, Count = count };
+        var perKind = await rows
+            .GroupBy(r => r.Kind)
+            .Select(g => new { Kind = g.Key, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+
+        return new BookTotalsDto
+        {
+            Inflow = inflow,
+            Outflow = outflow,
+            Count = count,
+            CountsByKind = perKind.ToDictionary(k => k.Kind, k => k.Count),
+        };
     }
 }

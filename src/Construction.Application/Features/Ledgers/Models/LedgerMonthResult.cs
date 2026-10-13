@@ -25,7 +25,8 @@ public sealed record LedgerMonthResult(
     decimal Housing,
     decimal Bonus,
     decimal Hours,
-    decimal Result)
+    decimal Result,
+    IReadOnlyList<SiteFigures>? Sites = null)
 {
     public static readonly LedgerMonthResult Empty = new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
@@ -67,6 +68,16 @@ public sealed record LedgerMonthResult(
     }
 }
 
+/// <summary>One site's (one section's) figures for the month, kept with it when it is closed.</summary>
+public sealed record SiteFigures(
+    Guid SectionId,
+    string Name,
+    Guid? ProjectId,
+    decimal Hours,
+    decimal Billing,
+    decimal Wage,
+    decimal Costs);
+
 public static class LedgerMonthResults
 {
     /// <summary>Works a ledger's figures out live from its cells and the system's sources.</summary>
@@ -97,11 +108,24 @@ public static class LedgerMonthResults
         var figures = await LedgerColumnTotals.PerRowManyAsync(
             context, ledgerId, columns.Select(c => c.Id).ToList(), cancellationToken);
 
-        var groups = await context.LedgerRows
+        var rowInfo = await context.LedgerRows
             .AsNoTracking()
             .Where(r => r.Section.LedgerId == ledgerId)
-            .Select(r => new { r.Id, r.PayGroup })
-            .ToDictionaryAsync(r => r.Id, r => r.PayGroup, cancellationToken);
+            .Select(r => new { r.Id, r.PayGroup, r.SectionId })
+            .ToListAsync(cancellationToken);
+
+        var groups = rowInfo.ToDictionary(r => r.Id, r => r.PayGroup);
+        var sectionOf = rowInfo.ToDictionary(r => r.Id, r => r.SectionId);
+
+        var sections = await context.LedgerSections
+            .AsNoTracking()
+            .Where(s => s.LedgerId == ledgerId)
+            .OrderBy(s => s.SortOrder)
+            .Select(s => new { s.Id, s.Name, s.ProjectId })
+            .ToListAsync(cancellationToken);
+
+        var siteTotals = sections.ToDictionary(
+            s => s.Id, _ => new decimal[4]); // hours, billing, wage, costs
 
         decimal Figure(Guid row, string key) =>
             byKey.TryGetValue(key, out var column)
@@ -138,9 +162,27 @@ public static class LedgerMonthResults
             bonus += Figure(rowId, LedgerTemplates.Keys.Bonus);
             hours += Figure(rowId, LedgerTemplates.Keys.Hours);
             result += Figure(rowId, LedgerTemplates.Keys.Result);
+
+            if (siteTotals.TryGetValue(sectionOf[rowId], out var site))
+            {
+                site[0] += Figure(rowId, LedgerTemplates.Keys.Hours);
+                site[1] += Figure(rowId, LedgerTemplates.Keys.Billing);
+                site[2] += earned;
+                site[3] += Figure(rowId, LedgerTemplates.Keys.Contributions)
+                    + Figure(rowId, LedgerTemplates.Keys.Rent)
+                    + Figure(rowId, LedgerTemplates.Keys.Fuel)
+                    + Figure(rowId, LedgerTemplates.Keys.Housing)
+                    + Figure(rowId, LedgerTemplates.Keys.Bonus);
+            }
         }
 
+        var sites = sections
+            .Select(s => new SiteFigures(
+                s.Id, s.Name, s.ProjectId,
+                siteTotals[s.Id][0], siteTotals[s.Id][1], siteTotals[s.Id][2], siteTotals[s.Id][3]))
+            .ToList();
+
         return new LedgerMonthResult(
-            billing, workers, subcontractors, office, contributions, rent, fuel, housing, bonus, hours, result);
+            billing, workers, subcontractors, office, contributions, rent, fuel, housing, bonus, hours, result, sites);
     }
 }

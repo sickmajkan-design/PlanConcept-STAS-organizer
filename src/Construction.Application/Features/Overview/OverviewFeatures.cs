@@ -39,6 +39,13 @@ public class OverviewMonthDto
 
     public decimal Hours { get; init; }
 
+    /// <summary>
+    /// The month's costs by kind, for "where the money goes": "Workers", "Subcontractors", "Office", "Fuel",
+    /// "Housing", "CarRental", "Contributions", "Bonus", "Tools", "Vehicles", "GeneralCosts", and the name of a
+    /// category for what was entered in the book.
+    /// </summary>
+    public IReadOnlyDictionary<string, decimal> Costs { get; init; } = new Dictionary<string, decimal>();
+
     public decimal Income => Billing + OtherIncome;
 
     public decimal Outflow => WorkersEarned + SubcontractorsEarned + OfficeEarned + SiteCosts + FixedCosts;
@@ -95,6 +102,22 @@ public class OverviewDto
 
     /// <summary>Months in the period whose settlement has not been closed.</summary>
     public int OpenMonths { get; init; }
+
+    /// <summary>Profit divided over the months of the period that had any activity.</summary>
+    public decimal AverageMonthlyProfit { get; init; }
+
+    /// <summary>Where the money goes: the period's costs by kind, biggest first, with each one's share of the outflow.</summary>
+    public IReadOnlyList<OverviewCostDto> CostsByKind { get; init; } = [];
+}
+
+public class OverviewCostDto
+{
+    /// <summary>A kind ("Workers", "Fuel", …) or the name of a category entered in the book.</summary>
+    public string Key { get; init; } = null!;
+
+    public decimal Amount { get; init; }
+
+    public decimal? SharePercent { get; init; }
 }
 
 internal static class OverviewCalculator
@@ -151,13 +174,33 @@ internal static class OverviewCalculator
                 .InBranch(branchId)
                 .Where(e => e.OccurredOn >= first && e.OccurredOn <= last);
 
-            var fixedCosts = await entries
-                .Where(e => e.Kind == BookEntryKind.Cost && e.Category.Bucket == BookCategoryBucket.Fixed)
-                .SumAsync(e => (decimal?)e.Amount, cancellationToken) ?? 0m;
+            var costs = new Dictionary<string, decimal>();
 
-            var siteCostEntries = await entries
+            void AddCost(string key, decimal amount)
+            {
+                if (amount != 0m)
+                {
+                    costs[key] = costs.GetValueOrDefault(key) + amount;
+                }
+            }
+
+            var fixedByCategory = await entries
+                .Where(e => e.Kind == BookEntryKind.Cost && e.Category.Bucket == BookCategoryBucket.Fixed)
+                .GroupBy(e => e.Category.Name)
+                .Select(g => new { Name = g.Key, Amount = g.Sum(e => e.Amount) })
+                .ToListAsync(cancellationToken);
+
+            var siteByCategory = await entries
                 .Where(e => e.Kind == BookEntryKind.Cost && e.Category.Bucket == BookCategoryBucket.SiteCosts)
-                .SumAsync(e => (decimal?)e.Amount, cancellationToken) ?? 0m;
+                .GroupBy(e => e.Category.Name)
+                .Select(g => new { Name = g.Key, Amount = g.Sum(e => e.Amount) })
+                .ToListAsync(cancellationToken);
+
+            var fixedCosts = fixedByCategory.Sum(c => c.Amount);
+            var siteCostEntries = siteByCategory.Sum(c => c.Amount);
+
+            foreach (var item in fixedByCategory) AddCost(item.Name, item.Amount);
+            foreach (var item in siteByCategory) AddCost(item.Name, item.Amount);
 
             var generalCosts = await context.GeneralExpenses.AsNoTracking()
                 .InBranch(branchId)
@@ -181,6 +224,10 @@ internal static class OverviewCalculator
                 .InBranch(branchId)
                 .Where(r => r.OccurredOn >= first && r.OccurredOn <= last)
                 .SumAsync(r => (decimal?)r.Amount, cancellationToken) ?? 0m;
+
+            AddCost("Tools", toolCosts);
+            AddCost("Vehicles", vehicleCosts);
+            AddCost("GeneralCosts", generalCosts);
 
             // Income entered in the book without a site is income of its own. One with a site is the billing
             // of that site, which the settlement already holds when there is one.
@@ -225,8 +272,18 @@ internal static class OverviewCalculator
                 office = pay.Where(p => p.SystemKey == BookRules.Keys.Office).Sum(p => p.Amount);
             }
 
+            AddCost("Workers", workers);
+            AddCost("Subcontractors", subcontractors);
+            AddCost("Office", office);
+            AddCost("Fuel", settlement.Fuel);
+            AddCost("Housing", settlement.Housing);
+            AddCost("CarRental", settlement.Rent);
+            AddCost("Contributions", settlement.Contributions);
+            AddCost("Bonus", settlement.Bonus);
+
             months.Add(new OverviewMonthDto
             {
+                Costs = costs,
                 Year = cursor.Year,
                 Month = cursor.Month,
                 HasSettlement = hasSettlement,
@@ -355,6 +412,22 @@ public class GetOverviewQueryHandler : IRequestHandler<GetOverviewQuery, Overvie
                 ? withActivity.OrderBy(m => m.Profit).First()
                 : null,
             OpenMonths = months.Count(m => m.HasSettlement && !m.Locked),
+            AverageMonthlyProfit = amountsVisible && withActivity.Count > 0
+                ? Math.Round(withActivity.Sum(m => m.Profit) / withActivity.Count, 2)
+                : 0m,
+            CostsByKind = amountsVisible
+                ? months
+                    .SelectMany(m => m.Costs)
+                    .GroupBy(c => c.Key)
+                    .Select(g => new OverviewCostDto
+                    {
+                        Key = g.Key,
+                        Amount = g.Sum(c => c.Value),
+                        SharePercent = OverviewCalculator.Percent(g.Sum(c => c.Value), outflow),
+                    })
+                    .OrderByDescending(c => c.Amount)
+                    .ToList()
+                : [],
         };
     }
 }
@@ -370,6 +443,28 @@ public class CashflowDayDto
     public decimal Balance { get; init; }
 }
 
+public class CashflowEventDto
+{
+    public DateOnly Date { get; init; }
+
+    /// <summary>"Invoice", "Income", "Cost" or "Payroll".</summary>
+    public string Kind { get; init; } = null!;
+
+    /// <summary>The invoice number, or the description of the entry.</summary>
+    public string? What { get; init; }
+
+    /// <summary>The client or supplier, or the pay group.</summary>
+    public string? Who { get; init; }
+
+    /// <summary>Positive for money in, negative for money out.</summary>
+    public decimal Amount { get; init; }
+
+    public decimal BalanceAfter { get; init; }
+
+    /// <summary>The day is an assumption: an overdue payment is expected a few days from today.</summary>
+    public bool Estimated { get; init; }
+}
+
 public class CashflowDto
 {
     public DateOnly From { get; init; }
@@ -383,6 +478,9 @@ public class CashflowDto
     public decimal TotalOutflow { get; init; }
 
     public decimal ClosingBalance { get; init; }
+
+    /// <summary>What goes in and out, in date order, each with the balance after it.</summary>
+    public IReadOnlyList<CashflowEventDto> Events { get; init; } = [];
 
     /// <summary>The lowest the balance gets in the window, and the day it does.</summary>
     public decimal LowestBalance { get; init; }
@@ -449,11 +547,20 @@ public class GetCashflowQueryHandler : IRequestHandler<GetCashflowQuery, Cashflo
 
         var inflow = new Dictionary<DateOnly, decimal>();
         var outflow = new Dictionary<DateOnly, decimal>();
+        var events = new List<(DateOnly Date, string Kind, string? What, string? Who, decimal Amount, bool Estimated)>();
 
-        void Add(Dictionary<DateOnly, decimal> into, DateOnly day, decimal amount)
+        void Add(
+            Dictionary<DateOnly, decimal> into,
+            DateOnly day,
+            decimal amount,
+            string kind,
+            string? what,
+            string? who,
+            bool estimated = false)
         {
             if (day > end || amount <= 0m) return;
             into[day] = into.GetValueOrDefault(day) + amount;
+            events.Add((day, kind, what, who, ReferenceEquals(into, inflow) ? amount : -amount, estimated));
         }
 
         var invoices = _context.Invoices.AsNoTracking()
@@ -466,41 +573,52 @@ public class GetCashflowQueryHandler : IRequestHandler<GetCashflowQuery, Cashflo
         }
 
         var open = await invoices
-            .Select(i => new { i.DueDate, i.Amount, Paid = i.Payments.Sum(p => (decimal?)p.Amount) ?? 0m })
+            .Select(i => new
+            {
+                i.DueDate,
+                i.Amount,
+                i.Number,
+                Client = i.Project.Customer != null ? i.Project.Customer.Name : i.Project.Name,
+                Paid = i.Payments.Sum(p => (decimal?)p.Amount) ?? 0m,
+            })
             .ToListAsync(cancellationToken);
 
         foreach (var invoice in open)
         {
-            Add(inflow, Expected(invoice.DueDate), invoice.Amount - invoice.Paid);
+            var late = invoice.DueDate is not { } due || due < today;
+            Add(inflow, Expected(invoice.DueDate), invoice.Amount - invoice.Paid, "Invoice", invoice.Number, invoice.Client, late);
         }
 
         var unpaid = await _context.BookEntries.AsNoTracking()
             .InBranch(request.BranchId)
             .Where(e => e.PaidOn == null && (e.Kind == BookEntryKind.Income || e.Kind == BookEntryKind.Cost))
-            .Select(e => new { e.Kind, e.DueDate, e.Amount })
+            .Select(e => new { e.Kind, e.DueDate, e.Amount, e.Description, e.Counterparty })
             .ToListAsync(cancellationToken);
 
         foreach (var entry in unpaid)
         {
+            var late = entry.DueDate is not { } due || due < today;
+
             if (entry.Kind == BookEntryKind.Income)
             {
-                Add(inflow, Expected(entry.DueDate), entry.Amount);
+                Add(inflow, Expected(entry.DueDate), entry.Amount, "Income", entry.Description, entry.Counterparty, late);
             }
             else
             {
-                Add(outflow, Planned(entry.DueDate), entry.Amount);
+                Add(outflow, Planned(entry.DueDate), entry.Amount, "Cost", entry.Description, entry.Counterparty, late);
             }
         }
 
         var finals = await _context.WagePayouts.AsNoTracking()
             .InBranch(request.BranchId)
             .Where(p => p.Kind == PayoutKind.Final && p.PaidOn == null)
-            .Select(p => new { p.PayDate, p.Amount })
+            .Select(p => new { p.PayDate, p.Amount, p.Group })
             .ToListAsync(cancellationToken);
 
         foreach (var payout in finals)
         {
-            Add(outflow, Planned(payout.PayDate), payout.Amount);
+            Add(outflow, Planned(payout.PayDate), payout.Amount, "Payroll", null, payout.Group.ToString(),
+                payout.PayDate < today);
         }
 
         var series = new List<CashflowDayDto>();
@@ -523,8 +641,31 @@ public class GetCashflowQueryHandler : IRequestHandler<GetCashflowQuery, Cashflo
             series.Add(new CashflowDayDto { Date = day, Inflow = dayIn, Outflow = dayOut, Balance = balance });
         }
 
+        var running = request.OpeningBalance;
+
+        var ordered = events
+            .OrderBy(e => e.Date)
+            .ThenByDescending(e => e.Amount)
+            .Select(e =>
+            {
+                running += e.Amount;
+
+                return new CashflowEventDto
+                {
+                    Date = e.Date,
+                    Kind = e.Kind,
+                    What = e.What,
+                    Who = e.Who,
+                    Amount = e.Amount,
+                    BalanceAfter = running,
+                    Estimated = e.Estimated,
+                };
+            })
+            .ToList();
+
         return new CashflowDto
         {
+            Events = ordered,
             From = today,
             Days = request.Days,
             OpeningBalance = request.OpeningBalance,
@@ -554,6 +695,27 @@ public class ForecastDto
 
     /// <summary>The estimate from the three months added together.</summary>
     public decimal Profit { get; init; }
+
+    /// <summary>The average of the months used, which is what "hours" defaults to.</summary>
+    public decimal AverageHours { get; init; }
+
+    public decimal IncomePerHour { get; init; }
+
+    /// <summary>What the costs that follow hours come to per hour.</summary>
+    public decimal CostPerHour { get; init; }
+
+    public decimal Workers { get; init; }
+
+    public decimal Subcontractors { get; init; }
+
+    public decimal SiteCosts { get; init; }
+
+    public decimal Office { get; init; }
+
+    public decimal Fixed { get; init; }
+
+    /// <summary>The profit of the last closed month, for "against last month".</summary>
+    public decimal LastMonthProfit { get; init; }
 
     /// <summary>The worst and best of the three months, as a range, because it is an estimate.</summary>
     public decimal ProfitLow { get; init; }
@@ -633,16 +795,172 @@ public class GetForecastQueryHandler : IRequestHandler<GetForecastQuery, Forecas
 
         var income = totalHours == 0m ? 0m : hours * used.Sum(m => m.Billing) / totalHours;
 
+        var usedHours = used.Sum(m => m.Hours);
+
+        decimal PerHour(decimal total) => usedHours == 0m ? 0m : hours * total / usedHours;
+
         return new ForecastDto
         {
             HasData = true,
             MonthsUsed = used.Count,
             Hours = hours,
+            AverageHours = Math.Round(averageHours, 1),
+            IncomePerHour = usedHours == 0m ? 0m : Math.Round(used.Sum(m => m.Billing) / usedHours, 2),
+            CostPerHour = usedHours == 0m
+                ? 0m
+                : Math.Round(
+                    (used.Sum(m => m.WorkersEarned) + used.Sum(m => m.SubcontractorsEarned) + used.Sum(m => m.SiteCosts))
+                    / usedHours, 2),
+            Workers = Math.Round(PerHour(used.Sum(m => m.WorkersEarned)), 2),
+            Subcontractors = Math.Round(PerHour(used.Sum(m => m.SubcontractorsEarned)), 2),
+            SiteCosts = Math.Round(PerHour(used.Sum(m => m.SiteCosts)), 2),
+            Office = lastMonth.OfficeEarned,
+            Fixed = lastMonth.FixedCosts,
+            LastMonthProfit = lastMonth.Profit,
             Income = income,
             Outflow = income - central,
             Profit = central,
             ProfitLow = each.Min(),
             ProfitHigh = each.Max(),
         };
+    }
+}
+
+
+public class OverviewAttentionDto
+{
+    /// <summary>"LateInvoice", "OpenMonth" or "Checks".</summary>
+    public string Kind { get; init; } = null!;
+
+    public int Count { get; init; }
+
+    public decimal Amount { get; init; }
+
+    /// <summary>For a late invoice, its number; for a month, "yyyy-MM".</summary>
+    public string? Reference { get; init; }
+
+    public int Days { get; init; }
+}
+
+/// <summary>
+/// What needs a look on the money side: invoices past their due date, months whose settlement has gone by
+/// without being closed, and the open items on the settlement's own check list.
+/// </summary>
+public record GetOverviewAttentionQuery : IRequest<IReadOnlyList<OverviewAttentionDto>>
+{
+    public Guid? BranchId { get; init; }
+}
+
+public class GetOverviewAttentionQueryHandler
+    : IRequestHandler<GetOverviewAttentionQuery, IReadOnlyList<OverviewAttentionDto>>
+{
+    private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ISender _sender;
+
+    public GetOverviewAttentionQueryHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider,
+        ISender sender)
+    {
+        _context = context;
+        _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
+        _sender = sender;
+    }
+
+    public async Task<IReadOnlyList<OverviewAttentionDto>> Handle(
+        GetOverviewAttentionQuery request, CancellationToken cancellationToken)
+    {
+        await BookRules.EnsureReadAsync(_context, _currentUserService, cancellationToken);
+
+        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var items = new List<OverviewAttentionDto>();
+
+        var late = _context.Invoices.AsNoTracking()
+            .Where(i => i.Status == InvoiceStatus.Issued && i.Amount > 0 && i.DueDate != null && i.DueDate < today)
+            .Where(i => i.Amount > (i.Payments.Sum(p => (decimal?)p.Amount) ?? 0m));
+
+        if (request.BranchId is { } id)
+        {
+            var token = BranchTree.Token(id);
+            late = late.Where(i => i.Project.Branch!.Path.Contains(token));
+        }
+
+        var lateList = await late
+            .OrderBy(i => i.DueDate)
+            .Select(i => new
+            {
+                i.Number,
+                i.DueDate,
+                Open = i.Amount - (i.Payments.Sum(p => (decimal?)p.Amount) ?? 0m),
+            })
+            .ToListAsync(cancellationToken);
+
+        foreach (var invoice in lateList.Take(3))
+        {
+            items.Add(new OverviewAttentionDto
+            {
+                Kind = "LateInvoice",
+                Count = 1,
+                Amount = invoice.Open,
+                Reference = invoice.Number,
+                Days = today.DayNumber - invoice.DueDate!.Value.DayNumber,
+            });
+        }
+
+        if (lateList.Count > 3)
+        {
+            items.Add(new OverviewAttentionDto
+            {
+                Kind = "LateInvoice",
+                Count = lateList.Count - 3,
+                Amount = lateList.Skip(3).Sum(i => i.Open),
+            });
+        }
+
+        var thisMonth = new DateOnly(today.Year, today.Month, 1);
+
+        var open = await _context.Ledgers.AsNoTracking()
+            .Where(l => l.LockedAt == null
+                && (l.Year < thisMonth.Year || (l.Year == thisMonth.Year && l.Month < thisMonth.Month)))
+            .OrderBy(l => l.Year).ThenBy(l => l.Month)
+            .Select(l => new { l.Id, l.Year, l.Month })
+            .ToListAsync(cancellationToken);
+
+        if (open.Count > 0)
+        {
+            items.Add(new OverviewAttentionDto
+            {
+                Kind = "OpenMonth",
+                Count = open.Count,
+                Reference = $"{open[0].Year}-{open[0].Month:00}",
+            });
+        }
+
+        // The settlement's own list of what to look at, for the month that has just ended or is running.
+        var checkMonths = await _context.Ledgers.AsNoTracking()
+            .Where(l => l.LockedAt == null
+                && l.Year * 12 + l.Month >= thisMonth.Year * 12 + thisMonth.Month - 1)
+            .Select(l => l.Id)
+            .ToListAsync(cancellationToken);
+
+        var checks = 0;
+
+        foreach (var ledgerId in checkMonths)
+        {
+            checks += (await _sender.Send(
+                new Ledgers.Queries.GetLedgerChecks.GetLedgerChecksQuery { LedgerId = ledgerId },
+                cancellationToken)).Count;
+        }
+
+        if (checks > 0)
+        {
+            items.Add(new OverviewAttentionDto { Kind = "Checks", Count = checks });
+        }
+
+        return items;
     }
 }

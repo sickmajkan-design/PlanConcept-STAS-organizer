@@ -29,6 +29,19 @@ public class BookController : ApiControllerBase
         return Ok(await Mediator.Send(query, cancellationToken));
     }
 
+    /// <summary>The filtered book as a spreadsheet for the accountant.</summary>
+    [HttpGet("entries/export")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> Export(
+        [FromQuery] GetBookExportQuery query,
+        CancellationToken cancellationToken)
+    {
+        var file = await Mediator.Send(query, cancellationToken);
+
+        return File(file.Content, file.ContentType, file.FileName);
+    }
+
     /// <summary>What the whole filtered book adds up to: money in, and money out.</summary>
     [HttpGet("entries/totals")]
     [ProducesResponseType(typeof(BookTotalsDto), StatusCodes.Status200OK)]
@@ -107,6 +120,33 @@ public class BookController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(new SuggestBookCategoryQuery(text), cancellationToken));
+    }
+
+    /// <summary>A month's settlement site by site, down to what the firm earned.</summary>
+    [HttpGet("settlement")]
+    [ProducesResponseType(typeof(SettlementSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<SettlementSummaryDto>> GetSettlement(
+        [FromQuery] GetSettlementSummaryQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>Sets how a site is billed and its price per hour.</summary>
+    [HttpPut("settlement/sites/{projectId:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateSiteBilling(
+        Guid projectId,
+        UpdateSiteBillingCommand command,
+        CancellationToken cancellationToken)
+    {
+        await Mediator.Send(command with { ProjectId = projectId }, cancellationToken);
+        return NoContent();
     }
 
     [HttpGet("categories")]

@@ -64,6 +64,12 @@ public class BookImportInput
 
     public IReadOnlyList<BookImportRowInput> Rows { get; init; } = [];
 
+    /// <summary>
+    /// Make an employee of every name the system does not know (a first and a last name, nothing more), so
+    /// the rows are linked to someone. They are made as active employees with an import number.
+    /// </summary>
+    public bool CreateUnknownEmployees { get; init; }
+
     /// <summary>The person's choice of project for a section name, where the name did not match one.</summary>
     public IReadOnlyDictionary<string, Guid?> SectionProjects { get; init; } = new Dictionary<string, Guid?>();
 }
@@ -120,6 +126,9 @@ public class BookImportPlanDto
     public decimal SheetHours { get; init; }
 
     public decimal SheetBilling { get; init; }
+
+    /// <summary>What the workers earn by the sheet's own rates: hours times the rate typed in the row.</summary>
+    public decimal SheetWage { get; init; }
 }
 
 public class BookImportResultDto
@@ -342,7 +351,7 @@ internal static class BookImportPlanner
 
         var seenEmployee = new HashSet<(string, Guid)>();
         var planned = new List<PlannedRow>();
-        decimal sheetHours = 0m, sheetBilling = 0m;
+        decimal sheetHours = 0m, sheetBilling = 0m, sheetWage = 0m;
 
         for (var index = 0; index < input.Rows.Count; index++)
         {
@@ -456,6 +465,7 @@ internal static class BookImportPlanner
             {
                 sheetHours += hours;
                 sheetBilling += hours * (clientRate ?? 0m);
+                sheetWage += hours * (values.WorkerRate ?? 0m);
             }
 
             planned.Add(new PlannedRow(
@@ -501,6 +511,7 @@ internal static class BookImportPlanner
             ErrorCount = planned.Count(p => p.Row.Status == "Error"),
             SheetHours = sheetHours,
             SheetBilling = Math.Round(sheetBilling, 2),
+            SheetWage = Math.Round(sheetWage, 2),
         };
 
         return (plan, planned);
@@ -606,6 +617,44 @@ public class CommitBookImportCommandHandler : IRequestHandler<CommitBookImportCo
 
         var input = request.Input;
         var (plan, planned) = await BookImportPlanner.BuildAsync(_context, input, cancellationToken);
+
+        if (input.CreateUnknownEmployees)
+        {
+            var toCreate = planned
+                .Where(p => !p.Skipped && p.Row.EmployeeId is null)
+                .Select(p => p.Row.Label.Trim())
+                .Where(label => label.Contains(' '))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            foreach (var label in toCreate)
+            {
+                var split = label.TrimEnd('.').Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+
+                if (split.Length < 2)
+                {
+                    continue;
+                }
+
+                _context.Employees.Add(new Employee
+                {
+                    EmployeeNumber = $"UVOZ-{Guid.NewGuid().ToString("N")[..8].ToUpperInvariant()}",
+                    FirstName = split[0],
+                    LastName = split[1],
+                    Position = "Radnik",
+                    EmploymentDate = new DateOnly(input.Year, input.Month, 1),
+                    Status = EmployeeStatus.Active,
+                });
+            }
+
+            if (toCreate.Count > 0)
+            {
+                await _context.SaveChangesAsync(cancellationToken);
+
+                // Worked out again, so the new people are matched by name like everyone else.
+                (plan, planned) = await BookImportPlanner.BuildAsync(_context, input, cancellationToken);
+            }
+        }
 
         if (plan.ExistingLedgerId is not null && plan.ExistingHasEntries && !input.FillEmptyOnly)
         {

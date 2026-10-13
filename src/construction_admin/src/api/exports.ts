@@ -107,6 +107,9 @@ export const exportsApi = {
   /** One month of the ledger, section by section, with the summary on a second sheet. */
   ledger: (id: string) => download(`/api/v1/ledgers/${id}/export`, {}),
 
+  /** The book of money, as filtered on the screen, for the accountant. */
+  book: (query: object) => download('/api/v1/book/entries/export', query, true),
+
   timeEntries: (query: TimeEntryExportQuery) =>
     download('/api/v1/exports/time-entries', query, true, true),
 

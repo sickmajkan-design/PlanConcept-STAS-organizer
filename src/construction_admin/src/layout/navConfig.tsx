@@ -1,5 +1,7 @@
 import {
   AccountBalanceWalletOutlined,
+  HelpOutlineOutlined,
+  LabelOutlined,
   UploadFileOutlined,
   EventRepeatOutlined,
   InsightsOutlined,
@@ -177,6 +179,86 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
               { label: t('nav.materials'), path: paths.materials, icon: <Inventory2Outlined /> },
             ],
           } satisfies NavGroup,
+          // The book of money: the company's own record of what comes in, goes out and is left. Its own group,
+          // in the order the owner works through a month.
+          ...(canViewFinance(user)
+            ? [
+                {
+                  key: 'book',
+                  label: t('nav.group.book'),
+                  sub: t('nav.group.book.sub'),
+                  icon: <MenuBookOutlined />,
+                  items: [
+                    {
+                      label: t('nav.bookGuide'),
+                      path: paths.bookGuide,
+                      icon: <HelpOutlineOutlined />,
+                      section: t('nav.section.bookOverview'),
+                    },
+                    {
+                      label: t('nav.bookOverview'),
+                      path: paths.bookOverview,
+                      icon: <InsightsOutlined />,
+                      section: t('nav.section.bookOverview'),
+                    },
+                    {
+                      label: t('nav.bookEntries'),
+                      path: paths.bookEntries,
+                      icon: <MenuBookOutlined />,
+                      section: t('nav.section.bookDaily'),
+                    },
+                    {
+                      label: t('nav.bookReceivables'),
+                      path: paths.bookReceivables,
+                      icon: <AccountBalanceWalletOutlined />,
+                      section: t('nav.section.bookDaily'),
+                    },
+                    ...(canManageInvoices(user)
+                      ? [
+                          {
+                            label: t('nav.bookPayouts'),
+                            path: paths.bookPayouts,
+                            icon: <PaymentsOutlined />,
+                            section: t('nav.section.bookDaily'),
+                          },
+                        ]
+                      : []),
+                    ...(isSuperAdmin(user)
+                      ? [
+                          {
+                            label: t('nav.bookSettlement'),
+                            path: paths.bookSettlement,
+                            icon: <TableChartOutlined />,
+                            section: t('nav.section.bookMonthEnd'),
+                          },
+                        ]
+                      : []),
+                    {
+                      label: t('nav.bookRecurring'),
+                      path: paths.bookRecurring,
+                      icon: <EventRepeatOutlined />,
+                      section: t('nav.section.bookSettings'),
+                    },
+                    {
+                      label: t('nav.bookCategories'),
+                      path: paths.bookCategories,
+                      icon: <LabelOutlined />,
+                      section: t('nav.section.bookSettings'),
+                    },
+                    ...(isSuperAdmin(user)
+                      ? [
+                          {
+                            label: t('nav.bookImport'),
+                            path: paths.bookImport,
+                            icon: <UploadFileOutlined />,
+                            section: t('nav.section.bookSettings'),
+                          },
+                        ]
+                      : []),
+                  ],
+                } satisfies NavGroup,
+              ]
+            : []),
           {
             key: 'costs',
             label: t('nav.group.costs'),
@@ -187,39 +269,6 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
                 ? [
                     { label: t('nav.costs'), path: paths.costs, icon: <PaidOutlined /> },
                     { label: t('nav.companyRevenues'), path: paths.companyRevenues, icon: <TrendingUpOutlined /> },
-                    {
-                      label: t('nav.bookOverview'),
-                      path: paths.bookOverview,
-                      icon: <InsightsOutlined />,
-                    },
-                    {
-                      label: t('nav.bookEntries'),
-                      path: paths.bookEntries,
-                      icon: <MenuBookOutlined />,
-                      alsoActiveOn: [paths.bookCategories],
-                    },
-                    {
-                      label: t('nav.bookReceivables'),
-                      path: paths.bookReceivables,
-                      icon: <AccountBalanceWalletOutlined />,
-                    },
-                    {
-                      label: t('nav.bookRecurring'),
-                      path: paths.bookRecurring,
-                      icon: <EventRepeatOutlined />,
-                    },
-                  ]
-                : []),
-              ...(isSuperAdmin(user)
-                ? [{ label: t('nav.bookImport'), path: paths.bookImport, icon: <UploadFileOutlined /> }]
-                : []),
-              ...(canManageInvoices(user) && canViewFinance(user)
-                ? [
-                    {
-                      label: t('nav.bookPayouts'),
-                      path: paths.bookPayouts,
-                      icon: <PaymentsOutlined />,
-                    },
                   ]
                 : []),
               { label: t('nav.refunds'), path: paths.refunds, icon: <RequestQuoteOutlined /> },

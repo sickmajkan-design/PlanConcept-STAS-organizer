@@ -74,6 +74,8 @@ export const paths = {
   generalExpenses: '/general-expenses',
   companyRevenues: '/company-revenues',
   bookOverview: '/book',
+  bookGuide: '/book/guide',
+  bookSettlement: '/book/settlement',
   bookEntries: '/book/entries',
   bookCategories: '/book/categories',
   bookReceivables: '/book/receivables',

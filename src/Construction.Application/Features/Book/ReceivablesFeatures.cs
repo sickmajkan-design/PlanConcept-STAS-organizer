@@ -40,7 +40,7 @@ public static class DebtAge
 
 public class DebtRowDto
 {
-    /// <summary>"Invoice" or "BookEntry": where the debt is kept, and so where it is settled.</summary>
+    /// <summary>"Invoice", "BookEntry" or "Payroll": where the debt is kept, and so where it is settled.</summary>
     public string Source { get; init; } = null!;
 
     public Guid Id { get; init; }
@@ -282,15 +282,18 @@ public class GetPayablesQueryHandler : IRequestHandler<GetPayablesQuery, DebtsDt
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ISender _sender;
 
     public GetPayablesQueryHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        ISender sender)
     {
         _context = context;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
+        _sender = sender;
     }
 
     public async Task<DebtsDto> Handle(GetPayablesQuery request, CancellationToken cancellationToken)
@@ -344,7 +347,49 @@ public class GetPayablesQueryHandler : IRequestHandler<GetPayablesQuery, DebtsDt
                 Age = age,
                 BranchId = e.BranchId,
             };
-        });
+        }).ToList();
+
+        // What is owed to the workers: what each group earned in the last months' settlements, less what
+        // was already paid out. Only for those who may work with payouts.
+        // Pay is not tied to a site, so a filter by site leaves it out.
+        if (request.ProjectId is null && BookRules.CanWrite(_currentUserService.Role))
+        {
+            for (var back = 0; back < 3; back++)
+            {
+                var month = new DateOnly(today.Year, today.Month, 1).AddMonths(-back);
+
+                var payouts = await _sender.Send(
+                    new Payouts.GetPayoutsQuery { Year = month.Year, Month = month.Month, BranchId = request.BranchId },
+                    cancellationToken);
+
+                foreach (var group in payouts.Groups.Where(g => g.Remaining > 0m))
+                {
+                    var planned = payouts.Items
+                        .Where(i => i.Group == group.Group && i.Kind == "Final" && i.PaidOn is null)
+                        .OrderBy(i => i.PayDate)
+                        .Select(i => (DateOnly?)i.PayDate)
+                        .FirstOrDefault();
+
+                    var (age, days) = DebtAge.Of(planned, today);
+
+                    rows.Add(new DebtRowDto
+                    {
+                        Source = "Payroll",
+                        Id = Guid.Empty,
+                        Title = $"{month.Year}-{month.Month:00}",
+                        Counterparty = group.Group,
+                        IssuedOn = month.AddMonths(1).AddDays(-1),
+                        DueDate = planned,
+                        Amount = group.Earned,
+                        PaidAmount = group.Earned - group.Remaining,
+                        OpenAmount = group.Remaining,
+                        DaysOverdue = days,
+                        Age = age,
+                        BranchId = request.BranchId,
+                    });
+                }
+            }
+        }
 
         return DebtBuilder.Build(today, rows);
     }

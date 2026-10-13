@@ -180,6 +180,9 @@ function ScheduleRoute() {
 const CompanyRevenuesPage = lazy(() =>
   import('./pages/finance/CompanyRevenuesPage').then((m) => ({ default: m.CompanyRevenuesPage })),
 );
+const BookGuidePage = lazy(() =>
+  import('./pages/book/BookGuidePage').then((m) => ({ default: m.BookGuidePage })),
+);
 const BookOverviewPage = lazy(() =>
   import('./pages/book/BookOverviewPage').then((m) => ({ default: m.BookOverviewPage })),
 );
@@ -188,6 +191,9 @@ const BookEntriesPage = lazy(() =>
 );
 const BookReceivablesPage = lazy(() =>
   import('./pages/book/BookReceivablesPage').then((m) => ({ default: m.BookReceivablesPage })),
+);
+const BookSettlementPage = lazy(() =>
+  import('./pages/book/BookSettlementPage').then((m) => ({ default: m.BookSettlementPage })),
 );
 const BookPayoutsPage = lazy(() =>
   import('./pages/book/BookPayoutsPage').then((m) => ({ default: m.BookPayoutsPage })),
@@ -444,6 +450,7 @@ function Layout() {
                 <Route path={paths.costs} element={<CostsPage />} />
                 <Route path={paths.companyRevenues} element={<CompanyRevenuesPage />} />
                 <Route path={paths.bookOverview} element={<BookOverviewPage />} />
+                <Route path={paths.bookGuide} element={<BookGuidePage />} />
                 <Route path={paths.bookEntries} element={<BookEntriesPage />} />
                 <Route path={paths.bookCategories} element={<BookCategoriesPage />} />
                 <Route path={paths.bookReceivables} element={<BookReceivablesPage />} />
@@ -555,6 +562,7 @@ function Layout() {
             <Route element={<RequireSuperAdmin />}>
               <Route path={paths.ledgers} element={<LedgersListPage />} />
               <Route path={paths.bookImport} element={<BookImportPage />} />
+              <Route path={paths.bookSettlement} element={<BookSettlementPage />} />
               <Route path={`${paths.ledgers}/:id`} element={<LedgerDetailPage />} />
             </Route>
 

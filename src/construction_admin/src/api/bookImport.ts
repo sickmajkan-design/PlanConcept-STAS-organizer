@@ -21,6 +21,8 @@ export interface BookImportInput {
   month: number;
   /** For a month that already has entries: write only the cells that are still empty. */
   fillEmptyOnly: boolean;
+  /** Make employees of the names the system does not know. */
+  createUnknownEmployees: boolean;
   rows: BookImportRowInput[];
   /** The person's choice of project for a section name that did not match one. */
   sectionProjects: Record<string, string | null>;
@@ -52,6 +54,8 @@ export interface BookImportPlan {
   errorCount: number;
   sheetHours: number;
   sheetBilling: number;
+  /** Hours times the worker rates typed in the sheet. */
+  sheetWage: number;
 }
 
 export interface BookImportResult {

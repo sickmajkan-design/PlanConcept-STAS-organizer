@@ -38,6 +38,16 @@ public class OverviewController : ApiControllerBase
         return Ok(await Mediator.Send(query, cancellationToken));
     }
 
+    [HttpGet("attention")]
+    [ProducesResponseType(typeof(IReadOnlyList<OverviewAttentionDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<IReadOnlyList<OverviewAttentionDto>>> GetAttention(
+        [FromQuery] GetOverviewAttentionQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
     [HttpGet("forecast")]
     [ProducesResponseType(typeof(ForecastDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]

@@ -1,14 +1,15 @@
-import { DeleteOutlined, EditOutlined, OpenInNewOutlined } from '@mui/icons-material';
+import {
+  ChevronLeftOutlined,
+  ChevronRightOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  FileDownloadOutlined,
+  OpenInNewOutlined,
+} from '@mui/icons-material';
 import {
   Alert,
   Button,
-  Checkbox,
   Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControlLabel,
   IconButton,
   MenuItem,
   Paper,
@@ -24,40 +25,43 @@ import {
   Typography,
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 
-import type { BookRowSource } from '../../api/book';
-
 import { toApiError } from '../../api/apiError';
-import {
-  bookApi,
-  bookEntryKinds,
-  bookPaymentMethods,
-  type BookEntryInput,
-  type BookEntryKind,
-  type BookPaymentMethod,
-  type BookRow,
-} from '../../api/book';
+import { bookApi, type BookEntryKind, type BookRow, type BookRowSource } from '../../api/book';
 import { newIdempotencyKey } from '../../api/idempotency';
+import { overviewApi } from '../../api/overview';
+import { payoutsApi } from '../../api/payouts';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { useBranchFilter } from '../../features/branches/BranchContext';
-import { BranchSelect } from '../../features/branches/BranchSelect';
+import { EntryDialog } from '../../features/book/EntryDialog';
+import { HowItWorks, HowLine } from '../../features/book/HowItWorks';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
 import type { MessageKey } from '../../i18n/en';
-import { paths } from '../../routes/paths';
 import { useI18n } from '../../i18n/useI18n';
+import { paths } from '../../routes/paths';
 import { formatDate, formatMoney } from '../../utils/formatting';
 
 const PAGE_SIZE = 50;
 const bookKey = ['book'] as const;
 
-function today(): string {
+type KindFilter = 'all' | BookEntryKind;
+
+function isoToday(): string {
   const now = new Date();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${now.getFullYear()}-${month}-${day}`;
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function monthBounds(year: number, month: number): { from: string; to: string } {
+  const last = new Date(year, month, 0).getDate();
+  const m = String(month).padStart(2, '0');
+  return { from: `${year}-${m}-01`, to: `${year}-${m}-${String(last).padStart(2, '0')}` };
+}
+
+function isInflow(kind: BookEntryKind): boolean {
+  return kind === 'Income' || kind === 'Payment';
 }
 
 /** Where a line that is not the book's own is changed. */
@@ -69,42 +73,69 @@ const sourcePages: Partial<Record<BookRowSource, string>> = {
   ProjectRevenue: paths.companyRevenues,
   CompanyRevenue: paths.companyRevenues,
   Invoice: paths.invoices,
+  InvoicePayment: paths.bookReceivables,
+  WagePayout: paths.bookPayouts,
 };
 
-function startOfMonth(): string {
-  return `${today().slice(0, 8)}01`;
-}
-
-/** An income and a payment raise what the company has; a cost and a payout lower it. */
-function isInflow(kind: BookEntryKind): boolean {
-  return kind === 'Income' || kind === 'Payment';
-}
+/** The shortcuts of the quick-entry row: they only fill in the fields, you type the amount. */
+const shortcuts: {
+  key: string;
+  kind: BookEntryKind;
+  category: string | null;
+  description: string;
+  counterparty: string;
+}[] = [
+  { key: 'fuel', kind: 'Cost', category: 'Fuel', description: 'Gorivo', counterparty: 'DKV' },
+  { key: 'rent', kind: 'Cost', category: 'Housing', description: 'Kirija stana', counterparty: '' },
+  { key: 'tools', kind: 'Cost', category: 'Tools', description: 'Alat i oprema', counterparty: '' },
+  { key: 'invoice', kind: 'Income', category: 'Collection', description: 'Faktura', counterparty: '' },
+  { key: 'payment', kind: 'Payment', category: null, description: 'Uplata po fakturi', counterparty: '' },
+  { key: 'advance', kind: 'Payout', category: null, description: 'Akontacija radnicima', counterparty: 'Radnici' },
+];
 
 /**
- * The book of money: its own entries together with the money the other tables already hold
- * (fuel, tools, general expenses, pay, revenues, invoices). A line says where it lives; only the
- * book's own entries are changed here, the rest where they were recorded.
+ * The book of entries: one list for every cost, income, payment and payout, with the month's figures above it
+ * and a quick-entry row to add one. Lines that come from other parts of the app (fuel, housing, invoices, pay)
+ * are shown with where they come from and are changed there; only the book's own can be changed here.
  */
 export function BookEntriesPage() {
   const { t, locale } = useI18n();
   const queryClient = useQueryClient();
   const { branchId: filterBranchId } = useBranchFilter();
+  const projects = useAllProjectsQuery();
 
-  const [from, setFrom] = useState(startOfMonth());
-  const [to, setTo] = useState(today());
-  const [kind, setKind] = useState<BookEntryKind | ''>('');
-  const [categoryId, setCategoryId] = useState('');
+  const now = new Date();
+  const [year, setYear] = useState(now.getFullYear());
+  const [month, setMonth] = useState(now.getMonth() + 1);
+  const [kind, setKind] = useState<KindFilter>('all');
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [onlyOpen, setOnlyOpen] = useState(false);
   const [page, setPage] = useState(0);
-  const [editing, setEditing] = useState<BookRow | 'new' | null>(null);
+  const [editing, setEditing] = useState<BookRow | null>(null);
   const [deleting, setDeleting] = useState<BookRow | null>(null);
+
+  // quick entry
+  const [qDate, setQDate] = useState(isoToday());
+  const [qKind, setQKind] = useState<BookEntryKind>('Cost');
+  const [qDescription, setQDescription] = useState('');
+  const [qProject, setQProject] = useState('');
+  const [qCounterparty, setQCounterparty] = useState('');
+  const [qAmount, setQAmount] = useState('');
+  const [qCategoryKey, setQCategoryKey] = useState<string | null>(null);
+  const [qError, setQError] = useState<string | null>(null);
+  const [qDone, setQDone] = useState<string | null>(null);
+  const [justAdded, setJustAdded] = useState<string | null>(null);
 
   useEffect(() => {
     const handle = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
     return () => window.clearTimeout(handle);
   }, [search]);
+
+  const bounds = monthBounds(year, month);
+  const monthLabel = new Date(year, month - 1, 1).toLocaleDateString(locale === 'sr' ? 'sr-Latn' : 'en-GB', {
+    month: 'long',
+    year: 'numeric',
+  });
 
   const categories = useQuery({
     queryKey: [...bookKey, 'categories', 'all'] as const,
@@ -112,45 +143,46 @@ export function BookEntriesPage() {
     staleTime: 60_000,
   });
 
-  const totals = useQuery({
-    queryKey: [
-      ...bookKey,
-      'totals',
-      { from, to, kind, categoryId, debouncedSearch, onlyOpen, filterBranchId },
-    ] as const,
-    queryFn: () =>
-      bookApi.entries.totals({
-        from: from || undefined,
-        to: to || undefined,
-        kind,
-        categoryId: categoryId || undefined,
-        search: debouncedSearch || undefined,
-        open: onlyOpen ? true : undefined,
-        branchId: filterBranchId,
-      }),
-  });
+  const filter = {
+    from: bounds.from,
+    to: bounds.to,
+    search: debouncedSearch || undefined,
+    branchId: filterBranchId,
+  };
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: [
-      ...bookKey,
-      'entries',
-      { from, to, kind, categoryId, debouncedSearch, onlyOpen, page, filterBranchId },
-    ] as const,
+  const list = useQuery({
+    queryKey: [...bookKey, 'entries', filter, kind, page] as const,
     queryFn: () =>
       bookApi.entries.list({
         pageNumber: page + 1,
         pageSize: PAGE_SIZE,
-        from: from || undefined,
-        to: to || undefined,
-        kind,
-        categoryId: categoryId || undefined,
-        search: debouncedSearch || undefined,
-        open: onlyOpen ? true : undefined,
-        branchId: filterBranchId,
+        ...filter,
+        kind: kind === 'all' ? '' : kind,
       }),
   });
 
-  // The finance widgets read the same money, so an entry has to reach them too.
+  // The counts on the chips and what the whole selection adds up to ignore the chip itself.
+  const totals = useQuery({
+    queryKey: [...bookKey, 'totals', filter] as const,
+    queryFn: () => bookApi.entries.totals(filter),
+  });
+
+  const monthFigures = useQuery({
+    queryKey: [...bookKey, 'month-figures', bounds.from, bounds.to, filterBranchId ?? null] as const,
+    queryFn: () => overviewApi.get({ from: bounds.from, to: bounds.to, branchId: filterBranchId }),
+  });
+
+  const receivables = useQuery({
+    queryKey: [...bookKey, 'debts', 'owedToUs', filterBranchId ?? null] as const,
+    queryFn: () => bookApi.receivables({ branchId: filterBranchId }),
+  });
+
+  const payoutsMonth = useQuery({
+    queryKey: [...bookKey, 'payouts', year, month, filterBranchId ?? null] as const,
+    queryFn: () => payoutsApi.get({ year, month, branchId: filterBranchId }),
+    retry: false,
+  });
+
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: bookKey });
     void queryClient.invalidateQueries({ queryKey: ['finance'] });
@@ -161,120 +193,374 @@ export function BookEntriesPage() {
     onSuccess: refresh,
   });
 
-  const rows = data?.items ?? [];
-  const visibleTotals = useMemo(() => {
-    let inflow = 0;
-    let outflow = 0;
-    for (const row of rows) {
-      if (isInflow(row.kind)) inflow += row.amount;
-      else outflow += row.amount;
+  const categoryByKey = (key: string | null) => (categories.data ?? []).find((c) => c.systemKey === key);
+
+  const shift = (delta: number) => {
+    const date = new Date(year, month - 1 + delta, 1);
+    setYear(date.getFullYear());
+    setMonth(date.getMonth() + 1);
+    setPage(0);
+  };
+
+  const add = useMutation({
+    mutationFn: async () => {
+      const parsed = Number(qAmount.replace(/\./g, '').replace(',', '.'));
+
+      // An advance is money paid out to workers, so it goes where the payouts screen counts it.
+      if (qKind === 'Payout') {
+        await payoutsApi.create(
+          {
+            year: Number(qDate.slice(0, 4)),
+            month: Number(qDate.slice(5, 7)),
+            group: 'Workers',
+            kind: 'Advance',
+            payDate: qDate,
+            amount: parsed,
+            note: [qDescription.trim(), qCounterparty.trim()].filter(Boolean).join(' · ') || null,
+          },
+          newIdempotencyKey(),
+        );
+        return;
+      }
+
+      // The category comes from the shortcut, then from the rules, then from the kind.
+      let categoryId = categoryByKey(qCategoryKey)?.id ?? null;
+
+      if (!categoryId && qDescription.trim().length >= 3) {
+        const suggestion = await bookApi.entries.suggestCategory(`${qDescription} ${qCounterparty}`);
+        categoryId = suggestion.categoryId;
+      }
+
+      if (!categoryId && (qKind === 'Cost' || qKind === 'Income')) {
+        categoryId = categoryByKey(qKind === 'Income' ? 'Collection' : 'Other')?.id ?? null;
+      }
+
+      await bookApi.entries.create(
+        {
+          kind: qKind,
+          amount: parsed,
+          occurredOn: qDate,
+          categoryId,
+          projectId: qProject || null,
+          branchId: null,
+          counterparty: qCounterparty.trim() || null,
+          description: qDescription.trim() || null,
+          method: null,
+          dueDate: null,
+          paidOn: qKind === 'Cost' || qKind === 'Income' ? null : qDate,
+          clientRequestId: crypto.randomUUID(),
+        },
+        newIdempotencyKey(),
+      );
+    },
+    onSuccess: () => {
+      setQDone(t(`book.entries.effect.${qKind}` as MessageKey));
+      setJustAdded(qDescription.trim());
+      setQDescription('');
+      setQAmount('');
+      setQCounterparty('');
+      setQCategoryKey(null);
+      setQError(null);
+      refresh();
+    },
+    onError: (error) => {
+      setQDone(null);
+      setQError(toApiError(error).message);
+    },
+  });
+
+  const qParsed = Number(qAmount.replace(/\./g, '').replace(',', '.'));
+
+  const submitQuick = () => {
+    if (!qDescription.trim() || !(qParsed > 0)) {
+      setQDone(null);
+      setQError(t('book.entries.quick.invalid'));
+      return;
     }
-    return { inflow, outflow };
-  }, [rows]);
+
+    setQError(null);
+    add.mutate();
+  };
+
+  const rows = list.data?.items ?? [];
+
+  // What the settlement says each pay group earned this month, shown among the lines as it is in the mockup.
+  const settlementRows =
+    page === 0 && search === '' && (kind === 'all' || kind === 'Cost') && payoutsMonth.data?.hasSettlement
+      ? payoutsMonth.data.groups.filter((g) => g.earned > 0)
+      : [];
+
+  const chips: { key: KindFilter; count: number }[] = [
+    { key: 'all', count: totals.data?.count ?? 0 },
+    { key: 'Income', count: totals.data?.countsByKind.Income ?? 0 },
+    { key: 'Cost', count: totals.data?.countsByKind.Cost ?? 0 },
+    { key: 'Payment', count: totals.data?.countsByKind.Payment ?? 0 },
+    { key: 'Payout', count: totals.data?.countsByKind.Payout ?? 0 },
+  ];
+
+  const statusOf = (row: BookRow): { label: string; color: 'default' | 'warning' | 'error' | 'success' } => {
+    if (!row.isOpen) return { label: t('book.status.settled'), color: 'success' };
+
+    if (row.dueDate) {
+      const days = Math.floor((new Date(isoToday()).getTime() - new Date(row.dueDate).getTime()) / 86_400_000);
+
+      if (days > 0) return { label: t('book.entries.status.late', { days }), color: 'error' };
+
+      return { label: t('book.entries.status.due', { date: formatDate(row.dueDate) }), color: 'warning' };
+    }
+
+    return { label: t('book.status.open'), color: 'warning' };
+  };
+
+  const sourceLabel = (row: BookRow): string => {
+    switch (row.source) {
+      case 'BookEntry':
+        return t(`book.src.entry.${row.origin ?? 'Manual'}` as MessageKey);
+      case 'VehicleExpense':
+        return t(row.origin === 'Fuel' ? 'book.src.fuel' : 'book.src.vehicles');
+      case 'WagePayout':
+        return t(`book.src.payout.${row.origin ?? 'Advance'}` as MessageKey);
+      default:
+        return t(`book.src.${row.source}` as MessageKey);
+    }
+  };
+
+  const monthState = monthFigures.data?.months[0];
+  const statusChip = monthState?.locked
+    ? t('book.entries.monthClosed')
+    : monthState?.hasSettlement
+      ? t('book.entries.monthOpen')
+      : t('book.entries.monthNoSettlement');
+
+  const money = (value: number | undefined) => formatMoney(value ?? 0, locale);
+
+  const descriptionOf = (row: BookRow): string => {
+    if (row.source === 'InvoicePayment') return t('book.entries.paymentOf', { number: row.description ?? '' });
+    if (row.source === 'Invoice') return t('book.entries.invoiceOf', { number: row.description ?? '' });
+    if (row.source === 'WagePayout') {
+      return `${t(`payouts.kind.${row.origin ?? 'Advance'}` as MessageKey)}${row.description ? `, ${row.description}` : ''}`;
+    }
+    return row.description ?? row.counterparty ?? '—';
+  };
+
+  const counterpartyOf = (row: BookRow): string => {
+    if (row.source === 'WagePayout' && row.counterparty) {
+      return t(`payouts.group.${row.counterparty}` as MessageKey);
+    }
+    return row.counterparty ?? '—';
+  };
+
+  const errorMessage = list.error ?? totals.error;
 
   return (
     <Stack spacing={2}>
       <PageHeader
         title={t('book.entries.title')}
-        description={t('book.entries.description')}
-        action={{ label: t('book.entries.add'), onClick: () => setEditing('new') }}
+        description={monthLabel}
         secondaryActions={
-          <Button component={RouterLink} to={paths.bookCategories}>
-            {t('nav.bookCategories')}
-          </Button>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+            <IconButton size="small" onClick={() => shift(-1)} aria-label={t('book.overview.previous')}>
+              <ChevronLeftOutlined />
+            </IconButton>
+            <Chip
+              size="small"
+              color={monthState?.locked ? 'default' : 'warning'}
+              variant="outlined"
+              label={statusChip}
+            />
+            <IconButton size="small" onClick={() => shift(1)} aria-label={t('book.overview.next')}>
+              <ChevronRightOutlined />
+            </IconButton>
+            <Button
+              startIcon={<FileDownloadOutlined />}
+              onClick={() => void bookApi.entries.export({ ...filter, kind: kind === 'all' ? '' : kind })}
+            >
+              {t('book.entries.export')}
+            </Button>
+          </Stack>
         }
       />
 
-      {error && <Alert severity="error">{toApiError(error).message}</Alert>}
+      {errorMessage && <Alert severity="error">{toApiError(errorMessage).message}</Alert>}
+
+      <HowItWorks id="entries">
+        <HowLine>{t('book.entries.how1')}</HowLine>
+        <HowLine>{t('book.entries.how2')}</HowLine>
+        <HowLine>{t('book.entries.how3')}</HowLine>
+        <HowLine>{t('book.entries.how4')}</HowLine>
+      </HowItWorks>
+
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+        <Kpi label={t('book.entries.k.income')} value={money(monthFigures.data?.income)} note={t('book.entries.k.incomeNote')} />
+        <Kpi label={t('book.entries.k.costs')} value={money(monthFigures.data?.outflow)} note={t('book.entries.k.costsNote')} />
+        <Kpi
+          label={t('book.entries.k.profit')}
+          value={money(monthFigures.data?.profit)}
+          note={t('book.entries.k.profitNote')}
+          color={(monthFigures.data?.profit ?? 0) < 0 ? 'error.main' : 'success.main'}
+        />
+        <Kpi
+          label={t('book.entries.k.receivables')}
+          value={money(receivables.data?.openTotal)}
+          note={t('book.entries.k.receivablesNote')}
+        />
+      </Stack>
 
       <Paper variant="outlined" sx={{ p: 2 }}>
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} useFlexGap sx={{ flexWrap: 'wrap' }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+          {t('book.entries.quick')}
+        </Typography>
+        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', my: 1, alignItems: 'center' }}>
+          <Typography variant="body2" color="text.secondary">
+            {t('book.entries.shortcuts')}
+          </Typography>
+          {shortcuts.map((shortcut) => (
+            <Chip
+              key={shortcut.key}
+              size="small"
+              variant="outlined"
+              clickable
+              label={t(`book.entries.shortcut.${shortcut.key}` as MessageKey)}
+              onClick={() => {
+                setQKind(shortcut.kind);
+                setQDescription(shortcut.description);
+                setQCounterparty(shortcut.counterparty);
+                setQCategoryKey(shortcut.category);
+                setQError(null);
+                setQDone(null);
+              }}
+            />
+          ))}
+        </Stack>
+        <Typography variant="caption" color="text.secondary">
+          {t('book.entries.quickHelp')}
+        </Typography>
+
+        <Stack
+          direction={{ xs: 'column', lg: 'row' }}
+          spacing={1.5}
+          useFlexGap
+          sx={{ mt: 1.5, alignItems: { lg: 'flex-start' } }}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' && !add.isPending) {
+              event.preventDefault();
+              submitQuick();
+            }
+          }}
+        >
           <TextField
             type="date"
             size="small"
-            label={t('book.filter.from')}
-            value={from}
-            onChange={(event) => {
-              setFrom(event.target.value);
-              setPage(0);
-            }}
-            slotProps={{ inputLabel: { shrink: true } }}
-          />
-          <TextField
-            type="date"
-            size="small"
-            label={t('book.filter.to')}
-            value={to}
-            onChange={(event) => {
-              setTo(event.target.value);
-              setPage(0);
-            }}
-            slotProps={{ inputLabel: { shrink: true } }}
+            label={t('book.col.date')}
+            value={qDate}
+            onChange={(event) => setQDate(event.target.value)}
+            slotProps={{ inputLabel: { shrink: true }, htmlInput: { max: isoToday() } }}
           />
           <TextField
             select
             size="small"
-            label={t('book.filter.kind')}
-            value={kind}
+            label={t('book.col.kind')}
+            value={qKind}
             onChange={(event) => {
-              setKind(event.target.value as BookEntryKind | '');
-              setPage(0);
+              setQKind(event.target.value as BookEntryKind);
+              setQCategoryKey(null);
             }}
-            sx={{ minWidth: 150 }}
+            sx={{ minWidth: 130 }}
           >
-            <MenuItem value="">
-              <em>{t('book.filter.all')}</em>
-            </MenuItem>
-            {bookEntryKinds.map((option) => (
+            {(['Cost', 'Income', 'Payment', 'Payout'] as const).map((option) => (
               <MenuItem key={option} value={option}>
                 {t(`book.kind.${option}` as MessageKey)}
               </MenuItem>
             ))}
           </TextField>
           <TextField
+            size="small"
+            label={t('book.col.description')}
+            placeholder={t('book.entries.quick.descriptionPlaceholder')}
+            value={qDescription}
+            onChange={(event) => setQDescription(event.target.value)}
+            sx={{ minWidth: 220, flex: 1 }}
+          />
+          <TextField
             select
             size="small"
-            label={t('book.filter.category')}
-            value={categoryId}
-            onChange={(event) => {
-              setCategoryId(event.target.value);
-              setPage(0);
-            }}
-            sx={{ minWidth: 180 }}
+            label={t('book.col.project')}
+            value={qProject}
+            onChange={(event) => setQProject(event.target.value)}
+            sx={{ minWidth: 160 }}
           >
             <MenuItem value="">
-              <em>{t('book.filter.all')}</em>
+              <em>{t('book.entries.noProject')}</em>
             </MenuItem>
-            {(categories.data ?? []).map((category) => (
-              <MenuItem key={category.id} value={category.id}>
-                {category.name}
+            {(projects.data?.items ?? []).map((project) => (
+              <MenuItem key={project.id} value={project.id}>
+                {project.name}
               </MenuItem>
             ))}
           </TextField>
           <TextField
             size="small"
-            label={t('book.filter.search')}
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value);
-              setPage(0);
-            }}
-            sx={{ minWidth: 200 }}
+            label={t('book.col.counterparty')}
+            placeholder={t('book.entries.quick.counterpartyPlaceholder')}
+            value={qCounterparty}
+            onChange={(event) => setQCounterparty(event.target.value)}
+            sx={{ minWidth: 170 }}
           />
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={onlyOpen}
-                onChange={(event) => {
-                  setOnlyOpen(event.target.checked);
-                  setPage(0);
-                }}
-              />
-            }
-            label={t('book.filter.onlyOpen')}
+          <TextField
+            size="small"
+            label={t('book.entries.quick.amount')}
+            placeholder="1.980,00"
+            value={qAmount}
+            onChange={(event) => setQAmount(event.target.value)}
+            slotProps={{ htmlInput: { inputMode: 'decimal' } }}
+            error={qAmount !== '' && !(qParsed > 0)}
+            sx={{ maxWidth: 150 }}
           />
+          <Button variant="contained" loading={add.isPending} onClick={submitQuick}>
+            {t('book.entries.quick.add')}
+          </Button>
         </Stack>
+
+        {qError && (
+          <Alert severity="error" sx={{ mt: 1.5 }}>
+            {qError}
+          </Alert>
+        )}
+        {qDone && !qError && (
+          <Alert severity="success" sx={{ mt: 1.5 }}>
+            {t('book.entries.quick.done', { effect: qDone })}
+          </Alert>
+        )}
       </Paper>
+
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ alignItems: { md: 'center' } }}>
+        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', flex: 1 }}>
+          {chips.map((chip) => (
+            <Chip
+              key={chip.key}
+              clickable
+              color={kind === chip.key ? 'primary' : 'default'}
+              variant={kind === chip.key ? 'filled' : 'outlined'}
+              label={`${t(chip.key === 'all' ? 'book.filter.allKinds' : (`book.kinds.${chip.key}` as MessageKey))} ${chip.count}`}
+              onClick={() => {
+                setKind(chip.key);
+                setPage(0);
+              }}
+            />
+          ))}
+        </Stack>
+        <TextField
+          size="small"
+          label={t('book.filter.search')}
+          placeholder={t('book.entries.searchPlaceholder')}
+          value={search}
+          onChange={(event) => {
+            setSearch(event.target.value);
+            setPage(0);
+          }}
+          sx={{ minWidth: 280 }}
+        />
+      </Stack>
 
       <Paper variant="outlined" sx={{ overflowX: 'auto' }}>
         <Table size="small">
@@ -282,85 +568,109 @@ export function BookEntriesPage() {
             <TableRow>
               <TableCell>{t('book.col.date')}</TableCell>
               <TableCell>{t('book.col.kind')}</TableCell>
-              <TableCell>{t('book.col.category')}</TableCell>
               <TableCell>{t('book.col.description')}</TableCell>
+              <TableCell>{t('book.col.category')}</TableCell>
               <TableCell>{t('book.col.project')}</TableCell>
+              <TableCell>{t('book.col.counterparty')}</TableCell>
+              <TableCell>{t('book.entries.col.source')}</TableCell>
+              <TableCell>{t('book.entries.col.doc')}</TableCell>
               <TableCell>{t('book.col.status')}</TableCell>
               <TableCell align="right">{t('book.col.amount')}</TableCell>
               <TableCell />
             </TableRow>
           </TableHead>
           <TableBody>
-            {rows.map((row) => (
-              <TableRow key={`${row.source}-${row.id}`} hover>
-                <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDate(row.occurredOn)}</TableCell>
-                <TableCell>{t(`book.kind.${row.kind}` as MessageKey)}</TableCell>
-                <TableCell>{row.categoryName ?? '—'}</TableCell>
+            {settlementRows.map((group) => (
+              <TableRow key={`settlement-${group.group}`} hover>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDate(bounds.to)}</TableCell>
+                <TableCell>{t('book.kind.Cost')}</TableCell>
+                <TableCell>{t('book.entries.settlementLine', { month: monthLabel })}</TableCell>
+                <TableCell>{t(`payouts.group.${group.group}` as MessageKey)}</TableCell>
+                <TableCell>—</TableCell>
+                <TableCell>{t(`payouts.group.${group.group}` as MessageKey)}</TableCell>
                 <TableCell>
-                  <Typography variant="body2">{row.description ?? row.counterparty ?? '—'}</Typography>
-                  {row.description && row.counterparty && (
-                    <Typography variant="caption" color="text.secondary">
-                      {row.counterparty}
-                    </Typography>
-                  )}
-                  {!row.editable && (
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                      {t('book.source.from', { source: t(`book.source.${row.source}` as MessageKey) })}
-                    </Typography>
-                  )}
+                  <Chip size="small" variant="outlined" label={t('book.src.settlement')} />
                 </TableCell>
-                <TableCell>{row.projectName ?? '—'}</TableCell>
+                <TableCell>—</TableCell>
                 <TableCell>
-                  {row.isOpen ? (
-                    <Chip size="small" color="warning" variant="outlined" label={t('book.status.open')} />
-                  ) : (
-                    <Chip size="small" variant="outlined" label={t('book.status.settled')} />
-                  )}
-                  {row.isOpen && row.dueDate && (
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-                      {t('book.status.due', { date: formatDate(row.dueDate) })}
-                    </Typography>
-                  )}
-                </TableCell>
-                <TableCell
-                  align="right"
-                  sx={{ whiteSpace: 'nowrap', color: isInflow(row.kind) ? 'success.main' : undefined }}
-                >
-                  {isInflow(row.kind) ? '+' : '−'} {formatMoney(row.amount, locale)}
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    color={group.remaining > 0 ? 'warning' : 'success'}
+                    label={group.remaining > 0 ? t('book.status.open') : t('book.status.settled')}
+                  />
                 </TableCell>
                 <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
-                  {!row.editable && sourcePages[row.source] && (
-                    <Tooltip title={t('book.source.open')}>
-                      <IconButton
-                        size="small"
-                        component={RouterLink}
-                        to={sourcePages[row.source]!}
-                        aria-label={t('book.source.open')}
-                      >
-                        <OpenInNewOutlined fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  )}
-                  {row.editable && (
-                    <>
-                      <Tooltip title={t('common.edit')}>
-                        <IconButton size="small" onClick={() => setEditing(row)} aria-label={t('common.edit')}>
-                          <EditOutlined fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title={t('common.delete')}>
-                        <IconButton size="small" onClick={() => setDeleting(row)} aria-label={t('common.delete')}>
-                          <DeleteOutlined fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </>
-                  )}
+                  − {money(group.earned)}
+                </TableCell>
+                <TableCell align="right">
+                  <Tooltip title={t('book.source.open')}>
+                    <IconButton size="small" component={RouterLink} to={paths.bookSettlement} aria-label={t('book.source.open')}>
+                      <OpenInNewOutlined fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
                 </TableCell>
               </TableRow>
             ))}
-            {!isLoading && rows.length === 0 && (
+            {rows.map((row) => {
+              const status = statusOf(row);
+              const fresh = justAdded !== null && row.editable && row.description === justAdded;
+
+              return (
+                <TableRow key={`${row.source}-${row.id}`} hover sx={fresh ? { bgcolor: 'action.selected' } : undefined}>
+                  <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDate(row.occurredOn)}</TableCell>
+                  <TableCell>{t(`book.kind.${row.kind}` as MessageKey)}</TableCell>
+                  <TableCell>{descriptionOf(row)}</TableCell>
+                  <TableCell>{row.categoryName ?? '—'}</TableCell>
+                  <TableCell>{row.projectName ?? t('book.entries.noProject')}</TableCell>
+                  <TableCell>{counterpartyOf(row)}</TableCell>
+                  <TableCell>
+                    <Chip size="small" variant="outlined" label={sourceLabel(row)} />
+                  </TableCell>
+                  <TableCell>{row.source === 'Invoice' ? row.description : '—'}</TableCell>
+                  <TableCell>
+                    <Chip size="small" variant="outlined" color={status.color} label={status.label} />
+                  </TableCell>
+                  <TableCell
+                    align="right"
+                    sx={{ whiteSpace: 'nowrap', color: isInflow(row.kind) ? 'success.main' : undefined }}
+                  >
+                    {isInflow(row.kind) ? '+' : '−'} {formatMoney(row.amount, locale)}
+                  </TableCell>
+                  <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                    {!row.editable && sourcePages[row.source] && (
+                      <Tooltip title={t('book.source.open')}>
+                        <IconButton
+                          size="small"
+                          component={RouterLink}
+                          to={sourcePages[row.source]!}
+                          aria-label={t('book.source.open')}
+                        >
+                          <OpenInNewOutlined fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                    {row.editable && (
+                      <>
+                        <Tooltip title={t('common.edit')}>
+                          <IconButton size="small" onClick={() => setEditing(row)} aria-label={t('common.edit')}>
+                            <EditOutlined fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title={t('book.entries.remove')}>
+                          <IconButton size="small" onClick={() => setDeleting(row)} aria-label={t('book.entries.remove')}>
+                            <DeleteOutlined fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </>
+                    )}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+            {!list.isLoading && rows.length === 0 && settlementRows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8}>
+                <TableCell colSpan={11}>
                   <Typography color="text.secondary" sx={{ py: 2 }}>
                     {t('book.entries.empty')}
                   </Typography>
@@ -369,25 +679,9 @@ export function BookEntriesPage() {
             )}
           </TableBody>
         </Table>
-        <Stack
-          direction="row"
-          spacing={3}
-          sx={{ px: 2, py: 1, justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap' }}
-          useFlexGap
-        >
-          <Typography variant="body2" color="text.secondary">
-            {totals.data ? t('book.totals.all', { count: totals.data.count }) : t('book.totals.page')}
-          </Typography>
-          <Typography variant="body2" color="success.main">
-            + {formatMoney(totals.data?.inflow ?? visibleTotals.inflow, locale)}
-          </Typography>
-          <Typography variant="body2">
-            − {formatMoney(totals.data?.outflow ?? visibleTotals.outflow, locale)}
-          </Typography>
-        </Stack>
         <TablePagination
           component="div"
-          count={data?.totalCount ?? 0}
+          count={list.data?.totalCount ?? 0}
           page={page}
           rowsPerPage={PAGE_SIZE}
           rowsPerPageOptions={[PAGE_SIZE]}
@@ -395,9 +689,17 @@ export function BookEntriesPage() {
         />
       </Paper>
 
+      <Typography variant="caption" color="text.secondary">
+        {t('book.entries.shown', { shown: rows.length, total: list.data?.totalCount ?? 0 })} ·{' '}
+        {t('book.entries.footnote', {
+          inflow: money(totals.data?.inflow),
+          outflow: money(totals.data?.outflow),
+        })}
+      </Typography>
+
       {editing && (
         <EntryDialog
-          row={editing === 'new' ? null : editing}
+          row={editing}
           onClose={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);
@@ -410,7 +712,7 @@ export function BookEntriesPage() {
         open={deleting !== null}
         title={t('book.entries.deleteTitle')}
         description={t('book.entries.deleteBody')}
-        confirmLabel={t('common.delete')}
+        confirmLabel={t('book.entries.remove')}
         destructive
         onConfirm={async () => {
           if (deleting) await remove.mutateAsync(deleting);
@@ -422,249 +724,30 @@ export function BookEntriesPage() {
   );
 }
 
-function EntryDialog({
-  row,
-  onClose,
-  onSaved,
+function Kpi({
+  label,
+  value,
+  note,
+  color,
 }: {
-  row: BookRow | null;
-  onClose: () => void;
-  onSaved: () => void;
+  label: string;
+  value: string;
+  note?: string;
+  color?: string;
 }) {
-  const { t } = useI18n();
-  const projects = useAllProjectsQuery();
-  const categories = useQuery({
-    queryKey: [...bookKey, 'categories', 'active'] as const,
-    queryFn: () => bookApi.categories.list(false),
-    staleTime: 60_000,
-  });
-
-  // A retry of the same save (a double click, a flaky connection) must not make a second entry.
-  const [idempotencyKey] = useState(() => newIdempotencyKey());
-  const [clientRequestId] = useState(() => crypto.randomUUID());
-
-  const [kind, setKind] = useState<BookEntryKind>(row?.kind ?? 'Cost');
-  const [amount, setAmount] = useState(row ? String(row.amount) : '');
-  const [occurredOn, setOccurredOn] = useState(row?.occurredOn ?? today());
-  const [categoryId, setCategoryId] = useState(row?.categoryId ?? '');
-  const [categoryTouched, setCategoryTouched] = useState(row !== null);
-  const [projectId, setProjectId] = useState(row?.projectId ?? '');
-  const [branchId, setBranchId] = useState(row?.branchId ?? '');
-  const [counterparty, setCounterparty] = useState(row?.counterparty ?? '');
-  const [description, setDescription] = useState(row?.description ?? '');
-  const [method, setMethod] = useState<BookPaymentMethod | ''>(row?.method ?? '');
-  const [dueDate, setDueDate] = useState(row?.dueDate ?? '');
-  const [paid, setPaid] = useState(row ? row.paidOn !== null : false);
-  const [paidOn, setPaidOn] = useState(row?.paidOn ?? today());
-  const [suggestion, setSuggestion] = useState<string | null>(null);
-
-  const needsCategory = kind === 'Cost' || kind === 'Income';
-  const categoryKind = kind === 'Income' || kind === 'Payment' ? 'Income' : 'Cost';
-  const options = (categories.data ?? []).filter((category) => category.kind === categoryKind);
-
-  // Changing the kind can leave a category of the wrong kind selected.
-  useEffect(() => {
-    if (categoryId && !options.some((option) => option.id === categoryId)) {
-      setCategoryId('');
-    }
-  }, [kind, options, categoryId]);
-
-  // The rules only suggest: nothing is filed until the person leaves it selected.
-  useEffect(() => {
-    if (categoryTouched || description.trim().length < 3) return;
-    const handle = window.setTimeout(() => {
-      bookApi.entries
-        .suggestCategory(`${description} ${counterparty}`)
-        .then((result) => {
-          if (result.categoryId && options.some((option) => option.id === result.categoryId)) {
-            setCategoryId(result.categoryId);
-            setSuggestion(result.categoryName);
-          }
-        })
-        .catch(() => undefined);
-    }, 400);
-    return () => window.clearTimeout(handle);
-    // `options` is derived from the categories and the kind; re-running on it would loop.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [description, counterparty, categoryTouched]);
-
-  const parsed = Number(amount.replace(',', '.'));
-  const valid =
-    Number.isFinite(parsed) &&
-    parsed > 0 &&
-    occurredOn !== '' &&
-    (!needsCategory || categoryId !== '');
-
-  const save = useMutation({
-    mutationFn: () => {
-      const isMoved = kind === 'Payment' || kind === 'Payout';
-      const input: BookEntryInput = {
-        kind,
-        amount: parsed,
-        occurredOn,
-        categoryId: categoryId || null,
-        projectId: projectId || null,
-        branchId: branchId || null,
-        counterparty: counterparty.trim() || null,
-        description: description.trim() || null,
-        method: method || null,
-        dueDate: dueDate || null,
-        // A payment or payout is money that moved; a cost or income is paid only when marked.
-        paidOn: isMoved ? occurredOn : paid ? paidOn : null,
-        clientRequestId: row ? undefined : clientRequestId,
-      };
-      return row
-        ? bookApi.entries.update(row.id, input)
-        : bookApi.entries.create(input, idempotencyKey);
-    },
-    onSuccess: onSaved,
-  });
-
   return (
-    <Dialog open onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>{row ? t('book.entries.edit') : t('book.entries.add')}</DialogTitle>
-      <DialogContent>
-        <Stack spacing={2} sx={{ pt: 1 }}>
-          <TextField
-            select
-            label={t('book.col.kind')}
-            value={kind}
-            onChange={(event) => setKind(event.target.value as BookEntryKind)}
-            helperText={t(`book.kind.${kind}.help` as MessageKey)}
-          >
-            {bookEntryKinds.map((option) => (
-              <MenuItem key={option} value={option}>
-                {t(`book.kind.${option}` as MessageKey)}
-              </MenuItem>
-            ))}
-          </TextField>
-
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-            <TextField
-              label={t('book.col.amount')}
-              value={amount}
-              onChange={(event) => setAmount(event.target.value)}
-              slotProps={{ htmlInput: { inputMode: 'decimal' } }}
-              error={amount !== '' && !(parsed > 0)}
-              autoFocus
-              fullWidth
-            />
-            <TextField
-              type="date"
-              label={t('book.col.date')}
-              value={occurredOn}
-              onChange={(event) => setOccurredOn(event.target.value)}
-              slotProps={{ inputLabel: { shrink: true }, htmlInput: { max: today() } }}
-              fullWidth
-            />
-          </Stack>
-
-          <TextField
-            label={t('book.col.description')}
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            slotProps={{ htmlInput: { maxLength: 500 } }}
-          />
-
-          <TextField
-            label={t('book.col.counterparty')}
-            value={counterparty}
-            onChange={(event) => setCounterparty(event.target.value)}
-            slotProps={{ htmlInput: { maxLength: 200 } }}
-          />
-
-          <TextField
-            select
-            label={t('book.col.category')}
-            value={categoryId}
-            onChange={(event) => {
-              setCategoryId(event.target.value);
-              setCategoryTouched(true);
-              setSuggestion(null);
-            }}
-            required={needsCategory}
-            helperText={suggestion ? t('book.entries.suggested', { name: suggestion }) : undefined}
-          >
-            {!needsCategory && (
-              <MenuItem value="">
-                <em>{t('book.entries.defaultCategory')}</em>
-              </MenuItem>
-            )}
-            {options.map((category) => (
-              <MenuItem key={category.id} value={category.id}>
-                {category.name}
-              </MenuItem>
-            ))}
-          </TextField>
-
-          <TextField
-            select
-            label={t('book.col.project')}
-            value={projectId}
-            onChange={(event) => setProjectId(event.target.value)}
-          >
-            <MenuItem value="">
-              <em>{t('book.entries.noProject')}</em>
-            </MenuItem>
-            {(projects.data?.items ?? []).map((project) => (
-              <MenuItem key={project.id} value={project.id}>
-                {project.name}
-              </MenuItem>
-            ))}
-          </TextField>
-
-          <TextField
-            select
-            label={t('book.col.method')}
-            value={method}
-            onChange={(event) => setMethod(event.target.value as BookPaymentMethod | '')}
-          >
-            <MenuItem value="">
-              <em>{t('book.entries.noMethod')}</em>
-            </MenuItem>
-            {bookPaymentMethods.map((option) => (
-              <MenuItem key={option} value={option}>
-                {t(`book.method.${option}` as MessageKey)}
-              </MenuItem>
-            ))}
-          </TextField>
-
-          {needsCategory && (
-            <>
-              <TextField
-                type="date"
-                label={t('book.entries.dueDate')}
-                value={dueDate}
-                onChange={(event) => setDueDate(event.target.value)}
-                slotProps={{ inputLabel: { shrink: true } }}
-              />
-              <FormControlLabel
-                control={<Checkbox checked={paid} onChange={(event) => setPaid(event.target.checked)} />}
-                label={t('book.entries.alreadyPaid')}
-              />
-              {paid && (
-                <TextField
-                  type="date"
-                  label={t('book.entries.paidOn')}
-                  value={paidOn}
-                  onChange={(event) => setPaidOn(event.target.value)}
-                  slotProps={{ inputLabel: { shrink: true }, htmlInput: { max: today() } }}
-                />
-              )}
-            </>
-          )}
-
-          <BranchSelect value={branchId} onChange={setBranchId} />
-
-          {save.error && <Alert severity="error">{toApiError(save.error).message}</Alert>}
-        </Stack>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>{t('common.cancel')}</Button>
-        <Button variant="contained" disabled={!valid} loading={save.isPending} onClick={() => save.mutate()}>
-          {t('common.save')}
-        </Button>
-      </DialogActions>
-    </Dialog>
+    <Paper variant="outlined" sx={{ p: 2, flex: 1 }}>
+      <Typography variant="body2" color="text.secondary">
+        {label}
+      </Typography>
+      <Typography variant="h5" sx={{ fontWeight: 700 }} color={color}>
+        {value}
+      </Typography>
+      {note && (
+        <Typography variant="caption" color="text.secondary">
+          {note}
+        </Typography>
+      )}
+    </Paper>
   );
 }

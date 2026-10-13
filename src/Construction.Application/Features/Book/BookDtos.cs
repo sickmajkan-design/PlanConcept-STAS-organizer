@@ -8,9 +8,17 @@ public class BookRowDto
 {
     /// <summary>
     /// "BookEntry", "VehicleExpense", "ToolExpense", "GeneralExpense", "FinanceEntry",
-    /// "ProjectRevenue", "CompanyRevenue" or "Invoice" — where the figure is kept, and so where it is changed.
+    /// "ProjectRevenue", "CompanyRevenue", "Invoice", "InvoicePayment" or "WagePayout" — where the figure is
+    /// kept, and so where it is changed.
     /// </summary>
     public string Source { get; init; } = null!;
+
+    /// <summary>
+    /// Narrows <see cref="Source"/> where the screen needs to say more: how an entry of the book was made
+    /// ("Manual", "Template", "Import"), whether a vehicle cost is fuel ("Fuel"), which kind of payout it is
+    /// ("Advance", "Final").
+    /// </summary>
+    public string? Origin { get; init; }
 
     public Guid Id { get; init; }
 
@@ -53,6 +61,8 @@ public class BookRowDto
 internal class BookRow
 {
     public string Source { get; set; } = null!;
+
+    public string? Origin { get; set; }
 
     public Guid Id { get; set; }
 
@@ -174,6 +184,9 @@ public class BookCategoryDto
 
     /// <summary>How many entries of the book are filed under it.</summary>
     public int EntryCount { get; init; }
+
+    /// <summary>How many of them are dated in the month asked for (the current one by default).</summary>
+    public int MonthEntryCount { get; init; }
 }
 
 public class BookCategoryRuleDto

@@ -1,7 +1,8 @@
 import { request } from './client';
+import { exportsApi } from './exports';
 import { idempotencyHeaders } from './idempotency';
 import { listParams } from './resource';
-import type { PagedList } from './types';
+import type { LedgerCheck, PagedList } from './types';
 
 export const bookEntryKinds = ['Cost', 'Income', 'Payment', 'Payout'] as const;
 export type BookEntryKind = (typeof bookEntryKinds)[number];
@@ -24,10 +25,14 @@ export type BookRowSource =
   | 'FinanceEntry'
   | 'ProjectRevenue'
   | 'CompanyRevenue'
-  | 'Invoice';
+  | 'Invoice'
+  | 'InvoicePayment'
+  | 'WagePayout';
 
 export interface BookRow {
   source: BookRowSource;
+  /** Narrows the source: how an entry was made, whether a vehicle cost is fuel, which payout it is. */
+  origin: string | null;
   id: string;
   kind: BookEntryKind;
   occurredOn: string;
@@ -110,6 +115,8 @@ export interface BookCategory {
   isActive: boolean;
   sortOrder: number;
   entryCount: number;
+  /** How many of them are dated in the month asked for (the current one by default). */
+  monthEntryCount: number;
 }
 
 export interface BookCategoryRule {
@@ -130,7 +137,7 @@ export type DebtAge = 'NotDue' | 'Days1To30' | 'Days31To60' | 'Over60';
 
 export interface DebtRow {
   /** "Invoice" or "BookEntry": where the debt is kept, and so where it is settled. */
-  source: 'Invoice' | 'BookEntry';
+  source: 'Invoice' | 'BookEntry' | 'Payroll';
   id: string;
   title: string;
   projectId: string | null;
@@ -166,9 +173,60 @@ export interface BookTotals {
   /** Costs and payouts. */
   outflow: number;
   count: number;
+  /** How many lines of each kind the selection holds. */
+  countsByKind: Record<string, number>;
+}
+
+export interface SettlementSite {
+  sectionId: string;
+  projectId: string | null;
+  name: string;
+  billingMode: 'Hourly' | 'FlatRate' | 'Measured' | null;
+  hours: number;
+  clientRate: number | null;
+  invoiced: number;
+  billing: number;
+  wage: number;
+  margin: number;
+  costs: number;
+  result: number;
+  /** What the month would have billed by the hour, for a site billed by a sum. */
+  byHours: number | null;
+}
+
+export interface SettlementSummary {
+  year: number;
+  month: number;
+  hasSettlement: boolean;
+  ledgerId: string | null;
+  lockedAt: string | null;
+  unlockNote: string | null;
+  sites: SettlementSite[];
+  totalHours: number;
+  totalBilling: number;
+  totalWage: number;
+  totalMargin: number;
+  totalCosts: number;
+  totalResult: number;
+  fixedLines: { name: string; amount: number }[];
+  fixedTotal: number;
+  firmResult: number;
+  checks: LedgerCheck[];
 }
 
 export const bookApi = {
+  settlement: (query: { year: number; month: number; branchId?: string }) =>
+    request<SettlementSummary>({
+      method: 'GET',
+      url: '/api/v1/book/settlement',
+      params: listParams(query),
+    }),
+
+  updateSiteBilling: (
+    projectId: string,
+    input: { billingMode: 'Hourly' | 'FlatRate' | 'Measured'; clientHourlyRate: number | null },
+  ) =>
+    request<void>({ method: 'PUT', url: `/api/v1/book/settlement/sites/${projectId}`, data: input }),
   receivables: (query: { branchId?: string; projectId?: string } = {}) =>
     request<Debts>({ method: 'GET', url: '/api/v1/receivables', params: listParams(query) }),
 
@@ -176,6 +234,8 @@ export const bookApi = {
     request<Debts>({ method: 'GET', url: '/api/v1/payables', params: listParams(query) }),
 
   entries: {
+    export: (query: Omit<BookListQuery, 'pageNumber' | 'pageSize'>) => exportsApi.book(listParams(query)),
+
     list: (query: BookListQuery) =>
       request<PagedList<BookRow>>({
         method: 'GET',
@@ -215,11 +275,11 @@ export const bookApi = {
   },
 
   categories: {
-    list: (includeInactive = true) =>
+    list: (includeInactive = true, month?: { year: number; month: number }) =>
       request<BookCategory[]>({
         method: 'GET',
         url: '/api/v1/book/categories',
-        params: { includeInactive },
+        params: { includeInactive, ...(month ?? {}) },
       }),
 
     create: (input: {
@@ -232,7 +292,13 @@ export const bookApi = {
 
     update: (
       id: string,
-      input: { name: string; group: string | null; sortOrder: number; isActive: boolean },
+      input: {
+        name: string;
+        group: string | null;
+        sortOrder: number;
+        isActive: boolean;
+        bucket?: BookCategoryBucket | null;
+      },
     ) => request<BookCategory>({ method: 'PUT', url: `/api/v1/book/categories/${id}`, data: input }),
   },
 

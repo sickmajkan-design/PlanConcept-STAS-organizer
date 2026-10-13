@@ -1,260 +1,280 @@
-import { DeleteOutlined } from '@mui/icons-material';
 import {
   Alert,
+  Box,
   Button,
   Chip,
-  IconButton,
   MenuItem,
   Paper,
   Stack,
-  Switch,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableRow,
   TextField,
-  Tooltip,
   Typography,
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { toApiError } from '../../api/apiError';
 import {
   bookApi,
   bookCategoryBuckets,
-  bookCategoryKinds,
   type BookCategory,
   type BookCategoryBucket,
   type BookCategoryKind,
 } from '../../api/book';
 import { PageHeader } from '../../components/PageHeader';
+import { HowItWorks, HowLine } from '../../features/book/HowItWorks';
 import type { MessageKey } from '../../i18n/en';
 import { useI18n } from '../../i18n/useI18n';
 
 const categoriesKey = ['book', 'categories'] as const;
 const rulesKey = ['book', 'rules'] as const;
 
+const groups = ['Site', 'Labour', 'Fixed', 'Income'] as const;
+
+/** Where the entries of a category come from by themselves, for the system's own categories. */
+const sourceOf: Record<string, MessageKey> = {
+  Fuel: 'book.categories.src.fuel',
+  Housing: 'book.categories.src.housing',
+  CarRental: 'book.categories.src.vehicles',
+  WorkerPay: 'book.categories.src.settlement',
+  Subcontractors: 'book.categories.src.settlement',
+  Office: 'book.categories.src.settlement',
+  Collection: 'book.categories.src.invoices',
+  Tools: 'book.categories.src.tools',
+};
+
 /**
- * The categories entries of the book are filed under, and the rules that suggest one from a
- * description. The system's own categories can be renamed but not switched off, because the
- * monthly settlement and the overview rely on them.
+ * What kind of money each line of the book is, and where it is counted in the settlement. The system's own
+ * categories fill themselves from fuel statements, housing, vehicles and timesheets; you can rename them but
+ * not switch them off. The rules guess a category from the description, and you can try them below.
  */
 export function BookCategoriesPage() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const queryClient = useQueryClient();
 
+  const now = new Date();
+  const monthName = now.toLocaleDateString(locale === 'sr' ? 'sr-Latn' : 'en-GB', { month: 'long' });
+
   const categories = useQuery({
-    queryKey: [...categoriesKey, 'all'] as const,
-    queryFn: () => bookApi.categories.list(true),
+    queryKey: [...categoriesKey, 'all', now.getFullYear(), now.getMonth()] as const,
+    queryFn: () => bookApi.categories.list(true, { year: now.getFullYear(), month: now.getMonth() + 1 }),
   });
   const rules = useQuery({ queryKey: rulesKey, queryFn: () => bookApi.rules.list() });
 
-  const refreshCategories = () => {
+  const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: categoriesKey });
     void queryClient.invalidateQueries({ queryKey: rulesKey });
   };
 
-  const toggle = useMutation({
-    mutationFn: (category: BookCategory) =>
-      bookApi.categories.update(category.id, {
-        name: category.name,
-        group: category.group,
-        sortOrder: category.sortOrder,
-        isActive: !category.isActive,
+  const update = useMutation({
+    mutationFn: (variables: {
+      category: BookCategory;
+      patch: { name?: string; isActive?: boolean; bucket?: BookCategoryBucket };
+    }) =>
+      bookApi.categories.update(variables.category.id, {
+        name: variables.patch.name ?? variables.category.name,
+        group: variables.category.group,
+        sortOrder: variables.category.sortOrder,
+        isActive: variables.patch.isActive ?? variables.category.isActive,
+        bucket: variables.patch.bucket ?? null,
       }),
-    onSuccess: refreshCategories,
+    onSuccess: refresh,
   });
 
-  const rename = useMutation({
-    mutationFn: ({ category, name }: { category: BookCategory; name: string }) =>
-      bookApi.categories.update(category.id, {
-        name,
-        group: category.group,
-        sortOrder: category.sortOrder,
-        isActive: category.isActive,
+  // The new category
+  const [name, setName] = useState('');
+  const [kind, setKind] = useState<BookCategoryKind>('Cost');
+  const [group, setGroup] = useState<(typeof groups)[number]>('Site');
+  const [bucket, setBucket] = useState<BookCategoryBucket>('SiteCosts');
+  const [createMessage, setCreateMessage] = useState<string | null>(null);
+
+  const create = useMutation({
+    mutationFn: () =>
+      bookApi.categories.create({
+        name: name.trim(),
+        kind,
+        group,
+        bucket: kind === 'Income' ? 'Collection' : bucket,
+        sortOrder: 50,
       }),
-    onSuccess: refreshCategories,
+    onSuccess: () => {
+      setName('');
+      setCreateMessage(t('book.categories.created'));
+      refresh();
+    },
+  });
+
+  // The rules
+  const [ruleText, setRuleText] = useState('');
+  const [ruleCategory, setRuleCategory] = useState('');
+
+  const addRule = useMutation({
+    mutationFn: () => bookApi.rules.create({ text: ruleText.trim(), categoryId: ruleCategory, priority: 0 }),
+    onSuccess: () => {
+      setRuleText('');
+      refresh();
+    },
   });
 
   const removeRule = useMutation({
     mutationFn: (id: string) => bookApi.rules.remove(id),
-    onSuccess: refreshCategories,
+    onSuccess: refresh,
   });
 
-  const error = categories.error ?? rules.error ?? toggle.error ?? rename.error ?? removeRule.error;
+  // Try a guess
+  const [probe, setProbe] = useState('');
+  const [debouncedProbe, setDebouncedProbe] = useState('');
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => setDebouncedProbe(probe.trim()), 300);
+    return () => window.clearTimeout(handle);
+  }, [probe]);
+
+  const guess = useQuery({
+    queryKey: ['book', 'guess', debouncedProbe] as const,
+    queryFn: () => bookApi.entries.suggestCategory(debouncedProbe),
+    enabled: debouncedProbe.length > 0,
+  });
+
+  const active = (categories.data ?? []).filter((c) => c.isActive);
+  const error = categories.error ?? rules.error ?? update.error ?? create.error ?? addRule.error ?? removeRule.error;
 
   return (
-    <Stack spacing={3}>
-      <PageHeader
-        title={t('book.categories.title')}
-        description={t('book.categories.description')}
-      />
+    <Stack spacing={2}>
+      <PageHeader title={t('book.categories.pageTitle')} description={t('book.categories.subtitle')} />
 
       {error && <Alert severity="error">{toApiError(error).message}</Alert>}
 
-      <Paper variant="outlined" sx={{ overflowX: 'auto' }}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>{t('book.categories.name')}</TableCell>
-              <TableCell>{t('book.categories.kind')}</TableCell>
-              <TableCell>{t('book.categories.bucket')}</TableCell>
-              <TableCell align="right">{t('book.categories.entries')}</TableCell>
-              <TableCell align="center">{t('book.categories.active')}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(categories.data ?? []).map((category) => (
-              <TableRow key={category.id} hover sx={{ opacity: category.isActive ? 1 : 0.55 }}>
-                <TableCell>
-                  <NameCell
-                    category={category}
-                    onRename={(name) => rename.mutate({ category, name })}
-                  />
-                  {category.systemKey && (
+      <HowItWorks id="categories">
+        <HowLine>{t('book.categories.how1')}</HowLine>
+        <HowLine>{t('book.categories.how2')}</HowLine>
+        <HowLine>{t('book.categories.how3')}</HowLine>
+        <HowLine>{t('book.categories.how4')}</HowLine>
+        <HowLine>{t('book.categories.how5')}</HowLine>
+      </HowItWorks>
+
+      <Paper variant="outlined" sx={{ p: 2 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+          {t('book.categories.all')}
+        </Typography>
+        <Box sx={{ overflowX: 'auto' }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>{t('book.categories.name')}</TableCell>
+                <TableCell>{t('book.categories.kind')}</TableCell>
+                <TableCell>{t('book.categories.group')}</TableCell>
+                <TableCell>{t('book.categories.goesTo')}</TableCell>
+                <TableCell>{t('book.categories.source')}</TableCell>
+                <TableCell align="right">{t('book.categories.inMonth', { month: monthName })}</TableCell>
+                <TableCell>{t('book.col.status')}</TableCell>
+                <TableCell />
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {(categories.data ?? []).map((category) => (
+                <TableRow key={category.id} hover sx={{ opacity: category.isActive ? 1 : 0.55 }}>
+                  <TableCell>
+                    <NameField
+                      value={category.name}
+                      onCommit={(value) => update.mutate({ category, patch: { name: value } })}
+                    />
+                    {category.systemKey && (
+                      <Chip size="small" variant="outlined" label={t('book.categories.system')} sx={{ ml: 1 }} />
+                    )}
+                  </TableCell>
+                  <TableCell>{t(`book.categoryKind.${category.kind}` as MessageKey)}</TableCell>
+                  <TableCell>
+                    {category.group
+                      ? t(`book.categories.group.${category.group}` as MessageKey)
+                      : t(
+                          `book.categories.group.${
+                            category.bucket === 'Collection'
+                              ? 'Income'
+                              : category.bucket === 'WorkerEarnings'
+                                ? 'Labour'
+                                : category.bucket === 'Fixed'
+                                  ? 'Fixed'
+                                  : 'Site'
+                          }` as MessageKey,
+                        )}
+                  </TableCell>
+                  <TableCell>
+                    {category.systemKey || category.kind === 'Income' ? (
+                      t(`book.bucket.${category.bucket}` as MessageKey)
+                    ) : (
+                      <TextField
+                        select
+                        size="small"
+                        value={category.bucket}
+                        onChange={(event) =>
+                          update.mutate({ category, patch: { bucket: event.target.value as BookCategoryBucket } })
+                        }
+                        sx={{ minWidth: 190 }}
+                      >
+                        {bookCategoryBuckets
+                          .filter((option) => option !== 'Collection')
+                          .map((option) => (
+                            <MenuItem key={option} value={option}>
+                              {t(`book.bucket.${option}` as MessageKey)}
+                            </MenuItem>
+                          ))}
+                      </TextField>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {category.systemKey && sourceOf[category.systemKey]
+                      ? t(sourceOf[category.systemKey]!)
+                      : t('book.categories.src.manual')}
+                  </TableCell>
+                  <TableCell align="right">{category.monthEntryCount}</TableCell>
+                  <TableCell>
                     <Chip
                       size="small"
                       variant="outlined"
-                      label={t('book.categories.system')}
-                      sx={{ ml: 1 }}
+                      color={category.isActive ? 'success' : 'default'}
+                      label={category.isActive ? t('book.recurring.active') : t('book.recurring.off')}
                     />
-                  )}
-                </TableCell>
-                <TableCell>{t(`book.categoryKind.${category.kind}` as MessageKey)}</TableCell>
-                <TableCell>{t(`book.bucket.${category.bucket}` as MessageKey)}</TableCell>
-                <TableCell align="right">{category.entryCount}</TableCell>
-                <TableCell align="center">
-                  <Tooltip
-                    title={category.systemKey ? t('book.categories.systemCannotOff') : ''}
-                  >
-                    <span>
-                      <Switch
-                        checked={category.isActive}
-                        disabled={category.systemKey !== null || toggle.isPending}
-                        onChange={() => toggle.mutate(category)}
-                        slotProps={{ input: { 'aria-label': t('book.categories.active') } }}
-                      />
-                    </span>
-                  </Tooltip>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                  </TableCell>
+                  <TableCell align="right">
+                    {category.systemKey ? (
+                      <Typography variant="caption" color="text.secondary">
+                        {t('book.categories.systemCannotOff')}
+                      </Typography>
+                    ) : (
+                      <Button
+                        size="small"
+                        loading={update.isPending}
+                        onClick={() => update.mutate({ category, patch: { isActive: !category.isActive } })}
+                      >
+                        {category.isActive ? t('book.recurring.switchOff') : t('book.recurring.switchOn')}
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Box>
       </Paper>
 
-      <NewCategory onCreated={refreshCategories} />
-
-      <Stack spacing={1}>
-        <Typography variant="h6" sx={{ fontWeight: 700 }}>
-          {t('book.rules.title')}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {t('book.rules.description')}
-        </Typography>
-      </Stack>
-
-      <Paper variant="outlined" sx={{ overflowX: 'auto' }}>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>{t('book.rules.text')}</TableCell>
-              <TableCell>{t('book.rules.category')}</TableCell>
-              <TableCell align="right">{t('book.rules.priority')}</TableCell>
-              <TableCell />
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {(rules.data ?? []).map((rule) => (
-              <TableRow key={rule.id} hover>
-                <TableCell>{rule.text}</TableCell>
-                <TableCell>{rule.categoryName}</TableCell>
-                <TableCell align="right">{rule.priority}</TableCell>
-                <TableCell align="right">
-                  <Tooltip title={t('common.delete')}>
-                    <IconButton
-                      size="small"
-                      onClick={() => removeRule.mutate(rule.id)}
-                      aria-label={t('common.delete')}
-                    >
-                      <DeleteOutlined fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                </TableCell>
-              </TableRow>
-            ))}
-            {!rules.isLoading && (rules.data?.length ?? 0) === 0 && (
-              <TableRow>
-                <TableCell colSpan={4}>
-                  <Typography color="text.secondary" sx={{ py: 1 }}>
-                    {t('book.rules.empty')}
-                  </Typography>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </Paper>
-
-      <NewRule categories={categories.data ?? []} onCreated={refreshCategories} />
-    </Stack>
-  );
-}
-
-function NameCell({
-  category,
-  onRename,
-}: {
-  category: BookCategory;
-  onRename: (name: string) => void;
-}) {
-  const [value, setValue] = useState(category.name);
-
-  return (
-    <TextField
-      variant="standard"
-      value={value}
-      onChange={(event) => setValue(event.target.value)}
-      onBlur={() => {
-        const next = value.trim();
-        if (next && next !== category.name) onRename(next);
-        else setValue(category.name);
-      }}
-      slotProps={{ htmlInput: { maxLength: 100, 'aria-label': category.name } }}
-    />
-  );
-}
-
-function NewCategory({ onCreated }: { onCreated: () => void }) {
-  const { t } = useI18n();
-  const [name, setName] = useState('');
-  const [kind, setKind] = useState<BookCategoryKind>('Cost');
-  const [bucket, setBucket] = useState<BookCategoryBucket>('Fixed');
-
-  const create = useMutation({
-    mutationFn: () => bookApi.categories.create({ name: name.trim(), kind, group: null, bucket, sortOrder: 50 }),
-    onSuccess: () => {
-      setName('');
-      onCreated();
-    },
-  });
-
-  return (
-    <Paper variant="outlined" sx={{ p: 2 }}>
-      <Stack spacing={2}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+      <Paper variant="outlined" sx={{ p: 2 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5 }}>
           {t('book.categories.add')}
         </Typography>
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+        <Stack direction={{ xs: 'column', lg: 'row' }} spacing={1.5} useFlexGap>
           <TextField
             size="small"
             label={t('book.categories.name')}
+            placeholder={t('book.categories.namePlaceholder')}
             value={name}
             onChange={(event) => setName(event.target.value)}
             slotProps={{ htmlInput: { maxLength: 100 } }}
-            fullWidth
+            sx={{ minWidth: 220 }}
           />
           <TextField
             select
@@ -262,21 +282,33 @@ function NewCategory({ onCreated }: { onCreated: () => void }) {
             label={t('book.categories.kind')}
             value={kind}
             onChange={(event) => setKind(event.target.value as BookCategoryKind)}
-            sx={{ minWidth: 160 }}
+            sx={{ minWidth: 130 }}
           >
-            {bookCategoryKinds.map((option) => (
+            <MenuItem value="Cost">{t('book.categoryKind.Cost')}</MenuItem>
+            <MenuItem value="Income">{t('book.categoryKind.Income')}</MenuItem>
+          </TextField>
+          <TextField
+            select
+            size="small"
+            label={t('book.categories.group')}
+            value={group}
+            onChange={(event) => setGroup(event.target.value as (typeof groups)[number])}
+            sx={{ minWidth: 150 }}
+          >
+            {groups.map((option) => (
               <MenuItem key={option} value={option}>
-                {t(`book.categoryKind.${option}` as MessageKey)}
+                {t(`book.categories.group.${option}` as MessageKey)}
               </MenuItem>
             ))}
           </TextField>
           <TextField
             select
             size="small"
-            label={t('book.categories.bucket')}
-            value={bucket}
+            label={t('book.categories.goesTo')}
+            value={kind === 'Income' ? 'Collection' : bucket}
+            disabled={kind === 'Income'}
             onChange={(event) => setBucket(event.target.value as BookCategoryBucket)}
-            sx={{ minWidth: 220 }}
+            sx={{ minWidth: 200 }}
           >
             {bookCategoryBuckets.map((option) => (
               <MenuItem key={option} value={option}>
@@ -288,78 +320,146 @@ function NewCategory({ onCreated }: { onCreated: () => void }) {
             variant="contained"
             disabled={name.trim() === ''}
             loading={create.isPending}
-            onClick={() => create.mutate()}
+            onClick={() => {
+              setCreateMessage(null);
+              create.mutate();
+            }}
           >
             {t('book.categories.addButton')}
           </Button>
         </Stack>
-        {create.error && <Alert severity="error">{toApiError(create.error).message}</Alert>}
-      </Stack>
-    </Paper>
-  );
-}
+        {createMessage && (
+          <Alert severity="success" sx={{ mt: 1.5 }} onClose={() => setCreateMessage(null)}>
+            {createMessage}
+          </Alert>
+        )}
+      </Paper>
 
-function NewRule({
-  categories,
-  onCreated,
-}: {
-  categories: BookCategory[];
-  onCreated: () => void;
-}) {
-  const { t } = useI18n();
-  const [text, setText] = useState('');
-  const [categoryId, setCategoryId] = useState('');
-
-  const create = useMutation({
-    mutationFn: () => bookApi.rules.create({ text: text.trim(), categoryId, priority: 0 }),
-    onSuccess: () => {
-      setText('');
-      onCreated();
-    },
-  });
-
-  return (
-    <Paper variant="outlined" sx={{ p: 2 }}>
-      <Stack spacing={2}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-          {t('book.rules.add')}
+      <Paper variant="outlined" sx={{ p: 2 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+          {t('book.rules.pageTitle')}
         </Typography>
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+          {t('book.rules.pageHelp')}
+        </Typography>
+        <Box sx={{ overflowX: 'auto' }}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>{t('book.rules.ifContains')}</TableCell>
+                <TableCell>{t('book.col.category')}</TableCell>
+                <TableCell />
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {(rules.data ?? []).map((rule) => (
+                <TableRow key={rule.id} hover>
+                  <TableCell>"{rule.text}"</TableCell>
+                  <TableCell>{rule.categoryName}</TableCell>
+                  <TableCell align="right">
+                    <Button size="small" color="inherit" onClick={() => removeRule.mutate(rule.id)}>
+                      {t('book.entries.remove')}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {!rules.isLoading && (rules.data?.length ?? 0) === 0 && (
+                <TableRow>
+                  <TableCell colSpan={3}>
+                    <Typography color="text.secondary" sx={{ py: 1 }}>
+                      {t('book.rules.empty')}
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </Box>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} useFlexGap sx={{ mt: 1.5 }}>
           <TextField
             size="small"
-            label={t('book.rules.text')}
-            value={text}
-            onChange={(event) => setText(event.target.value)}
-            slotProps={{ htmlInput: { maxLength: 100 } }}
-            fullWidth
+            label={t('book.rules.newWord')}
+            placeholder={t('book.rules.newWordPlaceholder')}
+            value={ruleText}
+            onChange={(event) => setRuleText(event.target.value)}
+            sx={{ minWidth: 220 }}
           />
           <TextField
             select
             size="small"
-            label={t('book.rules.category')}
-            value={categoryId}
-            onChange={(event) => setCategoryId(event.target.value)}
-            sx={{ minWidth: 240 }}
+            label={t('book.col.category')}
+            value={ruleCategory}
+            onChange={(event) => setRuleCategory(event.target.value)}
+            sx={{ minWidth: 220 }}
           >
-            {categories
-              .filter((category) => category.isActive)
-              .map((category) => (
-                <MenuItem key={category.id} value={category.id}>
-                  {category.name}
-                </MenuItem>
-              ))}
+            {active.map((category) => (
+              <MenuItem key={category.id} value={category.id}>
+                {category.name}
+              </MenuItem>
+            ))}
           </TextField>
           <Button
             variant="contained"
-            disabled={text.trim() === '' || categoryId === ''}
-            loading={create.isPending}
-            onClick={() => create.mutate()}
+            disabled={ruleText.trim() === '' || ruleCategory === ''}
+            loading={addRule.isPending}
+            onClick={() => addRule.mutate()}
           >
             {t('book.rules.addButton')}
           </Button>
         </Stack>
-        {create.error && <Alert severity="error">{toApiError(create.error).message}</Alert>}
-      </Stack>
-    </Paper>
+      </Paper>
+
+      <Paper variant="outlined" sx={{ p: 2 }}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+          {t('book.rules.tryGuess')}
+        </Typography>
+        <TextField
+          size="small"
+          fullWidth
+          label={t('book.rules.tryLabel')}
+          placeholder={t('book.rules.tryPlaceholder')}
+          value={probe}
+          onChange={(event) => setProbe(event.target.value)}
+        />
+        {debouncedProbe && (
+          <Alert severity={guess.data?.categoryId ? 'success' : 'info'} sx={{ mt: 1.5 }}>
+            {guess.data?.categoryId
+              ? t('book.rules.guessed', {
+                  category: guess.data.categoryName ?? '',
+                  rule: guess.data.matchedRule ?? '',
+                })
+              : t('book.rules.noGuess')}
+          </Alert>
+        )}
+      </Paper>
+    </Stack>
+  );
+}
+
+/** A name typed in place and saved when the field is left. */
+function NameField({ value, onCommit }: { value: string; onCommit: (value: string) => void }) {
+  const [text, setText] = useState(value);
+
+  useEffect(() => {
+    setText(value);
+  }, [value]);
+
+  return (
+    <TextField
+      variant="standard"
+      value={text}
+      onChange={(event) => setText(event.target.value)}
+      onBlur={() => {
+        const next = text.trim();
+
+        if (!next) {
+          setText(value);
+          return;
+        }
+
+        if (next !== value) onCommit(next);
+      }}
+      slotProps={{ htmlInput: { maxLength: 100, 'aria-label': value } }}
+    />
   );
 }
