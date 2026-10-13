@@ -98,7 +98,38 @@ export function InvoicesPage() {
         headerAlign: 'right',
         valueGetter: (_value, row) => formatMoney(row.amount, locale),
       },
+      {
+        field: 'paidAmount',
+        headerName: t('invoices.paid'),
+        width: 120,
+        align: 'right',
+        headerAlign: 'right',
+        valueGetter: (_value, row) => formatMoney(row.paidAmount, locale),
+      },
+      {
+        field: 'remainingAmount',
+        headerName: t('invoices.remaining'),
+        width: 130,
+        align: 'right',
+        headerAlign: 'right',
+        renderCell: (params) => {
+          const row = params.row;
+          const late = row.remainingAmount > 0 && !!row.dueDate && row.dueDate < new Date().toISOString().slice(0, 10);
+
+          return (
+            <span style={{ fontWeight: row.remainingAmount > 0 ? 700 : 400, color: late ? '#d32f2f' : undefined }}>
+              {formatMoney(row.remainingAmount, locale)}
+            </span>
+          );
+        },
+      },
       { field: 'issueDate', headerName: t('invoices.issueDate'), width: 130, valueGetter: (value) => formatDate(value) },
+      {
+        field: 'dueDate',
+        headerName: t('invoices.dueDate'),
+        width: 130,
+        valueGetter: (value) => (value ? formatDate(value) : '—'),
+      },
       {
         field: 'payrollMonth',
         headerName: t('invoices.payrollMonth'),

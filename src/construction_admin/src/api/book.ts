@@ -50,6 +50,8 @@ export interface BookRow {
   isOpen: boolean;
   editable: boolean;
   branchId: string | null;
+  /** Documents on the record that owns this line. */
+  documentCount: number;
 }
 
 export interface BookEntry {

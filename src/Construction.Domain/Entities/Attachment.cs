@@ -148,6 +148,10 @@ public class Attachment : BaseEntity, ISoftDeletable, IAuditable
 
     public SignedTimesheet? SignedTimesheet { get; set; }
 
+    public Guid? BookEntryId { get; set; }
+
+    public BookEntry? BookEntry { get; set; }
+
     public Guid? UploadedByUserId { get; set; }
 
     public User? UploadedByUser { get; set; }

@@ -50,6 +50,11 @@ public class GetAttachmentContentQueryHandler
             || await IsOnOwnWorkItemAsync(attachment, cancellationToken)
             || await IsOnOwnRefundAsync(attachment, cancellationToken);
 
+        if (allowed && ownerType == AttachmentOwnerType.BookEntry)
+        {
+            allowed = await Book.BookRules.HasAccessAsync(_context, _currentUserService, cancellationToken);
+        }
+
         if (!allowed)
         {
             // 404 rather than 403: the id is a guess either way, and a 403

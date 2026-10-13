@@ -61,13 +61,16 @@ public class GetExpiringDocumentsQueryHandler
 {
     private readonly IApplicationDbContext _context;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ICurrentUserService _currentUserService;
 
     public GetExpiringDocumentsQueryHandler(
         IApplicationDbContext context,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        ICurrentUserService currentUserService)
     {
         _context = context;
         _dateTimeProvider = dateTimeProvider;
+        _currentUserService = currentUserService;
     }
 
     public async Task<IReadOnlyList<AttachmentDto>> Handle(
@@ -75,6 +78,12 @@ public class GetExpiringDocumentsQueryHandler
         CancellationToken cancellationToken)
     {
         var query = _context.Attachments.AsNoTracking();
+
+        // The documents of the book of money are listed only for those who may open the book.
+        if (!await Book.BookRules.HasAccessAsync(_context, _currentUserService, cancellationToken))
+        {
+            query = query.Where(a => a.BookEntryId == null);
+        }
 
         if (request.IncludeUndated)
         {

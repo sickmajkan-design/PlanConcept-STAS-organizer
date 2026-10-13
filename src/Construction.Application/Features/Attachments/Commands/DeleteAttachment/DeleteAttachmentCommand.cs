@@ -53,6 +53,11 @@ public class DeleteAttachmentCommandHandler : IRequestHandler<DeleteAttachmentCo
             .FirstOrDefaultAsync(a => a.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(Attachment), request.Id);
 
+        if (attachment.BookEntryId is not null)
+        {
+            await Features.Book.BookRules.EnsureWriteAsync(_context, _currentUserService, cancellationToken);
+        }
+
         var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
 
         if (attachment.IsRetainedOn(today))

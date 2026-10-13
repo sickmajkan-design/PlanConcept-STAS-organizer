@@ -1002,6 +1002,7 @@ export const attachmentOwnerTypes = [
   'ToolRentalRate',
   'Refund',
   'SignedTimesheet',
+  'BookEntry',
 ] as const;
 
 export type AttachmentOwnerType = (typeof attachmentOwnerTypes)[number];

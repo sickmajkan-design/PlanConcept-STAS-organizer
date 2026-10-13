@@ -103,7 +103,10 @@ public class ExportAttachmentsQueryHandler : IRequestHandler<ExportAttachmentsQu
             })
             .ToList();
 
+        var bookAccess = await Book.BookRules.HasAccessAsync(_context, _currentUserService, cancellationToken);
+
         var readable = rows
+            .Where(r => r.Dto.OwnerType != AttachmentOwnerType.BookEntry || bookAccess)
             .Where(r =>
                 AttachmentRules.CanRead(_currentUserService.Role, r.Dto.OwnerType)
                 || (_currentUserService.EmployeeId is not null

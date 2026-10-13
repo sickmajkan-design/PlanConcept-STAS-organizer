@@ -133,6 +133,11 @@ public class AttachmentConfiguration : IEntityTypeConfiguration<Attachment>
             .HasForeignKey(a => a.SignedTimesheetId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne(a => a.BookEntry)
+            .WithMany()
+            .HasForeignKey(a => a.BookEntryId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         // Uploader accounts are not hard-deleted, but the file must survive
         // losing the name of who put it there.
         builder.HasOne(a => a.UploadedByUser)
@@ -162,7 +167,8 @@ public class AttachmentConfiguration : IEntityTypeConfiguration<Attachment>
             + CASE WHEN "AccommodationRateId" IS NULL THEN 0 ELSE 1 END
             + CASE WHEN "ToolRentalRateId" IS NULL THEN 0 ELSE 1 END
             + CASE WHEN "RefundId" IS NULL THEN 0 ELSE 1 END
-            + CASE WHEN "SignedTimesheetId" IS NULL THEN 0 ELSE 1 END) = 1
+            + CASE WHEN "SignedTimesheetId" IS NULL THEN 0 ELSE 1 END
+            + CASE WHEN "BookEntryId" IS NULL THEN 0 ELSE 1 END) = 1
             """));
 
         builder.ToTable(t => t.HasCheckConstraint(
@@ -185,6 +191,7 @@ public class AttachmentConfiguration : IEntityTypeConfiguration<Attachment>
         builder.HasIndex(a => a.AccommodationRateId);
         builder.HasIndex(a => a.ToolRentalRateId);
         builder.HasIndex(a => a.RefundId);
+        builder.HasIndex(a => a.BookEntryId);
 
         // The expiry sweep and the all-documents view both filter/sort on
         // this. Partial, because rows without an expiry are most of the

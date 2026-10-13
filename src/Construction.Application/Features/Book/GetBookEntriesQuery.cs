@@ -94,7 +94,7 @@ public class GetBookEntriesQueryHandler : IRequestHandler<GetBookEntriesQuery, P
             request.PageSize,
             cancellationToken);
 
-        return ToDtos(page, categories);
+        return await ToDtosAsync(page, categories, cancellationToken);
     }
 
     /// <summary>The lines the filter asks for, before paging. Shared by the list and by its totals.</summary>
@@ -162,8 +162,70 @@ public class GetBookEntriesQueryHandler : IRequestHandler<GetBookEntriesQuery, P
 
     internal sealed record CategoryRef(Guid Id, string Name, string? SystemKey);
 
-    private static PagedList<BookRowDto> ToDtos(PagedList<BookRow> page, IReadOnlyList<CategoryRef> categories)
+    /// <summary>
+    /// The documents behind each line of the page, by source and id: the entry's own, and those filed on the
+    /// vehicle cost, tool cost or general cost a line is read from. One small query per source, only for the
+    /// ids on the page.
+    /// </summary>
+    private async Task<Dictionary<(string Source, Guid Id), int>> DocumentCountsAsync(
+        IReadOnlyCollection<BookRow> items, CancellationToken cancellationToken)
     {
+        var result = new Dictionary<(string Source, Guid Id), int>();
+
+        List<Guid> IdsOf(string source) => items.Where(i => i.Source == source).Select(i => i.Id).Distinct().ToList();
+
+        var entries = IdsOf("BookEntry");
+        if (entries.Count > 0)
+        {
+            var found = await _context.Attachments.AsNoTracking()
+                .Where(a => a.BookEntryId != null && entries.Contains(a.BookEntryId.Value))
+                .GroupBy(a => a.BookEntryId!.Value)
+                .Select(g => new { Id = g.Key, N = g.Count() })
+                .ToListAsync(cancellationToken);
+            foreach (var f in found) result[("BookEntry", f.Id)] = f.N;
+        }
+
+        var vehicle = IdsOf("VehicleExpense");
+        if (vehicle.Count > 0)
+        {
+            var found = await _context.Attachments.AsNoTracking()
+                .Where(a => a.VehicleExpenseId != null && vehicle.Contains(a.VehicleExpenseId.Value))
+                .GroupBy(a => a.VehicleExpenseId!.Value)
+                .Select(g => new { Id = g.Key, N = g.Count() })
+                .ToListAsync(cancellationToken);
+            foreach (var f in found) result[("VehicleExpense", f.Id)] = f.N;
+        }
+
+        var tool = IdsOf("ToolExpense");
+        if (tool.Count > 0)
+        {
+            var found = await _context.Attachments.AsNoTracking()
+                .Where(a => a.ToolExpenseId != null && tool.Contains(a.ToolExpenseId.Value))
+                .GroupBy(a => a.ToolExpenseId!.Value)
+                .Select(g => new { Id = g.Key, N = g.Count() })
+                .ToListAsync(cancellationToken);
+            foreach (var f in found) result[("ToolExpense", f.Id)] = f.N;
+        }
+
+        var general = IdsOf("GeneralExpense");
+        if (general.Count > 0)
+        {
+            var found = await _context.Attachments.AsNoTracking()
+                .Where(a => a.GeneralExpenseId != null && general.Contains(a.GeneralExpenseId.Value))
+                .GroupBy(a => a.GeneralExpenseId!.Value)
+                .Select(g => new { Id = g.Key, N = g.Count() })
+                .ToListAsync(cancellationToken);
+            foreach (var f in found) result[("GeneralExpense", f.Id)] = f.N;
+        }
+
+        return result;
+    }
+
+    private async Task<PagedList<BookRowDto>> ToDtosAsync(
+        PagedList<BookRow> page, IReadOnlyList<CategoryRef> categories, CancellationToken cancellationToken)
+    {
+        var counts = await DocumentCountsAsync(page.Items, cancellationToken);
+
         var byId = categories.ToDictionary(c => c.Id, c => c);
         var byKey = categories
             .Where(c => c.SystemKey != null)
@@ -197,6 +259,7 @@ public class GetBookEntriesQueryHandler : IRequestHandler<GetBookEntriesQuery, P
                 IsOpen = r.IsOpen,
                 Editable = r.Source == nameof(Domain.Entities.BookEntry),
                 BranchId = r.BranchId,
+                DocumentCount = counts.GetValueOrDefault((r.Source, r.Id)),
             };
         }).ToList();
 

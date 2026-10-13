@@ -1,4 +1,5 @@
 import {
+  AttachFileOutlined,
   ChevronLeftOutlined,
   ChevronRightOutlined,
   DeleteOutlined,
@@ -10,6 +11,10 @@ import {
   Alert,
   Button,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   MenuItem,
   Paper,
@@ -31,11 +36,15 @@ import { Link as RouterLink } from 'react-router-dom';
 import { toApiError } from '../../api/apiError';
 import { bookApi, type BookEntryKind, type BookRow, type BookRowSource } from '../../api/book';
 import { newIdempotencyKey } from '../../api/idempotency';
+import type { AttachmentOwnerType } from '../../api/types';
 import { overviewApi } from '../../api/overview';
 import { payoutsApi } from '../../api/payouts';
+import { AttachmentList } from '../../components/AttachmentList';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { useBranchFilter } from '../../features/branches/BranchContext';
+import { useAuth } from '../../auth/useAuth';
+import { canAdministerAccounts } from '../../auth/authHelpers';
 import { EntryDialog } from '../../features/book/EntryDialog';
 import { HowItWorks, HowLine } from '../../features/book/HowItWorks';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
@@ -63,6 +72,14 @@ function monthBounds(year: number, month: number): { from: string; to: string } 
 function isInflow(kind: BookEntryKind): boolean {
   return kind === 'Income' || kind === 'Payment';
 }
+
+/** The lines whose source keeps documents, and the kind of record they hang off. */
+const documentOwnerTypes: Partial<Record<BookRowSource, AttachmentOwnerType>> = {
+  BookEntry: 'BookEntry',
+  VehicleExpense: 'VehicleExpense',
+  ToolExpense: 'ToolExpense',
+  GeneralExpense: 'GeneralExpense',
+};
 
 /** Where a line that is not the book's own is changed. */
 const sourcePages: Partial<Record<BookRowSource, string>> = {
@@ -113,6 +130,8 @@ export function BookEntriesPage() {
   const [page, setPage] = useState(0);
   const [editing, setEditing] = useState<BookRow | null>(null);
   const [deleting, setDeleting] = useState<BookRow | null>(null);
+  const [documentsOf, setDocumentsOf] = useState<BookRow | null>(null);
+  const { user } = useAuth();
 
   // quick entry
   const [qDate, setQDate] = useState(isoToday());
@@ -627,7 +646,25 @@ export function BookEntriesPage() {
                   <TableCell>
                     <Chip size="small" variant="outlined" label={sourceLabel(row)} />
                   </TableCell>
-                  <TableCell>{row.source === 'Invoice' ? row.description : '—'}</TableCell>
+                  <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                    {row.source === 'Invoice' ? (
+                      row.description
+                    ) : documentOwnerTypes[row.source] ? (
+                      <Tooltip title={t('book.entries.documents')}>
+                        <Button
+                          size="small"
+                          color={row.documentCount > 0 ? 'primary' : 'inherit'}
+                          startIcon={<AttachFileOutlined fontSize="small" />}
+                          onClick={() => setDocumentsOf(row)}
+                          aria-label={`${t('book.entries.documents')}: ${row.documentCount}`}
+                        >
+                          {row.documentCount}
+                        </Button>
+                      </Tooltip>
+                    ) : (
+                      '—'
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Chip size="small" variant="outlined" color={status.color} label={status.label} />
                   </TableCell>
@@ -707,6 +744,39 @@ export function BookEntriesPage() {
           }}
         />
       )}
+
+      <Dialog
+        open={documentsOf !== null}
+        fullWidth
+        maxWidth="sm"
+        onClose={() => {
+          setDocumentsOf(null);
+          refresh();
+        }}
+      >
+        <DialogTitle>{t('book.entries.documents')}</DialogTitle>
+        <DialogContent>
+          {documentsOf && documentOwnerTypes[documentsOf.source] && (
+            <AttachmentList
+              ownerType={documentOwnerTypes[documentsOf.source]!}
+              ownerId={documentsOf.id}
+              categories={['Other', 'Contract', 'Photo']}
+              canUpload
+              canDelete={canAdministerAccounts(user)}
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setDocumentsOf(null);
+              refresh();
+            }}
+          >
+            {t('common.close')}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <ConfirmDialog
         open={deleting !== null}

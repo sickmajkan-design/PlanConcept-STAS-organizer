@@ -53,6 +53,11 @@ public class GetAttachmentCountsQueryHandler
             throw new ForbiddenAccessException("You may not view the files on these records.");
         }
 
+        if (request.OwnerType == AttachmentOwnerType.BookEntry)
+        {
+            await Book.BookRules.EnsureReadAsync(_context, _currentUserService, cancellationToken);
+        }
+
         var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
         var query = _context.Attachments.AsNoTracking();
 
@@ -70,7 +75,9 @@ public class GetAttachmentCountsQueryHandler
                 .Select(a => new { Owner = a.ToolId!.Value, a.ExpiresAt }),
             AttachmentOwnerType.Accommodation => query.Where(a => a.AccommodationId != null)
                 .Select(a => new { Owner = a.AccommodationId!.Value, a.ExpiresAt }),
-            _ => throw new ConflictException("Counts are available for employees, projects, vehicles, tools and housing.")
+            AttachmentOwnerType.BookEntry => query.Where(a => a.BookEntryId != null)
+                .Select(a => new { Owner = a.BookEntryId!.Value, a.ExpiresAt }),
+            _ => throw new ConflictException("Counts are available for employees, projects, vehicles, tools, housing and book entries.")
         };
 
         return await owned

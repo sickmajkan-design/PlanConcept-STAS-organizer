@@ -443,6 +443,9 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("AccommodationRateId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("BookEntryId")
+                        .HasColumnType("uuid");
+
                     b.Property<int>("Category")
                         .HasColumnType("integer");
 
@@ -556,6 +559,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("AccommodationRateId");
 
+                    b.HasIndex("BookEntryId");
+
                     b.HasIndex("EmployeeId");
 
                     b.HasIndex("EmployeeRateId");
@@ -597,7 +602,7 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
                     b.ToTable("attachments", null, t =>
                         {
-                            t.HasCheckConstraint("ck_attachments_exactly_one_owner", "(CASE WHEN \"EmployeeId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"ProjectId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"VehicleId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"ToolId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"WorkItemId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"VehicleExpenseId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"MaterialMovementId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"EmployeeRateId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"FinanceEntryId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"ToolExpenseId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"VehicleRentalRateId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"GeneralExpenseId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"AccommodationId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"AccommodationRateId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"ToolRentalRateId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"RefundId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"SignedTimesheetId\" IS NULL THEN 0 ELSE 1 END) = 1");
+                            t.HasCheckConstraint("ck_attachments_exactly_one_owner", "(CASE WHEN \"EmployeeId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"ProjectId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"VehicleId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"ToolId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"WorkItemId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"VehicleExpenseId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"MaterialMovementId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"EmployeeRateId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"FinanceEntryId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"ToolExpenseId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"VehicleRentalRateId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"GeneralExpenseId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"AccommodationId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"AccommodationRateId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"ToolRentalRateId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"RefundId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"SignedTimesheetId\" IS NULL THEN 0 ELSE 1 END\n+ CASE WHEN \"BookEntryId\" IS NULL THEN 0 ELSE 1 END) = 1");
 
                             t.HasCheckConstraint("ck_attachments_size_positive", "\"SizeBytes\" > 0");
                         });
@@ -5071,6 +5076,11 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasForeignKey("AccommodationRateId")
                         .OnDelete(DeleteBehavior.Cascade);
 
+                    b.HasOne("Construction.Domain.Entities.BookEntry", "BookEntry")
+                        .WithMany()
+                        .HasForeignKey("BookEntryId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
                     b.HasOne("Construction.Domain.Entities.Employee", "Employee")
                         .WithMany("Attachments")
                         .HasForeignKey("EmployeeId")
@@ -5154,6 +5164,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("Accommodation");
 
                     b.Navigation("AccommodationRate");
+
+                    b.Navigation("BookEntry");
 
                     b.Navigation("Employee");
 

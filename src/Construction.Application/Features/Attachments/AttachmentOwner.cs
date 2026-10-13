@@ -50,7 +50,10 @@ public enum AttachmentOwnerType
     /// The client's signed timesheet for one project and one calendar week — the source the
     /// monthly payroll's hours are typed from.
     /// </summary>
-    SignedTimesheet = 17
+    SignedTimesheet = 17,
+
+    /// <summary>The invoice, receipt or proof behind an entry of the book of money.</summary>
+    BookEntry = 18
 }
 
 /// <summary>
@@ -90,6 +93,7 @@ public static class AttachmentOwner
         attachment.ToolRentalRateId = type == AttachmentOwnerType.ToolRentalRate ? id : null;
         attachment.RefundId = type == AttachmentOwnerType.Refund ? id : null;
         attachment.SignedTimesheetId = type == AttachmentOwnerType.SignedTimesheet ? id : null;
+        attachment.BookEntryId = type == AttachmentOwnerType.BookEntry ? id : null;
     }
 
     /// <summary>Reads the owner back off a stored row.</summary>
@@ -180,6 +184,11 @@ public static class AttachmentOwner
             return (AttachmentOwnerType.SignedTimesheet, signedTimesheetId);
         }
 
+        if (attachment.BookEntryId is { } bookEntryId)
+        {
+            return (AttachmentOwnerType.BookEntry, bookEntryId);
+        }
+
         // The table's check constraint makes this unreachable; if it is ever
         // reached, something has bypassed the database and guessing an owner
         // would hide it.
@@ -207,6 +216,7 @@ public static class AttachmentOwner
         AttachmentOwnerType.ToolRentalRate => "tool-rental-rates",
         AttachmentOwnerType.Refund => "refunds",
         AttachmentOwnerType.SignedTimesheet => "signed-timesheets",
+        AttachmentOwnerType.BookEntry => "book-entries",
         _ => "other"
     };
 }

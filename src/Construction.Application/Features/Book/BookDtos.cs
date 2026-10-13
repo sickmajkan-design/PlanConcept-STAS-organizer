@@ -55,6 +55,12 @@ public class BookRowDto
     public bool Editable { get; init; }
 
     public Guid? BranchId { get; init; }
+
+    /// <summary>
+    /// How many documents hang off the record that owns this line (an entry of the book, or the vehicle,
+    /// tool or general cost it is read from). Zero where the source keeps none.
+    /// </summary>
+    public int DocumentCount { get; init; }
 }
 
 /// <summary>The common shape every source is projected to so they can be listed, sorted and paged as one.</summary>

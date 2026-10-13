@@ -73,6 +73,12 @@ public class GetAttachmentsQueryHandler
                 "You may not view the files on this record.");
         }
 
+        // The documents of the book are behind its own grant, on top of the role.
+        if (request.OwnerType == AttachmentOwnerType.BookEntry)
+        {
+            await Book.BookRules.EnsureReadAsync(_context, _currentUserService, cancellationToken);
+        }
+
         var query = _context.Attachments.AsNoTracking();
 
         // Exhaustive on purpose. This used to end in a `_` catch-all pointing
@@ -109,6 +115,8 @@ public class GetAttachmentsQueryHandler
             AttachmentOwnerType.Refund => query.Where(a => a.RefundId == request.OwnerId),
             AttachmentOwnerType.SignedTimesheet =>
                 query.Where(a => a.SignedTimesheetId == request.OwnerId),
+            AttachmentOwnerType.BookEntry =>
+                query.Where(a => a.BookEntryId == request.OwnerId),
             _ => throw new ArgumentOutOfRangeException(
                 nameof(request),
                 request.OwnerType,

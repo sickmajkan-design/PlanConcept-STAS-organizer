@@ -101,6 +101,11 @@ public class UpdateAttachmentCommandHandler : IRequestHandler<UpdateAttachmentCo
             .FirstOrDefaultAsync(a => a.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(Attachment), request.Id);
 
+        if (attachment.BookEntryId is not null)
+        {
+            await Features.Book.BookRules.EnsureWriteAsync(_context, _currentUserService, cancellationToken);
+        }
+
         attachment.Category = request.Category;
         attachment.Description = string.IsNullOrWhiteSpace(request.Description)
             ? null

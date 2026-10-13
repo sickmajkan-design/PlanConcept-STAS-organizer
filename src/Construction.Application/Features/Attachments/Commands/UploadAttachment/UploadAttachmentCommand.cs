@@ -129,6 +129,12 @@ public class UploadAttachmentCommandHandler
                 "You may not attach files of this kind to this record.");
         }
 
+        // The book of money has its own door: a file on one of its entries is as private as the entry.
+        if (request.OwnerType == AttachmentOwnerType.BookEntry)
+        {
+            await Book.BookRules.EnsureWriteAsync(_context, _currentUserService, cancellationToken);
+        }
+
         await EnsureOwnerExistsAsync(request.OwnerType, request.OwnerId, cancellationToken);
 
         await EnsureWorkItemIsTheirsAsync(request, cancellationToken);
@@ -354,6 +360,8 @@ public class UploadAttachmentCommandHandler
                 await _context.Refunds.AnyAsync(r => r.Id == id, cancellationToken),
             AttachmentOwnerType.SignedTimesheet =>
                 await _context.SignedTimesheets.AnyAsync(s => s.Id == id, cancellationToken),
+            AttachmentOwnerType.BookEntry =>
+                await _context.BookEntries.AnyAsync(b => b.Id == id, cancellationToken),
             _ => false
         };
 

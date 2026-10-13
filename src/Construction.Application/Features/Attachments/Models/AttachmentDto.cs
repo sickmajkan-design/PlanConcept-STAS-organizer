@@ -91,7 +91,8 @@ public static class AttachmentMapping
                 : attachment.AccommodationRateId != null ? AttachmentOwnerType.AccommodationRate
                 : attachment.RefundId != null ? AttachmentOwnerType.Refund
                 : attachment.ToolRentalRateId != null ? AttachmentOwnerType.ToolRentalRate
-                : AttachmentOwnerType.SignedTimesheet,
+                : attachment.SignedTimesheetId != null ? AttachmentOwnerType.SignedTimesheet
+                : AttachmentOwnerType.BookEntry,
             OwnerId = attachment.EmployeeId != null ? attachment.EmployeeId.Value
                 : attachment.ProjectId != null ? attachment.ProjectId.Value
                 : attachment.VehicleId != null ? attachment.VehicleId.Value
@@ -108,7 +109,8 @@ public static class AttachmentMapping
                 : attachment.AccommodationRateId != null ? attachment.AccommodationRateId.Value
                 : attachment.RefundId != null ? attachment.RefundId.Value
                 : attachment.ToolRentalRateId != null ? attachment.ToolRentalRateId.Value
-                : attachment.SignedTimesheetId!.Value,
+                : attachment.SignedTimesheetId != null ? attachment.SignedTimesheetId.Value
+                : attachment.BookEntryId!.Value,
             OwnerName = attachment.Employee != null
                 ? attachment.Employee.FirstName + " " + attachment.Employee.LastName
                 : attachment.Project != null ? attachment.Project.Name
@@ -131,6 +133,7 @@ public static class AttachmentMapping
                 : attachment.ToolRentalRate != null ? attachment.ToolRentalRate.Tool.Name
                 : attachment.Refund != null ? attachment.Refund.Description
                 : attachment.SignedTimesheet != null ? attachment.SignedTimesheet.Project.Name
+                : attachment.BookEntry != null ? (attachment.BookEntry.Description ?? attachment.BookEntry.Counterparty)
                 : null,
             UploadedByName = attachment.UploadedByUser != null ? attachment.UploadedByUser.Email : null,
             CreatedAt = attachment.CreatedAt,
