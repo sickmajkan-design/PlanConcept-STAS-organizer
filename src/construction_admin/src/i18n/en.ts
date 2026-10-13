@@ -1700,6 +1700,7 @@ export const en = {
   'attachments.expiredOn': 'Expired {date}',
   'attachments.expiresOn': 'Valid until {date}',
   'attachments.noPreview': 'No preview available for this file type.',
+  'attachments.noPreviewDoc': "The old Word format (.doc) cannot be shown here. Download the file to open it in Word.",
   'attachments.previewError':
     'This file is recorded but its contents could not be loaded from the server.',
   'attachments.moreSheets': '+{count} more sheet(s) not shown here — download to see the rest.',
@@ -1763,6 +1764,7 @@ export const en = {
   'files.hint.list.preview': "Double-click a document to preview it (pictures, PDF, spreadsheets) without downloading; the arrow downloads the file.",
   'files.hint.list.tags': "The title is shown instead of the file name, and tags appear as #tag under it.",
   'releaseNotes.docs1013.help': "The first time you open the document window or a list of documents, a short note explains how drag and drop and the preview work. It can be opened again with \"How does this work?\".",
+  'releaseNotes.docs1013.preview': "Preview: PDF files open in the window again on the server, CSV files are shown as a table, and the old Word format (.doc) says it can only be downloaded.",
   'attachments.field.title': "Title",
   'attachments.field.titleMany': "A title is set per document; with several files each keeps its file name.",
   'attachments.field.tags': "Tags",

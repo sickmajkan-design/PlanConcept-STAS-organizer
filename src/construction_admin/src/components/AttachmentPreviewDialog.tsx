@@ -22,7 +22,7 @@ type PreviewState =
   | { kind: 'pdf'; url: string }
   | { kind: 'text'; text: string }
   | { kind: 'html'; html: string; note?: string }
-  | { kind: 'unsupported' }
+  | { kind: 'unsupported'; legacyWord?: boolean }
   | { kind: 'error' };
 
 function extensionOf(fileName: string): string {
@@ -33,7 +33,7 @@ function extensionOf(fileName: string): string {
 
 const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
 const HEIC_EXTENSIONS = ['heic', 'heif'];
-const EXCEL_EXTENSIONS = ['xls', 'xlsx'];
+const EXCEL_EXTENSIONS = ['xls', 'xlsx', 'csv'];
 
 /**
  * Strips anything a parsed document could use to run script or reach off the
@@ -69,7 +69,7 @@ function sanitizeHtml(html: string): string {
  *
  * Every accepted file type gets a real preview: images render directly, PDFs
  * in an iframe, HEIC photos are converted client-side first (browsers cannot
- * display HEIC), plain text is shown as text, and Word/Excel files are
+ * display HEIC), plain text is shown as text, and Word/Excel/CSV files are
  * parsed into HTML — all through libraries loaded on demand so a user who
  * never opens an office document never pays for the bundle weight. Only the
  * legacy binary `.doc` format has no parser available; it still downloads.
@@ -162,8 +162,11 @@ export function AttachmentPreviewDialog({
 
         if (EXCEL_EXTENSIONS.includes(ext)) {
           const XLSX = await import('xlsx');
-          const arrayBuffer = await blob.arrayBuffer();
-          const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+          // A CSV is text: reading it as bytes would guess the encoding, so a name with a č comes out wrong.
+          const workbook =
+            ext === 'csv'
+              ? XLSX.read(await blob.text(), { type: 'string' })
+              : XLSX.read(await blob.arrayBuffer(), { type: 'array' });
           const [firstSheetName, ...restSheetNames] = workbook.SheetNames;
           const sheet = firstSheetName ? workbook.Sheets[firstSheetName] : undefined;
 
@@ -187,7 +190,7 @@ export function AttachmentPreviewDialog({
 
         // `.doc` (legacy binary Word) and anything else outside the
         // accepted list: no client-side parser exists for it.
-        setPreview({ kind: 'unsupported' });
+        setPreview({ kind: 'unsupported', legacyWord: ext === 'doc' });
       } catch {
         if (!cancelled) {
           setPreview({ kind: 'unsupported' });
@@ -279,7 +282,9 @@ export function AttachmentPreviewDialog({
 
         {preview.kind === 'unsupported' && (
           <Stack spacing={1} sx={{ py: 4, alignItems: 'center' }}>
-            <Typography color="text.secondary">{t('attachments.noPreview')}</Typography>
+            <Typography color="text.secondary">
+              {preview.legacyWord ? t('attachments.noPreviewDoc') : t('attachments.noPreview')}
+            </Typography>
           </Stack>
         )}
 

@@ -1735,6 +1735,7 @@ export const sr: Record<MessageKey, Message> = {
   'attachments.expiredOn': 'Isteklo {date}',
   'attachments.expiresOn': 'Važi do {date}',
   'attachments.noPreview': 'Za ovu vrstu fajla nije moguć pregled.',
+  'attachments.noPreviewDoc': "Stari Word format (.doc) se ne može prikazati ovdje. Preuzmite datoteku da je otvorite u Wordu.",
   'attachments.previewError':
     'Fajl je zabilježen u sistemu, ali njegov sadržaj nije moguće učitati sa servera.',
   'attachments.moreSheets': 'Još {count} list(a) nije prikazano ovdje — preuzmite fajl da vidite ostatak.',
@@ -1798,6 +1799,7 @@ export const sr: Record<MessageKey, Message> = {
   'files.hint.list.preview': "Dvoklik na dokument otvara pregled (slike, PDF, tabele) bez preuzimanja; strelica preuzima datoteku.",
   'files.hint.list.tags': "Naslov se prikazuje umjesto imena datoteke, a oznake se vide kao #oznaka ispod njega.",
   'releaseNotes.docs1013.help': "Prvi put kad otvorite prozor za dokumente ili listu dokumenata, kratka napomena objašnjava kako rade povuci-i-otpusti i pregled. Može se ponovo otvoriti dugmetom \"Kako ovo radi?\".",
+  'releaseNotes.docs1013.preview': "Pregled: PDF se ponovo otvara u prozoru na serveru, CSV se prikazuje kao tabela, a za stari Word format (.doc) piše da se može samo preuzeti.",
   'attachments.field.title': "Naslov",
   'attachments.field.titleMany': "Naslov se postavlja po dokumentu; kad ima više datoteka, svaka zadržava ime datoteke.",
   'attachments.field.tags': "Oznake",
