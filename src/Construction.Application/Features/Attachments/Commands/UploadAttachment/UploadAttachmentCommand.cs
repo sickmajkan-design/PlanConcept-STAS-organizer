@@ -27,6 +27,10 @@ public record UploadAttachmentCommand : IRequest<AttachmentDto>
 
     public string? Description { get; init; }
 
+    public string? Title { get; init; }
+
+    public List<string>? Tags { get; init; }
+
     public DateOnly? ExpiresAt { get; init; }
 
     public DateOnly? RetainUntil { get; init; }
@@ -63,6 +67,16 @@ public class UploadAttachmentCommandValidator : AbstractValidator<UploadAttachme
                 $"The file is larger than the {AttachmentRules.MaxSizeBytes / (1024 * 1024)} MB limit.");
 
         RuleFor(x => x.Description).MaximumLength(1000);
+
+        RuleFor(x => x.Title).MaximumLength(AttachmentRules.MaxTitleLength);
+
+        RuleForEach(x => x.Tags)
+            .Must(t => (t ?? string.Empty).Trim().Length <= AttachmentRules.MaxTagLength)
+            .WithMessage($"A label is at most {AttachmentRules.MaxTagLength} characters.");
+
+        RuleFor(x => x.Tags)
+            .Must(t => AttachmentRules.NormaliseTags(t).Length <= AttachmentRules.MaxTags)
+            .WithMessage($"At most {AttachmentRules.MaxTags} labels per document.");
 
         // A photograph does not lapse, and an expiry on one would put it in
         // the reminder sweep for no reason.
@@ -129,6 +143,8 @@ public class UploadAttachmentCommandHandler
         var contentType = AttachmentRules.ResolveContentType(fileName)
             ?? throw new ConflictException("That file type is not accepted.");
 
+        var content = await VerifySignatureAsync(request.Content, fileName, cancellationToken);
+
         var attachment = new Attachment
         {
             Id = Guid.NewGuid(),
@@ -137,6 +153,8 @@ public class UploadAttachmentCommandHandler
             SizeBytes = request.SizeBytes,
             Category = request.Category,
             Description = request.Description?.Trim(),
+            Title = string.IsNullOrWhiteSpace(request.Title) ? null : request.Title.Trim(),
+            Tags = AttachmentRules.NormaliseTags(request.Tags),
             ExpiresAt = request.ExpiresAt,
             RetainUntil = request.RetainUntil,
             ReminderDays = AttachmentRules.NormaliseReminderDays(request.ReminderDays),
@@ -153,7 +171,7 @@ public class UploadAttachmentCommandHandler
         // produce is worse than an orphaned object nobody can reach: the
         // object costs storage, the row costs someone their evidence.
         await _storage.SaveAsync(
-            attachment.StorageKey, request.Content, contentType, cancellationToken);
+            attachment.StorageKey, content, contentType, cancellationToken);
 
         try
         {
@@ -172,6 +190,47 @@ public class UploadAttachmentCommandHandler
             .Where(a => a.Id == attachment.Id)
             .Select(AttachmentMapping.Projection)
             .FirstAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Reads the first bytes to check the file is what its name says, and hands back a stream that starts
+    /// at the beginning again (a stream that cannot rewind is copied to memory first; the size is capped).
+    /// </summary>
+    private static async Task<Stream> VerifySignatureAsync(
+        Stream content, string fileName, CancellationToken cancellationToken)
+    {
+        if (!content.CanSeek)
+        {
+            var copy = new MemoryStream();
+            await content.CopyToAsync(copy, cancellationToken);
+            copy.Position = 0;
+            content = copy;
+        }
+
+        var start = content.Position;
+        var header = new byte[AttachmentRules.SignatureBytes];
+        var read = 0;
+
+        while (read < header.Length)
+        {
+            var n = await content.ReadAsync(header.AsMemory(read), cancellationToken);
+
+            if (n == 0)
+            {
+                break;
+            }
+
+            read += n;
+        }
+
+        content.Position = start;
+
+        if (!AttachmentRules.MatchesSignature(fileName, header.AsSpan(0, read)))
+        {
+            throw new ConflictException("The content of the file does not match its type.");
+        }
+
+        return content;
     }
 
     /// <summary>

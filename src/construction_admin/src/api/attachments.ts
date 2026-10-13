@@ -19,6 +19,8 @@ export interface UploadAttachmentInput {
   category: AttachmentCategory;
   file: File;
   description?: string | null;
+  title?: string | null;
+  tags?: string[];
   /** `YYYY-MM-DD`. Omitted for anything that does not lapse. */
   expiresAt?: string | null;
   /** `YYYY-MM-DD`. Omitted for anything with no mandatory retention. */
@@ -31,6 +33,9 @@ export interface UpdateAttachmentInput {
   id: string;
   category: AttachmentCategory;
   description: string | null;
+  title?: string | null;
+  /** Omitted leaves the labels as they were; an empty list clears them. */
+  tags?: string[];
   /** `YYYY-MM-DD`, or null for a document that does not lapse. */
   expiresAt: string | null;
   /** `YYYY-MM-DD`, or null when no retention applies. */
@@ -39,11 +44,23 @@ export interface UpdateAttachmentInput {
   reminderDays: number[];
 }
 
-/** Mirrors the API's AttachmentRules, so the picker and the limits agree. */
-export const MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024;
+/** Mirrors the API's AttachmentRules, so the picker and the limits agree (`GET /attachments/limits` reports them). */
+export const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024;
 
 export const ACCEPTED_EXTENSIONS =
-  '.pdf,.jpg,.jpeg,.png,.webp,.heic,.doc,.docx,.xls,.xlsx,.txt';
+  '.pdf,.jpg,.jpeg,.png,.webp,.heic,.doc,.docx,.xls,.xlsx,.txt,.csv';
+
+/** Mirrors `AttachmentRules.MaxTags` and friends. */
+export const MAX_ATTACHMENT_TAGS = 10;
+export const MAX_ATTACHMENT_TAG_LENGTH = 30;
+export const MAX_ATTACHMENT_TITLE_LENGTH = 200;
+
+export interface UploadOptions {
+  /** Called with 0..1 as the bytes go out. */
+  onProgress?: (fraction: number) => void;
+  /** Aborts the request. */
+  signal?: AbortSignal;
+}
 
 export interface AttachmentCount {
   ownerId: string;
@@ -83,7 +100,10 @@ export const attachmentsApi = {
       },
     }),
 
-  upload: (input: UploadAttachmentInput) => {
+  /** The labels already used on documents, most used first. Admin and above; others get a refusal. */
+  tags: () => request<string[]>({ method: 'GET', url: '/api/v1/attachments/tags' }),
+
+  upload: (input: UploadAttachmentInput, options: UploadOptions = {}) => {
     const form = new FormData();
 
     form.append('file', input.file);
@@ -93,6 +113,14 @@ export const attachmentsApi = {
 
     if (input.description) {
       form.append('description', input.description);
+    }
+
+    if (input.title) {
+      form.append('title', input.title);
+    }
+
+    for (const tag of input.tags ?? []) {
+      form.append('tags', tag);
     }
 
     if (input.expiresAt) {
@@ -113,6 +141,12 @@ export const attachmentsApi = {
       method: 'POST',
       url: '/api/v1/attachments',
       data: form,
+      signal: options.signal,
+      onUploadProgress: (event) => {
+        if (options.onProgress && event.total) {
+          options.onProgress(Math.min(1, event.loaded / event.total));
+        }
+      },
     });
   },
 
@@ -123,6 +157,8 @@ export const attachmentsApi = {
       data: {
         category: input.category,
         description: input.description,
+        title: input.title ?? null,
+        tags: input.tags,
         expiresAt: input.expiresAt,
         retainUntil: input.retainUntil,
         reminderDays: input.reminderDays,

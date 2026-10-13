@@ -322,7 +322,16 @@ export function ExpiringDocumentsPage() {
                       bgcolor: isHighlighted(document.id) ? 'action.hover' : undefined,
                     }}
                   >
-                    <TableCell>{document.fileName}</TableCell>
+                    <TableCell>
+                      {document.title || document.fileName}
+                      {(document.tags ?? []).length > 0 && (
+                        <Stack direction="row" spacing={0.5} useFlexGap sx={{ flexWrap: 'wrap', mt: 0.5 }}>
+                          {(document.tags ?? []).map((tag) => (
+                            <Chip key={tag} size="small" variant="outlined" label={tag} />
+                          ))}
+                        </Stack>
+                      )}
+                    </TableCell>
                     <TableCell>{document.ownerName ?? '—'}</TableCell>
                     <TableCell>
                       {enumLabel('attachmentCategory', document.category)}

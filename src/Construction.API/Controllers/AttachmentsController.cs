@@ -7,6 +7,7 @@ using Construction.Application.Features.Attachments.Models;
 using Construction.Application.Features.Attachments.Queries.ExportAttachments;
 using Construction.Application.Features.Attachments.Queries.GetAttachmentContent;
 using Construction.Application.Features.Attachments.Queries.GetAttachmentCounts;
+using Construction.Application.Features.Attachments.Queries.GetAttachmentTags;
 using Construction.Application.Features.Attachments.Queries.GetAttachments;
 using Construction.Application.Features.Attachments.Queries.GetExpiringDocuments;
 using Construction.Domain.Enums;
@@ -51,6 +52,26 @@ public class AttachmentsController : ApiControllerBase
     {
         return Ok(await Mediator.Send(query, cancellationToken));
     }
+
+    /// <summary>What may be uploaded: the largest size and the accepted extensions.</summary>
+    [HttpGet("limits")]
+    [Authorize(Policy = Policies.AllEmployees)]
+    [ProducesResponseType(typeof(AttachmentLimitsDto), StatusCodes.Status200OK)]
+    public ActionResult<AttachmentLimitsDto> GetLimits() => Ok(new AttachmentLimitsDto
+    {
+        MaxSizeBytes = AttachmentRules.MaxSizeBytes,
+        Extensions = AttachmentRules.AllowedTypesByExtension.Keys.OrderBy(e => e).ToList(),
+        MaxTags = AttachmentRules.MaxTags,
+        MaxTagLength = AttachmentRules.MaxTagLength,
+        MaxTitleLength = AttachmentRules.MaxTitleLength,
+    });
+
+    /// <summary>The labels already used on documents, for suggestions.</summary>
+    [HttpGet("tags")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(IReadOnlyList<string>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<string>>> GetTags(CancellationToken cancellationToken) =>
+        Ok(await Mediator.Send(new GetAttachmentTagsQuery(), cancellationToken));
 
     /// <summary>Documents that have lapsed or are about to.</summary>
     [HttpGet("expiring")]
@@ -133,6 +154,8 @@ public class AttachmentsController : ApiControllerBase
                 SizeBytes = request.File.Length,
                 Content = content,
                 Description = request.Description,
+                Title = request.Title,
+                Tags = request.Tags,
                 ExpiresAt = request.ExpiresAt,
                 RetainUntil = request.RetainUntil,
                 ReminderDays = request.ReminderDays
@@ -168,6 +191,20 @@ public class AttachmentsController : ApiControllerBase
     }
 }
 
+/// <summary>The rules for uploading, so the panel never keeps its own copy.</summary>
+public class AttachmentLimitsDto
+{
+    public long MaxSizeBytes { get; init; }
+
+    public IReadOnlyList<string> Extensions { get; init; } = [];
+
+    public int MaxTags { get; init; }
+
+    public int MaxTagLength { get; init; }
+
+    public int MaxTitleLength { get; init; }
+}
+
 /// <summary>The documents to pack into an export.</summary>
 public class ExportAttachmentsRequest
 {
@@ -193,6 +230,10 @@ public class UploadAttachmentRequest
     public AttachmentCategory Category { get; set; } = AttachmentCategory.Other;
 
     public string? Description { get; set; }
+
+    public string? Title { get; set; }
+
+    public List<string>? Tags { get; set; }
 
     public DateOnly? ExpiresAt { get; set; }
 

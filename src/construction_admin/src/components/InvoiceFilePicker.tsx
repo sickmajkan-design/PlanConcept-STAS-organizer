@@ -1,9 +1,11 @@
 import { AttachFileOutlined, CloseOutlined } from '@mui/icons-material';
-import { Button, Chip, Stack, Typography } from '@mui/material';
-import { useRef, useState } from 'react';
+import { Chip, Stack, Typography } from '@mui/material';
+import { useState } from 'react';
 
-import { ACCEPTED_EXTENSIONS, MAX_ATTACHMENT_BYTES } from '../api/attachments';
+import type { Rejection } from '../features/files/validateFiles';
 import { useT } from '../i18n/useI18n';
+import { FileDropzone } from './files/FileDropzone';
+import { rejectionText } from './files/rejectionText';
 
 /**
  * Choose the scan or photo of an invoice to file with a delivery. The file is
@@ -18,57 +20,50 @@ export function InvoiceFilePicker({
   onChange: (file: File | null) => void;
 }) {
   const t = useT();
-  const input = useRef<HTMLInputElement>(null);
   const [problem, setProblem] = useState<string | null>(null);
 
-  const choose = (chosen: File | undefined) => {
-    setProblem(null);
-    if (!chosen) return;
+  const refused = (rejected: Rejection[]) => {
+    const first = rejected[0];
 
-    const extension = `.${chosen.name.split('.').pop()?.toLowerCase() ?? ''}`;
+    if (!first) return;
 
-    if (chosen.size > MAX_ATTACHMENT_BYTES) {
-      setProblem(t('invoiceFile.tooBig'));
-    } else if (!ACCEPTED_EXTENSIONS.split(',').includes(extension)) {
-      setProblem(t('invoiceFile.badType'));
-    } else {
-      onChange(chosen);
-    }
+    setProblem(
+      first.reason === 'size'
+        ? t('invoiceFile.tooBig')
+        : first.reason === 'type'
+          ? t('invoiceFile.badType')
+          : rejectionText(t, first),
+    );
   };
 
   return (
-    <Stack spacing={0.5} sx={{ alignItems: 'flex-start' }}>
-      <input
-        ref={input}
-        type="file"
-        hidden
-        accept={ACCEPTED_EXTENSIONS}
-        onChange={(event) => {
-          choose(event.target.files?.[0]);
-          event.target.value = '';
-        }}
-      />
+    <Stack spacing={0.5} sx={{ alignItems: 'stretch' }}>
       {file ? (
         <Chip
           icon={<AttachFileOutlined />}
           label={file.name}
           onDelete={() => onChange(null)}
           deleteIcon={<CloseOutlined aria-label={t('invoiceFile.remove')} />}
-          sx={{ maxWidth: '100%' }}
+          sx={{ maxWidth: '100%', alignSelf: 'flex-start' }}
         />
       ) : (
-        <Button
-          variant="outlined"
-          size="small"
-          startIcon={<AttachFileOutlined />}
-          onClick={() => input.current?.click()}
-        >
-          {t('invoiceFile.attach')}
-        </Button>
+        <FileDropzone
+          compact
+          multiple={false}
+          helper={problem ?? t('invoiceFile.hint')}
+          helperError={!!problem}
+          onFiles={([chosen]) => {
+            setProblem(null);
+            onChange(chosen ?? null);
+          }}
+          onReject={refused}
+        />
       )}
-      <Typography variant="caption" color={problem ? 'error' : 'text.secondary'}>
-        {problem ?? t('invoiceFile.hint')}
-      </Typography>
+      {file && (
+        <Typography variant="caption" color="text.secondary">
+          {t('invoiceFile.hint')}
+        </Typography>
+      )}
     </Stack>
   );
 }

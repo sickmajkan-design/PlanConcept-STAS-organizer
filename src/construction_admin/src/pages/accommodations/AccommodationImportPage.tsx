@@ -27,6 +27,7 @@ import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { formatDate, formatMoney } from '../../utils/formatting';
+import { DropArea } from '../../components/files/DropArea';
 
 const MAX_BYTES = 10 * 1024 * 1024;
 
@@ -150,7 +151,8 @@ export function AccommodationImportPage() {
         </Paper>
       ) : (
         <Stack spacing={2}>
-          <Paper variant="outlined" sx={{ p: 3 }}>
+          <DropArea onFile={(f) => void choose(f)}>
+<Paper variant="outlined" sx={{ p: 3 }}>
             <Stack spacing={2} sx={{ alignItems: 'flex-start' }}>
               <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 680 }}>
                 {t('accommodationImport.columnsHint')}
@@ -185,6 +187,7 @@ export function AccommodationImportPage() {
               )}
             </Stack>
           </Paper>
+</DropArea>
 
           {preview && (
             <Paper variant="outlined">

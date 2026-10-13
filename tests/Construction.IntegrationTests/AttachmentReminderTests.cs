@@ -32,7 +32,7 @@ public class AttachmentReminderTests : IntegrationTestBase
         InScope(scope =>
         {
             ActAs(scope, uploader);
-            var bytes = new MemoryStream(Encoding.UTF8.GetBytes("viza"));
+            var bytes = new MemoryStream(TestFiles.WithSignature("viza.pdf", "viza"));
 
             return scope.Send(new UploadAttachmentCommand
             {

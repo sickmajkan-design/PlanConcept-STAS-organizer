@@ -27,6 +27,11 @@ public record UpdateAttachmentCommand : IRequest<AttachmentDto>
 
     public string? Description { get; init; }
 
+    public string? Title { get; init; }
+
+    /// <summary>Null leaves the labels as they were; an empty list clears them.</summary>
+    public List<string>? Tags { get; init; }
+
     public DateOnly? ExpiresAt { get; init; }
 
     public DateOnly? RetainUntil { get; init; }
@@ -42,6 +47,15 @@ public class UpdateAttachmentCommandValidator : AbstractValidator<UpdateAttachme
         RuleFor(x => x.Id).NotEmpty();
         RuleFor(x => x.Category).IsInEnum();
         RuleFor(x => x.Description).MaximumLength(1000);
+        RuleFor(x => x.Title).MaximumLength(AttachmentRules.MaxTitleLength);
+
+        RuleForEach(x => x.Tags)
+            .Must(t => (t ?? string.Empty).Trim().Length <= AttachmentRules.MaxTagLength)
+            .WithMessage($"A label is at most {AttachmentRules.MaxTagLength} characters.");
+
+        RuleFor(x => x.Tags)
+            .Must(t => AttachmentRules.NormaliseTags(t).Length <= AttachmentRules.MaxTags)
+            .WithMessage($"At most {AttachmentRules.MaxTags} labels per document.");
 
         RuleFor(x => x.ExpiresAt)
             .Null().WithMessage("A photograph does not expire.")
@@ -91,6 +105,13 @@ public class UpdateAttachmentCommandHandler : IRequestHandler<UpdateAttachmentCo
         attachment.Description = string.IsNullOrWhiteSpace(request.Description)
             ? null
             : request.Description.Trim();
+        attachment.Title = string.IsNullOrWhiteSpace(request.Title) ? null : request.Title.Trim();
+
+        if (request.Tags is not null)
+        {
+            attachment.Tags = AttachmentRules.NormaliseTags(request.Tags);
+        }
+
         var renewed = attachment.ExpiresAt != request.ExpiresAt;
         var reminders = AttachmentRules.NormaliseReminderDays(request.ReminderDays);
 

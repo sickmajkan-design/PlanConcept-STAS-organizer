@@ -50,6 +50,15 @@ public class Attachment : BaseEntity, ISoftDeletable, IAuditable
 
     public string? Description { get; set; }
 
+    /// <summary>A short heading for the document, shown instead of the file name when set.</summary>
+    public string? Title { get; set; }
+
+    /// <summary>
+    /// Free labels for finding the document again ("viza", "2026"). Normalised on the way in: trimmed,
+    /// distinct without regard to case, at most <c>AttachmentRules.MaxTags</c>.
+    /// </summary>
+    public string[] Tags { get; set; } = [];
+
     /// <summary>
     /// When the document stops being valid. Null for anything that does not
     /// lapse, such as a photograph.

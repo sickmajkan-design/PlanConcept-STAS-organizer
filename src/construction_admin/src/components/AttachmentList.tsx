@@ -17,6 +17,7 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { useEffect, useState } from "react";
 
 import { attachmentsApi } from "../api/attachments";
@@ -29,6 +30,7 @@ import {
   useAttachmentsQuery,
   useDeleteAttachment,
 } from "../features/attachments/useAttachments";
+import { useFileDrop } from "../features/files/useFileDrop";
 import { useDeleteWithConfirm } from "../hooks/useDeleteWithConfirm";
 import { useEnumLabel } from "../i18n/enumLabels";
 import { useT } from "../i18n/useI18n";
@@ -37,6 +39,7 @@ import { AttachmentPreviewDialog } from "./AttachmentPreviewDialog";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { ExportZipButton } from "./ExportZipButton";
 import { ErrorState } from "./ErrorState";
+import { FirstUseHint, HintLine } from "./files/FirstUseHint";
 import { UploadAttachmentDialog } from "./UploadAttachmentDialog";
 
 /** How soon counts as "expiring soon" on a badge. */
@@ -90,7 +93,17 @@ export function AttachmentList({
 
   const remove = useDeleteWithConfirm<Attachment>(useDeleteAttachment());
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [dropped, setDropped] = useState<File[]>([]);
   const [previewing, setPreviewing] = useState<Attachment | null>(null);
+
+  // Files dropped anywhere on this card open the upload dialog with those files already in it.
+  const drop = useFileDrop({
+    disabled: !canUpload || uploadOpen,
+    onFiles: (files) => {
+      setDropped(files);
+      setUploadOpen(true);
+    },
+  });
 
   if (isError) {
     return <ErrorState error={error} onRetry={() => void refetch()} />;
@@ -99,7 +112,34 @@ export function AttachmentList({
   const attachments = data ?? [];
 
   return (
-    <Box>
+    <Box
+      {...drop.bind}
+      data-testid="attachment-drop-target"
+      sx={(theme) => ({
+        position: "relative",
+        borderRadius: 2,
+        outline: drop.isOver ? `2px dashed ${theme.palette.primary.main}` : "none",
+        outlineOffset: 4,
+        bgcolor: drop.isOver ? alpha(theme.palette.primary.main, 0.06) : "transparent",
+        transition: theme.transitions.create(["background-color"], { duration: 120 }),
+      })}
+    >
+      {drop.isOver && (
+        <Typography
+          variant="body2"
+          sx={{
+            position: "absolute",
+            inset: 0,
+            display: "grid",
+            placeItems: "center",
+            fontWeight: 700,
+            color: "primary.main",
+            pointerEvents: "none",
+          }}
+        >
+          {t("attachments.dropToAdd")}
+        </Typography>
+      )}
       <Stack
         direction="row"
         sx={{ alignItems: "center", justifyContent: "space-between", mb: 1 }}
@@ -122,6 +162,16 @@ export function AttachmentList({
           )}
         </Stack>
       </Stack>
+
+      {canUpload && (
+        <Box sx={{ mb: 1 }}>
+          <FirstUseHint id="list" title={t("files.hint.list.title")}>
+            <HintLine>{t("files.hint.list.drop")}</HintLine>
+            <HintLine>{t("files.hint.list.preview")}</HintLine>
+            <HintLine>{t("files.hint.list.tags")}</HintLine>
+          </FirstUseHint>
+        </Box>
+      )}
 
       {attachments.length === 0 ? (
         <Typography variant="body2" color="text.secondary">
@@ -179,15 +229,19 @@ export function AttachmentList({
                     useFlexGap
                     sx={{ alignItems: "center", flexWrap: "wrap" }}
                   >
-                    <span style={{ overflowWrap: "anywhere" }}>{attachment.fileName}</span>
+                    <span style={{ overflowWrap: "anywhere" }}>
+                      {attachment.title || attachment.fileName}
+                    </span>
                     <ExpiryChip expiresAt={attachment.expiresAt} />
                     <RetentionChip retainUntil={attachment.retainUntil} />
                   </Stack>
                 }
                 secondary={[
+                  attachment.title ? attachment.fileName : null,
                   enumLabel("attachmentCategory", attachment.category),
                   formatSize(attachment.sizeBytes),
                   attachment.description,
+                  ...(attachment.tags ?? []).map((tag) => `#${tag}`),
                 ]
                   .filter(Boolean)
                   .join(" · ")}
@@ -202,7 +256,11 @@ export function AttachmentList({
         ownerType={ownerType}
         ownerId={ownerId}
         categories={categories}
-        onClose={() => setUploadOpen(false)}
+        initialFiles={dropped}
+        onClose={() => {
+          setUploadOpen(false);
+          setDropped([]);
+        }}
       />
 
       <AttachmentPreviewDialog

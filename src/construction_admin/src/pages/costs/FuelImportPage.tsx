@@ -31,6 +31,7 @@ import { PageHeader } from '../../components/PageHeader';
 import { usePreviewFuelImport, useImportFuelTransactions } from '../../features/fuelCards/useFuelCards';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { formatMoney } from '../../utils/formatting';
+import { DropArea } from '../../components/files/DropArea';
 
 interface ColumnOption {
   index: number;
@@ -196,7 +197,8 @@ export function FuelImportPage() {
       </Stepper>
 
       {step === 0 && (
-        <Paper sx={{ p: 3 }}>
+        <DropArea onFile={(f) => void handleFileChange(f)}>
+<Paper sx={{ p: 3 }}>
           <Stack spacing={2} sx={{ maxWidth: 480 }}>
             {fileError && <Alert severity="error">{fileError}</Alert>}
             <Button variant="outlined" component="label">
@@ -220,6 +222,7 @@ export function FuelImportPage() {
             </Box>
           </Stack>
         </Paper>
+</DropArea>
       )}
 
       {step === 1 && (

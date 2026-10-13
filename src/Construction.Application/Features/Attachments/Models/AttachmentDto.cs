@@ -18,6 +18,10 @@ public class AttachmentDto
 
     public string? Description { get; init; }
 
+    public string? Title { get; init; }
+
+    public string[] Tags { get; init; } = [];
+
     public DateOnly? ExpiresAt { get; init; }
 
     public DateOnly? RetainUntil { get; init; }
@@ -57,6 +61,8 @@ public static class AttachmentMapping
             SizeBytes = attachment.SizeBytes,
             Category = attachment.Category,
             Description = attachment.Description,
+            Title = attachment.Title,
+            Tags = attachment.Tags,
             ExpiresAt = attachment.ExpiresAt,
             RetainUntil = attachment.RetainUntil,
             ReminderDays = attachment.ReminderDays,

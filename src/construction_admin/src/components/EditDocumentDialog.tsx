@@ -17,9 +17,13 @@ import { useEffect, useState } from 'react';
 
 import type { Attachment, AttachmentCategory } from '../api/types';
 import { attachmentCategories } from '../api/types';
-import { useUpdateAttachment } from '../features/attachments/useAttachments';
+import { useAuth } from '../auth/useAuth';
+import { canAdministerAccounts } from '../auth/authHelpers';
+import { useAttachmentTagsQuery, useUpdateAttachment } from '../features/attachments/useAttachments';
 import { useEnumLabel } from '../i18n/enumLabels';
 import { useT } from '../i18n/useI18n';
+import { MAX_ATTACHMENT_TITLE_LENGTH } from '../api/attachments';
+import { TagsField } from './files/TagsField';
 import { ReminderDaysField } from './ReminderDaysField';
 
 /**
@@ -37,9 +41,13 @@ export function EditDocumentDialog({
   const t = useT();
   const enumLabel = useEnumLabel();
   const update = useUpdateAttachment();
+  const { user } = useAuth();
+  const tagSuggestions = useAttachmentTagsQuery(!!attachment && canAdministerAccounts(user));
 
   const [category, setCategory] = useState<AttachmentCategory>('Other');
   const [description, setDescription] = useState('');
+  const [title, setTitle] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
   const [expiresAt, setExpiresAt] = useState('');
   const [retainUntil, setRetainUntil] = useState('');
   const [reminderDays, setReminderDays] = useState<number[]>([]);
@@ -50,6 +58,8 @@ export function EditDocumentDialog({
     if (attachment) {
       setCategory(attachment.category);
       setDescription(attachment.description ?? '');
+      setTitle(attachment.title ?? '');
+      setTags(attachment.tags ?? []);
       setExpiresAt(attachment.expiresAt ?? '');
       setRetainUntil(attachment.retainUntil ?? '');
       setReminderDays(attachment.reminderDays ?? []);
@@ -68,6 +78,8 @@ export function EditDocumentDialog({
         id: attachment.id,
         category,
         description: description.trim() || null,
+        title: title.trim() || null,
+        tags,
         expiresAt: expiryAllowed && expiresAt ? expiresAt : null,
         retainUntil: retainUntil || null,
         reminderDays: expiryAllowed && expiresAt ? reminderDays : [],
@@ -84,6 +96,14 @@ export function EditDocumentDialog({
           <Typography variant="body2" color="text.secondary">
             {attachment?.fileName}
           </Typography>
+
+          <TextField
+            size="small"
+            label={t('attachments.field.title')}
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            slotProps={{ htmlInput: { maxLength: MAX_ATTACHMENT_TITLE_LENGTH } }}
+          />
 
           <FormControl size="small" fullWidth>
             <InputLabel id="edit-doc-category">{t('attachments.category')}</InputLabel>
@@ -133,6 +153,8 @@ export function EditDocumentDialog({
             minRows={2}
             slotProps={{ htmlInput: { maxLength: 1000 } }}
           />
+
+          <TagsField size="small" value={tags} onChange={setTags} suggestions={tagSuggestions.data ?? []} />
 
           {update.error && <Alert severity="error">{update.error.message}</Alert>}
         </Stack>

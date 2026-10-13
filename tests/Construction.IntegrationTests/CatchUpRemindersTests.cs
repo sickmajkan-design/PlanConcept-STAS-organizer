@@ -38,7 +38,7 @@ public class CatchUpRemindersTests : IntegrationTestBase
         await InScope(async scope =>
         {
             ActAs(scope, admin);
-            var bytes = Encoding.UTF8.GetBytes("hello");
+            var bytes = TestFiles.WithSignature(fileName, "hello");
 
             await scope.Send(new UploadAttachmentCommand
             {

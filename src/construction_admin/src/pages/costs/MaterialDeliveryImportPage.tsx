@@ -27,6 +27,7 @@ import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { formatDate, formatMoney, formatQuantity } from '../../utils/formatting';
+import { DropArea } from '../../components/files/DropArea';
 
 const MAX_BYTES = 10 * 1024 * 1024;
 
@@ -148,7 +149,8 @@ export function MaterialDeliveryImportPage() {
         </Paper>
       ) : (
         <Stack spacing={2}>
-          <Paper variant="outlined" sx={{ p: 3 }}>
+          <DropArea onFile={(f) => void choose(f)}>
+<Paper variant="outlined" sx={{ p: 3 }}>
             <Stack spacing={2} sx={{ alignItems: 'flex-start' }}>
               <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 640 }}>
                 {t('deliveryImport.columnsHint')}
@@ -183,6 +185,7 @@ export function MaterialDeliveryImportPage() {
               )}
             </Stack>
           </Paper>
+</DropArea>
 
           {preview && (
             <Paper variant="outlined">

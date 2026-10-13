@@ -42,6 +42,7 @@ import { useListQueryState } from '../../hooks/useListQueryState';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
 import { formatIsoWeek, getLastCompletedIsoWeek } from '../../utils/isoWeek';
+import { DropArea } from '../../components/files/DropArea';
 
 function SubmitReportDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const t = useT();
@@ -196,6 +197,7 @@ function SubmitReportDialog({ open, onClose }: { open: boolean; onClose: () => v
             fullWidth
           />
 
+<DropArea onFile={(f) => setFile(f)}>
           <Button
             variant="outlined"
             component="label"
@@ -210,6 +212,7 @@ function SubmitReportDialog({ open, onClose }: { open: boolean; onClose: () => v
               onChange={(event) => setFile(event.target.files?.[0] ?? null)}
             />
           </Button>
+</DropArea>
 
           {create.error && (
             <Typography variant="body2" color="error">

@@ -28,7 +28,7 @@ public static class AttachmentRules
     /// mistake, and both are better refused at the door than discovered when
     /// the disk fills.
     /// </remarks>
-    public const long MaxSizeBytes = 20 * 1024 * 1024;
+    public const long MaxSizeBytes = 25 * 1024 * 1024;
 
     /// <summary>
     /// Content types accepted, as an allow-list.
@@ -55,8 +55,70 @@ public static class AttachmentRules
             [".xls"] = "application/vnd.ms-excel",
             [".xlsx"] =
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            [".txt"] = "text/plain"
+            [".txt"] = "text/plain",
+            [".csv"] = "text/csv"
         };
+
+    /// <summary>The most labels one document may carry.</summary>
+    public const int MaxTags = 10;
+
+    /// <summary>The longest single label.</summary>
+    public const int MaxTagLength = 30;
+
+    /// <summary>The longest document title.</summary>
+    public const int MaxTitleLength = 200;
+
+    /// <summary>Labels as stored: trimmed, blanks dropped, distinct regardless of case (first spelling wins).</summary>
+    public static string[] NormaliseTags(IEnumerable<string?>? tags) =>
+        (tags ?? [])
+            .Select(t => (t ?? string.Empty).Trim())
+            .Where(t => t.Length > 0)
+            .DistinctBy(t => t.ToLowerInvariant())
+            .ToArray();
+
+    /// <summary>How many leading bytes are read to check a file is what its name says.</summary>
+    public const int SignatureBytes = 8192;
+
+    /// <summary>
+    /// True when the leading bytes of a file fit the type its extension claims. The extension alone
+    /// decides the stored content type, so without this a program renamed to <c>.pdf</c> would be
+    /// filed and later served as a PDF.
+    /// </summary>
+    public static bool MatchesSignature(string fileName, ReadOnlySpan<byte> header)
+    {
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+
+        static bool Starts(ReadOnlySpan<byte> h, params byte[] prefix) =>
+            h.Length >= prefix.Length && h[..prefix.Length].SequenceEqual(prefix);
+
+        switch (extension)
+        {
+            case ".pdf":
+                // The standard allows a little junk before the marker.
+                return header[..Math.Min(header.Length, 1024)].IndexOf("%PDF-"u8) >= 0;
+            case ".jpg":
+            case ".jpeg":
+                return Starts(header, 0xFF, 0xD8, 0xFF);
+            case ".png":
+                return Starts(header, 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A);
+            case ".webp":
+                return header.Length >= 12 && header[..4].SequenceEqual("RIFF"u8) && header[8..12].SequenceEqual("WEBP"u8);
+            case ".heic":
+                return header.Length >= 12 && header[4..8].SequenceEqual("ftyp"u8);
+            case ".doc":
+            case ".xls":
+                return Starts(header, 0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1);
+            case ".docx":
+            case ".xlsx":
+                return Starts(header, 0x50, 0x4B, 0x03, 0x04);
+            case ".txt":
+            case ".csv":
+                // Text has no NUL bytes, except UTF-16 which announces itself with a byte-order mark.
+                return Starts(header, 0xFF, 0xFE) || Starts(header, 0xFE, 0xFF) || header.IndexOf((byte)0) < 0;
+            default:
+                return false;
+        }
+    }
 
     /// <summary>
     /// The content type for a file name, or null when the extension is not

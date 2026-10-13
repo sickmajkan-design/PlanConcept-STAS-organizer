@@ -27,6 +27,7 @@ import type { ImportDuplicateHandling, ImportRowOutcome, ImportRowResult } from 
 import { useImportEmployees, useImportEmployeesPreview } from '../features/onboarding/useOnboarding';
 import type { MessageKey } from '../i18n/en';
 import { useT } from '../i18n/useI18n';
+import { DropArea } from '../components/files/DropArea';
 import {
   downloadEmployeeTemplate,
   parseEmployeeFile,
@@ -168,7 +169,8 @@ export function ImportEmployeesDialog({ open, onClose }: { open: boolean; onClos
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>{t('onboarding.import.title')}</DialogTitle>
       <DialogContent>
-        <Stack spacing={2} sx={{ mt: 0.5 }}>
+        <DropArea onFile={(f) => void pick(f)}>
+<Stack spacing={2} sx={{ mt: 0.5 }}>
           <Typography variant="body2" color="text.secondary">
             {t('onboarding.import.intro')}
           </Typography>
@@ -292,6 +294,7 @@ export function ImportEmployeesDialog({ open, onClose }: { open: boolean; onClos
             </>
           )}
         </Stack>
+</DropArea>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>{done ? t('common.close') : t('common.cancel')}</Button>

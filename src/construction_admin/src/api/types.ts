@@ -1026,6 +1026,10 @@ export interface Attachment {
   sizeBytes: number;
   category: AttachmentCategory;
   description: string | null;
+  /** A short heading shown instead of the file name when set. */
+  title: string | null;
+  /** Free labels for finding the document again. */
+  tags: string[];
   /** `YYYY-MM-DD`, or null for anything that does not lapse. */
   expiresAt: string | null;
   /** `YYYY-MM-DD` — a legal retention requirement, null if none applies. */

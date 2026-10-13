@@ -62,6 +62,20 @@ export function useExpiringDocumentsQuery(
   });
 }
 
+/**
+ * The labels already in use, for suggestions. Only admins may ask (the API refuses others), so the
+ * caller passes whether to; a refusal just means no suggestions.
+ */
+export function useAttachmentTagsQuery(enabled: boolean) {
+  return useQuery({
+    queryKey: [...attachmentKeys.all, 'tags'],
+    queryFn: () => attachmentsApi.tags(),
+    enabled,
+    retry: false,
+    staleTime: 60_000,
+  });
+}
+
 export function useUploadAttachment() {
   return useResourceMutation(
     (input: UploadAttachmentInput) => attachmentsApi.upload(input),

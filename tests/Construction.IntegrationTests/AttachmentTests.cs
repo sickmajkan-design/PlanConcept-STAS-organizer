@@ -27,8 +27,8 @@ public class AttachmentTests : IntegrationTestBase
     {
     }
 
-    private static Stream Bytes(string content = "hello") =>
-        new MemoryStream(Encoding.UTF8.GetBytes(content));
+    private static Stream Bytes(string fileName, string content = "hello") =>
+        new MemoryStream(TestFiles.WithSignature(fileName, content));
 
     private static void ActAs(TestScope scope, User user, Guid? employeeId = null) =>
         scope.CurrentUser.SignInAs(user.Id, user.Role, employeeId, user.Email);
@@ -42,7 +42,7 @@ public class AttachmentTests : IntegrationTestBase
         DateOnly? expiresAt = null,
         string content = "hello")
     {
-        var bytes = Bytes(content);
+        var bytes = Bytes(fileName, content);
 
         return scope.Send(new UploadAttachmentCommand
         {
@@ -79,7 +79,7 @@ public class AttachmentTests : IntegrationTestBase
 
         using var reader = new StreamReader(read.Content);
 
-        Assert.Equal("ugovor 2026", await reader.ReadToEndAsync());
+        Assert.EndsWith("ugovor 2026", await reader.ReadToEndAsync());
         Assert.Equal("application/pdf", read.ContentType);
     }
 

@@ -56,6 +56,7 @@ import {
 import { useAllVehiclesQuery } from '../../features/vehicles/useVehicles';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { formatDate, formatDateTime, formatMoney } from '../../utils/formatting';
+import { DropArea } from '../../components/files/DropArea';
 
 const STATUS_COLOR: Record<FuelTransactionStatus, 'success' | 'warning' | 'info' | 'error' | 'default'> = {
   Matched: 'success',
@@ -166,7 +167,8 @@ function UploadSection() {
           </Alert>
         )}
 
-        <Stack direction="row" spacing={2} sx={{ alignItems: 'center', flexWrap: 'wrap' }} useFlexGap>
+        <DropArea onFile={(f) => handleFile(f)}>
+<Stack direction="row" spacing={2} sx={{ alignItems: 'center', flexWrap: 'wrap' }} useFlexGap>
           <Button variant="outlined" component="label" loading={previewMutation.isPending}>
             {t('dkv.chooseFile')}
             <input
@@ -185,6 +187,7 @@ function UploadSection() {
             </Typography>
           )}
         </Stack>
+</DropArea>
 
         {preview && (
           <>

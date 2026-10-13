@@ -1,6 +1,8 @@
+import { AttachFileOutlined } from '@mui/icons-material';
 import {
   Alert,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -8,12 +10,12 @@ import {
   MenuItem,
   Stack,
   TextField,
-  Typography,
 } from '@mui/material';
 import { useState } from 'react';
 
 import { toApiError } from '../../api/apiError';
-import { ACCEPTED_EXTENSIONS, MAX_ATTACHMENT_BYTES } from '../../api/attachments';
+import { MAX_ATTACHMENT_BYTES } from '../../api/attachments';
+import { FileDropzone } from '../../components/files/FileDropzone';
 import { useUploadAttachment } from '../../features/attachments/useAttachments';
 import { useCreateRefund } from '../../features/refunds/useRefunds';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
@@ -34,6 +36,7 @@ export function NewRefundDialog({ open, onClose }: { open: boolean; onClose: () 
   const [projectId, setProjectId] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [receiptProblem, setReceiptProblem] = useState<string | null>(null);
 
   const tooBig = !!file && file.size > MAX_ATTACHMENT_BYTES;
   const valid = Number(amount) > 0 && description.trim().length > 0 && /^[A-Za-z]{3}$/.test(currency) && !tooBig;
@@ -111,18 +114,30 @@ export function NewRefundDialog({ open, onClose }: { open: boolean; onClose: () 
             ))}
           </TextField>
           <Stack spacing={0.5}>
-            <Button variant="outlined" component="label" sx={{ alignSelf: 'flex-start' }}>
-              {file ? file.name : t('refunds.attachReceipt')}
-              <input
-                hidden
-                type="file"
-                accept={ACCEPTED_EXTENSIONS}
-                onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+            {file ? (
+              <Chip
+                icon={<AttachFileOutlined />}
+                label={file.name}
+                onDelete={() => setFile(null)}
+                sx={{ alignSelf: 'flex-start', maxWidth: '100%' }}
               />
-            </Button>
-            <Typography variant="caption" color={tooBig ? 'error' : 'text.secondary'}>
-              {tooBig ? t('refunds.receiptTooBig') : t('refunds.receiptHint')}
-            </Typography>
+            ) : (
+              <FileDropzone
+                compact
+                multiple={false}
+                helper={receiptProblem ?? t('refunds.receiptHint')}
+                helperError={!!receiptProblem}
+                onFiles={([chosen]) => {
+                  setReceiptProblem(null);
+                  setFile(chosen ?? null);
+                }}
+                onReject={(rejected) =>
+                  setReceiptProblem(
+                    rejected[0]?.reason === 'size' ? t('refunds.receiptTooBig') : t('invoiceFile.badType'),
+                  )
+                }
+              />
+            )}
           </Stack>
           {error && <Alert severity="error">{error}</Alert>}
         </Stack>

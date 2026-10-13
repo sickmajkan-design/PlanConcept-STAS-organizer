@@ -137,7 +137,7 @@ public class SignedTimesheetTests : IntegrationTestBase
         await Assert.ThrowsAsync<ForbiddenAccessException>(() => InScope(scope =>
         {
             ActAs(scope, admin);
-            var bytes = new MemoryStream(Encoding.UTF8.GetBytes("satnica"));
+            var bytes = new MemoryStream(TestFiles.WithSignature("satnica.pdf", "satnica"));
 
             return scope.Send(new UploadAttachmentCommand
             {
@@ -171,7 +171,7 @@ public class SignedTimesheetTests : IntegrationTestBase
         var uploaded = await InScope(scope =>
         {
             ActAs(scope, superAdmin);
-            var bytes = new MemoryStream(Encoding.UTF8.GetBytes("satnica"));
+            var bytes = new MemoryStream(TestFiles.WithSignature("satnica.pdf", "satnica"));
 
             return scope.Send(new UploadAttachmentCommand
             {
@@ -244,7 +244,7 @@ public class SignedTimesheetTests : IntegrationTestBase
         await InScope(scope =>
         {
             ActAs(scope, superAdmin);
-            var bytes = new MemoryStream(Encoding.UTF8.GetBytes("satnica"));
+            var bytes = new MemoryStream(TestFiles.WithSignature("satnica.pdf", "satnica"));
 
             return scope.Send(new UploadAttachmentCommand
             {
@@ -410,7 +410,7 @@ public class SignedTimesheetTests : IntegrationTestBase
         await InScope(scope =>
         {
             ActAs(scope, superAdmin);
-            var bytes = new MemoryStream(Encoding.UTF8.GetBytes("satnica"));
+            var bytes = new MemoryStream(TestFiles.WithSignature("satnica.pdf", "satnica"));
 
             return scope.Send(new UploadAttachmentCommand
             {
