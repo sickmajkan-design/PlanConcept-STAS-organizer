@@ -25,6 +25,9 @@ public class UserDto
     /// <summary>"None", "StatisticsOnly" or "Full" — see <c>FinanceAccess</c>.</summary>
     public string FinanceAccess { get; init; } = null!;
 
+    /// <summary>Whether the account may open the book of money (a Super Admin always may).</summary>
+    public bool BookAccess { get; init; }
+
     /// <summary>Whether a foreman may move people within their business unit.</summary>
     public bool CanPlan { get; init; }
 
@@ -59,6 +62,7 @@ public static class UserMapping
             FinanceAccess = user.Role == Construction.Domain.Enums.UserRole.SuperAdmin
                 ? nameof(Construction.Domain.Enums.FinanceAccess.Full)
                 : user.FinanceAccess.ToString(),
+            BookAccess = user.Role == Construction.Domain.Enums.UserRole.SuperAdmin || user.BookAccess,
             PreferredLanguage = user.PreferredLanguage,
         };
 

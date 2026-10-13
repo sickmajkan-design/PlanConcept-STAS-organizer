@@ -29,6 +29,7 @@ public static class PayoutRules
             throw new ForbiddenAccessException("Only management may work with payouts.");
         }
 
+        await BookRules.EnsureReadAsync(context, currentUserService, cancellationToken);
         await FinanceRules.EnsureFullAsync(context, currentUserService, cancellationToken);
     }
 

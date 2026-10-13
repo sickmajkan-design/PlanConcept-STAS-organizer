@@ -106,6 +106,7 @@ export function UserFormPage() {
       documentExpiryReminderDays: '',
       canViewCustomerTaxDetails: false,
       financeAccess: 'None',
+      bookAccess: false,
       canPlan: false,
     },
   });
@@ -124,6 +125,7 @@ export function UserFormPage() {
             : String(existing.documentExpiryReminderDays),
         canViewCustomerTaxDetails: existing.canViewCustomerTaxDetails,
         financeAccess: existing.financeAccess,
+        bookAccess: existing.bookAccess ?? false,
         canPlan: existing.canPlan ?? false,
       });
     }
@@ -159,6 +161,7 @@ export function UserFormPage() {
             : null,
           canViewCustomerTaxDetails: values.canViewCustomerTaxDetails ?? false,
           financeAccess: canBeGrantedFinance(values.role) ? (values.financeAccess ?? 'None') : 'None',
+          bookAccess: canBeGrantedFinance(values.role) ? (values.bookAccess ?? false) : false,
           canPlan: values.role === 'Foreman' ? (values.canPlan ?? false) : false,
         });
       } else {
@@ -355,6 +358,24 @@ export function UserFormPage() {
                     </FormControl>
                   )}
                 />
+              </Grid>
+            )}
+
+            {showFinanceField && (
+              <Grid size={{ xs: 12 }}>
+                <Controller
+                  name="bookAccess"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControlLabel
+                      control={<Switch checked={field.value ?? false} onChange={field.onChange} />}
+                      label={t('users.bookAccess')}
+                    />
+                  )}
+                />
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                  {t('users.bookAccessHelp')}
+                </Typography>
               </Grid>
             )}
 

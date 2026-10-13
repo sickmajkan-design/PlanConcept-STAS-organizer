@@ -51,6 +51,7 @@ import {
   canSeeLabourCost,
   isSuperAdmin,
   canViewDirectory,
+  canViewBook,
   canViewFinance,
 } from '../auth/authHelpers';
 import type { User } from '../api/types';
@@ -181,7 +182,7 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
           } satisfies NavGroup,
           // The book of money: the company's own record of what comes in, goes out and is left. Its own group,
           // in the order the owner works through a month.
-          ...(canViewFinance(user)
+          ...(canViewBook(user)
             ? [
                 {
                   key: 'book',

@@ -12,6 +12,9 @@ export function displayName(user: User): string {
   return name.length > 0 ? name : user.email;
 }
 
+/** Roles a finance grant may be given to; never a worker or a customer (`FinanceRules.CanBeGranted`). */
+const FINANCE_GRANTABLE_ROLES = new Set(['Admin', 'ProjectManager', 'Foreman']);
+
 /** Roles the API lets administer accounts (its AdminAndAbove policy). */
 const ACCOUNT_ADMIN_ROLES = new Set(['SuperAdmin', 'Admin']);
 
@@ -22,6 +25,14 @@ const ACCOUNT_ADMIN_ROLES = new Set(['SuperAdmin', 'Admin']);
  */
 export function canViewFinance(user: User | null | undefined): boolean {
   return user?.financeAccess === 'Full';
+}
+
+/**
+ * Whether the account may open the book of money (Evidencija): a Super Admin always, anyone else only once a
+ * Super Admin has granted it. The server reads the grant on every request; this only decides what is offered.
+ */
+export function canViewBook(user: User | null | undefined): boolean {
+  return !!user && (user.role === 'SuperAdmin' || (FINANCE_GRANTABLE_ROLES.has(user.role) && user.bookAccess === true));
 }
 
 /**
@@ -50,9 +61,6 @@ export function canManageInvoices(user: User | null | undefined): boolean {
 export function canReviewRefunds(user: User | null | undefined): boolean {
   return !!user && ACCOUNT_ADMIN_ROLES.has(user.role);
 }
-
-/** Roles a finance grant may be given to; never a worker or a customer (`FinanceRules.CanBeGranted`). */
-const FINANCE_GRANTABLE_ROLES = new Set(['Admin', 'ProjectManager', 'Foreman']);
 
 export function canBeGrantedFinance(role: string): boolean {
   return FINANCE_GRANTABLE_ROLES.has(role);

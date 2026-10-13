@@ -177,6 +177,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // The stored copy of the account is as old as the last sign-in, so a grant or a role changed meanwhile
+  // would not show until the next one. Re-read it whenever a session is picked up. The API checks every call
+  // regardless; this only keeps the menu in step with it.
+  useEffect(() => {
+    if (signedIn) {
+      void refreshProfile().catch(() => {});
+    }
+  }, [signedIn, refreshProfile]);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user: session === undefined ? undefined : (session?.user ?? null),

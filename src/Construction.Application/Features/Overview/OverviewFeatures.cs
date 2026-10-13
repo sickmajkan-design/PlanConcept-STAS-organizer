@@ -347,8 +347,8 @@ public class GetOverviewQueryHandler : IRequestHandler<GetOverviewQuery, Overvie
 
     public async Task<OverviewDto> Handle(GetOverviewQuery request, CancellationToken cancellationToken)
     {
-        await FinanceRules.EnsureStatisticsAsync(_context, _currentUserService, cancellationToken);
-        var amountsVisible = await FinanceRules.HasFullAsync(_context, _currentUserService, cancellationToken);
+        await BookRules.EnsureReadAsync(_context, _currentUserService, cancellationToken);
+        var amountsVisible = true;
 
         var months = await OverviewCalculator.MonthsAsync(
             _context, request.From, request.To, request.BranchId, cancellationToken);

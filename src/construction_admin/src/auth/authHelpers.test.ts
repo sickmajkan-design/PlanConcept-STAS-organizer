@@ -8,6 +8,7 @@ import {
   canReviewAbsences,
   canSeeLabourCost,
   canSeeSpending,
+  canViewBook,
   canViewDirectory,
   displayName,
 } from './authHelpers';
@@ -68,6 +69,15 @@ describe('role gates', () => {
     expect(canReviewAbsences(userWith('Admin'))).toBe(true);
     expect(canReviewAbsences(userWith('ProjectManager'))).toBe(false);
     expect(canReviewAbsences(userWith('Foreman'))).toBe(false);
+  });
+
+  it('open the book of money only to the Super Admin and whoever was granted it', () => {
+    expect(canViewBook(userWith('SuperAdmin'))).toBe(true);
+    expect(canViewBook(userWith('Admin', { financeAccess: 'Full' }))).toBe(false);
+    expect(canViewBook(userWith('Admin', { bookAccess: true }))).toBe(true);
+    expect(canViewBook(userWith('Foreman', { bookAccess: true }))).toBe(true);
+    expect(canViewBook(userWith('Worker', { bookAccess: true }))).toBe(false);
+    expect(canViewBook(null)).toBe(false);
   });
 
   it('never offer the figures grant for a worker or customer', () => {

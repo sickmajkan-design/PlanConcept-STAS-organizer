@@ -298,23 +298,21 @@ public class OverviewTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task An_account_with_statistics_only_sees_shares_but_no_amounts()
+    public async Task An_account_without_the_book_grant_cannot_open_the_overview_whatever_its_finance_grant()
     {
         var year = FreshYear();
         var branch = await SeedBranchAsync();
         await SeedMonthAsync(year, branchId: branch);
 
-        var overview = await AsAsync(UserRole.Admin, FinanceAccess.StatisticsOnly, scope =>
-            scope.Send(new GetOverviewQuery
-            {
-                From = new DateOnly(year, 1, 1), To = new DateOnly(year, 12, 31), BranchId = branch,
-            }));
-
-        Assert.False(overview.AmountsVisible);
-        Assert.Equal(0m, overview.Profit);
-        Assert.Equal(0m, overview.Income);
-        Assert.Equal(0m, overview.Months.Sum(m => m.Billing));
-        Assert.NotNull(overview.MarginPercent);
+        foreach (var finance in new[] { FinanceAccess.StatisticsOnly, FinanceAccess.Full })
+        {
+            await Assert.ThrowsAsync<ForbiddenAccessException>(() =>
+                AsAsync(UserRole.Admin, finance, scope =>
+                    scope.Send(new GetOverviewQuery
+                    {
+                        From = new DateOnly(year, 1, 1), To = new DateOnly(year, 12, 31), BranchId = branch,
+                    })));
+        }
     }
 
     [Fact]

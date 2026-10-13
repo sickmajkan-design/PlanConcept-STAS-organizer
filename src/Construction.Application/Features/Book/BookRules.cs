@@ -2,6 +2,7 @@ using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Finance;
 using Construction.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
 
 namespace Construction.Application.Features.Book;
 
@@ -33,11 +34,43 @@ public static class BookRules
 
     public static bool CanWrite(UserRole? role) => role is UserRole.SuperAdmin or UserRole.Admin;
 
-    public static Task EnsureReadAsync(
+    /// <summary>
+    /// Whether the caller may open the book at all: a Super Admin always, anyone else only a role that may be
+    /// given finance grants and only once a Super Admin has set <c>User.BookAccess</c>. Read from the database
+    /// on each call, so taking the grant away applies to the very next request.
+    /// </summary>
+    public static async Task<bool> HasAccessAsync(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        CancellationToken cancellationToken) =>
-        FinanceRules.EnsureFullAsync(context, currentUserService, cancellationToken);
+        CancellationToken cancellationToken)
+    {
+        if (currentUserService.Role == UserRole.SuperAdmin)
+        {
+            return true;
+        }
+
+        if (!FinanceRules.CanBeGranted(currentUserService.Role) || currentUserService.UserId is not { } userId)
+        {
+            return false;
+        }
+
+        return await context.Users
+            .AsNoTracking()
+            .Where(u => u.Id == userId)
+            .Select(u => u.BookAccess)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public static async Task EnsureReadAsync(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        CancellationToken cancellationToken)
+    {
+        if (!await HasAccessAsync(context, currentUserService, cancellationToken))
+        {
+            throw new ForbiddenAccessException("You may not open the book of money.");
+        }
+    }
 
     public static async Task EnsureWriteAsync(
         IApplicationDbContext context,
@@ -49,6 +82,6 @@ public static class BookRules
             throw new ForbiddenAccessException("You may not change the book of money.");
         }
 
-        await FinanceRules.EnsureFullAsync(context, currentUserService, cancellationToken);
+        await EnsureReadAsync(context, currentUserService, cancellationToken);
     }
 }

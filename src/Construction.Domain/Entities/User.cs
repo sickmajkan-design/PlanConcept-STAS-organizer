@@ -61,6 +61,13 @@ public class User : BaseEntity, IAuditable
     public FinanceAccess FinanceAccess { get; set; } = FinanceAccess.None;
 
     /// <summary>
+    /// Whether this account may open the book of money (Evidencija). False by default: the book is closed to
+    /// everybody except a SuperAdmin until one grants it here. Separate from <see cref="FinanceAccess"/> so
+    /// that the finance grants given for the older pages do not open it by themselves.
+    /// </summary>
+    public bool BookAccess { get; set; }
+
+    /// <summary>
     /// Lets a foreman move people between sites, within their own business unit. A foreman may always see
     /// the schedule of that unit; this is the extra right to change it, given here by an administrator.
     /// Meaningless for any other role, which either may already or may not.

@@ -20,6 +20,7 @@ import {
   RequireAuth,
   RequireCustomer,
   RequireDirectoryAccess,
+  RequireBookAccess,
   RequireFinanceAccess,
   RequireInvoiceAccess,
   RequireLabourCostAccess,
@@ -449,6 +450,8 @@ function Layout() {
               <Route element={<RequireFinanceAccess />}>
                 <Route path={paths.costs} element={<CostsPage />} />
                 <Route path={paths.companyRevenues} element={<CompanyRevenuesPage />} />
+              </Route>
+              <Route element={<RequireBookAccess />}>
                 <Route path={paths.bookOverview} element={<BookOverviewPage />} />
                 <Route path={paths.bookGuide} element={<BookGuidePage />} />
                 <Route path={paths.bookEntries} element={<BookEntriesPage />} />

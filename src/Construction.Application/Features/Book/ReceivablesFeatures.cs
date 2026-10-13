@@ -351,8 +351,11 @@ public class GetPayablesQueryHandler : IRequestHandler<GetPayablesQuery, DebtsDt
 
         // What is owed to the workers: what each group earned in the last months' settlements, less what
         // was already paid out. Only for those who may work with payouts.
-        // Pay is not tied to a site, so a filter by site leaves it out.
-        if (request.ProjectId is null && BookRules.CanWrite(_currentUserService.Role))
+        // Pay is not tied to a site, so a filter by site leaves it out. Pay also needs the full finance grant,
+        // which the book grant does not carry: without it these rows are simply not listed.
+        if (request.ProjectId is null
+            && BookRules.CanWrite(_currentUserService.Role)
+            && await Finance.FinanceRules.HasFullAsync(_context, _currentUserService, cancellationToken))
         {
             for (var back = 0; back < 3; back++)
             {

@@ -38,6 +38,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasMaxLength(20)
             .HasDefaultValue(FinanceAccess.None);
 
+        builder.Property(u => u.BookAccess)
+            .HasDefaultValue(false);
+
         builder.Property(u => u.PreferredLanguage)
             .HasMaxLength(5);
 

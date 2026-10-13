@@ -54,6 +54,12 @@ public record UpdateUserCommand : IRequest<UserDto>
     /// </summary>
     public FinanceAccess? FinanceAccess { get; init; }
 
+    /// <summary>
+    /// Whether this account may open the book of money. Null leaves it as it was; only a SuperAdmin caller may
+    /// change it — see the handler.
+    /// </summary>
+    public bool? BookAccess { get; init; }
+
     /// <summary>Lets a foreman move people within their business unit. Ignored for any other role.</summary>
     public bool? CanPlan { get; init; }
 }
@@ -169,6 +175,17 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserD
 
                 user.FinanceAccess = financeAccess;
             }
+
+            if (request.BookAccess is { } bookAccess && user.Role != UserRole.SuperAdmin)
+            {
+                if (bookAccess && !FinanceRules.CanBeGranted(user.Role))
+                {
+                    throw new ConflictException(
+                        "The book of money cannot be opened to a worker or customer account.");
+                }
+
+                user.BookAccess = bookAccess;
+            }
         }
 
         if (request.CanPlan is { } canPlan)
@@ -186,6 +203,7 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserD
         if (!FinanceRules.CanBeGranted(user.Role))
         {
             user.FinanceAccess = FinanceAccess.None;
+            user.BookAccess = false;
         }
 
         if (roleChanged)

@@ -180,9 +180,9 @@ public class GetAttentionQueryHandler : IRequestHandler<GetAttentionQuery, Atten
 
             Add("certificatesExpiring", expiring.Count, expiring.Select(c => new AttentionItemDto { Label = c.Name, Date = c.ValidUntil }));
 
-            // Money that is late. Only for those who may see amounts, since a count of late invoices
-            // says something about what the firm is owed.
-            if (await Finance.FinanceRules.HasFullAsync(_context, _currentUser, cancellationToken))
+            // Money that is late. Only for those who may open the book of money, since a count of late
+            // invoices says something about what the firm is owed.
+            if (await Book.BookRules.HasAccessAsync(_context, _currentUser, cancellationToken))
             {
                 var late = await _context.Invoices.AsNoTracking()
                     .Where(i => i.Status == InvoiceStatus.Issued && i.Amount > 0 && i.DueDate != null && i.DueDate < today)

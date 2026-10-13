@@ -216,7 +216,7 @@ export function BookOverviewPage() {
     <Stack spacing={2}>
       <Box>
         <Typography variant="body2" color="text.secondary">
-          {t('book.overview.greeting', { name: firstName })}
+          {firstName ? t('book.overview.greeting', { name: firstName }) : t('book.overview.greetingPlain')}
         </Typography>
         <PageHeader
           title={t('book.overview.title')}

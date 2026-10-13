@@ -22,12 +22,14 @@ public class BookTests : IntegrationTestBase
 
     private static int FreshYear() => Interlocked.Increment(ref nextYear);
 
-    private async Task<T> AsAsync<T>(UserRole role, FinanceAccess finance, Func<TestScope, Task<T>> action)
+    private async Task<T> AsAsync<T>(
+        UserRole role, FinanceAccess finance, Func<TestScope, Task<T>> action, bool bookAccess = true)
     {
         return await InScope(async scope =>
         {
             var user = await TestData.SeedUserAsync(scope, role);
             user.FinanceAccess = finance;
+            user.BookAccess = bookAccess;
             await scope.Db.SaveChangesAsync();
             scope.CurrentUser.SignInAs(user.Id, role, null, user.Email);
 
@@ -273,13 +275,14 @@ public class BookTests : IntegrationTestBase
     }
 
     [Theory]
-    [InlineData(UserRole.Admin, FinanceAccess.None, false, false)]
-    [InlineData(UserRole.Admin, FinanceAccess.StatisticsOnly, false, false)]
-    [InlineData(UserRole.Admin, FinanceAccess.Full, true, true)]
-    [InlineData(UserRole.ProjectManager, FinanceAccess.Full, true, false)]
-    [InlineData(UserRole.Foreman, FinanceAccess.None, false, false)]
-    public async Task Reading_needs_the_finance_grant_and_writing_also_an_admin_role(
-        UserRole role, FinanceAccess finance, bool canRead, bool canWrite)
+    [InlineData(UserRole.Admin, FinanceAccess.None, false, false, false)]
+    [InlineData(UserRole.Admin, FinanceAccess.Full, false, false, false)]
+    [InlineData(UserRole.Admin, FinanceAccess.None, true, true, true)]
+    [InlineData(UserRole.ProjectManager, FinanceAccess.Full, true, true, false)]
+    [InlineData(UserRole.ProjectManager, FinanceAccess.Full, false, false, false)]
+    [InlineData(UserRole.Foreman, FinanceAccess.None, false, false, false)]
+    public async Task Reading_needs_the_book_grant_and_writing_also_an_admin_role(
+        UserRole role, FinanceAccess finance, bool bookAccess, bool canRead, bool canWrite)
     {
         var year = FreshYear();
 
@@ -291,7 +294,7 @@ public class BookTests : IntegrationTestBase
                 {
                     await action(scope);
                     return 0;
-                });
+                }, bookAccess);
 
                 return true;
             }

@@ -1,7 +1,7 @@
 import { Box, CircularProgress } from '@mui/material';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
-import { canManageInvoices, canSeeLabourCost, canViewFinance, isSuperAdmin } from '../auth/authHelpers';
+import { canManageInvoices, canSeeLabourCost, canViewBook, canViewFinance, isSuperAdmin } from '../auth/authHelpers';
 import { useAuth } from '../auth/useAuth';
 import { paths } from './paths';
 
@@ -144,6 +144,21 @@ export function RequireFinanceAccess() {
   }
 
   if (!canViewFinance(user)) {
+    return <Navigate to={paths.home} replace />;
+  }
+
+  return <Outlet />;
+}
+
+/** Restricts a route to the book of money (Evidencija): a Super Admin and whoever one has granted it to. */
+export function RequireBookAccess() {
+  const { user } = useAuth();
+
+  if (user === undefined) {
+    return null;
+  }
+
+  if (!canViewBook(user)) {
     return <Navigate to={paths.home} replace />;
   }
 

@@ -25,6 +25,8 @@ export interface User {
   canViewCustomerTaxDetails: boolean;
   /** A SuperAdmin always reads "Full". */
   financeAccess: FinanceAccess;
+  /** Whether the account may open the book of money (Evidencija). A SuperAdmin always may. */
+  bookAccess?: boolean;
   /** Whether a foreman may move people within their own business unit. */
   canPlan?: boolean;
 }
@@ -878,6 +880,7 @@ export interface UserAccount {
   /** Whether this account may see a customer's tax ID, registration number and VAT number. */
   canViewCustomerTaxDetails: boolean;
   financeAccess: FinanceAccess;
+  bookAccess?: boolean;
   canPlan?: boolean;
   createdAt: string;
 }
@@ -892,6 +895,8 @@ export interface UserAccountInput {
   canViewCustomerTaxDetails?: boolean;
   /** SuperAdmin only, like the flag above; omitted leaves it as it was. */
   financeAccess?: FinanceAccess;
+  /** SuperAdmin only; omitted leaves it as it was. Opens the book of money (Evidencija). */
+  bookAccess?: boolean;
   /** Lets a foreman move people within their own business unit. Ignored for any other role. */
   canPlan?: boolean;
 }

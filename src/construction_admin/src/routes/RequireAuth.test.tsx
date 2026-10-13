@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { describe, expect, it } from 'vitest';
 import type { ReactNode } from 'react';
@@ -12,6 +12,7 @@ import { paths } from './paths';
 import {
   RequireAccountAdmin,
   RequireAuth,
+  RequireBookAccess,
   RequireDirectoryAccess,
   RequireGuest,
   RequireLabourCostAccess,
@@ -154,6 +155,27 @@ describe('the role guards', () => {
       ['Admin', 'ProjectManager', 'Foreman', 'Worker'],
     ],
   ];
+
+  it('RequireBookAccess is closed to everybody but the Super Admin until the book is granted', () => {
+    for (const role of ['Admin', 'ProjectManager', 'Foreman', 'Worker'] as const) {
+      // The finance grant alone must not open the book.
+      renderGuard(RequireBookAccess, { ...signedIn(role), financeAccess: 'Full' });
+      expect(showing('the guarded screen')).toBe(false);
+      cleanup();
+    }
+
+    renderGuard(RequireBookAccess, signedIn('SuperAdmin'));
+    expect(showing('the guarded screen')).toBe(true);
+    cleanup();
+
+    renderGuard(RequireBookAccess, { ...signedIn('Admin'), bookAccess: true });
+    expect(showing('the guarded screen')).toBe(true);
+    cleanup();
+
+    // A stored value never reaches a worker.
+    renderGuard(RequireBookAccess, { ...signedIn('Worker'), bookAccess: true });
+    expect(showing('the guarded screen')).toBe(false);
+  });
 
   it('RequireLabourCostAccess lets a project manager through once granted the figures', () => {
     renderGuard(RequireLabourCostAccess, { ...signedIn('ProjectManager'), financeAccess: 'Full' });
