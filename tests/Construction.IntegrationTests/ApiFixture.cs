@@ -69,6 +69,12 @@ public sealed class ApiFixture : IAsyncLifetime
                 builder.UseSetting("JwtSettings:RefreshTokenLifetimeDays", "7");
                 builder.UseSetting("FileStorage:RootPath", StorageRoot);
 
+                // Enrolling a second factor is opt-in, so having the key here
+                // changes nothing for the other tests; it only lets MfaFlowTests
+                // set one up. 32 bytes, base64.
+                builder.UseSetting(
+                    "Auth:Mfa:EncryptionKey", "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=");
+
                 // Migrations are applied below, once, rather than by the app on
                 // every start.
                 builder.UseSetting("Database:ApplyMigrationsOnStartup", "false");

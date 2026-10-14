@@ -2,6 +2,9 @@ using Construction.Application.Features.Authentication.Commands.ChangePassword;
 using Construction.Application.Features.Authentication.Commands.ForgotPassword;
 using Construction.Application.Features.Authentication.Commands.Login;
 using Construction.Application.Features.Authentication.Commands.Logout;
+using Construction.Application.Features.Authentication.Commands.Mfa;
+using Construction.Application.Features.Authentication.Commands.VerifyMfa;
+using Construction.API.Authorization;
 using Construction.Application.Features.Authentication.Commands.RefreshToken;
 using Construction.Application.Features.Authentication.Commands.ResetPassword;
 using Construction.Application.Features.Authentication.Commands.UpdatePreferredLanguage;
@@ -34,6 +37,58 @@ public class AuthController : ApiControllerBase
         var response = await Mediator.Send(command with { IpAddress = ClientIpAddress, UserAgent = Request.Headers.UserAgent.ToString() }, cancellationToken);
 
         return Ok(IssueCookieIfAsked(response));
+    }
+
+    /// <summary>Second step of a sign-in for an account with an authenticator: the challenge and a code.</summary>
+    [HttpPost("mfa/verify")]
+    [EnableRateLimiting(RateLimitingExtensions.CredentialsPolicy)]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<AuthResponse>> VerifyMfa(
+        VerifyMfaCommand command,
+        CancellationToken cancellationToken)
+    {
+        var response = await Mediator.Send(
+            command with { IpAddress = ClientIpAddress, UserAgent = Request.Headers.UserAgent.ToString() },
+            cancellationToken);
+
+        return Ok(IssueCookieIfAsked(response));
+    }
+
+    /// <summary>Starts setting up an authenticator for the signed-in account.</summary>
+    [HttpPost("mfa/setup")]
+    [EnableRateLimiting(RateLimitingExtensions.CredentialsPolicy)]
+    [Authorize(Policy = Policies.AllEmployees)]
+    [ProducesResponseType(typeof(MfaSetupDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<MfaSetupDto>> BeginMfaSetup(CancellationToken cancellationToken) =>
+        Ok(await Mediator.Send(new BeginMfaSetupCommand(), cancellationToken));
+
+    /// <summary>Confirms the authenticator with a first code and returns the recovery codes, once.</summary>
+    [HttpPost("mfa/enable")]
+    [EnableRateLimiting(RateLimitingExtensions.CredentialsPolicy)]
+    [Authorize(Policy = Policies.AllEmployees)]
+    [ProducesResponseType(typeof(MfaEnabledDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<MfaEnabledDto>> EnableMfa(
+        EnableMfaCommand command,
+        CancellationToken cancellationToken) =>
+        Ok(await Mediator.Send(command, cancellationToken));
+
+    /// <summary>Switches the authenticator off; needs the password and a current code.</summary>
+    [HttpPost("mfa/disable")]
+    [EnableRateLimiting(RateLimitingExtensions.CredentialsPolicy)]
+    [Authorize(Policy = Policies.AllEmployees)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> DisableMfa(
+        DisableMfaCommand command,
+        CancellationToken cancellationToken)
+    {
+        await Mediator.Send(command, cancellationToken);
+        return NoContent();
     }
 
     /// <summary>Rotates the refresh token and returns a fresh token pair.</summary>

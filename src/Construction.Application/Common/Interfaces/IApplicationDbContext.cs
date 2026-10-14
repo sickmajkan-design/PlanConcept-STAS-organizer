@@ -15,6 +15,10 @@ public interface IApplicationDbContext
 
     DbSet<PasswordResetToken> PasswordResetTokens { get; }
 
+    DbSet<MfaRecoveryCode> MfaRecoveryCodes { get; }
+
+    DbSet<MfaChallenge> MfaChallenges { get; }
+
     DbSet<Employee> Employees { get; }
 
     DbSet<Project> Projects { get; }

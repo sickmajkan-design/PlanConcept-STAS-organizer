@@ -2980,6 +2980,80 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.MfaChallenge", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("mfa_challenges", (string)null);
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.MfaRecoveryCode", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CodeHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CodeHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("mfa_recovery_codes", (string)null);
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.Notification", b =>
                 {
                     b.Property<Guid>("Id")
@@ -4108,6 +4182,16 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime?>("LockoutEndsAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("MfaEnabledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("MfaLastUsedStep")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("MfaSecretProtected")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
@@ -5875,6 +5959,28 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("RecordedByUser");
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.MfaChallenge", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.User", "User")
+                        .WithMany("MfaChallenges")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.MfaRecoveryCode", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.User", "User")
+                        .WithMany("MfaRecoveryCodes")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.Notification", b =>
                 {
                     b.HasOne("Construction.Domain.Entities.User", "User")
@@ -6608,6 +6714,10 @@ namespace Construction.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Construction.Domain.Entities.User", b =>
                 {
                     b.Navigation("DeviceTokens");
+
+                    b.Navigation("MfaChallenges");
+
+                    b.Navigation("MfaRecoveryCodes");
 
                     b.Navigation("Notifications");
 

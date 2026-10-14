@@ -33,6 +33,9 @@ public class UserDto
 
     /// <summary>ISO 639-1 code the account's push notifications render in. Null means unset.</summary>
     public string? PreferredLanguage { get; init; }
+
+    /// <summary>Whether signing in needs a code from an authenticator.</summary>
+    public bool MfaEnabled { get; init; }
 }
 
 /// <summary>
@@ -64,6 +67,7 @@ public static class UserMapping
                 : user.FinanceAccess.ToString(),
             BookAccess = user.Role == Construction.Domain.Enums.UserRole.SuperAdmin || user.BookAccess,
             PreferredLanguage = user.PreferredLanguage,
+            MfaEnabled = user.MfaEnabledAt != null && user.MfaSecretProtected != null,
         };
 
     private static readonly Func<User, UserDto> Compiled = Projection.Compile();

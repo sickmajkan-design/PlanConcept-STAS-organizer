@@ -90,6 +90,11 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IResetLinkBuilder, ResetLinkBuilder>();
 
+        // Optional: with no key the second factor simply cannot be enrolled, and
+        // nothing about sign-in changes for anybody.
+        services.Configure<MfaSettings>(configuration.GetSection(MfaSettings.SectionName));
+        services.AddSingleton<IMfaService, MfaService>();
+
         // Validating incoming bearer tokens is a web-host concern and lives in
         // the API layer (AddJwtBearerAuthentication). Infrastructure only owns
         // how tokens are issued and how credentials are stored.

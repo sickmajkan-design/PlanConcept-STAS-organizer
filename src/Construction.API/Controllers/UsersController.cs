@@ -1,6 +1,7 @@
 using Construction.API.Authorization;
 using Construction.API.Extensions;
 using Construction.Application.Common.Models;
+using Construction.Application.Features.Authentication.Commands.Mfa;
 using Construction.Application.Features.Users.Commands.ActivateUser;
 using Construction.Application.Features.Users.Commands.CreateUser;
 using Construction.Application.Features.Users.Commands.DeactivateUser;
@@ -96,6 +97,18 @@ public class UsersController : ApiControllerBase
     public async Task<IActionResult> Deactivate(Guid id, CancellationToken cancellationToken)
     {
         await Mediator.Send(new DeactivateUserCommand(id), cancellationToken);
+
+        return NoContent();
+    }
+
+    /// <summary>Clears an account's second factor and ends its sessions — for somebody who lost the phone and the recovery codes.</summary>
+    [HttpPost("{id:guid}/mfa/reset")]
+    [Authorize(Policy = Policies.SuperAdminOnly)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ResetMfa(Guid id, CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new ResetUserMfaCommand(id), cancellationToken);
 
         return NoContent();
     }

@@ -44,6 +44,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.PreferredLanguage)
             .HasMaxLength(5);
 
+        builder.Property(u => u.MfaSecretProtected)
+            .HasMaxLength(256);
+
+        builder.Ignore(u => u.HasMfa);
+
         builder.HasOne(u => u.Employee)
             .WithOne(e => e.User)
             .HasForeignKey<User>(u => u.EmployeeId)

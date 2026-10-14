@@ -100,6 +100,25 @@ public class User : BaseEntity, IAuditable
 
     public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 
+    /// <summary>
+    /// The authenticator secret, encrypted (never the raw bytes). Set while an
+    /// enrolment is pending as well as once it is confirmed; <see cref="MfaEnabledAt"/>
+    /// says which.
+    /// </summary>
+    public string? MfaSecretProtected { get; set; }
+
+    /// <summary>When the second factor was confirmed. Null means none is required at sign-in.</summary>
+    public DateTime? MfaEnabledAt { get; set; }
+
+    /// <summary>The last time step a code was accepted for, so one code cannot be used twice.</summary>
+    public long? MfaLastUsedStep { get; set; }
+
+    public bool HasMfa => MfaEnabledAt is not null && MfaSecretProtected is not null;
+
+    public ICollection<MfaRecoveryCode> MfaRecoveryCodes { get; set; } = new List<MfaRecoveryCode>();
+
+    public ICollection<MfaChallenge> MfaChallenges { get; set; } = new List<MfaChallenge>();
+
     public ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = new List<PasswordResetToken>();
 
     public ICollection<DeviceToken> DeviceTokens { get; set; } = new List<DeviceToken>();

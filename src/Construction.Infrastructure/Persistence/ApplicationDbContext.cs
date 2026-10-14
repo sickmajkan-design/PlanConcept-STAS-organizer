@@ -19,6 +19,10 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 
+    public DbSet<MfaRecoveryCode> MfaRecoveryCodes => Set<MfaRecoveryCode>();
+
+    public DbSet<MfaChallenge> MfaChallenges => Set<MfaChallenge>();
+
     public DbSet<Employee> Employees => Set<Employee>();
 
     public DbSet<Project> Projects => Set<Project>();

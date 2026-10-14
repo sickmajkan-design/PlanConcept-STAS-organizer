@@ -34,6 +34,7 @@ public static class DependencyInjection
         });
 
         services.AddScoped<IAuthTokenService, AuthTokenService>();
+        services.AddScoped<ISignInCompleter, SignInCompleter>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IHolidayAutoSyncService, HolidayAutoSyncService>();
 

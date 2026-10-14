@@ -1,15 +1,13 @@
+using System.Security.Cryptography;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Common.Security;
 using Construction.Application.Features.Authentication.Models;
 using Construction.Application.Features.Authentication.Services;
-using Construction.Application.Features.Maintenance.Commands.CatchUpReminders;
-using Construction.Application.Features.Maintenance.Commands.PurgeOrphanedNotifications;
 using Construction.Domain.Entities;
-using Construction.Domain.Enums;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Construction.Application.Features.Authentication.Commands.Login;
 
@@ -49,27 +47,24 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
     /// <summary>How long a locked account stays locked. Clears itself.</summary>
     public static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(15);
 
+    /// <summary>How long somebody has to type the code after the password was accepted.</summary>
+    public static readonly TimeSpan ChallengeLifetime = TimeSpan.FromMinutes(5);
+
     private readonly IApplicationDbContext _context;
     private readonly IPasswordHasher _passwordHasher;
-    private readonly IAuthTokenService _authTokenService;
     private readonly IDateTimeProvider _dateTimeProvider;
-    private readonly ISender _sender;
-    private readonly ILogger<LoginCommandHandler> _logger;
+    private readonly ISignInCompleter _signIn;
 
     public LoginCommandHandler(
         IApplicationDbContext context,
         IPasswordHasher passwordHasher,
-        IAuthTokenService authTokenService,
         IDateTimeProvider dateTimeProvider,
-        ISender sender,
-        ILogger<LoginCommandHandler> logger)
+        ISignInCompleter signIn)
     {
         _context = context;
         _passwordHasher = passwordHasher;
-        _authTokenService = authTokenService;
         _dateTimeProvider = dateTimeProvider;
-        _sender = sender;
-        _logger = logger;
+        _signIn = signIn;
     }
 
     public async Task<AuthResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -118,10 +113,6 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
             throw new UnauthorizedException("This account has been deactivated.");
         }
 
-        user.FailedLoginAttempts = 0;
-        user.LockoutEndsAt = null;
-        user.LastLoginAt = utcNow;
-
         // The plaintext is in hand only now. Saved with the same
         // SaveChangesAsync as the rest of the sign-in below.
         if (_passwordHasher.NeedsRehash(user.PasswordHash))
@@ -129,66 +120,27 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
             user.PasswordHash = _passwordHasher.Hash(request.Password);
         }
 
-        var response = _authTokenService.IssueTokens(user, request.IpAddress, out _);
-
-        // One row per sign-in, not per request: this is the "who signed in
-        // when" record, and its LastSeenAt is refreshed in the background.
-        _context.UserSessions.Add(new UserSession
+        // A second factor is still owed: park the sign-in in a challenge instead
+        // of issuing tokens. The failure counter is deliberately NOT cleared
+        // here — a thief who knows the password must not get an endless supply
+        // of fresh code guesses by signing in again and again.
+        if (user.HasMfa)
         {
-            UserId = user.Id,
-            IpAddress = request.IpAddress,
-            UserAgent = request.UserAgent is { Length: > 200 } agent
-                ? agent[..200]
-                : request.UserAgent,
-            StartedAt = utcNow,
-            LastSeenAt = utcNow,
-        });
+            var rawToken = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
 
-        await _context.SaveChangesAsync(cancellationToken);
+            _context.MfaChallenges.Add(new MfaChallenge
+            {
+                UserId = user.Id,
+                TokenHash = TokenHasher.Sha256(rawToken),
+                ExpiresAt = utcNow.Add(ChallengeLifetime),
+            });
 
-        await ReconcileNotificationsAsync(cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
 
-        if (user.Role is UserRole.SuperAdmin or UserRole.Admin)
-        {
-            await CatchUpRemindersAsync(cancellationToken);
+            return new AuthResponse { MfaRequired = true, MfaToken = rawToken };
         }
 
-        return response;
-    }
-
-    /// <summary>
-    /// Drops notifications whose record has since been deleted, so the inbox and
-    /// its badge are right from the first screen after signing in rather than
-    /// after the next periodic sweep. Best effort: a failure here must never
-    /// stop someone from logging in.
-    /// </summary>
-    private async Task ReconcileNotificationsAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            await _sender.Send(new PurgeOrphanedNotificationsCommand(), cancellationToken);
-        }
-        catch (Exception exception) when (exception is not OperationCanceledException)
-        {
-            _logger.LogWarning(exception, "Notification reconciliation at login failed.");
-        }
-    }
-
-    /// <summary>
-    /// Sends the reminders already due for the office, so a document that lapses
-    /// soon is on the bell at the first sign-in rather than at the next daily
-    /// sweep. Best effort, like the reconciliation above.
-    /// </summary>
-    private async Task CatchUpRemindersAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            await _sender.Send(new CatchUpRemindersCommand(), cancellationToken);
-        }
-        catch (Exception exception) when (exception is not OperationCanceledException)
-        {
-            _logger.LogWarning(exception, "Reminder catch-up at login failed.");
-        }
+        return await _signIn.CompleteAsync(user, request.IpAddress, request.UserAgent, cancellationToken);
     }
 
     /// <summary>
@@ -233,7 +185,8 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
         await _context.SaveChangesAsync(cancellationToken);
     }
 
-    private static void RegisterFailedAttempt(User user, DateTime utcNow)
+    /// <summary>Counts a failed attempt and locks the account at the limit. Public so the code step counts toward the same lockout.</summary>
+    public static void RegisterFailedAttempt(User user, DateTime utcNow)
     {
         user.FailedLoginAttempts++;
 
