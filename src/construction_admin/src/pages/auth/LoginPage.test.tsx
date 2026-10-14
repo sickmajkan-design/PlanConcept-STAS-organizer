@@ -2,6 +2,7 @@
  * @vitest-environment jsdom
  */
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { installFakeNetwork, renderScreen } from '../../test/renderScreen';
@@ -57,5 +58,33 @@ describe('LoginPage', () => {
     await screen.findByRole('link', { name: /forgot password|zaboravljena lozinka/i });
 
     expect(screen.queryByRole('link', { name: DOWNLOAD_LINK })).toBeNull();
+  }, SCREEN_TIMEOUT);
+});
+
+describe('LoginPage second step', () => {
+  it('asks for a code after the password and finishes the sign-in with it', async () => {
+    deployment.appDownloadUrl = '';
+    const signIn = vi.fn(async () => ({ status: 'mfa' as const, mfaToken: 'challenge-1' }));
+    const completeMfa = vi.fn(async () => {});
+
+    renderScreen(<LoginPage />, {
+      route: '/login',
+      path: '/login',
+      user: null,
+      auth: { signIn, completeMfa },
+    });
+
+    await userEvent.type(await screen.findByLabelText(/e-?mail/i), 'ana@example.test');
+    await userEvent.type(screen.getByLabelText(/^(password|lozinka)/i), 'Secret123!');
+    await userEvent.click(screen.getByRole('button', { name: /sign in|prijavi se/i }));
+
+    const code = await screen.findByLabelText(/code from the app|kod iz aplikacije/i);
+    expect(signIn).toHaveBeenCalledWith('ana@example.test', 'Secret123!');
+    expect(completeMfa).not.toHaveBeenCalled();
+
+    await userEvent.type(code, '123456');
+    await userEvent.click(screen.getByRole('button', { name: /confirm|potvrdi/i }));
+
+    expect(completeMfa).toHaveBeenCalledWith('challenge-1', '123456');
   }, SCREEN_TIMEOUT);
 });

@@ -29,6 +29,8 @@ export interface User {
   bookAccess?: boolean;
   /** Whether a foreman may move people within their own business unit. */
   canPlan?: boolean;
+  /** Whether signing in needs a code from an authenticator app. */
+  mfaEnabled?: boolean;
 }
 
 export interface AuthResponse {
@@ -37,6 +39,25 @@ export interface AuthResponse {
   refreshToken: string;
   refreshTokenExpiresAt: string;
   user: User;
+  /**
+   * The password was right but a code is still owed. The token fields are then
+   * empty and `mfaToken` goes to the second step together with the code.
+   */
+  mfaRequired?: boolean;
+  mfaToken?: string | null;
+  /** This role is expected to use a second factor and has none yet. */
+  mfaEnrollmentRequired?: boolean;
+}
+
+export interface MfaSetup {
+  /** The shared secret, base32, for typing into an authenticator by hand. */
+  secret: string;
+  /** The `otpauth://` link a QR code carries. */
+  provisioningUri: string;
+}
+
+export interface MfaEnabled {
+  recoveryCodes: string[];
 }
 
 export const roles = [

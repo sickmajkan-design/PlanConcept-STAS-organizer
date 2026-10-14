@@ -4,6 +4,7 @@ import {
   LogoutOutlined,
   MenuOutlined,
   PasswordOutlined,
+  VerifiedUserOutlined,
   PlaceOutlined,
   PushPin,
   PushPinOutlined,
@@ -21,6 +22,7 @@ import {
   Avatar,
   Badge,
   BottomNavigation,
+  Alert,
   BottomNavigationAction,
   Box,
   Breadcrumbs,
@@ -167,7 +169,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [logoPreviewAnchor, setLogoPreviewAnchor] = useState<HTMLElement | null>(null);
   const logoHoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { user, signOut } = useAuth();
+  const { user, signOut, mfaEnrollmentRequired } = useAuth();
   const scope = storageScope(user);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
     () => new Set(readScoped<string[]>(scope, EXPANDED_GROUPS_KEY, [])),
@@ -1023,6 +1025,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
               </ListItemIcon>
               {t('common.changePassword')}
             </MenuItem>
+            <MenuItem
+              component={Link}
+              to={paths.twoStep}
+              onClick={() => setMenuAnchor(null)}
+            >
+              <ListItemIcon>
+                <VerifiedUserOutlined fontSize="small" />
+              </ListItemIcon>
+              {t('mfa.menuItem')}
+            </MenuItem>
             <MenuItem onClick={handleSignOut}>
               <ListItemIcon>
                 <LogoutOutlined fontSize="small" />
@@ -1314,6 +1326,21 @@ export function AppLayout({ children }: { children: ReactNode }) {
             every page have stopped moving is the same reason, and it should be
             stated once, in the same place, wherever the operator is. */}
         <OfflineBanner />
+        {mfaEnrollmentRequired && (
+          // Not a lock-out: the sign-in went through. It is a notice the person
+          // keeps seeing until the factor is set up, from anywhere in the panel.
+          <Alert
+            severity="warning"
+            sx={{ mb: 2 }}
+            action={
+              <MuiLink component={Link} to={paths.twoStep} underline="always" color="inherit">
+                {t('mfa.requiredAction')}
+              </MuiLink>
+            }
+          >
+            {t('mfa.requiredBanner')}
+          </Alert>
+        )}
         {children}
         {/*
           The office assistant is built but deliberately not mounted. It is

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 
 import { authApi } from '../api/auth';
 import { restoreSessionFromCookie, setSessionLostHandler } from '../api/client';
+import type { AuthResponse } from '../api/types';
 import {
   activityClock,
   purgeLegacySession,
@@ -11,7 +12,7 @@ import {
 } from '../api/session';
 import { purgeLegacyUiStorage } from '../hooks/userScopedStorage';
 import { queryClient } from '../queryClient';
-import { AuthContext, type AuthContextValue } from './authContextInstance';
+import { AuthContext, type AuthContextValue, type SignInOutcome } from './authContextInstance';
 
 /** How often an open panel checks whether it has been left alone too long. */
 const IDLE_CHECK_INTERVAL_MS = 30_000;
@@ -35,8 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
   const channel = useRef<BroadcastChannel | null>(null);
 
-  const signIn = useCallback(async (email: string, password: string) => {
-    const response = await authApi.login(email, password);
+  const adoptSession = useCallback((response: AuthResponse) => {
     const next = sessionFromAuthResponse(response);
     sessionStore.write(next);
     activityClock.start();
@@ -48,6 +48,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(next);
     channel.current?.postMessage('changed');
   }, []);
+
+  const signIn = useCallback(
+    async (email: string, password: string): Promise<SignInOutcome> => {
+      const response = await authApi.login(email, password);
+
+      // The password was right but a code is still owed: nothing is stored and
+      // nobody is signed in until the second step succeeds.
+      if (response.mfaRequired && response.mfaToken) {
+        return { status: 'mfa', mfaToken: response.mfaToken };
+      }
+
+      adoptSession(response);
+      return { status: 'signedIn' };
+    },
+    [adoptSession],
+  );
+
+  const completeMfa = useCallback(
+    async (mfaToken: string, code: string) => {
+      adoptSession(await authApi.verifyMfa(mfaToken, code));
+    },
+    [adoptSession],
+  );
 
   const signOut = useCallback(async () => {
     try {
@@ -190,11 +213,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       user: session === undefined ? undefined : (session?.user ?? null),
       isAuthenticated: !!session,
+      // Cleared as soon as the account has a factor, wherever that was set up.
+      mfaEnrollmentRequired:
+        !!session?.mfaEnrollmentRequired && !session.user.mfaEnabled,
       signIn,
+      completeMfa,
       signOut,
       refreshProfile,
     }),
-    [session, signIn, signOut, refreshProfile],
+    [session, signIn, completeMfa, signOut, refreshProfile],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

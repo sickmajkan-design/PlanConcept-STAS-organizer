@@ -3215,6 +3215,37 @@ export const en = {
   'changePassword.hint': 'At least 8 characters with an upper-case letter, a lower-case letter and a digit.',
   'changePassword.done': 'Your password has been updated. For security, all your signed-in sessions were signed out. Please sign in again with the new password.',
   'changePassword.signInAgain': 'Sign in again',
+  'mfa.title': 'Two-step verification',
+  'mfa.intro':
+    'Besides your password, signing in also asks for a six-digit code from an app on your phone. It keeps your account safe even if the password leaks.',
+  'mfa.statusOn': 'Switched on',
+  'mfa.statusOff': 'Switched off',
+  'mfa.setUp': 'Set up',
+  'mfa.setupStep1':
+    'Scan this code with an authenticator app, such as Google Authenticator, Microsoft Authenticator or Aegis.',
+  'mfa.setupKey': 'Or type this key into the app by hand:',
+  'mfa.setupStep2': 'Then enter the six-digit code the app shows to switch it on.',
+  'mfa.codeLabel': 'Six-digit code',
+  'mfa.enable': 'Switch on',
+  'mfa.cancel': 'Cancel',
+  'mfa.recoveryTitle': 'Recovery codes',
+  'mfa.recoveryHint':
+    'Keep these somewhere safe. If you lose your phone, each of them signs you in once. They are shown only now.',
+  'mfa.recoveryCopy': 'Copy all',
+  'mfa.recoveryCopied': 'Copied',
+  'mfa.recoverySaved': 'I have saved them',
+  'mfa.disableTitle': 'Switch off two-step verification',
+  'mfa.disableHint': 'Enter your password and a current code from the app.',
+  'mfa.disable': 'Switch off',
+  'mfa.codeOrRecovery': 'Code from the app, or a recovery code',
+  'mfa.signInHint':
+    'Enter the six-digit code shown in your authenticator app, or one of your recovery codes.',
+  'mfa.verify': 'Confirm',
+  'mfa.backToSignIn': 'Back to sign in',
+  'mfa.requiredBanner':
+    'Your role is expected to use two-step verification, and it is not set up yet.',
+  'mfa.requiredAction': 'Set it up now',
+  'mfa.menuItem': 'Two-step verification',
   'costs.title': 'Costs',
   'costs.subtitle':
     "Automatic report: labour from approved hours × pay rate, plus material, vehicle and tool ledgers. Doesn't include Finance entries — those show as pay per crew posting on the Project and Employee pages instead.",

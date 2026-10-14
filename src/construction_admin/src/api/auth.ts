@@ -1,5 +1,5 @@
 import { anonymousRequest, cookieAuthHeaders, request } from './client';
-import type { AuthResponse, User } from './types';
+import type { AuthResponse, MfaEnabled, MfaSetup, User } from './types';
 
 export const authApi = {
   login: (email: string, password: string) =>
@@ -10,6 +10,31 @@ export const authApi = {
       // Asks the API to put the refresh token in a cookie and leave it out of
       // the response body, so it never passes through anything script reads.
       headers: cookieAuthHeaders,
+    }),
+
+  /** Second step of a sign-in: the challenge from the password step and a code. */
+  verifyMfa: (mfaToken: string, code: string) =>
+    anonymousRequest<AuthResponse>({
+      method: 'POST',
+      url: '/api/v1/auth/mfa/verify',
+      data: { mfaToken, code: code.trim() },
+      headers: cookieAuthHeaders,
+    }),
+
+  mfaSetup: () => request<MfaSetup>({ method: 'POST', url: '/api/v1/auth/mfa/setup' }),
+
+  mfaEnable: (code: string) =>
+    request<MfaEnabled>({
+      method: 'POST',
+      url: '/api/v1/auth/mfa/enable',
+      data: { code: code.trim() },
+    }),
+
+  mfaDisable: (password: string, code: string) =>
+    request<void>({
+      method: 'POST',
+      url: '/api/v1/auth/mfa/disable',
+      data: { password, code: code.trim() },
     }),
 
   // No token in the body: the API reads the cookie, and clears it. Anonymous,

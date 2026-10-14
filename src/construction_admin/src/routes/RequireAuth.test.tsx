@@ -49,7 +49,9 @@ function withAuth(user: User | null | undefined, children: ReactNode) {
   const value: AuthContextValue = {
     user,
     isAuthenticated: !!user,
-    signIn: async () => {},
+    mfaEnrollmentRequired: false,
+    signIn: async () => ({ status: 'signedIn' as const }),
+    completeMfa: async () => {},
     signOut: async () => {},
     refreshProfile: async () => {},
   };

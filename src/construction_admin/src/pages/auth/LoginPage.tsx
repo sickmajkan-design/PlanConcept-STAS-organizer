@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Alert, Button, Link as MuiLink, Stack, TextField } from '@mui/material';
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Link, useLocation, useNavigate, type Location } from 'react-router-dom';
 
@@ -15,7 +15,7 @@ import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 
 export function LoginPage() {
-  const { signIn } = useAuth();
+  const { signIn, completeMfa } = useAuth();
   const navigate = useNavigate();
   const t = useT();
   const location = useLocation() as Location & { state?: { from?: Location } };
@@ -33,17 +33,97 @@ export function LoginPage() {
     defaultValues: { email: '', password: '' },
   });
 
+  // Set once the password was accepted but the account also wants a code. The
+  // challenge lives only here: leaving the page drops it, and the password step
+  // simply has to be done again.
+  const [challenge, setChallenge] = useState<string | null>(null);
+  const [code, setCode] = useState('');
+  const [verifying, setVerifying] = useState(false);
+
+  const finish = () => {
+    const redirectTo = location.state?.from?.pathname ?? paths.home;
+    navigate(redirectTo, { replace: true });
+  };
+
   const onSubmit = async (values: LoginFormValues) => {
     setError(null);
 
     try {
-      await signIn(values.email, values.password);
-      const redirectTo = location.state?.from?.pathname ?? paths.home;
-      navigate(redirectTo, { replace: true });
+      const outcome = await signIn(values.email, values.password);
+
+      if (outcome.status === 'mfa') {
+        setChallenge(outcome.mfaToken);
+        return;
+      }
+
+      finish();
     } catch (err) {
       setError(err instanceof ApiError ? err : new ApiError(t('common.somethingWentWrong')));
     }
   };
+
+  const onVerify = async (event: FormEvent) => {
+    event.preventDefault();
+
+    if (!challenge || !code.trim()) {
+      return;
+    }
+
+    setError(null);
+    setVerifying(true);
+
+    try {
+      await completeMfa(challenge, code);
+      finish();
+    } catch (err) {
+      setError(err instanceof ApiError ? err : new ApiError(t('common.somethingWentWrong')));
+      setCode('');
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  if (challenge) {
+    return (
+      <AuthCard title={branding?.name || t('nav.appName')} subtitle={t('mfa.title')}>
+        <form onSubmit={onVerify} noValidate>
+          <Stack spacing={2.5}>
+            <Alert severity="info">{t('mfa.signInHint')}</Alert>
+
+            {error && <Alert severity="error">{error.message}</Alert>}
+
+            <TextField
+              value={code}
+              onChange={(event) => setCode(event.target.value)}
+              label={t('mfa.codeOrRecovery')}
+              autoComplete="one-time-code"
+              autoFocus
+              fullWidth
+              slotProps={{ htmlInput: { inputMode: 'text', maxLength: 32 } }}
+            />
+
+            <Button type="submit" variant="contained" size="large" loading={verifying}>
+              {t('mfa.verify')}
+            </Button>
+
+            <MuiLink
+              component="button"
+              type="button"
+              variant="body2"
+              sx={{ textAlign: 'center' }}
+              onClick={() => {
+                setChallenge(null);
+                setCode('');
+                setError(null);
+              }}
+            >
+              {t('mfa.backToSignIn')}
+            </MuiLink>
+          </Stack>
+        </form>
+      </AuthCard>
+    );
+  }
 
   return (
     <AuthCard title={branding?.name || t('nav.appName')} subtitle={t('auth.signInToConsole')}>

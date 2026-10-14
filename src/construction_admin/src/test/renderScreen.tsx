@@ -178,6 +178,8 @@ export interface ScreenOptions {
   user?: User | null;
   /** Rendered for any other path, so a navigation away is observable. */
   elsewhere?: ReactNode;
+  /** Replaces parts of the stubbed auth context, to observe or steer a sign-in. */
+  auth?: Partial<AuthContextValue>;
 }
 
 /**
@@ -203,14 +205,18 @@ export function renderScreen(ui: ReactElement, options: ScreenOptions = {}) {
     path = '*',
     user = signedIn(),
     elsewhere = <div data-testid="elsewhere" />,
+    auth: authOverrides = {},
   } = options;
 
   const auth: AuthContextValue = {
     user,
     isAuthenticated: !!user,
-    signIn: async () => {},
+    mfaEnrollmentRequired: false,
+    signIn: async () => ({ status: 'signedIn' as const }),
+    completeMfa: async () => {},
     signOut: async () => {},
     refreshProfile: async () => {},
+    ...authOverrides,
   };
 
   return render(

@@ -5,6 +5,7 @@ export const paths = {
   inviteRoute: '/invite/:token',
   invite: (token: string) => `/invite/${token}`,
   changePassword: '/change-password',
+  twoStep: '/two-step',
 
   home: '/',
   customerPortal: '/customer',

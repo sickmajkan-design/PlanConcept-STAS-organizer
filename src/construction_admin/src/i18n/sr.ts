@@ -3252,6 +3252,37 @@ export const sr: Record<MessageKey, Message> = {
   'changePassword.hint': 'Najmanje 8 znakova, sa velikim slovom, malim slovom i cifrom.',
   'changePassword.done': 'Lozinka je promijenjena. Iz bezbjednosnih razloga sve prijavljene sesije su odjavljene. Prijavite se ponovo novom lozinkom.',
   'changePassword.signInAgain': 'Prijavi se ponovo',
+  'mfa.title': 'Provjera u dva koraka',
+  'mfa.intro':
+    'Pored lozinke, prijava traži i šestocifreni kod iz aplikacije na telefonu. Tako je nalog siguran i ako lozinka procuri.',
+  'mfa.statusOn': 'Uključeno',
+  'mfa.statusOff': 'Isključeno',
+  'mfa.setUp': 'Podesi',
+  'mfa.setupStep1':
+    'Skenirajte ovaj kod aplikacijom za autentikaciju, npr. Google Authenticator, Microsoft Authenticator ili Aegis.',
+  'mfa.setupKey': 'Ili ručno upišite ovaj ključ u aplikaciju:',
+  'mfa.setupStep2': 'Zatim unesite šestocifreni kod koji aplikacija prikazuje da biste je uključili.',
+  'mfa.codeLabel': 'Šestocifreni kod',
+  'mfa.enable': 'Uključi',
+  'mfa.cancel': 'Odustani',
+  'mfa.recoveryTitle': 'Kodovi za oporavak',
+  'mfa.recoveryHint':
+    'Sačuvajte ih na sigurnom mjestu. Ako izgubite telefon, svaki od njih vas prijavljuje jednom. Prikazuju se samo sada.',
+  'mfa.recoveryCopy': 'Kopiraj sve',
+  'mfa.recoveryCopied': 'Kopirano',
+  'mfa.recoverySaved': 'Sačuvao/la sam ih',
+  'mfa.disableTitle': 'Isključi provjeru u dva koraka',
+  'mfa.disableHint': 'Unesite lozinku i važeći kod iz aplikacije.',
+  'mfa.disable': 'Isključi',
+  'mfa.codeOrRecovery': 'Kod iz aplikacije ili kod za oporavak',
+  'mfa.signInHint':
+    'Unesite šestocifreni kod iz aplikacije za autentikaciju ili jedan od kodova za oporavak.',
+  'mfa.verify': 'Potvrdi',
+  'mfa.backToSignIn': 'Nazad na prijavu',
+  'mfa.requiredBanner':
+    'Za vašu ulogu je predviđena provjera u dva koraka, a još nije podešena.',
+  'mfa.requiredAction': 'Podesi sada',
+  'mfa.menuItem': 'Provjera u dva koraka',
   'costs.title': 'Troškovi',
   'costs.subtitle':
     'Automatski izvještaj: rad iz odobrenih sati × cijena rada, plus materijal, vozila i alati. Ne uključuje Finansijske unose — oni se prikazuju kao isplata po ekipi na stranicama Projekta i Zaposlenog.',

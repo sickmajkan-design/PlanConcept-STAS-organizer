@@ -9,6 +9,7 @@ import { BillingSettingsLayout, CostRecordsLayout } from './layout/SectionTabs';
 import { canManageAssignments, canViewFinance } from './auth/authHelpers';
 import { useAuth } from './auth/useAuth';
 import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
+import { TwoStepPage } from './pages/auth/TwoStepPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { AcceptInvitationPage } from './pages/auth/AcceptInvitationPage';
@@ -405,6 +406,7 @@ function Layout() {
             <Route path={paths.home} element={<HomePage />} />
             <Route path={paths.map} element={<LiveMapPage />} />
             <Route path={paths.changePassword} element={<ChangePasswordPage />} />
+            <Route path={paths.twoStep} element={<TwoStepPage />} />
             {/* Everyone with an account has an inbox, including a worker who
                 only ever signs in to read one. */}
             <Route path={paths.notifications} element={<NotificationsPage />} />

@@ -14,6 +14,8 @@ export interface Session {
   accessTokenExpiresAt: string;
   refreshTokenExpiresAt: string;
   user: User;
+  /** Set at sign-in when the role is expected to use a second factor and has none; drives a banner. */
+  mfaEnrollmentRequired?: boolean;
   /** Which build's layout of a session this is — stamped on write, checked on read. */
   version?: number;
 }
@@ -152,6 +154,7 @@ export function sessionFromAuthResponse(response: AuthResponse): Session {
     accessTokenExpiresAt: response.accessTokenExpiresAt,
     refreshTokenExpiresAt: response.refreshTokenExpiresAt,
     user: response.user,
+    mfaEnrollmentRequired: response.mfaEnrollmentRequired,
   };
 }
 
