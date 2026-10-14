@@ -6,6 +6,7 @@ import { type ApiError, toApiError } from '../../api/apiError';
 import { authApi } from '../../api/auth';
 import type { MfaSetup } from '../../api/types';
 import { useAuth } from '../../auth/useAuth';
+import { useMfaStatusQuery } from '../../features/mfa/useMfaStatus';
 import { PasswordField } from '../../components/PasswordField';
 import { useT } from '../../i18n/useI18n';
 
@@ -34,6 +35,8 @@ export function TwoStepPage() {
   const [copied, setCopied] = useState(false);
 
   const enabled = !!user?.mfaEnabled;
+  const { data: status } = useMfaStatusQuery();
+  const unavailable = status !== undefined && !status.available && !enabled;
 
   const run = async (action: () => Promise<void>) => {
     setError(null);
@@ -102,7 +105,9 @@ export function TwoStepPage() {
 
           {error && <Alert severity="error">{error.message}</Alert>}
 
-          {step.name === 'overview' && (
+          {unavailable && <Alert severity="info">{t('mfa.notAvailable')}</Alert>}
+
+          {step.name === 'overview' && !unavailable && (
             <Box>
               {enabled ? (
                 <Button

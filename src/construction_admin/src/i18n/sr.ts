@@ -844,6 +844,10 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.close': 'Razumijem',
 
 
+  'releaseNotes.sec1014.title': "Sigurnija prijava",
+  'releaseNotes.sec1014.twostep': "Prijava sada može tražiti šestocifreni kod iz aplikacije za autentikaciju, kao drugi korak poslije lozinke. Pripremljeno je, ali za sada isključeno; administratori će biti obaviješteni kad se uključi.",
+  'releaseNotes.sec1014.phone': "Aplikacija na telefonu traži isti kod, pa je ažurirajte kad to bude potrebno.",
+  'releaseNotes.sec1014.overview': "Ispravljeno: pregled više ne javlja grešku kad nedostaje datum.",
   'releaseNotes.docs1013.title': "Dokumenti: povuci i otpusti",
   'releaseNotes.docs1013.drop': "Datoteke možete otpustiti direktno na dokumente bilo kojeg zapisa ili na zonu u prozoru za dodavanje. Na telefonu su dva dugmeta: izaberi datoteke i slikaj.",
   'releaseNotes.docs1013.queue': "Više datoteka se šalje istovremeno, svaka sa svojim napretkom. Ona koja zakaže može se poslati ponovo bez ponavljanja ostalih.",
@@ -874,10 +878,6 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.menu1009.pin': "Ako želiš da panel ostane otvoren, klikni na pribadaču u njegovom uglu (ili u meniju naloga). Na širokim ekranima tada stoji pored trake, a izbor se pamti za tvoj nalog.",
   'releaseNotes.menu1009.logo': "Logo i podaci firme su na sredini gornje trake, a novo otpremljen logo se odmah pojavljuje svuda umjesto starog. Tvoje ime i uloga su u dnu panela menija.",
   'releaseNotes.menu1009.active': "Traka s lijeve strane sada pokazuje gdje se nalaziš: grupa stranice koju imaš otvorenu je puna narandžasta pločica, a ostale su obične. Planiranje je samo svijetlonarandžasto kad si negdje drugdje.",
-  'releaseNotes.nav1008.title': "Čistiji izgled panela",
-  'releaseNotes.nav1008.menu': "Na računaru meni s lijeve strane sada pokazuje nazive stranica, s otvorenim grupama, umjesto samih ikona. Gornja traka je tanja: logo firme je prešao na vrh menija, a prečice na tastaturi su u meniju naloga.",
-  'releaseNotes.nav1008.home': "Početna stranica te pozdravlja imenom umjesto adresom e-pošte, a napomene za onoga ko održava server su sklopljene, pa brojevi dolaze prvi.",
-  'releaseNotes.nav1008.tables': "Oznake i čipovi u tabelama stoje na sredini reda, a brojke se poravnavaju u kolonama.",
   'finance.budget.warnPercentHelp': 'Prazno znači 80%. Od 100% se projekat računa kao prekoračen.',
   'finance.housingDoubleWarning': '{count} troškova smještaja pada na dane kada je kirija već uračunata iz cijena smještaja, pa se ta kirija računa dvaput. Obrišite ih ili ih prebacite u drugu kategoriju.',
   'finance.payOverlapWarning': '{count} isplata bez projekta pada na dane kada je ista osoba evidentirala sate na projektu. Računaju se oba iznosa — provjerite treba li jedan zamijeniti drugi.',
@@ -3283,6 +3283,7 @@ export const sr: Record<MessageKey, Message> = {
     'Za vašu ulogu je predviđena provjera u dva koraka, a još nije podešena.',
   'mfa.requiredAction': 'Podesi sada',
   'mfa.menuItem': 'Provjera u dva koraka',
+  'mfa.notAvailable': 'Provjera u dva koraka još nije uključena na ovoj instalaciji.',
   'costs.title': 'Troškovi',
   'costs.subtitle':
     'Automatski izvještaj: rad iz odobrenih sati × cijena rada, plus materijal, vozila i alati. Ne uključuje Finansijske unose — oni se prikazuju kao isplata po ekipi na stranicama Projekta i Zaposlenog.',

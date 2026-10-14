@@ -57,6 +57,13 @@ public class AuthController : ApiControllerBase
         return Ok(IssueCookieIfAsked(response));
     }
 
+    /// <summary>Whether this server can hold a second factor at all, and whether the caller's role is expected to use one.</summary>
+    [HttpGet("mfa")]
+    [Authorize(Policy = Policies.AllEmployees)]
+    [ProducesResponseType(typeof(MfaStatusDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<MfaStatusDto>> MfaStatus(CancellationToken cancellationToken) =>
+        Ok(await Mediator.Send(new GetMfaStatusQuery(), cancellationToken));
+
     /// <summary>Starts setting up an authenticator for the signed-in account.</summary>
     [HttpPost("mfa/setup")]
     [EnableRateLimiting(RateLimitingExtensions.CredentialsPolicy)]

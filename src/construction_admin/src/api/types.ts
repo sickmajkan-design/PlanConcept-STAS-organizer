@@ -56,6 +56,13 @@ export interface MfaSetup {
   provisioningUri: string;
 }
 
+export interface MfaStatus {
+  /** The server has an encryption key, so a factor can be set up. */
+  available: boolean;
+  /** This account's role is expected to use one. */
+  required: boolean;
+}
+
 export interface MfaEnabled {
   recoveryCodes: string[];
 }

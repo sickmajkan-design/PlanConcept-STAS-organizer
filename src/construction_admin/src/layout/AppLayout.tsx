@@ -50,6 +50,8 @@ import {
 } from '@mui/material';
 import { alpha, keyframes } from '@mui/material/styles';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+
+import { useMfaStatusQuery } from '../features/mfa/useMfaStatus';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { canViewDirectory, displayName } from '../auth/authHelpers';
@@ -170,6 +172,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const [logoPreviewAnchor, setLogoPreviewAnchor] = useState<HTMLElement | null>(null);
   const logoHoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { user, signOut, mfaEnrollmentRequired } = useAuth();
+  const { data: mfaStatus } = useMfaStatusQuery();
   const scope = storageScope(user);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
     () => new Set(readScoped<string[]>(scope, EXPANDED_GROUPS_KEY, [])),
@@ -1025,16 +1028,18 @@ export function AppLayout({ children }: { children: ReactNode }) {
               </ListItemIcon>
               {t('common.changePassword')}
             </MenuItem>
-            <MenuItem
-              component={Link}
-              to={paths.twoStep}
-              onClick={() => setMenuAnchor(null)}
-            >
-              <ListItemIcon>
-                <VerifiedUserOutlined fontSize="small" />
-              </ListItemIcon>
-              {t('mfa.menuItem')}
-            </MenuItem>
+            {(mfaStatus?.available || user?.mfaEnabled) && (
+              <MenuItem
+                component={Link}
+                to={paths.twoStep}
+                onClick={() => setMenuAnchor(null)}
+              >
+                <ListItemIcon>
+                  <VerifiedUserOutlined fontSize="small" />
+                </ListItemIcon>
+                {t('mfa.menuItem')}
+              </MenuItem>
+            )}
             <MenuItem onClick={handleSignOut}>
               <ListItemIcon>
                 <LogoutOutlined fontSize="small" />

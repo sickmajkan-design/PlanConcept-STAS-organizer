@@ -817,6 +817,10 @@ export const en = {
   'releaseNotes.close': 'Got it',
 
 
+  'releaseNotes.sec1014.title': "Safer sign-in",
+  'releaseNotes.sec1014.twostep': "Sign-in can now ask for a six-digit code from an authenticator app, as a second step after the password. It is prepared but switched off for now; administrators will be told when it is switched on.",
+  'releaseNotes.sec1014.phone': "The phone app asks for the same code, so update it when you are asked to.",
+  'releaseNotes.sec1014.overview': "Fixed: the overview no longer fails with an error when a date is left out.",
   'releaseNotes.docs1013.title': "Documents: drag and drop",
   'releaseNotes.docs1013.drop': "Drop files straight onto the documents of any record, or onto the zone in the upload window. On a phone there are two buttons: choose files, and take a photo.",
   'releaseNotes.docs1013.queue': "Several files go out at once, each with its own progress. One that fails can be sent again without repeating the rest.",
@@ -847,10 +851,6 @@ export const en = {
   'releaseNotes.menu1009.pin': "If you prefer the panel to stay open, click the pin in its corner (or in the account menu). It then sits next to the strip on wide screens, and the choice is remembered for your account.",
   'releaseNotes.menu1009.logo': "The company logo and details are in the middle of the top bar, and a newly uploaded logo shows at once everywhere instead of the old one. Your name and role are at the foot of the menu panel.",
   'releaseNotes.menu1009.active': "The strip on the left now shows where you are: the group of the page you have open is a filled orange tile and the rest are plain. Planning is only light orange when you are elsewhere.",
-  'releaseNotes.nav1008.title': "A cleaner panel",
-  'releaseNotes.nav1008.menu': "On a computer the menu on the left now shows the names of the pages, with the groups open, instead of icons only. The top bar is slimmer: the company logo moved to the top of the menu and the keyboard shortcuts are in the account menu.",
-  'releaseNotes.nav1008.home': "The home page greets you by name instead of your e-mail address, and the notes for whoever runs the server are folded away so the numbers come first.",
-  'releaseNotes.nav1008.tables': "Labels and chips in tables sit in the middle of their row, and figures line up in columns.",
   'finance.budget.warnPercentHelp': 'Leave empty for 80%. From 100% the project counts as over.',
   'finance.housingDoubleWarning': '{count} housing expenses fall on days when accommodation rent is already counted from the accommodation rates, so that rent is counted twice. Delete them or move them to another category.',
   'finance.payOverlapWarning': '{count} pay entries tied to no project fall on days the same person clocked hours at a project. Both are counted — check whether one of them should replace the other.',
@@ -3246,6 +3246,7 @@ export const en = {
     'Your role is expected to use two-step verification, and it is not set up yet.',
   'mfa.requiredAction': 'Set it up now',
   'mfa.menuItem': 'Two-step verification',
+  'mfa.notAvailable': 'Two-step verification has not been switched on for this installation yet.',
   'costs.title': 'Costs',
   'costs.subtitle':
     "Automatic report: labour from approved hours × pay rate, plus material, vehicle and tool ledgers. Doesn't include Finance entries — those show as pay per crew posting on the Project and Employee pages instead.",

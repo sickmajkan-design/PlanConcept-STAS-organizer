@@ -1,5 +1,5 @@
 import { anonymousRequest, cookieAuthHeaders, request } from './client';
-import type { AuthResponse, MfaEnabled, MfaSetup, User } from './types';
+import type { AuthResponse, MfaEnabled, MfaSetup, MfaStatus, User } from './types';
 
 export const authApi = {
   login: (email: string, password: string) =>
@@ -20,6 +20,8 @@ export const authApi = {
       data: { mfaToken, code: code.trim() },
       headers: cookieAuthHeaders,
     }),
+
+  mfaStatus: () => request<MfaStatus>({ method: 'GET', url: '/api/v1/auth/mfa' }),
 
   mfaSetup: () => request<MfaSetup>({ method: 'POST', url: '/api/v1/auth/mfa/setup' }),
 

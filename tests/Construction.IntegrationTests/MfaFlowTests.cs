@@ -90,6 +90,23 @@ public class MfaFlowTests
     }
 
     [Fact]
+    public async Task Status_says_the_server_can_hold_a_factor_and_who_may_ask()
+    {
+        var staff = await _api.ClientAs(UserRole.Worker).GetAsync("/api/v1/auth/mfa");
+        var customer = await _api.ClientAs(UserRole.Customer).GetAsync("/api/v1/auth/mfa");
+        var anonymous = await _api.AnonymousClient().GetAsync("/api/v1/auth/mfa");
+
+        Assert.Equal(HttpStatusCode.OK, staff.StatusCode);
+        var body = await staff.Content.ReadFromJsonAsync<JsonElement>(Json);
+        Assert.True(body.GetProperty("available").GetBoolean());
+        Assert.False(body.GetProperty("required").GetBoolean());
+
+        // A portal customer is not staff, and nothing is offered without signing in.
+        Assert.Equal(HttpStatusCode.Forbidden, customer.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, anonymous.StatusCode);
+    }
+
+    [Fact]
     public async Task Setup_gives_ten_recovery_codes_and_turns_the_factor_on()
     {
         var (_, _, recovery) = await EnrolledAdminAsync();

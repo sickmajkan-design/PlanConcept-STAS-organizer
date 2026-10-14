@@ -255,3 +255,25 @@ public class ResetUserMfaCommandHandler : IRequestHandler<ResetUserMfaCommand>
         await _context.SaveChangesAsync(cancellationToken);
     }
 }
+
+/// <summary>What the panel needs to know before offering the factor: whether the server can hold one at all.</summary>
+public record MfaStatusDto(bool Available, bool Required);
+
+public record GetMfaStatusQuery : IRequest<MfaStatusDto>;
+
+public class GetMfaStatusQueryHandler : IRequestHandler<GetMfaStatusQuery, MfaStatusDto>
+{
+    private readonly IMfaService _mfa;
+    private readonly ICurrentUserService _currentUser;
+
+    public GetMfaStatusQueryHandler(IMfaService mfa, ICurrentUserService currentUser)
+    {
+        _mfa = mfa;
+        _currentUser = currentUser;
+    }
+
+    public Task<MfaStatusDto> Handle(GetMfaStatusQuery request, CancellationToken cancellationToken) =>
+        Task.FromResult(new MfaStatusDto(
+            _mfa.IsAvailable,
+            _mfa.IsAvailable && _currentUser.Role is { } role && _mfa.IsRequiredFor(role)));
+}

@@ -56,7 +56,7 @@ describe('ReleaseNotesDialog', () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('SuperAdmin') });
 
     await screen.findByText('Evidencija (book of money)');
-    expect(screen.getByText('A cleaner panel')).toBeDefined();
+    expect(screen.getByText('Safer sign-in')).toBeDefined();
     expect(screen.getByText('Company structure')).toBeDefined();
   }, SCREEN_TIMEOUT);
 
