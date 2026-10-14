@@ -7,6 +7,7 @@ import '../../../core/network/network_providers.dart';
 import '../../notifications/data/notification_repository.dart';
 import '../../notifications/presentation/device_token.dart';
 import '../data/auth_repository.dart';
+import '../data/models/auth_response.dart';
 import '../data/models/auth_session.dart';
 import '../data/models/user.dart';
 
@@ -50,11 +51,39 @@ class AuthController extends AsyncNotifier<AuthState> {
         : Authenticated(restored.user);
   }
 
-  Future<void> signIn({required String email, required String password}) async {
-    final response = await ref
+  /// Signs in with a password. Returns `null` when that was enough, or the
+  /// challenge token when the account also wants a code — the caller then asks
+  /// for it and finishes with [completeMfa]. Nothing is stored until then.
+  Future<String?> signIn({
+    required String email,
+    required String password,
+  }) async {
+    final result = await ref
         .read(authRepositoryProvider)
         .login(email: email.trim(), password: password);
 
+    switch (result) {
+      case LoginMfaRequired(:final mfaToken):
+        return mfaToken;
+      case LoginSignedIn(:final response):
+        await _start(response);
+        return null;
+    }
+  }
+
+  /// Finishes a sign-in that stopped at a challenge.
+  Future<void> completeMfa({
+    required String mfaToken,
+    required String code,
+  }) async {
+    final response = await ref
+        .read(authRepositoryProvider)
+        .verifyMfa(mfaToken: mfaToken, code: code);
+
+    await _start(response);
+  }
+
+  Future<void> _start(AuthResponse response) async {
     await ref
         .read(authSessionManagerProvider)
         .start(AuthSession.fromResponse(response));

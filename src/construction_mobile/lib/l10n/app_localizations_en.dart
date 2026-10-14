@@ -2954,4 +2954,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shiftReminderDaySun => 'Sun';
+
+  @override
+  String get authMfaTitle => 'Two-step verification';
+
+  @override
+  String get authMfaHint =>
+      'Enter the six-digit code from your authenticator app, or one of your recovery codes.';
+
+  @override
+  String get authMfaCode => 'Code';
+
+  @override
+  String get authMfaConfirm => 'Confirm';
+
+  @override
+  String get authMfaBack => 'Back to sign in';
 }

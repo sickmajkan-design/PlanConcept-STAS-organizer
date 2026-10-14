@@ -1101,5 +1101,10 @@
   "shiftReminderDayThu": "Čet",
   "shiftReminderDayFri": "Pet",
   "shiftReminderDaySat": "Sub",
-  "shiftReminderDaySun": "Ned"
+  "shiftReminderDaySun": "Ned",
+  "authMfaTitle": "Provjera u dva koraka",
+  "authMfaHint": "Unesite šestocifreni kod iz aplikacije za autentikaciju ili jedan od kodova za oporavak.",
+  "authMfaCode": "Kod",
+  "authMfaConfirm": "Potvrdi",
+  "authMfaBack": "Nazad na prijavu"
 }

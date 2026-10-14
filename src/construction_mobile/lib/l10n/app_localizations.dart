@@ -5209,6 +5209,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sun'**
   String get shiftReminderDaySun;
+
+  /// No description provided for @authMfaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Two-step verification'**
+  String get authMfaTitle;
+
+  /// No description provided for @authMfaHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the six-digit code from your authenticator app, or one of your recovery codes.'**
+  String get authMfaHint;
+
+  /// No description provided for @authMfaCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code'**
+  String get authMfaCode;
+
+  /// No description provided for @authMfaConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get authMfaConfirm;
+
+  /// No description provided for @authMfaBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to sign in'**
+  String get authMfaBack;
 }
 
 class _AppLocalizationsDelegate

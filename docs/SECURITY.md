@@ -389,3 +389,21 @@ text beginning `=`, `+`, `-` or `@` as plain text, not as a formula
   (encryption) is optional.
 - No image vulnerability scan or SBOM in CI; pub / Dart has no advisory scanning.
 - Location-tracking lawful basis and DPIA (see `PRIVACY.md`).
+
+## Two-step verification (TOTP)
+
+Optional second factor for sign-in, built 2026-10-14. **Off until `Auth__Mfa__EncryptionKey` is set**; with
+no key nobody can enrol and sign-in is unchanged.
+
+| Setting | Meaning |
+|---|---|
+| `Auth__Mfa__EncryptionKey` | Base64 of 32 random bytes (`openssl rand -base64 32`). Encrypts the authenticator secrets (AES-256-GCM, bound to the account id). Keep it out of the repo and back it up: losing it makes every enrolled secret unreadable and needs a Super Admin reset per account. |
+| `Auth__Mfa__Issuer` | Name shown in the authenticator app. |
+| `Auth__Mfa__RequiredRoles__0..n` | Roles expected to use it (e.g. `SuperAdmin`, `Admin`). They are not locked out: sign-in succeeds and the panel shows a banner until it is set up. |
+
+- Endpoints: `POST /auth/mfa/setup | enable | disable | verify`, `POST /users/{id}/mfa/reset` (Super Admin).
+- A sign-in with a factor stops at a 5-minute challenge, 5 tries; spent challenges count toward the account lockout. A code cannot be reused. Ten single-use recovery codes are shown once.
+- A role listed in `RequiredRoles` cannot switch it off itself; a Super Admin resets it (this also ends the account's sessions).
+- Admin panel: account menu → "Two-step verification". The mobile app asks for the code at sign-in but enrolment is done in the panel.
+- **Rollout order:** deploy API + panel + mobile build first, check a sign-in without a factor still works, then set the key, then enrol the Super Admin and check the recovery codes work, then set `RequiredRoles`.
+- Old challenge rows (`mfa_challenges`) are not purged by the retention service yet; they are small and expire in 5 minutes.

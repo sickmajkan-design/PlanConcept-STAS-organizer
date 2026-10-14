@@ -2956,4 +2956,20 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get shiftReminderDaySun => 'Ned';
+
+  @override
+  String get authMfaTitle => 'Provjera u dva koraka';
+
+  @override
+  String get authMfaHint =>
+      'Unesite šestocifreni kod iz aplikacije za autentikaciju ili jedan od kodova za oporavak.';
+
+  @override
+  String get authMfaCode => 'Kod';
+
+  @override
+  String get authMfaConfirm => 'Potvrdi';
+
+  @override
+  String get authMfaBack => 'Nazad na prijavu';
 }

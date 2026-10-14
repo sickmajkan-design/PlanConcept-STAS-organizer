@@ -24,14 +24,62 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  final _codeController = TextEditingController();
+
   bool _submitting = false;
   ApiException? _error;
+
+  /// Set once the password was accepted but a code is still owed. Lives only
+  /// on this screen: leaving it drops the challenge and the password step has
+  /// to be done again.
+  String? _mfaToken;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _codeController.dispose();
     super.dispose();
+  }
+
+  Future<void> _verifyCode() async {
+    final token = _mfaToken;
+    final code = _codeController.text.trim();
+
+    if (_submitting || token == null || code.isEmpty) {
+      return;
+    }
+
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _submitting = true;
+      _error = null;
+    });
+
+    try {
+      await ref
+          .read(authControllerProvider.notifier)
+          .completeMfa(mfaToken: token, code: code);
+      // On success the router redirects away from this screen.
+    } on ApiException catch (exception) {
+      if (!mounted) return;
+      setState(() {
+        _error = exception;
+        _codeController.clear();
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _submitting = false);
+      }
+    }
+  }
+
+  void _backToPassword() {
+    setState(() {
+      _mfaToken = null;
+      _error = null;
+      _codeController.clear();
+    });
   }
 
   Future<void> _submit() async {
@@ -46,11 +94,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     });
 
     try {
-      await ref.read(authControllerProvider.notifier).signIn(
-            email: _emailController.text,
-            password: _passwordController.text,
-          );
-      // On success the router redirects away from this screen.
+      final challenge =
+          await ref.read(authControllerProvider.notifier).signIn(
+                email: _emailController.text,
+                password: _passwordController.text,
+              );
+
+      if (challenge != null && mounted) {
+        // The password was right and a code is still needed.
+        setState(() => _mfaToken = challenge);
+      }
+      // Otherwise the router redirects away from this screen.
     } on ApiException catch (exception) {
       if (!mounted) return;
       setState(() => _error = exception);
@@ -61,10 +115,93 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  Widget _buildCodeStep(
+    BuildContext context,
+    ThemeData theme,
+    ApiException? error,
+  ) {
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Icon(
+                    Icons.verified_user_outlined,
+                    size: 64,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    context.l10n.authMfaTitle,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    context.l10n.authMfaHint,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  if (error != null) ...[
+                    MessageBanner(message: error.describe(context.l10n)),
+                    const SizedBox(height: 16),
+                  ],
+                  TextField(
+                    controller: _codeController,
+                    enabled: !_submitting,
+                    autofocus: true,
+                    autocorrect: false,
+                    textInputAction: TextInputAction.done,
+                    autofillHints: const [AutofillHints.oneTimeCode],
+                    onSubmitted: (_) => _verifyCode(),
+                    decoration: InputDecoration(
+                      labelText: context.l10n.authMfaCode,
+                      prefixIcon: const Icon(Icons.pin_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  FilledButton(
+                    onPressed: _submitting ? null : _verifyCode,
+                    child: _submitting
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(strokeWidth: 2.5),
+                          )
+                        : Text(context.l10n.authMfaConfirm),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: _submitting ? null : _backToPassword,
+                    child: Text(context.l10n.authMfaBack),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final error = _error;
+
+    if (_mfaToken != null) {
+      return _buildCodeStep(context, theme, error);
+    }
 
     return Scaffold(
       body: SafeArea(

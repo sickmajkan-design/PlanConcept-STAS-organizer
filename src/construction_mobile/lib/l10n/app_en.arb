@@ -1492,5 +1492,10 @@
   "shiftReminderDayThu": "Thu",
   "shiftReminderDayFri": "Fri",
   "shiftReminderDaySat": "Sat",
-  "shiftReminderDaySun": "Sun"
+  "shiftReminderDaySun": "Sun",
+  "authMfaTitle": "Two-step verification",
+  "authMfaHint": "Enter the six-digit code from your authenticator app, or one of your recovery codes.",
+  "authMfaCode": "Code",
+  "authMfaConfirm": "Confirm",
+  "authMfaBack": "Back to sign in"
 }
