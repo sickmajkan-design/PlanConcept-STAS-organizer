@@ -326,11 +326,20 @@ public class GetOverviewQueryValidator : AbstractValidator<GetOverviewQuery>
 {
     public GetOverviewQueryValidator()
     {
-        RuleFor(x => x.To).GreaterThanOrEqualTo(x => x.From);
+        // An omitted date binds to 0001-01-01, and the handler steps back a day from
+        // From to find the period before it, which throws below the calendar's start.
+        RuleFor(x => x.From).NotEqual(default(DateOnly)).WithMessage("A start date is required.");
+
+        RuleFor(x => x.To)
+            .NotEqual(default(DateOnly)).WithMessage("An end date is required.")
+            .GreaterThanOrEqualTo(x => x.From)
+            .When(x => x.From != default);
+
         RuleFor(x => x)
             .Must(x => x.To.DayNumber - x.From.DayNumber <= 732)
             .WithMessage("A period cannot be longer than two years.")
-            .OverridePropertyName(nameof(GetOverviewQuery.To));
+            .OverridePropertyName(nameof(GetOverviewQuery.To))
+            .When(x => x.From != default && x.To >= x.From);
     }
 }
 

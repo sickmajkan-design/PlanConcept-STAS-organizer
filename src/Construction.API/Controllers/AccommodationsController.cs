@@ -20,6 +20,7 @@ public class AccommodationsController : ApiControllerBase
 {
     /// <summary>Where the caller lives now (or will next): the worker-facing view, without any cost figures.</summary>
     [HttpGet("mine")]
+    [Authorize(Policy = Policies.AllEmployees)]
     [ProducesResponseType(typeof(MyHousingDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<ActionResult<MyHousingDto?>> GetMine(CancellationToken cancellationToken)
