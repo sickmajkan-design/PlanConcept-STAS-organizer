@@ -189,7 +189,7 @@ export function ExpiringDocumentsPage() {
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder={t('attachments.searchPlaceholder')}
-          inputProps={{ 'aria-label': t('attachments.searchPlaceholder') }}
+          slotProps={{ htmlInput: { 'aria-label': t('attachments.searchPlaceholder') } }}
           sx={{ minWidth: 260 }}
         />
 
