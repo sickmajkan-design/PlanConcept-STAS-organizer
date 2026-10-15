@@ -5,6 +5,7 @@ import {
   DeleteOutlined,
   EditOutlined,
   FileDownloadOutlined,
+  FolderZipOutlined,
   OpenInNewOutlined,
 } from '@mui/icons-material';
 import {
@@ -396,6 +397,12 @@ export function BookEntriesPage() {
             >
               {t('book.entries.export')}
             </Button>
+            <Button
+              startIcon={<FolderZipOutlined />}
+              onClick={() => void bookApi.entries.exportPackage({ ...filter, kind: kind === 'all' ? '' : kind })}
+            >
+              {t('book.entries.package')}
+            </Button>
           </Stack>
         }
       />
@@ -407,6 +414,7 @@ export function BookEntriesPage() {
         <HowLine>{t('book.entries.how2')}</HowLine>
         <HowLine>{t('book.entries.how3')}</HowLine>
         <HowLine>{t('book.entries.how4')}</HowLine>
+        <HowLine>{t('book.entries.how5')}</HowLine>
       </HowItWorks>
 
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>

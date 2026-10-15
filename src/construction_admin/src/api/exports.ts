@@ -110,6 +110,9 @@ export const exportsApi = {
   /** The book of money, as filtered on the screen, for the accountant. */
   book: (query: object) => download('/api/v1/book/entries/export', query, true),
 
+  /** The book as filtered, plus the documents filed on its lines, as one ZIP. */
+  bookPackage: (query: object) => download('/api/v1/book/entries/package', query, true),
+
   timeEntries: (query: TimeEntryExportQuery) =>
     download('/api/v1/exports/time-entries', query, true, true),
 

@@ -241,6 +241,9 @@ export const bookApi = {
   entries: {
     export: (query: Omit<BookListQuery, 'pageNumber' | 'pageSize'>) => exportsApi.book(listParams(query)),
 
+    exportPackage: (query: Omit<BookListQuery, 'pageNumber' | 'pageSize'>) =>
+      exportsApi.bookPackage(listParams(query)),
+
     list: (query: BookListQuery) =>
       request<PagedList<BookRow>>({
         method: 'GET',

@@ -1,4 +1,5 @@
 using Construction.Application.Common.Exceptions;
+using Construction.Application.Features.Attachments;
 using Construction.Application.Features.Book;
 using Construction.Application.Features.BookImport;
 using Construction.Application.Features.Branches;
@@ -220,6 +221,62 @@ public class BookScreensTests : IntegrationTestBase
         Assert.Equal(200m, site.Costs);
         Assert.Equal(4000m, site.ByHours);
         Assert.Equal(40m, site.ClientRate);
+    }
+
+    [Fact]
+    public async Task The_accountants_package_holds_the_sheet_and_the_documents_of_its_lines()
+    {
+        var branch = await BranchAsync();
+        var day = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        await AsSuperAdminAsync(async scope =>
+        {
+            var fixedCosts = await scope.Db.BookCategories
+                .Where(c => c.SystemKey == BookRules.Keys.FixedCosts).Select(c => c.Id).SingleAsync();
+
+            foreach (var (description, withFile) in new[] { ("Osiguranje", true), ("Bez racuna", false) })
+            {
+                var entry = await scope.Send(new CreateBookEntryCommand
+                {
+                    Kind = BookEntryKind.Cost, Amount = 250m, OccurredOn = day,
+                    CategoryId = fixedCosts, Description = description, BranchId = branch,
+                });
+
+                if (!withFile) continue;
+
+                var bytes = new MemoryStream(TestFiles.WithSignature("polisa.pdf", "hello"));
+
+                await scope.Send(new Construction.Application.Features.Attachments.Commands.UploadAttachment.UploadAttachmentCommand
+                {
+                    OwnerType = AttachmentOwnerType.BookEntry,
+                    OwnerId = entry.Id,
+                    Category = AttachmentCategory.Other,
+                    FileName = "polisa.pdf",
+                    SizeBytes = bytes.Length,
+                    Content = bytes,
+                });
+            }
+
+            return 0;
+        });
+
+        var package = await AsSuperAdminAsync(scope => scope.Send(new GetBookPackageQuery
+        {
+            From = day, To = day, BranchId = branch,
+        }));
+
+        await using var content = package.Content;
+        using var archive = new System.IO.Compression.ZipArchive(content, System.IO.Compression.ZipArchiveMode.Read);
+        var names = archive.Entries.Select(e => e.FullName).ToList();
+
+        Assert.Contains("knjiga.xlsx", names);
+        Assert.Contains("_napomena.txt", names);
+        Assert.Contains($"Dokumenti/{day:yyyy-MM-dd} Osiguranje -250.00/polisa.pdf", names);
+        Assert.Single(names, n => n.StartsWith("Dokumenti/", StringComparison.Ordinal));
+        Assert.EndsWith(".zip", package.FileName);
+
+        using var note = new StreamReader(archive.GetEntry("_napomena.txt")!.Open());
+        Assert.Contains("Troskova bez dokumenta u ovom izvozu: 1.", await note.ReadToEndAsync());
     }
 
     [Fact]

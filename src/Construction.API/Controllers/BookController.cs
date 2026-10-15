@@ -42,6 +42,19 @@ public class BookController : ApiControllerBase
         return File(file.Content, file.ContentType, file.FileName);
     }
 
+    /// <summary>The filtered book as one ZIP: the spreadsheet and the documents filed on its lines.</summary>
+    [HttpGet("entries/package")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> Package(
+        [FromQuery] GetBookPackageQuery query,
+        CancellationToken cancellationToken)
+    {
+        var archive = await Mediator.Send(query, cancellationToken);
+
+        return File(archive.Content, "application/zip", archive.FileName);
+    }
+
     /// <summary>What the whole filtered book adds up to: money in, and money out.</summary>
     [HttpGet("entries/totals")]
     [ProducesResponseType(typeof(BookTotalsDto), StatusCodes.Status200OK)]
