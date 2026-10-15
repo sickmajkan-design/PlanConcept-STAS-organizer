@@ -87,6 +87,12 @@ public class SettlementSummaryDto
 
     /// <summary>What the settlement's own list says to look at before the month is closed.</summary>
     public IReadOnlyList<LedgerCheckDto> Checks { get; init; } = [];
+
+    /// <summary>How many costs booked in the month have no document attached. A prompt, never a block.</summary>
+    public int CostsWithoutDocumentCount { get; init; }
+
+    /// <summary>Their total, so the size of the gap is visible at a glance.</summary>
+    public decimal CostsWithoutDocumentAmount { get; init; }
 }
 
 /// <summary>
@@ -169,6 +175,15 @@ public class GetSettlementSummaryQueryHandler : IRequestHandler<GetSettlementSum
             Amount = e.Amount,
         }));
 
+        // Costs the accountant will ask a paper for: every cost entry of the month with nothing filed on it.
+        var undocumented = await _context.BookEntries.AsNoTracking()
+            .InBranch(request.BranchId)
+            .Where(e => e.Kind == BookEntryKind.Cost
+                && e.OccurredOn >= first && e.OccurredOn <= last
+                && !_context.Attachments.Any(a => a.BookEntryId == e.Id))
+            .Select(e => e.Amount)
+            .ToListAsync(cancellationToken);
+
         var ledgers = _context.Ledgers.AsNoTracking()
             .Where(l => l.Year == request.Year && l.Month == request.Month);
 
@@ -190,6 +205,8 @@ public class GetSettlementSummaryQueryHandler : IRequestHandler<GetSettlementSum
                 Year = request.Year,
                 Month = request.Month,
                 FixedLines = fixedLines,
+                CostsWithoutDocumentCount = undocumented.Count,
+                CostsWithoutDocumentAmount = undocumented.Sum(),
             };
         }
 
@@ -254,6 +271,8 @@ public class GetSettlementSummaryQueryHandler : IRequestHandler<GetSettlementSum
             Sites = sites,
             FixedLines = fixedLines,
             Checks = checks,
+            CostsWithoutDocumentCount = undocumented.Count,
+            CostsWithoutDocumentAmount = undocumented.Sum(),
         };
     }
 }

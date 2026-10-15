@@ -223,6 +223,54 @@ public class BookScreensTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task The_settlement_counts_costs_that_have_no_document_filed()
+    {
+        var branch = await BranchAsync();
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        var entryId = await AsSuperAdminAsync(async scope =>
+        {
+            var fixedCosts = await scope.Db.BookCategories
+                .Where(c => c.SystemKey == BookRules.Keys.FixedCosts).Select(c => c.Id).SingleAsync();
+
+            var entry = await scope.Send(new CreateBookEntryCommand
+            {
+                Kind = BookEntryKind.Cost, Amount = 250m, OccurredOn = today,
+                CategoryId = fixedCosts, Description = "Osiguranje", BranchId = branch,
+            });
+
+            return entry.Id;
+        });
+
+        var query = new GetSettlementSummaryQuery { Year = today.Year, Month = today.Month, BranchId = branch };
+
+        var before = await AsSuperAdminAsync(scope => scope.Send(query));
+
+        Assert.Equal(1, before.CostsWithoutDocumentCount);
+        Assert.Equal(250m, before.CostsWithoutDocumentAmount);
+
+        await AsSuperAdminAsync(async scope =>
+        {
+            scope.Db.Attachments.Add(new Attachment
+            {
+                FileName = "polisa.pdf",
+                ContentType = "application/pdf",
+                SizeBytes = 10,
+                StorageKey = $"test/{Guid.NewGuid():N}.pdf",
+                BookEntryId = entryId,
+            });
+            await scope.Db.SaveChangesAsync();
+
+            return 0;
+        });
+
+        var after = await AsSuperAdminAsync(scope => scope.Send(query));
+
+        Assert.Equal(0, after.CostsWithoutDocumentCount);
+        Assert.Equal(0m, after.CostsWithoutDocumentAmount);
+    }
+
+    [Fact]
     public async Task How_a_site_is_billed_can_be_changed_from_the_settlement()
     {
         var project = await InScope(scope => TestData.SeedProjectAsync(scope));

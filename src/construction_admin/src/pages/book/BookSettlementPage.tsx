@@ -391,6 +391,21 @@ export function BookSettlementPage() {
               />
             );
           })}
+          {(data?.costsWithoutDocumentCount ?? 0) > 0 && (
+            <Alert
+              severity="warning"
+              action={
+                <Button color="inherit" size="small" component={RouterLink} to={paths.bookEntries}>
+                  {t('book.settlement.noDocs.open')}
+                </Button>
+              }
+            >
+              {t('book.settlement.noDocs', {
+                count: data?.costsWithoutDocumentCount ?? 0,
+                amount: money(data?.costsWithoutDocumentAmount ?? 0),
+              })}
+            </Alert>
+          )}
           {checks.length === 0 && data?.hasSettlement && (
             <Typography variant="body2" color="text.secondary">
               {t('ledgers.checksNone')}
@@ -398,7 +413,7 @@ export function BookSettlementPage() {
           )}
         </Stack>
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-          {t('book.settlement.checksNote')}
+          {t('book.settlement.checksNote')} {t('book.settlement.noDocs.note')}
         </Typography>
       </Paper>
 

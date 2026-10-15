@@ -214,6 +214,9 @@ export interface SettlementSummary {
   fixedTotal: number;
   firmResult: number;
   checks: LedgerCheck[];
+  /** Costs of the month with no document attached, and their total. */
+  costsWithoutDocumentCount: number;
+  costsWithoutDocumentAmount: number;
 }
 
 export const bookApi = {
