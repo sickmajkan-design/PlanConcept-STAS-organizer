@@ -49,6 +49,33 @@ public class AttachmentUploadChecksTests : IntegrationTestBase
         });
 
     [Fact]
+    public async Task A_file_the_virus_scan_recognises_is_refused_whoever_sends_it()
+    {
+        var infected = TestFiles.WithSignature("ugovor.pdf", FakeVirusScanner.Eicar);
+
+        await Assert.ThrowsAsync<ConflictException>(() =>
+            AsAdminAsync((scope, owner) => Upload(scope, owner, "ugovor.pdf", infected)));
+    }
+
+    [Fact]
+    public async Task A_clean_file_goes_through_the_scan_and_is_stored()
+    {
+        var clean = TestFiles.WithSignature("ugovor.pdf", "obican ugovor");
+
+        var stored = await AsAdminAsync(async (scope, owner) =>
+        {
+            var before = scope.VirusScanner.Scans;
+            var result = await Upload(scope, owner, "ugovor.pdf", clean);
+
+            Assert.True(scope.VirusScanner.Scans > before, "the upload was scanned");
+
+            return result;
+        });
+
+        Assert.Equal("ugovor.pdf", stored.FileName);
+    }
+
+    [Fact]
     public async Task A_program_renamed_to_pdf_is_refused()
     {
         var exe = Encoding.ASCII.GetBytes("MZ\u0090\u0000\u0003\u0000\u0000\u0000 this program cannot be run in DOS mode");

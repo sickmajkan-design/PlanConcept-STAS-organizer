@@ -124,10 +124,35 @@ services:
       FileStorage__SecretKey: ${FILE_STORAGE_SECRET_KEY:-}
       FileStorage__RootPath: /var/lib/construction/storage
 
+      # Virus scan of every uploaded file, before it is stored. Off until ANTIVIRUS_ENABLED=true, so a
+      # deployment that has not started the `clamav` service below is unchanged. On, a file that cannot be
+      # checked is refused (the person is told to try again) unless ANTIVIRUS_FAIL_OPEN=true.
+      Antivirus__Enabled: ${ANTIVIRUS_ENABLED:-false}
+      Antivirus__Host: clamav
+      Antivirus__Port: 3310
+      Antivirus__FailOpen: ${ANTIVIRUS_FAIL_OPEN:-false}
+
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
       OTEL_SERVICE_NAME: construction-api
     volumes:
       - attachment-data:/var/lib/construction/storage
+    networks:
+      - internal
+
+  # The virus scanner. Reachable only from the API, on the internal network. Needs about 1.3 GB of memory
+  # for its signature database and takes a few minutes to download it on first start; the API does not
+  # wait for it (see ANTIVIRUS_ENABLED above), so switch scanning on once `docker ps` shows it healthy.
+  clamav:
+    image: clamav/clamav:1.4
+    restart: unless-stopped
+    environment:
+      # Above the product's upload limit of 25 MB, so a file at the limit is scanned whole instead of
+      # being answered with a size error.
+      CLAMD_CONF_StreamMaxLength: 30M
+      CLAMD_CONF_MaxFileSize: 30M
+    mem_limit: 1800m
+    volumes:
+      - clamav-data:/var/lib/clamav
     networks:
       - internal
 
@@ -255,6 +280,7 @@ networks:
 volumes:
   postgres-data:
   attachment-data:
+  clamav-data:
   backup-data:
   caddy-data:
   caddy-config:

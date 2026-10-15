@@ -563,4 +563,62 @@ public class DocumentRequestTests : IntegrationTestBase
 
         Assert.Equal("Expired", lapsed.DriverLicenceWarning);
     }
+
+    // ---- the virus scan --------------------------------------------------
+
+    [Fact]
+    public async Task A_file_the_scan_recognises_is_refused_and_the_request_stays_open()
+    {
+        var w = await SeedAsync();
+        var asked = await AskAsync(w);
+
+        await Assert.ThrowsAsync<ConflictException>(() => InScope(scope =>
+        {
+            ActAs(scope, w.Worker, w.Employee.Id);
+            var bytes = TestFiles.WithSignature("nalaz.pdf", FakeVirusScanner.Eicar);
+
+            return scope.Send(new SubmitDocumentRequestCommand
+            {
+                Id = asked.Id,
+                Files = [new SubmittedFile("nalaz.pdf", bytes.Length, new MemoryStream(bytes))]
+            });
+        }));
+
+        var after = await InScope(scope =>
+        {
+            ActAs(scope, w.Admin);
+            return scope.Send(new GetDocumentRequestQuery(asked.Id));
+        });
+
+        Assert.Equal(DocumentRequestStatus.Open, after.Status);
+        Assert.Equal(0, after.Attempts);
+
+        // Nothing was stored for it.
+        var stored = await InScope(scope => scope.Db.Attachments.AsNoTracking()
+            .CountAsync(a => a.EmployeeId == w.Employee.Id));
+        Assert.Equal(0, stored);
+    }
+
+    [Fact]
+    public async Task When_the_scan_cannot_run_nothing_is_accepted_and_the_person_is_told_to_try_again()
+    {
+        var w = await SeedAsync();
+        var asked = await AskAsync(w);
+
+        var scanner = await InScope(scope => Task.FromResult(scope.VirusScanner));
+        scanner.Down = true;
+
+        try
+        {
+            await Assert.ThrowsAsync<ServiceUnavailableException>(() => SubmitAsync(w, asked.Id));
+        }
+        finally
+        {
+            scanner.Down = false;
+        }
+
+        // Once it is back, the same request goes through.
+        var sent = await SubmitAsync(w, asked.Id);
+        Assert.Equal(DocumentRequestStatus.Submitted, sent.Status);
+    }
 }

@@ -15,11 +15,12 @@ import { useEffect, useState } from 'react';
 import { attachmentsApi } from '../api/attachments';
 import type { Attachment } from '../api/types';
 import { useT } from '../i18n/useI18n';
+import { PdfPages } from './PdfPages';
 
 type PreviewState =
   | { kind: 'loading' }
   | { kind: 'image'; url: string }
-  | { kind: 'pdf'; url: string }
+  | { kind: 'pdf'; url: string; blob: Blob; viewerFailed?: boolean }
   | { kind: 'text'; text: string }
   | { kind: 'html'; html: string; note?: string }
   | { kind: 'unsupported'; legacyWord?: boolean }
@@ -140,7 +141,7 @@ export function AttachmentPreviewDialog({
         }
 
         if (ext === 'pdf' || attachment.contentType === 'application/pdf') {
-          setPreview({ kind: 'pdf', url: downloadObjectUrl });
+          setPreview({ kind: 'pdf', url: downloadObjectUrl, blob });
           return;
         }
 
@@ -225,7 +226,15 @@ export function AttachmentPreviewDialog({
           />
         )}
 
-        {preview.kind === 'pdf' && (
+        {/* Drawn page by page so it works on phones; the browser's own viewer is the fallback. */}
+        {preview.kind === 'pdf' && !preview.viewerFailed && (
+          <PdfPages
+            blob={preview.blob}
+            onFailed={() => setPreview((current) => (current.kind === 'pdf' ? { ...current, viewerFailed: true } : current))}
+          />
+        )}
+
+        {preview.kind === 'pdf' && preview.viewerFailed && (
           <Box
             component="iframe"
             src={preview.url}

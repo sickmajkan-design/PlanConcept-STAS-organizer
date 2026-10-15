@@ -35,6 +35,9 @@ public sealed class TestScope : IDisposable
     public RecordingPushSender Pushes =>
         _scope.ServiceProvider.GetRequiredService<RecordingPushSender>();
 
+    public FakeVirusScanner VirusScanner =>
+        _scope.ServiceProvider.GetRequiredService<FakeVirusScanner>();
+
     public IOutbox Outbox => _scope.ServiceProvider.GetRequiredService<IOutbox>();
 
     public ILocationPartitions LocationPartitions =>

@@ -107,15 +107,18 @@ public class UploadAttachmentCommandHandler
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IFileStorage _storage;
+    private readonly IVirusScanner _virusScanner;
 
     public UploadAttachmentCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IFileStorage storage)
+        IFileStorage storage,
+        IVirusScanner virusScanner)
     {
         _context = context;
         _currentUserService = currentUserService;
         _storage = storage;
+        _virusScanner = virusScanner;
     }
 
     public async Task<AttachmentDto> Handle(
@@ -150,6 +153,8 @@ public class UploadAttachmentCommandHandler
             ?? throw new ConflictException("That file type is not accepted.");
 
         var content = await VerifySignatureAsync(request.Content, fileName, cancellationToken);
+
+        await _virusScanner.EnsureCleanAsync(content, cancellationToken);
 
         var attachment = new Attachment
         {

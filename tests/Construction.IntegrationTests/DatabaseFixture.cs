@@ -104,6 +104,11 @@ public sealed class DatabaseFixture : IAsyncLifetime
         services.AddSingleton<RecordingEmailSender>();
         services.AddSingleton<IEmailSender>(sp => sp.GetRequiredService<RecordingEmailSender>());
 
+        // Scanning is on for the whole suite, so every upload test goes through it. It recognises the
+        // standard EICAR test string and can be told to be unreachable.
+        services.AddSingleton<FakeVirusScanner>();
+        services.AddSingleton<IVirusScanner>(sp => sp.GetRequiredService<FakeVirusScanner>());
+
         services.AddSingleton<RecordingPushSender>();
         services.AddSingleton<IPushSender>(sp => sp.GetRequiredService<RecordingPushSender>());
 

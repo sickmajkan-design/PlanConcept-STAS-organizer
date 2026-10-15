@@ -1,4 +1,5 @@
 using Construction.Application.Common.Interfaces;
+using Construction.Infrastructure.Antivirus;
 using Construction.Infrastructure.Spreadsheets;
 using Construction.Application.Features.Authentication.Commands.ForgotPassword;
 using Construction.Infrastructure.Ai;
@@ -159,6 +160,7 @@ public static class DependencyInjection
         });
 
         AddFileStorage(services, configuration);
+        AddVirusScanner(services, configuration);
         AddAssistant(services, configuration);
     }
 
@@ -231,6 +233,28 @@ public static class DependencyInjection
     /// of a bucket rather than on a separate "provider" setting removes the
     /// state where the two disagree.
     /// </remarks>
+    /// <summary>
+    /// Scanning is opt-in: <c>Antivirus:Enabled</c> selects the ClamAV daemon, anything else is a scanner
+    /// that passes everything. Switching it on is a deployment decision, since it needs the daemon running.
+    /// </summary>
+    private static void AddVirusScanner(IServiceCollection services, IConfiguration configuration)
+    {
+        var section = configuration.GetSection(AntivirusSettings.SectionName);
+
+        services.Configure<AntivirusSettings>(section);
+
+        var settings = section.Get<AntivirusSettings>() ?? new AntivirusSettings();
+
+        if (settings.Enabled)
+        {
+            services.AddSingleton<IVirusScanner, ClamAvScanner>();
+        }
+        else
+        {
+            services.AddSingleton<IVirusScanner, NullVirusScanner>();
+        }
+    }
+
     private static void AddFileStorage(IServiceCollection services, IConfiguration configuration)
     {
         var section = configuration.GetSection(FileStorageSettings.SectionName);

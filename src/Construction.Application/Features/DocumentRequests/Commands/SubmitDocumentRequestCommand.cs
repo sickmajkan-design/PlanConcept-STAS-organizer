@@ -60,17 +60,20 @@ public class SubmitDocumentRequestCommandHandler : IRequestHandler<SubmitDocumen
     private readonly ICurrentUserService _currentUserService;
     private readonly IFileStorage _storage;
     private readonly INotificationService _notifications;
+    private readonly IVirusScanner _virusScanner;
 
     public SubmitDocumentRequestCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
         IFileStorage storage,
-        INotificationService notifications)
+        INotificationService notifications,
+        IVirusScanner virusScanner)
     {
         _context = context;
         _currentUserService = currentUserService;
         _storage = storage;
         _notifications = notifications;
+        _virusScanner = virusScanner;
     }
 
     public async Task<DocumentRequestDto> Handle(
@@ -123,6 +126,8 @@ public class SubmitDocumentRequestCommandHandler : IRequestHandler<SubmitDocumen
 
                 var content = await UploadAttachmentCommandHandler.VerifySignatureAsync(
                     file.Content, fileName, cancellationToken);
+
+                await _virusScanner.EnsureCleanAsync(content, cancellationToken);
 
                 var attachment = new Attachment
                 {

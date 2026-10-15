@@ -407,3 +407,22 @@ no key nobody can enrol and sign-in is unchanged.
 - Admin panel: account menu → "Two-step verification". The mobile app asks for the code at sign-in but enrolment is done in the panel.
 - **Rollout order:** deploy API + panel + mobile build first, check a sign-in without a factor still works, then set the key, then enrol the Super Admin and check the recovery codes work, then set `RequiredRoles`.
 - Old challenge rows (`mfa_challenges`) are not purged by the retention service yet; they are small and expire in 5 minutes.
+
+## Virus scan of uploaded files
+
+Every path that stores a file somebody uploaded (the general attachment upload and the answer to a
+document request) streams it to a ClamAV daemon first (`Antivirus__*` settings, the `clamav` service in
+`deploy/docker-compose.prod.yml`).
+
+- **Off by default** (`ANTIVIRUS_ENABLED=false`), so a deployment without the daemon is unchanged. Turn it
+  on once the container is healthy; the first start downloads the signature database.
+- **Fail closed:** when it is on and the daemon cannot be reached or answers anything but OK/FOUND, the
+  upload is refused with 503 and the person is told to try again. `ANTIVIRUS_FAIL_OPEN=true` is the
+  explicit opt-out for a deployment that prefers availability.
+- A recognised file is refused with 409 and the signature name goes to the log, never to the client.
+- **Limits:** the daemon needs about 1.3 GB of memory; `StreamMaxLength` and `MaxFileSize` are set above
+  the product's 25 MB upload limit.
+- Not covered: files that are created by the server itself, and Excel/CSV imports, which are parsed and
+  not stored.
+- Tests: `ClamAvScannerTests` (protocol against a stand-in daemon), the upload and document-request
+  integration tests (EICAR, scanner down).
