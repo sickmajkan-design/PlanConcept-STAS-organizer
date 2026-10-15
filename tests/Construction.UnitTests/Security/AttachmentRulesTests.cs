@@ -132,15 +132,19 @@ public class AttachmentRulesTests
         var theirs = Guid.NewGuid();
 
         Assert.True(AttachmentRules.CanReadOwnEmployeeFiles(
-            mine, new Attachment { EmployeeId = mine }));
+            mine, new Attachment { EmployeeId = mine, SharedWithEmployee = true }));
 
         Assert.False(AttachmentRules.CanReadOwnEmployeeFiles(
-            mine, new Attachment { EmployeeId = theirs }));
+            mine, new Attachment { EmployeeId = theirs, SharedWithEmployee = true }));
 
         // An account with no employee record matches nothing, rather than
         // matching every attachment whose EmployeeId is also null.
         Assert.False(AttachmentRules.CanReadOwnEmployeeFiles(
-            null, new Attachment { EmployeeId = null, ProjectId = Guid.NewGuid() }));
+            null, new Attachment { EmployeeId = null, ProjectId = Guid.NewGuid(), SharedWithEmployee = true }));
+
+        // Filed on their card but not shared: still closed.
+        Assert.False(AttachmentRules.CanReadOwnEmployeeFiles(
+            mine, new Attachment { EmployeeId = mine }));
     }
 
     // ---- who may write ---------------------------------------------------

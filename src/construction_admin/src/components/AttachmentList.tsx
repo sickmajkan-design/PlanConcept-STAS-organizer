@@ -3,6 +3,8 @@ import {
   DescriptionOutlined,
   DownloadOutlined,
   UploadFileOutlined,
+  VisibilityOffOutlined,
+  VisibilityOutlined,
 } from "@mui/icons-material";
 import {
   Box,
@@ -29,6 +31,7 @@ import type {
 import {
   useAttachmentsQuery,
   useDeleteAttachment,
+  useSetAttachmentSharing,
 } from "../features/attachments/useAttachments";
 import { useFileDrop } from "../features/files/useFileDrop";
 import { useDeleteWithConfirm } from "../hooks/useDeleteWithConfirm";
@@ -92,6 +95,10 @@ export function AttachmentList({
   });
 
   const remove = useDeleteWithConfirm<Attachment>(useDeleteAttachment());
+  const sharing = useSetAttachmentSharing();
+  // Only a person's own card or their vehicle can be shared, and only the office decides.
+  const canShare =
+    canDelete && (ownerType === "Employee" || ownerType === "Vehicle");
   const [uploadOpen, setUploadOpen] = useState(false);
   const [dropped, setDropped] = useState<File[]>([]);
   const [previewing, setPreviewing] = useState<Attachment | null>(null);
@@ -148,6 +155,23 @@ export function AttachmentList({
           {t("attachments.title")}
         </Typography>
         <Stack direction="row" spacing={1}>
+          {canShare && attachments.some((a) => !a.sharedWithEmployee) && (
+            <Button
+              size="small"
+              startIcon={<VisibilityOutlined />}
+              disabled={sharing.isPending}
+              onClick={() =>
+                sharing.mutate({
+                  ids: attachments
+                    .filter((a) => !a.sharedWithEmployee)
+                    .map((a) => a.id),
+                  shared: true,
+                })
+              }
+            >
+              {t("attachments.shareAll")}
+            </Button>
+          )}
           {attachments.length > 1 && (
             <ExportZipButton ids={attachments.map((a) => a.id)} />
           )}
@@ -169,6 +193,7 @@ export function AttachmentList({
             <HintLine>{t("files.hint.list.drop")}</HintLine>
             <HintLine>{t("files.hint.list.preview")}</HintLine>
             <HintLine>{t("files.hint.list.tags")}</HintLine>
+            {canShare && <HintLine>{t("files.hint.list.share")}</HintLine>}
           </FirstUseHint>
         </Box>
       )}
@@ -186,9 +211,45 @@ export function AttachmentList({
               onDoubleClick={() => setPreviewing(attachment)}
               // Room for the two buttons on the right: they are laid over the row, so without it a long
               // file name or a chip runs underneath them.
-              sx={{ cursor: "pointer", pr: 11 }}
+              sx={{ cursor: "pointer", pr: canShare ? 16 : 11 }}
               secondaryAction={
                 <Stack direction="row" spacing={0.5}>
+                  {canShare && (
+                    <Tooltip
+                      title={
+                        attachment.sharedWithEmployee
+                          ? t("attachments.unshareAction")
+                          : t("attachments.shareAction")
+                      }
+                    >
+                      <span>
+                        <IconButton
+                          size="small"
+                          aria-label={
+                            attachment.sharedWithEmployee
+                              ? t("attachments.unshareAction")
+                              : t("attachments.shareAction")
+                          }
+                          disabled={sharing.isPending}
+                          color={
+                            attachment.sharedWithEmployee ? "primary" : "default"
+                          }
+                          onClick={() =>
+                            sharing.mutate({
+                              ids: [attachment.id],
+                              shared: !attachment.sharedWithEmployee,
+                            })
+                          }
+                        >
+                          {attachment.sharedWithEmployee ? (
+                            <VisibilityOutlined fontSize="small" />
+                          ) : (
+                            <VisibilityOffOutlined fontSize="small" />
+                          )}
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                  )}
                   <DownloadButton attachment={attachment} />
                   {canDelete && (
                     <Tooltip
@@ -233,6 +294,18 @@ export function AttachmentList({
                       {attachment.title || attachment.fileName}
                     </span>
                     <ExpiryChip expiresAt={attachment.expiresAt} />
+                    {canShare && (
+                      <Chip
+                        size="small"
+                        variant={attachment.sharedWithEmployee ? "filled" : "outlined"}
+                        color={attachment.sharedWithEmployee ? "primary" : "default"}
+                        label={
+                          attachment.sharedWithEmployee
+                            ? t("attachments.shared")
+                            : t("attachments.notShared")
+                        }
+                      />
+                    )}
                     <RetentionChip retainUntil={attachment.retainUntil} />
                   </Stack>
                 }
@@ -282,6 +355,12 @@ export function AttachmentList({
         onConfirm={remove.confirm}
         onCancel={remove.cancel}
       />
+
+      {sharing.isError && (
+        <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+          {t("attachments.shareFailed")}
+        </Typography>
+      )}
 
       {remove.error && (
         <Typography variant="body2" color="error" sx={{ mt: 1 }}>

@@ -90,7 +90,14 @@ public class ExportAttachmentsQueryHandler : IRequestHandler<ExportAttachmentsQu
         var stored = await _context.Attachments
             .AsNoTracking()
             .Where(a => ids.Contains(a.Id))
-            .Select(a => new { a.Id, a.StorageKey, a.EmployeeId })
+            .Select(a => new
+            {
+                a.Id,
+                a.StorageKey,
+                a.EmployeeId,
+                a.SharedWithEmployee,
+                VehicleDriverId = a.Vehicle != null ? a.Vehicle.AssignedEmployeeId : null
+            })
             .ToDictionaryAsync(a => a.Id, cancellationToken);
 
         var rows = dtos
@@ -99,6 +106,8 @@ public class ExportAttachmentsQueryHandler : IRequestHandler<ExportAttachmentsQu
                 Dto = d,
                 stored[d.Id].StorageKey,
                 stored[d.Id].EmployeeId,
+                stored[d.Id].SharedWithEmployee,
+                stored[d.Id].VehicleDriverId,
                 d.SizeBytes,
             })
             .ToList();
@@ -109,8 +118,11 @@ public class ExportAttachmentsQueryHandler : IRequestHandler<ExportAttachmentsQu
             .Where(r => r.Dto.OwnerType != AttachmentOwnerType.BookEntry || bookAccess)
             .Where(r =>
                 AttachmentRules.CanRead(_currentUserService.Role, r.Dto.OwnerType)
+                // Own card or own van: only what the office shared.
                 || (_currentUserService.EmployeeId is not null
-                    && r.EmployeeId == _currentUserService.EmployeeId))
+                    && r.SharedWithEmployee
+                    && (r.EmployeeId == _currentUserService.EmployeeId
+                        || r.VehicleDriverId == _currentUserService.EmployeeId)))
             .OrderBy(r => r.Dto.OwnerType)
             .ThenBy(r => r.Dto.OwnerName)
             .ThenBy(r => r.Dto.Category)
@@ -218,6 +230,9 @@ public class ExportAttachmentsQueryHandler : IRequestHandler<ExportAttachmentsQu
         AttachmentCategory.Insurance => "Osiguranje",
         AttachmentCategory.SiteDocument => "Dokumenti gradilista",
         AttachmentCategory.Photo => "Fotografije",
+        AttachmentCategory.Identity => "Licni dokumenti",
+        AttachmentCategory.Visa => "Vize i dozvole boravka",
+        AttachmentCategory.Diploma => "Diplome",
         _ => "Ostalo",
     };
 

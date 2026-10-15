@@ -28,6 +28,9 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.18" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.18" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <!-- Pulled in by MimeKit at 8.0.1, which carries two published advisories (one High).
+         Pinned here until MimeKit asks for a patched version itself. -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="9.0.21" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.19.2" />
   </ItemGroup>
 

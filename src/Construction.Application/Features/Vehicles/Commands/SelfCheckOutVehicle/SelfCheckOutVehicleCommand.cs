@@ -1,5 +1,6 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.DocumentRequests;
 using Construction.Application.Features.Vehicles.Models;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
@@ -20,13 +21,16 @@ public class SelfCheckOutVehicleCommandHandler : IRequestHandler<SelfCheckOutVeh
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUser;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
     public SelfCheckOutVehicleCommandHandler(
         IApplicationDbContext context,
-        ICurrentUserService currentUser)
+        ICurrentUserService currentUser,
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _currentUser = currentUser;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<VehicleDto> Handle(
@@ -66,6 +70,10 @@ public class SelfCheckOutVehicleCommandHandler : IRequestHandler<SelfCheckOutVeh
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        return VehicleMapping.ToDto(vehicle);
+        var dto = VehicleMapping.ToDto(vehicle);
+        dto.DriverLicenceWarning = await DriverLicence.WarningAsync(
+            _context, employee.Id, DateOnly.FromDateTime(_dateTimeProvider.UtcNow), cancellationToken);
+
+        return dto;
     }
 }

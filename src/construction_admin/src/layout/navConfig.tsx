@@ -396,6 +396,11 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
                 path: paths.expiringDocuments,
                 icon: <FolderOutlined />,
               },
+              {
+                label: t('nav.documentRequests'),
+                path: paths.documentRequests,
+                icon: <FolderOutlined />,
+              },
               { label: t('nav.users'), path: paths.users, icon: <ManageAccountsOutlined /> },
               { label: t('nav.organization'), path: paths.organization, icon: <AccountTreeOutlined /> },
               {

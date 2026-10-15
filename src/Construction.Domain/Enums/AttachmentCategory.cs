@@ -27,5 +27,14 @@ public enum AttachmentCategory
     /// <summary>Photograph taken on site.</summary>
     Photo = 7,
 
+    /// <summary>Identity card or passport — the kind that lapses.</summary>
+    Identity = 8,
+
+    /// <summary>Visa, residence or work permit — the kind that lapses.</summary>
+    Visa = 9,
+
+    /// <summary>Diploma or school certificate. Does not lapse.</summary>
+    Diploma = 10,
+
     Other = 99
 }

@@ -100,5 +100,20 @@ public enum NotificationType
     DkvStatementMismatch = 36,
 
     /// <summary>A vehicle's registration or rental is about to end, or a vehicle rented out is about to be due back.</summary>
-    VehicleDateExpiring = 37
+    VehicleDateExpiring = 37,
+
+    /// <summary>The office asked this person for a document.</summary>
+    DocumentRequested = 38,
+
+    /// <summary>A person sent a document that was asked of them and it is waiting to be checked.</summary>
+    DocumentSubmitted = 39,
+
+    /// <summary>The document a person sent was accepted.</summary>
+    DocumentAccepted = 40,
+
+    /// <summary>The document a person sent was sent back, and a new one is needed.</summary>
+    DocumentReturned = 41,
+
+    /// <summary>A request for a document was withdrawn.</summary>
+    DocumentRequestCancelled = 42
 }

@@ -582,6 +582,8 @@ export type VehicleOwnershipType = (typeof vehicleOwnershipTypes)[number];
 
 export interface Vehicle {
   id: string;
+  /** Only on the answer to assigning the vehicle: the person has no valid driving licence on record. */
+  driverLicenceWarning?: 'Missing' | 'Expired' | null;
   /** The business unit the vehicle belongs to in its own right; null follows its project. */
   branchId: string | null;
   branchName: string | null;
@@ -1043,6 +1045,9 @@ export const attachmentCategories = [
   'Insurance',
   'SiteDocument',
   'Photo',
+  'Identity',
+  'Visa',
+  'Diploma',
   'Other',
 ] as const;
 
@@ -1065,6 +1070,8 @@ export interface Attachment {
   retainUntil: string | null;
   /** The document's own reminder lead times, days before it lapses; empty when the general rule applies. */
   reminderDays: number[];
+  /** True when the person it is about (or the vehicle's driver) may open it in the app. */
+  sharedWithEmployee: boolean;
   ownerType: AttachmentOwnerType;
   ownerId: string;
   ownerName: string | null;
@@ -2522,6 +2529,11 @@ export const notificationTypes = [
   'VehicleTollExpiring',
   'VehicleDateExpiring',
   'EmployeeBranchChanged',
+  'DocumentRequested',
+  'DocumentSubmitted',
+  'DocumentAccepted',
+  'DocumentReturned',
+  'DocumentRequestCancelled',
 ] as const;
 
 export type NotificationType = (typeof notificationTypes)[number];

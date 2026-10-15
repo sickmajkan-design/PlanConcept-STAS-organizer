@@ -14,6 +14,9 @@ abstract class Attachment with _$Attachment {
     required String category,
     String? description,
 
+    /// A short heading shown instead of the file name when set.
+    String? title,
+
     /// `YYYY-MM-DD`, or null for anything that does not lapse.
     String? expiresAt,
 

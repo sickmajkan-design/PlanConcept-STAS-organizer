@@ -31,7 +31,7 @@ const DOCUMENT_OWNER_TYPES: readonly ('Employee' | 'Project' | 'Vehicle' | 'Tool
 
 /** Mirrors the category list each detail page already offers its own AttachmentList. */
 const CATEGORIES_BY_OWNER_TYPE: Record<AttachmentOwnerType, readonly AttachmentCategory[]> = {
-  Employee: ['Contract', 'Certificate', 'MedicalCheck', 'Licence', 'Other'],
+  Employee: ['Contract', 'Identity', 'Visa', 'Licence', 'Certificate', 'Diploma', 'MedicalCheck', 'Other'],
   Project: ['SiteDocument', 'Photo', 'Licence', 'Insurance', 'Other'],
   Vehicle: ['Insurance', 'Licence', 'Certificate', 'Photo', 'Other'],
   Tool: ['Certificate', 'Licence', 'Photo', 'Other'],

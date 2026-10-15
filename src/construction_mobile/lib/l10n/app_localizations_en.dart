@@ -1817,6 +1817,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attachmentCategoryPhoto => 'Photo';
 
   @override
+  String get attachmentCategoryIdentity => 'ID or passport';
+
+  @override
+  String get attachmentCategoryVisa => 'Visa or permit';
+
+  @override
+  String get attachmentCategoryDiploma => 'Diploma';
+
+  @override
   String get attachmentCategoryOther => 'Other';
 
   @override
@@ -2110,6 +2119,157 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get navMyHousing => 'My housing';
+
+  @override
+  String get requestsSection => 'Requests from the office';
+
+  @override
+  String get requestTitle => 'Request';
+
+  @override
+  String get requestStatusOpen => 'Waiting for you';
+
+  @override
+  String get requestStatusOverdue => 'Overdue';
+
+  @override
+  String get requestStatusSubmitted => 'Sent, waiting to be checked';
+
+  @override
+  String get requestStatusAccepted => 'Accepted';
+
+  @override
+  String get requestStatusReturned => 'Sent back, please send again';
+
+  @override
+  String get requestStatusCancelled => 'Withdrawn';
+
+  @override
+  String requestDue(String date) {
+    return 'Due $date';
+  }
+
+  @override
+  String get requestReturnedBecause => 'Why it was sent back';
+
+  @override
+  String get requestSentFiles => 'What you sent';
+
+  @override
+  String get requestSendHint => 'Send the document';
+
+  @override
+  String get requestSendNew => 'Send a new document';
+
+  @override
+  String get requestTakePhoto => 'Take a photo';
+
+  @override
+  String get requestFromGallery => 'From gallery';
+
+  @override
+  String get requestChooseFile => 'Choose a file';
+
+  @override
+  String get requestRemoveFile => 'Remove';
+
+  @override
+  String get requestSend => 'Send';
+
+  @override
+  String get requestSent => 'Sent. The office will check it.';
+
+  @override
+  String requestTooManyFiles(int count) {
+    return 'At most $count files for one document.';
+  }
+
+  @override
+  String get requestHistory => 'History';
+
+  @override
+  String get requestByYou => 'you';
+
+  @override
+  String get requestByOffice => 'the office';
+
+  @override
+  String get requestEventCreated => 'Requested';
+
+  @override
+  String get requestEventSubmitted => 'Sent';
+
+  @override
+  String get requestEventAccepted => 'Accepted';
+
+  @override
+  String get requestEventReturned => 'Sent back';
+
+  @override
+  String get requestEventCancelled => 'Withdrawn';
+
+  @override
+  String get scanLicenceMissing =>
+      'Checked out. There is no driving licence on your record: please send it to the office.';
+
+  @override
+  String get scanLicenceExpired =>
+      'Checked out. Your driving licence on record has expired: please send a new one to the office.';
+
+  @override
+  String get navMyDocuments => 'My documents';
+
+  @override
+  String get myDocumentsTitle => 'My documents';
+
+  @override
+  String get myDocumentsEmpty => 'Nothing has been shared with you yet.';
+
+  @override
+  String get myDocumentsPersonal => 'My documents';
+
+  @override
+  String get myDocumentsMyVehicle => 'The vehicle assigned to you';
+
+  @override
+  String get myDocumentsRegistration => 'Registration valid until';
+
+  @override
+  String get myDocumentsInspection => 'Technical inspection until';
+
+  @override
+  String get myDocumentsInsurance => 'Insurance until';
+
+  @override
+  String get myDocumentsTolls => 'Vignettes and tolls';
+
+  @override
+  String get myDocumentsVehicleDocuments => 'Vehicle documents';
+
+  @override
+  String get myDocumentsTollVignette => 'Vignette';
+
+  @override
+  String get myDocumentsTollTunnel => 'Tunnel';
+
+  @override
+  String get myDocumentsTollPassage => 'Road passage';
+
+  @override
+  String get myDocumentsTollPaid => 'Paid';
+
+  @override
+  String get myDocumentsTollUnpaid => 'Not paid';
+
+  @override
+  String myDocumentsExpiredOn(String date) {
+    return 'expired $date';
+  }
+
+  @override
+  String myDocumentsValidUntil(String date) {
+    return 'valid until $date';
+  }
 
   @override
   String get myHousingTitle => 'My housing';

@@ -53,6 +53,15 @@ public class GetAttachmentsQueryHandler
         var isOwnRecord = request.OwnerType == AttachmentOwnerType.Employee
             && _currentUserService.EmployeeId == request.OwnerId;
 
+        // The driver of a vehicle sees what the office shared on it.
+        var isAssignedVehicle = request.OwnerType == AttachmentOwnerType.Vehicle
+            && _currentUserService.EmployeeId is { } callerEmployeeId
+            && await _context.Vehicles
+                .AsNoTracking()
+                .AnyAsync(
+                    v => v.Id == request.OwnerId && v.AssignedEmployeeId == callerEmployeeId,
+                    cancellationToken);
+
         // A worker who may photograph their own work item must be able to see
         // the photograph afterwards, or the upload is a write-only hole.
         var isOwnWorkItem = request.OwnerType == AttachmentOwnerType.WorkItem
@@ -64,10 +73,13 @@ public class GetAttachmentsQueryHandler
 
         // An employee always reaches their own file; everyone else needs the
         // role for this kind of owner.
+        var canReadByRole = AttachmentRules.CanRead(_currentUserService.Role, request.OwnerType);
+
         if (!isOwnRecord
+            && !isAssignedVehicle
             && !isOwnWorkItem
             && !isOwnRefund
-            && !AttachmentRules.CanRead(_currentUserService.Role, request.OwnerType))
+            && !canReadByRole)
         {
             throw new ForbiddenAccessException(
                 "You may not view the files on this record.");
@@ -122,6 +134,13 @@ public class GetAttachmentsQueryHandler
                 request.OwnerType,
                 "Unknown attachment owner type.")
         };
+
+        // Reaching the record is not the same as reaching every file on it: someone who is only
+        // here because it is their own card, or their own van, sees what was shared with them.
+        if (!canReadByRole && (isOwnRecord || isAssignedVehicle) && !isOwnWorkItem && !isOwnRefund)
+        {
+            query = query.Where(a => a.SharedWithEmployee);
+        }
 
         if (request.Category is { } category)
         {

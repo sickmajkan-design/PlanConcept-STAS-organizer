@@ -3218,6 +3218,24 @@ abstract class AppLocalizations {
   /// **'Photo'**
   String get attachmentCategoryPhoto;
 
+  /// No description provided for @attachmentCategoryIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'ID or passport'**
+  String get attachmentCategoryIdentity;
+
+  /// No description provided for @attachmentCategoryVisa.
+  ///
+  /// In en, this message translates to:
+  /// **'Visa or permit'**
+  String get attachmentCategoryVisa;
+
+  /// No description provided for @attachmentCategoryDiploma.
+  ///
+  /// In en, this message translates to:
+  /// **'Diploma'**
+  String get attachmentCategoryDiploma;
+
   /// No description provided for @attachmentCategoryOther.
   ///
   /// In en, this message translates to:
@@ -3769,6 +3787,288 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'My housing'**
   String get navMyHousing;
+
+  /// No description provided for @requestsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Requests from the office'**
+  String get requestsSection;
+
+  /// No description provided for @requestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request'**
+  String get requestTitle;
+
+  /// No description provided for @requestStatusOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for you'**
+  String get requestStatusOpen;
+
+  /// No description provided for @requestStatusOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get requestStatusOverdue;
+
+  /// No description provided for @requestStatusSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent, waiting to be checked'**
+  String get requestStatusSubmitted;
+
+  /// No description provided for @requestStatusAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get requestStatusAccepted;
+
+  /// No description provided for @requestStatusReturned.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent back, please send again'**
+  String get requestStatusReturned;
+
+  /// No description provided for @requestStatusCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawn'**
+  String get requestStatusCancelled;
+
+  /// No description provided for @requestDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Due {date}'**
+  String requestDue(String date);
+
+  /// No description provided for @requestReturnedBecause.
+  ///
+  /// In en, this message translates to:
+  /// **'Why it was sent back'**
+  String get requestReturnedBecause;
+
+  /// No description provided for @requestSentFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'What you sent'**
+  String get requestSentFiles;
+
+  /// No description provided for @requestSendHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Send the document'**
+  String get requestSendHint;
+
+  /// No description provided for @requestSendNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Send a new document'**
+  String get requestSendNew;
+
+  /// No description provided for @requestTakePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get requestTakePhoto;
+
+  /// No description provided for @requestFromGallery.
+  ///
+  /// In en, this message translates to:
+  /// **'From gallery'**
+  String get requestFromGallery;
+
+  /// No description provided for @requestChooseFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a file'**
+  String get requestChooseFile;
+
+  /// No description provided for @requestRemoveFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get requestRemoveFile;
+
+  /// No description provided for @requestSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send'**
+  String get requestSend;
+
+  /// No description provided for @requestSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent. The office will check it.'**
+  String get requestSent;
+
+  /// No description provided for @requestTooManyFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'At most {count} files for one document.'**
+  String requestTooManyFiles(int count);
+
+  /// No description provided for @requestHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get requestHistory;
+
+  /// No description provided for @requestByYou.
+  ///
+  /// In en, this message translates to:
+  /// **'you'**
+  String get requestByYou;
+
+  /// No description provided for @requestByOffice.
+  ///
+  /// In en, this message translates to:
+  /// **'the office'**
+  String get requestByOffice;
+
+  /// No description provided for @requestEventCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested'**
+  String get requestEventCreated;
+
+  /// No description provided for @requestEventSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent'**
+  String get requestEventSubmitted;
+
+  /// No description provided for @requestEventAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get requestEventAccepted;
+
+  /// No description provided for @requestEventReturned.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent back'**
+  String get requestEventReturned;
+
+  /// No description provided for @requestEventCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdrawn'**
+  String get requestEventCancelled;
+
+  /// No description provided for @scanLicenceMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked out. There is no driving licence on your record: please send it to the office.'**
+  String get scanLicenceMissing;
+
+  /// No description provided for @scanLicenceExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Checked out. Your driving licence on record has expired: please send a new one to the office.'**
+  String get scanLicenceExpired;
+
+  /// No description provided for @navMyDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'My documents'**
+  String get navMyDocuments;
+
+  /// No description provided for @myDocumentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My documents'**
+  String get myDocumentsTitle;
+
+  /// No description provided for @myDocumentsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing has been shared with you yet.'**
+  String get myDocumentsEmpty;
+
+  /// No description provided for @myDocumentsPersonal.
+  ///
+  /// In en, this message translates to:
+  /// **'My documents'**
+  String get myDocumentsPersonal;
+
+  /// No description provided for @myDocumentsMyVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'The vehicle assigned to you'**
+  String get myDocumentsMyVehicle;
+
+  /// No description provided for @myDocumentsRegistration.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration valid until'**
+  String get myDocumentsRegistration;
+
+  /// No description provided for @myDocumentsInspection.
+  ///
+  /// In en, this message translates to:
+  /// **'Technical inspection until'**
+  String get myDocumentsInspection;
+
+  /// No description provided for @myDocumentsInsurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance until'**
+  String get myDocumentsInsurance;
+
+  /// No description provided for @myDocumentsTolls.
+  ///
+  /// In en, this message translates to:
+  /// **'Vignettes and tolls'**
+  String get myDocumentsTolls;
+
+  /// No description provided for @myDocumentsVehicleDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle documents'**
+  String get myDocumentsVehicleDocuments;
+
+  /// No description provided for @myDocumentsTollVignette.
+  ///
+  /// In en, this message translates to:
+  /// **'Vignette'**
+  String get myDocumentsTollVignette;
+
+  /// No description provided for @myDocumentsTollTunnel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tunnel'**
+  String get myDocumentsTollTunnel;
+
+  /// No description provided for @myDocumentsTollPassage.
+  ///
+  /// In en, this message translates to:
+  /// **'Road passage'**
+  String get myDocumentsTollPassage;
+
+  /// No description provided for @myDocumentsTollPaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get myDocumentsTollPaid;
+
+  /// No description provided for @myDocumentsTollUnpaid.
+  ///
+  /// In en, this message translates to:
+  /// **'Not paid'**
+  String get myDocumentsTollUnpaid;
+
+  /// No description provided for @myDocumentsExpiredOn.
+  ///
+  /// In en, this message translates to:
+  /// **'expired {date}'**
+  String myDocumentsExpiredOn(String date);
+
+  /// No description provided for @myDocumentsValidUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'valid until {date}'**
+  String myDocumentsValidUntil(String date);
 
   /// No description provided for @myHousingTitle.
   ///

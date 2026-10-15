@@ -47,6 +47,8 @@ public class GetAttachmentContentQueryHandler
             // The same carve-out the list query makes: a worker who may
             // photograph their own work item has to be able to open the
             // picture afterwards.
+            || await IsOnAssignedVehicleAsync(attachment, cancellationToken)
+            || await IsSentByCallerAsync(attachment, cancellationToken)
             || await IsOnOwnWorkItemAsync(attachment, cancellationToken)
             || await IsOnOwnRefundAsync(attachment, cancellationToken);
 
@@ -67,6 +69,44 @@ public class GetAttachmentContentQueryHandler
                 "The file is recorded but its contents are missing from storage.");
 
         return new AttachmentContent(content, attachment.ContentType, attachment.FileName);
+    }
+
+    /// <summary>
+    /// True when this file is one the caller sent in answer to a request of theirs — they may open
+    /// what they sent while it waits to be checked, though it is not shared with them yet.
+    /// </summary>
+    private async Task<bool> IsSentByCallerAsync(Attachment attachment, CancellationToken cancellationToken)
+    {
+        if (_currentUserService.EmployeeId is not { } employeeId || attachment.EmployeeId != employeeId)
+        {
+            return false;
+        }
+
+        return await _context.DocumentRequestEvents
+            .AsNoTracking()
+            .AnyAsync(
+                e => e.Type == DocumentRequestEventType.Submitted
+                    && e.AttachmentIds.Contains(attachment.Id)
+                    && e.DocumentRequest.EmployeeId == employeeId,
+                cancellationToken);
+    }
+
+    /// <summary>True when this shared file hangs off the vehicle the caller is currently assigned.</summary>
+    private async Task<bool> IsOnAssignedVehicleAsync(Attachment attachment, CancellationToken cancellationToken)
+    {
+        if (attachment.VehicleId is not { } vehicleId || !attachment.SharedWithEmployee)
+        {
+            return false;
+        }
+
+        var driver = await _context.Vehicles
+            .AsNoTracking()
+            .Where(v => v.Id == vehicleId)
+            .Select(v => v.AssignedEmployeeId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return AttachmentRules.CanReadAssignedVehicleFiles(
+            _currentUserService.EmployeeId, attachment, driver);
     }
 
     /// <summary>True when this receipt hangs off a refund the caller asked for.</summary>

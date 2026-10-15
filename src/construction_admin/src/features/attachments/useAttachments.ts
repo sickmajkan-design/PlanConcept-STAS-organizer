@@ -83,6 +83,14 @@ export function useUploadAttachment() {
   );
 }
 
+export function useSetAttachmentSharing() {
+  return useResourceMutation(
+    (input: { ids: readonly string[]; shared: boolean }) =>
+      attachmentsApi.setSharing(input.ids, input.shared),
+    attachmentCaches,
+  );
+}
+
 export function useUpdateAttachment() {
   return useResourceMutation(
     (input: UpdateAttachmentInput) => attachmentsApi.update(input),

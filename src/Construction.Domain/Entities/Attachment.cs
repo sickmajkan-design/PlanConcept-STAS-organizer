@@ -60,6 +60,13 @@ public class Attachment : BaseEntity, ISoftDeletable, IAuditable
     public string[] Tags { get; set; } = [];
 
     /// <summary>
+    /// True when the person this document is about may open it — the employee it is filed against,
+    /// or the driver the vehicle it is filed against is assigned to. Off by default: nothing reaches a
+    /// worker until the office shares it.
+    /// </summary>
+    public bool SharedWithEmployee { get; set; }
+
+    /// <summary>
     /// When the document stops being valid. Null for anything that does not
     /// lapse, such as a photograph.
     /// </summary>

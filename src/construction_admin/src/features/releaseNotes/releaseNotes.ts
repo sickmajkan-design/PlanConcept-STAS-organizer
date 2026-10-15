@@ -11,7 +11,7 @@ import type { MessageKey } from '../../i18n/en';
  * what changed recently, not a changelog: when a release is added, drop the
  * sections older than the fifth (and their `releaseNotes.*` keys in i18n).
  */
-export const RELEASE_ID = '2026-10-15.3';
+export const RELEASE_ID = '2026-10-15.4';
 
 /** The day of the release, `YYYY-MM-DD`, read from {@link RELEASE_ID}. */
 export const RELEASE_DATE = RELEASE_ID.slice(0, 10);
@@ -25,6 +25,17 @@ export interface ReleaseSection {
 }
 
 export const releaseSections: ReleaseSection[] = [
+  {
+    id: 'share1015',
+    titleKey: 'releaseNotes.share1015.title',
+    itemKeys: [
+      'releaseNotes.share1015.share',
+      'releaseNotes.share1015.phone',
+      'releaseNotes.share1015.requests',
+      'releaseNotes.share1015.licence',
+    ],
+    audience: (user) => user.role === 'SuperAdmin' || user.role === 'Admin',
+  },
   {
     id: 'docs1015',
     titleKey: 'releaseNotes.docs1015.title',
@@ -60,25 +71,6 @@ export const releaseSections: ReleaseSection[] = [
     ],
     audience: (user) =>
       user.role === 'SuperAdmin' || user.role === 'Admin' || user.role === 'ProjectManager' || user.role === 'Foreman',
-  },
-  {
-    id: 'book1012',
-    titleKey: 'releaseNotes.book1012.title',
-    itemKeys: [
-      'releaseNotes.book1012.book',
-      'releaseNotes.book1012.entry',
-      'releaseNotes.book1012.categories',
-      'releaseNotes.book1012.receivables',
-      'releaseNotes.book1012.rate',
-      'releaseNotes.book1012.payouts',
-      'releaseNotes.book1012.lock',
-      'releaseNotes.book1012.overview',
-      'releaseNotes.book1012.recurring',
-      'releaseNotes.book1012.import',
-      'releaseNotes.book1012.access',
-      'releaseNotes.book1012.docs',
-    ],
-    audience: (user) => canViewBook(user),
   },
 ];
 

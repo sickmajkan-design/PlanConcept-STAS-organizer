@@ -1,6 +1,7 @@
 using Construction.API.Authorization;
 using Construction.Application.Features.Attachments;
 using Construction.Application.Features.Attachments.Commands.DeleteAttachment;
+using Construction.Application.Features.Attachments.Commands.SetAttachmentSharing;
 using Construction.Application.Features.Attachments.Commands.UpdateAttachment;
 using Construction.Application.Features.Attachments.Commands.UploadAttachment;
 using Construction.Application.Features.Attachments.Models;
@@ -10,6 +11,7 @@ using Construction.Application.Features.Attachments.Queries.GetAttachmentCounts;
 using Construction.Application.Features.Attachments.Queries.GetAttachmentTags;
 using Construction.Application.Features.Attachments.Queries.GetAttachments;
 using Construction.Application.Features.Attachments.Queries.GetExpiringDocuments;
+using Construction.Application.Features.Attachments.Queries.GetMyDocuments;
 using Construction.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -177,6 +179,28 @@ public class AttachmentsController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
+    }
+
+    /// <summary>Shares documents with the person they are about, or takes the sharing back.</summary>
+    [HttpPost("sharing")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<int>> SetSharing(
+        [FromBody] SetAttachmentSharingCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command, cancellationToken));
+    }
+
+    /// <summary>The caller's own documents and the vehicles they drive, with only what was shared.</summary>
+    [HttpGet("mine")]
+    [Authorize(Policy = Policies.AllEmployees)]
+    [ProducesResponseType(typeof(MyDocumentsDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<MyDocumentsDto>> GetMine(CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetMyDocumentsQuery(), cancellationToken));
     }
 
     /// <summary>Removes an attachment and the file behind it.</summary>

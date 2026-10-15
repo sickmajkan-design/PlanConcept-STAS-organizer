@@ -310,6 +310,11 @@ const ExpiringDocumentsPage = lazy(() =>
     default: m.ExpiringDocumentsPage,
   })),
 );
+const DocumentRequestsPage = lazy(() =>
+  import('./pages/documents/DocumentRequestsPage').then((m) => ({
+    default: m.DocumentRequestsPage,
+  })),
+);
 const DataQualityPage = lazy(() =>
   import('./pages/dataQuality/DataQualityPage').then((m) => ({
     default: m.DataQualityPage,
@@ -544,6 +549,7 @@ function Layout() {
                   documents, so it sits with account administration rather than
                   with the directory screens. */}
               <Route path={paths.expiringDocuments} element={<ExpiringDocumentsPage />} />
+              <Route path={paths.documentRequests} element={<DocumentRequestsPage />} />
               <Route path={paths.audit} element={<AuditPage />} />
               <Route path={paths.dataQuality} element={<DataQualityPage />} />
               <Route path={paths.presence} element={<PresencePage />} />

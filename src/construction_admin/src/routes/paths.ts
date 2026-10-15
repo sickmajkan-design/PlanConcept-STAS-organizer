@@ -97,6 +97,7 @@ export const paths = {
   companySettings: '/company-settings',
 
   expiringDocuments: '/documents/expiring',
+  documentRequests: '/documents/requests',
   audit: '/audit',
   dataQuality: '/data-quality',
   presence: '/presence',

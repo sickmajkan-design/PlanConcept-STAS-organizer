@@ -138,6 +138,7 @@ export function VehicleDetailPage() {
   const deleteVehicle = useDeleteVehicle();
 
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
+  const [licenceWarning, setLicenceWarning] = useState<'Missing' | 'Expired' | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmUnassign, setConfirmUnassign] = useState(false);
@@ -151,7 +152,8 @@ export function VehicleDetailPage() {
 
   const handleAssign = async () => {
     if (!selectedEmployeeId) return;
-    await assign.mutateAsync(selectedEmployeeId);
+    const assigned = await assign.mutateAsync(selectedEmployeeId);
+    setLicenceWarning(assigned.driverLicenceWarning ?? null);
     setSelectedEmployeeId('');
   };
 
@@ -360,6 +362,12 @@ export function VehicleDetailPage() {
                     </Button>
                   </Stack>
                 </Stack>
+              )}
+
+              {licenceWarning && (
+                <Alert severity="warning" sx={{ mt: 2 }} onClose={() => setLicenceWarning(null)}>
+                  {licenceWarning === 'Missing' ? t('vehicles.licenceMissing') : t('vehicles.licenceExpired')}
+                </Alert>
               )}
 
               {(assign.isError || unassign.isError) && (

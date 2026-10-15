@@ -202,7 +202,7 @@ public class UploadAttachmentCommandHandler
     /// Reads the first bytes to check the file is what its name says, and hands back a stream that starts
     /// at the beginning again (a stream that cannot rewind is copied to memory first; the size is capped).
     /// </summary>
-    private static async Task<Stream> VerifySignatureAsync(
+    internal static async Task<Stream> VerifySignatureAsync(
         Stream content, string fileName, CancellationToken cancellationToken)
     {
         if (!content.CanSeek)

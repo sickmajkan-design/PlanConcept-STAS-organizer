@@ -1,5 +1,6 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.DocumentRequests;
 using Construction.Application.Features.Vehicles.Models;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
@@ -18,13 +19,16 @@ public class AssignVehicleCommandHandler : IRequestHandler<AssignVehicleCommand,
 {
     private readonly IApplicationDbContext _context;
     private readonly INotificationService _notificationService;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
     public AssignVehicleCommandHandler(
         IApplicationDbContext context,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _notificationService = notificationService;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<VehicleDto> Handle(
@@ -74,6 +78,10 @@ public class AssignVehicleCommandHandler : IRequestHandler<AssignVehicleCommand,
                 cancellationToken: cancellationToken);
         }
 
-        return VehicleMapping.ToDto(vehicle);
+        var dto = VehicleMapping.ToDto(vehicle);
+        dto.DriverLicenceWarning = await DriverLicence.WarningAsync(
+            _context, employee.Id, DateOnly.FromDateTime(_dateTimeProvider.UtcNow), cancellationToken);
+
+        return dto;
     }
 }

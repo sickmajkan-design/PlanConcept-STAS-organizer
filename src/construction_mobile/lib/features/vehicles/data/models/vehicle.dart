@@ -12,6 +12,10 @@ abstract class Vehicle with _$Vehicle {
     required String brand,
     required String model,
     required String registrationNumber,
+
+    /// Only on the answer to taking a vehicle: `Missing` or `Expired` when the person's driving
+    /// licence is not on record or has lapsed. A warning; the vehicle is theirs either way.
+    String? driverLicenceWarning,
     String? vin,
     String? qrCode,
 

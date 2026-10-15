@@ -1821,6 +1821,15 @@ class AppLocalizationsSr extends AppLocalizations {
   String get attachmentCategoryPhoto => 'Fotografija';
 
   @override
+  String get attachmentCategoryIdentity => 'Lična karta ili pasoš';
+
+  @override
+  String get attachmentCategoryVisa => 'Viza ili dozvola boravka';
+
+  @override
+  String get attachmentCategoryDiploma => 'Diploma';
+
+  @override
   String get attachmentCategoryOther => 'Ostalo';
 
   @override
@@ -2114,6 +2123,157 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get navMyHousing => 'Moj smještaj';
+
+  @override
+  String get requestsSection => 'Zahtjevi uprave';
+
+  @override
+  String get requestTitle => 'Zahtjev';
+
+  @override
+  String get requestStatusOpen => 'Čeka vas';
+
+  @override
+  String get requestStatusOverdue => 'Kasni';
+
+  @override
+  String get requestStatusSubmitted => 'Poslano, čeka provjeru';
+
+  @override
+  String get requestStatusAccepted => 'Prihvaćeno';
+
+  @override
+  String get requestStatusReturned => 'Vraćeno, pošaljite ponovo';
+
+  @override
+  String get requestStatusCancelled => 'Povučeno';
+
+  @override
+  String requestDue(String date) {
+    return 'Rok $date';
+  }
+
+  @override
+  String get requestReturnedBecause => 'Zašto je vraćeno';
+
+  @override
+  String get requestSentFiles => 'Šta ste poslali';
+
+  @override
+  String get requestSendHint => 'Pošaljite dokument';
+
+  @override
+  String get requestSendNew => 'Pošaljite novi dokument';
+
+  @override
+  String get requestTakePhoto => 'Slikaj';
+
+  @override
+  String get requestFromGallery => 'Iz galerije';
+
+  @override
+  String get requestChooseFile => 'Izaberi datoteku';
+
+  @override
+  String get requestRemoveFile => 'Ukloni';
+
+  @override
+  String get requestSend => 'Pošalji';
+
+  @override
+  String get requestSent => 'Poslano. Uprava će ga provjeriti.';
+
+  @override
+  String requestTooManyFiles(int count) {
+    return 'Najviše $count datoteka za jedan dokument.';
+  }
+
+  @override
+  String get requestHistory => 'Historija';
+
+  @override
+  String get requestByYou => 'vi';
+
+  @override
+  String get requestByOffice => 'uprava';
+
+  @override
+  String get requestEventCreated => 'Zatraženo';
+
+  @override
+  String get requestEventSubmitted => 'Poslano';
+
+  @override
+  String get requestEventAccepted => 'Prihvaćeno';
+
+  @override
+  String get requestEventReturned => 'Vraćeno';
+
+  @override
+  String get requestEventCancelled => 'Povučeno';
+
+  @override
+  String get scanLicenceMissing =>
+      'Zaduženo. Na vašem kartonu nema vozačke dozvole: pošaljite je upravi.';
+
+  @override
+  String get scanLicenceExpired =>
+      'Zaduženo. Vozačka dozvola na vašem kartonu je istekla: pošaljite novu upravi.';
+
+  @override
+  String get navMyDocuments => 'Moji dokumenti';
+
+  @override
+  String get myDocumentsTitle => 'Moji dokumenti';
+
+  @override
+  String get myDocumentsEmpty => 'Još ništa nije podijeljeno s vama.';
+
+  @override
+  String get myDocumentsPersonal => 'Moji dokumenti';
+
+  @override
+  String get myDocumentsMyVehicle => 'Vozilo koje vam je zaduženo';
+
+  @override
+  String get myDocumentsRegistration => 'Registracija vrijedi do';
+
+  @override
+  String get myDocumentsInspection => 'Tehnički pregled do';
+
+  @override
+  String get myDocumentsInsurance => 'Osiguranje do';
+
+  @override
+  String get myDocumentsTolls => 'Vinjete i putarine';
+
+  @override
+  String get myDocumentsVehicleDocuments => 'Dokumenti vozila';
+
+  @override
+  String get myDocumentsTollVignette => 'Vinjeta';
+
+  @override
+  String get myDocumentsTollTunnel => 'Tunel';
+
+  @override
+  String get myDocumentsTollPassage => 'Prolaz';
+
+  @override
+  String get myDocumentsTollPaid => 'Plaćeno';
+
+  @override
+  String get myDocumentsTollUnpaid => 'Nije plaćeno';
+
+  @override
+  String myDocumentsExpiredOn(String date) {
+    return 'isteklo $date';
+  }
+
+  @override
+  String myDocumentsValidUntil(String date) {
+    return 'vrijedi do $date';
+  }
 
   @override
   String get myHousingTitle => 'Moj smještaj';

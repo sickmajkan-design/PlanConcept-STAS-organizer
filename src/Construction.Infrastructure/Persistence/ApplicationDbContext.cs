@@ -95,6 +95,10 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<ArticleOrderItem> ArticleOrderItems => Set<ArticleOrderItem>();
 
     public DbSet<Refund> Refunds => Set<Refund>();
+
+    public DbSet<DocumentRequest> DocumentRequests => Set<DocumentRequest>();
+
+    public DbSet<DocumentRequestEvent> DocumentRequestEvents => Set<DocumentRequestEvent>();
     public DbSet<LeaveAdjustment> LeaveAdjustments => Set<LeaveAdjustment>();
     public DbSet<CustomerCompany> CustomerCompanies => Set<CustomerCompany>();
     public DbSet<Invoice> Invoices => Set<Invoice>();

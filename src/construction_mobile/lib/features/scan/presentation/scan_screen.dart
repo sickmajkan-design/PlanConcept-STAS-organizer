@@ -168,7 +168,18 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
 
       _actionKey = null;
       if (!mounted) return;
-      _showSnackBar(context.l10n.scanCheckOutSuccess);
+
+      // A licence that is missing or lapsed is a reminder, not a refusal: the vehicle is theirs.
+      final warning = switch (_result) {
+        _VehicleResult(:final vehicle) => vehicle.driverLicenceWarning,
+        _ => null,
+      };
+
+      _showSnackBar(switch (warning) {
+        'Missing' => context.l10n.scanLicenceMissing,
+        'Expired' => context.l10n.scanLicenceExpired,
+        _ => context.l10n.scanCheckOutSuccess,
+      });
     } on ApiException catch (exception) {
       if (!mounted) return;
       setState(() => _failure = exception);

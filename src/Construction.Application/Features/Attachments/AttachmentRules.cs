@@ -208,13 +208,39 @@ public static class AttachmentRules
     };
 
     /// <summary>
-    /// An employee may always read what is filed against them.
+    /// An employee reads what is filed against them — but only once the office has shared it.
     /// </summary>
+    /// <remarks>
+    /// Being filed on your own record is not enough: the card also holds internal paperwork. The
+    /// office decides, document by document, what the person may open.
+    /// </remarks>
     public static bool CanReadOwnEmployeeFiles(
         Guid? callerEmployeeId,
         Attachment attachment) =>
         callerEmployeeId is not null
-        && attachment.EmployeeId == callerEmployeeId;
+        && attachment.EmployeeId == callerEmployeeId
+        && attachment.SharedWithEmployee;
+
+    /// <summary>
+    /// A driver reads what the office shared on the vehicle they are currently assigned.
+    /// </summary>
+    /// <remarks>
+    /// <paramref name="vehicleAssignedEmployeeId"/> is the vehicle's own current driver, looked up by
+    /// the caller. Both conditions are needed: the vehicle must be theirs now, and the document must
+    /// be shared. Hand the van back and the access goes with it.
+    /// </remarks>
+    public static bool CanReadAssignedVehicleFiles(
+        Guid? callerEmployeeId,
+        Attachment attachment,
+        Guid? vehicleAssignedEmployeeId) =>
+        callerEmployeeId is not null
+        && attachment.VehicleId is not null
+        && vehicleAssignedEmployeeId == callerEmployeeId
+        && attachment.SharedWithEmployee;
+
+    /// <summary>Only a person's own record or a vehicle can be shared with a person.</summary>
+    public static bool CanBeShared(AttachmentOwnerType ownerType) =>
+        ownerType is AttachmentOwnerType.Employee or AttachmentOwnerType.Vehicle;
 
     /// <summary>
     /// True when <paramref name="role"/> may attach this category here.

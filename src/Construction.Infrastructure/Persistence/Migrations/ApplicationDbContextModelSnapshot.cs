@@ -505,6 +505,11 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<DateOnly?>("RetainUntil")
                         .HasColumnType("date");
 
+                    b.Property<bool>("SharedWithEmployee")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<Guid?>("SignedTimesheetId")
                         .HasColumnType("uuid");
 
@@ -1579,6 +1584,112 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("device_tokens", (string)null);
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.DocumentRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly?>("DueDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("RequestedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ReturnReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ReviewedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestedByUserId");
+
+                    b.HasIndex("ReviewedByUserId");
+
+                    b.HasIndex("EmployeeId", "Status");
+
+                    b.HasIndex("Status", "DueDate");
+
+                    b.ToTable("document_requests", (string)null);
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.DocumentRequestEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ActorUserId")
+                        .HasColumnType("uuid");
+
+                    b.PrimitiveCollection<Guid[]>("AttachmentIds")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid[]")
+                        .HasDefaultValueSql("'{}'");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("DocumentRequestId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DocumentRequestId");
+
+                    b.ToTable("document_request_events", (string)null);
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.Employee", b =>
@@ -5507,6 +5618,43 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.DocumentRequest", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Construction.Domain.Entities.User", "RequestedByUser")
+                        .WithMany()
+                        .HasForeignKey("RequestedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Construction.Domain.Entities.User", "ReviewedByUser")
+                        .WithMany()
+                        .HasForeignKey("ReviewedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("RequestedByUser");
+
+                    b.Navigation("ReviewedByUser");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.DocumentRequestEvent", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.DocumentRequest", "DocumentRequest")
+                        .WithMany("Events")
+                        .HasForeignKey("DocumentRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DocumentRequest");
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.EmployeeBranch", b =>
                 {
                     b.HasOne("Construction.Domain.Entities.Branch", "Branch")
@@ -6601,6 +6749,11 @@ namespace Construction.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Construction.Domain.Entities.Customer", b =>
                 {
                     b.Navigation("Projects");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.DocumentRequest", b =>
+                {
+                    b.Navigation("Events");
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.Employee", b =>

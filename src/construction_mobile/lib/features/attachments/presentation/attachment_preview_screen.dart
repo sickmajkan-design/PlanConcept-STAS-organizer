@@ -28,7 +28,13 @@ class AttachmentPreviewScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: Text(attachment.fileName)),
+      appBar: AppBar(
+        title: Text(
+          (attachment.title?.isNotEmpty ?? false)
+              ? attachment.title!
+              : attachment.fileName,
+        ),
+      ),
       body: attachment.isImage
           ? _ImageBody(attachment: attachment)
           : _OpenExternallyBody(attachment: attachment),

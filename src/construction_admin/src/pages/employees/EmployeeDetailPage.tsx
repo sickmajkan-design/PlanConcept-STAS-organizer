@@ -5,6 +5,7 @@ import {
   ApartmentOutlined,
   DeleteOutlined,
   EditOutlined,
+  FolderOutlined,
 } from '@mui/icons-material';
 import {
   Alert,
@@ -157,6 +158,15 @@ export function EmployeeDetailPage() {
               >
                 {t('common.edit')}
               </Button>
+              {canAdministerAccounts(user) && (
+                <Button
+                  variant="outlined"
+                  startIcon={<FolderOutlined />}
+                  onClick={() => navigate(`${paths.documentRequests}?new=1&employeeId=${employee.id}`)}
+                >
+                  {t('docRequests.employeeButton')}
+                </Button>
+              )}
               <Button
                 variant="outlined"
                 color="error"
@@ -383,7 +393,7 @@ export function EmployeeDetailPage() {
               <AttachmentList
                 ownerType="Employee"
                 ownerId={employee.id}
-                categories={['Contract', 'Certificate', 'MedicalCheck', 'Licence', 'Other']}
+                categories={['Contract', 'Identity', 'Visa', 'Licence', 'Certificate', 'Diploma', 'MedicalCheck', 'Other']}
                 canDelete={canAdministerAccounts(user)}
               />
             </CardContent>

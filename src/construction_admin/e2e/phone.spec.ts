@@ -30,7 +30,8 @@ base.describe('on a phone', () => {
 
     // "More" opens the same menu the hamburger does, which still holds every page.
     await bar.getByRole('button', { name: 'More' }).click();
-    await expect(page.getByRole('button', { name: 'Directory', exact: true })).toBeVisible();
+    // The menu is grouped (Planning, People, ...); the group headings are what it holds.
+    await expect(page.getByRole('button', { name: 'People', exact: true })).toBeVisible();
   });
 
   base('the filters above a list fold behind one button', async ({ page }) => {

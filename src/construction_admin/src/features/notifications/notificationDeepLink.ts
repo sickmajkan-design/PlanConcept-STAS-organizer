@@ -129,6 +129,16 @@ export function resolveNotificationTarget(
         ? `${paths.bulletin}?highlight=${data.bulletinPostId}`
         : paths.bulletin;
 
+    case 'DocumentSubmitted':
+      return data.requestId ? `${paths.documentRequests}?highlight=${data.requestId}` : paths.documentRequests;
+
+    // Addressed to the person asked; the office has nothing to open for them.
+    case 'DocumentRequested':
+    case 'DocumentAccepted':
+    case 'DocumentReturned':
+    case 'DocumentRequestCancelled':
+      return null;
+
     case 'DocumentExpiring':
     case 'DocumentRetentionEnded':
       if (!hasAccountAdmin) return null;

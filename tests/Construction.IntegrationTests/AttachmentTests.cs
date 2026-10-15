@@ -3,6 +3,7 @@ using Construction.Application.Common.Exceptions;
 using Construction.Application.Features.Attachments;
 using Construction.Application.Features.Attachments.Commands.DeleteAttachment;
 using Construction.Application.Features.Attachments.Commands.SendExpiryReminders;
+using Construction.Application.Features.Attachments.Commands.SetAttachmentSharing;
 using Construction.Application.Features.Attachments.Commands.UploadAttachment;
 using Construction.Application.Features.Attachments.Models;
 using Construction.Application.Features.Attachments.Queries.GetAttachmentContent;
@@ -247,7 +248,7 @@ public class AttachmentTests : IntegrationTestBase
         var worker = await InScope(scope =>
             TestData.SeedUserAsync(scope, UserRole.Worker, employee.Id));
 
-        await InScope(scope =>
+        var uploaded = await InScope(scope =>
         {
             ActAs(scope, admin);
             return UploadAsync(
@@ -255,6 +256,13 @@ public class AttachmentTests : IntegrationTestBase
                 AttachmentOwnerType.Employee,
                 employee.Id,
                 category: AttachmentCategory.MedicalCheck);
+        });
+
+        // Filed on their own card is not enough; the office has to share it.
+        await InScope(scope =>
+        {
+            ActAs(scope, admin);
+            return scope.Send(new SetAttachmentSharingCommand { Ids = [uploaded.Id], Shared = true });
         });
 
         var mine = await InScope(scope =>

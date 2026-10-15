@@ -14,6 +14,13 @@ public class VehicleDto
 
     public string RegistrationNumber { get; init; } = null!;
 
+    /// <summary>
+    /// Set only on the answer to handing the vehicle to someone: <c>Missing</c> when the person has
+    /// no driving licence on their record, <c>Expired</c> when the one they have has lapsed. A
+    /// warning, never a refusal — the vehicle is assigned either way.
+    /// </summary>
+    public string? DriverLicenceWarning { get; set; }
+
     /// <summary>Null only for a vehicle created before the field existed; it must be filled in on its next edit.</summary>
     public string? TdNumber { get; init; }
 
@@ -120,6 +127,8 @@ public static class VehicleMapping
             Brand = vehicle.Brand,
             Model = vehicle.Model,
             RegistrationNumber = vehicle.RegistrationNumber,
+            // Set only by the commands that hand the vehicle to someone.
+            DriverLicenceWarning = null,
             TdNumber = vehicle.TdNumber,
             Vin = vehicle.Vin,
             QrCode = vehicle.QrCode,

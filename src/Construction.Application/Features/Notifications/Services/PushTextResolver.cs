@@ -337,6 +337,22 @@ public static class PushTextResolver
                     $"{vehicleName} ({IsoDate(occurredOn)}) čeka pregled.");
             }
 
+            // Nothing about the document itself: a notice is read on a lock screen.
+            case NotificationType.DocumentRequested:
+                return ("Zahtjev uprave", "Uprava vam je poslala zahtjev. Otvorite aplikaciju da ga vidite.");
+
+            case NotificationType.DocumentSubmitted:
+                return ("Dokument primljen", "Poslan je dokument koji čeka provjeru.");
+
+            case NotificationType.DocumentAccepted:
+                return ("Dokument prihvaćen", "Uprava je prihvatila vaš dokument.");
+
+            case NotificationType.DocumentReturned:
+                return ("Dokument vraćen", "Uprava traži novi dokument. Otvorite aplikaciju da vidite razlog.");
+
+            case NotificationType.DocumentRequestCancelled:
+                return ("Zahtjev povučen", "Uprava je povukla zahtjev. Ne trebate ništa uraditi.");
+
             case NotificationType.RefundRequested:
             {
                 var name = Str("employeeName");

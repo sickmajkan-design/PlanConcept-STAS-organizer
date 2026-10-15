@@ -92,6 +92,10 @@ public interface IApplicationDbContext
     DbSet<ArticleOrderItem> ArticleOrderItems { get; }
 
     DbSet<Refund> Refunds { get; }
+
+    DbSet<DocumentRequest> DocumentRequests { get; }
+
+    DbSet<DocumentRequestEvent> DocumentRequestEvents { get; }
     DbSet<LeaveAdjustment> LeaveAdjustments { get; }
     DbSet<CustomerCompany> CustomerCompanies { get; }
     DbSet<Invoice> Invoices { get; }

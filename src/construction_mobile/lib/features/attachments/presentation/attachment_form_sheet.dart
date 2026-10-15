@@ -13,7 +13,16 @@ import '../data/attachment_repository.dart';
 /// admin panel's `CATEGORIES_BY_OWNER_TYPE` so the same document types are
 /// available from either side.
 const _categoriesByOwnerType = <String, List<String>>{
-  'Employee': ['Contract', 'Certificate', 'MedicalCheck', 'Licence', 'Other'],
+  'Employee': [
+    'Contract',
+    'Identity',
+    'Visa',
+    'Licence',
+    'Certificate',
+    'Diploma',
+    'MedicalCheck',
+    'Other',
+  ],
   'Project': ['SiteDocument', 'Photo', 'Licence', 'Insurance', 'Other'],
   'Vehicle': ['Insurance', 'Licence', 'Certificate', 'Photo', 'Other'],
   'Tool': ['Certificate', 'Licence', 'Photo', 'Other'],

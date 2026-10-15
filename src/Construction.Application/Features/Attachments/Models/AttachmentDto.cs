@@ -26,6 +26,9 @@ public class AttachmentDto
 
     public DateOnly? RetainUntil { get; init; }
 
+    /// <summary>True when the employee (or the vehicle's driver) the file is about may open it.</summary>
+    public bool SharedWithEmployee { get; init; }
+
     /// <summary>The document's own reminder lead times in days; empty when the general rule applies.</summary>
     public int[] ReminderDays { get; init; } = [];
 
@@ -65,6 +68,7 @@ public static class AttachmentMapping
             Tags = attachment.Tags,
             ExpiresAt = attachment.ExpiresAt,
             RetainUntil = attachment.RetainUntil,
+            SharedWithEmployee = attachment.SharedWithEmployee,
             ReminderDays = attachment.ReminderDays,
             // Spelled out as a conditional chain rather than through
             // AttachmentOwner.Of, because this has to become SQL: a method call

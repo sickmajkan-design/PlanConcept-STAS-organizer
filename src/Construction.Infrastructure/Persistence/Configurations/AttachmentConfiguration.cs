@@ -203,6 +203,9 @@ public class AttachmentConfiguration : IEntityTypeConfiguration<Attachment>
             .HasColumnType("text[]")
             .HasDefaultValueSql("'{}'");
 
+        builder.Property(a => a.SharedWithEmployee)
+            .HasDefaultValue(false);
+
         builder.Property(a => a.ReminderDays)
             .HasColumnType("integer[]")
             .HasDefaultValueSql("'{}'");

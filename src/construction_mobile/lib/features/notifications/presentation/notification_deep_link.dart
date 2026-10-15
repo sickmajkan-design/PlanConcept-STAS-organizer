@@ -58,6 +58,12 @@ String? deepLinkForData(
     'AbsenceDecided' || 'AbsenceEditProposed' => AppRoutes.absences,
     'ArticleOrderRequested' || 'ArticleOrderStatusChanged' => AppRoutes.articleOrders,
     'RefundRequested' || 'RefundDecided' => AppRoutes.refunds,
+    'DocumentRequested' ||
+    'DocumentSubmitted' ||
+    'DocumentAccepted' ||
+    'DocumentReturned' ||
+    'DocumentRequestCancelled' =>
+      AppRoutes.myDocuments,
     'WeeklyReportDue' => AppRoutes.weeklyReports,
     'BulletinPosted' => AppRoutes.bulletin,
     'TaskAssigned' || 'DefectAssigned' || 'WorkItemDue' => AppRoutes.workItems,

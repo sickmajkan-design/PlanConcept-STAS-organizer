@@ -356,6 +356,12 @@ export function resolveNotificationText(t: T, notification: Notification): Notif
         }),
       };
 
+    case 'DocumentSubmitted':
+      return {
+        title: text('notificationDocumentSubmittedTitle'),
+        body: text('notificationDocumentSubmittedBody'),
+      };
+
     case 'RefundRequested':
       if (!d.employeeName || !d.amount) return fallback;
       return {

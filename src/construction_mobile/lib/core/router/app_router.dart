@@ -9,6 +9,7 @@ import '../../features/absences/presentation/my_schedule_screen.dart';
 import '../../features/reminders/presentation/shift_reminder_screen.dart';
 import '../../features/bulletin/presentation/bulletin_screen.dart';
 import '../../features/housing/presentation/my_housing_screen.dart';
+import '../../features/my_documents/presentation/my_documents_screen.dart';
 import '../../features/company_settings/presentation/company_settings_screen.dart';
 import '../../features/ledgers/presentation/ledger_detail_screen.dart';
 import '../../features/ledgers/presentation/ledgers_screen.dart';
@@ -188,6 +189,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.teamToday,
         builder: (context, state) => const TeamTodayScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.myDocuments,
+        builder: (context, state) => const MyDocumentsScreen(),
       ),
       GoRoute(
         path: AppRoutes.bulletin,

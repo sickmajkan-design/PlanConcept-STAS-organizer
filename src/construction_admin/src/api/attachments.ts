@@ -165,6 +165,14 @@ export const attachmentsApi = {
       },
     }),
 
+  /** Shares documents with the person they are about, or takes the sharing back. Returns how many changed. */
+  setSharing: (ids: readonly string[], shared: boolean) =>
+    request<number>({
+      method: 'POST',
+      url: '/api/v1/attachments/sharing',
+      data: { ids, shared },
+    }),
+
   remove: (id: string) =>
     request<void>({ method: 'DELETE', url: `/api/v1/attachments/${id}` }),
 
