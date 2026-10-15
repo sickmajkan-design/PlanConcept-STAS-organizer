@@ -11,7 +11,7 @@ import type { MessageKey } from '../../i18n/en';
  * what changed recently, not a changelog: when a release is added, drop the
  * sections older than the fifth (and their `releaseNotes.*` keys in i18n).
  */
-export const RELEASE_ID = '2026-10-14.1';
+export const RELEASE_ID = '2026-10-15.1';
 
 /** The day of the release, `YYYY-MM-DD`, read from {@link RELEASE_ID}. */
 export const RELEASE_DATE = RELEASE_ID.slice(0, 10);
@@ -25,6 +25,13 @@ export interface ReleaseSection {
 }
 
 export const releaseSections: ReleaseSection[] = [
+  {
+    id: 'docs1015',
+    titleKey: 'releaseNotes.docs1015.title',
+    itemKeys: ['releaseNotes.docs1015.search', 'releaseNotes.docs1015.tag'],
+    audience: (user) => user.role === 'SuperAdmin' || user.role === 'Admin',
+  },
+
   {
     id: 'sec1014',
     titleKey: 'releaseNotes.sec1014.title',
@@ -73,13 +80,6 @@ export const releaseSections: ReleaseSection[] = [
     titleKey: 'releaseNotes.tree1009.title',
     itemKeys: ['releaseNotes.tree1009.structure', 'releaseNotes.tree1009.nesting', 'releaseNotes.tree1009.filter', 'releaseNotes.tree1009.quick', 'releaseNotes.tree1009.widget'],
     audience: (user) => user.role === 'SuperAdmin' || user.role === 'Admin' || user.role === 'ProjectManager' || user.role === 'Foreman',
-  },
-  {
-    id: 'menu1009',
-    titleKey: 'releaseNotes.menu1009.title',
-    itemKeys: ['releaseNotes.menu1009.rail', 'releaseNotes.menu1009.planning', 'releaseNotes.menu1009.pin', 'releaseNotes.menu1009.logo', 'releaseNotes.menu1009.active'],
-    audience: (user) =>
-      user.role === 'SuperAdmin' || user.role === 'Admin' || user.role === 'ProjectManager' || user.role === 'Foreman',
   },
 ];
 

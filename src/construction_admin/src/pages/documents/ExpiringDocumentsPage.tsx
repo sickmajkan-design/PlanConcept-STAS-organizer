@@ -18,6 +18,7 @@ import {
   TableHead,
   TableRow,
   TableSortLabel,
+  TextField,
   Typography,
 } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
@@ -28,6 +29,7 @@ import { AttachmentPreviewDialog } from '../../components/AttachmentPreviewDialo
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { EditDocumentDialog } from '../../components/EditDocumentDialog';
 import { ExportZipButton } from '../../components/ExportZipButton';
+import { FirstUseHint, HintLine } from '../../components/files/FirstUseHint';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
 import { UploadDocumentDialog } from '../../components/UploadDocumentDialog';
@@ -69,6 +71,8 @@ export function ExpiringDocumentsPage() {
   const [includeUndated, setIncludeUndated] = useState(Boolean(targetId));
   const [ownerTypeFilter, setOwnerTypeFilter] = useState<AttachmentOwnerType | ''>('');
   const [categoryFilter, setCategoryFilter] = useState<AttachmentCategory | ''>('');
+  const [search, setSearch] = useState('');
+  const [tagFilter, setTagFilter] = useState('');
   const [uploading, setUploading] = useState(false);
   const [previewing, setPreviewing] = useState<Attachment | null>(null);
   const [editing, setEditing] = useState<Attachment | null>(null);
@@ -91,13 +95,41 @@ export function ExpiringDocumentsPage() {
     }
   };
 
+  /** The labels in use on the documents currently loaded, for the tag filter. */
+  const availableTags = useMemo(
+    () =>
+      [...new Set((data ?? []).flatMap((document) => document.tags ?? []))].sort((a, b) =>
+        a.localeCompare(b),
+      ),
+    [data],
+  );
+
   const sortedData = useMemo(() => {
     if (!data) return data;
+
+    // Every word typed has to be found somewhere in the title, file name, labels, owner or note.
+    const words = search.toLocaleLowerCase().split(/\s+/).filter(Boolean);
+
+    const matchesSearch = (document: Attachment) => {
+      if (words.length === 0) return true;
+      const haystack = [
+        document.title,
+        document.fileName,
+        document.ownerName,
+        document.description,
+        ...(document.tags ?? []),
+      ]
+        .join(' ')
+        .toLocaleLowerCase();
+      return words.every((word) => haystack.includes(word));
+    };
 
     const filtered = data.filter(
       (document) =>
         (!ownerTypeFilter || document.ownerType === ownerTypeFilter) &&
-        (!categoryFilter || document.category === categoryFilter),
+        (!categoryFilter || document.category === categoryFilter) &&
+        (!tagFilter || (document.tags ?? []).includes(tagFilter)) &&
+        matchesSearch(document),
     );
 
     const factor = sortDirection === 'asc' ? 1 : -1;
@@ -120,7 +152,7 @@ export function ExpiringDocumentsPage() {
     };
 
     return filtered.sort(compare);
-  }, [data, sortBy, sortDirection, ownerTypeFilter, categoryFilter]);
+  }, [data, sortBy, sortDirection, ownerTypeFilter, categoryFilter, tagFilter, search]);
 
   useEffect(() => {
     if (!targetId || !sortedData) return;
@@ -142,7 +174,25 @@ export function ExpiringDocumentsPage() {
         }}
       />
 
+      <Box sx={{ mb: 2 }}>
+        <FirstUseHint id="hub-search" title={t('files.hint.search.title')}>
+          <HintLine>{t('files.hint.search.text')}</HintLine>
+          <HintLine>{t('files.hint.search.tag')}</HintLine>
+          <HintLine>{t('files.hint.search.scope')}</HintLine>
+        </FirstUseHint>
+      </Box>
+
       <Stack direction="row" spacing={2} sx={{ mb: 2, flexWrap: 'wrap', rowGap: 1.5, alignItems: 'center' }}>
+        <TextField
+          size="small"
+          type="search"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder={t('attachments.searchPlaceholder')}
+          inputProps={{ 'aria-label': t('attachments.searchPlaceholder') }}
+          sx={{ minWidth: 260 }}
+        />
+
         <Select
           size="small"
           value={windowValue}
@@ -209,6 +259,27 @@ export function ExpiringDocumentsPage() {
             ))}
           </Select>
         </FormControl>
+
+        {availableTags.length > 0 && (
+          <FormControl size="small" sx={{ minWidth: 180 }}>
+            <InputLabel id="doc-tag-filter-label">{t('attachments.tag')}</InputLabel>
+            <Select
+              labelId="doc-tag-filter-label"
+              label={t('attachments.tag')}
+              value={tagFilter}
+              onChange={(event) => setTagFilter(event.target.value)}
+            >
+              <MenuItem value="">
+                <em>{t('common.all')}</em>
+              </MenuItem>
+              {availableTags.map((tag) => (
+                <MenuItem key={tag} value={tag}>
+                  {tag}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
       </Stack>
 
       <Stack direction="row" sx={{ mb: 1, justifyContent: 'flex-end' }}>
@@ -411,7 +482,9 @@ export function ExpiringDocumentsPage() {
                 <TableRow>
                   <TableCell colSpan={6}>
                     <Typography variant="body2" color="text.secondary">
-                      {t('attachments.expiringEmpty')}
+                      {search || tagFilter || ownerTypeFilter || categoryFilter
+                        ? t('attachments.searchEmpty')
+                        : t('attachments.expiringEmpty')}
                     </Typography>
                   </TableCell>
                 </TableRow>
