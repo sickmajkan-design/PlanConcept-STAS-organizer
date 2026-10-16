@@ -456,6 +456,7 @@ export const helpTopics: HelpTopic[] = [
         tips: [
           'Kratka napomena u ZIP-u navodi koliko troškova nije imalo priložen dokument.',
           'Obračun mjeseca upozorava na troškove proknjižene bez dokumenta; to je samo podsjetnik i ne sprječava zaključivanje.',
+          'Zaključavanje zamrzava tabelu obračuna, ne i unose: red dodat poslije vidi se u Knjizi zapisa, ali ne mijenja zaključanu tabelu. Završite unose prije zaključavanja.',
           'Zaključan mjesec se ne može obrisati dok se ne otključa.',
         ],
         keywords: ['obračun', 'zaključaj', 'isplata', 'akontacija', 'knjigovođa', 'zip', 'izvoz', 'paušal', 'satnica', 'marža'],
@@ -477,6 +478,7 @@ export const helpTopics: HelpTopic[] = [
         tips: [
           'A short note inside the ZIP states how many costs had no document attached.',
           'The settlement warns about costs booked with no document; it is only a reminder and does not prevent locking.',
+          'Locking freezes the settlement table, not the entries: a line added afterwards shows in the book of entries but does not change the locked table. Finish the entries before locking.',
           'A locked month cannot be deleted until it is unlocked.',
         ],
         keywords: ['settlement', 'lock', 'payout', 'advance', 'accountant', 'zip', 'export', 'flat rate', 'hourly', 'margin'],

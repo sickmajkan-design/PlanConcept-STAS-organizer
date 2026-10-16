@@ -79,7 +79,7 @@ Tabela po gradilištima kao u Excelu, ali **izračunata iz Knjige**. Sate upisuj
 
 - **Način naplate po gradilištu:** *satnica* (sati × cijena), *paušal* ili *mjerenje* (iznos izdatih faktura). Program pokaže i koliko bi bilo po satnici.
 - **Za provjeru:** previše sati, paušal bez fakture, kašnjenje. Označite riješeno ono što jeste. Obračun upozorava i na troškove proknjižene bez dokumenta (samo podsjetnik).
-- **Zaključaj mjesec:** brojke se više ne mijenjaju; ispravka traži otključavanje i upisuje ko je i kada. Zaključan mjesec se ne može obrisati.
+- **Zaključaj mjesec:** **tabela obračuna** (po gradilištima, s ukupnim zbirom) se zamrzava; ispravka traži otključavanje i upisuje ko je i kada. Zaključan mjesec se ne može obrisati. Pažnja: zaključavanje ne zabranjuje nove redove u Knjizi. Red dodat poslije vidi se u Knjizi zapisa i u listama ispod tabele (npr. upozorenje o troškovima bez dokumenta), ali ne mijenja zaključanu tabelu. Zato prije zaključavanja završite unose.
 
 ### Primjer
 
