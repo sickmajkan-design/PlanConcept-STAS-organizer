@@ -39,6 +39,7 @@ import {
   type SheetField,
   type SheetMapping,
 } from '../../features/book/importSheet';
+import { DropArea } from '../../components/files/DropArea';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
 import type { MessageKey } from '../../i18n/en';
 import { useI18n } from '../../i18n/useI18n';
@@ -327,12 +328,8 @@ export function BookImportPage() {
             <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
               {t('bookImport.pick')}
             </Typography>
+            <DropArea onFile={(f) => void onFile(f)}>
             <Box
-              onDragOver={(event) => event.preventDefault()}
-              onDrop={(event) => {
-                event.preventDefault();
-                void onFile(event.dataTransfer.files?.[0]);
-              }}
               sx={{ border: '2px dashed', borderColor: 'divider', borderRadius: 2, p: 4, textAlign: 'center' }}
             >
               <Typography variant="subtitle1">{t('bookImport.drop')}</Typography>
@@ -353,6 +350,7 @@ export function BookImportPage() {
                 <Button onClick={loadSample}>{t('bookImport.loadSample')}</Button>
               </Stack>
             </Box>
+            </DropArea>
 
             {workbook && (
               <Stack spacing={2}>

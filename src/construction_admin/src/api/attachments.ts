@@ -55,6 +55,16 @@ export const MAX_ATTACHMENT_TAGS = 10;
 export const MAX_ATTACHMENT_TAG_LENGTH = 30;
 export const MAX_ATTACHMENT_TITLE_LENGTH = 200;
 
+/** What `GET /attachments/limits` reports; the constants above are only the answer until it arrives. */
+export interface AttachmentLimits {
+  maxSizeBytes: number;
+  /** With the dot, lower case. */
+  extensions: string[];
+  maxTags: number;
+  maxTagLength: number;
+  maxTitleLength: number;
+}
+
 export interface UploadOptions {
   /** Called with 0..1 as the bytes go out. */
   onProgress?: (fraction: number) => void;
@@ -99,6 +109,9 @@ export const attachmentsApi = {
         ...(includeUndated ? { includeUndated: true } : {}),
       },
     }),
+
+  /** The size, formats and label limits the server enforces. Any signed-in employee may ask. */
+  limits: () => request<AttachmentLimits>({ method: 'GET', url: '/api/v1/attachments/limits' }),
 
   /** The labels already used on documents, most used first. Admin and above; others get a refusal. */
   tags: () => request<string[]>({ method: 'GET', url: '/api/v1/attachments/tags' }),

@@ -30,10 +30,12 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { EditDocumentDialog } from '../../components/EditDocumentDialog';
 import { ExportZipButton } from '../../components/ExportZipButton';
 import { FirstUseHint, HintLine } from '../../components/files/FirstUseHint';
+import { PageDropOverlay } from '../../components/files/PageDropOverlay';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
 import { UploadDocumentDialog } from '../../components/UploadDocumentDialog';
 import { useDeleteAttachment, useExpiringDocumentsQuery } from '../../features/attachments/useAttachments';
+import { usePageDrop } from '../../features/files/usePageDrop';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useHighlightTarget } from '../../hooks/useHighlightTarget';
 import { useEnumLabel } from '../../i18n/enumLabels';
@@ -74,9 +76,19 @@ export function ExpiringDocumentsPage() {
   const [search, setSearch] = useState('');
   const [tagFilter, setTagFilter] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [dropped, setDropped] = useState<File[]>([]);
   const [previewing, setPreviewing] = useState<Attachment | null>(null);
   const [editing, setEditing] = useState<Attachment | null>(null);
   const remove = useDeleteWithConfirm<Attachment>(useDeleteAttachment());
+
+  // A file dropped anywhere on the page opens the upload with it already in.
+  const pageDrop = usePageDrop({
+    disabled: uploading,
+    onFiles: (files) => {
+      setDropped(files);
+      setUploading(true);
+    },
+  });
 
   const { data, isError, error, refetch, isLoading } = useExpiringDocumentsQuery(
     windowValue === ALL_WINDOW ? null : windowValue,
@@ -170,7 +182,10 @@ export function ExpiringDocumentsPage() {
         action={{
           label: t('attachments.upload'),
           icon: <UploadFileOutlined />,
-          onClick: () => setUploading(true),
+          onClick: () => {
+            setDropped([]);
+            setUploading(true);
+          },
         }}
       />
 
@@ -286,7 +301,8 @@ export function ExpiringDocumentsPage() {
         <ExportZipButton ids={(sortedData ?? []).map((document) => document.id)} />
       </Stack>
 
-      <UploadDocumentDialog open={uploading} onClose={() => setUploading(false)} />
+      <UploadDocumentDialog open={uploading} onClose={() => setUploading(false)} initialFiles={dropped} />
+      <PageDropOverlay show={pageDrop.isOver} />
 
       <AttachmentPreviewDialog
         attachment={previewing}

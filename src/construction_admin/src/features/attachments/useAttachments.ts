@@ -1,8 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import {
+  ACCEPTED_EXTENSIONS,
   attachmentsApi,
+  MAX_ATTACHMENT_BYTES,
+  MAX_ATTACHMENT_TAG_LENGTH,
+  MAX_ATTACHMENT_TAGS,
+  MAX_ATTACHMENT_TITLE_LENGTH,
   type AttachmentListQuery,
   type UpdateAttachmentInput,
   type UploadAttachmentInput,
@@ -74,6 +79,34 @@ export function useAttachmentTagsQuery(enabled: boolean) {
     retry: false,
     staleTime: 60_000,
   });
+}
+
+/**
+ * The limits the server enforces, so the web never disagrees with it after a change there. Until the
+ * answer arrives (or if it cannot be had) the built-in values stand in; the server judges anyway.
+ */
+export function useAttachmentLimits() {
+  const { data } = useQuery({
+    queryKey: [...attachmentKeys.all, 'limits'],
+    queryFn: () => attachmentsApi.limits(),
+    retry: false,
+    staleTime: Infinity,
+  });
+
+  return useMemo(() => {
+    // Anything but the expected shape (an old server, a failed call) leaves the built-in values.
+    const number = (value: unknown, fallback: number) =>
+      typeof value === 'number' && value > 0 ? value : fallback;
+    const extensions = Array.isArray(data?.extensions) ? data.extensions : [];
+
+    return {
+      maxBytes: number(data?.maxSizeBytes, MAX_ATTACHMENT_BYTES),
+      accept: extensions.length > 0 ? extensions.join(',') : ACCEPTED_EXTENSIONS,
+      maxTags: number(data?.maxTags, MAX_ATTACHMENT_TAGS),
+      maxTagLength: number(data?.maxTagLength, MAX_ATTACHMENT_TAG_LENGTH),
+      maxTitleLength: number(data?.maxTitleLength, MAX_ATTACHMENT_TITLE_LENGTH),
+    };
+  }, [data]);
 }
 
 export function useUploadAttachment() {

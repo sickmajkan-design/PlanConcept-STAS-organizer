@@ -19,10 +19,9 @@ import type { Attachment, AttachmentCategory } from '../api/types';
 import { attachmentCategories } from '../api/types';
 import { useAuth } from '../auth/useAuth';
 import { canAdministerAccounts } from '../auth/authHelpers';
-import { useAttachmentTagsQuery, useUpdateAttachment } from '../features/attachments/useAttachments';
+import { useAttachmentLimits, useAttachmentTagsQuery, useUpdateAttachment } from '../features/attachments/useAttachments';
 import { useEnumLabel } from '../i18n/enumLabels';
 import { useT } from '../i18n/useI18n';
-import { MAX_ATTACHMENT_TITLE_LENGTH } from '../api/attachments';
 import { TagsField } from './files/TagsField';
 import { ReminderDaysField } from './ReminderDaysField';
 
@@ -39,6 +38,7 @@ export function EditDocumentDialog({
   onClose: () => void;
 }) {
   const t = useT();
+  const limits = useAttachmentLimits();
   const enumLabel = useEnumLabel();
   const update = useUpdateAttachment();
   const { user } = useAuth();
@@ -102,7 +102,7 @@ export function EditDocumentDialog({
             label={t('attachments.field.title')}
             value={title}
             onChange={(event) => setTitle(event.target.value)}
-            slotProps={{ htmlInput: { maxLength: MAX_ATTACHMENT_TITLE_LENGTH } }}
+            slotProps={{ htmlInput: { maxLength: limits.maxTitleLength } }}
           />
 
           <FormControl size="small" fullWidth>
@@ -154,7 +154,14 @@ export function EditDocumentDialog({
             slotProps={{ htmlInput: { maxLength: 1000 } }}
           />
 
-          <TagsField size="small" value={tags} onChange={setTags} suggestions={tagSuggestions.data ?? []} />
+          <TagsField
+            size="small"
+            value={tags}
+            onChange={setTags}
+            suggestions={tagSuggestions.data ?? []}
+            maxTags={limits.maxTags}
+            maxTagLength={limits.maxTagLength}
+          />
 
           {update.error && <Alert severity="error">{update.error.message}</Alert>}
         </Stack>

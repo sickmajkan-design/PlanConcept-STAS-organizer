@@ -14,9 +14,8 @@ import {
 import { useState } from 'react';
 
 import { toApiError } from '../../api/apiError';
-import { MAX_ATTACHMENT_BYTES } from '../../api/attachments';
 import { FileDropzone } from '../../components/files/FileDropzone';
-import { useUploadAttachment } from '../../features/attachments/useAttachments';
+import { useAttachmentLimits, useUploadAttachment } from '../../features/attachments/useAttachments';
 import { useCreateRefund } from '../../features/refunds/useRefunds';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
 import { useT } from '../../i18n/useI18n';
@@ -38,7 +37,8 @@ export function NewRefundDialog({ open, onClose }: { open: boolean; onClose: () 
   const [error, setError] = useState<string | null>(null);
   const [receiptProblem, setReceiptProblem] = useState<string | null>(null);
 
-  const tooBig = !!file && file.size > MAX_ATTACHMENT_BYTES;
+  const limits = useAttachmentLimits();
+  const tooBig = !!file && file.size > limits.maxBytes;
   const valid = Number(amount) > 0 && description.trim().length > 0 && /^[A-Za-z]{3}$/.test(currency) && !tooBig;
 
   const submit = async () => {
@@ -125,6 +125,8 @@ export function NewRefundDialog({ open, onClose }: { open: boolean; onClose: () 
               <FileDropzone
                 compact
                 multiple={false}
+                accept={limits.accept}
+                maxBytes={limits.maxBytes}
                 helper={receiptProblem ?? t('refunds.receiptHint')}
                 helperError={!!receiptProblem}
                 onFiles={([chosen]) => {

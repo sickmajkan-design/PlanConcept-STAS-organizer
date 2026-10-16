@@ -817,6 +817,10 @@ export const en = {
   'releaseNotes.close': 'Got it',
 
 
+  'releaseNotes.drop1016.title': "Adding documents is easier",
+  'releaseNotes.drop1016.anywhere': "On the Documents page you can drop a file anywhere on the page; the upload opens with the file already in it.",
+  'releaseNotes.drop1016.category': "When adding several files, each can have its own type (for example a contract and a photo in one go); the choice beside a file overrides the general type.",
+  'releaseNotes.drop1016.limits': "The allowed file types and size are now always read from the server, so the panel cannot disagree with what the server really accepts. The month import in the cost book also accepts a dragged file.",
   'releaseNotes.sec1016.title': "Who opened sensitive documents",
   'releaseNotes.sec1016.audit': "When somebody other than the person themselves opens or exports a medical check, an identity document or a visa, it is now recorded in the audit trail (Administration > Audit, action Opened, record type Attachment) with who, when and from where.",
   'releaseNotes.sec1016.phone': "Phone app 1.1.24: such documents cannot be screenshotted or screen-recorded while they are open, and the copy made for another app is removed when the person leaves the screen or signs out.",
@@ -833,8 +837,6 @@ export const en = {
   'releaseNotes.docs1015.search': "The list of all documents has a search box. Type a word from the title, file name, owner, note or a tag; with several words, every one of them must match.",
   'releaseNotes.docs1015.tag': "A new Tag filter next to the others narrows the list to one label. The ZIP export button downloads exactly what is shown.",
   'releaseNotes.docs1015.nodocs': "Month settlement (Super Admin): the checks list now warns about costs booked in the month with no document attached, with their number and total, and a button that opens the entries. It is a prompt only and never blocks closing the month.",
-  'releaseNotes.book1015.title': "Monthly package for the accountant",
-  'releaseNotes.book1015.package': "On the Entries page there is a new button, Export with documents (ZIP). It downloads the spreadsheet of the lines you have filtered together with the documents filed on them, one folder per line, so the accountant gets everything in one file. A short note inside lists how many costs had no document.",
   'finance.budget.warnPercentHelp': 'Leave empty for 80%. From 100% the project counts as over.',
   'finance.housingDoubleWarning': '{count} housing expenses fall on days when accommodation rent is already counted from the accommodation rates, so that rent is counted twice. Delete them or move them to another category.',
   'finance.payOverlapWarning': '{count} pay entries tied to no project fall on days the same person clocked hours at a project. Both are counted — check whether one of them should replace the other.',

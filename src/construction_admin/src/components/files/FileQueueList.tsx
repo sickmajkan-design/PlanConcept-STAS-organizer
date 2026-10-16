@@ -13,6 +13,8 @@ import {
   LinearProgress,
   List,
   ListItem,
+  MenuItem,
+  Select,
   Stack,
   Tooltip,
   Typography,
@@ -46,12 +48,23 @@ export function FileQueueList({
   onRemove,
   onRetry,
   locked = false,
+  categories,
 }: {
   items: readonly QueueItem[];
   onRemove: (id: string) => void;
   onRetry: (id: string) => void;
   /** Rows cannot be removed while the upload runs (cancelling is the way out). */
   locked?: boolean;
+  /**
+   * Lets each file that has not gone out yet have its own type. The caller owns the choice; a file with
+   * no choice of its own follows `fallback`.
+   */
+  categories?: {
+    options: readonly { value: string; label: string }[];
+    fallback: string;
+    chosen: Readonly<Record<string, string>>;
+    onChange: (id: string, value: string) => void;
+  };
 }) {
   const t = useT();
 
@@ -142,6 +155,25 @@ export function FileQueueList({
                 </Typography>
               </Stack>
             </Box>
+
+            {categories && categories.options.length > 1 && (item.status === 'queued' || item.status === 'error') && (
+              <Select
+                size="small"
+                variant="standard"
+                disableUnderline
+                value={categories.chosen[item.id] ?? categories.fallback}
+                disabled={locked}
+                onChange={(event) => categories.onChange(item.id, event.target.value)}
+                SelectDisplayProps={{ 'aria-label': `${t('attachments.category')}: ${item.file.name}` }}
+                sx={{ fontSize: 13, maxWidth: 130, flexShrink: 0 }}
+              >
+                {categories.options.map((o) => (
+                  <MenuItem key={o.value} value={o.value}>
+                    {o.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            )}
 
             {uploading && (
               <LinearProgress

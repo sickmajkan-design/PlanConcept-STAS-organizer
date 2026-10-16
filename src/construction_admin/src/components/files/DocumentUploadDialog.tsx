@@ -22,11 +22,10 @@ import {
 } from '@mui/material';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 
-import { ACCEPTED_EXTENSIONS, MAX_ATTACHMENT_BYTES, MAX_ATTACHMENT_TITLE_LENGTH } from '../../api/attachments';
 import type { AttachmentCategory, AttachmentOwnerType } from '../../api/types';
 import { useAuth } from '../../auth/useAuth';
 import { canAdministerAccounts } from '../../auth/authHelpers';
-import { useAttachmentTagsQuery } from '../../features/attachments/useAttachments';
+import { useAttachmentLimits, useAttachmentTagsQuery } from '../../features/attachments/useAttachments';
 import { useUploadQueue } from '../../features/files/useUploadQueue';
 import { validateFiles, type Rejection } from '../../features/files/validateFiles';
 import { useEnumLabel } from '../../i18n/enumLabels';
@@ -82,8 +81,14 @@ export function DocumentUploadDialog({
   const [reminderDays, setReminderDays] = useState<number[]>([]);
   const [datesOpen, setDatesOpen] = useState(false);
   const [rejected, setRejected] = useState<Rejection[]>([]);
+  // A file's own type, by queue id; a file not in here takes the general one below.
+  const [ownCategory, setOwnCategory] = useState<Record<string, AttachmentCategory>>({});
 
-  const rules = useMemo(() => ({ accept: ACCEPTED_EXTENSIONS, maxBytes: MAX_ATTACHMENT_BYTES }), []);
+  const limits = useAttachmentLimits();
+  const rules = useMemo(
+    () => ({ accept: limits.accept, maxBytes: limits.maxBytes }),
+    [limits.accept, limits.maxBytes],
+  );
 
   // A photograph has no expiry, and the API refuses one.
   const expiryAllowed = category !== 'Photo';
@@ -105,6 +110,7 @@ export function DocumentUploadDialog({
     setReminderDays([]);
     setDatesOpen(false);
     setRejected([]);
+    setOwnCategory({});
 
     if (initialFiles && initialFiles.length > 0) {
       const { accepted, rejected: turnedAway } = validateFiles(initialFiles, rules);
@@ -135,19 +141,29 @@ export function DocumentUploadDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queue.started, queue.running, queue.items.length, queue.failed, queue.cancelled]);
 
-  const start = () =>
-    queue.start((file) => ({
-      ownerType,
-      ownerId,
-      category,
-      file,
-      title: queue.items.length === 1 ? title.trim() || null : null,
-      tags,
-      description: description.trim() || null,
-      expiresAt: expiryAllowed && expiresAt ? expiresAt : null,
-      retainUntil: retainUntil || null,
-      reminderDays: expiryAllowed && expiresAt ? reminderDays : [],
-    }));
+  const start = () => {
+    const ids = new Map(queue.items.map((item) => [item.file, item.id]));
+
+    queue.start((file) => {
+      const own = ownCategory[ids.get(file) ?? ''];
+      const fileCategory = own && categories.includes(own) ? own : category;
+      // A photograph has no expiry, and the API refuses one.
+      const dated = fileCategory !== 'Photo' && !!expiresAt;
+
+      return {
+        ownerType,
+        ownerId,
+        category: fileCategory,
+        file,
+        title: queue.items.length === 1 ? title.trim() || null : null,
+        tags,
+        description: description.trim() || null,
+        expiresAt: dated ? expiresAt : null,
+        retainUntil: retainUntil || null,
+        reminderDays: dated ? reminderDays : [],
+      };
+    });
+  };
 
   const toRetry = queue.failed + queue.cancelled;
   const total = queue.items.length;
@@ -194,6 +210,8 @@ export function DocumentUploadDialog({
           {ownerSlot}
 
           <FileDropzone
+            accept={limits.accept}
+            maxBytes={limits.maxBytes}
             existing={queue.items.map((i) => i.file)}
             onFiles={(files) => {
               setRejected([]);
@@ -209,7 +227,7 @@ export function DocumentUploadDialog({
               </Typography>
               {rejected.slice(0, 5).map((r) => (
                 <Typography key={`${r.file.name}-${r.reason}`} variant="body2">
-                  {rejectionText(t, r)}
+                  {rejectionText(t, r, limits.maxBytes)}
                 </Typography>
               ))}
               {rejected.length > 5 && (
@@ -221,6 +239,12 @@ export function DocumentUploadDialog({
           <FileQueueList
             items={queue.items}
             locked={queue.running}
+            categories={{
+              options: categories.map((value) => ({ value, label: enumLabel('attachmentCategory', value) })),
+              fallback: category,
+              chosen: ownCategory,
+              onChange: (id, value) => setOwnCategory((current) => ({ ...current, [id]: value as AttachmentCategory })),
+            }}
             onRemove={queue.remove}
             onRetry={(id) => queue.retry(id)}
           />
@@ -244,7 +268,7 @@ export function DocumentUploadDialog({
               disabled={!single}
               helperText={single ? undefined : t('attachments.field.titleMany')}
               fullWidth
-              slotProps={{ htmlInput: { maxLength: MAX_ATTACHMENT_TITLE_LENGTH } }}
+              slotProps={{ htmlInput: { maxLength: limits.maxTitleLength } }}
             />
             <FormControl fullWidth>
               <InputLabel id="document-category-label">{t('attachments.category')}</InputLabel>
@@ -273,7 +297,13 @@ export function DocumentUploadDialog({
             slotProps={{ htmlInput: { maxLength: 1000 } }}
           />
 
-          <TagsField value={tags} onChange={setTags} suggestions={tagSuggestions.data ?? []} />
+          <TagsField
+            value={tags}
+            onChange={setTags}
+            suggestions={tagSuggestions.data ?? []}
+            maxTags={limits.maxTags}
+            maxTagLength={limits.maxTagLength}
+          />
 
           <Accordion
             disableGutters

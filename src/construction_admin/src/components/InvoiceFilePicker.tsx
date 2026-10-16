@@ -2,6 +2,7 @@ import { AttachFileOutlined, CloseOutlined } from '@mui/icons-material';
 import { Chip, Stack, Typography } from '@mui/material';
 import { useState } from 'react';
 
+import { useAttachmentLimits } from '../features/attachments/useAttachments';
 import type { Rejection } from '../features/files/validateFiles';
 import { useT } from '../i18n/useI18n';
 import { FileDropzone } from './files/FileDropzone';
@@ -20,6 +21,7 @@ export function InvoiceFilePicker({
   onChange: (file: File | null) => void;
 }) {
   const t = useT();
+  const limits = useAttachmentLimits();
   const [problem, setProblem] = useState<string | null>(null);
 
   const refused = (rejected: Rejection[]) => {
@@ -32,7 +34,7 @@ export function InvoiceFilePicker({
         ? t('invoiceFile.tooBig')
         : first.reason === 'type'
           ? t('invoiceFile.badType')
-          : rejectionText(t, first),
+          : rejectionText(t, first, limits.maxBytes),
     );
   };
 
@@ -50,6 +52,8 @@ export function InvoiceFilePicker({
         <FileDropzone
           compact
           multiple={false}
+          accept={limits.accept}
+          maxBytes={limits.maxBytes}
           helper={problem ?? t('invoiceFile.hint')}
           helperError={!!problem}
           onFiles={([chosen]) => {

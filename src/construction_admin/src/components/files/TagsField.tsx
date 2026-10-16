@@ -5,12 +5,15 @@ import { MAX_ATTACHMENT_TAG_LENGTH, MAX_ATTACHMENT_TAGS } from '../../api/attach
 import { useT } from '../../i18n/useI18n';
 
 /** Labels as the server keeps them: trimmed, no blanks, one of each regardless of case. */
-export function normaliseTags(tags: readonly string[]): string[] {
+export function normaliseTags(
+  tags: readonly string[],
+  maxLength: number = MAX_ATTACHMENT_TAG_LENGTH,
+): string[] {
   const seen = new Set<string>();
   const result: string[] = [];
 
   for (const raw of tags) {
-    const tag = raw.trim().slice(0, MAX_ATTACHMENT_TAG_LENGTH);
+    const tag = raw.trim().slice(0, maxLength);
 
     if (tag && !seen.has(tag.toLowerCase())) {
       seen.add(tag.toLowerCase());
@@ -30,14 +33,19 @@ export function TagsField({
   onChange,
   suggestions = [],
   size,
+  maxTags = MAX_ATTACHMENT_TAGS,
+  maxTagLength = MAX_ATTACHMENT_TAG_LENGTH,
 }: {
   value: string[];
   onChange: (tags: string[]) => void;
   suggestions?: readonly string[];
   size?: 'small' | 'medium';
+  /** What the server allows; the built-in values apply until it has said. */
+  maxTags?: number;
+  maxTagLength?: number;
 }) {
   const t = useT();
-  const full = value.length >= MAX_ATTACHMENT_TAGS;
+  const full = value.length >= maxTags;
 
   return (
     <Autocomplete
@@ -47,7 +55,7 @@ export function TagsField({
       options={full ? [] : [...suggestions]}
       value={value}
       filterSelectedOptions
-      onChange={(_, next) => onChange(normaliseTags(next as string[]).slice(0, MAX_ATTACHMENT_TAGS))}
+      onChange={(_, next) => onChange(normaliseTags(next as string[], maxTagLength).slice(0, maxTags))}
       renderValue={(tags, getItemProps) =>
         tags.map((tag, index) => {
           const { key, ...props } = getItemProps({ index });
@@ -60,7 +68,7 @@ export function TagsField({
           {...params}
           label={t('attachments.field.tags')}
           placeholder={full ? '' : t('attachments.tags.placeholder')}
-          helperText={t('attachments.tags.max', { max: MAX_ATTACHMENT_TAGS })}
+          helperText={t('attachments.tags.max', { max: maxTags })}
           slotProps={{
             ...params.slotProps,
             input: {
@@ -72,7 +80,7 @@ export function TagsField({
                 </>
               ),
             },
-            htmlInput: { ...params.slotProps.htmlInput, maxLength: MAX_ATTACHMENT_TAG_LENGTH },
+            htmlInput: { ...params.slotProps.htmlInput, maxLength: maxTagLength },
           }}
         />
       )}

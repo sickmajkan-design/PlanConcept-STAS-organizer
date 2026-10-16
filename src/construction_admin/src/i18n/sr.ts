@@ -844,6 +844,10 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.close': 'Razumijem',
 
 
+  'releaseNotes.drop1016.title': "Dodavanje dokumenata je lakše",
+  'releaseNotes.drop1016.anywhere': "Na stranici Dokumenti datoteku možete ispustiti bilo gdje na stranici; otvara se dodavanje s već unesenom datotekom.",
+  'releaseNotes.drop1016.category': "Pri dodavanju više datoteka svaka može imati svoju vrstu (npr. ugovor i fotografija u istom unosu); izbor pored datoteke ima prednost nad općom vrstom.",
+  'releaseNotes.drop1016.limits': "Dozvoljene vrste i veličina datoteka sada se uvijek čitaju sa servera, pa se prikaz u panelu ne može razići s onim što server stvarno prihvata. Uvoz mjeseca u Knjizi troškova takođe prima datoteku povlačenjem.",
   'releaseNotes.sec1016.title': "Ko je otvarao osjetljive dokumente",
   'releaseNotes.sec1016.audit': "Kad neko osim same osobe otvori ili izveze ljekarski pregled, lični dokument ili vizu, to se sada upisuje u reviziju (Administracija > Revizija, radnja Otvoreno, vrsta zapisa Attachment) s tim ko, kada i odakle.",
   'releaseNotes.sec1016.phone': "Aplikacija 1.1.24: takvi dokumenti se ne mogu snimiti ekranom ni snimkom ekrana dok su otvoreni, a kopija napravljena za drugu aplikaciju briše se kad osoba napusti ekran ili se odjavi.",
@@ -860,8 +864,6 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.docs1015.search': "Lista svih dokumenata ima polje za pretragu. Upišite riječ iz naslova, imena datoteke, vlasnika, napomene ili oznaku; kad upišete više riječi, svaka mora da se podudara.",
   'releaseNotes.docs1015.tag': "Novi filter Oznaka pored ostalih sužava listu na jednu oznaku. Dugme za ZIP preuzima tačno ono što je prikazano.",
   'releaseNotes.docs1015.nodocs': "Obračun mjeseca (Super Admin): lista provjera sada upozorava na troškove proknjižene u mjesecu bez priloženog dokumenta, s brojem i zbirom, i dugmetom koje otvara unose. Samo je podsjetnik i ne sprječava zaključivanje mjeseca.",
-  'releaseNotes.book1015.title': "Mjesečni paket za knjigovođu",
-  'releaseNotes.book1015.package': "Na stranici Unosi je novo dugme Izvoz s dokumentima (ZIP). Preuzima tabelu zapisa koje si filtrirao zajedno s dokumentima priloženim uz njih, po jedna mapa za svaki zapis, pa knjigovođa dobija sve u jednoj datoteci. Kratka napomena unutra navodi koliko troškova nije imalo dokument.",
   'finance.budget.warnPercentHelp': 'Prazno znači 80%. Od 100% se projekat računa kao prekoračen.',
   'finance.housingDoubleWarning': '{count} troškova smještaja pada na dane kada je kirija već uračunata iz cijena smještaja, pa se ta kirija računa dvaput. Obrišite ih ili ih prebacite u drugu kategoriju.',
   'finance.payOverlapWarning': '{count} isplata bez projekta pada na dane kada je ista osoba evidentirala sate na projektu. Računaju se oba iznosa — provjerite treba li jedan zamijeniti drugi.',
