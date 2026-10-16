@@ -86,3 +86,8 @@ scripts/qa/qa_fuzz.json
 scripts/qa/__pycache__/
 src/construction_admin/qa_ui_*.json
 src/construction_admin/qa_shot_*.png
+
+# Scratch work of the design and test sessions: kept on the laptop, never committed.
+src/construction_admin/e2e/_*.spec.ts
+src/construction_admin/e2e/_shots/
+src/construction_admin/test-results/

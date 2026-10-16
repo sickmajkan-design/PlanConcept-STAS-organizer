@@ -1,7 +1,0 @@
-/help/dokumenti-trazenje	Dugme ZIP preuzima tačno ono što je trenutno prikazano, razvrstano po vlasniku i vrsti.
-/help/knjiga-pregled	Počnite od Pregleda novca i dobiti: ulaz, izlaz i dobit za izabrani period, s grafikonom po mjesecima. Period biraju dugmad ili ručno Od i Do.
-/help/knjiga-uvoz	Potvrdite. Uvoz se može poništiti, osim ako se mjesec poslije ručno mijenjao ili je zaključan.
-/help/knjiga-uvoz	Imate tabelu za septembar s gradilištima u redovima i sedmicama u kolonama. Učitajte je, označite kolone sedmica kao Sati (sedmica), ispravite Hala B ako je pog
-/documents/requests	Status
-/book/entries	Izvor kaže odakle red dolazi. Zapisi iz DKV izvoda, smještaja i vozila nastaju sami; ručno upisuješ samo ostalo. Njihova olovka je strelica: mijenjaju se tamo g
-/vehicles	Status
