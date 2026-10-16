@@ -135,6 +135,18 @@ Zbir jedinica ne može biti veći od cjeline. Ono što ne pripada nijednoj jedin
 | Mijenja podatke firme (logo, brojevi) | da | ne (samo čita) | ne |
 | Platni spisak (Evidencija) | da | ne | ne |
 
+## 8a. Primjeri iz prakse
+
+**Firma s dva grada.** Imate Sarajevo i Banja Luku. Dodajte obje jedinice (naziv, tip, boja), dodijelite im gradilišta i zaposlene. U zaglavlju izaberite **Banja Luka**: liste, troškovi, prihodi i početna stranica pokazuju samo njene brojke.
+
+**Radnik prelazi u drugu jedinicu.** Marko radi u Sarajevu i od 1. novembra prelazi u Banja Luku. U Banja Luci izaberite **Dodijeli zaposlene**, označite Marka i upišite datum 01.11. Program zatvara njegovo zaposlenje u Sarajevu dan ranije (31.10.), pa sati do 31.10. ostaju u Sarajevu, a od 1.11. idu u Banja Luku.
+
+**Jedinica ispod jedinice.** Predstavništvo Mostar stavite ispod Banja Luke i postavite rukovodioca. Jedinica koja ima pod-jedinice ili projekte ne može se obrisati, samo isključiti.
+
+**Sati po poslodavcu.** Ako se plate računaju po poslodavcu, a ne po gradilištu, izaberite to u podešavanju osnove za sate i plate; zbirovi po jedinicama se slažu s platnim spiskom.
+
+Pretraga: **Ctrl+K**, „jedinica“ ili „filijala“ otvara stranicu **Firma i poslovne jedinice**; uputstvo „Poslovne jedinice“ ponavlja ove korake u aplikaciji.
+
 ## 9. Česta pitanja
 
 **Radnik radi na gradilištu jedinice B, a zaposlen je u A. Gdje se računa?**

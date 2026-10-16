@@ -182,6 +182,7 @@ function ScheduleRoute() {
 const CompanyRevenuesPage = lazy(() =>
   import('./pages/finance/CompanyRevenuesPage').then((m) => ({ default: m.CompanyRevenuesPage })),
 );
+const HelpPage = lazy(() => import('./pages/help/HelpPage').then((m) => ({ default: m.HelpPage })));
 const BookGuidePage = lazy(() =>
   import('./pages/book/BookGuidePage').then((m) => ({ default: m.BookGuidePage })),
 );
@@ -458,6 +459,9 @@ function Layout() {
                 <Route path={paths.costs} element={<CostsPage />} />
                 <Route path={paths.companyRevenues} element={<CompanyRevenuesPage />} />
               </Route>
+              <Route path={paths.help} element={<HelpPage />} />
+              <Route path={`${paths.help}/:topicId`} element={<HelpPage />} />
+
               <Route element={<RequireBookAccess />}>
                 <Route path={paths.bookOverview} element={<BookOverviewPage />} />
                 <Route path={paths.bookGuide} element={<BookGuidePage />} />

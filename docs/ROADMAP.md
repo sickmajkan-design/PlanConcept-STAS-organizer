@@ -104,7 +104,7 @@ može dodati kasnije bez izmjena na API-ju.
 | `IFileStorage` + dve implementacije | **Odrađeno.** Disk je podrazumijevan, pa klon i CI rade bez ijednog spoljnog servisa; podešavanje bucket-a prebacuje na bilo koji S3-kompatibilan servis. |
 | Upload/download, ograničenja tipa i veličine | **Odrađeno.** 20 MB, allow-lista ekstenzija, tip se izvodi iz ekstenzije a ne iz zahtjeva. |
 | Prilog na `Employee`, `Project`, `Vehicle`, `Tool` | **Odrađeno.** Četiri nullable strana ključa uz check ograničenje „tačno jedan", pa kaskada i integritet i dalje rade. |
-| Dokumenti sa datumom isteka | **Odrađeno.** Ugovori, sertifikati, lekarski pregledi, licence, osiguranja. |
+| Dokumenti sa datumom isteka | **Odrađeno.** Ugovori, sertifikati, ljekarski pregledi, licence, osiguranja. |
 | Podsetnik na istek preko push-a | **Odrađeno.** Dnevni prolaz, idempotentan — druga replika ne javlja isto dvaput. |
 | Mobilno: pregled + slikanje gradilišta | **Odrađeno.** Radnik može da doda fotografiju na projekat i ništa drugo. |
 

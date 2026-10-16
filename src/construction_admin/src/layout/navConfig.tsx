@@ -97,6 +97,7 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
     { label: t('nav.home'), path: paths.home, icon: <HomeOutlined /> },
     { label: t('nav.liveMap'), path: paths.map, icon: <MapOutlined /> },
     { label: t('nav.bulletin'), path: paths.bulletin, icon: <CampaignOutlined /> },
+    { label: t('nav.help'), path: paths.help, icon: <HelpOutlineOutlined /> },
     ...(canViewDirectory(user)
       ? [
           {

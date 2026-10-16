@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pregled ulaza i izlaza novca</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#16201C;background:#F4F6F4}
+a{color:inherit;text-decoration:none}
+.nav a,.nav span{display:block;padding:10px 14px;border-radius:8px;font-size:14px;color:#3B4A44}
+.nav a:hover{background:#E6ECE8}
+.nav .on{background:#0F5C4D;color:#fff;font-weight:500}
+.brand{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;padding:0 14px}
+.logo{width:26px;height:26px;border-radius:7px;background:#0F5C4D;display:inline-block}
+.newbtn{display:block;margin:0 4px;padding:11px 14px;border-radius:10px;background:#0F5C4D;color:#fff;font-weight:500;font-size:14px;text-align:center}
+.newbtn:hover{background:#0B4A3E}
+.nav .grp{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#5B6B64;padding:14px 14px 4px}
+.nav a{display:flex;align-items:center;gap:10px}
+.nav svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+*:focus-visible{outline:2px solid #0F5C4D;outline-offset:2px}
+button{transition:background .12s,border-color .12s}
+th{position:relative}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (pointer:coarse){.btn.sm,.fb{min-height:44px}}
+@media (max-width:720px){aside{flex:1 1 100% !important;min-width:0 !important;padding:12px 16px !important;border-right:none !important;border-bottom:1px solid #D5DDD8}main{padding:16px !important}.nav{flex-direction:row !important;overflow-x:auto;gap:4px !important}.nav .grp{display:none}.nav a{white-space:nowrap}.newbtn{margin:0}}
+.nav .off{color:#7C8A84}
+.num{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+.card{background:#fff;border:1px solid #D5DDD8;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.card h2{margin:0;font-size:17px;font-weight:600}
+.sub{font-size:13px;color:#5B6B64;line-height:1.5}
+.pos{color:#0B4A3E}.neg{color:#8A2F1B}
+.btn{font:inherit;font-size:14px;font-weight:500;border-radius:8px;padding:9px 16px;cursor:pointer;border:1px solid #B9C5BF;background:#fff;color:#16201C;min-height:44px}
+.btn:disabled{background:#E6ECE8;border-color:#D5DDD8;color:#8A9690;cursor:not-allowed}
+.fb{font:inherit;font-size:13px;font-weight:500;border-radius:999px;padding:6px 14px;cursor:pointer;border:1px solid #B9C5BF;background:#fff;color:#16201C;min-height:36px}
+.fb.on{background:#16201C;border-color:#16201C;color:#fff}
+.in{font:inherit;font-size:14px;border:1px solid #B9C5BF;border-radius:8px;padding:8px 10px;background:#fff;color:#16201C;min-height:40px;box-sizing:border-box}
+.lab{font-size:12px;color:#5B6B64;display:block;margin-bottom:4px}
+details.how{background:#fff;border:1px solid #D5DDD8;border-left:4px solid #0F5C4D;border-radius:12px;padding:14px 18px}
+details.how summary{cursor:pointer;font-size:15px;font-weight:600}
+details.how ul{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.5;color:#2C3A34}
+.kpi{background:#fff;border:1px solid #D5DDD8;border-radius:12px;padding:16px 18px}
+.kpi .l{font-size:13px;color:#5B6B64}
+.kpi .v{font-size:26px;font-weight:500;margin-top:6px}
+.kpi .d{font-size:12px;color:#5B6B64;margin-top:4px}
+.col{position:relative;flex:1 1 0;min-width:44px;display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 2px;border:none;border-radius:8px;background:none;cursor:pointer;font:inherit;color:inherit}
+.col:hover{background:#EEF4F0}
+.col.sel{background:#E0EFE8}
+.bars{height:170px;display:flex;align-items:flex-end;gap:3px}
+.b{width:13px;border-radius:3px 3px 0 0}
+.b.in{background:#0F5C4D}.b.out{background:#B4452F}
+.b.f{opacity:.4}
+.ml{font-size:12px;color:#3B4A44}
+.mp{font-size:11px}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th{text-align:left;font-weight:500;font-size:12px;color:#5B6B64;padding:10px 12px;border-bottom:1px solid #D5DDD8;white-space:nowrap}
+table.t td{padding:10px 12px;border-bottom:1px solid #E6ECE8;vertical-align:middle}
+table.t th.r,table.t td.r{text-align:right}
+.chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:500;white-space:nowrap}
+.k-in{background:#DCEFE8;color:#0B4A3E}
+.k-out{background:#F6E1DA;color:#8A2F1B}
+.warn{background:#FBF3E0;border:1px solid #E6D3A3;border-radius:10px;padding:12px 14px;font-size:14px;line-height:1.5}
+.bad{background:#F6E1DA;border-color:#E3B3A6}
+.tile{display:flex;flex-direction:column;gap:4px;padding:14px 16px;border:1px solid #D5DDD8;border-radius:12px;background:#fff}
+.tile:hover{border-color:#0F5C4D;background:#F4FAF7}
+.tile b{font-size:15px;font-weight:600}
+.tile span{font-size:13px;color:#5B6B64;line-height:1.4}
+.alert{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;font-size:14px;line-height:1.4}
+.alert:hover{filter:brightness(.97)}
+.alert.r{background:#F6E1DA;color:#8A2F1B}
+.alert.y{background:#FBF3E0;color:#5C4300}
+.dot{width:9px;height:9px;border-radius:50%;background:currentColor;flex:none}
+.good{background:#DCEFE8;border-color:#A9D3C4}
+</style>
+</helmet>
+<div style="display:flex;flex-wrap:wrap;min-height:2400px;box-sizing:border-box">
+
+<aside style="flex:0 0 240px;background:#fff;border-right:1px solid #D5DDD8;padding:24px 16px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px;min-width:240px">
+<div class="brand"><span class="logo"></span>Evidencija</div>
+<a class="newbtn" href="Main.dc.html">+ Novi zapis</a>
+<nav class="nav" aria-label="Glavni meni" style="display:flex;flex-direction:column;gap:2px">
+<div class="grp">Pregled</div>
+<a href="Pocetak.dc.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></svg>Kako radi</a>
+<a class="on" href="Pregled.dc.html"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Pregled novca i dobiti</a>
+<div class="grp">Svaki dan</div>
+<a href="Main.dc.html"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11"/></svg>Knjiga zapisa</a>
+<a href="Potrazivanja.dc.html"><svg viewBox="0 0 24 24"><path d="M4 8h14l-3-3M20 16H6l3 3"/></svg>Ko nam duguje, kome dugujemo</a>
+<a href="Isplate.dc.html"><svg viewBox="0 0 24 24"><path d="M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l2-3h12M16 14h2"/></svg>Isplate radnicima</a>
+<div class="grp">Kraj mjeseca</div>
+<a href="Mjesec.dc.html"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M12 12h2M8 16h2M12 16h2"/></svg>Obračun mjeseca</a>
+<div class="grp">Podešavanja</div>
+<a href="Ponavljajuci.dc.html"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5l2 2M20 4v5h-5M20 12a8 8 0 0 1-14 5l-2-2M4 20v-5h5"/></svg>Ponavljajući troškovi</a>
+<a href="Kategorije.dc.html"><svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8zM7.5 8.5h.01"/></svg>Kategorije</a>
+<a href="Uvoz.dc.html"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></svg>Uvoz iz Excela</a>
+</nav>
+<div style="margin-top:auto;font-size:12px;color:#5B6B64;padding:0 14px;line-height:1.5">Probna verzija: izmišljeni podaci, ništa se ne snima.</div>
+</aside>
+
+<main style="flex:999 1 560px;min-width:0;padding:28px 32px;box-sizing:border-box;display:flex;flex-direction:column;gap:24px">
+
+<header style="display:flex;flex-direction:column;gap:6px">
+<div style="font-size:14px;color:#5B6B64">Dobar dan, Dario</div>
+<h1 style="margin:0;font-size:28px;font-weight:600">Pregled novca i dobiti</h1>
+<div style="font-size:14px;color:#3B4A44">Šta ulazi, šta izlazi i šta ti ostaje. Period: <strong style="color:#16201C">{{periodLabel}}</strong></div>
+</header>
+
+<section style="display:flex;flex-direction:column;gap:10px">
+<div style="font-size:15px;font-weight:600">Šta traži tvoju pažnju</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px">
+<a class="alert r" href="Potrazivanja.dc.html"><span class="dot"></span>Faktura 2026-042 kasni 6 dana (12.500 €). Pripremi opomenu.</a>
+<a class="alert r" href="#cash"><span class="dot"></span>Plata radnika 10.11. izlazi prije naplate za oktobar. Provjeri tok novca.</a>
+<a class="alert y" href="Mjesec.dc.html"><span class="dot"></span>3 stavke za provjeru prije zaključivanja oktobra.</a>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:10px">
+<div style="font-size:15px;font-weight:600">Brze radnje</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">
+<a class="tile" href="Main.dc.html"><b>Upiši trošak ili prihod</b><span>Brzi unos s prečicama za gorivo, kiriju, alat i fakturu.</span></a>
+<a class="tile" href="Potrazivanja.dc.html"><b>Evidentiraj uplatu klijenta</b><span>Označi fakturu plaćenom i vidi kako se mijenja stanje.</span></a>
+<a class="tile" href="Isplate.dc.html"><b>Dodaj akontaciju</b><span>Radnici, kooperanti ili kancelarija, gotovina ili prenos.</span></a>
+<a class="tile" href="Mjesec.dc.html"><b>Obračun i zaključivanje</b><span>Način naplate po gradilištu, provjere i zaključavanje mjeseca.</span></a>
+</div>
+</section>
+
+<details class="how" open>
+<summary>Kako ovo radi</summary>
+<ul>
+<li><b>Ulaz</b> je ono što klijenti plate za odrađene sate. <b>Izlaz</b> su plate radnika, kooperanti, kancelarija, troškovi gradilišta (gorivo, stanovi, vozila, alat) i fiksni troškovi. <b>Dobit</b> je ulaz minus izlaz.</li>
+<li><b>Period</b> biraš dugmadima ili ručno ("Od" i "Do"). Sve kućice i grafikoni na ovom ekranu prate izabrani period. Klik na mjesec u grafikonu bira baš taj mjesec.</li>
+<li><b>Tok novca u narednim danima</b> pokazuje redoslijed uplata i isplata. Radnike plaćaš prije nego što klijent plati, pa stanje može privremeno pasti ispod nule. Upiši koliko imaš na računu i vidi gdje je najniža tačka.</li>
+<li><b>Procjena sljedećeg mjeseca</b> se računa iz prosjeka zadnja tri mjeseca (cijena i trošak po satu), a fiksni troškovi i kancelarija ostaju isti. To je procjena, ne obećanje. Promijeni sate da vidiš "šta ako".</li>
+</ul>
+</details>
+
+<section class="card">
+<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between">
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+<button class="btn" style="min-height:36px;padding:4px 12px" aria-label="Prethodni period" disabled="{{noPrev}}" onClick="{{prev}}">&larr;</button>
+<sc-for list="{{presets}}" as="p" hint-placeholder-count="5">
+<button class="fb {{p.cls}}" onClick="{{p.pick}}">{{p.label}}</button>
+</sc-for>
+<button class="btn" style="min-height:36px;padding:4px 12px" aria-label="Sljedeći period" disabled="{{noNext}}" onClick="{{next}}">&rarr;</button>
+</div>
+<div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+<div><label class="lab" for="p-from">Od</label><select id="p-from" class="in" value="{{fromVal}}" onChange="{{onFrom}}"><option value="0">Januar 2026</option><option value="1">Februar 2026</option><option value="2">Mart 2026</option><option value="3">April 2026</option><option value="4">Maj 2026</option><option value="5">Juni 2026</option><option value="6">Juli 2026</option><option value="7">August 2026</option><option value="8">Septembar 2026</option><option value="9">Oktobar 2026</option></select></div>
+<div><label class="lab" for="p-to">Do</label><select id="p-to" class="in" value="{{toVal}}" onChange="{{onTo}}"><option value="0">Januar 2026</option><option value="1">Februar 2026</option><option value="2">Mart 2026</option><option value="3">April 2026</option><option value="4">Maj 2026</option><option value="5">Juni 2026</option><option value="6">Juli 2026</option><option value="7">August 2026</option><option value="8">Septembar 2026</option><option value="9">Oktobar 2026</option></select></div>
+</div>
+</div>
+</section>
+
+<section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px">
+<div class="kpi"><div class="l">Ulaz (naplata klijentima)</div><div class="v num">{{k.inc}} €</div><div class="d">{{k.hours}} sati × {{k.price}} €/h</div></div>
+<div class="kpi"><div class="l">Izlaz (svi troškovi)</div><div class="v num">{{k.cost}} €</div><div class="d">radnici, kooperanti, troškovi</div></div>
+<div class="kpi" style="background:#0F5C4D;border-color:#0F5C4D;color:#fff"><div class="l" style="color:#fff;opacity:.85">Dobit u periodu</div><div class="v num">{{k.profit}} €</div><div class="d" style="color:#fff;opacity:.85">{{k.delta}}</div></div>
+<div class="kpi"><div class="l">Marža</div><div class="v num">{{k.margin}}</div><div class="d">dobit u odnosu na ulaz</div></div>
+<div class="kpi"><div class="l">Dobit po satu</div><div class="v num">{{k.perHour}} €</div><div class="d">prosjek za period</div></div>
+</section>
+
+<section class="card">
+<h2>Od odrađenih sati do dobiti</h2>
+<div class="sub">Prvo se odrade sati i naplate klijentu, a iz toga se plaćaju radnici, kooperanti i ostali troškovi. Ono što preostane je dobit.</div>
+<div style="display:flex;flex-direction:column;gap:10px">
+<sc-for list="{{wf}}" as="w" hint-placeholder-count="7">
+<div style="display:grid;grid-template-columns:minmax(120px,170px) minmax(0,1fr) 110px;gap:12px;align-items:center;font-size:14px">
+<span style="font-weight:{{w.weight}}">{{w.label}}</span>
+<div style="position:relative;height:20px;background:#EEF2EF;border-radius:4px"><div style="position:absolute;top:0;bottom:0;left:{{w.left}}%;width:{{w.width}}%;background:{{w.color}};border-radius:4px"></div></div>
+<span class="num" style="text-align:right;font-weight:{{w.weight}}">{{w.value}}</span>
+</div>
+</sc-for>
+</div>
+</section>
+
+<section class="card">
+<h2>Ulaz i izlaz po mjesecima</h2>
+<div class="sub">Zeleno je ulaz, crveno izlaz, broj ispod je dobit u hiljadama €. Označeni mjeseci su izabrani period. Blijedi stupac je procjena za novembar. Klik bira mjesec.</div>
+<div style="display:flex;gap:2px;overflow-x:auto;padding-bottom:4px">
+<sc-for list="{{months}}" as="m" hint-placeholder-count="11">
+<button class="col {{m.cls}}" onClick="{{m.pick}}">
+<div class="bars"><div class="b in {{m.f}}" style="height:{{m.hIn}}px"></div><div class="b out {{m.f}}" style="height:{{m.hOut}}px"></div></div>
+<div class="ml">{{m.label}}</div>
+<div class="mp num {{m.pcls}}">{{m.profit}}<span class="sr">, dobit {{m.full}} €</span></div>
+</button>
+</sc-for>
+</div>
+</section>
+
+<section class="card" id="cash">
+<h2>Tok novca u narednim danima</h2>
+<div class="sub">Redoslijed očekivanih uplata i isplata od danas, 12.10. Procjene su označene.</div>
+<div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+<div><label class="lab" for="bal">Koliko imaš na računu danas (€)</label><input id="bal" class="in num" style="width:180px;text-align:right" value="{{bal}}" onChange="{{onBal}}"></div>
+</div>
+<div class="warn {{cash.cls}}">{{cash.text}}</div>
+<div style="overflow-x:auto">
+<table class="t">
+<thead><tr><th>Datum</th><th>Šta</th><th>Vrsta</th><th class="r">Iznos</th><th class="r">Stanje poslije</th></tr></thead>
+<tbody>
+<sc-for list="{{events}}" as="e" hint-placeholder-count="8">
+<tr>
+<td class="num">{{e.date}}</td><td>{{e.what}}</td>
+<td><span class="chip {{e.cls}}">{{e.kind}}</span></td>
+<td class="num r {{e.aCls}}">{{e.amount}}</td>
+<td class="num r {{e.bCls}}" style="font-weight:500">{{e.balance}}</td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="card">
+<h2>Procjena za novembar</h2>
+<div class="sub">Pretpostavka: cijena i trošak po satu kao u zadnja tri mjeseca; kancelarija i fiksni troškovi ostaju isti. Promijeni sate i vidi šta bi bilo.</div>
+<div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+<div><label class="lab" for="fh">Sati u novembru</label><input id="fh" class="in num" style="width:140px;text-align:right" value="{{fh}}" onChange="{{onFh}}"></div>
+<div class="sub" style="padding-bottom:10px">Prosjek zadnja tri mjeseca je {{fc.avg}} sati.</div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px">
+<div class="kpi"><div class="l">Očekivani ulaz</div><div class="v num">{{fc.inc}} €</div><div class="d">{{fc.price}} €/h × sati</div></div>
+<div class="kpi"><div class="l">Očekivani izlaz</div><div class="v num">{{fc.cost}} €</div><div class="d">{{fc.costPerH}} €/h + fiksno</div></div>
+<div class="kpi" style="background:#E0EFE8"><div class="l">Očekivana dobit</div><div class="v num {{fc.cls}}">{{fc.profit}} €</div><div class="d">{{fc.vs}}</div></div>
+</div>
+<div class="sub">Predviđeni troškovi: radnici {{fc.rad}} €, kooperanti {{fc.coop}} €, troškovi gradilišta {{fc.oth}} €, kancelarija {{fc.off}} €, fiksni {{fc.fix}} €.</div>
+</section>
+
+<section class="card">
+<h2>Gdje ide novac</h2>
+<div class="sub">Troškovi po vrstama u izabranom periodu i koliko čine od ukupnog izlaza.</div>
+<div style="display:flex;flex-direction:column;gap:10px">
+<sc-for list="{{cats}}" as="c" hint-placeholder-count="5">
+<div style="display:grid;grid-template-columns:minmax(120px,170px) minmax(0,1fr) 150px;gap:12px;align-items:center;font-size:14px">
+<span>{{c.label}}</span>
+<div style="height:14px;background:#EEF2EF;border-radius:4px"><div style="height:14px;border-radius:4px;background:#B4452F;width:{{c.w}}%"></div></div>
+<span class="num" style="text-align:right">{{c.value}} € · {{c.share}}</span>
+</div>
+</sc-for>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:6px">
+<div class="warn good"><b>Najbolji mjesec:</b> {{st.best}}</div>
+<div class="warn"><b>Najslabiji mjesec:</b> {{st.worst}}</div>
+<div class="warn"><b>Prosječna mjesečna dobit:</b> {{st.avg}}</div>
+</div>
+</section>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":2400}}'>
+class Component extends DCLogic {
+renderVals() {
+const M = [
+{ s: 'Jan', n: 'Januar', hours: 2800, inc: 44800, rad: 27800, coop: 2900, off: 2400, oth: 5400, fix: 2650 },
+{ s: 'Feb', n: 'Februar', hours: 2900, inc: 46400, rad: 28600, coop: 3000, off: 2400, oth: 5500, fix: 2650 },
+{ s: 'Mar', n: 'Mart', hours: 3100, inc: 49600, rad: 30400, coop: 3400, off: 2400, oth: 6100, fix: 2650 },
+{ s: 'Apr', n: 'April', hours: 3000, inc: 48000, rad: 29600, coop: 3300, off: 2400, oth: 5900, fix: 2650 },
+{ s: 'Maj', n: 'Maj', hours: 3200, inc: 51200, rad: 31500, coop: 3600, off: 2400, oth: 6300, fix: 2650 },
+{ s: 'Jun', n: 'Juni', hours: 3250, inc: 52000, rad: 31900, coop: 3700, off: 2400, oth: 6500, fix: 2650 },
+{ s: 'Jul', n: 'Juli', hours: 2700, inc: 43200, rad: 26900, coop: 2700, off: 2400, oth: 5600, fix: 2650 },
+{ s: 'Avg', n: 'August', hours: 2600, inc: 41600, rad: 26000, coop: 2500, off: 2400, oth: 5300, fix: 2650 },
+{ s: 'Sep', n: 'Septembar', hours: 3300, inc: 52800, rad: 32400, coop: 3700, off: 2400, oth: 6600, fix: 2650 },
+{ s: 'Okt', n: 'Oktobar', hours: 3340, inc: 54100, rad: 33220 + 0, coop: 3840, off: 2400, oth: 6860, fix: 2650 }
+];
+M.forEach((m) => { m.cost = m.rad + m.coop + m.off + m.oth + m.fix; m.profit = m.inc - m.cost; });
+const st = Object.assign({ from: 9, to: 9, bal: '10000', fh: '' }, this.state || {});
+const set = (p) => this.setState(p);
+const fmt = (n) => (n < 0 ? '−' : '') + Math.abs(Math.round(n)).toLocaleString('de-DE');
+const fmtS = (n) => (n < 0 ? '−' : '+') + Math.abs(Math.round(n)).toLocaleString('de-DE');
+const toNum = (v) => { let s = String(v).trim().replace(/\s/g, ''); if (s.indexOf(',') >= 0) { s = s.replace(/\./g, '').replace(',', '.'); } else if (/^\d{1,3}(\.\d{3})+$/.test(s)) { s = s.replace(/\./g, ''); } return parseFloat(s) || 0; };
+const fmtK = (n) => (n < 0 ? '−' : '') + (Math.abs(n) / 1000).toFixed(1).replace('.', ',') + 'k';
+const from = Math.min(st.from, st.to), to = Math.max(st.from, st.to), len = to - from + 1;
+const R = M.slice(from, to + 1);
+const sum = (arr, k) => arr.reduce((s, m) => s + m[k], 0);
+const inc = sum(R, 'inc'), cost = sum(R, 'cost'), hours = sum(R, 'hours'), profit = inc - cost;
+const prevStart = from - len;
+let delta = 'nema ranijih podataka za poređenje';
+if (prevStart >= 0) {
+const pp = sum(M.slice(prevStart, from), 'profit');
+const pct = pp !== 0 ? Math.round((profit - pp) / Math.abs(pp) * 100) : 0;
+delta = (pct >= 0 ? '+' : '−') + Math.abs(pct) + '% u odnosu na prethodni period';
+}
+const periodLabel = len === 1 ? M[from].n + ' 2026' : M[from].n + ' do ' + M[to].n + ' 2026';
+const presetsDef = [['Ovaj mjesec', 9, 9], ['Prošli mjesec', 8, 8], ['Zadnja 3 mjeseca', 7, 9], ['Prošli kvartal', 6, 8], ['Godina do danas', 0, 9]];
+const shift = (d) => () => {
+const nf = from + d * len, nt = to + d * len;
+if (nf < 0 || nt > 9) return;
+set({ from: nf, to: nt });
+};
+// waterfall
+const rad = sum(R, 'rad'), coop = sum(R, 'coop'), off = sum(R, 'off'), oth = sum(R, 'oth'), fix = sum(R, 'fix');
+let remaining = inc;
+const wf = [{ label: 'Ulaz: naplata klijentima', left: 0, width: 100, color: '#0F5C4D', value: fmt(inc), weight: 600 }];
+[['Radnici', rad], ['Kooperanti', coop], ['Kancelarija', off], ['Troškovi gradilišta', oth], ['Fiksni troškovi', fix]].forEach(([l, v]) => {
+const w = inc > 0 ? v / inc * 100 : 0;
+const left = inc > 0 ? Math.max(0, (remaining - v) / inc * 100) : 0;
+wf.push({ label: l, left: Math.round(left * 10) / 10, width: Math.round(w * 10) / 10, color: '#B4452F', value: '−' + fmt(v), weight: 400 });
+remaining -= v;
+});
+wf.push({ label: 'Dobit', left: 0, width: inc > 0 ? Math.max(0, Math.round(profit / inc * 1000) / 10) : 0, color: profit >= 0 ? '#16201C' : '#B4452F', value: fmt(profit), weight: 600 });
+// forecast
+const L3 = M.slice(7, 10);
+const h3 = sum(L3, 'hours');
+const avgH = Math.round(h3 / 3);
+const price = sum(L3, 'inc') / h3, radH = sum(L3, 'rad') / h3, coopH = sum(L3, 'coop') / h3, othH = sum(L3, 'oth') / h3;
+const fhNum = st.fh === '' ? avgH : Math.max(0, parseInt(String(st.fh).replace(/\./g, ''), 10) || 0);
+const f = { inc: fhNum * price, rad: fhNum * radH, coop: fhNum * coopH, oth: fhNum * othH, off: 2400, fix: 2650 };
+f.cost = f.rad + f.coop + f.oth + f.off + f.fix;
+f.profit = f.inc - f.cost;
+const octP = M[9].profit;
+const fcVsPct = octP !== 0 ? Math.round((f.profit - octP) / Math.abs(octP) * 100) : 0;
+// chart
+const maxV = Math.max(...M.map((m) => Math.max(m.inc, m.cost)), f.inc, f.cost);
+const px = (v) => Math.max(2, Math.round(v / maxV * 160));
+const months = M.map((m, i) => ({ label: m.s, cls: (i >= from && i <= to) ? 'sel' : '', f: '', hIn: px(m.inc), hOut: px(m.cost), profit: fmtK(m.profit), pcls: m.profit < 0 ? 'neg' : 'pos', full: fmt(m.profit), pick: () => set({ from: i, to: i }) }));
+months.push({ label: 'Nov*', cls: '', f: 'f', hIn: px(f.inc), hOut: px(f.cost), profit: fmtK(f.profit), pcls: f.profit < 0 ? 'neg' : 'pos', full: fmt(f.profit) + ' (procjena)', pick: () => {} });
+// cash flow
+const bal0 = toNum(st.bal);
+const ev = [
+{ date: '15.10.', what: 'Faktura 2026-041, Klijent A', kind: 'Ulaz', cls: 'k-in', n: 18400 },
+{ date: '20.10.', what: 'Faktura 2026-042, Klijent C (kasni, procjena)', kind: 'Ulaz, procjena', cls: 'k-in', n: 12500 },
+{ date: '22.10.', what: 'Alat i uniforme, Dobavljač 2', kind: 'Izlaz', cls: 'k-out', n: -640 },
+{ date: '01.11.', what: 'Fiksni troškovi (SLO, DE, HR)', kind: 'Izlaz', cls: 'k-out', n: -2650 },
+{ date: '05.11.', what: 'Akontacija radnicima (procjena)', kind: 'Izlaz, procjena', cls: 'k-out', n: -3200 },
+{ date: '10.11.', what: 'Plata radnika za oktobar', kind: 'Izlaz', cls: 'k-out', n: -36260 },
+{ date: '15.11.', what: 'Naplata za oktobar, još neizdate fakture (procjena)', kind: 'Ulaz, procjena', cls: 'k-in', n: 23200 }
+];
+let run = bal0, minB = bal0, minD = 'danas';
+const events = ev.map((e) => {
+run += e.n;
+if (run < minB) { minB = run; minD = e.date; }
+return { date: e.date, what: e.what, kind: e.kind, cls: e.cls, amount: fmtS(e.n) + ' €', aCls: e.n < 0 ? 'neg' : 'pos', balance: fmt(run) + ' €', bCls: run < 0 ? 'neg' : '' };
+});
+const cash = minB < 0
+? { cls: 'bad', text: 'Pažnja: stanje pada ispod nule ' + minD + ' (najniža tačka ' + fmt(minB) + ' €). Platu radnika isplaćuješ prije nego što stigne naplata za oktobar. Treba ti rezerva od najmanje ' + fmt(-minB) + ' € ili ranija naplata.' }
+: { cls: 'good', text: 'Stanje ostaje iznad nule. Najniža tačka je ' + fmt(minB) + ' € (' + minD + ').' };
+// categories
+const totalCost = cost || 1;
+const catDefs = [['Radnici', rad], ['Kooperanti', coop], ['Kancelarija', off], ['Troškovi gradilišta', oth], ['Fiksni troškovi', fix]];
+const maxC = Math.max(1, ...catDefs.map((c) => c[1]));
+const cats = catDefs.map(([l, v]) => ({ label: l, value: fmt(v), share: Math.round(v / totalCost * 100) + '%', w: Math.round(v / maxC * 100) }));
+const sorted = R.slice().sort((a, b) => b.profit - a.profit);
+const stats = len === 1
+? { best: 'izaberi period od više mjeseci', worst: 'izaberi period od više mjeseci', avg: fmt(profit) + ' €' }
+: { best: sorted[0].n + ', dobit ' + fmt(sorted[0].profit) + ' €', worst: sorted[sorted.length - 1].n + ', dobit ' + fmt(sorted[sorted.length - 1].profit) + ' €', avg: fmt(profit / len) + ' € mjesečno' };
+return {
+periodLabel,
+fromVal: String(from), toVal: String(to),
+onFrom: (e) => set({ from: parseInt(e.target.value, 10) }),
+onTo: (e) => set({ to: parseInt(e.target.value, 10) }),
+prev: shift(-1), next: shift(1), noPrev: from - len < 0, noNext: to + len > 9,
+presets: presetsDef.map(([l, a, b]) => ({ label: l, cls: (from === a && to === b) ? 'on' : '', pick: () => set({ from: a, to: b }) })),
+k: { inc: fmt(inc), cost: fmt(cost), profit: fmt(profit), delta, hours: fmt(hours), price: (hours ? inc / hours : 0).toFixed(2).replace('.', ','), margin: (inc ? (profit / inc * 100).toFixed(1).replace('.', ',') : '0') + ' %', perHour: (hours ? profit / hours : 0).toFixed(2).replace('.', ',') },
+wf, months,
+bal: st.bal, onBal: (e) => set({ bal: e.target.value }),
+events, cash,
+fh: st.fh === '' ? String(avgH) : st.fh, onFh: (e) => set({ fh: e.target.value }),
+fc: { avg: fmt(avgH), inc: fmt(f.inc), cost: fmt(f.cost), profit: fmt(f.profit), cls: f.profit < 0 ? 'neg' : 'pos', price: price.toFixed(2).replace('.', ','), costPerH: (radH + coopH + othH).toFixed(2).replace('.', ','), rad: fmt(f.rad), coop: fmt(f.coop), oth: fmt(f.oth), off: fmt(f.off), fix: fmt(f.fix), vs: (fcVsPct >= 0 ? '+' : '−') + Math.abs(fcVsPct) + '% u odnosu na oktobar' },
+cats, st: stats
+};
+}
+}
+</script>
+</body>
+</html>

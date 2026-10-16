@@ -36,6 +36,7 @@ import { PageHeader } from '../../components/PageHeader';
 import { UploadDocumentDialog } from '../../components/UploadDocumentDialog';
 import { useDeleteAttachment, useExpiringDocumentsQuery } from '../../features/attachments/useAttachments';
 import { usePageDrop } from '../../features/files/usePageDrop';
+import { useOpenOnParam } from '../../hooks/useOpenOnParam';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useHighlightTarget } from '../../hooks/useHighlightTarget';
 import { useEnumLabel } from '../../i18n/enumLabels';
@@ -80,6 +81,12 @@ export function ExpiringDocumentsPage() {
   const [previewing, setPreviewing] = useState<Attachment | null>(null);
   const [editing, setEditing] = useState<Attachment | null>(null);
   const remove = useDeleteWithConfirm<Attachment>(useDeleteAttachment());
+
+  // The palette's "upload a document" lands here with ?upload=1.
+  useOpenOnParam('upload', () => {
+    setDropped([]);
+    setUploading(true);
+  });
 
   // A file dropped anywhere on the page opens the upload with it already in.
   const pageDrop = usePageDrop({
@@ -194,6 +201,7 @@ export function ExpiringDocumentsPage() {
           <HintLine>{t('files.hint.search.text')}</HintLine>
           <HintLine>{t('files.hint.search.tag')}</HintLine>
           <HintLine>{t('files.hint.search.scope')}</HintLine>
+          <HintLine>{t('files.hint.search.drop')}</HintLine>
         </FirstUseHint>
       </Box>
 

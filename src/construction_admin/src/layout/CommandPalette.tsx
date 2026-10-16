@@ -1,4 +1,5 @@
 import {
+  HelpOutlineOutlined,
   HistoryOutlined,
   SearchOutlined,
   StarOutlined,
@@ -25,8 +26,11 @@ import {
   useGlobalSearch,
   type GlobalSearchResult,
 } from '../features/globalSearch/useGlobalSearch';
-import { useT } from '../i18n/useI18n';
+import { helpLocale, helpMatches, helpGroups, helpTopicsFor } from '../features/help/helpTopics';
+import { useI18n } from '../i18n/useI18n';
+import { paths } from '../routes/paths';
 import type { NavItem } from './navConfig';
+import { pageKeywords } from './pageKeywords';
 import { buildPaletteActions } from './paletteActions';
 import type { useFavorites } from './useFavorites';
 import { storageScope } from '../hooks/userScopedStorage';
@@ -45,6 +49,7 @@ interface CommandPaletteProps {
 type Row =
   | { kind: 'page'; key: string; label: string; sublabel?: string; icon: React.ReactNode; path: string; badge?: number }
   | { kind: 'action'; key: string; label: string; sublabel?: string; icon: React.ReactNode; path: string }
+  | { kind: 'help'; key: string; label: string; sublabel?: string; icon: React.ReactNode; path: string }
   | { kind: 'entity'; key: string; label: string; sublabel?: string; icon: React.ReactNode; path: string }
   | { kind: 'recent'; key: string; label: string; sublabel?: string; icon: React.ReactNode; path: string };
 
@@ -56,7 +61,7 @@ export function CommandPalette({
   user,
   badgeCounts,
 }: CommandPaletteProps) {
-  const t = useT();
+  const { t, locale } = useI18n();
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [highlightedIndex, setHighlightedIndex] = useState(0);
@@ -68,14 +73,19 @@ export function CommandPalette({
   const pageResults = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return items;
-    return items.filter((item) => item.label.toLowerCase().includes(q));
+    return items.filter(
+      (item) => item.label.toLowerCase().includes(q) || pageKeywords(item.path).toLowerCase().includes(q),
+    );
   }, [items, query]);
 
   const actionRows: Row[] = useMemo(() => {
     const q = query.trim().toLowerCase();
 
     return buildPaletteActions(user, t)
-      .filter((action) => !q || action.label.toLowerCase().includes(q))
+      .filter(
+        (action) =>
+          !q || action.label.toLowerCase().includes(q) || (action.keywords ?? '').toLowerCase().includes(q),
+      )
       .map((action) => ({
         kind: 'action' as const,
         key: `action:${action.key}`,
@@ -84,6 +94,26 @@ export function CommandPalette({
         path: action.path,
       }));
   }, [user, t, query]);
+
+  const helpRows: Row[] = useMemo(() => {
+    const q = query.trim();
+
+    if (q.length < 2) return [];
+
+    const lang = helpLocale(locale);
+
+    return helpTopicsFor(user)
+      .filter((topic) => helpMatches(topic.content[lang], q))
+      .slice(0, 5)
+      .map((topic) => ({
+        kind: 'help' as const,
+        key: `help:${topic.id}`,
+        label: topic.content[lang].title,
+        sublabel: `${t('search.help')} · ${helpGroups.find((g) => g.id === topic.group)?.[lang] ?? ''}`,
+        icon: <HelpOutlineOutlined fontSize="small" />,
+        path: paths.helpTopic(topic.id),
+      }));
+  }, [query, locale, user, t]);
 
   const rows: Row[] = useMemo(() => {
     const isEmptyQuery = query.trim() === '';
@@ -109,8 +139,8 @@ export function CommandPalette({
     );
     return isEmptyQuery
       ? [...recent, ...actionRows, ...pageRows]
-      : [...pageRows, ...actionRows, ...entityRows];
-  }, [pageResults, groups, recent, actionRows, query, badgeCounts]);
+      : [...pageRows, ...actionRows, ...helpRows, ...entityRows];
+  }, [pageResults, groups, recent, actionRows, helpRows, query, badgeCounts]);
 
   useEffect(() => {
     if (open) {

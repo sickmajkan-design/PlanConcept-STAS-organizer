@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Obračun mjeseca</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#16201C;background:#F4F6F4}
+a{color:inherit;text-decoration:none}
+.nav a,.nav span{display:block;padding:10px 14px;border-radius:8px;font-size:14px;color:#3B4A44}
+.nav a:hover{background:#E6ECE8}
+.nav .on{background:#0F5C4D;color:#fff;font-weight:500}
+.brand{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;padding:0 14px}
+.logo{width:26px;height:26px;border-radius:7px;background:#0F5C4D;display:inline-block}
+.newbtn{display:block;margin:0 4px;padding:11px 14px;border-radius:10px;background:#0F5C4D;color:#fff;font-weight:500;font-size:14px;text-align:center}
+.newbtn:hover{background:#0B4A3E}
+.nav .grp{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#5B6B64;padding:14px 14px 4px}
+.nav a{display:flex;align-items:center;gap:10px}
+.nav svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+*:focus-visible{outline:2px solid #0F5C4D;outline-offset:2px}
+button{transition:background .12s,border-color .12s}
+th{position:relative}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (pointer:coarse){.btn.sm,.fb{min-height:44px}}
+@media (max-width:720px){aside{flex:1 1 100% !important;min-width:0 !important;padding:12px 16px !important;border-right:none !important;border-bottom:1px solid #D5DDD8}main{padding:16px !important}.nav{flex-direction:row !important;overflow-x:auto;gap:4px !important}.nav .grp{display:none}.nav a{white-space:nowrap}.newbtn{margin:0}}
+.nav .off{color:#7C8A84}
+.num{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+.chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:500;white-space:nowrap}
+.s-ok{background:#DCEFE8;color:#0B4A3E}
+.s-open{background:#FBEFCF;color:#7A5200}
+.s-late{background:#F6D5CD;color:#8A2F1B}
+.s-src{background:#E3E9F6;color:#27428A}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th{text-align:right;font-weight:500;font-size:12px;color:#5B6B64;padding:10px 12px;border-bottom:1px solid #D5DDD8;white-space:nowrap}
+table.t th:first-child,table.t td:first-child{text-align:left}
+table.t td{padding:9px 12px;border-bottom:1px solid #E6ECE8;text-align:right;white-space:nowrap}
+table.t tr.tot td{font-weight:600;background:#F4F8F5;border-bottom:none}
+.pos{color:#0B4A3E}.neg{color:#8A2F1B}
+.btn{font:inherit;font-size:14px;font-weight:500;border-radius:8px;padding:9px 16px;cursor:pointer;border:1px solid #B9C5BF;background:#fff;color:#16201C;min-height:44px}
+.btn.p{background:#0F5C4D;border-color:#0F5C4D;color:#fff}
+.btn:disabled{background:#E6ECE8;border-color:#D5DDD8;color:#8A9690;cursor:not-allowed}
+.btn.sm{min-height:36px;padding:4px 12px;font-size:13px}
+.in{font:inherit;font-size:14px;border:1px solid #B9C5BF;border-radius:8px;padding:6px 8px;background:#fff;color:#16201C;min-height:36px;box-sizing:border-box;width:96px;text-align:right}
+.in.sel{width:auto;text-align:left}
+.in:disabled{background:#F0F3F1;color:#5B6B64}
+.lock{background:#EEF1FA;border:1px solid #BCC8EA;color:#27428A;border-radius:12px;padding:14px 18px;font-size:14px}
+details.how{background:#fff;border:1px solid #D5DDD8;border-left:4px solid #0F5C4D;border-radius:12px;padding:14px 18px}
+details.how summary{cursor:pointer;font-size:15px;font-weight:600}
+details.how ul{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.5;color:#2C3A34}
+.note{font-size:13px;line-height:1.5;padding:10px 12px;background:#F4F8F5;border-radius:8px;color:#2C3A34}
+</style>
+</helmet>
+<div style="display:flex;flex-wrap:wrap;min-height:1700px;box-sizing:border-box">
+
+<aside style="flex:0 0 240px;background:#fff;border-right:1px solid #D5DDD8;padding:24px 16px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px;min-width:240px">
+<div class="brand"><span class="logo"></span>Evidencija</div>
+<a class="newbtn" href="Main.dc.html">+ Novi zapis</a>
+<nav class="nav" aria-label="Glavni meni" style="display:flex;flex-direction:column;gap:2px">
+<div class="grp">Pregled</div>
+<a href="Pocetak.dc.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></svg>Kako radi</a>
+<a href="Pregled.dc.html"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Pregled novca i dobiti</a>
+<div class="grp">Svaki dan</div>
+<a href="Main.dc.html"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11"/></svg>Knjiga zapisa</a>
+<a href="Potrazivanja.dc.html"><svg viewBox="0 0 24 24"><path d="M4 8h14l-3-3M20 16H6l3 3"/></svg>Ko nam duguje, kome dugujemo</a>
+<a href="Isplate.dc.html"><svg viewBox="0 0 24 24"><path d="M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l2-3h12M16 14h2"/></svg>Isplate radnicima</a>
+<div class="grp">Kraj mjeseca</div>
+<a class="on" href="Mjesec.dc.html"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M12 12h2M8 16h2M12 16h2"/></svg>Obračun mjeseca</a>
+<div class="grp">Podešavanja</div>
+<a href="Ponavljajuci.dc.html"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5l2 2M20 4v5h-5M20 12a8 8 0 0 1-14 5l-2-2M4 20v-5h5"/></svg>Ponavljajući troškovi</a>
+<a href="Kategorije.dc.html"><svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8zM7.5 8.5h.01"/></svg>Kategorije</a>
+<a href="Uvoz.dc.html"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></svg>Uvoz iz Excela</a>
+</nav>
+<div style="margin-top:auto;font-size:12px;color:#5B6B64;padding:0 14px;line-height:1.5">Probna verzija: izmišljeni podaci, ništa se ne snima.</div>
+</aside>
+
+<main style="flex:999 1 560px;min-width:0;padding:28px 32px;box-sizing:border-box;display:flex;flex-direction:column;gap:24px">
+
+<header style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between">
+<div style="display:flex;flex-direction:column;gap:6px">
+<h1 style="margin:0;font-size:28px;font-weight:600">Obračun mjeseca</h1>
+<div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#3B4A44"><strong style="font-weight:600;color:#16201C">Oktobar 2026</strong><span class="chip {{statusCls}}">{{statusLabel}}</span></div>
+</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+<button class="btn" onClick="{{reset}}">Vrati primjer</button>
+<button class="btn">Izvoz u Excel</button>
+</div>
+</header>
+
+<sc-if value="{{locked}}" hint-placeholder-val="{{false}}"><div class="lock"><b>Oktobar je zaključan.</b> Brojke se ne mogu mijenjati. Ako treba ispravka, otključaš mjesec, a program upiše ko je i kada to uradio.</div></sc-if>
+
+<details class="how" open>
+<summary>Kako ovo radi</summary>
+<ul>
+<li><b>Ovo je tvoja Excel tabela, ali se računa sama.</b> Svako gradilište je jedan red, a zbir uvijek obuhvata sve redove.</li>
+<li><b>Način naplate</b> se bira za svako gradilište. <b>Satnica</b>: naplata = sati × cijena za klijenta. <b>Paušal</b> i <b>Mjerenje</b>: naplata je iznos izdatih faktura koji upišeš ručno, a sati služe da se vidi da li se posao isplati. <b>Bez naplate</b>: npr. kancelarija.</li>
+<li>Promijeni način naplate za Zgradu D ili Halu B pa gledaj kako se mijenjaju naplata, marža i zarada firme. Ispod tabele program pokaže koliko bi bilo po satnici u odnosu na paušal.</li>
+<li><b>Sati</b> se upisuju iz potpisanih satnica (jedino to je mjerodavno). Sate za Halu B možeš mijenjati.</li>
+<li><b>Zarada radnika</b> = sati × cijena radnika. <b>Marža</b> = naplata − zarada radnika. <b>Rezultat</b> = marža − troškovi gradilišta. <b>Zarada firme</b> = rezultat svih gradilišta − fiksni troškovi.</li>
+<li><b>Zaključavanje</b> je moguće tek kad su sve četiri kućice označene, a to uključuje i da su sve stavke "Za provjeru" riješene.</li>
+</ul>
+</details>
+
+<div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
+
+<div style="flex:999 1 620px;min-width:0;display:flex;flex-direction:column;gap:24px">
+
+<section style="background:#fff;border:1px solid #D5DDD8;border-radius:12px">
+<div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid #D5DDD8">
+<div style="font-size:15px;font-weight:600">Po gradilištima (u €)</div>
+<div style="font-size:13px;color:#5B6B64">Mijenjaj način naplate, cijenu ili iznos fakture.</div>
+</div>
+<div style="overflow-x:auto">
+<table class="t">
+<thead><tr><th>Gradilište</th><th>Način naplate</th><th>Sati</th><th>Cijena €/h ili iznos faktura</th><th>Naplata</th><th>Zarada radnika</th><th>Marža</th><th>Troškovi</th><th>Rezultat</th></tr></thead>
+<tbody>
+<sc-for list="{{sites}}" as="s" hint-placeholder-count="5">
+<tr>
+<td style="font-family:inherit">{{s.name}}</td>
+<td style="text-align:left"><select class="in sel" aria-label="Način naplate" value="{{s.mode}}" disabled="{{s.disabled}}" onChange="{{s.onMode}}"><option>Satnica</option><option>Paušal</option><option>Mjerenje</option><option>Bez naplate</option></select></td>
+<td class="num"><sc-if value="{{s.editHours}}" hint-placeholder-val="{{false}}"><input class="in num" aria-label="Sati za Halu B" value="{{s.hoursVal}}" disabled="{{s.disabled}}" onChange="{{s.onHours}}"></sc-if><sc-if value="{{s.fixedHours}}" hint-placeholder-val="{{true}}">{{s.hours}}</sc-if></td>
+<td class="num"><sc-if value="{{s.hasInput}}" hint-placeholder-val="{{true}}"><input class="in num" aria-label="Cijena ili iznos" value="{{s.inVal}}" disabled="{{s.disabled}}" onChange="{{s.onIn}}"> <span style="font-size:12px;color:#5B6B64">{{s.unit}}</span></sc-if><sc-if value="{{s.noInput}}" hint-placeholder-val="{{false}}"><span style="color:#8A9690">—</span></sc-if></td>
+<td class="num">{{s.bill}}</td><td class="num">{{s.wage}}</td>
+<td class="num {{s.mCls}}">{{s.margin}}</td><td class="num">{{s.cost}}</td>
+<td class="num {{s.rCls}}" style="font-weight:500">{{s.result}}</td>
+</tr>
+</sc-for>
+<tr class="tot"><td>Ukupno</td><td></td><td class="num">{{tot.hours}}</td><td></td><td class="num">{{tot.bill}}</td><td class="num">{{tot.wage}}</td><td class="num">{{tot.margin}}</td><td class="num">{{tot.cost}}</td><td class="num">{{tot.result}}</td></tr>
+</tbody>
+</table>
+</div>
+<div style="padding:14px 18px;display:flex;flex-direction:column;gap:8px">
+<sc-for list="{{compare}}" as="c" hint-placeholder-count="1">
+<div class="note">{{c.text}}</div>
+</sc-for>
+<sc-if value="{{changed}}" hint-placeholder-val="{{false}}"><div class="note" style="background:#FBE3C5;color:#7A3F00">Sati za Halu B su izmijenjeni u odnosu na potpisane satnice (1.320). U pravoj verziji bi ovo ušlo u "Za provjeru".</div></sc-if>
+</div>
+</section>
+
+<section style="background:#fff;border:1px solid #D5DDD8;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px">
+<div style="font-size:15px;font-weight:600">Od rezultata do zarade firme</div>
+<div style="display:flex;justify-content:space-between;font-size:15px"><span>Rezultat svih gradilišta</span><span class="num">{{tot.result}} €</span></div>
+<div style="display:flex;justify-content:space-between;font-size:15px;color:#3B4A44"><span>Fiksni trošak, Slovenija</span><span class="num neg">−1.100 €</span></div>
+<div style="display:flex;justify-content:space-between;font-size:15px;color:#3B4A44"><span>Fiksni trošak, Njemačka</span><span class="num neg">−950 €</span></div>
+<div style="display:flex;justify-content:space-between;font-size:15px;color:#3B4A44"><span>Fiksni trošak, Hrvatska</span><span class="num neg">−600 €</span></div>
+<div style="display:flex;justify-content:space-between;font-size:20px;font-weight:600;border-top:1px solid #D5DDD8;padding-top:12px"><span>Zarada firme</span><span class="num {{firmCls}}">{{firm}} €</span></div>
+<div style="font-size:13px;color:#5B6B64">Zbir uvijek obuhvata sve redove; novo gradilište ulazi bez ikakve izmjene formule.</div>
+</section>
+
+</div>
+
+<div style="flex:1 1 300px;min-width:280px;display:flex;flex-direction:column;gap:24px">
+
+<section style="background:#fff;border:1px solid #D5DDD8;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px">
+<div style="font-size:15px;font-weight:600">Za provjeru <span class="chip {{issuesCls}}">{{issuesOpen}}</span></div>
+<sc-for list="{{issues}}" as="i" hint-placeholder-count="3">
+<div style="font-size:14px;line-height:1.45;padding:10px 12px;background:#FBF3E0;border-radius:8px;display:flex;flex-direction:column;gap:8px">
+<span>{{i.text}}</span>
+<sc-if value="{{i.open}}" hint-placeholder-val="{{true}}"><button class="btn sm" style="align-self:flex-start" disabled="{{locked}}" onClick="{{i.resolve}}">Riješeno</button></sc-if>
+<sc-if value="{{i.done}}" hint-placeholder-val="{{false}}"><span class="chip s-ok" style="align-self:flex-start">Riješeno</span></sc-if>
+</div>
+</sc-for>
+<div style="font-size:12px;color:#5B6B64;line-height:1.5">U pravoj verziji lista se puni sama, a stavka nestaje kad se uzrok ispravi.</div>
+</section>
+
+<section style="background:#fff;border:1px solid #D5DDD8;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px">
+<div style="font-size:15px;font-weight:600">Zaključi mjesec</div>
+<div style="font-size:14px;display:flex;flex-direction:column;gap:8px;color:#3B4A44">
+<sc-for list="{{checks}}" as="c" hint-placeholder-count="4">
+<label style="display:flex;gap:10px;align-items:center;min-height:32px"><input type="checkbox" checked="{{c.on}}" disabled="{{c.disabled}}" onChange="{{c.toggle}}"> {{c.label}}</label>
+</sc-for>
+</div>
+<div style="font-size:13px;color:#5B6B64">{{lockInfo}}</div>
+<button class="btn p" style="width:100%" disabled="{{lockDisabled}}" onClick="{{toggleLock}}">{{lockLabel}}</button>
+<div style="font-size:12px;color:#5B6B64;line-height:1.5">Zaključan mjesec se ne mijenja; ispravka traži otključavanje i ostavlja trag ko je i kada.</div>
+</section>
+
+<section style="background:#fff;border:1px solid #D5DDD8;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:10px">
+<div style="font-size:15px;font-weight:600">Rezultat po gradilištu</div>
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="5">
+<div style="display:flex;flex-direction:column;gap:4px">
+<div style="display:flex;justify-content:space-between;font-size:13px"><span>{{b.name}}</span><span class="num">{{b.value}}</span></div>
+<div style="height:10px;background:#E6ECE8;border-radius:5px"><div style="height:10px;border-radius:5px;width:{{b.w}};background:{{b.color}}"></div></div>
+</div>
+</sc-for>
+</section>
+
+</div>
+</div>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":1700}}'>
+class Component extends DCLogic {
+renderVals() {
+const def = {
+hours: '1320', res: {}, c0: false, c1: false, c3: false, locked: false,
+mode: { hb: 'Satnica', sc: 'Satnica', zd: 'Paušal', ko: 'Satnica', ka: 'Bez naplate' },
+price: { hb: '16', sc: '16', zd: '16', ko: '16', ka: '0' },
+amount: { hb: '21120', sc: '15360', zd: '12500', ko: '5120', ka: '0' }
+};
+const st = Object.assign({}, def, this.state || {});
+const set = (patch) => this.setState(patch);
+const fmt = (n) => (n < 0 ? '−' : '') + Math.abs(Math.round(n)).toLocaleString('de-DE');
+const toNum = (v) => { let s = String(v).trim().replace(/\s/g, ''); if (s.indexOf(',') >= 0) { s = s.replace(/\./g, '').replace(',', '.'); } else if (/^\d{1,3}(\.\d{3})+$/.test(s)) { s = s.replace(/\./g, ''); } return parseFloat(s) || 0; };
+const h = Math.max(0, parseInt(String(st.hours).replace(/\./g, ''), 10) || 0);
+const base = [
+{ id: 'hb', name: 'Hala B', hours: h, wage: h * 11, cost: 2900, edit: true },
+{ id: 'sc', name: 'Skladište C', hours: 960, wage: 10560, cost: 2100 },
+{ id: 'zd', name: 'Zgrada D', hours: 740, wage: 8140, cost: 1560 },
+{ id: 'ko', name: 'Kooperanti', hours: 320, wage: 3840, cost: 0 },
+{ id: 'ka', name: 'Kancelarija', hours: 0, wage: 2400, cost: 300 }
+];
+const rows = base.map((r) => {
+const mode = st.mode[r.id];
+const price = toNum(st.price[r.id]);
+const amt = toNum(st.amount[r.id]);
+const bill = mode === 'Satnica' ? r.hours * price : (mode === 'Bez naplate' ? 0 : amt);
+return Object.assign({}, r, { mode, price, amt, bill, margin: bill - r.wage, result: bill - r.wage - r.cost });
+});
+const sum = (k) => rows.reduce((s, r) => s + r[k], 0);
+const totalResult = sum('result');
+const firmV = totalResult - 2650;
+const compare = rows.filter((r) => (r.mode === 'Paušal' || r.mode === 'Mjerenje') && r.hours > 0).map((r) => {
+const rate = r.price > 0 ? r.price : 16;
+const bySatnica = r.hours * rate;
+const diff = r.bill - bySatnica;
+return { text: r.name + ' (' + r.mode.toLowerCase() + '): naplata ' + fmt(r.bill) + ' €. Po satnici od ' + rate.toLocaleString('de-DE') + ' €/h bi bilo ' + fmt(bySatnica) + ' €, razlika ' + (diff >= 0 ? '+' : '−') + fmt(Math.abs(diff)) + ' €. Radnici na ovom gradilištu koštaju ' + fmt(r.wage) + ' €, pa je marža ' + fmt(r.margin) + ' €.' };
+});
+if (!/^[\d.]*$/.test(String(st.hours).trim())) { compare.push({ text: 'Sati za Halu B nisu ispravan broj, pa se računa 0. Upiši samo cifre, npr. 1320.' }); }
+const issueDefs = [
+{ id: 'a', text: 'Hala B: radnik ima 212 sati kroz sekcije, očekivano 176.' },
+{ id: 'b', text: 'Zgrada D: paušal bez izdate fakture za fazu 3.' },
+{ id: 'c', text: 'Faktura 2026-042 kasni 6 dana.' }
+];
+const openIssues = issueDefs.filter((i) => !st.res[i.id]).length;
+const allIssues = openIssues === 0;
+const ticks = [st.c0, st.c1, allIssues, st.c3];
+const ready = ticks.every(Boolean);
+const missing = ticks.filter((t) => !t).length;
+const maxAbs = Math.max(1, ...rows.map((r) => Math.abs(r.result)));
+return {
+locked: st.locked,
+statusLabel: st.locked ? 'Zaključan' : 'Otvoren, računa se iz knjige',
+statusCls: st.locked ? 's-src' : 's-open',
+changed: h !== 1320,
+compare,
+sites: rows.map((r) => {
+const sat = r.mode === 'Satnica';
+const none = r.mode === 'Bez naplate';
+return {
+name: r.name, mode: r.mode, disabled: st.locked,
+onMode: (e) => set({ mode: Object.assign({}, st.mode, { [r.id]: e.target.value }) }),
+editHours: !!r.edit, fixedHours: !r.edit, hoursVal: String(st.hours), hours: fmt(r.hours), onHours: (e) => set({ hours: e.target.value }),
+hasInput: !none, noInput: none,
+inVal: sat ? String(st.price[r.id]) : String(st.amount[r.id]),
+unit: sat ? '€/h' : '€',
+onIn: (e) => set(sat ? { price: Object.assign({}, st.price, { [r.id]: e.target.value }) } : { amount: Object.assign({}, st.amount, { [r.id]: e.target.value }) }),
+bill: fmt(r.bill), wage: fmt(r.wage), margin: fmt(r.margin), mCls: r.margin < 0 ? 'neg' : 'pos', cost: fmt(r.cost), result: fmt(r.result), rCls: r.result < 0 ? 'neg' : 'pos'
+};
+}),
+tot: { hours: fmt(sum('hours')), bill: fmt(sum('bill')), wage: fmt(sum('wage')), margin: fmt(sum('margin')), cost: fmt(sum('cost')), result: fmt(totalResult) },
+firm: fmt(firmV), firmCls: firmV < 0 ? 'neg' : 'pos',
+issues: issueDefs.map((i) => ({ text: i.text, open: !st.res[i.id], done: !!st.res[i.id], resolve: () => set({ res: Object.assign({}, st.res, { [i.id]: true }) }) })),
+issuesOpen: openIssues, issuesCls: openIssues === 0 ? 's-ok' : 's-late',
+checks: [
+{ label: 'Sati upisani iz potpisanih satnica', on: st.c0, disabled: st.locked, toggle: () => set({ c0: !st.c0 }) },
+{ label: 'Gorivo i smještaj uvezeni', on: st.c1, disabled: st.locked, toggle: () => set({ c1: !st.c1 }) },
+{ label: 'Sve stavke za provjeru riješene (označava se samo)', on: allIssues, disabled: true, toggle: () => {} },
+{ label: 'Izvoz poslan knjigovođi', on: st.c3, disabled: st.locked, toggle: () => set({ c3: !st.c3 }) }
+],
+lockInfo: st.locked ? 'Mjesec je zaključan.' : (ready ? 'Sve je spremno za zaključavanje.' : 'Još nije spremno: ' + missing + (missing === 1 ? ' kućica nije označena.' : ' kućice nisu označene.')),
+lockDisabled: !st.locked && !ready,
+lockLabel: st.locked ? 'Otključaj oktobar (upisuje se trag)' : 'Zaključaj oktobar',
+toggleLock: () => set({ locked: !st.locked }),
+bars: rows.slice().sort((a, b) => b.result - a.result).map((r) => ({ name: r.name, value: fmt(r.result) + ' €', w: Math.round(Math.abs(r.result) / maxAbs * 100) + '%', color: r.result < 0 ? '#B4452F' : '#0F5C4D' })),
+reset: () => set(def)
+};
+}
+}
+</script>
+</body>
+</html>

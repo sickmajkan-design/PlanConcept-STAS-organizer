@@ -1,4 +1,5 @@
 import type { User } from '../../api/types';
+import { canViewDirectory } from '../../auth/authHelpers';
 import type { MessageKey } from '../../i18n/en';
 
 /**
@@ -10,7 +11,7 @@ import type { MessageKey } from '../../i18n/en';
  * what changed recently, not a changelog: when a release is added, drop the
  * sections older than the fifth (and their `releaseNotes.*` keys in i18n).
  */
-export const RELEASE_ID = '2026-10-16.3';
+export const RELEASE_ID = '2026-10-16.4';
 
 /** The day of the release, `YYYY-MM-DD`, read from {@link RELEASE_ID}. */
 export const RELEASE_DATE = RELEASE_ID.slice(0, 10);
@@ -24,6 +25,16 @@ export interface ReleaseSection {
 }
 
 export const releaseSections: ReleaseSection[] = [
+  {
+    id: 'lang1016',
+    titleKey: 'releaseNotes.lang1016.title',
+    itemKeys: [
+      'releaseNotes.lang1016.search',
+      'releaseNotes.lang1016.guides',
+      'releaseNotes.lang1016.language',
+    ],
+    audience: (user) => canViewDirectory(user),
+  },
   {
     id: 'drop1016',
     titleKey: 'releaseNotes.drop1016.title',
@@ -53,12 +64,6 @@ export const releaseSections: ReleaseSection[] = [
       'releaseNotes.share1015.licence',
       'releaseNotes.share1015.delete',
     ],
-    audience: (user) => user.role === 'SuperAdmin' || user.role === 'Admin',
-  },
-  {
-    id: 'docs1015',
-    titleKey: 'releaseNotes.docs1015.title',
-    itemKeys: ['releaseNotes.docs1015.search', 'releaseNotes.docs1015.tag', 'releaseNotes.docs1015.nodocs'],
     audience: (user) => user.role === 'SuperAdmin' || user.role === 'Admin',
   },
 ];

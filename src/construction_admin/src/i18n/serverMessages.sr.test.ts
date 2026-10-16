@@ -39,3 +39,20 @@ describe('translateServerMessage', () => {
     }
   })
 })
+
+describe('translateServerMessage for documents, the book and the schedule', () => {
+  it('translates the recent exact messages', () => {
+    expect(translateServerMessage('Choose at least one document.')).toBe('Izaberite barem jedan dokument.')
+    expect(translateServerMessage('The month is closed. Reopen it first.')).toBe('Mjesec je zatvoren. Prvo ga ponovo otvorite.')
+    expect(translateServerMessage('You may not use the schedule.')).toBe('Ne možete koristiti raspored.')
+  })
+
+  it('translates the ones with a changing part and keeps that part', () => {
+    expect(translateServerMessage('At most 50 documents at a time.')).toBe('Najviše 50 dokumenata odjednom.')
+    expect(translateServerMessage("A business unit named 'Sarajevo' already exists.")).toBe(
+      "Poslovna jedinica pod nazivom 'Sarajevo' već postoji.",
+    )
+    expect(translateServerMessage('The request is Approved and cannot go to Requested. Reload it and try again.')).toContain('Approved')
+    expect(translateServerMessage('The parts add up to 90.00, not the invoice amount 100.00 (difference 10.00).')).toContain('90.00')
+  })
+})

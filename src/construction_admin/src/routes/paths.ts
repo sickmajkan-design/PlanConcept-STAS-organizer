@@ -96,6 +96,9 @@ export const paths = {
 
   companySettings: '/company-settings',
 
+  help: '/help',
+  helpTopic: (id: string) => `/help/${id}`,
+
   expiringDocuments: '/documents/expiring',
   documentRequests: '/documents/requests',
   audit: '/audit',

@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Knjiga zapisa</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#16201C;background:#F4F6F4}
+a{color:inherit;text-decoration:none}
+.nav a,.nav span{display:block;padding:10px 14px;border-radius:8px;font-size:14px;color:#3B4A44}
+.nav a:hover{background:#E6ECE8}
+.nav .on{background:#0F5C4D;color:#fff;font-weight:500}
+.brand{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;padding:0 14px}
+.logo{width:26px;height:26px;border-radius:7px;background:#0F5C4D;display:inline-block}
+.newbtn{display:block;margin:0 4px;padding:11px 14px;border-radius:10px;background:#0F5C4D;color:#fff;font-weight:500;font-size:14px;text-align:center}
+.newbtn:hover{background:#0B4A3E}
+.nav .grp{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#5B6B64;padding:14px 14px 4px}
+.nav a{display:flex;align-items:center;gap:10px}
+.nav svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+*:focus-visible{outline:2px solid #0F5C4D;outline-offset:2px}
+button{transition:background .12s,border-color .12s}
+th{position:relative}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (pointer:coarse){.btn.sm,.fb{min-height:44px}}
+@media (max-width:720px){aside{flex:1 1 100% !important;min-width:0 !important;padding:12px 16px !important;border-right:none !important;border-bottom:1px solid #D5DDD8}main{padding:16px !important}.nav{flex-direction:row !important;overflow-x:auto;gap:4px !important}.nav .grp{display:none}.nav a{white-space:nowrap}.newbtn{margin:0}}
+.nav .off{color:#7C8A84}
+.num{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+.chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:500;white-space:nowrap}
+.k-in{background:#DCEFE8;color:#0B4A3E}
+.k-out{background:#F6E1DA;color:#8A2F1B}
+.k-pay{background:#E3E9F6;color:#27428A}
+.k-wage{background:#EDE6F5;color:#53307F}
+.s-ok{background:#E8EFEB;color:#3B4A44}
+.s-open{background:#FBEFCF;color:#7A5200}
+.s-late{background:#F6D5CD;color:#8A2F1B}
+.src{font-size:12px;color:#5B6B64}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th{text-align:left;font-weight:500;font-size:12px;color:#5B6B64;padding:10px 12px;border-bottom:1px solid #D5DDD8;white-space:nowrap}
+table.t td{padding:11px 12px;border-bottom:1px solid #E6ECE8;vertical-align:middle}
+table.t tr:hover td{background:#F4F8F5}
+table.t tr.new td{background:#EAF6EF}
+.pos{color:#0B4A3E}.neg{color:#8A2F1B}
+.btn{font:inherit;font-size:14px;font-weight:500;border-radius:8px;padding:9px 16px;cursor:pointer;border:1px solid #B9C5BF;background:#fff;color:#16201C;min-height:44px}
+.btn.p{background:#0F5C4D;border-color:#0F5C4D;color:#fff}
+.fb{font:inherit;font-size:13px;font-weight:500;border-radius:999px;padding:6px 14px;cursor:pointer;border:1px solid #B9C5BF;background:#fff;color:#16201C;min-height:36px}
+.fb.on{background:#16201C;border-color:#16201C;color:#fff}
+.in{font:inherit;font-size:14px;border:1px solid #B9C5BF;border-radius:8px;padding:9px 10px;background:#fff;color:#16201C;min-height:44px;box-sizing:border-box;width:100%}
+.lab{font-size:12px;color:#5B6B64;display:block;margin-bottom:4px}
+details.how{background:#fff;border:1px solid #D5DDD8;border-left:4px solid #0F5C4D;border-radius:12px;padding:14px 18px}
+details.how summary{cursor:pointer;font-size:15px;font-weight:600}
+details.how ul{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.5;color:#2C3A34}
+</style>
+</helmet>
+<div style="display:flex;flex-wrap:wrap;min-height:1380px;box-sizing:border-box">
+
+<aside style="flex:0 0 240px;background:#fff;border-right:1px solid #D5DDD8;padding:24px 16px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px;min-width:240px">
+<div class="brand"><span class="logo"></span>Evidencija</div>
+<a class="newbtn" href="Main.dc.html">+ Novi zapis</a>
+<nav class="nav" aria-label="Glavni meni" style="display:flex;flex-direction:column;gap:2px">
+<div class="grp">Pregled</div>
+<a href="Pocetak.dc.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></svg>Kako radi</a>
+<a href="Pregled.dc.html"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Pregled novca i dobiti</a>
+<div class="grp">Svaki dan</div>
+<a class="on" href="Main.dc.html"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11"/></svg>Knjiga zapisa</a>
+<a href="Potrazivanja.dc.html"><svg viewBox="0 0 24 24"><path d="M4 8h14l-3-3M20 16H6l3 3"/></svg>Ko nam duguje, kome dugujemo</a>
+<a href="Isplate.dc.html"><svg viewBox="0 0 24 24"><path d="M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l2-3h12M16 14h2"/></svg>Isplate radnicima</a>
+<div class="grp">Kraj mjeseca</div>
+<a href="Mjesec.dc.html"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M12 12h2M8 16h2M12 16h2"/></svg>Obračun mjeseca</a>
+<div class="grp">Podešavanja</div>
+<a href="Ponavljajuci.dc.html"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5l2 2M20 4v5h-5M20 12a8 8 0 0 1-14 5l-2-2M4 20v-5h5"/></svg>Ponavljajući troškovi</a>
+<a href="Kategorije.dc.html"><svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8zM7.5 8.5h.01"/></svg>Kategorije</a>
+<a href="Uvoz.dc.html"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></svg>Uvoz iz Excela</a>
+</nav>
+<div style="margin-top:auto;font-size:12px;color:#5B6B64;padding:0 14px;line-height:1.5">Probna verzija: izmišljeni podaci, ništa se ne snima.</div>
+</aside>
+
+<main style="flex:999 1 560px;min-width:0;padding:28px 32px;box-sizing:border-box;display:flex;flex-direction:column;gap:24px">
+
+<header style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between">
+<div style="display:flex;flex-direction:column;gap:6px">
+<h1 style="margin:0;font-size:28px;font-weight:600">Knjiga zapisa</h1>
+<div style="display:flex;align-items:center;gap:10px;font-size:14px;color:#3B4A44">
+<strong style="font-weight:600;color:#16201C">Oktobar 2026</strong>
+<span class="chip s-open">Mjesec otvoren</span>
+</div>
+</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+<button class="btn" onClick="{{reset}}">Vrati primjer</button>
+<button class="btn">Izvoz za knjigovođu</button>
+</div>
+</header>
+
+<details class="how" open>
+<summary>Kako ovo radi</summary>
+<ul>
+<li><b>Jedan unos, sve se računa samo.</b> Upiši red u Brzi unos i kućice iznad (prihodi, troškovi, dobit, potraživanja) odmah se promijene.</li>
+<li><b>Prihod</b> je izdata faktura: povećava prihode i otvorena potraživanja. <b>Trošak</b> povećava troškove.</li>
+<li><b>Uplata</b> (klijent platio) smanjuje otvorena potraživanja, a <b>Isplata</b> (npr. akontacija radnicima) samo bilježi da je novac otišao. Ni jedno ni drugo ne mijenja dobit, jer su prihod i trošak već upisani.</li>
+<li><b>Izvor</b> kaže odakle red dolazi. Zapisi iz DKV izvoda, smještaja i vozila nastaju sami; ručno upisuješ samo ostalo.</li>
+<li>Zeleno obojen red je upravo dodan. Dugme "Vrati primjer" briše sve što si probao.</li>
+</ul>
+</details>
+
+<section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">
+<div style="background:#fff;border:1px solid #D5DDD8;border-radius:12px;padding:16px 18px"><div style="font-size:13px;color:#5B6B64">Prihodi</div><div class="num" style="font-size:26px;font-weight:500;margin-top:6px">{{income}} €</div><div style="font-size:12px;color:#5B6B64;margin-top:4px">izdate fakture u mjesecu</div></div>
+<div style="background:#fff;border:1px solid #D5DDD8;border-radius:12px;padding:16px 18px"><div style="font-size:13px;color:#5B6B64">Troškovi</div><div class="num" style="font-size:26px;font-weight:500;margin-top:6px">{{costs}} €</div><div style="font-size:12px;color:#5B6B64;margin-top:4px">rad, gorivo, stanovi, vozila, fiksni</div></div>
+<div style="background:#0F5C4D;border-radius:12px;padding:16px 18px;color:#fff"><div style="font-size:13px;opacity:.85">Dobit mjeseca</div><div class="num" style="font-size:26px;font-weight:500;margin-top:6px">{{profit}} €</div><div style="font-size:12px;opacity:.85;margin-top:4px">prihodi minus troškovi</div></div>
+<div style="background:#fff;border:1px solid #D5DDD8;border-radius:12px;padding:16px 18px"><div style="font-size:13px;color:#5B6B64">Otvorena potraživanja</div><div class="num" style="font-size:26px;font-weight:500;margin-top:6px">{{recv}} €</div><div style="font-size:12px;color:#5B6B64;margin-top:4px">fakture koje još nisu plaćene</div></div>
+</section>
+
+<section style="background:#fff;border:1px solid #D5DDD8;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px">
+<div style="font-size:15px;font-weight:600">Brzi unos</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+<span style="font-size:13px;color:#5B6B64">Prečice:</span>
+<sc-for list="{{presets}}" as="p" hint-placeholder-count="5">
+<button class="fb" onClick="{{p.pick}}">{{p.label}}</button>
+</sc-for>
+<span style="font-size:13px;color:#5B6B64">Popuni polja, a ti upišeš samo iznos. Enter dodaje red.</span>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;align-items:end">
+<div><label class="lab" for="q-date">Datum</label><input id="q-date" class="in num" value="{{f.date}}" onChange="{{onDate}}"></div>
+<div><label class="lab" for="q-kind">Vrsta</label><select id="q-kind" class="in" value="{{f.kind}}" onChange="{{onKind}}"><option>Trošak</option><option>Prihod</option><option>Uplata</option><option>Isplata</option></select></div>
+<div style="grid-column:span 2"><label class="lab" for="q-desc">Opis</label><input id="q-desc" class="in" placeholder="npr. Gorivo, sedmica 41" value="{{f.desc}}" onChange="{{onDesc}}" onKeyDown="{{onKey}}"></div>
+<div><label class="lab" for="q-site">Gradilište</label><select id="q-site" class="in" value="{{f.site}}" onChange="{{onSite}}"><option>Hala B</option><option>Skladište C</option><option>Zgrada D</option><option>Bez gradilišta</option></select></div>
+<div><label class="lab" for="q-party">Druga strana</label><input id="q-party" class="in" placeholder="klijent, radnik, dobavljač" value="{{f.party}}" onChange="{{onParty}}" onKeyDown="{{onKey}}"></div>
+<div><label class="lab" for="q-amt">Iznos (€)</label><input id="q-amt" class="in num" placeholder="1.980,00" style="text-align:right" value="{{f.amt}}" onChange="{{onAmt}}" onKeyDown="{{onKey}}"></div>
+<div><button class="btn p" style="width:100%" onClick="{{add}}">Dodaj</button></div>
+</div>
+<sc-if value="{{hasErr}}" hint-placeholder-val="{{false}}"><div style="font-size:14px;color:#8A2F1B;background:#F6E1DA;border-radius:8px;padding:10px 12px">{{err}}</div></sc-if>
+<sc-if value="{{hasMsg}}" hint-placeholder-val="{{false}}"><div style="font-size:14px;color:#0B4A3E;background:#DCEFE8;border-radius:8px;padding:10px 12px">{{msg}}</div></sc-if>
+</section>
+
+<section style="background:#fff;border:1px solid #D5DDD8;border-radius:12px;display:flex;flex-direction:column">
+<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid #D5DDD8">
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<sc-for list="{{chips}}" as="c" hint-placeholder-count="5">
+<button class="fb {{c.cls}}" onClick="{{c.pick}}">{{c.label}} {{c.count}}</button>
+</sc-for>
+</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+<label class="lab" for="q-search" style="margin:0">Pretraga</label>
+<input id="q-search" class="in" placeholder="opis, strana ili kategorija" style="width:240px" value="{{q}}" onChange="{{onSearch}}">
+</div>
+</div>
+<div style="overflow-x:auto">
+<table class="t">
+<thead><tr><th>Datum</th><th>Vrsta</th><th>Opis</th><th>Kategorija</th><th>Gradilište</th><th>Druga strana</th><th>Izvor</th><th>Dok.</th><th>Status</th><th style="text-align:right">Iznos</th><th><span class="sr">Radnje</span></th></tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="10">
+<tr class="{{r.rowCls}}">
+<td class="num">{{r.date}}</td>
+<td><span class="chip {{r.kindCls}}">{{r.kind}}</span></td>
+<td>{{r.desc}}</td>
+<td>{{r.cat}}</td>
+<td>{{r.site}}</td>
+<td>{{r.party}}</td>
+<td class="src">{{r.src}}</td>
+<td class="src">{{r.doc}}</td>
+<td><span class="chip {{r.statusCls}}">{{r.status}}</span></td>
+<td class="num {{r.amtCls}}" style="text-align:right;white-space:nowrap">{{r.amount}}</td>
+<td style="text-align:right"><sc-if value="{{r.mine}}" hint-placeholder-val="{{false}}"><button class="btn" style="min-height:32px;padding:2px 10px;font-size:13px" onClick="{{r.remove}}">Ukloni</button></sc-if></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:14px 18px;font-size:13px;color:#5B6B64">
+<span>Prikazano {{shown}} od {{total}} zapisa (u probi su učitani samo oni najnoviji)</span>
+<span>Pretraga i filter ne mijenjaju zbirove iznad; oni uvijek računaju cijeli mjesec.</span>
+</div>
+</section>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":1380}}'>
+class Component extends DCLogic {
+renderVals() {
+const KEY = { 'Prihod': 'in', 'Trošak': 'out', 'Uplata': 'pay', 'Isplata': 'wage' };
+const CLS = { in: 'k-in', out: 'k-out', pay: 'k-pay', wage: 'k-wage' };
+const R = (date, kind, desc, cat, site, party, src, doc, status, statusCls, amount, amtCls) => ({ date, kind, key: KEY[kind], kindCls: CLS[KEY[kind]], desc, cat, site, party, src, doc, status, statusCls, amount, amtCls, rowCls: '', n: 0, mine: false });
+const base = [
+R('10.10.', 'Trošak', 'Rad, sati KW41 (potpisane satnice)', 'Plata radnika', 'Hala B', 'Radnici', 'Obračun', 'PDF', 'Otvoreno', 's-open', '−7.320,00', 'neg'),
+R('08.10.', 'Trošak', 'Alat i uniforme', 'Alat', 'Bez gradilišta', 'Dobavljač 2', 'Ručno', 'PDF', 'Otvoreno', 's-open', '−640,00', 'neg'),
+R('07.10.', 'Uplata', 'Uplata po fakturi 2026-038', 'Naplata klijentu', 'Skladište C', 'Klijent B', 'Ručno', '', 'Plaćeno', 's-ok', '+9.800,00', 'pos'),
+R('05.10.', 'Trošak', 'Zakup vozila, 3 vozila', 'Rent a car', 'Bez gradilišta', 'Zakupodavac', 'Vozila', 'PDF', 'Plaćeno', 's-ok', '−1.650,00', 'neg'),
+R('05.10.', 'Isplata', 'Akontacija, 4 radnika', 'Akontacija', 'Bez gradilišta', 'Radnici', 'Ručno', '', 'Plaćeno', 's-ok', '−3.200,00', 'neg'),
+R('03.10.', 'Trošak', 'Kirija stana, Ulica 12', 'Stanovanje', 'Hala B', 'Stanodavac', 'Smještaj', 'PDF', 'Plaćeno', 's-ok', '−1.200,00', 'neg'),
+R('02.10.', 'Trošak', 'Gorivo, DKV izvod sedmica 39', 'Gorivo', 'Bez gradilišta', 'DKV', 'DKV', '', 'Plaćeno', 's-ok', '−2.140,00', 'neg'),
+R('01.10.', 'Prihod', 'Faktura 2026-041, satnica septembar', 'Naplata klijentu', 'Hala B', 'Klijent A', 'Ručno', 'PDF', 'Rok 15.10.', 's-open', '+18.400,00', 'pos'),
+R('01.10.', 'Prihod', 'Faktura 2026-042, paušal faza 2', 'Naplata klijentu', 'Zgrada D', 'Klijent C', 'Ručno', 'PDF', 'Kasni 6 dana', 's-late', '+12.500,00', 'pos'),
+R('01.10.', 'Trošak', 'Fiksni trošak, Slovenija', 'Fiksni troškovi', 'Bez gradilišta', 'Ponavljajući', 'Šablon', '', 'Plaćeno', 's-ok', '−1.100,00', 'neg')
+];
+const st = Object.assign({ added: [], filter: 'all', q: '', msg: '', err: '', f: { date: '12.10.', kind: 'Trošak', desc: '', site: 'Hala B', party: '', amt: '' } }, this.state || {});
+const toNum = (v) => { let s = String(v).trim().replace(/\s/g, ''); if (s.indexOf(',') >= 0) { s = s.replace(/\./g, '').replace(',', '.'); } else if (/^\d{1,3}(\.\d{3})+$/.test(s)) { s = s.replace(/\./g, ''); } return parseFloat(s) || 0; };
+const fmt0 = (n) => Math.round(n).toLocaleString('de-DE');
+const fmt2 = (n) => n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+let income = 54100, costs = 48970, recv = 30900;
+st.added.forEach((a) => {
+if (a.key === 'in') { income += a.n; recv += a.n; }
+if (a.key === 'out') { costs += a.n; }
+if (a.key === 'pay') { recv = Math.max(0, recv - a.n); }
+});
+const all = st.added.concat(base);
+const q = st.q.trim().toLowerCase();
+const shownRows = all.filter((r) => (st.filter === 'all' || r.key === st.filter) && (!q || (r.desc + ' ' + r.party + ' ' + r.cat).toLowerCase().indexOf(q) >= 0));
+const baseCount = { all: 143, in: 9, out: 98, pay: 7, wage: 29 };
+const count = (k) => baseCount[k] + st.added.filter((a) => k === 'all' || a.key === k).length;
+const set = (patch) => this.setState(patch);
+const setF = (k) => (e) => set({ f: Object.assign({}, st.f, { [k]: e.target.value }), err: '' });
+const labels = [['all', 'Sve'], ['in', 'Prihodi'], ['out', 'Troškovi'], ['pay', 'Uplate'], ['wage', 'Isplate']];
+const effect = { in: 'Prihodi i otvorena potraživanja su porasli.', out: 'Troškovi su porasli, a dobit pala.', pay: 'Otvorena potraživanja su pala; dobit je ista jer je prihod već bio upisan.', wage: 'Dobit je ista; isplata samo bilježi da je novac otišao.' };
+const presetDefs = [['Gorivo', 'Trošak', 'Gorivo, sedmica 41', 'Bez gradilišta', 'DKV'], ['Kirija', 'Trošak', 'Kirija stana', 'Hala B', 'Stanodavac'], ['Alat', 'Trošak', 'Alat i oprema', 'Bez gradilišta', 'Dobavljač'], ['Nova faktura', 'Prihod', 'Faktura, satnica oktobar', 'Hala B', 'Klijent A'], ['Uplata klijenta', 'Uplata', 'Uplata po fakturi', 'Hala B', 'Klijent A'], ['Akontacija', 'Isplata', 'Akontacija radnicima', 'Bez gradilišta', 'Radnici']];
+const out = {
+income: fmt0(income), costs: fmt0(costs), profit: fmt0(income - costs), recv: fmt0(recv),
+f: st.f, q: st.q, err: st.err, hasErr: !!st.err, msg: st.msg, hasMsg: !!st.msg,
+shown: shownRows.length, total: count('all'),
+rows: shownRows,
+chips: labels.map(([k, l]) => ({ label: l, count: count(k), cls: st.filter === k ? 'on' : '', pick: () => set({ filter: k }) })),
+onDate: setF('date'), onKind: setF('kind'), onDesc: setF('desc'), onSite: setF('site'), onParty: setF('party'), onAmt: setF('amt'),
+onSearch: (e) => set({ q: e.target.value }),
+add: () => {
+const n = toNum(st.f.amt);
+if (!st.f.desc.trim() || !(n > 0)) { set({ err: 'Upiši opis i iznos veći od nule.', msg: '' }); return; }
+const key = KEY[st.f.kind];
+const plus = key === 'in' || key === 'pay';
+const cat = { in: 'Naplata klijentu', out: 'Ostalo', pay: 'Naplata klijentu', wage: 'Isplata' }[key];
+const row = { date: st.f.date, kind: st.f.kind, key, kindCls: CLS[key], desc: st.f.desc.trim(), cat, site: st.f.site, party: st.f.party || '—', src: 'Ručno', doc: '', status: key === 'in' ? 'Otvoreno' : 'Plaćeno', statusCls: key === 'in' ? 's-open' : 's-ok', amount: (plus ? '+' : '−') + fmt2(n), amtCls: plus ? 'pos' : 'neg', rowCls: 'new', n, mine: true };
+row.remove = () => this.setState({ added: (this.state.added || []).filter((x) => x !== row), msg: '' });
+set({ added: [row].concat(st.added), f: Object.assign({}, st.f, { desc: '', amt: '', party: '' }), err: '', msg: 'Zapis je dodan. ' + effect[key] });
+},
+reset: () => set({ added: [], filter: 'all', q: '', msg: '', err: '', f: { date: '12.10.', kind: 'Trošak', desc: '', site: 'Hala B', party: '', amt: '' } }),
+presets: presetDefs.map(([label, kind, desc, site, party]) => ({ label, pick: () => set({ f: Object.assign({}, st.f, { kind, desc, site, party }), err: '', msg: '' }) }))
+};
+out.onKey = (e) => { if (e.key === 'Enter') out.add(); };
+return out;
+}
+}
+</script>
+</body>
+</html>

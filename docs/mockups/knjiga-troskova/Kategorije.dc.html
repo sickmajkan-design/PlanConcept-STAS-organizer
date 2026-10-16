@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kategorije</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#16201C;background:#F4F6F4}
+a{color:inherit;text-decoration:none}
+.nav a,.nav span{display:block;padding:10px 14px;border-radius:8px;font-size:14px;color:#3B4A44}
+.nav a:hover{background:#E6ECE8}
+.nav .on{background:#0F5C4D;color:#fff;font-weight:500}
+.brand{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;padding:0 14px}
+.logo{width:26px;height:26px;border-radius:7px;background:#0F5C4D;display:inline-block}
+.newbtn{display:block;margin:0 4px;padding:11px 14px;border-radius:10px;background:#0F5C4D;color:#fff;font-weight:500;font-size:14px;text-align:center}
+.newbtn:hover{background:#0B4A3E}
+.nav .grp{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#5B6B64;padding:14px 14px 4px}
+.nav a{display:flex;align-items:center;gap:10px}
+.nav svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+*:focus-visible{outline:2px solid #0F5C4D;outline-offset:2px}
+button{transition:background .12s,border-color .12s}
+th{position:relative}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (pointer:coarse){.btn.sm,.fb{min-height:44px}}
+@media (max-width:720px){aside{flex:1 1 100% !important;min-width:0 !important;padding:12px 16px !important;border-right:none !important;border-bottom:1px solid #D5DDD8}main{padding:16px !important}.nav{flex-direction:row !important;overflow-x:auto;gap:4px !important}.nav .grp{display:none}.nav a{white-space:nowrap}.newbtn{margin:0}}
+.num{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+.card{background:#fff;border:1px solid #D5DDD8;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.card h2{margin:0;font-size:17px;font-weight:600}
+.sub{font-size:13px;color:#5B6B64;line-height:1.5}
+.chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:500;white-space:nowrap}
+.s-ok{background:#DCEFE8;color:#0B4A3E}
+.s-off{background:#E8EBE9;color:#5B6B64}
+.s-src{background:#E3E9F6;color:#27428A}
+.s-man{background:#FBEFCF;color:#7A5200}
+.btn{font:inherit;font-size:14px;font-weight:500;border-radius:8px;padding:9px 16px;cursor:pointer;border:1px solid #B9C5BF;background:#fff;color:#16201C;min-height:44px}
+.btn.p{background:#0F5C4D;border-color:#0F5C4D;color:#fff}
+.btn.sm{min-height:36px;padding:4px 12px;font-size:13px}
+.btn:disabled{background:#E6ECE8;border-color:#D5DDD8;color:#8A9690;cursor:not-allowed}
+.in{font:inherit;font-size:14px;border:1px solid #B9C5BF;border-radius:8px;padding:8px 10px;background:#fff;color:#16201C;min-height:40px;box-sizing:border-box;width:100%}
+.lab{font-size:12px;color:#5B6B64;display:block;margin-bottom:4px}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th{text-align:left;font-weight:500;font-size:12px;color:#5B6B64;padding:10px 12px;border-bottom:1px solid #D5DDD8;white-space:nowrap}
+table.t td{padding:9px 12px;border-bottom:1px solid #E6ECE8;vertical-align:middle}
+table.t th.r,table.t td.r{text-align:right}
+details.how{background:#fff;border:1px solid #D5DDD8;border-left:4px solid #0F5C4D;border-radius:12px;padding:14px 18px}
+details.how summary{cursor:pointer;font-size:15px;font-weight:600}
+details.how ul{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.5;color:#2C3A34}
+.msg{font-size:14px;border-radius:8px;padding:10px 12px;background:#DCEFE8;color:#0B4A3E;line-height:1.5}
+.msg.w{background:#FBF3E0;color:#5C4300}
+.msg.b{background:#F6E1DA;color:#8A2F1B}
+</style>
+</helmet>
+<div style="display:flex;flex-wrap:wrap;min-height:1600px;box-sizing:border-box">
+
+<aside style="flex:0 0 240px;background:#fff;border-right:1px solid #D5DDD8;padding:24px 16px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px;min-width:240px">
+<div class="brand"><span class="logo"></span>Evidencija</div>
+<a class="newbtn" href="Main.dc.html">+ Novi zapis</a>
+<nav class="nav" aria-label="Glavni meni" style="display:flex;flex-direction:column;gap:2px">
+<div class="grp">Pregled</div>
+<a href="Pocetak.dc.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></svg>Kako radi</a>
+<a href="Pregled.dc.html"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Pregled novca i dobiti</a>
+<div class="grp">Svaki dan</div>
+<a href="Main.dc.html"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11"/></svg>Knjiga zapisa</a>
+<a href="Potrazivanja.dc.html"><svg viewBox="0 0 24 24"><path d="M4 8h14l-3-3M20 16H6l3 3"/></svg>Ko nam duguje, kome dugujemo</a>
+<a href="Isplate.dc.html"><svg viewBox="0 0 24 24"><path d="M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l2-3h12M16 14h2"/></svg>Isplate radnicima</a>
+<div class="grp">Kraj mjeseca</div>
+<a href="Mjesec.dc.html"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M12 12h2M8 16h2M12 16h2"/></svg>Obračun mjeseca</a>
+<div class="grp">Podešavanja</div>
+<a href="Ponavljajuci.dc.html"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5l2 2M20 4v5h-5M20 12a8 8 0 0 1-14 5l-2-2M4 20v-5h5"/></svg>Ponavljajući troškovi</a>
+<a class="on" href="Kategorije.dc.html"><svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8zM7.5 8.5h.01"/></svg>Kategorije</a>
+<a href="Uvoz.dc.html"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></svg>Uvoz iz Excela</a>
+</nav>
+<div style="margin-top:auto;font-size:12px;color:#5B6B64;padding:0 14px;line-height:1.5">Probna verzija: izmišljeni podaci, ništa se ne snima.</div>
+</aside>
+
+<main style="flex:999 1 560px;min-width:0;padding:28px 32px;box-sizing:border-box;display:flex;flex-direction:column;gap:24px">
+
+<header style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between">
+<div style="display:flex;flex-direction:column;gap:6px">
+<h1 style="margin:0;font-size:28px;font-weight:600">Kategorije</h1>
+<div style="font-size:14px;color:#3B4A44">Šta je koja vrsta prihoda i troška i gdje ulazi u obračun</div>
+</div>
+<button class="btn" onClick="{{reset}}">Vrati primjer</button>
+</header>
+
+<details class="how" open>
+<summary>Kako ovo radi</summary>
+<ul>
+<li><b>Kategorija</b> kaže o kakvom je novcu riječ (gorivo, stanovanje, alat, naplata klijentu). Svaki red u Knjizi ima tačno jednu kategoriju.</li>
+<li><b>"Ide u"</b> određuje gdje se kategorija računa u obračunu mjeseca: u naplatu, zaradu radnika, troškove gradilišta ili fiksne troškove. Zato je bitno da kategorija bude tačna: ona odlučuje u koju kolonu padne iznos.</li>
+<li><b>Sistemske kategorije</b> (Gorivo, Stanovanje, Rent a car, Plata radnika) pune se same iz DKV izvoda, smještaja, vozila i satnica. Možeš ih preimenovati, ali ne i isključiti.</li>
+<li><b>Svoje kategorije</b> praviš kad ti zatrebaju i možeš ih isključiti. Isključena kategorija se ne nudi pri novom unosu, a stari zapisi ostaju.</li>
+<li><b>Pravila</b> pogađaju kategoriju iz opisa: ako opis sadrži "DKV", program predloži Gorivo. Tako se ručni unos ubrzava. Isprobaj pogađanje u polju ispod.</li>
+</ul>
+</details>
+
+<section class="card">
+<h2>Sve kategorije</h2>
+<div style="overflow-x:auto">
+<table class="t">
+<thead><tr><th>Naziv</th><th>Vrsta</th><th>Grupa</th><th>Ide u (obračun)</th><th>Izvor zapisa</th><th class="r">Zapisa u oktobru</th><th>Status</th><th><span class="sr">Radnje</span></th></tr></thead>
+<tbody>
+<sc-for list="{{cats}}" as="c" hint-placeholder-count="12">
+<tr>
+<td><input class="in" style="min-width:170px" aria-label="Naziv kategorije" value="{{c.name}}" onChange="{{c.onName}}"></td>
+<td>{{c.kind}}</td><td>{{c.group}}</td>
+<td><select class="in" style="width:auto" aria-label="Ide u" value="{{c.col}}" onChange="{{c.onCol}}"><option>Naplata</option><option>Zarada radnika</option><option>Troškovi gradilišta</option><option>Fiksni troškovi</option></select></td>
+<td><span class="chip {{c.srcCls}}">{{c.src}}</span></td>
+<td class="num r">{{c.count}}</td>
+<td><span class="chip {{c.stCls}}">{{c.status}}</span></td>
+<td style="text-align:right"><button class="btn sm" disabled="{{c.system}}" onClick="{{c.toggle}}">{{c.action}}</button></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="card">
+<h2>Nova kategorija</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-items:end">
+<div style="grid-column:span 2"><label class="lab" for="c-name">Naziv</label><input id="c-name" class="in" placeholder="npr. Teret i transport" value="{{f.name}}" onChange="{{onFName}}"></div>
+<div><label class="lab" for="c-kind">Vrsta</label><select id="c-kind" class="in" value="{{f.kind}}" onChange="{{onFKind}}"><option>Trošak</option><option>Prihod</option></select></div>
+<div><label class="lab" for="c-group">Grupa</label><select id="c-group" class="in" value="{{f.group}}" onChange="{{onFGroup}}"><option>Gradilište</option><option>Rad</option><option>Fiksni</option><option>Prihodi</option></select></div>
+<div><label class="lab" for="c-col">Ide u (obračun)</label><select id="c-col" class="in" value="{{f.col}}" onChange="{{onFCol}}"><option>Troškovi gradilišta</option><option>Fiksni troškovi</option><option>Zarada radnika</option><option>Naplata</option></select></div>
+<div><button class="btn p" style="width:100%" onClick="{{add}}">Dodaj kategoriju</button></div>
+</div>
+<sc-if value="{{hasMsg}}" hint-placeholder-val="{{false}}"><div class="msg {{msgCls}}">{{msg}}</div></sc-if>
+</section>
+
+<section class="card">
+<h2>Pravila za pogađanje kategorije</h2>
+<div class="sub">Kad u Knjizi upišeš opis, program po ovim pravilima predloži kategoriju. Prvo pravilo koje se poklopi pobjeđuje.</div>
+<div style="overflow-x:auto">
+<table class="t">
+<thead><tr><th>Ako opis sadrži</th><th>Kategorija</th><th><span class="sr">Radnje</span></th></tr></thead>
+<tbody>
+<sc-for list="{{rules}}" as="r" hint-placeholder-count="6">
+<tr><td class="num">"{{r.text}}"</td><td>{{r.cat}}</td><td style="text-align:right"><button class="btn sm" onClick="{{r.remove}}">Ukloni</button></td></tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;align-items:end">
+<div><label class="lab" for="r-text">Nova riječ u opisu</label><input id="r-text" class="in" placeholder="npr. cement" value="{{rf.text}}" onChange="{{onRText}}"></div>
+<div><label class="lab" for="r-cat">Kategorija</label><select id="r-cat" class="in" value="{{rf.cat}}" onChange="{{onRCat}}"><sc-for list="{{names}}" as="n" hint-placeholder-count="3"><option>{{n}}</option></sc-for></select></div>
+<div><button class="btn" style="width:100%" onClick="{{addRule}}">Dodaj pravilo</button></div>
+</div>
+</section>
+
+<section class="card">
+<h2>Isprobaj pogađanje</h2>
+<div><label class="lab" for="t-in">Upiši opis kao u Knjizi</label><input id="t-in" class="in" placeholder="npr. Gorivo, DKV izvod sedmica 41" value="{{test}}" onChange="{{onTest}}"></div>
+<div class="msg {{guess.cls}}">{{guess.text}}</div>
+</section>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":1600}}'>
+class Component extends DCLogic {
+renderVals() {
+const C0 = [
+{ id: 1, name: 'Naplata klijentu', kind: 'Prihod', group: 'Prihodi', col: 'Naplata', src: 'Ručno', count: 9, system: true, on: true },
+{ id: 2, name: 'Plata radnika', kind: 'Trošak', group: 'Rad', col: 'Zarada radnika', src: 'Satnice', count: 12, system: true, on: true },
+{ id: 3, name: 'Kooperanti', kind: 'Trošak', group: 'Rad', col: 'Zarada radnika', src: 'Satnice', count: 4, system: true, on: true },
+{ id: 4, name: 'Gorivo', kind: 'Trošak', group: 'Gradilište', col: 'Troškovi gradilišta', src: 'DKV', count: 14, system: true, on: true },
+{ id: 5, name: 'Stanovanje', kind: 'Trošak', group: 'Gradilište', col: 'Troškovi gradilišta', src: 'Smještaj', count: 6, system: true, on: true },
+{ id: 6, name: 'Rent a car', kind: 'Trošak', group: 'Gradilište', col: 'Troškovi gradilišta', src: 'Vozila', count: 3, system: true, on: true },
+{ id: 7, name: 'Alat', kind: 'Trošak', group: 'Gradilište', col: 'Troškovi gradilišta', src: 'Ručno', count: 5, system: false, on: true },
+{ id: 8, name: 'Materijal', kind: 'Trošak', group: 'Gradilište', col: 'Troškovi gradilišta', src: 'Ručno', count: 7, system: false, on: true },
+{ id: 9, name: 'Fiksni troškovi', kind: 'Trošak', group: 'Fiksni', col: 'Fiksni troškovi', src: 'Šablon', count: 3, system: false, on: true },
+{ id: 10, name: 'Osiguranje', kind: 'Trošak', group: 'Fiksni', col: 'Fiksni troškovi', src: 'Šablon', count: 1, system: false, on: true },
+{ id: 11, name: 'Ostalo', kind: 'Trošak', group: 'Gradilište', col: 'Troškovi gradilišta', src: 'Ručno', count: 6, system: false, on: true }
+];
+const R0 = [
+{ id: 1, text: 'DKV', cat: 'Gorivo' }, { id: 2, text: 'gorivo', cat: 'Gorivo' }, { id: 3, text: 'kirija', cat: 'Stanovanje' },
+{ id: 4, text: 'zakup', cat: 'Rent a car' }, { id: 5, text: 'faktura', cat: 'Naplata klijentu' }, { id: 6, text: 'alat', cat: 'Alat' }, { id: 7, text: 'uniforme', cat: 'Alat' }
+];
+const def = { cats: C0, rules: R0, nid: 12, rid: 8, msg: '', msgCls: '', test: '', f: { name: '', kind: 'Trošak', group: 'Gradilište', col: 'Troškovi gradilišta' }, rf: { text: '', cat: 'Gorivo' } };
+const st = Object.assign({}, def, this.state || {});
+const set = (p) => this.setState(p);
+const upd = (id, patch) => set({ cats: st.cats.map((c) => (c.id === id ? Object.assign({}, c, patch) : c)) });
+const active = st.cats.filter((c) => c.on);
+const names = active.map((c) => c.name);
+const t = st.test.trim().toLowerCase();
+const hit = t ? st.rules.find((r) => t.indexOf(r.text.toLowerCase()) >= 0) : null;
+const guess = !t ? { cls: 'w', text: 'Upiši opis pa program pokaže koju bi kategoriju predložio.' }
+: hit ? { cls: '', text: 'Predlog: ' + hit.cat + ' (pravilo: opis sadrži "' + hit.text + '").' }
+: { cls: 'w', text: 'Nijedno pravilo se ne poklapa. Program bi te pitao za kategoriju, a ti možeš dodati pravilo iznad.' };
+const rf = st.rf;
+const f = st.f;
+return {
+cats: st.cats.map((c) => ({ name: c.name, kind: c.kind, group: c.group, col: c.col, src: c.src, srcCls: c.src === 'Ručno' ? 's-man' : 's-src', count: c.count, system: c.system, status: c.on ? 'Aktivna' : 'Isključena', stCls: c.on ? 's-ok' : 's-off', action: c.system ? 'Sistemska' : (c.on ? 'Isključi' : 'Uključi'), toggle: () => upd(c.id, { on: !c.on }), onName: (e) => upd(c.id, { name: e.target.value }), onCol: (e) => upd(c.id, { col: e.target.value }) })),
+f, hasMsg: !!st.msg, msg: st.msg, msgCls: st.msgCls,
+onFName: (e) => set({ f: Object.assign({}, f, { name: e.target.value }), msg: '' }),
+onFKind: (e) => set({ f: Object.assign({}, f, { kind: e.target.value }) }),
+onFGroup: (e) => set({ f: Object.assign({}, f, { group: e.target.value }) }),
+onFCol: (e) => set({ f: Object.assign({}, f, { col: e.target.value }) }),
+add: () => {
+const n = f.name.trim();
+if (!n) { set({ msg: 'Upiši naziv kategorije.', msgCls: 'b' }); return; }
+if (st.cats.some((c) => c.name.toLowerCase() === n.toLowerCase())) { set({ msg: 'Kategorija "' + n + '" već postoji.', msgCls: 'b' }); return; }
+set({ cats: st.cats.concat([{ id: st.nid, name: n, kind: f.kind, group: f.group, col: f.col, src: 'Ručno', count: 0, system: false, on: true }]), nid: st.nid + 1, f: Object.assign({}, f, { name: '' }), msg: 'Kategorija "' + n + '" je dodana. Računa se u dijelu obračuna "' + f.col + '".', msgCls: '' });
+},
+rules: st.rules.map((r) => ({ text: r.text, cat: r.cat, remove: () => set({ rules: st.rules.filter((x) => x.id !== r.id) }) })),
+names, rf,
+onRText: (e) => set({ rf: Object.assign({}, rf, { text: e.target.value }) }),
+onRCat: (e) => set({ rf: Object.assign({}, rf, { cat: e.target.value }) }),
+addRule: () => { const x = rf.text.trim(); if (!x) return; set({ rules: st.rules.concat([{ id: st.rid, text: x, cat: rf.cat }]), rid: st.rid + 1, rf: Object.assign({}, rf, { text: '' }) }); },
+test: st.test, onTest: (e) => set({ test: e.target.value }), guess,
+reset: () => set(def)
+};
+}
+}
+</script>
+</body>
+</html>

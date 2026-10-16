@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telefon: Novi zapis</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#16201C;background:#F4F6F4}
+a{color:inherit;text-decoration:none}
+.num{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+.bar{display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 8px;background:#fff;border-bottom:1px solid #D5DDD8;flex:none}
+.ib{width:44px;height:44px;border:none;background:none;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;color:#16201C;cursor:pointer}
+.ib svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);background:#E6ECE8;border-radius:12px;padding:4px;gap:4px}
+.seg button{font:inherit;font-size:14px;font-weight:500;min-height:44px;border:none;border-radius:9px;background:transparent;color:#3B4A44;cursor:pointer}
+.seg button.on{background:#fff;color:#0B4A3E;box-shadow:0 1px 2px rgba(0,0,0,.15)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.chipb{font:inherit;font-size:14px;font-weight:500;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid #B9C5BF;background:#fff;color:#16201C;white-space:nowrap;cursor:pointer;flex:none}
+.in{font:inherit;font-size:16px;border:1px solid #B9C5BF;border-radius:10px;padding:0 12px;min-height:48px;box-sizing:border-box;width:100%;background:#fff;color:#16201C}
+.lab{font-size:12px;color:#5B6B64;display:block;margin-bottom:4px}
+.btn{font:inherit;font-size:16px;font-weight:600;border-radius:12px;padding:0 16px;min-height:52px;border:1px solid #B9C5BF;background:#fff;color:#16201C;cursor:pointer}
+.btn.p{background:#0F5C4D;border-color:#0F5C4D;color:#fff}
+.msg{font-size:14px;line-height:1.45;border-radius:10px;padding:12px}
+.ok{background:#DCEFE8;color:#0B4A3E}.wait{background:#FBF3E0;color:#5C4300}.err{background:#F6E1DA;color:#8A2F1B}
+.sw{display:inline-flex;align-items:center;gap:8px;font:inherit;font-size:13px;min-height:44px;border:none;background:none;color:#3B4A44;cursor:pointer}
+.sw i{display:inline-block;width:38px;height:22px;border-radius:11px;background:#B9C5BF;position:relative}
+.sw i:after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff}
+.sw[aria-checked=true] i{background:#B4452F}
+.sw[aria-checked=true] i:after{left:19px}
+*:focus-visible{outline:2px solid #0F5C4D;outline-offset:2px}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;background:#F4F6F4">
+
+<header class="bar">
+<div style="display:flex;align-items:center"><a class="ib" href="TelPregled.dc.html" aria-label="Zatvori"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></a><h1 style="margin:0;font-size:17px;font-weight:600">Novi zapis</h1></div>
+<button class="sw" role="switch" aria-checked="{{offline}}" onClick="{{toggleOffline}}"><i></i>Nema mreže</button>
+</header>
+
+<main style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:16px">
+
+<div class="seg" role="group" aria-label="Vrsta zapisa">
+<sc-for list="{{kinds}}" as="k" hint-placeholder-count="4">
+<button class="{{k.cls}}" aria-pressed="{{k.on}}" onClick="{{k.pick}}">{{k.label}}</button>
+</sc-for>
+</div>
+
+<div>
+<span class="lab">Prečice</span>
+<div class="chips">
+<sc-for list="{{presets}}" as="p" hint-placeholder-count="5">
+<button class="chipb" onClick="{{p.pick}}">{{p.label}}</button>
+</sc-for>
+</div>
+</div>
+
+<div>
+<label class="lab" for="amt">Iznos (€)</label>
+<input id="amt" class="in num" style="font-size:30px;min-height:64px;text-align:right" inputmode="decimal" placeholder="0,00" value="{{amt}}" onChange="{{onAmt}}">
+</div>
+
+<div>
+<label class="lab" for="desc">Opis</label>
+<input id="desc" class="in" placeholder="npr. Gorivo, sedmica 41" value="{{desc}}" onChange="{{onDesc}}">
+</div>
+
+<div>
+<label class="lab" for="site">Gradilište</label>
+<select id="site" class="in" value="{{site}}" onChange="{{onSite}}"><option>Hala B</option><option>Skladište C</option><option>Zgrada D</option><option>Bez gradilišta</option></select>
+</div>
+
+<div>
+<span class="lab">Račun</span>
+<sc-if value="{{noPhoto}}" hint-placeholder-val="{{true}}"><button class="btn" style="width:100%" onClick="{{addPhoto}}">Fotografiši račun</button></sc-if>
+<sc-if value="{{hasPhoto}}" hint-placeholder-val="{{false}}"><div style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #D5DDD8;border-radius:12px;padding:10px"><div style="width:56px;height:56px;border-radius:8px;background:#E6ECE8;display:flex;align-items:center;justify-content:center;font-size:11px;color:#5B6B64">račun</div><div style="flex:1;font-size:13.5px;line-height:1.4"><strong>racun.jpg</strong><br><span style="color:#5B6B64">240 KB, smanjena fotografija</span></div><button class="btn" style="min-height:44px;font-size:14px" onClick="{{removePhoto}}">Ukloni</button></div></sc-if>
+</div>
+
+<sc-if value="{{hasMsg}}" hint-placeholder-val="{{false}}"><div class="msg {{msgCls}}" role="status">{{msg}}</div></sc-if>
+
+<sc-if value="{{hasQueue}}" hint-placeholder-val="{{false}}"><a href="TelOffline.dc.html" style="font-size:14px;color:#0F5C4D;font-weight:500;min-height:44px;display:flex;align-items:center">Pogledaj red čekanja ({{queued}})</a></sc-if>
+
+</main>
+
+<footer style="flex:none;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #D5DDD8;display:flex;gap:10px">
+<button class="btn p" style="flex:1" onClick="{{save}}">Spremi</button>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+const KINDS = ['Trošak', 'Prihod', 'Uplata', 'Isplata'];
+const PRESETS = [['Gorivo', 'Trošak', 'Gorivo, sedmica 41', 'Bez gradilišta'], ['Kirija', 'Trošak', 'Kirija stana', 'Hala B'], ['Alat', 'Trošak', 'Alat i oprema', 'Bez gradilišta'], ['Uplata klijenta', 'Uplata', 'Uplata po fakturi', 'Hala B'], ['Akontacija', 'Isplata', 'Akontacija radnicima', 'Bez gradilišta']];
+const st = Object.assign({ kind: 'Trošak', amt: '', desc: '', site: 'Hala B', photo: false, offline: false, queued: 0, msg: '', msgCls: 'ok' }, this.state || {});
+const set = (p) => this.setState(p);
+const toNum = (v) => { let s = String(v).trim().replace(/\s/g, ''); if (s.indexOf(',') >= 0) { s = s.replace(/\./g, '').replace(',', '.'); } else if (/^\d{1,3}(\.\d{3})+$/.test(s)) { s = s.replace(/\./g, ''); } return parseFloat(s) || 0; };
+return {
+offline: st.offline,
+toggleOffline: () => set({ offline: !st.offline, msg: '' }),
+kinds: KINDS.map((k) => ({ label: k, on: st.kind === k, cls: st.kind === k ? 'on' : '', pick: () => set({ kind: k, msg: '' }) })),
+presets: PRESETS.map(([label, kind, desc, site]) => ({ label, pick: () => set({ kind, desc, site, msg: '' }) })),
+amt: st.amt, desc: st.desc, site: st.site,
+onAmt: (e) => set({ amt: e.target.value, msg: '' }),
+onDesc: (e) => set({ desc: e.target.value, msg: '' }),
+onSite: (e) => set({ site: e.target.value }),
+noPhoto: !st.photo, hasPhoto: st.photo,
+addPhoto: () => set({ photo: true }),
+removePhoto: () => set({ photo: false }),
+hasMsg: !!st.msg, msg: st.msg, msgCls: st.msgCls,
+hasQueue: st.queued > 0, queued: st.queued,
+save: () => {
+const n = toNum(st.amt);
+if (!st.desc.trim() || !(n > 0)) { set({ msg: 'Upiši opis i iznos veći od nule.', msgCls: 'err' }); return; }
+if (st.offline) {
+set({ queued: st.queued + 1, amt: '', desc: '', photo: false, msg: 'Nema mreže. Zapis je spremljen na telefonu i čeka slanje. Ne gubi se ako zatvoriš panel.', msgCls: 'wait' });
+} else {
+set({ amt: '', desc: '', photo: false, msg: 'Zapis je spremljen.', msgCls: 'ok' });
+}
+}
+};
+}
+}
+</script>
+</body>
+</html>

@@ -138,6 +138,20 @@ Prekovremeni sati, putovanje i dnevnice za vikend nisu u procjeni; ona zato slu�
 
 Dugme **Izvoz u Excel** (gore desno) pravi datoteku za štampanje ili okačiti na gradilištu: list **Raspored** (red po radniku, kolona po danu, u ćeliji gradilište ili GO/BO) i list **Po gradilištima** (za svako gradilište i dan: potrebno, raspoređeno, imena). Obuhvata razdoblje na ekranu (u prikazima za jedan dan, tu sedmicu), najviše 62 dana, na izabranom jeziku. Predradnik dobija samo svoju jedinicu, a bolovanje piše kao "odsutan".
 
+## 13a. Primjeri iz prakse
+
+**Zamjena za odsutnog.** Ana ima godišnji odmor od 20. do 24. oktobra, a raspoređena je na Halu B. Na kartici Hale B pojavi se prazno mjesto. Kliknite ga: lista nudi **slobodne u razdoblju** (s brojem slobodnih dana) i **prebacivanje s drugog gradilišta**; radnici prave vještine su na vrhu. Izaberite zidara koji ima uvjerenje za skele. Poruka s dugmetom **Poništi** vraća prethodno stanje ako ste pogriješili.
+
+**Novo gradilište.** U projektu postavite potrebu (npr. 4 zidara, 2 armirača) i obavezno uvjerenje (rad na visini). Raspored odmah pokazuje koliko ljudi fali i koji raspoređeni nemaju uvjerenje.
+
+**Razmjena dvojice.** Klik na radnika > **Zamijeni drugim radnikom**: dvojica razmjenjuju raspored za izabrano razdoblje, bez ručnog prepravljanja oba.
+
+**Predradnik.** Predradnik raspoređuje samo ljude i gradilišta svoje poslovne jedinice; pokušaj izvan nje vraća poruku da nema pravo.
+
+**Za štampu.** *Raspored na papiru* pravi pregled koji možete odštampati i okačiti u kancelariji (najviše 62 dana).
+
+Pretraga: **Ctrl+K**, „raspored“ otvara ovu stranicu, a uputstvo „Raspored i planiranje radne snage“ ponavlja ove korake u aplikaciji.
+
 ## 14. Ograničenja ove verzije
 
 * Potreba je jedan broj po vještini za cijeli projekat. Potreba koja se mijenja po sedmicama nije podržana.

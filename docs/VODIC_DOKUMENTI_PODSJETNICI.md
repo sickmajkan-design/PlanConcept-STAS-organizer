@@ -1,5 +1,7 @@
 # Vodič: dokumenti, podsjetnici i smještaj
 
+> Šire o dokumentima (dodavanje, pretraga, dijeljenje, revizija): [VODIC_DOKUMENTI.md](VODIC_DOKUMENTI.md). Zahtjevi za dokumente: [VODIC_ZAHTJEVI_ZA_DOKUMENTE.md](VODIC_ZAHTJEVI_ZA_DOKUMENTE.md).
+
 Četiri novine iz oktobra 2026. Namijenjeno kancelariji (Admin i Super Admin) i radnicima s aplikacijom.
 
 ## 1. Broj dokumenata u zaglavlju

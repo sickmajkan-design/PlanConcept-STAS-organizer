@@ -33,7 +33,7 @@ Derived from the schema (21 tables). Only person-related data is listed.
 | `refresh_tokens` | **IP adresa** pri izdavanju i opozivu | Otkrivanje krađe sesije / Session-theft detection | 30 dana poslije isteka / 30 days past expiry |
 | `device_tokens` | Token uređaja | Push obavještenja / Push | Dok se uređaj ne odjavi / Until the device is unregistered |
 | `notifications` | Naslov i tijelo poruke po korisniku | Obavještenja / Notifications | Trajno / Indefinitely |
-| `attachments` | Dokumenti vezani za radnika (ugovori, lekarska uverenja, dozvole) | Kadrovska dokumentacija / HR documents | Trajno / Indefinitely |
+| `attachments` | Dokumenti vezani za radnika (ugovori, ljekarska uvjerenja, dozvole) | Kadrovska dokumentacija / HR documents | Trajno / Indefinitely |
 | `employee_projects`, `work_items` | Gdje je ko radio i šta je radio / Who worked where and on what | Organizacija posla / Work organisation | Trajno / Indefinitely |
 
 ### 1.0a Podaci koji napuštaju server / Data that leaves the server — **[ZA VLASNIKA / FOR THE OWNER]**
@@ -226,9 +226,9 @@ to project manager and above only (`CostRules`).
 
 ## 3. Rokovi čuvanja / Retention
 
-Podešava se promenljivama okruženja. / Set by environment variable.
+Podešava se varijablama okruženja. / Set by environment variable.
 
-| Promenljiva / Variable | Podrazumijevano / Default | Šta radi / Effect |
+| Varijabla / Variable | Podrazumijevano / Default | Šta radi / Effect |
 |---|---|---|
 | `Retention__LocationRecordDays` | `180` | GPS fiksevi stariji od toga se brišu. `0` = čuvaj sve, uz upozorenje pri pokretanju. / GPS fixes older than this are deleted. `0` = keep everything, with a startup warning. |
 | `Retention__TimeEntryCoordinateDays` | `0` (čuvaj uz smjenu / keep with the shift) | Briše koordinate smjene starije od roka; sati ostaju. / Clears shift coordinates past the window; the hours stay. |
@@ -256,7 +256,7 @@ disputed in your jurisdiction.
 
 ```
 POST /api/v1/privacy/employees/{employeeId}/erase
-{ "reason": "Zahtev lica, ref DSR-2026-014" }
+{ "reason": "Zahtjev lica, ref DSR-2026-014" }
 ```
 
 Samo Super Admin. Nepovratno. Razlog je obavezan i upisuje se u audit trag. /

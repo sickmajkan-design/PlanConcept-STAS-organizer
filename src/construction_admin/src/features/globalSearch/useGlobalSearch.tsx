@@ -5,6 +5,7 @@ import {
   ChecklistOutlined,
   CreditCardOutlined,
   EventBusyOutlined,
+  FolderOutlined,
   GroupsOutlined,
   LocalGasStationOutlined,
   ManageAccountsOutlined,
@@ -12,6 +13,7 @@ import {
   HomeWorkOutlined,
   Inventory2Outlined,
   LocalShippingOutlined,
+  MenuBookOutlined,
   PeopleOutlined,
   ReceiptLongOutlined,
   RequestQuoteOutlined,
@@ -23,6 +25,9 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { absencesApi } from '../../api/absences';
 import { accommodationsApi } from '../../api/accommodations';
 import { articleOrdersApi } from '../../api/articleOrders';
+import { attachmentsApi } from '../../api/attachments';
+import { bookApi } from '../../api/book';
+import { documentRequestsApi } from '../../api/documentRequests';
 import { bulletinApi } from '../../api/bulletin';
 import { customersApi } from '../../api/customers';
 import { employeesApi } from '../../api/employees';
@@ -42,11 +47,14 @@ import {
   canAdministerAccounts,
   canManageInvoices,
   canSeeSpending,
+  canViewBook,
   canViewDirectory,
   isSuperAdmin,
 } from '../../auth/authHelpers';
 import type { User } from '../../api/types';
-import { humanizeEnum, formatDate } from '../../utils/formatting';
+import type { MessageKey } from '../../i18n/en';
+import { liveT } from '../../i18n/liveT';
+import { formatDate } from '../../utils/formatting';
 import { paths } from '../../routes/paths';
 
 export interface GlobalSearchResult {
@@ -86,6 +94,9 @@ interface SearchScope {
   invoices: boolean;
   ledgers: boolean;
   dkv: boolean;
+  /** Documents and the requests for them: the office. */
+  documents: boolean;
+  book: boolean;
 }
 
 /** Bulletin posts whose title or text contains the words typed. */
@@ -103,6 +114,58 @@ async function searchBulletin(query: string): Promise<GlobalSearchResult[]> {
       label: p.title,
       sublabel: p.createdByName,
       path: `${paths.bulletin}?highlight=${p.id}`,
+    }),
+  );
+}
+
+/** Every word typed has to appear somewhere in the text. */
+function allWords(text: string, query: string): boolean {
+  const haystack = text.toLowerCase();
+
+  return query
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .every((word) => haystack.includes(word));
+}
+
+/**
+ * Documents by title, file name, note, owner or label. There is no search endpoint for them across the whole
+ * company, so the list the documents page itself uses is fetched once and filtered here.
+ */
+async function searchDocuments(query: string): Promise<GlobalSearchResult[]> {
+  return searchEntity(
+    async () => ({
+      items: (await attachmentsApi.expiring(null, true))
+        .filter((d) =>
+          allWords([d.title, d.fileName, d.description, d.ownerName, ...d.tags].filter(Boolean).join(' '), query),
+        )
+        .slice(0, PAGE_SIZE),
+    }),
+    (d) => ({
+      id: d.id,
+      label: d.title || d.fileName,
+      sublabel: [d.ownerName, d.title ? d.fileName : null, d.tags.length ? d.tags.map((tag) => `#${tag}`).join(' ') : null]
+        .filter(Boolean)
+        .join(' · '),
+      path: `${paths.expiringDocuments}?highlight=${d.id}`,
+    }),
+  );
+}
+
+/** Requests for documents by what was asked for or who was asked. */
+async function searchDocumentRequests(query: string): Promise<GlobalSearchResult[]> {
+  return searchEntity(
+    async () => ({
+      items: (await documentRequestsApi.list({ pageNumber: 1, pageSize: 100 }))
+        .items.filter((r) => allWords([r.title, r.employeeName, r.note].filter(Boolean).join(' '), query))
+        .slice(0, PAGE_SIZE),
+    }),
+    (r) => ({
+      id: r.id,
+      label: r.title,
+      sublabel: [r.employeeName, liveT(`docRequests.status.${r.status}` as MessageKey)].filter(Boolean).join(' · '),
+      path: `${paths.documentRequests}?highlight=${r.id}`,
     }),
   );
 }
@@ -130,6 +193,9 @@ async function runGlobalSearch(query: string, scope: SearchScope): Promise<Globa
     invoices,
     ledgers,
     bulletin,
+    documents,
+    documentRequests,
+    bookEntries,
   ] =
     await Promise.all([
       searchEntity(() => employeesApi.list(listQuery), (e) => ({
@@ -218,7 +284,7 @@ async function runGlobalSearch(query: string, scope: SearchScope): Promise<Globa
       searchEntity(() => absencesApi.list(listQuery), (a) => ({
         id: a.id,
         label: a.employeeName,
-        sublabel: `${humanizeEnum(a.type)} · ${formatDate(a.startDate)} - ${formatDate(a.endDate)}`,
+        sublabel: `${liveT(`absenceType.${a.type}` as MessageKey)} · ${formatDate(a.startDate)} - ${formatDate(a.endDate)}`,
         path: `${paths.absences}?highlight=${a.id}`,
       })),
       searchEntity(() => refundsApi.list(listQuery), (r) => ({
@@ -251,6 +317,17 @@ async function runGlobalSearch(query: string, scope: SearchScope): Promise<Globa
         : Promise.resolve([]),
       // The bulletin board is a short list, not paged, so it is filtered here instead of on the server.
       searchBulletin(query),
+      scope.documents ? searchDocuments(query) : Promise.resolve([]),
+      scope.documents ? searchDocumentRequests(query) : Promise.resolve([]),
+      // A book line has no page of its own: it opens the book of entries, filtered to what was typed.
+      scope.book
+        ? searchEntity(() => bookApi.entries.list({ pageNumber: 1, pageSize: PAGE_SIZE, search: query }), (r) => ({
+            id: r.id,
+            label: r.description || r.counterparty || r.categoryName || formatDate(r.occurredOn),
+            sublabel: [formatDate(r.occurredOn), r.categoryName, r.counterparty, r.amount.toFixed(2)].filter(Boolean).join(' · '),
+            path: `${paths.bookEntries}?search=${encodeURIComponent(query)}`,
+          }))
+        : Promise.resolve([]),
     ]);
 
   const groups: GlobalSearchGroup[] = [
@@ -272,6 +349,9 @@ async function runGlobalSearch(query: string, scope: SearchScope): Promise<Globa
     { key: 'invoices', labelKey: 'nav.invoices', icon: <ReceiptLongOutlined fontSize="small" />, results: invoices },
     { key: 'ledgers', labelKey: 'nav.ledgers', icon: <TableChartOutlined fontSize="small" />, results: ledgers },
     { key: 'bulletin', labelKey: 'nav.bulletin', icon: <CampaignOutlined fontSize="small" />, results: bulletin },
+    { key: 'documents', labelKey: 'search.documents', icon: <FolderOutlined fontSize="small" />, results: documents },
+    { key: 'documentRequests', labelKey: 'search.documentRequests', icon: <FolderOutlined fontSize="small" />, results: documentRequests },
+    { key: 'bookEntries', labelKey: 'search.bookEntries', icon: <MenuBookOutlined fontSize="small" />, results: bookEntries },
   ];
 
   return groups.filter((group) => group.results.length > 0);
@@ -298,6 +378,8 @@ export function useGlobalSearch(query: string, user: User | null | undefined) {
         invoices: canManageInvoices(user),
         ledgers: isSuperAdmin(user),
         dkv: canAdministerAccounts(user),
+        documents: canAdministerAccounts(user),
+        book: canViewBook(user),
       })
         .then((result) => {
           if (!cancelled) setGroups(result);

@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kako radi evidencija</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#16201C;background:#F4F6F4}
+a{color:inherit;text-decoration:none}
+.nav a,.nav span{display:block;padding:10px 14px;border-radius:8px;font-size:14px;color:#3B4A44}
+.nav a:hover{background:#E6ECE8}
+.nav .on{background:#0F5C4D;color:#fff;font-weight:500}
+.brand{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;padding:0 14px}
+.logo{width:26px;height:26px;border-radius:7px;background:#0F5C4D;display:inline-block}
+.newbtn{display:block;margin:0 4px;padding:11px 14px;border-radius:10px;background:#0F5C4D;color:#fff;font-weight:500;font-size:14px;text-align:center}
+.newbtn:hover{background:#0B4A3E}
+.nav .grp{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#5B6B64;padding:14px 14px 4px}
+.nav a{display:flex;align-items:center;gap:10px}
+.nav svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+*:focus-visible{outline:2px solid #0F5C4D;outline-offset:2px}
+button{transition:background .12s,border-color .12s}
+th{position:relative}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (pointer:coarse){.btn.sm,.fb{min-height:44px}}
+@media (max-width:720px){aside{flex:1 1 100% !important;min-width:0 !important;padding:12px 16px !important;border-right:none !important;border-bottom:1px solid #D5DDD8}main{padding:16px !important}.nav{flex-direction:row !important;overflow-x:auto;gap:4px !important}.nav .grp{display:none}.nav a{white-space:nowrap}.newbtn{margin:0}}
+.nav .off{color:#7C8A84}
+.card{background:#fff;border:1px solid #D5DDD8;border-radius:12px;padding:22px}
+h2{margin:0 0 6px;font-size:20px;font-weight:600}
+p{margin:0;font-size:15px;line-height:1.55;color:#2C3A34}
+.lead{font-size:13px;color:#5B6B64;margin-bottom:14px}
+.go{display:inline-block;font-size:14px;font-weight:500;color:#0F5C4D;border:1px solid #0F5C4D;border-radius:8px;padding:8px 14px;min-height:20px}
+.go:hover{background:#E6F1EC}
+.step{flex:1 1 200px;min-width:180px;border:1px solid #D5DDD8;border-radius:10px;padding:16px;background:#FAFBFA}
+.step b{display:block;font-size:15px;margin:6px 0 4px}
+.step span.n{display:inline-block;width:26px;height:26px;border-radius:50%;background:#0F5C4D;color:#fff;font-size:13px;font-weight:600;text-align:center;line-height:26px}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th{text-align:left;font-weight:500;font-size:12px;color:#5B6B64;padding:10px 12px;border-bottom:1px solid #D5DDD8}
+table.t td{padding:12px;border-bottom:1px solid #E6ECE8;vertical-align:top;line-height:1.5}
+.tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:500;background:#E3E9F6;color:#27428A}
+</style>
+</helmet>
+<div style="display:flex;flex-wrap:wrap;min-height:1500px;box-sizing:border-box">
+
+<aside style="flex:0 0 240px;background:#fff;border-right:1px solid #D5DDD8;padding:24px 16px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px;min-width:240px">
+<div class="brand"><span class="logo"></span>Evidencija</div>
+<a class="newbtn" href="Main.dc.html">+ Novi zapis</a>
+<nav class="nav" aria-label="Glavni meni" style="display:flex;flex-direction:column;gap:2px">
+<div class="grp">Pregled</div>
+<a class="on" href="Pocetak.dc.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></svg>Kako radi</a>
+<a href="Pregled.dc.html"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Pregled novca i dobiti</a>
+<div class="grp">Svaki dan</div>
+<a href="Main.dc.html"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11"/></svg>Knjiga zapisa</a>
+<a href="Potrazivanja.dc.html"><svg viewBox="0 0 24 24"><path d="M4 8h14l-3-3M20 16H6l3 3"/></svg>Ko nam duguje, kome dugujemo</a>
+<a href="Isplate.dc.html"><svg viewBox="0 0 24 24"><path d="M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l2-3h12M16 14h2"/></svg>Isplate radnicima</a>
+<div class="grp">Kraj mjeseca</div>
+<a href="Mjesec.dc.html"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M12 12h2M8 16h2M12 16h2"/></svg>Obračun mjeseca</a>
+<div class="grp">Podešavanja</div>
+<a href="Ponavljajuci.dc.html"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5l2 2M20 4v5h-5M20 12a8 8 0 0 1-14 5l-2-2M4 20v-5h5"/></svg>Ponavljajući troškovi</a>
+<a href="Kategorije.dc.html"><svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8zM7.5 8.5h.01"/></svg>Kategorije</a>
+<a href="Uvoz.dc.html"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></svg>Uvoz iz Excela</a>
+</nav>
+<div style="margin-top:auto;font-size:12px;color:#5B6B64;padding:0 14px;line-height:1.5">Probna verzija: podaci su izmišljeni, ništa se ne snima, a osvježavanje stranice vraća sve na početak.</div>
+</aside>
+
+<main style="flex:999 1 560px;min-width:0;padding:32px;box-sizing:border-box;display:flex;flex-direction:column;gap:24px;max-width:1100px">
+
+<header style="display:flex;flex-direction:column;gap:10px">
+<h1 style="margin:0;font-size:32px;font-weight:600">Evidencija umjesto Excel liste</h1>
+<p style="font-size:17px;max-width:760px">Ovo je probna verzija ekrana. Klikaj, upisuj i mijenjaj brojke; ništa se ne snima, pa ne možeš ništa pokvariti. Na kraju nam reci šta ti odgovara, a šta ne.</p>
+</header>
+
+<section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px">
+<a href="Pregled.dc.html" style="display:flex;flex-direction:column;gap:8px;padding:20px;border-radius:14px;background:#0F5C4D;color:#fff"><span style="font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.8">Korak 1</span><b style="font-size:19px;font-weight:600">Pogledaj dobit i tok novca</b><span style="font-size:14px;line-height:1.5;opacity:.9">Naslovni ekran: šta ulazi, šta izlazi, šta ostaje, i šta traži tvoju pažnju.</span></a>
+<a href="Main.dc.html" style="display:flex;flex-direction:column;gap:8px;padding:20px;border-radius:14px;background:#fff;border:1px solid #D5DDD8"><span style="font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#5B6B64">Korak 2</span><b style="font-size:19px;font-weight:600">Upiši prvi trošak</b><span style="font-size:14px;line-height:1.5;color:#2C3A34">Brzi unos s prečicama. Pogledaj kako se odmah promijene zbirovi.</span></a>
+<a href="Mjesec.dc.html" style="display:flex;flex-direction:column;gap:8px;padding:20px;border-radius:14px;background:#fff;border:1px solid #D5DDD8"><span style="font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#5B6B64">Korak 3</span><b style="font-size:19px;font-weight:600">Isprobaj obračun mjeseca</b><span style="font-size:14px;line-height:1.5;color:#2C3A34">Promijeni način naplate ili sate i gledaj zaradu firme.</span></a>
+</section>
+
+<section class="card" style="background:#E0EFE8;border-color:#A9D3C4">
+<h2>Isprobaj na telefonu</h2>
+<div class="lead" style="color:#2C3A34">Pet ekrana veličine telefona: za rad na terenu, bez mreže i s prijavom otiskom prsta.</div>
+<div style="display:flex;flex-wrap:wrap;gap:10px">
+<a class="go" href="TelPrijava.dc.html">Prijava otiskom prsta</a>
+<a class="go" href="TelPregled.dc.html">Pregled</a>
+<a class="go" href="TelUnos.dc.html">Brzi unos s kamerom</a>
+<a class="go" href="TelOffline.dc.html">Rad bez mreže</a>
+<a class="go" href="TelObracun.dc.html">Obračun kao kartice</a>
+</div>
+</section>
+
+<section class="card">
+<h2>Ideja u tri rečenice</h2>
+<p>Svaki prihod, trošak, uplata i isplata upiše se samo jednom, kao jedan red u Knjizi. Sve ostalo (zbirovi, dobit, ko nam duguje, obračun mjeseca) program računa sam iz tih redova. Zato više nema formula koje se pokvare i sekcija koja izostane iz zbira.</p>
+</section>
+
+<section class="card">
+<h2>Kako izgleda jedan mjesec</h2>
+<div class="lead">Pet koraka, od prvog dana do izvoza za knjigovođu.</div>
+<div style="display:flex;flex-wrap:wrap;gap:12px">
+<div class="step"><span class="n">1</span><b>Unesi</b><p style="font-size:14px">Brzi unos u Knjizi. Gorivo, smještaj i vozila dolaze sami.</p></div>
+<div class="step"><span class="n">2</span><b>Program računa</b><p style="font-size:14px">Prihodi, troškovi, dobit i obračun po gradilištima.</p></div>
+<div class="step"><span class="n">3</span><b>Provjeri</b><p style="font-size:14px">Lista "Za provjeru" pokaže šta ne štima.</p></div>
+<div class="step"><span class="n">4</span><b>Zaključaj</b><p style="font-size:14px">Mjesec se više ne mijenja, svaka ispravka ostavlja trag.</p></div>
+<div class="step"><span class="n">5</span><b>Izvezi</b><p style="font-size:14px">Excel za knjigovođu, iste brojke kao na ekranu.</p></div>
+</div>
+</section>
+
+<section class="card">
+<h2>Šta koja funkcija radi</h2>
+<div class="lead">Isto objašnjenje stoji i na samim ekranima, u rubrici "Kako ovo radi".</div>
+<div style="overflow-x:auto">
+<table class="t">
+<thead><tr><th>Funkcija</th><th>Šta radi</th><th>Primjer</th><th><span class="sr">Radnje</span></th></tr></thead>
+<tbody>
+<tr><td><b>Pregled novca i dobiti</b></td><td>Naslovni ekran: ulaz, izlaz i dobit za izabrani period, s prikazom "od sati do dobiti", grafikonom po mjesecima i statistikom troškova.</td><td>Izaberi "Zadnja 3 mjeseca" ili ručno Od i Do.</td><td><a class="go" href="Pregled.dc.html">Probaj</a></td></tr>
+<tr><td><b>Tok novca u narednim danima</b></td><td>Redoslijed očekivanih uplata i isplata. Pokaže kad plata radnika izlazi prije naplate klijenta i da li stanje pada ispod nule.</td><td>Upiši koliko imaš na računu i vidi najnižu tačku.</td><td><a class="go" href="Pregled.dc.html">Probaj</a></td></tr>
+<tr><td><b>Procjena sljedećeg mjeseca</b></td><td>Predviđa ulaz, izlaz i dobit iz prosjeka zadnja tri mjeseca. Sate možeš mijenjati.</td><td>"Šta ako u novembru radimo 3.500 sati?"</td><td><a class="go" href="Pregled.dc.html">Probaj</a></td></tr>
+<tr><td><b>Brzi unos</b></td><td>Jedan red na vrhu Knjige: datum, vrsta, opis, gradilište, druga strana, iznos.</td><td>"Gorivo sedmica 41, 1.980 €" i zbir se odmah promijeni.</td><td><a class="go" href="Main.dc.html">Probaj</a></td></tr>
+<tr><td><b>Vrste zapisa</b></td><td>Prihod (izdata faktura) i trošak mijenjaju dobit. Uplata i isplata samo mijenjaju ko kome šta duguje.</td><td>Uplata klijenta smanjuje otvorena potraživanja, ali dobit ostaje ista.</td><td><a class="go" href="Main.dc.html">Probaj</a></td></tr>
+<tr><td><b>Izvor zapisa</b></td><td>Oznaka odakle red dolazi: ručno, DKV izvod, smještaj, vozila, šablon.</td><td>DKV gorivo i kirija stana nastaju sami, ne upisuješ ih.</td><td><a class="go" href="Main.dc.html">Pogledaj</a></td></tr>
+<tr><td><b>Filteri</b></td><td>Prikaz samo prihoda, troškova, uplata ili isplata, i pretraga po opisu ili strani.</td><td>"Samo troškovi" i upiši "gorivo".</td><td><a class="go" href="Main.dc.html">Probaj</a></td></tr>
+<tr><td><b>Ko nam duguje, kome dugujemo</b></td><td>Otvorene fakture klijentima, plata radnika i računi dobavljača, s rokovima i kašnjenjem.</td><td>"Označi plaćeno" prebacuje fakturu u plaćene i mijenja zbirove.</td><td><a class="go" href="Potrazivanja.dc.html">Probaj</a></td></tr>
+<tr><td><b>Obračun mjeseca</b></td><td>Tabela po gradilištima kao u Excelu, ali izračunata iz Knjige. Sate upisuješ iz potpisanih satnica.</td><td>Promijeni sate na Hali B i vidi maržu, rezultat i zaradu firme.</td><td><a class="go" href="Mjesec.dc.html">Probaj</a></td></tr>
+<tr><td><b>Način naplate po gradilištu</b></td><td>Za svako gradilište biraš: satnica (sati × cijena), paušal ili mjerenje (iznos izdatih faktura) ili bez naplate. Program pokaže i koliko bi bilo po satnici.</td><td>Zgrada D je paušal; prebaci je na satnicu i vidi razliku.</td><td><a class="go" href="Mjesec.dc.html">Probaj</a></td></tr>
+<tr><td><b>Akontacije i konačna isplata</b></td><td>Akontacija može biti više puta u mjesecu, bilo kome, gotovinom ili prenosom. Konačna isplata = zarada minus akontacije, s datumom i načinom po grupi.</td><td>Dodaj dvije akontacije radnicima i vidi šta ostaje.</td><td><a class="go" href="Isplate.dc.html">Probaj</a></td></tr>
+<tr><td><b>Ponavljajući troškovi</b></td><td>Šablon za trošak koji se ponavlja (kirija, fiksni troškovi, zakup, osiguranje). Program ga sam upisuje u Knjigu svakog mjeseca.</td><td>Dodaj šablon i pogledaj šta nastaje u novembru.</td><td><a class="go" href="Ponavljajuci.dc.html">Probaj</a></td></tr>
+<tr><td><b>Kategorije i pravila</b></td><td>Kategorija kaže o kakvom je novcu riječ i u koji dio obračuna ide. Pravila pogađaju kategoriju iz opisa.</td><td>Upiši "Gorivo, DKV izvod" i vidi šta program predloži.</td><td><a class="go" href="Kategorije.dc.html">Probaj</a></td></tr>
+<tr><td><b>Uvoz iz Excela</b></td><td>Prebacuje stare mjesece iz Dariove tabele u četiri koraka, s provjerom svakog reda prije upisa.</td><td>Učitaj primjer, ispravi kolonu i pogledaj greške.</td><td><a class="go" href="Uvoz.dc.html">Probaj</a></td></tr>
+<tr><td><b>Za provjeru</b></td><td>Lista stvari koje treba pogledati prije zaključivanja: previše sati, paušal bez fakture, kašnjenje.</td><td>Označi "Riješeno" i vidi kako se otključava zaključavanje.</td><td><a class="go" href="Mjesec.dc.html">Probaj</a></td></tr>
+<tr><td><b>Zaključaj mjesec</b></td><td>Poslije zaključavanja brojke se ne mijenjaju. Ispravka traži otključavanje i upisuje ko je i kada.</td><td>Zaključaj oktobar kad su sve kućice označene.</td><td><a class="go" href="Mjesec.dc.html">Probaj</a></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="card">
+<h2>Šta da probaš</h2>
+<div class="lead">Sedam zadataka, oko petnaest minuta.</div>
+<ol style="margin:0;padding-left:22px;display:flex;flex-direction:column;gap:10px;font-size:15px;line-height:1.5">
+<li>Na <a href="Pregled.dc.html" style="color:#0F5C4D;font-weight:500">Pregledu</a> izaberi period, pogledaj dobit, pa upiši koliko imaš na računu i provjeri da li stanje negdje pada ispod nule.</li>
+<li>U <a href="Main.dc.html" style="color:#0F5C4D;font-weight:500">Knjizi</a> upiši jedan trošak i pogledaj kako se promijeni dobit.</li>
+<li>Upiši jedan prihod (novu fakturu) i provjeri da li se povećala otvorena potraživanja.</li>
+<li>Filtriraj samo troškove, pa potraži riječ "gorivo".</li>
+<li>U <a href="Potrazivanja.dc.html" style="color:#0F5C4D;font-weight:500">potraživanjima</a> označi fakturu Klijenta A kao plaćenu.</li>
+<li>U <a href="Mjesec.dc.html" style="color:#0F5C4D;font-weight:500">obračunu</a> prebaci Zgradu D sa paušala na satnicu, pa promijeni sate na Hali B i pogledaj zaradu firme.</li>
+<li>Riješi stavke za provjeru i pokušaj zaključati oktobar.</li>
+</ol>
+</section>
+
+<section class="card">
+<h2>Šta nam trebaš reći</h2>
+<div class="lead">Ovo odlučuje kako ćemo graditi pravu verziju.</div>
+<ol style="margin:0;padding-left:22px;display:flex;flex-direction:column;gap:10px;font-size:15px;line-height:1.5">
+<li>Da li ti je ovo lakše od Excela, ili ti nešto smeta ili fali?</li>
+<li>Da li novac vodiš samo u eurima ili i u drugim valutama?</li>
+<li>Da li želiš pratiti naplatu faktura i rokove?</li>
+<li>Isplaćuješ li radnike gotovinom, preko računa ili oboje, i da li to želiš evidentirati?</li>
+<li>Šta danas šalješ knjigovođi i u kojem obliku?</li>
+<li>Koje kolone iz Excela ti ovdje fale?</li>
+</ol>
+</section>
+
+<section class="card" style="background:#FBF3E0;border-color:#E6D3A3">
+<h2>Šta program ne radi</h2>
+<p>Ne vodi porez, PDV ni doprinose, i nije zamjena za knjigovođu. Ovo je tvoja evidencija novca; knjigovođa i dalje radi zvanično knjigovodstvo, a od nas dobija uredan izvoz.</p>
+</section>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":1500}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

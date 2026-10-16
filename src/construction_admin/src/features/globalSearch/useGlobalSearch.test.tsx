@@ -120,6 +120,54 @@ describe('global search', () => {
     expect(calledWith('/users')).toBe(false);
   }, SCREEN_TIMEOUT);
 
+  it('finds a document by its label and opens it on the documents page', async () => {
+    network.reply('/attachments/expiring', 200, [
+      { id: 'd1', title: 'Viza Marko', fileName: 'scan001.pdf', description: null, ownerName: 'Marko Horvat', tags: ['viza', 'radna'] },
+      { id: 'd2', title: null, fileName: 'ugovor.pdf', description: null, ownerName: 'Ana Novak', tags: [] },
+    ]);
+
+    await search('viza', 'Admin');
+
+    const row = await screen.findByTestId('documents', undefined, { timeout: 8000 });
+    expect(row.textContent).toBe('Viza Marko|Marko Horvat · scan001.pdf · #viza #radna|/documents/expiring?highlight=d1');
+    expect(screen.queryByText(/ugovor/)).toBeNull();
+  }, SCREEN_TIMEOUT);
+
+  it('finds a request for a document by what was asked or who was asked', async () => {
+    network.reply('/documentrequests', 200, page([
+      { id: 'r1', title: 'Pasoš', employeeName: 'Ana Novak', note: null, status: 'Submitted' },
+      { id: 'r2', title: 'Viza', employeeName: 'Marko Horvat', note: null, status: 'Open' },
+    ]));
+
+    await search('novak', 'Admin');
+
+    const row = await screen.findByTestId('documentRequests', undefined, { timeout: 8000 });
+    expect(row.textContent).toContain('Pasoš|Ana Novak');
+    expect(row.textContent).toContain('/documents/requests?highlight=r1');
+  }, SCREEN_TIMEOUT);
+
+  it('finds a line of the book and opens the book filtered to what was typed', async () => {
+    network.reply('/book/entries', 200, page([
+      { id: 'b1', description: 'Gorivo sedmica 41', counterparty: 'DKV', categoryName: 'Gorivo', occurredOn: '2026-10-12', amount: 1980 },
+    ]));
+
+    await search('gorivo', 'SuperAdmin');
+
+    const row = await screen.findByTestId('bookEntries', undefined, { timeout: 8000 });
+    expect(row.textContent).toContain('Gorivo sedmica 41');
+    expect(row.textContent).toContain('/book/entries?search=gorivo');
+  }, SCREEN_TIMEOUT);
+
+  it('does not ask for documents, requests or the book of an account that may not open them', async () => {
+    await search('te', 'Foreman');
+
+    await waitFor(() => expect(calledWith('/vehicles')).toBe(true), { timeout: 8000 });
+
+    expect(calledWith('/attachments/expiring')).toBe(false);
+    expect(calledWith('/documentrequests')).toBe(false);
+    expect(calledWith('/book/entries')).toBe(false);
+  }, SCREEN_TIMEOUT);
+
   it('asks the statement and the ledger only of the people who may open them', async () => {
     await search('te', 'SuperAdmin');
 

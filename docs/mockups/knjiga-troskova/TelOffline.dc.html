@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telefon: Red čekanja</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#16201C;background:#F4F6F4}
+a{color:inherit;text-decoration:none}
+.num{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+.bar{display:flex;align-items:center;height:56px;padding:0 8px;background:#fff;border-bottom:1px solid #D5DDD8;flex:none;gap:4px}
+.ib{width:44px;height:44px;border:none;background:none;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;color:#16201C;cursor:pointer}
+.ib svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.banner{padding:12px 16px;font-size:14px;line-height:1.45;flex:none}
+.off{background:#F6E1DA;color:#8A2F1B}.on{background:#DCEFE8;color:#0B4A3E}
+.card{background:#fff;border:1px solid #D5DDD8;border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:500;white-space:nowrap}
+.s-wait{background:#FBEFCF;color:#7A5200}.s-send{background:#E3E9F6;color:#27428A}.s-sent{background:#DCEFE8;color:#0B4A3E}.s-err{background:#F6D5CD;color:#8A2F1B}
+.btn{font:inherit;font-size:14px;font-weight:600;border-radius:10px;padding:0 14px;min-height:44px;border:1px solid #B9C5BF;background:#fff;color:#16201C;cursor:pointer}
+.btn.p{background:#0F5C4D;border-color:#0F5C4D;color:#fff}
+*:focus-visible{outline:2px solid #0F5C4D;outline-offset:2px}
+</style>
+</helmet>
+<div style="width:390px;height:844px;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;background:#F4F6F4">
+
+<header class="bar"><a class="ib" href="TelUnos.dc.html" aria-label="Nazad"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></a><h1 style="margin:0;font-size:17px;font-weight:600">Čeka slanje ({{waiting}})</h1></header>
+
+<div class="banner {{bannerCls}}" role="status">{{banner}}</div>
+
+<main style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px">
+
+<sc-for list="{{items}}" as="i" hint-placeholder-count="3">
+<section class="card">
+<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+<div style="display:flex;flex-direction:column;gap:2px"><strong style="font-size:15px;font-weight:600">{{i.desc}}</strong><span style="font-size:12.5px;color:#5B6B64">{{i.site}} · {{i.time}}{{i.photo}}</span></div>
+<span class="num" style="font-size:16px;font-weight:500;white-space:nowrap">−{{i.amount}} €</span>
+</div>
+<div><span class="chip {{i.cls}}">{{i.label}}</span></div>
+<sc-if value="{{i.hasErr}}" hint-placeholder-val="{{false}}"><div style="font-size:13.5px;line-height:1.45;color:#8A2F1B">{{i.err}}</div></sc-if>
+<sc-if value="{{i.canAct}}" hint-placeholder-val="{{true}}"><div style="display:flex;gap:8px"><sc-if value="{{i.isErr}}" hint-placeholder-val="{{false}}"><a class="btn" style="display:inline-flex;align-items:center" href="TelUnos.dc.html">Uredi</a></sc-if><button class="btn" onClick="{{i.remove}}">Obriši</button></div></sc-if>
+</section>
+</sc-for>
+
+<sc-if value="{{empty}}" hint-placeholder-val="{{false}}"><div style="text-align:center;color:#5B6B64;padding:32px 0;font-size:14px">Nema ničega što čeka slanje.</div></sc-if>
+
+<div style="font-size:12.5px;color:#5B6B64;line-height:1.5">Ovi unosi su samo na ovom telefonu dok se ne pošalju. Odjava iz panela ih briše, pa te program pita prije toga. Zbirovi su prikazani iz zadnjeg učitavanja ({{asOf}}).</div>
+
+</main>
+
+<footer style="flex:none;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid #D5DDD8;display:flex;gap:10px">
+<button class="btn" style="flex:1" onClick="{{toggleNet}}">{{netLabel}}</button>
+<button class="btn p" style="flex:1" disabled="{{cannotSend}}" onClick="{{sendNow}}">Pošalji sada</button>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+renderVals() {
+const def = { online: false, items: [
+{ id: 1, desc: 'Gorivo, sedmica 41', site: 'Bez gradilišta', time: '11.10. 07:42', amount: '1.980,00', photo: false, status: 'wait', err: '' },
+{ id: 2, desc: 'Alat i oprema', site: 'Hala B', time: '11.10. 09:15', amount: '640,00', photo: true, status: 'wait', err: '' },
+{ id: 3, desc: 'Zakup šatora', site: 'Zgrada D', time: '11.10. 10:03', amount: '300,00', photo: false, status: 'error', err: 'Server je odbio unos: datum 30.09. je u zaključanom mjesecu (septembar). Promijeni datum ili obriši unos.' }
+] };
+const st = Object.assign({}, def, this.state || {});
+const set = (p) => this.setState(p);
+const LABEL = { wait: 'Čeka slanje', sending: 'Šalje se', sent: 'Poslano', error: 'Greška' };
+const CLS = { wait: 's-wait', sending: 's-send', sent: 's-sent', error: 's-err' };
+const waiting = st.items.filter((i) => i.status === 'wait' || i.status === 'sending').length;
+const sendAll = () => {
+const ids = st.items.filter((i) => i.status === 'wait').map((i) => i.id);
+if (!ids.length) return;
+this.setState({ online: true, items: st.items.map((i) => (ids.indexOf(i.id) >= 0 ? Object.assign({}, i, { status: 'sending' }) : i)) });
+setTimeout(() => this.setState({ items: (this.state.items || []).map((i) => (i.status === 'sending' ? Object.assign({}, i, { status: 'sent' }) : i)) }), 1100);
+};
+return {
+waiting,
+banner: st.online ? 'Mreža je tu. Unosi se šalju jedan po jedan.' : (st.tried ? 'Slanje nije uspjelo: još nema mreže. Unosi su i dalje sigurno na telefonu.' : 'Nema mreže. Unosi čekaju na telefonu i šalju se čim se mreža vrati.'),
+bannerCls: st.online ? 'on' : 'off',
+items: st.items.map((i) => ({ desc: i.desc, site: i.site, time: i.time, amount: i.amount, photo: i.photo ? ' · s računom' : '', label: LABEL[i.status], cls: CLS[i.status], hasErr: !!i.err, err: i.err, isErr: i.status === 'error', canAct: i.status === 'wait' || i.status === 'error', remove: () => set({ items: st.items.filter((x) => x.id !== i.id) }) })),
+empty: st.items.length === 0,
+asOf: 'podaci od 10:42',
+netLabel: st.online ? 'Prekini mrežu' : 'Mreža se vratila',
+toggleNet: () => { if (st.online) { set({ online: false, tried: false }); } else { sendAll(); } },
+cannotSend: !st.items.some((i) => i.status === 'wait'),
+sendNow: () => { if (st.online) { sendAll(); } else { set({ tried: true }); } }
+};
+}
+}
+</script>
+</body>
+</html>

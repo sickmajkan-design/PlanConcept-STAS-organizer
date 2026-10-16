@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ko nam duguje, kome dugujemo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#16201C;background:#F4F6F4}
+a{color:inherit;text-decoration:none}
+.nav a,.nav span{display:block;padding:10px 14px;border-radius:8px;font-size:14px;color:#3B4A44}
+.nav a:hover{background:#E6ECE8}
+.nav .on{background:#0F5C4D;color:#fff;font-weight:500}
+.brand{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;padding:0 14px}
+.logo{width:26px;height:26px;border-radius:7px;background:#0F5C4D;display:inline-block}
+.newbtn{display:block;margin:0 4px;padding:11px 14px;border-radius:10px;background:#0F5C4D;color:#fff;font-weight:500;font-size:14px;text-align:center}
+.newbtn:hover{background:#0B4A3E}
+.nav .grp{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#5B6B64;padding:14px 14px 4px}
+.nav a{display:flex;align-items:center;gap:10px}
+.nav svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+*:focus-visible{outline:2px solid #0F5C4D;outline-offset:2px}
+button{transition:background .12s,border-color .12s}
+th{position:relative}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (pointer:coarse){.btn.sm,.fb{min-height:44px}}
+@media (max-width:720px){aside{flex:1 1 100% !important;min-width:0 !important;padding:12px 16px !important;border-right:none !important;border-bottom:1px solid #D5DDD8}main{padding:16px !important}.nav{flex-direction:row !important;overflow-x:auto;gap:4px !important}.nav .grp{display:none}.nav a{white-space:nowrap}.newbtn{margin:0}}
+.nav .off{color:#7C8A84}
+.num{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+.chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:500;white-space:nowrap}
+.s-ok{background:#E8EFEB;color:#3B4A44}
+.s-open{background:#FBEFCF;color:#7A5200}
+.s-late{background:#F6D5CD;color:#8A2F1B}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th{text-align:left;font-weight:500;font-size:12px;color:#5B6B64;padding:10px 12px;border-bottom:1px solid #D5DDD8;white-space:nowrap}
+table.t td{padding:11px 12px;border-bottom:1px solid #E6ECE8;vertical-align:middle}
+.btn{font:inherit;font-size:14px;font-weight:500;border-radius:8px;padding:9px 16px;cursor:pointer;border:1px solid #B9C5BF;background:#fff;color:#16201C;min-height:44px}
+.btn.p{background:#0F5C4D;border-color:#0F5C4D;color:#fff}
+.btn.sm{min-height:36px;padding:4px 12px;font-size:13px}
+details.how{background:#fff;border:1px solid #D5DDD8;border-left:4px solid #0F5C4D;border-radius:12px;padding:14px 18px}
+details.how summary{cursor:pointer;font-size:15px;font-weight:600}
+details.how ul{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.5;color:#2C3A34}
+</style>
+</helmet>
+<div style="display:flex;flex-wrap:wrap;min-height:1180px;box-sizing:border-box">
+
+<aside style="flex:0 0 240px;background:#fff;border-right:1px solid #D5DDD8;padding:24px 16px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px;min-width:240px">
+<div class="brand"><span class="logo"></span>Evidencija</div>
+<a class="newbtn" href="Main.dc.html">+ Novi zapis</a>
+<nav class="nav" aria-label="Glavni meni" style="display:flex;flex-direction:column;gap:2px">
+<div class="grp">Pregled</div>
+<a href="Pocetak.dc.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></svg>Kako radi</a>
+<a href="Pregled.dc.html"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Pregled novca i dobiti</a>
+<div class="grp">Svaki dan</div>
+<a href="Main.dc.html"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11"/></svg>Knjiga zapisa</a>
+<a class="on" href="Potrazivanja.dc.html"><svg viewBox="0 0 24 24"><path d="M4 8h14l-3-3M20 16H6l3 3"/></svg>Ko nam duguje, kome dugujemo</a>
+<a href="Isplate.dc.html"><svg viewBox="0 0 24 24"><path d="M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l2-3h12M16 14h2"/></svg>Isplate radnicima</a>
+<div class="grp">Kraj mjeseca</div>
+<a href="Mjesec.dc.html"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M12 12h2M8 16h2M12 16h2"/></svg>Obračun mjeseca</a>
+<div class="grp">Podešavanja</div>
+<a href="Ponavljajuci.dc.html"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5l2 2M20 4v5h-5M20 12a8 8 0 0 1-14 5l-2-2M4 20v-5h5"/></svg>Ponavljajući troškovi</a>
+<a href="Kategorije.dc.html"><svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8zM7.5 8.5h.01"/></svg>Kategorije</a>
+<a href="Uvoz.dc.html"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></svg>Uvoz iz Excela</a>
+</nav>
+<div style="margin-top:auto;font-size:12px;color:#5B6B64;padding:0 14px;line-height:1.5">Probna verzija: izmišljeni podaci, ništa se ne snima.</div>
+</aside>
+
+<main style="flex:999 1 560px;min-width:0;padding:28px 32px;box-sizing:border-box;display:flex;flex-direction:column;gap:24px">
+
+<header style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between">
+<div style="display:flex;flex-direction:column;gap:6px">
+<h1 style="margin:0;font-size:28px;font-weight:600">Ko nam duguje, kome dugujemo</h1>
+<div style="font-size:14px;color:#3B4A44">Stanje na dan 12.10.2026.</div>
+</div>
+<button class="btn" onClick="{{reset}}">Vrati primjer</button>
+</header>
+
+<details class="how" open>
+<summary>Kako ovo radi</summary>
+<ul>
+<li><b>Lijeva strana</b> su fakture koje smo izdali, a klijent ih još nije platio. Kad klijent plati, klik na <b>Označi plaćeno</b> potvrđuje uplatu: faktura izlazi iz otvorenih i zbir se smanji. U pravoj verziji se u Knjizi sam upiše zapis "Uplata".</li>
+<li><b>Kasni</b> znači da je rok prošao. Dugme za opomenu priprema poruku klijentu.</li>
+<li><b>Mi dugujemo</b>: plata radnika je obračunata zarada minus akontacija koju smo već isplatili, plus računi dobavljača koje nismo platili.</li>
+<li><b>Razlika</b> pokazuje da li imamo dovoljno ulaza da pokrijemo ono što dugujemo, kad klijenti plate.</li>
+</ul>
+</details>
+
+<section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px">
+<div style="background:#fff;border:1px solid #D5DDD8;border-radius:12px;padding:18px"><div style="font-size:13px;color:#5B6B64">Klijenti nam duguju</div><div class="num" style="font-size:28px;font-weight:500;margin-top:6px;color:#0B4A3E">{{owedToUs}} €</div><div style="font-size:13px;color:#5B6B64;margin-top:4px">{{openCount}}</div></div>
+<div style="background:#fff;border:1px solid #D5DDD8;border-radius:12px;padding:18px"><div style="font-size:13px;color:#5B6B64">Mi dugujemo</div><div class="num" style="font-size:28px;font-weight:500;margin-top:6px;color:#8A2F1B">{{weOwe}} €</div><div style="font-size:13px;color:#5B6B64;margin-top:4px">radnici i dobavljači</div></div>
+<div style="background:#16201C;border-radius:12px;padding:18px;color:#fff"><div style="font-size:13px;opacity:.8">Razlika</div><div class="num" style="font-size:28px;font-weight:500;margin-top:6px">{{diff}} €</div><div style="font-size:13px;opacity:.8;margin-top:4px">kad klijenti plate sve otvoreno</div></div>
+</section>
+
+<section style="background:#fff;border:1px solid #D5DDD8;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px">
+<div style="font-size:15px;font-weight:600">Starost potraživanja</div>
+<div style="display:flex;height:28px;border-radius:8px;overflow:hidden;background:#E6ECE8">
+<div style="flex:{{onTime}} 1 0;background:#0F5C4D;color:#fff;font-size:13px;display:flex;align-items:center;padding:0 12px;overflow:hidden;white-space:nowrap" class="num">{{onTimeLabel}}</div>
+<div style="flex:{{lateSum}} 1 0;background:#B4452F;color:#fff;font-size:13px;display:flex;align-items:center;padding:0 12px;overflow:hidden;white-space:nowrap" class="num">{{lateLabel}}</div>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:20px;font-size:13px;color:#3B4A44">
+<span><span style="display:inline-block;width:10px;height:10px;background:#0F5C4D;border-radius:2px;margin-right:6px"></span>Nije dospjelo</span>
+<span><span style="display:inline-block;width:10px;height:10px;background:#B4452F;border-radius:2px;margin-right:6px"></span>Kasni</span>
+</div>
+</section>
+
+<section style="background:#fff;border:1px solid #D5DDD8;border-radius:12px">
+<div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid #D5DDD8">
+<div style="font-size:15px;font-weight:600">Klijenti nam duguju</div>
+<sc-if value="{{canRemind}}" hint-placeholder-val="{{true}}"><button class="btn sm" onClick="{{remind}}">Pripremi opomenu Klijentu C</button></sc-if>
+</div>
+<sc-if value="{{reminded}}" hint-placeholder-val="{{false}}"><div style="margin:12px 18px 0;font-size:14px;color:#0B4A3E;background:#DCEFE8;border-radius:8px;padding:10px 12px">Opomena je pripremljena. U pravoj verziji bi otišla e-poštom, a ti je prije slanja pregledaš.</div></sc-if>
+<div style="overflow-x:auto">
+<table class="t">
+<thead><tr><th>Faktura</th><th>Klijent</th><th>Gradilište</th><th>Izdata</th><th>Rok</th><th>Status</th><th style="text-align:right">Iznos</th><th><span class="sr">Radnje</span></th></tr></thead>
+<tbody>
+<sc-for list="{{receivables}}" as="r" hint-placeholder-count="2">
+<tr>
+<td class="num">{{r.no}}</td><td>{{r.client}}</td><td>{{r.site}}</td><td class="num">{{r.issued}}</td><td class="num">{{r.due}}</td>
+<td><span class="chip {{r.cls}}">{{r.status}}</span></td>
+<td class="num" style="text-align:right">{{r.amountLabel}}</td>
+<td style="text-align:right"><sc-if value="{{r.open}}" hint-placeholder-val="{{true}}"><button class="btn sm" onClick="{{r.pay}}">Označi plaćeno</button></sc-if></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</section>
+
+<section style="background:#fff;border:1px solid #D5DDD8;border-radius:12px">
+<div style="padding:16px 18px;border-bottom:1px solid #D5DDD8;font-size:15px;font-weight:600">Mi dugujemo</div>
+<div style="overflow-x:auto">
+<table class="t">
+<thead><tr><th>Kome</th><th>Za šta</th><th>Rok</th><th>Status</th><th style="text-align:right">Iznos</th><th><span class="sr">Radnje</span></th></tr></thead>
+<tbody>
+<sc-for list="{{payables}}" as="p" hint-placeholder-count="2">
+<tr>
+<td>{{p.who}}</td><td>{{p.what}}</td><td class="num">{{p.due}}</td>
+<td><span class="chip {{p.cls}}">{{p.status}}</span></td>
+<td class="num" style="text-align:right">{{p.amountLabel}}</td>
+<td style="text-align:right"><sc-if value="{{p.open}}" hint-placeholder-val="{{true}}"><button class="btn sm" onClick="{{p.pay}}">{{p.action}}</button></sc-if></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<div style="padding:14px 18px;font-size:13px;color:#5B6B64">Plata radnika = obračunata zarada minus isplaćena akontacija (36.260 € = 39.460 € − 3.200 €).</div>
+</section>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":1180}}'>
+class Component extends DCLogic {
+renderVals() {
+const st = Object.assign({ paidR: {}, paidP: {}, reminded: false }, this.state || {});
+const fmt = (n) => n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmt0 = (n) => Math.round(n).toLocaleString('de-DE');
+const R = [
+{ no: '2026-041', client: 'Klijent A', site: 'Hala B', issued: '01.10.', due: '15.10.', n: 18400, late: false, label: 'Otvoreno', cls: 's-open' },
+{ no: '2026-042', client: 'Klijent C', site: 'Zgrada D', issued: '01.10.', due: '06.10.', n: 12500, late: true, label: 'Kasni 6 dana', cls: 's-late' }
+];
+const P = [
+{ id: 'wage', who: 'Radnici', what: 'Plata za oktobar, obračunato', due: '10.11.', n: 36260, label: 'Nije dospjelo', cls: 's-ok', action: 'Evidentiraj isplatu' },
+{ id: 'tool', who: 'Dobavljač 2', what: 'Alat i uniforme', due: '22.10.', n: 640, label: 'Otvoreno', cls: 's-open', action: 'Označi plaćeno' }
+];
+const set = (patch) => this.setState(patch);
+const openR = R.filter((r) => !st.paidR[r.no]);
+const owedToUs = openR.reduce((s, r) => s + r.n, 0);
+const weOwe = P.filter((p) => !st.paidP[p.id]).reduce((s, p) => s + p.n, 0);
+const onTime = openR.filter((r) => !r.late).reduce((s, r) => s + r.n, 0);
+const lateSum = openR.filter((r) => r.late).reduce((s, r) => s + r.n, 0);
+const d = owedToUs - weOwe;
+return {
+owedToUs: fmt0(owedToUs), weOwe: fmt0(weOwe),
+diff: (d < 0 ? '−' : '+') + fmt0(Math.abs(d)),
+openCount: openR.length === 0 ? 'sve je plaćeno' : openR.length + (openR.length === 1 ? ' otvorena faktura' : ' otvorene fakture') + (lateSum > 0 ? ', 1 kasni' : ''),
+onTime, lateSum,
+onTimeLabel: onTime > 0 ? fmt0(onTime) + ' €' : '',
+lateLabel: lateSum > 0 ? fmt0(lateSum) + ' €' : '',
+canRemind: !st.paidR['2026-042'], reminded: st.reminded && !st.paidR['2026-042'],
+remind: () => set({ reminded: true }),
+receivables: R.map((r) => ({ no: r.no, client: r.client, site: r.site, issued: r.issued, due: r.due, status: st.paidR[r.no] ? 'Plaćeno' : r.label, cls: st.paidR[r.no] ? 's-ok' : r.cls, amountLabel: fmt(r.n) + ' €', open: !st.paidR[r.no], pay: () => set({ paidR: Object.assign({}, st.paidR, { [r.no]: true }) }) })),
+payables: P.map((p) => ({ who: p.who, what: p.what, due: p.due, status: st.paidP[p.id] ? 'Plaćeno' : p.label, cls: st.paidP[p.id] ? 's-ok' : p.cls, amountLabel: fmt(p.n) + ' €', action: p.action, open: !st.paidP[p.id], pay: () => set({ paidP: Object.assign({}, st.paidP, { [p.id]: true }) }) })),
+reset: () => set({ paidR: {}, paidP: {}, reminded: false })
+};
+}
+}
+</script>
+</body>
+</html>

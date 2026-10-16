@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Uvoz iz Excela</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#16201C;background:#F4F6F4}
+a{color:inherit;text-decoration:none}
+.nav a,.nav span{display:block;padding:10px 14px;border-radius:8px;font-size:14px;color:#3B4A44}
+.nav a:hover{background:#E6ECE8}
+.nav .on{background:#0F5C4D;color:#fff;font-weight:500}
+.brand{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;padding:0 14px}
+.logo{width:26px;height:26px;border-radius:7px;background:#0F5C4D;display:inline-block}
+.newbtn{display:block;margin:0 4px;padding:11px 14px;border-radius:10px;background:#0F5C4D;color:#fff;font-weight:500;font-size:14px;text-align:center}
+.newbtn:hover{background:#0B4A3E}
+.nav .grp{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#5B6B64;padding:14px 14px 4px}
+.nav a{display:flex;align-items:center;gap:10px}
+.nav svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+*:focus-visible{outline:2px solid #0F5C4D;outline-offset:2px}
+button{transition:background .12s,border-color .12s}
+th{position:relative}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (pointer:coarse){.btn.sm,.fb{min-height:44px}}
+@media (max-width:720px){aside{flex:1 1 100% !important;min-width:0 !important;padding:12px 16px !important;border-right:none !important;border-bottom:1px solid #D5DDD8}main{padding:16px !important}.nav{flex-direction:row !important;overflow-x:auto;gap:4px !important}.nav .grp{display:none}.nav a{white-space:nowrap}.newbtn{margin:0}}
+.num{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+.card{background:#fff;border:1px solid #D5DDD8;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.card h2{margin:0;font-size:17px;font-weight:600}
+.sub{font-size:13px;color:#5B6B64;line-height:1.5}
+.chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:500;white-space:nowrap}
+.s-ok{background:#DCEFE8;color:#0B4A3E}
+.s-warn{background:#FBEFCF;color:#7A5200}
+.s-err{background:#F6D5CD;color:#8A2F1B}
+.btn{font:inherit;font-size:14px;font-weight:500;border-radius:8px;padding:9px 16px;cursor:pointer;border:1px solid #B9C5BF;background:#fff;color:#16201C;min-height:44px}
+.btn.p{background:#0F5C4D;border-color:#0F5C4D;color:#fff}
+.btn:disabled{background:#E6ECE8;border-color:#D5DDD8;color:#8A9690;cursor:not-allowed}
+.in{font:inherit;font-size:14px;border:1px solid #B9C5BF;border-radius:8px;padding:8px 10px;background:#fff;color:#16201C;min-height:40px;box-sizing:border-box}
+.lab{font-size:12px;color:#5B6B64;display:block;margin-bottom:4px}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th{text-align:left;font-weight:500;font-size:12px;color:#5B6B64;padding:10px 12px;border-bottom:1px solid #D5DDD8;white-space:nowrap}
+table.t td{padding:9px 12px;border-bottom:1px solid #E6ECE8;vertical-align:middle}
+table.t th.r,table.t td.r{text-align:right}
+details.how{background:#fff;border:1px solid #D5DDD8;border-left:4px solid #0F5C4D;border-radius:12px;padding:14px 18px}
+details.how summary{cursor:pointer;font-size:15px;font-weight:600}
+details.how ul{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.5;color:#2C3A34}
+.msg{font-size:14px;border-radius:8px;padding:10px 12px;line-height:1.5;background:#DCEFE8;color:#0B4A3E}
+.msg.w{background:#FBF3E0;color:#5C4300}
+.msg.b{background:#F6E1DA;color:#8A2F1B}
+.drop{border:2px dashed #B9C5BF;border-radius:12px;padding:36px 18px;text-align:center;background:#FAFBFA;display:flex;flex-direction:column;gap:12px;align-items:center}
+.step{flex:1 1 150px;padding:10px 14px;border-radius:10px;border:1px solid #D5DDD8;background:#fff;font-size:14px;color:#5B6B64}
+.step.on{border-color:#0F5C4D;background:#E0EFE8;color:#0B4A3E;font-weight:600}
+.step.done{color:#3B4A44}
+</style>
+</helmet>
+<div style="display:flex;flex-wrap:wrap;min-height:1600px;box-sizing:border-box">
+
+<aside style="flex:0 0 240px;background:#fff;border-right:1px solid #D5DDD8;padding:24px 16px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px;min-width:240px">
+<div class="brand"><span class="logo"></span>Evidencija</div>
+<a class="newbtn" href="Main.dc.html">+ Novi zapis</a>
+<nav class="nav" aria-label="Glavni meni" style="display:flex;flex-direction:column;gap:2px">
+<div class="grp">Pregled</div>
+<a href="Pocetak.dc.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></svg>Kako radi</a>
+<a href="Pregled.dc.html"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Pregled novca i dobiti</a>
+<div class="grp">Svaki dan</div>
+<a href="Main.dc.html"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11"/></svg>Knjiga zapisa</a>
+<a href="Potrazivanja.dc.html"><svg viewBox="0 0 24 24"><path d="M4 8h14l-3-3M20 16H6l3 3"/></svg>Ko nam duguje, kome dugujemo</a>
+<a href="Isplate.dc.html"><svg viewBox="0 0 24 24"><path d="M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l2-3h12M16 14h2"/></svg>Isplate radnicima</a>
+<div class="grp">Kraj mjeseca</div>
+<a href="Mjesec.dc.html"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M12 12h2M8 16h2M12 16h2"/></svg>Obračun mjeseca</a>
+<div class="grp">Podešavanja</div>
+<a href="Ponavljajuci.dc.html"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5l2 2M20 4v5h-5M20 12a8 8 0 0 1-14 5l-2-2M4 20v-5h5"/></svg>Ponavljajući troškovi</a>
+<a href="Kategorije.dc.html"><svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8zM7.5 8.5h.01"/></svg>Kategorije</a>
+<a class="on" href="Uvoz.dc.html"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></svg>Uvoz iz Excela</a>
+</nav>
+<div style="margin-top:auto;font-size:12px;color:#5B6B64;padding:0 14px;line-height:1.5">Probna verzija: izmišljeni podaci, ništa se ne snima.</div>
+</aside>
+
+<main style="flex:999 1 560px;min-width:0;padding:28px 32px;box-sizing:border-box;display:flex;flex-direction:column;gap:24px">
+
+<header style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between">
+<div style="display:flex;flex-direction:column;gap:6px">
+<h1 style="margin:0;font-size:28px;font-weight:600">Uvoz iz Excela</h1>
+<div style="font-size:14px;color:#3B4A44">Prebaci stare mjesece iz Dariove tabele, bez prekucavanja</div>
+</div>
+<button class="btn" onClick="{{reset}}">Počni ispočetka</button>
+</header>
+
+<details class="how" open>
+<summary>Kako ovo radi</summary>
+<ul>
+<li>Uvoz ide u <b>četiri koraka</b>: izabereš datoteku, program pogodi koja kolona je šta (ti ispraviš ako pogriješi), pregledaš šta će se desiti, pa potvrdiš.</li>
+<li>Prije nego što se išta upiše, program <b>provjerava svaki red</b>: da li su sati brojevi, da li se radnik ponavlja, da li ima cijenu, da li je radnik poznat.</li>
+<li><b>Upozorenje</b> (žuto) se uvozi, ali ga treba pogledati. <b>Greška</b> (crveno) se ne uvozi, osim ako je ispraviš u Excelu pa učitaš ponovo.</li>
+<li>Uvoz se može <b>ponoviti</b> bez dupliranja: red koji već postoji se prepoznaje i ne upisuje drugi put.</li>
+<li>Uvezeni mjeseci ulaze u Obračun mjeseca i u Pregled, pa odmah dobijaš istoriju za grafikone i procjene.</li>
+</ul>
+</details>
+
+<section style="display:flex;gap:10px;flex-wrap:wrap">
+<sc-for list="{{steps}}" as="s" hint-placeholder-count="4">
+<div class="step {{s.cls}}">{{s.label}}</div>
+</sc-for>
+</section>
+
+<sc-if value="{{s1}}" hint-placeholder-val="{{true}}">
+<section class="card">
+<h2>1. Izaberi datoteku</h2>
+<div class="drop">
+<div style="font-size:15px;font-weight:500">Prevuci Excel datoteku ovdje</div>
+<div class="sub">.xlsx ili .xls, jedan list po mjesecu, najviše 20 MB</div>
+<button class="btn p" onClick="{{load}}">Učitaj primjer iz Dariove tabele</button>
+</div>
+<sc-if value="{{loaded}}" hint-placeholder-val="{{false}}">
+<div class="msg">Učitano: <b>Obracun_2026.xlsx</b>, 9 listova (januar do septembar 2026). Za probu je otvoren list Septembar, sekcija Hala B, 8 od 143 reda.</div>
+<div style="display:flex;gap:12px;align-items:end;flex-wrap:wrap">
+<div><label class="lab" for="u-month">Uvezi u mjesec</label><select id="u-month" class="in" value="{{month}}" onChange="{{onMonth}}"><option>Septembar 2026</option><option>Avgust 2026</option><option>Juli 2026</option></select></div>
+<button class="btn p" onClick="{{go2}}">Dalje: mapiranje kolona</button>
+</div>
+</sc-if>
+</section>
+</sc-if>
+
+<sc-if value="{{s2}}" hint-placeholder-val="{{false}}">
+<section class="card">
+<h2>2. Šta je koja kolona</h2>
+<div class="sub">Program je prema nazivima pogodio značenje kolona. Ispravi ako nije tačno.</div>
+<div style="overflow-x:auto">
+<table class="t">
+<thead><tr><th>Kolona u Excelu</th><th>Primjer iz prvog reda</th><th>Znači</th></tr></thead>
+<tbody>
+<sc-for list="{{cols}}" as="c" hint-placeholder-count="10">
+<tr>
+<td class="num">{{c.name}}</td><td class="num">{{c.sample}}</td>
+<td><select class="in" style="width:auto" aria-label="Značenje kolone" value="{{c.field}}" onChange="{{c.onField}}"><option>Radnik</option><option>Sati (sedmica)</option><option>Cijena radnika</option><option>Cijena za klijenta</option><option>Akontacija</option><option>Gorivo</option><option>Ne uvozi</option></select></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<sc-if value="{{noWorker}}" hint-placeholder-val="{{false}}"><div class="msg b">Nijedna kolona nije označena kao Radnik. Bez toga uvoz ne može dalje.</div></sc-if>
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+<button class="btn" onClick="{{back1}}">Nazad</button>
+<button class="btn p" disabled="{{noWorker}}" onClick="{{go3}}">Dalje: pregled i provjera</button>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{s3}}" hint-placeholder-val="{{false}}">
+<section class="card">
+<h2>3. Pregled i provjera</h2>
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+<span class="chip s-ok">{{cnt.ok}} u redu</span><span class="chip s-warn">{{cnt.warn}} upozorenja</span><span class="chip s-err">{{cnt.err}} grešaka</span>
+</div>
+<div style="overflow-x:auto">
+<table class="t">
+<thead><tr><th>Radnik</th><th class="r">Sati</th><th class="r">Cijena radnika</th><th class="r">Cijena za klijenta</th><th class="r">Akontacija</th><th class="r">Gorivo</th><th>Provjera</th></tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+<tr>
+<td>{{r.name}}</td><td class="num r">{{r.hours}}</td><td class="num r">{{r.pr}}</td><td class="num r">{{r.pk}}</td><td class="num r">{{r.ak}}</td><td class="num r">{{r.go}}</td>
+<td><span class="chip {{r.cls}}">{{r.label}}</span> <span style="font-size:13px;color:#3B4A44">{{r.msg}}</span></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<label style="display:flex;gap:10px;align-items:center;min-height:32px;font-size:14px"><input type="checkbox" checked="{{skipErr}}" onChange="{{toggleSkip}}"> Preskoči redove s greškom (ostali se uvoze)</label>
+<label style="display:flex;gap:10px;align-items:center;min-height:32px;font-size:14px"><input type="checkbox" checked="{{createNew}}" onChange="{{toggleCreate}}"> Napravi radnike koje program ne poznaje ({{unknownNames}})</label>
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+<button class="btn" onClick="{{back2}}">Nazad</button>
+<button class="btn p" onClick="{{go4}}">Dalje: potvrdi uvoz</button>
+</div>
+</section>
+</sc-if>
+
+<sc-if value="{{s4}}" hint-placeholder-val="{{false}}">
+<section class="card">
+<h2>4. Potvrda</h2>
+<div class="msg w">Uvozi se u <b>{{month}}</b>: <b>{{sum.n}}</b> redova, ukupno <b>{{sum.hours}}</b> sati, naplata klijentima <b>{{sum.bill}} €</b>, zarada radnika <b>{{sum.wage}} €</b>. Preskočeno redova: <b>{{sum.skipped}}</b>.</div>
+<sc-if value="{{imported}}" hint-placeholder-val="{{false}}"><div class="msg">Uvezeno. Mjesec {{month}} je sada u Obračunu i u Pregledu. Ako uvoz ponoviš s istom datotekom, postojeći redovi se prepoznaju i ne dupliraju. Izvještaj uvoza se čuva uz mjesec.</div></sc-if>
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+<button class="btn" onClick="{{back3}}">Nazad</button>
+<button class="btn p" disabled="{{imported}}" onClick="{{run}}">Uvezi</button>
+</div>
+</section>
+</sc-if>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":1600}}'>
+class Component extends DCLogic {
+renderVals() {
+const COLS = ['Ime', 'KW36', 'KW37', 'KW38', 'KW39', 'KW40', 'SATNICA', 'SATNICA WH', 'AKONTACIJA', 'GORIVO'];
+const GUESS = { 'Ime': 'Radnik', 'KW36': 'Sati (sedmica)', 'KW37': 'Sati (sedmica)', 'KW38': 'Sati (sedmica)', 'KW39': 'Sati (sedmica)', 'KW40': 'Sati (sedmica)', 'SATNICA': 'Cijena radnika', 'SATNICA WH': 'Cijena za klijenta', 'AKONTACIJA': 'Akontacija', 'GORIVO': 'Gorivo' };
+// kw: 5 weeks, pr, pk, ak, go; coop: counts as group, unknown: not in system
+const DATA = [
+{ name: 'Marko P.', kw: ['40', '40', '40', '40', '0'], pr: '11', pk: '16', ak: '0', go: '120' },
+{ name: 'Ivan K.', kw: ['40', '40', '32', '40', '8'], pr: '11', pk: '16', ak: '300', go: '0' },
+{ name: 'Nikola S.', kw: ['40', '40', '40', '40', '40'], pr: '11', pk: '16', ak: '0', go: '0' },
+{ name: 'Petar V.', kw: ['40', '40', '40', '40', '0'], pr: '', pk: '16', ak: '0', go: '0' },
+{ name: 'Marko P.', kw: ['8', '0', '0', '0', '0'], pr: '11', pk: '16', ak: '0', go: '0' },
+{ name: 'Stefan T.', kw: ['40', 'x', '40', '40', '40'], pr: '11', pk: '16', ak: '0', go: '0', unknown: true },
+{ name: 'Luka M.', kw: ['40', '40', '40', '40', '0'], pr: '11', pk: '16', ak: '0', go: '0', unknown: true },
+{ name: 'Kooperanti ×4', kw: ['160', '160', '160', '160', '0'], pr: '12', pk: '16', ak: '0', go: '0', coop: true }
+];
+const def = { step: 1, loaded: false, month: 'Septembar 2026', map: GUESS, skip: true, create: true, imported: false };
+const st = Object.assign({}, def, this.state || {});
+const set = (p) => this.setState(p);
+const fmt = (n) => Math.round(n).toLocaleString('de-DE');
+const mapped = (f) => COLS.filter((c) => st.map[c] === f);
+const noWorker = mapped('Radnik').length === 0;
+const seen = {};
+const rows = DATA.map((d) => {
+const get = (c) => {
+const idx = COLS.indexOf(c);
+if (idx === 0) return d.name;
+if (idx >= 1 && idx <= 5) return d.kw[idx - 1];
+return [d.pr, d.pk, d.ak, d.go][idx - 6];
+};
+const weekCols = mapped('Sati (sedmica)');
+let hours = 0, bad = false;
+weekCols.forEach((c) => { const v = get(c); if (v !== '' && isNaN(Number(v))) bad = true; else hours += Number(v) || 0; });
+const val = (f) => { const c = mapped(f)[0]; return c ? get(c) : null; };
+const pr = val('Cijena radnika'), pk = val('Cijena za klijenta'), ak = val('Akontacija'), go = val('Gorivo');
+const dup = !!seen[d.name];
+seen[d.name] = true;
+let level = 'ok', msg = '';
+if (bad) { level = 'err'; msg = 'Sati nisu broj.'; }
+else if (dup) { level = 'err'; msg = 'Radnik se već pojavljuje u ovoj sekciji.'; }
+else if (d.unknown && !st.create) { level = 'err'; msg = 'Radnik nije u sistemu.'; }
+else if (!d.coop && hours > 176 && weekCols.length > 0) { level = 'warn'; msg = hours + ' sati, očekivano 176.'; }
+else if (pr !== null && pr === '') { level = 'warn'; msg = 'Nema cijene radnika.'; }
+else if (d.unknown) { level = 'warn'; msg = 'Radnik će biti napravljen.'; }
+const n = (v) => (v === null ? '—' : (v === '' ? '?' : v));
+return { d, level, msg, hours, bad, prN: Number(pr) || 0, pkN: Number(pk) || 0, view: { name: d.name, hours: weekCols.length ? (bad ? '?' : String(hours)) : '—', pr: n(pr), pk: n(pk), ak: n(ak), go: n(go), cls: level === 'ok' ? 's-ok' : (level === 'warn' ? 's-warn' : 's-err'), label: level === 'ok' ? 'U redu' : (level === 'warn' ? 'Upozorenje' : 'Greška'), msg } };
+});
+const cnt = { ok: rows.filter((r) => r.level === 'ok').length, warn: rows.filter((r) => r.level === 'warn').length, err: rows.filter((r) => r.level === 'err').length };
+const used = rows.filter((r) => r.level !== 'err' || !st.skip);
+const importable = rows.filter((r) => r.level !== 'err');
+const target = st.skip ? importable : used;
+const sum = { n: target.length, skipped: rows.length - target.length, hours: fmt(target.reduce((s, r) => s + (r.bad ? 0 : r.hours), 0)), bill: fmt(target.reduce((s, r) => s + (r.bad ? 0 : r.hours * r.pkN), 0)), wage: fmt(target.reduce((s, r) => s + (r.bad ? 0 : r.hours * r.prN), 0)) };
+const labels = ['1. Datoteka', '2. Kolone', '3. Provjera', '4. Potvrda'];
+return {
+steps: labels.map((l, i) => ({ label: l, cls: st.step === i + 1 ? 'on' : (st.step > i + 1 ? 'done' : '') })),
+s1: st.step === 1, s2: st.step === 2, s3: st.step === 3, s4: st.step === 4,
+loaded: st.loaded, month: st.month,
+load: () => set({ loaded: true }),
+onMonth: (e) => set({ month: e.target.value }),
+go2: () => set({ step: 2 }),
+cols: COLS.map((c) => ({ name: c, sample: c === 'Ime' ? 'Marko P.' : (COLS.indexOf(c) <= 5 ? '40' : ['11', '16', '0', '120'][COLS.indexOf(c) - 6]), field: st.map[c], onField: (e) => set({ map: Object.assign({}, st.map, { [c]: e.target.value }) }) })),
+noWorker, back1: () => set({ step: 1 }), go3: () => set({ step: 3 }),
+rows: rows.map((r) => r.view), cnt,
+skipErr: st.skip, createNew: st.create,
+toggleSkip: () => set({ skip: !st.skip }), toggleCreate: () => set({ create: !st.create }),
+unknownNames: 'Stefan T., Luka M.',
+back2: () => set({ step: 2 }), go4: () => set({ step: 4, imported: false }),
+sum, imported: st.imported, back3: () => set({ step: 3, imported: false }),
+run: () => set({ imported: true }),
+reset: () => set(def)
+};
+}
+}
+</script>
+</body>
+</html>

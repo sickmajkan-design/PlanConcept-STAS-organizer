@@ -1,9 +1,11 @@
 import { HelpOutlined } from '@mui/icons-material';
-import { Dialog, DialogContent, DialogTitle, Tab, Tabs, Typography, Stack, Chip } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Tab, Tabs, Typography, Stack, Chip } from '@mui/material';
 import { useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 
 import type { MessageKey } from '../i18n/en';
 import { useT } from '../i18n/useI18n';
+import { paths } from '../routes/paths';
 
 /** One numbered step or bullet in the guide, always one translated string. */
 function GuideItem({ children }: { children: string }) {
@@ -116,6 +118,11 @@ export function PlatformGuideDialog({ open, onClose }: { open: boolean; onClose:
           </Stack>
         )}
       </DialogContent>
+      <DialogActions>
+        <Button component={RouterLink} to={paths.help} onClick={onClose}>
+          {t('guide.moreHelp')}
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 }

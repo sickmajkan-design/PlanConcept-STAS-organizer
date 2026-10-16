@@ -57,7 +57,7 @@ import { useI18n, useT } from '../../i18n/useI18n';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { useSavedViews } from '../../hooks/useSavedViews';
 import { paths } from '../../routes/paths';
-import { formatDate, formatMoney, humanizeEnum } from '../../utils/formatting';
+import { formatDate, formatMoney } from '../../utils/formatting';
 
 interface VehicleViewState {
   search: string;
@@ -244,7 +244,7 @@ export function VehiclesListPage() {
         field: 'fuelType',
         headerName: t('vehicles.fuelShort'),
         width: 110,
-        valueFormatter: (value: string) => humanizeEnum(value),
+        valueFormatter: (value: string) => enumLabel('fuelType', value),
       },
       {
         field: 'status',

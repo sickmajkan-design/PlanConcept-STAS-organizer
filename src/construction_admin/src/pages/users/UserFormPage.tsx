@@ -399,9 +399,7 @@ export function UserFormPage() {
 
             <Grid size={{ xs: 12 }}>
               <Typography variant="caption" color="text.secondary">
-                Link an account to an employee for anyone who uses the mobile app —
-                GPS reporting identifies the person from that link, and an unlinked
-                account is refused by those screens.
+                {t('users.employeeHelp')}
               </Typography>
             </Grid>
 

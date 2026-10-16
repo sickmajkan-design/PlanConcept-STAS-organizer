@@ -7,6 +7,8 @@
  * through unchanged.
  */
 
+import { MORE_PAIRS, MORE_TEMPLATES } from './serverMessages.more.sr'
+
 type Pair = readonly [en: string, sr: string]
 
 // ---------------------------------------------------------------------------
@@ -379,6 +381,7 @@ const EXACT_PAIRS: Pair[] = [
   ...MATERIALS,
   ...WORK,
   ...FILES,
+  ...MORE_PAIRS,
 ]
 
 /** English message to Serbian text, for static messages. */
@@ -486,6 +489,9 @@ const TEMPLATES: Template[] = [
   tpl('A batch may contain at most {#} pings.', (n) => `Skup smije sadržati najviše ${n} lokacija.`),
   tpl('A conversation may carry at most {#} earlier messages.', (n) => `Razgovor smije sadržati najviše ${n} ranijih poruka.`),
   tpl('An earlier message cannot exceed {#} characters.', (n) => `Ranija poruka ne smije imati više od ${n} znakova.`),
+
+  // Documents, the book of money, invoices, business units, planning (see serverMessages.more.sr.ts)
+  ...MORE_TEMPLATES.map(([pattern, sr]) => tpl(pattern, sr)),
 ]
 
 /**

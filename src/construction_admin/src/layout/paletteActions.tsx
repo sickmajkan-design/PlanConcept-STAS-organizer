@@ -2,7 +2,9 @@ import {
   AddCircleOutlined,
   CampaignOutlined,
   EventBusyOutlined,
+  FolderOutlined,
   LocalGasStationOutlined,
+  UploadFileOutlined,
 } from '@mui/icons-material';
 import type { ReactNode } from 'react';
 
@@ -10,6 +12,7 @@ import type { User } from '../api/types';
 import {
   canAdministerAccounts,
   canSeeSpending,
+  canViewBook,
   canViewDirectory,
 } from '../auth/authHelpers';
 import type { useT } from '../i18n/useI18n';
@@ -20,6 +23,8 @@ export interface PaletteAction {
   label: string;
   path: string;
   icon: ReactNode;
+  /** Other words that find it, in both languages. */
+  keywords?: string;
 }
 
 /**
@@ -72,12 +77,65 @@ export function buildPaletteActions(
 
     actions.push(
       {
+        key: 'uploadDocument',
+        label: t('action.uploadDocument'),
+        path: `${paths.expiringDocuments}?upload=1`,
+        icon: <UploadFileOutlined fontSize="small" />,
+        keywords: 'dodaj dokument prilog datoteka otpremi upload attach file',
+      },
+      {
+        key: 'requestDocument',
+        label: t('action.requestDocument'),
+        path: `${paths.documentRequests}?new=1`,
+        icon: <FolderOutlined fontSize="small" />,
+        keywords: 'zahtjev traži dokument novi radnik paket request document',
+      },
+      {
         key: 'announce',
         label: t('action.sendAnnouncement'),
         path: `${paths.notifications}?compose=1`,
         icon: <CampaignOutlined fontSize="small" />,
       },
       { key: 'user', label: t('action.newUser'), path: paths.userNew, icon: plus },
+    );
+  }
+
+  if (canViewBook(user)) {
+    actions.push({
+      key: 'importBookMonth',
+      label: t('action.importBookMonth'),
+      path: paths.bookImport,
+      icon: <UploadFileOutlined fontSize="small" />,
+      keywords: 'uvoz excel xlsx tabela stari mjesec import spreadsheet',
+    });
+  }
+
+  if (canSeeSpending(user)) {
+    actions.push({
+      key: 'importFuel',
+      label: t('action.importFuel'),
+      path: paths.fuelImport,
+      icon: <LocalGasStationOutlined fontSize="small" />,
+      keywords: 'uvoz izvod gorivo kartice import statement fuel',
+    });
+  }
+
+  if (canViewDirectory(user)) {
+    actions.push(
+      {
+        key: 'importAccommodation',
+        label: t('action.importAccommodation'),
+        path: paths.accommodationImport,
+        icon: <UploadFileOutlined fontSize="small" />,
+        keywords: 'uvoz smještaj excel import housing',
+      },
+      {
+        key: 'importDeliveries',
+        label: t('action.importDeliveries'),
+        path: paths.materialDeliveryImport,
+        icon: <UploadFileOutlined fontSize="small" />,
+        keywords: 'uvoz isporuke materijal excel import deliveries material',
+      },
     );
   }
 

@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ponavljajući troškovi</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#16201C;background:#F4F6F4}
+a{color:inherit;text-decoration:none}
+.nav a,.nav span{display:block;padding:10px 14px;border-radius:8px;font-size:14px;color:#3B4A44}
+.nav a:hover{background:#E6ECE8}
+.nav .on{background:#0F5C4D;color:#fff;font-weight:500}
+.brand{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;padding:0 14px}
+.logo{width:26px;height:26px;border-radius:7px;background:#0F5C4D;display:inline-block}
+.newbtn{display:block;margin:0 4px;padding:11px 14px;border-radius:10px;background:#0F5C4D;color:#fff;font-weight:500;font-size:14px;text-align:center}
+.newbtn:hover{background:#0B4A3E}
+.nav .grp{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#5B6B64;padding:14px 14px 4px}
+.nav a{display:flex;align-items:center;gap:10px}
+.nav svg{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+*:focus-visible{outline:2px solid #0F5C4D;outline-offset:2px}
+button{transition:background .12s,border-color .12s}
+th{position:relative}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (pointer:coarse){.btn.sm,.fb{min-height:44px}}
+@media (max-width:720px){aside{flex:1 1 100% !important;min-width:0 !important;padding:12px 16px !important;border-right:none !important;border-bottom:1px solid #D5DDD8}main{padding:16px !important}.nav{flex-direction:row !important;overflow-x:auto;gap:4px !important}.nav .grp{display:none}.nav a{white-space:nowrap}.newbtn{margin:0}}
+.num{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+.card{background:#fff;border:1px solid #D5DDD8;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.card h2{margin:0;font-size:17px;font-weight:600}
+.sub{font-size:13px;color:#5B6B64;line-height:1.5}
+.chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:500;white-space:nowrap}
+.s-ok{background:#DCEFE8;color:#0B4A3E}
+.s-off{background:#E8EBE9;color:#5B6B64}
+.btn{font:inherit;font-size:14px;font-weight:500;border-radius:8px;padding:9px 16px;cursor:pointer;border:1px solid #B9C5BF;background:#fff;color:#16201C;min-height:44px}
+.btn.p{background:#0F5C4D;border-color:#0F5C4D;color:#fff}
+.btn.sm{min-height:36px;padding:4px 12px;font-size:13px}
+.in{font:inherit;font-size:14px;border:1px solid #B9C5BF;border-radius:8px;padding:8px 10px;background:#fff;color:#16201C;min-height:40px;box-sizing:border-box;width:100%}
+.lab{font-size:12px;color:#5B6B64;display:block;margin-bottom:4px}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th{text-align:left;font-weight:500;font-size:12px;color:#5B6B64;padding:10px 12px;border-bottom:1px solid #D5DDD8;white-space:nowrap}
+table.t td{padding:9px 12px;border-bottom:1px solid #E6ECE8;vertical-align:middle}
+table.t th.r,table.t td.r{text-align:right}
+details.how{background:#fff;border:1px solid #D5DDD8;border-left:4px solid #0F5C4D;border-radius:12px;padding:14px 18px}
+details.how summary{cursor:pointer;font-size:15px;font-weight:600}
+details.how ul{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;line-height:1.5;color:#2C3A34}
+.msg{font-size:14px;border-radius:8px;padding:10px 12px;background:#DCEFE8;color:#0B4A3E}
+.tot{font-size:15px;font-weight:600;display:flex;justify-content:space-between;border-top:1px solid #D5DDD8;padding-top:12px}
+</style>
+</helmet>
+<div style="display:flex;flex-wrap:wrap;min-height:1500px;box-sizing:border-box">
+
+<aside style="flex:0 0 240px;background:#fff;border-right:1px solid #D5DDD8;padding:24px 16px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px;min-width:240px">
+<div class="brand"><span class="logo"></span>Evidencija</div>
+<a class="newbtn" href="Main.dc.html">+ Novi zapis</a>
+<nav class="nav" aria-label="Glavni meni" style="display:flex;flex-direction:column;gap:2px">
+<div class="grp">Pregled</div>
+<a href="Pocetak.dc.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></svg>Kako radi</a>
+<a href="Pregled.dc.html"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Pregled novca i dobiti</a>
+<div class="grp">Svaki dan</div>
+<a href="Main.dc.html"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3zM5 17a3 3 0 0 1 3-3h11"/></svg>Knjiga zapisa</a>
+<a href="Potrazivanja.dc.html"><svg viewBox="0 0 24 24"><path d="M4 8h14l-3-3M20 16H6l3 3"/></svg>Ko nam duguje, kome dugujemo</a>
+<a href="Isplate.dc.html"><svg viewBox="0 0 24 24"><path d="M3 7h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 7l2-3h12M16 14h2"/></svg>Isplate radnicima</a>
+<div class="grp">Kraj mjeseca</div>
+<a href="Mjesec.dc.html"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h2M12 12h2M8 16h2M12 16h2"/></svg>Obračun mjeseca</a>
+<div class="grp">Podešavanja</div>
+<a class="on" href="Ponavljajuci.dc.html"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 14-5l2 2M20 4v5h-5M20 12a8 8 0 0 1-14 5l-2-2M4 20v-5h5"/></svg>Ponavljajući troškovi</a>
+<a href="Kategorije.dc.html"><svg viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8zM7.5 8.5h.01"/></svg>Kategorije</a>
+<a href="Uvoz.dc.html"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></svg>Uvoz iz Excela</a>
+</nav>
+<div style="margin-top:auto;font-size:12px;color:#5B6B64;padding:0 14px;line-height:1.5">Probna verzija: izmišljeni podaci, ništa se ne snima.</div>
+</aside>
+
+<main style="flex:999 1 560px;min-width:0;padding:28px 32px;box-sizing:border-box;display:flex;flex-direction:column;gap:24px">
+
+<header style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between">
+<div style="display:flex;flex-direction:column;gap:6px">
+<h1 style="margin:0;font-size:28px;font-weight:600">Ponavljajući troškovi</h1>
+<div style="font-size:14px;color:#3B4A44">Upiši jednom, program ih sam stavlja u Knjigu svakog mjeseca</div>
+</div>
+<button class="btn" onClick="{{reset}}">Vrati primjer</button>
+</header>
+
+<details class="how" open>
+<summary>Kako ovo radi</summary>
+<ul>
+<li>Za trošak koji se ponavlja (kirija, fiksni troškovi po zemlji, zakup vozila, osiguranje) napraviš <b>šablon</b>: iznos, koliko često i koji dan u mjesecu.</li>
+<li>Prvog dana u mjesecu program iz svakog <b>aktivnog</b> šablona napravi red u Knjizi, s oznakom izvora "Šablon". Ništa ne moraš kucati.</li>
+<li>Iznos možeš promijeniti u svakom trenutku. Promjena važi od sljedećeg mjeseca, a već napravljeni zapisi ostaju kakvi jesu.</li>
+<li>Šablon koji više ne treba ne briše se, nego <b>isključi</b>. Stari zapisi zbog toga ostaju u evidenciji.</li>
+<li>Dolje je <b>pregled sljedećeg mjeseca</b>: vidiš šta će nastati i koliko ukupno, prije nego što se desi.</li>
+</ul>
+</details>
+
+<section class="card">
+<h2>Šabloni</h2>
+<div style="overflow-x:auto">
+<table class="t">
+<thead><tr><th>Naziv</th><th>Kategorija</th><th>Gradilište / zemlja</th><th>Koliko često</th><th>Dan</th><th class="r">Iznos (€)</th><th>Status</th><th><span class="sr">Radnje</span></th></tr></thead>
+<tbody>
+<sc-for list="{{items}}" as="t" hint-placeholder-count="7">
+<tr>
+<td>{{t.name}}</td><td>{{t.cat}}</td><td>{{t.where}}</td><td>{{t.freq}}</td><td class="num">{{t.day}}.</td>
+<td class="r"><input class="in num" style="width:100px;text-align:right" aria-label="Iznos" value="{{t.amount}}" onChange="{{t.onAmount}}"></td>
+<td><span class="chip {{t.cls}}">{{t.status}}</span></td>
+<td style="text-align:right"><button class="btn sm" onClick="{{t.toggle}}">{{t.action}}</button></td>
+</tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="card">
+<h2>Novi šablon</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;align-items:end">
+<div style="grid-column:span 2"><label class="lab" for="n-name">Naziv</label><input id="n-name" class="in" placeholder="npr. Računovodstvo" value="{{f.name}}" onChange="{{onName}}"></div>
+<div><label class="lab" for="n-cat">Kategorija</label><select id="n-cat" class="in" value="{{f.cat}}" onChange="{{onCat}}"><option>Fiksni troškovi</option><option>Stanovanje</option><option>Rent a car</option><option>Osiguranje</option><option>Ostalo</option></select></div>
+<div><label class="lab" for="n-where">Gradilište / zemlja</label><select id="n-where" class="in" value="{{f.where}}" onChange="{{onWhere}}"><option>Bez gradilišta</option><option>Hala B</option><option>Skladište C</option><option>Zgrada D</option><option>Slovenija</option><option>Njemačka</option><option>Hrvatska</option></select></div>
+<div><label class="lab" for="n-freq">Koliko često</label><select id="n-freq" class="in" value="{{f.freq}}" onChange="{{onFreq}}"><option>Mjesečno</option><option>Kvartalno</option><option>Godišnje</option></select></div>
+<div><label class="lab" for="n-start">Počinje u mjesecu</label><select id="n-start" class="in" value="{{f.start}}" onChange="{{onStart}}"><option value="1">Januar</option><option value="2">Februar</option><option value="3">Mart</option><option value="4">April</option><option value="5">Maj</option><option value="6">Juni</option><option value="7">Juli</option><option value="8">August</option><option value="9">Septembar</option><option value="10">Oktobar</option><option value="11">Novembar</option><option value="12">Decembar</option></select></div>
+<div><label class="lab" for="n-day">Dan u mjesecu</label><input id="n-day" class="in num" value="{{f.day}}" onChange="{{onDay}}"></div>
+<div><label class="lab" for="n-amt">Iznos (€)</label><input id="n-amt" class="in num" style="text-align:right" placeholder="500,00" value="{{f.amount}}" onChange="{{onAmt}}"></div>
+<div><button class="btn p" style="width:100%" onClick="{{add}}">Dodaj šablon</button></div>
+</div>
+<sc-if value="{{hasErr}}" hint-placeholder-val="{{false}}"><div class="msg" style="background:#F6E1DA;color:#8A2F1B">{{err}}</div></sc-if>
+</section>
+
+<section class="card">
+<h2>Pregled: šta nastaje u mjesecu</h2>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<sc-for list="{{months}}" as="m" hint-placeholder-count="3">
+<button class="btn sm" style="background:{{m.bg}};color:{{m.fg}}" onClick="{{m.pick}}">{{m.label}}</button>
+</sc-for>
+</div>
+<div style="overflow-x:auto">
+<table class="t">
+<thead><tr><th>Datum</th><th>Šta</th><th>Kategorija</th><th>Gradilište / zemlja</th><th class="r">Iznos</th></tr></thead>
+<tbody>
+<sc-for list="{{preview}}" as="p" hint-placeholder-count="5">
+<tr><td class="num">{{p.date}}</td><td>{{p.name}}</td><td>{{p.cat}}</td><td>{{p.where}}</td><td class="num r">−{{p.amount}} €</td></tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+<div class="tot"><span>Ukupno za {{monthLabel}} ({{count}} zapisa)</span><span class="num">−{{total}} €</span></div>
+<button class="btn p" style="align-self:flex-start" onClick="{{generate}}">Napravi zapise za {{monthLabel}}</button>
+<sc-if value="{{hasDone}}" hint-placeholder-val="{{false}}"><div class="msg">{{done}}</div></sc-if>
+</section>
+
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1360,"height":1500}}'>
+class Component extends DCLogic {
+renderVals() {
+const MN = { 1: 'januar', 2: 'februar', 3: 'mart', 4: 'april', 5: 'maj', 6: 'juni', 7: 'juli', 8: 'august', 9: 'septembar', 10: 'oktobar', 11: 'novembar', 12: 'decembar' };
+const T0 = [
+{ id: 1, name: 'Fiksni trošak, Slovenija', cat: 'Fiksni troškovi', where: 'Slovenija', freq: 'Mjesečno', start: 1, day: 1, amount: 1100, on: true },
+{ id: 2, name: 'Fiksni trošak, Njemačka', cat: 'Fiksni troškovi', where: 'Njemačka', freq: 'Mjesečno', start: 1, day: 1, amount: 950, on: true },
+{ id: 3, name: 'Fiksni trošak, Hrvatska', cat: 'Fiksni troškovi', where: 'Hrvatska', freq: 'Mjesečno', start: 1, day: 1, amount: 600, on: true },
+{ id: 4, name: 'Kirija stana, Ulica 12', cat: 'Stanovanje', where: 'Hala B', freq: 'Mjesečno', start: 1, day: 3, amount: 1200, on: true },
+{ id: 5, name: 'Zakup vozila, 3 vozila', cat: 'Rent a car', where: 'Bez gradilišta', freq: 'Mjesečno', start: 1, day: 5, amount: 1650, on: true },
+{ id: 6, name: 'Osiguranje vozila', cat: 'Osiguranje', where: 'Bez gradilišta', freq: 'Kvartalno', start: 1, day: 15, amount: 840, on: true },
+{ id: 7, name: 'Računovodstvo', cat: 'Ostalo', where: 'Bez gradilišta', freq: 'Mjesečno', start: 1, day: 10, amount: 400, on: false }
+];
+const def = { items: T0, nextId: 8, sel: 11, done: '', err: '', f: { name: '', cat: 'Fiksni troškovi', where: 'Bez gradilišta', freq: 'Mjesečno', start: '1', day: '1', amount: '' } };
+const st = Object.assign({}, def, this.state || {});
+const set = (p) => this.setState(p);
+const fmt = (n) => Math.round(n).toLocaleString('de-DE');
+const toNum = (v) => { let s = String(v).trim().replace(/\s/g, ''); if (s.indexOf(',') >= 0) { s = s.replace(/\./g, '').replace(',', '.'); } else if (/^\d{1,3}(\.\d{3})+$/.test(s)) { s = s.replace(/\./g, ''); } return parseFloat(s) || 0; };
+const pad = (n) => (n < 10 ? '0' : '') + n;
+const dueIn = (t, m) => {
+if (!t.on) return false;
+const diff = ((m - t.start) % 12 + 12) % 12;
+if (t.freq === 'Mjesečno') return true;
+if (t.freq === 'Kvartalno') return diff % 3 === 0;
+return diff === 0;
+};
+const sel = st.sel;
+const prev = st.items.filter((t) => dueIn(t, sel)).map((t) => ({ date: pad(Math.min(28, t.day)) + '.' + pad(sel) + '.', name: t.name, cat: t.cat, where: t.where, amount: fmt(t.amount), n: t.amount, day: t.day })).sort((a, b) => a.day - b.day);
+const total = prev.reduce((s, p) => s + p.n, 0);
+const mset = (id, patch) => set({ items: st.items.map((t) => (t.id === id ? Object.assign({}, t, patch) : t)) });
+const f = st.f;
+return {
+items: st.items.map((t) => ({ name: t.name, cat: t.cat, where: t.where, freq: t.freq, day: t.day, amount: fmt(t.amount), status: t.on ? 'Aktivan' : 'Isključen', cls: t.on ? 's-ok' : 's-off', action: t.on ? 'Isključi' : 'Uključi', toggle: () => mset(t.id, { on: !t.on }), onAmount: (e) => mset(t.id, { amount: toNum(e.target.value) }) })),
+f, hasErr: !!st.err, err: st.err,
+onName: (e) => set({ f: Object.assign({}, f, { name: e.target.value }), err: '' }),
+onCat: (e) => set({ f: Object.assign({}, f, { cat: e.target.value }) }),
+onWhere: (e) => set({ f: Object.assign({}, f, { where: e.target.value }) }),
+onFreq: (e) => set({ f: Object.assign({}, f, { freq: e.target.value }) }),
+onStart: (e) => set({ f: Object.assign({}, f, { start: e.target.value }) }),
+onDay: (e) => set({ f: Object.assign({}, f, { day: e.target.value }) }),
+onAmt: (e) => set({ f: Object.assign({}, f, { amount: e.target.value }), err: '' }),
+add: () => {
+const amt = toNum(f.amount);
+const day = Math.min(28, Math.max(1, parseInt(f.day, 10) || 1));
+if (!f.name.trim() || !(amt > 0)) { set({ err: 'Upiši naziv i iznos veći od nule.' }); return; }
+set({ items: st.items.concat([{ id: st.nextId, name: f.name.trim(), cat: f.cat, where: f.where, freq: f.freq, start: parseInt(f.start, 10), day, amount: amt, on: true }]), nextId: st.nextId + 1, f: Object.assign({}, f, { name: '', amount: '' }), err: '' });
+},
+months: [[11, 'Novembar'], [12, 'Decembar'], [1, 'Januar']].map(([m, l]) => ({ label: l, bg: sel === m ? '#16201C' : '#fff', fg: sel === m ? '#fff' : '#16201C', pick: () => set({ sel: m, done: '' }) })),
+preview: prev, total: fmt(total), count: prev.length, monthLabel: MN[sel],
+generate: () => set({ done: 'Napravljeno ' + prev.length + ' zapisa za ' + MN[sel] + ', ukupno ' + fmt(total) + ' €. U Knjizi imaju izvor "Šablon" i možeš ih izmijeniti kao i ostale.' }),
+hasDone: !!st.done, done: st.done,
+reset: () => set(def)
+};
+}
+}
+</script>
+</body>
+</html>

@@ -126,8 +126,10 @@ export function BookEntriesPage() {
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [kind, setKind] = useState<KindFilter>('all');
-  const [search, setSearch] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  // A search from the palette arrives as ?search=; it is the starting text, and typing takes over from there.
+  const [initialSearch] = useState(() => new URLSearchParams(window.location.search).get('search') ?? '');
+  const [search, setSearch] = useState(initialSearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
   const [page, setPage] = useState(0);
   const [editing, setEditing] = useState<BookRow | null>(null);
   const [deleting, setDeleting] = useState<BookRow | null>(null);
@@ -730,6 +732,14 @@ export function BookEntriesPage() {
           page={page}
           rowsPerPage={PAGE_SIZE}
           rowsPerPageOptions={[PAGE_SIZE]}
+          labelRowsPerPage={t('common.rowsPerPage')}
+          labelDisplayedRows={({ from, to, count }) => t('common.displayedRows', { from, to, count })}
+          slotProps={{
+            actions: {
+              previousButton: { title: t('common.previousPage'), 'aria-label': t('common.previousPage') },
+              nextButton: { title: t('common.nextPage'), 'aria-label': t('common.nextPage') },
+            },
+          }}
           onPageChange={(_, next) => setPage(next)}
         />
       </Paper>
