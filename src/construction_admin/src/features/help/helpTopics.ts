@@ -57,6 +57,7 @@ export const helpTopics: HelpTopic[] = [
           'Dokument se vezuje za zapis kojem pripada: zaposlenog, vozilo, alat, gradilište ili smještaj. Može se dodati na kartici zapisa ili sa stranice Dokumenti.',
         steps: [
           'Otvorite zapis (npr. zaposlenog) i na kartici Dokumenti prevucite datoteke u okvir, ili kliknite na okvir i izaberite ih. Na računaru možete zalijepiti i sliku iz međuspremnika (Ctrl+V).',
+          'Pri pravljenju novog zaposlenog, vozila, alata, gradilišta ili smještaja obrazac ima odjeljak Dokumenti: dodajte ih odmah, pa se spremaju uz zapis čim se napravi. U brzom unosu Evidencije dugme Priloži dokument vezuje račun uz red koji ukucate.',
           'Ili idite na Dokumenti (Administracija), kliknite Otpremi i prvo izaberite zapis. Na toj stranici datoteku možete ispustiti bilo gdje; dodavanje se otvara s datotekom već unutra.',
           'Dozvoljeno je do 25 MB po datoteci: PDF, slike (JPG, PNG, WEBP, HEIC), Word, Excel, tekst i CSV. Server provjerava da sadržaj odgovara nazivu i svaku datoteku skenira na viruse prije spremanja.',
           'Više datoteka može odjednom. Svaka ima svoj napredak; ona koja zakaže može se poslati ponovo, a ostale ostaju. Uz svaku datoteku možete izabrati njenu vlastitu vrstu, a ostale prate opštu vrstu iznad.',
@@ -79,6 +80,7 @@ export const helpTopics: HelpTopic[] = [
           'A document belongs to the record it is about: an employee, a vehicle, a tool, a site or an accommodation. Add it on the record\'s card or from the Documents page.',
         steps: [
           'Open the record (an employee, say) and on the Documents card drag files into the box, or click it and choose them. On a computer you can also paste a picture (Ctrl+V).',
+          'When making a new employee, vehicle, tool, site or accommodation, the form has a Documents section: add them straight away and they are filed with the record as soon as it is made. In the book\'s quick entry the Attach a document button ties a receipt to the line you type.',
           'Or go to Documents (Administration), click Upload and choose the record first. On that page you can drop a file anywhere; the upload opens with the file already in it.',
           'Up to 25 MB per file: PDF, images (JPG, PNG, WEBP, HEIC), Word, Excel, text and CSV. The server checks that the content fits the name and scans every file for viruses before it is stored.',
           'Several files at once. Each has its own progress; one that fails can be sent again and the others stay. Beside each file you can pick its own type; the rest follow the general type above.',

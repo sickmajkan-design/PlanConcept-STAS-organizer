@@ -31,7 +31,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
@@ -42,6 +42,9 @@ import { overviewApi } from '../../api/overview';
 import { payoutsApi } from '../../api/payouts';
 import { AttachmentList } from '../../components/AttachmentList';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { useAttachmentLimits } from '../../features/attachments/useAttachments';
+import { uploadAfterCreate } from '../../features/files/uploadAfterCreate';
+import { validateFiles } from '../../features/files/validateFiles';
 import { MoreActionsMenu } from '../../components/MoreActionsMenu';
 import { PageHeader } from '../../components/PageHeader';
 import { useBranchFilter } from '../../features/branches/BranchContext';
@@ -144,6 +147,10 @@ export function BookEntriesPage() {
   const [qProject, setQProject] = useState('');
   const [qCounterparty, setQCounterparty] = useState('');
   const [qAmount, setQAmount] = useState('');
+  // Documents picked for the line being typed; filed against it the moment it is saved.
+  const [qFiles, setQFiles] = useState<File[]>([]);
+  const unsent = useRef<string[]>([]);
+  const limits = useAttachmentLimits();
   const [qCategoryKey, setQCategoryKey] = useState<string | null>(null);
   const [qError, setQError] = useState<string | null>(null);
   const [qDone, setQDone] = useState<string | null>(null);
@@ -258,7 +265,7 @@ export function BookEntriesPage() {
         categoryId = categoryByKey(qKind === 'Income' ? 'Collection' : 'Other')?.id ?? null;
       }
 
-      await bookApi.entries.create(
+      const created = await bookApi.entries.create(
         {
           kind: qKind,
           amount: parsed,
@@ -275,6 +282,18 @@ export function BookEntriesPage() {
         },
         newIdempotencyKey(),
       );
+
+      // A photo of the receipt becomes a Photo, anything else Other. The line is already saved, so a file
+      // that fails is said, not allowed to undo it.
+      unsent.current = await uploadAfterCreate(
+        'BookEntry',
+        created.id,
+        qFiles.map((file, index) => ({
+          id: `q${index}`,
+          file,
+          category: file.type.startsWith('image/') ? 'Photo' : 'Other',
+        })),
+      );
     },
     onSuccess: () => {
       setQDone(t(`book.entries.effect.${qKind}` as MessageKey));
@@ -283,7 +302,9 @@ export function BookEntriesPage() {
       setQAmount('');
       setQCounterparty('');
       setQCategoryKey(null);
-      setQError(null);
+      setQFiles([]);
+      setQError(unsent.current.length > 0 ? t('book.entries.quick.unsent', { names: unsent.current.join(', ') }) : null);
+      unsent.current = [];
       refresh();
     },
     onError: (error) => {
@@ -552,10 +573,46 @@ export function BookEntriesPage() {
             error={qAmount !== '' && !(qParsed > 0)}
             sx={{ maxWidth: 150 }}
           />
+          {qKind !== 'Payout' && (
+            <Button size="small" component="label" startIcon={<AttachFileOutlined />}>
+              {t('book.entries.quick.attach')}
+              <input
+                hidden
+                multiple
+                type="file"
+                accept={limits.accept}
+                data-testid="quick-attach"
+                onChange={(event) => {
+                  const picked = validateFiles(Array.from(event.target.files ?? []), {
+                    accept: limits.accept,
+                    maxBytes: limits.maxBytes,
+                    existing: qFiles,
+                  }).accepted;
+
+                  setQFiles((current) => [...current, ...picked]);
+                  event.target.value = '';
+                }}
+              />
+            </Button>
+          )}
           <Button variant="contained" loading={add.isPending} onClick={submitQuick}>
             {t('book.entries.quick.add')}
           </Button>
         </Stack>
+
+        {qFiles.length > 0 && qKind !== 'Payout' && (
+          <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mt: 1 }}>
+            {qFiles.map((file) => (
+              <Chip
+                key={`${file.name}-${file.size}-${file.lastModified}`}
+                size="small"
+                icon={<AttachFileOutlined />}
+                label={file.name}
+                onDelete={() => setQFiles((current) => current.filter((f) => f !== file))}
+              />
+            ))}
+          </Stack>
+        )}
 
         {qError && (
           <Alert severity="error" sx={{ mt: 1.5 }}>

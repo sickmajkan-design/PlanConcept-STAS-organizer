@@ -1,3 +1,5 @@
+import { useDocumentsAtCreate } from '../../components/files/DocumentsAtCreate';
+import { CATEGORIES_BY_OWNER_TYPE } from '../../components/UploadDocumentDialog';
 import { BranchSelectField } from '../../features/branches/BranchSelectField';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -75,6 +77,8 @@ export function AccommodationFormPage() {
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
   const navigate = useNavigate();
+  // Documents picked while the record is still being made; filed once it has an id.
+  const docs = useDocumentsAtCreate('Accommodation', CATEGORIES_BY_OWNER_TYPE.Accommodation);
   const t = useT();
   const enumLabel = useEnumLabel();
 
@@ -154,6 +158,8 @@ export function AccommodationFormPage() {
       const saved = isEdit
         ? await updateAccommodation.mutateAsync(input)
         : await createAccommodation.mutateAsync(input);
+
+      if (!isEdit) await docs.send(saved.id);
 
       navigate(paths.accommodationDetail(saved.id));
     } catch (err) {
@@ -300,6 +306,8 @@ export function AccommodationFormPage() {
               helperText: errors.note?.message ?? t('accommodations.noteHint'),
             })}
           </Section>
+
+            {!isEdit && docs.section}
 
           <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
             <Button onClick={() => navigate(-1)} disabled={isSubmitting}>

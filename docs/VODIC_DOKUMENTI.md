@@ -31,11 +31,15 @@ U zaglavlju zapisa stoji broj dokumenata (**Dokumenti: 3 · 1 isteklo**); istekl
 
 ## 2. Dodavanje dokumenata
 
-### 2.1 Tri načina
+### 2.1 Četiri načina
 
 1. **Na kartici zapisa.** Otvorite zaposlenog, vozilo… i na kartici **Dokumenti** prevucite datoteke s računara u okvir. Možete i kliknuti na okvir i izabrati ih. Na računaru radi i **Ctrl+V**: zalijepite sliku koju ste kopirali.
 2. **Sa stranice Dokumenti.** Kliknite **Otpremi**, izaberite zapis (vrstu i konkretnu osobu, vozilo…), pa datoteke. Na toj stranici datoteku možete **ispustiti bilo gdje**: vidi se okvir „Otpustite da dodate“, a otvara se dodavanje s datotekom već unutra.
 3. **Prečicom.** **Ctrl+K**, upišite „otpremi“ i izaberite **Otpremi dokument**.
+
+4. **Pri pravljenju zapisa.** Obrazac za novog zaposlenog, vozilo, alat, gradilište i smještaj ima odjeljak **Dokumenti (nije obavezno)**: prevucite ili izaberite datoteke, svakoj po želji vrstu. Spremaju se uz zapis **čim se napravi**, pa ne treba prvo sačuvati, otvoriti zapis i vraćati se na karticu. Ako neka datoteka ne prođe (npr. prevelika), zapis ostaje, a na njegovoj kartici **Dokumenti** piše koje treba dodati.
+
+U brzom unosu Evidencije dugme **Priloži dokument** vezuje račun ili fotografiju uz red koji ukucate (fotografija dobija vrstu Fotografija, ostalo Ostalo).
 
 Na telefonu nema povlačenja: umjesto okvira stoje dugmad **Izaberi** i **Slikaj**.
 

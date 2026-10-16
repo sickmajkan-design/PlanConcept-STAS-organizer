@@ -1,3 +1,5 @@
+import { useDocumentsAtCreate } from '../../components/files/DocumentsAtCreate';
+import { CATEGORIES_BY_OWNER_TYPE } from '../../components/UploadDocumentDialog';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Alert,
@@ -95,6 +97,8 @@ export function ProjectFormPage() {
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
   const navigate = useNavigate();
+  // Documents picked while the record is still being made; filed once it has an id.
+  const docs = useDocumentsAtCreate('Project', CATEGORIES_BY_OWNER_TYPE.Project);
   const [searchParams] = useSearchParams();
   const t = useT();
   const enumLabel = useEnumLabel();
@@ -207,6 +211,8 @@ export function ProjectFormPage() {
       const saved = isEdit
         ? await updateProject.mutateAsync(input)
         : await createProject.mutateAsync(input);
+
+      if (!isEdit) await docs.send(saved.id);
 
       // A fresh project has no crew or equipment yet — that's the very next
       // thing anyone does with it, so the detail page briefly highlights
@@ -616,6 +622,8 @@ export function ProjectFormPage() {
                 </>
               )}
             </Grid>
+
+            {!isEdit && docs.section}
 
             <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
               <Button onClick={() => navigate(-1)} disabled={isSubmitting}>

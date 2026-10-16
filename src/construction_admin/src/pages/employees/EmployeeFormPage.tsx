@@ -1,3 +1,5 @@
+import { useDocumentsAtCreate } from '../../components/files/DocumentsAtCreate';
+import { CATEGORIES_BY_OWNER_TYPE } from '../../components/UploadDocumentDialog';
 import { BranchSelectField } from '../../features/branches/BranchSelectField';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -64,6 +66,8 @@ export function EmployeeFormPage() {
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
   const navigate = useNavigate();
+  // Documents picked while the record is still being made; filed once it has an id.
+  const docs = useDocumentsAtCreate('Employee', CATEGORIES_BY_OWNER_TYPE.Employee);
   const t = useT();
   const enumLabel = useEnumLabel();
 
@@ -142,6 +146,8 @@ export function EmployeeFormPage() {
       const saved = isEdit
         ? await updateEmployee.mutateAsync(input)
         : await createEmployee.mutateAsync(input);
+
+      if (!isEdit) await docs.send(saved.id);
 
       if (rank !== savedRank) {
         try {
@@ -392,6 +398,8 @@ export function EmployeeFormPage() {
                 </TextField>
               </Grid>
             </Grid>
+
+            {!isEdit && docs.section}
 
             <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
               <Button onClick={() => navigate(-1)} disabled={isSubmitting}>

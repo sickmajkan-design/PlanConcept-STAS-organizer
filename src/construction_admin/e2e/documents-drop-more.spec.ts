@@ -114,3 +114,73 @@ test('the month import of the book takes a dragged spreadsheet through the share
 
   await expect(area).toHaveAttribute('data-over', 'true');
 });
+
+test('a document picked on the new-employee form is filed once the employee exists', async ({ signedIn: page }) => {
+  const number = unique('NEWDOC');
+
+  await page.goto('/employees/new');
+  await page.getByLabel('Employee number').fill(number);
+  await page.getByLabel('Position').fill('Zidar');
+  await page.getByLabel('First name').fill('Dora');
+  await page.getByLabel('Last name').fill('Dokument');
+  await page.getByLabel('Employment date').fill('2024-01-15');
+
+  const name = `${unique('ugovor')}.txt`;
+  await page
+    .getByTestId('documents-at-create')
+    .locator('input[type="file"]')
+    .first()
+    .setInputFiles({ name, mimeType: 'text/plain', buffer: Buffer.from('ugovor o radu') });
+  await expect(page.getByTestId('documents-at-create').getByText(name)).toBeVisible();
+
+  await submitButton(page).click();
+
+  // On the record's page, with the document already on its card: nobody saved first and came back.
+  await expect(page).toHaveURL(/\/employees\/[0-9a-f-]+$/);
+  await expect(page.getByText(name)).toBeVisible({ timeout: 15_000 });
+});
+
+test('a document attached to a line typed in the book is filed against that line', async ({ signedIn: page, request }) => {
+  await page.goto('/book/entries');
+  await expect(page.getByPlaceholder('e.g. Fuel, week 41')).toBeVisible();
+
+  const description = unique('Racun');
+  await page.getByPlaceholder('e.g. Fuel, week 41').fill(description);
+  await page.getByLabel('Amount (€)').fill('120,50');
+
+  await page.getByTestId('quick-attach').setInputFiles({
+    name: 'racun.txt',
+    mimeType: 'text/plain',
+    buffer: Buffer.from('racun za gorivo'),
+  });
+  await expect(page.getByText('racun.txt')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await expect(page.getByText(/Added|Recorded|raises the costs|Costs/).first()).toBeVisible();
+
+  // What the server holds: the line, and a document filed against it.
+  const api = `http://localhost:${process.env.E2E_API_PORT ?? 5199}`;
+  const login = await request.post(`${api}/api/v1/auth/login`, {
+    data: { email: 'e2e@construction.local', password: 'E2ePassword123!' },
+  });
+  const headers = { Authorization: `Bearer ${(await login.json()).accessToken as string}` };
+
+  await expect
+    .poll(
+      async () => {
+        const list = await request.get(`${api}/api/v1/book/entries`, {
+          headers,
+          params: { pageNumber: 1, pageSize: 20, search: description },
+        });
+        const row = ((await list.json()).items as { id: string; description: string }[]).find((r) => r.description === description);
+
+        if (!row) return -1;
+
+        const docs = await request.get(`${api}/api/v1/attachments`, { headers, params: { ownerType: 'BookEntry', ownerId: row.id } });
+
+        return ((await docs.json()) as unknown[]).length;
+      },
+      { timeout: 20_000 },
+    )
+    .toBe(1);
+});

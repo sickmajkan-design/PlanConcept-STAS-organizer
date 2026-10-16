@@ -1,3 +1,5 @@
+import { useDocumentsAtCreate } from '../../components/files/DocumentsAtCreate';
+import { CATEGORIES_BY_OWNER_TYPE } from '../../components/UploadDocumentDialog';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Alert,
@@ -52,6 +54,8 @@ export function VehicleFormPage() {
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
   const navigate = useNavigate();
+  // Documents picked while the record is still being made; filed once it has an id.
+  const docs = useDocumentsAtCreate('Vehicle', CATEGORIES_BY_OWNER_TYPE.Vehicle);
   const t = useT();
   const enumLabel = useEnumLabel();
 
@@ -129,6 +133,8 @@ export function VehicleFormPage() {
       const saved = isEdit
         ? await updateVehicle.mutateAsync(input)
         : await createVehicle.mutateAsync(input);
+
+      if (!isEdit) await docs.send(saved.id);
 
       navigate(paths.vehicleDetail(saved.id));
     } catch (err) {
@@ -439,6 +445,8 @@ export function VehicleFormPage() {
                 />
               </Grid>
             </Grid>
+
+            {!isEdit && docs.section}
 
             <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
               <Button onClick={() => navigate(-1)} disabled={isSubmitting}>

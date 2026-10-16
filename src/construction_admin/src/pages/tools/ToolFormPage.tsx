@@ -1,3 +1,5 @@
+import { useDocumentsAtCreate } from '../../components/files/DocumentsAtCreate';
+import { CATEGORIES_BY_OWNER_TYPE } from '../../components/UploadDocumentDialog';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Alert,
@@ -42,6 +44,8 @@ export function ToolFormPage() {
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
   const navigate = useNavigate();
+  // Documents picked while the record is still being made; filed once it has an id.
+  const docs = useDocumentsAtCreate('Tool', CATEGORIES_BY_OWNER_TYPE.Tool);
   const t = useT();
   const enumLabel = useEnumLabel();
 
@@ -97,6 +101,8 @@ export function ToolFormPage() {
       const saved = isEdit
         ? await updateTool.mutateAsync(input)
         : await createTool.mutateAsync(input);
+
+      if (!isEdit) await docs.send(saved.id);
 
       navigate(paths.toolDetail(saved.id));
     } catch (err) {
@@ -240,6 +246,8 @@ export function ToolFormPage() {
                 />
               </Grid>
             </Grid>
+
+            {!isEdit && docs.section}
 
             <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
               <Button onClick={() => navigate(-1)} disabled={isSubmitting}>

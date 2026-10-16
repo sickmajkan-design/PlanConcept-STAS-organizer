@@ -7,6 +7,7 @@ import {
   VisibilityOutlined,
 } from "@mui/icons-material";
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -33,6 +34,7 @@ import {
   useDeleteAttachment,
   useSetAttachmentSharing,
 } from "../features/attachments/useAttachments";
+import { takeUnsent } from "../features/files/uploadAfterCreate";
 import { useFileDrop } from "../features/files/useFileDrop";
 import { useDeleteWithConfirm } from "../hooks/useDeleteWithConfirm";
 import { useEnumLabel } from "../i18n/enumLabels";
@@ -100,6 +102,8 @@ export function AttachmentList({
   const canShare =
     canDelete && (ownerType === "Employee" || ownerType === "Vehicle");
   const [uploadOpen, setUploadOpen] = useState(false);
+  // Files picked while this record was being made that did not go: said once, here, where they are added.
+  const [unsent, setUnsent] = useState<string[]>(() => takeUnsent(ownerId));
   const [dropped, setDropped] = useState<File[]>([]);
   const [previewing, setPreviewing] = useState<Attachment | null>(null);
 
@@ -146,6 +150,14 @@ export function AttachmentList({
         >
           {t("attachments.dropToAdd")}
         </Typography>
+      )}
+      {unsent.length > 0 && (
+        <Alert severity="warning" sx={{ mb: 1 }} onClose={() => setUnsent([])}>
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+            {t("files.unsent.title")}
+          </Typography>
+          <Typography variant="body2">{t("files.unsent.body", { names: unsent.join(", ") })}</Typography>
+        </Alert>
       )}
       <Stack
         direction="row"

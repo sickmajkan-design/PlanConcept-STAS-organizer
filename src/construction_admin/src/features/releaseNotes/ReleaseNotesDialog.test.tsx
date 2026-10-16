@@ -56,7 +56,7 @@ describe('ReleaseNotesDialog', () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('SuperAdmin') });
 
     await screen.findByText('Search, guides and language');
-    expect(screen.getByText('Who opened sensitive documents')).toBeDefined();
+    expect(screen.getByText('A document already when a record is made')).toBeDefined();
     expect(screen.getByText('A cleaner look and better use on a phone')).toBeDefined();
   }, SCREEN_TIMEOUT);
 
