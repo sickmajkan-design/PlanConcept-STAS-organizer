@@ -218,6 +218,7 @@ export function RequestDocumentDialog({
               label={t('docRequests.new.due')}
               value={dueDate}
               onChange={(event) => setDueDate(event.target.value)}
+              helperText={dueDate ? t('docRequests.new.dueHelp') : undefined}
               slotProps={{ inputLabel: { shrink: true } }}
             />
             <TextField

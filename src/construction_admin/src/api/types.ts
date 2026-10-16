@@ -2534,6 +2534,8 @@ export const notificationTypes = [
   'DocumentAccepted',
   'DocumentReturned',
   'DocumentRequestCancelled',
+  'DocumentRequestDue',
+  'DocumentRequestOverdue',
 ] as const;
 
 export type NotificationType = (typeof notificationTypes)[number];

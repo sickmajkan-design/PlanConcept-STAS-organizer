@@ -262,6 +262,7 @@ export const helpTopics: HelpTopic[] = [
         example:
           'Za tri nova radnika zatražite paket Novi radnik s rokom za pet dana. Za svakoga stiže pet slika. Jednoj fotografiji pasoša vratite s razlogom Slika je mutna, a ostale prihvatite. Lista Samo kojima je rok istekao pokazuje ko kasni.',
         tips: [
+          'Rok: osoba je podsjećena u aplikaciji dan prije i na dan roka, a vama stiže jedna obavijest ako rok prođe i ništa nije poslano. Zahtjev koji čeka na vašu provjeru se ne podsjeća.',
           'Isti zahtjev za istu osobu se ne pravi dvaput dok prvi čeka.',
           'Za svaki zahtjev se vidi broj pokušaja i cijela historija.',
           'Brisanje zahtjeva se upisuje u reviziju; poslane datoteke ostaju na kartonu, nepodijeljene.',
@@ -283,6 +284,7 @@ export const helpTopics: HelpTopic[] = [
         example:
           'For three new workers request the New worker package with a deadline in five days. Five pictures arrive for each. Send one passport photo back with the reason The picture is blurred and accept the rest. The Only overdue filter shows who is late.',
         tips: [
+          'Deadline: the person is reminded in the app the day before and on the day, and you get one notice if the deadline passes with nothing sent. A request waiting for your check is not reminded.',
           'The same request for the same person is not made twice while the first waits.',
           'Each request shows the number of attempts and the whole history.',
           'Deleting a request is recorded in the audit; the files sent stay on the record, unshared.',

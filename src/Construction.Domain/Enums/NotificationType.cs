@@ -115,5 +115,11 @@ public enum NotificationType
     DocumentReturned = 41,
 
     /// <summary>A request for a document was withdrawn.</summary>
-    DocumentRequestCancelled = 42
+    DocumentRequestCancelled = 42,
+
+    /// <summary>A request for a document is due tomorrow or today and still waits for the person.</summary>
+    DocumentRequestDue = 43,
+
+    /// <summary>The deadline of a request has passed and nothing was sent; goes to the office.</summary>
+    DocumentRequestOverdue = 44
 }

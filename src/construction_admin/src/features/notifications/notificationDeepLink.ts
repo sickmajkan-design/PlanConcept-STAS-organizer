@@ -130,6 +130,7 @@ export function resolveNotificationTarget(
         : paths.bulletin;
 
     case 'DocumentSubmitted':
+    case 'DocumentRequestOverdue':
       return data.requestId ? `${paths.documentRequests}?highlight=${data.requestId}` : paths.documentRequests;
 
     // Addressed to the person asked; the office has nothing to open for them.
@@ -137,6 +138,7 @@ export function resolveNotificationTarget(
     case 'DocumentAccepted':
     case 'DocumentReturned':
     case 'DocumentRequestCancelled':
+    case 'DocumentRequestDue':
       return null;
 
     case 'DocumentExpiring':

@@ -353,6 +353,19 @@ public static class PushTextResolver
             case NotificationType.DocumentRequestCancelled:
                 return ("Zahtjev povučen", "Uprava je povukla zahtjev. Ne trebate ništa uraditi.");
 
+            case NotificationType.DocumentRequestDue:
+                return Str("when") == "today"
+                    ? ("Rok zahtjeva je danas", "Rok zahtjeva uprave je danas. Otvorite aplikaciju da ga vidite.")
+                    : ("Rok zahtjeva je sutra", "Rok zahtjeva uprave je sutra. Otvorite aplikaciju da ga vidite.");
+
+            case NotificationType.DocumentRequestOverdue:
+            {
+                var person = Str("employeeName");
+                if (person is null) break;
+
+                return ("Zahtjev za dokument kasni", $"{person} nije poslao(la) dokument do roka.");
+            }
+
             case NotificationType.RefundRequested:
             {
                 var name = Str("employeeName");

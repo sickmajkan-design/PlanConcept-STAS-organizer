@@ -1692,6 +1692,40 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.ToTable("document_request_events", (string)null);
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.DocumentRequestReminder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("DocumentRequestId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("DueDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DocumentRequestId", "Kind", "DueDate")
+                        .IsUnique();
+
+                    b.ToTable("document_request_reminders", (string)null);
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.Employee", b =>
                 {
                     b.Property<Guid>("Id")
@@ -5648,6 +5682,17 @@ namespace Construction.Infrastructure.Persistence.Migrations
                 {
                     b.HasOne("Construction.Domain.Entities.DocumentRequest", "DocumentRequest")
                         .WithMany("Events")
+                        .HasForeignKey("DocumentRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DocumentRequest");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.DocumentRequestReminder", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.DocumentRequest", "DocumentRequest")
+                        .WithMany()
                         .HasForeignKey("DocumentRequestId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

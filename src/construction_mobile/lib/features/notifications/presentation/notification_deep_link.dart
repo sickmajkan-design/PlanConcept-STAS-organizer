@@ -62,7 +62,9 @@ String? deepLinkForData(
     'DocumentSubmitted' ||
     'DocumentAccepted' ||
     'DocumentReturned' ||
-    'DocumentRequestCancelled' =>
+    'DocumentRequestCancelled' ||
+    'DocumentRequestDue' ||
+    'DocumentRequestOverdue' =>
       AppRoutes.myDocuments,
     'WeeklyReportDue' => AppRoutes.weeklyReports,
     'BulletinPosted' => AppRoutes.bulletin,

@@ -362,6 +362,18 @@ export function resolveNotificationText(t: T, notification: Notification): Notif
         body: text('notificationDocumentSubmittedBody'),
       };
 
+    case 'DocumentRequestDue':
+      return d.when === 'today'
+        ? { title: text('notificationDocumentDueTodayTitle'), body: text('notificationDocumentDueTodayBody') }
+        : { title: text('notificationDocumentDueTomorrowTitle'), body: text('notificationDocumentDueTomorrowBody') };
+
+    case 'DocumentRequestOverdue':
+      if (!d.employeeName) return fallback;
+      return {
+        title: text('notificationDocumentOverdueTitle'),
+        body: text('notificationDocumentOverdueBody', { name: d.employeeName }),
+      };
+
     case 'RefundRequested':
       if (!d.employeeName || !d.amount) return fallback;
       return {

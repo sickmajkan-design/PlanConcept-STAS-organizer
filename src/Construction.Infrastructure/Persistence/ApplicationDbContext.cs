@@ -99,6 +99,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<DocumentRequest> DocumentRequests => Set<DocumentRequest>();
 
     public DbSet<DocumentRequestEvent> DocumentRequestEvents => Set<DocumentRequestEvent>();
+
+    public DbSet<DocumentRequestReminder> DocumentRequestReminders => Set<DocumentRequestReminder>();
     public DbSet<LeaveAdjustment> LeaveAdjustments => Set<LeaveAdjustment>();
     public DbSet<CustomerCompany> CustomerCompanies => Set<CustomerCompany>();
     public DbSet<Invoice> Invoices => Set<Invoice>();

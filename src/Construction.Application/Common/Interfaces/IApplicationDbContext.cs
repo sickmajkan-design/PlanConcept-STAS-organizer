@@ -96,6 +96,8 @@ public interface IApplicationDbContext
     DbSet<DocumentRequest> DocumentRequests { get; }
 
     DbSet<DocumentRequestEvent> DocumentRequestEvents { get; }
+
+    DbSet<DocumentRequestReminder> DocumentRequestReminders { get; }
     DbSet<LeaveAdjustment> LeaveAdjustments { get; }
     DbSet<CustomerCompany> CustomerCompanies { get; }
     DbSet<Invoice> Invoices { get; }

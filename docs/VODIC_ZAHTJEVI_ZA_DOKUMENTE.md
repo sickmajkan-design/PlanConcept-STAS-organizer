@@ -90,11 +90,19 @@ Mira je poslala pasoš, ali je slika mutna.
 
 ---
 
-## 5. Obavijesti
+## 5. Obavijesti i rok
 
 - Osoba: odmah kad se zatraži, vrati ili povuče zahtjev.
 - Uprava: kad osoba pošalje, odgovor je u listi bez osvježavanja stranice.
+- **Rok:** ako zahtjev ima rok, osoba je u aplikaciji **podsjećena dan prije i na sam dan roka**. Podsjetnik ne govori šta se traži, jer se čita na zaključanom ekranu.
+- **Kasni:** ako rok prođe, a ništa nije poslano, onaj ko je zatražio dokument dobija **jednu obavijest** (ako njega više nema, svi administratori). Lista pokazuje status *Kasni*, a filter *Samo kojima je rok istekao* sužava je na takve.
+- Zahtjev koji čeka na vašu provjeru, prihvaćen ili povučen se **ne podsjeća**. Zahtjev koji ste vratili s razlogom se podsjeća, jer opet čeka osobu.
+- Kad pomjerite rok, novi rok dobija nove podsjetnike.
 - E-mail obavijesti o zahtjevima nisu uključene (planirano kao opcija).
+
+### Primjer
+
+Zatražili ste pasoš od Mire s rokom u petak. U četvrtak Mira dobije podsjetnik u aplikaciji, a u petak ujutro drugi. Ako ništa ne pošalje, u subotu stiže vama obavijest "Zahtjev za dokument kasni: Mira…" i u listi je zahtjev označen kao *Kasni*.
 
 ---
 

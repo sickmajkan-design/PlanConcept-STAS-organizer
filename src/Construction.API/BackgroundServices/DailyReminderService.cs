@@ -3,6 +3,7 @@ using Construction.API.Observability;
 using Construction.Application.Features.Attachments.Commands.SendExpiryReminders;
 using Construction.Application.Features.Accommodations.Reminders;
 using Construction.Application.Features.Attachments.Commands.SendRetentionEndedReminders;
+using Construction.Application.Features.DocumentRequests.Commands.SendDocumentRequestReminders;
 using Construction.Application.Features.Recurring;
 using Construction.Application.Features.ScheduledReports.Commands.SendScheduledReports;
 using Construction.Application.Features.TimeEntries.Commands.AutoCloseStaleShifts;
@@ -105,6 +106,17 @@ public class DailyReminderService : BackgroundService
             {
                 _logger.LogInformation(
                     "Sent retention-ended reminders for {Count} document(s).", retentionEnded);
+            }
+
+            var requestDeadlines = await mediator.Send(
+                new SendDocumentRequestRemindersCommand(), cancellationToken);
+
+            _metrics.RemindersSent("document-request-deadline", requestDeadlines);
+
+            if (requestDeadlines > 0)
+            {
+                _logger.LogInformation(
+                    "Sent deadline reminders for {Count} document request(s).", requestDeadlines);
             }
 
             var contracts = await mediator.Send(
