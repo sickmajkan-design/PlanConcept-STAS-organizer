@@ -124,14 +124,14 @@ Tabela za septembar ima gradilišta u redovima i četiri sedmice u kolonama. Uč
 Na stranici **Knjiga zapisa**:
 
 - **Izvoz** preuzima Excel tabelu zapisa koje ste filtrirali, iste brojke kao na ekranu.
-- **Izvoz s dokumentima (ZIP)** preuzima tabelu **i dokumente priložene uz zapise**, po jedna mapa za svaki zapis. Kratka napomena u ZIP-u navodi koliko troškova nije imalo priložen dokument.
+- **Izvoz > Izvoz s dokumentima (ZIP)** preuzima tabelu **i dokumente priložene uz zapise**, po jedna mapa za svaki zapis. Kratka napomena u ZIP-u navodi koliko troškova nije imalo priložen dokument.
 
 Dokumente uz zapis dodajete isto kao i drugdje ([vodič o dokumentima](VODIC_DOKUMENTI.md)); na listi se vidi broj dokumenata uz zapis.
 
 ### Primjer: kraj oktobra
 
 1. *Obračun mjeseca* > riješite listu *Za provjeru* > **Zaključaj oktobar**.
-2. *Knjiga zapisa* > period 01.10.–31.10. > **Izvoz s dokumentima (ZIP)**.
+2. *Knjiga zapisa* > period 01.10.–31.10. > **Izvoz > Izvoz s dokumentima (ZIP)**.
 3. Pošaljite ZIP knjigovođi.
 
 ---

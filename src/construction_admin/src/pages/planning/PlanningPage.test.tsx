@@ -179,7 +179,9 @@ describe('PlanningPage', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Not now' }));
 
     expect(screen.queryByRole('button', { name: 'Start the tour' })).toBeNull();
-    expect(screen.getByRole('button', { name: 'Schedule guide' })).toBeDefined();
+    // The guide is kept behind the header's More menu, one tap away.
+    await userEvent.click(screen.getByRole('button', { name: 'More' }));
+    expect(await screen.findByRole('menuitem', { name: 'Schedule guide' })).toBeDefined();
   }, SCREEN_TIMEOUT);
 
   it('warns about somebody posted to two sites on the same days, and about days after a site ends', async () => {
@@ -282,8 +284,12 @@ describe('PlanningPage', () => {
 
       expect(await screen.findByText(/You are viewing the schedule of Zagreb unit/)).toBeDefined();
       expect(screen.queryByRole('button', { name: 'Find a stand-in' })).toBeNull();
-      expect(screen.queryByRole('button', { name: 'Schedule guide' })).toBeNull();
       expect(screen.queryByRole('button', { name: 'Start the tour' })).toBeNull();
+
+      // History stays in the More menu; the guide does not, because there is nothing to learn to press.
+      await userEvent.click(screen.getByRole('button', { name: 'More' }));
+      expect(await screen.findByRole('menuitem', { name: 'History' })).toBeDefined();
+      expect(screen.queryByRole('menuitem', { name: 'Schedule guide' })).toBeNull();
     }, SCREEN_TIMEOUT);
 
     it('has no way to open a worker for changes', async () => {

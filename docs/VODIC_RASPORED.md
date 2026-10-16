@@ -4,7 +4,7 @@ Za Voditelje, Admine i Super Admina. Opisuje novu stranicu **Raspored** (7. okto
 
 ## Vodič kroz stranicu
 
-Dugme **Vodič kroz Raspored** (gore desno) pokreće interaktivni obilazak od 13 koraka, oko minut: osvijetli stvarne dijelove stranice (prikaze, razdoblje, traku, potrebu, zamjenu), sam prebacuje prikaze i opisuje šta se u njima radi. Kreće se dugmadima ili strelicama na tastaturi, a Esc ga prekida. Pri prvom otvaranju stranice nudi se sam, a ako se odbije, ne pita ponovo.
+Stavka **Vodič kroz Raspored** (gore desno, pod **Više**) pokreće interaktivni obilazak od 13 koraka, oko minut: osvijetli stvarne dijelove stranice (prikaze, razdoblje, traku, potrebu, zamjenu), sam prebacuje prikaze i opisuje šta se u njima radi. Kreće se dugmadima ili strelicama na tastaturi, a Esc ga prekida. Pri prvom otvaranju stranice nudi se sam, a ako se odbije, ne pita ponovo.
 
 ## 1. Četiri prikaza
 
@@ -92,7 +92,7 @@ Svaka grupa pokazuje ukupan broj i prvih 50 zapisa, svaki s linkom na mjesto gdj
 
 ## 7b. Istorija promjena
 
-Dugme **Istorija** u zaglavlju Rasporeda otvara popis posljednjih 100 promjena: ko je koga rasporedio na koje gradilište, ko je promijenio dane i ko je raspored uklonio, s datumom i vremenom. Podaci dolaze iz revizijskog zapisa platforme, pa je popis onoliko potpun koliko je i taj zapis. Poslovođa vidi samo ljude svoje poslovne jedinice. Pregled je samo za čitanje.
+Stavka **Istorija** (pod **Više** u zaglavlju Rasporeda) otvara popis posljednjih 100 promjena: ko je koga rasporedio na koje gradilište, ko je promijenio dane i ko je raspored uklonio, s datumom i vremenom. Podaci dolaze iz revizijskog zapisa platforme, pa je popis onoliko potpun koliko je i taj zapis. Poslovođa vidi samo ljude svoje poslovne jedinice. Pregled je samo za čitanje.
 
 ## 8. Uvjerenja i osposobljenost
 

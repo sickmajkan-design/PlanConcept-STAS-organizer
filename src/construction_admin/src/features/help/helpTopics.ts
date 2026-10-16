@@ -445,7 +445,7 @@ export const helpTopics: HelpTopic[] = [
           'Pregledajte listu Za provjeru: previše sati, paušal bez fakture, kašnjenje. Označite riješeno ono što jeste.',
           'U Isplatama radnicima dodajte akontacije (više puta u mjesecu, gotovinom ili prenosom); konačna isplata je zarada minus akontacije.',
           'Zaključajte mjesec. Brojke se više ne mijenjaju; ispravka traži otključavanje i upisuje ko je i kada.',
-          'Na stranici Knjiga zapisa izaberite Izvoz s dokumentima (ZIP): tabela zapisa i dokumenti priloženi uz njih, jedna mapa po zapisu.',
+          'Na stranici Knjiga zapisa otvorite Izvoz i izaberite Izvoz s dokumentima (ZIP): tabela zapisa i dokumenti priloženi uz njih, jedna mapa po zapisu.',
         ],
         example:
           'Za Zgradu D (paušal) promijenite način na satnicu i odmah vidite razliku u marži. Zaključajte oktobar kad su sve kućice označene, pa knjigovođi pošaljite ZIP.',
@@ -466,7 +466,7 @@ export const helpTopics: HelpTopic[] = [
           'Review the To check list: too many hours, a flat rate with no invoice, lateness. Mark as resolved what is.',
           'In Payouts add advances (several times a month, cash or transfer); the final payout is earnings minus advances.',
           'Lock the month. The figures no longer change; a correction needs unlocking and records who and when.',
-          'On the Book of entries page choose Export with documents (ZIP): the table of entries and the documents attached to them, one folder per entry.',
+          'On the Book of entries page open Export and choose Export with documents (ZIP): the table of entries and the documents attached to them, one folder per entry.',
         ],
         example:
           'For Building D (flat rate) switch the billing to hourly and see the difference in margin at once. Lock October when every box is ticked, then send the accountant the ZIP.',
