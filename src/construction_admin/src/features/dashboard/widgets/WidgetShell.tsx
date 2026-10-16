@@ -28,13 +28,16 @@ export function WidgetShell({ title, isLoading, error, onRemove, onExpandWidth, 
 
   return (
     <Card
-      sx={{
+      sx={(theme) => ({
         height: '100%',
         width: '100%',
         border: '1px solid',
         borderColor: 'rgba(230, 81, 0, 0.10)',
         borderRadius: 3,
-        background: 'linear-gradient(165deg, #ffffff 0%, #fbfbfa 55%, #f6f4f1 100%)',
+        background:
+          theme.palette.mode === 'dark'
+            ? 'linear-gradient(165deg, #241e1a 0%, #1f1a16 55%, #1b1613 100%)'
+            : 'linear-gradient(165deg, #ffffff 0%, #fbfbfa 55%, #f6f4f1 100%)',
         boxShadow:
           '0 1px 2px rgba(31, 27, 22, 0.06), 0 10px 24px -12px rgba(31, 27, 22, 0.18), 0 20px 44px -26px rgba(230, 81, 0, 0.16)',
         transition: 'box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -54,7 +57,7 @@ export function WidgetShell({ title, isLoading, error, onRemove, onExpandWidth, 
           background: 'linear-gradient(90deg, #e65100 0%, #f9a825 55%, transparent 100%)',
           opacity: 0.85,
         },
-      }}
+      })}
     >
       <CardHeader
         title={title}

@@ -30,15 +30,26 @@ const PRESS = {
   '@media (prefers-reduced-motion: reduce)': { transition: 'none', '&:active:not(.Mui-disabled)': { transform: 'none' } },
 };
 
-export const theme = createTheme({
+/**
+ * The theme in one of two modes. Dark keeps the same amber on a warm, near-black ground (not blue-grey): the
+ * orange has to stay the one loud colour, so on dark it is lighter to keep its contrast.
+ */
+export function buildTheme(mode: 'light' | 'dark') {
+  const dark = mode === 'dark';
+
+  return createTheme({
   palette: {
-    mode: 'light',
-    primary: { main: '#e65100' },
-    secondary: { main: '#37474f' },
+    mode,
+    primary: dark
+      ? { main: '#ff8a3d', light: '#ffb074', dark: '#e65100', contrastText: '#2a1100' }
+      : { main: '#e65100' },
+    secondary: dark ? { main: '#b0bec5' } : { main: '#37474f' },
     // Information in the panel's own slate instead of the library's saturated blue, which appeared
     // nowhere else and read as a different product. It stays clearly apart from the amber warning.
-    info: { main: '#546e7a', light: '#78909c', dark: '#37474f', contrastText: '#ffffff' },
-    background: { default: '#f4f5f7', paper: '#ffffff' },
+    info: dark
+      ? { main: '#90a4ae', light: '#b0bec5', dark: '#78909c', contrastText: '#10171a' }
+      : { main: '#546e7a', light: '#78909c', dark: '#37474f', contrastText: '#ffffff' },
+    background: dark ? { default: '#12100e', paper: '#1c1815' } : { default: '#f4f5f7', paper: '#ffffff' },
   },
   shape: { borderRadius: 10 },
   typography: {
@@ -128,13 +139,17 @@ export const theme = createTheme({
     },
     MuiAppBar: {
       styleOverrides: {
-        root: { boxShadow: 'none', borderBottom: '1px solid #e0e0e0' },
+        root: ({ theme: t }) => ({ boxShadow: 'none', borderBottom: `1px solid ${t.palette.divider}` }),
       },
     },
     MuiCard: {
       styleOverrides: {
-        root: { border: '1px solid #e0e0e0' },
+        root: ({ theme: t }) => ({ border: `1px solid ${t.palette.divider}` }),
       },
     },
   },
-});
+  });
+}
+
+/** The light theme, for what needs one without the provider (tests, the error screen). */
+export const theme = buildTheme('light');

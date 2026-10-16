@@ -9,6 +9,7 @@ import { canSeeLabourCost } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { ErrorState } from '../../components/ErrorState';
 import { ExportButton } from '../../components/ExportButton';
+import { MoreActionsMenu } from '../../components/MoreActionsMenu';
 import { PageHeader } from '../../components/PageHeader';
 import {
   addDays,
@@ -237,14 +238,15 @@ export function PlanningPage() {
         secondaryActions={
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
             <ExportButton onExport={(language) => exportsApi.schedule({ ...exportRange, language })} />
-            <Button variant="outlined" size="small" onClick={() => setHistoryOpen(true)}>
-              {t('planning.history.button')}
-            </Button>
-            {!readOnly && (
-              <Button variant="outlined" size="small" onClick={() => { rememberTour(); setTourOpen(true); }}>
-                {t('planning.tour.button')}
-              </Button>
-            )}
+            <MoreActionsMenu
+              label={t('nav.more')}
+              actions={[
+                { key: 'history', label: t('planning.history.button'), onClick: () => setHistoryOpen(true) },
+                ...(readOnly
+                  ? []
+                  : [{ key: 'tour', label: t('planning.tour.button'), onClick: () => { rememberTour(); setTourOpen(true); } }]),
+              ]}
+            />
           </Stack>
         }
       />

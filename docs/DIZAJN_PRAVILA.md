@@ -36,10 +36,15 @@ Pregled je rađen alatima iz paketa `emilkowalski/skills` (`emil-design-eng`, `m
 - Isti podatak se ne prikazuje dvaput u jednoj kartici (npr. status i isti status kao oznaka).
 - Prije objave: release izdanje (ne debug) na emulatoru, jer debug izdanje na ovom računaru javlja "ne odgovara" dok traži lokaciju.
 
-## 5. Šta još nije urađeno (odluke)
+## 5. Izgled: svijetao i taman
 
-- Obilazak preostalih "ti" tekstova (dašbord vidžeti, obavijesti radniku): treba odlučiti ide li cijela platforma na "vi".
-- Zaglavlja stranica s previše kontrola (lista zaposlenih ima deset): jedno primarno dugme, uvoz i izvoz u izbornik "Više".
-- Tamna tema panela (aplikacija je već ima).
-- Brend blok u zaglavlju panela stoji sredinom trake; vidjeti da li ga treba pomjeriti ulijevo.
-- Datumska polja pokazuju format preglednika (npr. 10/16/2026), ne naš (16.10.2026.).
+- Panel prati uređaj dok osoba ne izabere; dugme **Izgled** u zaglavlju (na telefonu u meniju naloga) kruži prema uređaju, svijetao, taman. Izbor se pamti u pregledniku (`ui.colorMode`), a `theme-color` i `color-scheme` se mijenjaju s njim.
+- Boje se uzimaju iz teme (`divider`, `background.paper`, `primary`), nikad kao `#e0e0e0` ili `white`. Jedine tvrde boje su one koje moraju ostati iste u oba izgleda: QR kod na bijeloj podlozi, oznake poslovnih jedinica i kartice grafikona.
+- Taman izgled je topao, skoro crn (#12100e), a narandžasta je svjetlija (#ff8a3d) da zadrži kontrast.
+
+## 6. Šta još nije urađeno (odluke)
+
+- Zaglavlja stranica: izvoz i istorija su sada iza jednog dugmeta (`MoreActionsMenu`) u Evidenciji i Rasporedu; lista zaposlenih zadržava uvoz uz glavno dugme.
+- "Ti" tekstovi koji ostaju namjerno: obavještenja koja stižu radniku (`notificationText.*`) i pomoćnik; tekstovi panela su na "vi" (provjerava `formalVoice.test.ts`).
+- Datumska polja koriste format preglednika; na računaru s srpskim jezikom prikazuju 16.10.2026.
+- Brend (logo i naziv firme) u zaglavlju panela mijenja položaj prema širini ekrana i prema tome da li je meni prikvačen.

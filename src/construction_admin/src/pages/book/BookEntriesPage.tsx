@@ -42,6 +42,7 @@ import { overviewApi } from '../../api/overview';
 import { payoutsApi } from '../../api/payouts';
 import { AttachmentList } from '../../components/AttachmentList';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { MoreActionsMenu } from '../../components/MoreActionsMenu';
 import { PageHeader } from '../../components/PageHeader';
 import { useBranchFilter } from '../../features/branches/BranchContext';
 import { useAuth } from '../../auth/useAuth';
@@ -393,18 +394,24 @@ export function BookEntriesPage() {
             <IconButton size="small" onClick={() => shift(1)} aria-label={t('book.overview.next')}>
               <ChevronRightOutlined />
             </IconButton>
-            <Button
+            <MoreActionsMenu
+              label={t('book.entries.exportMenu')}
               startIcon={<FileDownloadOutlined />}
-              onClick={() => void bookApi.entries.export({ ...filter, kind: kind === 'all' ? '' : kind })}
-            >
-              {t('book.entries.export')}
-            </Button>
-            <Button
-              startIcon={<FolderZipOutlined />}
-              onClick={() => void bookApi.entries.exportPackage({ ...filter, kind: kind === 'all' ? '' : kind })}
-            >
-              {t('book.entries.package')}
-            </Button>
+              actions={[
+                {
+                  key: 'table',
+                  label: t('book.entries.export'),
+                  icon: <FileDownloadOutlined fontSize="small" />,
+                  onClick: () => void bookApi.entries.export({ ...filter, kind: kind === 'all' ? '' : kind }),
+                },
+                {
+                  key: 'package',
+                  label: t('book.entries.package'),
+                  icon: <FolderZipOutlined fontSize="small" />,
+                  onClick: () => void bookApi.entries.exportPackage({ ...filter, kind: kind === 'all' ? '' : kind }),
+                },
+              ]}
+            />
           </Stack>
         }
       />

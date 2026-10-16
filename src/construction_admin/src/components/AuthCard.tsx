@@ -3,6 +3,7 @@ import { Box, Paper, Stack, Typography } from '@mui/material';
 
 import { useCompanyLogoUrl } from '../features/companySettings/useCompanyLogoUrl';
 import { useCompanyBrandingQuery } from '../features/companySettings/useCompanySettings';
+import { ColorModeToggle } from './ColorModeToggle';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { OfflineBanner } from './OfflineBanner';
 import type { ReactNode } from 'react';
@@ -38,7 +39,7 @@ export function AuthCard({
     >
       <Paper
         elevation={0}
-        sx={{ p: { xs: 3, sm: 5 }, width: '100%', maxWidth: 440, border: '1px solid #e0e0e0' }}
+        sx={{ p: { xs: 3, sm: 5 }, width: '100%', maxWidth: 440, border: 1, borderColor: 'divider' }}
       >
         <Stack spacing={3}>
           {/* Sign-in needs it as much as anything behind it: without this, a
@@ -58,6 +59,7 @@ export function AuthCard({
             <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
               {/* Someone who cannot read this screen cannot get past it to
                   change the language anywhere else. */}
+              <ColorModeToggle />
               <LanguageSwitcher />
             </Box>
             <Typography variant="h5" sx={{ fontWeight: 700 }}>

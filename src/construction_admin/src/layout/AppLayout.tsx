@@ -16,6 +16,7 @@ import {
   SearchOutlined,
   StarOutlined,
   StarBorderOutlined,
+  SettingsBrightnessOutlined,
 } from '@mui/icons-material';
 import {
   AppBar,
@@ -57,6 +58,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { canViewDirectory, displayName } from '../auth/authHelpers';
 import { useAuth } from '../auth/useAuth';
 import { readScoped, storageScope, writeScoped } from '../hooks/userScopedStorage';
+import { useColorMode } from '../ColorMode';
+import { ColorModeToggle } from '../components/ColorModeToggle';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { OfflineBanner } from '../components/OfflineBanner';
 import { UndoSnackbarHost } from '../components/UndoSnackbarHost';
@@ -172,6 +175,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const [logoPreviewAnchor, setLogoPreviewAnchor] = useState<HTMLElement | null>(null);
   const logoHoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { user, signOut, mfaEnrollmentRequired } = useAuth();
+  const colorMode = useColorMode();
   const { data: mfaStatus } = useMfaStatusQuery();
   const scope = storageScope(user);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
@@ -954,6 +958,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </IconButton>
           </Tooltip>
           <BranchSwitcher />
+          {/* On a phone the bar has no room to spare (the unit's name needs it), so there the choice lives in the
+              account menu. */}
+          <Box sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
+            <ColorModeToggle />
+          </Box>
           <LanguageSwitcher />
           {/* In the bar rather than the drawer: an inbox is personal, it is
               the same on every screen, and the count has to be visible from
@@ -994,6 +1003,13 @@ export function AppLayout({ children }: { children: ReactNode }) {
               </Typography>
             </Box>
             <Divider />
+            <MenuItem onClick={colorMode.cycle} sx={{ display: { xs: 'flex', sm: 'none' } }}>
+              <ListItemIcon>
+                <SettingsBrightnessOutlined fontSize="small" />
+              </ListItemIcon>
+              {t('theme.title')}:{' '}
+              {colorMode.choice === 'system' ? t('theme.system') : colorMode.choice === 'light' ? t('theme.light') : t('theme.dark')}
+            </MenuItem>
             <MenuItem
               onClick={() => {
                 setMenuAnchor(null);
@@ -1075,7 +1091,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           variant="permanent"
           sx={{
             display: { xs: 'none', md: 'block' },
-            '& .MuiDrawer-paper': { width: RAIL_WIDTH, borderRight: '1px solid #e0e0e0' },
+            '& .MuiDrawer-paper': { width: RAIL_WIDTH, borderRight: 1, borderColor: 'divider' },
           }}
           open
         >
@@ -1368,7 +1384,8 @@ export function AppLayout({ children }: { children: ReactNode }) {
             right: 0,
             bottom: 0,
             zIndex: (t2) => t2.zIndex.appBar,
-            borderTop: '1px solid #e0e0e0',
+            borderTop: 1,
+            borderColor: 'divider',
             borderRadius: 0,
             pb: 'env(safe-area-inset-bottom)',
           }}
