@@ -16,6 +16,9 @@ class AppTheme {
   /// The burnt orange that marks what needs doing: a priority, a selection.
   static const Color accent = Color(0xFFB5541C);
 
+  /// The brand orange of the panel's buttons and of the app icon, in the shade that carries white text.
+  static const Color brand = Color(0xFFC4510A);
+
   /// A filled button that sits beside another widget in a `Row`.
   ///
   /// The theme gives every filled button `Size.fromHeight(52)`, whose minimum
@@ -32,10 +35,27 @@ class AppTheme {
   static ThemeData dark() => _build(Brightness.dark);
 
   static ThemeData _build(Brightness brightness) {
-    final scheme = ColorScheme.fromSeed(
+    final seeded = ColorScheme.fromSeed(
       seedColor: _seed,
       brightness: brightness,
     );
+
+    // The generated scheme turns the amber seed into a muddy brown, so the app read as another product
+    // beside the panel, whose buttons are orange. The primary is set by hand to the brand orange (dark
+    // enough for white text: about 5:1); everything else stays as generated.
+    final scheme = brightness == Brightness.light
+        ? seeded.copyWith(
+            primary: brand,
+            onPrimary: Colors.white,
+            primaryContainer: const Color(0xFFFFDBC7),
+            onPrimaryContainer: const Color(0xFF3B1500),
+          )
+        : seeded.copyWith(
+            primary: const Color(0xFFFFB68A),
+            onPrimary: const Color(0xFF4A1E00),
+            primaryContainer: const Color(0xFF7A3200),
+            onPrimaryContainer: const Color(0xFFFFDBC7),
+          );
 
     return ThemeData(
       useMaterial3: true,

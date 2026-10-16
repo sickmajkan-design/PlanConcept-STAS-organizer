@@ -35,3 +35,53 @@ body {
 .MuiDataGrid-cell .MuiChip-root {
   max-width: 100%;
 }
+
+/*
+ * The platform layer of a phone. The browser's own grey flash on tap fights the press feedback below, a
+ * double-tap would wait before it clicks, and a long press on a button label selects text a native control
+ * never would. Content stays selectable: only controls are excluded.
+ */
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+
+button,
+a,
+[role='button'],
+.MuiButtonBase-root {
+  touch-action: manipulation;
+}
+
+button,
+[role='button'],
+.MuiButton-root,
+.MuiTab-root,
+.MuiChip-clickable {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/*
+ * A page is a column of cards and tables. A flex child will not shrink below its content ("min-width: auto"),
+ * so a wide table or a row of month bars inside a card made the whole page wider than a phone, with an
+ * avatar half off the screen. The two levels under <main> are told they may shrink; wide things scroll inside
+ * their own card.
+ */
+main > *,
+main > * > * {
+  min-width: 0;
+}
+
+/*
+ * Something wider than its card (a table, a grid) scrolls sideways inside it, and a soft edge on the right
+ * says there is more. Used through the `scroll-hint` class.
+ */
+.scroll-hint {
+  background:
+    linear-gradient(to right, var(--mui-palette-background-paper, #fff) 30%, rgba(255, 255, 255, 0)) left center / 24px 100% no-repeat local,
+    linear-gradient(to left, var(--mui-palette-background-paper, #fff) 30%, rgba(255, 255, 255, 0)) right center / 24px 100% no-repeat local,
+    linear-gradient(to right, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0)) left center / 10px 100% no-repeat scroll,
+    linear-gradient(to left, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0)) right center / 10px 100% no-repeat scroll;
+}

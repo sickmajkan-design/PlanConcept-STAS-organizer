@@ -4,7 +4,7 @@ import {
   ExpandLessOutlined,
   ExpandMoreOutlined,
 } from '@mui/icons-material';
-import { Box, Button, Card, CardContent, Collapse, Stack, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, Collapse, IconButton, Stack, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -60,6 +60,26 @@ const WIZARD_STEPS: WizardStep[] = [
 const EMPTY_KEYS: SetupChecklistKey[] = ['companyProfile', 'noProjects', 'noEmployees'];
 
 const SKIPPED_STORAGE_KEY = 'onboarding.wizard.skipped';
+const COLLAPSED_STORAGE_KEY = 'onboarding.card.collapsed';
+
+/** What the person chose last: true folded, false open, null never chosen. */
+function readCollapsed(): boolean | null {
+  try {
+    const raw = window.localStorage.getItem(COLLAPSED_STORAGE_KEY);
+
+    return raw === null ? null : raw === '1';
+  } catch {
+    return null;
+  }
+}
+
+function writeCollapsed(value: boolean): void {
+  try {
+    window.localStorage.setItem(COLLAPSED_STORAGE_KEY, value ? '1' : '0');
+  } catch {
+    // Storage blocked: the card opens at its default next visit.
+  }
+}
 
 function readSkipped(): string[] {
   try {
@@ -98,6 +118,7 @@ export function SetupChecklistCard() {
   const [importing, setImporting] = useState(false);
   const [skipped, setSkipped] = useState<string[]>(readSkipped);
   const [serverOpen, setServerOpen] = useState(false);
+  const [chosen, setChosen] = useState<boolean | null>(readCollapsed);
 
   const items = data?.items ?? [];
 
@@ -140,9 +161,43 @@ export function SetupChecklistCard() {
   });
   const serverProblems = items.filter((item) => SERVER_KEYS.includes(item.key));
 
+  // A system that is brand new gets the guide open. Once any step is done, or when there is only a
+  // list of gaps, the card folds to one line: it must not push the numbers people open the page for
+  // below the fold every day.
+  const doneCount = WIZARD_STEPS.filter(isDone).length;
+  const foldedByDefault = !showWizard || doneCount > 0;
+  const collapsed = chosen ?? foldedByDefault;
+  const toggle = () => {
+    setChosen(!collapsed);
+    writeCollapsed(!collapsed);
+  };
+  const summary = showWizard
+    ? t('onboarding.card.summaryWizard', { done: doneCount, total: WIZARD_STEPS.length })
+    : t('onboarding.card.summaryList', { count: listed.length + serverProblems.length });
+
   return (
     <Card variant="outlined" sx={{ mb: 2 }}>
-      <CardContent>
+      <CardContent sx={{ '&:last-child': { pb: collapsed ? 1.5 : 2 }, py: collapsed ? 1.5 : 2 }}>
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap', mb: collapsed ? 0 : 1.5 }} useFlexGap>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, flexGrow: 1, minWidth: 0 }}>
+            {summary}
+          </Typography>
+          {collapsed && currentStep && (
+            <Button size="small" variant="contained" endIcon={<ChevronRightOutlined />} onClick={() => go(currentStep.key)}>
+              {t('onboarding.wizard.go')}
+            </Button>
+          )}
+          <IconButton
+            size="small"
+            onClick={toggle}
+            aria-expanded={!collapsed}
+            aria-label={collapsed ? t('onboarding.card.expand') : t('onboarding.card.collapse')}
+          >
+            {collapsed ? <ExpandMoreOutlined /> : <ExpandLessOutlined />}
+          </IconButton>
+        </Stack>
+
+        <Collapse in={!collapsed} timeout={200} unmountOnExit>
         {showWizard && (
           <Box sx={{ mb: listed.length > 0 || serverProblems.length > 0 ? 2 : 0 }}>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
@@ -253,6 +308,7 @@ export function SetupChecklistCard() {
             </Collapse>
           </Box>
         )}
+        </Collapse>
       </CardContent>
 
       <ImportEmployeesDialog open={importing} onClose={() => setImporting(false)} />

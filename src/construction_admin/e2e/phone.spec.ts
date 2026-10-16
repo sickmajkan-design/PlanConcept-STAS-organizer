@@ -68,10 +68,15 @@ base.describe('on a phone', () => {
   });
 
   base('nothing scrolls sideways', async ({ page }) => {
-    // Six pages, each compiled on first visit by the dev server.
-    base.setTimeout(180_000);
-    for (const path of ['/', '/employees', '/projects', '/time-entries', '/schedule', '/absences']) {
+    // Nine pages, each compiled on first visit by the dev server. The book's overview and entries are in:
+    // a row of period buttons and a row of export buttons that did not wrap once pushed the whole page wider
+    // than the phone, with the avatar half off the screen.
+    base.setTimeout(300_000);
+    for (const path of ['/', '/employees', '/projects', '/time-entries', '/schedule', '/absences', '/documents/expiring', '/book', '/book/entries']) {
       await page.goto(path);
+      // Measured once the page has its data: a table or a chart arrives after the first paint.
+      await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => undefined);
+      await page.waitForTimeout(500);
       const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
       );

@@ -17,6 +17,9 @@ beforeEach(() => {
 
 const SCREEN_TIMEOUT = 20_000;
 
+/** The card folds by default once a step is done; these tests look inside it, so they open it first. */
+const open = () => window.localStorage.setItem('onboarding.card.collapsed', '0');
+
 const reply = (items: { key: string; count: number }[]) => network.reply('/setup/checklist', 200, { items });
 
 describe('SetupChecklistCard', () => {
@@ -31,6 +34,7 @@ describe('SetupChecklistCard', () => {
   }, SCREEN_TIMEOUT);
 
   it('walks an empty system through its first step and marks the finished ones', async () => {
+    open();
     reply([
       { key: 'noProjects', count: 1 },
       { key: 'noEmployees', count: 1 },
@@ -46,6 +50,7 @@ describe('SetupChecklistCard', () => {
 
   it('moves a skipped step down into the list, where it stays until fixed', async () => {
     const user = userEvent.setup();
+    open();
     reply([
       { key: 'noProjects', count: 1 },
       { key: 'noEmployees', count: 1 },
@@ -63,6 +68,7 @@ describe('SetupChecklistCard', () => {
   }, SCREEN_TIMEOUT);
 
   it('lists what only the server owner can fix, without a button to fix it', async () => {
+    open();
     reply([
       { key: 'emailNotConfigured', count: 1 },
       { key: 'pushNotConfigured', count: 1 },
@@ -79,6 +85,7 @@ describe('SetupChecklistCard', () => {
   }, SCREEN_TIMEOUT);
 
   it('keeps the ordinary list, with fix buttons, once the system has its data', async () => {
+    open();
     reply([{ key: 'employeesWithoutProject', count: 3 }]);
 
     renderScreen(<SetupChecklistCard />, { user: signedIn('Admin') });
@@ -86,5 +93,37 @@ describe('SetupChecklistCard', () => {
     await screen.findByText('Employees not assigned to any project: 3');
     expect(screen.getByRole('button', { name: 'Fix' })).toBeDefined();
     expect(screen.queryByText('Welcome — let us set things up')).toBeNull();
+  }, SCREEN_TIMEOUT);
+
+  it('folds to one line once a step is done, and opens again on request', async () => {
+    const user = userEvent.setup();
+    reply([
+      { key: 'noProjects', count: 1 },
+      { key: 'noEmployees', count: 1 },
+    ]);
+
+    renderScreen(<SetupChecklistCard />, { user: signedIn('SuperAdmin') });
+
+    // The company is done: one line says how far along it is, and the guide's body stays out of the way.
+    await screen.findByText('System setup: 1 of 4 steps');
+    expect(screen.queryByText('Welcome — let us set things up')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Show' }).getAttribute('aria-expanded')).toBe('false');
+
+    await user.click(screen.getByRole('button', { name: 'Show' }));
+    await screen.findByText('Welcome — let us set things up');
+    expect(window.localStorage.getItem('onboarding.card.collapsed')).toBe('0');
+  }, SCREEN_TIMEOUT);
+
+  it('opens a brand new system fully, with nothing done yet', async () => {
+    reply([
+      { key: 'companyProfile', count: 1 },
+      { key: 'noProjects', count: 1 },
+      { key: 'noEmployees', count: 1 },
+    ]);
+
+    renderScreen(<SetupChecklistCard />, { user: signedIn('SuperAdmin') });
+
+    await screen.findByText('Welcome — let us set things up');
+    expect(screen.getByText('System setup: 0 of 4 steps')).toBeDefined();
   }, SCREEN_TIMEOUT);
 });

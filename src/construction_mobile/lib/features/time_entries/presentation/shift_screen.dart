@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/l10n/api_failure_text.dart';
@@ -383,6 +384,9 @@ class _ShiftCardState extends ConsumerState<ShiftCard> {
       if (projectId == null) return;
     }
 
+    // A firm tap under the thumb: the one action of the day, said once the decision is made, so a worker in
+    // gloves knows it registered without looking.
+    unawaited(HapticFeedback.mediumImpact());
     await ref.read(shiftControllerProvider.notifier).clockIn(projectId: projectId);
     ref.read(myTimeEntriesControllerProvider.notifier).refresh();
   }
@@ -417,6 +421,7 @@ class _ShiftCardState extends ConsumerState<ShiftCard> {
       return;
     }
 
+    unawaited(HapticFeedback.mediumImpact());
     await ref.read(shiftControllerProvider.notifier).clockOut(
           breakMinutes: breakMinutes,
         );
@@ -523,7 +528,12 @@ class _TimeEntryCard extends StatelessWidget {
     final l10n = context.l10n;
     final theme = Theme.of(context);
 
-    final worked = entry.workedMinutes;
+    // A shift still running has no worked time yet: show how long it has gone on, rather than the
+    // status word a second time right beside the status chip.
+    final worked = entry.workedMinutes ??
+        (entry.endedAt == null
+            ? DateTime.now().difference(entry.startedAt).inMinutes
+            : null);
     final workedLabel = worked == null
         ? enumLabel(l10n, EnumKind.timeEntryStatus, entry.status)
         : l10n.shiftElapsed(worked ~/ 60, worked % 60);

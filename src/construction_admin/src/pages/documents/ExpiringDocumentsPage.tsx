@@ -1,6 +1,7 @@
 import { DeleteOutlined, EditOutlined, UploadFileOutlined } from '@mui/icons-material';
 import {
   Box,
+  Button,
   Chip,
   IconButton,
   Tooltip,
@@ -341,7 +342,7 @@ export function ExpiringDocumentsPage() {
       {isError && <ErrorState error={error} onRetry={() => void refetch()} />}
 
       {sortedData && (
-        <Paper sx={{ overflowX: 'auto' }}>
+        <Paper className="scroll-hint" sx={{ overflowX: 'auto' }}>
           <Table size="small">
             <TableHead>
               <TableRow>
@@ -505,11 +506,41 @@ export function ExpiringDocumentsPage() {
               {sortedData.length === 0 && !isLoading && (
                 <TableRow>
                   <TableCell colSpan={6}>
-                    <Typography variant="body2" color="text.secondary">
-                      {search || tagFilter || ownerTypeFilter || categoryFilter
-                        ? t('attachments.searchEmpty')
-                        : t('attachments.expiringEmpty')}
-                    </Typography>
+                    <Stack spacing={1.5} sx={{ py: 1, alignItems: 'flex-start' }}>
+                      <Typography variant="body2" color="text.secondary">
+                        {search || tagFilter || ownerTypeFilter || categoryFilter
+                          ? t('attachments.searchEmpty')
+                          : t('attachments.expiringEmpty')}
+                      </Typography>
+                      {/* An empty list is where the next step belongs, not a dead end. */}
+                      {!(search || tagFilter || ownerTypeFilter || categoryFilter) && (
+                        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
+                          {(windowValue !== ALL_WINDOW || !includeUndated) && (
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={() => {
+                                setWindowValue(ALL_WINDOW);
+                                setIncludeUndated(true);
+                              }}
+                            >
+                              {t('attachments.expiringEmptyAll')}
+                            </Button>
+                          )}
+                          <Button
+                            size="small"
+                            variant="contained"
+                            startIcon={<UploadFileOutlined />}
+                            onClick={() => {
+                              setDropped([]);
+                              setUploading(true);
+                            }}
+                          >
+                            {t('attachments.upload')}
+                          </Button>
+                        </Stack>
+                      )}
+                    </Stack>
                   </TableCell>
                 </TableRow>
               )}

@@ -308,7 +308,7 @@ export function BookOverviewPage() {
 
       <Paper variant="outlined" sx={{ p: 2 }}>
         <Stack direction={{ xs: 'column', lg: 'row' }} spacing={2} useFlexGap sx={{ flexWrap: 'wrap', alignItems: { lg: 'center' } }}>
-          <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
+          <Stack direction="row" spacing={0.5} useFlexGap sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
             <IconButton size="small" disabled={lo - length < 0} onClick={() => shift(-1)} aria-label={t('book.overview.previous')}>
               <ChevronLeftOutlined />
             </IconButton>

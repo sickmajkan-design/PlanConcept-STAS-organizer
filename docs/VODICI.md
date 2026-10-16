@@ -13,6 +13,7 @@ Sve na srpskom (ijekavica). Isti sadržaj, kraće, nalazi se u aplikaciji: izbor
 | [VODIC_GORIVO_VOZILA_SMJESTAJ.md](VODIC_GORIVO_VOZILA_SMJESTAJ.md) | kancelarija | gorivo, vozila i smještaj |
 | [VODIC_PRETRAGA_I_PRECICE.md](VODIC_PRETRAGA_I_PRECICE.md) | svi | Ctrl+K, radnje, prečice |
 | [VODIC_PRIJAVA_I_SIGURNOST.md](VODIC_PRIJAVA_I_SIGURNOST.md) | svi | prijava, lozinka, drugi faktor, trag izmjena |
+| [DIZAJN_PRAVILA.md](DIZAJN_PRAVILA.md) | razvoj | boje, prazna stanja, pravila za telefon i aplikaciju |
 
 ## Pravilo za razvoj
 

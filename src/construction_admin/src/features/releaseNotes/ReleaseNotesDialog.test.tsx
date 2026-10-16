@@ -24,7 +24,7 @@ describe('ReleaseNotesDialog', () => {
     const { unmount } = renderScreen(<ReleaseNotesDialog />, { user: operator });
 
     expect(await screen.findByText(/What's new/)).toBeDefined();
-    expect(screen.getByText('Search, guides and language')).toBeDefined();
+    expect(screen.getByText('A cleaner look and better use on a phone')).toBeDefined();
 
     await user.click(screen.getByRole('button', { name: 'Got it' }));
     await waitFor(() => expect(screen.queryByText(/What's new/)).toBeNull());
@@ -55,9 +55,9 @@ describe('ReleaseNotesDialog', () => {
   it('tells an administrator about everything meant for administrators', async () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('SuperAdmin') });
 
-    await screen.findByText('Documents for workers');
+    await screen.findByText('Search, guides and language');
     expect(screen.getByText('Who opened sensitive documents')).toBeDefined();
-    expect(screen.getByText('Search, guides and language')).toBeDefined();
+    expect(screen.getByText('A cleaner look and better use on a phone')).toBeDefined();
   }, SCREEN_TIMEOUT);
 
   it('is shown again for a new release', async () => {

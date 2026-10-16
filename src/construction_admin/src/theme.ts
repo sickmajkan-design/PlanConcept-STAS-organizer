@@ -20,11 +20,24 @@ export const chartPalette = ['#e65100', '#37474f', '#f9a825', '#78909c', '#8d6e6
  * Material 3-leaning theme built around a high-visibility safety amber,
  * matching the mobile app so the two clients read as one product.
  */
+/**
+ * How fast and how a pressed control answers: a strong ease-out, quick enough to feel like the control heard
+ * the finger. Only transform, so it costs no layout.
+ */
+const PRESS = {
+  transition: 'transform 140ms cubic-bezier(0.23, 1, 0.32, 1), background-color 140ms ease, box-shadow 140ms ease',
+  '&:active:not(.Mui-disabled)': { transform: 'scale(0.97)' },
+  '@media (prefers-reduced-motion: reduce)': { transition: 'none', '&:active:not(.Mui-disabled)': { transform: 'none' } },
+};
+
 export const theme = createTheme({
   palette: {
     mode: 'light',
     primary: { main: '#e65100' },
     secondary: { main: '#37474f' },
+    // Information in the panel's own slate instead of the library's saturated blue, which appeared
+    // nowhere else and read as a different product. It stays clearly apart from the amber warning.
+    info: { main: '#546e7a', light: '#78909c', dark: '#37474f', contrastText: '#ffffff' },
     background: { default: '#f4f5f7', paper: '#ffffff' },
   },
   shape: { borderRadius: 10 },
@@ -41,7 +54,7 @@ export const theme = createTheme({
   components: {
     MuiButton: {
       styleOverrides: {
-        root: { textTransform: 'none', fontWeight: 600, [COARSE]: { minHeight: TOUCH_TARGET } },
+        root: { textTransform: 'none', fontWeight: 600, ...PRESS, [COARSE]: { minHeight: TOUCH_TARGET } },
       },
     },
     // On a touch screen every control is at least 44 px, the size a fingertip
@@ -49,7 +62,7 @@ export const theme = createTheme({
     // rather than at the roughly five hundred places that ask for `size="small"`,
     // and only for `pointer: coarse`, so a mouse still gets the compact desktop.
     MuiIconButton: {
-      styleOverrides: { root: { [COARSE]: { minWidth: TOUCH_TARGET, minHeight: TOUCH_TARGET } } },
+      styleOverrides: { root: { ...PRESS, [COARSE]: { minWidth: TOUCH_TARGET, minHeight: TOUCH_TARGET } } },
     },
     MuiToggleButton: {
       styleOverrides: { root: { [COARSE]: { minWidth: TOUCH_TARGET, minHeight: TOUCH_TARGET } } },

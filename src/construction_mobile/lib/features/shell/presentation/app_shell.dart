@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../core/l10n/app_locales.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -61,6 +64,7 @@ class AppShell extends ConsumerWidget {
       bottomNavigationBar: NavigationBar(
         selectedIndex: selected < 0 ? 0 : selected,
         onDestinationSelected: (index) {
+          unawaited(HapticFeedback.selectionClick());
           final branch = branches[index];
 
           navigationShell.goBranch(

@@ -380,7 +380,7 @@ export function BookEntriesPage() {
         title={t('book.entries.title')}
         description={monthLabel}
         secondaryActions={
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+          <Stack direction="row" spacing={1} useFlexGap sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
             <IconButton size="small" onClick={() => shift(-1)} aria-label={t('book.overview.previous')}>
               <ChevronLeftOutlined />
             </IconButton>
@@ -591,7 +591,7 @@ export function BookEntriesPage() {
         />
       </Stack>
 
-      <Paper variant="outlined" sx={{ overflowX: 'auto' }}>
+      <Paper variant="outlined" className="scroll-hint" sx={{ overflowX: 'auto' }}>
         <Table size="small">
           <TableHead>
             <TableRow>

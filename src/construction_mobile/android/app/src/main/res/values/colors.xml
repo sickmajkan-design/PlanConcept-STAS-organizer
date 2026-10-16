@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The brand orange of the icon, and the cream the sign-in screen opens on. -->
+    <color name="ic_launcher_background">#E65100</color>
+    <color name="splash_background">#FFF8F5</color>
+    <color name="splash_background_night">#1C1411</color>
+</resources>
