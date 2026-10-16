@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
+import '../../../core/storage/opened_documents.dart';
+import '../../../core/utils/secure_screen.dart';
 
 import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
@@ -27,17 +28,21 @@ class AttachmentPreviewScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          (attachment.title?.isNotEmpty ?? false)
-              ? attachment.title!
-              : attachment.fileName,
+    // A medical or identity document is not to be screenshotted while it is on screen.
+    return SecureScope(
+      enabled: SecureScreen.isSensitive(attachment.category),
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            (attachment.title?.isNotEmpty ?? false)
+                ? attachment.title!
+                : attachment.fileName,
+          ),
         ),
+        body: attachment.isImage
+            ? _ImageBody(attachment: attachment)
+            : _OpenExternallyBody(attachment: attachment),
       ),
-      body: attachment.isImage
-          ? _ImageBody(attachment: attachment)
-          : _OpenExternallyBody(attachment: attachment),
     );
   }
 }
@@ -55,6 +60,17 @@ class _OpenExternallyBody extends ConsumerStatefulWidget {
 class _OpenExternallyBodyState extends ConsumerState<_OpenExternallyBody> {
   bool _busy = false;
   ApiException? _error;
+  final List<File> _written = [];
+
+  @override
+  void dispose() {
+    // The copy made for the other app goes with the screen.
+    for (final file in _written) {
+      file.delete().ignore();
+    }
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -116,9 +132,12 @@ class _OpenExternallyBodyState extends ConsumerState<_OpenExternallyBody> {
           .read(attachmentRepositoryProvider)
           .fetchContent(widget.attachment.id);
 
-      final cacheDir = await getTemporaryDirectory();
-      final file = File(p.join(cacheDir.path, widget.attachment.fileName));
-      await file.writeAsBytes(bytes, flush: true);
+      // In the app's own folder under a name of its own; removed when the person leaves this screen.
+      final file = await OpenedDocuments.write(
+        bytes,
+        extension: p.extension(widget.attachment.fileName).toLowerCase(),
+      );
+      _written.add(file);
 
       final result = await OpenFilex.open(file.path);
 

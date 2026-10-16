@@ -1,3 +1,4 @@
+import '../../../core/storage/opened_documents.dart';
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -131,6 +132,10 @@ class AuthController extends AsyncNotifier<AuthState> {
 
     await manager.clear();
     state = const AsyncData(Unauthenticated());
+
+    // The next person to use this phone must not find the last one's documents in its cache.
+    // Not awaited: signing out must not wait on the disk.
+    unawaited(OpenedDocuments.wipe());
 
     if (session != null) {
       unawaited(_revoke(session, deviceToken));

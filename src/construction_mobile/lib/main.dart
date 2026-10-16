@@ -7,6 +7,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'app.dart';
 import 'core/config/server_address.dart';
+import 'core/storage/opened_documents.dart';
 import 'core/telemetry/client_error_reporter.dart';
 import 'core/widgets/crash_panel.dart';
 import 'features/notifications/presentation/push_controller.dart';
@@ -15,6 +16,9 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   installCrashPanel();
+
+  // Whatever an earlier run left in the folder of documents handed to other apps goes first.
+  await OpenedDocuments.wipe();
 
   // Registered unconditionally and before runApp, as FCM requires — the
   // handler itself no-ops when Firebase turns out not to be configured for

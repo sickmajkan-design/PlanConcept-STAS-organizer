@@ -2590,7 +2590,7 @@ export interface AuditChange {
 }
 
 /** One recorded change to a record — who, when, and which fields moved. */
-export const auditActions = ['Created', 'Updated', 'Deleted'] as const;
+export const auditActions = ['Created', 'Updated', 'Deleted', 'Viewed'] as const;
 export type AuditAction = (typeof auditActions)[number];
 
 export interface AuditEntry {

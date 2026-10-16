@@ -207,6 +207,24 @@ public class ExportAttachmentsQueryHandler : IRequestHandler<ExportAttachmentsQu
             readable.Count - skipped.Count,
             skipped.Count);
 
+        // Medical and identity documents taken out in the archive are recorded one by one.
+        foreach (var row in readable.Where(r => SensitiveReadAudit.IsSensitive(r.Dto.Category)))
+        {
+            SensitiveReadAudit.Record(
+                _context,
+                _currentUserService,
+                _dateTimeProvider,
+                row.Dto.Id,
+                row.Dto.Category,
+                row.EmployeeId,
+                "Exported");
+        }
+
+        if (readable.Any(r => SensitiveReadAudit.IsSensitive(r.Dto.Category)))
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
         var stamp = _dateTimeProvider.UtcNow.ToString("yyyy-MM-dd");
 
         return new AttachmentExport(archiveStream, $"dokumenti-{stamp}.zip");

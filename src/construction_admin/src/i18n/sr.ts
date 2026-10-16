@@ -844,6 +844,9 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.close': 'Razumijem',
 
 
+  'releaseNotes.sec1016.title': "Ko je otvarao osjetljive dokumente",
+  'releaseNotes.sec1016.audit': "Kad neko osim same osobe otvori ili izveze ljekarski pregled, lični dokument ili vizu, to se sada upisuje u reviziju (Administracija > Revizija, radnja Otvoreno, vrsta zapisa Attachment) s tim ko, kada i odakle.",
+  'releaseNotes.sec1016.phone': "Aplikacija 1.1.24: takvi dokumenti se ne mogu snimiti ekranom ni snimkom ekrana dok su otvoreni, a kopija napravljena za drugu aplikaciju briše se kad osoba napusti ekran ili se odjavi.",
   'releaseNotes.pdf1015.title': "Pregled PDF-a i provjera datoteka",
   'releaseNotes.pdf1015.pdf': "PDF se sada otvara stranicu po stranicu unutar panela, a ne u pregledniku, pa se isto čita na telefonu i na računaru. Vrlo dugački dokumenti prikazuju prvih 40 stranica; datoteka se i dalje može preuzeti cijela.",
   'releaseNotes.pdf1015.scan': "Svaka otpremljena datoteka se prije pohrane provjerava na viruse. Odbijena datoteka to kaže; ako provjera na trenutak nije dostupna, otpremanje traži da se pokuša ponovo.",
@@ -858,10 +861,6 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.docs1015.nodocs': "Obračun mjeseca (Super Admin): lista provjera sada upozorava na troškove proknjižene u mjesecu bez priloženog dokumenta, s brojem i zbirom, i dugmetom koje otvara unose. Samo je podsjetnik i ne sprječava zaključivanje mjeseca.",
   'releaseNotes.book1015.title': "Mjesečni paket za knjigovođu",
   'releaseNotes.book1015.package': "Na stranici Unosi je novo dugme Izvoz s dokumentima (ZIP). Preuzima tabelu zapisa koje si filtrirao zajedno s dokumentima priloženim uz njih, po jedna mapa za svaki zapis, pa knjigovođa dobija sve u jednoj datoteci. Kratka napomena unutra navodi koliko troškova nije imalo dokument.",
-  'releaseNotes.sec1014.title': "Sigurnija prijava",
-  'releaseNotes.sec1014.twostep': "Prijava sada može tražiti šestocifreni kod iz aplikacije za autentikaciju, kao drugi korak poslije lozinke. Pripremljeno je, ali za sada isključeno; administratori će biti obaviješteni kad se uključi.",
-  'releaseNotes.sec1014.phone': "Aplikacija na telefonu traži isti kod, pa je ažurirajte kad to bude potrebno.",
-  'releaseNotes.sec1014.overview': "Ispravljeno: pregled više ne javlja grešku kad nedostaje datum.",
   'finance.budget.warnPercentHelp': 'Prazno znači 80%. Od 100% se projekat računa kao prekoračen.',
   'finance.housingDoubleWarning': '{count} troškova smještaja pada na dane kada je kirija već uračunata iz cijena smještaja, pa se ta kirija računa dvaput. Obrišite ih ili ih prebacite u drugu kategoriju.',
   'finance.payOverlapWarning': '{count} isplata bez projekta pada na dane kada je ista osoba evidentirala sate na projektu. Računaju se oba iznosa — provjerite treba li jedan zamijeniti drugi.',
@@ -4249,6 +4248,7 @@ export const sr: Record<MessageKey, Message> = {
   'auditAction.Created': 'Kreirano',
   'auditAction.Updated': 'Izmijenjeno',
   'auditAction.Deleted': 'Obrisano',
+  'auditAction.Viewed': 'Otvoreno',
 
   'vehicleExpenseStatus.Pending': 'Čeka pregled',
   'vehicleExpenseStatus.Approved': 'Odobreno',

@@ -817,6 +817,9 @@ export const en = {
   'releaseNotes.close': 'Got it',
 
 
+  'releaseNotes.sec1016.title': "Who opened sensitive documents",
+  'releaseNotes.sec1016.audit': "When somebody other than the person themselves opens or exports a medical check, an identity document or a visa, it is now recorded in the audit trail (Administration > Audit, action Opened, record type Attachment) with who, when and from where.",
+  'releaseNotes.sec1016.phone': "Phone app 1.1.24: such documents cannot be screenshotted or screen-recorded while they are open, and the copy made for another app is removed when the person leaves the screen or signs out.",
   'releaseNotes.pdf1015.title': "PDF preview and file checking",
   'releaseNotes.pdf1015.pdf': "A PDF now opens page by page inside the panel instead of in the browser's own viewer, so it reads the same on a phone as on a computer. Very long documents show their first 40 pages; the file can still be downloaded whole.",
   'releaseNotes.pdf1015.scan': "Every uploaded file is checked for viruses before it is stored. A file that is refused says so; if the check is not available for a moment, the upload asks to be tried again.",
@@ -831,10 +834,6 @@ export const en = {
   'releaseNotes.docs1015.nodocs': "Month settlement (Super Admin): the checks list now warns about costs booked in the month with no document attached, with their number and total, and a button that opens the entries. It is a prompt only and never blocks closing the month.",
   'releaseNotes.book1015.title': "Monthly package for the accountant",
   'releaseNotes.book1015.package': "On the Entries page there is a new button, Export with documents (ZIP). It downloads the spreadsheet of the lines you have filtered together with the documents filed on them, one folder per line, so the accountant gets everything in one file. A short note inside lists how many costs had no document.",
-  'releaseNotes.sec1014.title': "Safer sign-in",
-  'releaseNotes.sec1014.twostep': "Sign-in can now ask for a six-digit code from an authenticator app, as a second step after the password. It is prepared but switched off for now; administrators will be told when it is switched on.",
-  'releaseNotes.sec1014.phone': "The phone app asks for the same code, so update it when you are asked to.",
-  'releaseNotes.sec1014.overview': "Fixed: the overview no longer fails with an error when a date is left out.",
   'finance.budget.warnPercentHelp': 'Leave empty for 80%. From 100% the project counts as over.',
   'finance.housingDoubleWarning': '{count} housing expenses fall on days when accommodation rent is already counted from the accommodation rates, so that rent is counted twice. Delete them or move them to another category.',
   'finance.payOverlapWarning': '{count} pay entries tied to no project fall on days the same person clocked hours at a project. Both are counted — check whether one of them should replace the other.',
@@ -4206,6 +4205,7 @@ export const en = {
   'auditAction.Created': 'Created',
   'auditAction.Updated': 'Updated',
   'auditAction.Deleted': 'Deleted',
+  'auditAction.Viewed': 'Opened',
 
   'vehicleExpenseStatus.Pending': 'Pending review',
   'vehicleExpenseStatus.Approved': 'Approved',

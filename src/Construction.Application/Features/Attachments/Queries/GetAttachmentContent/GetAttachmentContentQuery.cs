@@ -18,15 +18,18 @@ public class GetAttachmentContentQueryHandler
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
     private readonly IFileStorage _storage;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
     public GetAttachmentContentQueryHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        IFileStorage storage)
+        IFileStorage storage,
+        IDateTimeProvider dateTimeProvider)
     {
         _context = context;
         _currentUserService = currentUserService;
         _storage = storage;
+        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<AttachmentContent> Handle(
@@ -67,6 +70,22 @@ public class GetAttachmentContentQueryHandler
         var content = await _storage.OpenReadAsync(attachment.StorageKey, cancellationToken)
             ?? throw new NotFoundException(
                 "The file is recorded but its contents are missing from storage.");
+
+        // Opening a medical or identity document is recorded; the entry is saved only once the file is
+        // actually being served.
+        SensitiveReadAudit.Record(
+            _context,
+            _currentUserService,
+            _dateTimeProvider,
+            attachment.Id,
+            attachment.Category,
+            attachment.EmployeeId,
+            "Opened");
+
+        if (SensitiveReadAudit.IsSensitive(attachment.Category))
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
 
         return new AttachmentContent(content, attachment.ContentType, attachment.FileName);
     }

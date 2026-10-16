@@ -621,4 +621,65 @@ public class DocumentRequestTests : IntegrationTestBase
         var sent = await SubmitAsync(w, asked.Id);
         Assert.Equal(DocumentRequestStatus.Submitted, sent.Status);
     }
+
+    // ---- who opened what -------------------------------------------------
+
+    [Fact]
+    public async Task Opening_somebody_elses_medical_document_is_recorded_and_their_own_is_not()
+    {
+        var w = await SeedAsync();
+        var asked = await AskAsync(w, AttachmentCategory.MedicalCheck, "Ljekarski pregled");
+        var sent = await SubmitAsync(w, asked.Id);
+        var fileId = sent.Files.Single().Id;
+
+        // The person opening what they sent: theirs, so nothing is recorded.
+        await InScope(async scope =>
+        {
+            ActAs(scope, w.Worker, w.Employee.Id);
+            var own = await scope.Send(new GetAttachmentContentQuery(fileId));
+            await own.Content.DisposeAsync();
+        });
+
+        var before = await InScope(scope => scope.Db.AuditEntries.AsNoTracking()
+            .CountAsync(a => a.Action == AuditAction.Viewed && a.EntityId == fileId));
+        Assert.Equal(0, before);
+
+        // The office opening it is.
+        await InScope(async scope =>
+        {
+            ActAs(scope, w.Admin);
+            var content = await scope.Send(new GetAttachmentContentQuery(fileId));
+            await content.Content.DisposeAsync();
+        });
+
+        var entries = await InScope(scope => scope.Db.AuditEntries.AsNoTracking()
+            .Where(a => a.Action == AuditAction.Viewed && a.EntityId == fileId)
+            .ToListAsync());
+
+        var entry = Assert.Single(entries);
+        Assert.Equal(w.Admin.Id, entry.UserId);
+        Assert.Equal("Attachment", entry.EntityName);
+        Assert.Contains("MedicalCheck", entry.ChangesJson);
+        Assert.Contains(w.Employee.Id.ToString(), entry.ChangesJson);
+    }
+
+    [Fact]
+    public async Task A_document_that_is_not_sensitive_leaves_no_reading_entry()
+    {
+        var w = await SeedAsync();
+        var asked = await AskAsync(w, AttachmentCategory.Diploma, "Diploma");
+        var sent = await SubmitAsync(w, asked.Id);
+        var fileId = sent.Files.Single().Id;
+
+        await InScope(async scope =>
+        {
+            ActAs(scope, w.Admin);
+            var content = await scope.Send(new GetAttachmentContentQuery(fileId));
+            await content.Content.DisposeAsync();
+        });
+
+        var count = await InScope(scope => scope.Db.AuditEntries.AsNoTracking()
+            .CountAsync(a => a.Action == AuditAction.Viewed && a.EntityId == fileId));
+        Assert.Equal(0, count);
+    }
 }
