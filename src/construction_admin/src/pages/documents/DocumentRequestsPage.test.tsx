@@ -121,4 +121,29 @@ describe('document requests', () => {
 
     expect(await screen.findByText(/Kasni|Overdue/)).toBeTruthy();
   }, SCREEN_TIMEOUT);
+
+  it('deletes a withdrawn request only after being asked to confirm', async () => {
+    const withdrawn = request({ status: 'Cancelled', files: [], attempts: 0 });
+    network.reply('/documentrequests', 200, page([withdrawn]));
+    network.reply('/documentrequests/r1', 200, withdrawn);
+    renderPage();
+
+    await userEvent.click(await screen.findByRole('tab', { name: /Povučeno|Withdrawn/ }));
+    await userEvent.click(await screen.findByRole('button', { name: /^(Otvori|Open)$/ }));
+
+    const dialog = await screen.findByRole('dialog');
+    await userEvent.click(await within(dialog).findByRole('button', { name: /Obriši zahtjev|Delete request/ }));
+
+    // Nothing is sent until it is confirmed.
+    expect(network.calls.some((c) => c.method === 'DELETE')).toBe(false);
+
+    const confirm = (await screen.findAllByRole('dialog')).at(-1)!;
+    network.reply('/documentrequests/r1', 204);
+    await userEvent.click(within(confirm).getByRole('button', { name: /^(Obriši|Delete)$/ }));
+
+    await waitFor(() => {
+      const call = network.calls.find((c) => c.method === 'DELETE' && c.url.endsWith('/documentrequests/r1'));
+      expect(call).toBeTruthy();
+    });
+  }, SCREEN_TIMEOUT);
 });

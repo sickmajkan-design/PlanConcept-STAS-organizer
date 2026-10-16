@@ -87,6 +87,9 @@ export const documentRequestsApi = {
     request<DocumentRequest>({ method: 'POST', url: `${BASE}/${id}/return`, data: { reason } }),
 
   cancel: (id: string) => request<DocumentRequest>({ method: 'POST', url: `${BASE}/${id}/cancel` }),
+
+  /** Removes a withdrawn request for good. */
+  remove: (id: string) => request<void>({ method: 'DELETE', url: `${BASE}/${id}` }),
 };
 
 /** Categories whose documents lapse, so accepting one needs the date it is valid until. Mirrors the API. */

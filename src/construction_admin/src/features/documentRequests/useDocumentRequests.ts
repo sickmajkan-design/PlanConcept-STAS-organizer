@@ -47,6 +47,10 @@ export function useReturnDocumentRequest() {
   );
 }
 
+export function useDeleteDocumentRequest() {
+  return useResourceMutation((id: string) => documentRequestsApi.remove(id), caches);
+}
+
 export function useCancelDocumentRequest() {
   return useResourceMutation((id: string) => documentRequestsApi.cancel(id), caches);
 }

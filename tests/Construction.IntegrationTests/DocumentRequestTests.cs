@@ -682,4 +682,80 @@ public class DocumentRequestTests : IntegrationTestBase
             .CountAsync(a => a.Action == AuditAction.Viewed && a.EntityId == fileId));
         Assert.Equal(0, count);
     }
+
+    // ---- deleting --------------------------------------------------------
+
+    [Fact]
+    public async Task A_withdrawn_request_can_be_deleted_and_nothing_else_can()
+    {
+        var w = await SeedAsync();
+        var asked = await AskAsync(w);
+
+        // Still live: it has to be withdrawn first.
+        await Assert.ThrowsAsync<ConflictException>(() => InScope(scope =>
+        {
+            ActAs(scope, w.Admin);
+            return scope.Send(new DeleteDocumentRequestCommand(asked.Id));
+        }));
+
+        await InScope(scope =>
+        {
+            ActAs(scope, w.Admin);
+            return scope.Send(new CancelDocumentRequestCommand(asked.Id));
+        });
+
+        // The person may not delete it, even once withdrawn.
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() => InScope(scope =>
+        {
+            ActAs(scope, w.Worker, w.Employee.Id);
+            return scope.Send(new DeleteDocumentRequestCommand(asked.Id));
+        }));
+
+        await InScope(scope =>
+        {
+            ActAs(scope, w.Admin);
+            return scope.Send(new DeleteDocumentRequestCommand(asked.Id));
+        });
+
+        // Gone from the office's list and from the person's.
+        var page = await InScope(scope =>
+        {
+            ActAs(scope, w.Admin);
+            return scope.Send(new GetDocumentRequestsQuery { EmployeeId = w.Employee.Id });
+        });
+        Assert.Empty(page.Items);
+
+        var mine = await InScope(scope =>
+        {
+            ActAs(scope, w.Worker, w.Employee.Id);
+            return scope.Send(new GetMyDocumentRequestsQuery());
+        });
+        Assert.Empty(mine);
+
+        await Assert.ThrowsAsync<NotFoundException>(() => InScope(scope =>
+        {
+            ActAs(scope, w.Admin);
+            return scope.Send(new DeleteDocumentRequestCommand(asked.Id));
+        }));
+    }
+
+    [Fact]
+    public async Task An_accepted_request_cannot_be_deleted()
+    {
+        var w = await SeedAsync();
+        var asked = await AskAsync(w, AttachmentCategory.Diploma, "Diploma");
+        await SubmitAsync(w, asked.Id);
+
+        await InScope(scope =>
+        {
+            ActAs(scope, w.Admin);
+            return scope.Send(new AcceptDocumentRequestCommand { Id = asked.Id });
+        });
+
+        await Assert.ThrowsAsync<ConflictException>(() => InScope(scope =>
+        {
+            ActAs(scope, w.Admin);
+            return scope.Send(new DeleteDocumentRequestCommand(asked.Id));
+        }));
+    }
 }

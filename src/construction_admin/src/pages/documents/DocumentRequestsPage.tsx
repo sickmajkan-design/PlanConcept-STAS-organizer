@@ -30,12 +30,14 @@ import {
 } from '../../api/documentRequests';
 import type { Attachment } from '../../api/types';
 import { AttachmentPreviewDialog } from '../../components/AttachmentPreviewDialog';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { FirstUseHint, HintLine } from '../../components/files/FirstUseHint';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import {
   useAcceptDocumentRequest,
   useCancelDocumentRequest,
+  useDeleteDocumentRequest,
   useDocumentRequestQuery,
   useDocumentRequestsQuery,
   useReturnDocumentRequest,
@@ -123,6 +125,8 @@ function ReviewDialog({ requestId, onClose }: { requestId: string | null; onClos
   const accept = useAcceptDocumentRequest();
   const send = useReturnDocumentRequest();
   const cancel = useCancelDocumentRequest();
+  const remove = useDeleteDocumentRequest();
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const [expiresAt, setExpiresAt] = useState('');
   const [returning, setReturning] = useState(false);
@@ -275,6 +279,11 @@ function ReviewDialog({ requestId, onClose }: { requestId: string | null; onClos
             {t('docRequests.action.cancel')}
           </Button>
         )}
+        {request?.status === 'Cancelled' && (
+          <Button color="error" disabled={pending || remove.isPending} onClick={() => setConfirmingDelete(true)}>
+            {t('docRequests.action.delete')}
+          </Button>
+        )}
         <Box sx={{ flex: 1 }} />
         <Button onClick={close}>{t('common.close')}</Button>
         {request?.status === 'Submitted' && !returning && (
@@ -319,6 +328,30 @@ function ReviewDialog({ requestId, onClose }: { requestId: string | null; onClos
       </DialogActions>
 
       <AttachmentPreviewDialog attachment={previewing} onClose={() => setPreviewing(null)} />
+
+      <ConfirmDialog
+        open={confirmingDelete}
+        title={t('docRequests.delete.title')}
+        description={t('docRequests.delete.body')}
+        confirmLabel={t('common.delete')}
+        destructive
+        loading={remove.isPending}
+        onConfirm={() => {
+          if (!request) return;
+
+          remove.mutate(request.id, {
+            onSuccess: () => {
+              setConfirmingDelete(false);
+              close();
+            },
+            onError: (error) => {
+              setConfirmingDelete(false);
+              setFailure(toApiError(error).message);
+            },
+          });
+        }}
+        onCancel={() => setConfirmingDelete(false)}
+      />
     </Dialog>
   );
 }

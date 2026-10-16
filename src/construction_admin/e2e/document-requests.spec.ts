@@ -238,3 +238,39 @@ test('handing a vehicle to someone with no driving licence on record warns, and 
   const read = await request.get(`${API}/api/v1/vehicles/${created.id}`, { headers: auth });
   expect((await read.json()).assignedEmployeeId).toBe(person.id);
 });
+
+test('a withdrawn request is deleted for good from the list, after a confirmation', async ({ signedIn: page, request }) => {
+  test.setTimeout(150_000);
+
+  const worker = await seedWorker(request);
+  const auth = { Authorization: `Bearer ${worker.admin}` };
+
+  const created = await request.post(`${API}/api/v1/documentrequests`, {
+    headers: auth,
+    data: { employeeIds: [worker.employeeId], items: [{ category: 'Diploma', title: 'Diploma za brisanje' }] },
+  });
+  expect(created.ok(), await created.text()).toBeTruthy();
+  const id = (await created.json()).created[0].id as string;
+
+  const cancelled = await request.post(`${API}/api/v1/documentrequests/${id}/cancel`, { headers: auth });
+  expect(cancelled.ok(), await cancelled.text()).toBeTruthy();
+
+  await page.goto(`/documents/requests?employeeId=${worker.employeeId}`);
+  await page.getByRole('tab', { name: 'Withdrawn' }).click({ timeout: 60_000 });
+
+  const row = page.locator('.MuiDataGrid-row', { hasText: 'Diploma za brisanje' });
+  await expect(row).toBeVisible();
+  await row.getByRole('button', { name: 'Open' }).click();
+
+  await page.getByRole('dialog').getByRole('button', { name: 'Delete request' }).click();
+
+  // Asked first; nothing is gone yet.
+  const confirm = page.getByRole('dialog').last();
+  await expect(confirm.getByText('Delete this request?')).toBeVisible();
+  await confirm.getByRole('button', { name: 'Delete', exact: true }).click();
+
+  await expect(page.locator('.MuiDataGrid-row', { hasText: 'Diploma za brisanje' })).toHaveCount(0);
+
+  const gone = await request.get(`${API}/api/v1/documentrequests/${id}`, { headers: auth });
+  expect(gone.status()).toBe(404);
+});

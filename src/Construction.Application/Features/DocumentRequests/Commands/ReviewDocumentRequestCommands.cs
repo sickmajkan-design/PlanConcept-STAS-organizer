@@ -30,6 +30,16 @@ public record ReturnDocumentRequestCommand : IRequest<DocumentRequestDto>
 /// <summary>Withdraws a request.</summary>
 public record CancelDocumentRequestCommand(Guid Id) : IRequest<DocumentRequestDto>;
 
+/// <summary>
+/// Removes a request that was withdrawn, for good: it leaves the lists of the office and of the person.
+/// </summary>
+/// <remarks>
+/// Only a withdrawn request can go. One that is still live has to be withdrawn first, so the person is told,
+/// and one that was accepted is a record of a document now on the file. The files that were sent stay where
+/// they are on the person's record, unshared; the removal itself is written to the audit trail.
+/// </remarks>
+public record DeleteDocumentRequestCommand(Guid Id) : IRequest;
+
 public class ReturnDocumentRequestCommandValidator : AbstractValidator<ReturnDocumentRequestCommand>
 {
     public ReturnDocumentRequestCommandValidator()
@@ -289,5 +299,31 @@ public class CancelDocumentRequestCommandHandler
             cancellationToken);
 
         return await DocumentRequestDetail.LoadAsync(Context, CurrentUser, request.Id, cancellationToken);
+    }
+}
+
+public class DeleteDocumentRequestCommandHandler : ReviewHandlerBase, IRequestHandler<DeleteDocumentRequestCommand>
+{
+    public DeleteDocumentRequestCommandHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider,
+        INotificationService notifications)
+        : base(context, currentUserService, dateTimeProvider, notifications)
+    {
+    }
+
+    public async Task Handle(DeleteDocumentRequestCommand command, CancellationToken cancellationToken)
+    {
+        RequireOffice();
+        var request = await LoadAsync(command.Id, cancellationToken);
+
+        if (request.Status != DocumentRequestStatus.Cancelled)
+        {
+            throw new ConflictException("Only a withdrawn request can be deleted. Withdraw it first.");
+        }
+
+        Context.DocumentRequests.Remove(request);
+        await SaveAsync(cancellationToken);
     }
 }

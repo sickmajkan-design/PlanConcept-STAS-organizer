@@ -136,6 +136,19 @@ public class DocumentRequestsController : ApiControllerBase
         CancellationToken cancellationToken) =>
         Ok(await Mediator.Send(command with { Id = id }, cancellationToken));
 
+    /// <summary>Deletes a withdrawn request for good.</summary>
+    [HttpDelete("{id:guid}")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new DeleteDocumentRequestCommand(id), cancellationToken);
+
+        return NoContent();
+    }
+
     /// <summary>Withdraws a request.</summary>
     [HttpPost("{id:guid}/cancel")]
     [Authorize(Policy = Policies.AdminAndAbove)]
