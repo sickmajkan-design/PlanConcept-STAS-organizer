@@ -876,10 +876,10 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.close': 'Razumijem',
 
 
-  'releaseNotes.drop1016.title': "Dodavanje dokumenata je lakše",
-  'releaseNotes.drop1016.anywhere': "Na stranici Dokumenti datoteku možete ispustiti bilo gdje na stranici; otvara se dodavanje s već unesenom datotekom.",
-  'releaseNotes.drop1016.category': "Pri dodavanju više datoteka svaka može imati svoju vrstu (npr. ugovor i fotografija u istom unosu); izbor pored datoteke ima prednost nad općom vrstom.",
-  'releaseNotes.drop1016.limits': "Dozvoljene vrste i veličina datoteka sada se uvijek čitaju sa servera, pa se prikaz u panelu ne može razići s onim što server stvarno prihvata. Uvoz mjeseca u Knjizi troškova takođe prima datoteku povlačenjem.",
+  'releaseNotes.calm1016.title': "Mirniji izgled i bolji prikaz na telefonu",
+  'releaseNotes.calm1016.phone': "Na telefonu je zaglavlje čišće: pomoć i jezik su u meniju vašeg naloga, a ime poslovne jedinice se vidi cijelo. Početna pokazuje današnji datum, pokazatelji su po dva u redu, a nazivi se prelamaju umjesto da budu odsječeni.",
+  'releaseNotes.calm1016.calm': "Kartice na nadzornoj ploči su mirnije: tanka siva linija umjesto narandžaste trake i sjaja, lakši naslovi. Narandžasta je ostala za ono što se može pritisnuti. Grafikon bez podataka zamjenjuje jedna rečenica.",
+  'releaseNotes.calm1016.app': "Aplikacija (1.1.27): slika gradilišta ide do vrha ekrana, prijava na smjenu je jedino narandžasto dugme, datum je ispod pozdrava, a lokacija van smjene je jedna linija umjesto kartice.",
   'releaseNotes.create1016.title': "Dokument već pri pravljenju zapisa",
   'releaseNotes.create1016.forms': "Na obrascu za novog zaposlenog, vozilo, alat, gradilište ili smještaj dodajte dokumente odmah (prevlačenjem ili izborom, svaki s vlastitom vrstom). Spremaju se uz zapis čim se napravi, pa ne treba prvo sačuvati pa se vraćati na karticu Dokumenti. Ako neka datoteka ne prođe, zapis ostaje, a na njegovoj kartici piše koje treba dodati.",
   'releaseNotes.create1016.book': "U brzom unosu Evidencije dugme Priloži dokument vezuje račun ili fotografiju uz red koji ukucate; fotografija postaje vrsta Fotografija, sve ostalo Ostalo.",
@@ -949,6 +949,7 @@ export const sr: Record<MessageKey, Message> = {
   'dashboard.projectsRealization.noCostData': 'Još nema evidentiranih troškova ove godine.',
   'dashboard.projectsRealization.monthlyTrend': 'Realizovan prihod po mjesecima',
   'dashboard.projectsRealization.revenue': 'Prihod',
+  'dashboard.projectsRealization.noRevenue': 'Još nema evidentiranog prihoda ove godine.',
   'dashboard.projectsRealization.labour': 'Rad',
   'dashboard.projectsRealization.material': 'Materijal',
   'dashboard.projectsRealization.generalExpenses': 'Opšti troškovi',
@@ -1443,6 +1444,7 @@ export const sr: Record<MessageKey, Message> = {
   // --- Home -----------------------------------------------------------------
   'home.welcome': 'Dobrodošli, {name}',
   'home.welcomeShort': 'Dobrodošli',
+  'home.today': 'Danas',
   'onboarding.checklist.serverToggle': 'Za onoga ko održava server ({count})',
   'home.subtitle': 'Izaberite sekciju iz menija.',
 

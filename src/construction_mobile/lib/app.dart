@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/l10n/app_locales.dart';
@@ -83,7 +84,19 @@ class _ConstructionAppState extends ConsumerState<ConstructionApp>
       localeResolutionCallback: (deviceLocale, supported) =>
           resolveLocale(deviceLocale, supported),
       routerConfig: ref.watch(routerProvider),
-      builder: (context, child) => StatusBanners(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) {
+        // The picture and the page run up under the status bar; its icons follow the theme so they stay readable.
+        final dark = Theme.of(context).brightness == Brightness.dark;
+
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: dark ? Brightness.light : Brightness.dark,
+            statusBarBrightness: dark ? Brightness.dark : Brightness.light,
+          ),
+          child: StatusBanners(child: child ?? const SizedBox.shrink()),
+        );
+      },
     );
   }
 }

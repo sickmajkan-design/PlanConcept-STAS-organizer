@@ -13,6 +13,10 @@ class AppTheme {
   static const Color heroCard = Color(0xFF3B2416);
   static const Color heroCardText = Color(0xFFF6EEE4);
 
+  /// The one filled orange button on the home screen (clock in), set against the dark hero card.
+  static const Color heroAction = Color(0xFFFF8A3D);
+  static const Color heroActionText = Color(0xFF2A1200);
+
   /// The burnt orange that marks what needs doing: a priority, a selection.
   static const Color accent = Color(0xFFB5541C);
 

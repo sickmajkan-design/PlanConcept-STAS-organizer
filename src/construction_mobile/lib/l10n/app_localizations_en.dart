@@ -2978,6 +2978,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String homeDateLine(String weekday, String date) {
+    return '$weekday, $date';
+  }
+
+  @override
+  String homeWeekday(String day) {
+    String _temp0 = intl.Intl.selectLogic(day, {
+      '1': 'Monday',
+      '2': 'Tuesday',
+      '3': 'Wednesday',
+      '4': 'Thursday',
+      '5': 'Friday',
+      '6': 'Saturday',
+      'other': 'Sunday',
+    });
+    return '$_temp0';
+  }
+
+  @override
   String homeGreetingDay(String name) {
     return 'Hello, $name';
   }

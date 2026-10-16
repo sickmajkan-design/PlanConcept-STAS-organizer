@@ -218,19 +218,34 @@ class _GreetingRow extends StatelessWidget {
         ? l10n.homeGreetingDay(name)
         : l10n.homeGreetingEvening(name);
 
+    final today = DateTime.now();
+    final dateLine = l10n.homeDateLine(l10n.homeWeekday(today.weekday.toString()), formatDate(today));
+
     return Row(
       children: [
         Icon(Icons.engineering_outlined, color: theme.colorScheme.onSurface),
         const SizedBox(width: 12),
         Expanded(
-          child: Text(
-            greeting,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              height: 1.15,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                greeting,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  height: 1.15,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                dateLine,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(width: 12),
@@ -324,13 +339,26 @@ class _TasksSection extends ConsumerWidget {
           ],
         ),
         if (shown.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            child: Text(
-              l10n.homeNoTasks,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: theme.colorScheme.outlineVariant),
+            ),
+            child: Column(
+              children: [
+                Icon(Icons.task_alt_outlined, size: 28, color: theme.colorScheme.primary),
+                const SizedBox(height: 6),
+                Text(
+                  l10n.homeNoTasks,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ),
           )
         else

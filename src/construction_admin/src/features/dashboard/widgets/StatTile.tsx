@@ -20,10 +20,11 @@ export function StatTile({ icon, label, value, hint, hintColor = 'text.secondary
     <Stack
       spacing={1}
       sx={{
-        p: 2,
+        p: { xs: 1.5, sm: 2 },
         borderRadius: 2.5,
         minWidth: 0,
-        flex: '1 1 200px',
+        // Two to a row on a phone, instead of one tile per row that pushes the rest off the screen.
+        flex: { xs: '1 1 calc(50% - 6px)', sm: '1 1 200px' },
         background: `linear-gradient(160deg, ${accent}12 0%, ${accent}05 100%)`,
         border: '1px solid',
         borderColor: `${accent}22`,
@@ -45,14 +46,31 @@ export function StatTile({ icon, label, value, hint, hintColor = 'text.secondary
         >
           {icon}
         </Box>
-        <Typography variant="body2" color="text.secondary" noWrap sx={{ fontWeight: 600 }}>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{
+            fontWeight: 600,
+            minWidth: 0,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            // On a phone a label may take two lines instead of being cut to "Active emplo...".
+            whiteSpace: { xs: 'normal', sm: 'nowrap' },
+            display: { xs: '-webkit-box', sm: 'block' },
+            WebkitLineClamp: { xs: 2, sm: 'unset' },
+            WebkitBoxOrient: 'vertical',
+            lineHeight: { xs: 1.25, sm: undefined },
+          }}
+        >
           {label}
         </Typography>
       </Stack>
       <Typography
         sx={{
-          fontWeight: 800,
-          fontSize: 'clamp(1.5rem, 2.4vw, 2.5rem)',
+          fontWeight: 700,
+          // A zero is the absence of something, so it recedes on a phone, where the tiles stand shoulder to shoulder.
+          color: /^[0\s/]+$/.test(value) ? { xs: 'text.secondary', sm: 'text.primary' } : undefined,
+          fontSize: { xs: '1.5rem', sm: 'clamp(1.5rem, 2.4vw, 2.5rem)' },
           lineHeight: 1.05,
           letterSpacing: '-0.02em',
         }}

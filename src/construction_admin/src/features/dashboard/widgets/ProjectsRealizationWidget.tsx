@@ -160,6 +160,11 @@ export function ProjectsRealizationWidget({ instanceId: _instanceId, onRemove, o
             <Alert severity="error" sx={{ mt: 1 }}>
               {t('common.somethingWentWrong')}
             </Alert>
+          ) : monthly.every((value) => value === 0) ? (
+            // An axis with nothing on it says less than a sentence does.
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              {t('dashboard.projectsRealization.noRevenue')}
+            </Typography>
           ) : (
             <Box ref={barSize.ref} sx={{ flex: 1, minHeight: 0 }}>
               {barSize.width > 0 && barSize.height > 0 && (

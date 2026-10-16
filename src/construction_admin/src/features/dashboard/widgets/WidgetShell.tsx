@@ -20,8 +20,8 @@ interface WidgetShellProps {
  * affordance, loading/error states. Fills 100% of whatever pixel box the
  * free-form grid (DashboardGrid.tsx) has given it, so the widget's actual
  * width/height come entirely from the user's own drag/resize, not from a
- * fixed column or a preset size. Full 3D treatment (layered gradient, tinted
- * elevation, hover lift) so the board reads as tactile rather than flat.
+ * fixed column or a preset size. A light neutral treatment (hairline border,
+ * soft shadow, hover lift): the accent colour is kept for what can be pressed, not spent on every card.
  */
 export function WidgetShell({ title, isLoading, error, onRemove, onExpandWidth, onConfigure, children }: WidgetShellProps) {
   const t = useT();
@@ -32,14 +32,18 @@ export function WidgetShell({ title, isLoading, error, onRemove, onExpandWidth, 
         height: '100%',
         width: '100%',
         border: '1px solid',
-        borderColor: 'rgba(230, 81, 0, 0.10)',
+        // A neutral line, not an orange one: the accent colour is kept for what can be pressed.
+        borderColor: 'divider',
         borderRadius: 3,
         background:
           theme.palette.mode === 'dark'
             ? 'linear-gradient(165deg, #241e1a 0%, #1f1a16 55%, #1b1613 100%)'
             : 'linear-gradient(165deg, #ffffff 0%, #fbfbfa 55%, #f6f4f1 100%)',
+        // Depth from a quiet neutral shadow; in the dark theme the line alone does it.
         boxShadow:
-          '0 1px 2px rgba(31, 27, 22, 0.06), 0 10px 24px -12px rgba(31, 27, 22, 0.18), 0 20px 44px -26px rgba(230, 81, 0, 0.16)',
+          theme.palette.mode === 'dark'
+            ? 'none'
+            : '0 1px 2px rgba(31, 27, 22, 0.06), 0 8px 20px -14px rgba(31, 27, 22, 0.16)',
         transition: 'box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
         position: 'relative',
         overflow: 'hidden',
@@ -47,21 +51,15 @@ export function WidgetShell({ title, isLoading, error, onRemove, onExpandWidth, 
         flexDirection: 'column',
         '&:hover': {
           boxShadow:
-            '0 2px 4px rgba(31, 27, 22, 0.09), 0 18px 36px -16px rgba(31, 27, 22, 0.24), 0 30px 60px -28px rgba(230, 81, 0, 0.22)',
-        },
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          inset: 0,
-          height: 3,
-          background: 'linear-gradient(90deg, #e65100 0%, #f9a825 55%, transparent 100%)',
-          opacity: 0.85,
+            theme.palette.mode === 'dark'
+              ? 'none'
+              : '0 2px 4px rgba(31, 27, 22, 0.08), 0 12px 26px -14px rgba(31, 27, 22, 0.2)',
         },
       })}
     >
       <CardHeader
         title={title}
-        slotProps={{ title: { variant: 'h6', sx: { fontWeight: 800, fontSize: '1.05rem', letterSpacing: '-0.01em' } } }}
+        slotProps={{ title: { variant: 'h6', sx: { fontWeight: 600, fontSize: '1.05rem', letterSpacing: '-0.005em' } } }}
         action={
           <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
             {/* Matched by dragConfig.handle in DashboardGrid.tsx — react-grid-layout

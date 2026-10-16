@@ -178,8 +178,8 @@ export function SetupChecklistCard() {
   return (
     <Card variant="outlined" sx={{ mb: 2 }}>
       <CardContent sx={{ '&:last-child': { pb: collapsed ? 1.5 : 2 }, py: collapsed ? 1.5 : 2 }}>
-        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap', mb: collapsed ? 0 : 1.5 }} useFlexGap>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, flexGrow: 1, minWidth: 0 }}>
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', flexWrap: { xs: 'nowrap', sm: 'wrap' }, mb: collapsed ? 0 : 1.5 }} useFlexGap>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, flexGrow: 1, minWidth: 0, fontSize: { xs: '0.9rem', sm: undefined } }}>
             {summary}
           </Typography>
           {collapsed && currentStep && (

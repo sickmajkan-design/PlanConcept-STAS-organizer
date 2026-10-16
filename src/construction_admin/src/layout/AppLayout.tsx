@@ -11,6 +11,7 @@ import {
   ExpandLess,
   ExpandMore,
   HelpOutlined,
+  LanguageOutlined,
   KeyboardOutlined,
   MoreHorizOutlined,
   SearchOutlined,
@@ -70,7 +71,8 @@ import {
 } from '../features/companySettings/useCompanySettings';
 import type { MessageKey } from '../i18n/en';
 import { useEnumLabel } from '../i18n/enumLabels';
-import { useT } from '../i18n/useI18n';
+import { locales, localeNames } from '../i18n/types';
+import { useI18n, useT } from '../i18n/useI18n';
 import { paths } from '../routes/paths';
 import { initialsOf } from '../utils/formatting';
 import { CommandPalette } from './CommandPalette';
@@ -190,6 +192,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const location = useLocation();
   usePresenceHeartbeat(location.pathname, !!user);
   const t = useT();
+  const { locale, setLocale } = useI18n();
   const enumLabel = useEnumLabel();
   const { data: branding } = useCompanyBrandingQuery();
   const logoUrl = useCompanyLogoUrl();
@@ -953,7 +956,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
           <Box sx={{ flex: 1 }} />
 
           <Tooltip title={t('guide.title')}>
-            <IconButton onClick={() => setGuideOpen(true)} aria-label={t('guide.title')}>
+            <IconButton
+              onClick={() => setGuideOpen(true)}
+              aria-label={t('guide.title')}
+              // On a phone the bar has no room for it: it is in the account menu there.
+              sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
+            >
               <HelpOutlined />
             </IconButton>
           </Tooltip>
@@ -963,7 +971,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
           <Box sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
             <ColorModeToggle />
           </Box>
-          <LanguageSwitcher />
+          <Box sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
+            <LanguageSwitcher />
+          </Box>
           {/* In the bar rather than the drawer: an inbox is personal, it is
               the same on every screen, and the count has to be visible from
               wherever the operator happens to be. */}
@@ -1003,6 +1013,33 @@ export function AppLayout({ children }: { children: ReactNode }) {
               </Typography>
             </Box>
             <Divider />
+            <MenuItem
+              component={Link}
+              to={paths.help}
+              onClick={() => setMenuAnchor(null)}
+              sx={{ display: { xs: 'flex', sm: 'none' } }}
+            >
+              <ListItemIcon>
+                <HelpOutlined fontSize="small" />
+              </ListItemIcon>
+              {t('nav.help')}
+            </MenuItem>
+            {locales.map((value) => (
+              <MenuItem
+                key={value}
+                selected={value === locale}
+                onClick={() => {
+                  setLocale(value);
+                  setMenuAnchor(null);
+                }}
+                sx={{ display: { xs: 'flex', sm: 'none' } }}
+              >
+                <ListItemIcon>
+                  <LanguageOutlined fontSize="small" />
+                </ListItemIcon>
+                {t('common.language')}: {localeNames[value]}
+              </MenuItem>
+            ))}
             <MenuItem onClick={colorMode.cycle} sx={{ display: { xs: 'flex', sm: 'none' } }}>
               <ListItemIcon>
                 <SettingsBrightnessOutlined fontSize="small" />

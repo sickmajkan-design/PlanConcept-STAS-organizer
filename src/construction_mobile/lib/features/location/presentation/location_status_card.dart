@@ -69,6 +69,29 @@ class LocationStatusCard extends ConsumerWidget {
         ),
     };
 
+    // Sharing being off between shifts is the normal state, not a problem: one quiet line, not a card
+    // that reads like a warning.
+    if (state.status == LocationTrackingStatus.offShift) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 16, color: tint),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                _subtitle(l10n, state),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),

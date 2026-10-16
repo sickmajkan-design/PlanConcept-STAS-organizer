@@ -1477,6 +1477,19 @@
       "name": {"type": "String"}
     }
   },
+  "homeDateLine": "{weekday}, {date}",
+  "@homeDateLine": {
+    "placeholders": {
+      "weekday": {"type": "String"},
+      "date": {"type": "String"}
+    }
+  },
+  "homeWeekday": "{day, select, 1{Monday} 2{Tuesday} 3{Wednesday} 4{Thursday} 5{Friday} 6{Saturday} other{Sunday}}",
+  "@homeWeekday": {
+    "placeholders": {
+      "day": {"type": "String"}
+    }
+  },
   "homeGreetingDay": "Hello, {name}",
   "@homeGreetingDay": {
     "placeholders": {

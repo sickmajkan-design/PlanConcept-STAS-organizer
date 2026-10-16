@@ -322,20 +322,29 @@ class _ShiftCardState extends ConsumerState<ShiftCard> {
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
+              // Clocking in is the one thing this screen is for, so it is the one orange button; clocking out
+              // is quiet on purpose, so it is not pressed by accident. While working, the button keeps its colour
+              // and shows the spinner in it, so waiting does not look like a fault.
               style: FilledButton.styleFrom(
-                backgroundColor: AppTheme.heroCardText,
-                foregroundColor: AppTheme.heroCard,
-                disabledBackgroundColor: ink.withValues(alpha: 0.3),
-                disabledForegroundColor: AppTheme.heroCard.withValues(alpha: 0.6),
+                minimumSize: const Size.fromHeight(52),
+                backgroundColor: running ? ink.withValues(alpha: 0.14) : AppTheme.heroAction,
+                foregroundColor: running ? ink : AppTheme.heroActionText,
+                disabledBackgroundColor: running
+                    ? ink.withValues(alpha: 0.1)
+                    : AppTheme.heroAction.withValues(alpha: 0.8),
+                disabledForegroundColor: running ? ink.withValues(alpha: 0.7) : AppTheme.heroActionText,
               ),
               onPressed: state.isBusy || async.isLoading
                   ? null
                   : () => running ? _clockOut(context) : _clockIn(),
               icon: state.isBusy
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: running ? ink : AppTheme.heroActionText,
+                      ),
                     )
                   : Icon(running ? Icons.stop : Icons.play_arrow),
               label: Text(state.isBusy ? l10n.shiftWorking : (running ? l10n.shiftClockOut : l10n.shiftClockIn)),

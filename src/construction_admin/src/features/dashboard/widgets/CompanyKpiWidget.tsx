@@ -159,7 +159,18 @@ export function CompanyKpiWidget({ instanceId: _instanceId, onRemove, onExpandWi
           />
         </Box>
 
-        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1, flexShrink: 0 }}>
+        {/* One row that scrolls sideways on a phone, so the chips are not cut off by the card's edge. */}
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            flexWrap: { xs: 'nowrap', sm: 'wrap' },
+            overflowX: { xs: 'auto', sm: 'visible' },
+            rowGap: 1,
+            flexShrink: 0,
+            '& .MuiChip-root': { flexShrink: 0 },
+          }}
+        >
           {links.map((link) => (
             <Chip
               key={link.to}

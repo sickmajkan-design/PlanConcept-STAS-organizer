@@ -6,12 +6,13 @@ import { canConfigureDashboard, canViewDirectory, displayName } from '../auth/au
 import { useAuth } from '../auth/useAuth';
 import { DashboardGrid } from '../features/dashboard/DashboardGrid';
 import { SetupChecklistCard } from '../features/onboarding/SetupChecklistCard';
-import { useT } from '../i18n/useI18n';
+import { useI18n, useT } from '../i18n/useI18n';
 import { paths } from '../routes/paths';
 
 export function HomePage() {
   const { user } = useAuth();
   const t = useT();
+  const { locale } = useI18n();
 
   if (!user) return null;
 
@@ -22,8 +23,15 @@ export function HomePage() {
   if (canConfigureDashboard(user)) {
     return (
       <Box>
-        <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}>
+        <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, overflowWrap: 'anywhere', display: { xs: 'none', sm: 'block' } }}>
           {welcome}
+        </Typography>
+        {/* On a phone the greeting gives way to the day: the screen is about what is going on today. */}
+        <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, display: { xs: 'block', sm: 'none' } }}>
+          {t('home.today')}
+          <Typography component="span" color="text.secondary" sx={{ ml: 1, fontSize: '0.95rem', fontWeight: 400 }}>
+            {new Intl.DateTimeFormat(locale === 'sr' ? 'sr-Latn' : 'en', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())}
+          </Typography>
         </Typography>
         <SetupChecklistCard />
         <DashboardGrid />
@@ -58,7 +66,7 @@ export function HomePage() {
 
   return (
     <Box>
-      <Typography variant="h5" gutterBottom sx={{ fontWeight: 700, overflowWrap: 'anywhere' }}>
+      <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, overflowWrap: 'anywhere' }}>
         {welcome}
       </Typography>
       <Typography color="text.secondary" sx={{ mb: 4 }}>

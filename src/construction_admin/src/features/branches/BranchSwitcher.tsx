@@ -65,7 +65,9 @@ export function BranchSwitcher() {
           borderRadius: 2,
           px: 1.5,
           gap: 0.5,
-          maxWidth: { xs: 160, md: 260 },
+          // On a phone the bar holds only the menu, the bell and the avatar besides this, so the name may use the rest.
+          maxWidth: { xs: 'calc(100vw - 200px)', md: 260 },
+          minWidth: 0,
           bgcolor: current ? `${current.color}14` : undefined,
         }}
       >

@@ -1086,6 +1086,19 @@
       "name": {"type": "String"}
     }
   },
+  "homeDateLine": "{weekday}, {date}",
+  "@homeDateLine": {
+    "placeholders": {
+      "weekday": {"type": "String"},
+      "date": {"type": "String"}
+    }
+  },
+  "homeWeekday": "{day, select, 1{ponedjeljak} 2{utorak} 3{srijeda} 4{četvrtak} 5{petak} 6{subota} other{nedjelja}}",
+  "@homeWeekday": {
+    "placeholders": {
+      "day": {"type": "String"}
+    }
+  },
   "homeGreetingDay": "Dobar dan, {name}",
   "@homeGreetingDay": {
     "placeholders": {

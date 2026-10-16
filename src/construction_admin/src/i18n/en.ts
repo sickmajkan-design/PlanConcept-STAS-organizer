@@ -849,10 +849,10 @@ export const en = {
   'releaseNotes.close': 'Got it',
 
 
-  'releaseNotes.drop1016.title': "Adding documents is easier",
-  'releaseNotes.drop1016.anywhere': "On the Documents page you can drop a file anywhere on the page; the upload opens with the file already in it.",
-  'releaseNotes.drop1016.category': "When adding several files, each can have its own type (for example a contract and a photo in one go); the choice beside a file overrides the general type.",
-  'releaseNotes.drop1016.limits': "The allowed file types and size are now always read from the server, so the panel cannot disagree with what the server really accepts. The month import in the cost book also accepts a dragged file.",
+  'releaseNotes.calm1016.title': "A calmer look and a better phone layout",
+  'releaseNotes.calm1016.phone': "On a phone the header is cleaner: help and language are in your account menu, and the business unit's name shows in full. Home shows today's date, the figures sit two to a row, and their names wrap instead of being cut off.",
+  'releaseNotes.calm1016.calm': "Cards on the dashboard are calmer: a thin grey line instead of the orange bar and glow, lighter headings. Orange is kept for what can be pressed. A chart with no data is replaced by a sentence.",
+  'releaseNotes.calm1016.app': "App (1.1.27): the site picture runs to the top of the screen, signing in to a shift is the only orange button, the date is under the greeting, and location sharing off a shift is one line instead of a card.",
   'releaseNotes.create1016.title': "A document already when a record is made",
   'releaseNotes.create1016.forms': "On the form for a new employee, vehicle, tool, site or accommodation, add documents straight away (by dragging or choosing, each with its own type). They are filed with the record as soon as it is made, so nobody has to save first and come back to the Documents card. If a file does not go through, the record stays, and its card says which ones to add.",
   'releaseNotes.create1016.book': "In the book's quick entry, the Attach a document button ties a receipt or a photo to the line you type; a photo becomes the type Photo, anything else Other.",
@@ -919,6 +919,7 @@ export const en = {
   'dashboard.projectsRealization.noCostData': 'No costs recorded yet this year.',
   'dashboard.projectsRealization.monthlyTrend': 'Realized revenue by month',
   'dashboard.projectsRealization.revenue': 'Revenue',
+  'dashboard.projectsRealization.noRevenue': 'No revenue recorded this year yet.',
   'dashboard.projectsRealization.labour': 'Labour',
   'dashboard.projectsRealization.material': 'Material',
   'dashboard.projectsRealization.generalExpenses': 'General expenses',
@@ -1408,6 +1409,7 @@ export const en = {
   // --- Home -----------------------------------------------------------------
   'home.welcome': 'Welcome, {name}',
   'home.welcomeShort': 'Welcome',
+  'home.today': 'Today',
   'onboarding.checklist.serverToggle': 'For whoever runs the server ({count})',
   'home.subtitle': 'Pick a section from the menu to get started.',
 

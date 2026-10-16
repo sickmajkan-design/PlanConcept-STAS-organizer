@@ -5282,6 +5282,18 @@ abstract class AppLocalizations {
   /// **'Good morning, {name}'**
   String homeGreetingMorning(String name);
 
+  /// No description provided for @homeDateLine.
+  ///
+  /// In en, this message translates to:
+  /// **'{weekday}, {date}'**
+  String homeDateLine(String weekday, String date);
+
+  /// No description provided for @homeWeekday.
+  ///
+  /// In en, this message translates to:
+  /// **'{day, select, 1{Monday} 2{Tuesday} 3{Wednesday} 4{Thursday} 5{Friday} 6{Saturday} other{Sunday}}'**
+  String homeWeekday(String day);
+
   /// No description provided for @homeGreetingDay.
   ///
   /// In en, this message translates to:

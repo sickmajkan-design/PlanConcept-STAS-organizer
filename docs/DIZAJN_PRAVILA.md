@@ -34,6 +34,9 @@ Pregled je rađen alatima iz paketa `emilkowalski/skills` (`emil-design-eng`, `m
 - **Kratka vibracija** (`HapticFeedback`) pri prijavi i odjavi sa smjene i pri promjeni kartice; radnik s rukavicama zna da je dodir primljen i bez gledanja.
 - Dugmad su visine 52 px. Kad je neki podatak još u toku (npr. "Tražim lokaciju…"), dugme to kaže, a ne samo onemogući se.
 - Isti podatak se ne prikazuje dvaput u jednoj kartici (npr. status i isti status kao oznaka).
+- **Početni ekran:** slika gradilišta ide do vrha ekrana (prozirna statusna traka, ikone prate temu), pozdrav ima datum ispod, a **jedino puno narandžasto dugme** je prijava na smjenu (`AppTheme.heroAction`). Odjava je tiha (prozirno svijetla), da se ne pritisne slučajno. Dok se čeka lokacija, dugme zadrži boju i pokaže obrtač.
+- Lokacija van smjene je normalno stanje, pa je jedna siva linija; kartica se pokazuje samo kad nešto treba uraditi (dozvola, isključena usluga).
+- Prazno stanje (npr. nema zadataka) ima ikonu i okvir, ne goli tekst.
 - Prije objave: release izdanje (ne debug) na emulatoru, jer debug izdanje na ovom računaru javlja "ne odgovara" dok traži lokaciju.
 
 ## 5. Izgled: svijetao i taman
@@ -42,7 +45,16 @@ Pregled je rađen alatima iz paketa `emilkowalski/skills` (`emil-design-eng`, `m
 - Boje se uzimaju iz teme (`divider`, `background.paper`, `primary`), nikad kao `#e0e0e0` ili `white`. Jedine tvrde boje su one koje moraju ostati iste u oba izgleda: QR kod na bijeloj podlozi, oznake poslovnih jedinica i kartice grafikona.
 - Taman izgled je topao, skoro crn (#12100e), a narandžasta je svjetlija (#ff8a3d) da zadrži kontrast.
 
-## 6. Šta još nije urađeno (odluke)
+## 6. Smirivanje i telefon u panelu
+
+- **Narandžasta je za ono što se može pritisnuti** (glavno dugme, aktivna stavka u meniju, veze). Kartice nadzorne ploče nemaju narandžastu traku ni sjaj: tanka linija (`divider`) i blaga neutralna sjenka (u tamnoj temi samo linija).
+- Naslovi kartica i stranice su težine 600, brojevi u pokazateljima 700.
+- Grafikon bez ijednog podatka zamjenjuje jedna rečenica ("Još nema evidentiranog prihoda ove godine."), ne prazna osa.
+- **Ispod 600 px** zaglavlje ima samo meni, izbor poslovne jedinice, zvono i avatar; pomoć i jezik su u meniju naloga. Naziv jedinice smije zauzeti sav slobodan prostor. Naslov početne je "Danas" s datumom.
+- Pokazatelji (`StatTile`) su dva u redu, nazivi se prelamaju u dva reda, nula je prigušena. Redovi prečica ispod njih se pomjeraju u stranu umjesto da se prelome i budu odsječeni.
+- **Računar:** lijevi meni, zaglavlje i naslovna se ne mijenjaju bez izričitog odobrenja.
+
+## 7. Šta još nije urađeno (odluke)
 
 - Zaglavlja stranica: izvoz i istorija su sada iza jednog dugmeta (`MoreActionsMenu`) u Evidenciji i Rasporedu; lista zaposlenih zadržava uvoz uz glavno dugme.
 - "Ti" tekstovi koji ostaju namjerno: obavještenja koja stižu radniku (`notificationText.*`) i pomoćnik; tekstovi panela su na "vi" (provjerava `formalVoice.test.ts`).
