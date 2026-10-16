@@ -6,6 +6,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
+import { ApiError } from '../../api/apiError';
 import type { UploadAttachmentInput, UploadOptions } from '../../api/attachments';
 import type { Attachment } from '../../api/types';
 import { useUploadQueue } from './useUploadQueue';
@@ -130,4 +131,44 @@ describe('useUploadQueue', () => {
 
     expect(result.current.items.map((i) => i.file.name)).toEqual(['b.pdf']);
   });
+
+  it('waits when the server asks to slow down, and sends the same file again by itself', async () => {
+    const { uploader, pending } = stagedUploader();
+    const { result } = renderHook(() => useUploadQueue({ uploader }), { wrapper });
+
+    act(() => result.current.add([file('a.pdf')]));
+    act(() => result.current.start(build));
+
+    // 429 with a Retry-After: not a failure of the file.
+    await act(async () => pending[0]!.reject(new ApiError('Too many', 429, {}, null, 0.01)));
+
+    expect(result.current.items[0]!.status).toBe('waiting');
+    expect(result.current.waiting).toBe(1);
+    expect(result.current.failed).toBe(0);
+    // Still counts as running, so a dialog does not close or offer to retry what is only waiting.
+    expect(result.current.running).toBe(true);
+
+    await waitFor(() => expect(pending).toHaveLength(2), { timeout: 3000 });
+    expect(pending[1]!.name).toBe('a.pdf');
+
+    await act(async () => pending[1]!.resolve());
+
+    await waitFor(() => expect(result.current.done).toBe(1));
+  });
+
+  it('gives up on a file that keeps being refused, and says it failed', async () => {
+    const { uploader, pending } = stagedUploader();
+    const { result } = renderHook(() => useUploadQueue({ uploader }), { wrapper });
+
+    act(() => result.current.add([file('a.pdf')]));
+    act(() => result.current.start(build));
+
+    for (let round = 0; round < 5; round += 1) {
+      await waitFor(() => expect(pending).toHaveLength(round + 1), { timeout: 3000 });
+      await act(async () => pending[round]!.reject(new ApiError('Too many', 429, {}, null, 0.001)));
+    }
+
+    await waitFor(() => expect(result.current.failed).toBe(1));
+  });
 });
+

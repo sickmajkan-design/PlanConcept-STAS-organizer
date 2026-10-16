@@ -137,6 +137,7 @@ const HOUSING: Pair[] = [
   ['Rooms must be at least 1.', 'Soba mora biti najmanje 1.'],
   ['Beds must be at least 1.', 'Ležajeva mora biti najmanje 1.'],
   ['The area must be more than zero.', 'Površina mora biti veća od nule.'],
+  ['Files are being sent faster than the server accepts them. Wait a minute and send the rest.', 'Datoteke se šalju brže nego što server prihvata. Sačekajte minut i pošaljite ostale.'],
   ['That is not an email address.', 'To nije adresa e-pošte.'],
   ['The contract cannot end before it starts.', 'Ugovor ne može završiti prije nego što počne.'],
   ['A deposit cannot be negative.', 'Depozit ne može biti negativan.'],

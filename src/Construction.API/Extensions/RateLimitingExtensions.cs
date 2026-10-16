@@ -53,6 +53,16 @@ public class AuthRateLimitSettings
     public int AnonymousPermitLimit { get; set; } = 600;
 
     public int GlobalWindowSeconds { get; set; } = 60;
+
+    /// <summary>
+    /// Files one signed-in account may send per <see cref="UploadWindowSeconds"/>. A crew dropping a folder of
+    /// scans is a few dozen files; the point is to stop a runaway client or a stolen token from filling the
+    /// disk and keeping the virus scanner busy, not to pace a person. The panel waits and sends the rest by
+    /// itself when this bites.
+    /// </summary>
+    public int UploadPermitLimit { get; set; } = 60;
+
+    public int UploadWindowSeconds { get; set; } = 60;
 }
 
 public static class RateLimitingExtensions
@@ -62,6 +72,9 @@ public static class RateLimitingExtensions
 
     /// <summary>Applied to the unauthenticated client-error endpoint.</summary>
     public const string ClientErrorPolicy = "client-errors";
+
+    /// <summary>Applied to the endpoints that take files, which cost disk and a virus scan each.</summary>
+    public const string UploadPolicy = "uploads";
 
     /// <summary>Applied to the assistant, which costs money per call.</summary>
     public const string AssistantPolicy = "assistant";
@@ -138,6 +151,14 @@ public static class RateLimitingExtensions
             ? settings.AnonymousPermitLimit
             : new AuthRateLimitSettings().AnonymousPermitLimit;
 
+        var uploadLimit = settings.UploadPermitLimit > 0
+            ? settings.UploadPermitLimit
+            : new AuthRateLimitSettings().UploadPermitLimit;
+
+        var uploadWindow = settings.UploadWindowSeconds > 0
+            ? TimeSpan.FromSeconds(settings.UploadWindowSeconds)
+            : TimeSpan.FromMinutes(1);
+
         var globalWindow = settings.GlobalWindowSeconds > 0
             ? TimeSpan.FromSeconds(settings.GlobalWindowSeconds)
             : TimeSpan.FromMinutes(1);
@@ -192,6 +213,21 @@ public static class RateLimitingExtensions
                     QueueLimit = 0
                 }));
 
+            // Per account, like the assistant: an office shares one connection, so an address partition would let
+            // whoever sent first spend everyone's allowance. Without a token (the limiter runs before
+            // authorization) the address is all there is to partition on.
+            options.AddPolicy(UploadPolicy, context => RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: context.User.FindFirst(
+                    System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Sub)?.Value
+                    ?? context.Connection.RemoteIpAddress?.ToString()
+                    ?? "unknown",
+                factory: _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = uploadLimit,
+                    Window = uploadWindow,
+                    QueueLimit = 0
+                }));
+
             options.AddPolicy(ClientErrorPolicy, context => RateLimitPartition.GetFixedWindowLimiter(
                 partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                 factory: _ => new FixedWindowRateLimiterOptions
@@ -239,6 +275,9 @@ public static class RateLimitingExtensions
                         "You have asked the assistant a lot of questions in a short time. "
                         + "Wait a few minutes and ask again.",
                     CredentialsPolicy => CredentialsRejectionDetail,
+                    UploadPolicy =>
+                        "Files are being sent faster than the server accepts them. "
+                        + "Wait a minute and send the rest.",
                     _ => "Too many requests in a short time. Wait a minute and try again."
                 };
 

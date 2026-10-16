@@ -15,6 +15,8 @@ using Construction.Application.Features.Attachments.Queries.GetMyDocuments;
 using Construction.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Construction.API.Extensions;
 
 namespace Construction.API.Controllers;
 
@@ -129,6 +131,7 @@ public class AttachmentsController : ApiControllerBase
     /// </remarks>
     [HttpPost]
     [Authorize(Policy = Policies.AllEmployees)]
+    [EnableRateLimiting(RateLimitingExtensions.UploadPolicy)]
     [RequestSizeLimit(AttachmentRules.MaxSizeBytes + 1024 * 1024)]
     [ProducesResponseType(typeof(AttachmentDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]

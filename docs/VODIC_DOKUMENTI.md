@@ -55,6 +55,7 @@ Ograničenja (veličina, vrste, broj oznaka, dužina naslova) panel čita sa ser
 
 ### 2.3 Više datoteka odjednom
 
+- Server prima najviše **60 datoteka u minuti po nalogu** (podešava se, vidi SECURITY.md). Kad se to dostigne, pored datoteke piše *Čeka*, a panel sam pošalje ostale čim server dozvoli; ništa se ne gubi i ne treba ništa ponavljati.
 - Svaka datoteka ima **svoj napredak**. Tri se šalju istovremeno, ostale čekaju red.
 - Ako jedna zakaže, ostale prolaze; ona koja je zakazala dobija dugme za ponovno slanje.
 - **Otkaži** prekida ono što je u toku, a završene ne dira.

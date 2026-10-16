@@ -1,4 +1,6 @@
 using Construction.API.Authorization;
+using Construction.API.Extensions;
+using Microsoft.AspNetCore.RateLimiting;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.Attachments;
 using Construction.Application.Features.DocumentRequests;
@@ -66,6 +68,7 @@ public class DocumentRequestsController : ApiControllerBase
     /// <summary>The person answers a request with one document, as one or several files.</summary>
     [HttpPost("{id:guid}/submit")]
     [Authorize(Policy = Policies.AllEmployees)]
+    [EnableRateLimiting(RateLimitingExtensions.UploadPolicy)]
     [RequestSizeLimit(
         AttachmentRules.MaxSizeBytes * DocumentRequestRules.MaxFilesPerSubmission + 1024 * 1024)]
     [ProducesResponseType(typeof(DocumentRequestDto), StatusCodes.Status200OK)]

@@ -1,4 +1,5 @@
-import { attachmentsApi } from '../../api/attachments';
+import { toApiError } from '../../api/apiError';
+import { attachmentsApi, type UploadAttachmentInput } from '../../api/attachments';
 import type { AttachmentCategory, AttachmentOwnerType } from '../../api/types';
 
 export interface PendingFile {
@@ -8,6 +9,32 @@ export interface PendingFile {
 }
 
 const KEY = (ownerId: string) => `documents.unsent.${ownerId}`;
+
+/** How long to wait when the server says it is being sent files too fast, at most; and how many times. */
+const MAX_WAIT_SECONDS = 65;
+const MAX_TRIES = 3;
+
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/**
+ * One upload that, when the server asks to slow down (429), waits as long as it says and tries again, a
+ * few times. Anything else is the caller's to handle.
+ */
+export async function uploadPatiently(input: UploadAttachmentInput): Promise<void> {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      await attachmentsApi.upload(input);
+
+      return;
+    } catch (error) {
+      const failure = toApiError(error);
+
+      if (failure.status !== 429 || attempt >= MAX_TRIES) throw error;
+
+      await sleep(Math.min(failure.retryAfterSeconds ?? 10, MAX_WAIT_SECONDS) * 1000 + 250);
+    }
+  }
+}
 
 /**
  * Sends files that were picked while a record was still being made, now that it exists. One at a time and
@@ -23,7 +50,7 @@ export async function uploadAfterCreate(
 
   for (const item of files) {
     try {
-      await attachmentsApi.upload({ ownerType, ownerId, category: item.category, file: item.file });
+      await uploadPatiently({ ownerType, ownerId, category: item.category, file: item.file });
     } catch {
       failed.push(item.file.name);
     }

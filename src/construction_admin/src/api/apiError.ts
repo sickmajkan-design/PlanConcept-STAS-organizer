@@ -42,6 +42,9 @@ const KIND_TO_MESSAGE_KEY: Record<ApiErrorKind, MessageKey> = {
 export class ApiError extends Error {
   readonly status?: number;
 
+  /** Seconds the server asked the caller to wait (`Retry-After`), on a refusal for going too fast. */
+  readonly retryAfterSeconds?: number;
+
   /** Field name -> messages, populated for 400 validation responses. */
   readonly fieldErrors: Record<string, string[]>;
 
@@ -64,6 +67,7 @@ export class ApiError extends Error {
     status?: number,
     fieldErrors: Record<string, string[]> = {},
     kind: ApiErrorKind | null = null,
+    retryAfterSeconds?: number,
   ) {
     // The API writes its messages in English. In the Serbian panel the ones
     // we know are shown in Serbian; anything unknown is shown as sent.
@@ -77,6 +81,7 @@ export class ApiError extends Error {
       Object.entries(fieldErrors).map(([field, messages]) => [field, messages.map(localize)]),
     );
     this.kind = kind;
+    this.retryAfterSeconds = retryAfterSeconds;
     this.fallbackMessage = localize(message);
 
     // Shadows `Error`'s own instance property with a getter, so every
@@ -203,11 +208,14 @@ export function toApiError(error: unknown): ApiError {
 
     const serverText = Object.values(fieldErrors)[0]?.[0] ?? data?.detail ?? data?.title;
 
+    const retryAfter = Number(error.response.headers?.['retry-after']);
+
     return new ApiError(
       serverText ?? fallback.message,
       status,
       fieldErrors,
       serverText ? null : fallback.kind,
+      Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : undefined,
     );
   }
 

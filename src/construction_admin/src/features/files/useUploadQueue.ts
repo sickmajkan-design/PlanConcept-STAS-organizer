@@ -1,6 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { toApiError } from '../../api/apiError';
 import {
   attachmentsApi,
   type UploadAttachmentInput,
@@ -9,7 +10,12 @@ import {
 import type { Attachment } from '../../api/types';
 import { attachmentKeys } from '../attachments/useAttachments';
 
-export type QueueStatus = 'queued' | 'uploading' | 'done' | 'error' | 'cancelled';
+/** `waiting`: the server asked to slow down; the file goes by itself when the time it named has passed. */
+export type QueueStatus = 'queued' | 'uploading' | 'waiting' | 'done' | 'error' | 'cancelled';
+
+/** The server's allowance resets within a minute; this many times around is more patience than anything needs. */
+const MAX_SLOWDOWNS = 4;
+const MAX_WAIT_SECONDS = 65;
 
 export interface QueueItem {
   id: string;
@@ -46,6 +52,8 @@ export function useUploadQueue(options: { concurrency?: number; uploader?: Uploa
   const itemsRef = useRef<QueueItem[]>([]);
   const builder = useRef<((file: File) => UploadAttachmentInput) | null>(null);
   const controllers = useRef(new Map<string, AbortController>());
+  const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+  const slowdowns = useRef(new Map<string, number>());
 
   const commit = useCallback((next: QueueItem[]) => {
     itemsRef.current = next;
@@ -81,6 +89,29 @@ export function useUploadQueue(options: { concurrency?: number; uploader?: Uploa
         })
         .catch((error: unknown) => {
           const aborted = controller.signal.aborted;
+          const failure = toApiError(error);
+          const times = (slowdowns.current.get(item.id) ?? 0) + 1;
+
+          // Going too fast is not a failure of the file: wait as long as the server says and send it again.
+          if (!aborted && failure.status === 429 && times <= MAX_SLOWDOWNS) {
+            slowdowns.current.set(item.id, times);
+            patch(item.id, { status: 'waiting', progress: 0, error: null });
+
+            timers.current.set(
+              item.id,
+              setTimeout(() => {
+                timers.current.delete(item.id);
+
+                if (itemsRef.current.some((i) => i.id === item.id && i.status === 'waiting')) {
+                  patch(item.id, { status: 'queued' });
+                  pump();
+                }
+              }, Math.min(failure.retryAfterSeconds ?? 10, MAX_WAIT_SECONDS) * 1000 + 250),
+            );
+
+            return;
+          }
+
           patch(item.id, {
             status: aborted ? 'cancelled' : 'error',
             error: aborted ? null : error instanceof Error ? error.message : String(error),
@@ -121,8 +152,17 @@ export function useUploadQueue(options: { concurrency?: number; uploader?: Uploa
     if (item.previewUrl) URL.revokeObjectURL(item.previewUrl);
   };
 
+  const stopTimer = (id: string) => {
+    const timer = timers.current.get(id);
+
+    if (timer) clearTimeout(timer);
+    timers.current.delete(id);
+    slowdowns.current.delete(id);
+  };
+
   const remove = useCallback(
     (id: string) => {
+      stopTimer(id);
       controllers.current.get(id)?.abort();
       const gone = itemsRef.current.find((i) => i.id === id);
 
@@ -133,6 +173,7 @@ export function useUploadQueue(options: { concurrency?: number; uploader?: Uploa
   );
 
   const clear = useCallback(() => {
+    for (const id of Array.from(timers.current.keys())) stopTimer(id);
     for (const controller of controllers.current.values()) controller.abort();
     controllers.current.clear();
     itemsRef.current.forEach(release);
@@ -166,16 +207,18 @@ export function useUploadQueue(options: { concurrency?: number; uploader?: Uploa
   );
 
   const cancel = useCallback(() => {
+    for (const id of Array.from(timers.current.keys())) stopTimer(id);
     for (const controller of controllers.current.values()) controller.abort();
     commit(
       itemsRef.current.map((item) =>
-        item.status === 'queued' ? { ...item, status: 'cancelled' } : item,
+        item.status === 'queued' || item.status === 'waiting' ? { ...item, status: 'cancelled' } : item,
       ),
     );
   }, [commit]);
 
   useEffect(
     () => () => {
+      for (const timer of timers.current.values()) clearTimeout(timer);
       for (const controller of controllers.current.values()) controller.abort();
       itemsRef.current.forEach(release);
     },
@@ -183,7 +226,7 @@ export function useUploadQueue(options: { concurrency?: number; uploader?: Uploa
   );
 
   const count = (status: QueueStatus) => items.filter((i) => i.status === status).length;
-  const running = started && count('uploading') + count('queued') > 0;
+  const running = started && count('uploading') + count('queued') + count('waiting') > 0;
 
   return {
     items,
@@ -194,6 +237,7 @@ export function useUploadQueue(options: { concurrency?: number; uploader?: Uploa
     retry,
     cancel,
     running,
+    waiting: count('waiting'),
     done: count('done'),
     failed: count('error'),
     cancelled: count('cancelled'),

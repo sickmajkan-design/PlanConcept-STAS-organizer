@@ -149,6 +149,7 @@ export function FileQueueList({
                           {item.error ? `: ${friendlyError(t, item.error)}` : ''}
                         </>
                       )
+                    : item.status === 'waiting' ? t('files.status.waiting')
                     : item.status === 'done' ? t('files.status.done')
                     : item.status === 'cancelled' ? t('files.status.cancelled')
                     : t('files.status.queued')}

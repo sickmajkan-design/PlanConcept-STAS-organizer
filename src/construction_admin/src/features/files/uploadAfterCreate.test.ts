@@ -55,3 +55,43 @@ describe('files picked while a record is being made', () => {
     expect(takeUnsent('e1')).toEqual([]);
   });
 });
+
+describe('a send that is told to slow down', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    vi.useFakeTimers();
+  });
+
+  it('waits as long as the server said and tries the same file again', async () => {
+    const { ApiError } = await import('../../api/apiError');
+    const { uploadPatiently } = await import('./uploadAfterCreate');
+    const upload = vi
+      .spyOn(attachmentsApi, 'upload')
+      .mockRejectedValueOnce(new ApiError('Too many', 429, {}, null, 30))
+      .mockResolvedValueOnce({} as never);
+
+    const done = uploadPatiently({ ownerType: 'Employee', ownerId: 'e1', category: 'Other', file: new File(['x'], 'a.pdf') });
+
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(upload).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(21_000);
+    await done;
+    expect(upload).toHaveBeenCalledTimes(2);
+
+    vi.useRealTimers();
+  });
+
+  it('does not wait for any other refusal', async () => {
+    const { ApiError } = await import('../../api/apiError');
+    const { uploadPatiently } = await import('./uploadAfterCreate');
+    const upload = vi.spyOn(attachmentsApi, 'upload').mockRejectedValue(new ApiError('Too big', 413));
+
+    await expect(
+      uploadPatiently({ ownerType: 'Employee', ownerId: 'e1', category: 'Other', file: new File(['x'], 'a.pdf') }),
+    ).rejects.toBeDefined();
+    expect(upload).toHaveBeenCalledTimes(1);
+
+    vi.useRealTimers();
+  });
+});

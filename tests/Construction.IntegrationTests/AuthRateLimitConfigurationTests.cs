@@ -54,7 +54,7 @@ public class AuthRateLimitConfigurationTests
     private static object NotEvenAnAddress() => new { email = "", password = "" };
 
     private static WebApplicationFactory<Program> Host(
-        int permitLimit, int anonymousGlobalLimit = 1_000_000)
+        int permitLimit, int anonymousGlobalLimit = 1_000_000, int uploadLimit = 1_000_000)
     {
         return new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
         {
@@ -78,6 +78,8 @@ public class AuthRateLimitConfigurationTests
 
             builder.UseSetting(
                 "Auth:RateLimit:AnonymousPermitLimit", anonymousGlobalLimit.ToString());
+            builder.UseSetting("Auth:RateLimit:UploadPermitLimit", uploadLimit.ToString());
+            builder.UseSetting("Auth:RateLimit:UploadWindowSeconds", "600");
             builder.UseSetting("Auth:RateLimit:GlobalWindowSeconds", "600");
 
             builder.ConfigureServices(services =>
@@ -150,6 +152,47 @@ public class AuthRateLimitConfigurationTests
         var body = await last!.Content.ReadAsStringAsync();
         Assert.DoesNotContain("sign-in", body, StringComparison.OrdinalIgnoreCase);
         Assert.True(last.Headers.Contains("Retry-After"));
+    }
+
+    /// <summary>
+    /// Sending files has a limit of its own, apart from the one on every request: a runaway client or a
+    /// stolen token must not be able to fill the disk and keep the virus scanner busy. The refusal says
+    /// what happened and when to try again, and the other endpoints are not touched by it.
+    /// </summary>
+    [Fact]
+    public async Task Uploads_have_their_own_limit_with_a_message_that_says_so()
+    {
+        const int uploadLimit = 2;
+
+        using var host = Host(permitLimit: 1000, uploadLimit: uploadLimit);
+        using var client = host.CreateClient();
+
+        var statuses = new List<HttpStatusCode>();
+        HttpResponseMessage? last = null;
+
+        for (var attempt = 0; attempt < uploadLimit + 2; attempt++)
+        {
+            using var form = new MultipartFormDataContent
+            {
+                { new ByteArrayContent([1, 2, 3]), "file", "a.pdf" }
+            };
+
+            last = await client.PostAsync("/api/v1/attachments", form);
+            statuses.Add(last.StatusCode);
+        }
+
+        // The first ones get past the limiter and are then turned away for having no sign-in.
+        Assert.All(statuses.Take(uploadLimit), s => Assert.Equal(HttpStatusCode.Unauthorized, s));
+        Assert.All(statuses.Skip(uploadLimit), s => Assert.Equal(HttpStatusCode.TooManyRequests, s));
+
+        var body = await last!.Content.ReadAsStringAsync();
+        Assert.Contains("Files are being sent faster", body);
+        Assert.DoesNotContain("sign-in", body, StringComparison.OrdinalIgnoreCase);
+        Assert.True(last.Headers.Contains("Retry-After"));
+
+        // Reading, and everything else, goes on.
+        var other = await client.GetAsync("/api/v1/employees");
+        Assert.Equal(HttpStatusCode.Unauthorized, other.StatusCode);
     }
 
     /// <summary>The probes must keep answering however busy the address is.</summary>
