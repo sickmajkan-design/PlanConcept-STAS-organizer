@@ -3,14 +3,18 @@ import {
   Box,
   Button,
   Chip,
+  Dialog,
   Divider,
   ListItemIcon,
   Menu,
   MenuItem,
+  MenuList,
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -34,6 +38,7 @@ export function BranchSwitcher() {
   const { data: branches } = useBranchesQuery(!!user);
   const { branchId, setBranchId, basis, setBasis } = useBranchFilter();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const isPhone = useMediaQuery(useTheme().breakpoints.down('sm'));
 
   const active = (branches ?? []).filter((b) => b.isActive || b.id === branchId);
   const canManage = canAdministerAccounts(user);
@@ -50,6 +55,65 @@ export function BranchSwitcher() {
     setBranchId(id);
     setAnchor(null);
   };
+
+  const entries = [
+    <Typography key="title" variant="overline" color="text.secondary" sx={{ px: 2 }}>
+      {t('branches.title')}
+    </Typography>,
+    <MenuItem key="all" selected={!branchId} onClick={() => choose(undefined)}>
+      <Box sx={{ flex: 1 }}>{t('branches.all')}</Box>
+      {!branchId && <CheckOutlined fontSize="small" sx={{ ml: 2 }} />}
+    </MenuItem>,
+    ...nodes.map(({ branch, depth }) => (
+      <MenuItem
+        key={branch.id}
+        selected={branch.id === branchId}
+        onClick={() => choose(branch.id)}
+        sx={{ pl: 2 + (depth - 1) * 2.5 }}
+      >
+        <ListItemIcon sx={{ minWidth: 24 }}>
+          <BranchDot color={branch.color} />
+        </ListItemIcon>
+        <Box sx={{ flex: 1 }}>{branch.name}</Box>
+        {branch.id === branchId && <CheckOutlined fontSize="small" sx={{ ml: 2 }} />}
+      </MenuItem>
+    )),
+    currentNode && currentNode.descendantIds.length > 0 && (
+      <Typography key="sub" variant="caption" color="text.secondary" sx={{ display: 'block', px: 2, py: 0.5 }}>
+        {t('branches.includesSub', { count: currentNode.descendantIds.length })}
+      </Typography>
+    ),
+    branchId && <Divider key="d1" />,
+    branchId && (
+      <Box key="basis" sx={{ px: 2, py: 1, maxWidth: 320 }}>
+        <Typography variant="overline" color="text.secondary">
+          {t('branches.basis.title')}
+        </Typography>
+        <ToggleButtonGroup
+          exclusive
+          fullWidth
+          size="small"
+          value={basis}
+          onChange={(_event, value: 'Site' | 'Employer' | null) => value && setBasis(value)}
+        >
+          <ToggleButton value="Site">{t('branches.basis.site')}</ToggleButton>
+          <ToggleButton value="Employer">{t('branches.basis.employer')}</ToggleButton>
+        </ToggleButtonGroup>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
+          {basis === 'Employer' ? t('branches.basis.employerHint') : t('branches.basis.siteHint')}
+        </Typography>
+      </Box>
+    ),
+    canManage && <Divider key="d2" />,
+    canManage && (
+      <MenuItem key="manage" component={Link} to={paths.organizationBranches} onClick={() => setAnchor(null)}>
+        <ListItemIcon>
+          <SettingsOutlined fontSize="small" />
+        </ListItemIcon>
+        {t('branches.manage')}
+      </MenuItem>
+    ),
+  ];
 
   return (
     <>
@@ -84,64 +148,16 @@ export function BranchSwitcher() {
           </Tooltip>
         )}
       </Button>
-      <Menu anchorEl={anchor} open={!!anchor} onClose={() => setAnchor(null)}>
-        <Typography variant="overline" color="text.secondary" sx={{ px: 2 }}>
-          {t('branches.title')}
-        </Typography>
-        <MenuItem selected={!branchId} onClick={() => choose(undefined)}>
-          <Box sx={{ flex: 1 }}>{t('branches.all')}</Box>
-          {!branchId && <CheckOutlined fontSize="small" sx={{ ml: 2 }} />}
-        </MenuItem>
-        {nodes.map(({ branch, depth }) => (
-          <MenuItem
-            key={branch.id}
-            selected={branch.id === branchId}
-            onClick={() => choose(branch.id)}
-            sx={{ pl: 2 + (depth - 1) * 2.5 }}
-          >
-            <ListItemIcon sx={{ minWidth: 24 }}>
-              <BranchDot color={branch.color} />
-            </ListItemIcon>
-            <Box sx={{ flex: 1 }}>{branch.name}</Box>
-            {branch.id === branchId && <CheckOutlined fontSize="small" sx={{ ml: 2 }} />}
-          </MenuItem>
-        ))}
-        {currentNode && currentNode.descendantIds.length > 0 && (
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', px: 2, py: 0.5 }}>
-            {t('branches.includesSub', { count: currentNode.descendantIds.length })}
-          </Typography>
-        )}
-        {branchId && <Divider />}
-        {branchId && (
-          <Box sx={{ px: 2, py: 1, maxWidth: 320 }}>
-            <Typography variant="overline" color="text.secondary">
-              {t('branches.basis.title')}
-            </Typography>
-            <ToggleButtonGroup
-              exclusive
-              fullWidth
-              size="small"
-              value={basis}
-              onChange={(_event, value: 'Site' | 'Employer' | null) => value && setBasis(value)}
-            >
-              <ToggleButton value="Site">{t('branches.basis.site')}</ToggleButton>
-              <ToggleButton value="Employer">{t('branches.basis.employer')}</ToggleButton>
-            </ToggleButtonGroup>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
-              {basis === 'Employer' ? t('branches.basis.employerHint') : t('branches.basis.siteHint')}
-            </Typography>
-          </Box>
-        )}
-        {canManage && <Divider />}
-        {canManage && (
-          <MenuItem component={Link} to={paths.organizationBranches} onClick={() => setAnchor(null)}>
-            <ListItemIcon>
-              <SettingsOutlined fontSize="small" />
-            </ListItemIcon>
-            {t('branches.manage')}
-          </MenuItem>
-        )}
-      </Menu>
+      {isPhone ? (
+        // On a phone the choice rises from the bottom edge, where a thumb reaches, like the other dialogs.
+        <Dialog open={!!anchor} onClose={() => setAnchor(null)} fullWidth>
+          <MenuList sx={{ py: 1.5 }}>{entries}</MenuList>
+        </Dialog>
+      ) : (
+        <Menu anchorEl={anchor} open={!!anchor} onClose={() => setAnchor(null)}>
+          {entries}
+        </Menu>
+      )}
     </>
   );
 }

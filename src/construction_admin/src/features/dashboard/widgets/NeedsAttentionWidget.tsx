@@ -11,10 +11,10 @@ import { useExpiringDocumentsQuery } from '../../attachments/useAttachments';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
 
-const DOCUMENT_WINDOW_DAYS = 30;
+export const DOCUMENT_WINDOW_DAYS = 30;
 
 /** Where each kind of thing is dealt with. */
-const DESTINATIONS: Record<string, string> = {
+export const DESTINATIONS: Record<string, string> = {
   absenceRequests: paths.absences,
   expensesToReview: paths.vehicleExpenses,
   timeEntriesToReview: paths.timeEntries,
@@ -31,7 +31,7 @@ const DESTINATIONS: Record<string, string> = {
 };
 
 /** The order they are shown in: what somebody is waiting on first, housekeeping last. */
-const ORDER = [
+export const ORDER = [
   'absenceRequests',
   'timeEntriesToReview',
   'expensesToReview',
@@ -55,9 +55,8 @@ const ORDER = [
  * Expiring documents come from their own query, as they always have, and are folded into the same list.
  * A failure of either source leaves the other showing instead of emptying the whole widget.
  */
-export function NeedsAttentionWidget({ instanceId: _instanceId, onRemove, onExpandWidth }: DashboardWidgetProps) {
-  const t = useT();
-
+/** What is waiting for this person, in the order it is shown, shared by the widget and the phone's "Today" summary. */
+export function useAttentionGroups() {
   const attention = useQuery({ queryKey: ['attention'], queryFn: attentionApi.get, refetchInterval: 60_000 });
   const documents = useExpiringDocumentsQuery(DOCUMENT_WINDOW_DAYS);
 
@@ -74,8 +73,18 @@ export function NeedsAttentionWidget({ instanceId: _instanceId, onRemove, onExpa
 
   groups.sort((a, b) => ORDER.indexOf(a.key) - ORDER.indexOf(b.key));
 
-  const isLoading = attention.isLoading || documents.isLoading;
-  const bothFailed = !!attention.error && !!documents.error;
+  return {
+    groups,
+    isLoading: attention.isLoading || documents.isLoading,
+    bothFailed: !!attention.error && !!documents.error,
+    attentionError: attention.error,
+  };
+}
+
+export function NeedsAttentionWidget({ instanceId: _instanceId, onRemove, onExpandWidth }: DashboardWidgetProps) {
+  const t = useT();
+
+  const { groups, isLoading, bothFailed, attentionError } = useAttentionGroups();
   const isEmpty = !isLoading && !bothFailed && groups.length === 0;
 
   const example = (group: AttentionGroup, item: AttentionItem): string => {
@@ -93,7 +102,7 @@ export function NeedsAttentionWidget({ instanceId: _instanceId, onRemove, onExpa
     <WidgetShell
       title={t('dashboard.widget.NeedsAttention')}
       isLoading={isLoading}
-      error={bothFailed ? attention.error : undefined}
+      error={bothFailed ? attentionError : undefined}
       onRemove={onRemove}
       onExpandWidth={onExpandWidth}
     >

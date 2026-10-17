@@ -849,6 +849,9 @@ export const en = {
   'releaseNotes.close': 'Got it',
 
 
+  'releaseNotes.today1017.title': "Today, on a phone",
+  'releaseNotes.today1017.summary': "On a phone, Home now starts with what matters today: how many people are on a shift and what is waiting for your answer (requests, deadlines, documents about to expire). Each line leads to the list where it is dealt with.",
+  'releaseNotes.today1017.sheet': "Choosing the business unit on a phone opens from the bottom edge at full width, where a thumb reaches.",
   'releaseNotes.calm1016.title': "A calmer look and a better phone layout",
   'releaseNotes.calm1016.phone': "On a phone the header is cleaner: help and language are in your account menu, and the business unit's name shows in full. Home shows today's date, the figures sit two to a row, and their names wrap instead of being cut off.",
   'releaseNotes.calm1016.calm': "Cards on the dashboard are calmer: a thin grey line instead of the orange bar and glow, lighter headings. Orange is kept for what can be pressed. A chart with no data is replaced by a sentence.",
@@ -866,10 +869,6 @@ export const en = {
   'releaseNotes.look1016.calm': "Information bars are now in the platform's own colour (slate instead of bright blue), and wide tables get a soft shadow at the edge when there is more to scroll to.",
   'releaseNotes.look1016.app': "App 1.1.25: a new icon and start screen in the platform's colours (instead of the default logo), orange instead of brown on buttons and links, a short vibration when clocking in or out and when changing tab. Update the app from the download page.",
   'releaseNotes.look1016.dark': "Dark theme: the appearance button in the header (in the account menu on a phone) chooses between following the device, light and dark, and the choice is remembered. Export in the book is now one choice (the table or the ZIP with documents), and History and the guide in the schedule sit under More. The remaining texts in the panel address you formally.",
-  'releaseNotes.lang1016.title': "Search, guides and language",
-  'releaseNotes.lang1016.search': "Ctrl+K now also searches documents (by title, file name, owner and label), requests for documents, entries in the cost book and the guides, and offers actions: Upload a document, Request a document, Import a month from Excel, and the housing, delivery and fuel imports.",
-  'releaseNotes.lang1016.guides': "A new Guides page (in the menu, or the Detailed guides button in the help) explains step by step: adding and finding documents, expiry dates and reminders, sharing with a worker, requests for documents, the cost book, the month import, the schedule, business units and signing in, with examples. The same content is found through search.",
-  'releaseNotes.lang1016.language': "What was left in English is fixed: about two hundred server messages (errors when working with documents, invoices, the book, units and the schedule), a note in the account form, the pagination in the book of entries, fuel types and absence types in search.",
   'finance.budget.warnPercentHelp': 'Leave empty for 80%. From 100% the project counts as over.',
   'finance.housingDoubleWarning': '{count} housing expenses fall on days when accommodation rent is already counted from the accommodation rates, so that rent is counted twice. Delete them or move them to another category.',
   'finance.payOverlapWarning': '{count} pay entries tied to no project fall on days the same person clocked hours at a project. Both are counted — check whether one of them should replace the other.',
@@ -1410,6 +1409,8 @@ export const en = {
   'home.welcome': 'Welcome, {name}',
   'home.welcomeShort': 'Welcome',
   'home.today': 'Today',
+  'home.summary.onShift': 'on a shift',
+  'home.summary.nothingWaiting': 'Nothing is waiting for you.',
   'onboarding.checklist.serverToggle': 'For whoever runs the server ({count})',
   'home.subtitle': 'Pick a section from the menu to get started.',
 

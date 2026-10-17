@@ -876,6 +876,9 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.close': 'Razumijem',
 
 
+  'releaseNotes.today1017.title': "Danas na telefonu",
+  'releaseNotes.today1017.summary': "Na početnoj, na telefonu, prvo piše šta je danas važno: koliko ljudi je na smjeni i šta čeka vaš odgovor (zahtjevi, rokovi, dokumenti koji ističu). Svaki red vodi na listu gdje se to rješava.",
+  'releaseNotes.today1017.sheet': "Izbor poslovne jedinice na telefonu se otvara odozdo preko cijele širine, gdje ga palac dosegne.",
   'releaseNotes.calm1016.title': "Mirniji izgled i bolji prikaz na telefonu",
   'releaseNotes.calm1016.phone': "Na telefonu je zaglavlje čišće: pomoć i jezik su u meniju vašeg naloga, a ime poslovne jedinice se vidi cijelo. Početna pokazuje današnji datum, pokazatelji su po dva u redu, a nazivi se prelamaju umjesto da budu odsječeni.",
   'releaseNotes.calm1016.calm': "Kartice na nadzornoj ploči su mirnije: tanka siva linija umjesto narandžaste trake i sjaja, lakši naslovi. Narandžasta je ostala za ono što se može pritisnuti. Grafikon bez podataka zamjenjuje jedna rečenica.",
@@ -893,10 +896,6 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.look1016.calm': "Obavještajne trake su sada u boji platforme (tamnoplava-siva umjesto jarkoplave), a široke tabele imaju sjenku na rubu kad ima još sadržaja sa strane.",
   'releaseNotes.look1016.app': "Aplikacija 1.1.25: nova ikona i početni ekran u bojama platforme (umjesto zadanog logotipa), narandžasta umjesto smeđe na dugmadima i vezama, kratka vibracija pri prijavi i odjavi sa smjene i pri promjeni kartice. Ažurirajte aplikaciju sa stranice za preuzimanje.",
   'releaseNotes.look1016.dark': "Tamna tema: dugme za izgled u zaglavlju (na telefonu u meniju naloga) bira prema uređaju, svijetao ili taman izgled, a izbor se pamti. Izvoz u Evidenciji je sada jedan izbor (tabela ili ZIP s dokumentima), a Istorija i Vodič u Rasporedu stoje pod Više. Preostali tekstovi u panelu obraćaju se s \"vi\".",
-  'releaseNotes.lang1016.title': "Pretraga, uputstva i jezik",
-  'releaseNotes.lang1016.search': "Ctrl+K sada traži i dokumente (po naslovu, imenu datoteke, vlasniku i oznaci), zahtjeve za dokumente, zapise u Knjizi troškova i uputstva, a nudi i radnje: Otpremi dokument, Zatraži dokument, Uvezi mjesec iz Excela, uvoz smještaja, isporuka i goriva.",
-  'releaseNotes.lang1016.guides': "Nova stranica Uputstva (izbornik, ili dugme Detaljna uputstva u pomoći) objašnjava korak po korak: dodavanje i pronalaženje dokumenata, rokove i podsjetnike, dijeljenje s radnikom, zahtjeve za dokumente, Knjigu troškova, uvoz mjeseca, raspored, poslovne jedinice i prijavu, uz primjere. Isti sadržaj nalazi se i pretragom.",
-  'releaseNotes.lang1016.language': "Ispravljeno je ono što je ostalo na engleskom: oko dvjesta poruka servera (greške pri radu s dokumentima, fakturama, Knjigom, jedinicama i rasporedom), jedna napomena u obrascu naloga, paginacija u Knjizi zapisa, vrste goriva i odsustva u pretrazi.",
   'finance.budget.warnPercentHelp': 'Prazno znači 80%. Od 100% se projekat računa kao prekoračen.',
   'finance.housingDoubleWarning': '{count} troškova smještaja pada na dane kada je kirija već uračunata iz cijena smještaja, pa se ta kirija računa dvaput. Obrišite ih ili ih prebacite u drugu kategoriju.',
   'finance.payOverlapWarning': '{count} isplata bez projekta pada na dane kada je ista osoba evidentirala sate na projektu. Računaju se oba iznosa — provjerite treba li jedan zamijeniti drugi.',
@@ -1445,6 +1444,8 @@ export const sr: Record<MessageKey, Message> = {
   'home.welcome': 'Dobrodošli, {name}',
   'home.welcomeShort': 'Dobrodošli',
   'home.today': 'Danas',
+  'home.summary.onShift': 'na smjeni',
+  'home.summary.nothingWaiting': 'Ništa ne čeka vaš odgovor.',
   'onboarding.checklist.serverToggle': 'Za onoga ko održava server ({count})',
   'home.subtitle': 'Izaberite sekciju iz menija.',
 

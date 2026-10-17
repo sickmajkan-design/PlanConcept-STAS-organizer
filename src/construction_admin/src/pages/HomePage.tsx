@@ -1,10 +1,11 @@
 import { ApartmentOutlined, MapOutlined, PeopleOutlined } from '@mui/icons-material';
-import { Box, Card, CardActionArea, CardContent, Stack, Typography } from '@mui/material';
+import { Box, Card, CardActionArea, CardContent, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { Link } from 'react-router-dom';
 
 import { canConfigureDashboard, canViewDirectory, displayName } from '../auth/authHelpers';
 import { useAuth } from '../auth/useAuth';
 import { DashboardGrid } from '../features/dashboard/DashboardGrid';
+import { TodaySummary } from '../features/dashboard/TodaySummary';
 import { SetupChecklistCard } from '../features/onboarding/SetupChecklistCard';
 import { useI18n, useT } from '../i18n/useI18n';
 import { paths } from '../routes/paths';
@@ -13,6 +14,7 @@ export function HomePage() {
   const { user } = useAuth();
   const t = useT();
   const { locale } = useI18n();
+  const isPhone = useMediaQuery(useTheme().breakpoints.down('sm'));
 
   if (!user) return null;
 
@@ -33,6 +35,7 @@ export function HomePage() {
             {new Intl.DateTimeFormat(locale === 'sr' ? 'sr-Latn' : 'en', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())}
           </Typography>
         </Typography>
+        {isPhone && <TodaySummary />}
         <SetupChecklistCard />
         <DashboardGrid />
       </Box>
