@@ -91,6 +91,7 @@ import { ReleaseNotesDialog } from '../features/releaseNotes/ReleaseNotesDialog'
 import { PlatformGuideDialog } from './PlatformGuideDialog';
 import { isTypingTarget, ShortcutsHelpDialog } from './ShortcutsHelpDialog';
 import { useFavorites } from './useFavorites';
+import { withGroupTotals } from './navBadgeTotals';
 import { useNavBadgeCounts } from './useNavBadgeCounts';
 import { usePinnedPanel } from './usePinnedPanel';
 
@@ -239,7 +240,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const logoUrl = useCompanyLogoUrl();
   const { data: companyDetails } = useCompanySettingsQuery(canViewDirectory(user));
   const favorites = useFavorites();
-  const badgeCounts = useNavBadgeCounts(user);
+  const itemBadgeCounts = useNavBadgeCounts(user);
+
+  const navEntries = useMemo(() => (user ? buildNavEntries(user, t) : []), [user, t]);
+  const flatItems = useMemo(() => flattenNavEntries(navEntries), [navEntries]);
+  // Each group's badge is the sum of its items', worked out from the menu itself.
+  const badgeCounts = useMemo(() => withGroupTotals(navEntries, itemBadgeCounts), [navEntries, itemBadgeCounts]);
 
   /**
    * Where clicking a nav item actually goes. Plain `item.path`, except for
@@ -252,9 +258,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
     path === paths.timeEntries && (badgeCounts[path] ?? 0) > 0
       ? `${path}?reviewQueue=true`
       : path;
-
-  const navEntries = useMemo(() => (user ? buildNavEntries(user, t) : []), [user, t]);
-  const flatItems = useMemo(() => flattenNavEntries(navEntries), [navEntries]);
 
   const phoneBarItems = useMemo(
     () =>

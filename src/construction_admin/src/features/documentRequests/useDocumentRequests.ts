@@ -13,11 +13,12 @@ export const documentRequestKeys = createResourceKeys<DocumentRequestListQuery>(
 /** Accepting puts a document on the person's record, so the document lists are dropped as well. */
 const caches = [documentRequestKeys.all, attachmentKeys.all];
 
-export function useDocumentRequestsQuery(query: DocumentRequestListQuery) {
+export function useDocumentRequestsQuery(query: DocumentRequestListQuery, enabled = true) {
   // Refreshed on a short interval and when the tab regains focus: the office is told by a notice when
   // a person answers, and the list should already agree when they arrive.
   return useResourceList(documentRequestKeys, documentRequestsApi.list, query, {
     refetchInterval: 30_000,
+    enabled,
   });
 }
 

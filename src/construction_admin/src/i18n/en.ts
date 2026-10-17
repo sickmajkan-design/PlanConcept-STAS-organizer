@@ -867,6 +867,9 @@ export const en = {
   'releaseNotes.close': 'Got it',
 
 
+  'releaseNotes.badges1017.title': "Numbers beside menu items",
+  'releaseNotes.badges1017.groups': "The number on a group's icon on the rail is the sum of its items' numbers, so it can no longer happen that an item has a number and its group has none (Documents lost theirs when they moved).",
+  'releaseNotes.badges1017.items': "Numbers now stand beside every item that has something waiting: schedule (unconfirmed postings), orders, refunds, employees (certificates about to expire), vehicles (dates about to pass), Who owes us, data check, and document requests (an answer waiting for your check, or a missed deadline), besides those that were there already.",
   'releaseNotes.notif1017.title': "Notifications to the end, the book in Finance",
   'releaseNotes.notif1017.list': "The bell in the header now shows every notification: when you reach the bottom of the list the next fifteen load, all the way to the last one, which says it is the last (before, only the eight newest were there).",
   'releaseNotes.notif1017.read': "A notification with no page to go to (a message, an announcement, a change of unit) opens in full, to be read to its end, instead of being cut at two lines with nothing happening on a click.",
@@ -882,10 +885,6 @@ export const en = {
   'releaseNotes.scanner1017.title': "A warning when the virus check is not working",
   'releaseNotes.scanner1017.warning': "If the virus check on documents stops answering, the dashboard (Needs attention, and on a phone the Today summary) says that sending documents is stopped. Until now it showed nowhere, and every upload was refused.",
   'releaseNotes.scanner1017.probe': "For an uptime monitor there is /health/dependencies, which answers 503 when the virus check is not working while the rest of the platform is.",
-  'releaseNotes.calmdesk1017.title': "A calmer dashboard",
-  'releaseNotes.calmdesk1017.tiles': "The figures on the dashboard share one background; colour is only in the small icon, and zeros are muted.",
-  'releaseNotes.calmdesk1017.buttons': "\"Add widget\" is a neutral button. Orange is kept for the main action on a screen.",
-  'releaseNotes.calmdesk1017.empty': "A widget with no data (revenue, vehicles, tools) says what is missing and offers the first step, such as \"Add project\", instead of an empty axis.",
   'finance.budget.warnPercentHelp': 'Leave empty for 80%. From 100% the project counts as over.',
   'finance.housingDoubleWarning': '{count} housing expenses fall on days when accommodation rent is already counted from the accommodation rates, so that rent is counted twice. Delete them or move them to another category.',
   'finance.payOverlapWarning': '{count} pay entries tied to no project fall on days the same person clocked hours at a project. Both are counted — check whether one of them should replace the other.',

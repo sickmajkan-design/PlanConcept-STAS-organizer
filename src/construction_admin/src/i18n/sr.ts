@@ -894,6 +894,9 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.close': 'Razumijem',
 
 
+  'releaseNotes.badges1017.title': "Brojevi uz stavke menija",
+  'releaseNotes.badges1017.groups': "Broj na ikoni grupe na traci je zbir brojeva njenih stavki, pa se više ne desi da stavka ima broj, a grupa nema (Dokumenti su nakon premještanja ostali bez broja).",
+  'releaseNotes.badges1017.items': "Brojevi su sada uz sve stavke koje imaju šta da čeka: raspored (nepotvrđena raspoređivanja), narudžbe, refundacije, zaposleni (isticanje uvjerenja), vozila (isticanje datuma), Ko nam duguje, provjera podataka i zahtjevi za dokumente (odgovor čeka provjeru ili rok istekao), uz ranije postojeće.",
   'releaseNotes.notif1017.title': "Obavještenja do kraja, Evidencija u Finansijama",
   'releaseNotes.notif1017.list': "Zvono u zaglavlju sada pokazuje sva obavještenja: kad dođete do dna liste, učitava se sljedećih petnaest, sve do posljednjeg, koje kaže da je posljednje (ranije je stajalo samo osam najnovijih).",
   'releaseNotes.notif1017.read': "Obavještenje koje nema stranicu na koju vodi (poruka, najava, promjena jedinice) otvara se u cijelosti, da se pročita do kraja, umjesto da bude odsječeno na dva reda i bez odgovora na klik.",
@@ -909,10 +912,6 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.scanner1017.title': "Upozorenje kad provjera virusa ne radi",
   'releaseNotes.scanner1017.warning': "Ako provjera virusa u dokumentima prestane odgovarati, na nadzornoj ploči (Zahtijeva pažnju, a na telefonu i u pregledu Danas) piše da je slanje dokumenata zaustavljeno. Do sada se to nije vidjelo nigdje, a svako slanje je bilo odbijeno.",
   'releaseNotes.scanner1017.probe': "Za nadzor dostupnosti postoji adresa /health/dependencies, koja vraća 503 kad provjera virusa ne radi, a ostatak platforme i dalje radi.",
-  'releaseNotes.calmdesk1017.title': "Mirnija nadzorna ploča",
-  'releaseNotes.calmdesk1017.tiles': "Pokazatelji na nadzornoj ploči imaju istu pozadinu; boja je samo u maloj ikoni, a nule su prigušene.",
-  'releaseNotes.calmdesk1017.buttons': "\"Dodaj widget\" je neutralno dugme. Narandžasta ostaje za glavnu radnju na ekranu.",
-  'releaseNotes.calmdesk1017.empty': "Widget bez podataka (prihod, vozila, alati) umjesto prazne ose kaže šta nedostaje i nudi prvi korak, npr. \"Dodaj projekat\".",
   'finance.budget.warnPercentHelp': 'Prazno znači 80%. Od 100% se projekat računa kao prekoračen.',
   'finance.housingDoubleWarning': '{count} troškova smještaja pada na dane kada je kirija već uračunata iz cijena smještaja, pa se ta kirija računa dvaput. Obrišite ih ili ih prebacite u drugu kategoriju.',
   'finance.payOverlapWarning': '{count} isplata bez projekta pada na dane kada je ista osoba evidentirala sate na projektu. Računaju se oba iznosa — provjerite treba li jedan zamijeniti drugi.',

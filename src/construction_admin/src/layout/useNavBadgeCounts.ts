@@ -1,4 +1,8 @@
+import { useQuery } from '@tanstack/react-query';
+
+import { attentionApi, type AttentionGroup } from '../api/attention';
 import type { User } from '../api/types';
+import { useDocumentRequestsQuery } from '../features/documentRequests/useDocumentRequests';
 import { useVehicleExpensesQuery } from '../features/costs/useCosts';
 import { useMaterialsQuery } from '../features/materials/useMaterials';
 import { useAccommodationsQuery } from '../features/accommodations/useAccommodations';
@@ -21,12 +25,39 @@ const DOCUMENT_EXPIRY_WINDOW_DAYS = 30;
 const COUNT_ONLY_PAGE = { pageNumber: 1, pageSize: 1 } as const;
 
 /**
- * Small counts shown as a badge on the nav — keyed both by {@link NavGroup.key}
- * (the rail's collapsed group icon, an aggregate of everything inside it) and
- * by the specific item's own `path` (its row inside the flyout/drawer), so
- * the same number that shows on the group also follows through to the exact
- * item — and, from there, the exact module — a notification was actually
- * about, rather than stopping at the group icon.
+ * Every menu item that has a backlog behind it, by path. A menu change must keep this in step: `navBadges.test.ts`
+ * fails when an item named here is no longer in the menu, so a badge cannot be left on a page that moved away, and
+ * a group's total is computed from its items (`withGroupTotals`), so it cannot drift from them.
+ */
+export const BADGED_PATHS: readonly string[] = [
+  paths.schedule,
+  paths.absences,
+  paths.timeEntries,
+  paths.workItems,
+  paths.articleOrders,
+  paths.employees,
+  paths.accommodations,
+  paths.vehicles,
+  paths.materials,
+  paths.costRecords,
+  paths.refunds,
+  paths.bookReceivables,
+  paths.expiringDocuments,
+  paths.documentRequests,
+  paths.dataQuality,
+];
+
+const countOf = (groups: readonly AttentionGroup[] | undefined, ...keys: string[]) =>
+  (groups ?? []).filter((group) => keys.includes(group.key)).reduce((sum, group) => sum + group.count, 0);
+
+/**
+ * Small counts shown as a badge on the nav, keyed by the item's own `path` (its row inside the flyout/drawer).
+ * A group's badge on the rail is the sum of its items' (`withGroupTotals`), so the number on the group always
+ * follows through to the exact item, and from there the exact module, a notification was about.
+ *
+ * Whatever the work-queue endpoint (`/attention`) already counts is read from it rather than counted again:
+ * unconfirmed postings, article orders and refunds waiting, vehicle dates and certificates about to pass,
+ * overdue invoices and costs, records to tidy. It is the same list the dashboard shows, so the two agree.
  *
  * Each one mirrors a notification type this app sends: `absencesQuery` for
  * `AbsenceRequested`/`AbsenceEditProposed`, `documentsQuery` for
@@ -61,6 +92,22 @@ export function useNavBadgeCounts(user: User | null | undefined): Record<string,
   // Reading the amounts back needs the finance grant, so a reviewer without it
   // would only get a 403 for this count.
   const showVehicleExpenses = canReviewSpending(user) && canSeeSpending(user);
+
+  // The same query, with the same key, as the dashboard's "Needs attention": one request serves both.
+  const attentionQuery = useQuery({
+    queryKey: ['attention'],
+    queryFn: attentionApi.get,
+    refetchInterval: 60_000,
+    enabled: showWorkItems,
+  });
+  const attention = attentionQuery.data?.groups;
+
+  // Answers waiting for the office's check, and requests whose deadline passed with nothing sent.
+  const submittedRequestsQuery = useDocumentRequestsQuery({ ...COUNT_ONLY_PAGE, status: 'Submitted' }, showDocuments);
+  const overdueRequestsQuery = useDocumentRequestsQuery({ ...COUNT_ONLY_PAGE, status: 'Open', overdue: true }, showDocuments);
+  const documentRequestsCount = showDocuments
+    ? (submittedRequestsQuery.data?.totalCount ?? 0) + (overdueRequestsQuery.data?.totalCount ?? 0)
+    : 0;
 
   const documentsQuery = useExpiringDocumentsQuery(
     DOCUMENT_EXPIRY_WINDOW_DAYS,
@@ -122,18 +169,22 @@ export function useNavBadgeCounts(user: User | null | undefined): Record<string,
     : 0;
 
   return {
-    admin: documentsCount,
-    planning: absencesCount + workItemsCount + timeEntriesCount,
-    people: contractsCount,
-    equipment: lowStockCount,
+    [paths.schedule]: countOf(attention, 'unconfirmedPostings'),
+    [paths.absences]: absencesCount,
+    [paths.timeEntries]: timeEntriesCount,
+    [paths.workItems]: workItemsCount,
+    [paths.articleOrders]: countOf(attention, 'articleOrders'),
+    [paths.employees]: countOf(attention, 'certificatesExpiring'),
     [paths.accommodations]: contractsCount,
+    [paths.vehicles]: countOf(attention, 'vehicleDates'),
     [paths.materials]: lowStockCount,
-    costs: vehicleExpensesCount,
+    // The hub of the cost tabs carries the number of the tab that has one; the tab itself is left out of group totals.
     [paths.costRecords]: vehicleExpensesCount,
     [paths.vehicleExpenses]: vehicleExpensesCount,
+    [paths.refunds]: countOf(attention, 'refunds'),
+    [paths.bookReceivables]: countOf(attention, 'lateInvoices', 'lateCosts'),
     [paths.expiringDocuments]: documentsCount,
-    [paths.absences]: absencesCount,
-    [paths.workItems]: workItemsCount,
-    [paths.timeEntries]: timeEntriesCount,
+    [paths.documentRequests]: documentRequestsCount,
+    [paths.dataQuality]: countOf(attention, 'dataQuality'),
   };
 }
