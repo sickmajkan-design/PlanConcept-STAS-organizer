@@ -29,7 +29,7 @@ Statusi koje vidite u listi:
 
 ## 2. Kako zatražiti dokument
 
-1. Otvorite **Zahtjevi za dokumente** (izbornik Administracija) i kliknite **Zatraži dokument**. (Prečica: **Ctrl+K**, „zatraži“. Na kartonu zaposlenog isto dugme već ima izabranu osobu.)
+1. Otvorite **Zahtjevi za dokumente** (lijeva traka, grupa Dokumenti) i kliknite **Zatraži dokument**. (Prečica: **Ctrl+K**, „zatraži“. Na kartonu zaposlenog isto dugme već ima izabranu osobu.)
 2. Izaberite **jednu ili više osoba**.
 3. Izaberite šta tražite: pojedinačni dokument (vrsta i naslov, npr. *Pasoš*), ili paket **Novi radnik**, koji traži uobičajeni set odjednom.
 4. Po želji upišite **napomenu** (npr. „obje strane lične karte“) i **rok**.

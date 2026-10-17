@@ -9,6 +9,7 @@ import '../../../core/network/api_exception.dart';
 import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatting.dart';
+import '../../../core/widgets/quick_action_tile.dart';
 import '../../auth/data/models/user.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../location/presentation/location_status_card.dart';
@@ -26,11 +27,52 @@ import 'today_data.dart';
 /// A worker sees their shift and their tasks. A foreman or anyone above sees
 /// how the crew stands and what wants a look. Both get the same way to report
 /// a defect, because it is the one thing every site visit may turn up.
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  final _scroll = ScrollController();
+  final _followShift = ValueNotifier<bool>(false);
+
+  /// Where the shift card is, so the button that follows the worker takes over exactly when the card has gone
+  /// under the top edge, whatever the text size or how much is on the page.
+  final _cardKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    _scroll.addListener(_checkCard);
+  }
+
+  void _checkCard() {
+    if (!_scroll.hasClients || !mounted) return;
+
+    final box = _cardKey.currentContext?.findRenderObject();
+    final top = MediaQuery.paddingOf(context).top + kToolbarHeight;
+
+    // A card that is no longer built has been scrolled far past.
+    final past = box is RenderBox && box.attached
+        ? box.localToGlobal(Offset.zero).dy + box.size.height < top
+        : _scroll.offset > 0;
+
+    if (past != _followShift.value) {
+      _followShift.value = past;
+    }
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    _followShift.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
 
     if (user == null) {
@@ -48,8 +90,10 @@ class HomeScreen extends ConsumerWidget {
             edgeOffset: MediaQuery.paddingOf(context).top,
             onRefresh: () => _refresh(context, ref),
             child: ListView(
+              controller: _scroll,
               padding: EdgeInsets.zero,
               children: [
+
                 Stack(
                   // The picture runs a little past the card; clipping it there
                   // cut the end of its fade into a visible line.
@@ -75,7 +119,7 @@ class HomeScreen extends ConsumerWidget {
                             height: user.isEmployee && !oversees ? 96 : 84,
                           ),
                           if (user.isEmployee && !oversees)
-                            const ShiftCard(hero: true)
+                            ShiftCard(key: _cardKey, hero: true)
                           else if (oversees)
                             const _CrewCard(),
                         ],
@@ -88,11 +132,15 @@ class HomeScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // The few things done most often, one tap away; before the list, because they are
+                      // needed whether or not anything is assigned today.
+                      if (user.isEmployee) ...[
+                        const _QuickActions(),
+                        const SizedBox(height: 20),
+                      ],
                       if (user.isEmployee && !oversees) const _TasksSection(),
                       if (oversees) const _AttentionSection(),
                       if (user.isEmployee) ...[
-                        const SizedBox(height: 20),
-                        const ReportDefectButton(prominent: true),
                         const SizedBox(height: 12),
                         const LocationStatusCard(),
                       ],
@@ -102,6 +150,18 @@ class HomeScreen extends ConsumerWidget {
               ],
             ),
           ),
+          // The one action of the day follows the worker once the card is out of sight, so it is
+          // never a scroll away.
+          if (user.isEmployee && !oversees)
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 12,
+              child: ValueListenableBuilder<bool>(
+                valueListenable: _followShift,
+                builder: (context, follow, _) => _FollowingShiftButton(visible: follow),
+              ),
+            ),
           // Keeps the clock and battery readable when the page has scrolled
           // up underneath them.
           Positioned(
@@ -153,6 +213,106 @@ class HomeScreen extends ConsumerWidget {
 
 /// The dawn-over-the-site picture behind the greeting, dissolving into the
 /// page. One picture for everyone: it is atmosphere, not information.
+/// Documents, schedule, absences and a defect report: what a worker opens most, as four tiles in a row.
+class _QuickActions extends StatelessWidget {
+  const _QuickActions();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+
+    final tiles = <Widget>[
+      const ReportDefectButton(quick: true),
+      QuickActionTile(
+        icon: Icons.folder_shared_outlined,
+        label: l10n.navMyDocuments,
+        onTap: () => context.push(AppRoutes.myDocuments),
+      ),
+      QuickActionTile(
+        icon: Icons.calendar_month_outlined,
+        label: l10n.navSchedule,
+        onTap: () => context.push(AppRoutes.schedule),
+      ),
+      QuickActionTile(
+        icon: Icons.event_busy_outlined,
+        label: l10n.navAbsences,
+        onTap: () => context.push(AppRoutes.absences),
+      ),
+    ];
+
+    // With large text four across would split words in the middle, so they go two by two.
+    final bigText = MediaQuery.textScalerOf(context).scale(14) / 14 > 1.25;
+
+    Widget row(List<Widget> items) => IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (var i = 0; i < items.length; i++) ...[
+                if (i > 0) const SizedBox(width: 8),
+                Expanded(child: items[i]),
+              ],
+            ],
+          ),
+        );
+
+    return bigText
+        ? Column(children: [row(tiles.sublist(0, 2)), const SizedBox(height: 8), row(tiles.sublist(2))])
+        : row(tiles);
+  }
+}
+
+/// "Clock in", pinned above the bottom bar while the shift card is scrolled away and the worker is not on a
+/// shift. It rises into place and sinks out of it; with reduced motion it only appears.
+class _FollowingShiftButton extends ConsumerWidget {
+  const _FollowingShiftButton({required this.visible});
+
+  final bool visible;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final state = ref.watch(shiftControllerProvider).value;
+    final show = visible && !(state?.isRunning ?? false);
+    final busy = state?.isBusy ?? false;
+    final duration = MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 220);
+
+    return IgnorePointer(
+      ignoring: !show,
+      child: AnimatedSlide(
+        offset: show ? Offset.zero : const Offset(0, 1.4),
+        duration: duration,
+        curve: Curves.easeOutCubic,
+        child: AnimatedOpacity(
+          opacity: show ? 1 : 0,
+          duration: duration,
+          child: SizedBox(
+            height: 52,
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: AppTheme.heroAction,
+                foregroundColor: AppTheme.heroActionText,
+                disabledBackgroundColor: AppTheme.heroAction.withValues(alpha: 0.8),
+                disabledForegroundColor: AppTheme.heroActionText,
+                elevation: 6,
+                shadowColor: const Color(0x66000000),
+              ),
+              onPressed: busy ? null : () => startShift(context, ref),
+              icon: busy
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.heroActionText),
+                    )
+                  : const Icon(Icons.play_arrow),
+              label: Text(busy ? l10n.shiftWorking : l10n.shiftClockIn),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _SiteArtwork extends StatelessWidget {
   const _SiteArtwork();
 

@@ -269,13 +269,25 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
             items: [
               ...(canViewFinance(user)
                 ? [
-                    { label: t('nav.costs'), path: paths.costs, icon: <PaidOutlined /> },
-                    { label: t('nav.companyRevenues'), path: paths.companyRevenues, icon: <TrendingUpOutlined /> },
+                    { label: t('nav.costs'), path: paths.costs, icon: <PaidOutlined />, section: t('nav.section.costDaily') },
+                    {
+                      label: t('nav.companyRevenues'),
+                      path: paths.companyRevenues,
+                      icon: <TrendingUpOutlined />,
+                      section: t('nav.section.costDaily'),
+                    },
                   ]
                 : []),
-              { label: t('nav.refunds'), path: paths.refunds, icon: <RequestQuoteOutlined /> },
+              { label: t('nav.refunds'), path: paths.refunds, icon: <RequestQuoteOutlined />, section: t('nav.section.costDaily') },
               ...(canManageInvoices(user)
-                ? [{ label: t('nav.invoices'), path: paths.invoices, icon: <ReceiptLongOutlined /> }]
+                ? [
+                    {
+                      label: t('nav.invoices'),
+                      path: paths.invoices,
+                      icon: <ReceiptLongOutlined />,
+                      section: t('nav.section.costDaily'),
+                    },
+                  ]
                 : []),
               // Reading any of these back is money now (`FinanceRules.CanSeeSpendingAsync`),
               // so the whole tab strip needs the finance grant, same as the routes.
@@ -285,6 +297,7 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
                       label: t('nav.costRecords'),
                       path: paths.costRecords,
                       icon: <ReceiptLongOutlined />,
+                      section: t('nav.section.costKinds'),
                       alsoActiveOn: [
                         paths.vehicleExpenses,
                         paths.toolExpenses,
@@ -350,6 +363,7 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
                       label: t('nav.billingSettings'),
                       path: paths.billingSettings,
                       icon: <RequestQuoteOutlined />,
+                      section: t('nav.section.costSettings'),
                       alsoActiveOn: [paths.rates, paths.publicHolidays, paths.annualRealization],
                     },
                     ...(canViewFinance(user)
@@ -386,11 +400,13 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
       : []),
     ...(canAdministerAccounts(user)
       ? [
+          // Documents and the requests for them are used far more than the rest of what was under
+          // Administration, so they have their own place on the rail.
           {
-            key: 'admin',
-            label: t('nav.group.admin'),
-            sub: t('nav.group.admin.sub'),
-            icon: <AdminPanelSettingsOutlined />,
+            key: 'documents',
+            label: t('nav.group.documents'),
+            sub: t('nav.group.documents.sub'),
+            icon: <FolderOutlined />,
             items: [
               {
                 label: t('nav.documents'),
@@ -402,6 +418,14 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
                 path: paths.documentRequests,
                 icon: <FolderOutlined />,
               },
+            ],
+          } satisfies NavGroup,
+          {
+            key: 'admin',
+            label: t('nav.group.admin'),
+            sub: t('nav.group.admin.sub'),
+            icon: <AdminPanelSettingsOutlined />,
+            items: [
               { label: t('nav.users'), path: paths.users, icon: <ManageAccountsOutlined /> },
               { label: t('nav.organization'), path: paths.organization, icon: <AccountTreeOutlined /> },
               {

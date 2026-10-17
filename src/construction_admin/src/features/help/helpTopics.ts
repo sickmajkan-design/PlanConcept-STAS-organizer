@@ -58,7 +58,7 @@ export const helpTopics: HelpTopic[] = [
         steps: [
           'Otvorite zapis (npr. zaposlenog) i na kartici Dokumenti prevucite datoteke u okvir, ili kliknite na okvir i izaberite ih. Na računaru možete zalijepiti i sliku iz međuspremnika (Ctrl+V).',
           'Pri pravljenju novog zaposlenog, vozila, alata, gradilišta ili smještaja obrazac ima odjeljak Dokumenti: dodajte ih odmah, pa se spremaju uz zapis čim se napravi. U brzom unosu Evidencije dugme Priloži dokument vezuje račun uz red koji ukucate.',
-          'Ili idite na Dokumenti (Administracija), kliknite Otpremi i prvo izaberite zapis. Na toj stranici datoteku možete ispustiti bilo gdje; dodavanje se otvara s datotekom već unutra.',
+          'Ili idite na Dokumenti (Dokumenti na lijevoj traci), kliknite Otpremi i prvo izaberite zapis. Na toj stranici datoteku možete ispustiti bilo gdje; dodavanje se otvara s datotekom već unutra.',
           'Dozvoljeno je do 25 MB po datoteci: PDF, slike (JPG, PNG, WEBP, HEIC), Word, Excel, tekst i CSV. Server provjerava da sadržaj odgovara nazivu i svaku datoteku skenira na viruse prije spremanja.',
           'Više datoteka može odjednom. Svaka ima svoj napredak; ona koja zakaže može se poslati ponovo, a ostale ostaju. Uz svaku datoteku možete izabrati njenu vlastitu vrstu, a ostale prate opštu vrstu iznad.',
           'Naslov (samo za jednu datoteku), napomena i oznake pomažu da dokument kasnije nađete. Datume (Važi do, Čuvati do, podsjetnici) otvorite i popunite samo ako vrijede.',
@@ -81,7 +81,7 @@ export const helpTopics: HelpTopic[] = [
         steps: [
           'Open the record (an employee, say) and on the Documents card drag files into the box, or click it and choose them. On a computer you can also paste a picture (Ctrl+V).',
           'When making a new employee, vehicle, tool, site or accommodation, the form has a Documents section: add them straight away and they are filed with the record as soon as it is made. In the book\'s quick entry the Attach a document button ties a receipt to the line you type.',
-          'Or go to Documents (Administration), click Upload and choose the record first. On that page you can drop a file anywhere; the upload opens with the file already in it.',
+          'Or go to Documents (Documents on the left rail), click Upload and choose the record first. On that page you can drop a file anywhere; the upload opens with the file already in it.',
           'Up to 25 MB per file: PDF, images (JPG, PNG, WEBP, HEIC), Word, Excel, text and CSV. The server checks that the content fits the name and scans every file for viruses before it is stored.',
           'Several files at once. Each has its own progress; one that fails can be sent again and the others stay. Beside each file you can pick its own type; the rest follow the general type above.',
           'The title (one file only), a note and labels help you find it later. Open the dates (Valid until, Keep until, reminders) only if they apply.',
@@ -110,7 +110,7 @@ export const helpTopics: HelpTopic[] = [
         summary:
           'Stranica Dokumenti pokazuje dokumente cijele firme. Počinje s onima kojima uskoro ističe rok, a pretraga i filteri nalaze sve ostalo.',
         steps: [
-          'Otvorite Dokumenti u izborniku Administracija. Zadano se vide dokumenti koji ističu u sljedećih 30 dana; promijenite period ili izaberite Sve.',
+          'Otvorite Dokumenti na lijevoj traci. Zadano se vide dokumenti koji ističu u sljedećih 30 dana; promijenite period ili izaberite Sve.',
           'Uključite Prikaži i dokumente bez roka isteka da vidite sve, ne samo one koji ističu.',
           'Upišite riječ u pretragu: traže se naslov, ime datoteke, vlasnik, napomena i oznake. Kad upišete više riječi, sve moraju da se podudaraju.',
           'Sužavajte filterima Zapis (vrsta vlasnika), Vrsta i Oznaka.',
@@ -131,7 +131,7 @@ export const helpTopics: HelpTopic[] = [
         summary:
           'The Documents page shows the whole company\'s documents. It starts with those expiring soon; search and filters find the rest.',
         steps: [
-          'Open Documents in the Administration menu. By default you see documents expiring in the next 30 days; change the period or choose All.',
+          'Open Documents on the left rail. By default you see documents expiring in the next 30 days; change the period or choose All.',
           'Switch on Also show documents with no expiry to see everything, not only those that lapse.',
           'Type a word in the search box: the title, file name, owner, note and labels are searched. With several words, all must match.',
           'Narrow with the Record (owner kind), Type and Label filters.',
@@ -254,7 +254,7 @@ export const helpTopics: HelpTopic[] = [
         summary:
           'Uprava traži od ljudi dokument koji nedostaje; osoba ga pošalje s telefona, a uprava provjeri i prihvati ili vrati s razlogom.',
         steps: [
-          'Otvorite Zahtjevi za dokumente u izborniku Administracija i kliknite Zatraži dokument. Izaberite jednu ili više osoba i šta se traži; paket Novi radnik traži uobičajeni set odjednom. Po želji dodajte rok.',
+          'Otvorite Dokumenti na lijevoj traci, pa Zahtjevi za dokumente, i kliknite Zatraži dokument. Izaberite jednu ili više osoba i šta se traži; paket Novi radnik traži uobičajeni set odjednom. Po želji dodajte rok.',
           'Osobe su odmah obaviještene u aplikaciji. Tamo vide šta se traži i šalju fotografije ili PDF.',
           'Ono što stigne čeka pod Za provjeru. Otvorite zahtjev (Provjeri) i pogledajte poslane datoteke.',
           'Prihvatite: upišite Vrijedi do ako dokument ističe. Dokument se stavlja na karton osobe i dijeli s njom.',
@@ -276,7 +276,7 @@ export const helpTopics: HelpTopic[] = [
         summary:
           'The office asks people for a missing document; the person sends it from the phone, and the office checks it and accepts it or sends it back with a reason.',
         steps: [
-          'Open Document requests in the Administration menu and click Request a document. Choose one or more people and what is needed; the New worker package asks for the usual set at once. Add a deadline if you like.',
+          'Open Documents on the left rail, then Document requests, and click Request a document. Choose one or more people and what is needed; the New worker package asks for the usual set at once. Add a deadline if you like.',
           'The people are notified in the app straight away. There they see what is asked and send photos or a PDF.',
           'What arrives waits under To check. Open the request (Check) and look at the files sent.',
           'Accept: enter Valid until if the document expires. The document is filed on the person\'s record and shared with them.',

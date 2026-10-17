@@ -37,6 +37,7 @@ Pregled je rađen alatima iz paketa `emilkowalski/skills` (`emil-design-eng`, `m
 - **Početni ekran:** slika gradilišta ide do vrha ekrana (prozirna statusna traka, ikone prate temu), pozdrav ima datum ispod, a **jedino puno narandžasto dugme** je prijava na smjenu (`AppTheme.heroAction`). Odjava je tiha (prozirno svijetla), da se ne pritisne slučajno. Dok se čeka lokacija, dugme zadrži boju i pokaže obrtač.
 - Lokacija van smjene je normalno stanje, pa je jedna siva linija; kartica se pokazuje samo kad nešto treba uraditi (dozvola, isključena usluga).
 - Prazno stanje (npr. nema zadataka) ima ikonu i okvir, ne goli tekst.
+- **Brze radnje** (`QuickActionTile`): četiri najčešća posla (nedostatak, dokumenti, raspored, odsustva) kao pločice u redu, s blagim utiskivanjem pri pritisku. **Dugme koje prati**: dok kartica smjene nije vidljiva, a radnik nije na smjeni, "Prijavi se na smjenu" stoji iznad donje trake (prati se stvarni položaj kartice, ne unaprijed zadan pomak).
 - Prije objave: release izdanje (ne debug) na emulatoru, jer debug izdanje na ovom računaru javlja "ne odgovara" dok traži lokaciju.
 
 ## 5. Izgled: svijetao i taman
@@ -56,7 +57,8 @@ Pregled je rađen alatima iz paketa `emilkowalski/skills` (`emil-design-eng`, `m
 - Izbor poslovne jedinice na telefonu je dijalog koji se diže odozdo (kao ostali dijalozi), ne padajući meni.
 - **Pokazatelji (`StatTile`)** imaju istu neutralnu pozadinu; boja je samo u maloj ikoni, nule su prigušene. Sporedna dugmad na nadzornoj ploči ("Dodaj widget", prvi korak u praznom widgetu) su neutralna s tankim okvirom.
 - Widget čiji bi grafikon bio prazan (prihod, vozila, alati) kaže šta nedostaje i nudi prvi korak.
-- **Računar:** lijevi meni, zaglavlje (uključujući liniju ispod naziva firme) i naslovna se ne mijenjaju bez izričitog odobrenja.
+- **Meni (odobreno 17.10.):** natpis ispod svake ikone na lijevoj traci; Dokumenti i Zahtjevi za dokumente su vlastita grupa; Finansije imaju tri naslova (Svaki dan, Troškovi po vrsti, Obračun i postavke). Raspored ikona nije mijenjan.
+- **Računar, i dalje bez izričitog odobrenja:** zaglavlje (uključujući liniju ispod naziva firme) i naslovna.
 
 ## 7. Šta još nije urađeno (odluke)
 

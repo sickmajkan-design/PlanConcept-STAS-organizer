@@ -132,6 +132,47 @@ const PHONE_BAR_ACTION_SX = {
 } as const;
 
 const RAIL_WIDTH = 72;
+
+/** The one word under each icon on the rail, so nobody has to guess what a symbol stands for. */
+const RAIL_GROUP_LABEL: Record<string, MessageKey> = {
+  planning: 'nav.short.planning',
+  people: 'nav.short.people',
+  projects: 'nav.short.projects',
+  equipment: 'nav.short.equipment',
+  book: 'nav.short.book',
+  costs: 'nav.short.costs',
+  documents: 'nav.short.documents',
+  admin: 'nav.short.admin',
+  superadmin: 'nav.short.superadmin',
+};
+
+const RAIL_ITEM_LABEL: Record<string, MessageKey> = {
+  [paths.home]: 'nav.short.home',
+  [paths.map]: 'nav.short.map',
+  [paths.bulletin]: 'nav.short.bulletin',
+  [paths.help]: 'nav.short.help',
+};
+
+/** The icon's caption: small, one line, never wider than the button. */
+function RailCaption({ children }: { children: ReactNode }) {
+  return (
+    <Typography
+      component="span"
+      sx={{
+        fontSize: 10,
+        lineHeight: 1.15,
+        fontWeight: 500,
+        maxWidth: 56,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        color: 'inherit',
+      }}
+    >
+      {children}
+    </Typography>
+  );
+}
 /** The panel that slides out of the rail with the pages of one group. */
 const PANEL_WIDTH = 320;
 /** Top bar height from `md` up, where the company's logo is shown in its middle. */
@@ -562,8 +603,11 @@ export function AppLayout({ children }: { children: ReactNode }) {
               color={groupContainsActivePath(entry) ? 'primary' : 'default'}
               sx={{
                 position: 'relative',
-                width: 48,
-                height: 48,
+                width: 60,
+                minHeight: 46,
+                py: 0.5,
+                flexDirection: 'column',
+                gap: 0.25,
                 borderRadius: 2,
                 // Three looks, so the rail always says where you are: filled for the group the open
                 // page belongs to, a soft tint for the group whose panel is open, and for the
@@ -590,7 +634,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                   '&::before': {
                     content: '""',
                     position: 'absolute',
-                    left: -10,
+                    left: -4,
                     top: 12,
                     bottom: 12,
                     width: 4,
@@ -608,6 +652,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
               >
                 {entry.icon}
               </Badge>
+              <RailCaption>{RAIL_GROUP_LABEL[entry.key] ? t(RAIL_GROUP_LABEL[entry.key]!) : entry.label}</RailCaption>
             </IconButton>
           ) : (
             <Tooltip key={entry.path} title={entry.label} placement="right">
@@ -617,11 +662,18 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 color={isItemSelected(entry) ? 'primary' : 'default'}
                 sx={{
                   bgcolor: isItemSelected(entry) ? 'action.selected' : 'transparent',
+                  width: 60,
+                  minHeight: 46,
+                  py: 0.5,
+                  flexDirection: 'column',
+                  gap: 0.25,
+                  borderRadius: 2,
                 }}
               >
                 <Badge badgeContent={badgeCounts[entry.path] ?? 0} color="error" max={99} overlap="circular">
                   {entry.icon}
                 </Badge>
+                <RailCaption>{RAIL_ITEM_LABEL[entry.path] ? t(RAIL_ITEM_LABEL[entry.path]!) : entry.label}</RailCaption>
               </IconButton>
             </Tooltip>
           ),

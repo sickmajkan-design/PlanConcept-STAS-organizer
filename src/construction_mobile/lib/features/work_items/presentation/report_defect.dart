@@ -12,6 +12,7 @@ import '../../../core/l10n/app_locales.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/outbox/outbox_queue.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/quick_action_tile.dart';
 import '../../outbox/outbox_controller.dart';
 import '../../notifications/presentation/acknowledgment_gate.dart';
 import '../../time_entries/data/models/clock_in_site.dart';
@@ -30,8 +31,9 @@ class ReportDefectButton extends ConsumerStatefulWidget {
     this.projectId,
     this.asTile = false,
     this.prominent = false,
+    this.quick = false,
   }) : assert(
-          projectId != null || asTile || prominent,
+          projectId != null || asTile || prominent || quick,
           'Name the site, or let the person choose',
         );
 
@@ -42,6 +44,9 @@ class ReportDefectButton extends ConsumerStatefulWidget {
 
   /// A row for a menu rather than a text button.
   final bool asTile;
+
+  /// A square tile among the quick actions of the home screen. Chooses the site like [asTile] when none is named.
+  final bool quick;
 
   /// A full-width outlined button, for where this is the main field action.
   /// Chooses the site like [asTile] when none is named.
@@ -63,6 +68,14 @@ class _ReportDefectButtonState extends ConsumerState<ReportDefectButton> {
         trailing: const Icon(Icons.chevron_right),
         enabled: !_busy,
         onTap: _open,
+      );
+    }
+
+    if (widget.quick) {
+      return QuickActionTile(
+        icon: Icons.photo_camera_outlined,
+        label: context.l10n.workItemsReportDefect,
+        onTap: _busy ? null : _open,
       );
     }
 

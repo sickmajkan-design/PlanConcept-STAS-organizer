@@ -23,7 +23,7 @@ Dokument je datoteka (PDF, fotografija, Word, Excel, tekst, CSV) koja pripada **
 Dokumente vidite na dva mjesta:
 
 - na kartici **Dokumenti** samog zapisa (sve što pripada tom zaposlenom, vozilu…);
-- na stranici **Dokumenti** (izbornik Administracija): dokumenti cijele firme, zadano oni kojima uskoro ističe rok.
+- na stranici **Dokumenti** (lijeva traka, grupa Dokumenti): dokumenti cijele firme, zadano oni kojima uskoro ističe rok.
 
 U zaglavlju zapisa stoji broj dokumenata (**Dokumenti: 3 · 1 isteklo**); istekli su označeni crveno.
 
@@ -86,7 +86,7 @@ Dobili ste skenirani ugovor i skeniranu vizu za radnika Marka Horvata.
 
 ## 3. Pronalaženje, pregled i preuzimanje
 
-Stranica **Dokumenti** (Administracija):
+Stranica **Dokumenti** (lijeva traka, grupa Dokumenti):
 
 - **Period** (zadano *Sljedećih 30 dana*, ili 7, 90, 180, *Sve*): dokumenti kojima rok ističe u tom periodu.
 - **Prikaži i dokumente bez roka isteka**: dodaje fotografije i dokumente koji ne ističu.

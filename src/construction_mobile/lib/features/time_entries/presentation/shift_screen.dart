@@ -21,6 +21,49 @@ import 'my_time_entries_controller.dart';
 import 'shift_controller.dart';
 
 /// Clock in, clock out, and the entries this employee has recorded.
+/// Starts the shift: asks which site only when several are posted today, then clocks in. The one action of the
+/// day, so it can be started from the card and from the button that follows the worker down the home screen.
+Future<void> startShift(BuildContext context, WidgetRef ref) async {
+  if (blockedByPendingAcknowledgment(context, ref)) return;
+
+  // A worker posted to several sites today says which one; with one or none the server
+  // places the shift itself, so nothing is asked.
+  final sites = await _sitesToChooseFrom(ref);
+
+  String? projectId;
+
+  if (sites.length > 1) {
+    if (!context.mounted) return;
+
+    // Not dismissible, for the reason the break sheet is not: a stray tap must not read as a
+    // clock-in that silently did nothing. Cancelling is the explicit button.
+    projectId = await showModalBottomSheet<String>(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      builder: (_) => SitePickerSheet(sites: sites),
+    );
+
+    if (projectId == null) return;
+  }
+
+  // A firm tap under the thumb: the one action of the day, said once the decision is made, so a worker in
+  // gloves knows it registered without looking.
+  unawaited(HapticFeedback.mediumImpact());
+  await ref.read(shiftControllerProvider.notifier).clockIn(projectId: projectId);
+  ref.read(myTimeEntriesControllerProvider.notifier).refresh();
+}
+
+/// Never throws and never holds the shift back: with no signal the answer is "none", and the
+/// shift is recorded and placed by the server when it arrives.
+Future<List<ClockInSite>> _sitesToChooseFrom(WidgetRef ref) async {
+  try {
+    return await ref.read(timeEntryRepositoryProvider).fetchClockInSites();
+  } catch (_) {
+    return const [];
+  }
+}
+
 class ShiftScreen extends ConsumerWidget {
   const ShiftScreen({super.key});
 
@@ -369,46 +412,7 @@ class _ShiftCardState extends ConsumerState<ShiftCard> {
     return l10n.shiftElapsed(elapsed.inHours, elapsed.inMinutes % 60);
   }
 
-  Future<void> _clockIn() async {
-    if (blockedByPendingAcknowledgment(context, ref)) return;
-
-    // A worker posted to several sites today says which one; with one or none the server
-    // places the shift itself, so nothing is asked.
-    final sites = await _sitesToChooseFrom();
-
-    String? projectId;
-
-    if (sites.length > 1) {
-      if (!mounted) return;
-
-      // Not dismissible, for the reason the break sheet is not: a stray tap must not read as a
-      // clock-in that silently did nothing. Cancelling is the explicit button.
-      projectId = await showModalBottomSheet<String>(
-        context: context,
-        isDismissible: false,
-        enableDrag: false,
-        builder: (_) => SitePickerSheet(sites: sites),
-      );
-
-      if (projectId == null) return;
-    }
-
-    // A firm tap under the thumb: the one action of the day, said once the decision is made, so a worker in
-    // gloves knows it registered without looking.
-    unawaited(HapticFeedback.mediumImpact());
-    await ref.read(shiftControllerProvider.notifier).clockIn(projectId: projectId);
-    ref.read(myTimeEntriesControllerProvider.notifier).refresh();
-  }
-
-  /// Never throws and never holds the shift back: with no signal the answer is "none", and the
-  /// shift is recorded and placed by the server when it arrives.
-  Future<List<ClockInSite>> _sitesToChooseFrom() async {
-    try {
-      return await ref.read(timeEntryRepositoryProvider).fetchClockInSites();
-    } catch (_) {
-      return const [];
-    }
-  }
+  Future<void> _clockIn() => startShift(context, ref);
 
   Future<void> _clockOut(BuildContext context) async {
     if (blockedByPendingAcknowledgment(context, ref)) return;
