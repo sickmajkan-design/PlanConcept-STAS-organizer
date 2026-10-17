@@ -134,6 +134,11 @@ export default defineConfig({
         Seed__SuperAdmin__Email: 'e2e@construction.local',
         Seed__SuperAdmin__Password: 'E2ePassword123!',
         JwtSettings__SecretKey: 'end-to-end-signing-key-at-least-32-characters',
+        // One signed-in account and one address send every request of the whole suite, in bursts. The limits
+        // are covered by the integration tests; here they only turned a quick run into a flaky one (429s).
+        Auth__RateLimit__UploadPermitLimit: '10000',
+        Auth__RateLimit__AuthenticatedPermitLimit: '100000',
+        Auth__RateLimit__AnonymousPermitLimit: '100000',
         Cors__AllowedOrigins__0: `http://localhost:${WEB_PORT}`,
       },
     },
