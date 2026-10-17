@@ -150,6 +150,10 @@ services:
       # being answered with a size error.
       CLAMD_CONF_StreamMaxLength: 30M
       CLAMD_CONF_MaxFileSize: 30M
+      # Reloading the signature database after each update must not hold two copies of it at once: with the
+      # memory limit below that got the scanner killed (2026-10-16), and every upload was refused until a restart.
+      # Scans wait a few seconds during the reload instead.
+      CLAMD_CONF_ConcurrentDatabaseReload: "no"
     mem_limit: 1800m
     volumes:
       - clamav-data:/var/lib/clamav
