@@ -896,7 +896,7 @@ export const sr: Record<MessageKey, Message> = {
 
   'releaseNotes.badges1017.title': "Brojevi uz stavke menija",
   'releaseNotes.badges1017.groups': "Broj na ikoni grupe na traci je zbir brojeva njenih stavki, pa se više ne desi da stavka ima broj, a grupa nema (Dokumenti su nakon premještanja ostali bez broja).",
-  'releaseNotes.badges1017.items': "Brojevi su sada uz sve stavke koje imaju šta da čeka: raspored (nepotvrđena raspoređivanja), narudžbe, refundacije, zaposleni (isticanje uvjerenja), vozila (isticanje datuma), Ko nam duguje, provjera podataka i zahtjevi za dokumente (odgovor čeka provjeru ili rok istekao), uz ranije postojeće.",
+  'releaseNotes.badges1017.items': "Brojevi su sada uz sve stavke koje imaju šta da čeka: raspored (nepotvrđena raspoređivanja), narudžbe, refundacije, zaposleni (isticanje uvjerenja), vozila (isticanje datuma), Ko nam duguje, provjera podataka, zahtjevi za dokumente (odgovor čeka provjeru ili rok istekao), troškovi vozila (i izvodi koji se ne slažu) i Oglasna ploča (oglasi koje još niste otvorili), uz ranije postojeće.",
   'releaseNotes.notif1017.title': "Obavještenja do kraja, Evidencija u Finansijama",
   'releaseNotes.notif1017.list': "Zvono u zaglavlju sada pokazuje sva obavještenja: kad dođete do dna liste, učitava se sljedećih petnaest, sve do posljednjeg, koje kaže da je posljednje (ranije je stajalo samo osam najnovijih).",
   'releaseNotes.notif1017.read': "Obavještenje koje nema stranicu na koju vodi (poruka, najava, promjena jedinice) otvara se u cijelosti, da se pročita do kraja, umjesto da bude odsječeno na dva reda i bez odgovora na klik.",

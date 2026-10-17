@@ -10,6 +10,8 @@ export function useBulletinPostsQuery() {
   return useQuery({
     queryKey: bulletinKeys.list(undefined),
     queryFn: () => bulletinApi.list(),
+    // The menu counts the notices not yet opened, so a new one should show up without a reload.
+    refetchInterval: 60_000,
   });
 }
 

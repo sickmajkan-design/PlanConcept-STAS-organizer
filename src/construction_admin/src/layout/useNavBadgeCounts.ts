@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { attentionApi, type AttentionGroup } from '../api/attention';
 import type { User } from '../api/types';
+import { useBulletinPostsQuery } from '../features/bulletin/useBulletin';
 import { useDocumentRequestsQuery } from '../features/documentRequests/useDocumentRequests';
 import { useVehicleExpensesQuery } from '../features/costs/useCosts';
 import { useMaterialsQuery } from '../features/materials/useMaterials';
@@ -30,6 +31,7 @@ const COUNT_ONLY_PAGE = { pageNumber: 1, pageSize: 1 } as const;
  * a group's total is computed from its items (`withGroupTotals`), so it cannot drift from them.
  */
 export const BADGED_PATHS: readonly string[] = [
+  paths.bulletin,
   paths.schedule,
   paths.absences,
   paths.timeEntries,
@@ -109,6 +111,11 @@ export function useNavBadgeCounts(user: User | null | undefined): Record<string,
     ? (submittedRequestsQuery.data?.totalCount ?? 0) + (overdueRequestsQuery.data?.totalCount ?? 0)
     : 0;
 
+  // Notices this person has not opened yet. Opening the board is what marks them seen, so the number goes
+  // down by itself.
+  const bulletinQuery = useBulletinPostsQuery();
+  const unseenNoticesCount = Array.isArray(bulletinQuery.data) ? bulletinQuery.data.filter((post) => !post.viewed).length : 0;
+
   const documentsQuery = useExpiringDocumentsQuery(
     DOCUMENT_EXPIRY_WINDOW_DAYS,
     false,
@@ -169,6 +176,7 @@ export function useNavBadgeCounts(user: User | null | undefined): Record<string,
     : 0;
 
   return {
+    [paths.bulletin]: unseenNoticesCount,
     [paths.schedule]: countOf(attention, 'unconfirmedPostings'),
     [paths.absences]: absencesCount,
     [paths.timeEntries]: timeEntriesCount,
@@ -179,7 +187,7 @@ export function useNavBadgeCounts(user: User | null | undefined): Record<string,
     [paths.vehicles]: countOf(attention, 'vehicleDates'),
     [paths.materials]: lowStockCount,
     // The hub of the cost tabs carries the number of the tab that has one; the tab itself is left out of group totals.
-    [paths.costRecords]: vehicleExpensesCount,
+    [paths.costRecords]: vehicleExpensesCount + countOf(attention, 'dkvRows'),
     [paths.vehicleExpenses]: vehicleExpensesCount,
     [paths.refunds]: countOf(attention, 'refunds'),
     [paths.bookReceivables]: countOf(attention, 'lateInvoices', 'lateCosts'),
