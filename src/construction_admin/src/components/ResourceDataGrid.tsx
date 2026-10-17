@@ -128,8 +128,9 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
     };
 
     const onScroll = () => measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(frame);
+    // Absent in a test browser (jsdom); the soft edge is only a hint, so it simply is not drawn there.
+    const observer = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+    observer?.observe(frame);
     // The grid builds its scroller after the first paint, and the rows (so the width) after the data.
     const timer = window.setInterval(() => {
       measure();
@@ -140,7 +141,7 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
     }, 400);
 
     return () => {
-      observer.disconnect();
+      observer?.disconnect();
       window.clearInterval(timer);
       scroller?.removeEventListener('scroll', onScroll);
     };
