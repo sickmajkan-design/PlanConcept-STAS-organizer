@@ -43,7 +43,7 @@ export function navLink(page: Page, name: string): Locator {
   // element, hence the second selector): the home page also carries links with the same words (a
   // chip on a widget, say), so a bare role query would find two.
   return page
-    .locator('nav, .MuiDrawer-root')
+    .locator('nav, .MuiDrawer-root, .MuiDialog-root')
     .getByRole('link', { name, exact: true })
     .filter({ visible: true });
 }

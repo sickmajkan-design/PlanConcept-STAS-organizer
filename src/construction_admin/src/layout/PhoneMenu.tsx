@@ -328,6 +328,7 @@ export function PhoneMenu({
                 {groups.map((g) => (
                   <ButtonBase
                     key={g.key}
+                    aria-label={g.label}
                     onClick={() => setGroupKey(g.key)}
                     sx={(theme) => ({
                       position: 'relative',
