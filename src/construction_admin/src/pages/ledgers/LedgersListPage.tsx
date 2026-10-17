@@ -26,7 +26,7 @@ import {
 } from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
 import type { LedgerListQuery } from '../../api/ledgers';
@@ -62,6 +62,18 @@ export function LedgersListPage() {
   const { data, isLoading, isError, error, refetch } = useLedgersQuery(query);
   const remove = useDeleteWithConfirm<LedgerSummary>(useDeleteLedger());
   const [creating, setCreating] = useState(false);
+
+  // "New month" from another page (the empty month in the settlement) lands here with the dialog already open.
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get('new') !== '1') return;
+    setCreating(true);
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.delete('new');
+      return next;
+    }, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   const columns: GridColDef<LedgerSummary>[] = useMemo(
     () => [

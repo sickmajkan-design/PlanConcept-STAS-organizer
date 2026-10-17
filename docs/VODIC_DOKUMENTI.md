@@ -39,7 +39,7 @@ U zaglavlju zapisa stoji broj dokumenata (**Dokumenti: 3 · 1 isteklo**); istekl
 
 4. **Pri pravljenju zapisa.** Obrazac za novog zaposlenog, vozilo, alat, gradilište i smještaj ima odjeljak **Dokumenti (nije obavezno)**: prevucite ili izaberite datoteke, svakoj po želji vrstu. Spremaju se uz zapis **čim se napravi**, pa ne treba prvo sačuvati, otvoriti zapis i vraćati se na karticu. Ako neka datoteka ne prođe (npr. prevelika), zapis ostaje, a na njegovoj kartici **Dokumenti** piše koje treba dodati.
 
-U brzom unosu Evidencije dugme **Priloži dokument** vezuje račun ili fotografiju uz red koji ukucate (fotografija dobija vrstu Fotografija, ostalo Ostalo).
+U brzom unosu Evidencije dugme **Dokument** vezuje račun ili fotografiju uz red koji ukucate (fotografija dobija vrstu Fotografija, ostalo Ostalo).
 
 Na telefonu nema povlačenja: umjesto okvira stoje dugmad **Izaberi** i **Slikaj**.
 

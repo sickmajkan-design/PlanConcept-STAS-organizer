@@ -1,4 +1,5 @@
 import {
+  AddOutlined,
   ChevronLeftOutlined,
   ChevronRightOutlined,
   FileDownloadOutlined,
@@ -26,7 +27,7 @@ import {
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 import { toApiError } from '../../api/apiError';
 import { bookApi, type SettlementSite } from '../../api/book';
@@ -36,6 +37,8 @@ import type { LedgerCheck } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ReasonDialog } from '../../components/ReasonDialog';
+import { useAuth } from '../../auth/useAuth';
+import { isSuperAdmin } from '../../auth/authHelpers';
 import { useBranchFilter } from '../../features/branches/BranchContext';
 import { HowItWorks, HowLine } from '../../features/book/HowItWorks';
 import type { MessageKey } from '../../i18n/en';
@@ -93,6 +96,8 @@ export function BookSettlementPage() {
   const { t, locale } = useI18n();
   const queryClient = useQueryClient();
   const { branchId } = useBranchFilter();
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
@@ -201,7 +206,6 @@ export function BookSettlementPage() {
             <Chip
               size="small"
               variant="outlined"
-              color={locked ? 'default' : 'warning'}
               icon={locked ? <LockOutlined /> : undefined}
               label={locked ? t('book.settlement.locked') : t('book.settlement.open')}
             />
@@ -238,8 +242,27 @@ export function BookSettlementPage() {
         <HowLine>{t('book.settlement.how5')}</HowLine>
       </HowItWorks>
 
-      {data && !data.hasSettlement && <Alert severity="info">{t('book.settlement.none')}</Alert>}
+      {data && !data.hasSettlement && (
+        <Paper
+          variant="outlined"
+          sx={{ p: 2, display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap', bgcolor: 'action.hover' }}
+        >
+          <Typography sx={{ fontWeight: 600, flex: '1 1 220px' }}>
+            {t('book.settlement.noneTitle', { month: monthLabel })}
+          </Typography>
+          <Button variant="contained" startIcon={<AddOutlined />} onClick={() => navigate(`${paths.ledgers}?new=1`)}>
+            {t('book.settlement.newMonth')}
+          </Button>
+          {isSuperAdmin(user) && (
+            <Button component={RouterLink} to={paths.bookImport}>
+              {t('book.settlement.importExcel')}
+            </Button>
+          )}
+        </Paper>
+      )}
 
+      {(!data || data.hasSettlement) && (
+        <>
       <Paper variant="outlined" sx={{ p: 2 }}>
         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
           {t('book.settlement.bySite')}
@@ -496,6 +519,9 @@ export function BookSettlementPage() {
           ))}
         </Stack>
       </Paper>
+
+        </>
+      )}
 
       <ConfirmDialog
         open={confirmingLock}

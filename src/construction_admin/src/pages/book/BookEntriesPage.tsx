@@ -557,11 +557,11 @@ export function BookEntriesPage() {
           </TextField>
           <TextField
             size="small"
-            label={t('book.col.counterparty')}
+            label={t('book.entries.quick.who')}
             placeholder={t('book.entries.quick.counterpartyPlaceholder')}
             value={qCounterparty}
             onChange={(event) => setQCounterparty(event.target.value)}
-            sx={{ minWidth: 170 }}
+            sx={{ minWidth: 220 }}
           />
           <TextField
             size="small"
@@ -574,7 +574,7 @@ export function BookEntriesPage() {
             sx={{ maxWidth: 150 }}
           />
           {qKind !== 'Payout' && (
-            <Button size="small" component="label" startIcon={<AttachFileOutlined />}>
+            <Button size="small" component="label" startIcon={<AttachFileOutlined />} sx={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
               {t('book.entries.quick.attach')}
               <input
                 hidden

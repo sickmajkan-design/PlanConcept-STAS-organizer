@@ -18,6 +18,7 @@ Pregled je rađen alatima iz paketa `emilkowalski/skills` (`emil-design-eng`, `m
 
 - Prazna lista **uvijek kaže šta dalje**: dugme koje vodi na sljedeći korak ("Prikaži sve dokumente", "Otpremi"), ne samo "ništa nema".
 - **Kartica za podešavanje** na početnoj stranici se sklapa u jednu liniju čim je urađen bar jedan korak; broj koraka je u naslovu, a izbor se pamti.
+- **Stranica bez podataka za period** (Obračun mjeseca bez obračuna) ne prikazuje prazne tabele s nulama: jedna traka kaže šta nedostaje, uz jedan glavni korak (Novi mjesec) i jedan sporedni (Uvoz iz Excela, samo Super adminu). Oznaka stanja koja nije dugme (Mjesec otvoren) je neutralna, a boja upozorenja ostaje za zaključan mjesec.
 - Naslov stranice govori šta stranica **jeste** ("Dokumenti"), ne jedan njen filter.
 
 ## 3. Telefon (panel)
