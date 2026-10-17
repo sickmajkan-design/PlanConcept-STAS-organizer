@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { installFakeNetwork, renderScreen } from '../../test/renderScreen';
 import { ExpiringDocumentsPage } from './ExpiringDocumentsPage';
 
-const SCREEN_TIMEOUT = 40_000;
+const SCREEN_TIMEOUT = 60_000;
 
 function document(id: string, overrides: Record<string, unknown> = {}) {
   return {

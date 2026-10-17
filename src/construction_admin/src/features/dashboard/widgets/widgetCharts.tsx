@@ -117,7 +117,7 @@ export function Donut({ parts, center }: { parts: DonutPart[]; center?: ReactNod
           </Stack>
         )}
       </Box>
-      <Box sx={{ display: 'grid', gap: 0.9, flex: 1, minWidth: 180 }}>
+      <Box sx={{ display: 'grid', gap: 0.9, flex: '1 1 160px', minWidth: 0 }}>
         {parts.map((part) => (
           <Stack key={part.label} direction="row" sx={{ alignItems: 'center', gap: 1 }}>
             <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: part.color, flexShrink: 0 }} />

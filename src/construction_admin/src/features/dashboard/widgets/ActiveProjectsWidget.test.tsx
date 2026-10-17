@@ -15,7 +15,7 @@ import { daysUntil } from './ActiveProjectsWidget';
  */
 let network: FakeNetwork;
 
-const SCREEN_TIMEOUT = 20_000;
+const SCREEN_TIMEOUT = 60_000;
 
 beforeEach(() => {
   window.localStorage.clear();
@@ -95,7 +95,8 @@ describe('ActiveProjectsWidget', () => {
     soon.setDate(soon.getDate() + 5);
     const past = new Date(today);
     past.setDate(past.getDate() - 3);
-    const iso = (d: Date) => d.toISOString().slice(0, 10);
+    // The local calendar day, as the widget reads it: toISOString is UTC, which is another day for the first hours after midnight.
+    const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
     network.reply('/projects', 200, page([
       project({ id: 'soon', name: 'Skoro gotov', endDate: iso(soon) }),

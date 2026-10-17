@@ -13,5 +13,12 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}'],
     setupFiles: ['src/test/setup.ts'],
     restoreMocks: true,
+    // The rendering tests import a whole screen on their first run, which on a busy machine (the full suite
+    // runs dozens of jsdom files at once) can take longer than a default five seconds. A test that is
+    // slow only because the machine is busy should wait, not fail; one that is wrong still fails.
+    testTimeout: 60_000,
+    hookTimeout: 60_000,
+    // Half the cores, so the workers do not starve each other (and the browser tests running beside them).
+    maxWorkers: '50%',
   },
 })

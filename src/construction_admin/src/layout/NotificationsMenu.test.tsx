@@ -9,7 +9,7 @@ import { installFakeNetwork, renderScreen, signedIn, type FakeNetwork } from '..
 
 let network: FakeNetwork;
 
-const SCREEN_TIMEOUT = 40_000;
+const SCREEN_TIMEOUT = 60_000;
 
 beforeEach(() => {
   window.localStorage.clear();

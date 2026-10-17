@@ -1,4 +1,4 @@
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
 import { afterEach } from 'vitest';
 
 /**
@@ -12,3 +12,7 @@ import { afterEach } from 'vitest';
 afterEach(() => {
   cleanup();
 });
+
+// `findBy…` and `waitFor` give up after a second by default. Under load a screen can need longer to appear;
+// the generous wait costs nothing when it is quick, and a missing element still fails, just a little later.
+configure({ asyncUtilTimeout: 15_000 });

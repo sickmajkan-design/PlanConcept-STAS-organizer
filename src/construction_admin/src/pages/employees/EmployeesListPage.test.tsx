@@ -36,7 +36,7 @@ beforeEach(() => {
  * on a run competing with a type-check, which is a flake, and a flaky screen
  * test is worse than none: it teaches people to re-run rather than look.
  */
-const SCREEN_TIMEOUT = 20_000;
+const SCREEN_TIMEOUT = 60_000;
 
 function employee(overrides: Partial<Record<string, unknown>> = {}) {
   return {

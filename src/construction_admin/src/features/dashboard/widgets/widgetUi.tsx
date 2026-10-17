@@ -41,6 +41,8 @@ export function BigNumber({ value, caption, tone = 'neutral', size = 'lg' }: { v
           // From the width the widget was given, not the screen's: a wide card gets a bigger figure.
           fontSize: size === 'lg' ? 'clamp(1.9rem, 9cqw, 3.2rem)' : 'clamp(1.4rem, 6cqw, 2rem)',
           color: tone === 'neutral' ? 'text.primary' : toneColor(theme, tone),
+          overflowWrap: 'anywhere',
+          minWidth: 0,
         })}
       >
         {value}
@@ -66,14 +68,17 @@ export function Pill({ children, tone = 'neutral', sx }: { children: ReactNode; 
           alignItems: 'center',
           // A pill is as wide as its words, also inside a column that would stretch it.
           alignSelf: 'flex-start',
-          flexShrink: 0,
-          whiteSpace: 'nowrap',
+          // It may take two lines when the room is narrow, but it never runs past the edge of what holds it.
+          minWidth: 0,
+          maxWidth: '100%',
+          overflowWrap: 'anywhere',
+          textAlign: 'left',
           borderRadius: 999,
           px: 1.1,
           py: 0.15,
           fontSize: '0.78rem',
           fontWeight: 600,
-          lineHeight: 1.5,
+          lineHeight: 1.35,
           color: tone === 'neutral' ? theme.palette.text.secondary : toneColor(theme, tone),
           bgcolor:
             tone === 'neutral'
@@ -173,7 +178,9 @@ export function InsetRow({ tone, primary, secondary, badge, badgeTone, to, onCli
       {tone && !leading && (
         <Box component="span" sx={(theme) => ({ width: 9, height: 9, borderRadius: '50%', flexShrink: 0, bgcolor: toneColor(theme, tone) })} />
       )}
-      <Box component="span" sx={{ flex: 1, minWidth: 0, display: 'grid', textAlign: 'left' }}>
+      {/* The words keep a readable width of their own; whatever else is on the row (a state, a number, buttons)
+          goes under them when the row is too narrow for both, instead of squeezing them into a column. */}
+      <Box component="span" sx={{ flex: '1 1 140px', minWidth: 0, display: 'grid', textAlign: 'left' }}>
         <Typography component="span" variant="body2" sx={{ fontWeight: 500, lineHeight: 1.35, overflowWrap: 'anywhere' }}>
           {primary}
         </Typography>
@@ -191,8 +198,10 @@ export function InsetRow({ tone, primary, secondary, badge, badgeTone, to, onCli
 
   const sx: SxProps<Theme> = (theme) => ({
     display: 'flex',
+    flexWrap: 'wrap',
     alignItems: 'center',
-    gap: 1.5,
+    columnGap: 1.5,
+    rowGap: 0.75,
     width: '100%',
     px: 1.75,
     py: 1.4,
@@ -260,7 +269,7 @@ export function SoftBar({ value, tone = 'accent', marker, label }: { value: numb
 export function BarRow({ label, value, percent, tone = 'accent', marker }: { label: ReactNode; value: ReactNode; percent: number; tone?: Tone; marker?: number }) {
   return (
     <Box sx={{ display: 'grid', gap: 0.75 }}>
-      <Stack direction="row" sx={{ justifyContent: 'space-between', gap: 1.5, alignItems: 'baseline' }}>
+      <Stack direction="row" sx={{ justifyContent: 'space-between', columnGap: 1.5, rowGap: 0.25, alignItems: 'baseline', flexWrap: 'wrap' }}>
         <Typography variant="body2" sx={{ fontWeight: 500, minWidth: 0, overflowWrap: 'anywhere' }}>
           {label}
         </Typography>

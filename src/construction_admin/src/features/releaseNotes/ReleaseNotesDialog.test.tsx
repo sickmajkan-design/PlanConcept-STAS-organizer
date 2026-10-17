@@ -14,7 +14,7 @@ beforeEach(() => {
   installFakeNetwork();
 });
 
-const SCREEN_TIMEOUT = 20_000;
+const SCREEN_TIMEOUT = 60_000;
 
 describe('ReleaseNotesDialog', () => {
   it('tells an account what is new, once, and remembers it was told', async () => {

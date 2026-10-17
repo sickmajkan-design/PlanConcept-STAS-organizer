@@ -278,11 +278,10 @@ export function DashboardGrid() {
                 if (!entry) return null;
                 const Widget = entry.component;
                 return (
-                  // A definite height, not minHeight: the card is height:100%, and
-                  // a percentage of a box whose height comes from its content
-                  // never resolves, so charts kept re-measuring against a card
-                  // that was itself sized by the charts.
-                  <Box key={widget.id} sx={{ height: Math.max(320, widget.h * 28) }}>
+                  // The height of its own content, not the grid height saved for a wide screen: that one left
+                  // a card half empty on a phone. The few charts that measure their box (they have a minimum
+                  // height of their own, so they never measure a box their own size decides) keep a stable size.
+                  <Box key={widget.id} sx={{ minHeight: 0 }}>
                     <Widget
                       instanceId={widget.id}
                       settings={widget.settings}

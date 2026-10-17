@@ -69,7 +69,7 @@ export function WidgetShell({ title, subtitle, isLoading, error, onRemove, onExp
       })}
     >
       <Stack direction="row" sx={{ alignItems: 'baseline', gap: 1, px: 2.5, pt: 2.25, pb: 1.25, flexShrink: 0, minHeight: 44 }}>
-        <Typography component="h3" sx={{ fontSize: '0.95rem', fontWeight: 600, letterSpacing: '0.005em', minWidth: 0 }} noWrap>
+        <Typography component="h3" title={title} sx={{ fontSize: '0.95rem', fontWeight: 600, letterSpacing: '0.005em', minWidth: 0 }} noWrap>
           {title}
         </Typography>
         {subtitle && (
@@ -126,6 +126,10 @@ export function WidgetShell({ title, subtitle, isLoading, error, onRemove, onExp
           display: 'flex',
           flexDirection: 'column',
           overflow: 'auto',
+          // Never a sideways scrollbar inside a card: whatever is wider than the card wraps or is cut by its own
+          // element, it does not push the card's content out.
+          overflowX: 'hidden',
+          minWidth: 0,
           px: 2.5,
           pb: 2.5,
           containerType: 'inline-size',

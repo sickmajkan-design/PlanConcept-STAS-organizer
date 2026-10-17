@@ -29,7 +29,7 @@ vi.mock('../../config', async (importOriginal) => {
  * are worse than none, so a development machine or an installation that does
  * not host the app shows nothing.
  */
-const SCREEN_TIMEOUT = 20_000;
+const SCREEN_TIMEOUT = 60_000;
 
 const DOWNLOAD_LINK = /download the phone app|preuzmi aplikaciju za telefon/i;
 

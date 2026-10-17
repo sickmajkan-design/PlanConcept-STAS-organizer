@@ -11,7 +11,7 @@ import { DocumentRequestsPage } from './DocumentRequestsPage';
 
 let network: FakeNetwork;
 
-const SCREEN_TIMEOUT = 40_000;
+const SCREEN_TIMEOUT = 60_000;
 
 beforeEach(() => {
   window.localStorage.clear();

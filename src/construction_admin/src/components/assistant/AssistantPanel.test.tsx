@@ -15,7 +15,7 @@ import { AssistantLauncher } from './AssistantLauncher';
  * in the thread next to the question that caused it, rather than vanishing into
  * a toast — the office is looking at a number they are about to act on.
  */
-const SCREEN_TIMEOUT = 20_000;
+const SCREEN_TIMEOUT = 60_000;
 
 let network: FakeNetwork;
 

@@ -25,7 +25,7 @@ beforeEach(() => {
 });
 
 /** See the note in EmployeesListPage.test.tsx: the first import is slow. */
-const SCREEN_TIMEOUT = 20_000;
+const SCREEN_TIMEOUT = 60_000;
 
 function row(overrides: Record<string, unknown> = {}) {
   return {

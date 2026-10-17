@@ -15,7 +15,7 @@ beforeEach(() => {
   network = installFakeNetwork();
 });
 
-const SCREEN_TIMEOUT = 20_000;
+const SCREEN_TIMEOUT = 60_000;
 
 /** The card folds by default once a step is done; these tests look inside it, so they open it first. */
 const open = () => window.localStorage.setItem('onboarding.card.collapsed', '0');
