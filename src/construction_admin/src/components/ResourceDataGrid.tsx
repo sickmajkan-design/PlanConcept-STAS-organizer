@@ -255,7 +255,8 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
       if (!scroller) return;
 
       const left = scroller.scrollLeft > 2;
-      const right = scroller.scrollLeft + scroller.clientWidth < scroller.scrollWidth - 2;
+      // A few pixels of overflow are the grid's own rounding, not content to scroll to; only a real margin counts.
+      const right = scroller.scrollLeft + scroller.clientWidth < scroller.scrollWidth - 12;
 
       setEdges((current) => (current.left === left && current.right === right ? current : { left, right }));
     };

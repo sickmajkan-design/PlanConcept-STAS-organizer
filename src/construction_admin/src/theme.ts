@@ -65,7 +65,8 @@ export function buildTheme(mode: 'light' | 'dark') {
   components: {
     MuiButton: {
       styleOverrides: {
-        root: { textTransform: 'none', fontWeight: 600, ...PRESS, [COARSE]: { minHeight: TOUCH_TARGET } },
+        // A button title is one line, always: a title that wraps looks broken. The room around it gives way instead.
+        root: { textTransform: 'none', fontWeight: 600, whiteSpace: 'nowrap', ...PRESS, [COARSE]: { minHeight: TOUCH_TARGET } },
       },
       // A second button on a screen is quiet: a thin neutral line, so the one filled button is the one that
       // reads as the main thing to do. Orange outlines on three buttons in a row made all three look equal.
