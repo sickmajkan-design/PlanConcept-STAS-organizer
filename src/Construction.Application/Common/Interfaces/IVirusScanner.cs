@@ -31,6 +31,12 @@ public interface IVirusScanner
     /// the caller can go on and store it.
     /// </summary>
     Task<VirusScanResult> ScanAsync(Stream content, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Whether the scanner answers right now, without scanning anything. True when scanning is off. Meant for
+    /// a warning, so it is cheap and may be a few seconds old.
+    /// </summary>
+    Task<bool> IsReachableAsync(CancellationToken cancellationToken = default);
 }
 
 public static class VirusScannerExtensions

@@ -849,6 +849,9 @@ export const en = {
   'releaseNotes.close': 'Got it',
 
 
+  'releaseNotes.scanner1017.title': "A warning when the virus check is not working",
+  'releaseNotes.scanner1017.warning': "If the virus check on documents stops answering, the dashboard (Needs attention, and on a phone the Today summary) says that sending documents is stopped. Until now it showed nowhere, and every upload was refused.",
+  'releaseNotes.scanner1017.probe': "For an uptime monitor there is /health/dependencies, which answers 503 when the virus check is not working while the rest of the platform is.",
   'releaseNotes.calmdesk1017.title': "A calmer dashboard",
   'releaseNotes.calmdesk1017.tiles': "The figures on the dashboard share one background; colour is only in the small icon, and zeros are muted.",
   'releaseNotes.calmdesk1017.buttons': "\"Add widget\" is a neutral button. Orange is kept for the main action on a screen.",
@@ -860,10 +863,6 @@ export const en = {
   'releaseNotes.calm1016.phone': "On a phone the header is cleaner: help and language are in your account menu, and the business unit's name shows in full. Home shows today's date, the figures sit two to a row, and their names wrap instead of being cut off.",
   'releaseNotes.calm1016.calm': "Cards on the dashboard are calmer: a thin grey line instead of the orange bar and glow, lighter headings. Orange is kept for what can be pressed. A chart with no data is replaced by a sentence.",
   'releaseNotes.calm1016.app': "App (1.1.27): the site picture runs to the top of the screen, signing in to a shift is the only orange button, the date is under the greeting, and location sharing off a shift is one line instead of a card.",
-  'releaseNotes.create1016.title': "A document already when a record is made",
-  'releaseNotes.create1016.forms': "On the form for a new employee, vehicle, tool, site or accommodation, add documents straight away (by dragging or choosing, each with its own type). They are filed with the record as soon as it is made, so nobody has to save first and come back to the Documents card. If a file does not go through, the record stays, and its card says which ones to add.",
-  'releaseNotes.create1016.book': "In the book's quick entry, the Attach a document button ties a receipt or a photo to the line you type; a photo becomes the type Photo, anything else Other.",
-  'releaseNotes.create1016.limit': "Sending files is limited per account (60 files a minute by default), so that a faulty program or a stolen account cannot fill the disk. Ordinary work is not affected: when the limit is reached the panel waits as long as the server asks and sends the rest by itself, with a Waiting note beside the file.",
   'releaseNotes.due1016.title': "Reminders for the deadline of a document request",
   'releaseNotes.due1016.person': "A request with a deadline now reminds the person in the app the day before and on the day. The reminder does not say what is asked for, since it is read on a lock screen.",
   'releaseNotes.due1016.office': "If the deadline passes with nothing sent, whoever asked for the document (or every administrator, if they are gone) gets one notice. A request waiting for your check, accepted or withdrawn is not reminded. When you move the deadline, the new one gets new reminders.",
@@ -883,6 +882,7 @@ export const en = {
   'attention.unconfirmedPostings': "Postings the worker has not confirmed",
   'attention.vehicleDates': "Vehicle dates coming up or passed",
   'attention.expiringDocuments': "Documents expiring",
+  'attention.virusScanner': "The virus check is not working: sending documents is stopped",
   'attention.dataQuality': "Records to tidy in the data check",
   'attention.lateInvoices': "Invoices past their due date",
   'attention.lateCosts': "Costs owed past their due date",

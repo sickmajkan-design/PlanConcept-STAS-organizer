@@ -40,8 +40,14 @@ public class ClamAvScanner : IVirusScanner
 {
     private const int ChunkSize = 64 * 1024;
 
+    /// <summary>How long a "yes" or "no" about reachability is reused, so a screen that asks every minute costs one ping.</summary>
+    private static readonly TimeSpan ReachabilityAge = TimeSpan.FromSeconds(15);
+
     private readonly AntivirusSettings _settings;
     private readonly ILogger<ClamAvScanner> _logger;
+    private readonly object _reachability = new();
+    private bool _reachable = true;
+    private DateTime _checkedAt = DateTime.MinValue;
 
     public ClamAvScanner(IOptions<AntivirusSettings> settings, ILogger<ClamAvScanner> logger)
     {
@@ -50,6 +56,54 @@ public class ClamAvScanner : IVirusScanner
     }
 
     public bool IsEnabled => _settings.Enabled;
+
+    /// <summary>
+    /// <c>PING</c> and <c>PONG</c>. A scanner that was killed leaves its container up, so "the container runs"
+    /// says nothing; only an answer does.
+    /// </summary>
+    public async Task<bool> IsReachableAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_settings.Enabled)
+        {
+            return true;
+        }
+
+        lock (_reachability)
+        {
+            if (DateTime.UtcNow - _checkedAt < ReachabilityAge)
+            {
+                return _reachable;
+            }
+        }
+
+        var reachable = false;
+
+        try
+        {
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            timeout.CancelAfter(TimeSpan.FromSeconds(3));
+
+            using var client = new TcpClient();
+            await client.ConnectAsync(_settings.Host, _settings.Port, timeout.Token);
+
+            await using var network = client.GetStream();
+            await network.WriteAsync(Encoding.ASCII.GetBytes("zPING\0"), timeout.Token);
+
+            reachable = string.Equals(await ReadReplyAsync(network, timeout.Token), "PONG", StringComparison.Ordinal);
+        }
+        catch (Exception exception) when (exception is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+        {
+            _logger.LogWarning(exception, "The virus scanner at {Host}:{Port} does not answer.", _settings.Host, _settings.Port);
+        }
+
+        lock (_reachability)
+        {
+            _reachable = reachable;
+            _checkedAt = DateTime.UtcNow;
+        }
+
+        return reachable;
+    }
 
     public async Task<VirusScanResult> ScanAsync(Stream content, CancellationToken cancellationToken = default)
     {
@@ -169,6 +223,8 @@ public class ClamAvScanner : IVirusScanner
 public class NullVirusScanner : IVirusScanner
 {
     public bool IsEnabled => false;
+
+    public Task<bool> IsReachableAsync(CancellationToken cancellationToken = default) => Task.FromResult(true);
 
     public Task<VirusScanResult> ScanAsync(Stream content, CancellationToken cancellationToken = default) =>
         Task.FromResult(new VirusScanResult(VirusScanOutcome.Clean));

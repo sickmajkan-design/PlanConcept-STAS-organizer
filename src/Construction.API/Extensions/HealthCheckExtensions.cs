@@ -32,11 +32,15 @@ public static class HealthCheckExtensions
     /// <summary>Checks that decide whether this instance can serve traffic.</summary>
     public const string ReadyTag = "ready";
 
+    /// <summary>Checks on things that can fail without this instance being unfit to serve.</summary>
+    public const string DependenciesTag = "dependencies";
+
     public static IServiceCollection AddApplicationHealthChecks(this IServiceCollection services)
     {
         services
             .AddHealthChecks()
-            .AddDbContextCheck<ApplicationDbContext>("database", tags: [ReadyTag]);
+            .AddDbContextCheck<ApplicationDbContext>("database", tags: [ReadyTag])
+            .AddCheck<AntivirusHealthCheck>("antivirus", tags: [DependenciesTag]);
 
         return services;
     }
@@ -54,6 +58,14 @@ public static class HealthCheckExtensions
         app.MapHealthChecks("/health/ready", new HealthCheckOptions
         {
             Predicate = check => check.Tags.Contains(ReadyTag),
+            ResponseWriter = WriteAsync,
+        });
+
+        // For an uptime monitor: 503 when something the platform leans on has stopped answering (today, the virus
+        // scanner, without which no file can be sent), while the instance itself stays in rotation.
+        app.MapHealthChecks("/health/dependencies", new HealthCheckOptions
+        {
+            Predicate = check => check.Tags.Contains(DependenciesTag),
             ResponseWriter = WriteAsync,
         });
 

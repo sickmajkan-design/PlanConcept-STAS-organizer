@@ -56,7 +56,7 @@ describe('ReleaseNotesDialog', () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('SuperAdmin') });
 
     await screen.findByText('Today, on a phone');
-    expect(screen.getByText('A document already when a record is made')).toBeDefined();
+    expect(screen.getByText('A warning when the virus check is not working')).toBeDefined();
     expect(screen.getByText('A calmer dashboard')).toBeDefined();
   }, SCREEN_TIMEOUT);
 

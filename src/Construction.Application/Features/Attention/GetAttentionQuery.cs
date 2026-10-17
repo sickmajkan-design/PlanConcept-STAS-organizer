@@ -54,17 +54,20 @@ public class GetAttentionQueryHandler : IRequestHandler<GetAttentionQuery, Atten
     private readonly ICurrentUserService _currentUser;
     private readonly IDateTimeProvider _clock;
     private readonly ISender _sender;
+    private readonly IVirusScanner _scanner;
 
     public GetAttentionQueryHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUser,
         IDateTimeProvider clock,
-        ISender sender)
+        ISender sender,
+        IVirusScanner scanner)
     {
         _context = context;
         _currentUser = currentUser;
         _clock = clock;
         _sender = sender;
+        _scanner = scanner;
     }
 
     public async Task<AttentionDto> Handle(GetAttentionQuery request, CancellationToken cancellationToken)
@@ -85,6 +88,14 @@ public class GetAttentionQueryHandler : IRequestHandler<GetAttentionQuery, Atten
 
         if (admin)
         {
+            // First, because every file somebody tries to send is refused while the scanner does not answer, and
+            // nothing else on this list stops people working like that. A killed scanner leaves its container
+            // looking fine, so this is the only place it shows.
+            if (_scanner.IsEnabled && !await _scanner.IsReachableAsync(cancellationToken))
+            {
+                Add("virusScanner", 1);
+            }
+
             var absences = _context.Absences.AsNoTracking().Where(a => a.Status == AbsenceStatus.Requested);
             Add(
                 "absenceRequests",

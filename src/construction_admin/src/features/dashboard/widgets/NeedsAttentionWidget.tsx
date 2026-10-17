@@ -15,6 +15,7 @@ export const DOCUMENT_WINDOW_DAYS = 30;
 
 /** Where each kind of thing is dealt with. */
 export const DESTINATIONS: Record<string, string> = {
+  virusScanner: paths.help,
   absenceRequests: paths.absences,
   expensesToReview: paths.vehicleExpenses,
   timeEntriesToReview: paths.timeEntries,
@@ -32,6 +33,8 @@ export const DESTINATIONS: Record<string, string> = {
 
 /** The order they are shown in: what somebody is waiting on first, housekeeping last. */
 export const ORDER = [
+  // Nothing else on the list stops people working the way this does.
+  'virusScanner',
   'absenceRequests',
   'timeEntriesToReview',
   'expensesToReview',

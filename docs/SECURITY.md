@@ -423,6 +423,12 @@ document request) streams it to a ClamAV daemon first (`Antivirus__*` settings, 
 - A recognised file is refused with 409 and the signature name goes to the log, never to the client.
 - **Limits:** the daemon needs about 1.3 GB of memory; `StreamMaxLength` and `MaxFileSize` are set above
   the product's 25 MB upload limit.
+- **Watching it:** a scanner that was killed leaves its container "up", so `docker ps` says nothing (on 2026-10-16
+  it was OOM-killed while reloading the database after an update, and every upload was refused for ten hours).
+  Three things now say so: `/health/dependencies` (503, for an uptime monitor; deliberately not part of
+  `/health/ready`), the "Needs attention" list for Super Admin and Admin ("The virus check is not working"),
+  and the container's own health check. `CLAMD_CONF_ConcurrentDatabaseReload: "no"` keeps a reload from holding
+  two copies of the database in memory. To recover: `docker restart construction-clamav-1`; it is healthy in about a minute.
 - Not covered: files that are created by the server itself, and Excel/CSV imports, which are parsed and
   not stored.
 - Tests: `ClamAvScannerTests` (protocol against a stand-in daemon), the upload and document-request

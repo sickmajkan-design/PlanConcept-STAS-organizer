@@ -876,6 +876,9 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.close': 'Razumijem',
 
 
+  'releaseNotes.scanner1017.title': "Upozorenje kad provjera virusa ne radi",
+  'releaseNotes.scanner1017.warning': "Ako provjera virusa u dokumentima prestane odgovarati, na nadzornoj ploči (Zahtijeva pažnju, a na telefonu i u pregledu Danas) piše da je slanje dokumenata zaustavljeno. Do sada se to nije vidjelo nigdje, a svako slanje je bilo odbijeno.",
+  'releaseNotes.scanner1017.probe': "Za nadzor dostupnosti postoji adresa /health/dependencies, koja vraća 503 kad provjera virusa ne radi, a ostatak platforme i dalje radi.",
   'releaseNotes.calmdesk1017.title': "Mirnija nadzorna ploča",
   'releaseNotes.calmdesk1017.tiles': "Pokazatelji na nadzornoj ploči imaju istu pozadinu; boja je samo u maloj ikoni, a nule su prigušene.",
   'releaseNotes.calmdesk1017.buttons': "\"Dodaj widget\" je neutralno dugme. Narandžasta ostaje za glavnu radnju na ekranu.",
@@ -887,10 +890,6 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.calm1016.phone': "Na telefonu je zaglavlje čišće: pomoć i jezik su u meniju vašeg naloga, a ime poslovne jedinice se vidi cijelo. Početna pokazuje današnji datum, pokazatelji su po dva u redu, a nazivi se prelamaju umjesto da budu odsječeni.",
   'releaseNotes.calm1016.calm': "Kartice na nadzornoj ploči su mirnije: tanka siva linija umjesto narandžaste trake i sjaja, lakši naslovi. Narandžasta je ostala za ono što se može pritisnuti. Grafikon bez podataka zamjenjuje jedna rečenica.",
   'releaseNotes.calm1016.app': "Aplikacija (1.1.27): slika gradilišta ide do vrha ekrana, prijava na smjenu je jedino narandžasto dugme, datum je ispod pozdrava, a lokacija van smjene je jedna linija umjesto kartice.",
-  'releaseNotes.create1016.title': "Dokument već pri pravljenju zapisa",
-  'releaseNotes.create1016.forms': "Na obrascu za novog zaposlenog, vozilo, alat, gradilište ili smještaj dodajte dokumente odmah (prevlačenjem ili izborom, svaki s vlastitom vrstom). Spremaju se uz zapis čim se napravi, pa ne treba prvo sačuvati pa se vraćati na karticu Dokumenti. Ako neka datoteka ne prođe, zapis ostaje, a na njegovoj kartici piše koje treba dodati.",
-  'releaseNotes.create1016.book': "U brzom unosu Evidencije dugme Priloži dokument vezuje račun ili fotografiju uz red koji ukucate; fotografija postaje vrsta Fotografija, sve ostalo Ostalo.",
-  'releaseNotes.create1016.limit': "Slanje datoteka ima ograničenje po nalogu (zadano 60 datoteka u minuti), da pogrešan program ili ukraden nalog ne bi napunio disk. Običnom radu ne smeta: kad se ograničenje dostigne, panel sačeka koliko server traži i sam pošalje ostale, uz napomenu \"Čeka\" pored datoteke.",
   'releaseNotes.due1016.title': "Podsjetnik na rok zahtjeva za dokumente",
   'releaseNotes.due1016.person': "Zahtjev s rokom sada podsjeća osobu u aplikaciji dan prije roka i na sam dan. Podsjetnik ne govori šta se traži, jer se čita na zaključanom ekranu.",
   'releaseNotes.due1016.office': "Ako rok prođe, a ništa nije poslano, onaj ko je zatražio dokument (ili svi administratori, ako ga više nema) dobija jednu obavijest. Zahtjev koji čeka na vašu provjeru, prihvaćen ili povučen se ne podsjeća. Kad pomjerite rok, novi rok dobija nove podsjetnike.",
@@ -910,6 +909,7 @@ export const sr: Record<MessageKey, Message> = {
   'attention.unconfirmedPostings': "Rasporedi koje radnik nije potvrdio",
   'attention.vehicleDates': "Datumi vozila koji ističu ili su prošli",
   'attention.expiringDocuments': "Dokumenti koji ističu",
+  'attention.virusScanner': "Provjera virusa ne radi: slanje dokumenata je zaustavljeno",
   'attention.dataQuality': "Zapisi za sređivanje u provjeri podataka",
   'attention.lateInvoices': "Fakture kojima je istekao rok",
   'attention.lateCosts': "Dugovi kojima je istekao rok",

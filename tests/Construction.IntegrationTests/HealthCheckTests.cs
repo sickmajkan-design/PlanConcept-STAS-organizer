@@ -63,6 +63,23 @@ public class HealthCheckTests
     }
 
     [Fact]
+    public async Task The_virus_scanner_has_its_own_probe_and_is_not_part_of_readiness()
+    {
+        // A scanner that is down stops files being sent and nothing else; taking the API out of rotation for
+        // it would turn a partial outage into a total one. So it answers on its own path, for a monitor, and
+        // readiness does not mention it. (Scanning is off in this host, so it is healthy.)
+        var dependencies = await GetAsync("/health/dependencies", HttpStatusCode.OK);
+        var antivirus = Assert.Single(dependencies.GetProperty("checks").EnumerateArray());
+        Assert.Equal("antivirus", antivirus.GetProperty("name").GetString());
+        Assert.Equal("Healthy", antivirus.GetProperty("status").GetString());
+
+        var ready = await GetAsync("/health/ready", HttpStatusCode.OK);
+        Assert.DoesNotContain(
+            ready.GetProperty("checks").EnumerateArray(),
+            check => check.GetProperty("name").GetString() == "antivirus");
+    }
+
+    [Fact]
     public async Task The_old_path_still_answers()
     {
         // Things already point at it — the README, and whatever anybody has

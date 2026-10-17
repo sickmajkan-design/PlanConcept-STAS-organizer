@@ -18,6 +18,8 @@ public class FakeVirusScanner : IVirusScanner
 
     public int Scans { get; private set; }
 
+    public Task<bool> IsReachableAsync(CancellationToken cancellationToken = default) => Task.FromResult(!Down);
+
     public async Task<VirusScanResult> ScanAsync(Stream content, CancellationToken cancellationToken = default)
     {
         Scans++;

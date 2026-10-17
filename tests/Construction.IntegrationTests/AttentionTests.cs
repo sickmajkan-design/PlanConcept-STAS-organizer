@@ -46,6 +46,38 @@ public class AttentionTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task An_administrator_is_told_when_the_virus_scanner_stops_answering_and_nobody_else_is()
+    {
+        Assert.Equal(0, Count(await AsAsync(UserRole.Admin), "virusScanner"));
+
+        await InScope(scope =>
+        {
+            scope.VirusScanner.Down = true;
+            return Task.CompletedTask;
+        });
+
+        try
+        {
+            // A killed scanner leaves its container looking healthy, so this is where it shows: every file
+            // somebody tries to send is refused until it is back.
+            Assert.Equal(1, Count(await AsAsync(UserRole.Admin), "virusScanner"));
+            Assert.Equal(1, Count(await AsAsync(UserRole.SuperAdmin), "virusScanner"));
+            Assert.Equal(0, Count(await AsAsync(UserRole.Foreman), "virusScanner"));
+            Assert.Equal(0, Count(await AsAsync(UserRole.Worker), "virusScanner"));
+        }
+        finally
+        {
+            await InScope(scope =>
+            {
+                scope.VirusScanner.Down = false;
+                return Task.CompletedTask;
+            });
+        }
+
+        Assert.Equal(0, Count(await AsAsync(UserRole.Admin), "virusScanner"));
+    }
+
+    [Fact]
     public async Task A_vehicle_with_a_date_coming_up_is_listed_with_the_date_that_comes_first()
     {
         var before = Count(await AsAsync(UserRole.Admin), "vehicleDates");
