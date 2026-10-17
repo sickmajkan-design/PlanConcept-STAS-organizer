@@ -1,5 +1,7 @@
 # Vodič: Knjiga troškova (Evidencija novca)
 
+> **Gdje je:** na lijevoj traci u grupi **Finansije**, pod naslovom **Evidencija**. Vidi je Super admin i osoba kojoj on to izričito dodijeli; ostali u Finansijama vide samo starije stranice (Troškovi, Prihodi, Refundacije, Fakture).
+
 Knjiga zamjenjuje Excel listu u kojoj se novac vodio po mjesecima. Ideja u tri rečenice:
 
 1. **Svaki prihod, trošak, uplata i isplata upiše se samo jednom**, kao jedan red u Knjizi.

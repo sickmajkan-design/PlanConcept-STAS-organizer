@@ -60,6 +60,8 @@ Pregled je rađen alatima iz paketa `emilkowalski/skills` (`emil-design-eng`, `m
 - **Meni (odobreno 17.10.):** natpis ispod svake ikone na lijevoj traci; Dokumenti i Zahtjevi za dokumente su vlastita grupa; Finansije imaju tri naslova (Svaki dan, Troškovi po vrsti, Obračun i postavke). Raspored ikona nije mijenjan.
 - **Poništi umjesto pitanja:** što se lako pravi ponovo (zadatak, oglas, grupa za notifikacije, zakazani izvještaj) briše se bez "Jeste li sigurni?" (`useDeleteWithConfirm(..., { immediate: true })`): red odmah nestane (`hiddenIds`), a Poništi stoji šest sekundi. Novac, zaposleni, vozila i dokumenti zadržavaju pitanje.
 - **Učitavanje:** oblik onoga što dolazi (skeleton) umjesto obrtača u karticama panela i listama aplikacije (`SkeletonList`); sa smanjenim kretanjem stoji mirno.
+- **Evidencija u Finansijama (17.10.):** jedna grupa na traci; stavke Evidencije su ispod stavki Finansija pod naslovom "Evidencija" (i "Evidencija: podešavanja"). Vidljivost je ista kao prije (`canViewBook`): Super admin i kome on to dodijeli, nikom drugom ni naslov.
+- **Zvono (obavještenja):** lista se nastavlja učitavati do posljednjeg obavještenja (15 po stranici, "To su sva obavještenja"); obavještenje bez stranice na koju vodi otvara se u cijelosti u prozoru.
 - **Računar, i dalje bez izričitog odobrenja:** zaglavlje (uključujući liniju ispod naziva firme) i naslovna.
 
 ## 7. Šta još nije urađeno (odluke)

@@ -91,6 +91,84 @@ export function isNavGroup(entry: NavEntry): entry is NavGroup {
   return 'items' in entry;
 }
 
+/**
+ * The book of money (Evidencija): the company's own record of what comes in, goes out and is left. It sits in
+ * the same group as Finance, below it, but who sees it is unchanged: the Super Admin, and whoever the Super Admin
+ * has granted it to. Nobody else gets so much as a heading.
+ */
+function buildBookItems(user: User, t: ReturnType<typeof useT>): NavItem[] {
+  if (!canViewBook(user)) return [];
+
+  return [
+    {
+      label: t('nav.bookGuide'),
+      path: paths.bookGuide,
+      icon: <HelpOutlineOutlined />,
+      section: t('nav.section.bookOverview'),
+    },
+    {
+      label: t('nav.bookOverview'),
+      path: paths.bookOverview,
+      icon: <InsightsOutlined />,
+      section: t('nav.section.bookOverview'),
+    },
+    {
+      label: t('nav.bookEntries'),
+      path: paths.bookEntries,
+      icon: <MenuBookOutlined />,
+      section: t('nav.section.bookDaily'),
+    },
+    {
+      label: t('nav.bookReceivables'),
+      path: paths.bookReceivables,
+      icon: <AccountBalanceWalletOutlined />,
+      section: t('nav.section.bookDaily'),
+    },
+    ...(canManageInvoices(user)
+      ? [
+          {
+            label: t('nav.bookPayouts'),
+            path: paths.bookPayouts,
+            icon: <PaymentsOutlined />,
+            section: t('nav.section.bookDaily'),
+          },
+        ]
+      : []),
+    ...(isSuperAdmin(user)
+      ? [
+          {
+            label: t('nav.bookSettlement'),
+            path: paths.bookSettlement,
+            icon: <TableChartOutlined />,
+            section: t('nav.section.bookMonthEnd'),
+          },
+        ]
+      : []),
+    {
+      label: t('nav.bookRecurring'),
+      path: paths.bookRecurring,
+      icon: <EventRepeatOutlined />,
+      section: t('nav.section.bookSettings'),
+    },
+    {
+      label: t('nav.bookCategories'),
+      path: paths.bookCategories,
+      icon: <LabelOutlined />,
+      section: t('nav.section.bookSettings'),
+    },
+    ...(isSuperAdmin(user)
+      ? [
+          {
+            label: t('nav.bookImport'),
+            path: paths.bookImport,
+            icon: <UploadFileOutlined />,
+            section: t('nav.section.bookSettings'),
+          },
+        ]
+      : []),
+  ];
+}
+
 /** Builds the role-gated nav tree. Shared by the drawer and the command palette so both always list the same pages. */
 export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntry[] {
   return [
@@ -181,86 +259,6 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
               { label: t('nav.materials'), path: paths.materials, icon: <Inventory2Outlined /> },
             ],
           } satisfies NavGroup,
-          // The book of money: the company's own record of what comes in, goes out and is left. Its own group,
-          // in the order the owner works through a month.
-          ...(canViewBook(user)
-            ? [
-                {
-                  key: 'book',
-                  label: t('nav.group.book'),
-                  sub: t('nav.group.book.sub'),
-                  icon: <MenuBookOutlined />,
-                  items: [
-                    {
-                      label: t('nav.bookGuide'),
-                      path: paths.bookGuide,
-                      icon: <HelpOutlineOutlined />,
-                      section: t('nav.section.bookOverview'),
-                    },
-                    {
-                      label: t('nav.bookOverview'),
-                      path: paths.bookOverview,
-                      icon: <InsightsOutlined />,
-                      section: t('nav.section.bookOverview'),
-                    },
-                    {
-                      label: t('nav.bookEntries'),
-                      path: paths.bookEntries,
-                      icon: <MenuBookOutlined />,
-                      section: t('nav.section.bookDaily'),
-                    },
-                    {
-                      label: t('nav.bookReceivables'),
-                      path: paths.bookReceivables,
-                      icon: <AccountBalanceWalletOutlined />,
-                      section: t('nav.section.bookDaily'),
-                    },
-                    ...(canManageInvoices(user)
-                      ? [
-                          {
-                            label: t('nav.bookPayouts'),
-                            path: paths.bookPayouts,
-                            icon: <PaymentsOutlined />,
-                            section: t('nav.section.bookDaily'),
-                          },
-                        ]
-                      : []),
-                    ...(isSuperAdmin(user)
-                      ? [
-                          {
-                            label: t('nav.bookSettlement'),
-                            path: paths.bookSettlement,
-                            icon: <TableChartOutlined />,
-                            section: t('nav.section.bookMonthEnd'),
-                          },
-                        ]
-                      : []),
-                    {
-                      label: t('nav.bookRecurring'),
-                      path: paths.bookRecurring,
-                      icon: <EventRepeatOutlined />,
-                      section: t('nav.section.bookSettings'),
-                    },
-                    {
-                      label: t('nav.bookCategories'),
-                      path: paths.bookCategories,
-                      icon: <LabelOutlined />,
-                      section: t('nav.section.bookSettings'),
-                    },
-                    ...(isSuperAdmin(user)
-                      ? [
-                          {
-                            label: t('nav.bookImport'),
-                            path: paths.bookImport,
-                            icon: <UploadFileOutlined />,
-                            section: t('nav.section.bookSettings'),
-                          },
-                        ]
-                      : []),
-                  ],
-                } satisfies NavGroup,
-              ]
-            : []),
           {
             key: 'costs',
             label: t('nav.group.costs'),
@@ -394,6 +392,7 @@ export function buildNavEntries(user: User, t: ReturnType<typeof useT>): NavEntr
                       : []),
                   ]
                 : []),
+              ...buildBookItems(user, t),
             ],
           } satisfies NavGroup,
         ]

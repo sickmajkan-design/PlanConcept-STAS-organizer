@@ -4,7 +4,8 @@ import { OPERATOR, dismissReleaseNotes, openRailGroup, setLanguage, submitButton
 
 /**
  * The book of money (Evidencija) is closed to everybody except the Super Admin until one switches it on
- * for an account. The finance grant, which opens the older money pages, must not open it by itself.
+ * for an account. The finance grant, which opens the older money pages, must not open it by itself. It sits in
+ * the Finance group of the menu, so the check is on what that group offers.
  */
 const API = `http://localhost:${process.env.E2E_API_PORT ?? 5199}`;
 
@@ -43,8 +44,10 @@ test('the book is closed to an admin until the Super Admin grants it', async ({ 
   await expect(page.locator('.MuiAppBar-root')).toBeVisible();
   await dismissReleaseNotes(page);
 
-  // No group in the menu, and the address sends the admin home.
-  await expect(page.getByRole('button', { name: 'Evidencija', exact: true }).filter({ visible: true })).toHaveCount(0);
+  // Nothing of the book in the Finance group, and the address sends the admin home.
+  await openRailGroup(page, 'Finansije');
+  await expect(page.getByRole('link', { name: 'Knjiga zapisa', exact: true }).filter({ visible: true })).toHaveCount(0);
+  await expect(page.getByText('Evidencija', { exact: true }).filter({ visible: true })).toHaveCount(0);
   await page.goto('/book');
   await expect(page).not.toHaveURL(/\/book/);
 
@@ -66,7 +69,8 @@ test('the book is closed to an admin until the Super Admin grants it', async ({ 
   await expect(page.locator('.MuiAppBar-root')).toBeVisible();
   await dismissReleaseNotes(page);
 
-  await openRailGroup(page, 'Evidencija');
+  await openRailGroup(page, 'Finansije');
+  await expect(page.getByRole('link', { name: 'Knjiga zapisa', exact: true }).filter({ visible: true })).toBeVisible();
   await page.goto('/book');
   await expect(page).toHaveURL(/\/book/);
   await expect(page.getByRole('heading', { name: /Pregled|Novac/i }).first()).toBeVisible();
