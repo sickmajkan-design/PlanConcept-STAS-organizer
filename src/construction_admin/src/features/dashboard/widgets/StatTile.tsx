@@ -1,88 +1,126 @@
-import { Box, Stack, Typography } from '@mui/material';
-import type { ReactNode } from 'react';
+import { ButtonBase, Stack, Typography } from "@mui/material";
+import type { ReactNode } from "react";
+import { Link as RouterLink } from "react-router-dom";
+
+import { Pill, type Tone } from "./widgetUi";
 
 interface StatTileProps {
-  icon: ReactNode;
+  /** Kept for the callers that pass one; the tile leads with its number, not an icon. */
+  icon?: ReactNode;
   label: string;
   value: string;
   hint?: string;
-  hintColor?: 'warning.main' | 'error.main' | 'success.main' | 'text.secondary';
+  hintColor?: "warning.main" | "error.main" | "success.main" | "text.secondary";
+  /** Kept for the callers that pass one; the tile uses the theme's own colours. */
   accent?: string;
+  /** Where a press goes. A tile with none is not pressable. */
+  to?: string;
 }
 
+const HINT_TONE: Record<NonNullable<StatTileProps["hintColor"]>, Tone> = {
+  "warning.main": "warn",
+  "error.main": "bad",
+  "success.main": "good",
+  "text.secondary": "neutral",
+};
+
 /**
- * One KPI tile: icon chip, label, and a big number. Used anywhere a widget
- * needs to lead with "the number that matters" rather than bury it in a
- * sentence — CompanyKpiWidget's whole grid is built from these.
+ * One figure on a soft tile: the label above, the number as the biggest thing on it, and a small pill for the
+ * change or the state. The number's size follows the width the widget was given, so a stretched widget on a wide
+ * monitor gets larger figures and a narrow one on a phone gets compact ones. A tile with a destination presses
+ * in under the finger and goes there.
  */
-export function StatTile({ icon, label, value, hint, hintColor = 'text.secondary', accent = '#e65100' }: StatTileProps) {
-  return (
+export function StatTile({
+  label,
+  value,
+  hint,
+  hintColor = "text.secondary",
+  to,
+}: StatTileProps) {
+  const body = (
+    // The label at the top and the figure at the bottom, so tiles side by side line their numbers up even when
+    // one label takes two lines.
     <Stack
-      spacing={1}
       sx={{
-        p: { xs: 1.5, sm: 2 },
-        borderRadius: 2.5,
+        alignItems: "flex-start",
+        justifyContent: "space-between",
+        gap: 0.75,
         minWidth: 0,
-        // Two to a row on a phone, instead of one tile per row that pushes the rest off the screen.
-        flex: { xs: '1 1 calc(50% - 6px)', sm: '1 1 200px' },
-        // The same quiet surface for every tile: the accent lives in the small icon, not in four different backgrounds.
-        bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(31, 27, 22, 0.03)'),
-        border: '1px solid',
-        borderColor: 'divider',
+        width: "100%",
+        textAlign: "left",
       }}
     >
-      <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 32,
-            height: 32,
-            borderRadius: 1.5,
-            bgcolor: `${accent}1c`,
-            color: accent,
-            flexShrink: 0,
-          }}
-        >
-          {icon}
-        </Box>
-        <Typography
-          variant="body2"
-          color="text.secondary"
-          sx={{
-            fontWeight: 600,
-            minWidth: 0,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            // On a phone a label may take two lines instead of being cut to "Active emplo...".
-            whiteSpace: { xs: 'normal', sm: 'nowrap' },
-            display: { xs: '-webkit-box', sm: 'block' },
-            WebkitLineClamp: { xs: 2, sm: 'unset' },
-            WebkitBoxOrient: 'vertical',
-            lineHeight: { xs: 1.25, sm: undefined },
-          }}
-        >
-          {label}
-        </Typography>
-      </Stack>
       <Typography
-        sx={{
-          fontWeight: 700,
-          // A zero is the absence of something, so it recedes.
-          color: /^[0\s/]+$/.test(value) ? 'text.secondary' : undefined,
-          fontSize: { xs: '1.5rem', sm: 'clamp(1.5rem, 2.4vw, 2.5rem)' },
-          lineHeight: 1.05,
-          letterSpacing: '-0.02em',
-        }}
+        variant="caption"
+        color="text.secondary"
+        sx={{ lineHeight: 1.25, fontSize: "0.8rem" }}
       >
-        {value}
+        {label}
       </Typography>
-      {hint && (
-        <Typography variant="caption" sx={{ color: hintColor, fontWeight: 600 }}>
-          {hint}
+      <Stack
+        spacing={0.5}
+        sx={{ alignItems: "flex-start", minWidth: 0, maxWidth: "100%" }}
+      >
+        <Typography
+          component="span"
+          sx={{
+            fontVariantNumeric: "tabular-nums",
+            fontWeight: 800,
+            lineHeight: 1.05,
+            letterSpacing: "-0.03em",
+            fontSize: "clamp(1.6rem, 7cqw, 2.6rem)",
+            // A zero is the absence of something, so it recedes.
+            color: /^[0\s/]+$/.test(value) ? "text.secondary" : "text.primary",
+            overflowWrap: "anywhere",
+          }}
+        >
+          {value}
         </Typography>
-      )}
+        {hint && <Pill tone={HINT_TONE[hintColor]}>{hint}</Pill>}
+      </Stack>
     </Stack>
+  );
+
+  const sx = {
+    // Two to a row on the narrowest widget, more as it widens.
+    flex: "1 1 140px",
+    minWidth: 0,
+    borderRadius: "18px",
+    px: 2,
+    py: 1.75,
+    display: "flex",
+    alignItems: "flex-start",
+    color: "inherit",
+    bgcolor: (theme: { palette: { mode: string } }) =>
+      theme.palette.mode === "dark"
+        ? "rgba(255,255,255,0.05)"
+        : "rgba(31,27,22,0.04)",
+  };
+
+  if (!to) {
+    return <Stack sx={sx}>{body}</Stack>;
+  }
+
+  return (
+    <ButtonBase
+      component={RouterLink}
+      to={to}
+      sx={{
+        ...sx,
+        transition: "transform 0.12s ease-out",
+        "&:active": { transform: "scale(0.97)" },
+        "&:focus-visible": {
+          outline: "2px solid",
+          outlineColor: "primary.main",
+          outlineOffset: 2,
+        },
+        "@media (prefers-reduced-motion: reduce)": {
+          transition: "none",
+          "&:active": { transform: "none" },
+        },
+      }}
+    >
+      {body}
+    </ButtonBase>
   );
 }

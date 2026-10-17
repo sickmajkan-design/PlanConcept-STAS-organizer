@@ -1,4 +1,4 @@
-import { Box, LinearProgress, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Box, MenuItem, TextField } from '@mui/material';
 import { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 
@@ -11,6 +11,7 @@ import { useFinanceByProject } from '../../finance/useFinanceSeries';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetSettingsDialog } from './WidgetSettingsDialog';
 import { WidgetShell } from './WidgetShell';
+import { BarRow, EmptyNote } from './widgetUi';
 
 const TOP_CHOICES = [5, 10] as const;
 const DEFAULT_TOP = 5;
@@ -31,7 +32,8 @@ export function TopProjectsByExpenseWidget({ settings, onSettingsChange, onRemov
 
   return (
     <WidgetShell
-      title={`${t('dashboard.widget.TopProjectsByExpense')} — ${formatPeriod(period.from, period.to)}`}
+      title={t('dashboard.widget.TopProjectsByExpense')}
+      subtitle={formatPeriod(period.from, period.to)}
       isLoading={isLoading}
       error={error}
       onRemove={onRemove}
@@ -46,34 +48,26 @@ export function TopProjectsByExpenseWidget({ settings, onSettingsChange, onRemov
       }
     >
       {rows.length === 0 ? (
-        <Typography color="text.secondary" variant="body2">
-          {t('finance.noData')}
-        </Typography>
+        <EmptyNote>{t('finance.noData')}</EmptyNote>
       ) : (
-        <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gap: 2,
+            alignContent: 'start',
+            flex: 1,
+            minHeight: 0,
+            overflow: 'auto',
+            gridTemplateColumns: '1fr',
+            '@container widget (min-width: 640px)': { gridTemplateColumns: '1fr 1fr' },
+          }}
+        >
           {rows.map((row) => (
-            <Box
-              key={row.projectId}
-              component={RouterLink}
-              to={paths.projectDetail(row.projectId)}
-              sx={{ color: 'inherit', textDecoration: 'none' }}
-            >
-              <Stack direction="row" sx={{ justifyContent: 'space-between', gap: 1 }}>
-                <Typography variant="body2" sx={{ fontWeight: 600, minWidth: 0 }} noWrap>
-                  {row.projectName}
-                </Typography>
-                <Typography variant="body2" sx={{ flexShrink: 0 }}>
-                  {formatMoney(row.expense, locale)}
-                </Typography>
-              </Stack>
-              <LinearProgress
-                variant="determinate"
-                value={largest > 0 ? (row.expense / largest) * 100 : 0}
-                sx={{ height: 8, borderRadius: 4, mt: 0.5 }}
-              />
+            <Box key={row.projectId} component={RouterLink} to={paths.projectDetail(row.projectId)} sx={{ color: 'inherit', textDecoration: 'none' }}>
+              <BarRow label={row.projectName} value={formatMoney(row.expense, locale)} percent={largest > 0 ? (row.expense / largest) * 100 : 0} />
             </Box>
           ))}
-        </Stack>
+        </Box>
       )}
 
       <WidgetSettingsDialog

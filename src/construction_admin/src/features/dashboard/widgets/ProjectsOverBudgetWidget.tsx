@@ -1,5 +1,5 @@
 import { useBranchFilter } from '../../branches/BranchContext';
-import { Box, LinearProgress, Stack, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { Link as RouterLink } from 'react-router-dom';
 
@@ -9,6 +9,7 @@ import { paths } from '../../../routes/paths';
 import { formatMoney } from '../../../utils/formatting';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
+import { BarRow, EmptyNote } from './widgetUi';
 
 /**
  * Running projects that have spent the share of their budget — or of their
@@ -35,11 +36,20 @@ export function ProjectsOverBudgetWidget({ onRemove, onExpandWidth }: DashboardW
       onExpandWidth={onExpandWidth}
     >
       {data && data.alerts.length === 0 ? (
-        <Typography color="text.secondary" variant="body2">
-          {data.measuredProjects === 0 ? t('finance.alerts.nothingSet') : t('finance.alerts.allWithin')}
-        </Typography>
+        <EmptyNote>{data.measuredProjects === 0 ? t('finance.alerts.nothingSet') : t('finance.alerts.allWithin')}</EmptyNote>
       ) : (
-        <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gap: 1.25,
+            alignContent: 'start',
+            flex: 1,
+            minHeight: 0,
+            overflow: 'auto',
+            gridTemplateColumns: '1fr',
+            '@container widget (min-width: 640px)': { gridTemplateColumns: '1fr 1fr' },
+          }}
+        >
           {(data?.alerts ?? []).map((alert) => {
             const over = alert.level === 'Over';
 
@@ -48,31 +58,34 @@ export function ProjectsOverBudgetWidget({ onRemove, onExpandWidth }: DashboardW
                 key={alert.projectId}
                 component={RouterLink}
                 to={paths.projectDetail(alert.projectId)}
-                sx={{ color: 'inherit', textDecoration: 'none' }}
+                sx={(theme) => ({
+                  color: 'inherit',
+                  textDecoration: 'none',
+                  display: 'grid',
+                  gap: 0.5,
+                  borderRadius: '16px',
+                  px: 1.75,
+                  py: 1.4,
+                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(31,27,22,0.04)',
+                  transition: 'transform 0.12s ease-out',
+                  '&:active': { transform: 'scale(0.98)' },
+                })}
               >
-                <Stack direction="row" sx={{ justifyContent: 'space-between', gap: 1 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 600, minWidth: 0 }} noWrap>
-                    {alert.projectName}
-                  </Typography>
-                  <Typography variant="body2" sx={{ flexShrink: 0, fontWeight: 700 }} color={over ? 'error.main' : 'warning.main'}>
-                    {alert.usedPercent.toFixed(1)}%
-                  </Typography>
-                </Stack>
                 {/* The bar stops at full; the number beside it goes on, so an overrun is not hidden. */}
-                <LinearProgress
-                  variant="determinate"
-                  value={Math.min(100, alert.usedPercent)}
-                  color={over ? 'error' : 'warning'}
-                  sx={{ height: 8, borderRadius: 4, mt: 0.5 }}
+                <BarRow
+                  label={alert.projectName}
+                  value={`${alert.usedPercent.toFixed(1)}%`}
+                  percent={Math.min(100, alert.usedPercent)}
+                  tone={over ? 'bad' : 'warn'}
                 />
-                <Typography variant="caption" color="text.secondary">
+                <Typography variant="caption" color="text.secondary" sx={{ fontVariantNumeric: 'tabular-nums' }}>
                   {formatMoney(alert.spent, locale)} / {formatMoney(alert.limit, locale)} ·{' '}
                   {t(alert.basis === 'Budget' ? 'finance.alerts.ofBudget' : 'finance.alerts.ofContract')}
                 </Typography>
               </Box>
             );
           })}
-        </Stack>
+        </Box>
       )}
     </WidgetShell>
   );

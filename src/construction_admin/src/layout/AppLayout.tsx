@@ -1,55 +1,5 @@
-import {
-  ArrowBackOutlined,
-  ChevronRightOutlined,
-  LogoutOutlined,
-  MenuOutlined,
-  PasswordOutlined,
-  VerifiedUserOutlined,
-  PlaceOutlined,
-  PushPin,
-  PushPinOutlined,
-  ExpandLess,
-  ExpandMore,
-  HelpOutlined,
-  LanguageOutlined,
-  KeyboardOutlined,
-  MoreHorizOutlined,
-  SearchOutlined,
-  StarOutlined,
-  StarBorderOutlined,
-  SettingsBrightnessOutlined,
-} from '@mui/icons-material';
-import {
-  AppBar,
-  Avatar,
-  Badge,
-  BottomNavigation,
-  Alert,
-  BottomNavigationAction,
-  Box,
-  Breadcrumbs,
-  ButtonBase,
-  ClickAwayListener,
-  Collapse,
-  Divider,
-  Drawer,
-  Fade,
-  IconButton,
-  Link as MuiLink,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  MenuItem,
-  Paper,
-  Popper,
-  Toolbar,
-  Tooltip,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
+import { ArrowBackOutlined, ChevronRightOutlined, LogoutOutlined, MenuOutlined, PasswordOutlined, VerifiedUserOutlined, PlaceOutlined, PushPin, PushPinOutlined, HelpOutlined, LanguageOutlined, KeyboardOutlined, MoreHorizOutlined, SearchOutlined, StarOutlined, StarBorderOutlined, SettingsBrightnessOutlined } from '@mui/icons-material';
+import { AppBar, Avatar, Badge, BottomNavigation, Alert, BottomNavigationAction, Box, Breadcrumbs, ButtonBase, ClickAwayListener, Divider, Drawer, Fade, IconButton, Link as MuiLink, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, Paper, Popper, Toolbar, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { alpha, keyframes } from '@mui/material/styles';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
@@ -76,6 +26,7 @@ import { useI18n, useT } from '../i18n/useI18n';
 import { paths } from '../routes/paths';
 import { initialsOf } from '../utils/formatting';
 import { CommandPalette } from './CommandPalette';
+import { PhoneMenu } from './PhoneMenu';
 import {
   buildNavEntries,
   flattenNavEntries,
@@ -184,7 +135,6 @@ const TOP_BAR_HEIGHT = 80;
  * Measured against the room that is left, so a pinned menu panel hides it sooner.
  */
 const BRAND_MIN_CONTENT = { logo: 760, name: 940, address: 1180 } as const;
-const MOBILE_DRAWER_WIDTH = 260;
 const EXPANDED_GROUPS_KEY = 'nav.expandedGroups';
 
 const panelItemIn = keyframes`
@@ -685,198 +635,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
     </Box>
   );
 
-  const mobileDrawerContent = (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Toolbar
-        component={Link}
-        to={paths.home}
-        onClick={() => setMobileOpen(false)}
-        sx={{ gap: 1, color: 'inherit', textDecoration: 'none' }}
-      >
-        {branding?.hasLogo ? (
-          <Box
-            component="img"
-            src={logoUrl}
-            alt=""
-            sx={{ width: 36, height: 36, objectFit: 'contain', flexShrink: 0, borderRadius: 1 }}
-          />
-        ) : (
-          <Avatar variant="rounded" sx={{ width: 36, height: 36, bgcolor: 'primary.main', fontSize: 18 }}>
-            {(branding?.name || t('nav.appName')).slice(0, 1)}
-          </Avatar>
-        )}
-        <Typography variant="subtitle1" noWrap sx={{ fontWeight: 700 }}>
-          {branding?.name || t('nav.appName')}
-        </Typography>
-      </Toolbar>
-      <Divider />
-      <Box sx={{ px: 1.5, pt: 1.5 }}>
-        <ListItemButton
-          onClick={() => setPaletteOpen(true)}
-          sx={{
-            borderRadius: 1,
-            border: '1px solid',
-            borderColor: 'divider',
-            py: 0.75,
-            color: 'text.secondary',
-          }}
-        >
-          <ListItemIcon sx={{ minWidth: 32 }}>
-            <SearchOutlined fontSize="small" />
-          </ListItemIcon>
-          <ListItemText primary={t('commandPalette.trigger')} slotProps={{ primary: { noWrap: true } }} />
-          <Typography variant="caption" sx={{ opacity: 0.7, display: { xs: 'none', md: 'block' }, whiteSpace: 'nowrap', ml: 1 }}>
-            Ctrl K
-          </Typography>
-        </ListItemButton>
-      </Box>
-      {favoriteItems.length > 0 && (
-        <>
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ px: 2.5, pt: 2, pb: 0.5, display: 'block', fontWeight: 600 }}
-          >
-            {t('nav.favorites')}
-          </Typography>
-          <List sx={{ px: 1, py: 0 }}>
-            {favoriteItems.map((item) => (
-              <ListItemButton
-                key={item.path}
-                component={Link}
-                to={navItemHref(item.path)}
-                selected={isItemSelected(item)}
-                onClick={() => setMobileOpen(false)}
-                sx={{ borderRadius: 1, mb: 0.5 }}
-              >
-                <ListItemIcon sx={{ minWidth: 40 }}>
-                  <Badge badgeContent={badgeCounts[item.path] ?? 0} color="error" max={99} overlap="circular">
-                    {item.icon}
-                  </Badge>
-                </ListItemIcon>
-                <ListItemText primary={item.label} />
-              </ListItemButton>
-            ))}
-          </List>
-          <Divider sx={{ mx: 1.5 }} />
-        </>
-      )}
-      <List sx={{ flex: 1, px: 1, py: 1, overflowY: 'auto' }}>
-        {navEntries.map((entry) =>
-          isNavGroup(entry) ? (
-            <Box key={entry.key} sx={{ mb: 0.5 }}>
-              <ListItemButton
-                onClick={() => toggleGroup(entry.key)}
-                selected={groupContainsActivePath(entry) && !expandedGroups.has(entry.key)}
-                sx={{ borderRadius: 1 }}
-              >
-                <ListItemIcon sx={{ minWidth: 40 }}>
-                  <Badge
-                    badgeContent={badgeCounts[entry.key] ?? 0}
-                    color="error"
-                    max={99}
-                    overlap="circular"
-                  >
-                    {entry.icon}
-                  </Badge>
-                </ListItemIcon>
-                <ListItemText
-                  primary={entry.label}
-                  slotProps={{ primary: { sx: { fontWeight: 600 } } }}
-                />
-                {expandedGroups.has(entry.key) ? (
-                  <ExpandLess fontSize="small" />
-                ) : (
-                  <ExpandMore fontSize="small" />
-                )}
-              </ListItemButton>
-              <Collapse in={expandedGroups.has(entry.key)} timeout="auto" unmountOnExit>
-                <List component="div" disablePadding>
-                  {entry.items.filter((item) => !item.inTabs).map((item) => (
-                    // A button nested inside the link it sits on used to
-                    // pollute the link's accessible name with the star's own
-                    // label ("Employees Pin to favorites" instead of
-                    // "Employees") — invalid HTML (interactive-in-interactive)
-                    // as well as a real accessibility bug, not just a test
-                    // inconvenience. Siblings inside a plain row fix both.
-                    <Box
-                      key={item.path}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        mb: 0.5,
-                        '&:hover .nav-pin': { opacity: 1 },
-                      }}
-                    >
-                      <ListItemButton
-                        component={Link}
-                        to={navItemHref(item.path)}
-                        selected={isItemSelected(item)}
-                        onClick={() => setMobileOpen(false)}
-                        sx={{ borderRadius: 1, pl: 4, flex: 1, minWidth: 0 }}
-                      >
-                        <ListItemIcon sx={{ minWidth: 40 }}>
-                          <Badge
-                            badgeContent={badgeCounts[item.path] ?? 0}
-                            color="error"
-                            max={99}
-                            overlap="circular"
-                          >
-                            {item.icon}
-                          </Badge>
-                        </ListItemIcon>
-                        <ListItemText primary={item.label} />
-                      </ListItemButton>
-                      <IconButton
-                        size="small"
-                        className="nav-pin"
-                        aria-label={t('nav.togglePin')}
-                        // Full opacity when starred, otherwise always at least
-                        // partly visible rather than 0 by default — this menu
-                        // is also the one a phone gets (no desktop rail
-                        // there), and touch has no hover to reveal a fully
-                        // transparent icon with. The `&:hover` above still
-                        // brightens it further for a mouse.
-                        sx={{
-                          opacity: favorites.isFavorite(item.path) ? 1 : 0.35,
-                          transition: 'opacity 0.15s',
-                          mr: 1,
-                        }}
-                        onClick={() => favorites.toggleFavorite(item.path)}
-                      >
-                        {favorites.isFavorite(item.path) ? (
-                          <StarOutlined fontSize="inherit" color="warning" />
-                        ) : (
-                          <StarBorderOutlined fontSize="inherit" />
-                        )}
-                      </IconButton>
-                    </Box>
-                  ))}
-                </List>
-              </Collapse>
-            </Box>
-          ) : (
-            <ListItemButton
-              key={entry.path}
-              component={Link}
-              to={navItemHref(entry.path)}
-              selected={isItemSelected(entry)}
-              onClick={() => setMobileOpen(false)}
-              sx={{ borderRadius: 1, mb: 0.5 }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <Badge badgeContent={badgeCounts[entry.path] ?? 0} color="error" max={99} overlap="circular">
-                  {entry.icon}
-                </Badge>
-              </ListItemIcon>
-              <ListItemText primary={entry.label} />
-            </ListItemButton>
-          ),
-        )}
-      </List>
-    </Box>
-  );
-
   return (
     <Box sx={{ display: 'flex', minHeight: '100dvh' }}>
       <CommandPalette
@@ -1167,18 +925,26 @@ export function AppLayout({ children }: { children: ReactNode }) {
           [reduceMotion]: { transition: 'none' },
         }}
       >
-        <Drawer
-          variant="temporary"
-          open={mobileOpen}
-          onClose={() => setMobileOpen(false)}
-          ModalProps={{ keepMounted: true }}
-          sx={{
-            display: { xs: 'block', md: 'none' },
-            '& .MuiDrawer-paper': { width: MOBILE_DRAWER_WIDTH },
-          }}
-        >
-          {mobileDrawerContent}
-        </Drawer>
+        {/* On a phone and a small tablet the menu is a page of its own over the content, not a narrow side drawer. */}
+        {!isDesktop && (
+          <PhoneMenu
+            open={mobileOpen}
+            onClose={() => setMobileOpen(false)}
+            title={branding?.name || t('nav.appName')}
+            entries={navEntries}
+            badgeCounts={badgeCounts}
+            hrefFor={navItemHref}
+            isSelected={isItemSelected}
+            isFavorite={favorites.isFavorite}
+            toggleFavorite={favorites.toggleFavorite}
+            locale={locale}
+            setLocale={setLocale}
+            onSignOut={() => {
+              setMobileOpen(false);
+              void handleSignOut();
+            }}
+          />
+        )}
         <Drawer
           variant="permanent"
           sx={{

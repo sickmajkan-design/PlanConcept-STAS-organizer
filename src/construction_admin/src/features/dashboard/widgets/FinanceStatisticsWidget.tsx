@@ -59,7 +59,8 @@ export function FinanceStatisticsWidget({ onRemove, onExpandWidth }: DashboardWi
 
   return (
     <WidgetShell
-      title={`${t('dashboard.widget.FinanceStatistics')} — ${formatPeriod(period.from, period.to)}`}
+      title={t('dashboard.widget.FinanceStatistics')}
+      subtitle={formatPeriod(period.from, period.to)}
       isLoading={isLoading}
       error={error}
       onRemove={onRemove}

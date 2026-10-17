@@ -1,8 +1,7 @@
 import { useBranchFilter } from '../../branches/BranchContext';
-import { Alert, Box, Button, Chip, Stack, Typography } from '@mui/material';
+import { Alert, Box, Stack, Typography } from '@mui/material';
 import { AdvancedMarker, APIProvider, Map, Pin } from '@vis.gl/react-google-maps';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
 
 import { locationsApi } from '../../../api/locations';
 import { config, hasGoogleMapsKey } from '../../../config';
@@ -10,6 +9,7 @@ import { useT } from '../../../i18n/useI18n';
 import { paths } from '../../../routes/paths';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
+import { MoreLink, Pill } from './widgetUi';
 
 /** A compact preview of the full Live Map page — same query, same marker style, no project filter or click-through info window (that's what "View all" is for). */
 export function LiveMapWidget({ instanceId: _instanceId, onRemove, onExpandWidth }: DashboardWidgetProps) {
@@ -27,14 +27,11 @@ export function LiveMapWidget({ instanceId: _instanceId, onRemove, onExpandWidth
   return (
     <WidgetShell title={t('dashboard.widget.LiveMap')} isLoading={isLoading} error={error} onRemove={onRemove} onExpandWidth={onExpandWidth}>
       <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
-        <Chip
-          size="small"
-          color={locations.length > 0 ? 'primary' : 'default'}
-          label={t('dashboard.liveMap.onMap', { count: locations.length })}
-          sx={{ fontWeight: 700, alignSelf: 'flex-start', flexShrink: 0 }}
-        />
+        <Pill tone={locations.length > 0 ? 'accent' : 'neutral'} sx={{ alignSelf: 'flex-start', fontSize: '0.85rem', px: 1.5, py: 0.25 }}>
+          {t('dashboard.liveMap.onMap', { count: locations.length })}
+        </Pill>
 
-        <Box sx={{ flex: 1, minHeight: 160, borderRadius: 2, overflow: 'hidden', position: 'relative' }}>
+        <Box sx={{ flex: 1, minHeight: 160, borderRadius: '16px', overflow: 'hidden', position: 'relative' }}>
           {!hasGoogleMapsKey ? (
             <Alert severity="info">{t('map.noKey')}</Alert>
           ) : locations.length === 0 ? (
@@ -61,11 +58,7 @@ export function LiveMapWidget({ instanceId: _instanceId, onRemove, onExpandWidth
           )}
         </Box>
 
-        <Box sx={{ flexShrink: 0 }}>
-          <Button component={Link} to={paths.map} size="small">
-            {t('common.viewAll')}
-          </Button>
-        </Box>
+        <MoreLink to={paths.map}>{t('common.viewAll')}</MoreLink>
       </Stack>
     </WidgetShell>
   );

@@ -1,6 +1,5 @@
-import { Box, Button, Chip, Divider, Stack, Typography } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
 
 import { projectsApi } from '../../../api/projects';
 import { projectStatuses, type ProjectStatus } from '../../../api/types';
@@ -10,6 +9,7 @@ import { paths } from '../../../routes/paths';
 import { formatDate } from '../../../utils/formatting';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
+import { EmptyNote, InsetList, InsetRow, MoreLink, Pill } from './widgetUi';
 
 const SHOWN = 6;
 const ENDING_SOON_DAYS = 14;
@@ -69,62 +69,45 @@ export function ActiveProjectsWidget({ instanceId: _instanceId, onRemove, onExpa
       onExpandWidth={onExpandWidth}
     >
       <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
-        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1, flexShrink: 0 }}>
+        <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1, flexShrink: 0 }}>
           {projectStatuses
             .filter((status) => (countByStatus.get(status) ?? 0) > 0)
             .map((status) => (
-              <Chip
-                key={status}
-                color={status === 'Active' ? 'primary' : 'default'}
-                label={`${enumLabel('projectStatus', status)}: ${countByStatus.get(status)}`}
-                sx={{ fontWeight: 700 }}
-              />
+              <Pill key={status} tone={status === 'Active' ? 'accent' : 'neutral'} sx={{ fontSize: '0.85rem', px: 1.5, py: 0.25 }}>
+                {`${enumLabel('projectStatus', status)}: ${countByStatus.get(status)}`}
+              </Pill>
             ))}
         </Stack>
 
         {rows.length === 0 && !query.isLoading ? (
-          <Typography color="text.secondary" variant="body2">
-            {t('dashboard.activeProjects.empty')}
-          </Typography>
+          <EmptyNote>{t('dashboard.activeProjects.empty')}</EmptyNote>
         ) : (
           <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-            {rows.map(({ project, noCrew, endsIn }, index) => (
-              <Box key={project.id}>
-                {index > 0 && <Divider sx={{ my: 0.75 }} />}
-                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography
-                      component={Link}
-                      to={paths.projectDetail(project.id)}
-                      variant="body2"
-                      noWrap
-                      sx={{ fontWeight: 700, color: 'text.primary', textDecoration: 'none', display: 'block' }}
-                    >
-                      {project.name}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {t('dashboard.activeProjects.crew', { count: project.employeeCount })}
-                      {project.endDate ? ` · ${t('dashboard.activeProjects.ends', { date: formatDate(project.endDate) })}` : ''}
-                    </Typography>
-                  </Box>
-                  {noCrew && <Chip size="small" color="warning" label={t('dashboard.activeProjects.noCrew')} />}
-                  {endsIn !== null && endsIn >= 0 && endsIn <= ENDING_SOON_DAYS && (
-                    <Chip size="small" color="info" label={t('dashboard.activeProjects.endingSoon', { count: endsIn })} />
-                  )}
-                  {endsIn !== null && endsIn < 0 && (
-                    <Chip size="small" color="error" label={t('dashboard.activeProjects.overdue')} />
-                  )}
-                </Stack>
-              </Box>
-            ))}
+            <InsetList>
+              {rows.map(({ project, noCrew, endsIn }) => (
+                <InsetRow
+                  key={project.id}
+                  to={paths.projectDetail(project.id)}
+                  primary={project.name}
+                  secondary={`${t('dashboard.activeProjects.crew', { count: project.employeeCount })}${
+                    project.endDate ? ` · ${t('dashboard.activeProjects.ends', { date: formatDate(project.endDate) })}` : ''
+                  }`}
+                  action={
+                    <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
+                      {noCrew && <Pill tone="warn">{t('dashboard.activeProjects.noCrew')}</Pill>}
+                      {endsIn !== null && endsIn >= 0 && endsIn <= ENDING_SOON_DAYS && (
+                        <Pill tone="warn">{t('dashboard.activeProjects.endingSoon', { count: endsIn })}</Pill>
+                      )}
+                      {endsIn !== null && endsIn < 0 && <Pill tone="bad">{t('dashboard.activeProjects.overdue')}</Pill>}
+                    </Stack>
+                  }
+                />
+              ))}
+            </InsetList>
           </Box>
         )}
 
-        <Typography variant="body2" sx={{ flexShrink: 0 }}>
-          <Button component={Link} to={paths.projects} size="small">
-            {t('common.viewAll')}
-          </Button>
-        </Typography>
+        <MoreLink to={paths.projects}>{t('common.viewAll')}</MoreLink>
       </Stack>
     </WidgetShell>
   );

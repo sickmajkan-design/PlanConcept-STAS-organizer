@@ -86,7 +86,7 @@ describe('ActiveProjectsWidget', () => {
 
     await screen.findByText(/^No crew$/);
     const names = screen.getAllByRole('link').map((el) => el.textContent);
-    expect(names[0]).toBe('Nema radnika');
+    expect(names[0]).toMatch(/^Nema radnika/);
   }, SCREEN_TIMEOUT);
 
   it('flags a project ending soon and one already overdue, and sorts the overdue one first', async () => {
@@ -108,7 +108,7 @@ describe('ActiveProjectsWidget', () => {
     expect(screen.getByText(/^Ends in 5 days$/)).toBeDefined();
 
     const names = screen.getAllByRole('link').map((el) => el.textContent);
-    expect(names[0]).toBe('Kasni');
+    expect(names[0]).toMatch(/^Kasni/);
   }, SCREEN_TIMEOUT);
 
   it('does not flag a project with no end date or one far in the future', async () => {
@@ -128,7 +128,7 @@ describe('ActiveProjectsWidget', () => {
 
     await renderWidget();
 
-    const link = await screen.findByRole('link', { name: 'Rezidencija Vrbas' });
+    const link = await screen.findByRole('link', { name: /^Rezidencija Vrbas/ });
     expect(link.getAttribute('href')).toBe('/projects/p1');
     expect(screen.getByRole('link', { name: /View all|Prika/i }).getAttribute('href')).toBe('/projects');
   }, SCREEN_TIMEOUT);

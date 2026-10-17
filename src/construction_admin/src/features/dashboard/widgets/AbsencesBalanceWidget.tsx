@@ -1,7 +1,6 @@
-import { Avatar, Box, Button, Chip, Divider, List, ListItem, ListItemAvatar, ListItemText, Stack, Typography } from '@mui/material';
+import { Avatar, Box, Stack } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
 
 import { absencesApi } from '../../../api/absences';
 import { timeEntriesApi } from '../../../api/timeEntries';
@@ -13,6 +12,7 @@ import { chartPalette } from '../../../theme';
 import { useElementSize } from '../useElementSize';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
+import { InsetList, InsetRow, MoreLink, Pill } from './widgetUi';
 
 const today = () => new Date().toISOString().slice(0, 10);
 // 100 is GetTimeEntriesQuery's own max page size — a bigger request 400s.
@@ -70,18 +70,14 @@ export function AbsencesBalanceWidget({ instanceId: _instanceId, onRemove, onExp
   return (
     <WidgetShell title={t('dashboard.widget.AbsencesBalance')} isLoading={isLoading} error={error} onRemove={onRemove} onExpandWidth={onExpandWidth}>
       <Stack spacing={2} sx={{ flex: 1, minHeight: 0 }}>
-        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1, flexShrink: 0 }}>
-          <Chip
-            color="primary"
-            label={t('dashboard.absencesBalance.onSiteNow', { count: onSiteEntries.length })}
-            sx={{ fontWeight: 700 }}
-          />
-          <Chip
-            color={pendingCount > 0 ? 'warning' : 'default'}
-            label={t('dashboard.absencesBalance.pending', { count: pendingCount })}
-            sx={{ fontWeight: 700 }}
-          />
-          <Chip label={t('dashboard.absencesBalance.onLeaveToday', { count: activeCount })} sx={{ fontWeight: 700 }} />
+        <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1, flexShrink: 0 }}>
+          <Pill tone="accent" sx={{ fontSize: '0.85rem', px: 1.5, py: 0.25 }}>
+            {t('dashboard.absencesBalance.onSiteNow', { count: onSiteEntries.length })}
+          </Pill>
+          <Pill tone={pendingCount > 0 ? 'warn' : 'neutral'} sx={{ fontSize: '0.85rem', px: 1.5, py: 0.25 }}>
+            {t('dashboard.absencesBalance.pending', { count: pendingCount })}
+          </Pill>
+          <Pill sx={{ fontSize: '0.85rem', px: 1.5, py: 0.25 }}>{t('dashboard.absencesBalance.onLeaveToday', { count: activeCount })}</Pill>
         </Stack>
 
         {byProject.length > 0 && (
@@ -110,31 +106,24 @@ export function AbsencesBalanceWidget({ instanceId: _instanceId, onRemove, onExp
 
         {pendingItems.length > 0 && (
           <Box sx={{ flexShrink: 0 }}>
-            <Divider sx={{ mb: 1 }} />
-            <List dense disablePadding>
+            <InsetList>
               {pendingItems.map((absence) => (
-                <ListItem key={absence.id} disableGutters>
-                  <ListItemAvatar sx={{ minWidth: 44 }}>
+                <InsetRow
+                  key={absence.id}
+                  leading={
                     <Avatar sx={{ width: 32, height: 32, fontSize: 13, bgcolor: 'secondary.main' }}>
                       {initialsOf(...splitName(absence.employeeName))}
                     </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={absence.employeeName}
-                    secondary={`${enumLabel('absenceType', absence.type)} · ${formatDate(absence.startDate)} - ${formatDate(absence.endDate)}`}
-                    slotProps={{ primary: { sx: { fontWeight: 600 } } }}
-                  />
-                </ListItem>
+                  }
+                  primary={absence.employeeName}
+                  secondary={`${enumLabel('absenceType', absence.type)} · ${formatDate(absence.startDate)} - ${formatDate(absence.endDate)}`}
+                />
               ))}
-            </List>
+            </InsetList>
           </Box>
         )}
 
-        <Typography variant="body2" sx={{ flexShrink: 0 }}>
-          <Button component={Link} to={paths.absences} size="small">
-            {t('common.viewAll')}
-          </Button>
-        </Typography>
+        <MoreLink to={paths.absences}>{t('common.viewAll')}</MoreLink>
       </Stack>
     </WidgetShell>
   );

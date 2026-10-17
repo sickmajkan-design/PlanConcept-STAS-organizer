@@ -1,4 +1,4 @@
-import { Box, Button, LinearProgress, Stack, Typography } from '@mui/material';
+import { Box, Button, Stack, Typography } from '@mui/material';
 import { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 
@@ -12,28 +12,26 @@ import type { DashboardWidgetProps } from '../widgetTypes';
 import { StatTile } from './StatTile';
 import { ProjectSettingsDialog } from './WidgetSettingsDialog';
 import { WidgetShell } from './WidgetShell';
+import { SoftBar } from './widgetUi';
 
 function Bar({ label, value, hint }: { label: string; value: number | null; hint: string }) {
   if (value === null) return null;
 
-  // Bar stops at full; the number beside it goes on past 100 so an overrun is not hidden.
+  // The bar stops at full; the number beside it goes on past 100 so an overrun is not hidden.
+  const tone = value > 100 ? 'bad' : value >= 85 ? 'warn' : 'accent';
+
   return (
-    <Box>
-      <Stack direction="row" sx={{ justifyContent: 'space-between', mb: 0.5, gap: 1 }}>
-        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+    <Box sx={{ display: 'grid', gap: 0.75 }}>
+      <Stack direction="row" sx={{ justifyContent: 'space-between', gap: 1, alignItems: 'baseline' }}>
+        <Typography variant="body2" sx={{ fontWeight: 500 }}>
           {label}
         </Typography>
-        <Typography variant="body2" sx={{ fontWeight: 700 }} color={value > 100 ? 'error.main' : 'text.primary'}>
+        <Typography variant="body2" sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }} color={value > 100 ? 'error.main' : 'text.primary'}>
           {value.toFixed(1)}%
         </Typography>
       </Stack>
-      <LinearProgress
-        variant="determinate"
-        value={Math.min(100, value)}
-        color={value > 100 ? 'error' : 'primary'}
-        sx={{ height: 8, borderRadius: 4 }}
-      />
-      <Typography variant="caption" color="text.secondary">
+      <SoftBar value={Math.min(100, value)} tone={tone} marker={85} label={label} />
+      <Typography variant="caption" color="text.secondary" sx={{ fontVariantNumeric: 'tabular-nums' }}>
         {hint}
       </Typography>
     </Box>
@@ -53,13 +51,12 @@ export function ProjectFocusWidget({ settings, onSettingsChange, onRemove, onExp
   const { data, isLoading, error } = useProjectFinanceSummary(projectId || undefined);
   const [configuring, setConfiguring] = useState(false);
 
-  const title = [t('dashboard.widget.ProjectFocus'), data?.projectName, projectId ? formatPeriod(period.from, period.to) : '']
-    .filter(Boolean)
-    .join(' — ');
+  const subtitle = [data?.projectName, projectId ? formatPeriod(period.from, period.to) : ''].filter(Boolean).join(' · ');
 
   return (
     <WidgetShell
-      title={title}
+      title={t('dashboard.widget.ProjectFocus')}
+      subtitle={subtitle}
       isLoading={!!projectId && isLoading}
       error={projectId ? error : undefined}
       onRemove={onRemove}
@@ -80,7 +77,7 @@ export function ProjectFocusWidget({ settings, onSettingsChange, onRemove, onExp
       ) : (
         data && (
           <Stack spacing={2} sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.25 }}>
               <StatTile label={t('finance.revenue')} value={formatMoney(data.period.revenue, locale)} icon={null} accent="#00897b" />
               <StatTile label={t('finance.expense')} value={formatMoney(data.period.expense, locale)} icon={null} accent="#e65100" />
               <StatTile

@@ -44,13 +44,12 @@ export function CostBreakdownWidget({ settings, onSettingsChange, onRemove, onEx
     .filter((item) => item.amount > 0)
     .map((item) => ({ id: item.kind, label: t(KIND_LABEL[item.kind] ?? 'finance.expense'), value: item.amount }));
 
-  const title = [t('dashboard.widget.CostBreakdown'), projectName, formatPeriod(period.from, period.to)]
-    .filter(Boolean)
-    .join(' — ');
+  const subtitle = [projectName, formatPeriod(period.from, period.to)].filter(Boolean).join(' · ');
 
   return (
     <WidgetShell
-      title={title}
+      title={t('dashboard.widget.CostBreakdown')}
+      subtitle={subtitle}
       isLoading={isLoading}
       error={error}
       onRemove={onRemove}

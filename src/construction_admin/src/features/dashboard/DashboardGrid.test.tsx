@@ -346,7 +346,7 @@ describe('HomePage dashboard', () => {
 
       expect(screen.getByText('50.0%')).toBeDefined();
       expect(screen.getByText('480.00 / 400.00')).toBeDefined();
-      expect(screen.getByText(/Project in focus — Rezidencija/)).toBeDefined();
+      expect(screen.getByText(/Rezidencija/)).toBeDefined();
     });
 
     it('keeps a widgets settings in the saved layout when they are changed', async () => {

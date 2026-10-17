@@ -1,14 +1,6 @@
 import { useBranchFilter } from '../../branches/BranchContext';
-import {
-  AssignmentTurnedInOutlined,
-  BuildOutlined,
-  GroupsOutlined,
-  LocalShippingOutlined,
-  PaidOutlined,
-} from '@mui/icons-material';
-import { Box, Chip, Stack } from '@mui/material';
+import { Box } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
-import { Link as RouterLink } from 'react-router-dom';
 
 import { canViewFinance } from '../../../auth/authHelpers';
 import { useAuth } from '../../../auth/useAuth';
@@ -102,88 +94,32 @@ export function CompanyKpiWidget({ instanceId: _instanceId, onRemove, onExpandWi
   const toolsAvailable = toolsQuery.data?.items.filter((tool) => tool.status === 'Available').length ?? 0;
   const overdueCount = overdueWorkItemsQuery.data?.totalCount ?? 0;
 
-  const links = [
-    ...(mayViewFinance ? [{ to: paths.costs, label: t('nav.costs') }] : []),
-    { to: paths.employees, label: t('nav.employees') },
-    { to: paths.workItems, label: t('nav.workItems') },
-    { to: paths.vehicles, label: t('nav.vehicles') },
-    { to: paths.tools, label: t('nav.tools') },
-  ];
-
   return (
     <WidgetShell title={t('dashboard.widget.CompanyKpi')} isLoading={isLoading} error={error} onRemove={onRemove} onExpandWidth={onExpandWidth}>
-      <Stack spacing={2} sx={{ flex: 1, minHeight: 0 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: 1.5,
-            flex: 1,
-            alignContent: 'flex-start',
-          }}
-        >
-          {/* A month with no costs recorded shows no cost tile at all, rather than a zero. */}
-          {(costQuery.data?.total ?? 0) > 0 && (
-            <StatTile
-              icon={<PaidOutlined fontSize="small" />}
-              label={t('dashboard.companyKpi.costThisMonth')}
-              value={formatMoney(costQuery.data?.total ?? 0, locale)}
-              accent="#e65100"
-            />
-          )}
-          <StatTile
-            icon={<GroupsOutlined fontSize="small" />}
-            label={t('dashboard.companyKpi.activeEmployees')}
-            value={String(employeesQuery.data?.totalCount ?? 0)}
-            accent="#37474f"
-          />
-          <StatTile
-            icon={<AssignmentTurnedInOutlined fontSize="small" />}
-            label={t('dashboard.companyKpi.openWorkItems')}
-            value={String(openWorkItemsQuery.data?.totalCount ?? 0)}
-            hint={overdueCount > 0 ? t('dashboard.companyKpi.overdue', { count: overdueCount }) : undefined}
-            hintColor="warning.main"
-            accent="#f9a825"
-          />
-          <StatTile
-            icon={<LocalShippingOutlined fontSize="small" />}
-            label={t('dashboard.companyKpi.vehiclesAvailable')}
-            value={`${vehiclesAvailable} / ${vehiclesQuery.data?.totalCount ?? 0}`}
-            accent="#00897b"
-          />
-          <StatTile
-            icon={<BuildOutlined fontSize="small" />}
-            label={t('dashboard.companyKpi.toolsAvailable')}
-            value={`${toolsAvailable} / ${toolsQuery.data?.totalCount ?? 0}`}
-            accent="#8d6e63"
-          />
-        </Box>
-
-        {/* One row that scrolls sideways on a phone, so the chips are not cut off by the card's edge. */}
-        <Stack
-          direction="row"
-          spacing={1}
-          sx={{
-            flexWrap: { xs: 'nowrap', sm: 'wrap' },
-            overflowX: { xs: 'auto', sm: 'visible' },
-            rowGap: 1,
-            flexShrink: 0,
-            '& .MuiChip-root': { flexShrink: 0 },
-          }}
-        >
-          {links.map((link) => (
-            <Chip
-              key={link.to}
-              component={RouterLink}
-              to={link.to}
-              clickable
-              size="small"
-              label={link.label}
-              variant="outlined"
-            />
-          ))}
-        </Stack>
-      </Stack>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.25, flex: 1, alignContent: 'flex-start' }}>
+        {/* A month with no costs recorded shows no cost tile at all, rather than a zero. */}
+        {(costQuery.data?.total ?? 0) > 0 && (
+          <StatTile label={t('dashboard.companyKpi.costThisMonth')} value={formatMoney(costQuery.data?.total ?? 0, locale)} to={paths.costs} />
+        )}
+        <StatTile label={t('dashboard.companyKpi.activeEmployees')} value={String(employeesQuery.data?.totalCount ?? 0)} to={paths.employees} />
+        <StatTile
+          label={t('dashboard.companyKpi.openWorkItems')}
+          value={String(openWorkItemsQuery.data?.totalCount ?? 0)}
+          hint={overdueCount > 0 ? t('dashboard.companyKpi.overdue', { count: overdueCount }) : undefined}
+          hintColor="warning.main"
+          to={paths.workItems}
+        />
+        <StatTile
+          label={t('dashboard.companyKpi.vehiclesAvailable')}
+          value={`${vehiclesAvailable} / ${vehiclesQuery.data?.totalCount ?? 0}`}
+          to={paths.vehicles}
+        />
+        <StatTile
+          label={t('dashboard.companyKpi.toolsAvailable')}
+          value={`${toolsAvailable} / ${toolsQuery.data?.totalCount ?? 0}`}
+          to={paths.tools}
+        />
+      </Box>
     </WidgetShell>
   );
 }

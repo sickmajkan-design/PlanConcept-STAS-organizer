@@ -41,7 +41,8 @@ export function SpendingTrendWidget({ onRemove, onExpandWidth }: DashboardWidget
 
   return (
     <WidgetShell
-      title={`${t('dashboard.widget.SpendingTrend')} — ${formatPeriod(period.from, period.to)}`}
+      title={t('dashboard.widget.SpendingTrend')}
+      subtitle={formatPeriod(period.from, period.to)}
       isLoading={isLoading}
       error={error}
       onRemove={onRemove}

@@ -1,7 +1,6 @@
 import { CheckOutlined, CloseOutlined } from '@mui/icons-material';
-import { Box, Button, Divider, IconButton, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, IconButton, Stack, Tooltip } from '@mui/material';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 
 import type { Absence } from '../../../api/types';
 import { useAuth } from '../../../auth/useAuth';
@@ -14,6 +13,7 @@ import { ApproveAbsenceDialog } from '../../absences/ApproveAbsenceDialog';
 import { useAbsencesQuery, useReviewAbsence } from '../../absences/useAbsences';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
+import { EmptyNote, InsetList, InsetRow, MoreLink } from './widgetUi';
 
 const SHOWN = 6;
 
@@ -50,67 +50,60 @@ export function AbsenceRequestsWidget({ instanceId: _instanceId, onRemove, onExp
       onExpandWidth={onExpandWidth}
     >
       {items.length === 0 && !query.isLoading ? (
-        <Typography color="text.secondary" variant="body2">
-          {t('dashboard.absenceRequests.empty')}
-        </Typography>
+        <EmptyNote>{t('dashboard.absenceRequests.empty')}</EmptyNote>
       ) : (
-        <Stack spacing={1} sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-          {items.map((absence, index) => {
-            const own = !!user?.employeeId && absence.employeeId === user.employeeId;
+        <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+          <InsetList>
+            {items.map((absence) => {
+              const own = !!user?.employeeId && absence.employeeId === user.employeeId;
 
-            return (
-              <Box key={absence.id}>
-                {index > 0 && <Divider sx={{ mb: 1 }} />}
-                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 700 }} noWrap>
-                      {absence.employeeName}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {enumLabel('absenceType', absence.type)} · {formatDate(absence.startDate)} - {formatDate(absence.endDate)} ·{' '}
-                      {t('dashboard.absenceRequests.days', { count: absence.dayCount })}
-                    </Typography>
-                  </Box>
-                  <Tooltip title={own ? t('dashboard.absenceRequests.own') : t('absences.approve')}>
-                    <span>
-                      <IconButton
-                        size="small"
-                        color="success"
-                        aria-label={t('absences.approve')}
-                        disabled={own || review.isPending}
-                        onClick={() => setGranting(absence)}
-                      >
-                        <CheckOutlined fontSize="small" />
-                      </IconButton>
-                    </span>
-                  </Tooltip>
-                  <Tooltip title={own ? t('dashboard.absenceRequests.own') : t('absences.reject')}>
-                    <span>
-                      <IconButton
-                        size="small"
-                        color="error"
-                        aria-label={t('absences.reject')}
-                        disabled={own || review.isPending}
-                        onClick={() => setDeclining(absence)}
-                      >
-                        <CloseOutlined fontSize="small" />
-                      </IconButton>
-                    </span>
-                  </Tooltip>
-                </Stack>
-              </Box>
-            );
-          })}
-        </Stack>
+              return (
+                <InsetRow
+                  key={absence.id}
+                  primary={absence.employeeName}
+                  secondary={`${enumLabel('absenceType', absence.type)} · ${formatDate(absence.startDate)} - ${formatDate(absence.endDate)} · ${t('dashboard.absenceRequests.days', { count: absence.dayCount })}`}
+                  action={
+                    <Stack direction="row" spacing={0.5} sx={{ flexShrink: 0 }}>
+                      <Tooltip title={own ? t('dashboard.absenceRequests.own') : t('absences.approve')}>
+                        <span>
+                          <IconButton
+                            size="small"
+                            color="success"
+                            aria-label={t('absences.approve')}
+                            disabled={own || review.isPending}
+                            onClick={() => setGranting(absence)}
+                            sx={{ bgcolor: 'action.hover' }}
+                          >
+                            <CheckOutlined fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                      <Tooltip title={own ? t('dashboard.absenceRequests.own') : t('absences.reject')}>
+                        <span>
+                          <IconButton
+                            size="small"
+                            color="error"
+                            aria-label={t('absences.reject')}
+                            disabled={own || review.isPending}
+                            onClick={() => setDeclining(absence)}
+                            sx={{ bgcolor: 'action.hover' }}
+                          >
+                            <CloseOutlined fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    </Stack>
+                  }
+                />
+              );
+            })}
+          </InsetList>
+        </Box>
       )}
 
-      <Typography variant="body2" sx={{ flexShrink: 0, mt: 1 }}>
-        <Button component={Link} to={paths.absences} size="small">
-          {total > items.length
-            ? t('dashboard.absenceRequests.viewAll', { count: total })
-            : t('common.viewAll')}
-        </Button>
-      </Typography>
+      <MoreLink to={paths.absences}>
+        {total > items.length ? t('dashboard.absenceRequests.viewAll', { count: total }) : t('common.viewAll')}
+      </MoreLink>
 
       <ApproveAbsenceDialog absence={granting} onClose={() => setGranting(null)} />
 

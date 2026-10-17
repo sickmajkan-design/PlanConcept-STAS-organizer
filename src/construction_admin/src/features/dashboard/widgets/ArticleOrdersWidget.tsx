@@ -1,5 +1,4 @@
-import { Box, Button, Chip, Divider, Stack, Typography } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { Box, Stack, Typography } from '@mui/material';
 
 import { ArticleOrderActions } from '../../articleOrders/ArticleOrderActions';
 import { useArticleOrdersQuery } from '../../articleOrders/useArticleOrders';
@@ -7,6 +6,7 @@ import { useT } from '../../../i18n/useI18n';
 import { paths } from '../../../routes/paths';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
+import { EmptyNote, MoreLink, Pill } from './widgetUi';
 
 const SHOWN = 5;
 
@@ -31,44 +31,57 @@ export function ArticleOrdersWidget({ instanceId: _instanceId, onRemove, onExpan
       onRemove={onRemove}
       onExpandWidth={onExpandWidth}
     >
-      <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 1 }}>
+      <Stack direction="row" useFlexGap sx={{ flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
         {(['Requested', 'Ordered', 'InDelivery'] as const).map((status) => (
-          <Chip
-            key={status}
-            size="small"
-            color={status === 'Requested' && count(status) > 0 ? 'warning' : 'default'}
-            label={`${t(`articleOrders.status.${status}`)}: ${count(status)}`}
-          />
+          <Pill key={status} tone={status === 'Requested' && count(status) > 0 ? 'warn' : 'neutral'} sx={{ fontSize: '0.85rem', px: 1.5, py: 0.25 }}>
+            {`${t(`articleOrders.status.${status}`)}: ${count(status)}`}
+          </Pill>
         ))}
       </Stack>
 
       {shown.length === 0 && !query.isLoading ? (
-        <Typography color="text.secondary" variant="body2">
-          {t('dashboard.articleOrders.empty')}
-        </Typography>
+        <EmptyNote>{t('dashboard.articleOrders.empty')}</EmptyNote>
       ) : (
-        <Stack spacing={1} sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-          {shown.map((order, index) => (
-            <Box key={order.id}>
-              {index > 0 && <Divider sx={{ mb: 1 }} />}
-              <Typography variant="body2" sx={{ fontWeight: 700 }} noWrap>
-                {order.requestedByName}
-                {order.urgent ? ` · ${t('articleOrders.urgentChip')}` : ''}
-              </Typography>
+        <Box
+          sx={{
+            display: 'grid',
+            gap: 1.25,
+            alignContent: 'start',
+            flex: 1,
+            minHeight: 0,
+            overflow: 'auto',
+            gridTemplateColumns: '1fr',
+            '@container widget (min-width: 640px)': { gridTemplateColumns: '1fr 1fr' },
+          }}
+        >
+          {shown.map((order) => (
+            <Box
+              key={order.id}
+              sx={(theme) => ({
+                borderRadius: '16px',
+                px: 1.75,
+                py: 1.4,
+                display: 'grid',
+                gap: 0.5,
+                bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(31,27,22,0.04)',
+              })}
+            >
+              <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, flex: 1, minWidth: 0 }} noWrap>
+                  {order.requestedByName}
+                </Typography>
+                {order.urgent && <Pill tone="bad">{t('articleOrders.urgentChip')}</Pill>}
+              </Stack>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
                 {order.items.map((item) => `${item.quantity} ${item.unit ?? ''} ${item.name}`.replace('  ', ' ')).join(', ')}
               </Typography>
               <ArticleOrderActions order={order} compact />
             </Box>
           ))}
-        </Stack>
+        </Box>
       )}
 
-      <Typography variant="body2" sx={{ flexShrink: 0, mt: 1 }}>
-        <Button component={Link} to={paths.articleOrders} size="small">
-          {t('common.viewAll')}
-        </Button>
-      </Typography>
+      <MoreLink to={paths.articleOrders}>{t('common.viewAll')}</MoreLink>
     </WidgetShell>
   );
 }

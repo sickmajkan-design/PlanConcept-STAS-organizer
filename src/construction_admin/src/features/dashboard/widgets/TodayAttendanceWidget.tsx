@@ -1,6 +1,5 @@
 import { AccessTimeOutlined } from '@mui/icons-material';
-import { Avatar, Box, Button, Chip, List, ListItem, ListItemAvatar, ListItemText, Stack, Typography } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { Avatar, Box, Stack } from '@mui/material';
 
 import { useTimeEntriesQuery, useTimeEntrySummaryQuery } from '../../timeEntries/useTimeEntries';
 import { useFormatRelative } from '../../../i18n/useFormatRelative';
@@ -9,6 +8,7 @@ import { paths } from '../../../routes/paths';
 import { formatTimeOfDay, initialsOf, splitMinutes } from '../../../utils/formatting';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
+import { EmptyNote, InsetList, InsetRow, MoreLink, Pill } from './widgetUi';
 
 const ON_SITE_PAGE_SIZE = 100;
 const SHOWN = 8;
@@ -53,50 +53,43 @@ export function TodayAttendanceWidget({ instanceId: _instanceId, onRemove, onExp
   return (
     <WidgetShell title={t('dashboard.widget.TodayAttendance')} isLoading={isLoading} error={error} onRemove={onRemove} onExpandWidth={onExpandWidth}>
       <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
-        <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1, flexShrink: 0 }}>
-          <Chip
-            color="primary"
-            label={t('dashboard.todayAttendance.onSiteNow', { count: openQuery.data?.totalCount ?? 0 })}
-            sx={{ fontWeight: 700 }}
-          />
-          <Chip
-            label={t('dashboard.todayAttendance.hoursToday', { hours: totalToday.hours, minutes: totalToday.minutes })}
-            sx={{ fontWeight: 700 }}
-          />
+        <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1, flexShrink: 0 }}>
+          <Pill tone="accent" sx={{ fontSize: '0.85rem', px: 1.5, py: 0.25 }}>
+            {t('dashboard.todayAttendance.onSiteNow', { count: openQuery.data?.totalCount ?? 0 })}
+          </Pill>
+          <Pill sx={{ fontSize: '0.85rem', px: 1.5, py: 0.25 }}>
+            {t('dashboard.todayAttendance.hoursToday', { hours: totalToday.hours, minutes: totalToday.minutes })}
+          </Pill>
           {pendingCount > 0 && (
-            <Chip color="warning" label={t('dashboard.todayAttendance.pending', { count: pendingCount })} sx={{ fontWeight: 700 }} />
+            <Pill tone="warn" sx={{ fontSize: '0.85rem', px: 1.5, py: 0.25 }}>
+              {t('dashboard.todayAttendance.pending', { count: pendingCount })}
+            </Pill>
           )}
         </Stack>
 
         {entries.length === 0 ? (
-          <Typography color="text.secondary" variant="body2">
-            {t('dashboard.todayAttendance.empty')}
-          </Typography>
+          <EmptyNote>{t('dashboard.todayAttendance.empty')}</EmptyNote>
         ) : (
-          <List dense disablePadding sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-            {entries.map((entry) => (
-              <ListItem key={entry.id} disableGutters>
-                <ListItemAvatar sx={{ minWidth: 44 }}>
-                  <Avatar sx={{ width: 32, height: 32, fontSize: 13, bgcolor: 'primary.main' }}>
-                    {initialsOf(...splitName(entry.employeeName))}
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText
+          <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+            <InsetList>
+              {entries.map((entry) => (
+                <InsetRow
+                  key={entry.id}
+                  leading={
+                    <Avatar sx={{ width: 32, height: 32, fontSize: 13, bgcolor: 'primary.main' }}>
+                      {initialsOf(...splitName(entry.employeeName))}
+                    </Avatar>
+                  }
                   primary={entry.employeeName}
                   secondary={`${entry.projectName ?? '—'} · ${formatTimeOfDay(entry.startedAt)} (${formatRelative(entry.startedAt)})`}
-                  slotProps={{ primary: { sx: { fontWeight: 600 } } }}
+                  action={<AccessTimeOutlined fontSize="small" sx={{ color: 'text.disabled', flexShrink: 0 }} />}
                 />
-                <AccessTimeOutlined fontSize="small" sx={{ color: 'text.disabled', flexShrink: 0 }} />
-              </ListItem>
-            ))}
-          </List>
+              ))}
+            </InsetList>
+          </Box>
         )}
 
-        <Box sx={{ flexShrink: 0 }}>
-          <Button component={Link} to={paths.timeEntries} size="small">
-            {t('common.viewAll')}
-          </Button>
-        </Box>
+        <MoreLink to={paths.timeEntries}>{t('common.viewAll')}</MoreLink>
       </Stack>
     </WidgetShell>
   );

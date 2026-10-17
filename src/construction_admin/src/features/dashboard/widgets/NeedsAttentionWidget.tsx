@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Box, Chip, Stack, Typography } from '@mui/material';
-import { Link } from 'react-router-dom';
+import { Box } from '@mui/material';
 
 import { attentionApi, type AttentionGroup, type AttentionItem } from '../../../api/attention';
 import type { MessageKey } from '../../../i18n/en';
@@ -10,8 +9,12 @@ import { formatDate } from '../../../utils/formatting';
 import { useExpiringDocumentsQuery } from '../../attachments/useAttachments';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
+import { EmptyNote, InsetList, InsetRow } from './widgetUi';
 
 export const DOCUMENT_WINDOW_DAYS = 30;
+
+/** What stops people, or is already late: shown in red rather than amber. */
+const URGENT = new Set(['virusScanner', 'lateInvoices', 'lateCosts']);
 
 /** Where each kind of thing is dealt with. */
 export const DESTINATIONS: Record<string, string> = {
@@ -104,38 +107,29 @@ export function NeedsAttentionWidget({ instanceId: _instanceId, onRemove, onExpa
   return (
     <WidgetShell
       title={t('dashboard.widget.NeedsAttention')}
+      subtitle={groups.length > 0 ? t('dashboard.needsAttention.count', { count: groups.length }) : undefined}
       isLoading={isLoading}
       error={bothFailed ? attentionError : undefined}
       onRemove={onRemove}
       onExpandWidth={onExpandWidth}
     >
       {isEmpty ? (
-        <Typography color="text.secondary" variant="body2">
-          {t('dashboard.needsAttention.empty')}
-        </Typography>
+        <EmptyNote>{t('dashboard.needsAttention.empty')}</EmptyNote>
       ) : (
-        <Stack spacing={0.5} sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-          {groups.map((group) => (
-            <Box
-              key={group.key}
-              component={Link}
-              to={DESTINATIONS[group.key] ?? paths.home}
-              sx={{ display: 'block', color: 'inherit', textDecoration: 'none', borderRadius: 1.5, p: 1, '&:hover': { bgcolor: 'action.hover' } }}
-            >
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                <Typography variant="body2" sx={{ fontWeight: 700, flex: 1, minWidth: 0 }}>
-                  {t(`attention.${group.key}` as MessageKey)}
-                </Typography>
-                <Chip size="small" color="warning" label={group.count} sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }} />
-              </Stack>
-              {group.items.map((item, i) => (
-                <Typography key={i} variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
-                  {example(group, item)}
-                </Typography>
-              ))}
-            </Box>
-          ))}
-        </Stack>
+        <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', display: 'grid', gap: 1.25, alignContent: 'start' }}>
+          <InsetList>
+            {groups.map((group) => (
+              <InsetRow
+                key={group.key}
+                to={DESTINATIONS[group.key] ?? paths.home}
+                tone={URGENT.has(group.key) ? 'bad' : 'warn'}
+                primary={t(`attention.${group.key}` as MessageKey)}
+                secondary={group.items.length > 0 ? group.items.map((item) => example(group, item)).join(' · ') : undefined}
+                badge={group.count}
+              />
+            ))}
+          </InsetList>
+        </Box>
       )}
     </WidgetShell>
   );

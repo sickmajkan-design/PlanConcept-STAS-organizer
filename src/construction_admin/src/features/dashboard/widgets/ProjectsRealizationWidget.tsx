@@ -1,4 +1,4 @@
-import { Alert, Box, Button, Divider, LinearProgress, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Divider, Stack, Typography } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { PieChart } from '@mui/x-charts/PieChart';
 import { useQuery } from '@tanstack/react-query';
@@ -13,6 +13,7 @@ import { formatMoney } from '../../../utils/formatting';
 import { useElementSize } from '../useElementSize';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
+import { BarRow, EmptyNote, MoreLink } from './widgetUi';
 
 const TOP_N = 5;
 
@@ -86,33 +87,30 @@ export function ProjectsRealizationWidget({ instanceId: _instanceId, onRemove, o
     >
       <Stack spacing={2} sx={{ flex: 1, minHeight: 0 }}>
         {rows.length === 0 ? (
-          <Typography color="text.secondary" variant="body2">
-            {t('dashboard.projectsRealization.empty')}
-          </Typography>
+          <EmptyNote>{t('dashboard.projectsRealization.empty')}</EmptyNote>
         ) : (
-          <Stack spacing={1.75} sx={{ flexShrink: 0 }}>
+          <Box
+            sx={{
+              display: 'grid',
+              gap: 2,
+              flexShrink: 0,
+              // One column on a narrow widget, two once it is wide enough to hold them.
+              gridTemplateColumns: '1fr',
+              '@container widget (min-width: 640px)': { gridTemplateColumns: '1fr 1fr' },
+            }}
+          >
             {rows.map((row) => (
-              <Box key={row.projectId}>
-                <Stack direction="row" sx={{ justifyContent: 'space-between', mb: 0.5, alignItems: 'baseline' }}>
-                  <Typography variant="body1" noWrap sx={{ fontWeight: 700, maxWidth: '60%' }}>
-                    {row.projectName}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600 }}>
-                    {formatMoney(row.realizedToDate, locale)} / {formatMoney(row.contractValue, locale)}
-                  </Typography>
-                </Stack>
-                <LinearProgress
-                  variant="determinate"
-                  value={Math.min(100, row.percentOfContract ?? 0)}
-                  sx={{ height: 8, borderRadius: 999 }}
-                />
-              </Box>
+              <BarRow
+                key={row.projectId}
+                label={row.projectName}
+                value={`${formatMoney(row.realizedToDate, locale)} / ${formatMoney(row.contractValue, locale)}`}
+                percent={row.percentOfContract ?? 0}
+                tone={(row.percentOfContract ?? 0) >= 100 ? 'good' : 'accent'}
+              />
             ))}
-          </Stack>
+          </Box>
         )}
-        <Button component={Link} to={paths.annualRealization} size="small" sx={{ flexShrink: 0, alignSelf: 'flex-start' }}>
-          {t('common.viewAll')}
-        </Button>
+        <MoreLink to={paths.annualRealization}>{t('common.viewAll')}</MoreLink>
 
         {/* No costs recorded this year: the whole section is left out, not shown empty. */}
         {(costQuery.isLoading || costQuery.error || costSlices.length > 0) && (

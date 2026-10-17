@@ -35,7 +35,8 @@ export function IncomeVsExpenseWidget({ onRemove, onExpandWidth }: DashboardWidg
 
   return (
     <WidgetShell
-      title={`${t('dashboard.widget.IncomeVsExpense')} — ${formatPeriod(period.from, period.to)}`}
+      title={t('dashboard.widget.IncomeVsExpense')}
+      subtitle={formatPeriod(period.from, period.to)}
       isLoading={isLoading}
       error={error}
       onRemove={onRemove}

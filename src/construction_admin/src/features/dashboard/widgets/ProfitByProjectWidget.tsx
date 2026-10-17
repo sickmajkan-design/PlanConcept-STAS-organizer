@@ -81,7 +81,8 @@ export function ProfitByProjectWidget({ onRemove, onExpandWidth }: DashboardWidg
 
   return (
     <WidgetShell
-      title={`${t('dashboard.widget.ProfitByProject')} — ${formatPeriod(period.from, period.to)}`}
+      title={t('dashboard.widget.ProfitByProject')}
+      subtitle={formatPeriod(period.from, period.to)}
       isLoading={isLoading}
       error={error}
       onRemove={onRemove}
@@ -93,7 +94,20 @@ export function ProfitByProjectWidget({ onRemove, onExpandWidth }: DashboardWidg
         </Typography>
       ) : (
         <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-          <Table size="small" stickyHeader>
+          <Table
+            size="small"
+            stickyHeader
+            sx={(theme) => ({
+              '& .MuiTableCell-root': {
+                fontVariantNumeric: 'tabular-nums',
+                borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.07)' : 'rgba(31,27,22,0.07)',
+                py: 1.1,
+              },
+              // The header is a quiet caption, not a heavy row.
+              '& .MuiTableCell-head': { fontWeight: 500, fontSize: '0.78rem', color: 'text.secondary', bgcolor: 'background.paper', whiteSpace: 'nowrap' },
+              '& .MuiTableCell-footer': { bgcolor: 'transparent' },
+            })}
+          >
             <TableHead>
               <TableRow>
                 {header('projectName', t('finance.project'), false)}
@@ -117,7 +131,7 @@ export function ProfitByProjectWidget({ onRemove, onExpandWidth }: DashboardWidg
                   </TableCell>
                   <TableCell align="right">{formatMoney(row.revenue, locale)}</TableCell>
                   <TableCell align="right">{formatMoney(row.expense, locale)}</TableCell>
-                  <TableCell align="right" sx={{ color: row.profit < 0 ? 'error.main' : 'inherit', fontWeight: 700 }}>
+                  <TableCell align="right" sx={{ color: row.profit < 0 ? 'error.main' : 'success.main', fontWeight: 700 }}>
                     {formatMoney(row.profit, locale)}
                   </TableCell>
                   <TableCell align="right">

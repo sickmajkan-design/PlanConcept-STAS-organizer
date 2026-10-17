@@ -46,6 +46,9 @@ Pregled je rađen alatima iz paketa `emilkowalski/skills` (`emil-design-eng`, `m
 - **Provjera po ulogama i jezicima:** prije objave proći Radnika (3 kartice) i Poslovođu/Admina (4-5 kartica) na najužem ekranu (320 dp), na srpskom i engleskom. Pozdrav i adresa e-pošte se ne smiju lomiti usred riječi ni ući pod avatar; trake sa više kartica koriste jednu veličinu slova za sve kartice (`_BarRow`).
 - Prije objave: release izdanje (ne debug) na emulatoru, jer debug izdanje na ovom računaru javlja "ne odgovara" dok traži lokaciju.
 
+- **Widgeti na početnoj (17.10.):** jedan okvir (`WidgetShell`) i jedna porodica dijelova (`widgets/widgetUi.tsx`: `BigNumber`, `Pill`, `MiniStat`, `InsetList/InsetRow`, `SoftBar/BarRow`, `Segments`). Kartica bez okvira, kontrole tek preko kartice (uvijek na dodiru), stanje je tekst i broj uz boju. Širenje, premještanje i visina ostaju: sadržaj se slaže po **širini widgeta** (`@container widget (min-width: …)`, `cqw`), ne po širini ekrana, pa isti widget izgleda lijepo na širokom monitoru i na telefonu. Novi widget koristi te dijelove, ne vlastite boje i okvire.
+- **Meni na telefonu:** preko cijelog ekrana (`layout/PhoneMenu.tsx`): pretraga, brzi pristup, grupe kao pločice s brojem, dno s jedinicom, jezikom, temom i odjavom. Svaka promjena menija i dalje pokriva i brojeve (vidi pravilo o značkama).
+
 ## 5. Izgled: svijetao i taman
 
 - Panel prati uređaj dok osoba ne izabere; dugme **Izgled** u zaglavlju (na telefonu u meniju naloga) kruži prema uređaju, svijetao, taman. Izbor se pamti u pregledniku (`ui.colorMode`), a `theme-color` i `color-scheme` se mijenjaju s njim.

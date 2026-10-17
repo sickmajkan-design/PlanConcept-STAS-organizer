@@ -54,13 +54,19 @@ export function BranchOverviewWidget({ instanceId: _instanceId, onRemove, onExpa
           {rows.map(({ branch, depth, totals }) => (
             <Box
               key={branch.id}
-              sx={{
+              sx={(theme) => ({
                 display: 'grid',
-                gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr)',
+                // One column on a narrow widget; the name and the two bars side by side once it is wide enough.
+                gridTemplateColumns: '1fr',
+                '@container widget (min-width: 460px)': { gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr)' },
                 gap: 1.5,
                 alignItems: 'center',
-                pl: (depth - 1) * 2,
-              }}
+                borderRadius: '14px',
+                px: 1.5,
+                py: 1.25,
+                ml: (depth - 1) * 2.5,
+                bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(31,27,22,0.04)',
+              })}
             >
               <Stack direction="row" spacing={1} sx={{ alignItems: 'center', minWidth: 0 }}>
                 <BranchDot color={branch.color} />

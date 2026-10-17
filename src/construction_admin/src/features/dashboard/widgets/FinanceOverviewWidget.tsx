@@ -1,5 +1,5 @@
 import { AccountBalanceWalletOutlined, TrendingDownOutlined, TrendingUpOutlined } from '@mui/icons-material';
-import { Box, Typography } from '@mui/material';
+import { Box } from '@mui/material';
 
 import { useI18n } from '../../../i18n/useI18n';
 import { formatMoney } from '../../../utils/formatting';
@@ -9,6 +9,7 @@ import { useFinanceSeries } from '../../finance/useFinanceSeries';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { StatTile } from './StatTile';
 import { WidgetShell } from './WidgetShell';
+import { EmptyNote, Pill } from './widgetUi';
 
 type Hint = { text: string; color: 'success.main' | 'error.main' | 'text.secondary' };
 
@@ -40,16 +41,15 @@ export function FinanceOverviewWidget({ onRemove, onExpandWidth }: DashboardWidg
 
   return (
     <WidgetShell
-      title={`${t('dashboard.widget.FinanceOverview')} — ${formatPeriod(period.from, period.to)}`}
+      title={t('dashboard.widget.FinanceOverview')}
+      subtitle={formatPeriod(period.from, period.to)}
       isLoading={isLoading}
       error={error}
       onRemove={onRemove}
       onExpandWidth={onExpandWidth}
     >
       {isEmpty ? (
-        <Typography color="text.secondary" variant="body2">
-          {t('finance.noData')}
-        </Typography>
+        <EmptyNote>{t('finance.noData')}</EmptyNote>
       ) : (
         totals &&
         previous && (
@@ -76,9 +76,9 @@ export function FinanceOverviewWidget({ onRemove, onExpandWidth }: DashboardWidg
               accent={totals.profit < 0 ? '#c62828' : '#37474f'}
             />
             {totals.marginPercent !== null && (
-              <Typography variant="body2" color="text.secondary" sx={{ width: '100%' }}>
+              <Pill sx={{ fontSize: '0.85rem', px: 1.5, py: 0.25 }}>
                 {t('finance.margin')}: {totals.marginPercent.toFixed(1)}%
-              </Typography>
+              </Pill>
             )}
           </Box>
         )
