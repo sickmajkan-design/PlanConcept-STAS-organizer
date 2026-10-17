@@ -1,5 +1,5 @@
 import { Box, Button, Paper, Typography, useMediaQuery, useTheme } from '@mui/material';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   DataGrid,
   type GridColDef,
@@ -107,6 +107,45 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
     [t],
   );
 
+  // A grid wider than its card scrolls sideways inside it; a soft edge on the side that has more says so.
+  const frameRef = useRef<HTMLDivElement | null>(null);
+  const [edges, setEdges] = useState({ left: false, right: false });
+
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame) return;
+
+    let scroller: HTMLElement | null = null;
+
+    const measure = () => {
+      scroller = frame.querySelector<HTMLElement>('.MuiDataGrid-virtualScroller');
+      if (!scroller) return;
+
+      const left = scroller.scrollLeft > 2;
+      const right = scroller.scrollLeft + scroller.clientWidth < scroller.scrollWidth - 2;
+
+      setEdges((current) => (current.left === left && current.right === right ? current : { left, right }));
+    };
+
+    const onScroll = () => measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(frame);
+    // The grid builds its scroller after the first paint, and the rows (so the width) after the data.
+    const timer = window.setInterval(() => {
+      measure();
+      if (scroller && !scroller.dataset.edgeWatched) {
+        scroller.dataset.edgeWatched = 'true';
+        scroller.addEventListener('scroll', onScroll, { passive: true });
+      }
+    }, 400);
+
+    return () => {
+      observer.disconnect();
+      window.clearInterval(timer);
+      scroller?.removeEventListener('scroll', onScroll);
+    };
+  }, [isCompact, isError]);
+
   return (
     <Paper
       sx={isCompact ? { p: 1.5 } : { height, display: 'flex', flexDirection: 'column' }}
@@ -126,7 +165,9 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
           highlightedId={highlightedId}
         />
       ) : (
-        <Box sx={{ flex: 1, minHeight: 0 }}>
+        <Box ref={frameRef} sx={{ flex: 1, minHeight: 0, position: 'relative' }}>
+        <EdgeShadow side="left" show={edges.left} />
+        <EdgeShadow side="right" show={edges.right} />
         <DataGrid
           rows={data?.items ?? []}
           columns={columns}
@@ -206,5 +247,27 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
         </Box>
       )}
     </Paper>
+  );
+}
+
+/** A soft shadow on one edge of the grid, there only while there is more to scroll to on that side. */
+function EdgeShadow({ side, show }: { side: 'left' | 'right'; show: boolean }) {
+  return (
+    <Box
+      aria-hidden
+      sx={{
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        [side]: 0,
+        width: 22,
+        zIndex: 2,
+        pointerEvents: 'none',
+        opacity: show ? 1 : 0,
+        transition: 'opacity 160ms ease',
+        '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
+        background: `linear-gradient(to ${side === 'right' ? 'left' : 'right'}, rgba(0, 0, 0, 0.12), rgba(0, 0, 0, 0))`,
+      }}
+    />
   );
 }

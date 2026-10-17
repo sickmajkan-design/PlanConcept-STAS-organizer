@@ -894,6 +894,10 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.close': 'Razumijem',
 
 
+  'releaseNotes.ui1017.title': "Mirnije liste i dugmad",
+  'releaseNotes.ui1017.buttons': "Sporedna dugmad (Uvoz, Izvoz, brzi izbor razdoblja i slično) su sada neutralna s tankom sivom linijom, pa je jedino narandžasto dugme na ekranu ono glavno.",
+  'releaseNotes.ui1017.status': "Status Aktivan u listama je blaga zelena oznaka umjesto pune tamnozelene u svakom redu; puna boja ostaje za ono što traži pažnju. Tabovi su napisani običnim slovima, ne velikim.",
+  'releaseNotes.ui1017.tables': "Tabela šira od ekrana pokazuje blagu sjenku na rubu sa strane na koju se još može pomjerati.",
   'releaseNotes.badges1017.title': "Brojevi uz stavke menija",
   'releaseNotes.badges1017.groups': "Broj na ikoni grupe na traci je zbir brojeva njenih stavki, pa se više ne desi da stavka ima broj, a grupa nema (Dokumenti su nakon premještanja ostali bez broja).",
   'releaseNotes.badges1017.items': "Brojevi su sada uz sve stavke koje imaju šta da čeka: raspored (nepotvrđena raspoređivanja), narudžbe, refundacije, zaposleni (isticanje uvjerenja), vozila (isticanje datuma), Ko nam duguje, provjera podataka, zahtjevi za dokumente (odgovor čeka provjeru ili rok istekao), troškovi vozila (i izvodi koji se ne slažu) i Oglasna ploča (oglasi koje još niste otvorili), uz ranije postojeće.",
@@ -909,9 +913,6 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.menu1017.documents': "Dokumenti i Zahtjevi za dokumente imaju vlastitu grupu na traci (do sada su bili u Administraciji).",
   'releaseNotes.menu1017.finance': "U Finansijama su stavke razvrstane pod tri naslova: Svaki dan, Troškovi po vrsti i Obračun i postavke.",
   'releaseNotes.menu1017.app': "Aplikacija (1.1.28): na početnom ekranu su četiri brze radnje (prijava nedostatka, moji dokumenti, raspored, odsustva), a dugme Prijavi se na smjenu prati radnika kad se kartica smjene izgubi iz vida.",
-  'releaseNotes.scanner1017.title': "Upozorenje kad provjera virusa ne radi",
-  'releaseNotes.scanner1017.warning': "Ako provjera virusa u dokumentima prestane odgovarati, na nadzornoj ploči (Zahtijeva pažnju, a na telefonu i u pregledu Danas) piše da je slanje dokumenata zaustavljeno. Do sada se to nije vidjelo nigdje, a svako slanje je bilo odbijeno.",
-  'releaseNotes.scanner1017.probe': "Za nadzor dostupnosti postoji adresa /health/dependencies, koja vraća 503 kad provjera virusa ne radi, a ostatak platforme i dalje radi.",
   'finance.budget.warnPercentHelp': 'Prazno znači 80%. Od 100% se projekat računa kao prekoračen.',
   'finance.housingDoubleWarning': '{count} troškova smještaja pada na dane kada je kirija već uračunata iz cijena smještaja, pa se ta kirija računa dvaput. Obrišite ih ili ih prebacite u drugu kategoriju.',
   'finance.payOverlapWarning': '{count} isplata bez projekta pada na dane kada je ista osoba evidentirala sate na projektu. Računaju se oba iznosa — provjerite treba li jedan zamijeniti drugi.',

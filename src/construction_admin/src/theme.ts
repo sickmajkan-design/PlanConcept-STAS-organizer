@@ -1,4 +1,4 @@
-import { createTheme } from '@mui/material/styles';
+import { alpha, createTheme } from '@mui/material/styles';
 
 /** Applies only on touch screens: a finger, not a mouse pointer. */
 const COARSE = '@media (pointer: coarse)';
@@ -67,6 +67,18 @@ export function buildTheme(mode: 'light' | 'dark') {
       styleOverrides: {
         root: { textTransform: 'none', fontWeight: 600, ...PRESS, [COARSE]: { minHeight: TOUCH_TARGET } },
       },
+      // A second button on a screen is quiet: a thin neutral line, so the one filled button is the one that
+      // reads as the main thing to do. Orange outlines on three buttons in a row made all three look equal.
+      variants: [
+        {
+          props: { variant: 'outlined', color: 'primary' },
+          style: ({ theme: t }) => ({
+            color: t.palette.text.primary,
+            borderColor: t.palette.divider,
+            '&:hover': { borderColor: t.palette.text.secondary, backgroundColor: t.palette.action.hover },
+          }),
+        },
+      ],
     },
     // On a touch screen every control is at least 44 px, the size a fingertip
     // can hit without a second try. Set once here for every control in the panel
@@ -78,7 +90,8 @@ export function buildTheme(mode: 'light' | 'dark') {
     MuiToggleButton: {
       styleOverrides: { root: { [COARSE]: { minWidth: TOUCH_TARGET, minHeight: TOUCH_TARGET } } },
     },
-    MuiTab: { styleOverrides: { root: { [COARSE]: { minHeight: 48 } } } },
+    // Sentence case like everything else in the panel, instead of the library's capitals.
+    MuiTab: { styleOverrides: { root: { textTransform: 'none', letterSpacing: 'normal', [COARSE]: { minHeight: 48 } } } },
     MuiMenuItem: { styleOverrides: { root: { [COARSE]: { minHeight: 48 } } } },
     MuiListItemButton: { styleOverrides: { root: { [COARSE]: { minHeight: 48 } } } },
     MuiChip: {
@@ -89,6 +102,17 @@ export function buildTheme(mode: 'light' | 'dark') {
           },
         },
       },
+      // "Active" is the state nearly everyone is in, so it is a soft tint, not a solid block in every row. The
+      // solid colours stay for what asks for attention (warning, error).
+      variants: [
+        {
+          props: { variant: 'filled', color: 'success' },
+          style: ({ theme: t }) => ({
+            backgroundColor: t.palette.mode === 'dark' ? alpha(t.palette.success.main, 0.22) : '#e3f2e4',
+            color: t.palette.mode === 'dark' ? t.palette.success.light : '#1b5e20',
+          }),
+        },
+      ],
     },
     MuiCheckbox: { styleOverrides: { root: { [COARSE]: { padding: 11 } } } },
     MuiRadio: { styleOverrides: { root: { [COARSE]: { padding: 11 } } } },

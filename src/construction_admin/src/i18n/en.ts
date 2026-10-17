@@ -867,6 +867,10 @@ export const en = {
   'releaseNotes.close': 'Got it',
 
 
+  'releaseNotes.ui1017.title': "Calmer lists and buttons",
+  'releaseNotes.ui1017.buttons': "Secondary buttons (Import, Export, quick period choices and the like) are now neutral with a thin grey line, so the only orange button on a screen is the main one.",
+  'releaseNotes.ui1017.status': "The status Active in lists is a soft green tag instead of a solid dark green in every row; solid colour stays for what asks for attention. Tabs are written in ordinary letters, not capitals.",
+  'releaseNotes.ui1017.tables': "A table wider than the screen shows a soft shadow on the edge on the side it can still be scrolled towards.",
   'releaseNotes.badges1017.title': "Numbers beside menu items",
   'releaseNotes.badges1017.groups': "The number on a group's icon on the rail is the sum of its items' numbers, so it can no longer happen that an item has a number and its group has none (Documents lost theirs when they moved).",
   'releaseNotes.badges1017.items': "Numbers now stand beside every item that has something waiting: schedule (unconfirmed postings), orders, refunds, employees (certificates about to expire), vehicles (dates about to pass), Who owes us, data check, document requests (an answer waiting for your check, or a missed deadline), vehicle costs (and statements that do not match) and the Notice board (notices you have not opened yet), besides those that were there already.",
@@ -882,9 +886,6 @@ export const en = {
   'releaseNotes.menu1017.documents': "Documents and Document requests have a group of their own on the rail (they used to be under Administration).",
   'releaseNotes.menu1017.finance': "In Finance the items are sorted under three headings: Every day, Costs by kind, and Settlement and settings.",
   'releaseNotes.menu1017.app': "App (1.1.28): the home screen has four quick actions (report a defect, my documents, schedule, absences), and the Clock in button follows the worker once the shift card has scrolled out of sight.",
-  'releaseNotes.scanner1017.title': "A warning when the virus check is not working",
-  'releaseNotes.scanner1017.warning': "If the virus check on documents stops answering, the dashboard (Needs attention, and on a phone the Today summary) says that sending documents is stopped. Until now it showed nowhere, and every upload was refused.",
-  'releaseNotes.scanner1017.probe': "For an uptime monitor there is /health/dependencies, which answers 503 when the virus check is not working while the rest of the platform is.",
   'finance.budget.warnPercentHelp': 'Leave empty for 80%. From 100% the project counts as over.',
   'finance.housingDoubleWarning': '{count} housing expenses fall on days when accommodation rent is already counted from the accommodation rates, so that rent is counted twice. Delete them or move them to another category.',
   'finance.payOverlapWarning': '{count} pay entries tied to no project fall on days the same person clocked hours at a project. Both are counted — check whether one of them should replace the other.',
