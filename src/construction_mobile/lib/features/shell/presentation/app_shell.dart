@@ -52,6 +52,17 @@ class AppShell extends ConsumerWidget {
 
     final selected = branches.indexOf(navigationShell.currentIndex);
 
+    void select(int index) {
+      unawaited(HapticFeedback.selectionClick());
+      final branch = branches[index];
+
+      navigationShell.goBranch(
+        branch,
+        // Tapping the active tab returns to the top of that section.
+        initialLocation: branch == navigationShell.currentIndex,
+      );
+    }
+
     return Scaffold(
       // The bar floats over the content, which scrolls under it; the screens leave room for it themselves
       // (their lists read the bottom padding this makes), so the last row can always be reached.
@@ -66,56 +77,144 @@ class AppShell extends ConsumerWidget {
         ],
       ),
       bottomNavigationBar: _FloatingBar(
-        child: NavigationBar(
-          selectedIndex: selected < 0 ? 0 : selected,
-          onDestinationSelected: (index) {
-            unawaited(HapticFeedback.selectionClick());
-            final branch = branches[index];
-
-            navigationShell.goBranch(
-              branch,
-              // Tapping the active tab returns to the top of that section.
-              initialLocation: branch == navigationShell.currentIndex,
-            );
-          },
-          destinations: [
-            NavigationDestination(
-              icon: const Icon(Icons.home_outlined),
-              selectedIcon: const Icon(Icons.home),
+        child: Row(
+          children: [
+            _BarItem(
+              icon: Icons.home_outlined,
+              selectedIcon: Icons.home,
               label: context.l10n.navHome,
+              selected: selected == 0,
+              onTap: () => select(0),
             ),
             if (isEmployee)
-              NavigationDestination(
-                icon: const Icon(Icons.schedule_outlined),
-                selectedIcon: const Icon(Icons.schedule),
+              _BarItem(
+                icon: Icons.schedule_outlined,
+                selectedIcon: Icons.schedule,
                 label: context.l10n.navTimeEntries,
+                selected: selected == branches.indexOf(_timeEntriesBranch),
+                onTap: () => select(branches.indexOf(_timeEntriesBranch)),
               ),
             if (canViewDirectory) ...[
-              NavigationDestination(
-                icon: Icon(Icons.people_outline),
-                selectedIcon: Icon(Icons.people),
+              _BarItem(
+                icon: Icons.people_outline,
+                selectedIcon: Icons.people,
                 label: context.l10n.navEmployees,
+                selected: selected == branches.indexOf(_employeesBranch),
+                onTap: () => select(branches.indexOf(_employeesBranch)),
               ),
-              NavigationDestination(
-                icon: Icon(Icons.apartment_outlined),
-                selectedIcon: Icon(Icons.apartment),
+              _BarItem(
+                icon: Icons.apartment_outlined,
+                selectedIcon: Icons.apartment,
                 label: context.l10n.navProjects,
+                selected: selected == branches.indexOf(_projectsBranch),
+                onTap: () => select(branches.indexOf(_projectsBranch)),
               ),
             ],
-            NavigationDestination(
-              icon: Badge.count(
-                count: unread,
-                isLabelVisible: unread > 0,
-                child: const Icon(Icons.notifications_none),
-              ),
-              selectedIcon: Badge.count(
-                count: unread,
-                isLabelVisible: unread > 0,
-                child: const Icon(Icons.notifications),
-              ),
+            _BarItem(
+              icon: Icons.notifications_none,
+              selectedIcon: Icons.notifications,
               label: context.l10n.commonAlerts,
+              badge: unread,
+              selected: selected == branches.indexOf(_notificationsBranch),
+              onTap: () => select(branches.indexOf(_notificationsBranch)),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// One tab of the bar: an icon in a pill when it is the current one, and a label on a single line. The label is
+/// set smaller when its width asks for it, never wrapped and never cut, so five tabs fit the narrowest phone.
+class _BarItem extends StatelessWidget {
+  const _BarItem({
+    required this.icon,
+    required this.selectedIcon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.badge = 0,
+  });
+
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final int badge;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+
+    Widget glyph = Icon(
+      selected ? selectedIcon : icon,
+      size: 24,
+      color: selected ? scheme.onSecondaryContainer : scheme.onSurfaceVariant,
+    );
+
+    if (badge > 0) {
+      glyph = Badge.count(count: badge, child: glyph);
+    }
+
+    return Expanded(
+      child: Semantics(
+        button: true,
+        selected: selected,
+        label: label,
+        child: ExcludeSemantics(
+          child: InkWell(
+            borderRadius: BorderRadius.circular(28),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  AnimatedContainer(
+                    duration: reduceMotion
+                        ? Duration.zero
+                        : const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
+                    width: 56,
+                    height: 30,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: selected
+                          ? scheme.secondaryContainer
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: glyph,
+                  ),
+                  const SizedBox(height: 2),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        softWrap: false,
+                        style: Theme.of(context).textTheme.labelMedium
+                            ?.copyWith(
+                              fontSize: 12,
+                              color: selected
+                                  ? scheme.onSurface
+                                  : scheme.onSurfaceVariant,
+                              fontWeight: selected
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                            ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -165,15 +264,7 @@ class _FloatingBar extends StatelessWidget {
                     color: scheme.onSurface.withValues(alpha: 0.12),
                   ),
                 ),
-                child: NavigationBarTheme(
-                  data: NavigationBarThemeData(
-                    height: 64,
-                    backgroundColor: Colors.transparent,
-                    surfaceTintColor: Colors.transparent,
-                    elevation: 0,
-                  ),
-                  child: child,
-                ),
+                child: SizedBox(height: 64, child: child),
               ),
             ),
           ),

@@ -97,26 +97,26 @@ void main() {
   testWidgets('offers the directory tabs to a Foreman', (tester) async {
     await _pumpSignedIn(tester, _sessionFor('Foreman'));
 
-    expect(find.widgetWithText(NavigationDestination, 'Home'), findsOneWidget);
+    expect(find.widgetWithText(InkWell, 'Home'), findsOneWidget);
     expect(
-      find.widgetWithText(NavigationDestination, 'Employees'),
+      find.widgetWithText(InkWell, 'Employees'),
       findsOneWidget,
     );
     expect(
-      find.widgetWithText(NavigationDestination, 'Projects'),
+      find.widgetWithText(InkWell, 'Projects'),
       findsOneWidget,
     );
-    expect(find.widgetWithText(NavigationDestination, 'Alerts'), findsOneWidget);
+    expect(find.widgetWithText(InkWell, 'Alerts'), findsOneWidget);
   });
 
   testWidgets('hides the directory tabs from a Worker', (tester) async {
     // The API answers 403 for these endpoints, so the app must not offer them.
     await _pumpSignedIn(tester, _sessionFor('Worker'));
 
-    expect(find.widgetWithText(NavigationDestination, 'Home'), findsOneWidget);
-    expect(find.widgetWithText(NavigationDestination, 'Alerts'), findsOneWidget);
-    expect(find.widgetWithText(NavigationDestination, 'Employees'), findsNothing);
-    expect(find.widgetWithText(NavigationDestination, 'Projects'), findsNothing);
+    expect(find.widgetWithText(InkWell, 'Home'), findsOneWidget);
+    expect(find.widgetWithText(InkWell, 'Alerts'), findsOneWidget);
+    expect(find.widgetWithText(InkWell, 'Employees'), findsNothing);
+    expect(find.widgetWithText(InkWell, 'Projects'), findsNothing);
   });
 
   testWidgets('shows the unread badge on the alerts tab', (tester) async {
