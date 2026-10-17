@@ -27,6 +27,17 @@ export function toneColor(theme: Theme, tone: Tone): string {
 
 const NUMERIC = { fontVariantNumeric: 'tabular-nums' } as const;
 
+/**
+ * A figure's size from how many characters it has and how wide its container is (`cqw`): the biggest size at which
+ * the whole figure still fits on one line, never smaller than `min`. A number is never broken in the middle and
+ * never runs out of its tile; a short one is large, a long one is smaller.
+ */
+export function fitFont(text: string | number, max: string, min: string): string {
+  const length = Math.max(3, String(text).length);
+
+  return `clamp(${min}, calc(172cqw / ${length}), ${max})`;
+}
+
 /** The figure the widget is about: large, tight, with an optional small unit or caption beside it. */
 export function BigNumber({ value, caption, tone = 'neutral', size = 'lg' }: { value: ReactNode; caption?: ReactNode; tone?: Tone; size?: 'md' | 'lg' }) {
   return (
@@ -38,11 +49,12 @@ export function BigNumber({ value, caption, tone = 'neutral', size = 'lg' }: { v
           fontWeight: 800,
           lineHeight: 1,
           letterSpacing: '-0.03em',
-          // From the width the widget was given, not the screen's: a wide card gets a bigger figure.
-          fontSize: size === 'lg' ? 'clamp(1.9rem, 9cqw, 3.2rem)' : 'clamp(1.4rem, 6cqw, 2rem)',
+          // From the width the widget was given and the length of the figure: it always fits on one line.
+          fontSize: size === 'lg' ? fitFont(String(value), '3.2rem', '1.3rem') : fitFont(String(value), '2rem', '1.1rem'),
+          whiteSpace: 'nowrap',
           color: tone === 'neutral' ? 'text.primary' : toneColor(theme, tone),
-          overflowWrap: 'anywhere',
           minWidth: 0,
+          maxWidth: '100%',
         })}
       >
         {value}
@@ -101,6 +113,7 @@ export function MiniStat({ label, value, tone = 'neutral', hint }: { label: Reac
     <Box
       sx={(theme) => ({
         minWidth: 0,
+        containerType: 'inline-size',
         borderRadius: '16px',
         px: 1.75,
         py: 1.25,
@@ -119,9 +132,9 @@ export function MiniStat({ label, value, tone = 'neutral', hint }: { label: Reac
           fontWeight: 800,
           letterSpacing: '-0.02em',
           lineHeight: 1.1,
-          fontSize: 'clamp(1.2rem, 5.2cqw, 1.7rem)',
+          fontSize: fitFont(String(value), '1.7rem', '0.95rem'),
+          whiteSpace: 'nowrap',
           color: tone === 'neutral' ? 'text.primary' : toneColor(theme, tone),
-          overflowWrap: 'anywhere',
         })}
       >
         {value}

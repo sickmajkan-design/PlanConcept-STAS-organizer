@@ -2,7 +2,7 @@ import { ButtonBase, Stack, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 import { Link as RouterLink } from "react-router-dom";
 
-import { Pill, type Tone } from "./widgetUi";
+import { fitFont, Pill, type Tone } from "./widgetUi";
 
 interface StatTileProps {
   /** Kept for the callers that pass one; the tile leads with its number, not an icon. */
@@ -68,10 +68,10 @@ export function StatTile({
             fontWeight: 800,
             lineHeight: 1.05,
             letterSpacing: "-0.03em",
-            fontSize: "clamp(1.6rem, 7cqw, 2.6rem)",
+            fontSize: fitFont(value, '2.6rem', '1rem'),
+            whiteSpace: 'nowrap',
             // A zero is the absence of something, so it recedes.
             color: /^[0\s/]+$/.test(value) ? "text.secondary" : "text.primary",
-            overflowWrap: "anywhere",
           }}
         >
           {value}
@@ -89,6 +89,7 @@ export function StatTile({
     // Two to a row on the narrowest widget, more as it widens.
     flex: "1 1 140px",
     minWidth: 0,
+    containerType: "inline-size",
     borderRadius: "18px",
     px: 2,
     py: 1.75,

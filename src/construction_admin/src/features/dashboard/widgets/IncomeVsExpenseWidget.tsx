@@ -1,14 +1,13 @@
-import { Box, Stack } from '@mui/material';
-import { BarChart } from '@mui/x-charts/BarChart';
+import { Stack, useTheme } from '@mui/material';
 
 import { useI18n } from '../../../i18n/useI18n';
 import { formatMoney } from '../../../utils/formatting';
 import { useFinancePeriod } from '../../finance/PeriodContext';
 import { formatPeriod } from '../../finance/periods';
 import { useFinanceSeries } from '../../finance/useFinanceSeries';
-import { useElementSize } from '../useElementSize';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
+import { BarsChart } from './widgetCharts';
 import { BigNumber, EmptyNote } from './widgetUi';
 
 /** "24.09" for a day, "24.09–30.09" for a week, "09.2026" for a month — as short as the bar allows. */
@@ -30,7 +29,7 @@ export function IncomeVsExpenseWidget({ onRemove, onExpandWidth }: DashboardWidg
   const { t, locale } = useI18n();
   const { period } = useFinancePeriod();
   const { data, isLoading, error } = useFinanceSeries();
-  const chartSize = useElementSize<HTMLDivElement>();
+  const theme = useTheme();
 
   const isEmpty = !!data && data.totals.revenue === 0 && data.totals.expense === 0;
 
@@ -48,26 +47,13 @@ export function IncomeVsExpenseWidget({ onRemove, onExpandWidth }: DashboardWidg
       ) : (
         data && (
           <Stack spacing={1} sx={{ flex: 1, minHeight: 0 }}>
-            <Box ref={chartSize.ref} sx={{ flex: 1, minHeight: 180 }}>
-              {chartSize.width > 0 && chartSize.height > 0 && (
-                <BarChart
-                  width={chartSize.width}
-                  height={chartSize.height}
-                  colors={['#00897b', '#e65100']}
-                  xAxis={[
-                    {
-                      scaleType: 'band',
-                      data: data.buckets.map((b) => barLabel(b.from, b.to, data.granularity)),
-                    },
-                  ]}
-                  series={[
-                    { data: data.buckets.map((b) => b.revenue), label: t('finance.revenue') },
-                    { data: data.buckets.map((b) => b.expense), label: t('finance.expense') },
-                  ]}
-                  margin={{ top: 10, bottom: 30, left: 64, right: 10 }}
-                />
-              )}
-            </Box>
+            <BarsChart
+              groups={data.buckets.map((b) => ({ label: barLabel(b.from, b.to, data.granularity), values: [b.revenue, b.expense] }))}
+              names={[t('finance.revenue'), t('finance.expense')]}
+              colors={[theme.palette.success.main, theme.palette.primary.main]}
+              format={(value) => formatMoney(value, locale)}
+              minHeight={200}
+            />
             <Stack direction="row" sx={{ flexShrink: 0, gap: 1, alignItems: 'baseline', flexWrap: 'wrap' }}>
               <BigNumber size="md" value={formatMoney(data.totals.profit, locale)} tone={data.totals.profit < 0 ? 'bad' : 'good'} caption={t('finance.profit')} />
             </Stack>

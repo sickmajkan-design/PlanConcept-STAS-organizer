@@ -1,5 +1,4 @@
-import { Alert, Box, Button, Divider, Stack, Typography } from '@mui/material';
-import { BarChart } from '@mui/x-charts/BarChart';
+import { Alert, Box, Button, Divider, Stack, Typography, useTheme } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 
@@ -9,10 +8,9 @@ import { useI18n } from '../../../i18n/useI18n';
 import { paths } from '../../../routes/paths';
 import { chartPalette } from '../../../theme';
 import { formatMoney } from '../../../utils/formatting';
-import { useElementSize } from '../useElementSize';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
-import { Donut } from './widgetCharts';
+import { BarsChart, Donut } from './widgetCharts';
 import { BarRow, EmptyNote, MoreLink } from './widgetUi';
 
 const TOP_N = 5;
@@ -33,7 +31,7 @@ function monthlyTotals(entries: { amount: number; occurredOn: string }[]): numbe
 
 export function ProjectsRealizationWidget({ instanceId: _instanceId, onRemove, onExpandWidth }: DashboardWidgetProps) {
   const { t, locale } = useI18n();
-  const barSize = useElementSize<HTMLDivElement>();
+  const theme = useTheme();
   const year = new Date().getFullYear();
   const { from, to } = yearBounds(year);
 
@@ -169,19 +167,13 @@ export function ProjectsRealizationWidget({ instanceId: _instanceId, onRemove, o
               )}
             </Stack>
           ) : (
-            <Box ref={barSize.ref} sx={{ flex: 1, minHeight: 0 }}>
-              {barSize.width > 0 && barSize.height > 0 && (
-                <BarChart
-                  width={barSize.width}
-                  height={barSize.height}
-                  colors={chartPalette}
-                  series={[{ data: monthly, label: t('dashboard.projectsRealization.revenue') }]}
-                  xAxis={[{ scaleType: 'band', data: monthLabels }]}
-                  margin={{ top: 10, bottom: 30, left: 48, right: 10 }}
-                  borderRadius={6}
-                />
-              )}
-            </Box>
+            <BarsChart
+              groups={monthly.map((value, index) => ({ label: monthLabels[index] ?? '', values: [value] }))}
+              names={[t('dashboard.projectsRealization.revenue')]}
+              colors={[theme.palette.primary.main]}
+              format={(value) => formatMoney(value, locale)}
+              minHeight={180}
+            />
           )}
         </Box>
       </Stack>

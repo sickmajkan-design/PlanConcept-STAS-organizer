@@ -262,3 +262,113 @@ export function TrendChart({
     </Box>
   );
 }
+
+export interface BarGroup {
+  label: string;
+  values: number[];
+}
+
+/**
+ * Grouped bars drawn in plain HTML and CSS, so the chart never measures its box: a chart that is told its own
+ * size from the box it sits in can feed on itself and grow without end in a card that is as tall as its content
+ * (which is what a card on a phone is). Heights are shares of the largest value; the first, last and every few
+ * labels in between are written, so they never run into each other. Press or point at a group to read it.
+ */
+export function BarsChart({
+  groups,
+  names,
+  colors,
+  format,
+  minHeight = 180,
+}: {
+  groups: BarGroup[];
+  names: string[];
+  colors: string[];
+  format: (value: number) => string;
+  minHeight?: number;
+}) {
+  const theme = useTheme();
+  const [active, setActive] = useState<number | null>(null);
+
+  if (groups.length === 0) return null;
+
+  const max = Math.max(1, ...groups.flatMap((group) => group.values));
+  const step = Math.max(1, Math.ceil(groups.length / 6));
+  const shown = active ?? null;
+
+  return (
+    <Box sx={{ flex: 1, minHeight, display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
+      <Stack direction="row" sx={{ gap: 2, flexWrap: 'wrap', alignItems: 'baseline', minHeight: 24 }}>
+        {shown === null ? (
+          names.map((name, index) => (
+            <Stack key={name} direction="row" sx={{ alignItems: 'center', gap: 0.75 }}>
+              <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: colors[index] }} />
+              <Typography variant="caption" color="text.secondary">
+                {name}
+              </Typography>
+            </Stack>
+          ))
+        ) : (
+          <>
+            <Typography variant="caption" color="text.secondary">
+              {groups[shown]!.label}
+            </Typography>
+            {groups[shown]!.values.map((value, index) => (
+              <Typography key={names[index]} variant="caption" sx={{ fontWeight: 700, color: colors[index], fontVariantNumeric: 'tabular-nums' }}>
+                {names[index]}: {format(value)}
+              </Typography>
+            ))}
+          </>
+        )}
+      </Stack>
+
+      <Box sx={{ position: 'relative', flex: 1, minHeight: 0 }}>
+        {[0.25, 0.5, 0.75, 1].map((f) => (
+          <Box key={f} sx={{ position: 'absolute', left: 0, right: 0, bottom: `${f * 100}%`, borderTop: `1px solid ${theme.palette.divider}` }} />
+        ))}
+        <Box
+          sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end', gap: groups.length > 20 ? '2px' : '6px', touchAction: 'pan-y' }}
+          onPointerLeave={() => setActive(null)}
+        >
+          {groups.map((group, index) => (
+            <Box
+              key={group.label + index}
+              onPointerEnter={() => setActive(index)}
+              onPointerDown={() => setActive(index)}
+              aria-label={`${group.label}: ${group.values.map((value, i) => `${names[i]} ${format(value)}`).join(', ')}`}
+              sx={{ flex: 1, minWidth: 0, height: '100%', display: 'flex', alignItems: 'flex-end', gap: '2px', opacity: shown === null || shown === index ? 1 : 0.45, transition: 'opacity 0.15s' }}
+            >
+              {group.values.map((value, i) => (
+                <Box
+                  key={i}
+                  sx={{
+                    flex: 1,
+                    minWidth: 2,
+                    height: `${(value / max) * 100}%`,
+                    minHeight: value > 0 ? 2 : 0,
+                    bgcolor: colors[i],
+                    borderRadius: '4px 4px 0 0',
+                    transition: 'height 0.6s cubic-bezier(0.22, 1, 0.36, 1)',
+                    '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
+                  }}
+                />
+              ))}
+            </Box>
+          ))}
+        </Box>
+      </Box>
+
+      <Box sx={{ display: 'flex', gap: groups.length > 20 ? '2px' : '6px', minHeight: 16 }}>
+        {groups.map((group, index) => (
+          <Box key={group.label + index} sx={{ flex: 1, minWidth: 0, textAlign: 'center', overflow: 'visible' }}>
+            {(index % step === 0 || index === groups.length - 1) && (
+              <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.68rem', whiteSpace: 'nowrap' }}>
+                {group.label}
+              </Typography>
+            )}
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  );
+}
