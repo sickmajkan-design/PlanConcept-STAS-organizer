@@ -1612,6 +1612,12 @@ class AppLocalizationsSr extends AppLocalizations {
   String get shiftClockIn => 'Prijavi se na smjenu';
 
   @override
+  String get shiftSwipeIn => 'Povuci za dolazak';
+
+  @override
+  String get shiftSwipeOut => 'Povuci za odlazak';
+
+  @override
   String get shiftClockOut => 'Odjavi se sa smjene';
 
   @override

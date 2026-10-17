@@ -863,6 +863,8 @@
     }
   },
   "shiftClockIn": "Clock in",
+  "shiftSwipeIn": "Slide to clock in",
+  "shiftSwipeOut": "Slide to clock out",
   "shiftClockOut": "Clock out",
   "shiftWorking": "Finding your location…",
   "shiftClockOutTitle": "End the shift",

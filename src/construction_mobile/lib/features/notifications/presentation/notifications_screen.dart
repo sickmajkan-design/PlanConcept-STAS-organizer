@@ -42,6 +42,7 @@ class NotificationsScreen extends ConsumerWidget {
         ],
       ),
       body: SafeArea(
+        bottom: false,
         child: PagedListView<AppNotification>(
           state: state,
           onRefresh: () async {

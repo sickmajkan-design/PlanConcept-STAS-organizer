@@ -11,7 +11,7 @@ import type { MessageKey } from '../../i18n/en';
  * what changed recently, not a changelog: when a release is added, drop the
  * sections older than the fifth (and their `releaseNotes.*` keys in i18n).
  */
-export const RELEASE_ID = '2026-10-17.13';
+export const RELEASE_ID = '2026-10-17.14';
 
 /** The day of the release, `YYYY-MM-DD`, read from {@link RELEASE_ID}. */
 export const RELEASE_DATE = RELEASE_ID.slice(0, 10);
@@ -25,6 +25,12 @@ export interface ReleaseSection {
 }
 
 export const releaseSections: ReleaseSection[] = [
+  {
+    id: 'app1017',
+    titleKey: 'releaseNotes.app1017.title',
+    itemKeys: ['releaseNotes.app1017.bar', 'releaseNotes.app1017.swipe', 'releaseNotes.app1017.sheets'],
+    audience: (user) => canViewDirectory(user),
+  },
   {
     id: 'book1017',
     titleKey: 'releaseNotes.book1017.title',
@@ -47,12 +53,6 @@ export const releaseSections: ReleaseSection[] = [
     id: 'ui1017',
     titleKey: 'releaseNotes.ui1017.title',
     itemKeys: ['releaseNotes.ui1017.buttons', 'releaseNotes.ui1017.status', 'releaseNotes.ui1017.tables'],
-    audience: (user) => canViewDirectory(user),
-  },
-  {
-    id: 'badges1017',
-    titleKey: 'releaseNotes.badges1017.title',
-    itemKeys: ['releaseNotes.badges1017.groups', 'releaseNotes.badges1017.items'],
     audience: (user) => canViewDirectory(user),
   },
 ];

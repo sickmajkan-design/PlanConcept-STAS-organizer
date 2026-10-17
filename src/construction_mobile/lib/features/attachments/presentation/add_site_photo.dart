@@ -1,3 +1,4 @@
+import '../../../core/theme/sheet_motion.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -42,6 +43,7 @@ class _AddSitePhotoButtonState extends ConsumerState<AddSitePhotoButton> {
 
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
+      sheetAnimationStyle: sheetMotion(context),
       builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,

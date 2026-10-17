@@ -126,7 +126,9 @@ class _PagedListViewState<T> extends State<PagedListView<T>> {
                 : ListView.separated(
                     controller: _scrollController,
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding: widget.padding,
+                    // Under a floating bar the screen's bottom padding is the bar's height; elsewhere the
+                    // enclosing SafeArea has already used it up, so this adds nothing.
+                    padding: widget.padding + EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
                     itemCount: data.items.length + 1,
                     separatorBuilder: (_, _) => const SizedBox(height: 8),
                     itemBuilder: (context, index) {

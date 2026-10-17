@@ -1,3 +1,4 @@
+import '../../../core/theme/sheet_motion.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -16,6 +17,7 @@ const _recordableKinds = <String>['Repair', 'Maintenance', 'Calibration', 'Other
 Future<void> showRecordToolExpenseSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
+    sheetAnimationStyle: sheetMotion(context),
     isScrollControlled: true,
     builder: (_) => const _RecordToolExpenseSheet(),
   );

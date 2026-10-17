@@ -1,3 +1,4 @@
+import '../../../core/theme/sheet_motion.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -20,6 +21,7 @@ Future<void> showToolFormSheet(
 }) {
   return showModalBottomSheet<void>(
     context: context,
+    sheetAnimationStyle: sheetMotion(context),
     isScrollControlled: true,
     builder: (_) => _ToolFormSheet(existing: existing),
   );

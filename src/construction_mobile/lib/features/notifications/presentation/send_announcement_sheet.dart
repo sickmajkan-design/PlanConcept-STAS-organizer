@@ -1,3 +1,4 @@
+import '../../../core/theme/sheet_motion.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -24,6 +25,7 @@ final _allGroupsProvider = FutureProvider.autoDispose((ref) {
 Future<void> showSendAnnouncementSheet(BuildContext context, WidgetRef ref) {
   return showModalBottomSheet<void>(
     context: context,
+    sheetAnimationStyle: sheetMotion(context),
     isScrollControlled: true,
     builder: (_) => const _SendAnnouncementSheet(),
   );

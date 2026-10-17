@@ -34,6 +34,7 @@ class ProjectsScreen extends ConsumerWidget {
         ],
       ),
       body: SafeArea(
+        bottom: false,
         child: PagedListView<Project>(
           state: state,
           onRefresh: controller.refresh,

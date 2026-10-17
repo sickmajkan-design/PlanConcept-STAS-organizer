@@ -1,3 +1,4 @@
+import 'package:construction_mobile/core/widgets/swipe_to_confirm.dart';
 import 'package:construction_mobile/core/models/paged_list.dart';
 import 'package:construction_mobile/core/network/api_exception.dart';
 import 'package:construction_mobile/features/auth/data/models/user.dart';
@@ -258,13 +259,13 @@ void main() {
 
     expect(find.text('You are not clocked in'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Clock in'));
+    await _swipe(tester, 'Slide to clock in');
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
     expect(repository.clockIns, 1);
     expect(find.text('You are clocked in'), findsOneWidget);
-    expect(find.widgetWithText(FilledButton, 'Clock out'), findsOneWidget);
+    expect(find.text('Slide to clock out'), findsOneWidget);
   });
 
   testWidgets('with several sites today the worker says which one', (tester) async {
@@ -276,7 +277,7 @@ void main() {
 
     await _pumpShiftScreen(tester, repository);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Clock in'));
+    await _swipe(tester, 'Slide to clock in');
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
@@ -299,7 +300,7 @@ void main() {
 
     await _pumpShiftScreen(tester, repository);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Clock in'));
+    await _swipe(tester, 'Slide to clock in');
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
@@ -317,7 +318,7 @@ void main() {
 
     await _pumpShiftScreen(tester, repository);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Clock in'));
+    await _swipe(tester, 'Slide to clock in');
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
@@ -330,7 +331,7 @@ void main() {
 
     await _pumpShiftScreen(tester, repository);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Clock in'));
+    await _swipe(tester, 'Slide to clock in');
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
@@ -346,7 +347,7 @@ void main() {
 
     expect(find.text('You are clocked in'), findsOneWidget);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Clock out'));
+    await _swipe(tester, 'Slide to clock out');
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
@@ -371,7 +372,7 @@ void main() {
 
     await _pumpShiftScreen(tester, repository);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Clock out'));
+    await _swipe(tester, 'Slide to clock out');
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
@@ -403,7 +404,7 @@ void main() {
 
     await _pumpShiftScreen(tester, repository);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Clock out'));
+    await _swipe(tester, 'Slide to clock out');
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
@@ -428,7 +429,7 @@ void main() {
 
     await _pumpShiftScreen(tester, repository);
 
-    await tester.tap(find.widgetWithText(FilledButton, 'Clock in'));
+    await _swipe(tester, 'Slide to clock in');
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
@@ -437,10 +438,8 @@ void main() {
     // Still off shift, and still able to try again.
     expect(find.text('You are not clocked in'), findsOneWidget);
 
-    final button = tester.widget<FilledButton>(
-      find.widgetWithText(FilledButton, 'Clock in'),
-    );
-    expect(button.onPressed, isNotNull);
+    final track = tester.widget<SwipeToConfirm>(find.byType(SwipeToConfirm));
+    expect(track.enabled && !track.busy, isTrue);
   });
 
   /// M9, the whole point of it.
@@ -457,7 +456,7 @@ void main() {
 
       await _pumpShiftScreen(tester, repository, queue: ClockQueue(store));
 
-      await tester.tap(find.widgetWithText(FilledButton, 'Clock in'));
+      await _swipe(tester, 'Slide to clock in');
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
 
@@ -484,7 +483,7 @@ void main() {
 
       final pressedAt = DateTime.now().toUtc();
 
-      await tester.tap(find.widgetWithText(FilledButton, 'Clock in'));
+      await _swipe(tester, 'Slide to clock in');
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
 
@@ -520,7 +519,7 @@ void main() {
 
       await _pumpShiftScreen(tester, repository, queue: ClockQueue(store));
 
-      await tester.tap(find.widgetWithText(FilledButton, 'Clock in'));
+      await _swipe(tester, 'Slide to clock in');
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       await tester.tap(find.text('Zgrada B'));
@@ -548,7 +547,7 @@ void main() {
 
       await _pumpShiftScreen(tester, repository, queue: ClockQueue(store));
 
-      await tester.tap(find.widgetWithText(FilledButton, 'Clock in'));
+      await _swipe(tester, 'Slide to clock in');
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
 
@@ -578,11 +577,11 @@ void main() {
 
       await _pumpShiftScreen(tester, repository, queue: ClockQueue(store));
 
-      await tester.tap(find.widgetWithText(FilledButton, 'Clock in'));
+      await _swipe(tester, 'Slide to clock in');
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
 
-      await tester.tap(find.widgetWithText(FilledButton, 'Clock out'));
+      await _swipe(tester, 'Slide to clock out');
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       await tester.enterText(find.byType(TextField), '30');
@@ -610,7 +609,7 @@ void main() {
 
       await _pumpShiftScreen(tester, repository, queue: ClockQueue(store));
 
-      await tester.tap(find.widgetWithText(FilledButton, 'Clock in'));
+      await _swipe(tester, 'Slide to clock in');
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 200));
 
@@ -655,6 +654,12 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.widgetWithText(FilledButton, 'Clock in'), findsNothing);
+    expect(find.byType(SwipeToConfirm), findsNothing);
   });
+}
+
+/// Drags the clock-in / clock-out knob to the end of its track, as a thumb would.
+Future<void> _swipe(WidgetTester tester, String label) async {
+  final track = find.ancestor(of: find.text(label), matching: find.byType(SwipeToConfirm));
+  await tester.drag(find.descendant(of: track, matching: find.byType(GestureDetector)).first, const Offset(2000, 0));
 }

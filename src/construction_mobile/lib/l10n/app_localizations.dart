@@ -2846,6 +2846,18 @@ abstract class AppLocalizations {
   /// **'Clock in'**
   String get shiftClockIn;
 
+  /// No description provided for @shiftSwipeIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Slide to clock in'**
+  String get shiftSwipeIn;
+
+  /// No description provided for @shiftSwipeOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Slide to clock out'**
+  String get shiftSwipeOut;
+
   /// No description provided for @shiftClockOut.
   ///
   /// In en, this message translates to:

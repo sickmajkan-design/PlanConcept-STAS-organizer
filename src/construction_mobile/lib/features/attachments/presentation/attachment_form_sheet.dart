@@ -1,3 +1,4 @@
+import '../../../core/theme/sheet_motion.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -45,6 +46,7 @@ Future<void> showAttachmentFormSheet(
 }) {
   return showModalBottomSheet<void>(
     context: context,
+    sheetAnimationStyle: sheetMotion(context),
     isScrollControlled: true,
     builder: (_) => _AttachmentFormSheet(ownerType: ownerType, ownerId: ownerId),
   );

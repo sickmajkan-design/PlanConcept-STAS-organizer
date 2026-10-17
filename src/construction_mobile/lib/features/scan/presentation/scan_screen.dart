@@ -1,3 +1,4 @@
+import '../../../core/theme/sheet_motion.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -317,6 +318,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
   Future<Employee?> _pickEmployee() {
     return showModalBottomSheet<Employee>(
       context: context,
+      sheetAnimationStyle: sheetMotion(context),
       isScrollControlled: true,
       builder: (_) => const _EmployeePickerSheet(),
     );
@@ -325,6 +327,7 @@ class _ScanScreenState extends ConsumerState<ScanScreen> {
   Future<Project?> _pickProject() {
     return showModalBottomSheet<Project>(
       context: context,
+      sheetAnimationStyle: sheetMotion(context),
       isScrollControlled: true,
       builder: (_) => const _ProjectPickerSheet(),
     );

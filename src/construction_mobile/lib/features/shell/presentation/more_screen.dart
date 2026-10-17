@@ -1,3 +1,4 @@
+import '../../../core/theme/sheet_motion.dart';
 import '../../../core/l10n/enum_labels.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -241,6 +242,7 @@ class MoreScreen extends ConsumerWidget {
 
     final chosen = await showModalBottomSheet<Locale>(
       context: context,
+      sheetAnimationStyle: sheetMotion(context),
       builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,

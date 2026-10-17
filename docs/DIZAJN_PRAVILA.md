@@ -39,6 +39,9 @@ Pregled je rađen alatima iz paketa `emilkowalski/skills` (`emil-design-eng`, `m
 - Lokacija van smjene je normalno stanje, pa je jedna siva linija; kartica se pokazuje samo kad nešto treba uraditi (dozvola, isključena usluga).
 - Prazno stanje (npr. nema zadataka) ima ikonu i okvir, ne goli tekst.
 - **Brze radnje** (`QuickActionTile`): četiri najčešća posla (nedostatak, dokumenti, raspored, odsustva) kao pločice u redu, s blagim utiskivanjem pri pritisku. **Dugme koje prati**: dok kartica smjene nije vidljiva, a radnik nije na smjeni, "Prijavi se na smjenu" stoji iznad donje trake (prati se stvarni položaj kartice, ne unaprijed zadan pomak).
+- **Donja traka lebdi** (`_FloatingBar` u `app_shell.dart`): zaobljena, malo prozirna (zamućenje), sadržaj klizi ispod nje. Ekrani u traci koriste `SafeArea(bottom: false)`, a liste dodaju donji razmak koji je jednak visini trake (`PagedListView` to radi sam). Uz pojačan kontrast traka je puna boja. Novi ekran u traci mora ostaviti taj razmak, inače se zadnji red ne može dohvatiti.
+- **Prijava i odjava se povlače** (`SwipeToConfirm`): klizač do kraja, ne dodir; pusti li se ranije, vraća se oprugom s brzinom prsta. Čitač ekrana ga aktivira jednim dodirom. Obični dugmići (Sačuvaj, Pošalji) ostaju dodir.
+- **Donji listovi** koriste `sheetMotion(context)` (kratak odskok na kraju, zatvaranje brže); pri smanjenom kretanju bez putanje. Svaki novi `showModalBottomSheet` prima `sheetAnimationStyle: sheetMotion(context)`.
 - Prije objave: release izdanje (ne debug) na emulatoru, jer debug izdanje na ovom računaru javlja "ne odgovara" dok traži lokaciju.
 
 ## 5. Izgled: svijetao i taman

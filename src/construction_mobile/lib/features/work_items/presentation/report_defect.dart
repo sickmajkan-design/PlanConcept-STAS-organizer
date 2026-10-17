@@ -1,3 +1,4 @@
+import '../../../core/theme/sheet_motion.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -136,6 +137,7 @@ class _ReportDefectButtonState extends ConsumerState<ReportDefectButton> {
 
     return showModalBottomSheet<String>(
       context: context,
+      sheetAnimationStyle: sheetMotion(context),
       isDismissible: false,
       enableDrag: false,
       builder: (_) => SitePickerSheet(sites: sites),
@@ -154,6 +156,7 @@ class _ReportDefectButtonState extends ConsumerState<ReportDefectButton> {
     final result =
         await showModalBottomSheet<({String title, String? description, XFile? photo})>(
       context: context,
+      sheetAnimationStyle: sheetMotion(context),
       isScrollControlled: true,
       // Not dismissible by a tap outside or a swipe, for the same reason as
       // the clock-out sheet: a dismissal resolves to the same null as pressing

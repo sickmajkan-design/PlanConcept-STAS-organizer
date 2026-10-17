@@ -1608,6 +1608,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shiftClockIn => 'Clock in';
 
   @override
+  String get shiftSwipeIn => 'Slide to clock in';
+
+  @override
+  String get shiftSwipeOut => 'Slide to clock out';
+
+  @override
   String get shiftClockOut => 'Clock out';
 
   @override

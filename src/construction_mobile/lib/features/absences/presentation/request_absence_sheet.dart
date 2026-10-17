@@ -1,3 +1,4 @@
+import '../../../core/theme/sheet_motion.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -31,6 +32,7 @@ const _maxBackdatingDays = 90;
 Future<void> showRequestAbsenceSheet(BuildContext context, WidgetRef ref) {
   return showModalBottomSheet<void>(
     context: context,
+    sheetAnimationStyle: sheetMotion(context),
     isScrollControlled: true,
     builder: (_) => const _RequestAbsenceSheet(),
   );

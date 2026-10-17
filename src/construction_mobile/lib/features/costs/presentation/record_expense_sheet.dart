@@ -1,3 +1,4 @@
+import '../../../core/theme/sheet_motion.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -23,6 +24,7 @@ const _recordableKinds = <String>['Fuel', 'Repair', 'Service', 'Other'];
 Future<void> showRecordExpenseSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
+    sheetAnimationStyle: sheetMotion(context),
     isScrollControlled: true,
     builder: (_) => const _RecordExpenseSheet(),
   );
@@ -303,6 +305,7 @@ class _RecordExpenseSheetState extends ConsumerState<_RecordExpenseSheet> {
 
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
+      sheetAnimationStyle: sheetMotion(context),
       builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,

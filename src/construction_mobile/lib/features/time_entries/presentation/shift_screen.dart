@@ -1,3 +1,4 @@
+import '../../../core/theme/sheet_motion.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import '../../../core/l10n/api_failure_text.dart';
 import '../../../core/l10n/app_locales.dart';
 import '../../../core/l10n/enum_labels.dart';
 import '../../../core/widgets/status_chip.dart';
+import '../../../core/widgets/swipe_to_confirm.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/paged_list_view.dart';
 import '../../../core/theme/app_theme.dart';
@@ -39,6 +41,7 @@ Future<void> startShift(BuildContext context, WidgetRef ref) async {
     // clock-in that silently did nothing. Cancelling is the explicit button.
     projectId = await showModalBottomSheet<String>(
       context: context,
+      sheetAnimationStyle: sheetMotion(context),
       isDismissible: false,
       enableDrag: false,
       builder: (_) => SitePickerSheet(sites: sites),
@@ -90,6 +93,7 @@ class ShiftScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.shiftTitle)),
       body: SafeArea(
+        bottom: false,
         child: PagedListView<TimeEntry>(
           state: entries,
           onRefresh: () async {
@@ -236,23 +240,19 @@ class _ShiftCardState extends ConsumerState<ShiftCard> {
               ),
             ],
             const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                // Disabled only while a call is in flight, so a double tap
-                // cannot open two shifts.
-                onPressed: state.isBusy || async.isLoading
-                    ? null
-                    : () => running ? _clockOut(context) : _clockIn(),
-                icon: state.isBusy
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Icon(running ? Icons.stop : Icons.play_arrow),
-                label: Text(state.isBusy ? l10n.shiftWorking : (running ? l10n.shiftClockOut : l10n.shiftClockIn)),
-              ),
+            // Dragged to the end, not tapped: a shift is not opened or closed by a touch in a pocket. Idle while
+            // a call is in flight, so it cannot open two shifts.
+            SwipeToConfirm(
+              label: state.isBusy ? l10n.shiftWorking : (running ? l10n.shiftSwipeOut : l10n.shiftSwipeIn),
+              icon: running ? Icons.stop : Icons.play_arrow,
+              busy: state.isBusy,
+              enabled: !async.isLoading,
+              trackColor: theme.colorScheme.primary.withValues(alpha: 0.12),
+              fillColor: theme.colorScheme.primary,
+              knobColor: theme.colorScheme.primary,
+              knobIconColor: theme.colorScheme.onPrimary,
+              textColor: theme.colorScheme.primary,
+              onConfirmed: () => running ? _clockOut(context) : _clockIn(),
             ),
           ],
         ),
@@ -362,36 +362,20 @@ class _ShiftCardState extends ConsumerState<ShiftCard> {
             ),
           ],
           const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              // Clocking in is the one thing this screen is for, so it is the one orange button; clocking out
-              // is quiet on purpose, so it is not pressed by accident. While working, the button keeps its colour
-              // and shows the spinner in it, so waiting does not look like a fault.
-              style: FilledButton.styleFrom(
-                minimumSize: const Size.fromHeight(52),
-                backgroundColor: running ? ink.withValues(alpha: 0.14) : AppTheme.heroAction,
-                foregroundColor: running ? ink : AppTheme.heroActionText,
-                disabledBackgroundColor: running
-                    ? ink.withValues(alpha: 0.1)
-                    : AppTheme.heroAction.withValues(alpha: 0.8),
-                disabledForegroundColor: running ? ink.withValues(alpha: 0.7) : AppTheme.heroActionText,
-              ),
-              onPressed: state.isBusy || async.isLoading
-                  ? null
-                  : () => running ? _clockOut(context) : _clockIn(),
-              icon: state.isBusy
-                  ? SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: running ? ink : AppTheme.heroActionText,
-                      ),
-                    )
-                  : Icon(running ? Icons.stop : Icons.play_arrow),
-              label: Text(state.isBusy ? l10n.shiftWorking : (running ? l10n.shiftClockOut : l10n.shiftClockIn)),
-            ),
+          // Clocking in is the one thing this screen is for, so its track is the orange one; clocking out is
+          // quiet on purpose. Both are dragged to the end, so neither happens by a touch in a pocket.
+          SwipeToConfirm(
+            label: state.isBusy ? l10n.shiftWorking : (running ? l10n.shiftSwipeOut : l10n.shiftSwipeIn),
+            icon: running ? Icons.stop : Icons.play_arrow,
+            busy: state.isBusy,
+            enabled: !async.isLoading,
+            height: 58,
+            trackColor: running ? ink.withValues(alpha: 0.14) : AppTheme.heroAction.withValues(alpha: 0.28),
+            fillColor: running ? ink : AppTheme.heroAction,
+            knobColor: running ? ink : AppTheme.heroAction,
+            knobIconColor: running ? AppTheme.heroCard : AppTheme.heroActionText,
+            textColor: ink,
+            onConfirmed: () => running ? _clockOut(context) : _clockIn(),
           ),
         ],
       ),
@@ -424,6 +408,7 @@ class _ShiftCardState extends ConsumerState<ShiftCard> {
     // "clock out didn't work."
     final breakMinutes = await showModalBottomSheet<int>(
       context: context,
+      sheetAnimationStyle: sheetMotion(context),
       isScrollControlled: true,
       isDismissible: false,
       enableDrag: false,

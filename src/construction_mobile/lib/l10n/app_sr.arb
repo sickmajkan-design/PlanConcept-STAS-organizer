@@ -556,6 +556,8 @@
     }
   },
   "shiftClockIn": "Prijavi se na smjenu",
+  "shiftSwipeIn": "Povuci za dolazak",
+  "shiftSwipeOut": "Povuci za odlazak",
   "shiftClockOut": "Odjavi se sa smjene",
   "shiftWorking": "Određujem lokaciju…",
   "shiftClockOutTitle": "Završetak smjene",

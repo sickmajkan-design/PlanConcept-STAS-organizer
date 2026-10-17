@@ -10,6 +10,7 @@ import '../../../core/router/app_routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/quick_action_tile.dart';
+import '../../../core/widgets/swipe_to_confirm.dart';
 import '../../auth/data/models/user.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../location/presentation/location_status_card.dart';
@@ -128,7 +129,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ],
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
+                  padding: EdgeInsets.fromLTRB(16, 24, 16, 32 + MediaQuery.paddingOf(context).bottom),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -156,7 +157,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             Positioned(
               left: 16,
               right: 16,
-              bottom: 12,
+              // Above the floating bar, which the page's bottom padding already includes.
+              bottom: MediaQuery.paddingOf(context).bottom + 8,
               child: ValueListenableBuilder<bool>(
                 valueListenable: _followShift,
                 builder: (context, follow, _) => _FollowingShiftButton(visible: follow),
@@ -285,26 +287,22 @@ class _FollowingShiftButton extends ConsumerWidget {
         child: AnimatedOpacity(
           opacity: show ? 1 : 0,
           duration: duration,
-          child: SizedBox(
-            height: 52,
-            child: FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: AppTheme.heroAction,
-                foregroundColor: AppTheme.heroActionText,
-                disabledBackgroundColor: AppTheme.heroAction.withValues(alpha: 0.8),
-                disabledForegroundColor: AppTheme.heroActionText,
-                elevation: 6,
-                shadowColor: const Color(0x66000000),
-              ),
-              onPressed: busy ? null : () => startShift(context, ref),
-              icon: busy
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.heroActionText),
-                    )
-                  : const Icon(Icons.play_arrow),
-              label: Text(busy ? l10n.shiftWorking : l10n.shiftClockIn),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: const [BoxShadow(color: Color(0x66000000), blurRadius: 14, offset: Offset(0, 5))],
+            ),
+            child: SwipeToConfirm(
+              label: busy ? l10n.shiftWorking : l10n.shiftSwipeIn,
+              icon: Icons.play_arrow,
+              busy: busy,
+              height: 56,
+              trackColor: Color.alphaBlend(AppTheme.heroAction.withValues(alpha: 0.3), Theme.of(context).colorScheme.surface),
+              fillColor: AppTheme.heroAction,
+              knobColor: AppTheme.heroAction,
+              knobIconColor: AppTheme.heroActionText,
+              textColor: Theme.of(context).colorScheme.onSurface,
+              onConfirmed: () => startShift(context, ref),
             ),
           ),
         ),

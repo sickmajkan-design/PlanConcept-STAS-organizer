@@ -33,6 +33,7 @@ class EmployeesScreen extends ConsumerWidget {
         ],
       ),
       body: SafeArea(
+        bottom: false,
         child: PagedListView<Employee>(
           state: state,
           onRefresh: controller.refresh,
