@@ -8,7 +8,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { canViewDirectory, displayName } from '../auth/authHelpers';
 import { useAuth } from '../auth/useAuth';
-import { readScoped, storageScope, writeScoped } from '../hooks/userScopedStorage';
+import { readScoped, storageScope } from '../hooks/userScopedStorage';
 import { useColorMode } from '../ColorMode';
 import { ColorModeToggle } from '../components/ColorModeToggle';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
@@ -303,19 +303,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
       logoHoverTimer.current = null;
     }
     setLogoPreviewAnchor(null);
-  };
-
-  const toggleGroup = (key: string) => {
-    setExpandedGroups((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) {
-        next.delete(key);
-      } else {
-        next.add(key);
-      }
-      writeScoped(scope, EXPANDED_GROUPS_KEY, [...next]);
-      return next;
-    });
   };
 
   if (!user) {

@@ -1,5 +1,5 @@
 import { ChevronRightOutlined } from '@mui/icons-material';
-import { alpha, Box, ButtonBase, Stack, Typography } from '@mui/material';
+import { alpha, Box, ButtonBase, Stack, Typography, type SxProps, type Theme } from '@mui/material';
 import type { ElementType, ReactNode } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 
