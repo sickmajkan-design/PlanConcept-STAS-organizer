@@ -30,7 +30,6 @@ import { toApiError } from '../../api/apiError';
 import type { BulletinPost } from '../../api/types';
 import { canAdministerAccounts } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
-import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import {
   useBulletinPostsQuery,
@@ -59,12 +58,12 @@ export function BulletinPage() {
 
   const { data, isLoading } = useBulletinPostsQuery();
   const markViewed = useMarkBulletinViewed();
-  const remove = useDeleteWithConfirm<BulletinPost>(useDeleteBulletinPost());
+  const remove = useDeleteWithConfirm<BulletinPost>(useDeleteBulletinPost(), { immediate: true });
   const [composing, setComposing] = useState(false);
   const [viewingPostId, setViewingPostId] = useState<string | null>(null);
   const { targetId, isHighlighted, scrollIntoViewOnce } = useHighlightTarget();
 
-  const posts = data ?? [];
+  const posts = (data ?? []).filter((post) => !remove.hiddenIds.has(post.id));
 
   // Fires once per unseen post as the list loads — this is the whole
   // "passive" acknowledgment: opening the board is what counts as seeing it.
@@ -195,19 +194,6 @@ export function BulletinPage() {
       <BulletinViewersDialog
         postId={viewingPostId}
         onClose={() => setViewingPostId(null)}
-      />
-
-      <ConfirmDialog
-        open={!!remove.pending}
-        title={t('bulletin.deleteTitle')}
-        description={
-          remove.pending ? t('bulletin.deleteBody', { title: remove.pending.title }) : ''
-        }
-        confirmLabel={t('common.delete')}
-        destructive
-        loading={remove.isDeleting}
-        onConfirm={remove.confirm}
-        onCancel={remove.cancel}
       />
 
       {remove.error && (

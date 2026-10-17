@@ -15,6 +15,8 @@ export interface PendingUndo {
   id: string;
   message: string;
   execute: () => Promise<void>;
+  /** The record this delete is for, so a list can hide its row while the undo is still possible. */
+  subjectId?: string;
 }
 
 type Listener = (items: PendingUndo[]) => void;
@@ -53,9 +55,9 @@ async function commit(id: string) {
 }
 
 /** Queues a delete; returns the undo handle a caller could use to cancel it directly. */
-export function scheduleUndoableDelete(message: string, execute: () => Promise<void>): string {
+export function scheduleUndoableDelete(message: string, execute: () => Promise<void>, subjectId?: string): string {
   const id = crypto.randomUUID();
-  items = [...items, { id, message, execute }];
+  items = [...items, { id, message, execute, subjectId }];
   notify();
 
   timers.set(

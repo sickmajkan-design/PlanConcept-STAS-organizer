@@ -58,6 +58,8 @@ Pregled je rađen alatima iz paketa `emilkowalski/skills` (`emil-design-eng`, `m
 - **Pokazatelji (`StatTile`)** imaju istu neutralnu pozadinu; boja je samo u maloj ikoni, nule su prigušene. Sporedna dugmad na nadzornoj ploči ("Dodaj widget", prvi korak u praznom widgetu) su neutralna s tankim okvirom.
 - Widget čiji bi grafikon bio prazan (prihod, vozila, alati) kaže šta nedostaje i nudi prvi korak.
 - **Meni (odobreno 17.10.):** natpis ispod svake ikone na lijevoj traci; Dokumenti i Zahtjevi za dokumente su vlastita grupa; Finansije imaju tri naslova (Svaki dan, Troškovi po vrsti, Obračun i postavke). Raspored ikona nije mijenjan.
+- **Poništi umjesto pitanja:** što se lako pravi ponovo (zadatak, oglas, grupa za notifikacije, zakazani izvještaj) briše se bez "Jeste li sigurni?" (`useDeleteWithConfirm(..., { immediate: true })`): red odmah nestane (`hiddenIds`), a Poništi stoji šest sekundi. Novac, zaposleni, vozila i dokumenti zadržavaju pitanje.
+- **Učitavanje:** oblik onoga što dolazi (skeleton) umjesto obrtača u karticama panela i listama aplikacije (`SkeletonList`); sa smanjenim kretanjem stoji mirno.
 - **Računar, i dalje bez izričitog odobrenja:** zaglavlje (uključujući liniju ispod naziva firme) i naslovna.
 
 ## 7. Šta još nije urađeno (odluke)

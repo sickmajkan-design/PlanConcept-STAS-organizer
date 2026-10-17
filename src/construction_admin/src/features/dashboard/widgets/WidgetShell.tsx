@@ -1,5 +1,5 @@
 import { CloseOutlined, DragIndicatorOutlined, OpenInFullOutlined, TuneOutlined } from '@mui/icons-material';
-import { Alert, Box, Card, CardContent, CardHeader, CircularProgress, IconButton, Stack, Tooltip } from '@mui/material';
+import { Alert, Box, Card, CardContent, CardHeader, IconButton, Skeleton, Stack, Tooltip } from '@mui/material';
 import type { ReactNode } from 'react';
 
 import { useT } from '../../../i18n/useI18n';
@@ -125,9 +125,16 @@ export function WidgetShell({ title, isLoading, error, onRemove, onExpandWidth, 
         }}
       >
         {isLoading ? (
-          <Box sx={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <CircularProgress size={28} />
-          </Box>
+          // The shape of what is about to appear, not a spinner in an empty card; still with reduced motion.
+          <Stack
+            spacing={1.5}
+            aria-busy="true"
+            sx={{ flex: 1, '& .MuiSkeleton-root': { '@media (prefers-reduced-motion: reduce)': { animation: 'none' } } }}
+          >
+            <Skeleton variant="rounded" height={22} width="45%" />
+            <Skeleton variant="rounded" height={64} />
+            <Skeleton variant="rounded" height={64} />
+          </Stack>
         ) : error ? (
           <Alert severity="error">{t('common.somethingWentWrong')}</Alert>
         ) : (

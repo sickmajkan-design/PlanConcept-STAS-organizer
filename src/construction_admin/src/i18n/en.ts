@@ -867,6 +867,9 @@ export const en = {
   'releaseNotes.close': 'Got it',
 
 
+  'releaseNotes.undo1017.title': "Delete without asking, with Undo",
+  'releaseNotes.undo1017.delete': "Tasks, notices, notification groups and scheduled reports are deleted without an \"Are you sure?\": the row disappears at once and Undo stays in the corner for six seconds. For money, employees, vehicles and documents the question stays.",
+  'releaseNotes.undo1017.loading': "While the cards on the dashboard (and the lists in app 1.1.29) load, you see the shape of what is coming instead of a spinner, so nothing jumps when the data arrives.",
   'releaseNotes.menu1017.title': "A simpler menu",
   'releaseNotes.menu1017.rail': "The left rail has a word under each icon, so nobody has to guess what a symbol means. The order of the icons is the same.",
   'releaseNotes.menu1017.documents': "Documents and Document requests have a group of their own on the rail (they used to be under Administration).",
@@ -882,10 +885,6 @@ export const en = {
   'releaseNotes.today1017.title': "Today, on a phone",
   'releaseNotes.today1017.summary': "On a phone, Home now starts with what matters today: how many people are on a shift and what is waiting for your answer (requests, deadlines, documents about to expire). Each line leads to the list where it is dealt with.",
   'releaseNotes.today1017.sheet': "Choosing the business unit on a phone opens from the bottom edge at full width, where a thumb reaches.",
-  'releaseNotes.calm1016.title': "A calmer look and a better phone layout",
-  'releaseNotes.calm1016.phone': "On a phone the header is cleaner: help and language are in your account menu, and the business unit's name shows in full. Home shows today's date, the figures sit two to a row, and their names wrap instead of being cut off.",
-  'releaseNotes.calm1016.calm': "Cards on the dashboard are calmer: a thin grey line instead of the orange bar and glow, lighter headings. Orange is kept for what can be pressed. A chart with no data is replaced by a sentence.",
-  'releaseNotes.calm1016.app': "App (1.1.27): the site picture runs to the top of the screen, signing in to a shift is the only orange button, the date is under the greeting, and location sharing off a shift is one line instead of a card.",
   'finance.budget.warnPercentHelp': 'Leave empty for 80%. From 100% the project counts as over.',
   'finance.housingDoubleWarning': '{count} housing expenses fall on days when accommodation rent is already counted from the accommodation rates, so that rent is counted twice. Delete them or move them to another category.',
   'finance.payOverlapWarning': '{count} pay entries tied to no project fall on days the same person clocked hours at a project. Both are counted — check whether one of them should replace the other.',

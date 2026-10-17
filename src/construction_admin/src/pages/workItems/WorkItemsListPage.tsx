@@ -18,7 +18,6 @@ import { useNavigate } from 'react-router-dom';
 import type { WorkItemListQuery } from '../../api/workItems';
 import type { WorkItem, WorkItemStatus } from '../../api/types';
 import { workItemStatuses } from '../../api/types';
-import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { PageHeader } from '../../components/PageHeader';
 import {
   StatusBoard,
@@ -120,7 +119,7 @@ export function WorkItemsListPage() {
   );
 
   const { data, isLoading, isError, error, refetch } = useWorkItemsQuery(isBoard ? boardQuery : query);
-  const remove = useDeleteWithConfirm<WorkItem>(useDeleteWorkItem());
+  const remove = useDeleteWithConfirm<WorkItem>(useDeleteWorkItem(), { immediate: true });
 
   const columns: GridColDef<WorkItem>[] = useMemo(
     () => [
@@ -289,7 +288,7 @@ export function WorkItemsListPage() {
 
       {isBoard ? (
         <StatusBoard
-          rows={data?.items ?? []}
+          rows={(data?.items ?? []).filter((item) => !remove.hiddenIds.has(item.id))}
           totalCount={data?.totalCount ?? 0}
           columns={columns}
           boardColumns={buildBoardColumns(workItemStatuses, (status) => enumLabel('workItemStatus', status), {"Open":"warning","Resolved":"success"})}
@@ -312,21 +311,6 @@ export function WorkItemsListPage() {
         onSortModelChange={list.setSortModel}
       />
       )}
-
-      <ConfirmDialog
-        open={!!remove.pending}
-        title={t('workItems.deleteTitle')}
-        description={
-          remove.pending
-            ? t('workItems.deleteBody', { name: remove.pending.title })
-            : ''
-        }
-        confirmLabel={t('common.delete')}
-        destructive
-        loading={remove.isDeleting}
-        onConfirm={remove.confirm}
-        onCancel={remove.cancel}
-      />
 
       {remove.error && (
         <Typography variant="body2" color="error" sx={{ mt: 1 }}>

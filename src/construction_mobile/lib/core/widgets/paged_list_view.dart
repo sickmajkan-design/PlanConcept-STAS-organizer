@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../pagination/paged_state.dart';
 import '../utils/formatting.dart';
 import 'failure_view.dart';
+import 'skeleton_list.dart';
 
 /// Renders a [PagedState] with pull-to-refresh, infinite scroll and footer
 /// states. Shared by every list screen so paging behaviour stays identical.
@@ -92,7 +93,7 @@ class _PagedListViewState<T> extends State<PagedListView<T>> {
       return Column(
         children: [
           if (widget.header != null) widget.header!,
-          const Expanded(child: Center(child: CircularProgressIndicator())),
+          const Expanded(child: SkeletonList()),
         ],
       );
     }

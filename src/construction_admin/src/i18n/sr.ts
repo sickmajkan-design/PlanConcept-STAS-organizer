@@ -894,6 +894,9 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.close': 'Razumijem',
 
 
+  'releaseNotes.undo1017.title': "Brisanje bez pitanja, uz Poništi",
+  'releaseNotes.undo1017.delete': "Zadaci, oglasi, grupe za notifikacije i zakazani izvještaji se brišu bez pitanja \"Jeste li sigurni?\": red odmah nestane, a u donjem uglu stoji Poništi šest sekundi. Za novac, zaposlene, vozila i dokumente pitanje ostaje.",
+  'releaseNotes.undo1017.loading': "Dok se kartice na nadzornoj ploči (i liste u aplikaciji 1.1.29) učitavaju, vidi se oblik onoga što dolazi umjesto obrtača, pa ništa ne skače kad stignu podaci.",
   'releaseNotes.menu1017.title': "Jednostavniji meni",
   'releaseNotes.menu1017.rail': "Lijeva traka ima natpis ispod svake ikone, pa se više ne pogađa šta koja znači. Raspored ikona je isti.",
   'releaseNotes.menu1017.documents': "Dokumenti i Zahtjevi za dokumente imaju vlastitu grupu na traci (do sada su bili u Administraciji).",
@@ -909,10 +912,6 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.today1017.title': "Danas na telefonu",
   'releaseNotes.today1017.summary': "Na početnoj, na telefonu, prvo piše šta je danas važno: koliko ljudi je na smjeni i šta čeka vaš odgovor (zahtjevi, rokovi, dokumenti koji ističu). Svaki red vodi na listu gdje se to rješava.",
   'releaseNotes.today1017.sheet': "Izbor poslovne jedinice na telefonu se otvara odozdo preko cijele širine, gdje ga palac dosegne.",
-  'releaseNotes.calm1016.title': "Mirniji izgled i bolji prikaz na telefonu",
-  'releaseNotes.calm1016.phone': "Na telefonu je zaglavlje čišće: pomoć i jezik su u meniju vašeg naloga, a ime poslovne jedinice se vidi cijelo. Početna pokazuje današnji datum, pokazatelji su po dva u redu, a nazivi se prelamaju umjesto da budu odsječeni.",
-  'releaseNotes.calm1016.calm': "Kartice na nadzornoj ploči su mirnije: tanka siva linija umjesto narandžaste trake i sjaja, lakši naslovi. Narandžasta je ostala za ono što se može pritisnuti. Grafikon bez podataka zamjenjuje jedna rečenica.",
-  'releaseNotes.calm1016.app': "Aplikacija (1.1.27): slika gradilišta ide do vrha ekrana, prijava na smjenu je jedino narandžasto dugme, datum je ispod pozdrava, a lokacija van smjene je jedna linija umjesto kartice.",
   'finance.budget.warnPercentHelp': 'Prazno znači 80%. Od 100% se projekat računa kao prekoračen.',
   'finance.housingDoubleWarning': '{count} troškova smještaja pada na dane kada je kirija već uračunata iz cijena smještaja, pa se ta kirija računa dvaput. Obrišite ih ili ih prebacite u drugu kategoriju.',
   'finance.payOverlapWarning': '{count} isplata bez projekta pada na dane kada je ista osoba evidentirala sate na projektu. Računaju se oba iznosa — provjerite treba li jedan zamijeniti drugi.',

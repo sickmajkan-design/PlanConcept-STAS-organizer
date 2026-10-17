@@ -32,7 +32,6 @@ import {
   type ScheduledReportType,
   type WeekDay,
 } from '../../api/types';
-import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
@@ -172,7 +171,7 @@ export function ScheduledReportsListPage() {
   const t = useT();
   const enumLabel = useEnumLabel();
   const { data, isLoading, isError, error, refetch } = useScheduledReportsQuery();
-  const remove = useDeleteWithConfirm<ScheduledReportSubscription>(useDeleteScheduledReport());
+  const remove = useDeleteWithConfirm<ScheduledReportSubscription>(useDeleteScheduledReport(), { immediate: true });
   const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
@@ -195,7 +194,7 @@ export function ScheduledReportsListPage() {
 
       {data && data.length > 0 && (
         <List>
-          {data.map((subscription) => (
+          {data.filter((subscription) => !remove.hiddenIds.has(subscription.id)).map((subscription) => (
             <ListItem
               key={subscription.id}
               divider
@@ -220,17 +219,6 @@ export function ScheduledReportsListPage() {
       )}
 
       <NewSubscriptionDialog open={dialogOpen} onClose={() => setDialogOpen(false)} />
-
-      <ConfirmDialog
-        open={!!remove.pending}
-        title={t('scheduledReports.deleteConfirmTitle')}
-        description={t('scheduledReports.deleteConfirmBody')}
-        confirmLabel={t('common.delete')}
-        destructive
-        loading={remove.isDeleting}
-        onConfirm={remove.confirm}
-        onCancel={remove.cancel}
-      />
 
       {remove.error && (
         <Typography variant="body2" color="error" sx={{ mt: 1 }}>

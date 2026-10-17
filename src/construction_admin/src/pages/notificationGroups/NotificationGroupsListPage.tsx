@@ -29,7 +29,7 @@ export function NotificationGroupsListPage() {
 
   const { data, isLoading, isError, error, refetch } = useNotificationGroupsQuery(list.query);
   const deleteGroup = useDeleteNotificationGroup();
-  const remove = useDeleteWithConfirm<NotificationGroup>(deleteGroup);
+  const remove = useDeleteWithConfirm<NotificationGroup>(deleteGroup, { immediate: true });
   const bulk = useBulkDelete(deleteGroup);
   const selection = useBulkSelection();
 
@@ -109,7 +109,7 @@ export function NotificationGroupsListPage() {
       />
 
       <ResourceDataGrid
-        data={data}
+        data={data && { ...data, items: data.items.filter((group) => !remove.hiddenIds.has(group.id)) }}
         columns={columns}
         isLoading={isLoading}
         isError={isError}
@@ -121,19 +121,6 @@ export function NotificationGroupsListPage() {
         onSortModelChange={list.setSortModel}
         rowSelectionModel={selection.model}
         onRowSelectionModelChange={selection.setModel}
-      />
-
-      <ConfirmDialog
-        open={!!remove.pending}
-        title={t('notificationGroups.deleteTitle')}
-        description={
-          remove.pending ? t('notificationGroups.deleteBody', { name: remove.pending.name }) : ''
-        }
-        confirmLabel={t('common.delete')}
-        destructive
-        loading={remove.isDeleting}
-        onConfirm={remove.confirm}
-        onCancel={remove.cancel}
       />
 
       <ConfirmDialog
