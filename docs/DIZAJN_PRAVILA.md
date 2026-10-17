@@ -54,7 +54,9 @@ Pregled je rađen alatima iz paketa `emilkowalski/skills` (`emil-design-eng`, `m
 - Pokazatelji (`StatTile`) su dva u redu, nazivi se prelamaju u dva reda, nula je prigušena. Redovi prečica ispod njih se pomjeraju u stranu umjesto da se prelome i budu odsječeni.
 - **Početna na telefonu** počinje pregledom "Danas" (`TodaySummary`): koliko je ljudi na smjeni i do tri vrste posla koje čekaju (isti izvor kao widget "Zahtijeva pažnju"), svaki red je veza na listu gdje se rješava.
 - Izbor poslovne jedinice na telefonu je dijalog koji se diže odozdo (kao ostali dijalozi), ne padajući meni.
-- **Računar:** lijevi meni, zaglavlje i naslovna se ne mijenjaju bez izričitog odobrenja.
+- **Pokazatelji (`StatTile`)** imaju istu neutralnu pozadinu; boja je samo u maloj ikoni, nule su prigušene. Sporedna dugmad na nadzornoj ploči ("Dodaj widget", prvi korak u praznom widgetu) su neutralna s tankim okvirom.
+- Widget čiji bi grafikon bio prazan (prihod, vozila, alati) kaže šta nedostaje i nudi prvi korak.
+- **Računar:** lijevi meni, zaglavlje (uključujući liniju ispod naziva firme) i naslovna se ne mijenjaju bez izričitog odobrenja.
 
 ## 7. Šta još nije urađeno (odluke)
 

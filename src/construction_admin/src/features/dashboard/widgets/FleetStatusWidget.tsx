@@ -1,4 +1,4 @@
-import { Box, List, ListItem, ListItemText, Stack, Typography } from '@mui/material';
+import { Box, Button, List, ListItem, ListItemText, Stack, Typography } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -16,6 +16,20 @@ import { WidgetShell } from './WidgetShell';
 
 // 100 is GetVehiclesQuery/GetToolsQuery's own max page size — a bigger request 400s.
 const FLEET_PAGE_SIZE = 100;
+
+/** An axis with nothing on it says less than a sentence and the way to the first record. */
+function EmptyChart({ text, to, action }: { text: string; to: string; action: string }) {
+  return (
+    <Stack spacing={1} sx={{ alignItems: 'flex-start', py: 1 }}>
+      <Typography variant="body2" color="text.secondary">
+        {text}
+      </Typography>
+      <Button component={Link} to={to} size="small" variant="outlined" color="inherit" sx={{ borderColor: 'divider' }}>
+        {action}
+      </Button>
+    </Stack>
+  );
+}
 
 /** Statuses worth calling out as a short "needs attention" list. */
 const VEHICLE_ATTENTION: VehicleStatus[] = ['OutOfService'];
@@ -85,6 +99,9 @@ export function FleetStatusWidget({ instanceId: _instanceId, onRemove, onExpandW
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, flexShrink: 0 }}>
             {t('dashboard.fleet.vehicles')}
           </Typography>
+          {vehicles.length === 0 ? (
+            <EmptyChart text={t('dashboard.fleet.noVehicles')} to={paths.vehicleNew} action={t('vehicles.add')} />
+          ) : (
           <Box ref={vehicleChartSize.ref} sx={{ flex: 1, minHeight: 0 }}>
             {vehicleChartSize.width > 0 && vehicleChartSize.height > 0 && (
               <BarChart
@@ -99,12 +116,16 @@ export function FleetStatusWidget({ instanceId: _instanceId, onRemove, onExpandW
               />
             )}
           </Box>
+          )}
         </Box>
 
         <Box sx={{ flex: 1, minHeight: 150, display: 'flex', flexDirection: 'column' }}>
           <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 0.5, flexShrink: 0 }}>
             {t('dashboard.fleet.tools')}
           </Typography>
+          {tools.length === 0 ? (
+            <EmptyChart text={t('dashboard.fleet.noTools')} to={paths.toolNew} action={t('tools.add')} />
+          ) : (
           <Box ref={toolChartSize.ref} sx={{ flex: 1, minHeight: 0 }}>
             {toolChartSize.width > 0 && toolChartSize.height > 0 && (
               <BarChart
@@ -119,6 +140,7 @@ export function FleetStatusWidget({ instanceId: _instanceId, onRemove, onExpandW
               />
             )}
           </Box>
+          )}
         </Box>
 
         {attention.length > 0 && (

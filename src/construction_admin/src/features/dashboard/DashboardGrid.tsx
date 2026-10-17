@@ -245,7 +245,15 @@ export function DashboardGrid() {
         }}
       >
         {mayViewFinance && <PeriodControl />}
-        <Button startIcon={<AddOutlined />} variant="outlined" size="small" onClick={() => setPickerOpen(true)}>
+        <Button
+          startIcon={<AddOutlined />}
+          variant="outlined"
+          color="inherit"
+          size="small"
+          // Not the accent colour: orange is for the one thing on a screen that moves it forward.
+          sx={{ borderColor: 'divider' }}
+          onClick={() => setPickerOpen(true)}
+        >
           {t('dashboard.addWidget')}
         </Button>
       </Stack>

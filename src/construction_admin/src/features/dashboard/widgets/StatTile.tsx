@@ -25,9 +25,10 @@ export function StatTile({ icon, label, value, hint, hintColor = 'text.secondary
         minWidth: 0,
         // Two to a row on a phone, instead of one tile per row that pushes the rest off the screen.
         flex: { xs: '1 1 calc(50% - 6px)', sm: '1 1 200px' },
-        background: `linear-gradient(160deg, ${accent}12 0%, ${accent}05 100%)`,
+        // The same quiet surface for every tile: the accent lives in the small icon, not in four different backgrounds.
+        bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : 'rgba(31, 27, 22, 0.03)'),
         border: '1px solid',
-        borderColor: `${accent}22`,
+        borderColor: 'divider',
       }}
     >
       <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
@@ -68,8 +69,8 @@ export function StatTile({ icon, label, value, hint, hintColor = 'text.secondary
       <Typography
         sx={{
           fontWeight: 700,
-          // A zero is the absence of something, so it recedes on a phone, where the tiles stand shoulder to shoulder.
-          color: /^[0\s/]+$/.test(value) ? { xs: 'text.secondary', sm: 'text.primary' } : undefined,
+          // A zero is the absence of something, so it recedes.
+          color: /^[0\s/]+$/.test(value) ? 'text.secondary' : undefined,
           fontSize: { xs: '1.5rem', sm: 'clamp(1.5rem, 2.4vw, 2.5rem)' },
           lineHeight: 1.05,
           letterSpacing: '-0.02em',

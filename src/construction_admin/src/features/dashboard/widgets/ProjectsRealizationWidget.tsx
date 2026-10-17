@@ -162,9 +162,16 @@ export function ProjectsRealizationWidget({ instanceId: _instanceId, onRemove, o
             </Alert>
           ) : monthly.every((value) => value === 0) ? (
             // An axis with nothing on it says less than a sentence does.
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              {t('dashboard.projectsRealization.noRevenue')}
-            </Typography>
+            <Stack spacing={1} sx={{ mt: 1, alignItems: 'flex-start' }}>
+              <Typography variant="body2" color="text.secondary">
+                {t('dashboard.projectsRealization.noRevenue')}
+              </Typography>
+              {rows.length === 0 && (
+                <Button component={Link} to={paths.projectNew} size="small" variant="outlined" color="inherit" sx={{ borderColor: 'divider' }}>
+                  {t('projects.add')}
+                </Button>
+              )}
+            </Stack>
           ) : (
             <Box ref={barSize.ref} sx={{ flex: 1, minHeight: 0 }}>
               {barSize.width > 0 && barSize.height > 0 && (
