@@ -1,4 +1,5 @@
-import { Alert, Box, Button, Chip, CircularProgress, Paper, Snackbar, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import { EuroOutlined, GridViewOutlined, ListOutlined, PersonSearchOutlined, TimelineOutlined } from '@mui/icons-material';
+import { Alert, Box, Button, Chip, CircularProgress, Paper, Snackbar, Stack, TextField, ToggleButton, ToggleButtonGroup, Tooltip, Typography } from '@mui/material';
 import { ChevronLeftOutlined, ChevronRightOutlined } from '@mui/icons-material';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -278,24 +279,25 @@ export function PlanningPage() {
         </Alert>
       )}
 
+      {/* One short word and an icon per view, on one line, however narrow the window: the full name and what the view
+          is for are in the tooltip and in the accessible name. A narrower window loses the words, never the buttons. */}
       <ToggleButtonGroup
         data-tour="tabs"
         exclusive
+        size="small"
         value={view}
         onChange={(_, next: View | null) => next && setView(next)}
-        sx={{ flexWrap: 'wrap', gap: 0.75, mb: 2, '& .MuiToggleButton-root': { border: 1, borderColor: 'divider', borderRadius: '10px !important', textAlign: 'left', textTransform: 'none', alignItems: 'flex-start', px: 1.5, py: 1 } }}
+        sx={{ mb: 2, maxWidth: '100%', '& .MuiToggleButton-root': { textTransform: 'none', whiteSpace: 'nowrap', gap: 0.75, px: { xs: 1.25, md: 2 }, py: 0.75, fontWeight: 600 } }}
       >
         {(canSeeLabourCost(user) ? (['day', 'timeline', 'need', 'cost', 'list'] as const) : (['day', 'timeline', 'need', 'list'] as const)).map((v) => (
-          <ToggleButton key={v} value={v}>
-            <Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                {t(`planning.tab.${v}`)}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {t(`planning.tab.${v}Hint`)}
-              </Typography>
-            </Box>
-          </ToggleButton>
+          <Tooltip key={v} title={`${t(`planning.tab.${v}`)}: ${t(`planning.tab.${v}Hint`)}`} enterDelay={400}>
+            <ToggleButton value={v} aria-label={t(`planning.tab.${v}`)}>
+              {VIEW_ICONS[v]}
+              <Box component="span" sx={{ display: { xs: 'none', md: 'inline' } }}>
+                {t(`planning.tab.${v}Short`)}
+              </Box>
+            </ToggleButton>
+          </Tooltip>
         ))}
       </ToggleButtonGroup>
 
@@ -415,6 +417,14 @@ export function PlanningPage() {
     </Box>
   );
 }
+
+const VIEW_ICONS: Record<'day' | 'timeline' | 'need' | 'cost' | 'list', React.ReactElement> = {
+  day: <GridViewOutlined fontSize="small" />,
+  timeline: <TimelineOutlined fontSize="small" />,
+  need: <PersonSearchOutlined fontSize="small" />,
+  cost: <EuroOutlined fontSize="small" />,
+  list: <ListOutlined fontSize="small" />,
+};
 
 const wrapChip = { height: 'auto', '& .MuiChip-label': { whiteSpace: 'normal', py: 0.5 } } as const;
 

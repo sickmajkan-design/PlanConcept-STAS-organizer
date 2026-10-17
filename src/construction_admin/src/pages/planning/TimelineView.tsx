@@ -1,4 +1,5 @@
-import { Box, ButtonBase, Chip, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
+import { ExpandMoreOutlined, FilterListOutlined } from '@mui/icons-material';
+import { Badge, Box, Button, ButtonBase, FormControlLabel, MenuItem, Paper, Popover, Radio, RadioGroup, Stack, TextField, Typography } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { useMemo, useState } from 'react';
 
@@ -83,6 +84,8 @@ export function TimelineView({
   const [search, setSearch] = useState('');
   const [skill, setSkill] = useState('');
   const [filter, setFilter] = useState<Filter>('all');
+  const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null);
+  const [legendAnchor, setLegendAnchor] = useState<HTMLElement | null>(null);
 
   const columns = useMemo(() => columnsFor(range.from, range.to), [range.from, range.to]);
   const perDay = columns.length > 0 && columns[0].from === columns[0].to;
@@ -141,23 +144,51 @@ export function TimelineView({
             </MenuItem>
           ))}
         </TextField>
-        {(['all', 'free', 'away'] as const).map((f) => (
-          <Chip key={f} label={t(`planning.t.filter.${f}`)} color={filter === f ? 'primary' : 'default'} variant={filter === f ? 'filled' : 'outlined'} onClick={() => setFilter(f)} />
-        ))}
+        {/* Who to show: everyone, those with free days, those away. One button with a mark when it is not "everyone",
+            instead of three chips beside the search. */}
+        <Badge color="primary" variant="dot" invisible={filter === 'all'} overlap="rectangular">
+          <Button
+            size="small"
+            variant="outlined"
+            color="primary"
+            startIcon={<FilterListOutlined fontSize="small" />}
+            endIcon={<ExpandMoreOutlined fontSize="small" />}
+            onClick={(event) => setFilterAnchor(event.currentTarget)}
+            sx={{ whiteSpace: 'nowrap' }}
+          >
+            {filter === 'all' ? t('planning.t.filters') : t(`planning.t.filter.${filter}`)}
+          </Button>
+        </Badge>
+        <Popover
+          open={!!filterAnchor}
+          anchorEl={filterAnchor}
+          onClose={() => setFilterAnchor(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        >
+          <RadioGroup
+            value={filter}
+            onChange={(event) => {
+              setFilter(event.target.value as Filter);
+              setFilterAnchor(null);
+            }}
+            sx={{ p: 1.5, pr: 2.5 }}
+          >
+            {(['all', 'free', 'away'] as const).map((f) => (
+              <FormControlLabel key={f} value={f} control={<Radio size="small" />} label={t(`planning.t.filter.${f}`)} />
+            ))}
+          </RadioGroup>
+        </Popover>
       </Stack>
 
-      <Stack direction="row" spacing={2} useFlexGap sx={{ flexWrap: 'wrap', fontSize: 12, color: 'text.secondary' }}>
-        {plan.projects.map((p) => (
-          <Box key={p.id} sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-            <Box sx={{ width: 10, height: 10, borderRadius: 0.5, bgcolor: siteColor(p.id) }} />
-            {p.name}
-          </Box>
-        ))}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-          <Box sx={{ width: 10, height: 10, borderRadius: 0.5, bgcolor: AWAY_COLOR }} />
-          {t('planning.t.legendAway')}
-        </Box>
-      </Stack>
+      <Legend
+        entries={[
+          ...plan.projects.map((p) => ({ key: p.id, color: siteColor(p.id), name: p.name })),
+          { key: 'away', color: AWAY_COLOR, name: t('planning.t.legendAway') },
+        ]}
+        anchor={legendAnchor}
+        setAnchor={setLegendAnchor}
+        moreLabel={(count) => t('planning.t.legendMore', { count })}
+      />
 
       <Paper data-tour="timeline" variant="outlined" sx={{ borderRadius: 2.5, overflowX: 'auto' }}>
         <Box
@@ -271,6 +302,66 @@ export function TimelineView({
           </tbody>
         </Box>
       </Paper>
+    </Stack>
+  );
+}
+
+const LEGEND_SHOWN = 4;
+const LEGEND_NAME_MAX = 30;
+
+const short = (name: string) => (name.length > LEGEND_NAME_MAX ? `${name.slice(0, LEGEND_NAME_MAX - 1)}…` : name);
+
+/**
+ * What the colours mean: the first few sites on one line with their names cut short (the whole name in a
+ * tooltip), and "+ N more" opening the rest. A list of long site names used to take three lines of its own above
+ * the table.
+ */
+function Legend({
+  entries,
+  anchor,
+  setAnchor,
+  moreLabel,
+}: {
+  entries: { key: string; color: string; name: string }[];
+  anchor: HTMLElement | null;
+  setAnchor: (element: HTMLElement | null) => void;
+  moreLabel: (count: number) => string;
+}) {
+  // The away entry always stays on the line; the sites share what room is left.
+  const away = entries[entries.length - 1];
+  const sites = entries.slice(0, -1);
+  const shown = sites.slice(0, LEGEND_SHOWN);
+  const rest = sites.slice(LEGEND_SHOWN);
+
+  const item = (entry: { key: string; color: string; name: string }, cut: boolean) => (
+    <Box key={entry.key} title={entry.name} sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flex: 'none', whiteSpace: 'nowrap' }}>
+      <Box sx={{ width: 10, height: 10, borderRadius: 0.5, bgcolor: entry.color, flex: 'none' }} />
+      {cut ? short(entry.name) : entry.name}
+    </Box>
+  );
+
+  return (
+    <Stack direction="row" spacing={2} useFlexGap sx={{ fontSize: 12, color: 'text.secondary', alignItems: 'center', overflow: 'hidden' }}>
+      {shown.map((entry) => item(entry, true))}
+      {rest.length > 0 && (
+        <>
+          <ButtonBase onClick={(event) => setAnchor(event.currentTarget)} sx={{ fontSize: 12, color: 'inherit', whiteSpace: 'nowrap', borderRadius: 1, px: 0.5 }}>
+            {moreLabel(rest.length)}
+            <ExpandMoreOutlined sx={{ fontSize: 16 }} />
+          </ButtonBase>
+          <Popover open={!!anchor} anchorEl={anchor} onClose={() => setAnchor(null)} anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}>
+            <Stack spacing={0.75} sx={{ p: 1.5, maxWidth: 420, fontSize: 13 }}>
+              {rest.map((entry) => (
+                <Box key={entry.key} sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                  <Box sx={{ width: 10, height: 10, borderRadius: 0.5, bgcolor: entry.color, flex: 'none' }} />
+                  {entry.name}
+                </Box>
+              ))}
+            </Stack>
+          </Popover>
+        </>
+      )}
+      {item(away, false)}
     </Stack>
   );
 }

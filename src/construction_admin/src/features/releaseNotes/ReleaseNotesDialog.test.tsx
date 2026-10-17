@@ -24,7 +24,7 @@ describe('ReleaseNotesDialog', () => {
     const { unmount } = renderScreen(<ReleaseNotesDialog />, { user: operator });
 
     expect(await screen.findByText(/What's new/)).toBeDefined();
-    expect(screen.getByText('A simpler menu')).toBeDefined();
+    expect(screen.getByText('Calmer lists and buttons')).toBeDefined();
 
     await user.click(screen.getByRole('button', { name: 'Got it' }));
     await waitFor(() => expect(screen.queryByText(/What's new/)).toBeNull());
@@ -57,7 +57,7 @@ describe('ReleaseNotesDialog', () => {
 
     await screen.findByText('Notifications to the end, the book in Finance');
     expect(screen.getByText('Delete without asking, with Undo')).toBeDefined();
-    expect(screen.getByText('A simpler menu')).toBeDefined();
+    expect(screen.getByText('Calmer lists and buttons')).toBeDefined();
   }, SCREEN_TIMEOUT);
 
   it('is shown again for a new release', async () => {
