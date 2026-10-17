@@ -270,6 +270,9 @@ export function MaterialsListPage() {
       />
 
       <ResourceDataGrid
+        filtered={list.hasFilters}
+        onClearFilters={list.clearFilters}
+        empty={{ title: t('materials.emptyTitle'), action: { label: t('materials.add'), onClick: () => navigate(paths.materialNew) } }}
         data={data}
         columns={columns}
         isLoading={isLoading}

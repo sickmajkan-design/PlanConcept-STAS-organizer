@@ -340,6 +340,12 @@ export function ToolsListPage() {
         />
       ) : (
         <ResourceDataGrid
+        filtered={list.hasFilters || incompleteOnly}
+        onClearFilters={() => {
+          list.clearFilters();
+          setIncompleteOnly(false);
+        }}
+        empty={{ title: t('tools.emptyTitle'), action: { label: t('tools.add'), onClick: () => navigate(paths.toolNew) } }}
         data={data}
         columns={columns}
         isLoading={isLoading}

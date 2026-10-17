@@ -87,11 +87,22 @@ export function useListQueryState<TFilter extends string = string>(
       }
     : undefined;
 
+  /** Whether the search or the status filter is narrowing the list. A page with further filters adds its own. */
+  const hasFilters = search.trim() !== '' || filter !== '';
+
+  const clearFilters = () => {
+    setSearch('');
+    setFilterValue('');
+    resetToFirstPage();
+  };
+
   return {
     search,
     setSearch,
     filter,
     setFilter,
+    hasFilters,
+    clearFilters,
     paginationModel,
     setPaginationModel,
     sortModel,

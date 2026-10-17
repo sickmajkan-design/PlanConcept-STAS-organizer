@@ -128,6 +128,9 @@ export function CustomersListPage() {
       />
 
       <ResourceDataGrid
+        filtered={list.hasFilters}
+        onClearFilters={list.clearFilters}
+        empty={{ title: t('customers.emptyTitle'), action: { label: t('customers.add'), onClick: () => navigate(paths.customerNew) } }}
         data={data}
         columns={columns}
         isLoading={isLoading}

@@ -325,6 +325,13 @@ export function EmployeesListPage() {
         />
       ) : (
         <ResourceDataGrid
+        columnsKey="employees"
+        filtered={list.hasFilters || typeFilter !== ''}
+        onClearFilters={() => {
+          list.clearFilters();
+          setTypeFilter('');
+        }}
+        empty={{ title: t('employees.emptyTitle'), action: { label: t('employees.add'), onClick: () => navigate(paths.employeeNew) } }}
         data={data}
         columns={columns}
         isLoading={isLoading}

@@ -56,7 +56,7 @@ describe('ReleaseNotesDialog', () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('SuperAdmin') });
 
     await screen.findByText('Notifications to the end, the book in Finance');
-    expect(screen.getByText('Delete without asking, with Undo')).toBeDefined();
+    expect(screen.getByText('Schedule: a shorter bar above the table')).toBeDefined();
     expect(screen.getByText('Calmer lists and buttons')).toBeDefined();
   }, SCREEN_TIMEOUT);
 

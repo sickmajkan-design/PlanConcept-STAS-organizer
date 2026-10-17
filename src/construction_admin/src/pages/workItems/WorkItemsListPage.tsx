@@ -299,6 +299,9 @@ export function WorkItemsListPage() {
         />
       ) : (
         <ResourceDataGrid
+        filtered={list.hasFilters}
+        onClearFilters={list.clearFilters}
+        empty={{ title: t('workItems.emptyTitle'), action: { label: t('workItems.add'), onClick: () => navigate(paths.workItemNew) } }}
         data={data}
         columns={columns}
         isLoading={isLoading}

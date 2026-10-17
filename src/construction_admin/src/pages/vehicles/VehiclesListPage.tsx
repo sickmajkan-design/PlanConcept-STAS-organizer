@@ -460,6 +460,14 @@ export function VehiclesListPage() {
         />
       ) : (
         <ResourceDataGrid
+        columnsKey="vehicles"
+        filtered={list.hasFilters || ownershipFilter !== '' || incompleteOnly}
+        onClearFilters={() => {
+          list.clearFilters();
+          setOwnershipFilter('');
+          setIncompleteOnly(false);
+        }}
+        empty={{ title: t('vehicles.emptyTitle'), action: { label: t('vehicles.add'), onClick: () => navigate(paths.vehicleNew) } }}
         data={data}
         columns={columns}
         isLoading={isLoading}

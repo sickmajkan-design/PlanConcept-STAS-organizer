@@ -1,4 +1,5 @@
-import { Box, Button, Paper, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { InboxOutlined, ViewColumnOutlined } from '@mui/icons-material';
+import { Box, Button, Checkbox, Divider, ListItemIcon, ListItemText, Menu, MenuItem, Paper, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   DataGrid,
@@ -14,6 +15,7 @@ import { ErrorState } from './ErrorState';
 import { ResourceCardList } from './ResourceCardList';
 import { useT } from '../i18n/useI18n';
 import { PAGE_SIZE_OPTIONS } from '../hooks/useListQueryState';
+import { ALL_COLUMNS_FROM_PX, ESSENTIAL_COLUMNS } from './gridColumnDefaults';
 
 /**
  * The server-paged grid every list page renders. Paging and sorting are done
@@ -38,7 +40,24 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
   onRowSelectionModelChange,
   highlightedId,
   compactHiddenFields,
+  columnsKey,
+  empty,
+  filtered,
+  onClearFilters,
 }: {
+  /**
+   * Names the list in `gridColumnDefaults` and in storage: turns on the "Columns" button, with the list's
+   * important columns shown first on a narrow screen and the person's own choice remembered.
+   */
+  columnsKey?: string;
+  /**
+   * What an empty list says when nothing has been entered yet: a title and the one thing to do about it.
+   * Without it the grid says the plain "no rows".
+   */
+  empty?: { title: string; hint?: string; action?: { label: string; onClick: () => void }; secondary?: { label: string; onClick: () => void } };
+  /** A search or filter is on: an empty list then means "nothing matches", and offers to clear the filters. */
+  filtered?: boolean;
+  onClearFilters?: () => void;
   /**
    * Columns to drop on a phone-width screen, so the ones that matter fit
    * without scrolling sideways. Opt-in per page: only the page knows which of
@@ -86,12 +105,126 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
   //
   // Memoised, like the locale text below: the grid compares these by reference, and a fresh
   // object on every render makes it update its own state while this component renders.
+  const wide = useMediaQuery(`(min-width:${ALL_COLUMNS_FROM_PX}px)`);
+  const essential = columnsKey ? ESSENTIAL_COLUMNS[columnsKey] : undefined;
+  const storageKey = columnsKey ? `grid.columns.${columnsKey}` : null;
+
+  // A person's own choice of columns for this list, if they ever made one.
+  const [chosen, setChosen] = useState<Record<string, boolean> | null>(() => {
+    if (!storageKey) return null;
+
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      return raw ? (JSON.parse(raw) as Record<string, boolean>) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // The columns that can be switched: the ones with a name. Pictures and the row's own buttons always stay.
+  const switchable = useMemo(
+    () => columns.filter((column) => column.field !== 'actions' && column.field !== '__check__' && !!column.headerName),
+    [columns],
+  );
+
+  const visible = (field: string): boolean => {
+    if (chosen && field in chosen) return chosen[field]!;
+    if (essential && !wide) return essential.includes(field);
+    return true;
+  };
+
   const columnVisibilityModel = useMemo<Record<string, boolean>>(
+    () => {
+      if (isCompact && compactHiddenFields) {
+        return Object.fromEntries(compactHiddenFields.map((field) => [field, false]));
+      }
+
+      if (!essential) return {};
+
+      return Object.fromEntries(
+        switchable.map((column) => [
+          column.field,
+          chosen && column.field in chosen ? chosen[column.field]! : wide || essential.includes(column.field),
+        ]),
+      );
+    },
+    [isCompact, compactHiddenFields, essential, switchable, chosen, wide],
+  );
+
+  const [columnsAnchor, setColumnsAnchor] = useState<HTMLElement | null>(null);
+
+  const toggleColumn = (field: string) => {
+    const next = { ...Object.fromEntries(switchable.map((column) => [column.field, visible(column.field)])), [field]: !visible(field) };
+
+    setChosen(next);
+    if (storageKey) {
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify(next));
+      } catch {
+        // Storage blocked: the choice holds until the page is left, which is all it can do.
+      }
+    }
+  };
+
+  const resetColumns = () => {
+    setChosen(null);
+    if (storageKey) {
+      try {
+        window.localStorage.removeItem(storageKey);
+      } catch {
+        // See above.
+      }
+    }
+    setColumnsAnchor(null);
+  };
+
+  // What the grid shows when it has no rows. A new component only when what it says changes.
+  const NoRows = useMemo(
     () =>
-      isCompact && compactHiddenFields
-        ? Object.fromEntries(compactHiddenFields.map((field) => [field, false]))
-        : {},
-    [isCompact, compactHiddenFields],
+      function NoRows() {
+        const nothingMatches = !!filtered;
+
+        return (
+          <Stack spacing={1} sx={{ height: '100%', alignItems: 'center', justifyContent: 'center', textAlign: 'center', px: 2, py: 4 }}>
+            <InboxOutlined sx={{ fontSize: 36, color: 'text.disabled' }} />
+            {nothingMatches ? (
+              <>
+                <Typography sx={{ fontWeight: 600 }}>{t('empty.filteredTitle')}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {t('empty.filteredHint')}
+                </Typography>
+                {onClearFilters && (
+                  <Button variant="outlined" size="small" onClick={onClearFilters} sx={{ mt: 1 }}>
+                    {t('empty.clearFilters')}
+                  </Button>
+                )}
+              </>
+            ) : empty ? (
+              <>
+                <Typography sx={{ fontWeight: 600 }}>{empty.title}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {empty.hint ?? t('empty.createHint')}
+                </Typography>
+                <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+                  {empty.action && (
+                    <Button variant="contained" size="small" onClick={empty.action.onClick}>
+                      {empty.action.label}
+                    </Button>
+                  )}
+                  {empty.secondary && (
+                    <Button variant="outlined" size="small" onClick={empty.secondary.onClick}>
+                      {empty.secondary.label}
+                    </Button>
+                  )}
+                </Stack>
+              </>
+            ) : (
+              <Typography color="text.secondary">{t('common.noRows')}</Typography>
+            )}
+          </Stack>
+        );
+      },
+    [filtered, empty, onClearFilters, t],
   );
 
   const localeText = useMemo(
@@ -166,7 +299,29 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
           highlightedId={highlightedId}
         />
       ) : (
-        <Box ref={frameRef} sx={{ flex: 1, minHeight: 0, position: 'relative' }}>
+        <Box ref={frameRef} sx={{ flex: 1, minHeight: 0, position: 'relative', display: 'flex', flexDirection: 'column' }}>
+        {essential && (
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 1, pt: 0.75 }}>
+            <Button size="small" color="inherit" startIcon={<ViewColumnOutlined fontSize="small" />} onClick={(event) => setColumnsAnchor(event.currentTarget)}>
+              {t('grid.columns')}
+            </Button>
+            <Menu anchorEl={columnsAnchor} open={!!columnsAnchor} onClose={() => setColumnsAnchor(null)}>
+              {switchable.map((column) => (
+                <MenuItem key={column.field} dense onClick={() => toggleColumn(column.field)}>
+                  <ListItemIcon sx={{ minWidth: 32 }}>
+                    <Checkbox edge="start" size="small" checked={visible(column.field)} tabIndex={-1} disableRipple sx={{ p: 0 }} />
+                  </ListItemIcon>
+                  <ListItemText primary={column.headerName} />
+                </MenuItem>
+              ))}
+              <Divider />
+              <MenuItem dense onClick={resetColumns}>
+                <ListItemText primary={t('grid.columnsReset')} slotProps={{ primary: { color: 'primary' } }} />
+              </MenuItem>
+            </Menu>
+          </Box>
+        )}
+        <Box sx={{ flex: 1, minHeight: 0, position: 'relative' }}>
         <EdgeShadow side="left" show={edges.left} />
         <EdgeShadow side="right" show={edges.right} />
         <DataGrid
@@ -189,6 +344,7 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
           // pagination footer and empty state — has to be handed over
           // explicitly or it stays English inside a translated page.
           localeText={localeText}
+          slots={{ noRowsOverlay: NoRows }}
           disableColumnMenu
           disableRowSelectionOnClick
           // The app's own BulkActionsBar already shows the selected count
@@ -214,6 +370,7 @@ export function ResourceDataGrid<T extends GridValidRowModel>({
             '& .row-highlight': { bgcolor: 'action.hover' },
           }}
         />
+        </Box>
         </Box>
       )}
       {!isError && total > 0 && (

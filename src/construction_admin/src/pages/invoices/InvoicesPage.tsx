@@ -208,6 +208,7 @@ export function InvoicesPage() {
       </Stack>
 
       <ResourceDataGrid
+        columnsKey="invoices"
         data={data}
         columns={columns}
         isLoading={isLoading}

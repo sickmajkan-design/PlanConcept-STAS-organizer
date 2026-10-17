@@ -246,6 +246,9 @@ export function UsersListPage() {
       )}
 
       <ResourceDataGrid
+        filtered={list.hasFilters}
+        onClearFilters={list.clearFilters}
+        empty={{ title: t('users.emptyTitle'), action: { label: t('users.add'), onClick: () => navigate(paths.userNew) } }}
         data={data}
         columns={columns}
         isLoading={isLoading}
