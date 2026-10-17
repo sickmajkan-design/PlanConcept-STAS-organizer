@@ -55,7 +55,7 @@ describe('ReleaseNotesDialog', () => {
   it('tells an administrator about everything meant for administrators', async () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('SuperAdmin') });
 
-    await screen.findByText('Search, guides and language');
+    await screen.findByText('Today, on a phone');
     expect(screen.getByText('A document already when a record is made')).toBeDefined();
     expect(screen.getByText('A cleaner look and better use on a phone')).toBeDefined();
   }, SCREEN_TIMEOUT);

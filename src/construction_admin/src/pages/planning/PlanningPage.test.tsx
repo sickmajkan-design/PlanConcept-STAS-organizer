@@ -3,7 +3,7 @@
  */
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { installFakeNetwork, renderScreen, signedIn, type FakeNetwork } from '../../test/renderScreen';
 
@@ -18,15 +18,24 @@ const HALL = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
 const BRIDGE = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
 
 beforeEach(() => {
+  // The clock is pinned to a working day: on a Saturday or Sunday the page's day is a weekend, which is a
+  // chip, not a place to pick a site, so these tests would pass or fail with the day they happen to run.
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(now);
   window.localStorage.clear();
   network = installFakeNetwork();
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 const pad = (n: number) => String(n).padStart(2, '0');
 const local = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
 
-const now = new Date();
+// A Wednesday.
+const now = new Date(2026, 9, 14, 10, 0, 0);
 const today = local(now);
 
 /** A working day at least two days ahead, so the leave sits inside the next 30 days whatever day this runs. */
