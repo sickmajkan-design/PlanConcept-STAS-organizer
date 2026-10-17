@@ -11,6 +11,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/formatting.dart';
 import '../../../core/widgets/quick_action_tile.dart';
 import '../../../core/widgets/swipe_to_confirm.dart';
+import '../../../core/widgets/word_safe_text.dart';
 import '../../auth/data/models/user.dart';
 import '../../auth/presentation/auth_controller.dart';
 import '../../location/presentation/location_status_card.dart';
@@ -387,10 +388,11 @@ class _GreetingRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              WordSafeText(
                 greeting,
                 maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+                minScale: 0.5,
+                textAlign: TextAlign.start,
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w800,
                   height: 1.15,
@@ -664,6 +666,12 @@ class _CrewCard extends ConsumerWidget {
                   : '…',
               style: theme.textTheme.bodyLarge?.copyWith(color: muted),
             )
+          else if (data.crewCount == 0)
+            // Nobody is scheduled: say so, instead of a row of zeros.
+            Text(
+              l10n.homeCrewNone,
+              style: theme.textTheme.bodyLarge?.copyWith(color: muted),
+            )
           else ...[
             Text(
               l10n.homeCrewCount(data.onSiteCount, data.crewCount),
@@ -680,21 +688,25 @@ class _CrewCard extends ConsumerWidget {
             const SizedBox(height: 14),
             _Segments(filled: data.onSiteCount, total: data.crewCount),
             const SizedBox(height: 14),
-            Row(
+            // Side by side when both fit, one under the other when not; each on one line either way.
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              spacing: 16,
+              runSpacing: 4,
               children: [
-                Expanded(
-                  child: Text(
-                    l10n.homeNotClockedIn(data.notClockedIn.length),
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: data.notClockedIn.isEmpty
-                          ? ink
-                          : const Color(0xFFFF9B62),
-                      fontWeight: FontWeight.w700,
-                    ),
+                Text(
+                  l10n.homeNotClockedIn(data.notClockedIn.length),
+                  softWrap: false,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: data.notClockedIn.isEmpty
+                        ? ink
+                        : const Color(0xFFFF9B62),
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
                 Text(
                   l10n.homeOutsideSite(data.outsideSiteCount),
+                  softWrap: false,
                   style: theme.textTheme.bodyLarge?.copyWith(color: ink),
                 ),
               ],

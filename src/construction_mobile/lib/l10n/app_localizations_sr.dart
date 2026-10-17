@@ -3039,6 +3039,12 @@ class AppLocalizationsSr extends AppLocalizations {
   String get homeCrewOnSite => 'na gradilištu';
 
   @override
+  String get navTimeEntriesShort => 'Sati';
+
+  @override
+  String get homeCrewNone => 'Danas nema raspoređenih radnika.';
+
+  @override
   String homeNotClockedIn(int count) {
     return 'Nisu prijavljeni: $count';
   }

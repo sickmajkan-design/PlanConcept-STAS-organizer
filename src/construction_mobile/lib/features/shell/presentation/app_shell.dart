@@ -77,8 +77,8 @@ class AppShell extends ConsumerWidget {
         ],
       ),
       bottomNavigationBar: _FloatingBar(
-        child: Row(
-          children: [
+        child: _BarRow(
+          items: [
             _BarItem(
               icon: Icons.home_outlined,
               selectedIcon: Icons.home,
@@ -90,7 +90,8 @@ class AppShell extends ConsumerWidget {
               _BarItem(
                 icon: Icons.schedule_outlined,
                 selectedIcon: Icons.schedule,
-                label: context.l10n.navTimeEntries,
+                // With five tabs on a narrow phone the full name would have to be set too small to read.
+                label: branches.length >= 5 ? context.l10n.navTimeEntriesShort : context.l10n.navTimeEntries,
                 selected: selected == branches.indexOf(_timeEntriesBranch),
                 onTap: () => select(branches.indexOf(_timeEntriesBranch)),
               ),
@@ -125,6 +126,46 @@ class AppShell extends ConsumerWidget {
   }
 }
 
+/// The tabs side by side, every label at one size: the biggest that lets the widest label fit its slot. One size
+/// for all (instead of each label shrinking on its own) keeps the bar even, and nothing is wrapped or cut.
+class _BarRow extends StatelessWidget {
+  const _BarRow({required this.items});
+
+  final List<_BarItem> items;
+
+  static const double _base = 12;
+  static const double _floor = 10;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final slot = constraints.maxWidth / items.length - 10;
+        var widest = 0.0;
+
+        for (final item in items) {
+          final painter = TextPainter(
+            text: TextSpan(
+              text: item.label,
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(fontSize: _base, fontWeight: FontWeight.w700),
+            ),
+            textDirection: Directionality.of(context),
+            textScaler: MediaQuery.textScalerOf(context),
+            maxLines: 1,
+          )..layout();
+
+          if (painter.width > widest) widest = painter.width;
+          painter.dispose();
+        }
+
+        final size = widest > slot && widest > 0 ? (_base * slot / widest).clamp(_floor, _base) : _base;
+
+        return Row(children: [for (final item in items) item.withLabelSize(size)]);
+      },
+    );
+  }
+}
+
 /// One tab of the bar: an icon in a pill when it is the current one, and a label on a single line. The label is
 /// set smaller when its width asks for it, never wrapped and never cut, so five tabs fit the narrowest phone.
 class _BarItem extends StatelessWidget {
@@ -135,6 +176,7 @@ class _BarItem extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.badge = 0,
+    this.labelSize = 12,
   });
 
   final IconData icon;
@@ -143,6 +185,17 @@ class _BarItem extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
   final int badge;
+  final double labelSize;
+
+  _BarItem withLabelSize(double size) => _BarItem(
+    icon: icon,
+    selectedIcon: selectedIcon,
+    label: label,
+    selected: selected,
+    onTap: onTap,
+    badge: badge,
+    labelSize: size,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -200,7 +253,7 @@ class _BarItem extends StatelessWidget {
                         softWrap: false,
                         style: Theme.of(context).textTheme.labelMedium
                             ?.copyWith(
-                              fontSize: 12,
+                              fontSize: labelSize,
                               color: selected
                                   ? scheme.onSurface
                                   : scheme.onSurfaceVariant,

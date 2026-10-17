@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/api_failure_text.dart';
+import 'edge_fade.dart';
 import '../l10n/app_locales.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -128,7 +129,11 @@ class _PagedListViewState<T> extends State<PagedListView<T>> {
                     physics: const AlwaysScrollableScrollPhysics(),
                     // Under a floating bar the screen's bottom padding is the bar's height; elsewhere the
                     // enclosing SafeArea has already used it up, so this adds nothing.
-                    padding: widget.padding + EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
+                    padding:
+                        widget.padding +
+                        EdgeInsets.only(
+                          bottom: MediaQuery.paddingOf(context).bottom,
+                        ),
                     itemCount: data.items.length + 1,
                     separatorBuilder: (_, _) => const SizedBox(height: 8),
                     itemBuilder: (context, index) {
@@ -136,10 +141,7 @@ class _PagedListViewState<T> extends State<PagedListView<T>> {
                         return widget.itemBuilder(context, data.items[index]);
                       }
 
-                      return _Footer(
-                        state: data,
-                        onRetry: widget.onLoadMore,
-                      );
+                      return _Footer(state: data, onRetry: widget.onLoadMore);
                     },
                   ),
           ),
@@ -259,24 +261,26 @@ class ListSearchHeader extends StatelessWidget {
             const SizedBox(height: 8),
             SizedBox(
               height: 40,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: filters.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  final filter = filters[index];
-                  final selected = filter == selectedFilter;
+              child: EdgeFade(
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: filters.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final filter = filters[index];
+                    final selected = filter == selectedFilter;
 
-                  return FilterChip(
-                    label: Text(
-                      filterLabel?.call(context, filter) ??
-                          humanizeEnum(filter),
-                    ),
-                    selected: selected,
-                    onSelected: (_) =>
-                        onFilterSelected?.call(selected ? null : filter),
-                  );
-                },
+                    return FilterChip(
+                      label: Text(
+                        filterLabel?.call(context, filter) ??
+                            humanizeEnum(filter),
+                      ),
+                      selected: selected,
+                      onSelected: (_) =>
+                          onFilterSelected?.call(selected ? null : filter),
+                    );
+                  },
+                ),
               ),
             ),
           ],

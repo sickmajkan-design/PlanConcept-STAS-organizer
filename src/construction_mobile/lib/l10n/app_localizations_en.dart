@@ -3039,6 +3039,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeCrewOnSite => 'on site';
 
   @override
+  String get navTimeEntriesShort => 'Hours';
+
+  @override
+  String get homeCrewNone => 'No one is scheduled for today.';
+
+  @override
   String homeNotClockedIn(int count) {
     return 'Not clocked in: $count';
   }

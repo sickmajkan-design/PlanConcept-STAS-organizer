@@ -1,3 +1,4 @@
+import '../../../core/widgets/word_safe_text.dart';
 import '../../../core/theme/sheet_motion.dart';
 import '../../../core/l10n/enum_labels.dart';
 import 'package:flutter/material.dart';
@@ -439,18 +440,26 @@ class _ProfileCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    user.displayName,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
+                  // An account with no name shows the address once, not as the name and again under it.
+                  if (user.displayName != user.email) ...[
+                    WordSafeText(
+                      user.displayName,
+                      textAlign: TextAlign.start,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
+                    const SizedBox(height: 2),
+                  ],
+                  // An address has no spaces to wrap at: one line, ended with an ellipsis when it is too long
+                  // (at the same readable size as the rest, not squeezed small).
                   Text(
                     user.email,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: user.displayName != user.email
+                        ? theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)
+                        : theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 10),
                   Chip(

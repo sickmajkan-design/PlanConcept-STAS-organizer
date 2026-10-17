@@ -1518,6 +1518,8 @@
     }
   },
   "homeCrewOnSite": "on site",
+  "navTimeEntriesShort": "Hours",
+  "homeCrewNone": "No one is scheduled for today.",
   "homeNotClockedIn": "Not clocked in: {count}",
   "@homeNotClockedIn": {
     "placeholders": {

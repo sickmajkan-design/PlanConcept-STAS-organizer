@@ -5366,6 +5366,18 @@ abstract class AppLocalizations {
   /// **'on site'**
   String get homeCrewOnSite;
 
+  /// No description provided for @navTimeEntriesShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours'**
+  String get navTimeEntriesShort;
+
+  /// No description provided for @homeCrewNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No one is scheduled for today.'**
+  String get homeCrewNone;
+
   /// No description provided for @homeNotClockedIn.
   ///
   /// In en, this message translates to:
