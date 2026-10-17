@@ -226,6 +226,11 @@ export function RefundsPage() {
       </Stack>
 
       <ResourceDataGrid
+        empty={
+          waitingOnly
+            ? { title: t('refunds.noneWaiting'), hint: t('refunds.noneWaitingHint'), action: { label: t('empty.showAll'), onClick: () => setWaitingOnly(false) } }
+            : { title: t('refunds.emptyTitle'), action: { label: t('refunds.new'), onClick: () => setCreating(true) } }
+        }
         data={data}
         columns={columns}
         isLoading={isLoading}

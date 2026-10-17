@@ -326,6 +326,13 @@ export function AbsencesListPage() {
         />
       ) : (
         <ResourceDataGrid
+          filtered={list.hasFilters || pendingOnly || type !== ''}
+          onClearFilters={() => {
+            list.clearFilters();
+            setPendingOnly(false);
+            setType('');
+          }}
+          empty={{ title: t('absences.emptyTitle'), action: { label: t('absences.add'), onClick: () => setBooking(true) } }}
           data={data}
           columns={columns}
           isLoading={isLoading}

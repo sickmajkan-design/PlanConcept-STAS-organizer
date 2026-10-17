@@ -123,6 +123,11 @@ export function ArticleOrdersPage() {
       ) : null}
 
       <ResourceDataGrid
+        empty={
+          openOnly
+            ? { title: t('articleOrders.noneOpen'), hint: t('articleOrders.noneOpenHint'), action: { label: t('empty.showAll'), onClick: () => setOpenOnly(false) } }
+            : { title: t('articleOrders.emptyTitle'), action: { label: t('articleOrders.new'), onClick: () => setCreating(true) } }
+        }
         data={data}
         columns={columns}
         isLoading={isLoading}

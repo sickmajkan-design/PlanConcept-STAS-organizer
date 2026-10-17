@@ -109,6 +109,9 @@ export function NotificationGroupsListPage() {
       />
 
       <ResourceDataGrid
+        filtered={list.hasFilters}
+        onClearFilters={list.clearFilters}
+        empty={{ title: t('notificationGroups.emptyTitle'), action: { label: t('notificationGroups.add'), onClick: () => navigate(paths.notificationGroupNew) } }}
         data={data && { ...data, items: data.items.filter((group) => !remove.hiddenIds.has(group.id)) }}
         columns={columns}
         isLoading={isLoading}

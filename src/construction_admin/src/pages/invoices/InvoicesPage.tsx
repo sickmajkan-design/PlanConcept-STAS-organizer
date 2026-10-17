@@ -208,6 +208,12 @@ export function InvoicesPage() {
       </Stack>
 
       <ResourceDataGrid
+        filtered={list.hasFilters || status !== ''}
+        onClearFilters={() => {
+          list.clearFilters();
+          setStatus('');
+        }}
+        empty={{ title: t('invoices.emptyTitle'), action: { label: t('invoices.new'), onClick: () => setCreating(true) } }}
         columnsKey="invoices"
         data={data}
         columns={columns}

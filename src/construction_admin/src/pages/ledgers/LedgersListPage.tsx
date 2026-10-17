@@ -161,6 +161,9 @@ export function LedgersListPage() {
       )}
 
       <ResourceDataGrid
+        filtered={list.hasFilters}
+        onClearFilters={list.clearFilters}
+        empty={{ title: t('ledgers.emptyTitle'), action: { label: t('ledgers.add'), onClick: () => setCreating(true) } }}
         data={data}
         columns={columns}
         isLoading={isLoading}
