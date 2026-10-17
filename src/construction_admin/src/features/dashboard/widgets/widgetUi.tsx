@@ -64,6 +64,8 @@ export function Pill({ children, tone = 'neutral', sx }: { children: ReactNode; 
           ...NUMERIC,
           display: 'inline-flex',
           alignItems: 'center',
+          // A pill is as wide as its words, also inside a column that would stretch it.
+          alignSelf: 'flex-start',
           flexShrink: 0,
           whiteSpace: 'nowrap',
           borderRadius: 999,

@@ -1,6 +1,9 @@
 import { AccessTimeOutlined } from '@mui/icons-material';
 import { Avatar, Box, Stack } from '@mui/material';
 
+import { useQuery } from '@tanstack/react-query';
+
+import { employeesApi } from '../../../api/employees';
 import { useTimeEntriesQuery, useTimeEntrySummaryQuery } from '../../timeEntries/useTimeEntries';
 import { useFormatRelative } from '../../../i18n/useFormatRelative';
 import { useT } from '../../../i18n/useI18n';
@@ -8,6 +11,7 @@ import { paths } from '../../../routes/paths';
 import { formatTimeOfDay, initialsOf, splitMinutes } from '../../../utils/formatting';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
+import { Ring } from './widgetCharts';
 import { EmptyNote, InsetList, InsetRow, MoreLink, Pill } from './widgetUi';
 
 const ON_SITE_PAGE_SIZE = 100;
@@ -38,6 +42,11 @@ export function TodayAttendanceWidget({ instanceId: _instanceId, onRemove, onExp
   const day = today();
 
   const openQuery = useTimeEntriesQuery({ pageNumber: 1, pageSize: ON_SITE_PAGE_SIZE, openOnly: true });
+  // Who the ring is measured against: everyone who works here. The same query the key figures use, so one fetch.
+  const activeQuery = useQuery({
+    queryKey: ['dashboard', 'kpi', 'active-employees'] as const,
+    queryFn: () => employeesApi.list({ pageNumber: 1, pageSize: 1, status: 'Active' }),
+  });
   const summaryQuery = useTimeEntrySummaryQuery({ from: `${day}T00:00`, to: endOfDay(day) });
 
   const isLoading = openQuery.isLoading || summaryQuery.isLoading;
@@ -53,18 +62,26 @@ export function TodayAttendanceWidget({ instanceId: _instanceId, onRemove, onExp
   return (
     <WidgetShell title={t('dashboard.widget.TodayAttendance')} isLoading={isLoading} error={error} onRemove={onRemove} onExpandWidth={onExpandWidth}>
       <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
-        <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1, flexShrink: 0 }}>
-          <Pill tone="accent" sx={{ fontSize: '0.85rem', px: 1.5, py: 0.25 }}>
-            {t('dashboard.todayAttendance.onSiteNow', { count: openQuery.data?.totalCount ?? 0 })}
-          </Pill>
-          <Pill sx={{ fontSize: '0.85rem', px: 1.5, py: 0.25 }}>
-            {t('dashboard.todayAttendance.hoursToday', { hours: totalToday.hours, minutes: totalToday.minutes })}
-          </Pill>
-          {pendingCount > 0 && (
-            <Pill tone="warn" sx={{ fontSize: '0.85rem', px: 1.5, py: 0.25 }}>
-              {t('dashboard.todayAttendance.pending', { count: pendingCount })}
+        <Stack direction="row" sx={{ alignItems: 'center', gap: 2, flexWrap: 'wrap', flexShrink: 0 }}>
+          <Ring
+            value={openQuery.data?.totalCount ?? 0}
+            total={Math.max(activeQuery.data?.totalCount ?? 0, openQuery.data?.totalCount ?? 0)}
+            center={openQuery.data?.totalCount ?? 0}
+            caption={t('dashboard.todayAttendance.ofActive', { count: Math.max(activeQuery.data?.totalCount ?? 0, openQuery.data?.totalCount ?? 0) })}
+          />
+          <Stack sx={{ gap: 1, alignItems: 'flex-start' }}>
+            <Pill tone="accent" sx={{ fontSize: '0.85rem', px: 1.5, py: 0.25 }}>
+              {t('dashboard.todayAttendance.onSiteNow', { count: openQuery.data?.totalCount ?? 0 })}
             </Pill>
-          )}
+            <Pill sx={{ fontSize: '0.85rem', px: 1.5, py: 0.25 }}>
+              {t('dashboard.todayAttendance.hoursToday', { hours: totalToday.hours, minutes: totalToday.minutes })}
+            </Pill>
+            {pendingCount > 0 && (
+              <Pill tone="warn" sx={{ fontSize: '0.85rem', px: 1.5, py: 0.25 }}>
+                {t('dashboard.todayAttendance.pending', { count: pendingCount })}
+              </Pill>
+            )}
+          </Stack>
         </Stack>
 
         {entries.length === 0 ? (

@@ -1,18 +1,16 @@
-import { Avatar, Box, Stack } from '@mui/material';
-import { BarChart } from '@mui/x-charts/BarChart';
+import { Avatar, Box, Stack, useTheme } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 
 import { absencesApi } from '../../../api/absences';
+import { employeesApi } from '../../../api/employees';
 import { timeEntriesApi } from '../../../api/timeEntries';
 import { useEnumLabel } from '../../../i18n/enumLabels';
 import { useT } from '../../../i18n/useI18n';
 import { paths } from '../../../routes/paths';
 import { formatDate, initialsOf } from '../../../utils/formatting';
-import { chartPalette } from '../../../theme';
-import { useElementSize } from '../useElementSize';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
-import { InsetList, InsetRow, MoreLink, Pill } from './widgetUi';
+import { BarRow, BigNumber, InsetList, InsetRow, MoreLink, Segments } from './widgetUi';
 
 const today = () => new Date().toISOString().slice(0, 10);
 // 100 is GetTimeEntriesQuery's own max page size — a bigger request 400s.
@@ -38,7 +36,7 @@ function headcountByProject(entries: { projectName: string | null }[]) {
 export function AbsencesBalanceWidget({ instanceId: _instanceId, onRemove, onExpandWidth }: DashboardWidgetProps) {
   const t = useT();
   const enumLabel = useEnumLabel();
-  const chartSize = useElementSize<HTMLDivElement>();
+  const theme = useTheme();
 
   const pendingQuery = useQuery({
     queryKey: ['dashboard', 'absences', 'pending'] as const,
@@ -51,6 +49,11 @@ export function AbsencesBalanceWidget({ instanceId: _instanceId, onRemove, onExp
       const day = today();
       return absencesApi.list({ pageNumber: 1, pageSize: 5, status: 'Approved', from: day, to: day });
     },
+  });
+
+  const activeEmployeesQuery = useQuery({
+    queryKey: ['dashboard', 'kpi', 'active-employees'] as const,
+    queryFn: () => employeesApi.list({ pageNumber: 1, pageSize: 1, status: 'Active' }),
   });
 
   const onSiteQuery = useQuery({
@@ -69,38 +72,23 @@ export function AbsencesBalanceWidget({ instanceId: _instanceId, onRemove, onExp
 
   return (
     <WidgetShell title={t('dashboard.widget.AbsencesBalance')} isLoading={isLoading} error={error} onRemove={onRemove} onExpandWidth={onExpandWidth}>
-      <Stack spacing={2} sx={{ flex: 1, minHeight: 0 }}>
-        <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1, flexShrink: 0 }}>
-          <Pill tone="accent" sx={{ fontSize: '0.85rem', px: 1.5, py: 0.25 }}>
-            {t('dashboard.absencesBalance.onSiteNow', { count: onSiteEntries.length })}
-          </Pill>
-          <Pill tone={pendingCount > 0 ? 'warn' : 'neutral'} sx={{ fontSize: '0.85rem', px: 1.5, py: 0.25 }}>
-            {t('dashboard.absencesBalance.pending', { count: pendingCount })}
-          </Pill>
-          <Pill sx={{ fontSize: '0.85rem', px: 1.5, py: 0.25 }}>{t('dashboard.absencesBalance.onLeaveToday', { count: activeCount })}</Pill>
+      <Stack spacing={2} sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+        <Stack direction="row" sx={{ alignItems: 'baseline', gap: 1.25, flexWrap: 'wrap', flexShrink: 0 }}>
+          <BigNumber value={onSiteEntries.length} caption={t('dashboard.absencesBalance.ofActive', { count: activeEmployeesQuery.data?.totalCount ?? onSiteEntries.length })} />
         </Stack>
+        <Segments
+          parts={[
+            { label: t('dashboard.absencesBalance.legendOnSite'), value: onSiteEntries.length, color: theme.palette.primary.main },
+            { label: t('dashboard.absencesBalance.legendPending'), value: pendingCount, color: theme.palette.warning.main },
+            { label: t('dashboard.absencesBalance.legendOnLeave'), value: activeCount, color: theme.palette.text.disabled },
+          ]}
+        />
 
         {byProject.length > 0 && (
-          <Box sx={{ flex: 1, minHeight: 150, display: 'flex', flexDirection: 'column' }}>
-            <Box ref={chartSize.ref} sx={{ flex: 1, minHeight: 0 }}>
-              {chartSize.width > 0 && chartSize.height > 0 && (
-                <BarChart
-                  width={chartSize.width}
-                  height={chartSize.height}
-                  colors={chartPalette}
-                  series={[
-                    {
-                      data: byProject.map(([, count]) => count),
-                      label: t('dashboard.absencesBalance.onSiteNow', { count: onSiteEntries.length }),
-                    },
-                  ]}
-                  xAxis={[{ scaleType: 'band', data: byProject.map(([name]) => name) }]}
-                  margin={{ top: 10, bottom: 50, left: 32, right: 10 }}
-                  borderRadius={6}
-                  hideLegend
-                />
-              )}
-            </Box>
+          <Box sx={{ display: 'grid', gap: 1.5 }}>
+            {byProject.map(([name, count]) => (
+              <BarRow key={name} label={name} value={count} percent={(count / (byProject[0]?.[1] ?? 1)) * 100} />
+            ))}
           </Box>
         )}
 

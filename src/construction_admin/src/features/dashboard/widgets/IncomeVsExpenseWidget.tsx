@@ -1,4 +1,4 @@
-import { Box, Stack, Typography } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
 
 import { useI18n } from '../../../i18n/useI18n';
@@ -9,6 +9,7 @@ import { useFinanceSeries } from '../../finance/useFinanceSeries';
 import { useElementSize } from '../useElementSize';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
+import { BigNumber, EmptyNote } from './widgetUi';
 
 /** "24.09" for a day, "24.09–30.09" for a week, "09.2026" for a month — as short as the bar allows. */
 function barLabel(from: string, to: string, granularity: string): string {
@@ -43,9 +44,7 @@ export function IncomeVsExpenseWidget({ onRemove, onExpandWidth }: DashboardWidg
       onExpandWidth={onExpandWidth}
     >
       {isEmpty ? (
-        <Typography color="text.secondary" variant="body2">
-          {t('finance.noData')}
-        </Typography>
+        <EmptyNote>{t('finance.noData')}</EmptyNote>
       ) : (
         data && (
           <Stack spacing={1} sx={{ flex: 1, minHeight: 0 }}>
@@ -69,12 +68,9 @@ export function IncomeVsExpenseWidget({ onRemove, onExpandWidth }: DashboardWidg
                 />
               )}
             </Box>
-            <Typography
-              sx={{ fontWeight: 700, flexShrink: 0 }}
-              color={data.totals.profit < 0 ? 'error.main' : 'success.main'}
-            >
-              {t('finance.profit')}: {formatMoney(data.totals.profit, locale)}
-            </Typography>
+            <Stack direction="row" sx={{ flexShrink: 0, gap: 1, alignItems: 'baseline', flexWrap: 'wrap' }}>
+              <BigNumber size="md" value={formatMoney(data.totals.profit, locale)} tone={data.totals.profit < 0 ? 'bad' : 'good'} caption={t('finance.profit')} />
+            </Stack>
           </Stack>
         )
       )}

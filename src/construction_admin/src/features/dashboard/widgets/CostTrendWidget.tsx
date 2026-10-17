@@ -1,15 +1,14 @@
 import { useBranchFilter } from '../../branches/BranchContext';
-import { Alert, Box, Stack, Typography } from '@mui/material';
-import { LineChart } from '@mui/x-charts/LineChart';
+import { Alert, Stack } from '@mui/material';
 import { useQueries } from '@tanstack/react-query';
 
 import { costsApi } from '../../../api/costs';
 import { useI18n } from '../../../i18n/useI18n';
-import { chartPalette } from '../../../theme';
 import { formatMoney } from '../../../utils/formatting';
-import { useElementSize } from '../useElementSize';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
+import { TrendChart } from './widgetCharts';
+import { BigNumber, EmptyNote, Pill } from './widgetUi';
 
 const MONTHS_SHOWN = 6;
 
@@ -30,7 +29,6 @@ function monthBounds(monthsAgo: number): { from: string; to: string; label: Date
  */
 export function CostTrendWidget({ instanceId: _instanceId, onRemove, onExpandWidth }: DashboardWidgetProps) {
   const { t, locale } = useI18n();
-  const chartSize = useElementSize<HTMLDivElement>();
   const { branchId, basis } = useBranchFilter();
   const people = branchId && basis === 'Employer' ? 'Employer' : undefined;
 
@@ -59,45 +57,31 @@ export function CostTrendWidget({ instanceId: _instanceId, onRemove, onExpandWid
   const delta = previous > 0 ? ((latest - previous) / previous) * 100 : null;
 
   return (
-    <WidgetShell title={t('dashboard.widget.CostTrend')} isLoading={isLoading} error={error} onRemove={onRemove} onExpandWidth={onExpandWidth}>
+    <WidgetShell title={t('dashboard.widget.CostTrend')} subtitle={t('dashboard.costTrend.totalCost')} isLoading={isLoading} error={error} onRemove={onRemove} onExpandWidth={onExpandWidth}>
       <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
         {(isLoading || hasCosts) && (
-        <Stack direction="row" spacing={2} sx={{ alignItems: 'baseline', flexShrink: 0 }}>
-          <Typography sx={{ fontWeight: 800, fontSize: 'clamp(1.5rem, 2.2vw, 2.25rem)', lineHeight: 1 }}>
-            {formatMoney(latest, locale)}
-          </Typography>
-          {delta !== null && (
-            <Typography
-              variant="body2"
-              sx={{ fontWeight: 700, color: delta > 0 ? 'error.main' : delta < 0 ? 'success.main' : 'text.secondary' }}
-            >
-              {delta > 0 ? '+' : ''}
-              {delta.toFixed(1)}% {t('dashboard.costTrend.vsPreviousMonth')}
-            </Typography>
-          )}
-        </Stack>
+          <Stack direction="row" sx={{ alignItems: 'flex-end', gap: 1.5, flexWrap: 'wrap', flexShrink: 0 }}>
+            <BigNumber value={formatMoney(latest, locale)} />
+            {delta !== null && (
+              // More spending is not good news, so a rise is amber-red and a fall is green.
+              <Pill tone={delta > 0 ? 'bad' : delta < 0 ? 'good' : 'neutral'}>
+                {delta > 0 ? '+' : ''}
+                {delta.toFixed(1)}% {t('dashboard.costTrend.vsPreviousMonth')}
+              </Pill>
+            )}
+          </Stack>
         )}
 
         {error ? (
           <Alert severity="error">{t('common.somethingWentWrong')}</Alert>
         ) : !isLoading && !hasCosts ? (
-          <Typography color="text.secondary" variant="body2">
-            {t('dashboard.costTrend.empty')}
-          </Typography>
+          <EmptyNote>{t('dashboard.costTrend.empty')}</EmptyNote>
         ) : (
-          <Box ref={chartSize.ref} sx={{ flex: 1, minHeight: 150 }}>
-            {chartSize.width > 0 && chartSize.height > 0 && (
-              <LineChart
-                width={chartSize.width}
-                height={chartSize.height}
-                colors={chartPalette}
-                series={[{ data: totals, label: t('dashboard.costTrend.totalCost'), area: true, showMark: true }]}
-                xAxis={[{ scaleType: 'point', data: monthLabels }]}
-                margin={{ top: 10, bottom: 30, left: 56, right: 10 }}
-                hideLegend
-              />
-            )}
-          </Box>
+          <TrendChart
+            points={totals.map((value, i) => ({ label: monthLabels[i] ?? '', value }))}
+            format={(value) => formatMoney(value, locale)}
+            minHeight={150}
+          />
         )}
       </Stack>
     </WidgetShell>

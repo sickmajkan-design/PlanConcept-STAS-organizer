@@ -26,6 +26,14 @@ function startOfMonth(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
 }
 
+/** The first and last day of the month before this one: what this month's cost is compared with. */
+function previousMonth(): { from: string; to: string } {
+  const now = new Date();
+  const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+  return { from: iso(new Date(now.getFullYear(), now.getMonth() - 1, 1)), to: iso(new Date(now.getFullYear(), now.getMonth(), 0)) };
+}
+
 function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
@@ -46,6 +54,13 @@ export function CompanyKpiWidget({ instanceId: _instanceId, onRemove, onExpandWi
     queryFn: () => costsApi.companyReport({ from, to, branchId, basis: people }),
     // The server refuses this to anyone without the finance right, which
     // would put the whole widget into its error state over one tile.
+    enabled: mayViewFinance,
+  });
+
+  const before = previousMonth();
+  const previousCostQuery = useQuery({
+    queryKey: ['dashboard', 'kpi', 'company-cost-previous-month', before.from, before.to, branchId ?? null, people ?? null] as const,
+    queryFn: () => costsApi.companyReport({ from: before.from, to: before.to, branchId, basis: people }),
     enabled: mayViewFinance,
   });
 
@@ -94,12 +109,32 @@ export function CompanyKpiWidget({ instanceId: _instanceId, onRemove, onExpandWi
   const toolsAvailable = toolsQuery.data?.items.filter((tool) => tool.status === 'Available').length ?? 0;
   const overdueCount = overdueWorkItemsQuery.data?.totalCount ?? 0;
 
+  // More spending than last month is amber-red, less is green: the same way the cost trend reads.
+  const lastMonthTotal = previousCostQuery.data?.total ?? 0;
+  const thisMonthTotal = costQuery.data?.total ?? 0;
+  const costChangePercent = lastMonthTotal > 0 ? ((thisMonthTotal - lastMonthTotal) / lastMonthTotal) * 100 : null;
+  const costChange =
+    costChangePercent === null
+      ? {}
+      : {
+          hint: `${costChangePercent > 0 ? '+' : ''}${costChangePercent.toFixed(1)}% ${t('dashboard.costTrend.vsPreviousMonth')}`,
+          hintColor: (costChangePercent > 0 ? 'error.main' : costChangePercent < 0 ? 'success.main' : 'text.secondary') as
+            | 'error.main'
+            | 'success.main'
+            | 'text.secondary',
+        };
+
   return (
     <WidgetShell title={t('dashboard.widget.CompanyKpi')} isLoading={isLoading} error={error} onRemove={onRemove} onExpandWidth={onExpandWidth}>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.25, flex: 1, alignContent: 'flex-start' }}>
         {/* A month with no costs recorded shows no cost tile at all, rather than a zero. */}
         {(costQuery.data?.total ?? 0) > 0 && (
-          <StatTile label={t('dashboard.companyKpi.costThisMonth')} value={formatMoney(costQuery.data?.total ?? 0, locale)} to={paths.costs} />
+          <StatTile
+            label={t('dashboard.companyKpi.costThisMonth')}
+            value={formatMoney(costQuery.data?.total ?? 0, locale)}
+            to={paths.costs}
+            {...costChange}
+          />
         )}
         <StatTile label={t('dashboard.companyKpi.activeEmployees')} value={String(employeesQuery.data?.totalCount ?? 0)} to={paths.employees} />
         <StatTile

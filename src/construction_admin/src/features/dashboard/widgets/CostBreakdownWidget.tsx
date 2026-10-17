@@ -1,5 +1,4 @@
-import { Box, Stack, Typography } from '@mui/material';
-import { PieChart } from '@mui/x-charts/PieChart';
+import { Stack, Typography } from '@mui/material';
 import { useState } from 'react';
 
 import { useI18n } from '../../../i18n/useI18n';
@@ -10,10 +9,11 @@ import { useFinancePeriod } from '../../finance/PeriodContext';
 import { formatPeriod } from '../../finance/periods';
 import { useFinanceBreakdown } from '../../finance/useFinanceSeries';
 import { useAllProjectsQuery } from '../../projects/useProjects';
-import { useElementSize } from '../useElementSize';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { ProjectSettingsDialog } from './WidgetSettingsDialog';
 import { WidgetShell } from './WidgetShell';
+import { Donut } from './widgetCharts';
+import { BigNumber } from './widgetUi';
 
 const KIND_LABEL: Record<string, MessageKey> = {
   Labour: 'dashboard.projectsRealization.labour',
@@ -36,7 +36,6 @@ export function CostBreakdownWidget({ settings, onSettingsChange, onRemove, onEx
   const projectId = settings?.projectId ?? '';
   const { data, isLoading, error } = useFinanceBreakdown(projectId || undefined);
   const projects = useAllProjectsQuery();
-  const chartSize = useElementSize<HTMLDivElement>();
   const [configuring, setConfiguring] = useState(false);
 
   const projectName = projectId ? projects.data?.items.find((p) => p.id === projectId)?.name : undefined;
@@ -61,27 +60,22 @@ export function CostBreakdownWidget({ settings, onSettingsChange, onRemove, onEx
           {t('finance.noData')}
         </Typography>
       ) : (
-        <Stack spacing={1} sx={{ flex: 1, minHeight: 0 }}>
-          <Typography sx={{ fontWeight: 800, fontSize: 'clamp(1.25rem, 2vw, 2rem)', lineHeight: 1, flexShrink: 0 }}>
-            {formatMoney(data?.total ?? 0, locale)}
-          </Typography>
+        <Stack spacing={2} sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+          <BigNumber value={formatMoney(data?.total ?? 0, locale)} />
           {slices.length === 1 ? (
             // One kind is not a composition: a full ring says nothing a number does not say better.
             <Typography variant="body2">
               {slices[0]!.label}: <strong>{formatMoney(slices[0]!.value, locale)}</strong>
             </Typography>
           ) : (
-            <Box ref={chartSize.ref} sx={{ flex: 1, minHeight: 180 }}>
-              {chartSize.width > 0 && chartSize.height > 0 && (
-                <PieChart
-                  width={chartSize.width}
-                  height={chartSize.height}
-                  colors={chartPalette}
-                  series={[{ data: slices, innerRadius: 40 }]}
-                  slotProps={{ legend: { direction: 'horizontal', position: { vertical: 'bottom', horizontal: 'center' } } }}
-                />
-              )}
-            </Box>
+            <Donut
+              parts={slices.map((slice, index) => ({
+                label: slice.label,
+                value: slice.value,
+                color: chartPalette[index % chartPalette.length]!,
+                display: formatMoney(slice.value, locale),
+              }))}
+            />
           )}
         </Stack>
       )}

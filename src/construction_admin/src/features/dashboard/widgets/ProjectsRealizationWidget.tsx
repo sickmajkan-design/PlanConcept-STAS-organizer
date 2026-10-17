@@ -1,6 +1,5 @@
 import { Alert, Box, Button, Divider, Stack, Typography } from '@mui/material';
 import { BarChart } from '@mui/x-charts/BarChart';
-import { PieChart } from '@mui/x-charts/PieChart';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 
@@ -13,6 +12,7 @@ import { formatMoney } from '../../../utils/formatting';
 import { useElementSize } from '../useElementSize';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
+import { Donut } from './widgetCharts';
 import { BarRow, EmptyNote, MoreLink } from './widgetUi';
 
 const TOP_N = 5;
@@ -33,7 +33,6 @@ function monthlyTotals(entries: { amount: number; occurredOn: string }[]): numbe
 
 export function ProjectsRealizationWidget({ instanceId: _instanceId, onRemove, onExpandWidth }: DashboardWidgetProps) {
   const { t, locale } = useI18n();
-  const pieSize = useElementSize<HTMLDivElement>();
   const barSize = useElementSize<HTMLDivElement>();
   const year = new Date().getFullYear();
   const { from, to } = yearBounds(year);
@@ -132,16 +131,15 @@ export function ProjectsRealizationWidget({ instanceId: _instanceId, onRemove, o
                 {costSlices[0].label}: <strong>{formatMoney(costSlices[0].value, locale)}</strong>
               </Typography>
             ) : (
-              <Box ref={pieSize.ref} sx={{ flex: 1, minHeight: 0 }}>
-                {pieSize.width > 0 && pieSize.height > 0 && (
-                  <PieChart
-                    width={pieSize.width}
-                    height={pieSize.height}
-                    colors={chartPalette}
-                    series={[{ data: costSlices, innerRadius: 40 }]}
-                    slotProps={{ legend: { direction: 'horizontal', position: { vertical: 'bottom', horizontal: 'center' } } }}
-                  />
-                )}
+              <Box sx={{ mt: 1 }}>
+                <Donut
+                  parts={costSlices.map((slice, index) => ({
+                    label: slice.label,
+                    value: slice.value,
+                    color: chartPalette[index % chartPalette.length]!,
+                    display: formatMoney(slice.value, locale),
+                  }))}
+                />
               </Box>
             )}
           </Box>

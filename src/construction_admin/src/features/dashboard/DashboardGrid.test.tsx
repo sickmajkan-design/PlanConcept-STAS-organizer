@@ -431,10 +431,10 @@ describe('HomePage dashboard', () => {
       renderScreen(<HomePage />, { user: signedIn('SuperAdmin') });
 
       await waitFor(() => {
-        expect(screen.getByText('200.00')).toBeDefined();
+        expect(screen.getByText(/200.00/)).toBeDefined();
       }, { timeout: 5000 });
 
-      expect(screen.getByText('500.00')).toBeDefined();
+      expect(screen.getByText(/500.00/)).toBeDefined();
     });
 
     it('gives an account with only the statistics right the percentages and never asks for an amount', async () => {

@@ -76,7 +76,11 @@ export function StatTile({
         >
           {value}
         </Typography>
-        {hint && <Pill tone={HINT_TONE[hintColor]}>{hint}</Pill>}
+        {hint && (
+          <Pill tone={HINT_TONE[hintColor]} sx={{ whiteSpace: 'normal', maxWidth: '100%', borderRadius: '12px', textAlign: 'left' }}>
+            {hint}
+          </Pill>
+        )}
       </Stack>
     </Stack>
   );

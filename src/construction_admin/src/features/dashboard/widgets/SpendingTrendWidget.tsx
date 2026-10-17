@@ -1,15 +1,14 @@
-import { Box, Stack, Typography } from '@mui/material';
-import { LineChart } from '@mui/x-charts/LineChart';
+import { Stack } from '@mui/material';
 
 import { useI18n } from '../../../i18n/useI18n';
-import { chartPalette } from '../../../theme';
 import { formatMoney } from '../../../utils/formatting';
 import { useFinancePeriod } from '../../finance/PeriodContext';
 import { formatPeriod } from '../../finance/periods';
 import { useFinanceSeries } from '../../finance/useFinanceSeries';
-import { useElementSize } from '../useElementSize';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
+import { TrendChart } from './widgetCharts';
+import { BigNumber, EmptyNote, Pill } from './widgetUi';
 
 /** "24.09" for a day, "24.09–30.09" for a week, "09.2026" for a month — as short as the point allows. */
 function pointLabel(from: string, to: string, granularity: string): string {
@@ -29,7 +28,6 @@ export function SpendingTrendWidget({ onRemove, onExpandWidth }: DashboardWidget
   const { t, locale } = useI18n();
   const { period } = useFinancePeriod();
   const { data, isLoading, error } = useFinanceSeries();
-  const chartSize = useElementSize<HTMLDivElement>();
 
   const buckets = data?.buckets ?? [];
   const isEmpty = !!data && data.totals.expense === 0;
@@ -49,37 +47,28 @@ export function SpendingTrendWidget({ onRemove, onExpandWidth }: DashboardWidget
       onExpandWidth={onExpandWidth}
     >
       {isEmpty ? (
-        <Typography color="text.secondary" variant="body2">
-          {t('finance.noData')}
-        </Typography>
+        <EmptyNote>{t('finance.noData')}</EmptyNote>
       ) : (
         data && (
-          <Stack spacing={1} sx={{ flex: 1, minHeight: 0 }}>
-            <Box ref={chartSize.ref} sx={{ flex: 1, minHeight: 180 }}>
-              {chartSize.width > 0 && chartSize.height > 0 && (
-                <LineChart
-                  width={chartSize.width}
-                  height={chartSize.height}
-                  colors={[chartPalette[0]!, chartPalette[3]!]}
-                  xAxis={[{ scaleType: 'point', data: buckets.map((b) => pointLabel(b.from, b.to, data.granularity)) }]}
-                  series={[
-                    { data: buckets.map((b) => b.expense), label: t('finance.expense'), showMark: buckets.length <= 31 },
-                    { data: buckets.map(() => average), label: t('finance.average'), showMark: false },
-                  ]}
-                  margin={{ top: 10, bottom: 30, left: 64, right: 10 }}
-                />
-              )}
-            </Box>
-            <Typography variant="body2" color="text.secondary" sx={{ flexShrink: 0 }}>
-              {t('finance.average')}: <strong>{formatMoney(average, locale)}</strong>
+          <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
+            <BigNumber value={formatMoney(data.totals.expense, locale)} caption={t('finance.expense')} />
+            <TrendChart
+              points={buckets.map((b) => ({ label: pointLabel(b.from, b.to, data.granularity), value: b.expense }))}
+              format={(value) => formatMoney(value, locale)}
+              reference={average}
+              referenceLabel={t('finance.average')}
+              minHeight={170}
+            />
+            <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 1, flexShrink: 0 }}>
+              <Pill>
+                {t('finance.average')}: {formatMoney(average, locale)}
+              </Pill>
               {highest && highest.expense > 0 && (
-                <>
-                  {' · '}
-                  {t('finance.highest')}: <strong>{formatMoney(highest.expense, locale)}</strong> (
-                  {pointLabel(highest.from, highest.to, data.granularity)})
-                </>
+                <Pill tone="warn">
+                  {t('finance.highest')}: {formatMoney(highest.expense, locale)} ({pointLabel(highest.from, highest.to, data.granularity)})
+                </Pill>
               )}
-            </Typography>
+            </Stack>
           </Stack>
         )
       )}
