@@ -42,6 +42,7 @@ Pregled je rađen alatima iz paketa `emilkowalski/skills` (`emil-design-eng`, `m
 - **Donja traka lebdi** (`_FloatingBar` u `app_shell.dart`): zaobljena, malo prozirna (zamućenje), sadržaj klizi ispod nje. Ekrani u traci koriste `SafeArea(bottom: false)`, a liste dodaju donji razmak koji je jednak visini trake (`PagedListView` to radi sam). Uz pojačan kontrast traka je puna boja. Novi ekran u traci mora ostaviti taj razmak, inače se zadnji red ne može dohvatiti.
 - **Prijava i odjava se povlače** (`SwipeToConfirm`): klizač do kraja, ne dodir; pusti li se ranije, vraća se oprugom s brzinom prsta. Čitač ekrana ga aktivira jednim dodirom. Obični dugmići (Sačuvaj, Pošalji) ostaju dodir.
 - **Donji listovi** koriste `sheetMotion(context)` (kratak odskok na kraju, zatvaranje brže); pri smanjenom kretanju bez putanje. Svaki novi `showModalBottomSheet` prima `sheetAnimationStyle: sheetMotion(context)`.
+- **Riječ se nikad ne lomi na dva reda** (ni na dugmetu ni na pločici): natpis prelazi u novi red samo između riječi, a preduga riječ se postavlja manjim slovima (`WordSafeText`). Provjera na emulatoru uključuje i najuži ekran (320 dp).
 - Prije objave: release izdanje (ne debug) na emulatoru, jer debug izdanje na ovom računaru javlja "ne odgovara" dok traži lokaciju.
 
 ## 5. Izgled: svijetao i taman

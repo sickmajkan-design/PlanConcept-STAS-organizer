@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'word_safe_text.dart';
+
 /// One of the few things done most often, a single tap from the home screen: an icon over a short label,
 /// big enough for a thumb in a glove. Presses in a little under the finger, like a button on a physical panel.
 class QuickActionTile extends StatefulWidget {
@@ -76,12 +78,12 @@ class _QuickActionTileState extends State<QuickActionTile> {
                       color: enabled ? theme.colorScheme.primary : theme.disabledColor,
                     ),
                     const SizedBox(height: 6),
-                    Text(
+                    // Between words only: a label never breaks inside a word, it is set smaller instead.
+                    WordSafeText(
                       widget.label,
-                      maxLines: 2,
-                      textAlign: TextAlign.center,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelMedium?.copyWith(height: 1.15),
+                      reserveLines: 2,
+                      // One size for every tile, small enough for the longest word on a narrow phone, so the row looks even.
+                      style: theme.textTheme.labelMedium?.copyWith(height: 1.15, fontSize: 11),
                     ),
                   ],
                 ),
