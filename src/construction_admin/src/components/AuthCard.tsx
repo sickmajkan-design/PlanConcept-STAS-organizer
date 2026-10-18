@@ -1,6 +1,7 @@
 import { EngineeringOutlined } from '@mui/icons-material';
 import { Box, Paper, Stack, Typography } from '@mui/material';
 
+import { darkLogoSx } from '../features/companySettings/darkLogoSx';
 import { useCompanyLogoUrl } from '../features/companySettings/useCompanyLogoUrl';
 import { useCompanyBrandingQuery } from '../features/companySettings/useCompanySettings';
 import { ColorModeToggle } from './ColorModeToggle';
@@ -51,7 +52,7 @@ export function AuthCard({
                 component="img"
                 src={logoUrl}
                 alt=""
-                sx={{ width: 56, height: 56, objectFit: 'contain' }}
+                sx={[{ width: 56, height: 56, objectFit: 'contain' }, darkLogoSx]}
               />
             ) : (
               <EngineeringOutlined sx={{ fontSize: 44, color: 'primary.main' }} />

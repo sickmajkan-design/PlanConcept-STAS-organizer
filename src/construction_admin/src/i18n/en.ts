@@ -889,9 +889,8 @@ export const en = {
   'releaseNotes.close': 'Got it',
 
 
-  'releaseNotes.book1017.title': "Book of money: small fixes",
-  'releaseNotes.book1017.quick': "Quick entry: the Document button no longer breaks onto two lines, and the Who field has room.",
-  'releaseNotes.book1017.settlement': "A month with no settlement now has a clear step: New month (the dialog opens, with copying of the last month) or Import from Excel. The empty tables are hidden until a settlement exists, and the Month open label is no longer orange like a button.",
+  'releaseNotes.dark1018.title': "Dark theme: company logo",
+  'releaseNotes.dark1018.logo': "On the dark theme the company logo is no longer black on a dark background: in the top bar, the menu, the logo preview and on the sign-in card it is shown light, without a white rectangle behind it. Nothing changes on the light theme.",
   'releaseNotes.home1018.title': "Home: less on the screen",
   'releaseNotes.home1018.fewer': "New accounts get the six widgets that are looked at every day on the home page (Needs attention, Attendance, Key figures, Orders, Finance, Leave requests) instead of all of them. The rest is in \"Add widget\". A saved layout is not changed.",
   'releaseNotes.home1018.strips': "A widget with nothing to show (no documents expiring, no projects over budget, no business units) becomes a thin strip with one sentence and a tick, and expands by itself as soon as there is something to show. On the computer a card is as tall as its content; if you stretch it yourself it stays as you set it.",

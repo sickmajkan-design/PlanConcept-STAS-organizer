@@ -916,9 +916,8 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.close': 'Razumijem',
 
 
-  'releaseNotes.book1017.title': "Evidencija: sitni popravci",
-  'releaseNotes.book1017.quick': "Brzi unos: dugme za dokument se više ne lomi u dva reda, a polje Ko ima dovoljno mjesta.",
-  'releaseNotes.book1017.settlement': "Obračun mjeseca bez obračuna sada ima jasan korak: Novi mjesec (otvara se dijalog, uz kopiranje prošlog mjeseca) ili Uvoz iz Excela. Prazne tabele se ne prikazuju dok obračun ne postoji, a oznaka Mjesec otvoren više nije narandžasta kao dugme.",
+  'releaseNotes.dark1018.title': "Tamna tema: logo firme",
+  'releaseNotes.dark1018.logo': "Logo firme na tamnoj temi više nije crn na tamnoj pozadini: u gornjoj traci, meniju, pregledu loga i na prijavi prikazuje se svijetao, bez bijelog pravougaonika iza njega. Na svijetloj temi se ništa ne mijenja.",
   'releaseNotes.home1018.title': "Početna: manje na ekranu",
   'releaseNotes.home1018.fewer': "Novi nalozi na početnoj dobijaju šest widgeta koji se gledaju svaki dan (Zahtijeva pažnju, Prisutnost, Ključni pokazatelji, Narudžbe, Finansije, Zahtjevi za odsustvo), umjesto svih odjednom. Ostalo je u „Dodaj widget”. Sačuvan raspored se ne mijenja.",
   'releaseNotes.home1018.strips': "Widget kojem nema šta da pokaže (nema dokumenata koji ističu, nema projekata van budžeta, nema poslovnih jedinica) postaje tanka traka s jednom rečenicom i kvačicom, a čim ima sadržaja, sam se proširi. Na računaru kartica je visoka koliko njen sadržaj; ako je sami razvučete, ostaje kakvu ste je namjestili.",

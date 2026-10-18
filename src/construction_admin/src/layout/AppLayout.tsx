@@ -14,6 +14,7 @@ import { ColorModeToggle } from '../components/ColorModeToggle';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { OfflineBanner } from '../components/OfflineBanner';
 import { UndoSnackbarHost } from '../components/UndoSnackbarHost';
+import { darkLogoSx } from '../features/companySettings/darkLogoSx';
 import { useCompanyLogoUrl } from '../features/companySettings/useCompanyLogoUrl';
 import {
   useCompanyBrandingQuery,
@@ -381,20 +382,24 @@ export function AppLayout({ children }: { children: ReactNode }) {
         >
           {branding?.hasLogo ? (
             <Box
-              component="img"
-              src={logoUrl}
-              alt=""
               sx={{
                 width: 48,
                 height: 48,
                 p: 0.5,
-                objectFit: 'contain',
                 borderRadius: 2,
                 bgcolor: 'background.paper',
                 border: '1px solid',
                 borderColor: 'divider',
+                display: 'flex',
               }}
-            />
+            >
+              <Box
+                component="img"
+                src={logoUrl}
+                alt=""
+                sx={[{ width: '100%', height: '100%', objectFit: 'contain' }, darkLogoSx]}
+              />
+            </Box>
           ) : (
             <Avatar variant="rounded" sx={{ width: 44, height: 44, bgcolor: 'primary.main', fontSize: 20 }}>
               {(branding?.name || t('nav.appName')).slice(0, 1)}
@@ -424,17 +429,20 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
                 {branding?.hasLogo ? (
                   <Box
-                    component="img"
-                    src={logoUrl}
-                    alt=""
                     sx={{
                       width: 220,
                       height: 220,
-                      objectFit: 'contain',
                       borderRadius: 1,
-                      bgcolor: 'grey.50',
+                      bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'background.default' : 'grey.50'),
                     }}
-                  />
+                  >
+                    <Box
+                      component="img"
+                      src={logoUrl}
+                      alt=""
+                      sx={[{ width: '100%', height: '100%', objectFit: 'contain' }, darkLogoSx]}
+                    />
+                  </Box>
                 ) : (
                   <Avatar
                     variant="rounded"
@@ -706,14 +714,17 @@ export function AppLayout({ children }: { children: ReactNode }) {
                   component="img"
                   src={logoUrl}
                   alt=""
-                  sx={{
-                    height: 'clamp(40px, 3.6vw, 52px)',
-                    width: 'auto',
-                    maxWidth: showBrandName ? 220 : 320,
-                    objectFit: 'contain',
-                    flexShrink: 1,
-                    minWidth: 0,
-                  }}
+                  sx={[
+                    {
+                      height: 'clamp(40px, 3.6vw, 52px)',
+                      width: 'auto',
+                      maxWidth: showBrandName ? 220 : 320,
+                      objectFit: 'contain',
+                      flexShrink: 1,
+                      minWidth: 0,
+                    },
+                    darkLogoSx,
+                  ]}
                 />
               ) : (
                 <Avatar

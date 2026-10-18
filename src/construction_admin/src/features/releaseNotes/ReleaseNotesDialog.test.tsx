@@ -55,7 +55,7 @@ describe('ReleaseNotesDialog', () => {
   it('tells an administrator about everything meant for administrators', async () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('SuperAdmin') });
 
-    await screen.findByText('Book of money: small fixes');
+    await screen.findByText('Dark theme: company logo');
     expect(screen.getByText('Home: what changed since yesterday')).toBeDefined();
     expect(screen.getByText('New look for widgets, menu on the phone')).toBeDefined();
   }, SCREEN_TIMEOUT);
