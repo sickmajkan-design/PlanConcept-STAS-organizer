@@ -2,9 +2,10 @@ import { Chip } from '@mui/material';
 
 import { useT } from '../../i18n/useI18n';
 import { formatDate } from '../../utils/formatting';
+import { companyNow } from '../../utils/companyTime';
 
 /** How many days away a `YYYY-MM-DD` date is from today, negative once it has passed. */
-export function daysUntil(isoDate: string, today: Date = new Date()): number {
+export function daysUntil(isoDate: string, today: Date = companyNow()): number {
   const target = new Date(`${isoDate}T00:00:00`);
   const start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 

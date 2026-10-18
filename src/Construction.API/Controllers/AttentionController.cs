@@ -12,8 +12,8 @@ public class AttentionController : ApiControllerBase
     [HttpGet("/api/v{version:apiVersion}/attention")]
     [HttpGet("/api/attention")]
     [ProducesResponseType(typeof(AttentionDto), StatusCodes.Status200OK)]
-    public async Task<ActionResult<AttentionDto>> Get(CancellationToken cancellationToken)
+    public async Task<ActionResult<AttentionDto>> Get([FromQuery] GetAttentionQuery query, CancellationToken cancellationToken)
     {
-        return Ok(await Mediator.Send(new GetAttentionQuery(), cancellationToken));
+        return Ok(await Mediator.Send(query, cancellationToken));
     }
 }

@@ -61,8 +61,7 @@ public abstract class WorkItemCommandBaseValidator<T> : AbstractValidator<T>
             .When(x => x.Kind == WorkItemKind.Defect);
 
         RuleFor(x => x.DueDate)
-            .Must(due => due!.Value <= DateOnly
-                .FromDateTime(dateTimeProvider.UtcNow)
+            .Must(due => due!.Value <= dateTimeProvider.Today
                 .AddDays((int)MaxLeadTime.TotalDays))
             .WithMessage(
                 $"A deadline more than {MaxLeadTime.TotalDays / 365:0} years out is probably a typo.")

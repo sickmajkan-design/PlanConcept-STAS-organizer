@@ -58,7 +58,7 @@ public class GetAttachmentCountsQueryHandler
             await Book.BookRules.EnsureReadAsync(_context, _currentUserService, cancellationToken);
         }
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
         var query = _context.Attachments.AsNoTracking();
 
         // Exhaustive on purpose, like the single-record query: an owner kind the list pages do

@@ -43,7 +43,7 @@ public class GetDashboardLayoutQueryHandler
 
         var widgets = json is null
             ? DefaultWidgets()
-            : JsonSerializer.Deserialize<List<DashboardWidgetDto>>(json) ?? DefaultWidgets();
+            : ReplaceLegacyFinance(JsonSerializer.Deserialize<List<DashboardWidgetDto>>(json) ?? DefaultWidgets());
 
         // A layout saved before the board became free-form (position/size
         // used to be an implicit column+order pair) deserializes with
@@ -72,7 +72,61 @@ public class GetDashboardLayoutQueryHandler
     /// isn't left with one tall stack and an empty half. It's just a starting
     /// arrangement: the user can drag and resize every widget from here.
     /// </summary>
-    private static List<DashboardWidgetDto> DefaultWidgets() => AutoArrange(DashboardWidgetTypes.All);
+    private static List<DashboardWidgetDto> DefaultWidgets() => AutoArrange(DashboardWidgetTypes.Default);
+
+    /// <summary>
+    /// The five finance cards became one with tabs. A saved layout that still holds any of them gets one
+    /// <see cref="DashboardWidgetTypes.Finance"/> card in the place of the first, opened on the tab that card
+    /// showed, and the rest are dropped; it is never written back here, the next save does that.
+    /// </summary>
+    internal static List<DashboardWidgetDto> ReplaceLegacyFinance(List<DashboardWidgetDto> widgets)
+    {
+        if (!widgets.Any(w => DashboardWidgetTypes.LegacyFinance.Contains(w.Type)))
+        {
+            return widgets;
+        }
+
+        var hasFinance = widgets.Any(w => w.Type == DashboardWidgetTypes.Finance);
+        var result = new List<DashboardWidgetDto>();
+
+        foreach (var widget in widgets)
+        {
+            if (!DashboardWidgetTypes.LegacyFinance.Contains(widget.Type))
+            {
+                result.Add(widget);
+                continue;
+            }
+
+            if (hasFinance)
+            {
+                continue;
+            }
+
+            hasFinance = true;
+            result.Add(new DashboardWidgetDto
+            {
+                Id = widget.Id,
+                Type = DashboardWidgetTypes.Finance,
+                X = widget.X,
+                Y = widget.Y,
+                W = widget.W,
+                H = widget.H,
+                Settings = SettingsFor(widget),
+            });
+        }
+
+        return result;
+    }
+
+    private static Dictionary<string, string>? SettingsFor(DashboardWidgetDto legacy) => legacy.Type switch
+    {
+        DashboardWidgetTypes.CostTrend => new() { ["tab"] = "trend", ["trend"] = "months" },
+        DashboardWidgetTypes.SpendingTrend => new() { ["tab"] = "trend", ["trend"] = "period" },
+        DashboardWidgetTypes.CostBreakdown => legacy.Settings is not null && legacy.Settings.TryGetValue("projectId", out var project)
+            ? new() { ["tab"] = "structure", ["projectId"] = project }
+            : new() { ["tab"] = "structure" },
+        _ => null,
+    };
 
     private static List<DashboardWidgetDto> AutoArrange(IReadOnlyList<string> types)
     {

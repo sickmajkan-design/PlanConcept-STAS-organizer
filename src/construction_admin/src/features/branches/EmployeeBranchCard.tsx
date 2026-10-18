@@ -28,11 +28,11 @@ import { canAdministerAccounts } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { useT } from '../../i18n/useI18n';
-import { formatDate } from '../../utils/formatting';
+import { formatDate, todayCompany } from '../../utils/formatting';
 import { BranchDot } from './BranchDot';
 import { useBranchesQuery, useRemoveEmployeeBranchPeriod, useSetEmployeeBranch } from './useBranches';
 
-const todayIso = () => new Date().toISOString().slice(0, 10);
+const todayIso = () => todayCompany();
 
 /**
  * The business unit that employs a person, with the dated history behind it. Hours and pay are

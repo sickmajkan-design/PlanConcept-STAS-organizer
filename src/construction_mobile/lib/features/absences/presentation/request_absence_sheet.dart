@@ -10,6 +10,7 @@ import '../../../core/utils/formatting.dart';
 import '../../notifications/presentation/acknowledgment_gate.dart';
 import 'my_absences_controller.dart';
 import 'my_schedule_controller.dart';
+import '../../../core/time/company_time.dart';
 
 /// The kinds a worker may ask for. `Other` is deliberately left out: on a
 /// phone it produces requests nobody can act on without a phone call, and the
@@ -144,7 +145,7 @@ class _RequestAbsenceSheetState extends ConsumerState<_RequestAbsenceSheet> {
   }
 
   Future<void> _pickRange() async {
-    final today = DateTime.now();
+    final today = CompanyTime.now();
     final start = DateTime(today.year, today.month, today.day);
 
     final picked = await showDateRangePicker(

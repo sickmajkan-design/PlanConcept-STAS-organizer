@@ -58,6 +58,7 @@ import {
 } from '../../utils/formatting';
 import { PendingReviewDialog } from './PendingReviewDialog';
 import { CheckInIcon, CHECK_IN_PRESENTATION, TimeEntryCard, type CheckInState } from './TimeEntryCard';
+import { companyDayBounds } from '../../utils/companyTime';
 
 /** One page-worth of an entire day's entries — a crew this size never needs real pagination. */
 const DAY_PAGE: { pageNumber: number; pageSize: number } = { pageNumber: 1, pageSize: 100 };
@@ -69,14 +70,6 @@ const COLUMN_CARD_CAP = 5;
 const NO_PROJECT_KEY = '__none__';
 
 type CardSort = 'startedAt' | 'employeeName' | 'workedMinutes';
-
-/** The instant just after the given local day ends. */
-function endOfLocalDay(date: string): string {
-  const next = new Date(`${date}T00:00`);
-  next.setDate(next.getDate() + 1);
-
-  return next.toISOString();
-}
 
 /** Adds (or subtracts) whole days from a `YYYY-MM-DD` value, in local time. */
 function shiftDate(date: string, days: number): string {
@@ -135,8 +128,9 @@ export function TimeEntriesListPage() {
       sortDescending: false,
       openOnly: openOnly || undefined,
       status: pendingOnly ? 'Submitted' : undefined,
-      from: new Date(`${date}T00:00`).toISOString(),
-      to: endOfLocalDay(date),
+      // The organisation's day, from its midnight to the next, whatever zone this screen is set to.
+      from: companyDayBounds(date).from,
+      to: companyDayBounds(date).to,
     }),
     [date, openOnly, pendingOnly],
   );

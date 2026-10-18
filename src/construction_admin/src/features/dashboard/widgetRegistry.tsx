@@ -16,21 +16,17 @@ import { AbsencesBalanceWidget } from './widgets/AbsencesBalanceWidget';
 import { ActiveProjectsWidget } from './widgets/ActiveProjectsWidget';
 import { BranchOverviewWidget } from './widgets/BranchOverviewWidget';
 import { CompanyKpiWidget } from './widgets/CompanyKpiWidget';
-import { CostTrendWidget } from './widgets/CostTrendWidget';
-import { CostBreakdownWidget } from './widgets/CostBreakdownWidget';
 import { DocumentExpiryWidget } from './widgets/DocumentExpiryWidget';
-import { FinanceOverviewWidget } from './widgets/FinanceOverviewWidget';
+import { FinanceWidget } from './widgets/FinanceWidget';
 import { FleetStatusWidget } from './widgets/FleetStatusWidget';
 import { IncomeVsExpenseWidget } from './widgets/IncomeVsExpenseWidget';
 import { LiveMapWidget } from './widgets/LiveMapWidget';
 import { NeedsAttentionWidget } from './widgets/NeedsAttentionWidget';
 import { NotificationsBulletinWidget } from './widgets/NotificationsBulletinWidget';
 import { ProfitByProjectWidget } from './widgets/ProfitByProjectWidget';
-import { FinanceStatisticsWidget } from './widgets/FinanceStatisticsWidget';
 import { ProjectFocusWidget } from './widgets/ProjectFocusWidget';
 import { ProjectsOverBudgetWidget } from './widgets/ProjectsOverBudgetWidget';
 import { ProjectsRealizationWidget } from './widgets/ProjectsRealizationWidget';
-import { SpendingTrendWidget } from './widgets/SpendingTrendWidget';
 import { TodayAttendanceWidget } from './widgets/TodayAttendanceWidget';
 import { TopProjectsByExpenseWidget } from './widgets/TopProjectsByExpenseWidget';
 import type { DashboardWidgetProps, DashboardWidgetType } from './widgetTypes';
@@ -45,6 +41,13 @@ interface WidgetRegistryEntry {
    * `'full'` for amounts, `'statistics'` for percentages only. Absent for a widget that shows none.
    */
   finance?: 'full' | 'statistics';
+  /**
+   * The card is as tall as its content on the desktop board, unless the person has resized it. Left off for a
+   * widget that draws a chart or a map to fill the box it is given: those need a box to fill.
+   */
+  fit?: boolean;
+  /** The help topic that says what this widget is for and how each of its numbers is counted. */
+  help: string;
 }
 
 /**
@@ -56,110 +59,127 @@ export const widgetRegistry: Record<DashboardWidgetType, WidgetRegistryEntry> = 
   CompanyKpi: {
     component: CompanyKpiWidget,
     titleKey: 'dashboard.widget.CompanyKpi',
+    help: 'widgeti-pregled',
+    fit: true,
   },
   ProjectsRealization: {
     component: ProjectsRealizationWidget,
     titleKey: 'dashboard.widget.ProjectsRealization',
+    help: 'widgeti-projekti',
     finance: 'full',
   },
   AbsencesBalance: {
     component: AbsencesBalanceWidget,
     titleKey: 'dashboard.widget.AbsencesBalance',
+    help: 'widgeti-ljudi',
+    fit: true,
   },
   NotificationsBulletin: {
     component: NotificationsBulletinWidget,
     titleKey: 'dashboard.widget.NotificationsBulletin',
+    help: 'widgeti-pregled',
+    fit: true,
   },
   DocumentExpiry: {
     component: DocumentExpiryWidget,
     titleKey: 'dashboard.widget.DocumentExpiry',
+    help: 'widgeti-pregled',
+    fit: true,
   },
   FleetStatus: {
     component: FleetStatusWidget,
     titleKey: 'dashboard.widget.FleetStatus',
+    help: 'widgeti-projekti',
+    fit: true,
   },
   NeedsAttention: {
     component: NeedsAttentionWidget,
     titleKey: 'dashboard.widget.NeedsAttention',
+    help: 'widgeti-pregled',
+    fit: true,
   },
   LiveMap: {
     component: LiveMapWidget,
     titleKey: 'dashboard.widget.LiveMap',
+    help: 'widgeti-projekti',
   },
   TodayAttendance: {
     component: TodayAttendanceWidget,
     titleKey: 'dashboard.widget.TodayAttendance',
+    help: 'widgeti-ljudi',
+    fit: true,
   },
-  CostTrend: {
-    component: CostTrendWidget,
-    titleKey: 'dashboard.widget.CostTrend',
-    finance: 'full',
-  },
-  FinanceOverview: {
-    component: FinanceOverviewWidget,
-    titleKey: 'dashboard.widget.FinanceOverview',
-    finance: 'full',
+  Finance: {
+    component: FinanceWidget,
+    titleKey: 'dashboard.widget.Finance',
+    help: 'widgeti-novac',
+    // Statistics are the least it shows; the amounts, trend and structure tabs need the full right.
+    finance: 'statistics',
+    // Its charts have a height of their own, so the card is as tall as the tab that is open.
+    fit: true,
   },
   IncomeVsExpense: {
     component: IncomeVsExpenseWidget,
     titleKey: 'dashboard.widget.IncomeVsExpense',
+    help: 'widgeti-novac',
     finance: 'full',
   },
   TopProjectsByExpense: {
     component: TopProjectsByExpenseWidget,
     titleKey: 'dashboard.widget.TopProjectsByExpense',
+    help: 'widgeti-novac',
+    fit: true,
     finance: 'full',
   },
   ProfitByProject: {
     component: ProfitByProjectWidget,
     titleKey: 'dashboard.widget.ProfitByProject',
-    finance: 'full',
-  },
-  CostBreakdown: {
-    component: CostBreakdownWidget,
-    titleKey: 'dashboard.widget.CostBreakdown',
+    help: 'widgeti-novac',
+    fit: true,
     finance: 'full',
   },
   ProjectFocus: {
     component: ProjectFocusWidget,
     titleKey: 'dashboard.widget.ProjectFocus',
+    help: 'widgeti-projekti',
+    fit: true,
     finance: 'full',
   },
   ProjectsOverBudget: {
     component: ProjectsOverBudgetWidget,
     titleKey: 'dashboard.widget.ProjectsOverBudget',
+    help: 'widgeti-projekti',
+    fit: true,
     finance: 'full',
-  },
-  SpendingTrend: {
-    component: SpendingTrendWidget,
-    titleKey: 'dashboard.widget.SpendingTrend',
-    finance: 'full',
-  },
-  FinanceStatistics: {
-    component: FinanceStatisticsWidget,
-    titleKey: 'dashboard.widget.FinanceStatistics',
-    finance: 'statistics',
   },
   AbsenceRequests: {
     component: AbsenceRequestsWidget,
     titleKey: 'dashboard.widget.AbsenceRequests',
+    help: 'widgeti-ljudi',
+    fit: true,
     // Answering a request is the API's AdminAndAbove.
     allowed: canReviewAbsences,
   },
   ActiveProjects: {
     component: ActiveProjectsWidget,
     titleKey: 'dashboard.widget.ActiveProjects',
+    help: 'widgeti-projekti',
+    fit: true,
     allowed: canViewDirectory,
   },
   ArticleOrders: {
     component: ArticleOrdersWidget,
     titleKey: 'dashboard.widget.ArticleOrders',
+    help: 'widgeti-ljudi',
+    fit: true,
     // Ordering and sending are the API's office roles.
     allowed: canManageArticleOrders,
   },
   BranchOverview: {
     component: BranchOverviewWidget,
     titleKey: 'dashboard.widget.BranchOverview',
+    help: 'widgeti-pregled',
+    fit: true,
     // The units, their heads and their head counts: the same people who may open the directory.
     allowed: canViewDirectory,
   },

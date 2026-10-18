@@ -31,7 +31,7 @@ public class UpdateToolExpenseCommandValidator : AbstractValidator<UpdateToolExp
 {
     public UpdateToolExpenseCommandValidator(IDateTimeProvider dateTimeProvider)
     {
-        var today = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
+        var today = dateTimeProvider.Today;
 
         RuleFor(x => x.Id).NotEmpty();
         RuleFor(x => x.ToolId).NotEmpty();

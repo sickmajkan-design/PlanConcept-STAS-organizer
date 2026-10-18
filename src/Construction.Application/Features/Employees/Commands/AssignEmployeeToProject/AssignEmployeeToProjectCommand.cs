@@ -87,7 +87,7 @@ public class AssignEmployeeToProjectCommandHandler : IRequestHandler<AssignEmplo
         }
 
         var startDate = request.StartDate
-            ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            ?? _dateTimeProvider.Today;
         var endDate = request.EndDate;
 
         // At most one posting can ever overlap — this same check is what

@@ -15,6 +15,7 @@ import '../../attachments/data/attachment_repository.dart';
 import '../../notifications/presentation/acknowledgment_gate.dart';
 import '../data/models/work_item.dart';
 import 'my_work_controller.dart';
+import '../../../core/time/company_time.dart';
 
 /// What this employee has to do, and the two buttons for moving it on.
 class MyWorkScreen extends ConsumerWidget {
@@ -58,7 +59,7 @@ class _WorkItemCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final overdue = item.isOverdueOn(DateTime.now());
+    final overdue = item.isOverdueOn(CompanyTime.now());
 
     return Card(
       child: Padding(

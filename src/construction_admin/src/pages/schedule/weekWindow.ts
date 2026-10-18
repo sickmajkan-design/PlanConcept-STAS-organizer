@@ -1,3 +1,4 @@
+import { companyNow } from '../../utils/companyTime';
 /**
  * The board's week arithmetic, kept out of the component so it can be reasoned
  * about — and tested — without rendering anything.
@@ -45,7 +46,7 @@ export function startOfWeek(value: string): string {
 }
 
 export function todayIsoDate(): string {
-  const now = new Date();
+  const now = companyNow();
   return toIsoDate(
     new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())),
   );

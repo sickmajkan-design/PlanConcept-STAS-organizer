@@ -3,6 +3,7 @@ import {
   canAdministerAccounts,
   canViewBook,
   canViewDirectory,
+  canViewFinanceStatistics,
 } from '../../auth/authHelpers';
 import { paths } from '../../routes/paths';
 
@@ -36,6 +37,8 @@ export interface HelpTopic {
 const everyone = () => true;
 const office = (user: User | null | undefined) => canAdministerAccounts(user);
 const staff = (user: User | null | undefined) => canViewDirectory(user);
+/** The money widgets are for whoever may see the company's money, as amounts or as percentages. */
+const moneyView = (user: User | null | undefined) => canViewFinanceStatistics(user);
 
 export const helpGroups: { id: HelpGroup; sr: string; en: string }[] = [
   { id: 'documents', sr: 'Dokumenti', en: 'Documents' },
@@ -676,6 +679,282 @@ export const helpTopics: HelpTopic[] = [
           'The Appearance button in the header (in the account menu on a phone) chooses light, dark or following the device; the choice is remembered.',
         ],
         keywords: ['search', 'ctrl+k', 'shortcuts', 'command', 'palette', 'find', 'quick', 'keyboard'],
+      },
+    },
+  },
+  {
+    id: 'pocetna-od-jucer',
+    group: 'work',
+    path: paths.home,
+    audience: staff,
+    content: {
+      sr: {
+        title: 'Početna: šta se promijenilo od jučer',
+        summary:
+          'Uz brojeve na početnoj piše koliko su veći ili manji nego što ste ih vidjeli jučer, pa odmah znate da li ono što čeka raste ili se smanjuje.',
+        steps: [
+          'Otvorite Početnu. Uz broj u widgetu Zahtijeva pažnju, u kartici Danas na telefonu, uz Aktivne radnike, Otvorene radne naloge, Vozila i alate te Narudžbe pojavi se sitan natpis, npr. +2 od jučer.',
+          'Boja govori šta promjena znači: zelena je bolje, crvena je lošije (više onoga što čeka odgovor, manje slobodnih vozila), siva je samo promjena (broj aktivnih radnika).',
+          'Natpis nestaje kad je broj isti kao jučer. Klik na red ili pločicu vodi na listu gdje se to rješava.',
+          'Ako izaberete poslovnu jedinicu u zaglavlju, brojevi se porede s jučerašnjim brojevima te iste jedinice.',
+        ],
+        example:
+          'Jučer je 3 zahtjeva za odsustvo čekalo odgovor, danas ih je 5. Uz Zahtjevi za odsustvo piše crveno +2 od jučer: dvoje je novih, pa ih pogledajte prvo.',
+        tips: [
+          'Poredi se s onim što je vaš nalog zadnji put vidio jučer. Prvog dana korištenja, i dan poslije dana kad Početna nije otvarana, nema natpisa.',
+          'Pamte se samo broj i dan, nikad sadržaj, i samo za vaš nalog; čuvaju se tri dana.',
+          'Trošak i prihod već pokazuju promjenu u odnosu na prethodni mjesec ili razdoblje.',
+        ],
+        keywords: ['od jučer', 'promjena', 'početna', 'widget', 'poređenje', 'jučer', 'broj', 'raste', 'pada', 'trend'],
+      },
+      en: {
+        title: 'Home: what changed since yesterday',
+        summary:
+          'Next to the figures on the home page it says how much larger or smaller they are than when you saw them yesterday, so you know at once whether what waits is growing or shrinking.',
+        steps: [
+          'Open Home. Next to a figure in the Needs attention widget, in the Today card on the phone, and next to Active employees, Open work items, Vehicles and tools, and Orders a small note appears, for example +2 since yesterday.',
+          'The colour says what the change means: green is better, red is worse (more waiting for an answer, fewer free vehicles), grey is only a change (the number of active employees).',
+          'The note disappears when the figure is the same as yesterday. A press on the row or the tile goes to the list where it is dealt with.',
+          "If you choose a business unit in the header, the figures are compared with yesterday's figures of that same unit.",
+        ],
+        example:
+          'Yesterday 3 leave requests were waiting for an answer, today there are 5. Leave requests shows a red +2 since yesterday: two are new, so look at them first.',
+        tips: [
+          'It is compared with what your account last saw yesterday. On the first day of use, and the day after a day when Home was not opened, there is no note.',
+          'Only the number and the day are kept, never the content, and only for your account; they are kept for three days.',
+          'Cost and income already show the change from the previous month or period.',
+        ],
+        keywords: ['since yesterday', 'change', 'home', 'widget', 'comparison', 'yesterday', 'figure', 'growing', 'falling', 'trend'],
+      },
+    },
+  },
+  {
+    id: 'pocetna-widgeti',
+    group: 'work',
+    path: paths.home,
+    audience: staff,
+    content: {
+      sr: {
+        title: 'Početna: widgeti, Finansije i traka za prazno',
+        summary:
+          'Početna se sastavlja od widgeta koje birate. Novi nalog dobija šest najvažnijih; ostale dodajete, premještate i uklanjate sami.',
+        steps: [
+          'Pritisnite Dodaj widget i izaberite iz spiska. Widget uklanjate × na kartici, a premještate hvatanjem ručke s tačkicama.',
+          'Finansije su jedna kartica s tri taba: Pregled (prihod, rashod, zarada u odnosu na prethodni period), Trend (po mjesecima ili u izabranom periodu) i Struktura (na šta odlazi novac). Dugme za postavke u Strukturi bira jedan projekat ili cijelu firmu. Period se bira na vrhu stranice.',
+          'Widget kojem nema šta da pokaže postaje tanka traka s kvačicom i jednom rečenicom; kad ima sadržaja, sam se proširi.',
+          'Na računaru je kartica visoka koliko njen sadržaj. Ako je razvučete po visini, ostaje kakvu ste je namjestili.',
+          'Podešavanje sistema je mala značka desno iznad widgeta. Pritisak je otvara, a × je sakriva dok se ne pojavi nešto novo.',
+        ],
+        example:
+          'Nemate nijednu poslovnu jedinicu, pa je Poslovne jedinice traka s „Još nema poslovnih jedinica” i vezom na strukturu firme. Kad dodate prvu, ista kartica pokaže jedinice i brojeve.',
+        tips: [
+          'Starih pet finansijskih widgeta zamijenila je jedna kartica Finansije; postojeći raspored je dobio jednu na mjestu prve.',
+          'Nalog koji smije vidjeti samo postotke dobija postotke, bez tabova.',
+          'Na telefonu se widgeti slažu u jedan stub; ispod kartice „Danas” widget „Još čeka” pokazuje ono što kartica ne nabraja.',
+        ],
+        keywords: ['početna', 'widget', 'raspored', 'finansije', 'trend', 'struktura', 'traka', 'prazno', 'značka', 'podešavanje'],
+      },
+      en: {
+        title: 'Home: widgets, Finance and the strip for empty',
+        summary:
+          'The home page is built from widgets you choose. A new account gets the six most important; you add, move and remove the rest yourself.',
+        steps: [
+          'Press Add widget and pick from the list. Remove a widget with × on its card, and move it by grabbing the dotted handle.',
+          'Finance is one card with three tabs: Overview (income, spending, profit against the previous period), Trend (by month or in the chosen period) and Structure (where the money goes). The settings button in Structure picks one project or the whole company. The period is chosen at the top of the page.',
+          'A widget with nothing to show becomes a thin strip with a tick and one sentence; when there is something, it expands by itself.',
+          'On the computer a card is as tall as its content. If you stretch it by height, it stays as you set it.',
+          'System setup is a small badge above the widgets on the right. Pressing it opens it, and × hides it until something new comes up.',
+        ],
+        example:
+          'You have no business unit yet, so Business units is a strip saying "No business units yet" with a link to the company structure. When you add the first, the same card shows the units and the figures.',
+        tips: [
+          'The five old finance widgets were replaced by the one Finance card; an existing layout got one in the place of the first.',
+          'An account that may see only percentages gets percentages, without tabs.',
+          'On the phone the widgets stack in one column; under the Today card the Still waiting widget shows what the card does not list.',
+        ],
+        keywords: ['home', 'widget', 'layout', 'finance', 'trend', 'structure', 'strip', 'empty', 'badge', 'setup'],
+      },
+    },
+  },
+  {
+    id: 'widgeti-pregled',
+    group: 'work',
+    path: paths.home,
+    audience: staff,
+    content: {
+      sr: {
+        title: 'Widgeti: pregled i pažnja',
+        summary:
+          'Widgeti koji govore šta je danas važno: ključni brojevi, šta nekoga čeka, šta ističe, šta je novo i kako su podijeljene jedinice.',
+        steps: [
+          'Ključni pokazatelji. Pet brojeva o firmi na jednom mjestu, da za pola minute vidite stanje. Kako se računa: Trošak ovog mjeseca je ukupan trošak firme od 1. u mjesecu do danas (odobreni sati po stopi radnika, ručna plaćanja, izdat materijal s cijenom, opšti troškovi, smještaj, vozila i alati), uz promjenu u odnosu na ISTE dane prošlog mjeseca; vidi ga samo nalog s punim finansijskim pravom. Aktivnih radnika su radnici sa statusom Aktivan. Otvoreni radni nalozi su svi koji nisu Zatvoreni ni Otkazani (računaju se i Riješeni), a „u kašnjenju” su oni kojima je rok prije današnjeg dana. Vozila i alati dostupni su oni sa statusom Slobodno, od ukupnog broja. Sve se sužava na izabranu poslovnu jedinicu.',
+          'Zahtijeva pažnju. Jedan spisak svega što nekoga čeka, tako da ništa ne propadne: svaka vrsta ima broj i vodi na stranicu gdje se rješava. Kako se računa: Pokazuje se samo ono što uloga može i riješiti. Vrste: zahtjevi za odsustvo na odobravanju; radni sati na pregledu (smjene u statusu Poslano); troškovi vozila na pregledu; narudžbe artikala na čekanju (Zatraženo); zahtjevi za povrat troškova (Zatraženo); zakasnjele fakture (izdate, rok prošao, nisu plaćene u cijelosti; samo uz pravo na Knjigu); zakasnjeli troškovi iz Evidencije (neplaćeni, rok prošao); DKV redovi koji traže pregled; rasporedi koje radnik nije potvrdio (počinju u narednih 7 dana ili traju, aktivan radnik); datumi vozila koji ističu (registracija, tehnički, osiguranje, servis u 30 dana ili prošli; jedan red po vozilu, vozila van upotrebe se ne računaju); uvjerenja radnika koja ističu (30 dana); dokumenti koji ističu (30 dana); zapisi za sređivanje; i, samo za administratora, servis za provjeru virusa koji ne odgovara. Uz svaki broj stoji „od jučer”. Sa izabranom poslovnom jedinicom broje se samo njene stavke; servis za viruse, zapisi za sređivanje i DKV redovi bez vozila (nepoznata kartica) pripadaju firmi u cjelini. Na telefonu je ovo „Još čeka” i izostavlja prve tri vrste, koje već nabraja kartica „Danas”.',
+          'Dokumenti koji uskoro ističu. Da nijedan dokument (lična karta, dozvola, certifikat, osiguranje) ne istekne neprimijećen. Kako se računa: Dokumenti s datumom isteka u narednih 30 dana ili već istekli, najbliži prvo (do 8). Crveno je 7 dana ili manje, ili prošlo; dani se broje po kalendaru organizacije. Sa izabranom poslovnom jedinicom: dokumenti njenih radnika, gradilišta, vozila i alata. Kad nema ništa, kartica je jedan red.',
+          'Obavještenja i oglasna tabla. Šta je novo za vas: obavještenja koja niste otvorili i zadnje objave firme. Kako se računa: Broj je Vaših nepročitanih obavještenja (lični je, ne zavisi od poslovne jedinice). Ispod su posljednjih 5 objava s oglasne ploče, koje su za cijelu firmu.',
+          'Poslovne jedinice. Da vlasnik s više jedinica vidi koliko je koja velika. Kako se računa: Aktivne jedinice kao stablo: ko je šef i koliko radnika (trenutno zaposlenih u njoj) i gradilišta ima, računajući i jedinice ispod nje. Stubići su u odnosu na najveću. Bez jedinica je jedan red s vezom na strukturu firme.',
+        ],
+        example:
+          'Dokumenti ističu za 12 dana, a tri zahtjeva za odsustvo čekaju: „Zahtijeva pažnju” ih nabroji, a pritisak na red otvara listu gdje se rješavaju.',
+        tips: [
+          'Brojevi se sužavaju na poslovnu jedinicu izabranu u zaglavlju; „od jučer” se poredi s onim što je Vaš nalog vidio jučer.',
+          '„Danas”, „ovaj mjesec” i sati računaju se po vremenskoj zoni organizacije, koja se podešava u Podešavanjima firme.',
+        ],
+        keywords: ['overview', 'brojevi', 'pažnja', 'widget', 'dokumenti', 'ključni', 'pokazatelji', 'jedinice', 'oglasna'],
+      },
+      en: {
+        title: 'Widgets: overview and attention',
+        summary:
+          'Widgets that say what matters today: the key figures, what is waiting for someone, what is running out, what is new and how the units divide.',
+        steps: [
+          'Key figures. Five figures about the company in one place, so you can see how things stand in half a minute. How it is counted: Cost this month is the company\'s whole cost from the 1st of the month to today (approved hours at each person\'s rate, manual pay, issued material with a price, general costs, housing, vehicles and tools), with the change against the SAME days of last month; only an account with the full finance right sees it. Active employees are those with the status Active. Open work items are all that are not Closed or Cancelled (Resolved ones count), and "overdue" are those whose deadline is before today. Vehicles and tools available are those with the status Available, out of the total. Everything narrows to the chosen business unit.',
+          'Needs attention. One list of everything that is waiting for someone, so nothing is missed: each kind has a number and leads to the page where it is dealt with. How it is counted: Only what the role can act on is shown. Kinds: leave requests to answer; hours to review (shifts with the status Submitted); vehicle costs to review; article orders waiting (Requested); refund requests (Requested); late invoices (issued, past due, not paid in full; only with the right to the Book); late costs from the Book (unpaid, past due); DKV rows that need a look; postings the worker has not confirmed (starting within 7 days or running, active worker); vehicle dates running out (registration, inspection, insurance, service within 30 days or past; one row per vehicle, vehicles out of service are left out); workers\' certificates running out (30 days); documents running out (30 days); records to tidy; and, for an administrator only, the virus scanner not answering. Each number carries "since yesterday". With a business unit chosen only its items are counted; the virus scanner, the records to tidy and DKV rows with no vehicle (unknown card) belong to the company as a whole. On the phone this is "Still waiting" and leaves out the first three kinds, which the Today card already lists.',
+          'Documents expiring soon. So that no document (ID, permit, certificate, insurance) runs out unnoticed. How it is counted: Documents with an expiry date within the next 30 days or already past, nearest first (up to 8). Red is 7 days or fewer, or past; days are counted on the organisation\'s calendar. With a business unit chosen: the documents of its people, sites, vehicles and tools. When there is nothing, the card is one line.',
+          'Notifications and bulletin board. What is new for you: notifications you have not opened and the company\'s latest posts. How it is counted: The number is your own unread notifications (personal, not tied to a business unit). Below are the latest 5 posts of the bulletin board, which are for the whole company.',
+          'Business units. So an owner with several units can see how large each one is. How it is counted: Active units as a tree: who heads each, and how many employees (currently employed in it) and sites it has, counting the units under it. The bars are against the largest. With no units it is one line with a link to the company structure.',
+        ],
+        example:
+          'A document runs out in 12 days and three leave requests are waiting: "Needs attention" lists them, and a press on the row opens the list where they are dealt with.',
+        tips: [
+          'The numbers narrow to the business unit chosen in the header; "since yesterday" compares with what your account saw yesterday.',
+          '"Today", "this month" and hours are counted in the organisation\'s time zone, which is set in the company settings.',
+        ],
+        keywords: ['overview', 'figures', 'attention', 'widget', 'documents', 'key', 'units', 'bulletin'],
+      },
+    },
+  },
+  {
+    id: 'widgeti-ljudi',
+    group: 'work',
+    path: paths.home,
+    audience: staff,
+    content: {
+      sr: {
+        title: 'Widgeti: ljudi i rad',
+        summary:
+          'Widgeti o radnicima: ko je na terenu, koliko je odrađeno, ko je odsutan i šta traže.',
+        steps: [
+          'Prisutnost danas. Ko je sada na terenu i koliko je danas odrađeno. Kako se računa: Prsten i „na terenu” su radnici s otvorenom smjenom (prijavljeni, nisu odjavljeni), od aktivnih radnika; ako je prijavljenih više nego aktivnih, imenilac je broj prijavljenih. „Sati danas” su završene smjene koje se preklapaju s današnjim danom organizacije (trajanje minus pauza) plus koliko traju smjene koje još traju. „Čekaju odobrenje” su ti završeni sati u statusu Poslano. Lista su do 8 najranije prijavljenih. „Danas” je dan u vremenskoj zoni organizacije, od njene ponoći do sljedeće.',
+          'Radna snaga. Raspoloživa radna snaga u jednom pogledu: ko radi, ko čeka odluku o odsustvu, ko je odsutan. Kako se računa: Veliki broj su radnici s otvorenom smjenom, „od N aktivnih” su radnici sa statusom Aktivan. Traka: Na gradilištu (prijavljeni), Zahtjevi na čekanju (zahtjevi za odsustvo u statusu Zahtjev) i Na odsustvu danas (odobrena odsustva čiji period obuhvata današnji dan organizacije). Trake po projektima su broj prijavljenih na svakom (šest najvećih). Ispod su prva najviše 5 zahtjeva za odsustvo na čekanju. Sa izabranom poslovnom jedinicom broji se samo ona.',
+          'Zahtjevi za odsustvo. Odgovorite na zahtjeve za odsustvo bez odlaska na drugu stranicu. Kako se računa: Zahtjevi u statusu Zahtjev, s tipom, periodom i brojem dana; kvačica odobrava, krstić odbija (traži razlog). Odgovara samo administrator i nikad na vlastiti zahtjev. Isti odgovor odmah spušta brojeve u meniju i u „Zahtijeva pažnju”.',
+          'Narudžbe. Zahtjevi radnika za artikle (odjeća, obuća, šljemovi, alat) koji još nisu u njihovim rukama. Kako se računa: Tri broja su brojevi koje daje server po koraku: Zatraženo, Naručeno, U dostavi (ne računa se Isporučeno, Odbijeno ni Otkazano). Ispod je 5 najnovijih otvorenih narudžbi sa sljedećim korakom na jedan pritisak. „Hitno” je oznaka koju je postavio onaj ko traži. Uz Zatraženo stoji „od jučer”. Sa izabranom poslovnom jedinicom: narudžbe njenih gradilišta.',
+        ],
+        example:
+          'Osam radnika je prijavljeno, a dva sata čekaju odobrenje: „Prisutnost danas” pokazuje prsten 8 od 16, „7h 30min danas” i „2 čekaju odobrenje”.',
+        tips: [
+          'Brojevi se sužavaju na poslovnu jedinicu izabranu u zaglavlju; „od jučer” se poredi s onim što je Vaš nalog vidio jučer.',
+          '„Danas”, „ovaj mjesec” i sati računaju se po vremenskoj zoni organizacije, koja se podešava u Podešavanjima firme.',
+        ],
+        keywords: ['prisutnost', 'radna snaga', 'odsustvo', 'narudžbe', 'sati', 'radnici', 'smjena', 'zahtjevi'],
+      },
+      en: {
+        title: 'Widgets: people and work',
+        summary:
+          'Widgets about the workers: who is on site, how much has been worked, who is away and what they are asking for.',
+        steps: [
+          'Attendance today. Who is on site now and how much has been worked today. How it is counted: The ring and "on site" are the workers with an open shift (clocked in, not out), out of the active workers; if more are clocked in than are active, the denominator is the number clocked in. "Hours today" are the finished shifts that overlap today on the organisation\'s calendar (duration less break) plus how long the shifts still running have run. "Waiting for approval" are those finished hours with the status Submitted. The list is up to 8 who clocked in earliest. "Today" is the day in the organisation\'s time zone, from its midnight to the next.',
+          'Workforce. The available workforce in one look: who is working, who is waiting for a leave decision, who is away. How it is counted: The large number is the workers with an open shift, "of N active" the workers with the status Active. The bar: On site (clocked in), Requests waiting (leave requests with the status Requested) and On leave today (approved leave whose period covers the organisation\'s today). The bars per project are the number clocked in on each (the six largest). Below are the first 5 leave requests waiting. With a business unit chosen only it is counted.',
+          'Leave requests. Answer leave requests without going to another page. How it is counted: Requests with the status Requested, with the type, period and number of days; the tick approves, the cross rejects (a reason is asked for). Only an administrator answers, and never their own request. The same answer drops the numbers in the menu and in "Needs attention" at once.',
+          'Orders. Workers\' requests for articles (clothing, footwear, helmets, tools) that are not yet in their hands. How it is counted: The three numbers are the server\'s own counts per step: Requested, Ordered, In delivery (Delivered, Rejected and Cancelled are not counted). Below are the 5 newest open orders with the next step one press away. "Urgent" is a mark set by whoever asks. Requested carries "since yesterday". With a business unit chosen: the orders of its sites.',
+        ],
+        example:
+          'Eight workers are clocked in and two sets of hours are waiting for approval: "Attendance today" shows the ring 8 of 16, "7h 30m today" and "2 waiting for approval".',
+        tips: [
+          'The numbers narrow to the business unit chosen in the header; "since yesterday" compares with what your account saw yesterday.',
+          '"Today", "this month" and hours are counted in the organisation\'s time zone, which is set in the company settings.',
+        ],
+        keywords: ['attendance', 'workforce', 'leave', 'orders', 'hours', 'workers', 'shift', 'requests'],
+      },
+    },
+  },
+  {
+    id: 'widgeti-projekti',
+    group: 'work',
+    path: paths.home,
+    audience: staff,
+    content: {
+      sr: {
+        title: 'Widgeti: projekti i oprema',
+        summary:
+          'Widgeti o gradilištima i opremi: gdje se radi, koliko je naplaćeno, ko prelazi budžet i šta je slobodno.',
+        steps: [
+          'Vozila i alati. Šta je slobodno, šta izdato, a šta ne radi. Kako se računa: Dvije trake, za vozila i za alate: broj po statusu (vozila: Slobodno, Zaduženo, Na servisu, Van upotrebe, Iznajmljeno; alati: Slobodan, Zadužen, Na popravci, Izgubljen, Otpisan, Iznajmljen), kao brojevi koje daje server, pa flota veća od sto stavki ne staje na sto. Ispod su po imenu vozila Van upotrebe i alati Na popravci ili Izgubljeni. Sa izabranom poslovnom jedinicom: njena vozila i alati.',
+          'Aktivni projekti. Gdje se radi i šta traži pogled: projekti bez ekipe i oni kojima ističe rok. Kako se računa: Oznake su broj projekata po fazi (Planiran, Aktivan, Na čekanju, Završen, Otkazan; prikazuju se faze koje imaju projekata), brojevi koje daje server. Lista su svi Aktivni projekti: prvo oni bez radnika („Bez ekipe”), zatim po roku; oznake „Završava za N dana” (14 dana ili manje) i „Rok je prošao” računaju se po kalendaru organizacije. Sa izabranom poslovnom jedinicom: njeni projekti.',
+          'Projekti — realizacija. Koliko je od ugovorenog naplaćeno i na šta ove godine odlazi novac. Kako se računa: Do 5 projekata s ugovorenom vrijednošću, po udjelu realizacije: zbir uplata naručioca do danas podijeljen vrijednošću ugovora (traka stane na 100%, a veći udio je zelen i vidi se u broju). Ispod: sastav troška cijele firme od 1. januara (rad, ručna plaćanja, materijal, opšti troškovi, smještaj, vozila, alati) i realizovan prihod po mjesecima ove godine, zbir uplata po projektima. Samo uz puno finansijsko pravo.',
+          'Projekti van budžeta. Upozorenje prije nego što projekat pređe budžet. Kako se računa: Projekti koji nisu Završeni ni Otkazani, a imaju budžet ili vrijednost ugovora (mjeri se prema onom što je izabrano na projektu, a zadano je budžet). Potrošeno je ukupan trošak projekta od početka do danas podijeljen granicom. Upozorenje je od praga koji je zadan na projektu (zadano 80%), a „prekoračen” od 100%. Ne prati period s vrha stranice. Kad nema projekata s granicom ili su svi ispod nje, kartica je jedan red.',
+          'Projekt u fokusu. Jedan projekat pod povećalom. Kako se računa: Projekat birate u postavkama kartice. Za izabrani period i „od početka”: prihod (uplate), rashod (troškovi projekta), zarada i marža; udio budžeta koji je potrošen (rashod od početka / budžet) i udio ugovora koji je naplaćen (prihod od početka / vrijednost ugovora). Samo uz puno finansijsko pravo.',
+          'Mapa uživo. Gdje su ljudi u ovom trenutku. Kako se računa: Posljednja poznata lokacija svakog aktivnog radnika koji prijavljuje lokaciju; broj je koliko ih je na mapi. Sa izabranom poslovnom jedinicom: radnici koje ona zapošljava. Potreban je Google Maps ključ.',
+        ],
+        example:
+          'Projekat s budžetom 28.000 EUR potrošio je 25.200: u „Projektima van budžeta” je na 90% i žut, a na 100% postaje crven „prekoračen”.',
+        tips: [
+          'Brojevi se sužavaju na poslovnu jedinicu izabranu u zaglavlju; „od jučer” se poredi s onim što je Vaš nalog vidio jučer.',
+          '„Danas”, „ovaj mjesec” i sati računaju se po vremenskoj zoni organizacije, koja se podešava u Podešavanjima firme.',
+        ],
+        keywords: ['projekti', 'realizacija', 'budžet', 'vozila', 'alati', 'mapa', 'gradilište', 'fokus'],
+      },
+      en: {
+        title: 'Widgets: projects and equipment',
+        summary:
+          'Widgets about sites and equipment: where work is going on, how much has been collected, who is going over budget and what is free.',
+        steps: [
+          'Vehicles and tools. What is free, what is issued and what is not working. How it is counted: Two bars, for vehicles and for tools: the number per status (vehicles: Available, Assigned, In service, Out of service, Rented out; tools: Available, Assigned, Under repair, Lost, Retired, Rented out), as the server\'s own counts, so a fleet of more than a hundred is not cut at a hundred. Below are, by name, the vehicles Out of service and the tools Under repair or Lost. With a business unit chosen: its vehicles and tools.',
+          'Active projects. Where work is going on and what needs a look: projects with nobody on them and those whose deadline is near. How it is counted: The tags are the number of projects per stage (Planned, Active, On hold, Completed, Cancelled; the stages that have projects are shown), the server\'s own counts. The list is all the Active projects: first those with no workers ("No crew"), then by deadline; the marks "Ends in N days" (14 days or fewer) and "Past its end date" are counted on the organisation\'s calendar. With a business unit chosen: its projects.',
+          'Projects — realization. How much of what was contracted has been collected, and where the money goes this year. How it is counted: Up to 5 projects with a contract value, by share realized: the sum of the customer\'s payments to date divided by the contract value (the bar stops at 100%, a larger share is green and shows in the number). Below: the make-up of the whole company\'s cost since 1 January (labour, manual pay, material, general costs, housing, vehicles, tools) and the realized income per month this year, the sum of payments per project. Only with the full finance right.',
+          'Projects over budget. A warning before a project goes over its budget. How it is counted: Projects that are not Completed or Cancelled and have a budget or a contract value (measured against what is chosen on the project; the default is the budget). Spent is the project\'s whole cost from its start to today divided by the limit. The warning starts at the threshold set on the project (default 80%), and "over" is from 100%. It does not follow the period at the top of the page. With no project with a limit, or all below it, the card is one line.',
+          'Project in focus. One project under the magnifying glass. How it is counted: You choose the project in the card\'s settings. For the chosen period and "since the start": income (payments), spending (the project\'s costs), profit and margin; the share of the budget spent (spending since the start / budget) and the share of the contract collected (income since the start / contract value). Only with the full finance right.',
+          'Live map. Where people are at this moment. How it is counted: The last known location of every active worker who reports one; the number is how many are on the map. With a business unit chosen: the workers it employs. A Google Maps key is needed.',
+        ],
+        example:
+          'A project with a budget of 28,000 EUR has spent 25,200: in "Projects over budget" it is at 90% and amber, and at 100% it turns red "over".',
+        tips: [
+          'The numbers narrow to the business unit chosen in the header; "since yesterday" compares with what your account saw yesterday.',
+          '"Today", "this month" and hours are counted in the organisation\'s time zone, which is set in the company settings.',
+        ],
+        keywords: ['projects', 'realization', 'budget', 'vehicles', 'tools', 'map', 'site', 'focus'],
+      },
+    },
+  },
+  {
+    id: 'widgeti-novac',
+    group: 'work',
+    path: paths.home,
+    audience: moneyView,
+    content: {
+      sr: {
+        title: 'Widgeti: novac',
+        summary:
+          'Widgeti o novcu firme: prihod, rashod, zarada i njihova raspodjela. Vidi ih samo nalog s finansijskim pravom (nalog s pravom na statistiku vidi postotke).',
+        steps: [
+          'Finansije. Novac firme na jednom mjestu, u tri pogleda. Kako se računa: Pregled: prihod je zbir uplata po projektima i ostalih prihoda firme u periodu; rashod je ukupan trošak firme u periodu (isti trošak koji je u Ključnim pokazateljima); zarada je prihod minus rashod; marža je zarada kao dio prihoda. Uz svaki iznos je promjena u odnosu na isti broj dana neposredno prije perioda. Trend: „Po mjesecima” su zadnjih 6 mjeseci (broj je ovaj mjesec do danas, s promjenom prema istim danima prošlog mjeseca); „U periodu” su stubići po danima, sedmicama ili mjesecima prema dužini perioda, uz prosjek (ukupno podijeljeno brojem stubića) i najviši. Struktura: raspodjela rashoda po vrstama (rad, ručna plaćanja, materijal, opšti troškovi, smještaj, vozila, alati), za cijelu firmu ili jedan projekat (postavke). Nalog koji smije vidjeti samo postotke dobija promjene i udjele u postotku, bez iznosa. Period se bira na vrhu stranice.',
+          'Prihod i rashod. Da vidite jesu li mjeseci, sedmice ili dani u plusu. Kako se računa: Par stubića po danu, sedmici ili mjesecu izabranog perioda: prihod (uplate po projektima i ostali prihodi) i rashod (ukupan trošak firme tog dana). Ispod je zarada za cijeli period, zbir stubića. Samo uz puno finansijsko pravo.',
+          'Najveći troškovi po projektu. Gdje novac najviše odlazi. Kako se računa: Projekti koji su u izabranom periodu najviše koštali (prvih 5 ili 10, postavka kartice), najveći prvi; svaka traka je u odnosu na najveći. Prikazuju se projekti s troškom većim od nule. Samo uz puno finansijsko pravo.',
+          'Zarada po projektu. Koji projekti zarađuju, a koji gube. Kako se računa: Tabela po projektu za izabrani period: prihod, rashod, zarada i marža, sortirana po zaradi od najvećeg gubitka; svaka kolona se može sortirati. Redovi „Nisu prikazani projekti” i „Bez projekta” (trošak i prihod koji ne pripadaju nijednom projektu) i ukupno firme sabiraju se tačno u zbir. Samo uz puno finansijsko pravo.',
+        ],
+        example:
+          'Prihod 66.420,54, rashod 6.968,84: zarada je 59.451,70 i marža 89,5% (zarada kao dio prihoda). Isti rashod je u Ključnim pokazateljima i u „Prihodu i rashodu”.',
+        tips: [
+          'Brojevi se sužavaju na poslovnu jedinicu izabranu u zaglavlju; „od jučer” se poredi s onim što je Vaš nalog vidio jučer.',
+          '„Danas”, „ovaj mjesec” i sati računaju se po vremenskoj zoni organizacije, koja se podešava u Podešavanjima firme.',
+        ],
+        keywords: ['finansije', 'prihod', 'rashod', 'zarada', 'marža', 'trend', 'struktura', 'novac'],
+      },
+      en: {
+        title: 'Widgets: money',
+        summary:
+          'Widgets about the company\'s money: income, spending, profit and how they divide. Only an account with the finance right sees them (an account with the statistics right sees percentages).',
+        steps: [
+          'Finance. The company\'s money in one place, in three views. How it is counted: Overview: income is the sum of payments per project and the company\'s other income in the period; spending is the company\'s whole cost in the period (the same cost as in Key figures); profit is income less spending; margin is profit as a share of income. Each amount carries the change against the same number of days just before the period. Trend: "By month" is the last 6 months (the number is this month so far, with the change against the same days of last month); "In the period" is bars per day, week or month depending on the period\'s length, with the average (total divided by the number of bars) and the highest. Structure: how spending divides by kind (labour, manual pay, material, general costs, housing, vehicles, tools), for the whole company or one project (settings). An account that may see only percentages gets the changes and shares in percent, with no amounts. The period is chosen at the top of the page.',
+          'Income vs spending. To see whether months, weeks or days are in the black. How it is counted: A pair of bars per day, week or month of the chosen period: income (payments per project and other income) and spending (the company\'s whole cost for that day). Below is the profit for the whole period, the sum of the bars. Only with the full finance right.',
+          'Top projects by spending. Where the money goes the most. How it is counted: The projects that cost the most in the chosen period (the top 5 or 10, a setting of the card), largest first; each bar is against the largest. Projects with a cost above zero are shown. Only with the full finance right.',
+          'Profit by project. Which projects earn and which lose. How it is counted: A table per project for the chosen period: income, spending, profit and margin, sorted by profit from the biggest loss; every column can be sorted. The rows "Projects not shown" and "No project" (cost and income that belong to no project) and the company\'s total add up exactly. Only with the full finance right.',
+        ],
+        example:
+          'Income 66,420.54, spending 6,968.84: profit is 59,451.70 and the margin 89.5% (profit as a share of income). The same spending is in Key figures and in "Income vs spending".',
+        tips: [
+          'The numbers narrow to the business unit chosen in the header; "since yesterday" compares with what your account saw yesterday.',
+          '"Today", "this month" and hours are counted in the organisation\'s time zone, which is set in the company settings.',
+        ],
+        keywords: ['finance', 'income', 'spending', 'profit', 'margin', 'trend', 'structure', 'money'],
       },
     },
   },

@@ -72,7 +72,7 @@ public class GetArticleOrdersQueryHandler : IRequestHandler<GetArticleOrdersQuer
         if (request.Mine || !ArticleOrderRules.CanManage(_currentUserService.Role))
         {
             // A foreman also sees what is asked for on the sites they run.
-            var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            var today = _dateTimeProvider.Today;
             var sites = request.Mine
                 ? null
                 : await SiteScope.OwnProjectIdsAsync(_context, _currentUserService, today, cancellationToken);

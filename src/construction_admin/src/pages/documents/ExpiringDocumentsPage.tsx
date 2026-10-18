@@ -43,6 +43,7 @@ import { useHighlightTarget } from '../../hooks/useHighlightTarget';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
 import { formatDate } from '../../utils/formatting';
+import { todayCompany } from '../../utils/companyTime';
 
 const WINDOWS = [7, 30, 90, 180] as const;
 /** Distinct from every numeric window — selects "no cutoff" on the query. */
@@ -51,8 +52,7 @@ const ALL_WINDOW = 'all';
 type WindowValue = (typeof WINDOWS)[number] | typeof ALL_WINDOW;
 
 /** A retention date still in the future blocks deletion, same as on the record's own page. */
-const isRetained = (retainUntil: string | null) =>
-  !!retainUntil && new Date(`${retainUntil}T00:00`).getTime() > Date.now();
+const isRetained = (retainUntil: string | null) => !!retainUntil && retainUntil > todayCompany();
 
 type SortField = 'fileName' | 'ownerName' | 'category' | 'expiresAt' | 'retainUntil';
 type SortDirection = 'asc' | 'desc';
@@ -396,13 +396,10 @@ export function ExpiringDocumentsPage() {
             </TableHead>
             <TableBody>
               {sortedData.map((document) => {
-                const lapsed =
-                  !!document.expiresAt &&
-                  new Date(`${document.expiresAt}T00:00`).getTime() < Date.now();
+                // Days are the organisation's: a date is lapsed from its own midnight, on its clock.
+                const lapsed = !!document.expiresAt && document.expiresAt <= todayCompany();
 
-                const retentionEnded =
-                  !!document.retainUntil &&
-                  new Date(`${document.retainUntil}T00:00`).getTime() < Date.now();
+                const retentionEnded = !!document.retainUntil && document.retainUntil <= todayCompany();
 
                 return (
                   <TableRow

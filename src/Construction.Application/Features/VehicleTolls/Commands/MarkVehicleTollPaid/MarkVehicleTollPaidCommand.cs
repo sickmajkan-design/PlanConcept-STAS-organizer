@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.VehicleTolls.Models;
@@ -31,7 +32,7 @@ public class MarkVehicleTollPaidCommandValidator : AbstractValidator<MarkVehicle
         RuleFor(x => x.VehicleTollId).NotEmpty();
 
         RuleFor(x => x.ValidUntil)
-            .GreaterThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow))
+            .GreaterThanOrEqualTo(CompanyTime.LocalDate(DateTime.UtcNow))
             .WithMessage("Valid-until must be today or later.");
     }
 }
@@ -89,6 +90,6 @@ public class MarkVehicleTollPaidCommandHandler
             .Include(t => t.PaidByUser)
             .FirstAsync(t => t.Id == toll.Id, cancellationToken);
 
-        return VehicleTollMapping.ToDto(saved, DateOnly.FromDateTime(now));
+        return VehicleTollMapping.ToDto(saved, CompanyTime.LocalDate(now));
     }
 }

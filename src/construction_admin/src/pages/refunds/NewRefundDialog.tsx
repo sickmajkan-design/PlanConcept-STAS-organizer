@@ -19,8 +19,9 @@ import { useAttachmentLimits, useUploadAttachment } from '../../features/attachm
 import { useCreateRefund } from '../../features/refunds/useRefunds';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
 import { useT } from '../../i18n/useI18n';
+import { todayCompany } from '../../utils/formatting';
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => todayCompany();
 
 /** Asks to be paid back: how much, when, why, and the receipt. The reason is required; it is the justification. */
 export function NewRefundDialog({ open, onClose }: { open: boolean; onClose: () => void }) {

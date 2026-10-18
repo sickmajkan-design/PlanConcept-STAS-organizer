@@ -1,5 +1,6 @@
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Attachments.Models;
+using Construction.Application.Features.Branches;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -42,6 +43,12 @@ public record GetExpiringDocumentsQuery : IRequest<IReadOnlyList<AttachmentDto>>
     /// that never expires.
     /// </summary>
     public bool IncludeUndated { get; init; }
+
+    /// <summary>
+    /// Narrows the documents to one business unit (poslovna jedinica): those of its people, sites, vehicles and tools.
+    /// A document that belongs to none of these (an invoice, a refund, an entry of the book) is in no unit's list.
+    /// </summary>
+    public Guid? BranchId { get; init; }
 }
 
 public class GetExpiringDocumentsQueryValidator : AbstractValidator<GetExpiringDocumentsQuery>
@@ -85,13 +92,27 @@ public class GetExpiringDocumentsQueryHandler
             query = query.Where(a => a.BookEntryId == null);
         }
 
+        if (request.BranchId is { } branchId)
+        {
+            var employeeIds = _context.Employees.AsNoTracking().InBranch(branchId).Select(x => x.Id);
+            var projectIds = _context.Projects.AsNoTracking().InBranch(branchId).Select(x => x.Id);
+            var vehicleIds = _context.Vehicles.AsNoTracking().InBranch(branchId).Select(x => x.Id);
+            var toolIds = _context.Tools.AsNoTracking().InBranch(branchId).Select(x => x.Id);
+
+            query = query.Where(a =>
+                (a.EmployeeId != null && employeeIds.Contains(a.EmployeeId.Value))
+                || (a.ProjectId != null && projectIds.Contains(a.ProjectId.Value))
+                || (a.VehicleId != null && vehicleIds.Contains(a.VehicleId.Value))
+                || (a.ToolId != null && toolIds.Contains(a.ToolId.Value)));
+        }
+
         if (request.IncludeUndated)
         {
             // A window still narrows the dated documents shown; undated ones
             // have nothing to compare against a cutoff, so they always pass.
             if (request.WithinDays is { } withinDays)
             {
-                var cutoff = DateOnly.FromDateTime(_dateTimeProvider.UtcNow).AddDays(withinDays);
+                var cutoff = _dateTimeProvider.Today.AddDays(withinDays);
                 query = query.Where(a => a.ExpiresAt == null || a.ExpiresAt <= cutoff);
             }
         }
@@ -101,7 +122,7 @@ public class GetExpiringDocumentsQueryHandler
 
             if (request.WithinDays is { } withinDays)
             {
-                var cutoff = DateOnly.FromDateTime(_dateTimeProvider.UtcNow).AddDays(withinDays);
+                var cutoff = _dateTimeProvider.Today.AddDays(withinDays);
                 query = query.Where(a => a.ExpiresAt <= cutoff);
             }
         }

@@ -434,6 +434,8 @@ export interface CompanySettings {
   email: string | null;
   weeklyReportsForwardEmail: string | null;
   hasLogo: boolean;
+  /** The organisation's time zone (IANA id): the calendar the whole platform keeps for it. */
+  timeZoneId: string;
   updatedAt: string | null;
 }
 
@@ -446,6 +448,8 @@ export interface CompanySettingsInput {
   phone?: string | null;
   email?: string | null;
   weeklyReportsForwardEmail?: string | null;
+  /** Left out, the zone stays as it is. */
+  timeZoneId?: string;
 }
 
 /**
@@ -456,6 +460,8 @@ export interface CompanySettingsInput {
 export interface PublicCompanyBranding {
   name: string | null;
   hasLogo: boolean;
+  /** The time zone, which the panel needs before anything is shown: it decides what day it is. */
+  timeZoneId: string;
 }
 
 export interface ProjectRevenue {

@@ -37,7 +37,7 @@ public class GetProjectByIdQueryHandler : IRequestHandler<GetProjectByIdQuery, P
         var ownProjects = await SiteScope.OwnProjectIdsAsync(
             _context,
             _currentUserService,
-            DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+            _dateTimeProvider.Today,
             cancellationToken);
 
         var project = ownProjects is not null && !ownProjects.Contains(request.Id)
@@ -62,7 +62,7 @@ public class GetProjectByIdQueryHandler : IRequestHandler<GetProjectByIdQuery, P
         // Pay is withheld from a role the API does not show it to — a
         // foreman still sees how long each posting ran, just not its cost.
         var includesPay = await FinanceRules.CanSeePayAsync(_context, _currentUserService, cancellationToken);
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         // See the matching note in GetEmployeeByIdQueryHandler: a posting
         // with a planned future end date lands in PastEmployees by the

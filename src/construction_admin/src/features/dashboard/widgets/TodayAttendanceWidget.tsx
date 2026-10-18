@@ -1,29 +1,22 @@
 import { AccessTimeOutlined } from '@mui/icons-material';
 import { Avatar, Box, Stack } from '@mui/material';
 
-import { useQuery } from '@tanstack/react-query';
-
-import { employeesApi } from '../../../api/employees';
-import { useTimeEntriesQuery, useTimeEntrySummaryQuery } from '../../timeEntries/useTimeEntries';
+import { useTimeEntrySummaryQuery } from '../../timeEntries/useTimeEntries';
 import { useFormatRelative } from '../../../i18n/useFormatRelative';
 import { useT } from '../../../i18n/useI18n';
 import { paths } from '../../../routes/paths';
-import { formatTimeOfDay, initialsOf, splitMinutes } from '../../../utils/formatting';
+import { formatTimeOfDay, initialsOf, companyDayBounds, splitMinutes } from '../../../utils/formatting';
+import { useActiveEmployeesCount, useOpenTimeEntries } from '../dashboardData';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
 import { Ring } from './widgetCharts';
 import { EmptyNote, InsetList, InsetRow, MoreLink, Pill } from './widgetUi';
 
-const ON_SITE_PAGE_SIZE = 100;
 const SHOWN = 8;
 
-const today = () => new Date().toISOString().slice(0, 10);
-
-/** The summary endpoint requires `to` strictly after `from` — same convention as TimeEntrySummaryPage's own `endOfDay`. */
-function endOfDay(date: string): string {
-  const next = new Date(`${date}T00:00`);
-  next.setDate(next.getDate() + 1);
-  return next.toISOString();
+/** Minutes a shift that has not ended has run so far, less its break. Never negative. */
+function runningMinutes(entry: { startedAt: string; breakMinutes: number }, now: number): number {
+  return Math.max(0, Math.floor((now - new Date(entry.startedAt).getTime()) / 60_000) - entry.breakMinutes);
 }
 
 function splitName(fullName: string): [string, string] {
@@ -35,28 +28,32 @@ function splitName(fullName: string): [string, string] {
  * Who's actually clocked in right now, and today's totals — the same
  * `openOnly` query and polling interval the Work Time board itself uses, so
  * this reads as live rather than a stale morning snapshot.
+ *
+ * The hours are what has been worked today: shifts that are finished (the server's summary, which leaves a running
+ * shift out since it has no duration yet) plus how long each running one has run. Today is the local day, from
+ * its own midnight to the next, not the UTC date, which is yesterday for two hours after midnight.
  */
 export function TodayAttendanceWidget({ instanceId: _instanceId, onRemove, onExpandWidth }: DashboardWidgetProps) {
   const t = useT();
   const formatRelative = useFormatRelative();
-  const day = today();
+  const day = companyDayBounds();
 
-  const openQuery = useTimeEntriesQuery({ pageNumber: 1, pageSize: ON_SITE_PAGE_SIZE, openOnly: true });
+  const openQuery = useOpenTimeEntries();
   // Who the ring is measured against: everyone who works here. The same query the key figures use, so one fetch.
-  const activeQuery = useQuery({
-    queryKey: ['dashboard', 'kpi', 'active-employees'] as const,
-    queryFn: () => employeesApi.list({ pageNumber: 1, pageSize: 1, status: 'Active' }),
-  });
-  const summaryQuery = useTimeEntrySummaryQuery({ from: `${day}T00:00`, to: endOfDay(day) });
+  const activeQuery = useActiveEmployeesCount();
+  const summaryQuery = useTimeEntrySummaryQuery({ from: day.from, to: day.to });
 
   const isLoading = openQuery.isLoading || summaryQuery.isLoading;
   const error = openQuery.error ?? summaryQuery.error;
 
-  const entries = [...(openQuery.data?.items ?? [])]
-    .sort((a, b) => a.startedAt.localeCompare(b.startedAt))
-    .slice(0, SHOWN);
+  const running = openQuery.data?.items ?? [];
+  const onSiteNow = openQuery.data?.totalCount ?? 0;
+  const entries = [...running].sort((a, b) => a.startedAt.localeCompare(b.startedAt)).slice(0, SHOWN);
 
-  const totalToday = splitMinutes(summaryQuery.data?.totalMinutes);
+  const now = Date.now();
+  const totalToday = splitMinutes(
+    (summaryQuery.data?.totalMinutes ?? 0) + running.reduce((sum, entry) => sum + runningMinutes(entry, now), 0),
+  );
   const pendingCount = summaryQuery.data?.pendingCount ?? 0;
 
   return (
@@ -64,14 +61,14 @@ export function TodayAttendanceWidget({ instanceId: _instanceId, onRemove, onExp
       <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
         <Stack direction="row" sx={{ alignItems: 'center', gap: 2, flexWrap: 'wrap', flexShrink: 0 }}>
           <Ring
-            value={openQuery.data?.totalCount ?? 0}
-            total={Math.max(activeQuery.data?.totalCount ?? 0, openQuery.data?.totalCount ?? 0)}
-            center={openQuery.data?.totalCount ?? 0}
-            caption={t('dashboard.todayAttendance.ofActive', { count: Math.max(activeQuery.data?.totalCount ?? 0, openQuery.data?.totalCount ?? 0) })}
+            value={onSiteNow}
+            total={Math.max(activeQuery.data ?? 0, onSiteNow)}
+            center={onSiteNow}
+            caption={t('dashboard.todayAttendance.ofActive', { count: Math.max(activeQuery.data ?? 0, onSiteNow) })}
           />
           <Stack sx={{ gap: 1, alignItems: 'flex-start' }}>
             <Pill tone="accent" sx={{ fontSize: '0.85rem', px: 1.5, py: 0.25 }}>
-              {t('dashboard.todayAttendance.onSiteNow', { count: openQuery.data?.totalCount ?? 0 })}
+              {t('dashboard.todayAttendance.onSiteNow', { count: onSiteNow })}
             </Pill>
             <Pill sx={{ fontSize: '0.85rem', px: 1.5, py: 0.25 }}>
               {t('dashboard.todayAttendance.hoursToday', { hours: totalToday.hours, minutes: totalToday.minutes })}

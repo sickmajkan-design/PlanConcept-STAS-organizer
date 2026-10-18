@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { installFakeNetwork, renderScreen, signedIn, type FakeNetwork } from '../../../test/renderScreen';
@@ -54,5 +54,42 @@ describe('NeedsAttentionWidget', () => {
     await renderWidget();
 
     expect(await screen.findByText('Nothing needs your attention right now.')).toBeDefined();
+  }, SCREEN_TIMEOUT);
+
+  it('says how a count moved since yesterday, and records the counts for tomorrow', async () => {
+    network.reply('/attention', 200, {
+      groups: [{ key: 'absenceRequests', count: 3, items: [] }],
+    });
+    network.reply('/dashboard-snapshots', 200, {
+      today: {},
+      yesterday: { 'attention.absenceRequests|all': 1, 'attention.refunds|all': 1 },
+    });
+
+    await renderWidget();
+
+    // More of what waits is worse, so the note is the warning colour of a rise; only the changed figure has one.
+    expect(await screen.findByText('+2 since yesterday')).toBeDefined();
+    expect(screen.queryByText(/−1 since yesterday/)).toBeNull();
+
+    await waitFor(
+      () => {
+        const put = network.calls.find((c) => c.method === 'PUT' && c.url.includes('/dashboard-snapshots'));
+        expect(put).toBeDefined();
+        expect((put!.body as { values: Record<string, number> }).values['attention.absenceRequests|all']).toBe(3);
+        // A kind that is not waiting is recorded as zero, so the day it returns there is something to compare with.
+        expect((put!.body as { values: Record<string, number> }).values['attention.refunds|all']).toBe(0);
+      },
+      { timeout: 8_000 },
+    );
+  }, SCREEN_TIMEOUT);
+
+  it('shows no note on the first day, when there is nothing from yesterday', async () => {
+    network.reply('/attention', 200, { groups: [{ key: 'absenceRequests', count: 3, items: [] }] });
+    network.reply('/dashboard-snapshots', 200, { today: {}, yesterday: {} });
+
+    await renderWidget();
+
+    expect(await screen.findByText('Leave requests to answer')).toBeDefined();
+    expect(screen.queryByText(/since yesterday/)).toBeNull();
   }, SCREEN_TIMEOUT);
 });

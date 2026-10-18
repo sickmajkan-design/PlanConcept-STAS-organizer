@@ -2,7 +2,8 @@ import { ButtonBase, Stack, Typography } from "@mui/material";
 import type { ReactNode } from "react";
 import { Link as RouterLink } from "react-router-dom";
 
-import { fitFont, Pill, type Tone } from "./widgetUi";
+import type { SinceNote } from "../useSinceYesterday";
+import { fitFont, Pill, SinceText, type Tone } from "./widgetUi";
 
 interface StatTileProps {
   /** Kept for the callers that pass one; the tile leads with its number, not an icon. */
@@ -13,6 +14,8 @@ interface StatTileProps {
   hintColor?: "warning.main" | "error.main" | "success.main" | "text.secondary";
   /** Kept for the callers that pass one; the tile uses the theme's own colours. */
   accent?: string;
+  /** How the figure moved since yesterday. */
+  since?: SinceNote | null;
   /** Where a press goes. A tile with none is not pressable. */
   to?: string;
 }
@@ -35,6 +38,7 @@ export function StatTile({
   value,
   hint,
   hintColor = "text.secondary",
+  since,
   to,
 }: StatTileProps) {
   const body = (
@@ -76,6 +80,7 @@ export function StatTile({
         >
           {value}
         </Typography>
+        <SinceText note={since ?? null} />
         {hint && (
           <Pill tone={HINT_TONE[hintColor]} sx={{ whiteSpace: 'normal', maxWidth: '100%', borderRadius: '12px', textAlign: 'left' }}>
             {hint}

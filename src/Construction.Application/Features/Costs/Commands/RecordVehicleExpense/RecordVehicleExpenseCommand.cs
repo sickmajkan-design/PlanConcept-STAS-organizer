@@ -42,7 +42,7 @@ public class RecordVehicleExpenseCommandValidator
 {
     public RecordVehicleExpenseCommandValidator(IDateTimeProvider dateTimeProvider)
     {
-        var today = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
+        var today = dateTimeProvider.Today;
 
         RuleFor(x => x.VehicleId).NotEmpty();
         RuleFor(x => x.Kind).IsInEnum();
@@ -133,7 +133,7 @@ public class RecordVehicleExpenseCommandHandler
             Kind = request.Kind,
             Amount = request.Amount,
             OccurredOn = request.OccurredOn
-                ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+                ?? _dateTimeProvider.Today,
             // Belt and braces with the validator and the check constraint: a
             // future caller that skips validation still cannot put litres on
             // an insurance premium.

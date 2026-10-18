@@ -12,6 +12,7 @@ import '../data/attachment_repository.dart';
 import '../data/models/attachment.dart';
 import 'attachment_form_sheet.dart';
 import 'attachment_preview_screen.dart';
+import '../../../core/time/company_time.dart';
 
 /// The documents on one record, shown inside a detail screen.
 ///
@@ -118,8 +119,8 @@ class _AttachmentTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final expired = attachment.isExpiredOn(DateTime.now());
-    final retained = attachment.isRetainedOn(DateTime.now());
+    final expired = attachment.isExpiredOn(CompanyTime.now());
+    final retained = attachment.isRetainedOn(CompanyTime.now());
 
     return ListTile(
       leading: Icon(

@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useState } from 'react';
 
+import { useUnitParams } from '../branches/BranchContext';
+
 import {
   ACCEPTED_EXTENSIONS,
   attachmentsApi,
@@ -25,11 +27,12 @@ export const attachmentKeys = createResourceKeys<AttachmentListQuery>('attachmen
  */
 const attachmentCaches = [attachmentKeys.all];
 
-const expiringKey = (withinDays: number | null, includeUndated: boolean) => [
+const expiringKey = (withinDays: number | null, includeUndated: boolean, branchId: string | undefined) => [
   ...attachmentKeys.all,
   'expiring',
   withinDays,
   includeUndated,
+  branchId ?? null,
 ];
 
 export function useAttachmentsQuery(query: AttachmentListQuery, enabled = true) {
@@ -60,9 +63,12 @@ export function useExpiringDocumentsQuery(
   includeUndated = false,
   enabled = true,
 ) {
+  // Narrowed to the business unit chosen in the header, like every other list on the screens it feeds.
+  const { branchId } = useUnitParams();
+
   return useQuery({
-    queryKey: expiringKey(withinDays, includeUndated),
-    queryFn: () => attachmentsApi.expiring(withinDays, includeUndated),
+    queryKey: expiringKey(withinDays, includeUndated, branchId),
+    queryFn: () => attachmentsApi.expiring(withinDays, includeUndated, branchId),
     enabled,
   });
 }

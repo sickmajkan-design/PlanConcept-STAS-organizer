@@ -100,13 +100,15 @@ export const attachmentsApi = {
    * out. `includeUndated` also pulls in documents that never expire — a
    * plain photo, an undated site document — regardless of `withinDays`.
    */
-  expiring: (withinDays: number | null, includeUndated = false) =>
+  expiring: (withinDays: number | null, includeUndated = false, branchId?: string) =>
     request<Attachment[]>({
       method: 'GET',
       url: '/api/v1/attachments/expiring',
       params: {
         ...(withinDays === null ? {} : { withinDays }),
         ...(includeUndated ? { includeUndated: true } : {}),
+        // The documents of one business unit's people, sites, vehicles and tools.
+        ...(branchId ? { branchId } : {}),
       },
     }),
 

@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
@@ -39,7 +40,7 @@ public class SendDocumentRequestRemindersCommandHandler
     public async Task<int> Handle(SendDocumentRequestRemindersCommand request, CancellationToken cancellationToken)
     {
         var now = _dateTimeProvider.UtcNow;
-        var today = DateOnly.FromDateTime(now);
+        var today = CompanyTime.LocalDate(now);
         var tomorrow = today.AddDays(1);
 
         var waiting = await _context.DocumentRequests

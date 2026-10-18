@@ -39,7 +39,7 @@ public class GetVehicleByQrCodeQueryHandler : IRequestHandler<GetVehicleByQrCode
     public async Task<VehicleDto> Handle(GetVehicleByQrCodeQuery request, CancellationToken cancellationToken)
     {
         var qrCode = request.QrCode.Trim();
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         var vehicle = await _context.Vehicles
             .AsNoTracking()

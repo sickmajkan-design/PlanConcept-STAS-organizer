@@ -67,6 +67,9 @@ public sealed class DatabaseFixture : IAsyncLifetime
                 ["JwtSettings:SecretKey"] = "integration-test-signing-key-at-least-32-chars",
                 ["JwtSettings:AccessTokenLifetimeMinutes"] = "15",
                 ["JwtSettings:RefreshTokenLifetimeDays"] = "7",
+                // The company's clock is UTC here, so a test that builds its times in UTC means what it says. The
+                // tests of the company's own zone (CompanyTimeTests) set it for themselves and put it back.
+                ["Company:TimeZone"] = "UTC",
                 // SMTP and Firebase are left unconfigured, and the senders are
                 // replaced below anyway, so nothing here reaches a network.
                 ["ClientApp:PasswordResetUrl"] = "https://admin.example.test/reset-password",

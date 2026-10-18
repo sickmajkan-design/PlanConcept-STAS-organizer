@@ -67,6 +67,7 @@ import { useRecordVisit } from '../../layout/useRecentRecords';
 import { paths } from '../../routes/paths';
 import { formatDate, initialsOf } from '../../utils/formatting';
 import { postingRange, workedSummary } from '../../utils/postings';
+import { companyNow } from '../../utils/companyTime';
 
 /** Every vehicle/tool list on this page fits comfortably on one page-worth. */
 const RESOURCE_PAGE: { pageNumber: number; pageSize: number } = { pageNumber: 1, pageSize: 100 };
@@ -76,7 +77,7 @@ function formatUtcTimeOfDay(value: string | null | undefined): string | null {
   if (!value) return null;
 
   const [hours = '0', minutes = '0'] = value.split(':');
-  const reference = new Date();
+  const reference = companyNow();
   reference.setUTCHours(Number(hours), Number(minutes), 0, 0);
   if (Number.isNaN(reference.getTime())) return null;
 

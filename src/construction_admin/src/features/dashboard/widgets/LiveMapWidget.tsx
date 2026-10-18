@@ -23,12 +23,14 @@ export function LiveMapWidget({ instanceId: _instanceId, onRemove, onExpandWidth
   });
 
   const locations = page?.items ?? [];
+  // How many the server counted, not how many the page happens to hold.
+  const onMap = page?.totalCount ?? locations.length;
 
   return (
     <WidgetShell title={t('dashboard.widget.LiveMap')} isLoading={isLoading} error={error} onRemove={onRemove} onExpandWidth={onExpandWidth}>
       <Stack spacing={1.5} sx={{ flex: 1, minHeight: 0 }}>
-        <Pill tone={locations.length > 0 ? 'accent' : 'neutral'} sx={{ alignSelf: 'flex-start', fontSize: '0.85rem', px: 1.5, py: 0.25 }}>
-          {t('dashboard.liveMap.onMap', { count: locations.length })}
+        <Pill tone={onMap > 0 ? 'accent' : 'neutral'} sx={{ alignSelf: 'flex-start', fontSize: '0.85rem', px: 1.5, py: 0.25 }}>
+          {t('dashboard.liveMap.onMap', { count: onMap })}
         </Pill>
 
         <Box sx={{ flex: 1, minHeight: 160, borderRadius: '16px', overflow: 'hidden', position: 'relative' }}>

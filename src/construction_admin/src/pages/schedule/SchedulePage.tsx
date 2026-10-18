@@ -32,6 +32,7 @@ import { useAllProjectsQuery } from '../../features/projects/useProjects';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
+import { ijekavianDate } from '../../utils/formatting';
 import {
   addDays,
   barPlacement,
@@ -295,7 +296,7 @@ function DayHeader({ days, today }: { days: string[]; today: string }) {
             sx={{ fontWeight: 700 }}
             color={day === today ? 'primary.contrastText' : 'text.secondary'}
           >
-            {format.format(fromIsoDate(day))}
+            {ijekavianDate(format.format(fromIsoDate(day)))}
           </Typography>
         </Box>
       ))}

@@ -46,7 +46,7 @@ public class GetMyVehiclesQueryHandler : IRequestHandler<GetMyVehiclesQuery, Lis
             .AsNoTracking()
             .Where(v => v.AssignedEmployeeId == employeeId)
             .OrderBy(v => v.Brand).ThenBy(v => v.Model)
-            .Select(VehicleMapping.Projection(DateOnly.FromDateTime(_clock.UtcNow)))
+            .Select(VehicleMapping.Projection(_clock.Today))
             .ToListAsync(cancellationToken);
     }
 }

@@ -132,7 +132,7 @@ internal static class AccommodationImportSupport
             byKey,
             projectsByName,
             stays,
-            DateOnly.FromDateTime(dateTimeProvider.UtcNow));
+            dateTimeProvider.Today);
     }
 }
 
@@ -200,7 +200,7 @@ public class ImportAccommodationsCommandHandler
         var rows = await AccommodationImportSupport.ReadAsync(
             _context, _xlsxParser, _dateTimeProvider, request.FileName, request.Content, cancellationToken);
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
         var importable = rows.Where(r => r.WillImport).ToList();
         var createdAccommodations = 0;
         var createdStays = 0;

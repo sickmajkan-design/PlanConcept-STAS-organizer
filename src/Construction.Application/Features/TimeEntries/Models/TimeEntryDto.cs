@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using System.Linq.Expressions;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
@@ -110,7 +111,7 @@ public class TimeEntryDto
     /// </summary>
     public bool? TimeCorrect => ProjectShiftStartTime is null
         ? null
-        : Diff(TimeOnly.FromDateTime(StartedAt), ProjectShiftStartTime.Value) <= TimeTolerance;
+        : Diff(CompanyTime.LocalTimeOfDay(StartedAt), ProjectShiftStartTime.Value) <= TimeTolerance;
 
     private static TimeSpan Diff(TimeOnly a, TimeOnly b)
     {

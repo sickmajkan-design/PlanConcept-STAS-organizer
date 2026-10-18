@@ -11,6 +11,7 @@ import '../../auth/presentation/auth_controller.dart';
 import '../data/models/vehicle_rental_rate.dart';
 import '../data/vehicle_rental_rate_repository.dart';
 import 'vehicles_controller.dart';
+import '../../../core/time/company_time.dart';
 
 final _vehicleRentalRatesProvider = FutureProvider.autoDispose
     .family<List<VehicleRentalRate>, String>((ref, vehicleId) async {
@@ -376,7 +377,7 @@ class _DatePickerField extends StatelessWidget {
           ? () async {
               final picked = await showDatePicker(
                 context: context,
-                initialDate: value ?? DateTime.now(),
+                initialDate: value ?? CompanyTime.now(),
                 firstDate: DateTime(2000),
                 lastDate: DateTime(2100),
               );

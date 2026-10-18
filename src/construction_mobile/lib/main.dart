@@ -8,6 +8,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'app.dart';
 import 'core/config/server_address.dart';
 import 'core/storage/opened_documents.dart';
+import 'core/time/company_time_sync.dart';
 import 'core/telemetry/client_error_reporter.dart';
 import 'core/widgets/crash_panel.dart';
 import 'features/notifications/presentation/push_controller.dart';
@@ -36,6 +37,9 @@ Future<void> main() async {
   // device that has never been told one falls back to the compiled default.
   const storage = FlutterSecureStorage();
   final stored = await ServerAddress.read(storage);
+
+  // The organisation's calendar, as it was last seen: what day it is must be right on the very first screen.
+  await restoreCompanyTimeZone(storage);
 
   runApp(
     ProviderScope(

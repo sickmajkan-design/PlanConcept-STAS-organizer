@@ -1415,6 +1415,10 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
+                    b.Property<string>("TimeZoneId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -1548,6 +1552,41 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("dashboard_layouts", (string)null);
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.DashboardSnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("Day")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Value")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Day", "Key")
+                        .IsUnique();
+
+                    b.ToTable("dashboard_snapshots", (string)null);
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.DeviceToken", b =>
@@ -5635,6 +5674,17 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.HasOne("Construction.Domain.Entities.User", "User")
                         .WithOne()
                         .HasForeignKey("Construction.Domain.Entities.DashboardLayout", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.DashboardSnapshot", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

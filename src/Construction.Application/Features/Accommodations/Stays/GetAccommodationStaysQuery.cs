@@ -69,7 +69,7 @@ public class GetAccommodationStaysQueryHandler
 
         if (request.CurrentOnly)
         {
-            var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            var today = _dateTimeProvider.Today;
             query = query.Where(s => s.StartDate <= today && (s.EndDate == null || s.EndDate >= today));
         }
 

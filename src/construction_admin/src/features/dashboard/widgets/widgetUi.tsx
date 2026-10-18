@@ -3,6 +3,8 @@ import { alpha, Box, ButtonBase, Stack, Typography, type SxProps, type Theme } f
 import type { ElementType, ReactNode } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 
+import type { SinceNote } from '../useSinceYesterday';
+
 /**
  * The small set of pieces the dashboard widgets are drawn from, so they read as one family: a big number with
  * a quiet caption, a soft pill, an inset list, a rounded bar. Every colour comes from the theme, and "state" is
@@ -65,6 +67,27 @@ export function BigNumber({ value, caption, tone = 'neutral', size = 'lg' }: { v
         </Typography>
       )}
     </Stack>
+  );
+}
+
+/** How a figure moved since yesterday, as a small line of text in the colour of what the change means. */
+export function SinceText({ note }: { note: SinceNote | null }) {
+  if (!note) {
+    return null;
+  }
+
+  return (
+    <Typography
+      component="span"
+      variant="caption"
+      sx={(theme) => ({
+        ...NUMERIC,
+        flexShrink: 0,
+        color: note.tone === 'neutral' ? theme.palette.text.secondary : toneColor(theme, note.tone),
+      })}
+    >
+      {note.text}
+    </Typography>
   );
 }
 
@@ -172,6 +195,8 @@ interface InsetRowProps {
   secondary?: ReactNode;
   badge?: ReactNode;
   badgeTone?: Tone;
+  /** How the figure in the badge moved since yesterday. */
+  since?: SinceNote | null;
   /** A router link or a click: the row then shows a chevron and presses in. */
   to?: string;
   onClick?: () => void;
@@ -180,7 +205,7 @@ interface InsetRowProps {
   leading?: ReactNode;
 }
 
-export function InsetRow({ tone, primary, secondary, badge, badgeTone, to, onClick, component, action, leading }: InsetRowProps) {
+export function InsetRow({ tone, primary, secondary, badge, badgeTone, since, to, onClick, component, action, leading }: InsetRowProps) {
   const interactive = !!(to || onClick);
   // A link goes through the router, so a row press never reloads the page.
   const Component: ElementType = component ?? ButtonBase;
@@ -204,8 +229,13 @@ export function InsetRow({ tone, primary, secondary, badge, badgeTone, to, onCli
         )}
       </Box>
       {action}
-      {badge !== undefined && badge !== null && <Pill tone={badgeTone ?? tone ?? 'neutral'}>{badge}</Pill>}
-      {interactive && <ChevronRightOutlined fontSize="small" sx={{ color: 'text.disabled', flexShrink: 0 }} />}
+      {/* The change, the number and the chevron move as one: when the row is too narrow they go under the words
+          together, never one of them on a line of its own. */}
+      <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', columnGap: 1.5, flexShrink: 0, ml: 'auto' }}>
+        <SinceText note={since ?? null} />
+        {badge !== undefined && badge !== null && <Pill tone={badgeTone ?? tone ?? 'neutral'}>{badge}</Pill>}
+        {interactive && <ChevronRightOutlined fontSize="small" sx={{ color: 'text.disabled', flexShrink: 0 }} />}
+      </Box>
     </>
   );
 

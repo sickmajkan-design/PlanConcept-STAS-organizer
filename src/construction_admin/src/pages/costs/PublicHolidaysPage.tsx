@@ -45,6 +45,7 @@ import {
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useT } from '../../i18n/useI18n';
 import { formatDate } from '../../utils/formatting';
+import { companyNow } from '../../utils/companyTime';
 
 type SortField = 'date' | 'name';
 type SortDirection = 'asc' | 'desc';
@@ -311,13 +312,13 @@ function SyncHolidaysDialog({ open, onClose }: { open: boolean; onClose: () => v
   const importHolidays = useImportPublicHolidays();
 
   const [countryInput, setCountryInput] = useState('');
-  const [year, setYear] = useState(() => new Date().getFullYear());
+  const [year, setYear] = useState(() => companyNow().getFullYear());
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (open) {
       setCountryInput('');
-      setYear(new Date().getFullYear());
+      setYear(companyNow().getFullYear());
       setSelected(new Set());
       preview.reset();
       importHolidays.reset();

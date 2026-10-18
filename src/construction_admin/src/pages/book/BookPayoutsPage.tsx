@@ -30,11 +30,12 @@ import { HowItWorks, HowLine } from '../../features/book/HowItWorks';
 import type { MessageKey } from '../../i18n/en';
 import { useI18n } from '../../i18n/useI18n';
 import { formatDate, formatMoney } from '../../utils/formatting';
+import { companyNow } from '../../utils/companyTime';
 
 const payoutsKey = ['book', 'payouts'] as const;
 
 function today(): string {
-  const now = new Date();
+  const now = companyNow();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
   return `${now.getFullYear()}-${month}-${day}`;
@@ -55,7 +56,7 @@ export function BookPayoutsPage() {
   const queryClient = useQueryClient();
   const { branchId } = useBranchFilter();
 
-  const now = new Date();
+  const now = companyNow();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
 

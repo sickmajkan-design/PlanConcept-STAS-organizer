@@ -112,7 +112,7 @@ public class GetPlannedLabourCostQueryHandler : IRequestHandler<GetPlannedLabour
 
         var from = request.From;
         var to = request.To;
-        var today = DateOnly.FromDateTime(_clock.UtcNow);
+        var today = _clock.Today;
 
         var branchToken = request.BranchId is { } scopedBranch ? BranchTree.Token(scopedBranch) : string.Empty;
 

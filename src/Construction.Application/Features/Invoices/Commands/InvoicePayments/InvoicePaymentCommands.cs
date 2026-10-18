@@ -32,7 +32,7 @@ public class AddInvoicePaymentCommandValidator : AbstractValidator<AddInvoicePay
 {
     public AddInvoicePaymentCommandValidator(IDateTimeProvider dateTimeProvider)
     {
-        var today = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
+        var today = dateTimeProvider.Today;
 
         RuleFor(x => x.Amount).GreaterThan(0).WithMessage("A payment must be more than zero.");
 
@@ -91,7 +91,7 @@ public class AddInvoicePaymentCommandHandler : IRequestHandler<AddInvoicePayment
                 $"That is more than what is still open on this invoice ({remaining:0.00}).");
         }
 
-        var paidOn = request.PaidOn ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var paidOn = request.PaidOn ?? _dateTimeProvider.Today;
 
         if (paidOn < invoice.IssueDate)
         {

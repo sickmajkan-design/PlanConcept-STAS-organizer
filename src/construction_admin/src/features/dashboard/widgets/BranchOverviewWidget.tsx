@@ -41,12 +41,26 @@ export function BranchOverviewWidget({ instanceId: _instanceId, onRemove, onExpa
       error={error}
       onRemove={onRemove}
       onExpandWidth={onExpandWidth}
+      empty={
+        rows.length === 0
+          ? {
+              text: t('dashboard.branchOverview.emptyShort'),
+              tone: 'none',
+              action: (
+                <Typography
+                  component={Link}
+                  to={paths.hierarchy}
+                  variant="body2"
+                  sx={{ color: 'primary.main', textDecoration: 'none', fontWeight: 600, flexShrink: 0 }}
+                >
+                  {t('dashboard.branchOverview.open')}
+                </Typography>
+              ),
+            }
+          : undefined
+      }
     >
-      {rows.length === 0 && !isLoading ? (
-        <Typography color="text.secondary" variant="body2">
-          {t('dashboard.branchOverview.empty')}
-        </Typography>
-      ) : (
+      {rows.length > 0 && (
         <Stack spacing={1.25} sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
           <Typography variant="caption" color="text.secondary">
             {t('dashboard.branchOverview.hint')}

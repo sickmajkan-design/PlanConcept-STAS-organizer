@@ -34,9 +34,10 @@ import type { MessageKey } from '../../i18n/en';
 import { useI18n } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { formatDate, formatMoney } from '../../utils/formatting';
+import { companyNow } from '../../utils/companyTime';
 
 function today(): string {
-  const now = new Date();
+  const now = companyNow();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
   return `${now.getFullYear()}-${month}-${day}`;

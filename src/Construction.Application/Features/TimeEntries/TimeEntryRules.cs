@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Entities;
@@ -220,7 +221,7 @@ public static class TimeEntryRules
             return requested;
         }
 
-        var shiftDate = DateOnly.FromDateTime(startedAt);
+        var shiftDate = CompanyTime.LocalDate(startedAt);
 
         var isHoliday = await context.PublicHolidays
             .AsNoTracking()

@@ -9,7 +9,7 @@ import { paths } from '../../../routes/paths';
 import { formatMoney } from '../../../utils/formatting';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
-import { BarRow, EmptyNote } from './widgetUi';
+import { BarRow } from './widgetUi';
 
 /**
  * Running projects that have spent the share of their budget — or of their
@@ -34,10 +34,16 @@ export function ProjectsOverBudgetWidget({ onRemove, onExpandWidth }: DashboardW
       error={error}
       onRemove={onRemove}
       onExpandWidth={onExpandWidth}
+      empty={
+        data && data.alerts.length === 0
+          ? {
+              text: data.measuredProjects === 0 ? t('finance.alerts.nothingSet') : t('finance.alerts.allWithin'),
+              tone: data.measuredProjects === 0 ? 'none' : 'ok',
+            }
+          : undefined
+      }
     >
-      {data && data.alerts.length === 0 ? (
-        <EmptyNote>{data.measuredProjects === 0 ? t('finance.alerts.nothingSet') : t('finance.alerts.allWithin')}</EmptyNote>
-      ) : (
+      {data && data.alerts.length > 0 && (
         <Box
           sx={{
             display: 'grid',

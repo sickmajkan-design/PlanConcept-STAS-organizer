@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
@@ -47,7 +48,7 @@ public class SendExpiryRemindersCommandHandler
         CancellationToken cancellationToken)
     {
         var now = _dateTimeProvider.UtcNow;
-        var today = DateOnly.FromDateTime(now);
+        var today = CompanyTime.LocalDate(now);
 
         // Expiry is an office problem: the worker whose certificate lapsed
         // cannot renew it themselves. Each admin gets their own lead time —

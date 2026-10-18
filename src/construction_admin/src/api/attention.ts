@@ -18,5 +18,7 @@ export interface Attention {
 }
 
 export const attentionApi = {
-  get: () => request<Attention>({ method: 'GET', url: '/api/v1/attention' }),
+  /** Narrowed to one business unit when given; `basis` says whose hours count for it. */
+  get: (unit: { branchId?: string; basis?: 'Employer' } = {}) =>
+    request<Attention>({ method: 'GET', url: '/api/v1/attention', params: unit }),
 };

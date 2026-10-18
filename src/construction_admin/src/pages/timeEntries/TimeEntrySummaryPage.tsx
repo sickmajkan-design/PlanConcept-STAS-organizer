@@ -32,6 +32,8 @@ import { PageHeader } from '../../components/PageHeader';
 import { useTimeEntriesQuery, useTimeEntrySummaryQuery } from '../../features/timeEntries/useTimeEntries';
 import { useT } from '../../i18n/useI18n';
 import { formatDate, formatTimeOfDay, splitMinutes } from '../../utils/formatting';
+import { companyNow } from '../../utils/companyTime';
+import { companyDayBounds } from '../../utils/companyTime';
 
 type SortField = 'employeeName' | 'entryCount' | 'totalMinutes' | 'approvedMinutes' | 'pendingCount';
 type SortDirection = 'asc' | 'desc';
@@ -55,33 +57,25 @@ function toDateInput(date: Date): string {
 }
 
 function startOfMonth(): string {
-  const now = new Date();
+  const now = companyNow();
   return toDateInput(new Date(now.getFullYear(), now.getMonth(), 1));
-}
-
-/** The instant just after the given local day ends. */
-function endOfDay(date: string): string {
-  const next = new Date(`${date}T00:00`);
-  next.setDate(next.getDate() + 1);
-
-  return next.toISOString();
 }
 
 export function TimeEntrySummaryPage() {
   const t = useT();
 
   const [from, setFrom] = useState(startOfMonth);
-  const [to, setTo] = useState(() => toDateInput(new Date()));
+  const [to, setTo] = useState(() => toDateInput(companyNow()));
   const [approvedOnly, setApprovedOnly] = useState(false);
 
   const query = useMemo(
     () => ({
-      from: new Date(`${from}T00:00`).toISOString(),
+      from: companyDayBounds(from).from,
       // The end date is inclusive to the person reading it: picking the 31st
       // has to include the 31st. The API's window is half-open, so send the
       // start of the following day — sending midnight of the 31st would drop
       // that whole day's hours without anything on screen saying so.
-      to: endOfDay(to),
+      to: companyDayBounds(to).to,
       approvedOnly: approvedOnly || undefined,
     }),
     [from, to, approvedOnly],

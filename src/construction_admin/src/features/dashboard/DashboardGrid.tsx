@@ -2,7 +2,7 @@ import { AddOutlined } from '@mui/icons-material';
 import { Alert, Box, Button, CircularProgress, Stack, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { GridLayout, useContainerWidth, type Layout, type LayoutItem } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { canViewFinanceStatistics } from '../../auth/authHelpers';
@@ -12,6 +12,7 @@ import { FinancePeriodProvider } from '../finance/PeriodContext';
 import { PeriodControl } from '../finance/PeriodControl';
 import { dashboardApi } from './api';
 import './dashboardGrid.css';
+import { WidgetHeightContext, WidgetHelpContext, type WidgetHeightControl } from './widgetHeight';
 import { widgetAllowed, widgetRegistry } from './widgetRegistry';
 import type { DashboardWidgetConfig } from './widgetTypes';
 import { WidgetPicker } from './WidgetPicker';
@@ -24,6 +25,40 @@ const MIN_H = 4;
 const DEFAULT_NEW_W = 6;
 const DEFAULT_NEW_H = 12;
 const SAVE_DEBOUNCE_MS = 600;
+/** The tallest a card that fits its content may grow, in rows; past it the card's body scrolls. */
+const FIT_MAX_ROWS = 20;
+const FIT_ROWS_STORAGE_KEY = 'dashboard.fitRows';
+
+/**
+ * A widget is as tall as its content when it can be (`fit` in the registry) and still has the height every
+ * widget is given when it is added. Any other height was chosen by dragging, and is kept exactly as chosen.
+ * (Dragging a card back to exactly the default height hands it back to its content.)
+ */
+function isFitted(widget: DashboardWidgetConfig): boolean {
+  return !!widgetRegistry[widget.type]?.fit && widget.h === DEFAULT_NEW_H;
+}
+
+/** The rows each fitted card needed last time, so the board does not open at the default height and then shrink. */
+function readFitRows(): Record<string, number> {
+  try {
+    const parsed: unknown = JSON.parse(window.localStorage.getItem(FIT_ROWS_STORAGE_KEY) ?? '{}');
+    if (typeof parsed !== 'object' || parsed === null) return {};
+
+    return Object.fromEntries(
+      Object.entries(parsed).filter((entry): entry is [string, number] => typeof entry[1] === 'number' && entry[1] >= 1),
+    );
+  } catch {
+    return {};
+  }
+}
+
+function writeFitRows(rows: Record<string, number>): void {
+  try {
+    window.localStorage.setItem(FIT_ROWS_STORAGE_KEY, JSON.stringify(rows));
+  } catch {
+    // Storage blocked: the board measures again on the next visit.
+  }
+}
 
 /**
  * Column width already scales with the screen (it's containerWidth / cols),
@@ -51,16 +86,44 @@ function useViewportHeight(): number {
   return height;
 }
 
-function toLayoutItem(widget: DashboardWidgetConfig): LayoutItem {
-  return { i: widget.id, x: widget.x, y: widget.y, w: widget.w, h: widget.h, minW: MIN_W, minH: MIN_H };
+function toLayoutItem(widget: DashboardWidgetConfig, fitRows: Record<string, number>): LayoutItem {
+  const h = isFitted(widget) ? (fitRows[widget.id] ?? widget.h) : widget.h;
+  return { i: widget.id, x: widget.x, y: widget.y, w: widget.w, h, minW: MIN_W, minH: Math.min(MIN_H, h) };
 }
 
+/**
+ * The grid's positions and sizes, written back onto the saved widgets. A fitted card's height is the
+ * content's, not a choice, so it is never saved: only where it sits and how wide it is.
+ */
 function applyLayout(widgets: DashboardWidgetConfig[], layout: Layout): DashboardWidgetConfig[] {
   const byId = new Map(layout.map((item) => [item.i, item]));
   return widgets.map((widget) => {
     const item = byId.get(widget.id);
-    return item ? { ...widget, x: item.x, y: item.y, w: item.w, h: item.h } : widget;
+    if (!item) return widget;
+
+    return { ...widget, x: item.x, y: item.y, w: item.w, h: isFitted(widget) ? widget.h : item.h };
   });
+}
+
+interface GridWidgetProps {
+  widget: DashboardWidgetConfig;
+  fit: boolean;
+  maxPixels: number;
+  onReport: (id: string, pixels: number) => void;
+  children: ReactNode;
+}
+
+/** Tells a widget's card how tall it is meant to be, and carries what it measures of its content to the grid. */
+function GridWidget({ widget, fit, maxPixels, onReport, children }: GridWidgetProps) {
+  const id = widget.id;
+  const report = useCallback((pixels: number) => onReport(id, pixels), [onReport, id]);
+  const control = useMemo<WidgetHeightControl>(() => ({ fit, report, maxPixels }), [fit, report, maxPixels]);
+
+  return (
+    <WidgetHelpContext.Provider value={widgetRegistry[widget.type]?.help ?? null}>
+      <WidgetHeightContext.Provider value={control}>{children}</WidgetHeightContext.Provider>
+    </WidgetHelpContext.Provider>
+  );
 }
 
 /**
@@ -108,6 +171,7 @@ export function DashboardGrid() {
   const mayViewFinance = canViewFinanceStatistics(user);
   const [widgets, setWidgets] = useState<DashboardWidgetConfig[] | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [fitRows, setFitRows] = useState<Record<string, number>>(readFitRows);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data, isLoading, error } = useQuery({
@@ -144,7 +208,7 @@ export function DashboardGrid() {
     () => (widgets ?? []).filter((w) => widgetAllowed(w.type, user)),
     [widgets, user],
   );
-  const layout = useMemo(() => visibleWidgets.map(toLayoutItem), [visibleWidgets]);
+  const layout = useMemo(() => visibleWidgets.map((widget) => toLayoutItem(widget, fitRows)), [visibleWidgets, fitRows]);
   const usedTypes = new Set((widgets ?? []).map((w) => w.type));
 
   const gridConfig = useMemo(
@@ -162,6 +226,35 @@ export function DashboardGrid() {
     () => ({ enabled: true, handles: ['se', 'sw', 'ne', 'nw', 'e', 'w', 'n', 's'] as const }),
     [],
   );
+
+  /** How many rows a card needs for the content it reported, so the cell is as tall as the card and no taller. */
+  const reportHeight = useCallback(
+    (id: string, pixels: number) => {
+      const gap = GRID_MARGIN[1];
+      const rows = Math.min(FIT_MAX_ROWS, Math.max(1, Math.ceil((pixels + gap) / (rowHeight + gap))));
+
+      setFitRows((prev) => (prev[id] === rows ? prev : { ...prev, [id]: rows }));
+    },
+    [rowHeight],
+  );
+  const fitMaxPixels = FIT_MAX_ROWS * rowHeight + (FIT_MAX_ROWS - 1) * GRID_MARGIN[1];
+
+  useEffect(() => {
+    writeFitRows(fitRows);
+  }, [fitRows]);
+
+  /** A card the person made taller or shorter is theirs to size: from here on it keeps that height. */
+  const handleResizeStop = useCallback((_layout: Layout, oldItem: LayoutItem | null, newItem: LayoutItem | null) => {
+    if (!oldItem || !newItem || oldItem.h === newItem.h) return;
+
+    setWidgets((prev) => {
+      if (!prev) return prev;
+      const next = prev.map((widget) => (widget.id === newItem.i ? { ...widget, h: newItem.h } : widget));
+      scheduleSave(next);
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleLayoutChange = useCallback((next: Layout) => {
     setWidgets((prev) => {
@@ -282,11 +375,13 @@ export function DashboardGrid() {
                   // a card half empty on a phone. The few charts that measure their box (they have a minimum
                   // height of their own, so they never measure a box their own size decides) keep a stable size.
                   <Box key={widget.id} sx={{ minHeight: 0 }}>
-                    <Widget
-                      instanceId={widget.id}
-                      settings={widget.settings}
-                      onSettingsChange={(settings) => handleSettingsChange(widget.id, settings)}
-                    />
+                    <WidgetHelpContext.Provider value={entry.help}>
+                      <Widget
+                        instanceId={widget.id}
+                        settings={widget.settings}
+                        onSettingsChange={(settings) => handleSettingsChange(widget.id, settings)}
+                      />
+                    </WidgetHelpContext.Provider>
                   </Box>
                 );
               })}
@@ -300,6 +395,7 @@ export function DashboardGrid() {
               dragConfig={dragConfig}
               resizeConfig={resizeConfig}
               onLayoutChange={handleLayoutChange}
+              onResizeStop={handleResizeStop}
             >
               {visibleWidgets.map((widget) => {
                 const entry = widgetRegistry[widget.type];
@@ -307,13 +403,15 @@ export function DashboardGrid() {
                 const Widget = entry.component;
                 return (
                   <div key={widget.id}>
-                    <Widget
-                      instanceId={widget.id}
-                      settings={widget.settings}
-                      onSettingsChange={(settings) => handleSettingsChange(widget.id, settings)}
-                      onRemove={() => handleRemove(widget.id)}
-                      onExpandWidth={widget.x === 0 && widget.w === GRID_COLS ? undefined : () => handleExpandWidth(widget.id)}
-                    />
+                    <GridWidget widget={widget} fit={isFitted(widget)} maxPixels={fitMaxPixels} onReport={reportHeight}>
+                      <Widget
+                        instanceId={widget.id}
+                        settings={widget.settings}
+                        onSettingsChange={(settings) => handleSettingsChange(widget.id, settings)}
+                        onRemove={() => handleRemove(widget.id)}
+                        onExpandWidth={widget.x === 0 && widget.w === GRID_COLS ? undefined : () => handleExpandWidth(widget.id)}
+                      />
+                    </GridWidget>
                   </div>
                 );
               })}

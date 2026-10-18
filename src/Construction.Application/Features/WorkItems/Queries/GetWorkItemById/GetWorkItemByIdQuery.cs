@@ -47,7 +47,7 @@ public class GetWorkItemByIdQueryHandler : IRequestHandler<GetWorkItemByIdQuery,
         var ownProjects = await SiteScope.OwnProjectIdsAsync(
             _context,
             _currentUserService,
-            DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+            _dateTimeProvider.Today,
             cancellationToken);
 
         if (ownProjects is not null)

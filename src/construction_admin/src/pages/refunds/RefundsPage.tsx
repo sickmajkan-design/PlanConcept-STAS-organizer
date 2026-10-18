@@ -33,10 +33,11 @@ import { useOpenOnParam } from '../../hooks/useOpenOnParam';
 import { useI18n } from '../../i18n/useI18n';
 import { formatDate, formatMoney } from '../../utils/formatting';
 import { NewRefundDialog } from './NewRefundDialog';
+import { companyNow } from '../../utils/companyTime';
 
 /** The months around today, since that is what gets picked as the payroll to pay a refund with. */
 function monthChoices(): { year: number; month: number }[] {
-  const now = new Date();
+  const now = companyNow();
   const choices: { year: number; month: number }[] = [];
 
   for (let offset = -1; offset <= 3; offset++) {
@@ -50,7 +51,7 @@ function monthChoices(): { year: number; month: number }[] {
 function ApproveDialog({ refund, onClose }: { refund: Refund | null; onClose: () => void }) {
   const { t } = useI18n();
   const review = useReviewRefund();
-  const now = new Date();
+  const now = companyNow();
   const [value, setValue] = useState(`${now.getFullYear()}-${now.getMonth() + 1}`);
   const [error, setError] = useState<string | null>(null);
 

@@ -1,8 +1,19 @@
-import { CloseOutlined, DragIndicatorOutlined, OpenInFullOutlined, TuneOutlined } from '@mui/icons-material';
+import {
+  CheckCircleOutlined,
+  CloseOutlined,
+  DragIndicatorOutlined,
+  HelpOutlineOutlined,
+  HorizontalRuleOutlined,
+  OpenInFullOutlined,
+  TuneOutlined,
+} from '@mui/icons-material';
 import { Alert, Box, IconButton, Skeleton, Stack, Tooltip, Typography } from '@mui/material';
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 
 import { useT } from '../../../i18n/useI18n';
+import { paths } from '../../../routes/paths';
+import { useWidgetHeight, useWidgetHelp } from '../widgetHeight';
 
 interface WidgetShellProps {
   title: string;
@@ -14,6 +25,13 @@ interface WidgetShellProps {
   onExpandWidth?: () => void;
   /** Opens the widget's own settings. Only widgets that have any pass it. */
   onConfigure?: () => void;
+  /**
+   * Nothing to show: the card becomes one line, the title and a sentence saying so, instead of a card with a
+   * sentence in a large empty space. `ok` is the good kind of nothing (nothing is late, nothing is expiring) and
+   * takes a green tick; `none` is nothing yet. The widget still mounts its body's data, so the strip becomes the
+   * full card on its own as soon as there is something to show.
+   */
+  empty?: { text: ReactNode; tone?: 'ok' | 'none'; action?: ReactNode };
   children: ReactNode;
 }
 
@@ -31,8 +49,25 @@ const SPRING = 'cubic-bezier(0.34, 1.3, 0.5, 1)';
  * No outline, a soft shadow and a small lift under the pointer. The controls (move, settings, wider, remove)
  * show when the card is pointed at or has focus, and always on a touch screen, where there is no pointing.
  */
-export function WidgetShell({ title, subtitle, isLoading, error, onRemove, onExpandWidth, onConfigure, children }: WidgetShellProps) {
+export function WidgetShell({ title, subtitle, isLoading, error, onRemove, onExpandWidth, onConfigure, empty, children }: WidgetShellProps) {
   const t = useT();
+  const { fit, report, maxPixels } = useWidgetHeight();
+  const helpTopic = useWidgetHelp();
+  const strip = !!empty && !isLoading && !error;
+
+  // The content's own height, for the grid: measured on the element that is as tall as its content, never on
+  // the card, whose height the grid decides from this very number.
+  const measured = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const node = measured.current;
+    if (!fit || !report || !node || typeof ResizeObserver === 'undefined') return;
+
+    const observer = new ResizeObserver(() => report(Math.ceil(node.getBoundingClientRect().height)));
+    observer.observe(node);
+    report(Math.ceil(node.getBoundingClientRect().height));
+
+    return () => observer.disconnect();
+  }, [fit, report]);
 
   return (
     <Box
@@ -52,6 +87,8 @@ export function WidgetShell({ title, subtitle, isLoading, error, onRemove, onExp
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
+        // A one-line strip sits in the middle of the rows the grid gave it, not stuck to the top of them.
+        justifyContent: strip && fit ? 'center' : 'flex-start',
         '@media (hover: hover) and (pointer: fine)': {
           '&:hover': {
             transform: 'translateY(-2px)',
@@ -68,16 +105,62 @@ export function WidgetShell({ title, subtitle, isLoading, error, onRemove, onExp
         '@media (hover: none)': { '& .widget-controls': { opacity: 1 } },
       })}
     >
-      <Stack direction="row" sx={{ alignItems: 'baseline', gap: 1, px: 2.5, pt: 2.25, pb: 1.25, flexShrink: 0, minHeight: 44 }}>
-        <Typography component="h3" title={title} sx={{ fontSize: '0.95rem', fontWeight: 600, letterSpacing: '0.005em', minWidth: 0 }} noWrap>
+      <Box
+        ref={measured}
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 0,
+          width: '100%',
+          // As tall as its content (up to a limit, past which the body scrolls), or filling the box it was given.
+          ...(fit ? { flex: '0 0 auto', maxHeight: maxPixels } : { flex: 1 }),
+        }}
+      >
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: strip ? 'center' : 'baseline',
+          // A strip may take two lines on a narrow card (the sentence, then the link) instead of squeezing its
+          // sentence into a column a letter wide.
+          flexWrap: strip ? 'wrap' : 'nowrap',
+          columnGap: 1,
+          rowGap: 0.25,
+          px: 2.5,
+          pt: strip ? 1.5 : 2.25,
+          pb: strip ? 1.5 : 1.25,
+          flexShrink: 0,
+          minHeight: strip ? 48 : 44,
+        }}
+      >
+        {strip && (
+          <Box
+            component="span"
+            aria-hidden="true"
+            sx={{ display: 'inline-flex', flexShrink: 0, color: empty?.tone === 'none' ? 'text.disabled' : 'success.main' }}
+          >
+            {empty?.tone === 'none' ? <HorizontalRuleOutlined fontSize="small" /> : <CheckCircleOutlined fontSize="small" />}
+          </Box>
+        )}
+        <Typography
+          component="h3"
+          title={title}
+          sx={{ fontSize: '0.95rem', fontWeight: 600, letterSpacing: '0.005em', minWidth: 0, ...(strip ? { maxWidth: '100%' } : {}) }}
+          noWrap
+        >
           {title}
         </Typography>
-        {subtitle && (
+        {strip && (
+          <Typography variant="body2" color="text.secondary" sx={{ flex: '1 1 150px', minWidth: 0 }}>
+            {empty?.text}
+          </Typography>
+        )}
+        {strip && empty?.action}
+        {!strip && subtitle && (
           <Typography variant="body2" color="text.secondary" noWrap sx={{ flex: 1, minWidth: 0 }}>
             {subtitle}
           </Typography>
         )}
-        {!subtitle && <Box sx={{ flex: 1 }} />}
+        {!strip && !subtitle && <Box sx={{ flex: 1 }} />}
         <Stack className="widget-controls" direction="row" sx={{ alignItems: 'center', alignSelf: 'center', flexShrink: 0 }}>
           {/* Matched by dragConfig.handle in DashboardGrid.tsx: react-grid-layout wires its pointer
               listeners to any element with this class. Only in the free-form grid (which passes onRemove);
@@ -90,6 +173,18 @@ export function WidgetShell({ title, subtitle, isLoading, error, onRemove, onExp
               >
                 <DragIndicatorOutlined fontSize="small" />
               </Box>
+            </Tooltip>
+          )}
+          {helpTopic && (
+            <Tooltip title={t('dashboard.widgetHelp')}>
+              <IconButton
+                size="small"
+                component={RouterLink}
+                to={paths.helpTopic(helpTopic)}
+                aria-label={t('dashboard.widgetHelp')}
+              >
+                <HelpOutlineOutlined fontSize="small" />
+              </IconButton>
             </Tooltip>
           )}
           {onConfigure && (
@@ -119,6 +214,7 @@ export function WidgetShell({ title, subtitle, isLoading, error, onRemove, onExp
       {/* A flex column, not a plain block: widgets with several sections (a list plus a chart) give the
           chart `flex: 1` so it grows to fill whatever height a resize hands it. The size container makes
           the widget's own width, not the screen's, decide its layout. */}
+      {!strip && (
       <Box
         sx={{
           flex: 1,
@@ -152,6 +248,8 @@ export function WidgetShell({ title, subtitle, isLoading, error, onRemove, onExp
         ) : (
           children
         )}
+      </Box>
+      )}
       </Box>
     </Box>
   );

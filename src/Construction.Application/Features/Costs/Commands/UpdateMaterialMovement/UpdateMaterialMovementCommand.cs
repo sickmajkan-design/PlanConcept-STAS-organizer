@@ -40,7 +40,7 @@ public class UpdateMaterialMovementCommandValidator
 {
     public UpdateMaterialMovementCommandValidator(IDateTimeProvider dateTimeProvider)
     {
-        var today = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
+        var today = dateTimeProvider.Today;
 
         RuleFor(x => x.Id).NotEmpty();
         RuleFor(x => x.MaterialId).NotEmpty();

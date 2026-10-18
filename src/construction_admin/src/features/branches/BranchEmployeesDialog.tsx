@@ -20,8 +20,9 @@ import { useEveryEmployeeQuery } from '../employees/useEmployees';
 import { useT } from '../../i18n/useI18n';
 import { BranchDot } from './BranchDot';
 import { useAssignEmployeesToBranch } from './useBranches';
+import { todayCompany } from '../../utils/formatting';
 
-const todayIso = () => new Date().toISOString().slice(0, 10);
+const todayIso = () => todayCompany();
 
 /**
  * Brings existing employees into a business unit in one go: tick them, choose the date they are

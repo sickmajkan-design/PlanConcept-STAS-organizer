@@ -1,6 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
 
-import { attentionApi, type AttentionGroup } from '../api/attention';
+import type { AttentionGroup } from '../api/attention';
 import type { User } from '../api/types';
 import { useBulletinPostsQuery } from '../features/bulletin/useBulletin';
 import { useDocumentRequestsQuery } from '../features/documentRequests/useDocumentRequests';
@@ -9,6 +8,7 @@ import { useMaterialsQuery } from '../features/materials/useMaterials';
 import { useAccommodationsQuery } from '../features/accommodations/useAccommodations';
 import { useAbsencesQuery } from '../features/absences/useAbsences';
 import { useExpiringDocumentsQuery } from '../features/attachments/useAttachments';
+import { useAttentionQuery } from '../features/dashboard/useAttention';
 import { useTimeEntriesQuery } from '../features/timeEntries/useTimeEntries';
 import { useWorkItemsQuery } from '../features/workItems/useWorkItems';
 import {
@@ -96,12 +96,7 @@ export function useNavBadgeCounts(user: User | null | undefined): Record<string,
   const showVehicleExpenses = canReviewSpending(user) && canSeeSpending(user);
 
   // The same query, with the same key, as the dashboard's "Needs attention": one request serves both.
-  const attentionQuery = useQuery({
-    queryKey: ['attention'],
-    queryFn: attentionApi.get,
-    refetchInterval: 60_000,
-    enabled: showWorkItems,
-  });
+  const attentionQuery = useAttentionQuery(showWorkItems);
   const attention = attentionQuery.data?.groups;
 
   // Answers waiting for the office's check, and requests whose deadline passed with nothing sent.

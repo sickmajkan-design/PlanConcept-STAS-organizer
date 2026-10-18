@@ -32,7 +32,7 @@ public class ProposeAbsenceEditCommandValidator : AbstractValidator<ProposeAbsen
 {
     public ProposeAbsenceEditCommandValidator(IDateTimeProvider dateTimeProvider)
     {
-        var today = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
+        var today = dateTimeProvider.Today;
 
         RuleFor(x => x.Id).NotEmpty();
 

@@ -39,7 +39,7 @@ public class RecordGeneralExpenseCommandValidator
 {
     public RecordGeneralExpenseCommandValidator(IDateTimeProvider dateTimeProvider)
     {
-        var today = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
+        var today = dateTimeProvider.Today;
 
         RuleFor(x => x.Category).IsInEnum();
 
@@ -99,7 +99,7 @@ public class RecordGeneralExpenseCommandHandler
             throw new NotFoundException(nameof(Employee), employeeId);
         }
 
-        var occurredOn = request.OccurredOn ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var occurredOn = request.OccurredOn ?? _dateTimeProvider.Today;
 
         await HousingDoubleEntry.EnsureValidAsync(
             _context, request.Category, request.AccommodationId, occurredOn, cancellationToken);

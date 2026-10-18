@@ -94,6 +94,7 @@ try
     builder.Services.AddHostedService<DataRetentionService>();
     builder.Services.AddSingleton<IPresenceTracker, PresenceTracker>();
     builder.Services.AddHostedService<PresenceFlushService>();
+    builder.Services.AddHostedService<CompanyTimeZoneService>();
 
     // Sends what the request path queued. Nothing to claim first here either:
     // claiming a message moves it beyond its own lease, so a second worker

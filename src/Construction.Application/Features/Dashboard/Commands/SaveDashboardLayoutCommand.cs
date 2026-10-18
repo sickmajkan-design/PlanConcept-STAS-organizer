@@ -30,7 +30,7 @@ public class SaveDashboardLayoutCommandValidator : AbstractValidator<SaveDashboa
         RuleForEach(x => x.Widgets).ChildRules(widget =>
         {
             widget.RuleFor(w => w.Type)
-                .Must(type => DashboardWidgetTypes.All.Contains(type))
+                .Must(type => DashboardWidgetTypes.All.Contains(type) || DashboardWidgetTypes.LegacyFinance.Contains(type))
                 .WithMessage("Unknown widget type.");
             widget.RuleFor(w => w.W).GreaterThanOrEqualTo(1);
             widget.RuleFor(w => w.H).GreaterThanOrEqualTo(1);

@@ -546,7 +546,7 @@ public class GetCashflowQueryHandler : IRequestHandler<GetCashflowQuery, Cashflo
     {
         await BookRules.EnsureReadAsync(_context, _currentUserService, cancellationToken);
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
         var end = today.AddDays(request.Days - 1);
 
         DateOnly Expected(DateOnly? due) =>
@@ -764,7 +764,7 @@ public class GetForecastQueryHandler : IRequestHandler<GetForecastQuery, Forecas
     {
         await BookRules.EnsureReadAsync(_context, _currentUserService, cancellationToken);
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
         var thisMonth = new DateOnly(today.Year, today.Month, 1);
         var from = thisMonth.AddMonths(-12);
         var to = thisMonth.AddDays(-1);
@@ -885,7 +885,7 @@ public class GetOverviewAttentionQueryHandler
     {
         await BookRules.EnsureReadAsync(_context, _currentUserService, cancellationToken);
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
         var items = new List<OverviewAttentionDto>();
 
         var late = _context.Invoices.AsNoTracking()

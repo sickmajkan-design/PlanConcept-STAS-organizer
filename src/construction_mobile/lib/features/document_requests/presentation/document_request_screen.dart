@@ -14,6 +14,7 @@ import '../../attachments/data/models/attachment.dart';
 import '../../attachments/presentation/attachment_preview_screen.dart';
 import '../../my_documents/data/my_documents_repository.dart';
 import '../data/document_request_repository.dart';
+import '../../../core/time/company_time.dart';
 
 /// The label and colour of a request's status, shared by the list and the detail.
 ({String label, Color? color, IconData icon}) requestStatusStyle(
@@ -23,7 +24,7 @@ import '../data/document_request_repository.dart';
   final l10n = context.l10n;
   final scheme = Theme.of(context).colorScheme;
 
-  if (request.isOverdueOn(DateTime.now())) {
+  if (request.isOverdueOn(CompanyTime.now())) {
     return (
       label: l10n.requestStatusOverdue,
       color: scheme.error,
@@ -440,7 +441,7 @@ class _EventRow extends StatelessWidget {
               children: [
                 Text('$what · $who'),
                 Text(
-                  formatDateTime(event.at.toLocal()),
+                  formatDateTime(CompanyTime.wallClock(event.at)),
                   style: theme.textTheme.bodySmall,
                 ),
                 if (event.reason != null && event.reason!.isNotEmpty)

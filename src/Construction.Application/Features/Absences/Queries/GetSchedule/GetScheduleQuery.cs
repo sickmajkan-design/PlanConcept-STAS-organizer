@@ -87,7 +87,7 @@ public class GetScheduleQueryHandler : IRequestHandler<GetScheduleQuery, Schedul
     {
         var from = request.From;
         var to = request.To;
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         // A worker sees their own line only. An account not linked to an
         // employee has no line to see, so it gets an empty board rather than

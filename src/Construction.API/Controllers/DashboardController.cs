@@ -2,6 +2,7 @@ using Construction.API.Authorization;
 using Construction.Application.Features.Dashboard.Commands;
 using Construction.Application.Features.Dashboard.Models;
 using Construction.Application.Features.Dashboard.Queries;
+using Construction.Application.Features.Dashboard.Snapshots;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -33,5 +34,28 @@ public class DashboardController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(command, cancellationToken));
+    }
+
+    /// <summary>What the board showed today and yesterday, for the "since yesterday" notes. Any staff account: the phone's Today list uses it too.</summary>
+    [HttpGet("/api/v{version:apiVersion}/dashboard-snapshots")]
+    [HttpGet("/api/dashboard-snapshots")]
+    [Authorize(Policy = Policies.AllEmployees)]
+    [ProducesResponseType(typeof(DashboardSnapshotsDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<DashboardSnapshotsDto>> GetSnapshots(CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetDashboardSnapshotsQuery(), cancellationToken));
+    }
+
+    [HttpPut("/api/v{version:apiVersion}/dashboard-snapshots")]
+    [HttpPut("/api/dashboard-snapshots")]
+    [Authorize(Policy = Policies.AllEmployees)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> RecordSnapshots(
+        RecordDashboardSnapshotsCommand command,
+        CancellationToken cancellationToken)
+    {
+        await Mediator.Send(command, cancellationToken);
+        return NoContent();
     }
 }

@@ -29,6 +29,7 @@ import { PageHeader } from '../../components/PageHeader';
 import { HowItWorks, HowLine } from '../../features/book/HowItWorks';
 import type { MessageKey } from '../../i18n/en';
 import { useI18n } from '../../i18n/useI18n';
+import { companyNow } from '../../utils/companyTime';
 
 const categoriesKey = ['book', 'categories'] as const;
 const rulesKey = ['book', 'rules'] as const;
@@ -56,7 +57,7 @@ export function BookCategoriesPage() {
   const { t, locale } = useI18n();
   const queryClient = useQueryClient();
 
-  const now = new Date();
+  const now = companyNow();
   const monthName = now.toLocaleDateString(locale === 'sr' ? 'sr-Latn' : 'en-GB', { month: 'long' });
 
   const categories = useQuery({

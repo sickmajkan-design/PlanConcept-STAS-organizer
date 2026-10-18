@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Infrastructure.Antivirus;
 using Construction.Infrastructure.Spreadsheets;
@@ -23,6 +24,13 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
+        // The company's calendar: which day a shift or a "today" belongs to. One setting, read once.
+        CompanyTime.Configure(configuration["Company:TimeZone"], out var timeZoneProblem);
+        if (timeZoneProblem is not null)
+        {
+            Console.Error.WriteLine(timeZoneProblem);
+        }
+
         AddPersistence(services, configuration);
         AddAuthentication(services, configuration);
         AddServices(services, configuration);

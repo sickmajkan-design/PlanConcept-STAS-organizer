@@ -574,7 +574,7 @@ public class GenerateRecurringExpensesCommandHandler : IRequestHandler<GenerateR
     {
         await BookRules.EnsureWriteAsync(_context, _currentUserService, cancellationToken);
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         if (new DateOnly(request.Year, request.Month, 1) > new DateOnly(today.Year, today.Month, 1))
         {
@@ -602,7 +602,7 @@ public class GenerateDueRecurringExpensesCommandHandler : IRequestHandler<Genera
 
     public async Task<int> Handle(GenerateDueRecurringExpensesCommand request, CancellationToken cancellationToken)
     {
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         return await RecurringSchedule.GenerateAsync(
             _context, today.Year, today.Month, today, onlyDue: true, recordedBy: null, cancellationToken);

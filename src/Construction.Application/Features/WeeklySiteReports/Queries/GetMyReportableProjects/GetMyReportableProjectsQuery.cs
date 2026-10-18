@@ -36,7 +36,7 @@ public class GetMyReportableProjectsQueryHandler
     public async Task<IReadOnlyList<ReportableProjectDto>> Handle(
         GetMyReportableProjectsQuery request, CancellationToken cancellationToken)
     {
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         var query = _context.Projects.AsNoTracking()
             .Where(p => p.Status != ProjectStatus.Completed && p.Status != ProjectStatus.Cancelled);

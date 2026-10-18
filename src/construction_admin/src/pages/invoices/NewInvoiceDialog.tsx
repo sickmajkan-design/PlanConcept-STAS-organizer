@@ -19,9 +19,10 @@ import { toApiError } from '../../api/apiError';
 import { useCreateInvoice, useCustomerCompaniesQuery } from '../../features/invoices/useInvoices';
 import { useAllProjectsQuery } from '../../features/projects/useProjects';
 import { useI18n } from '../../i18n/useI18n';
-import { formatMoney } from '../../utils/formatting';
+import { formatMoney, todayCompany } from '../../utils/formatting';
+import { companyNow } from '../../utils/companyTime';
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = () => todayCompany();
 
 /** Rounds to the cent so that comparing parts with the whole is not thrown by floating point. */
 const cents = (value: number) => Math.round(value * 100);
@@ -116,7 +117,7 @@ export function NewInvoiceDialog({ open, onClose }: { open: boolean; onClose: ()
   };
 
   const monthChoices = useMemo(() => {
-    const now = new Date();
+    const now = companyNow();
     const list: { value: string; label: string }[] = [];
 
     for (let offset = -3; offset <= 2; offset++) {

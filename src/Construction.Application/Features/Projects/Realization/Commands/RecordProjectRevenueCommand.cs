@@ -25,7 +25,7 @@ public class RecordProjectRevenueCommandValidator : AbstractValidator<RecordProj
 {
     public RecordProjectRevenueCommandValidator(IDateTimeProvider dateTimeProvider)
     {
-        var today = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
+        var today = dateTimeProvider.Today;
 
         RuleFor(x => x.ProjectId).NotEmpty();
 
@@ -72,7 +72,7 @@ public class RecordProjectRevenueCommandHandler
             ProjectId = request.ProjectId,
             Amount = request.Amount,
             OccurredOn = request.OccurredOn
-                ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+                ?? _dateTimeProvider.Today,
             Note = request.Note?.Trim(),
             RecordedByUserId = _currentUserService.UserId
         };

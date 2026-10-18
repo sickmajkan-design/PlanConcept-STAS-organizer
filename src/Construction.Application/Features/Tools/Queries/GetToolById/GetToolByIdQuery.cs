@@ -35,7 +35,7 @@ public class GetToolByIdQueryHandler : IRequestHandler<GetToolByIdQuery, ToolDto
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException(nameof(Tool), request.Id);
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
         var ownProjects = await SiteScope.OwnProjectIdsAsync(_context, _currentUserService, today, cancellationToken);
 
         // Not found rather than forbidden, as for a project: a foreman or project manager is

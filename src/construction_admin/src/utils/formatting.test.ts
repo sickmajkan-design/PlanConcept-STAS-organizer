@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   formatDate,
@@ -7,8 +7,11 @@ import {
   formatQuantity,
   formatTimeOfDay,
   humanizeEnum,
+  ijekavianDate,
   initialsOf,
+  companyDayBounds,
   splitMinutes,
+  todayCompany,
 } from './formatting';
 
 /**
@@ -156,5 +159,54 @@ describe('formatQuantity', () => {
 
   it('shows a dash for a missing quantity', () => {
     expect(formatQuantity(null, 'en')).toBe('—');
+  });
+});
+
+describe('ijekavianDate', () => {
+  it('puts the two weekdays that differ into the ijekavian form, in full and abbreviated', () => {
+    expect(ijekavianDate('nedelja, 18. oktobar')).toBe('nedjelja, 18. oktobar');
+    expect(ijekavianDate('sreda, 21. oktobar')).toBe('srijeda, 21. oktobar');
+    expect(ijekavianDate('sre 21.10.')).toBe('sri 21.10.');
+    expect(ijekavianDate('Ned 18.10.')).toBe('Ned 18.10.');
+  });
+
+  it('leaves other words, and words that merely contain these, alone', () => {
+    expect(ijekavianDate('petak, 16. oktobar')).toBe('petak, 16. oktobar');
+    expect(ijekavianDate('Sredina meseca')).toBe('Sredina meseca');
+  });
+});
+
+describe('the local day', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('is today in the company time zone, not the UTC date, in the first hours after midnight', () => {
+    // 22:30 UTC on the 18th is 00:30 on the 19th in Belgrade (summer time).
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-18T22:30:00Z'));
+
+    expect(todayCompany()).toBe('2026-10-19');
+  });
+
+  it('runs from one local midnight to the next', () => {
+    expect(companyDayBounds('2026-10-19')).toEqual({ from: '2026-10-18T22:00:00.000Z', to: '2026-10-19T22:00:00.000Z' });
+  });
+
+  it('is 25 hours long on the day the clocks go back, and 23 when they go forward', () => {
+    const back = companyDayBounds('2026-10-25');
+    expect((Date.parse(back.to) - Date.parse(back.from)) / 3_600_000).toBe(25);
+
+    const forward = companyDayBounds('2026-03-29');
+    expect((Date.parse(forward.to) - Date.parse(forward.from)) / 3_600_000).toBe(23);
+  });
+
+  it('gives a shift that starts at midnight to exactly one day', () => {
+    const midnight = Date.parse('2026-10-18T22:00:00.000Z');
+    const today = companyDayBounds('2026-10-19');
+    const yesterday = companyDayBounds('2026-10-18');
+
+    expect(midnight >= Date.parse(today.from) && midnight < Date.parse(today.to)).toBe(true);
+    expect(midnight >= Date.parse(yesterday.from) && midnight < Date.parse(yesterday.to)).toBe(false);
   });
 });

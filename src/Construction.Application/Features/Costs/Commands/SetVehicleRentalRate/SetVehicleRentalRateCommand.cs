@@ -85,7 +85,7 @@ public class SetVehicleRentalRateCommandHandler
             throw new NotFoundException(nameof(Vehicle), request.VehicleId);
         }
 
-        var startDate = request.StartDate ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var startDate = request.StartDate ?? _dateTimeProvider.Today;
         var rate = new VehicleRentalRate
         {
             VehicleId = request.VehicleId,

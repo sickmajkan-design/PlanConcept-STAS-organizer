@@ -104,12 +104,13 @@ describe('SetupChecklistCard', () => {
 
     renderScreen(<SetupChecklistCard />, { user: signedIn('SuperAdmin') });
 
-    // The company is done: one line says how far along it is, and the guide's body stays out of the way.
-    await screen.findByText('System setup: 1 of 4 steps');
+    // The company is done: a small badge says how far along it is, and the guide's body stays out of the way.
+    await screen.findByText('Setup 1/4');
     expect(screen.queryByText('Welcome — let us set things up')).toBeNull();
-    expect(screen.getByRole('button', { name: 'Show' }).getAttribute('aria-expanded')).toBe('false');
+    const badge = screen.getByRole('button', { name: /Setup 1\/4/ });
+    expect(badge.getAttribute('aria-expanded')).toBe('false');
 
-    await user.click(screen.getByRole('button', { name: 'Show' }));
+    await user.click(badge);
     await screen.findByText('Welcome — let us set things up');
     expect(window.localStorage.getItem('onboarding.card.collapsed')).toBe('0');
   }, SCREEN_TIMEOUT);
@@ -125,5 +126,37 @@ describe('SetupChecklistCard', () => {
 
     await screen.findByText('Welcome — let us set things up');
     expect(screen.getByText('System setup: 0 of 4 steps')).toBeDefined();
+  }, SCREEN_TIMEOUT);
+
+  it('shows the gaps of a system with its data as a badge that can be hidden until something new comes up', async () => {
+    const user = userEvent.setup();
+    reply([
+      { key: 'employeesWithoutProject', count: 3 },
+      { key: 'holidaysMissing', count: 1 },
+    ]);
+
+    const { unmount } = renderScreen(<SetupChecklistCard />, { user: signedIn('SuperAdmin') });
+
+    await screen.findByText('Still to set up: 2');
+    await user.click(screen.getByRole('button', { name: 'Hide until something new comes up' }));
+    expect(screen.queryByText('Still to set up: 2')).toBeNull();
+    expect(window.localStorage.getItem('onboarding.badge.hiddenAt')).toBe('2');
+    unmount();
+
+    // A gap that is fixed does not bring it back.
+    reply([{ key: 'holidaysMissing', count: 1 }]);
+    const again = renderScreen(<SetupChecklistCard />, { user: signedIn('SuperAdmin') });
+    await new Promise((resolve) => setTimeout(resolve, 150));
+    expect(screen.queryByText(/Still to set up/)).toBeNull();
+    again.unmount();
+
+    // A new one does.
+    reply([
+      { key: 'employeesWithoutProject', count: 3 },
+      { key: 'holidaysMissing', count: 1 },
+      { key: 'projectsWithoutLocation', count: 2 },
+    ]);
+    renderScreen(<SetupChecklistCard />, { user: signedIn('SuperAdmin') });
+    expect(await screen.findByText('Still to set up: 3')).toBeDefined();
   }, SCREEN_TIMEOUT);
 });

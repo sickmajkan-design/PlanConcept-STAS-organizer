@@ -47,7 +47,7 @@ public class RecordVehicleRentalOutCommandValidator : AbstractValidator<RecordVe
 
     public RecordVehicleRentalOutCommandValidator(IDateTimeProvider dateTimeProvider)
     {
-        var today = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
+        var today = dateTimeProvider.Today;
 
         RuleFor(x => x.VehicleId).NotEmpty();
 
@@ -119,7 +119,7 @@ public class RecordVehicleRentalOutCommandHandler
             CustomerId = request.CustomerId,
             RenterName = request.RenterName.Trim(),
             DailyRate = request.DailyRate,
-            StartDate = request.StartDate ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+            StartDate = request.StartDate ?? _dateTimeProvider.Today,
             ExpectedEndDate = request.ExpectedEndDate,
             Note = request.Note?.Trim(),
             SetByUserId = _currentUserService.UserId

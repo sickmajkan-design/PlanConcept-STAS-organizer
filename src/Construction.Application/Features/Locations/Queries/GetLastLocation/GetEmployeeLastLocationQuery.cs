@@ -44,7 +44,7 @@ public class GetEmployeeLastLocationQueryHandler
             _context.EmployeeProjects,
             _currentUserService,
             request.EmployeeId,
-            DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+            _dateTimeProvider.Today,
             cancellationToken);
 
         if (!visible)

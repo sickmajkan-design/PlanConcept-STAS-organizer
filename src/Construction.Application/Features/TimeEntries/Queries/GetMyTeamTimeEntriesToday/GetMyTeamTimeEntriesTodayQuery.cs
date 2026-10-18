@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.TimeEntries.Models;
 using Construction.Domain.Enums;
@@ -44,7 +45,7 @@ public class GetMyTeamTimeEntriesTodayQueryHandler
         GetMyTeamTimeEntriesTodayQuery request,
         CancellationToken cancellationToken)
     {
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
         var date = request.Date ?? today;
 
         var query = _context.TimeEntries.AsNoTracking();
@@ -63,7 +64,7 @@ public class GetMyTeamTimeEntriesTodayQueryHandler
             query = query.Where(t => t.ProjectId != null && projectIds.Contains(t.ProjectId!.Value));
         }
 
-        query = query.Where(t => DateOnly.FromDateTime(t.StartedAt) == date);
+        query = query.Where(t => DateOnly.FromDateTime(CompanyTime.InZone(t.StartedAt, CompanyTime.ZoneId)) == date);
 
         return await query
             .OrderBy(t => t.StartedAt)

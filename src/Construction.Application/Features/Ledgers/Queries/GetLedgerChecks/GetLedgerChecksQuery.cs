@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Ledgers.Models;
@@ -355,8 +356,8 @@ public class GetLedgerChecksQueryHandler
                     && t.ProjectId != null
                     && employeeIds.Contains(t.EmployeeId)
                     && projectIds.Contains(t.ProjectId.Value))
-                .Where(t => DateOnly.FromDateTime(t.StartedAt) >= monthStart
-                    && DateOnly.FromDateTime(t.StartedAt) <= monthEnd)
+                .Where(t => DateOnly.FromDateTime(CompanyTime.InZone(t.StartedAt, CompanyTime.ZoneId)) >= monthStart
+                    && DateOnly.FromDateTime(CompanyTime.InZone(t.StartedAt, CompanyTime.ZoneId)) <= monthEnd)
                 .Select(t => new
                 {
                     t.EmployeeId,
@@ -375,8 +376,8 @@ public class GetLedgerChecksQueryHandler
                         && t.ProjectId != null
                         && employeeIds.Contains(t.EmployeeId)
                         && projectIds.Contains(t.ProjectId.Value))
-                    .Where(t => DateOnly.FromDateTime(t.StartedAt) >= monthStart
-                        && DateOnly.FromDateTime(t.StartedAt) <= monthEnd)
+                    .Where(t => DateOnly.FromDateTime(CompanyTime.InZone(t.StartedAt, CompanyTime.ZoneId)) >= monthStart
+                        && DateOnly.FromDateTime(CompanyTime.InZone(t.StartedAt, CompanyTime.ZoneId)) <= monthEnd)
                     .Select(t => new
                     {
                         t.EmployeeId,

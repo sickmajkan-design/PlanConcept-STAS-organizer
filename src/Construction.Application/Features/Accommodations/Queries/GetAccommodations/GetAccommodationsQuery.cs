@@ -89,7 +89,7 @@ public class GetAccommodationsQueryHandler
             query = query.Where(a => a.IsActive == isActive);
         }
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         if (request.ContractEndsWithinDays is { } withinDays)
         {

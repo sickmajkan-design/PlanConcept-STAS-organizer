@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
@@ -45,7 +46,7 @@ public class SendVehicleTollExpiryRemindersCommandHandler
         CancellationToken cancellationToken)
     {
         var now = _dateTimeProvider.UtcNow;
-        var today = DateOnly.FromDateTime(now);
+        var today = CompanyTime.LocalDate(now);
 
         var admins = await _context.Users
             .Where(u => u.IsActive && (u.Role == UserRole.SuperAdmin || u.Role == UserRole.Admin))

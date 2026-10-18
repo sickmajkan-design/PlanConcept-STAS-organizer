@@ -92,7 +92,7 @@ public class SetAccommodationRateCommandHandler
             throw new NotFoundException(nameof(Accommodation), request.AccommodationId);
         }
 
-        var startDate = request.StartDate ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var startDate = request.StartDate ?? _dateTimeProvider.Today;
 
         // A one-off charge is a single day: nothing to chain or to overlap.
         var isOneOff = request.Kind == AccommodationChargeKind.OneOff;

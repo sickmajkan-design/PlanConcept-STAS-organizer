@@ -28,6 +28,7 @@ import {
   useCreateLeaveAdjustment,
   useLeaveAdjustmentsQuery,
 } from './useAbsences';
+import { companyNow } from '../../utils/companyTime';
 
 /**
  * A person's annual leave for one year, in working days: the year's right, what carried
@@ -37,7 +38,7 @@ import {
 export function EmployeeLeaveCard({ employeeId }: { employeeId: string }) {
   const t = useT();
   const { user } = useAuth();
-  const [year, setYear] = useState(new Date().getFullYear());
+  const [year, setYear] = useState(companyNow().getFullYear());
   const [adjusting, setAdjusting] = useState(false);
 
   const balance = useAbsenceBalanceQuery(employeeId, year);

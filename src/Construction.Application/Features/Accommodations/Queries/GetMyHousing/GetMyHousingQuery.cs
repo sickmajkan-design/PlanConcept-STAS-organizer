@@ -78,7 +78,7 @@ public class GetMyHousingQueryHandler : IRequestHandler<GetMyHousingQuery, MyHou
             return null;
         }
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         var stay = await _context.AccommodationStays
             .AsNoTracking()

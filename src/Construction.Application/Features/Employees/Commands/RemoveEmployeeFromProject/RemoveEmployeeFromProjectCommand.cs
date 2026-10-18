@@ -35,7 +35,7 @@ public class RemoveEmployeeFromProjectCommandHandler
         RemoveEmployeeFromProjectCommand request,
         CancellationToken cancellationToken)
     {
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         // The current posting, or the next one due to start. Ordering by start
         // date makes "remove them from this site" mean the same thing whether

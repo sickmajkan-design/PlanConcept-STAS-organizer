@@ -82,7 +82,7 @@ public class GetVehiclesQueryHandler : IRequestHandler<GetVehiclesQuery, PagedLi
 
         // A foreman or project manager sees their site's fleet — a vehicle on one of their
         // own projects, or assigned to them personally — never the whole company's.
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
         var ownProjects = await SiteScope.OwnProjectIdsAsync(_context, _currentUserService, today, cancellationToken);
 
         if (ownProjects is not null)

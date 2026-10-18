@@ -2,6 +2,7 @@ import { Button, ButtonGroup, Stack, TextField } from '@mui/material';
 
 import { useT } from '../../i18n/useI18n';
 import { monthOf, yearOf } from '../../pages/costs/monthWindow';
+import { companyNow } from '../../utils/companyTime';
 
 export interface LedgerPeriod {
   from: string;
@@ -26,9 +27,9 @@ export function LedgerPeriodBar({
         <Button onClick={() => onChange(ALL_TIME)} variant={!value.from && !value.to ? 'contained' : 'outlined'}>
           {t('costs.allTime')}
         </Button>
-        <Button onClick={() => onChange(monthOf(new Date()))}>{t('costs.thisMonth')}</Button>
-        <Button onClick={() => onChange(monthOf(new Date(), 1))}>{t('costs.lastMonth')}</Button>
-        <Button onClick={() => onChange(yearOf(new Date()))}>{t('costs.thisYear')}</Button>
+        <Button onClick={() => onChange(monthOf(companyNow()))}>{t('costs.thisMonth')}</Button>
+        <Button onClick={() => onChange(monthOf(companyNow(), 1))}>{t('costs.lastMonth')}</Button>
+        <Button onClick={() => onChange(yearOf(companyNow()))}>{t('costs.thisYear')}</Button>
       </ButtonGroup>
       <TextField
         type="date"

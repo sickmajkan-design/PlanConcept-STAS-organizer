@@ -35,6 +35,7 @@ import {
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
+import { fromDateTimeInput, toDateTimeInput } from '../../utils/companyTime';
 
 const emptyValues: TimeEntryFormValues = {
   employeeId: '',
@@ -54,19 +55,14 @@ const emptyValues: TimeEntryFormValues = {
 function toLocalInput(iso: string | null | undefined): string {
   if (!iso) return '';
 
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return '';
+  if (Number.isNaN(new Date(iso).getTime())) return '';
 
-  const pad = (value: number) => String(value).padStart(2, '0');
-
-  return (
-    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
-    `T${pad(date.getHours())}:${pad(date.getMinutes())}`
-  );
+  // What the organisation's clock read at that moment, not the browser's.
+  return toDateTimeInput(iso);
 }
 
 function toIso(localValue: string): string {
-  return new Date(localValue).toISOString();
+  return fromDateTimeInput(localValue);
 }
 
 /** `45.81234, 15.98123`, matching the format the project detail screen uses. */

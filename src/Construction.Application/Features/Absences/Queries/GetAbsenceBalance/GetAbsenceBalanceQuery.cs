@@ -58,7 +58,7 @@ public class GetAbsenceBalanceQueryHandler : IRequestHandler<GetAbsenceBalanceQu
             ? _currentUserService.EmployeeId ?? Guid.Empty
             : request.EmployeeId;
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
         var year = request.Year ?? today.Year;
 
         var employee = await _context.Employees

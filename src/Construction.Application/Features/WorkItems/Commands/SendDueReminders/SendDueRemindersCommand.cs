@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Enums;
 using MediatR;
@@ -44,7 +45,7 @@ public class SendDueRemindersCommandHandler
         CancellationToken cancellationToken)
     {
         var now = _dateTimeProvider.UtcNow;
-        var today = DateOnly.FromDateTime(now);
+        var today = CompanyTime.LocalDate(now);
         var cutoff = today.AddDays(request.WithinDays);
 
         var due = await _context.WorkItems

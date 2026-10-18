@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Materials.Models;
@@ -109,7 +110,7 @@ public class AdjustMaterialQuantityCommandHandler
                     MaterialId = request.Id,
                     Kind = MaterialMovementKind.Adjustment,
                     Quantity = request.Change,
-                    OccurredOn = DateOnly.FromDateTime(utcNow),
+                    OccurredOn = CompanyTime.LocalDate(utcNow),
                     Note = request.Reason?.Trim(),
                     RecordedByUserId = _currentUserService.UserId
                 });

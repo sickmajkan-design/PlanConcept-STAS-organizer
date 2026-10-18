@@ -40,7 +40,7 @@ public class CreateMaterialCommandValidator : MaterialCommandBaseValidator<Creat
 {
     public CreateMaterialCommandValidator(IDateTimeProvider dateTimeProvider)
     {
-        var today = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
+        var today = dateTimeProvider.Today;
 
         RuleFor(x => x.InvoiceNumber).MaximumLength(100);
         RuleFor(x => x.Supplier).MaximumLength(200);
@@ -123,7 +123,7 @@ public class CreateMaterialCommandHandler : IRequestHandler<CreateMaterialComman
                 throw new ForbiddenAccessException("You may not record stock movements.");
             }
 
-            var occurredOn = request.ReceivedOn ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            var occurredOn = request.ReceivedOn ?? _dateTimeProvider.Today;
 
             // With an invoice it is a delivery, priced from what was paid.
             // Without one it is an opening balance: stock that was already on

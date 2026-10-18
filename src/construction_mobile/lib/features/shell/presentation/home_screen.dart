@@ -21,6 +21,7 @@ import '../../work_items/data/models/work_item.dart';
 import '../../work_items/presentation/my_work_controller.dart';
 import '../../work_items/presentation/report_defect.dart';
 import 'today_data.dart';
+import '../../../core/time/company_time.dart';
 
 /// "Today": what this person is doing right now, and the one thing they may
 /// need to do about it. Everything else lives behind the avatar
@@ -369,7 +370,7 @@ class _GreetingRow extends StatelessWidget {
         ? user.firstName!.trim()
         // An account with no name behind it: the part of the e-mail before the @ greets better than all of it.
         : user.displayName.split('@').first;
-    final hour = DateTime.now().hour;
+    final hour = CompanyTime.now().hour;
 
     final greeting = hour < 11
         ? l10n.homeGreetingMorning(name)
@@ -377,7 +378,7 @@ class _GreetingRow extends StatelessWidget {
         ? l10n.homeGreetingDay(name)
         : l10n.homeGreetingEvening(name);
 
-    final today = DateTime.now();
+    final today = CompanyTime.now();
     final dateLine = l10n.homeDateLine(l10n.homeWeekday(today.weekday.toString()), formatDate(today));
 
     return Row(

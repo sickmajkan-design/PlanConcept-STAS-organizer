@@ -46,6 +46,7 @@ import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useT } from '../../i18n/useI18n';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { paths } from '../../routes/paths';
+import { companyNow } from '../../utils/companyTime';
 
 const MONTH_NAMES_KEYS = [
   'january', 'february', 'march', 'april', 'may', 'june',
@@ -230,7 +231,7 @@ function CreateLedgerDialog({
   const navigate = useNavigate();
   const create = useCreateLedger();
 
-  const today = new Date();
+  const today = companyNow();
   const [name, setName] = useState('');
   const [year, setYear] = useState(String(today.getFullYear()));
   const [month, setMonth] = useState(String(today.getMonth() + 1));

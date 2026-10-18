@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
@@ -38,7 +39,7 @@ public class SendRetentionEndedRemindersCommandHandler
         CancellationToken cancellationToken)
     {
         var now = _dateTimeProvider.UtcNow;
-        var today = DateOnly.FromDateTime(now);
+        var today = CompanyTime.LocalDate(now);
 
         // Unlike expiry, retention has no per-admin lead time — there is
         // nothing to give advance warning of, only a date that has already

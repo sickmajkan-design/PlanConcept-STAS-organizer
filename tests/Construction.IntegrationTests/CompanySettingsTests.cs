@@ -186,4 +186,106 @@ public class CompanySettingsTests
         Assert.Equal(HttpStatusCode.OK, (await foreman.GetAsync("/api/company-settings")).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await anonymous.GetAsync("/api/company-settings/branding")).StatusCode);
     }
+
+    // ---- the organisation's time zone -------------------------------------
+
+    /// <summary>Puts the zone back to the suite's UTC, in the database and in the running platform, whatever a test did.</summary>
+    private async Task RestoreUtcAsync()
+    {
+        using var superAdmin = _api.ClientAs(UserRole.SuperAdmin);
+        await superAdmin.PutAsync("/api/company-settings", AsJson(new { name = "QATEST Company d.o.o.", timeZoneId = "UTC" }));
+        Construction.Application.Common.CompanyTime.Configure("UTC", out _);
+    }
+
+    [Fact]
+    public async Task The_organisation_chooses_its_time_zone_and_the_whole_platform_takes_it_up_at_once()
+    {
+        try
+        {
+            using var superAdmin = _api.ClientAs(UserRole.SuperAdmin);
+
+            var put = await superAdmin.PutAsync(
+                "/api/company-settings",
+                AsJson(new { name = "QATEST Zone Co", timeZoneId = "Europe/Belgrade" }));
+            Assert.Equal(HttpStatusCode.OK, put.StatusCode);
+
+            var settings = await (await superAdmin.GetAsync("/api/company-settings")).Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal("Europe/Belgrade", settings.GetProperty("timeZoneId").GetString());
+
+            // The platform's own calendar moved with it, the day on the company's clock is Belgrade's.
+            Assert.Equal("Europe/Belgrade", Construction.Application.Common.CompanyTime.ZoneId);
+
+            // Anyone may be told which zone it is, before they have signed in: the panel and the app need it first.
+            using var anonymous = _api.AnonymousClient();
+            var branding = await (await anonymous.GetAsync("/api/company-settings/branding")).Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal("Europe/Belgrade", branding.GetProperty("timeZoneId").GetString());
+        }
+        finally
+        {
+            await RestoreUtcAsync();
+        }
+    }
+
+    [Fact]
+    public async Task A_zone_that_is_not_on_offer_is_refused_and_the_one_in_force_stays()
+    {
+        try
+        {
+            using var superAdmin = _api.ClientAs(UserRole.SuperAdmin);
+            await superAdmin.PutAsync("/api/company-settings", AsJson(new { name = "QATEST Zone Co", timeZoneId = "Europe/Belgrade" }));
+
+            // A Windows name, which PostgreSQL does not know, and a made-up one.
+            foreach (var bad in new[] { "Central Europe Standard Time", "Mars/Olympus" })
+            {
+                var put = await superAdmin.PutAsync("/api/company-settings", AsJson(new { name = "QATEST Zone Co", timeZoneId = bad }));
+                Assert.Equal(HttpStatusCode.BadRequest, put.StatusCode);
+            }
+
+            var settings = await (await superAdmin.GetAsync("/api/company-settings")).Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal("Europe/Belgrade", settings.GetProperty("timeZoneId").GetString());
+        }
+        finally
+        {
+            await RestoreUtcAsync();
+        }
+    }
+
+    [Fact]
+    public async Task Saving_the_profile_without_a_zone_leaves_the_zone_as_it_is()
+    {
+        try
+        {
+            using var superAdmin = _api.ClientAs(UserRole.SuperAdmin);
+            await superAdmin.PutAsync("/api/company-settings", AsJson(new { name = "QATEST Zone Co", timeZoneId = "Europe/Belgrade" }));
+
+            // A client that does not know of the setting.
+            await superAdmin.PutAsync("/api/company-settings", AsJson(new { name = "QATEST Zone Co renamed" }));
+
+            var settings = await (await superAdmin.GetAsync("/api/company-settings")).Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Equal("Europe/Belgrade", settings.GetProperty("timeZoneId").GetString());
+        }
+        finally
+        {
+            await RestoreUtcAsync();
+        }
+    }
+
+    [Fact]
+    public async Task Only_a_super_admin_may_change_the_zone_or_list_the_choices()
+    {
+        using var admin = _api.ClientAs(UserRole.Admin);
+
+        var put = await admin.PutAsync("/api/company-settings", AsJson(new { name = "QATEST Zone Co", timeZoneId = "Europe/Belgrade" }));
+        Assert.Equal(HttpStatusCode.Forbidden, put.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, (await admin.GetAsync("/api/company-settings/time-zones")).StatusCode);
+
+        using var superAdmin = _api.ClientAs(UserRole.SuperAdmin);
+        var zones = await (await superAdmin.GetAsync("/api/company-settings/time-zones")).Content.ReadFromJsonAsync<List<string>>();
+
+        Assert.NotNull(zones);
+        Assert.Contains("Europe/Belgrade", zones);
+        Assert.Contains("UTC", zones);
+        // Only names PostgreSQL knows: nothing like a Windows "Central Europe Standard Time".
+        Assert.All(zones, zone => Assert.True(zone == "UTC" || zone.Contains('/')));
+    }
 }

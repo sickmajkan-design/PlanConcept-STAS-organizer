@@ -43,7 +43,7 @@ internal sealed class BookEntryInputValidator<T> : AbstractValidator<T>
 {
     public BookEntryInputValidator(IDateTimeProvider dateTimeProvider)
     {
-        var today = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
+        var today = dateTimeProvider.Today;
 
         RuleFor(x => x.Kind).IsInEnum();
 

@@ -46,14 +46,14 @@ import { ExportZipButton } from "./ExportZipButton";
 import { ErrorState } from "./ErrorState";
 import { FirstUseHint, HintLine } from "./files/FirstUseHint";
 import { UploadAttachmentDialog } from "./UploadAttachmentDialog";
+import { daysUntil as calendarDaysUntil } from '../utils/formatting';
 
 /** How soon counts as "expiring soon" on a badge. */
 const SOON_DAYS = 30;
 
+/** Whole calendar days from the organisation's today to a `YYYY-MM-DD` date, negative once it has passed. */
 function daysUntil(date: string): number {
-  const target = new Date(`${date}T00:00`).getTime();
-
-  return Math.ceil((target - Date.now()) / 86_400_000);
+  return calendarDaysUntil(date);
 }
 
 function isRetained(retainUntil: string | null): boolean {

@@ -84,6 +84,17 @@ export function useBranchFilter(): BranchFilterValue {
 }
 
 /**
+ * The business unit the header has chosen, as the parameters the endpoints take. `people` is for what is about
+ * people's work (hours, pay), which has a choice of basis; everything else is the unit's own either way.
+ */
+export function useUnitParams(people = false): { branchId?: string; basis?: 'Employer' } {
+  const { branchId, basis } = useBranchFilter();
+  if (!branchId) return {};
+
+  return people && basis === 'Employer' ? { branchId, basis } : { branchId };
+}
+
+/**
  * A list query narrowed to the header's business unit, unless the caller already names one.
  * Without a unit selected the query is returned as it came.
  */

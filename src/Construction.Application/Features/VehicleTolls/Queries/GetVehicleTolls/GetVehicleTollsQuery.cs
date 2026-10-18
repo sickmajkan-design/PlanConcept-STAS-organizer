@@ -39,7 +39,7 @@ public class GetVehicleTollsQueryHandler
         GetVehicleTollsQuery request,
         CancellationToken cancellationToken)
     {
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         var tolls = await _context.VehicleTolls
             .AsNoTracking()

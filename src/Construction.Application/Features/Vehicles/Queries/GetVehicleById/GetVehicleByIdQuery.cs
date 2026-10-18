@@ -30,7 +30,7 @@ public class GetVehicleByIdQueryHandler : IRequestHandler<GetVehicleByIdQuery, V
         GetVehicleByIdQuery request,
         CancellationToken cancellationToken)
     {
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         var vehicle = await _context.Vehicles
             .AsNoTracking()

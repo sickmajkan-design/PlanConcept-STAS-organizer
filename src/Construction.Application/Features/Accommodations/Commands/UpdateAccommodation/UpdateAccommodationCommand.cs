@@ -53,7 +53,7 @@ public class UpdateAccommodationCommandHandler
         await AccommodationOccupancy.FillCurrentOccupantsAsync(
             _context,
             [dto],
-            DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+            _dateTimeProvider.Today,
             cancellationToken);
 
         return dto;

@@ -34,6 +34,16 @@ export function useCompanyBrandingQuery() {
   });
 }
 
+/** The zones to choose between. Only whoever may change the setting is allowed to ask. */
+export function useCompanyTimeZonesQuery(enabled: boolean) {
+  return useQuery({
+    queryKey: [...keys.all, 'time-zones'],
+    queryFn: () => companySettingsApi.timeZones(),
+    enabled,
+    staleTime: Infinity,
+  });
+}
+
 export function useUpdateCompanySettings() {
   return useResourceMutation(
     (input: CompanySettingsInput) => companySettingsApi.update(input),

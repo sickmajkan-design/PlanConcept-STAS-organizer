@@ -18,7 +18,7 @@ import { useListQueryState } from '../../hooks/useListQueryState';
 import { useOpenOnParam } from '../../hooks/useOpenOnParam';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n } from '../../i18n/useI18n';
-import { formatDate, formatMoney } from '../../utils/formatting';
+import { formatDate, formatMoney, todayCompany } from '../../utils/formatting';
 import { BranchDot } from '../../features/branches/BranchDot';
 import { InvoiceDocumentDialog } from './InvoiceDocumentDialog';
 import { NewInvoiceDialog } from './NewInvoiceDialog';
@@ -114,7 +114,7 @@ export function InvoicesPage() {
         headerAlign: 'right',
         renderCell: (params) => {
           const row = params.row;
-          const late = row.remainingAmount > 0 && !!row.dueDate && row.dueDate < new Date().toISOString().slice(0, 10);
+          const late = row.remainingAmount > 0 && !!row.dueDate && row.dueDate < todayCompany();
 
           return (
             <span style={{ fontWeight: row.remainingAmount > 0 ? 700 : 400, color: late ? '#d32f2f' : undefined }}>

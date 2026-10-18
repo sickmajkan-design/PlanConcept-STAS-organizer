@@ -1,10 +1,11 @@
 import {
   CheckCircleOutlined,
   ChevronRightOutlined,
+  CloseOutlined,
   ExpandLessOutlined,
   ExpandMoreOutlined,
 } from '@mui/icons-material';
-import { Box, Button, Card, CardContent, Collapse, IconButton, Stack, Typography } from '@mui/material';
+import { Box, Button, ButtonBase, Card, CardContent, Collapse, IconButton, Stack, Tooltip, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -61,6 +62,27 @@ const EMPTY_KEYS: SetupChecklistKey[] = ['companyProfile', 'noProjects', 'noEmpl
 
 const SKIPPED_STORAGE_KEY = 'onboarding.wizard.skipped';
 const COLLAPSED_STORAGE_KEY = 'onboarding.card.collapsed';
+const HIDDEN_STORAGE_KEY = 'onboarding.badge.hiddenAt';
+
+/** How many gaps there were when the person hid the badge, or null when it was never hidden. */
+function readHiddenAt(): number | null {
+  try {
+    const raw = window.localStorage.getItem(HIDDEN_STORAGE_KEY);
+    const value = raw === null ? Number.NaN : Number(raw);
+
+    return Number.isFinite(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeHiddenAt(count: number): void {
+  try {
+    window.localStorage.setItem(HIDDEN_STORAGE_KEY, String(count));
+  } catch {
+    // Storage blocked: the badge is shown again next visit.
+  }
+}
 
 /** What the person chose last: true folded, false open, null never chosen. */
 function readCollapsed(): boolean | null {
@@ -119,6 +141,7 @@ export function SetupChecklistCard() {
   const [skipped, setSkipped] = useState<string[]>(readSkipped);
   const [serverOpen, setServerOpen] = useState(false);
   const [chosen, setChosen] = useState<boolean | null>(readCollapsed);
+  const [hiddenAt, setHiddenAt] = useState<number | null>(readHiddenAt);
 
   const items = data?.items ?? [];
 
@@ -174,6 +197,64 @@ export function SetupChecklistCard() {
   const summary = showWizard
     ? t('onboarding.card.summaryWizard', { done: doneCount, total: WIZARD_STEPS.length })
     : t('onboarding.card.summaryList', { count: listed.length + serverProblems.length });
+
+  if (collapsed) {
+    // Hidden only until something new needs doing: a gap that is fixed does not bring it back, a new one does.
+    if (hiddenAt !== null && items.length <= hiddenAt && !showWizard) return null;
+
+    const label = showWizard
+      ? t('onboarding.badge.wizard', { done: doneCount, total: WIZARD_STEPS.length })
+      : t('onboarding.card.summaryList', { count: listed.length + serverProblems.length });
+
+    return (
+      <>
+        {/* One small line instead of a bar across the page: it is a task that is finished once, so it
+            does not stand in front of the numbers people open the page for. */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 0.5, mb: 1 }}>
+          <ButtonBase
+            onClick={toggle}
+            aria-expanded={false}
+            aria-label={`${label}. ${t('onboarding.card.expand')}`}
+            sx={(theme) => ({
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 0.25,
+              pl: 1.5,
+              pr: 1,
+              py: 0.5,
+              borderRadius: 999,
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              color: theme.palette.mode === 'dark' ? theme.palette.primary.light : theme.palette.primary.dark,
+              bgcolor: theme.palette.mode === 'dark' ? 'rgba(255, 138, 61, 0.16)' : 'rgba(230, 81, 0, 0.1)',
+              transition: 'transform 0.12s ease-out',
+              '&:active': { transform: 'scale(0.97)' },
+              '&:focus-visible': { outline: `2px solid ${theme.palette.primary.main}`, outlineOffset: 2 },
+              '@media (prefers-reduced-motion: reduce)': { transition: 'none', '&:active': { transform: 'none' } },
+            })}
+          >
+            {label}
+            <ChevronRightOutlined sx={{ fontSize: 18 }} />
+          </ButtonBase>
+          {!showWizard && (
+            <Tooltip title={t('onboarding.badge.hide')}>
+              <IconButton
+                size="small"
+                aria-label={t('onboarding.badge.hide')}
+                onClick={() => {
+                  setHiddenAt(items.length);
+                  writeHiddenAt(items.length);
+                }}
+              >
+                <CloseOutlined sx={{ fontSize: 16 }} />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
+        <ImportEmployeesDialog open={importing} onClose={() => setImporting(false)} />
+      </>
+    );
+  }
 
   return (
     <Card variant="outlined" sx={{ mb: 2 }}>

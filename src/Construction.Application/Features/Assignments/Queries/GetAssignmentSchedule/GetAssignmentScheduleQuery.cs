@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Branches;
 using Construction.Domain.Enums;
@@ -146,7 +147,7 @@ public class GetAssignmentScheduleQueryHandler
         GetAssignmentScheduleQuery request, CancellationToken cancellationToken)
     {
         var now = _clock.UtcNow;
-        var today = DateOnly.FromDateTime(now);
+        var today = CompanyTime.LocalDate(now);
         var days = request.Days is 7 or 14 or 28 ? request.Days : 14;
         var from = request.From ?? today.AddDays(-(((int)today.DayOfWeek + 6) % 7));
         var to = from.AddDays(days - 1);
@@ -188,10 +189,11 @@ public class GetAssignmentScheduleQueryHandler
             .Select(a => new { a.EmployeeId, a.Type, a.StartDate, a.EndDate })
             .ToListAsync(cancellationToken);
 
-        var dayStart = today.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        // Today on the company's clock, from its own midnight to the next: a day is 23 or 25 hours long when the clocks change.
+        var (dayStart, dayEnd) = CompanyTime.Window(today, today);
         var entries = await _context.TimeEntries
             .AsNoTracking()
-            .Where(t => ids.Contains(t.EmployeeId) && t.StartedAt >= dayStart && t.StartedAt < dayStart.AddDays(1))
+            .Where(t => ids.Contains(t.EmployeeId) && t.StartedAt >= dayStart && t.StartedAt < dayEnd)
             .Select(t => new { t.EmployeeId, t.ProjectId, t.StartedAt })
             .ToListAsync(cancellationToken);
 
@@ -220,7 +222,7 @@ public class GetAssignmentScheduleQueryHandler
             DayOfWeek.Sunday => p.WorksSundays,
             _ => true,
         });
-        var timeNow = TimeOnly.FromDateTime(now);
+        var timeNow = CompanyTime.LocalTimeOfDay(now);
 
         var rows = employees.Select(e =>
         {
@@ -243,7 +245,7 @@ public class GetAssignmentScheduleQueryHandler
             {
                 var shift = projectId is { } pid && shiftByProject.TryGetValue(pid, out var s) ? s : null;
                 status = shift is { } start
-                    && TimeOnly.FromDateTime(entry.StartedAt) > start.Add(LateTolerance)
+                    && CompanyTime.LocalTimeOfDay(entry.StartedAt) > start.Add(LateTolerance)
                     ? ScheduleDayStatus.Late
                     : ScheduleDayStatus.OnSite;
             }

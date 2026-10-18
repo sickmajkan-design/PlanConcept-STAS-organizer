@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Costs;
@@ -115,8 +116,8 @@ public class GetProjectFinanceSummaryQueryHandler
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException(nameof(Project), request.ProjectId);
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
-        var created = DateOnly.FromDateTime(project.CreatedAt);
+        var today = _dateTimeProvider.Today;
+        var created = CompanyTime.LocalDate(project.CreatedAt);
         var earliest = project.StartDate is { } start && start < created ? start : created;
         var toDateFrom = earliest.AddDays(-CostRules.MaxBackdatingDays);
 

@@ -76,6 +76,7 @@ import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { dateOnlyOffset, formatDate, formatMoney } from '../../utils/formatting';
+import { companyNow } from '../../utils/companyTime';
 
 /** What a place is called: its name, or its address when nobody named it. */
 export const accommodationTitle = (accommodation: Pick<Accommodation, 'name' | 'address'>) =>
@@ -1037,7 +1038,7 @@ export function ChargeDialog({
 
 /** First and last day of the month `offset` months from this one. */
 function monthWindow(offset: number): { from: string; to: string; label: Date } {
-  const now = new Date();
+  const now = companyNow();
   const first = new Date(now.getFullYear(), now.getMonth() + offset, 1);
   const last = new Date(first.getFullYear(), first.getMonth() + 1, 0);
   const pad = (n: number) => String(n).padStart(2, '0');

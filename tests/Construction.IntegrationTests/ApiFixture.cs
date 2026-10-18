@@ -68,6 +68,8 @@ public sealed class ApiFixture : IAsyncLifetime
                 builder.UseSetting("JwtSettings:AccessTokenLifetimeMinutes", "15");
                 builder.UseSetting("JwtSettings:RefreshTokenLifetimeDays", "7");
                 builder.UseSetting("FileStorage:RootPath", StorageRoot);
+                // UTC, so a test that builds its times in UTC means what it says (see DatabaseFixture).
+                builder.UseSetting("Company:TimeZone", "UTC");
 
                 // Enrolling a second factor is opt-in, so having the key here
                 // changes nothing for the other tests; it only lets MfaFlowTests

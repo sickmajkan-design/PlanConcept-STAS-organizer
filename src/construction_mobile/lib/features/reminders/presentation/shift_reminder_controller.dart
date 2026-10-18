@@ -11,6 +11,7 @@ import '../data/reminder_scheduler.dart';
 import '../data/shift_reminder_storage.dart';
 import '../domain/shift_reminder_planner.dart';
 import '../domain/shift_reminder_settings.dart';
+import '../../../core/time/company_time.dart';
 
 final reminderSchedulerProvider = Provider<ReminderScheduler>((ref) => LocalNotificationsScheduler());
 
@@ -75,7 +76,7 @@ final shiftReminderSyncProvider = Provider<void>((ref) {
 
   final slots = ShiftReminderPlanner.plan(
     settings: settings,
-    now: DateTime.now(),
+    now: CompanyTime.now(),
     isOnShift: shift.isRunning,
   );
 

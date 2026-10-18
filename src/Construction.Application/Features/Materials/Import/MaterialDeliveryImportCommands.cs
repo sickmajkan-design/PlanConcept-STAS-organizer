@@ -104,7 +104,7 @@ internal static class MaterialDeliveryImportSupport
             byName,
             (materialId, invoice, quantity, price, date) =>
                 existingKeys.Contains((materialId, invoice, quantity, price, date)),
-            DateOnly.FromDateTime(dateTimeProvider.UtcNow));
+            dateTimeProvider.Today);
     }
 }
 

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../l10n/app_locales.dart';
 import '../network/offline_data_status.dart';
 import '../utils/formatting.dart';
+import '../time/company_time.dart';
 
 /// A strip across the top of the app while the screens below are being drawn
 /// from the cache rather than from the server.
@@ -28,8 +29,8 @@ class OfflineDataBanner extends ConsumerWidget {
     }
 
     final scheme = Theme.of(context).colorScheme;
-    final local = savedAt.toLocal();
-    final now = DateTime.now();
+    final local = CompanyTime.wallClock(savedAt);
+    final now = CompanyTime.now();
     final isToday = local.year == now.year &&
         local.month == now.month &&
         local.day == now.day;

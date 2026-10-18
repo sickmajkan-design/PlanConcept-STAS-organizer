@@ -65,7 +65,7 @@ public class GetDocumentRequestsQueryHandler
 
         if (request.Overdue)
         {
-            var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            var today = _dateTimeProvider.Today;
 
             query = query.Where(r => r.DueDate != null && r.DueDate < today
                 && (r.Status == DocumentRequestStatus.Open || r.Status == DocumentRequestStatus.Returned));

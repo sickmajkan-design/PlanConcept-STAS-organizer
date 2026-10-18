@@ -1,3 +1,4 @@
+import { companyNow } from '../utils/companyTime';
 /**
  * ISO-8601 week numbering (Monday-start, week 1 is the week containing the
  * year's first Thursday) — the "KW" convention the German/Austrian-market
@@ -17,7 +18,7 @@ export function getIsoWeek(date: Date): { isoYear: number; isoWeek: number } {
 }
 
 /** The most recently completed ISO week — what a Monday submission is normally reporting on. */
-export function getLastCompletedIsoWeek(today: Date = new Date()): { isoYear: number; isoWeek: number } {
+export function getLastCompletedIsoWeek(today: Date = companyNow()): { isoYear: number; isoWeek: number } {
   const lastWeekDay = new Date(today);
   lastWeekDay.setDate(lastWeekDay.getDate() - 7);
   return getIsoWeek(lastWeekDay);

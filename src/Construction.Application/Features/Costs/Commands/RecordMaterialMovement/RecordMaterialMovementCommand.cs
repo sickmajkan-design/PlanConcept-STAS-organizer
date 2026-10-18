@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Costs.Models;
@@ -45,7 +46,7 @@ public class RecordMaterialMovementCommandValidator
 {
     public RecordMaterialMovementCommandValidator(IDateTimeProvider dateTimeProvider)
     {
-        var today = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
+        var today = dateTimeProvider.Today;
 
         RuleFor(x => x.MaterialId).NotEmpty();
         RuleFor(x => x.Kind).IsInEnum();
@@ -130,7 +131,7 @@ public class RecordMaterialMovementCommandHandler
         }
 
         var now = _dateTimeProvider.UtcNow;
-        var occurredOn = request.OccurredOn ?? DateOnly.FromDateTime(now);
+        var occurredOn = request.OccurredOn ?? CompanyTime.LocalDate(now);
 
         var movement = new MaterialMovement
         {

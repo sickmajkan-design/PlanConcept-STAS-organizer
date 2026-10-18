@@ -4,6 +4,7 @@ import { Chip } from '@mui/material';
 import type { AttachmentOwnerType } from '../api/types';
 import { useAttachmentsQuery } from '../features/attachments/useAttachments';
 import { useT } from '../i18n/useI18n';
+import { todayCompany } from '../utils/formatting';
 
 /**
  * How many documents a record has, for its header. It reads the same query as the document
@@ -22,7 +23,7 @@ export function DocumentCountChip({
 
   if (!data) return null;
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayCompany();
   const expired = data.filter((a) => a.expiresAt !== null && a.expiresAt < today).length;
   const label =
     t('attachments.countChip', { count: data.length }) +

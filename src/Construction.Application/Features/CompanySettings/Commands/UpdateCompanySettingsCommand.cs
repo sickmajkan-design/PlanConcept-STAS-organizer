@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.CompanySettings.Models;
@@ -30,6 +31,12 @@ public record UpdateCompanySettingsCommand : IRequest<CompanySettingsDto>
     public string? Email { get; init; }
 
     public string? WeeklyReportsForwardEmail { get; init; }
+
+    /// <summary>
+    /// The organisation's time zone (see <see cref="CompanyTimeZones"/>). Left out, it stays as it is: a client that
+    /// does not know of the setting must not reset it.
+    /// </summary>
+    public string? TimeZoneId { get; init; }
 }
 
 public class UpdateCompanySettingsCommandValidator : AbstractValidator<UpdateCompanySettingsCommand>
@@ -52,6 +59,10 @@ public class UpdateCompanySettingsCommandValidator : AbstractValidator<UpdateCom
             .MaximumLength(256)
             .EmailAddress().WithMessage("Not a valid email address.")
             .When(x => !string.IsNullOrWhiteSpace(x.Email));
+
+        RuleFor(x => x.TimeZoneId)
+            .Must(CompanyTimeZones.IsSupported).WithMessage("That time zone is not available.")
+            .When(x => !string.IsNullOrWhiteSpace(x.TimeZoneId));
 
         RuleFor(x => x.WeeklyReportsForwardEmail)
             .MaximumLength(256)
@@ -103,7 +114,15 @@ public class UpdateCompanySettingsCommandHandler
         settings.Email = request.Email?.Trim();
         settings.WeeklyReportsForwardEmail = request.WeeklyReportsForwardEmail?.Trim();
 
+        if (!string.IsNullOrWhiteSpace(request.TimeZoneId))
+        {
+            settings.TimeZoneId = request.TimeZoneId.Trim();
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
+
+        // From this moment the whole platform keeps the organisation's calendar in the zone it just chose.
+        CompanyTime.Configure(settings.TimeZoneId ?? CompanyTime.ZoneId, out _);
 
         return await _context.CompanySettings
             .AsNoTracking()

@@ -23,15 +23,15 @@ import { useState } from 'react';
 import { toApiError } from '../../api/apiError';
 import { certificatesApi, type Certificate } from '../../api/certificates';
 import { useT } from '../../i18n/useI18n';
-import { formatDate } from '../../utils/formatting';
+import { formatDate, todayCompany, toLocalDateOnly } from '../../utils/formatting';
 
 const SOON_DAYS = 30;
 
 function standing(validUntil: string | null): 'none' | 'expired' | 'soon' | 'ok' {
   if (!validUntil) return 'none';
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayCompany();
   if (validUntil < today) return 'expired';
-  const soon = new Date(Date.now() + SOON_DAYS * 864e5).toISOString().slice(0, 10);
+  const soon = toLocalDateOnly(new Date(Date.now() + SOON_DAYS * 864e5));
   return validUntil <= soon ? 'soon' : 'ok';
 }
 

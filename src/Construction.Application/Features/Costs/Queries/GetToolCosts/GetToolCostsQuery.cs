@@ -138,7 +138,7 @@ public class GetToolCostsQueryHandler
         // Revenue-out is a discrete-row source, not a dated chain: a loan is
         // priced across the overlap with the period, an open one only up to
         // today (mirrors GetToolRentalsOutSummaryQueryHandler's TotalValue).
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         var rentalsOut = await _context.ToolRentalsOut
             .AsNoTracking()

@@ -49,6 +49,7 @@ export const companySettingsFormSchema = z.object({
     .or(z.literal('')),
   email: optionalEmailString,
   weeklyReportsForwardEmail: optionalEmailString,
+  timeZoneId: z.string().min(1),
 });
 
 export type CompanySettingsFormValues = z.infer<typeof companySettingsFormSchema>;

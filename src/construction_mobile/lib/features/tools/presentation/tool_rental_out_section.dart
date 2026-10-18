@@ -13,6 +13,7 @@ import '../data/models/tool.dart';
 import '../data/models/tool_rental_out.dart';
 import '../data/tool_rental_out_repository.dart';
 import 'tools_controller.dart';
+import '../../../core/time/company_time.dart';
 
 final _toolRentalsOutProvider = FutureProvider.autoDispose
     .family<List<ToolRentalOut>, String>((ref, toolId) async {
@@ -431,7 +432,7 @@ class _DatePickerField extends StatelessWidget {
           ? () async {
               final picked = await showDatePicker(
                 context: context,
-                initialDate: value ?? DateTime.now(),
+                initialDate: value ?? CompanyTime.now(),
                 firstDate: DateTime(2000),
                 lastDate: DateTime(2100),
               );

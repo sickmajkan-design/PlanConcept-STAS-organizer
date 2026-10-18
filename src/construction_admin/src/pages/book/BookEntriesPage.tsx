@@ -57,6 +57,7 @@ import type { MessageKey } from '../../i18n/en';
 import { useI18n } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { formatDate, formatMoney } from '../../utils/formatting';
+import { companyNow } from '../../utils/companyTime';
 
 const PAGE_SIZE = 50;
 const bookKey = ['book'] as const;
@@ -64,7 +65,7 @@ const bookKey = ['book'] as const;
 type KindFilter = 'all' | BookEntryKind;
 
 function isoToday(): string {
-  const now = new Date();
+  const now = companyNow();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
@@ -126,7 +127,7 @@ export function BookEntriesPage() {
   const { branchId: filterBranchId } = useBranchFilter();
   const projects = useAllProjectsQuery();
 
-  const now = new Date();
+  const now = companyNow();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [kind, setKind] = useState<KindFilter>('all');

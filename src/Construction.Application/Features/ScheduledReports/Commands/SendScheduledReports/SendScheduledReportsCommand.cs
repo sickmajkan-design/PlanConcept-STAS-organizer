@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Exports.Queries;
 using Construction.Application.Features.Outbox;
@@ -41,7 +42,7 @@ public class SendScheduledReportsCommandHandler : IRequestHandler<SendScheduledR
     public async Task<int> Handle(SendScheduledReportsCommand request, CancellationToken cancellationToken)
     {
         var utcNow = _dateTimeProvider.UtcNow;
-        var today = DateOnly.FromDateTime(utcNow);
+        var today = CompanyTime.LocalDate(utcNow);
 
         var due = await _context.ScheduledReportSubscriptions
             .Where(s => s.NextRunAtUtc <= utcNow)

@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Branches;
 using Construction.Domain.Enums;
@@ -81,21 +82,21 @@ public static class ProjectLabourPricing
                 && t.EndedAt != null)
             .Where(t => projectId == null || t.ProjectId == projectId)
             .InBranch(branchId, basis)
-            .Where(t => DateOnly.FromDateTime(t.StartedAt) >= from
-                && DateOnly.FromDateTime(t.StartedAt) <= to)
+            .Where(t => DateOnly.FromDateTime(CompanyTime.InZone(t.StartedAt, CompanyTime.ZoneId)) >= from
+                && DateOnly.FromDateTime(CompanyTime.InZone(t.StartedAt, CompanyTime.ZoneId)) <= to)
             .Select(t => new
             {
                 t.EmployeeId,
                 ProjectId = t.ProjectId!.Value,
                 ProjectCountryCode = t.Project!.CountryCode,
-                Day = DateOnly.FromDateTime(t.StartedAt),
+                Day = DateOnly.FromDateTime(CompanyTime.InZone(t.StartedAt, CompanyTime.ZoneId)),
                 t.WorkType,
                 Minutes = (int)((t.EndedAt!.Value - t.StartedAt).TotalMinutes
                     - t.BreakMinutes),
                 Rate = context.EmployeeRates
                     .Where(r => r.EmployeeId == t.EmployeeId
-                        && r.StartDate <= DateOnly.FromDateTime(t.StartedAt)
-                        && (r.EndDate == null || r.EndDate >= DateOnly.FromDateTime(t.StartedAt)))
+                        && r.StartDate <= DateOnly.FromDateTime(CompanyTime.InZone(t.StartedAt, CompanyTime.ZoneId))
+                        && (r.EndDate == null || r.EndDate >= DateOnly.FromDateTime(CompanyTime.InZone(t.StartedAt, CompanyTime.ZoneId))))
                     .Select(r => new
                     {
                         r.RateType,

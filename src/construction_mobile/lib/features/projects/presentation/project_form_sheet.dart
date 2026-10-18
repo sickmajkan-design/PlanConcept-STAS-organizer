@@ -11,6 +11,7 @@ import '../../customers/data/customer_repository.dart';
 import '../data/models/project.dart';
 import '../data/project_repository.dart';
 import 'projects_controller.dart';
+import '../../../core/time/company_time.dart';
 
 final _allProjectsForParentPickerProvider =
     FutureProvider.autoDispose((ref) {
@@ -436,7 +437,7 @@ class _DatePickerField extends StatelessWidget {
           ? () async {
               final picked = await showDatePicker(
                 context: context,
-                initialDate: value ?? DateTime.now(),
+                initialDate: value ?? CompanyTime.now(),
                 firstDate: DateTime(2000),
                 lastDate: DateTime(2100),
               );

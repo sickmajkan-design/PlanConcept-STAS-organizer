@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -69,8 +70,8 @@ public static class BranchScope
 
         return basis == BranchBasis.Employer
             ? query.Where(t => t.Employee.BranchPeriods.Any(p => p.Branch.Path.Contains(token)
-                && p.StartDate <= DateOnly.FromDateTime(t.StartedAt)
-                && (p.EndDate == null || p.EndDate >= DateOnly.FromDateTime(t.StartedAt))))
+                && p.StartDate <= DateOnly.FromDateTime(CompanyTime.InZone(t.StartedAt, CompanyTime.ZoneId))
+                && (p.EndDate == null || p.EndDate >= DateOnly.FromDateTime(CompanyTime.InZone(t.StartedAt, CompanyTime.ZoneId)))))
             : query.Where(t => t.Project != null && t.Project.Branch!.Path.Contains(token));
     }
 

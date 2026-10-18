@@ -11,6 +11,7 @@ import '../../attachments/presentation/attachment_preview_screen.dart';
 import '../../document_requests/data/document_request_repository.dart';
 import '../../document_requests/presentation/document_request_screen.dart';
 import '../data/my_documents_repository.dart';
+import '../../../core/time/company_time.dart';
 
 /// "My documents": what the office shared with this person, and the vehicle they drive.
 ///
@@ -112,7 +113,7 @@ bool _isLapsed(DateTime? date) {
     return false;
   }
 
-  final today = DateTime.now();
+  final today = CompanyTime.now();
 
   return DateTime(
     date.year,
@@ -127,7 +128,7 @@ Color? _dateColor(BuildContext context, DateTime? date) {
     return null;
   }
 
-  final today = DateTime.now();
+  final today = CompanyTime.now();
   final days = DateTime(
     date.year,
     date.month,

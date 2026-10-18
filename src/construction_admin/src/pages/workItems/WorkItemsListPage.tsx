@@ -42,6 +42,7 @@ import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { formatDate } from '../../utils/formatting';
+import { todayCompany } from '../../utils/companyTime';
 
 interface WorkItemViewState {
   search: string;
@@ -332,10 +333,8 @@ function DueCell({ item }: { item: WorkItem }) {
     return <span>—</span>;
   }
 
-  const overdue =
-    !item.isFinished &&
-    new Date(`${item.dueDate}T00:00`).getTime() <
-      new Date(new Date().toDateString()).getTime();
+  // Overdue once the organisation's day of the deadline is over: before today, on its calendar.
+  const overdue = !item.isFinished && item.dueDate < todayCompany();
 
   return (
     <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>

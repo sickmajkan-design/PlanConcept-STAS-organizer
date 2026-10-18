@@ -29,11 +29,12 @@ import { BranchSelect } from '../branches/BranchSelect';
 import { useAllProjectsQuery } from '../projects/useProjects';
 import type { MessageKey } from '../../i18n/en';
 import { useI18n } from '../../i18n/useI18n';
+import { companyNow } from '../../utils/companyTime';
 
 const bookKey = ['book'] as const;
 
 function today(): string {
-  const now = new Date();
+  const now = companyNow();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
   return `${now.getFullYear()}-${month}-${day}`;

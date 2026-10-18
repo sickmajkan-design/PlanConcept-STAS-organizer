@@ -10,6 +10,7 @@ import '../../../core/utils/formatting.dart';
 import '../data/employee_repository.dart';
 import '../data/models/employee.dart';
 import 'employees_controller.dart';
+import '../../../core/time/company_time.dart';
 
 const _employeeTypes = ['Employee', 'Subcontractor'];
 
@@ -340,7 +341,7 @@ class _DatePickerField extends StatelessWidget {
           ? () async {
               final picked = await showDatePicker(
                 context: context,
-                initialDate: value ?? DateTime.now(),
+                initialDate: value ?? CompanyTime.now(),
                 firstDate: DateTime(1950),
                 lastDate: DateTime(2100),
               );

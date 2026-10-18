@@ -71,7 +71,7 @@ public class ReturnVehicleRentalOutCommandHandler
                     throw new ConflictException("This loan has already been returned.");
                 }
 
-                var endDate = request.EndDate ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+                var endDate = request.EndDate ?? _dateTimeProvider.Today;
 
                 if (endDate < rental.StartDate)
                 {

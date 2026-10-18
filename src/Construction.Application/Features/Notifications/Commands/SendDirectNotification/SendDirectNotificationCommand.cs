@@ -84,7 +84,7 @@ public class SendDirectNotificationCommandHandler : IRequestHandler<SendDirectNo
         // ForemanAndAbove.
         if (_currentUserService.Role is UserRole.Foreman)
         {
-            var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            var today = _dateTimeProvider.Today;
             var callerEmployeeId = _currentUserService.EmployeeId;
 
             var callerProjectIds = await _context.EmployeeProjects

@@ -1,4 +1,5 @@
 using System.Linq.Expressions;
+using Construction.Application.Common;
 
 namespace Construction.Application.Features.CompanySettings.Models;
 
@@ -26,6 +27,9 @@ public class CompanySettingsDto
 
     public bool HasLogo { get; init; }
 
+    /// <summary>The organisation's time zone, as an IANA id: the one the platform keeps its calendar in.</summary>
+    public string TimeZoneId { get; init; } = CompanyTime.ZoneId;
+
     public DateTime? UpdatedAt { get; init; }
 }
 
@@ -39,6 +43,12 @@ public class PublicCompanyBrandingDto
     public string? Name { get; init; }
 
     public bool HasLogo { get; init; }
+
+    /// <summary>
+    /// The organisation's time zone. Not sensitive, and needed before sign-in has finished: the panel and the app
+    /// take their idea of "today" from it.
+    /// </summary>
+    public string TimeZoneId { get; init; } = CompanyTime.ZoneId;
 }
 
 public static class CompanySettingsMapping
@@ -55,6 +65,7 @@ public static class CompanySettingsMapping
             Email = settings.Email,
             WeeklyReportsForwardEmail = settings.WeeklyReportsForwardEmail,
             HasLogo = settings.LogoStorageKey != null,
+            TimeZoneId = settings.TimeZoneId ?? CompanyTime.ZoneId,
             UpdatedAt = settings.UpdatedAt,
         };
 
@@ -63,10 +74,12 @@ public static class CompanySettingsMapping
         {
             Name = settings.Name,
             HasLogo = settings.LogoStorageKey != null,
+            TimeZoneId = settings.TimeZoneId ?? CompanyTime.ZoneId,
         };
 
     /// <summary>The "nobody has configured this yet" answer, not a 404.</summary>
-    public static readonly CompanySettingsDto Empty = new();
+    // Properties, not fields: the zone in them is the one in force when they are asked for, not when the type loaded.
+    public static CompanySettingsDto Empty => new();
 
-    public static readonly PublicCompanyBrandingDto EmptyBranding = new();
+    public static PublicCompanyBrandingDto EmptyBranding => new();
 }

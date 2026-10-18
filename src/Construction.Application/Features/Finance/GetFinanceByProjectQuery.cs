@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Branches;
 using Construction.Application.Features.Costs.Queries.GetCompanyCosts;
@@ -289,9 +290,9 @@ public class GetFinanceByProjectQueryHandler : IRequestHandler<GetFinanceByProje
                     && t.ProjectId != null
                     && t.EndedAt != null
                     && employeeIds.Contains(t.EmployeeId)
-                    && DateOnly.FromDateTime(t.StartedAt) >= from
-                    && DateOnly.FromDateTime(t.StartedAt) <= to)
-                .Select(t => new { t.EmployeeId, Day = DateOnly.FromDateTime(t.StartedAt) })
+                    && DateOnly.FromDateTime(CompanyTime.InZone(t.StartedAt, CompanyTime.ZoneId)) >= from
+                    && DateOnly.FromDateTime(CompanyTime.InZone(t.StartedAt, CompanyTime.ZoneId)) <= to)
+                .Select(t => new { t.EmployeeId, Day = DateOnly.FromDateTime(CompanyTime.InZone(t.StartedAt, CompanyTime.ZoneId)) })
                 .Distinct()
                 .ToListAsync(cancellationToken))
             .Select(t => (t.EmployeeId, t.Day))

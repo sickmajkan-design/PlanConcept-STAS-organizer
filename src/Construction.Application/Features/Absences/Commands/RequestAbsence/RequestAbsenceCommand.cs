@@ -44,7 +44,7 @@ public class RequestAbsenceCommandValidator : AbstractValidator<RequestAbsenceCo
 {
     public RequestAbsenceCommandValidator(IDateTimeProvider dateTimeProvider)
     {
-        var today = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
+        var today = dateTimeProvider.Today;
 
         RuleFor(x => x.Type).IsInEnum();
 

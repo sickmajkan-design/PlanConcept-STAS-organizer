@@ -1,4 +1,5 @@
 import '../../l10n/app_localizations.dart';
+import '../time/company_time.dart';
 
 /// Turns API enum names such as `ProjectManager` or `OnLeave` into
 /// `Project Manager` / `On Leave` for display.
@@ -39,7 +40,7 @@ String formatDate(DateTime? value) {
     return '—';
   }
 
-  final local = value.isUtc ? value.toLocal() : value;
+  final local = value.isUtc ? CompanyTime.wallClock(value) : value;
   return '${_twoDigits(local.day)}.${_twoDigits(local.month)}.${local.year}.';
 }
 
@@ -48,7 +49,7 @@ String formatDateTime(DateTime? value) {
     return '—';
   }
 
-  final local = value.isUtc ? value.toLocal() : value;
+  final local = value.isUtc ? CompanyTime.wallClock(value) : value;
   return '${formatDate(local)} ${_twoDigits(local.hour)}:${_twoDigits(local.minute)}';
 }
 
@@ -58,7 +59,7 @@ String formatTime(DateTime? value) {
     return '—';
   }
 
-  final local = value.isUtc ? value.toLocal() : value;
+  final local = value.isUtc ? CompanyTime.wallClock(value) : value;
   return '${_twoDigits(local.hour)}:${_twoDigits(local.minute)}';
 }
 

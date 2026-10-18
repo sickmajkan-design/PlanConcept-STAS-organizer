@@ -1,3 +1,5 @@
+> **Ažurirano 2026-10-18:** widgeti Finansije pregled, Finansijska statistika, Trend troškova, Trend potrošnje i Na šta odlazi novac spojeni su u jedan widget **Finansije** s tabovima Pregled, Trend i Struktura (`FinanceWidget.tsx`). Stari tipovi se pri čitanju rasporeda zamjenjuju jednim (`GetDashboardLayoutQuery.ReplaceLegacyFinance`). Ostatak ovog plana opisuje prvobitnu podjelu.
+
 # Widgeti troškova i finansija — logika i backlog
 
 Autor: Product Owner pogled, 2026-09-24. Status: **ODLUKE VLASNIKA UNESENE (sekcija 8) — spremno za razradu faze 1.**

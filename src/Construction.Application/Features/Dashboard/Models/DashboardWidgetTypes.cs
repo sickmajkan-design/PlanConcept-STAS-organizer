@@ -31,6 +31,7 @@ public static class DashboardWidgetTypes
     public const string ActiveProjects = nameof(ActiveProjects);
     public const string ArticleOrders = nameof(ArticleOrders);
     public const string BranchOverview = nameof(BranchOverview);
+    public const string Finance = nameof(Finance);
 
     public static readonly IReadOnlyList<string> All =
     [
@@ -43,19 +44,43 @@ public static class DashboardWidgetTypes
         NeedsAttention,
         LiveMap,
         TodayAttendance,
-        CostTrend,
-        FinanceOverview,
+        Finance,
         IncomeVsExpense,
         TopProjectsByExpense,
         ProfitByProject,
-        CostBreakdown,
         ProjectFocus,
         ProjectsOverBudget,
-        SpendingTrend,
-        FinanceStatistics,
         AbsenceRequests,
         ActiveProjects,
         ArticleOrders,
         BranchOverview,
+    ];
+
+    /// <summary>
+    /// The five finance cards that were folded into <see cref="Finance"/>. They are still accepted when a layout
+    /// is saved, so a browser that has not reloaded yet does not get an error, and are replaced by the one card
+    /// whenever a layout is read.
+    /// </summary>
+    public static readonly IReadOnlyList<string> LegacyFinance =
+    [
+        CostTrend,
+        FinanceOverview,
+        CostBreakdown,
+        SpendingTrend,
+        FinanceStatistics,
+    ];
+
+    /// <summary>
+    /// What a first visit gets: what is looked at every day, in the order it is read. Everything else is one
+    /// press away in "Add widget". A longer board was nearly 9,000 px tall on a phone.
+    /// </summary>
+    public static readonly IReadOnlyList<string> Default =
+    [
+        NeedsAttention,
+        TodayAttendance,
+        CompanyKpi,
+        ArticleOrders,
+        Finance,
+        AbsenceRequests,
     ];
 }

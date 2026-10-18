@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/absence_repository.dart';
 import '../data/models/schedule.dart';
 import '../../auth/presentation/auth_controller.dart';
+import '../../../core/time/company_time.dart';
 
 /// How far ahead the phone looks. Two weeks is what fits on the screen and
 /// what a worker is actually asking about; the board on the admin panel is
@@ -15,7 +16,7 @@ class MyScheduleController extends AsyncNotifier<Schedule> {
   Future<Schedule> build() {
     ref.watch(currentUserProvider.select((user) => user?.id));
 
-    final now = DateTime.now();
+    final now = CompanyTime.now();
     final today = DateTime(now.year, now.month, now.day);
 
     return ref.read(absenceRepositoryProvider).fetchSchedule(

@@ -121,7 +121,7 @@ public class ImportEmployeesCommandHandler : IRequestHandler<ImportEmployeesComm
         ImportEmployeesCommand request,
         CancellationToken cancellationToken)
     {
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         var existing = await _context.Employees.ToListAsync(cancellationToken);
 

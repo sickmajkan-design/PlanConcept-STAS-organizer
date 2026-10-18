@@ -45,5 +45,8 @@ public class CompanySettingsConfiguration : IEntityTypeConfiguration<CompanySett
 
         builder.Property(c => c.LogoContentType)
             .HasMaxLength(128);
+
+        builder.Property(c => c.TimeZoneId)
+            .HasMaxLength(64);
     }
 }

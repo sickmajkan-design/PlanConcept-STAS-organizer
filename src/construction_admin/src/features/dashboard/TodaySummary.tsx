@@ -6,11 +6,12 @@ import type { MessageKey } from '../../i18n/en';
 import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { useTimeEntriesQuery } from '../timeEntries/useTimeEntries';
-import { DESTINATIONS, useAttentionGroups } from './widgets/NeedsAttentionWidget';
+import type { SinceNote } from './useSinceYesterday';
+import { DESTINATIONS, SUMMARY_GROUPS, useAttentionGroups } from './widgets/NeedsAttentionWidget';
+import { SinceText } from './widgets/widgetUi';
 
 /** The same page size the attendance widget uses, so both share one request. */
 const ON_SITE_PAGE_SIZE = 100;
-const SHOWN_GROUPS = 3;
 
 interface RowProps {
   count: number;
@@ -18,9 +19,10 @@ interface RowProps {
   to: string;
   /** Something is waiting on this person; the number takes the warning colour. */
   waiting?: boolean;
+  since?: SinceNote | null;
 }
 
-function Row({ count, label, to, waiting }: RowProps) {
+function Row({ count, label, to, waiting, since }: RowProps) {
   return (
     <Box
       component={Link}
@@ -54,6 +56,7 @@ function Row({ count, label, to, waiting }: RowProps) {
       <Typography component="span" variant="body2" sx={{ flex: 1, minWidth: 0, overflowWrap: 'anywhere' }}>
         {label}
       </Typography>
+      <SinceText note={since ?? null} />
       <ChevronRightOutlined fontSize="small" sx={{ color: 'text.disabled', flexShrink: 0 }} />
     </Box>
   );
@@ -67,10 +70,10 @@ function Row({ count, label, to, waiting }: RowProps) {
 export function TodaySummary() {
   const t = useT();
   const onSite = useTimeEntriesQuery({ pageNumber: 1, pageSize: ON_SITE_PAGE_SIZE, openOnly: true });
-  const { groups, isLoading } = useAttentionGroups();
+  const { groups, sinceFor, isLoading } = useAttentionGroups();
 
   const onShift = onSite.data?.totalCount ?? 0;
-  const waiting = groups.filter((g) => g.count > 0).slice(0, SHOWN_GROUPS);
+  const waiting = groups.filter((g) => g.count > 0).slice(0, SUMMARY_GROUPS);
   const loading = isLoading || onSite.isLoading;
 
   return (
@@ -90,6 +93,7 @@ export function TodaySummary() {
               label={t(`attention.${group.key}` as MessageKey)}
               to={DESTINATIONS[group.key] ?? paths.home}
               waiting
+              since={sinceFor(group.key)}
             />
           ))}
           {waiting.length === 0 && (

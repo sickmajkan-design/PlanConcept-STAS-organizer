@@ -100,7 +100,7 @@ public class SetEmployeeScheduleCommandHandler : IRequestHandler<SetEmployeeSche
             }
         }
 
-        var today = DateOnly.FromDateTime(_clock.UtcNow);
+        var today = _clock.Today;
         var rows = await PostingWriter.LoadAsync(_context, request.EmployeeId, request.From, request.To, cancellationToken);
         var before = rows.Select(r => PostingWriter.ToSpan(r)).ToList();
         var todayBefore = before.Where(s => s.Covers(today)).Select(s => s.ProjectId).ToHashSet();
@@ -193,7 +193,7 @@ public class SwapEmployeeSchedulesCommandHandler : IRequestHandler<SwapEmployeeS
         var b = await _context.Employees.Include(e => e.User).FirstOrDefaultAsync(e => e.Id == request.EmployeeBId, cancellationToken)
             ?? throw new NotFoundException(nameof(Employee), request.EmployeeBId);
 
-        var today = DateOnly.FromDateTime(_clock.UtcNow);
+        var today = _clock.Today;
         var rowsA = await PostingWriter.LoadAsync(_context, a.Id, request.From, request.To, cancellationToken);
         var rowsB = await PostingWriter.LoadAsync(_context, b.Id, request.From, request.To, cancellationToken);
         var beforeA = rowsA.Select(PostingWriter.ToSpan).ToList();

@@ -45,6 +45,7 @@ import { NeedsDialog, ReplaceDialog, SiteDialog, WorkerDialog, type PlanningActi
 import { TimelineView } from './TimelineView';
 import { PlanningTour } from './PlanningTour';
 import { fetchWindow, shortDate, WEEKDAYS } from './planningUi';
+import { companyNow } from '../../utils/companyTime';
 
 type View = 'day' | 'timeline' | 'need' | 'list' | 'cost';
 
@@ -54,8 +55,8 @@ type Panel =
   | { kind: 'replace'; item: AwayItem }
   | { kind: 'needs'; projectId: string };
 
-const todayLocal = (): string => {
-  const d = new Date();
+const todayCompany = (): string => {
+  const d = companyNow();
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 };
@@ -77,7 +78,7 @@ function rangeFor(mode: RangeMode, anchor: string, current: { from: string; to: 
 export function PlanningPage() {
   const { t, locale } = useI18n();
   const navigate = useNavigate();
-  const today = useMemo(todayLocal, []);
+  const today = useMemo(todayCompany, []);
 
   // The timeline is a wide grid meant for a desk; on a phone the answer people come
   // for is "who is on which site today", which the by-site view gives in one column.

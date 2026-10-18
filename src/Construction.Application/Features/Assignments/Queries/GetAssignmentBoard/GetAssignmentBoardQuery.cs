@@ -41,7 +41,7 @@ public class GetAssignmentBoardQueryHandler
         GetAssignmentBoardQuery request,
         CancellationToken cancellationToken)
     {
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         var employees = await _context.Employees
             .AsNoTracking()

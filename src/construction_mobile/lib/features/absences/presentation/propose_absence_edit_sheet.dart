@@ -9,6 +9,7 @@ import '../../../core/utils/formatting.dart';
 import '../data/models/absence.dart';
 import 'my_absences_controller.dart';
 import 'my_schedule_controller.dart';
+import '../../../core/time/company_time.dart';
 
 /// How far ahead the picker allows. Mirrors `AbsenceRules.MaxLeadDays`.
 const _maxLeadDays = 550;
@@ -169,7 +170,7 @@ class _ProposeAbsenceEditSheetState
   }
 
   Future<void> _pickRange() async {
-    final today = DateTime.now();
+    final today = CompanyTime.now();
     final start = DateTime(today.year, today.month, today.day);
 
     final picked = await showDateRangePicker(

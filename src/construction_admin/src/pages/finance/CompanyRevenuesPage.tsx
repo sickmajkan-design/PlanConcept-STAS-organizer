@@ -39,6 +39,7 @@ import { useAllVehiclesQuery } from '../../features/vehicles/useVehicles';
 import type { MessageKey } from '../../i18n/en';
 import { useI18n } from '../../i18n/useI18n';
 import { formatDate, formatMoney } from '../../utils/formatting';
+import { companyNow } from '../../utils/companyTime';
 
 const PAGE_SIZE = 50;
 const listKey = ['finance', 'company-revenues'] as const;
@@ -155,7 +156,7 @@ export function CompanyRevenuesPage() {
 }
 
 function today(): string {
-  const now = new Date();
+  const now = companyNow();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
   return `${now.getFullYear()}-${month}-${day}`;

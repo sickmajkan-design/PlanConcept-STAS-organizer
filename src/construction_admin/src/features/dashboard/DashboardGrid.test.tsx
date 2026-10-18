@@ -63,7 +63,7 @@ describe('HomePage dashboard', () => {
     const layout = {
       widgets: [
         { id: '1', type: 'CompanyKpi', column: 0, order: 0 },
-        { id: '2', type: 'CostTrend', column: 1, order: 0 },
+        { id: '2', type: 'Finance', x: 6, y: 0, w: 6, h: 12, settings: { tab: 'trend', trend: 'months' } },
       ],
     };
 
@@ -136,7 +136,7 @@ describe('HomePage dashboard', () => {
   });
 
   describe('finance widgets', () => {
-    const layout = { widgets: [{ id: '1', type: 'FinanceOverview', column: 0, order: 0 }] };
+    const layout = { widgets: [{ id: '1', type: 'Finance', x: 0, y: 0, w: 6, h: 12 }] };
     const totals = (revenue: number, expense: number) => ({
       from: '2026-09-01', to: '2026-09-30', revenue, expense, revenueProject: revenue, revenueOther: 0,
       profit: revenue - expense, marginPercent: revenue > 0 ? 20 : null,
@@ -267,6 +267,74 @@ describe('HomePage dashboard', () => {
     });
   });
 
+  describe('the finance card', () => {
+    const totals = (revenue: number, expense: number) => ({
+      from: '2026-09-01', to: '2026-09-30', revenue, expense, revenueProject: revenue, revenueOther: 0,
+      profit: revenue - expense, marginPercent: revenue > 0 ? 20 : null,
+    });
+
+    beforeEach(() => {
+      network.reply('/dashboard-layout', 200, { widgets: [{ id: '1', type: 'Finance', x: 0, y: 0, w: 6, h: 12 }] });
+      network.reply('/finance/series', 200, {
+        granularity: 'Day', includesLabour: true, buckets: [],
+        totals: totals(1000, 800), previous: totals(500, 800),
+      });
+      network.reply('/finance/breakdown', 200, {
+        from: '2026-09-01', to: '2026-09-30', projectId: null, includesLabour: true, total: 1000,
+        items: [{ kind: 'Labour', amount: 600 }, { kind: 'Material', amount: 400 }],
+      });
+      network.reply('/projects', 200, { items: [], totalCount: 0, pageNumber: 1, pageSize: 1, totalPages: 0 });
+    });
+
+    it('opens on the overview, offers all three tabs to an account with the finance right, and moves with the arrow keys', async () => {
+      const user = userEvent.setup();
+      renderScreen(<HomePage />, { user: signedIn('SuperAdmin') });
+
+      const overview = await screen.findByRole('tab', { name: 'Overview' }, { timeout: 5000 });
+      expect(overview.getAttribute('aria-selected')).toBe('true');
+      expect(screen.getByRole('tab', { name: 'Trend' })).toBeDefined();
+      expect(screen.getByRole('tab', { name: 'Structure' })).toBeDefined();
+      expect(await screen.findByText('Income')).toBeDefined();
+
+      overview.focus();
+      await user.keyboard('{ArrowRight}');
+      expect(screen.getByRole('tab', { name: 'Trend' }).getAttribute('aria-selected')).toBe('true');
+    });
+
+    it('asks for what a tab shows only when the tab is opened, and keeps the tab in the saved layout', async () => {
+      const user = userEvent.setup();
+      renderScreen(<HomePage />, { user: signedIn('SuperAdmin') });
+
+      await screen.findByText('Income', undefined, { timeout: 5000 });
+      expect(network.calls.some((c) => c.url.includes('/finance/breakdown'))).toBe(false);
+
+      await user.click(screen.getByRole('tab', { name: 'Structure' }));
+      expect(await screen.findByText('1,000.00')).toBeDefined();
+      expect(network.calls.some((c) => c.url.includes('/finance/breakdown'))).toBe(true);
+
+      await waitFor(() => {
+        const save = network.calls.find((c) => c.method === 'PUT' && c.url.includes('/dashboard-layout'));
+        expect(save).toBeDefined();
+        const widgets = (save!.body as { widgets: { settings?: Record<string, string> }[] }).widgets;
+        expect(widgets[0]!.settings).toEqual({ tab: 'structure' });
+      }, { timeout: 5000 });
+    });
+  });
+
+  describe('widgets that have nothing to show', () => {
+    it('shrink to one line saying so, instead of a card with a sentence in an empty space', async () => {
+      network.reply('/dashboard-layout', 200, { widgets: [{ id: '1', type: 'DocumentExpiry', x: 0, y: 0, w: 6, h: 12 }] });
+      network.reply('/attachments/expiring', 200, []);
+
+      renderScreen(<HomePage />, { user: signedIn('SuperAdmin') });
+
+      expect(await screen.findByText('Nothing expiring soon.', undefined, { timeout: 5000 })).toBeDefined();
+      // The strip has the title and the sentence, and none of the card's body (no "View all" link under it).
+      expect(screen.getByRole('heading', { name: 'Documents expiring soon' })).toBeDefined();
+      expect(screen.queryByRole('link', { name: 'View all' })).toBeNull();
+    });
+  });
+
   describe('widgets with settings', () => {
     const PROJECT_ID = '22222222-2222-2222-2222-222222222222';
     const money = (revenue: number, expense: number) => ({
@@ -278,7 +346,7 @@ describe('HomePage dashboard', () => {
     };
 
     it('shows what the money goes on, with the pieces adding up to the total shown above them', async () => {
-      network.reply('/dashboard-layout', 200, { widgets: [{ id: '1', type: 'CostBreakdown', x: 0, y: 0, w: 6, h: 12 }] });
+      network.reply('/dashboard-layout', 200, { widgets: [{ id: '1', type: 'Finance', x: 0, y: 0, w: 6, h: 12, settings: { tab: 'structure' } }] });
       network.reply('/projects', 200, projectsPage);
       network.reply('/finance/breakdown', 200, {
         from: '2026-09-01', to: '2026-09-30', projectId: null, includesLabour: true, total: 1000,
@@ -301,7 +369,7 @@ describe('HomePage dashboard', () => {
 
     it('asks for one project only when a project is chosen in its settings', async () => {
       network.reply('/dashboard-layout', 200, {
-        widgets: [{ id: '1', type: 'CostBreakdown', x: 0, y: 0, w: 6, h: 12, settings: { projectId: PROJECT_ID } }],
+        widgets: [{ id: '1', type: 'Finance', x: 0, y: 0, w: 6, h: 12, settings: { tab: 'structure', projectId: PROJECT_ID } }],
       });
       network.reply('/projects', 200, projectsPage);
       network.reply('/finance/breakdown', 200, {
@@ -416,7 +484,7 @@ describe('HomePage dashboard', () => {
     });
 
     it('states the average of the trend as the period total over its points', async () => {
-      network.reply('/dashboard-layout', 200, { widgets: [{ id: '1', type: 'SpendingTrend', x: 0, y: 0, w: 6, h: 12 }] });
+      network.reply('/dashboard-layout', 200, { widgets: [{ id: '1', type: 'Finance', x: 0, y: 0, w: 6, h: 12, settings: { tab: 'trend', trend: 'period' } }] });
       network.reply('/finance/series', 200, {
         granularity: 'Day', includesLabour: true,
         buckets: [
@@ -440,8 +508,8 @@ describe('HomePage dashboard', () => {
     it('gives an account with only the statistics right the percentages and never asks for an amount', async () => {
       network.reply('/dashboard-layout', 200, {
         widgets: [
-          { id: '1', type: 'FinanceStatistics', x: 0, y: 0, w: 6, h: 12 },
-          { id: '2', type: 'FinanceOverview', x: 6, y: 0, w: 6, h: 12 },
+          // An account that may see only percentages gets them from the one finance card, with no tabs.
+          { id: '1', type: 'Finance', x: 0, y: 0, w: 6, h: 12, settings: { tab: 'trend' } },
           { id: '3', type: 'IncomeVsExpense', x: 0, y: 12, w: 6, h: 12 },
         ],
       });
@@ -464,7 +532,7 @@ describe('HomePage dashboard', () => {
       expect(screen.getByLabelText('Period')).toBeDefined();
 
       // The amount widgets on the same board are never drawn, and never call the server.
-      expect(screen.queryByText(/Finances — overview/)).toBeNull();
+      expect(screen.queryByRole('tablist')).toBeNull();
       expect(network.calls.some((c) => c.url.includes('/finance/series'))).toBe(false);
       expect(network.calls.some((c) => c.url.includes('/finance/by-project'))).toBe(false);
     });
@@ -477,9 +545,9 @@ describe('HomePage dashboard', () => {
 
       await user.click(await screen.findByRole('button', { name: 'Add widget' }, { timeout: 5000 }));
 
-      expect(await screen.findByText('Finance statistics')).toBeDefined();
-      expect(screen.queryByText('Finances — overview')).toBeNull();
-      expect(screen.queryByText('Spending trend')).toBeNull();
+      // The finance card is offered (it gives them percentages); the ones that are all amounts are not.
+      expect(await screen.findByText('Finance', { selector: '.MuiListItemText-primary' })).toBeDefined();
+      expect(screen.queryByText('Income vs spending', { selector: '.MuiListItemText-primary' })).toBeNull();
     });
   });
 });

@@ -49,7 +49,14 @@ public class CompanySettingsController : ApiControllerBase
         return Ok(await Mediator.Send(command, cancellationToken));
     }
 
-    /// <summary>Name and whether a logo exists — nothing else. No token required.</summary>
+    /// <summary>The time zones an organisation can choose between. Only whoever may change the setting needs it.</summary>
+    [HttpGet("/api/v{version:apiVersion}/company-settings/time-zones")]
+    [HttpGet("/api/company-settings/time-zones")]
+    [Authorize(Policy = Policies.SuperAdminOnly)]
+    [ProducesResponseType(typeof(IReadOnlyList<string>), StatusCodes.Status200OK)]
+    public ActionResult<IReadOnlyList<string>> GetTimeZones() => Ok(Application.Common.CompanyTimeZones.All);
+
+    /// <summary>Name, whether a logo exists and the time zone — nothing else sensitive. No token required.</summary>
     [HttpGet("/api/v{version:apiVersion}/company-settings/branding")]
     [HttpGet("/api/company-settings/branding")]
     [AllowAnonymous]

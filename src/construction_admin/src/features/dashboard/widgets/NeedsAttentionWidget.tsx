@@ -1,17 +1,21 @@
-import { useQuery } from '@tanstack/react-query';
-import { Box } from '@mui/material';
+import { Box, useMediaQuery, useTheme } from '@mui/material';
 
-import { attentionApi, type AttentionGroup, type AttentionItem } from '../../../api/attention';
+import type { AttentionGroup, AttentionItem } from '../../../api/attention';
 import type { MessageKey } from '../../../i18n/en';
 import { useT } from '../../../i18n/useI18n';
 import { paths } from '../../../routes/paths';
 import { formatDate } from '../../../utils/formatting';
 import { useExpiringDocumentsQuery } from '../../attachments/useAttachments';
+import { useAttentionQuery } from '../useAttention';
+import { useSinceYesterday } from '../useSinceYesterday';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
-import { EmptyNote, InsetList, InsetRow } from './widgetUi';
+import { InsetList, InsetRow } from './widgetUi';
 
 export const DOCUMENT_WINDOW_DAYS = 30;
+
+/** How many kinds the phone's "Today" card already lists, so the widget under it does not list them again. */
+export const SUMMARY_GROUPS = 3;
 
 /** What stops people, or is already late: shown in red rather than amber. */
 const URGENT = new Set(['virusScanner', 'lateInvoices', 'lateCosts']);
@@ -63,7 +67,7 @@ export const ORDER = [
  */
 /** What is waiting for this person, in the order it is shown, shared by the widget and the phone's "Today" summary. */
 export function useAttentionGroups() {
-  const attention = useQuery({ queryKey: ['attention'], queryFn: attentionApi.get, refetchInterval: 60_000 });
+  const attention = useAttentionQuery();
   const documents = useExpiringDocumentsQuery(DOCUMENT_WINDOW_DAYS);
 
   const documentList = Array.isArray(documents.data) ? documents.data : [];
@@ -79,8 +83,23 @@ export function useAttentionGroups() {
 
   groups.sort((a, b) => ORDER.indexOf(a.key) - ORDER.indexOf(b.key));
 
+  // Every kind is recorded, a missing one as zero: a kind that is gone today still has to be remembered as gone,
+  // or the day it comes back there would be nothing to compare it with. Nothing is recorded while a source
+  // has not answered, so a failed request is never remembered as "nothing waiting".
+  const counts: Record<string, number | undefined> = {};
+  if (attention.data) {
+    for (const key of ORDER) {
+      const known = key === 'expiringDocuments' ? Array.isArray(documents.data) : true;
+      counts[`attention.${key}`] = known ? (groups.find((g) => g.key === key)?.count ?? 0) : undefined;
+    }
+  }
+  const since = useSinceYesterday(counts);
+  // More of what waits is worse.
+  const sinceFor = (key: string) => since(`attention.${key}`, 'down');
+
   return {
     groups,
+    sinceFor,
     isLoading: attention.isLoading || documents.isLoading,
     bothFailed: !!attention.error && !!documents.error,
     attentionError: attention.error,
@@ -90,8 +109,14 @@ export function useAttentionGroups() {
 export function NeedsAttentionWidget({ instanceId: _instanceId, onRemove, onExpandWidth }: DashboardWidgetProps) {
   const t = useT();
 
-  const { groups, isLoading, bothFailed, attentionError } = useAttentionGroups();
+  const all = useAttentionGroups();
+  const { sinceFor, isLoading, bothFailed, attentionError } = all;
+
+  // On a phone the "Today" card above already names the first few kinds, so this widget is what else is waiting.
+  const alongsideSummary = useMediaQuery(useTheme().breakpoints.down('sm'));
+  const groups = alongsideSummary ? all.groups.slice(SUMMARY_GROUPS) : all.groups;
   const isEmpty = !isLoading && !bothFailed && groups.length === 0;
+  const coveredAbove = alongsideSummary && all.groups.length > 0;
 
   const example = (group: AttentionGroup, item: AttentionItem): string => {
     const date = item.date ? formatDate(item.date) : '';
@@ -106,16 +131,15 @@ export function NeedsAttentionWidget({ instanceId: _instanceId, onRemove, onExpa
 
   return (
     <WidgetShell
-      title={t('dashboard.widget.NeedsAttention')}
+      title={alongsideSummary ? t('dashboard.needsAttention.stillWaiting') : t('dashboard.widget.NeedsAttention')}
       subtitle={groups.length > 0 ? t('dashboard.needsAttention.count', { count: groups.length }) : undefined}
       isLoading={isLoading}
       error={bothFailed ? attentionError : undefined}
       onRemove={onRemove}
       onExpandWidth={onExpandWidth}
+      empty={isEmpty ? { text: coveredAbove ? t('dashboard.needsAttention.allAbove') : t('dashboard.needsAttention.empty') } : undefined}
     >
-      {isEmpty ? (
-        <EmptyNote>{t('dashboard.needsAttention.empty')}</EmptyNote>
-      ) : (
+      {!isEmpty && (
         <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', display: 'grid', gap: 1.25, alignContent: 'start' }}>
           <InsetList>
             {groups.map((group) => (
@@ -126,6 +150,7 @@ export function NeedsAttentionWidget({ instanceId: _instanceId, onRemove, onExpa
                 primary={t(`attention.${group.key}` as MessageKey)}
                 secondary={group.items.length > 0 ? group.items.map((item) => example(group, item)).join(' · ') : undefined}
                 badge={group.count}
+                since={sinceFor(group.key)}
               />
             ))}
           </InsetList>

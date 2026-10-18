@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Branches;
 using Construction.Application.Features.Costs;
@@ -102,13 +103,13 @@ public class GetBudgetAlertsQueryHandler : IRequestHandler<GetBudgetAlertsQuery,
             return new BudgetAlertsDto { IncludesLabour = true, MeasuredProjects = 0 };
         }
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         // The earliest a cost of any of these can fall: the start of the earliest project, less how far back a cost may be dated.
         var from = measured
-            .Select(x => x.Project.StartDate is { } s && s < DateOnly.FromDateTime(x.Project.CreatedAt)
+            .Select(x => x.Project.StartDate is { } s && s < CompanyTime.LocalDate(x.Project.CreatedAt)
                 ? s
-                : DateOnly.FromDateTime(x.Project.CreatedAt))
+                : CompanyTime.LocalDate(x.Project.CreatedAt))
             .Min()
             .AddDays(-CostRules.MaxBackdatingDays);
 

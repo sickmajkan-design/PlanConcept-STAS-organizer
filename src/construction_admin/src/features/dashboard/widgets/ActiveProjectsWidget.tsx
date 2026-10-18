@@ -1,30 +1,20 @@
 import { Box, Stack } from '@mui/material';
-import { useQuery } from '@tanstack/react-query';
-
 import { projectsApi } from '../../../api/projects';
 import { projectStatuses, type ProjectStatus } from '../../../api/types';
 import { useEnumLabel } from '../../../i18n/enumLabels';
 import { useT } from '../../../i18n/useI18n';
 import { paths } from '../../../routes/paths';
-import { formatDate } from '../../../utils/formatting';
+import { daysUntil, formatDate } from '../../../utils/formatting';
+import { useActiveProjects, useCounts } from '../dashboardData';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
 import { EmptyNote, InsetList, InsetRow, MoreLink, Pill } from './widgetUi';
 
 const SHOWN = 6;
 const ENDING_SOON_DAYS = 14;
-// 100 is the list endpoints' own maximum page size; a bigger request 400s.
-const PAGE = 100;
+const ONE = { pageNumber: 1, pageSize: 1 } as const;
 
-const DAY_MS = 24 * 60 * 60 * 1000;
-
-/** Whole days from `today` to the `YYYY-MM-DD` date, negative once it has passed. */
-export function daysUntil(date: string, today: Date = new Date()): number {
-  const start = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
-  const [year, month, day] = date.split('-').map(Number);
-
-  return Math.round((Date.UTC(year, month - 1, day) - start) / DAY_MS);
-}
+export { daysUntil } from '../../../utils/formatting';
 
 /**
  * How many projects there are in each stage, and which of the running ones
@@ -37,19 +27,17 @@ export function ActiveProjectsWidget({ instanceId: _instanceId, onRemove, onExpa
   const t = useT();
   const enumLabel = useEnumLabel();
 
-  const query = useQuery({
-    queryKey: ['dashboard', 'projects', 'overview'] as const,
-    queryFn: () => projectsApi.list({ pageNumber: 1, pageSize: PAGE }),
-  });
+  // How many there are in each stage is the server's own count per status; the running ones are read in full (every
+  // page) because the widget sorts and flags them itself.
+  const query = useActiveProjects();
+  const stages = useCounts(
+    'projects',
+    Object.fromEntries(projectStatuses.map((status) => [status, (unit: object) => projectsApi.list({ ...ONE, status, ...unit })])),
+  );
 
-  const projects = query.data?.items ?? [];
+  const countByStatus = new Map<ProjectStatus, number>(projectStatuses.map((status) => [status, stages.counts[status] ?? 0]));
 
-  const countByStatus = new Map<ProjectStatus, number>();
-  for (const project of projects) {
-    countByStatus.set(project.status, (countByStatus.get(project.status) ?? 0) + 1);
-  }
-
-  const active = projects.filter((project) => project.status === 'Active');
+  const active = query.data?.items ?? [];
 
   const rows = active
     .map((project) => ({
@@ -63,8 +51,8 @@ export function ActiveProjectsWidget({ instanceId: _instanceId, onRemove, onExpa
   return (
     <WidgetShell
       title={t('dashboard.widget.ActiveProjects')}
-      isLoading={query.isLoading}
-      error={query.error}
+      isLoading={query.isLoading || stages.isLoading}
+      error={query.error ?? stages.error}
       onRemove={onRemove}
       onExpandWidth={onExpandWidth}
     >

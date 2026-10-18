@@ -7,11 +7,12 @@ import { VehicleCostBoard, ToolCostBoard } from './AssetCostBoards';
 import { monthOf, yearOf, type Period } from './monthWindow';
 import { ProjectCostBoard } from './ProjectCostBoard';
 import { RentalsOutBoard } from './RentalsOutBoard';
+import { companyNow } from '../../utils/companyTime';
 
 export function CostsPage() {
   const t = useT();
   const [tab, setTab] = useState<'projects' | 'vehicles' | 'tools' | 'rentalsOut'>('projects');
-  const [period, setPeriod] = useState<Period>(() => monthOf(new Date()));
+  const [period, setPeriod] = useState<Period>(() => monthOf(companyNow()));
 
   return (
     <Box>
@@ -57,13 +58,13 @@ function PeriodPicker({
           "what did last month cost" is the question, and making somebody type
           two dates to ask it is how a report goes unread. */}
       <ButtonGroup size="small">
-        <Button onClick={() => onChange(monthOf(new Date()))}>
+        <Button onClick={() => onChange(monthOf(companyNow()))}>
           {t('costs.thisMonth')}
         </Button>
-        <Button onClick={() => onChange(monthOf(new Date(), 1))}>
+        <Button onClick={() => onChange(monthOf(companyNow(), 1))}>
           {t('costs.lastMonth')}
         </Button>
-        <Button onClick={() => onChange(yearOf(new Date()))}>
+        <Button onClick={() => onChange(yearOf(companyNow()))}>
           {t('costs.thisYear')}
         </Button>
       </ButtonGroup>

@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
@@ -42,7 +43,7 @@ public class SendVehicleDateRemindersCommandHandler : IRequestHandler<SendVehicl
     public async Task<int> Handle(SendVehicleDateRemindersCommand request, CancellationToken cancellationToken)
     {
         var now = _dateTimeProvider.UtcNow;
-        var today = DateOnly.FromDateTime(now);
+        var today = CompanyTime.LocalDate(now);
         var horizon = today.AddDays(SendVehicleDateRemindersCommand.EarlyStage);
 
         var due = new List<Due>();

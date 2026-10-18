@@ -9,6 +9,8 @@ import { TodaySummary } from '../features/dashboard/TodaySummary';
 import { SetupChecklistCard } from '../features/onboarding/SetupChecklistCard';
 import { useI18n, useT } from '../i18n/useI18n';
 import { paths } from '../routes/paths';
+import { ijekavianDate } from '../utils/formatting';
+import { companyNow } from '../utils/companyTime';
 
 export function HomePage() {
   const { user } = useAuth();
@@ -32,7 +34,7 @@ export function HomePage() {
         <Typography variant="h5" gutterBottom sx={{ fontWeight: 600, display: { xs: 'block', sm: 'none' } }}>
           {t('home.today')}
           <Typography component="span" color="text.secondary" sx={{ ml: 1, fontSize: '0.95rem', fontWeight: 400 }}>
-            {new Intl.DateTimeFormat(locale === 'sr' ? 'sr-Latn' : 'en', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())}
+            {ijekavianDate(new Intl.DateTimeFormat(locale === 'sr' ? 'sr-Latn' : 'en', { weekday: 'long', day: 'numeric', month: 'long' }).format(companyNow()))}
           </Typography>
         </Typography>
         {isPhone && <TodaySummary />}

@@ -48,6 +48,7 @@ import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { formatDate, formatMoney } from '../../utils/formatting';
+import { companyNow } from '../../utils/companyTime';
 
 type RealizationSortField =
   | 'projectName'
@@ -61,14 +62,14 @@ type SortDirection = 'asc' | 'desc';
 
 /** The years STAS's own picker offers: a handful back, one ahead. */
 function yearOptions(): number[] {
-  const current = new Date().getFullYear();
+  const current = companyNow().getFullYear();
   return Array.from({ length: 8 }, (_, i) => current + 1 - i);
 }
 
 export function AnnualRealizationPlanPage() {
   const t = useT();
   const { locale } = useI18n();
-  const [year, setYear] = useState(() => new Date().getFullYear());
+  const [year, setYear] = useState(() => companyNow().getFullYear());
   const [recording, setRecording] = useState(false);
 
   const { data, isLoading, isError, error, refetch } = useAnnualRealizationPlanQuery(year);

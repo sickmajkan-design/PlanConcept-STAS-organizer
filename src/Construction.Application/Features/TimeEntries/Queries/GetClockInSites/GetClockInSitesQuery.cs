@@ -42,7 +42,7 @@ public class GetClockInSitesQueryHandler
             ?? throw new ForbiddenAccessException(
                 "Only accounts linked to an employee can record work time.");
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         var sites = await TimeEntryRules.RunningPostingsAsync(
             _context, employeeId, today, cancellationToken);

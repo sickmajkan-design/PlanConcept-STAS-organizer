@@ -75,7 +75,7 @@ public class ChangeInvoiceStatusHandlers :
             {
                 InvoiceId = invoice.Id,
                 Amount = remaining,
-                PaidOn = DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+                PaidOn = _dateTimeProvider.Today,
                 RecordedByUserId = _currentUserService.UserId,
             });
         }

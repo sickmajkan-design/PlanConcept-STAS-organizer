@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using System.Globalization;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Entities;
@@ -38,7 +39,7 @@ public class SendWeeklyReportRemindersCommandHandler
     public async Task<int> Handle(SendWeeklyReportRemindersCommand request, CancellationToken cancellationToken)
     {
         var now = _dateTimeProvider.UtcNow;
-        var today = DateOnly.FromDateTime(now);
+        var today = CompanyTime.LocalDate(now);
 
         if (today.DayOfWeek != DayOfWeek.Monday)
         {

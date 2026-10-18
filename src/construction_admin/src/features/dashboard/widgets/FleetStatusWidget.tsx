@@ -1,13 +1,14 @@
 import { Box, Button, Stack, Typography, useTheme, type Theme } from '@mui/material';
-import { useQuery } from '@tanstack/react-query';
+import { useQueries } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 
 import { toolsApi } from '../../../api/tools';
-import type { Tool, ToolStatus, Vehicle, VehicleStatus } from '../../../api/types';
+import type { ToolStatus, VehicleStatus } from '../../../api/types';
 import { vehiclesApi } from '../../../api/vehicles';
 import { useI18n } from '../../../i18n/useI18n';
 import { useEnumLabel } from '../../../i18n/enumLabels';
 import { paths } from '../../../routes/paths';
+import { useCounts, useUnitParams } from '../dashboardData';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
 import { InsetList, InsetRow, MoreLink, Segments } from './widgetUi';
@@ -52,61 +53,65 @@ function EmptyChart({ text, to, action }: { text: string; to: string; action: st
 const VEHICLE_ATTENTION: VehicleStatus[] = ['OutOfService'];
 const TOOL_ATTENTION: ToolStatus[] = ['UnderRepair', 'Lost'];
 
-function countByStatus<TStatus extends string>(
-  items: { status: TStatus }[],
-  order: readonly TStatus[],
-): { status: TStatus; count: number }[] {
-  const counts = new Map<TStatus, number>();
-  for (const item of items) {
-    counts.set(item.status, (counts.get(item.status) ?? 0) + 1);
-  }
-  return order.map((status) => ({ status, count: counts.get(status) ?? 0 }));
-}
-
 const VEHICLE_STATUS_ORDER: VehicleStatus[] = ['Available', 'Assigned', 'InService', 'OutOfService', 'RentedOut'];
 
 const TOOL_STATUS_ORDER: ToolStatus[] = ['Available', 'Assigned', 'UnderRepair', 'Lost', 'Retired', 'RentedOut'];
+
+const ONE = { pageNumber: 1, pageSize: 1 } as const;
 
 export function FleetStatusWidget({ instanceId: _instanceId, onRemove, onExpandWidth }: DashboardWidgetProps) {
   const { t } = useI18n();
   const enumLabel = useEnumLabel();
   const theme = useTheme();
 
-  const vehiclesQuery = useQuery({
-    queryKey: ['dashboard', 'fleet', 'vehicles'] as const,
-    queryFn: () => vehiclesApi.list({ pageNumber: 1, pageSize: FLEET_PAGE_SIZE }),
-  });
+  const unit = useUnitParams();
 
-  const toolsQuery = useQuery({
-    queryKey: ['dashboard', 'fleet', 'tools'] as const,
-    queryFn: () => toolsApi.list({ pageNumber: 1, pageSize: FLEET_PAGE_SIZE }),
-  });
+  // Counts the server made, one per status: a fleet over a hundred is still counted exactly.
+  const vehicleLoaders = Object.fromEntries([
+    ['all', (u: typeof unit) => vehiclesApi.list({ ...ONE, ...u })],
+    ...VEHICLE_STATUS_ORDER.map((status) => [status, (u: typeof unit) => vehiclesApi.list({ ...ONE, status, ...u })]),
+  ]);
+  const toolLoaders = Object.fromEntries([
+    ['all', (u: typeof unit) => toolsApi.list({ ...ONE, ...u })],
+    ...TOOL_STATUS_ORDER.map((status) => [status, (u: typeof unit) => toolsApi.list({ ...ONE, status, ...u })]),
+  ]);
+  const vehicleStats = useCounts('fleet-vehicles', vehicleLoaders);
+  const toolStats = useCounts('fleet-tools', toolLoaders);
 
-  const isLoading = vehiclesQuery.isLoading || toolsQuery.isLoading;
-  const error = vehiclesQuery.error ?? toolsQuery.error;
+  const vehicleTotal = vehicleStats.counts.all ?? 0;
+  const toolTotal = toolStats.counts.all ?? 0;
+  const vehicleCounts = VEHICLE_STATUS_ORDER.map((status) => ({ status, count: vehicleStats.counts[status] ?? 0 }));
+  const toolCounts = TOOL_STATUS_ORDER.map((status) => ({ status, count: toolStats.counts[status] ?? 0 }));
 
-  const vehicles: Vehicle[] = vehiclesQuery.data?.items ?? [];
-  const tools: Tool[] = toolsQuery.data?.items ?? [];
-
-  const vehicleCounts = countByStatus(vehicles, VEHICLE_STATUS_ORDER);
-  const toolCounts = countByStatus(tools, TOOL_STATUS_ORDER);
-
-  const attention = [
-    ...vehicles
-      .filter((v) => VEHICLE_ATTENTION.includes(v.status))
-      .map((v) => ({
-        id: v.id,
-        label: `${v.brand} ${v.model} (${v.registrationNumber})`,
-        detail: enumLabel('vehicleStatus', v.status),
+  // The ones that need a look are listed by name: only what is in those statuses is asked for, and only when there is any.
+  const attentionVehicles = VEHICLE_ATTENTION.filter((status) => (vehicleStats.counts[status] ?? 0) > 0);
+  const attentionTools = TOOL_ATTENTION.filter((status) => (toolStats.counts[status] ?? 0) > 0);
+  const attentionQueries = useQueries({
+    queries: [
+      ...attentionVehicles.map((status) => ({
+        queryKey: ['dashboard', 'fleet', 'attention', 'vehicles', status, unit.branchId ?? null] as const,
+        queryFn: async () =>
+          (await vehiclesApi.list({ pageNumber: 1, pageSize: FLEET_PAGE_SIZE, status, ...unit })).items.map((v) => ({
+            id: v.id,
+            label: `${v.brand} ${v.model} (${v.registrationNumber})`,
+            detail: enumLabel('vehicleStatus', v.status),
+          })),
       })),
-    ...tools
-      .filter((tool) => TOOL_ATTENTION.includes(tool.status))
-      .map((tool) => ({
-        id: tool.id,
-        label: tool.name,
-        detail: enumLabel('toolStatus', tool.status),
+      ...attentionTools.map((status) => ({
+        queryKey: ['dashboard', 'fleet', 'attention', 'tools', status, unit.branchId ?? null] as const,
+        queryFn: async () =>
+          (await toolsApi.list({ pageNumber: 1, pageSize: FLEET_PAGE_SIZE, status, ...unit })).items.map((tool) => ({
+            id: tool.id,
+            label: tool.name,
+            detail: enumLabel('toolStatus', tool.status),
+          })),
       })),
-  ];
+    ],
+  });
+  const attention = attentionQueries.flatMap((query) => query.data ?? []);
+
+  const isLoading = vehicleStats.isLoading || toolStats.isLoading;
+  const error = vehicleStats.error ?? toolStats.error;
 
   return (
     <WidgetShell title={t('dashboard.widget.FleetStatus')} isLoading={isLoading} error={error} onRemove={onRemove} onExpandWidth={onExpandWidth}>
@@ -123,9 +128,9 @@ export function FleetStatusWidget({ instanceId: _instanceId, onRemove, onExpandW
         >
           <Box>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              {t('dashboard.fleet.vehicles')} · {vehicles.length}
+              {t('dashboard.fleet.vehicles')} · {vehicleTotal}
             </Typography>
-            {vehicles.length === 0 ? (
+            {vehicleTotal === 0 ? (
               <EmptyChart text={t('dashboard.fleet.noVehicles')} to={paths.vehicleNew} action={t('vehicles.add')} />
             ) : (
               <Segments
@@ -137,9 +142,9 @@ export function FleetStatusWidget({ instanceId: _instanceId, onRemove, onExpandW
           </Box>
           <Box>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              {t('dashboard.fleet.tools')} · {tools.length}
+              {t('dashboard.fleet.tools')} · {toolTotal}
             </Typography>
-            {tools.length === 0 ? (
+            {toolTotal === 0 ? (
               <EmptyChart text={t('dashboard.fleet.noTools')} to={paths.toolNew} action={t('tools.add')} />
             ) : (
               <Segments

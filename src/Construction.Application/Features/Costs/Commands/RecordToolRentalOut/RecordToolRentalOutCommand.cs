@@ -35,7 +35,7 @@ public class RecordToolRentalOutCommandValidator : AbstractValidator<RecordToolR
 
     public RecordToolRentalOutCommandValidator(IDateTimeProvider dateTimeProvider)
     {
-        var today = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
+        var today = dateTimeProvider.Today;
 
         RuleFor(x => x.ToolId).NotEmpty();
 
@@ -102,7 +102,7 @@ public class RecordToolRentalOutCommandHandler
             CustomerId = request.CustomerId,
             RenterName = request.RenterName.Trim(),
             DailyRate = request.DailyRate,
-            StartDate = request.StartDate ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+            StartDate = request.StartDate ?? _dateTimeProvider.Today,
             Note = request.Note?.Trim(),
             SetByUserId = _currentUserService.UserId
         };

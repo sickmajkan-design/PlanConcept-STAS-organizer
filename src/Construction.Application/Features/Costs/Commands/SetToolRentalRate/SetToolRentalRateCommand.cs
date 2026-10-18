@@ -85,7 +85,7 @@ public class SetToolRentalRateCommandHandler
             throw new NotFoundException(nameof(Tool), request.ToolId);
         }
 
-        var startDate = request.StartDate ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var startDate = request.StartDate ?? _dateTimeProvider.Today;
         var rate = new ToolRentalRate
         {
             ToolId = request.ToolId,

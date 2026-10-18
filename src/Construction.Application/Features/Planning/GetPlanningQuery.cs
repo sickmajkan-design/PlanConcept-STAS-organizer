@@ -286,7 +286,7 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
         {
             From = from,
             To = to,
-            Today = DateOnly.FromDateTime(_clock.UtcNow),
+            Today = _clock.Today,
             Projects = projects,
             Positions = positions,
             CertificateNames = certificateNames,

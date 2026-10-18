@@ -1,14 +1,18 @@
 import { Box, Stack, Typography } from '@mui/material';
 
+import { articleOrdersApi } from '../../../api/articleOrders';
 import { ArticleOrderActions } from '../../articleOrders/ArticleOrderActions';
 import { useArticleOrdersQuery } from '../../articleOrders/useArticleOrders';
 import { useT } from '../../../i18n/useI18n';
 import { paths } from '../../../routes/paths';
+import { useCounts } from '../dashboardData';
+import { useSinceYesterday } from '../useSinceYesterday';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
-import { EmptyNote, MoreLink, Pill } from './widgetUi';
+import { MoreLink, Pill, SinceText } from './widgetUi';
 
 const SHOWN = 5;
+const ONE = { pageNumber: 1, pageSize: 1 } as const;
 
 /**
  * Requests for articles that are not yet in anybody's hands: how many wait for each step,
@@ -17,19 +21,28 @@ const SHOWN = 5;
  */
 export function ArticleOrdersWidget({ instanceId: _instanceId, onRemove, onExpandWidth }: DashboardWidgetProps) {
   const t = useT();
-  const query = useArticleOrdersQuery({ pageNumber: 1, pageSize: 100, openOnly: true });
-  const orders = query.data?.items ?? [];
+  // The newest few, to act on; the numbers above them are the server's own counts per step, not what a page holds.
+  const query = useArticleOrdersQuery({ pageNumber: 1, pageSize: SHOWN, openOnly: true });
+  const shown = query.data?.items ?? [];
 
-  const count = (status: string) => orders.filter((order) => order.status === status).length;
-  const shown = orders.slice(0, SHOWN);
+  const { counts, isLoading: countsLoading, error: countsError } = useCounts('orders', {
+    Requested: (unit) => articleOrdersApi.list({ ...ONE, status: 'Requested', ...unit }),
+    Ordered: (unit) => articleOrdersApi.list({ ...ONE, status: 'Ordered', ...unit }),
+    InDelivery: (unit) => articleOrdersApi.list({ ...ONE, status: 'InDelivery', ...unit }),
+  });
+  const count = (status: 'Requested' | 'Ordered' | 'InDelivery') => counts[status] ?? 0;
+  const open = count('Requested') + count('Ordered') + count('InDelivery');
+
+  const since = useSinceYesterday({ 'orders.requested': counts.Requested });
 
   return (
     <WidgetShell
       title={t('dashboard.widget.ArticleOrders')}
-      isLoading={query.isLoading}
-      error={query.error}
+      isLoading={query.isLoading || countsLoading}
+      error={query.error ?? countsError}
       onRemove={onRemove}
       onExpandWidth={onExpandWidth}
+      empty={open === 0 ? { text: t('dashboard.articleOrders.empty') } : undefined}
     >
       <Stack direction="row" useFlexGap sx={{ flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
         {(['Requested', 'Ordered', 'InDelivery'] as const).map((status) => (
@@ -37,11 +50,10 @@ export function ArticleOrdersWidget({ instanceId: _instanceId, onRemove, onExpan
             {`${t(`articleOrders.status.${status}`)}: ${count(status)}`}
           </Pill>
         ))}
+        <SinceText note={since('orders.requested', 'down')} />
       </Stack>
 
-      {shown.length === 0 && !query.isLoading ? (
-        <EmptyNote>{t('dashboard.articleOrders.empty')}</EmptyNote>
-      ) : (
+      {shown.length > 0 && (
         <Box
           sx={{
             display: 'grid',

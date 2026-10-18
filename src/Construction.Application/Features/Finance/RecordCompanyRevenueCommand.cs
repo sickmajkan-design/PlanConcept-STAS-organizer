@@ -46,7 +46,7 @@ internal static class CompanyRevenueRules
         validator.RuleFor(x => source(x)).IsInEnum();
 
         validator.RuleFor(x => occurredOn(x))
-            .Must(d => d is null || d.Value <= DateOnly.FromDateTime(dateTimeProvider.UtcNow))
+            .Must(d => d is null || d.Value <= dateTimeProvider.Today)
             .WithMessage("Income cannot be received in the future.");
 
         validator.RuleFor(x => vehicleId(x))
@@ -113,7 +113,7 @@ public class RecordCompanyRevenueCommandHandler : IRequestHandler<RecordCompanyR
         var revenue = new CompanyRevenue
         {
             Amount = request.Amount,
-            OccurredOn = request.OccurredOn ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+            OccurredOn = request.OccurredOn ?? _dateTimeProvider.Today,
             Source = request.Source,
             VehicleId = request.VehicleId,
             ToolId = request.ToolId,

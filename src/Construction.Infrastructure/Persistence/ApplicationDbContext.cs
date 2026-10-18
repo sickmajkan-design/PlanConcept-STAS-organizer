@@ -1,6 +1,8 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 
 namespace Construction.Infrastructure.Persistence;
 
@@ -32,6 +34,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<CompanySettings> CompanySettings => Set<CompanySettings>();
 
     public DbSet<DashboardLayout> DashboardLayouts => Set<DashboardLayout>();
+
+    public DbSet<DashboardSnapshot> DashboardSnapshots => Set<DashboardSnapshot>();
 
     public DbSet<GeneralExpense> GeneralExpenses => Set<GeneralExpense>();
 
@@ -212,6 +216,19 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+
+        // An instant as the date and time on the company's clock, worked out in the database: a day taken from a
+        // shift's start is the company's day, not the UTC one. PostgreSQL's own timezone(zone, instant); the zone is
+        // a parameter of the call, so it is the query's parameter rather than part of its cached text.
+        modelBuilder.HasDbFunction(
+                typeof(CompanyTime).GetMethod(nameof(CompanyTime.InZone), [typeof(DateTime), typeof(string)])!)
+            .HasTranslation(args => new SqlFunctionExpression(
+                "timezone",
+                [args[1], args[0]],
+                nullable: true,
+                argumentsPropagateNullability: [true, true],
+                typeof(DateTime),
+                args[0].TypeMapping));
 
         base.OnModelCreating(modelBuilder);
     }

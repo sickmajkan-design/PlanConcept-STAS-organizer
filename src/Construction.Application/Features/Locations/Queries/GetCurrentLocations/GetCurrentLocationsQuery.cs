@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Branches;
 using Construction.Application.Common.Models;
@@ -99,7 +100,7 @@ public class GetCurrentLocationsQueryHandler
             _context.Employees.AsNoTracking(),
             _context.EmployeeProjects,
             _currentUserService,
-            DateOnly.FromDateTime(utcNow));
+            CompanyTime.LocalDate(utcNow));
 
         employees = employees.InBranch(request.BranchId);
 

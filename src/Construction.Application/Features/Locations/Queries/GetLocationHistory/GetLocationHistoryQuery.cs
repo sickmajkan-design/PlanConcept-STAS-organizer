@@ -72,7 +72,7 @@ public class GetLocationHistoryQueryHandler
             _context.EmployeeProjects,
             _currentUserService,
             request.EmployeeId,
-            DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+            _dateTimeProvider.Today,
             cancellationToken);
 
         if (!visible)

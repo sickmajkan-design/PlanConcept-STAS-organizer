@@ -305,7 +305,7 @@ internal sealed class WagePayoutInputValidator<T> : AbstractValidator<T>
 {
     public WagePayoutInputValidator(IDateTimeProvider dateTimeProvider)
     {
-        var today = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
+        var today = dateTimeProvider.Today;
 
         RuleFor(x => x.Year).InclusiveBetween(2000, 2100);
         RuleFor(x => x.Month).InclusiveBetween(1, 12);
@@ -495,7 +495,7 @@ public class UpdateWagePayoutCommandHandler : IRequestHandler<UpdateWagePayoutCo
             .FirstOrDefaultAsync(p => p.Id == request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(WagePayout), request.Id);
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         if ((payout.Kind == PayoutKind.Advance || payout.PaidOn is not null) && request.PayDate > today)
         {
@@ -571,7 +571,7 @@ public class MarkWagePayoutPaidCommandValidator : AbstractValidator<MarkWagePayo
 {
     public MarkWagePayoutPaidCommandValidator(IDateTimeProvider dateTimeProvider)
     {
-        var today = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
+        var today = dateTimeProvider.Today;
 
         RuleFor(x => x.PaidOn)
             .LessThanOrEqualTo(today).WithMessage("Something cannot have been paid in the future.")
@@ -610,7 +610,7 @@ public class MarkWagePayoutPaidCommandHandler : IRequestHandler<MarkWagePayoutPa
             throw new ConflictException("This payout has already been paid.");
         }
 
-        payout.PaidOn = request.PaidOn ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        payout.PaidOn = request.PaidOn ?? _dateTimeProvider.Today;
         payout.Method = request.Method ?? payout.Method;
 
         await _context.SaveChangesAsync(cancellationToken);

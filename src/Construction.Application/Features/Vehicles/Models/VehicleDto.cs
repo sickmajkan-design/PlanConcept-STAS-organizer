@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using System.Linq.Expressions;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
@@ -210,5 +211,5 @@ public static class VehicleMapping
     /// the vehicle list/detail queries) already pass it explicitly.
     /// </summary>
     public static VehicleDto ToDto(Vehicle vehicle, DateOnly? today = null) =>
-        Projection(today ?? DateOnly.FromDateTime(DateTime.UtcNow)).Compile()(vehicle);
+        Projection(today ?? CompanyTime.LocalDate(DateTime.UtcNow)).Compile()(vehicle);
 }

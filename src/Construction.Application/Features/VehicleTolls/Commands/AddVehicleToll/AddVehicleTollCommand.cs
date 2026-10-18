@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.VehicleTolls.Models;
@@ -52,7 +53,7 @@ public class AddVehicleTollCommandValidator : AbstractValidator<AddVehicleTollCo
         // A vignette bought for a date already past is not a valid purchase
         // to record — see MarkVehicleTollPaidCommand for the same rule.
         RuleFor(x => x.ValidUntil)
-            .Must((command, validUntil) => validUntil is null || validUntil >= DateOnly.FromDateTime(DateTime.UtcNow))
+            .Must((command, validUntil) => validUntil is null || validUntil >= CompanyTime.LocalDate(DateTime.UtcNow))
             .WithMessage("Valid-until must be today or later.")
             .When(x => x.MarkPaid && x.ValidUntil is not null);
     }
@@ -129,6 +130,6 @@ public class AddVehicleTollCommandHandler : IRequestHandler<AddVehicleTollComman
             .Include(t => t.PaidByUser)
             .FirstAsync(t => t.Id == toll.Id, cancellationToken);
 
-        return VehicleTollMapping.ToDto(saved, DateOnly.FromDateTime(now));
+        return VehicleTollMapping.ToDto(saved, CompanyTime.LocalDate(now));
     }
 }

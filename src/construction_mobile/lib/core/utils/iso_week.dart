@@ -1,3 +1,4 @@
+import '../time/company_time.dart';
 /// ISO-8601 week numbering (Monday-start, week 1 is the week containing the
 /// year's first Thursday) — the "KW" convention the German/Austrian-market
 /// paperwork the weekly site report feature mirrors already uses.
@@ -23,7 +24,7 @@ class IsoWeek {
   /// The most recently completed ISO week — what a Monday submission is
   /// normally reporting on.
   static IsoWeek lastCompleted([DateTime? today]) {
-    final reference = today ?? DateTime.now();
+    final reference = today ?? CompanyTime.now();
     return IsoWeek.of(reference.subtract(const Duration(days: 7)));
   }
 

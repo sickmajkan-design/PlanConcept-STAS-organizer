@@ -2,19 +2,15 @@ import { Avatar, Box, Stack, useTheme } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 
 import { absencesApi } from '../../../api/absences';
-import { employeesApi } from '../../../api/employees';
-import { timeEntriesApi } from '../../../api/timeEntries';
 import { useEnumLabel } from '../../../i18n/enumLabels';
 import { useT } from '../../../i18n/useI18n';
 import { paths } from '../../../routes/paths';
-import { formatDate, initialsOf } from '../../../utils/formatting';
+import { formatDate, initialsOf, todayCompany } from '../../../utils/formatting';
+import { useActiveEmployeesCount, useOpenTimeEntries, useUnitParams } from '../dashboardData';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
 import { BarRow, BigNumber, InsetList, InsetRow, MoreLink, Segments } from './widgetUi';
 
-const today = () => new Date().toISOString().slice(0, 10);
-// 100 is GetTimeEntriesQuery's own max page size — a bigger request 400s.
-const ON_SITE_PAGE_SIZE = 100;
 const TOP_PROJECTS_SHOWN = 6;
 
 /** `employeeName` on this endpoint is one combined string, not first/last fields. */
@@ -38,28 +34,24 @@ export function AbsencesBalanceWidget({ instanceId: _instanceId, onRemove, onExp
   const enumLabel = useEnumLabel();
   const theme = useTheme();
 
+  const unit = useUnitParams();
+
   const pendingQuery = useQuery({
-    queryKey: ['dashboard', 'absences', 'pending'] as const,
-    queryFn: () => absencesApi.list({ pageNumber: 1, pageSize: 5, status: 'Requested' }),
+    queryKey: ['dashboard', 'absences', 'pending', unit.branchId ?? null] as const,
+    queryFn: () => absencesApi.list({ pageNumber: 1, pageSize: 5, status: 'Requested', ...unit }),
   });
 
+  // Today is the local day: the UTC date is yesterday for two hours after midnight.
+  const day = todayCompany();
   const activeQuery = useQuery({
-    queryKey: ['dashboard', 'absences', 'active-today'] as const,
-    queryFn: () => {
-      const day = today();
-      return absencesApi.list({ pageNumber: 1, pageSize: 5, status: 'Approved', from: day, to: day });
-    },
+    queryKey: ['dashboard', 'absences', 'active-today', day, unit.branchId ?? null] as const,
+    queryFn: () => absencesApi.list({ pageNumber: 1, pageSize: 5, status: 'Approved', from: day, to: day, ...unit }),
   });
 
-  const activeEmployeesQuery = useQuery({
-    queryKey: ['dashboard', 'kpi', 'active-employees'] as const,
-    queryFn: () => employeesApi.list({ pageNumber: 1, pageSize: 1, status: 'Active' }),
-  });
+  const activeEmployeesQuery = useActiveEmployeesCount();
 
-  const onSiteQuery = useQuery({
-    queryKey: ['dashboard', 'workforce', 'on-site'] as const,
-    queryFn: () => timeEntriesApi.list({ pageNumber: 1, pageSize: ON_SITE_PAGE_SIZE, openOnly: true }),
-  });
+  // Every running shift, all pages: the count and the split by site must not stop at the first hundred.
+  const onSiteQuery = useOpenTimeEntries();
 
   const isLoading = pendingQuery.isLoading || activeQuery.isLoading || onSiteQuery.isLoading;
   const error = pendingQuery.error ?? activeQuery.error ?? onSiteQuery.error;
@@ -68,17 +60,18 @@ export function AbsencesBalanceWidget({ instanceId: _instanceId, onRemove, onExp
   const pendingItems = pendingQuery.data?.items ?? [];
 
   const onSiteEntries = onSiteQuery.data?.items ?? [];
+  const onSiteCount = onSiteQuery.data?.totalCount ?? 0;
   const byProject = headcountByProject(onSiteEntries);
 
   return (
     <WidgetShell title={t('dashboard.widget.AbsencesBalance')} isLoading={isLoading} error={error} onRemove={onRemove} onExpandWidth={onExpandWidth}>
       <Stack spacing={2} sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
         <Stack direction="row" sx={{ alignItems: 'baseline', gap: 1.25, flexWrap: 'wrap', flexShrink: 0 }}>
-          <BigNumber value={onSiteEntries.length} caption={t('dashboard.absencesBalance.ofActive', { count: activeEmployeesQuery.data?.totalCount ?? onSiteEntries.length })} />
+          <BigNumber value={onSiteCount} caption={t('dashboard.absencesBalance.ofActive', { count: Math.max(activeEmployeesQuery.data ?? 0, onSiteCount) })} />
         </Stack>
         <Segments
           parts={[
-            { label: t('dashboard.absencesBalance.legendOnSite'), value: onSiteEntries.length, color: theme.palette.primary.main },
+            { label: t('dashboard.absencesBalance.legendOnSite'), value: onSiteCount, color: theme.palette.primary.main },
             { label: t('dashboard.absencesBalance.legendPending'), value: pendingCount, color: theme.palette.warning.main },
             { label: t('dashboard.absencesBalance.legendOnLeave'), value: activeCount, color: theme.palette.text.disabled },
           ]}

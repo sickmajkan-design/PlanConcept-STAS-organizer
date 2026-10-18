@@ -44,6 +44,10 @@ export const companySettingsApi = {
     });
   },
 
+  /** The zones an organisation can choose between (IANA ids). */
+  timeZones: () =>
+    request<string[]>({ method: 'GET', url: '/api/v1/company-settings/time-zones' }),
+
   deleteLogo: () =>
     request<void>({ method: 'DELETE', url: '/api/v1/company-settings/logo' }),
 };

@@ -68,7 +68,7 @@ public class GetAccommodationCostsQueryHandler
             throw new NotFoundException(nameof(Accommodation), request.AccommodationId);
         }
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
         var from = request.From ?? new DateOnly(today.Year, today.Month, 1);
         var to = request.To ?? today;
 

@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { DeleteOutlined } from '@mui/icons-material';
 import {
   Alert,
+  Autocomplete,
   Avatar,
   Box,
   Button,
@@ -16,6 +17,7 @@ import {
 } from '@mui/material';
 import { useEffect, useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { LOGO_ACCEPTED_EXTENSIONS, MAX_LOGO_BYTES } from '../../api/companySettings';
 import { toApiError } from '../../api/apiError';
@@ -31,12 +33,14 @@ import {
 } from '../../features/companySettings/validation';
 import {
   useCompanySettingsQuery,
+  useCompanyTimeZonesQuery,
   useDeleteCompanyLogo,
   useUpdateCompanySettings,
   useUploadCompanyLogo,
 } from '../../features/companySettings/useCompanySettings';
 import type { MessageKey } from '../../i18n/en';
 import { useT } from '../../i18n/useI18n';
+import { getCompanyTimeZone, setCompanyTimeZone } from '../../utils/companyTime';
 
 /** How long the pointer must hover the logo before the enlarged preview appears. */
 const LOGO_PREVIEW_HOVER_DELAY_MS = 500;
@@ -50,6 +54,7 @@ const emptyValues: CompanySettingsFormValues = {
   phone: '',
   email: '',
   weeklyReportsForwardEmail: '',
+  timeZoneId: getCompanyTimeZone(),
 };
 
 /**
@@ -62,6 +67,8 @@ export function CompanyProfilePanel() {
   const readOnly = !isSuperAdmin(user);
   const { data: existing, isLoading, isError, error, refetch } = useCompanySettingsQuery();
   const updateSettings = useUpdateCompanySettings();
+  const queryClient = useQueryClient();
+  const timeZones = useCompanyTimeZonesQuery(!readOnly);
   const uploadLogo = useUploadCompanyLogo();
   const deleteLogo = useDeleteCompanyLogo();
 
@@ -121,6 +128,7 @@ export function CompanyProfilePanel() {
         phone: existing.phone ?? '',
         email: existing.email ?? '',
         weeklyReportsForwardEmail: existing.weeklyReportsForwardEmail ?? '',
+        timeZoneId: existing.timeZoneId,
       });
     }
   }, [existing, reset]);
@@ -145,10 +153,16 @@ export function CompanyProfilePanel() {
       phone: values.phone || null,
       email: values.email || null,
       weeklyReportsForwardEmail: values.weeklyReportsForwardEmail || null,
+      timeZoneId: values.timeZoneId,
     };
 
     try {
-      await updateSettings.mutateAsync(input);
+      const result = await updateSettings.mutateAsync(input);
+      // From this moment the panel keeps the organisation's calendar in the zone it just chose, and everything that
+      // was counted by days is asked for again.
+      if (setCompanyTimeZone(result.timeZoneId)) {
+        void queryClient.invalidateQueries();
+      }
       setSaved(true);
     } catch (err) {
       const apiError = toApiError(err);
@@ -492,6 +506,28 @@ export function CompanyProfilePanel() {
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid size={12}>
+                <Controller
+                  name="timeZoneId"
+                  control={control}
+                  render={({ field }) => (
+                    <Autocomplete
+                      disableClearable
+                      disabled={readOnly}
+                      options={timeZones.data ?? [field.value]}
+                      value={field.value}
+                      onChange={(_, value) => field.onChange(value)}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label={t('companySettings.timeZone')}
+                          helperText={t('companySettings.timeZoneHint')}
+                        />
+                      )}
                     />
                   )}
                 />

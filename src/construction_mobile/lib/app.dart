@@ -9,6 +9,7 @@ import 'core/l10n/latin_serbian.dart';
 import 'core/l10n/locale_controller.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'core/time/company_time_sync.dart';
 import 'core/widgets/status_banners.dart';
 import 'features/outbox/outbox_controller.dart';
 import 'features/presence/presence_reporter.dart';
@@ -29,6 +30,8 @@ class _ConstructionAppState extends ConsumerState<ConstructionApp>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     ref.read(presenceReporterProvider).start();
+    // Which time zone the organisation chose: asked once now and again each time the app comes back to the foreground.
+    ref.read(companyTimeSyncProvider);
   }
 
   @override
@@ -47,6 +50,8 @@ class _ConstructionAppState extends ConsumerState<ConstructionApp>
     // coming back to the app is also the moment it is worth checking again.
     if (state == AppLifecycleState.resumed) {
       ref.invalidate(shiftControllerProvider);
+      ref.invalidate(companyTimeSyncProvider);
+      ref.read(companyTimeSyncProvider);
       // Same moment, same reason, for reports and leave requests made with no
       // signal.
       unawaited(ref.read(outboxControllerProvider.notifier).flush());

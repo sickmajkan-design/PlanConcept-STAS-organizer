@@ -108,7 +108,7 @@ public class GetWorkItemsQueryHandler
         var ownProjects = await SiteScope.OwnProjectIdsAsync(
             _context,
             _currentUserService,
-            DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+            _dateTimeProvider.Today,
             cancellationToken);
 
         if (ownProjects is not null)
@@ -168,7 +168,7 @@ public class GetWorkItemsQueryHandler
 
         if (request.OverdueOnly == true)
         {
-            var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            var today = _dateTimeProvider.Today;
 
             query = query.Where(w =>
                 w.DueDate != null

@@ -1,4 +1,5 @@
 import type { FinanceGranularity } from '../../api/finance';
+import { companyNow } from '../../utils/companyTime';
 
 export const periodPresets = [
   'today',
@@ -43,7 +44,7 @@ export function daysInPeriod(from: string, to: string): number {
  */
 export function resolvePreset(
   preset: Exclude<PeriodPreset, 'custom'>,
-  now: Date = new Date(),
+  now: Date = companyNow(),
 ): { from: string; to: string } {
   const y = now.getFullYear();
   const m = now.getMonth();
@@ -68,6 +69,33 @@ export function resolvePreset(
     case 'thisYear':
       return { from: isoDate(new Date(y, 0, 1)), to: isoDate(new Date(y, 11, 31)) };
   }
+}
+
+/** The calendar month `monthsAgo` months before `now`'s, first to last day, with its first day as a `Date` for labels. */
+export function monthWindow(monthsAgo: number, now: Date = companyNow()): { from: string; to: string; label: Date } {
+  const first = new Date(now.getFullYear(), now.getMonth() - monthsAgo, 1);
+  const last = new Date(now.getFullYear(), now.getMonth() - monthsAgo + 1, 0);
+
+  return { from: isoDate(first), to: isoDate(last), label: first };
+}
+
+/** This month so far: from its first day to `now`. */
+export function monthToDate(now: Date = companyNow()): { from: string; to: string } {
+  return { from: isoDate(new Date(now.getFullYear(), now.getMonth(), 1)), to: isoDate(now) };
+}
+
+/**
+ * The same days of the month before: its first day to the day with `now`'s number, or to its last day when that
+ * month is shorter. What this month so far is fairly compared with: against the whole of last month, a month that
+ * is a few days old would always look like a fall.
+ */
+export function samePartOfPreviousMonth(now: Date = companyNow()): { from: string; to: string } {
+  const lastDayOfPrevious = new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+
+  return {
+    from: isoDate(new Date(now.getFullYear(), now.getMonth() - 1, 1)),
+    to: isoDate(new Date(now.getFullYear(), now.getMonth() - 1, Math.min(now.getDate(), lastDayOfPrevious))),
+  };
 }
 
 export function periodFromPreset(preset: PeriodPreset, custom?: { from: string; to: string }, now?: Date): Period {

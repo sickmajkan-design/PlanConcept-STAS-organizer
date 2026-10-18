@@ -39,7 +39,7 @@ public class SendContractExpiryRemindersCommandHandler
         SendContractExpiryRemindersCommand request,
         CancellationToken cancellationToken)
     {
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
         var horizon = today.AddDays(SendContractExpiryRemindersCommand.LeadDays);
 
         var due = await _context.Accommodations

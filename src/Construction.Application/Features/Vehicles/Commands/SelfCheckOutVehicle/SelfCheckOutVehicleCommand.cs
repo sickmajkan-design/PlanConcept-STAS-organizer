@@ -72,7 +72,7 @@ public class SelfCheckOutVehicleCommandHandler : IRequestHandler<SelfCheckOutVeh
 
         var dto = VehicleMapping.ToDto(vehicle);
         dto.DriverLicenceWarning = await DriverLicence.WarningAsync(
-            _context, employee.Id, DateOnly.FromDateTime(_dateTimeProvider.UtcNow), cancellationToken);
+            _context, employee.Id, _dateTimeProvider.Today, cancellationToken);
 
         return dto;
     }

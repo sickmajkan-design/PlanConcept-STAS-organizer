@@ -84,7 +84,7 @@ public class GetEmployeeRatesQueryHandler
 
         if (request.CurrentOnly)
         {
-            var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            var today = _dateTimeProvider.Today;
             query = query.Where(r =>
                 r.StartDate <= today && (r.EndDate == null || r.EndDate >= today));
         }
@@ -199,7 +199,7 @@ public class GetEmployeeRatesSummaryQueryHandler
 
         if (request.CurrentOnly)
         {
-            var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            var today = _dateTimeProvider.Today;
             query = query.Where(r =>
                 r.StartDate <= today && (r.EndDate == null || r.EndDate >= today));
         }
@@ -1176,7 +1176,7 @@ public class GetVehicleRentalRatesQueryHandler
 
         if (request.CurrentOnly)
         {
-            var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            var today = _dateTimeProvider.Today;
             query = query.Where(r =>
                 r.StartDate <= today && (r.EndDate == null || r.EndDate >= today));
         }
@@ -1267,7 +1267,7 @@ public class GetVehicleRentalRatesSummaryQueryHandler
 
         if (request.CurrentOnly)
         {
-            var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            var today = _dateTimeProvider.Today;
             query = query.Where(r =>
                 r.StartDate <= today && (r.EndDate == null || r.EndDate >= today));
         }
@@ -1349,7 +1349,7 @@ public class GetToolRentalRatesQueryHandler
 
         if (request.CurrentOnly)
         {
-            var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            var today = _dateTimeProvider.Today;
             query = query.Where(r =>
                 r.StartDate <= today && (r.EndDate == null || r.EndDate >= today));
         }
@@ -1439,7 +1439,7 @@ public class GetToolRentalRatesSummaryQueryHandler
 
         if (request.CurrentOnly)
         {
-            var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            var today = _dateTimeProvider.Today;
             query = query.Where(r =>
                 r.StartDate <= today && (r.EndDate == null || r.EndDate >= today));
         }
@@ -1746,7 +1746,7 @@ public class GetAccommodationRatesQueryHandler
 
         if (request.CurrentOnly)
         {
-            var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            var today = _dateTimeProvider.Today;
             query = query.Where(r =>
                 r.StartDate <= today && (r.EndDate == null || r.EndDate >= today));
         }
@@ -1835,7 +1835,7 @@ public class GetAccommodationRatesSummaryQueryHandler
 
         if (request.CurrentOnly)
         {
-            var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            var today = _dateTimeProvider.Today;
             query = query.Where(r =>
                 r.StartDate <= today && (r.EndDate == null || r.EndDate >= today));
         }
@@ -2034,7 +2034,7 @@ public class GetVehicleRentalsOutSummaryQueryHandler
             query = query.Where(r => r.StartDate <= to);
         }
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         var count = await query.CountAsync(cancellationToken);
         var openCount = await query.CountAsync(r => r.EndDate == null, cancellationToken);
@@ -2237,7 +2237,7 @@ public class GetToolRentalsOutSummaryQueryHandler
             query = query.Where(r => r.StartDate <= to);
         }
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         var count = await query.CountAsync(cancellationToken);
         var openCount = await query.CountAsync(r => r.EndDate == null, cancellationToken);

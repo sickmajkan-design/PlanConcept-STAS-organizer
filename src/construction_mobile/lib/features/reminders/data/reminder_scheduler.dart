@@ -5,6 +5,7 @@ import 'package:timezone/data/latest_all.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../domain/shift_reminder_planner.dart';
+import '../../../core/time/company_time.dart';
 
 /// What a reminder says, in the worker's language.
 class ShiftReminderTexts {
@@ -91,7 +92,8 @@ class LocalNotificationsScheduler implements ReminderScheduler {
           id: slot.id,
           title: start ? texts.startTitle : texts.endTitle,
           body: start ? texts.startBody : texts.endBody,
-          scheduledDate: tz.TZDateTime.from(slot.at, tz.local),
+          // The slot is a time on the organisation's clock (06:30 on site), whatever zone the phone is in.
+          scheduledDate: tz.TZDateTime(CompanyTime.location, slot.at.year, slot.at.month, slot.at.day, slot.at.hour, slot.at.minute),
           notificationDetails: NotificationDetails(
             android: AndroidNotificationDetails(
               _channelId,

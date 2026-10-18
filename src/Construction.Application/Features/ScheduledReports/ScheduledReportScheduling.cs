@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Domain.Enums;
 
 namespace Construction.Application.Features.ScheduledReports;
@@ -13,7 +14,7 @@ public static class ScheduledReportScheduling
     /// The next occurrence of the subscription's day, always strictly after
     /// <paramref name="fromUtc"/> — creating a subscription today, on today's
     /// weekday, schedules it for next week rather than firing immediately.
-    /// Midnight UTC on that day: the sweep runs roughly daily regardless of
+    /// Midnight on that day on the company's clock: the sweep runs roughly daily regardless of
     /// wall-clock time, so a fixed hour would not make delivery any more
     /// precise, only harder to reason about.
     /// </summary>
@@ -23,7 +24,7 @@ public static class ScheduledReportScheduling
         int? dayOfMonth,
         DateTime fromUtc)
     {
-        var today = DateOnly.FromDateTime(fromUtc);
+        var today = CompanyTime.LocalDate(fromUtc);
 
         if (cadence == ScheduledReportCadence.Weekly)
         {
@@ -31,7 +32,7 @@ public static class ScheduledReportScheduling
             var daysUntil = ((int)target - (int)today.DayOfWeek + 7) % 7;
             if (daysUntil == 0) daysUntil = 7;
 
-            return today.AddDays(daysUntil).ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+            return CompanyTime.StartOfDayUtc(today.AddDays(daysUntil));
         }
 
         // Capped at 28 (see the entity doc comment) so this always resolves.
@@ -43,7 +44,7 @@ public static class ScheduledReportScheduling
             candidate = candidate.AddMonths(1);
         }
 
-        return candidate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        return CompanyTime.StartOfDayUtc(candidate);
     }
 
     /// <summary>

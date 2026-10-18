@@ -37,7 +37,7 @@ public class UpdateFinanceEntryCommandValidator : AbstractValidator<UpdateFinanc
 {
     public UpdateFinanceEntryCommandValidator(IDateTimeProvider dateTimeProvider)
     {
-        var today = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
+        var today = dateTimeProvider.Today;
 
         RuleFor(x => x.Id).NotEmpty();
         RuleFor(x => x.EmployeeId).NotEmpty();

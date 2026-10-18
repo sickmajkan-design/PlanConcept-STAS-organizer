@@ -161,7 +161,7 @@ public class GetReceivablesQueryHandler : IRequestHandler<GetReceivablesQuery, D
     {
         await BookRules.EnsureReadAsync(_context, _currentUserService, cancellationToken);
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
         var branchId = request.BranchId;
 
         var invoices = _context.Invoices.AsNoTracking()
@@ -300,7 +300,7 @@ public class GetPayablesQueryHandler : IRequestHandler<GetPayablesQuery, DebtsDt
     {
         await BookRules.EnsureReadAsync(_context, _currentUserService, cancellationToken);
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         var costs = _context.BookEntries.AsNoTracking()
             .InBranch(request.BranchId)
@@ -414,7 +414,7 @@ public class MarkBookEntryPaidCommandValidator : AbstractValidator<MarkBookEntry
 {
     public MarkBookEntryPaidCommandValidator(IDateTimeProvider dateTimeProvider)
     {
-        var today = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
+        var today = dateTimeProvider.Today;
 
         RuleFor(x => x.PaidOn)
             .LessThanOrEqualTo(today).WithMessage("Something cannot have been paid in the future.")
@@ -453,7 +453,7 @@ public class MarkBookEntryPaidCommandHandler : IRequestHandler<MarkBookEntryPaid
             throw new ConflictException("Only an income or a cost can be marked as paid.");
         }
 
-        var paidOn = request.PaidOn ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var paidOn = request.PaidOn ?? _dateTimeProvider.Today;
 
         if (entry.Kind == BookEntryKind.Income && paidOn < entry.OccurredOn)
         {

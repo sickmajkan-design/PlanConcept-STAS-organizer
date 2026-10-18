@@ -56,7 +56,7 @@ public class GetDataQualityQueryHandler : IRequestHandler<GetDataQualityQuery, D
 
     public async Task<DataQualityDto> Handle(GetDataQualityQuery request, CancellationToken cancellationToken)
     {
-        var today = DateOnly.FromDateTime(_clock.UtcNow);
+        var today = _clock.Today;
         var groups = new List<DataQualityGroupDto>();
 
         var activeEmployees = _context.Employees.AsNoTracking().Where(e => e.Status == EmployeeStatus.Active);

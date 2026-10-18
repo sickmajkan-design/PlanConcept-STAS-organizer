@@ -45,6 +45,7 @@ import type { MessageKey } from '../../i18n/en';
 import { useI18n } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { formatDate, formatMoney } from '../../utils/formatting';
+import { companyNow } from '../../utils/companyTime';
 
 type BillingMode = 'Hourly' | 'FlatRate' | 'Measured';
 
@@ -99,7 +100,7 @@ export function BookSettlementPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const now = new Date();
+  const now = companyNow();
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [confirmingLock, setConfirmingLock] = useState(false);

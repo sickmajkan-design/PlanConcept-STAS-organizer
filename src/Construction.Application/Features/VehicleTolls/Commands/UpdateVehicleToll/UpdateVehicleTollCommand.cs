@@ -73,7 +73,7 @@ public class UpdateVehicleTollCommandHandler : IRequestHandler<UpdateVehicleToll
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         return VehicleTollMapping.ToDto(toll, today);
     }

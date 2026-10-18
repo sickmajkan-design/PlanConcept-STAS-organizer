@@ -58,7 +58,7 @@ public class DeleteAttachmentCommandHandler : IRequestHandler<DeleteAttachmentCo
             await Features.Book.BookRules.EnsureWriteAsync(_context, _currentUserService, cancellationToken);
         }
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         if (attachment.IsRetainedOn(today))
         {

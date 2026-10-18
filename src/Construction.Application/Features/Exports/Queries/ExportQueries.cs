@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Features.Branches;
 using Construction.Application.Features.Finance;
 using Construction.Application.Common.Exceptions;
@@ -132,8 +133,8 @@ public class ExportTimeEntriesQueryHandler
         var query = _context.TimeEntries
             .AsNoTracking()
             .Where(t => t.EndedAt != null)
-            .Where(t => DateOnly.FromDateTime(t.StartedAt) >= request.From
-                && DateOnly.FromDateTime(t.StartedAt) <= request.To);
+            .Where(t => DateOnly.FromDateTime(CompanyTime.InZone(t.StartedAt, CompanyTime.ZoneId)) >= request.From
+                && DateOnly.FromDateTime(CompanyTime.InZone(t.StartedAt, CompanyTime.ZoneId)) <= request.To);
 
         if (request.ApprovedOnly)
         {
@@ -187,9 +188,9 @@ public class ExportTimeEntriesQueryHandler
             [
                 r.Employee,
                 r.Project,
-                DateOnly.FromDateTime(r.StartedAt),
-                r.StartedAt.ToString("HH:mm"),
-                r.EndedAt.ToString("HH:mm"),
+                CompanyTime.LocalDate(r.StartedAt),
+                CompanyTime.ToLocal(r.StartedAt).ToString("HH:mm"),
+                CompanyTime.ToLocal(r.EndedAt).ToString("HH:mm"),
                 r.BreakMinutes,
                 // Truncated the same way WorkedMinutes is, so a row here and
                 // the same row on the timesheet screen cannot disagree by a
@@ -394,7 +395,7 @@ public class ExportEmployeesQueryHandler : IRequestHandler<ExportEmployeesQuery,
             ]).ToList());
 
         return _writer.RenderSnapshot(
-            sheet, "employees", DateOnly.FromDateTime(_dateTimeProvider.UtcNow), request.Language);
+            sheet, "employees", _dateTimeProvider.Today, request.Language);
     }
 }
 
@@ -485,7 +486,7 @@ public class ExportProjectsQueryHandler : IRequestHandler<ExportProjectsQuery, E
             ]).ToList());
 
         return _writer.RenderSnapshot(
-            sheet, "projects", DateOnly.FromDateTime(_dateTimeProvider.UtcNow), request.Language);
+            sheet, "projects", _dateTimeProvider.Today, request.Language);
     }
 }
 
@@ -594,7 +595,7 @@ public class ExportVehiclesQueryHandler : IRequestHandler<ExportVehiclesQuery, E
             ]).ToList());
 
         return _writer.RenderSnapshot(
-            sheet, "vehicles", DateOnly.FromDateTime(_dateTimeProvider.UtcNow), request.Language);
+            sheet, "vehicles", _dateTimeProvider.Today, request.Language);
     }
 }
 
@@ -683,7 +684,7 @@ public class ExportToolsQueryHandler : IRequestHandler<ExportToolsQuery, ExportF
             ]).ToList());
 
         return _writer.RenderSnapshot(
-            sheet, "tools", DateOnly.FromDateTime(_dateTimeProvider.UtcNow), request.Language);
+            sheet, "tools", _dateTimeProvider.Today, request.Language);
     }
 }
 

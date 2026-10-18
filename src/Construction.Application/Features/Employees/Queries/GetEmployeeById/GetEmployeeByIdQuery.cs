@@ -34,7 +34,7 @@ public class GetEmployeeByIdQueryHandler : IRequestHandler<GetEmployeeByIdQuery,
     {
         // Not found rather than forbidden, as for a project: a foreman or project manager is not
         // told about people who are not on their sites.
-        var scopeDay = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var scopeDay = _dateTimeProvider.Today;
         var ownProjects = await SiteScope.OwnProjectIdsAsync(
             _context, _currentUserService, scopeDay, cancellationToken);
 
@@ -62,7 +62,7 @@ public class GetEmployeeByIdQueryHandler : IRequestHandler<GetEmployeeByIdQuery,
         // as everywhere else money appears — the hours a posting ran still
         // show, just not what it cost.
         var includesPay = await FinanceRules.CanSeePayAsync(_context, _currentUserService, cancellationToken);
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         // The projection's own split is coarse — "has an EndDate at all" —
         // because a static expression tree has no request-scoped "today" to

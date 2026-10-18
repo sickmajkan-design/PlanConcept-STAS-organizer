@@ -45,6 +45,7 @@ import type { MessageKey } from '../../i18n/en';
 import { useI18n } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { formatDate, formatMoney } from '../../utils/formatting';
+import { companyNow } from '../../utils/companyTime';
 
 const MAX_BYTES = 20 * 1024 * 1024;
 const MAX_ROWS = 5000;
@@ -86,7 +87,7 @@ const sample: string[][] = [
 ];
 
 function monthNow(): string {
-  const now = new Date();
+  const now = companyNow();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 }
 
@@ -279,7 +280,7 @@ export function BookImportPage() {
   );
 
   const recentMonths = Array.from({ length: 14 }, (_, back) => {
-    const date = new Date(new Date().getFullYear(), new Date().getMonth() - back, 1);
+    const date = new Date(companyNow().getFullYear(), companyNow().getMonth() - back, 1);
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
   });
 

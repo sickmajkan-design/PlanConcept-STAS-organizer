@@ -144,7 +144,7 @@ public class AddAccommodationStayCommandHandler
             throw new NotFoundException(nameof(Project), projectId);
         }
 
-        var start = request.StartDate ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var start = request.StartDate ?? _dateTimeProvider.Today;
 
         await StayRules.EnsureNoOverlapAsync(
             _context, request.EmployeeId, null, start, request.EndDate, cancellationToken);

@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Accommodations.Costs;
 using Construction.Domain.Enums;
@@ -91,13 +92,13 @@ public static class LedgerAutoValues
                     && t.ProjectId != null
                     && employeeIds.Contains(t.EmployeeId)
                     && projectIds.Contains(t.ProjectId.Value))
-                .Where(t => DateOnly.FromDateTime(t.StartedAt) >= from
-                    && DateOnly.FromDateTime(t.StartedAt) <= to)
+                .Where(t => DateOnly.FromDateTime(CompanyTime.InZone(t.StartedAt, CompanyTime.ZoneId)) >= from
+                    && DateOnly.FromDateTime(CompanyTime.InZone(t.StartedAt, CompanyTime.ZoneId)) <= to)
                 .Select(t => new
                 {
                     t.EmployeeId,
                     ProjectId = t.ProjectId!.Value,
-                    Day = DateOnly.FromDateTime(t.StartedAt),
+                    Day = DateOnly.FromDateTime(CompanyTime.InZone(t.StartedAt, CompanyTime.ZoneId)),
                     Minutes = (int)((t.EndedAt!.Value - t.StartedAt).TotalMinutes - t.BreakMinutes),
                 })
                 .ToListAsync(cancellationToken);

@@ -30,7 +30,7 @@ public class RecordToolExpenseCommandValidator : AbstractValidator<RecordToolExp
 {
     public RecordToolExpenseCommandValidator(IDateTimeProvider dateTimeProvider)
     {
-        var today = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
+        var today = dateTimeProvider.Today;
 
         RuleFor(x => x.ToolId).NotEmpty();
         RuleFor(x => x.Kind).IsInEnum();
@@ -88,7 +88,7 @@ public class RecordToolExpenseCommandHandler
             Kind = request.Kind,
             Amount = request.Amount,
             OccurredOn = request.OccurredOn
-                ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+                ?? _dateTimeProvider.Today,
             Supplier = request.Supplier?.Trim(),
             Note = request.Note?.Trim(),
             RecordedByUserId = _currentUserService.UserId

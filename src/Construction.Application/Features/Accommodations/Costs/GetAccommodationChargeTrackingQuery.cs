@@ -109,7 +109,7 @@ public class GetAccommodationChargeTrackingQueryHandler
             .FirstOrDefaultAsync(r => r.Id == request.RateId, cancellationToken)
             ?? throw new NotFoundException(nameof(AccommodationRate), request.RateId);
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
         var accommodation = rate.Accommodation;
         var name = string.IsNullOrWhiteSpace(accommodation.Name) ? accommodation.Address : accommodation.Name;
 

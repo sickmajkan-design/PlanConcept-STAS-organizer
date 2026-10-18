@@ -40,7 +40,7 @@ public class GetAccommodationByIdQueryHandler : IRequestHandler<GetAccommodation
         await AccommodationOccupancy.FillCurrentOccupantsAsync(
             _context,
             [accommodation],
-            DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+            _dateTimeProvider.Today,
             cancellationToken);
 
         return accommodation;

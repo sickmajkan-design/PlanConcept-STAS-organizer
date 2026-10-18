@@ -12,6 +12,7 @@ import './index.css';
 import { queryClient } from './queryClient';
 import { installGlobalErrorReporting, reportClientError } from './telemetry/reportClientError';
 import { ColorModeProvider } from './ColorMode';
+import { CompanyTimeZoneSync } from './features/companySettings/CompanyTimeZoneSync';
 
 // Before anything renders, so a crash during the first render is reported
 // too — that is the one that leaves an operator looking at nothing at all.
@@ -36,6 +37,7 @@ createRoot(document.getElementById('root')!).render(
         <ColorModeProvider>
           <QueryClientProvider client={queryClient}>
             <BrowserRouter>
+              <CompanyTimeZoneSync />
               <AuthProvider>
                 <App />
               </AuthProvider>

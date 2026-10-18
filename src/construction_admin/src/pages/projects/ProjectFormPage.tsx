@@ -42,6 +42,7 @@ import { projectFormSchema, type ProjectFormValues } from '../../features/projec
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
+import { companyNow } from '../../utils/companyTime';
 
 const emptyValues: ProjectFormValues = {
   name: '',
@@ -74,7 +75,7 @@ function utcTimeToLocalInput(value: string | null | undefined): string {
   if (!value) return '';
 
   const [hours = '0', minutes = '0'] = value.split(':');
-  const reference = new Date();
+  const reference = companyNow();
   reference.setUTCHours(Number(hours), Number(minutes), 0, 0);
   if (Number.isNaN(reference.getTime())) return '';
 
@@ -86,7 +87,7 @@ function localInputToUtcTime(value: string): string | null {
   if (!value) return null;
 
   const [hours = '0', minutes = '0'] = value.split(':');
-  const reference = new Date();
+  const reference = companyNow();
   reference.setHours(Number(hours), Number(minutes), 0, 0);
 
   const pad = (n: number) => String(n).padStart(2, '0');

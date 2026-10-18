@@ -8,10 +8,12 @@ import { useI18n } from '../../../i18n/useI18n';
 import { paths } from '../../../routes/paths';
 import { chartPalette } from '../../../theme';
 import { formatMoney } from '../../../utils/formatting';
+import { fetchAllPages } from '../dashboardData';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
 import { BarsChart, Donut } from './widgetCharts';
 import { BarRow, EmptyNote, MoreLink } from './widgetUi';
+import { companyNow } from '../../../utils/companyTime';
 
 const TOP_N = 5;
 
@@ -32,7 +34,7 @@ function monthlyTotals(entries: { amount: number; occurredOn: string }[]): numbe
 export function ProjectsRealizationWidget({ instanceId: _instanceId, onRemove, onExpandWidth }: DashboardWidgetProps) {
   const { t, locale } = useI18n();
   const theme = useTheme();
-  const year = new Date().getFullYear();
+  const year = companyNow().getFullYear();
   const { from, to } = yearBounds(year);
 
   const planQuery = useQuery({
@@ -47,14 +49,17 @@ export function ProjectsRealizationWidget({ instanceId: _instanceId, onRemove, o
 
   const revenueQuery = useQuery({
     queryKey: ['dashboard', 'revenue-trend', year] as const,
-    // 200 is this endpoint's own max page size (GetProjectRevenuesQuery),
-    // not an arbitrary choice — a bigger request 400s outright.
-    queryFn: () => realizationApi.revenues.list({ pageNumber: 1, pageSize: 200, from, to }),
+    // 200 is this endpoint's own max page size (GetProjectRevenuesQuery), not an arbitrary choice — a bigger request
+    // 400s outright. Every page is read: the months are added up from the payments, and a year can hold more than 200.
+    queryFn: () => fetchAllPages((pageNumber) => realizationApi.revenues.list({ pageNumber, pageSize: 200, from, to })),
   });
+
+  // The API gives a share as a fraction (0.98 is 98%); the bar and the "complete" colour are in percent.
+  const percentOf = (row: { percentOfContract: number | null }) => (row.percentOfContract ?? 0) * 100;
 
   const rows = [...(planQuery.data?.rows ?? [])]
     .filter((row) => row.contractValue > 0)
-    .sort((a, b) => (b.percentOfContract ?? 0) - (a.percentOfContract ?? 0))
+    .sort((a, b) => percentOf(b) - percentOf(a))
     .slice(0, TOP_N);
 
   const cost = costQuery.data;
@@ -101,8 +106,8 @@ export function ProjectsRealizationWidget({ instanceId: _instanceId, onRemove, o
                 key={row.projectId}
                 label={row.projectName}
                 value={`${formatMoney(row.realizedToDate, locale)} / ${formatMoney(row.contractValue, locale)}`}
-                percent={row.percentOfContract ?? 0}
-                tone={(row.percentOfContract ?? 0) >= 100 ? 'good' : 'accent'}
+                percent={percentOf(row)}
+                tone={percentOf(row) >= 100 ? 'good' : 'accent'}
               />
             ))}
           </Box>

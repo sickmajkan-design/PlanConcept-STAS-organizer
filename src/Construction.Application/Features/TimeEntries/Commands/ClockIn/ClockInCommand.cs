@@ -154,7 +154,7 @@ public class ClockInCommandHandler : IRequestHandler<ClockInCommand, TimeEntryDt
             // the rest of this handler goes out of its way to avoid. Flagged
             // to the people who can tell an ordinary favour from a mistake
             // instead.
-            var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+            var today = _dateTimeProvider.Today;
 
             isAssignedToProject = await _context.EmployeeProjects.AnyAsync(
                 a => a.EmployeeId == employeeId &&
@@ -246,7 +246,7 @@ public class ClockInCommandHandler : IRequestHandler<ClockInCommand, TimeEntryDt
         Guid employeeId,
         CancellationToken cancellationToken)
     {
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
         var sites = await TimeEntryRules.RunningPostingsAsync(
             _context, employeeId, today, cancellationToken);

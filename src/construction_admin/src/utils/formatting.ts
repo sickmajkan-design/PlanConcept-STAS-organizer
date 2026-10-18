@@ -1,30 +1,67 @@
+import { companyDayBounds, companyNow, companyTimeOf, todayCompany, wallClock } from './companyTime';
+
+// The organisation's calendar lives in companyTime.ts; these are re-exported where the formatting helpers have always lived.
+export { companyDayBounds, companyNow, todayCompany };
+
 /** Turns API enum names such as `ProjectManager` into `Project Manager`. */
 export function humanizeEnum(value: string): string {
   return value.replace(/(?<=[a-z])[A-Z]/g, (match) => ` ${match}`).trim();
 }
 
-/** Day-first date, the convention on site paperwork. */
+/**
+ * The browser writes Serbian weekdays in the ekavian form (nedelja, sreda); the interface is ijekavian. The only
+ * words that differ in a date are those two, in full and abbreviated, so they are put right here, once.
+ */
+export function ijekavianDate(text: string): string {
+  return text
+    .replace(/\bnedelja\b/g, 'nedjelja')
+    .replace(/\bNedelja\b/g, 'Nedjelja')
+    .replace(/\bsreda\b/g, 'srijeda')
+    .replace(/\bSreda\b/g, 'Srijeda')
+    .replace(/\bsre\b/g, 'sri')
+    .replace(/\bSre\b/g, 'Sri');
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Whole days from `today` to the `YYYY-MM-DD` date, negative once it has passed. */
+export function daysUntil(date: string, today: Date = companyNow()): number {
+  const start = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  const [year, month, day] = date.split('-').map(Number);
+
+  return Math.round((Date.UTC(year, month - 1, day) - start) / DAY_MS);
+}
+
+/**
+ * Day-first date, the convention on site paperwork. A date (`YYYY-MM-DD`) is written as it is; an instant is the day
+ * it falls on in the organisation's zone, never the browser's.
+ */
 export function formatDate(value: string | null | undefined): string {
   if (!value) return '—';
 
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '—';
+  const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (dateOnly) return `${dateOnly[3]}.${dateOnly[2]}.${dateOnly[1]}.`;
 
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  return `${day}.${month}.${date.getFullYear()}.`;
+  const instant = new Date(value);
+  if (Number.isNaN(instant.getTime())) return '—';
+
+  const day = wallClock(instant);
+  return `${String(day.getDate()).padStart(2, '0')}.${String(day.getMonth() + 1).padStart(2, '0')}.${day.getFullYear()}.`;
 }
 
-/** `YYYY-MM-DD` for a day offset from today, in the browser's local time. */
+/** `YYYY-MM-DD` for a day offset from today, on the organisation's calendar. */
 export function dateOnlyOffset(days: number): string {
-  const date = new Date();
+  const date = companyNow();
   date.setDate(date.getDate() + days);
   return toLocalDateOnly(date);
 }
 
-/** `YYYY-MM-DD` for an ISO instant (or `Date`), in the browser's local time. */
+/**
+ * `YYYY-MM-DD` for an ISO instant, on the organisation's calendar; for a `Date` the date its own fields read (a wall
+ * clock `Date` is the organisation's day already, and a day picked on a calendar is built from its fields).
+ */
 export function toLocalDateOnly(value: string | Date): string {
-  const date = typeof value === 'string' ? new Date(value) : value;
+  const date = typeof value === 'string' ? wallClock(new Date(value)) : value;
 
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
@@ -44,12 +81,10 @@ export function lastYearRange(): { from: string; to: string } {
 export function formatDateTime(value: string | null | undefined): string {
   if (!value) return '—';
 
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '—';
+  const instant = new Date(value);
+  if (Number.isNaN(instant.getTime())) return '—';
 
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${formatDate(value)} ${hours}:${minutes}`;
+  return `${formatDate(value)} ${companyTimeOf(instant)}`;
 }
 
 /** Compact "how long ago" label, used for the last GPS fix on the live map. */
@@ -114,12 +149,10 @@ export function splitMinutes(total: number | null | undefined): {
 export function formatTimeOfDay(value: string | null | undefined): string {
   if (!value) return '—';
 
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '—';
+  const instant = new Date(value);
+  if (Number.isNaN(instant.getTime())) return '—';
 
-  return `${String(date.getHours()).padStart(2, '0')}:${String(
-    date.getMinutes(),
-  ).padStart(2, '0')}`;
+  return companyTimeOf(instant);
 }
 
 /**

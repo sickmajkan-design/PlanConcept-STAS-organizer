@@ -31,6 +31,7 @@ import { useAllProjectsQuery } from '../../features/projects/useProjects';
 import type { MessageKey } from '../../i18n/en';
 import { useI18n } from '../../i18n/useI18n';
 import { formatDate, formatMoney } from '../../utils/formatting';
+import { companyNow } from '../../utils/companyTime';
 
 const recurringKey = ['book', 'recurring'] as const;
 
@@ -38,7 +39,7 @@ const recurringKey = ['book', 'recurring'] as const;
 const countries = ['SI', 'DE', 'HR'] as const;
 
 function monthIndex(): { year: number; month: number } {
-  const now = new Date();
+  const now = companyNow();
   return { year: now.getFullYear(), month: now.getMonth() + 1 };
 }
 

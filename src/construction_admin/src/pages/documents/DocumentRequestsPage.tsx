@@ -49,6 +49,7 @@ import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n } from '../../i18n/useI18n';
 import { formatDate, formatDateTime } from '../../utils/formatting';
 import { RequestDocumentDialog } from './RequestDocumentDialog';
+import { todayCompany } from '../../utils/companyTime';
 
 type Tone = 'default' | 'warning' | 'success' | 'error' | 'info';
 
@@ -72,7 +73,8 @@ function isOverdue(request: DocumentRequest): boolean {
     return false;
   }
 
-  return new Date(`${request.dueDate}T23:59:59`).getTime() < Date.now();
+  // Overdue once the organisation's day of the deadline is over.
+  return request.dueDate < todayCompany();
 }
 
 function StatusBadge({ request }: { request: DocumentRequest }) {

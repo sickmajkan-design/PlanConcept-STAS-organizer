@@ -165,7 +165,7 @@ public class SetEmployeeBranchCommandHandler
 
         var branch = await BranchLookup.LoadAsync(_context, request.BranchId, cancellationToken);
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
         var from = request.From ?? today;
 
         var changed = await EmployeeBranchRules.MoveAsync(
@@ -306,7 +306,7 @@ public class AssignEmployeesToBranchCommandHandler : IRequestHandler<AssignEmplo
             throw new NotFoundException(nameof(Employee), missing);
         }
 
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
         var from = request.From ?? today;
 
         // All or nothing: one person whose history does not fit the date fails the whole request,

@@ -37,7 +37,7 @@ public class RecordFinanceEntryCommandValidator : AbstractValidator<RecordFinanc
 {
     public RecordFinanceEntryCommandValidator(IDateTimeProvider dateTimeProvider)
     {
-        var today = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
+        var today = dateTimeProvider.Today;
 
         RuleFor(x => x.EmployeeId).NotEmpty();
         RuleFor(x => x.Kind).IsInEnum();
@@ -113,7 +113,7 @@ public class RecordFinanceEntryCommandHandler
             Kind = request.Kind,
             Amount = request.Amount,
             OccurredOn = request.OccurredOn
-                ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow),
+                ?? _dateTimeProvider.Today,
             ProjectId = request.ProjectId,
             BranchId = request.BranchId,
             // Belt and braces with the validator and the check constraint: a

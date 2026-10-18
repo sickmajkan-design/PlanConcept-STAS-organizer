@@ -1,4 +1,5 @@
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Application.Features.Costs;
 using Construction.Application.Features.DataQuality;
 using Construction.Domain.Enums;
@@ -16,7 +17,18 @@ namespace Construction.Application.Features.Attention;
 /// dealt with. A kind the role cannot act on is left out, so the list is short for everybody and empty for
 /// a worker rather than carrying greyed-out rows.
 /// </remarks>
-public record GetAttentionQuery : IRequest<AttentionDto>;
+public record GetAttentionQuery : IRequest<AttentionDto>
+{
+    /// <summary>
+    /// Narrows what is counted to one business unit (poslovna jedinica), the same way the lists the kinds link to are
+    /// narrowed. A kind that belongs to the company as a whole and to no unit (the virus scanner, the records to tidy)
+    /// is not narrowed.
+    /// </summary>
+    public Guid? BranchId { get; init; }
+
+    /// <summary>With a unit: whose hours count for it, those worked on its sites or those of the people it employs.</summary>
+    public BranchBasis Basis { get; init; }
+}
 
 public class AttentionDto
 {
@@ -73,7 +85,9 @@ public class GetAttentionQueryHandler : IRequestHandler<GetAttentionQuery, Atten
     public async Task<AttentionDto> Handle(GetAttentionQuery request, CancellationToken cancellationToken)
     {
         var role = _currentUser.Role;
-        var today = DateOnly.FromDateTime(_clock.UtcNow);
+        var today = _clock.Today;
+        var branchId = request.BranchId;
+        var token = branchId is { } scoped ? BranchTree.Token(scoped) : string.Empty;
         var admin = role is UserRole.SuperAdmin or UserRole.Admin;
         var manager = admin || role == UserRole.ProjectManager;
         var groups = new List<AttentionGroupDto>();
@@ -96,7 +110,7 @@ public class GetAttentionQueryHandler : IRequestHandler<GetAttentionQuery, Atten
                 Add("virusScanner", 1);
             }
 
-            var absences = _context.Absences.AsNoTracking().Where(a => a.Status == AbsenceStatus.Requested);
+            var absences = _context.Absences.AsNoTracking().InBranch(branchId).Where(a => a.Status == AbsenceStatus.Requested);
             Add(
                 "absenceRequests",
                 await absences.CountAsync(cancellationToken),
@@ -109,6 +123,13 @@ public class GetAttentionQueryHandler : IRequestHandler<GetAttentionQuery, Atten
         if (CostRules.CanReviewSpending(role))
         {
             var pending = _context.VehicleExpenses.AsNoTracking().Where(e => e.Status == VehicleExpenseStatus.Pending);
+
+            // A cost belongs to the unit its vehicle does.
+            if (await BranchScope.VehicleIdsAsync(_context, branchId, cancellationToken) is { } unitVehicles)
+            {
+                pending = pending.Where(e => unitVehicles.Contains(e.VehicleId));
+            }
+
             Add(
                 "expensesToReview",
                 await pending.CountAsync(cancellationToken),
@@ -120,35 +141,68 @@ public class GetAttentionQueryHandler : IRequestHandler<GetAttentionQuery, Atten
 
         if (manager)
         {
-            Add("timeEntriesToReview", await _context.TimeEntries.AsNoTracking().CountAsync(t => t.Status == TimeEntryStatus.Submitted, cancellationToken));
+            Add(
+                "timeEntriesToReview",
+                await _context.TimeEntries.AsNoTracking().InBranch(branchId, request.Basis)
+                    .CountAsync(t => t.Status == TimeEntryStatus.Submitted, cancellationToken));
 
             // Posted from this week on and not yet confirmed on the phone.
             var soon = today.AddDays(7);
-            Add(
-                "unconfirmedPostings",
-                await _context.EmployeeProjects.AsNoTracking().CountAsync(
-                    ep => ep.AcknowledgedAt == null
-                        && ep.StartDate <= soon
-                        && (ep.EndDate == null || ep.EndDate >= today)
-                        && ep.Employee.Status == EmployeeStatus.Active,
-                    cancellationToken));
+            var postings = _context.EmployeeProjects.AsNoTracking()
+                .Where(ep => ep.AcknowledgedAt == null
+                    && ep.StartDate <= soon
+                    && (ep.EndDate == null || ep.EndDate >= today)
+                    && ep.Employee.Status == EmployeeStatus.Active);
+
+            if (branchId is not null)
+            {
+                // A posting is the site's, or, counting people by their employer, the unit that employs them now.
+                postings = request.Basis == BranchBasis.Employer
+                    ? postings.Where(ep => ep.Employee.BranchPeriods.Any(p => p.Branch.Path.Contains(token) && p.EndDate == null))
+                    : postings.Where(ep => ep.Project.Branch!.Path.Contains(token));
+            }
+
+            Add("unconfirmedPostings", await postings.CountAsync(cancellationToken));
         }
 
         if (admin)
         {
-            Add("articleOrders", await _context.ArticleOrders.AsNoTracking().CountAsync(o => o.Status == ArticleOrderStatus.Requested, cancellationToken));
-            Add("refunds", await _context.Refunds.AsNoTracking().CountAsync(r => r.Status == RefundStatus.Requested, cancellationToken));
+            // Orders are the site's, as in the list they link to.
+            var orders = _context.ArticleOrders.AsNoTracking().Where(o => o.Status == ArticleOrderStatus.Requested);
+            if (branchId is not null)
+            {
+                orders = orders.Where(o => o.Project != null && o.Project.Branch!.Path.Contains(token));
+            }
 
-            Add(
-                "dkvRows",
-                await _context.FuelTransactions.AsNoTracking().CountAsync(
-                    t => t.Status == FuelTransactionStatus.NeedsReview
-                        || t.Status == FuelTransactionStatus.NoDriverEntry
-                        || t.Status == FuelTransactionStatus.UnknownCard,
-                    cancellationToken));
+            Add("articleOrders", await orders.CountAsync(cancellationToken));
+
+            // A refund is the site's when it names one, and otherwise the unit that employs the person.
+            var refunds = _context.Refunds.AsNoTracking().Where(r => r.Status == RefundStatus.Requested);
+            if (branchId is not null)
+            {
+                refunds = refunds.Where(r => r.Project != null
+                    ? r.Project.Branch!.Path.Contains(token)
+                    : r.Employee.BranchPeriods.Any(p => p.Branch.Path.Contains(token) && p.EndDate == null));
+            }
+
+            Add("refunds", await refunds.CountAsync(cancellationToken));
+
+            // Fuel rows that need a look. A row that matched no vehicle (an unknown card) is nobody's unit, so it
+            // is counted only with the whole company.
+            var fuelRows = _context.FuelTransactions.AsNoTracking()
+                .Where(t => t.Status == FuelTransactionStatus.NeedsReview
+                    || t.Status == FuelTransactionStatus.NoDriverEntry
+                    || t.Status == FuelTransactionStatus.UnknownCard);
+            if (await BranchScope.VehicleIdsAsync(_context, branchId, cancellationToken) is { } fuelVehicles)
+            {
+                fuelRows = fuelRows.Where(t => t.VehicleId != null && fuelVehicles.Contains(t.VehicleId.Value));
+            }
+
+            Add("dkvRows", await fuelRows.CountAsync(cancellationToken));
 
             var horizon = today.AddDays(VehicleDateDays);
             var vehicles = await _context.Vehicles.AsNoTracking()
+                .InBranch(branchId)
                 .Where(v => v.Status != VehicleStatus.OutOfService
                     && ((v.RegistrationValidUntil != null && v.RegistrationValidUntil <= horizon)
                         || (v.TechnicalInspectionValidUntil != null && v.TechnicalInspectionValidUntil <= horizon)
@@ -183,8 +237,14 @@ public class GetAttentionQueryHandler : IRequestHandler<GetAttentionQuery, Atten
 
             Add("vehicleDates", soonest.Count, soonest);
 
-            var expiring = await _context.EmployeeCertificates.AsNoTracking()
-                .Where(c => c.ValidUntil != null && c.ValidUntil <= horizon && c.Employee.Status == EmployeeStatus.Active)
+            var certificates = _context.EmployeeCertificates.AsNoTracking()
+                .Where(c => c.ValidUntil != null && c.ValidUntil <= horizon && c.Employee.Status == EmployeeStatus.Active);
+            if (branchId is not null)
+            {
+                certificates = certificates.Where(c => c.Employee.BranchPeriods.Any(p => p.Branch.Path.Contains(token) && p.EndDate == null));
+            }
+
+            var expiring = await certificates
                 .OrderBy(c => c.ValidUntil)
                 .Select(c => new { Name = c.Employee.FirstName + " " + c.Employee.LastName + " - " + c.Name, c.ValidUntil })
                 .ToListAsync(cancellationToken);
@@ -195,7 +255,13 @@ public class GetAttentionQueryHandler : IRequestHandler<GetAttentionQuery, Atten
             // invoices says something about what the firm is owed.
             if (await Book.BookRules.HasAccessAsync(_context, _currentUser, cancellationToken))
             {
-                var late = await _context.Invoices.AsNoTracking()
+                var lateInvoicesQuery = _context.Invoices.AsNoTracking();
+                if (branchId is not null)
+                {
+                    lateInvoicesQuery = lateInvoicesQuery.Where(i => i.Project.Branch!.Path.Contains(token));
+                }
+
+                var late = await lateInvoicesQuery
                     .Where(i => i.Status == InvoiceStatus.Issued && i.Amount > 0 && i.DueDate != null && i.DueDate < today)
                     .Where(i => i.Amount > (i.Payments.Sum(p => (decimal?)p.Amount) ?? 0m))
                     .OrderBy(i => i.DueDate)
@@ -205,6 +271,7 @@ public class GetAttentionQueryHandler : IRequestHandler<GetAttentionQuery, Atten
                 Add("lateInvoices", late.Count, late.Select(i => new AttentionItemDto { Label = $"{i.Number} - {i.Client}", Date = i.DueDate }));
 
                 var owed = await _context.BookEntries.AsNoTracking()
+                    .InBranch(branchId)
                     .Where(e => e.Kind == BookEntryKind.Cost && e.PaidOn == null && e.DueDate != null && e.DueDate < today)
                     .OrderBy(e => e.DueDate)
                     .Select(e => new { Name = e.Counterparty ?? e.Description ?? "", e.DueDate })

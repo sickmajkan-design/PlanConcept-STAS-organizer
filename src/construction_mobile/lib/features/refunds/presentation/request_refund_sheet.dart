@@ -8,6 +8,7 @@ import '../../../core/l10n/app_locales.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/utils/formatting.dart';
 import 'refunds_controller.dart';
+import '../../../core/time/company_time.dart';
 
 Future<void> showRequestRefundSheet(BuildContext context) {
   return showModalBottomSheet<void>(
@@ -29,7 +30,7 @@ class _RequestRefundSheetState extends ConsumerState<_RequestRefundSheet> {
   final _amount = TextEditingController();
   final _currency = TextEditingController(text: 'EUR');
   final _description = TextEditingController();
-  DateTime _date = DateTime.now();
+  DateTime _date = CompanyTime.now();
   XFile? _receipt;
   bool _busy = false;
 
@@ -133,7 +134,7 @@ class _RequestRefundSheetState extends ConsumerState<_RequestRefundSheet> {
   }
 
   Future<void> _pickDate() async {
-    final today = DateTime.now();
+    final today = CompanyTime.now();
 
     final picked = await showDatePicker(
       context: context,

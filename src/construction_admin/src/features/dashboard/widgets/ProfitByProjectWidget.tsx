@@ -52,15 +52,17 @@ export function ProfitByProjectWidget({ onRemove, onExpandWidth }: DashboardWidg
 
   // Projects the list was cut short of. Company = listed + these + unallocated, so the
   // difference is exact and the table always adds up to its own last line.
+  // Kept to the cent: subtracting amounts as floating point leaves crumbs like 0.0000000001 that would print as -0,00.
+  const cents = (value: number) => Math.round(value * 100) / 100;
   const hidden =
     data && data.totalProjects > rows.length
       ? {
-          revenue: data.company.revenue - data.unallocated.revenue - rows.reduce((sum, row) => sum + row.revenue, 0),
-          expense: data.company.expense - data.unallocated.expense - rows.reduce((sum, row) => sum + row.expense, 0),
+          revenue: cents(data.company.revenue - data.unallocated.revenue - rows.reduce((sum, row) => sum + row.revenue, 0)),
+          expense: cents(data.company.expense - data.unallocated.expense - rows.reduce((sum, row) => sum + row.expense, 0)),
           profit: 0,
         }
       : null;
-  if (hidden) hidden.profit = hidden.revenue - hidden.expense;
+  if (hidden) hidden.profit = cents(hidden.revenue - hidden.expense);
 
   const header = (key: SortKey, label: string, numeric = true) => (
     <TableCell align={numeric ? 'right' : 'left'} sortDirection={sort.key === key ? sort.direction : false}>

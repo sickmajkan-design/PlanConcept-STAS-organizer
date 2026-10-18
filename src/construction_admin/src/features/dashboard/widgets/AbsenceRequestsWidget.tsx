@@ -13,7 +13,7 @@ import { ApproveAbsenceDialog } from '../../absences/ApproveAbsenceDialog';
 import { useAbsencesQuery, useReviewAbsence } from '../../absences/useAbsences';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
-import { EmptyNote, InsetList, InsetRow, MoreLink } from './widgetUi';
+import { InsetList, InsetRow, MoreLink } from './widgetUi';
 
 const SHOWN = 6;
 
@@ -48,10 +48,9 @@ export function AbsenceRequestsWidget({ instanceId: _instanceId, onRemove, onExp
       error={query.error}
       onRemove={onRemove}
       onExpandWidth={onExpandWidth}
+      empty={items.length === 0 ? { text: t('dashboard.absenceRequests.empty') } : undefined}
     >
-      {items.length === 0 && !query.isLoading ? (
-        <EmptyNote>{t('dashboard.absenceRequests.empty')}</EmptyNote>
-      ) : (
+      {items.length > 0 && (
         <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
           <InsetList>
             {items.map((absence) => {

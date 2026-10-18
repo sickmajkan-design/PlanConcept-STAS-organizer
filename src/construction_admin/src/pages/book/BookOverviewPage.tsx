@@ -30,6 +30,7 @@ import type { MessageKey } from '../../i18n/en';
 import { useI18n } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { formatDate, formatMoney } from '../../utils/formatting';
+import { companyNow } from '../../utils/companyTime';
 
 const WINDOW = 12;
 
@@ -39,7 +40,7 @@ interface MonthRef {
 }
 
 function monthsEndingNow(count: number): MonthRef[] {
-  const now = new Date();
+  const now = companyNow();
   const list: MonthRef[] = [];
 
   for (let back = count - 1; back >= 0; back--) {
@@ -166,7 +167,7 @@ export function BookOverviewPage() {
   };
 
   const quarterStart = (() => {
-    const now = new Date();
+    const now = companyNow();
     return Math.floor(now.getMonth() / 3) * 3;
   })();
 
@@ -177,10 +178,10 @@ export function BookOverviewPage() {
     {
       key: 'lastQuarter',
       // The calendar quarter before this one, counted back from the current month.
-      from: last - (new Date().getMonth() - quarterStart) - 3,
-      to: last - (new Date().getMonth() - quarterStart) - 1,
+      from: last - (companyNow().getMonth() - quarterStart) - 3,
+      to: last - (companyNow().getMonth() - quarterStart) - 1,
     },
-    { key: 'yearToDate', from: last - new Date().getMonth(), to: last },
+    { key: 'yearToDate', from: last - companyNow().getMonth(), to: last },
   ];
 
   const delta = data && visible && data.previousProfit !== 0

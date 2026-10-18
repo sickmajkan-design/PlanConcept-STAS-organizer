@@ -28,7 +28,7 @@ public class CreateRefundCommandValidator : AbstractValidator<CreateRefundComman
 {
     public CreateRefundCommandValidator(IDateTimeProvider dateTimeProvider)
     {
-        var today = DateOnly.FromDateTime(dateTimeProvider.UtcNow);
+        var today = dateTimeProvider.Today;
 
         RuleFor(x => x.Amount).GreaterThan(0).LessThanOrEqualTo(RefundRules.MaxAmount);
         RuleFor(x => x.Currency).NotEmpty().Length(3).Matches("^[A-Za-z]{3}$");

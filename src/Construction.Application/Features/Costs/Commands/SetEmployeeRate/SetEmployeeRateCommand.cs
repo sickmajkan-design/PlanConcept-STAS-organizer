@@ -129,7 +129,7 @@ public class SetEmployeeRateCommandHandler
             throw new NotFoundException(nameof(Employee), request.EmployeeId);
         }
 
-        var startDate = request.StartDate ?? DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var startDate = request.StartDate ?? _dateTimeProvider.Today;
         var isHourly = request.RateType == RateType.Hourly;
         var rate = new EmployeeRate
         {

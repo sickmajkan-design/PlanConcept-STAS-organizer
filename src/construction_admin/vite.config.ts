@@ -1,3 +1,13 @@
+/**
+ * The suite runs in the company's own time zone, whatever machine runs it.
+ *
+ * The bugs that hurt here are the ones that only show for people east of Greenwich: a date built through
+ * `toISOString()` is the previous day for the first hours after local midnight, and a month's first day comes out
+ * as the last day of the month before. On a machine set to UTC (CI) those bugs cannot happen, so a test that
+ * passes there proves nothing. Set before any worker starts, so every one of them inherits it.
+ */
+process.env.TZ = 'Europe/Belgrade'
+
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
 

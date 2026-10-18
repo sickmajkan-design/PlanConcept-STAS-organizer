@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Enums;
 using MediatR;
@@ -41,12 +42,11 @@ public class AutoCloseStaleShiftsCommandHandler
         AutoCloseStaleShiftsCommand request,
         CancellationToken cancellationToken)
     {
-        var today = DateOnly.FromDateTime(_dateTimeProvider.UtcNow);
+        var today = _dateTimeProvider.Today;
 
-        // Explicit UTC kind: PostgreSQL's timestamptz columns refuse a
-        // DateTime whose Kind is Unspecified, which is exactly what
-        // DateOnly.ToDateTime's two-argument overload leaves it as.
-        var startOfToday = today.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        // The instant the company's day began at (its own midnight, as UTC): a shift that began before it is a
+        // day old. UTC kind, since PostgreSQL's timestamptz columns refuse a DateTime of Unspecified kind.
+        var startOfToday = CompanyTime.StartOfDayUtc(today);
 
         // Tracked, not AsNoTracking: each row needs its own computed EndedAt,
         // and the count of these on any given day is small — someone who
@@ -63,7 +63,8 @@ public class AutoCloseStaleShiftsCommandHandler
 
         foreach (var entry in stale)
         {
-            var startOfNextDay = entry.StartedAt.Date.AddDays(1);
+            // A shift is closed no later than the end of the company's day it began on.
+            var startOfNextDay = CompanyTime.StartOfDayUtc(CompanyTime.LocalDate(entry.StartedAt).AddDays(1));
             var standardEnd = entry.StartedAt.Add(TimeEntryRules.StandardShiftDuration);
 
             entry.EndedAt = standardEnd < startOfNextDay ? standardEnd : startOfNextDay;
@@ -91,12 +92,12 @@ public class AutoCloseStaleShiftsCommandHandler
                 userId.Value,
                 NotificationType.ShiftAutoClosed,
                 "Shift closed automatically",
-                $"You did not clock out on {entry.StartedAt:dd.MM.yyyy}, so the shift was " +
+                $"You did not clock out on {CompanyTime.LocalDate(entry.StartedAt):dd.MM.yyyy}, so the shift was " +
                 "closed automatically and is waiting for review.",
                 new Dictionary<string, string>
                 {
                     ["timeEntryId"] = entry.Id.ToString(),
-                    ["shiftDate"] = DateOnly.FromDateTime(entry.StartedAt).ToString("yyyy-MM-dd")
+                    ["shiftDate"] = CompanyTime.LocalDate(entry.StartedAt).ToString("yyyy-MM-dd")
                 },
                 requiresAcknowledgment: true,
                 cancellationToken: cancellationToken);

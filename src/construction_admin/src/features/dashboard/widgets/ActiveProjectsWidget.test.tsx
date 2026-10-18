@@ -2,9 +2,13 @@
  * @vitest-environment jsdom
  */
 import { screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { installFakeNetwork, renderScreen, signedIn, type FakeNetwork } from '../../../test/renderScreen';
+// First of the project's own imports: it installs the fake network, and an API module loaded before it would keep
+// the real one.
+import { installFakeNetwork, renderScreen, signedIn } from '../../../test/renderScreen';
+import { projectsApi } from '../../../api/projects';
+import type { Project } from '../../../api/types';
 import { daysUntil } from './ActiveProjectsWidget';
 
 /**
@@ -13,13 +17,11 @@ import { daysUntil } from './ActiveProjectsWidget';
  * The API itself narrows the list to what the signed-in role may see (a foreman gets
  * only their own sites), so the widget needs no role logic of its own.
  */
-let network: FakeNetwork;
-
 const SCREEN_TIMEOUT = 60_000;
 
 beforeEach(() => {
   window.localStorage.clear();
-  network = installFakeNetwork();
+  installFakeNetwork();
 });
 
 function project(overrides: Record<string, unknown> = {}) {
@@ -33,16 +35,27 @@ function project(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function page(items: unknown[]) {
-  return {
-    items,
-    pageNumber: 1,
-    pageSize: 100,
-    totalCount: items.length,
-    totalPages: 1,
-    hasPreviousPage: false,
-    hasNextPage: false,
-  };
+/**
+ * A small server for the projects list: it filters by the status asked for and cuts pages as the real one does, so
+ * the widget's counts (one call per status, `totalCount` of a one-row page) are tested against something that
+ * counts, rather than against a reply that says the same thing to every question.
+ */
+function serve(projects: unknown[]) {
+  vi.spyOn(projectsApi, 'list').mockImplementation(async (query) => {
+    const matching = (projects as Project[]).filter((p) => !query.status || p.status === query.status);
+    const size = query.pageSize ?? 100;
+    const number = query.pageNumber ?? 1;
+
+    return {
+      items: matching.slice((number - 1) * size, number * size),
+      pageNumber: number,
+      pageSize: size,
+      totalCount: matching.length,
+      totalPages: Math.max(1, Math.ceil(matching.length / size)),
+      hasPreviousPage: number > 1,
+      hasNextPage: number * size < matching.length,
+    };
+  });
 }
 
 async function renderWidget(user = signedIn('Admin')) {
@@ -53,12 +66,12 @@ async function renderWidget(user = signedIn('Admin')) {
 
 describe('ActiveProjectsWidget', () => {
   it('counts every status, not only the active ones', async () => {
-    network.reply('/projects', 200, page([
+    serve([
       project({ id: 'p1', status: 'Active' }),
       project({ id: 'p2', status: 'Active' }),
       project({ id: 'p3', status: 'Planned' }),
       project({ id: 'p4', status: 'Completed' }),
-    ]));
+    ]);
 
     await renderWidget();
 
@@ -68,7 +81,7 @@ describe('ActiveProjectsWidget', () => {
   }, SCREEN_TIMEOUT);
 
   it('lists an active project with its crew size', async () => {
-    network.reply('/projects', 200, page([project({ name: 'Stambena zgrada Centar', employeeCount: 7 })]));
+    serve([project({ name: 'Stambena zgrada Centar', employeeCount: 7 })]);
 
     await renderWidget();
 
@@ -77,10 +90,10 @@ describe('ActiveProjectsWidget', () => {
   }, SCREEN_TIMEOUT);
 
   it('flags a project with nobody on it, and puts it first', async () => {
-    network.reply('/projects', 200, page([
+    serve([
       project({ id: 'staffed', name: 'Sa timom', employeeCount: 5 }),
       project({ id: 'empty', name: 'Nema radnika', employeeCount: 0 }),
-    ]));
+    ]);
 
     await renderWidget();
 
@@ -98,10 +111,10 @@ describe('ActiveProjectsWidget', () => {
     // The local calendar day, as the widget reads it: toISOString is UTC, which is another day for the first hours after midnight.
     const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
-    network.reply('/projects', 200, page([
+    serve([
       project({ id: 'soon', name: 'Skoro gotov', endDate: iso(soon) }),
       project({ id: 'over', name: 'Kasni', endDate: iso(past) }),
-    ]));
+    ]);
 
     await renderWidget();
 
@@ -113,10 +126,10 @@ describe('ActiveProjectsWidget', () => {
   }, SCREEN_TIMEOUT);
 
   it('does not flag a project with no end date or one far in the future', async () => {
-    network.reply('/projects', 200, page([
+    serve([
       project({ id: 'noend', name: 'Bez roka', endDate: null }),
       project({ id: 'far', name: 'Daleki rok', endDate: '2099-01-01' }),
-    ]));
+    ]);
 
     await renderWidget();
 
@@ -125,7 +138,7 @@ describe('ActiveProjectsWidget', () => {
   }, SCREEN_TIMEOUT);
 
   it('opens the project on click and offers "view all"', async () => {
-    network.reply('/projects', 200, page([project()]));
+    serve([project()]);
 
     await renderWidget();
 
@@ -135,7 +148,7 @@ describe('ActiveProjectsWidget', () => {
   }, SCREEN_TIMEOUT);
 
   it('says so when there are no active projects', async () => {
-    network.reply('/projects', 200, page([project({ status: 'Planned' })]));
+    serve([project({ status: 'Planned' })]);
 
     await renderWidget();
 
@@ -145,7 +158,7 @@ describe('ActiveProjectsWidget', () => {
   it('shows a foreman only what the API already narrowed the list to', async () => {
     // The widget itself does no role filtering: whatever /projects returns for this
     // account is exactly what is shown.
-    network.reply('/projects', 200, page([project({ name: 'Moje gradiliste' })]));
+    serve([project({ name: 'Moje gradiliste' })]);
 
     await renderWidget(signedIn('Foreman'));
 

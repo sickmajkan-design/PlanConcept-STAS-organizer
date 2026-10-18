@@ -1,3 +1,4 @@
+using Construction.Application.Common;
 using Construction.Domain.Enums;
 using FluentValidation;
 
@@ -65,7 +66,7 @@ public abstract class EmployeeCommandBaseValidator<T> : AbstractValidator<T>
             .NotEmpty().WithMessage("Employment date is required.");
 
         RuleFor(x => x.DateOfBirth)
-            .Must(dob => dob is null || dob < DateOnly.FromDateTime(DateTime.UtcNow))
+            .Must(dob => dob is null || dob < CompanyTime.LocalDate(DateTime.UtcNow))
             .WithMessage("Date of birth must be in the past.")
             .Must((cmd, dob) => dob is null || dob < cmd.EmploymentDate)
             .WithMessage("Date of birth must be before the employment date.");

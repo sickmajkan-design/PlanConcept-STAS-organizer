@@ -9,6 +9,7 @@ import '../../../core/l10n/enum_labels.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/utils/formatting.dart';
 import '../data/attachment_repository.dart';
+import '../../../core/time/company_time.dart';
 
 /// Which categories are offered for each owner type — mirrors the desktop
 /// admin panel's `CATEGORIES_BY_OWNER_TYPE` so the same document types are
@@ -305,7 +306,7 @@ class _DatePickerField extends StatelessWidget {
           ? () async {
               final picked = await showDatePicker(
                 context: context,
-                initialDate: value ?? DateTime.now(),
+                initialDate: value ?? CompanyTime.now(),
                 firstDate: DateTime(2000),
                 lastDate: DateTime(2100),
               );

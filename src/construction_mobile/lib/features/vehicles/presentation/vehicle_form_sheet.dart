@@ -10,6 +10,7 @@ import '../../../core/utils/formatting.dart';
 import '../data/models/vehicle.dart';
 import '../data/vehicle_repository.dart';
 import 'vehicles_controller.dart';
+import '../../../core/time/company_time.dart';
 
 const _fuelTypes = ['Petrol', 'Diesel', 'Electric', 'Hybrid', 'Lpg'];
 const _ownershipTypes = ['Owned', 'Rented'];
@@ -349,7 +350,7 @@ class _DateField extends StatelessWidget {
 
     final picked = await showDatePicker(
       context: context,
-      initialDate: current ?? DateTime.now(),
+      initialDate: current ?? CompanyTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );

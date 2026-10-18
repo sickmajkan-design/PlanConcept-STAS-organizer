@@ -29,6 +29,8 @@ public interface IApplicationDbContext
 
     DbSet<DashboardLayout> DashboardLayouts { get; }
 
+    DbSet<DashboardSnapshot> DashboardSnapshots { get; }
+
     DbSet<GeneralExpense> GeneralExpenses { get; }
 
     DbSet<Accommodation> Accommodations { get; }
