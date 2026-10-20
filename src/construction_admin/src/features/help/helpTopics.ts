@@ -501,6 +501,7 @@ export const helpTopics: HelpTopic[] = [
         steps: [
           'Otvorite Raspored. Izaberite prikaz (po danu, vremenska traka i dr.) i razdoblje.',
           'Kliknite radnika (ili traku u vremenskoj traci): u prozoru izaberite razdoblje Od/Do i gradilište na koje se raspoređuje, ili Slobodan. Izmjena postavlja raspored za to razdoblje.',
+          'Ili ga povucite: u prikazu Po gradilištima na karticu gradilišta, na drugog radnika (zamjena) ili među Slobodne; u vremenskoj traci traku radnika na gradilište iznad tabele. Na telefonu radnika zadržite prstom. Nakon puštanja prozor piše radnika, gradilište i datume, a raspored se mijenja tek kad potvrdite.',
           'Na kartici gradilišta kliknite prazno mjesto: nudi se lista slobodnih u razdoblju i prebacivanje s drugog gradilišta; radnici prave vještine su na vrhu.',
           'Za odsutnog izaberite zamjenu: dvojica mogu razmijeniti raspored, ili popunite mjesto slobodnim radnikom s potrebnim uvjerenjima.',
           'Svaka izmjena prikazuje poruku s dugmetom Poništi. Pregledajte i upozorenja, Zahtijeva pažnju te Raspored na papiru ako ga treba odštampati.',
@@ -521,6 +522,7 @@ export const helpTopics: HelpTopic[] = [
         steps: [
           'Open Schedule. Choose a view (by day, timeline and so on) and the period.',
           'Click a worker (or a bar in the timeline): in the window choose the period From/To and the site to schedule on, or Free. The change sets the schedule for that period.',
+          'Or drag them: in By site onto a site card, onto another worker (swap) or into Free; in the timeline the bar of a worker onto a site in the strip above the table. On a phone, hold the worker with a finger. After you let go the window names the worker, the site and the dates, and the schedule changes only when you confirm.',
           'On the card of a site click an empty place: you get the list of those free in the period and the option to move someone from another site; people with the right skill are on top.',
           'For an absent person choose a replacement: two people can swap their schedule, or fill the place with a free worker who holds the needed certificates.',
           'Every change shows a message with an Undo button. Also review the warnings, Needs attention and the paper schedule if you need to print it.',

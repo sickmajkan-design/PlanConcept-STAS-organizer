@@ -41,7 +41,9 @@ import { DayView } from './DayView';
 import { ListView } from './ListView';
 import { NeedView } from './NeedView';
 import { HistoryDialog } from './HistoryDialog';
+import { MoveDialog } from './MoveDialog';
 import { NeedsDialog, ReplaceDialog, SiteDialog, WorkerDialog, type PlanningActions } from './PlanningDialogs';
+import { PlanningDndProvider, type DropTarget } from './planningDnd';
 import { TimelineView } from './TimelineView';
 import { PlanningTour } from './PlanningTour';
 import { fetchWindow, shortDate, WEEKDAYS } from './planningUi';
@@ -52,6 +54,7 @@ type View = 'day' | 'timeline' | 'need' | 'list' | 'cost';
 type Panel =
   | { kind: 'worker'; personId: string; from: string; to: string }
   | { kind: 'site'; projectId: string; from: string; to: string; position?: string }
+  | { kind: 'move'; personId: string; target: DropTarget; from: string; to: string }
   | { kind: 'replace'; item: AwayItem }
   | { kind: 'needs'; projectId: string };
 
@@ -372,7 +375,11 @@ export function PlanningPage() {
       )}
 
       {plan && actions && (
-        <>
+        <PlanningDndProvider
+          plan={plan}
+          enabled={!readOnly && (view === 'day' || view === 'timeline')}
+          onDrop={(payload, target) => !readOnly && setPanel({ kind: 'move', personId: payload.personId, target, from: payload.from, to: payload.to })}
+        >
           {view === 'day' && dayIndex >= 0 && <DayView readOnly={readOnly} plan={plan} day={dayIndex} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
           {view === 'timeline' && <TimelineView readOnly={readOnly} plan={plan} range={range} openWorker={openWorker} openSite={openSite} editNeeds={(id) => setPanel({ kind: 'needs', projectId: id })} />}
           {view === 'cost' && canSeeLabourCost(user) && <CostView range={range} />}
@@ -391,9 +398,10 @@ export function PlanningPage() {
 
           {panel?.kind === 'worker' && <WorkerDialog key={`${panel.personId}${panel.from}${panel.to}`} plan={plan} personId={panel.personId} from={panel.from} to={panel.to} actions={actions} onClose={() => setPanel(null)} />}
           {panel?.kind === 'site' && <SiteDialog key={`${panel.projectId}${panel.from}${panel.to}${panel.position ?? ''}`} plan={plan} projectId={panel.projectId} from={panel.from} to={panel.to} position={panel.position} actions={actions} onClose={() => setPanel(null)} />}
+          {panel?.kind === 'move' && <MoveDialog key={`${panel.personId}${panel.from}${panel.to}${panel.target.kind}`} plan={plan} personId={panel.personId} target={panel.target} from={panel.from} to={panel.to} actions={actions} onClose={() => setPanel(null)} />}
           {panel?.kind === 'replace' && <ReplaceDialog plan={plan} item={panel.item} actions={actions} onClose={() => setPanel(null)} />}
           {panel?.kind === 'needs' && <NeedsDialog key={panel.projectId} plan={plan} projectId={panel.projectId} actions={actions} onClose={() => setPanel(null)} />}
-        </>
+        </PlanningDndProvider>
       )}
 
       {historyOpen && <HistoryDialog onClose={() => setHistoryOpen(false)} />}

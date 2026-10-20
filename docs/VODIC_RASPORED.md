@@ -32,6 +32,8 @@ Klik na radnika (ili traku u vremenskoj traci) otvara prozor:
 * **Zamijeni drugim radnikom:** dvojica razmjenjuju raspored za to razdoblje.
 * Odsustva se ne dira: osoba je tada samo odsutna, pa se poslije odsustva sama vraća na gradilište.
 
+**Povlačenje (od 20. oktobra 2026.):** radnika možete umjesto klika i povući. U prikazu *Po gradilištima* ga povucite na karticu gradilišta, na drugog radnika (zamjena) ili u okvir *Slobodni*; u *Vremenskoj traci* povucite traku radnika na gradilište iz trake iznad tabele, ili na ime drugog radnika za zamjenu. Gradilišta kojima fali njegova vještina svijetle zeleno, a prazno mjesto te vještine je istaknuto. Na telefonu radnika zadržite prstom (običan dodir i dalje otvara njegov prozor). Puštanje samo bira *koga* i *gdje*: otvara se prozor *Radnik → Gradilište* sa datumima (radnim danima) koji se mogu produžiti (samo taj dan, do kraja sedmice, do kraja gradilišta ili po izboru), s napomenama šta se mijenja (npr. koje gradilište ostaje bez vještine), a raspored se mijenja tek na **Premjesti / Rasporedi / Oslobodi / Zamijeni**. Odsutni se ne mogu povlačiti, a Predradnik bez prava izmjene ne vidi povlačenje. Poništi radi isto kao i inače.
+
 Klik na prazno mjesto na kartici gradilišta (ili ćeliju u Potrebi) otvara listu za popunu: **slobodni u razdoblju** (s brojem slobodnih dana) i **prebaci s drugog gradilišta**. Radnici prave vještine su na vrhu i označeni.
 
 Svaka izmjena prikazuje poruku s dugmetom **Poništi** koje vraća prethodno stanje.

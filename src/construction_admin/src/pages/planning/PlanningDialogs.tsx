@@ -49,7 +49,7 @@ export interface PlanningActions {
 }
 
 /** Runs an action, closing on success and showing the refusal in the dialog on failure. */
-function useAttempt(onClose: () => void) {
+export function useAttempt(onClose: () => void) {
   const [failure, setFailure] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -70,7 +70,7 @@ function useAttempt(onClose: () => void) {
   return { failure, pending, attempt };
 }
 
-function PeriodFields({
+export function PeriodFields({
   plan,
   from,
   to,
@@ -153,7 +153,7 @@ function CandidateList({ plan, list, onPick, pending }: { plan: Plan; list: Cand
   );
 }
 
-function summary(plan: Plan, person: PlanPerson, from: string, to: string, awayText: (type: string) => string, freeText: string): string {
+export function summary(plan: Plan, person: PlanPerson, from: string, to: string, awayText: (type: string) => string, freeText: string): string {
   const counts = new Map<string, number>();
 
   for (let d = from; d <= to; d = new Date(Date.parse(`${d}T00:00:00Z`) + 864e5).toISOString().slice(0, 10)) {

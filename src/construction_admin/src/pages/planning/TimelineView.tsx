@@ -17,6 +17,7 @@ import {
 } from '../../features/planning/planningLogic';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
+import { SiteTray, useDragInfo, useDragSource, useDropTarget } from './planningDnd';
 import { AWAY_COLOR, awayChipSx, shortDate, siteColor, WEEKDAYS } from './planningUi';
 import type { ViewProps } from './planningTypes';
 
@@ -180,15 +181,19 @@ export function TimelineView({
         </Popover>
       </Stack>
 
-      <Legend
-        entries={[
-          ...plan.projects.map((p) => ({ key: p.id, color: siteColor(p.id), name: p.name })),
-          { key: 'away', color: AWAY_COLOR, name: t('planning.t.legendAway') },
-        ]}
-        anchor={legendAnchor}
-        setAnchor={setLegendAnchor}
-        moreLabel={(count) => t('planning.t.legendMore', { count })}
-      />
+      {readOnly ? (
+        <Legend
+          entries={[
+            ...plan.projects.map((p) => ({ key: p.id, color: siteColor(p.id), name: p.name })),
+            { key: 'away', color: AWAY_COLOR, name: t('planning.t.legendAway') },
+          ]}
+          anchor={legendAnchor}
+          setAnchor={setLegendAnchor}
+          moreLabel={(count) => t('planning.t.legendMore', { count })}
+        />
+      ) : (
+        <SiteTray plan={plan} />
+      )}
 
       <Paper data-tour="timeline" variant="outlined" sx={{ borderRadius: 2.5, overflowX: 'auto' }}>
         <Box
@@ -245,14 +250,7 @@ export function TimelineView({
           <tbody>
             {people.map((person) => (
               <tr key={person.id}>
-                <Box component="td">
-                  <Typography variant="body2" sx={{ fontWeight: 500 }} noWrap>
-                    {person.name}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" noWrap>
-                    {person.position}
-                  </Typography>
-                </Box>
+                <NameCell person={person} disabled={!!readOnly} />
                 {runsOf(plan, person, columns).map((run) => {
                   if (run.value === 'weekend') return <Box key={run.from} component="td" sx={{ bgcolor: 'action.hover' }} />;
 
@@ -278,15 +276,19 @@ export function TimelineView({
                   }
 
                   return (
-                    <Box key={run.from} component="td" colSpan={run.columns} sx={{ p: '4px 2px !important' }}>
-                      <ButtonBase
-                        onClick={() => openWorker(person.id, run.from, run.to)}
-                        disabled={readOnly}
-                        sx={{ width: '100%', borderRadius: 1.5, p: '5px 4px', fontSize: 12, fontWeight: 600, display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', '&:hover': { outline: '1px solid', outlineColor: 'text.secondary' }, ...sx }}
-                      >
-                        {label}
-                      </ButtonBase>
-                    </Box>
+                    <RunCell
+                      key={run.from}
+                      personId={person.id}
+                      from={run.from}
+                      to={run.to}
+                      columns={run.columns}
+                      label={label}
+                      sx={sx}
+                      // A stretch of absence is not something to move; the others are.
+                      readOnly={!!readOnly}
+                      locked={!!readOnly || run.value.startsWith('away:')}
+                      onOpen={() => openWorker(person.id, run.from, run.to)}
+                    />
                   );
                 })}
               </tr>
@@ -363,5 +365,87 @@ function Legend({
       )}
       {item(away, false)}
     </Stack>
+  );
+}
+
+/** The name column: also somewhere to drop a bar, which swaps the two people over that stretch. */
+function NameCell({ person, disabled }: { person: PlanPerson; disabled: boolean }) {
+  const { payload } = useDragInfo();
+  const { setNodeRef, isOver } = useDropTarget(`row:${person.id}`, { kind: 'person', personId: person.id }, disabled || payload?.personId === person.id);
+
+  return (
+    <Box
+      component="td"
+      ref={setNodeRef}
+      sx={isOver ? { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2, bgcolor: (theme: { palette: { primary: { main: string } } }) => alpha(theme.palette.primary.main, 0.1) + ' !important' } : undefined}
+    >
+      <Typography variant="body2" sx={{ fontWeight: 500 }} noWrap>
+        {person.name}
+      </Typography>
+      <Typography variant="caption" color="text.secondary" noWrap>
+        {person.position}
+      </Typography>
+    </Box>
+  );
+}
+
+/** One stretch of a person's row: click to open, drag to move that stretch to another site, or onto a name to swap. */
+function RunCell({
+  personId,
+  from,
+  to,
+  columns,
+  label,
+  sx,
+  readOnly,
+  locked,
+  onOpen,
+}: {
+  personId: string;
+  from: string;
+  to: string;
+  columns: number;
+  label: string;
+  sx: object;
+  readOnly: boolean;
+  locked: boolean;
+  onOpen: () => void;
+}) {
+  const drag = useDragSource(personId, from, to, locked);
+  const { payload } = useDragInfo();
+  const drop = useDropTarget(`run:${personId}:${from}`, { kind: 'person', personId }, locked || payload?.personId === personId);
+
+  return (
+    <Box component="td" colSpan={columns} sx={{ p: '4px 2px !important' }}>
+      <ButtonBase
+        ref={(node: HTMLElement | null) => {
+          drag.setNodeRef(node);
+          drop.setNodeRef(node);
+        }}
+        {...drag.listeners}
+        onClick={onOpen}
+        disabled={readOnly}
+        sx={{
+          width: '100%',
+          borderRadius: 1.5,
+          p: '5px 4px',
+          fontSize: 12,
+          fontWeight: 600,
+          display: 'block',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          cursor: locked ? undefined : 'grab',
+          userSelect: 'none',
+          WebkitTouchCallout: 'none',
+          opacity: drag.isDragging ? 0.35 : 1,
+          '&:hover': { outline: '1px solid', outlineColor: 'text.secondary' },
+          ...sx,
+          ...(drop.isOver ? { outline: '2px solid', outlineColor: 'primary.main' } : {}),
+        }}
+      >
+        {label}
+      </ButtonBase>
+    </Box>
   );
 }
