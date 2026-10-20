@@ -170,7 +170,7 @@ export function SiteTray({ plan }: { plan: Plan }) {
   const { person, payload } = useDragInfo();
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, overflowX: 'auto', py: 0.5 }}>
+    <Box data-tour="site-tray" sx={{ display: 'flex', alignItems: 'center', gap: 1, overflowX: 'auto', py: 0.5 }}>
       <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: 'nowrap', flex: 'none' }}>
         {t('planning.dnd.tray')}
       </Typography>

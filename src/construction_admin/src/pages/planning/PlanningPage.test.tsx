@@ -167,18 +167,18 @@ describe('PlanningPage', () => {
 
     await userEvent.click(await screen.findByRole('button', { name: 'Start the tour' }));
     expect(await screen.findByText('Welcome to the Schedule')).toBeDefined();
-    expect(screen.getByText('Step 1 of 13')).toBeDefined();
+    expect(screen.getByText('Step 1 of 15')).toBeDefined();
 
     // Through to the needs step: the tour has switched to that view by itself.
-    for (let i = 0; i < 6; i++) await userEvent.click(screen.getByRole('button', { name: 'Next' }));
-    expect(await screen.findByText('Step 7 of 13')).toBeDefined();
+    for (let i = 0; i < 7; i++) await userEvent.click(screen.getByRole('button', { name: 'Next' }));
+    expect(await screen.findByText('Step 8 of 15')).toBeDefined();
     expect(await screen.findByText('Aldi Hall')).toBeDefined();
 
     await userEvent.click(screen.getByRole('button', { name: 'Back' }));
-    expect(screen.getByText('Click to move or swap')).toBeDefined();
+    expect(screen.getByText('Drag a bar onto a site')).toBeDefined();
 
     await userEvent.keyboard('{Escape}');
-    await waitFor(() => expect(screen.queryByText('Click to move or swap')).toBeNull());
+    await waitFor(() => expect(screen.queryByText('Drag a bar onto a site')).toBeNull());
   }, SCREEN_TIMEOUT);
 
   it('does not offer the tour again once it has been seen', async () => {

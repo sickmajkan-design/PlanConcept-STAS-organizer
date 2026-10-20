@@ -20,11 +20,13 @@ export const TOUR_STEPS: TourStep[] = [
   { view: 'timeline', target: '[data-tour="summary"]', key: 'summary' },
   { view: 'timeline', target: '[data-tour="timeline"]', key: 'timeline' },
   { view: 'timeline', target: '[data-tour="timeline"] tbody tr:first-child button', key: 'bar' },
+  { view: 'timeline', target: '[data-tour="site-tray"]', key: 'dragTimeline' },
   { view: 'need', target: '[data-tour="need-table"]', key: 'need' },
   { view: 'need', target: '[data-tour="need-table"] tbody tr:first-child td:first-child button:last-of-type', key: 'editNeeds' },
   { view: 'need', target: '[data-tour="skills"]', key: 'skills' },
   { view: 'need', target: '[data-tour="banner"]', key: 'cover' },
   { view: 'day', target: '[data-tour="day-sites"]', key: 'day' },
+  { view: 'day', target: '[data-tour="day-sites"]', key: 'dragDay' },
   { view: 'list', target: '[data-tour="list"]', key: 'list' },
   { view: 'timeline', key: 'done' },
 ];
