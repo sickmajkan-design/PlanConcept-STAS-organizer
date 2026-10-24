@@ -285,7 +285,7 @@ export function LedgerDetailPage() {
   const addingRowSection = sections.find((s) => s.id === addingRowToSectionId) ?? null;
 
   return (
-    <Box sx={{ maxWidth: 1100, mx: 'auto' }}>
+    <Box sx={{ width: '100%', mx: 'auto' }}>
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
         spacing={2} useFlexGap
@@ -729,7 +729,7 @@ function SectionCard({
   year,
   month,
   section,
-  columns,
+  columns: allColumns,
   expanded,
   onToggle,
   onMoveUp,
@@ -778,6 +778,22 @@ function SectionCard({
   const rows = useMemo(
     () => (loadedSection ? [...loadedSection.rows].sort((a, b) => a.sortOrder - b.sortOrder) : []),
     [loadedSection],
+  );
+
+  // A week column nobody typed anything into is hidden once the section has hours, so the other columns
+  // get its room; a button brings it back for typing. A section with no hours yet shows every week.
+  const [showEmptyWeeks, setShowEmptyWeeks] = useState(false);
+  const emptyWeekIds = useMemo(() => {
+    const isWeek = (c: LedgerColumn) => !!c.systemKey?.startsWith('week') && !c.isFormula;
+    const hasValue = (c: LedgerColumn) =>
+      rows.some((row) => parseNumeric(row.cells.find((cell) => cell.columnId === c.id)?.value ?? null) !== 0);
+    const weeks = allColumns.filter(isWeek);
+    if (rows.length === 0 || !weeks.some(hasValue)) return new Set<string>();
+    return new Set(weeks.filter((c) => !hasValue(c)).map((c) => c.id));
+  }, [allColumns, rows]);
+  const columns = useMemo(
+    () => (showEmptyWeeks ? allColumns : allColumns.filter((c) => !emptyWeekIds.has(c.id))),
+    [allColumns, emptyWeekIds, showEmptyWeeks],
   );
 
   const subtotals = useMemo(() => {
@@ -858,17 +874,35 @@ function SectionCard({
               {t('common.loading')}
             </Typography>
           ) : (
+          {/* Columns share the full width, so the whole sheet is visible without scrolling; the scroll stays only as a fallback on very narrow screens. */}
+          {emptyWeekIds.size > 0 && (
+            <Button size="small" onClick={() => setShowEmptyWeeks((v) => !v)} sx={{ mb: 0.5 }}>
+              {showEmptyWeeks
+                ? t('ledgers.hideEmptyWeeks')
+                : t('ledgers.showEmptyWeeks', { count: emptyWeekIds.size })}
+            </Button>
+          )}
           <TableContainer sx={{ overflowX: 'auto' }}>
-            <Table size="small">
+            <Table
+              size="small"
+              sx={{
+                width: '100%',
+                minWidth: Math.max(640, columns.length * 56 + 170),
+                '& .MuiTableCell-root': { px: 0.5, py: 0.5, fontSize: 13 },
+                '& .MuiTableCell-head': { lineHeight: 1.2, verticalAlign: 'bottom', overflowWrap: 'anywhere' },
+              }}
+            >
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ minWidth: 180 }}>{t('ledgers.worker')}</TableCell>
+                  <TableCell sx={{ minWidth: 150 }}>{t('ledgers.worker')}</TableCell>
                   {columns.map((column) => (
-                    <TableCell key={column.id} align="right" sx={{ minWidth: 100 }}>
-                      {column.name}
+                    <TableCell key={column.id} align="right" sx={{ minWidth: 52 }}>
+                      <Tooltip title={column.name}>
+                        <span>{column.name}</span>
+                      </Tooltip>
                     </TableCell>
                   ))}
-                  <TableCell align="right" sx={{ width: 90 }} />
+                  <TableCell align="right" sx={{ width: 64 }} />
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -1569,7 +1603,7 @@ function CellInput({
 
     return (
       <Tooltip title={isEmpty ? t(emptyHintKey) : t('ledgers.computedCellTooltip')}>
-        <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', justifyContent: 'flex-end', minWidth: 90 }}>
+        <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', justifyContent: 'flex-end', minWidth: 0 }}>
           <Typography variant="body2" color="text.secondary">
             {value || '—'}
           </Typography>
@@ -1600,7 +1634,7 @@ function CellInput({
         },
         input: { disableUnderline: false, sx: { bgcolor: 'transparent' } },
       }}
-      sx={{ minWidth: 90, flex: 1 }}
+      sx={{ minWidth: 0, width: '100%', flex: 1 }}
     />
   );
 
