@@ -790,7 +790,7 @@
   "requestSent": "Poslano. Uprava će ga provjeriti.",
   "requestTooManyFiles": "Najviše {count} datoteka za jedan dokument.",
   "@requestTooManyFiles": { "placeholders": { "count": { "type": "int" } } },
-  "requestHistory": "Historija",
+  "requestHistory": "Istorija",
   "requestByYou": "vi",
   "requestByOffice": "uprava",
   "requestEventCreated": "Zatraženo",

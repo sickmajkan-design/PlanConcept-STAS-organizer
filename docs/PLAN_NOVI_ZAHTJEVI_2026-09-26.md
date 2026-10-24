@@ -119,7 +119,7 @@ Preporuka: K prvi, zatim R i G paralelno sa obračunom, F prije ozbiljnog unosa 
 **So that** plaćamo samo opravdane troškove.
 
 **Acceptance Criteria:**
-- [ ] Given zahtjev, then vidim iznos, obrazloženje, sliku računa u punoj veličini i historiju zahtjeva tog radnika.
+- [ ] Given zahtjev, then vidim iznos, obrazloženje, sliku računa u punoj veličini i istoriju zahtjeva tog radnika.
 - [ ] Given Odobri, then bira se odobreni iznos (zadano puni) i mjesec isplate (zadano tekući), a radnik dobija obavještenje.
 - [ ] Given Odbij, then je obrazloženje obavezno i radnik ga vidi.
 - [ ] Given djelimično odobrenje, then se piše razlog razlike.

@@ -269,7 +269,7 @@ export const helpTopics: HelpTopic[] = [
         tips: [
           'Rok: osoba je podsjećena u aplikaciji dan prije i na dan roka, a vama stiže jedna obavijest ako rok prođe i ništa nije poslano. Zahtjev koji čeka na vašu provjeru se ne podsjeća.',
           'Isti zahtjev za istu osobu se ne pravi dvaput dok prvi čeka.',
-          'Za svaki zahtjev se vidi broj pokušaja i cijela historija.',
+          'Za svaki zahtjev se vidi broj pokušaja i cijela istorija.',
           'Brisanje zahtjeva se upisuje u reviziju; poslane datoteke ostaju na kartonu, nepodijeljene.',
         ],
         keywords: ['zahtjev', 'traži dokument', 'novi radnik', 'paket', 'prihvati', 'vrati', 'provjera', 'za provjeru', 'kasni', 'rok', 'pasoš'],

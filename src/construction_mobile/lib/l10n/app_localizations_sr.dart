@@ -2195,7 +2195,7 @@ class AppLocalizationsSr extends AppLocalizations {
   }
 
   @override
-  String get requestHistory => 'Historija';
+  String get requestHistory => 'Istorija';
 
   @override
   String get requestByYou => 'vi';

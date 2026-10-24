@@ -1005,7 +1005,7 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.close': 'Razumijem',
 
 
-  'releaseNotes.notices1024.title': "Obavještenja: izbor primalaca, historija, ko je pročitao",
+  'releaseNotes.notices1024.title': "Obavještenja: izbor primalaca, istorija, ko je pročitao",
   'releaseNotes.notices1024.audience': "Novo obavještenje (zvonce > Novo obavještenje) se šalje na više izvora odjednom: radnik po imenu, grupa, ekipa gradilišta, poslovna jedinica, uloga ili svi. Uživo se vidi ko će ga dobiti, svako se broji jednom, a osobe bez naloga su označene. Na kartonu radnika je dugme Pošalji poruku.",
   'releaseNotes.notices1024.sent': "Novo: Poslana obavještenja. Lista pokazuje šta je poslato, kome i ko je poslao, uz trake pročitalo i potvrdilo.",
   'releaseNotes.notices1024.read': "Klik na obavještenje pokazuje po osobi da li je stiglo (push ili samo zvonce), kada je pročitano i kada potvrđeno, uz filtere nisu pročitali i nisu potvrdili.",
@@ -1940,7 +1940,7 @@ export const sr: Record<MessageKey, Message> = {
   'docRequests.reason.incomplete': 'Nedostaju stranice. Pošaljite cijeli dokument.',
   'docRequests.reason.wrong': 'Ovo nije dokument koji je traženo.',
   'docRequests.reason.expired': 'Dokument je istekao. Pošaljite važeći.',
-  'docRequests.history': 'Historija',
+  'docRequests.history': 'Istorija',
   'docRequests.office': 'Uprava',
   'docRequests.due': 'rok {date}',
   'docRequests.attempt': '{count}. pokušaj',
@@ -3874,9 +3874,9 @@ export const sr: Record<MessageKey, Message> = {
   'dkv.actCreate': 'Evidentiraj iz izvoda',
   'dkv.actIgnore': 'Preskoči',
   'dkv.confirmTitle': 'Potvrdi ovaj red',
-  'dkv.confirmHint': 'Red ostaje kakav jeste. Napiši zašto je razlika u redu; to se čuva u historiji.',
+  'dkv.confirmHint': 'Red ostaje kakav jeste. Napiši zašto je razlika u redu; to se čuva u istoriji.',
   'dkv.ignoreTitle': 'Preskoči ovaj red',
-  'dkv.ignoreHint': 'Red se neće računati nikome. Napiši zašto; to se čuva u historiji.',
+  'dkv.ignoreHint': 'Red se neće računati nikome. Napiši zašto; to se čuva u istoriji.',
   'dkv.reasonLabel': 'Razlog',
   'dkv.createTitle': 'Evidentiraj ovo točenje',
   'dkv.createDescription':

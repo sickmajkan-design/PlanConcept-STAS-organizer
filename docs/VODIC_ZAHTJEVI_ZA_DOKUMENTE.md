@@ -1,6 +1,6 @@
 # Vodič: zahtjevi za dokumente
 
-Uprava traži od ljudi dokument koji nedostaje. Osoba ga pošalje **sa telefona**, uprava provjeri i **prihvati** ili **vrati s razlogom**. Ništa se ne gubi po porukama i telefonskim pozivima: svaki zahtjev ima status, rok i historiju.
+Uprava traži od ljudi dokument koji nedostaje. Osoba ga pošalje **sa telefona**, uprava provjeri i **prihvati** ili **vrati s razlogom**. Ništa se ne gubi po porukama i telefonskim pozivima: svaki zahtjev ima status, rok i istoriju.
 
 Namijenjeno kancelariji (Admin i Super Admin) i radnicima s aplikacijom. Povezano: [vodič o dokumentima](VODIC_DOKUMENTI.md).
 
@@ -77,7 +77,7 @@ Ima ograničen broj pokušaja po zahtjevu; kad se potroše, aplikacija traži da
 4. Zahtjev koji više ne treba: **Povuci zahtjev**. Osoba je obaviještena.
 5. Povučen zahtjev može se **trajno obrisati** (**Obriši zahtjev**, uz potvrdu): nestaje iz liste i s telefona osobe, a datoteke koje je poslala ostaju na njenom kartonu, nepodijeljene. Brisanje se upisuje u reviziju.
 
-Svaki zahtjev pamti **historiju** (ko je šta uradio i kada) i **broj pokušaja**.
+Svaki zahtjev pamti **istoriju** (ko je šta uradio i kada) i **broj pokušaja**.
 
 ### Primjer: mutna fotografija
 
@@ -110,7 +110,7 @@ Zatražili ste pasoš od Mire s rokom u petak. U četvrtak Mira dobije podsjetni
 
 **Mogu li zatražiti isti dokument od cijele ekipe?** Da: izaberite više osoba; svako dobija svoj zahtjev.
 
-**Osoba kaže da nema šta da pošalje.** Povucite zahtjev; osoba je obaviještena, a historija ostaje.
+**Osoba kaže da nema šta da pošalje.** Povucite zahtjev; osoba je obaviještena, a istorija ostaje.
 
 **Gdje završava dokument kad prihvatim?** Na kartonu osobe, u kartici Dokumenti, s datumom isteka i podsjetnicima koje ste postavili. Vidljiv je osobi u aplikaciji.
 

@@ -1,4 +1,4 @@
-# Vodič: Obavještenja (slanje, historija, ko je pročitao)
+# Vodič: Obavještenja (slanje, istorija, ko je pročitao)
 
 > **Gdje je:** zvonce u gornjem redu > **Novo obavještenje** i **Poslana obavještenja**. Šalju Admin i Super admin.
 
