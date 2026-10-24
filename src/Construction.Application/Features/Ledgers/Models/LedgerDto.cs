@@ -49,6 +49,9 @@ public class LedgerCellDto
     /// <summary>Hex background color, or null for none.</summary>
     public string? ColorTag { get; init; }
 
+    /// <summary>The weekly site report this value was entered from, or null when it was typed.</summary>
+    public Guid? SourceReportId { get; init; }
+
     /// <summary>
     /// True when this cell's <see cref="Value"/> was computed from real
     /// platform data (its column has a <c>SourceMetric</c>) rather than
@@ -319,6 +322,7 @@ public static class LedgerSectionDetailMapping
                             ColumnId = cell.ColumnId,
                             Value = cell.Value,
                             ColorTag = cell.ColorTag,
+                            SourceReportId = cell.SourceReportId,
                         })
                         .ToList(),
                 })

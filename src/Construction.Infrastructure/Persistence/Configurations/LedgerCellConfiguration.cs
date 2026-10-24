@@ -30,6 +30,11 @@ public class LedgerCellConfiguration : IEntityTypeConfiguration<LedgerCell>
             .HasForeignKey(c => c.ColumnId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne(c => c.SourceReport)
+            .WithMany()
+            .HasForeignKey(c => c.SourceReportId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         // One value per (row, column) — the upsert in SetLedgerCellCommand
         // relies on this to decide insert vs. update.
         builder.HasIndex(c => new { c.RowId, c.ColumnId }).IsUnique();

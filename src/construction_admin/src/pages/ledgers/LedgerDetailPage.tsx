@@ -16,6 +16,7 @@ import {
 } from '@mui/icons-material';
 import {
   Alert,
+  alpha,
   Box,
   Button,
   Card,
@@ -118,7 +119,7 @@ import { useAllVehiclesQuery } from '../../features/vehicles/useVehicles';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import type { MessageKey } from '../../i18n/en';
 import { useI18n, useT } from '../../i18n/useI18n';
-import { LedgerChecksPanel, LedgerExportButton } from './LedgerChecksPanel';
+import { LedgerChecksPanel, LedgerExportButton, LedgerReportHoursStrip } from './LedgerChecksPanel';
 import { paths } from '../../routes/paths';
 import { formatDate, formatMoney } from '../../utils/formatting';
 
@@ -356,6 +357,7 @@ export function LedgerDetailPage() {
         onClose={() => setReopening(false)}
       />
 
+      <LedgerReportHoursStrip ledgerId={ledger.id} />
       <LedgerChecksPanel ledgerId={ledger.id} hasHours={ledger.columns.some((c) => c.systemKey === 'hours')} />
 
       <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
@@ -1506,7 +1508,14 @@ function RowLine({
           <TableCell
             key={column.id}
             align="right"
-            sx={{ position: 'relative', bgcolor: cell?.colorTag ?? undefined, '&:hover .cell-color-btn': { opacity: 1 }, '&:hover .cell-history-btn': { opacity: 1 } }}
+            title={cell?.sourceReportId ? t('ledgers.cellFromReport') : undefined}
+            sx={(theme) => ({
+              position: 'relative',
+              // A value entered from an approved weekly report is tinted green, unless a colour was chosen for it.
+              bgcolor: cell?.colorTag ?? (cell?.sourceReportId ? alpha(theme.palette.success.main, 0.2) : undefined),
+              '&:hover .cell-color-btn': { opacity: 1 },
+              '&:hover .cell-history-btn': { opacity: 1 },
+            })}
           >
             {!column.sourceMetric && (
               <Box className="cell-color-btn" sx={{ position: 'absolute', top: 0, left: 2, opacity: 0, transition: 'opacity 0.15s' }}>

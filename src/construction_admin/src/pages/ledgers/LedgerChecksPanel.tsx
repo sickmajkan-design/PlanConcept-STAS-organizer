@@ -1,10 +1,10 @@
 import { CheckCircleOutlined, FileDownloadOutlined, WarningAmberOutlined } from '@mui/icons-material';
-import { Alert, Box, Button, Paper, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, Chip, Paper, Stack, Typography } from '@mui/material';
 import { useState } from 'react';
 
 import { exportsApi } from '../../api/exports';
 import type { LedgerCheck } from '../../api/types';
-import { useLedgerChecksQuery } from '../../features/ledgers/useLedgers';
+import { useLedgerChecksQuery, useLedgerReportHoursQuery } from '../../features/ledgers/useLedgers';
 import type { MessageKey } from '../../i18n/en';
 import { useT } from '../../i18n/useI18n';
 
@@ -34,6 +34,34 @@ function describe(t: Translate, check: LedgerCheck): string {
  * a problem removes it at once. Nothing is shown for a month with nothing to
  * check unless it is a payroll month, where "all clear" is worth saying.
  */
+/**
+ * How much of the month's weekly hours has an approved weekly site report behind it: the hours entered from reports,
+ * and the hours somebody typed with none. The money (pay, billing, margin) follows from all of them in the summary.
+ */
+export function LedgerReportHoursStrip({ ledgerId }: { ledgerId: string }) {
+  const t = useT();
+  const { data } = useLedgerReportHoursQuery(ledgerId);
+
+  if (!data || (data.approvedHours === 0 && data.typedHours === 0)) return null;
+
+  const format = (hours: number) => String(Math.round(hours * 100) / 100).replace('.', ',');
+
+  return (
+    <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 2 }}>
+      <Chip
+        color="success"
+        variant="outlined"
+        label={t('ledgers.reportHours.approved', { hours: format(data.approvedHours), count: data.reportCount })}
+      />
+      <Chip
+        color={data.typedHours > 0 ? 'warning' : 'default'}
+        variant="outlined"
+        label={t('ledgers.reportHours.typed', { hours: format(data.typedHours) })}
+      />
+    </Stack>
+  );
+}
+
 export function LedgerChecksPanel({ ledgerId, hasHours }: { ledgerId: string; hasHours: boolean }) {
   const t = useT();
   const { data: checks } = useLedgerChecksQuery(ledgerId);

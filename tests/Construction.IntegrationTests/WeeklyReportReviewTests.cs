@@ -100,7 +100,7 @@ public class WeeklyReportReviewTests
 
         var approved = await office.PostAsync($"/api/v1/weeklysitereports/{id}/approve", null);
 
-        Assert.Equal(HttpStatusCode.NoContent, approved.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, approved.StatusCode);
         var stored = await _api.InScope(db => db.WeeklySiteReports.SingleAsync(r => r.Id == id));
         Assert.Equal(WeeklyReportStatus.Processed, stored.Status);
         Assert.Equal(1, await NoticesAsync(_api.UserIds[UserRole.Foreman], NotificationType.WeeklyReportApproved, projectId));

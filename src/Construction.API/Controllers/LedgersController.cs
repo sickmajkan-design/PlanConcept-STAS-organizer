@@ -13,6 +13,7 @@ using Construction.Application.Features.Ledgers.Queries.ExportLedger;
 using Construction.Application.Features.Ledgers.Queries.GetLedgerById;
 using Construction.Application.Features.Ledgers.Queries.GetLedgerChecks;
 using Construction.Application.Features.Ledgers.Queries.GetLedgerPromotions;
+using Construction.Application.Features.Ledgers.Queries.GetLedgerReportHours;
 using Construction.Application.Features.Ledgers.Queries.GetLedgerSectionRows;
 using Construction.Application.Features.Ledgers.Queries.GetLedgerUnlinkedRows;
 using Construction.Application.Features.Ledgers.Queries.GetLedgers;
@@ -69,6 +70,15 @@ public class LedgersController : ApiControllerBase
                 AppHoursTolerance = appHoursTolerance ?? 4m,
             },
             cancellationToken));
+    }
+
+    /// <summary>How many of the month's weekly hours came from approved weekly site reports and how many were typed.</summary>
+    [HttpGet("{id:guid}/report-hours")]
+    [ProducesResponseType(typeof(LedgerReportHoursDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<LedgerReportHoursDto>> GetReportHours(Guid id, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetLedgerReportHoursQuery(id), cancellationToken));
     }
 
     /// <summary>The month as a spreadsheet, section by section, with totals and the summary on a second sheet.</summary>

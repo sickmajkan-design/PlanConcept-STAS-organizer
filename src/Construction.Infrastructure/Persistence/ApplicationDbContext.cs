@@ -178,6 +178,10 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<WeeklySiteReport> WeeklySiteReports => Set<WeeklySiteReport>();
 
+    public DbSet<WeeklySiteReportPage> WeeklySiteReportPages => Set<WeeklySiteReportPage>();
+
+    public DbSet<WeeklySiteReportLine> WeeklySiteReportLines => Set<WeeklySiteReportLine>();
+
     public DbSet<WeeklyReportReminder> WeeklyReportReminders => Set<WeeklyReportReminder>();
 
     public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();

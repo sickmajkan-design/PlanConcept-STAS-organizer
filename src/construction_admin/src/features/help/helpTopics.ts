@@ -500,11 +500,11 @@ export const helpTopics: HelpTopic[] = [
           'Poslovođa svake sedmice pošalje potpisane sate ili Aufmaß za gradilište; ured ih pregleda u programu i odobri ili vrati na korekciju.',
         steps: [
           'Otvorite Planiranje, pa Sedmični izvještaji. Čipovi iznad liste pokazuju šta čeka: Čeka pregled, Potrebna korekcija i Kasni.',
-          'Pregledaj otvara izvještaj u programu, bez skidanja: lijevo je dokument (PDF, slika, Word ili Excel), a iznad su gradilište, sedmica, sati, ko je poslao i napomena. Preuzmi snima datoteku na računar.',
-          'Odobri znači da su sati tačni. Poslovođa dobija obavijest.',
+          'Pregledaj otvara izvještaj u programu, bez skidanja: lijevo su sve slike (listanje i uvećanje), a desno radnici i sati koje je poslovođa unio. Podaci su uredivi: promijenite sate, zamijenite radnika, dodajte ili obrišite red. Preuzmi snima sliku na računar.',
+          'Odobri i upiši u Evidenciju stavlja sate svakog radnika u pravu sedmicu mjesečne tabele (Finansije > Evidencija). Uz svaki red piše šta je trenutno u tabeli; ako se razlikuje, birate Zamijeni ili Zadrži staro. Mjesec mora imati Evidenciju i ne smije biti zaključan. Upisane ćelije su zelene. Poslovođa dobija obavijest.',
           'Potrebna korekcija traži razlog (šta treba ispraviti). Poslovođa ga vidi u obavijesti i šalje izvještaj ponovo; novi izvještaj zamjenjuje stari, pa za gradilište i sedmicu uvijek postoji jedan.',
           'Kasni pokazuje gradilišta koja su prošle sedmice imala raspoređene radnike, a do ponedjeljka u 12:00 nemaju izvještaj, s imenom poslovođe kojeg treba pitati.',
-          'U Evidenciji (mjesečna tabela) obračun upozori ako se zbir sati radnika za cijelu sedmicu razlikuje od odobrenog izvještaja; sate možete ručno ispraviti u tabeli.',
+          'Sedmica koja prelazi u novi mjesec: poslovođa upisuje sate za oba mjeseca, a svaki ide u Evidenciju svog mjeseca. Iznad tabele piše koliko je sati odobreno iz izvještaja, a koliko upisano ručno; sate uvijek možete ručno ispraviti u tabeli (ćelija prestaje biti zelena).',
         ],
         example:
           'U utorak ujutro poslovođa Hale B dobije opomenu jer izvještaj za KW42 nije stigao. Pošalje ga u srijedu; ured dobija obavijest, otvara Pregledaj, vidi da nema potpisa kupca i vraća ga s razlogom. Poslovođa pošalje novi, ured ga odobri.',
@@ -521,11 +521,11 @@ export const helpTopics: HelpTopic[] = [
           'Every week the foreman sends the signed hours or the Aufmaß for a site; the office reviews them in the program and approves them or sends them back for correction.',
         steps: [
           'Open Planning, then Weekly reports. The chips above the list show what waits: Waiting for review, Needs correction and Late.',
-          'Preview opens the report in the program, without downloading: the document is on the left (PDF, image, Word or Excel), and above it the site, week, hours, who sent it and the note. Download saves the file to your computer.',
-          'Approve means the hours are right. The foreman is notified.',
+          'Preview opens the report in the program, without downloading: all the pictures are on the left (turn the pages, zoom), and on the right the workers and hours the foreman entered. The data is editable: change the hours, replace a worker, add or delete a row. Download saves the picture to your computer.',
+          'Approve and enter in the Ledger puts each worker\'s hours in the right week of the monthly sheet (Finance > Ledger). Each row says what the sheet holds now; if it differs you choose Replace or Keep the old. The month must have a Ledger and not be closed. Entered cells are green. The foreman is notified.',
           'Needs correction asks for a reason (what to fix). The foreman sees it in the notice and sends the report again; the new report replaces the old one, so there is always one per site and week.',
           'Late shows the sites that had workers posted to them last week and have no report by Monday 12:00, with the foreman to ask.',
-          'In the Ledger (the monthly sheet) the checks warn if the workers\' hours for a whole week differ from the approved report; you can correct the hours in the sheet by hand.',
+          'A week that runs over a month\'s end: the foreman enters hours for both months, and each goes to the Ledger of its own month. Above the sheet it says how many hours were approved from reports and how many typed by hand; you can always correct the hours in the sheet by hand (the cell stops being green).',
         ],
         example:
           'On Tuesday morning the foreman of Hall B gets a reminder because the report for KW42 has not come in. He sends it on Wednesday; the office is notified, opens Preview, sees the customer\'s signature is missing and sends it back with a reason. The foreman sends a new one and the office approves it.',

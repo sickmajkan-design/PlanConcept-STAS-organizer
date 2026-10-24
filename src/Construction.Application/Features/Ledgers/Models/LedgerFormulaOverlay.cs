@@ -41,6 +41,7 @@ public static class LedgerFormulaOverlay
                         ColumnId = kv.Key,
                         Value = LedgerColumnTotals.Format(kv.Value.Value),
                         ColorTag = existing?.ColorTag,
+                        SourceReportId = existing?.SourceReportId,
                         IsComputed = !kv.Value.IsTyped,
                         IsOverride = kv.Value.IsOverride,
                     };

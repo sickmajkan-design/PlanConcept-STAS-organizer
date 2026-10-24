@@ -1,9 +1,7 @@
 import {
   AddOutlined,
-  AttachFileOutlined,
   CheckCircleOutlined,
   DownloadOutlined,
-  ReplayOutlined,
   VisibilityOutlined,
 } from '@mui/icons-material';
 import {
@@ -15,11 +13,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControl,
-  InputLabel,
-  MenuItem,
   Paper,
-  Select,
   Stack,
   TextField,
   Tooltip,
@@ -31,24 +25,18 @@ import { useSearchParams } from 'react-router-dom';
 
 import { weeklySiteReportsApi } from '../../api/weeklySiteReports';
 import {
-  weeklyReportTypes,
   type WeeklyReportStatus,
-  type WeeklyReportType,
   type WeeklySiteReport,
   type WeeklySiteReportsSummary,
 } from '../../api/types';
-import { canAdministerAccounts, canManageAssignments, canViewDirectory } from '../../auth/authHelpers';
+import { canAdministerAccounts, canViewDirectory } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
-import { AttachmentPreviewDialog } from '../../components/AttachmentPreviewDialog';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { StatusChip } from '../../components/StatusChip';
 import { HowItWorks, HowLine } from '../../features/book/HowItWorks';
-import { useAllEmployeesQuery } from '../../features/employees/useEmployees';
 import {
-  useCreateWeeklySiteReport,
   useApproveWeeklySiteReport,
-  useReportableProjectsQuery,
   useRequestWeeklySiteReportCorrection,
   useWeeklySiteReportsQuery,
   useWeeklySiteReportsSummaryQuery,
@@ -56,254 +44,9 @@ import {
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
-import { formatDateTime } from '../../utils/formatting';
-import { formatIsoWeek, getLastCompletedIsoWeek } from '../../utils/isoWeek';
-import { DropArea } from '../../components/files/DropArea';
-
-function SubmitReportDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const t = useT();
-  const enumLabel = useEnumLabel();
-  const { user } = useAuth();
-  const canPickEmployee = canManageAssignments(user);
-  const { data: projects } = useReportableProjectsQuery();
-  const { data: employeesPage } = useAllEmployeesQuery();
-  const create = useCreateWeeklySiteReport();
-
-  const defaultWeek = getLastCompletedIsoWeek();
-  const [projectId, setProjectId] = useState('');
-  const [isoYear, setIsoYear] = useState(defaultWeek.isoYear);
-  const [isoWeek, setIsoWeek] = useState(defaultWeek.isoWeek);
-  const [type, setType] = useState<WeeklyReportType>('SignedHours');
-  const [submittedByEmployeeId, setSubmittedByEmployeeId] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [note, setNote] = useState('');
-  const [file, setFile] = useState<File | null>(null);
-
-  const canSubmit = !!projectId && !!file && (type !== 'SignedHours' || !!quantity);
-
-  const submit = () => {
-    if (!file || !projectId) return;
-
-    create.mutate(
-      {
-        projectId,
-        isoYear,
-        isoWeek,
-        type,
-        submittedByEmployeeId: canPickEmployee && submittedByEmployeeId ? submittedByEmployeeId : null,
-        quantity: type === 'SignedHours' && quantity ? Number(quantity) : null,
-        note: note.trim() || null,
-        file,
-      },
-      {
-        onSuccess: () => {
-          setProjectId('');
-          setSubmittedByEmployeeId('');
-          setQuantity('');
-          setNote('');
-          setFile(null);
-          onClose();
-        },
-      },
-    );
-  };
-
-  return (
-    <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
-      <DialogTitle>{t('weeklyReports.submit')}</DialogTitle>
-      <DialogContent>
-        <Stack spacing={2} sx={{ mt: 1 }}>
-          <FormControl fullWidth>
-            <InputLabel id="wr-project-label">{t('weeklyReports.project')}</InputLabel>
-            <Select
-              labelId="wr-project-label"
-              label={t('weeklyReports.project')}
-              value={projectId}
-              onChange={(event) => setProjectId(event.target.value)}
-            >
-              {(projects ?? []).map((p) => (
-                <MenuItem key={p.id} value={p.id}>
-                  {p.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <Stack direction="row" spacing={1}>
-            <TextField
-              type="number"
-              label={t('weeklyReports.isoYear')}
-              value={isoYear}
-              onChange={(event) => setIsoYear(Number(event.target.value) || isoYear)}
-              sx={{ flex: 1 }}
-            />
-            <TextField
-              type="number"
-              label={t('weeklyReports.isoWeek')}
-              value={isoWeek}
-              onChange={(event) =>
-                setIsoWeek(Math.min(53, Math.max(1, Number(event.target.value) || 1)))
-              }
-              slotProps={{ htmlInput: { min: 1, max: 53 } }}
-              sx={{ flex: 1 }}
-            />
-          </Stack>
-
-          <FormControl fullWidth>
-            <InputLabel id="wr-type-label">{t('weeklyReports.type')}</InputLabel>
-            <Select
-              labelId="wr-type-label"
-              label={t('weeklyReports.type')}
-              value={type}
-              onChange={(event) => setType(event.target.value as WeeklyReportType)}
-            >
-              {weeklyReportTypes.map((value) => (
-                <MenuItem key={value} value={value}>
-                  {enumLabel('weeklyReportType', value)}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          {canPickEmployee && (
-            <FormControl fullWidth>
-              {/* `shrink` forced on: `displayEmpty` always shows real text in
-                  the field (the "auto-detect" placeholder is not really
-                  empty), but MUI's label only floats up on its own when
-                  `value` is non-empty — without this it sits in the middle of
-                  the field, printed right on top of that placeholder text. */}
-              <InputLabel id="wr-employee-label" shrink>
-                {t('weeklyReports.submittedByEmployee')}
-              </InputLabel>
-              <Select
-                labelId="wr-employee-label"
-                label={t('weeklyReports.submittedByEmployee')}
-                value={submittedByEmployeeId}
-                onChange={(event) => setSubmittedByEmployeeId(event.target.value)}
-                displayEmpty
-              >
-                <MenuItem value="">
-                  <em>{t('weeklyReports.submittedByEmployeeAuto')}</em>
-                </MenuItem>
-                {(employeesPage?.items ?? []).map((employee) => (
-                  <MenuItem key={employee.id} value={employee.id}>
-                    {employee.firstName} {employee.lastName}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          )}
-
-          {type === 'SignedHours' && (
-            <TextField
-              type="number"
-              label={t('weeklyReports.hours')}
-              value={quantity}
-              onChange={(event) => setQuantity(event.target.value)}
-              fullWidth
-            />
-          )}
-
-          <TextField
-            label={t('weeklyReports.note')}
-            value={note}
-            onChange={(event) => setNote(event.target.value)}
-            multiline
-            minRows={2}
-            fullWidth
-          />
-
-<DropArea onFile={(f) => setFile(f)}>
-          <Button
-            variant="outlined"
-            component="label"
-            startIcon={<AttachFileOutlined />}
-            color={file ? 'success' : 'primary'}
-          >
-            {file ? file.name : t('weeklyReports.attachFile')}
-            <input
-              hidden
-              type="file"
-              accept=".pdf,.jpg,.jpeg,.png,.webp,.heic"
-              onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-            />
-          </Button>
-</DropArea>
-
-          {create.error && (
-            <Typography variant="body2" color="error">
-              {create.error.message}
-            </Typography>
-          )}
-        </Stack>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>{t('common.cancel')}</Button>
-        <Button
-          variant="contained"
-          onClick={submit}
-          disabled={!canSubmit || create.isPending}
-        >
-          {t('common.save')}
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-}
-
-/** What the office reads off the report in the preview, beside the sheet itself. */
-function ReportDetails({ report }: { report: WeeklySiteReport }) {
-  const t = useT();
-  const enumLabel = useEnumLabel();
-
-  return (
-    <Stack spacing={1.5} sx={{ mb: 2 }}>
-      <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-          {report.projectName} · {formatIsoWeek(report.isoYear, report.isoWeek)}
-        </Typography>
-        <StatusChip status={report.status} kind="weeklyReportStatus" />
-      </Stack>
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' },
-          gap: 1.5,
-        }}
-      >
-        <Fact label={t('weeklyReports.type')} value={enumLabel('weeklyReportType', report.type)} />
-        <Fact label={t('weeklyReports.hours')} value={report.quantity == null ? '—' : String(report.quantity)} />
-        <Fact label={t('weeklyReports.submittedBy')} value={report.submittedByEmployeeName} />
-        <Fact label={t('weeklyReports.sentAt')} value={formatDateTime(report.createdAt)} />
-      </Box>
-      {report.note && <Fact label={t('weeklyReports.note')} value={report.note} />}
-      {report.status === 'CorrectionRequested' && report.reviewNote && (
-        <Alert severity="warning">{t('weeklyReports.reviewNote', { note: report.reviewNote })}</Alert>
-      )}
-      {report.status === 'Processed' && report.processedAt && (
-        <Alert severity="success">
-          {t('weeklyReports.approvedBy', {
-            date: formatDateTime(report.processedAt),
-            who: report.processedByEmail ?? '—',
-          })}
-        </Alert>
-      )}
-    </Stack>
-  );
-}
-
-function Fact({ label, value }: { label: string; value: string }) {
-  return (
-    <Box>
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-        {label}
-      </Typography>
-      <Typography variant="body2" sx={{ fontWeight: 600, overflowWrap: 'anywhere' }}>
-        {value}
-      </Typography>
-    </Box>
-  );
-}
+import { formatIsoWeek } from '../../utils/isoWeek';
+import { ReportReviewDialog } from '../../features/weeklySiteReports/ReportReviewDialog';
+import { SubmitReportDialog } from '../../features/weeklySiteReports/SubmitReportDialog';
 
 function CorrectionDialog({
   report,
@@ -410,9 +153,6 @@ export function WeeklySiteReportsListPage() {
     search: undefined,
   });
 
-  // Fresh data for the open preview: approving changes the row the dialog was opened from.
-  const openReport = previewing ? (data?.items.find((r) => r.id === previewing.id) ?? previewing) : null;
-
   const columns: GridColDef<WeeklySiteReport>[] = useMemo(
     () => [
       {
@@ -441,6 +181,16 @@ export function WeeklySiteReportsListPage() {
         valueGetter: (v) => (v == null ? '—' : v),
       },
       {
+        field: 'pageCount',
+        headerName: t('weeklyReports.col.content'),
+        width: 170,
+        sortable: false,
+        valueGetter: (_v, row) =>
+          row.lineCount > 0
+            ? t('weeklyReports.col.contentValue', { pages: row.pageCount, workers: row.lineCount })
+            : t('weeklyReports.col.contentPagesOnly', { pages: row.pageCount }),
+      },
+      {
         field: 'status',
         headerName: t('common.status'),
         width: 180,
@@ -455,7 +205,7 @@ export function WeeklySiteReportsListPage() {
       {
         field: 'actions',
         headerName: t('weeklyReports.col.actions'),
-        width: 380,
+        width: 360,
         sortable: false,
         filterable: false,
         align: 'right',
@@ -485,12 +235,12 @@ export function WeeklySiteReportsListPage() {
             >
               {t('weeklyReports.download')}
             </Button>
-            {params.row.status !== 'Processed' && (
+            {params.row.status !== 'Processed' && params.row.lineCount === 0 && (
               <Button
                 size="small"
                 color="success"
                 startIcon={<CheckCircleOutlined fontSize="small" />}
-                onClick={() => approve(params.row.id)}
+                onClick={() => approve({ id: params.row.id })}
               >
                 {t('weeklyReports.approve')}
               </Button>
@@ -542,36 +292,10 @@ export function WeeklySiteReportsListPage() {
         }}
       />
 
-      <AttachmentPreviewDialog
-        attachment={openReport ? { id: openReport.id, fileName: openReport.fileName, contentType: '' } : null}
+      <ReportReviewDialog
+        reportId={previewing?.id ?? null}
         onClose={() => setPreviewing(null)}
-        loadBlob={weeklySiteReportsApi.blob}
-        details={openReport ? <ReportDetails report={openReport} /> : undefined}
-        actions={
-          openReport && openReport.status !== 'Processed' ? (
-            <>
-              <Button
-                color="warning"
-                startIcon={<ReplayOutlined />}
-                onClick={() => setCorrecting(openReport)}
-              >
-                {t('weeklyReports.requestCorrection')}
-              </Button>
-              <Button
-                variant="contained"
-                color="success"
-                startIcon={<CheckCircleOutlined />}
-                onClick={() => approve(openReport.id, { onSuccess: () => setPreviewing(null) })}
-              >
-                {t('weeklyReports.approve')}
-              </Button>
-            </>
-          ) : openReport ? (
-            <Button color="warning" startIcon={<ReplayOutlined />} onClick={() => setCorrecting(openReport)}>
-              {t('weeklyReports.requestCorrection')}
-            </Button>
-          ) : undefined
-        }
+        onRequestCorrection={(report) => setCorrecting(report)}
       />
 
       {canReview ? (

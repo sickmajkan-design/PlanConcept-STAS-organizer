@@ -53,6 +53,12 @@ public class RequestWeeklySiteReportCorrectionCommandHandler
 
         var note = request.Note.Trim();
 
+        // Hours an approval entered into the monthly sheet are taken back with it; what somebody typed over stays.
+        if (report.Status == WeeklyReportStatus.Processed)
+        {
+            await WeeklyReportLedger.RetractAsync(_context, report.Id, cancellationToken);
+        }
+
         report.Status = WeeklyReportStatus.CorrectionRequested;
         report.ProcessedAt = _dateTimeProvider.UtcNow;
         report.ProcessedByUserId = _currentUserService.UserId;

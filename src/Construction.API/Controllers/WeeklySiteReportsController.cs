@@ -1,12 +1,15 @@
+using System.Text.Json;
 using Construction.API.Authorization;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.WeeklySiteReports.Commands.CreateWeeklySiteReport;
+using Construction.Application.Features.WeeklySiteReports.Commands.UpdateWeeklySiteReportLines;
 using Construction.Application.Features.WeeklySiteReports.Commands.MarkWeeklySiteReportProcessed;
 using Construction.Application.Features.WeeklySiteReports.Commands.RequestWeeklySiteReportCorrection;
 using Construction.Application.Features.WeeklySiteReports.Models;
 using Construction.Application.Features.WeeklySiteReports.Queries.GetMyReportableProjects;
 using Construction.Application.Features.WeeklySiteReports.Queries.GetMyWeeklySiteReports;
 using Construction.Application.Features.WeeklySiteReports.Queries.GetWeeklySiteReportContent;
+using Construction.Application.Features.WeeklySiteReports.Queries.GetWeeklySiteReport;
 using Construction.Application.Features.WeeklySiteReports.Queries.GetWeeklySiteReports;
 using Construction.Application.Features.WeeklySiteReports.Queries.GetWeeklySiteReportsSummary;
 using Microsoft.AspNetCore.Authorization;
@@ -72,8 +75,31 @@ public class WeeklySiteReportsController : ApiControllerBase
         return File(file.Content, file.ContentType, file.FileName);
     }
 
+    /// <summary>One report with its pictures and workers, and what the monthly sheet holds for each worker now.</summary>
+    [HttpGet("{id:guid}")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(WeeklySiteReportDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<WeeklySiteReportDetailDto>> Get(Guid id, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetWeeklySiteReportQuery(id), cancellationToken));
+    }
+
+    /// <summary>One picture of the report.</summary>
+    [HttpGet("{id:guid}/pages/{pageId:guid}/content")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetPageContent(Guid id, Guid pageId, CancellationToken cancellationToken)
+    {
+        var file = await Mediator.Send(new GetWeeklySiteReportContentQuery(id, pageId), cancellationToken);
+
+        return File(file.Content, file.ContentType, file.FileName);
+    }
+
     [HttpPost]
-    [RequestSizeLimit(21 * 1024 * 1024)]
+    [RequestSizeLimit(205 * 1024 * 1024)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 205 * 1024 * 1024)]
     [ProducesResponseType(typeof(WeeklySiteReportDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
@@ -81,42 +107,117 @@ public class WeeklySiteReportsController : ApiControllerBase
         [FromForm] CreateWeeklySiteReportRequest request,
         CancellationToken cancellationToken)
     {
-        if (request.File is null || request.File.Length == 0)
+        // Several pictures arrive as `files`; the single `file` of older clients is the same thing with one.
+        var uploads = (request.Files ?? []).Concat(request.File is null ? [] : [request.File])
+            .Where(f => f.Length > 0)
+            .ToList();
+
+        if (uploads.Count == 0)
         {
-            ModelState.AddModelError(nameof(request.File), "A file is required.");
+            ModelState.AddModelError(nameof(request.Files), "A file is required.");
             return ValidationProblem(ModelState);
         }
 
-        await using var content = request.File.OpenReadStream();
+        var lines = new List<ReportLineInput>();
 
-        var report = await Mediator.Send(
-            new CreateWeeklySiteReportCommand
+        if (!string.IsNullOrWhiteSpace(request.Lines))
+        {
+            try
             {
-                ProjectId = request.ProjectId,
-                IsoYear = request.IsoYear,
-                IsoWeek = request.IsoWeek,
-                Type = request.Type,
-                SubmittedByEmployeeId = request.SubmittedByEmployeeId,
-                Quantity = request.Quantity,
-                Note = request.Note,
-                FileName = request.File.FileName,
-                SizeBytes = request.File.Length,
-                Content = content,
-            },
-            cancellationToken);
+                var parsed = JsonSerializer.Deserialize<List<ReportLineBody>>(
+                    request.Lines, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
 
-        return CreatedAtAction(nameof(GetContent), new { id = report.Id }, report);
+                lines.AddRange(parsed.Select(l => new ReportLineInput(l.EmployeeId, l.Hours, l.HoursSecondMonth)));
+            }
+            catch (JsonException)
+            {
+                ModelState.AddModelError(nameof(request.Lines), "The list of workers could not be read.");
+                return ValidationProblem(ModelState);
+            }
+        }
+
+        var streams = new List<Stream>();
+
+        try
+        {
+            var files = new List<ReportFileInput>();
+
+            foreach (var upload in uploads)
+            {
+                var stream = upload.OpenReadStream();
+                streams.Add(stream);
+                files.Add(new ReportFileInput(upload.FileName, upload.Length, stream));
+            }
+
+            var report = await Mediator.Send(
+                new CreateWeeklySiteReportCommand
+                {
+                    ProjectId = request.ProjectId,
+                    IsoYear = request.IsoYear,
+                    IsoWeek = request.IsoWeek,
+                    Type = request.Type,
+                    SubmittedByEmployeeId = request.SubmittedByEmployeeId,
+                    Quantity = request.Quantity,
+                    Note = request.Note,
+                    Files = files,
+                    Lines = lines,
+                },
+                cancellationToken);
+
+            return CreatedAtAction(nameof(GetContent), new { id = report.Id }, report);
+        }
+        finally
+        {
+            foreach (var stream in streams)
+            {
+                await stream.DisposeAsync();
+            }
+        }
     }
 
-    /// <summary>Approves a report. The old name stays so clients written against it keep working.</summary>
+    /// <summary>
+    /// Approves a report and enters its hours into the monthly sheet. The body, if any, carries the workers as the
+    /// office has just checked them and the workers whose cell in the sheet is to stay as it is. The old name stays so
+    /// clients written against it keep working.
+    /// </summary>
     [HttpPost("{id:guid}/approve")]
     [HttpPost("{id:guid}/mark-processed")]
     [Authorize(Policy = Policies.AdminAndAbove)]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ApproveWeeklySiteReportResult), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> MarkProcessed(Guid id, CancellationToken cancellationToken)
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ApproveWeeklySiteReportResult>> MarkProcessed(
+        Guid id,
+        [FromBody(EmptyBodyBehavior = Microsoft.AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Allow)] ApproveRequest? request,
+        CancellationToken cancellationToken)
     {
-        await Mediator.Send(new MarkWeeklySiteReportProcessedCommand(id), cancellationToken);
+        var result = await Mediator.Send(
+            new MarkWeeklySiteReportProcessedCommand(
+                id,
+                request?.Lines?.Select(l => new ReportLineInput(l.EmployeeId, l.Hours, l.HoursSecondMonth)).ToList(),
+                request?.KeepExisting),
+            cancellationToken);
+
+        return Ok(result);
+    }
+
+    /// <summary>Saves the office's corrections to the workers and hours without approving the report.</summary>
+    [HttpPut("{id:guid}/lines")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateLines(
+        Guid id,
+        [FromBody] UpdateLinesRequest request,
+        CancellationToken cancellationToken)
+    {
+        await Mediator.Send(
+            new UpdateWeeklySiteReportLinesCommand(
+                id,
+                (request.Lines ?? []).Select(l => new ReportLineInput(l.EmployeeId, l.Hours, l.HoursSecondMonth)).ToList()),
+            cancellationToken);
+
         return NoContent();
     }
 
@@ -134,6 +235,29 @@ public class WeeklySiteReportsController : ApiControllerBase
         await Mediator.Send(new RequestWeeklySiteReportCorrectionCommand(id, request.Note ?? string.Empty), cancellationToken);
         return NoContent();
     }
+}
+
+/// <summary>One worker's hours for the report's week; the part that falls in the later month is given apart.</summary>
+public class ReportLineBody
+{
+    public Guid EmployeeId { get; set; }
+
+    public decimal Hours { get; set; }
+
+    public decimal HoursSecondMonth { get; set; }
+}
+
+/// <summary>The workers as the office checked them, and who keeps what the sheet already says.</summary>
+public class ApproveRequest
+{
+    public List<ReportLineBody>? Lines { get; set; }
+
+    public List<Guid>? KeepExisting { get; set; }
+}
+
+public class UpdateLinesRequest
+{
+    public List<ReportLineBody>? Lines { get; set; }
 }
 
 /// <summary>Why a report is sent back.</summary>
@@ -159,5 +283,12 @@ public class CreateWeeklySiteReportRequest
 
     public string? Note { get; set; }
 
+    /// <summary>The pictures of the signed sheet: a week can be written on several.</summary>
+    public List<IFormFile>? Files { get; set; }
+
+    /// <summary>The single file of older clients.</summary>
     public IFormFile? File { get; set; }
+
+    /// <summary>The workers and their hours, as JSON: [{"employeeId":"…","hours":40,"hoursSecondMonth":0}].</summary>
+    public string? Lines { get; set; }
 }

@@ -82,6 +82,9 @@ public class SetLedgerCellCommandHandler : IRequestHandler<SetLedgerCellCommand>
         else
         {
             cell.Value = value;
+
+            // Typed over by somebody: it no longer comes from a weekly report.
+            cell.SourceReportId = null;
         }
 
         await _context.SaveChangesAsync(cancellationToken);

@@ -27,4 +27,12 @@ public class LedgerCell : BaseEntity, IAuditable
 
     /// <summary>Hex color for the cell's background (e.g. "#F6C6C6"), or null for none.</summary>
     public string? ColorTag { get; set; }
+
+    /// <summary>
+    /// The weekly site report this value was entered from, so the cell can say so and the entry can be taken back.
+    /// Cleared when somebody types over the value.
+    /// </summary>
+    public Guid? SourceReportId { get; set; }
+
+    public WeeklySiteReport? SourceReport { get; set; }
 }

@@ -28,6 +28,12 @@ public record WeeklySiteReportDto
 
     public string FileName { get; init; } = null!;
 
+    /// <summary>How many pictures the report has.</summary>
+    public int PageCount { get; init; }
+
+    /// <summary>How many workers are listed in it.</summary>
+    public int LineCount { get; init; }
+
     public WeeklyReportStatus Status { get; init; }
 
     public DateTime? ProcessedAt { get; init; }
@@ -56,6 +62,8 @@ public static class WeeklySiteReportMapping
             Quantity = r.Quantity,
             Note = r.Note,
             FileName = r.FileName,
+            PageCount = r.Pages.Count,
+            LineCount = r.Lines.Count,
             Status = r.Status,
             ProcessedAt = r.ProcessedAt,
             ReviewNote = r.ReviewNote,

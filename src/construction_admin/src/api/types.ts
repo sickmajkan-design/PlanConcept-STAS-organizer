@@ -2031,6 +2031,15 @@ export interface LedgerCell {
   isComputed: boolean;
   /** A person typed a value over a computed column's calculation. */
   isOverride?: boolean;
+  /** The weekly site report this value was entered from, or null when it was typed. */
+  sourceReportId?: string | null;
+}
+
+/** How many of a month's weekly hours came from approved weekly site reports. */
+export interface LedgerReportHours {
+  approvedHours: number;
+  typedHours: number;
+  reportCount: number;
 }
 
 /** One thing worth a second look before a month is closed. */
@@ -2737,12 +2746,63 @@ export interface WeeklySiteReport {
   quantity: number | null;
   note: string | null;
   fileName: string;
+  /** How many pictures the report has, and how many workers are listed in it. */
+  pageCount: number;
+  lineCount: number;
   status: WeeklyReportStatus;
   processedAt: string | null;
   processedByEmail: string | null;
   /** Why the office sent the report back, while it waits for a new one. */
   reviewNote: string | null;
   createdAt: string;
+}
+
+export interface WeeklyReportPage {
+  id: string;
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+}
+
+/** One worker's hours in the report's week; `hoursSecondMonth` is the part that falls in the later month. */
+export interface WeeklyReportLine {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  hours: number;
+  hoursSecondMonth: number;
+  /** What the monthly sheet holds now for this worker, or null for an empty cell. */
+  existingFirstMonth: number | null;
+  existingSecondMonth: number | null;
+}
+
+export interface WeeklyReportMonth {
+  year: number;
+  month: number;
+  /** Whether there is a monthly sheet with a column for the week to enter the hours into. */
+  ledgerFound: boolean;
+  ledgerName: string | null;
+  locked: boolean;
+}
+
+export interface WeeklySiteReportDetail extends WeeklySiteReport {
+  pages: WeeklyReportPage[];
+  lines: WeeklyReportLine[];
+  firstMonth: WeeklyReportMonth;
+  secondMonth: WeeklyReportMonth | null;
+}
+
+/** A worker and hours as they are sent to the server. */
+export interface WeeklyReportLineInput {
+  employeeId: string;
+  hours: number;
+  hoursSecondMonth: number;
+}
+
+export interface ApproveWeeklySiteReportResult {
+  cellsWritten: number;
+  cellsUnchanged: number;
+  cellsKept: number;
 }
 
 export interface WeeklySiteReportWaiting {

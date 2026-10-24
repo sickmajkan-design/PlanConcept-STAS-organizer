@@ -7,6 +7,7 @@ import type {
   LedgerColumnInput,
   LedgerDetail,
   LedgerPromotion,
+  LedgerReportHours,
   LedgerRow,
   LedgerUnlinkedRow,
   LedgerRowInput,
@@ -55,6 +56,9 @@ export const ledgersApi = {
 
   checks: (id: string) =>
     request<LedgerCheck[]>({ method: 'GET', url: `/api/v1/ledgers/${id}/checks` }),
+
+  reportHours: (id: string) =>
+    request<LedgerReportHours>({ method: 'GET', url: `/api/v1/ledgers/${id}/report-hours` }),
 
   get: (id: string) =>
     request<LedgerDetail>({ method: 'GET', url: `/api/v1/ledgers/${id}` }),

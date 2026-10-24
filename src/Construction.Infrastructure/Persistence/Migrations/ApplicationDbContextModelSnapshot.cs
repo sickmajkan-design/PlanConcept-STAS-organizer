@@ -2784,6 +2784,9 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("RowId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("SourceReportId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -2794,6 +2797,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ColumnId");
+
+                    b.HasIndex("SourceReportId");
 
                     b.HasIndex("RowId", "ColumnId")
                         .IsUnique();
@@ -5113,6 +5118,87 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.ToTable("weekly_site_reports", (string)null);
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.WeeklySiteReportLine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Hours")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<decimal>("HoursSecondMonth")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<Guid>("ReportId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("ReportId", "SortOrder");
+
+                    b.ToTable("weekly_site_report_lines", (string)null);
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.WeeklySiteReportPage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<Guid>("ReportId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReportId", "SortOrder");
+
+                    b.ToTable("weekly_site_report_pages", (string)null);
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.WorkItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -6055,9 +6141,16 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Construction.Domain.Entities.WeeklySiteReport", "SourceReport")
+                        .WithMany()
+                        .HasForeignKey("SourceReportId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Column");
 
                     b.Navigation("Row");
+
+                    b.Navigation("SourceReport");
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.LedgerColumn", b =>
@@ -6790,6 +6883,36 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("SubmittedByEmployee");
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.WeeklySiteReportLine", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Construction.Domain.Entities.WeeklySiteReport", "Report")
+                        .WithMany("Lines")
+                        .HasForeignKey("ReportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("Report");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.WeeklySiteReportPage", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.WeeklySiteReport", "Report")
+                        .WithMany("Pages")
+                        .HasForeignKey("ReportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Report");
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.WorkItem", b =>
                 {
                     b.HasOne("Construction.Domain.Entities.Employee", "AssignedEmployee")
@@ -6996,6 +7119,13 @@ namespace Construction.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Construction.Domain.Entities.VehicleToll", b =>
                 {
                     b.Navigation("Payments");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.WeeklySiteReport", b =>
+                {
+                    b.Navigation("Lines");
+
+                    b.Navigation("Pages");
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.WorkItem", b =>

@@ -303,6 +303,14 @@ export function useReorderLedgerSummaryBoxes(ledgerId: string) {
  * after any change (the app's mutation cache invalidates everything), so a
  * fixed problem leaves the list at once.
  */
+/** What part of the month's weekly hours came from approved weekly site reports. */
+export function useLedgerReportHoursQuery(ledgerId: string) {
+  return useQuery({
+    queryKey: ['ledgers', ledgerId, 'report-hours'],
+    queryFn: () => ledgersApi.reportHours(ledgerId),
+  });
+}
+
 export function useLedgerChecksQuery(ledgerId: string) {
   return useQuery({
     queryKey: ['ledgers', ledgerId, 'checks'],

@@ -2,10 +2,13 @@ import { toApiError } from './apiError';
 import { apiClient, request } from './client';
 import { listParams } from './resource';
 import type {
+  ApproveWeeklySiteReportResult,
   PagedList,
   ReportableProject,
   WeeklyReportType,
+  WeeklyReportLineInput,
   WeeklySiteReport,
+  WeeklySiteReportDetail,
   WeeklySiteReportListQuery,
   WeeklySiteReportsSummary,
 } from './types';
@@ -18,7 +21,10 @@ export interface CreateWeeklySiteReportInput {
   submittedByEmployeeId?: string | null;
   quantity?: number | null;
   note?: string | null;
-  file: File;
+  /** The pictures of the signed sheet: a week can be written on several. */
+  files: File[];
+  /** The workers and their hours; the report's total is their sum. */
+  lines?: WeeklyReportLineInput[];
 }
 
 export const weeklySiteReportsApi = {
@@ -45,7 +51,8 @@ export const weeklySiteReportsApi = {
     if (input.submittedByEmployeeId) form.append('submittedByEmployeeId', input.submittedByEmployeeId);
     if (input.quantity != null) form.append('quantity', String(input.quantity));
     if (input.note) form.append('note', input.note);
-    form.append('file', input.file);
+    for (const file of input.files) form.append('files', file);
+    if (input.lines && input.lines.length > 0) form.append('lines', JSON.stringify(input.lines));
 
     // No explicit Content-Type: the browser has to set it, because only it
     // knows the multipart boundary it generated.
@@ -59,8 +66,19 @@ export const weeklySiteReportsApi = {
   summary: () =>
     request<WeeklySiteReportsSummary>({ method: 'GET', url: '/api/v1/weeklysitereports/summary' }),
 
-  approve: (id: string) =>
-    request<void>({ method: 'POST', url: `/api/v1/weeklysitereports/${id}/approve` }),
+  detail: (id: string) =>
+    request<WeeklySiteReportDetail>({ method: 'GET', url: `/api/v1/weeklysitereports/${id}` }),
+
+  /** Approves the report and enters its hours into the month's sheet; `lines` are the workers as just checked. */
+  approve: (id: string, body?: { lines?: WeeklyReportLineInput[]; keepExisting?: string[] }) =>
+    request<ApproveWeeklySiteReportResult>({
+      method: 'POST',
+      url: `/api/v1/weeklysitereports/${id}/approve`,
+      data: body ?? {},
+    }),
+
+  updateLines: (id: string, lines: WeeklyReportLineInput[]) =>
+    request<void>({ method: 'PUT', url: `/api/v1/weeklysitereports/${id}/lines`, data: { lines } }),
 
   requestCorrection: (id: string, note: string) =>
     request<void>({
@@ -69,7 +87,22 @@ export const weeklySiteReportsApi = {
       data: { note },
     }),
 
-  /** The proof document's bytes, for opening/downloading — the endpoint needs a bearer token, so a plain link cannot reach it. */
+  /** One picture of the report. */
+  pageBlob: async (id: string, pageId: string): Promise<Blob> => {
+    try {
+      const response = await apiClient.request<Blob>({
+        method: 'GET',
+        url: `/api/v1/weeklysitereports/${id}/pages/${pageId}/content`,
+        responseType: 'blob',
+      });
+
+      return response.data;
+    } catch (error) {
+      throw toApiError(error);
+    }
+  },
+
+  /** The first picture's bytes, for opening/downloading — the endpoint needs a bearer token, so a plain link cannot reach it. */
   blob: async (id: string): Promise<Blob> => {
     try {
       const response = await apiClient.request<Blob>({

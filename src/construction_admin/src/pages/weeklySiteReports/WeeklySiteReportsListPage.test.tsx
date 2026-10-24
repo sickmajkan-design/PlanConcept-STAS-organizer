@@ -33,11 +33,31 @@ function report(overrides: Record<string, unknown> = {}) {
     quantity: 212.5,
     note: null,
     fileName: 'satnica.pdf',
+    pageCount: 2,
+    lineCount: 0,
     status: 'Submitted',
     processedAt: null,
     processedByEmail: null,
     reviewNote: null,
     createdAt: '2026-10-19T08:00:00Z',
+    ...overrides,
+  };
+}
+
+/** The report as the review dialog loads it: pictures, workers, and what the monthly sheet holds for each. */
+function detail(overrides: Record<string, unknown> = {}) {
+  return {
+    ...report({ lineCount: 2 }),
+    pages: [
+      { id: 'pg1', fileName: 'strana1.jpg', contentType: 'image/jpeg', sizeBytes: 10 },
+      { id: 'pg2', fileName: 'strana2.jpg', contentType: 'image/jpeg', sizeBytes: 10 },
+    ],
+    lines: [
+      { id: 'l1', employeeId: 'e1', employeeName: 'Adin Čengić', hours: 45, hoursSecondMonth: 0, existingFirstMonth: null, existingSecondMonth: null },
+      { id: 'l2', employeeId: 'e2', employeeName: 'Igor Pijetlović', hours: 42.5, hoursSecondMonth: 0, existingFirstMonth: 40, existingSecondMonth: null },
+    ],
+    firstMonth: { year: 2026, month: 10, ledgerFound: true, ledgerName: 'Oktobar', locked: false },
+    secondMonth: null,
     ...overrides,
   };
 }
@@ -96,34 +116,97 @@ describe('WeeklySiteReportsListPage', () => {
     expect(screen.getByRole('button', { name: /^(Pregledaj|Preview)$/ })).toBeDefined();
   }, SCREEN_TIMEOUT);
 
-  it('opens the report in a preview with the facts beside it and approves from there', async () => {
-    await renderReports([report({ note: 'Kupac potpisao u petak' })]);
+  it('opens the report with its pictures and the workers beside them, and enters the hours when approved', async () => {
+    network.reply('/weeklysitereports/w1', 200, detail({ note: 'Kupac potpisao u petak' }));
+    await renderReports([report({ lineCount: 2 })]);
     await screen.findByText('Hala B');
 
     await userEvent.click(screen.getByRole('button', { name: /^(Pregledaj|Preview)$/ }));
 
     const dialog = await screen.findByRole('dialog');
+    expect(await within(dialog).findByText('Adin Čengić')).toBeDefined();
+    expect(within(dialog).getByText('Igor Pijetlović')).toBeDefined();
     expect(within(dialog).getByText('Kupac potpisao u petak')).toBeDefined();
-    expect(within(dialog).getByText('Marko Marković')).toBeDefined();
+    // Both pictures can be turned to.
+    expect(within(dialog).getByRole('button', { name: /^(Slika 2|Picture 2)$/ })).toBeDefined();
 
-    await userEvent.click(within(dialog).getByRole('button', { name: /^(Odobri|Approve)$/ }));
+    await userEvent.click(within(dialog).getByRole('button', { name: /(Odobri i upiši|Approve and enter)/ }));
 
     const posts = network.calls.filter((call) => call.method === 'POST' && call.url.endsWith('/w1/approve'));
     expect(posts).toHaveLength(1);
+    const body = JSON.stringify(posts[0].body);
+    expect(body).toContain('"employeeId":"e1"');
+    expect(body).toContain('"hours":45');
+  }, SCREEN_TIMEOUT);
+
+  it('offers to keep what the sheet already says when it differs, and sends that choice', async () => {
+    network.reply('/weeklysitereports/w1', 200, detail());
+    await renderReports([report({ lineCount: 2 })]);
+    await screen.findByText('Hala B');
+
+    await userEvent.click(screen.getByRole('button', { name: /^(Pregledaj|Preview)$/ }));
+    const dialog = await screen.findByRole('dialog');
+    await within(dialog).findByText('Igor Pijetlović');
+
+    expect(within(dialog).getByText(/(Razlikuje se: sada 40|Differs: now 40)/)).toBeDefined();
+    await userEvent.click(within(dialog).getByRole('button', { name: /^(Zadrži staro|Keep the old)$/ }));
+    await userEvent.click(within(dialog).getByRole('button', { name: /(Odobri i upiši|Approve and enter)/ }));
+
+    const posts = network.calls.filter((call) => call.method === 'POST' && call.url.endsWith('/w1/approve'));
+    expect(JSON.stringify(posts[0].body)).toContain('"keepExisting":["e2"]');
+  }, SCREEN_TIMEOUT);
+
+  it('lets the office correct the hours before approving', async () => {
+    network.reply('/weeklysitereports/w1', 200, detail());
+    await renderReports([report({ lineCount: 2 })]);
+    await screen.findByText('Hala B');
+
+    await userEvent.click(screen.getByRole('button', { name: /^(Pregledaj|Preview)$/ }));
+    const dialog = await screen.findByRole('dialog');
+    await within(dialog).findByText('Adin Čengić');
+
+    const hours = within(dialog).getAllByRole('textbox', { name: /^(Sati|Hours)$/ });
+    await userEvent.clear(hours[0]);
+    await userEvent.type(hours[0], '40');
+    await userEvent.click(within(dialog).getByRole('button', { name: /(Odobri i upiši|Approve and enter)/ }));
+
+    const posts = network.calls.filter((call) => call.method === 'POST' && call.url.endsWith('/w1/approve'));
+    expect(JSON.stringify(posts[0].body)).toContain('"hours":40');
+  }, SCREEN_TIMEOUT);
+
+  it('will not approve while the month has no sheet to enter the hours in', async () => {
+    network.reply(
+      '/weeklysitereports/w1',
+      200,
+      detail({ firstMonth: { year: 2026, month: 10, ledgerFound: false, ledgerName: null, locked: false } }),
+    );
+    await renderReports([report({ lineCount: 2 })]);
+    await screen.findByText('Hala B');
+
+    await userEvent.click(screen.getByRole('button', { name: /^(Pregledaj|Preview)$/ }));
+    const dialog = await screen.findByRole('dialog');
+    await within(dialog).findByText('Adin Čengić');
+
+    const approve = within(dialog).getByRole('button', { name: /(Odobri i upiši|Approve and enter)/ }) as HTMLButtonElement;
+    expect(approve.disabled).toBe(true);
+    expect(within(dialog).getByText(/(nema mjesečne Evidencije|no monthly Ledger)/)).toBeDefined();
   }, SCREEN_TIMEOUT);
 
   it('sends a report back only with a reason, and passes the reason on', async () => {
-    await renderReports([report()]);
+    network.reply('/weeklysitereports/w1', 200, detail());
+    await renderReports([report({ lineCount: 2 })]);
     await screen.findByText('Hala B');
 
     await userEvent.click(screen.getByRole('button', { name: /^(Pregledaj|Preview)$/ }));
     const preview = await screen.findByRole('dialog');
+    await within(preview).findByText('Adin Čengić');
     await userEvent.click(within(preview).getByRole('button', { name: /^(Potrebna korekcija|Needs correction)$/ }));
 
     const send = await screen.findByRole('button', { name: /^(Pošalji poslovođi|Send to the foreman)$/ });
     expect((send as HTMLButtonElement).disabled).toBe(true);
 
-    await userEvent.type(screen.getByRole('textbox'), 'Nedostaje potpis kupca');
+    const reason = screen.getAllByRole('textbox').find((box) => box.tagName === 'TEXTAREA') as HTMLElement;
+    await userEvent.type(reason, 'Nedostaje potpis kupca');
     expect((send as HTMLButtonElement).disabled).toBe(false);
     await userEvent.click(send);
 

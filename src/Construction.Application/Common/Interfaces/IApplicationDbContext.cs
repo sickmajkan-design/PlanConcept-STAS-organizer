@@ -173,6 +173,10 @@ public interface IApplicationDbContext
 
     DbSet<WeeklySiteReport> WeeklySiteReports { get; }
 
+    DbSet<WeeklySiteReportPage> WeeklySiteReportPages { get; }
+
+    DbSet<WeeklySiteReportLine> WeeklySiteReportLines { get; }
+
     DbSet<WeeklyReportReminder> WeeklyReportReminders { get; }
 
     DbSet<AuditEntry> AuditEntries { get; }

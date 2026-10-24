@@ -56,7 +56,7 @@ describe('ReleaseNotesDialog', () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('SuperAdmin') });
 
     await screen.findByText('Dark theme: company logo');
-    expect(screen.getByText('Home: less on the screen')).toBeDefined();
+    expect(screen.getByText('Schedule: drag a worker')).toBeDefined();
     expect(screen.getByText('Weekly reports: review and approval')).toBeDefined();
   }, SCREEN_TIMEOUT);
 

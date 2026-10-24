@@ -72,4 +72,13 @@ public class WeeklySiteReport : BaseEntity, IAuditable
 
     /// <summary>Why the report was sent back. Cleared when the report is sent again or approved.</summary>
     public string? ReviewNote { get; set; }
+
+    /// <summary>
+    /// The pictures of the signed sheet, in the order they were attached. The first one is also what the older
+    /// single-file fields above describe.
+    /// </summary>
+    public ICollection<WeeklySiteReportPage> Pages { get; set; } = new List<WeeklySiteReportPage>();
+
+    /// <summary>Who worked how many hours, as written by the foreman and corrected by the office.</summary>
+    public ICollection<WeeklySiteReportLine> Lines { get; set; } = new List<WeeklySiteReportLine>();
 }

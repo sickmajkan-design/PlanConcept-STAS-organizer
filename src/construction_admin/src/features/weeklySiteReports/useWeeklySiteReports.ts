@@ -5,7 +5,7 @@ import {
   weeklySiteReportsApi,
   type CreateWeeklySiteReportInput,
 } from '../../api/weeklySiteReports';
-import type { WeeklySiteReportListQuery } from '../../api/types';
+import type { WeeklyReportLineInput, WeeklySiteReportListQuery } from '../../api/types';
 import { createResourceKeys, useResourceList, useResourceMutation } from '../resourceQueries';
 
 export const weeklySiteReportKeys = createResourceKeys<WeeklySiteReportListQuery>('weeklySiteReports');
@@ -32,9 +32,20 @@ export function useCreateWeeklySiteReport() {
 
 export function useApproveWeeklySiteReport() {
   return useResourceMutation(
-    (id: string) => weeklySiteReportsApi.approve(id),
-    [weeklySiteReportKeys.all, WEEKLY_SUMMARY_KEY],
+    (input: { id: string; lines?: WeeklyReportLineInput[]; keepExisting?: string[] }) =>
+      weeklySiteReportsApi.approve(input.id, { lines: input.lines, keepExisting: input.keepExisting }),
+    // The sheets change too: what was entered shows in the monthly sheet and its checks.
+    [weeklySiteReportKeys.all, WEEKLY_SUMMARY_KEY, ['ledgers']],
   );
+}
+
+/** One report with its pictures, workers and what the monthly sheet holds for them. */
+export function useWeeklySiteReportQuery(id: string | null) {
+  return useQuery({
+    queryKey: ['weeklySiteReports', 'detail', id],
+    queryFn: () => weeklySiteReportsApi.detail(id!),
+    enabled: !!id,
+  });
 }
 
 export function useRequestWeeklySiteReportCorrection() {
