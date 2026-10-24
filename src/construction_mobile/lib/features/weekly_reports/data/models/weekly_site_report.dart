@@ -18,9 +18,16 @@ abstract class WeeklySiteReport with _$WeeklySiteReport {
     double? quantity,
     String? note,
     required String fileName,
+    /// How many pictures the report has, and how many workers are listed in it.
+    @Default(1) int pageCount,
+    @Default(0) int lineCount,
+    /// `App` when the foreman sent it, `Office` when the office entered it.
+    @Default('App') String source,
     required String status,
     DateTime? processedAt,
     String? processedByEmail,
+    /// Why the office sent the report back, while it waits for a new one.
+    String? reviewNote,
     required DateTime createdAt,
   }) = _WeeklySiteReport;
 

@@ -92,6 +92,12 @@ String enumLabel(AppLocalizations l10n, EnumKind kind, String? value) {
     (EnumKind.notificationType, 'BulletinPosted') => l10n.notificationTypeBulletinPosted,
     (EnumKind.notificationType, 'AbsenceEditProposed') => l10n.notificationTypeAbsenceEditProposed,
     (EnumKind.notificationType, 'WeeklyReportDue') => l10n.notificationTypeWeeklyReportDue,
+    (EnumKind.notificationType, 'WeeklyReportCorrection') =>
+      l10n.notificationTypeWeeklyReportCorrection,
+    (EnumKind.notificationType, 'WeeklyReportApproved') =>
+      l10n.notificationTypeWeeklyReportApproved,
+    (EnumKind.notificationType, 'WeeklyReportEnteredByOffice') =>
+      l10n.notificationTypeWeeklyReportEnteredByOffice,
     (EnumKind.notificationType, 'EmployeeClockedIn') => l10n.notificationTypeEmployeeClockedIn,
     (EnumKind.notificationType, 'EmployeeClockedOut') => l10n.notificationTypeEmployeeClockedOut,
     (EnumKind.notificationType, 'UnassignedProjectClockIn') =>
@@ -185,6 +191,8 @@ String enumLabel(AppLocalizations l10n, EnumKind kind, String? value) {
     (EnumKind.weeklyReportType, 'Other') => l10n.weeklyReportTypeOther,
     (EnumKind.weeklyReportStatus, 'Submitted') => l10n.weeklyReportStatusSubmitted,
     (EnumKind.weeklyReportStatus, 'Processed') => l10n.weeklyReportStatusProcessed,
+    (EnumKind.weeklyReportStatus, 'CorrectionRequested') =>
+      l10n.weeklyReportStatusCorrectionRequested,
     (EnumKind.vehicleOwnershipType, 'Owned') => l10n.vehicleOwnershipTypeOwned,
     (EnumKind.vehicleOwnershipType, 'Rented') => l10n.vehicleOwnershipTypeRented,
     (EnumKind.employeeType, 'Employee') => l10n.employeeTypeEmployee,

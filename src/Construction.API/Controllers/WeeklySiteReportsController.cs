@@ -8,6 +8,7 @@ using Construction.Application.Features.WeeklySiteReports.Commands.RequestWeekly
 using Construction.Application.Features.WeeklySiteReports.Models;
 using Construction.Application.Features.WeeklySiteReports.Queries.GetMyReportableProjects;
 using Construction.Application.Features.WeeklySiteReports.Queries.GetMyWeeklySiteReports;
+using Construction.Application.Features.WeeklySiteReports.Queries.GetReportWorkers;
 using Construction.Application.Features.WeeklySiteReports.Queries.GetWeeklySiteReportContent;
 using Construction.Application.Features.WeeklySiteReports.Queries.GetWeeklySiteReport;
 using Construction.Application.Features.WeeklySiteReports.Queries.GetWeeklySiteReports;
@@ -61,6 +62,19 @@ public class WeeklySiteReportsController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(new GetMyReportableProjectsQuery(), cancellationToken));
+    }
+
+    /// <summary>
+    /// People to put in a report: the crew of the caller's own sites, or anyone by name once two letters are typed.
+    /// Names and positions only.
+    /// </summary>
+    [HttpGet("workers")]
+    [ProducesResponseType(typeof(IReadOnlyList<ReportWorkerDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IReadOnlyList<ReportWorkerDto>>> GetWorkers(
+        [FromQuery] string? search,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetReportWorkersQuery(search), cancellationToken));
     }
 
     /// <summary>The attached proof document.</summary>

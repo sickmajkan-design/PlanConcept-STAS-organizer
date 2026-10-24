@@ -28,5 +28,25 @@ class IsoWeek {
     return IsoWeek.of(reference.subtract(const Duration(days: 7)));
   }
 
+  /// The Monday of the week.
+  DateTime get monday {
+    final jan4 = DateTime.utc(isoYear, 1, 4);
+    final firstMonday = jan4.subtract(Duration(days: jan4.weekday - 1));
+    return firstMonday.add(Duration(days: (isoWeek - 1) * 7));
+  }
+
+  /// The month the week begins in, and the next one when the week runs over a month's end
+  /// (its Monday is in one month and its Sunday in the next). A week's hours go into the
+  /// monthly sheet of the month they fall in, so such a week is reported for both.
+  ({DateTime first, DateTime? second}) get months {
+    final start = monday;
+    final end = start.add(const Duration(days: 6));
+    final first = DateTime.utc(start.year, start.month);
+
+    return end.month == start.month && end.year == start.year
+        ? (first: first, second: null)
+        : (first: first, second: DateTime.utc(end.year, end.month));
+  }
+
   String get label => 'KW${isoWeek.toString().padLeft(2, '0')}/$isoYear';
 }

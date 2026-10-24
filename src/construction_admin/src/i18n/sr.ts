@@ -1005,10 +1005,10 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.close': 'Razumijem',
 
 
-  'releaseNotes.dnd1020.title': "Raspored: povlačenje radnika",
-  'releaseNotes.dnd1020.drag': "U Rasporedu (Po gradilištima i Vremenska traka) radnika možete povući na gradilište, na drugog radnika (zamjena) ili među Slobodne. Gradilišta kojima fali njegova vještina svijetle zeleno. Na telefonu ga zadržite prstom, a običan dodir i dalje otvara prozor radnika.",
-  'releaseNotes.dnd1020.window': "Nakon puštanja otvara se prozor koji piše radnika, gradilište i datume (radne dane), a razdoblje se može produžiti: samo taj dan, do kraja sedmice, do kraja gradilišta ili po izboru. Piše šta se mijenja (npr. koje gradilište ostaje bez vještine), a tek Potvrdi mijenja raspored. Poništi radi kao i prije.",
-  'releaseNotes.dnd1020.timeline': "U vremenskoj traci se povlači traka radnika (cijeli period) na gradilište iz trake iznad tabele, ili na ime drugog radnika za zamjenu. Odsustva se ne mogu povlačiti.",
+  'releaseNotes.android1024.title': "Android 1.1.35: sedmični izvještaj s radnicima i više slika",
+  'releaseNotes.android1024.form': "Poslovođa u aplikaciji (Više > Sedmični izvještaji) šalje izvještaj sa popisom radnika i njihovim satima i s više slika u jednom slanju (slikanjem ili izborom datoteka). Radnik se bira po imenu: prvo se nudi ekipa njegovih gradilišta, a od dva slova pretraga nalazi bilo koga. Za sedmicu koja prelazi u novi mjesec upisuju se sati za oba mjeseca.",
+  'releaseNotes.android1024.again': "Izvještaj vraćen na korekciju pokazuje razlog i ima dugme Pošalji ponovo, koje otvara obrazac s već izabranim gradilištem i sedmicom. Izvještaj koji je unijela uprava je označen.",
+  'releaseNotes.android1024.notices': "Aplikacija prikazuje obavijesti o odobrenom izvještaju, vraćenom na korekciju i o izvještaju koji je uprava unijela u poslovođino ime.",
   'releaseNotes.office1024.title': "Sedmični izvještaj koji je stigao mailom: unos u upravi",
   'releaseNotes.office1024.enter': "Ured (Admin, Super admin i Voditelj projekta) može unijeti izvještaj koji je stigao mailom, telefonom ili poštom: Planiranje > Sedmični izvještaji > Unesi izvještaj. Izaberete gradilište, sedmicu, poslovođu, upišete odakle je došao (npr. mail od kupca 20.10.), dodate slike i radnike.",
   'releaseNotes.office1024.review': "Admin odmah dobije isti pregled: slike lijevo, radnici i sati desno, uredivi. Može Sačuvati za kasnije ili Odobriti i upisati u Evidenciju u jednom koraku. Na listi stoji Izvor (Aplikacija ili Uprava). Ako za tu sedmicu već postoji izvještaj, unos se dodaje u njega.",
@@ -1018,7 +1018,7 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.lines1024.review': "U pregledu su slike lijevo (listanje, uvećanje), a desno podaci koje je poslovođa unio, uredivi: promjena sati, drugi radnik, dodavanje i brisanje reda. Uz svaki red piše šta je trenutno u Evidenciji.",
   'releaseNotes.lines1024.ledger': "Odobri i upiši u Evidenciju stavlja sate u pravu sedmicu i red radnika u mjesečnoj tabeli (sekcija i red se naprave ako ih nema). Ćelija koja već ima drugačiju vrijednost se zamijeni ili ostavi (Zamijeni / Zadrži staro). Upisane ćelije su zelene, a iznad tabele piše koliko je sati odobreno iz izvještaja, a koliko upisano ručno. Vraćanje na korekciju povlači upisane sate.",
   'releaseNotes.lines1024.month': "Sedmica koja prelazi u novi mjesec: poslovođa upisuje sate za oba mjeseca, a svaki ide u Evidenciju svog mjeseca. Ako mjesec nema Evidenciju ili je zaključana, odobravanje to javi.",
-  'releaseNotes.lines1024.merge': "Dva izvještaja za isto gradilište i sedmicu spajaju se u jedan pregled. Android aplikacija za sada šalje izvještaj kao ranije (jedna slika i ukupan zbir); radnike tada dodajete u pregledu.",
+  'releaseNotes.lines1024.merge': "Dva izvještaja za isto gradilište i sedmicu spajaju se u jedan pregled.",
   'releaseNotes.weekly1024.title': "Sedmični izvještaji: pregled i odobravanje",
   'releaseNotes.weekly1024.review': "U Planiranje > Sedmični izvještaji izvještaj se sada otvara u programu (dugme Pregledaj), bez skidanja: dokument je lijevo, a iznad su gradilište, sedmica, sati, ko je poslao i napomena. Preuzmi i dalje snima datoteku. Dugmad na listi imaju tekst, a čipovi iznad liste pokazuju šta čeka.",
   'releaseNotes.weekly1024.approve': "Izvještaj se odobrava ili vraća na korekciju s razlogom (Odobri / Potrebna korekcija). Poslovođa dobija obavijest i šalje izvještaj ponovo; novi zamjenjuje stari.",

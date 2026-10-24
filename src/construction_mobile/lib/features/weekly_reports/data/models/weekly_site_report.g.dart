@@ -19,11 +19,15 @@ _WeeklySiteReport _$WeeklySiteReportFromJson(Map<String, dynamic> json) =>
       quantity: (json['quantity'] as num?)?.toDouble(),
       note: json['note'] as String?,
       fileName: json['fileName'] as String,
+      pageCount: (json['pageCount'] as num?)?.toInt() ?? 1,
+      lineCount: (json['lineCount'] as num?)?.toInt() ?? 0,
+      source: json['source'] as String? ?? 'App',
       status: json['status'] as String,
       processedAt: json['processedAt'] == null
           ? null
           : DateTime.parse(json['processedAt'] as String),
       processedByEmail: json['processedByEmail'] as String?,
+      reviewNote: json['reviewNote'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
 
@@ -40,9 +44,13 @@ Map<String, dynamic> _$WeeklySiteReportToJson(_WeeklySiteReport instance) =>
       'quantity': ?instance.quantity,
       'note': ?instance.note,
       'fileName': instance.fileName,
+      'pageCount': instance.pageCount,
+      'lineCount': instance.lineCount,
+      'source': instance.source,
       'status': instance.status,
       'processedAt': ?instance.processedAt?.toIso8601String(),
       'processedByEmail': ?instance.processedByEmail,
+      'reviewNote': ?instance.reviewNote,
       'createdAt': instance.createdAt.toIso8601String(),
     };
 

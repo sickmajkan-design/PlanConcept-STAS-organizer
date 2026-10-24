@@ -1572,5 +1572,123 @@
   "authMfaHint": "Enter the six-digit code from your authenticator app, or one of your recovery codes.",
   "authMfaCode": "Code",
   "authMfaConfirm": "Confirm",
-  "authMfaBack": "Back to sign in"
+  "authMfaBack": "Back to sign in",
+  "weeklyReportsWorkers": "Workers and hours",
+  "weeklyReportsAddWorker": "Add a worker",
+  "weeklyReportsSearchWorker": "Search by name",
+  "weeklyReportsNoWorkerFound": "No one found.",
+  "weeklyReportsRemoveRow": "Remove",
+  "weeklyReportsHoursInMonth": "Hours in {month}",
+  "@weeklyReportsHoursInMonth": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklyReportsSplitHint": "The week runs into the next month. Enter each worker's hours for {first} and for {second}.",
+  "@weeklyReportsSplitHint": {
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklyReportsTotalHours": "Total: {hours} h",
+  "@weeklyReportsTotalHours": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklyReportsTotalOnly": "Total hours (no workers listed)",
+  "weeklyReportsPictures": "Pictures of the signed sheet",
+  "weeklyReportsPicturesHint": "If the week is on several sheets, add all of them to the same report.",
+  "weeklyReportsTakePhoto": "Take a photo",
+  "weeklyReportsChooseFiles": "Choose files",
+  "weeklyReportsPagesWorkers": "{pages} pictures · {workers} workers",
+  "@weeklyReportsPagesWorkers": {
+    "placeholders": {
+      "pages": {
+        "type": "int"
+      },
+      "workers": {
+        "type": "int"
+      }
+    }
+  },
+  "weeklyReportsPagesOnly": "Pictures: {pages}",
+  "@weeklyReportsPagesOnly": {
+    "placeholders": {
+      "pages": {
+        "type": "int"
+      }
+    }
+  },
+  "weeklyReportsResend": "Send again",
+  "weeklyReportsCorrectionNote": "Sent back: {note}",
+  "@weeklyReportsCorrectionNote": {
+    "placeholders": {
+      "note": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklyReportsEnteredByOffice": "Entered by the office",
+  "weeklyReportStatusCorrectionRequested": "Needs correction",
+  "notificationWeeklyReportCorrectionTitle": "Weekly report needs a correction",
+  "notificationWeeklyReportCorrectionBody": "{projectName} — KW{isoWeek}/{isoYear}: {note}",
+  "@notificationWeeklyReportCorrectionBody": {
+    "placeholders": {
+      "projectName": {
+        "type": "String"
+      },
+      "isoWeek": {
+        "type": "String"
+      },
+      "isoYear": {
+        "type": "String"
+      },
+      "note": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationWeeklyReportApprovedTitle": "Weekly report approved",
+  "notificationWeeklyReportApprovedBody": "{projectName} — KW{isoWeek}/{isoYear}",
+  "@notificationWeeklyReportApprovedBody": {
+    "placeholders": {
+      "projectName": {
+        "type": "String"
+      },
+      "isoWeek": {
+        "type": "String"
+      },
+      "isoYear": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationWeeklyReportEnteredByOfficeTitle": "Weekly report entered by the office",
+  "notificationWeeklyReportEnteredByOfficeBody": "{projectName} — KW{isoWeek}/{isoYear}",
+  "@notificationWeeklyReportEnteredByOfficeBody": {
+    "placeholders": {
+      "projectName": {
+        "type": "String"
+      },
+      "isoWeek": {
+        "type": "String"
+      },
+      "isoYear": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationTypeWeeklyReportCorrection": "Weekly report needs a correction",
+  "notificationTypeWeeklyReportApproved": "Weekly report approved",
+  "notificationTypeWeeklyReportEnteredByOffice": "Weekly report entered by the office"
 }

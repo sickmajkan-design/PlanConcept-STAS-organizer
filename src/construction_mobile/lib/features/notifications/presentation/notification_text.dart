@@ -209,6 +209,50 @@ LocalizedNotificationText resolveNotificationText(
         );
       }
 
+    case 'WeeklyReportCorrection':
+      {
+        final projectName = str('projectName');
+        final isoYear = str('isoYear');
+        final isoWeek = str('isoWeek');
+        if (projectName == null || isoYear == null || isoWeek == null) return fallback;
+
+        return LocalizedNotificationText(
+          title: l10n.notificationWeeklyReportCorrectionTitle,
+          body: l10n.notificationWeeklyReportCorrectionBody(
+            projectName,
+            isoWeek,
+            isoYear,
+            str('note') ?? '',
+          ),
+        );
+      }
+
+    case 'WeeklyReportApproved':
+      {
+        final projectName = str('projectName');
+        final isoYear = str('isoYear');
+        final isoWeek = str('isoWeek');
+        if (projectName == null || isoYear == null || isoWeek == null) return fallback;
+
+        return LocalizedNotificationText(
+          title: l10n.notificationWeeklyReportApprovedTitle,
+          body: l10n.notificationWeeklyReportApprovedBody(projectName, isoWeek, isoYear),
+        );
+      }
+
+    case 'WeeklyReportEnteredByOffice':
+      {
+        final projectName = str('projectName');
+        final isoYear = str('isoYear');
+        final isoWeek = str('isoWeek');
+        if (projectName == null || isoYear == null || isoWeek == null) return fallback;
+
+        return LocalizedNotificationText(
+          title: l10n.notificationWeeklyReportEnteredByOfficeTitle,
+          body: l10n.notificationWeeklyReportEnteredByOfficeBody(projectName, isoWeek, isoYear),
+        );
+      }
+
     case 'EmployeeClockedIn':
       {
         final employeeName = str('employeeName');

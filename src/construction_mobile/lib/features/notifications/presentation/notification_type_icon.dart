@@ -17,7 +17,11 @@ IconData notificationTypeIcon(String type) => switch (type) {
       'AbsenceDecided' || 'AbsenceRequested' || 'AbsenceEditProposed' => Icons.event_busy_outlined,
       'TaskAssigned' || 'DefectAssigned' || 'DefectReported' || 'WorkItemDue' => Icons.checklist_outlined,
       'MaterialLowStock' => Icons.inventory_2_outlined,
-      'WeeklyReportDue' => Icons.assignment_turned_in_outlined,
+      'WeeklyReportDue' ||
+      'WeeklyReportCorrection' ||
+      'WeeklyReportApproved' ||
+      'WeeklyReportEnteredByOffice' =>
+        Icons.assignment_turned_in_outlined,
       'DocumentExpiring' || 'DocumentRetentionEnded' => Icons.description_outlined,
       _ => Icons.notifications_outlined,
     };

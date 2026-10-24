@@ -5575,6 +5575,187 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back to sign in'**
   String get authMfaBack;
+
+  /// No description provided for @weeklyReportsWorkers.
+  ///
+  /// In en, this message translates to:
+  /// **'Workers and hours'**
+  String get weeklyReportsWorkers;
+
+  /// No description provided for @weeklyReportsAddWorker.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a worker'**
+  String get weeklyReportsAddWorker;
+
+  /// No description provided for @weeklyReportsSearchWorker.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name'**
+  String get weeklyReportsSearchWorker;
+
+  /// No description provided for @weeklyReportsNoWorkerFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No one found.'**
+  String get weeklyReportsNoWorkerFound;
+
+  /// No description provided for @weeklyReportsRemoveRow.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get weeklyReportsRemoveRow;
+
+  /// No description provided for @weeklyReportsHoursInMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours in {month}'**
+  String weeklyReportsHoursInMonth(String month);
+
+  /// No description provided for @weeklyReportsSplitHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The week runs into the next month. Enter each worker\'s hours for {first} and for {second}.'**
+  String weeklyReportsSplitHint(String first, String second);
+
+  /// No description provided for @weeklyReportsTotalHours.
+  ///
+  /// In en, this message translates to:
+  /// **'Total: {hours} h'**
+  String weeklyReportsTotalHours(String hours);
+
+  /// No description provided for @weeklyReportsTotalOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Total hours (no workers listed)'**
+  String get weeklyReportsTotalOnly;
+
+  /// No description provided for @weeklyReportsPictures.
+  ///
+  /// In en, this message translates to:
+  /// **'Pictures of the signed sheet'**
+  String get weeklyReportsPictures;
+
+  /// No description provided for @weeklyReportsPicturesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'If the week is on several sheets, add all of them to the same report.'**
+  String get weeklyReportsPicturesHint;
+
+  /// No description provided for @weeklyReportsTakePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get weeklyReportsTakePhoto;
+
+  /// No description provided for @weeklyReportsChooseFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose files'**
+  String get weeklyReportsChooseFiles;
+
+  /// No description provided for @weeklyReportsPagesWorkers.
+  ///
+  /// In en, this message translates to:
+  /// **'{pages} pictures · {workers} workers'**
+  String weeklyReportsPagesWorkers(int pages, int workers);
+
+  /// No description provided for @weeklyReportsPagesOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Pictures: {pages}'**
+  String weeklyReportsPagesOnly(int pages);
+
+  /// No description provided for @weeklyReportsResend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send again'**
+  String get weeklyReportsResend;
+
+  /// No description provided for @weeklyReportsCorrectionNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent back: {note}'**
+  String weeklyReportsCorrectionNote(String note);
+
+  /// No description provided for @weeklyReportsEnteredByOffice.
+  ///
+  /// In en, this message translates to:
+  /// **'Entered by the office'**
+  String get weeklyReportsEnteredByOffice;
+
+  /// No description provided for @weeklyReportStatusCorrectionRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs correction'**
+  String get weeklyReportStatusCorrectionRequested;
+
+  /// No description provided for @notificationWeeklyReportCorrectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly report needs a correction'**
+  String get notificationWeeklyReportCorrectionTitle;
+
+  /// No description provided for @notificationWeeklyReportCorrectionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{projectName} — KW{isoWeek}/{isoYear}: {note}'**
+  String notificationWeeklyReportCorrectionBody(
+    String projectName,
+    String isoWeek,
+    String isoYear,
+    String note,
+  );
+
+  /// No description provided for @notificationWeeklyReportApprovedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly report approved'**
+  String get notificationWeeklyReportApprovedTitle;
+
+  /// No description provided for @notificationWeeklyReportApprovedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{projectName} — KW{isoWeek}/{isoYear}'**
+  String notificationWeeklyReportApprovedBody(
+    String projectName,
+    String isoWeek,
+    String isoYear,
+  );
+
+  /// No description provided for @notificationWeeklyReportEnteredByOfficeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly report entered by the office'**
+  String get notificationWeeklyReportEnteredByOfficeTitle;
+
+  /// No description provided for @notificationWeeklyReportEnteredByOfficeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{projectName} — KW{isoWeek}/{isoYear}'**
+  String notificationWeeklyReportEnteredByOfficeBody(
+    String projectName,
+    String isoWeek,
+    String isoYear,
+  );
+
+  /// No description provided for @notificationTypeWeeklyReportCorrection.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly report needs a correction'**
+  String get notificationTypeWeeklyReportCorrection;
+
+  /// No description provided for @notificationTypeWeeklyReportApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly report approved'**
+  String get notificationTypeWeeklyReportApproved;
+
+  /// No description provided for @notificationTypeWeeklyReportEnteredByOffice.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly report entered by the office'**
+  String get notificationTypeWeeklyReportEnteredByOffice;
 }
 
 class _AppLocalizationsDelegate

@@ -15,7 +15,10 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$WeeklySiteReport {
 
- String get id; String get projectId; String get projectName; String get submittedByEmployeeId; String get submittedByEmployeeName; int get isoYear; int get isoWeek; String get type; double? get quantity; String? get note; String get fileName; String get status; DateTime? get processedAt; String? get processedByEmail; DateTime get createdAt;
+ String get id; String get projectId; String get projectName; String get submittedByEmployeeId; String get submittedByEmployeeName; int get isoYear; int get isoWeek; String get type; double? get quantity; String? get note; String get fileName;/// How many pictures the report has, and how many workers are listed in it.
+ int get pageCount; int get lineCount;/// `App` when the foreman sent it, `Office` when the office entered it.
+ String get source; String get status; DateTime? get processedAt; String? get processedByEmail;/// Why the office sent the report back, while it waits for a new one.
+ String? get reviewNote; DateTime get createdAt;
 /// Create a copy of WeeklySiteReport
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +31,16 @@ $WeeklySiteReportCopyWith<WeeklySiteReport> get copyWith => _$WeeklySiteReportCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WeeklySiteReport&&(identical(other.id, id) || other.id == id)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.submittedByEmployeeId, submittedByEmployeeId) || other.submittedByEmployeeId == submittedByEmployeeId)&&(identical(other.submittedByEmployeeName, submittedByEmployeeName) || other.submittedByEmployeeName == submittedByEmployeeName)&&(identical(other.isoYear, isoYear) || other.isoYear == isoYear)&&(identical(other.isoWeek, isoWeek) || other.isoWeek == isoWeek)&&(identical(other.type, type) || other.type == type)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&(identical(other.note, note) || other.note == note)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.status, status) || other.status == status)&&(identical(other.processedAt, processedAt) || other.processedAt == processedAt)&&(identical(other.processedByEmail, processedByEmail) || other.processedByEmail == processedByEmail)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WeeklySiteReport&&(identical(other.id, id) || other.id == id)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.submittedByEmployeeId, submittedByEmployeeId) || other.submittedByEmployeeId == submittedByEmployeeId)&&(identical(other.submittedByEmployeeName, submittedByEmployeeName) || other.submittedByEmployeeName == submittedByEmployeeName)&&(identical(other.isoYear, isoYear) || other.isoYear == isoYear)&&(identical(other.isoWeek, isoWeek) || other.isoWeek == isoWeek)&&(identical(other.type, type) || other.type == type)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&(identical(other.note, note) || other.note == note)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.pageCount, pageCount) || other.pageCount == pageCount)&&(identical(other.lineCount, lineCount) || other.lineCount == lineCount)&&(identical(other.source, source) || other.source == source)&&(identical(other.status, status) || other.status == status)&&(identical(other.processedAt, processedAt) || other.processedAt == processedAt)&&(identical(other.processedByEmail, processedByEmail) || other.processedByEmail == processedByEmail)&&(identical(other.reviewNote, reviewNote) || other.reviewNote == reviewNote)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,projectId,projectName,submittedByEmployeeId,submittedByEmployeeName,isoYear,isoWeek,type,quantity,note,fileName,status,processedAt,processedByEmail,createdAt);
+int get hashCode => Object.hashAll([runtimeType,id,projectId,projectName,submittedByEmployeeId,submittedByEmployeeName,isoYear,isoWeek,type,quantity,note,fileName,pageCount,lineCount,source,status,processedAt,processedByEmail,reviewNote,createdAt]);
 
 @override
 String toString() {
-  return 'WeeklySiteReport(id: $id, projectId: $projectId, projectName: $projectName, submittedByEmployeeId: $submittedByEmployeeId, submittedByEmployeeName: $submittedByEmployeeName, isoYear: $isoYear, isoWeek: $isoWeek, type: $type, quantity: $quantity, note: $note, fileName: $fileName, status: $status, processedAt: $processedAt, processedByEmail: $processedByEmail, createdAt: $createdAt)';
+  return 'WeeklySiteReport(id: $id, projectId: $projectId, projectName: $projectName, submittedByEmployeeId: $submittedByEmployeeId, submittedByEmployeeName: $submittedByEmployeeName, isoYear: $isoYear, isoWeek: $isoWeek, type: $type, quantity: $quantity, note: $note, fileName: $fileName, pageCount: $pageCount, lineCount: $lineCount, source: $source, status: $status, processedAt: $processedAt, processedByEmail: $processedByEmail, reviewNote: $reviewNote, createdAt: $createdAt)';
 }
 
 
@@ -48,7 +51,7 @@ abstract mixin class $WeeklySiteReportCopyWith<$Res>  {
   factory $WeeklySiteReportCopyWith(WeeklySiteReport value, $Res Function(WeeklySiteReport) _then) = _$WeeklySiteReportCopyWithImpl;
 @useResult
 $Res call({
- String id, String projectId, String projectName, String submittedByEmployeeId, String submittedByEmployeeName, int isoYear, int isoWeek, String type, double? quantity, String? note, String fileName, String status, DateTime? processedAt, String? processedByEmail, DateTime createdAt
+ String id, String projectId, String projectName, String submittedByEmployeeId, String submittedByEmployeeName, int isoYear, int isoWeek, String type, double? quantity, String? note, String fileName, int pageCount, int lineCount, String source, String status, DateTime? processedAt, String? processedByEmail, String? reviewNote, DateTime createdAt
 });
 
 
@@ -65,7 +68,7 @@ class _$WeeklySiteReportCopyWithImpl<$Res>
 
 /// Create a copy of WeeklySiteReport
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? projectId = null,Object? projectName = null,Object? submittedByEmployeeId = null,Object? submittedByEmployeeName = null,Object? isoYear = null,Object? isoWeek = null,Object? type = null,Object? quantity = freezed,Object? note = freezed,Object? fileName = null,Object? status = null,Object? processedAt = freezed,Object? processedByEmail = freezed,Object? createdAt = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? projectId = null,Object? projectName = null,Object? submittedByEmployeeId = null,Object? submittedByEmployeeName = null,Object? isoYear = null,Object? isoWeek = null,Object? type = null,Object? quantity = freezed,Object? note = freezed,Object? fileName = null,Object? pageCount = null,Object? lineCount = null,Object? source = null,Object? status = null,Object? processedAt = freezed,Object? processedByEmail = freezed,Object? reviewNote = freezed,Object? createdAt = null,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
@@ -78,9 +81,13 @@ as int,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nu
 as String,quantity: freezed == quantity ? _self.quantity : quantity // ignore: cast_nullable_to_non_nullable
 as double?,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,fileName: null == fileName ? _self.fileName : fileName // ignore: cast_nullable_to_non_nullable
+as String,pageCount: null == pageCount ? _self.pageCount : pageCount // ignore: cast_nullable_to_non_nullable
+as int,lineCount: null == lineCount ? _self.lineCount : lineCount // ignore: cast_nullable_to_non_nullable
+as int,source: null == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,processedAt: freezed == processedAt ? _self.processedAt : processedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,processedByEmail: freezed == processedByEmail ? _self.processedByEmail : processedByEmail // ignore: cast_nullable_to_non_nullable
+as String?,reviewNote: freezed == reviewNote ? _self.reviewNote : reviewNote // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));
@@ -167,10 +174,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String projectId,  String projectName,  String submittedByEmployeeId,  String submittedByEmployeeName,  int isoYear,  int isoWeek,  String type,  double? quantity,  String? note,  String fileName,  String status,  DateTime? processedAt,  String? processedByEmail,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String projectId,  String projectName,  String submittedByEmployeeId,  String submittedByEmployeeName,  int isoYear,  int isoWeek,  String type,  double? quantity,  String? note,  String fileName,  int pageCount,  int lineCount,  String source,  String status,  DateTime? processedAt,  String? processedByEmail,  String? reviewNote,  DateTime createdAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _WeeklySiteReport() when $default != null:
-return $default(_that.id,_that.projectId,_that.projectName,_that.submittedByEmployeeId,_that.submittedByEmployeeName,_that.isoYear,_that.isoWeek,_that.type,_that.quantity,_that.note,_that.fileName,_that.status,_that.processedAt,_that.processedByEmail,_that.createdAt);case _:
+return $default(_that.id,_that.projectId,_that.projectName,_that.submittedByEmployeeId,_that.submittedByEmployeeName,_that.isoYear,_that.isoWeek,_that.type,_that.quantity,_that.note,_that.fileName,_that.pageCount,_that.lineCount,_that.source,_that.status,_that.processedAt,_that.processedByEmail,_that.reviewNote,_that.createdAt);case _:
   return orElse();
 
 }
@@ -188,10 +195,10 @@ return $default(_that.id,_that.projectId,_that.projectName,_that.submittedByEmpl
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String projectId,  String projectName,  String submittedByEmployeeId,  String submittedByEmployeeName,  int isoYear,  int isoWeek,  String type,  double? quantity,  String? note,  String fileName,  String status,  DateTime? processedAt,  String? processedByEmail,  DateTime createdAt)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String projectId,  String projectName,  String submittedByEmployeeId,  String submittedByEmployeeName,  int isoYear,  int isoWeek,  String type,  double? quantity,  String? note,  String fileName,  int pageCount,  int lineCount,  String source,  String status,  DateTime? processedAt,  String? processedByEmail,  String? reviewNote,  DateTime createdAt)  $default,) {final _that = this;
 switch (_that) {
 case _WeeklySiteReport():
-return $default(_that.id,_that.projectId,_that.projectName,_that.submittedByEmployeeId,_that.submittedByEmployeeName,_that.isoYear,_that.isoWeek,_that.type,_that.quantity,_that.note,_that.fileName,_that.status,_that.processedAt,_that.processedByEmail,_that.createdAt);case _:
+return $default(_that.id,_that.projectId,_that.projectName,_that.submittedByEmployeeId,_that.submittedByEmployeeName,_that.isoYear,_that.isoWeek,_that.type,_that.quantity,_that.note,_that.fileName,_that.pageCount,_that.lineCount,_that.source,_that.status,_that.processedAt,_that.processedByEmail,_that.reviewNote,_that.createdAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -208,10 +215,10 @@ return $default(_that.id,_that.projectId,_that.projectName,_that.submittedByEmpl
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String projectId,  String projectName,  String submittedByEmployeeId,  String submittedByEmployeeName,  int isoYear,  int isoWeek,  String type,  double? quantity,  String? note,  String fileName,  String status,  DateTime? processedAt,  String? processedByEmail,  DateTime createdAt)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String projectId,  String projectName,  String submittedByEmployeeId,  String submittedByEmployeeName,  int isoYear,  int isoWeek,  String type,  double? quantity,  String? note,  String fileName,  int pageCount,  int lineCount,  String source,  String status,  DateTime? processedAt,  String? processedByEmail,  String? reviewNote,  DateTime createdAt)?  $default,) {final _that = this;
 switch (_that) {
 case _WeeklySiteReport() when $default != null:
-return $default(_that.id,_that.projectId,_that.projectName,_that.submittedByEmployeeId,_that.submittedByEmployeeName,_that.isoYear,_that.isoWeek,_that.type,_that.quantity,_that.note,_that.fileName,_that.status,_that.processedAt,_that.processedByEmail,_that.createdAt);case _:
+return $default(_that.id,_that.projectId,_that.projectName,_that.submittedByEmployeeId,_that.submittedByEmployeeName,_that.isoYear,_that.isoWeek,_that.type,_that.quantity,_that.note,_that.fileName,_that.pageCount,_that.lineCount,_that.source,_that.status,_that.processedAt,_that.processedByEmail,_that.reviewNote,_that.createdAt);case _:
   return null;
 
 }
@@ -223,7 +230,7 @@ return $default(_that.id,_that.projectId,_that.projectName,_that.submittedByEmpl
 @JsonSerializable()
 
 class _WeeklySiteReport implements WeeklySiteReport {
-  const _WeeklySiteReport({required this.id, required this.projectId, required this.projectName, required this.submittedByEmployeeId, required this.submittedByEmployeeName, required this.isoYear, required this.isoWeek, required this.type, this.quantity, this.note, required this.fileName, required this.status, this.processedAt, this.processedByEmail, required this.createdAt});
+  const _WeeklySiteReport({required this.id, required this.projectId, required this.projectName, required this.submittedByEmployeeId, required this.submittedByEmployeeName, required this.isoYear, required this.isoWeek, required this.type, this.quantity, this.note, required this.fileName, this.pageCount = 1, this.lineCount = 0, this.source = 'App', required this.status, this.processedAt, this.processedByEmail, this.reviewNote, required this.createdAt});
   factory _WeeklySiteReport.fromJson(Map<String, dynamic> json) => _$WeeklySiteReportFromJson(json);
 
 @override final  String id;
@@ -237,9 +244,16 @@ class _WeeklySiteReport implements WeeklySiteReport {
 @override final  double? quantity;
 @override final  String? note;
 @override final  String fileName;
+/// How many pictures the report has, and how many workers are listed in it.
+@override@JsonKey() final  int pageCount;
+@override@JsonKey() final  int lineCount;
+/// `App` when the foreman sent it, `Office` when the office entered it.
+@override@JsonKey() final  String source;
 @override final  String status;
 @override final  DateTime? processedAt;
 @override final  String? processedByEmail;
+/// Why the office sent the report back, while it waits for a new one.
+@override final  String? reviewNote;
 @override final  DateTime createdAt;
 
 /// Create a copy of WeeklySiteReport
@@ -255,16 +269,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WeeklySiteReport&&(identical(other.id, id) || other.id == id)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.submittedByEmployeeId, submittedByEmployeeId) || other.submittedByEmployeeId == submittedByEmployeeId)&&(identical(other.submittedByEmployeeName, submittedByEmployeeName) || other.submittedByEmployeeName == submittedByEmployeeName)&&(identical(other.isoYear, isoYear) || other.isoYear == isoYear)&&(identical(other.isoWeek, isoWeek) || other.isoWeek == isoWeek)&&(identical(other.type, type) || other.type == type)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&(identical(other.note, note) || other.note == note)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.status, status) || other.status == status)&&(identical(other.processedAt, processedAt) || other.processedAt == processedAt)&&(identical(other.processedByEmail, processedByEmail) || other.processedByEmail == processedByEmail)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WeeklySiteReport&&(identical(other.id, id) || other.id == id)&&(identical(other.projectId, projectId) || other.projectId == projectId)&&(identical(other.projectName, projectName) || other.projectName == projectName)&&(identical(other.submittedByEmployeeId, submittedByEmployeeId) || other.submittedByEmployeeId == submittedByEmployeeId)&&(identical(other.submittedByEmployeeName, submittedByEmployeeName) || other.submittedByEmployeeName == submittedByEmployeeName)&&(identical(other.isoYear, isoYear) || other.isoYear == isoYear)&&(identical(other.isoWeek, isoWeek) || other.isoWeek == isoWeek)&&(identical(other.type, type) || other.type == type)&&(identical(other.quantity, quantity) || other.quantity == quantity)&&(identical(other.note, note) || other.note == note)&&(identical(other.fileName, fileName) || other.fileName == fileName)&&(identical(other.pageCount, pageCount) || other.pageCount == pageCount)&&(identical(other.lineCount, lineCount) || other.lineCount == lineCount)&&(identical(other.source, source) || other.source == source)&&(identical(other.status, status) || other.status == status)&&(identical(other.processedAt, processedAt) || other.processedAt == processedAt)&&(identical(other.processedByEmail, processedByEmail) || other.processedByEmail == processedByEmail)&&(identical(other.reviewNote, reviewNote) || other.reviewNote == reviewNote)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,projectId,projectName,submittedByEmployeeId,submittedByEmployeeName,isoYear,isoWeek,type,quantity,note,fileName,status,processedAt,processedByEmail,createdAt);
+int get hashCode => Object.hashAll([runtimeType,id,projectId,projectName,submittedByEmployeeId,submittedByEmployeeName,isoYear,isoWeek,type,quantity,note,fileName,pageCount,lineCount,source,status,processedAt,processedByEmail,reviewNote,createdAt]);
 
 @override
 String toString() {
-  return 'WeeklySiteReport(id: $id, projectId: $projectId, projectName: $projectName, submittedByEmployeeId: $submittedByEmployeeId, submittedByEmployeeName: $submittedByEmployeeName, isoYear: $isoYear, isoWeek: $isoWeek, type: $type, quantity: $quantity, note: $note, fileName: $fileName, status: $status, processedAt: $processedAt, processedByEmail: $processedByEmail, createdAt: $createdAt)';
+  return 'WeeklySiteReport(id: $id, projectId: $projectId, projectName: $projectName, submittedByEmployeeId: $submittedByEmployeeId, submittedByEmployeeName: $submittedByEmployeeName, isoYear: $isoYear, isoWeek: $isoWeek, type: $type, quantity: $quantity, note: $note, fileName: $fileName, pageCount: $pageCount, lineCount: $lineCount, source: $source, status: $status, processedAt: $processedAt, processedByEmail: $processedByEmail, reviewNote: $reviewNote, createdAt: $createdAt)';
 }
 
 
@@ -275,7 +289,7 @@ abstract mixin class _$WeeklySiteReportCopyWith<$Res> implements $WeeklySiteRepo
   factory _$WeeklySiteReportCopyWith(_WeeklySiteReport value, $Res Function(_WeeklySiteReport) _then) = __$WeeklySiteReportCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String projectId, String projectName, String submittedByEmployeeId, String submittedByEmployeeName, int isoYear, int isoWeek, String type, double? quantity, String? note, String fileName, String status, DateTime? processedAt, String? processedByEmail, DateTime createdAt
+ String id, String projectId, String projectName, String submittedByEmployeeId, String submittedByEmployeeName, int isoYear, int isoWeek, String type, double? quantity, String? note, String fileName, int pageCount, int lineCount, String source, String status, DateTime? processedAt, String? processedByEmail, String? reviewNote, DateTime createdAt
 });
 
 
@@ -292,7 +306,7 @@ class __$WeeklySiteReportCopyWithImpl<$Res>
 
 /// Create a copy of WeeklySiteReport
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? projectId = null,Object? projectName = null,Object? submittedByEmployeeId = null,Object? submittedByEmployeeName = null,Object? isoYear = null,Object? isoWeek = null,Object? type = null,Object? quantity = freezed,Object? note = freezed,Object? fileName = null,Object? status = null,Object? processedAt = freezed,Object? processedByEmail = freezed,Object? createdAt = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? projectId = null,Object? projectName = null,Object? submittedByEmployeeId = null,Object? submittedByEmployeeName = null,Object? isoYear = null,Object? isoWeek = null,Object? type = null,Object? quantity = freezed,Object? note = freezed,Object? fileName = null,Object? pageCount = null,Object? lineCount = null,Object? source = null,Object? status = null,Object? processedAt = freezed,Object? processedByEmail = freezed,Object? reviewNote = freezed,Object? createdAt = null,}) {
   return _then(_WeeklySiteReport(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,projectId: null == projectId ? _self.projectId : projectId // ignore: cast_nullable_to_non_nullable
@@ -305,9 +319,13 @@ as int,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nu
 as String,quantity: freezed == quantity ? _self.quantity : quantity // ignore: cast_nullable_to_non_nullable
 as double?,note: freezed == note ? _self.note : note // ignore: cast_nullable_to_non_nullable
 as String?,fileName: null == fileName ? _self.fileName : fileName // ignore: cast_nullable_to_non_nullable
+as String,pageCount: null == pageCount ? _self.pageCount : pageCount // ignore: cast_nullable_to_non_nullable
+as int,lineCount: null == lineCount ? _self.lineCount : lineCount // ignore: cast_nullable_to_non_nullable
+as int,source: null == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
 as String,status: null == status ? _self.status : status // ignore: cast_nullable_to_non_nullable
 as String,processedAt: freezed == processedAt ? _self.processedAt : processedAt // ignore: cast_nullable_to_non_nullable
 as DateTime?,processedByEmail: freezed == processedByEmail ? _self.processedByEmail : processedByEmail // ignore: cast_nullable_to_non_nullable
+as String?,reviewNote: freezed == reviewNote ? _self.reviewNote : reviewNote // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as DateTime,
   ));

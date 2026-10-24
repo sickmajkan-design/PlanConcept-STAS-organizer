@@ -1181,5 +1181,123 @@
   "authMfaHint": "Unesite šestocifreni kod iz aplikacije za autentikaciju ili jedan od kodova za oporavak.",
   "authMfaCode": "Kod",
   "authMfaConfirm": "Potvrdi",
-  "authMfaBack": "Nazad na prijavu"
+  "authMfaBack": "Nazad na prijavu",
+  "weeklyReportsWorkers": "Radnici i sati",
+  "weeklyReportsAddWorker": "Dodaj radnika",
+  "weeklyReportsSearchWorker": "Pretraga po imenu",
+  "weeklyReportsNoWorkerFound": "Niko nije pronađen.",
+  "weeklyReportsRemoveRow": "Ukloni",
+  "weeklyReportsHoursInMonth": "Sati u {month}",
+  "@weeklyReportsHoursInMonth": {
+    "placeholders": {
+      "month": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklyReportsSplitHint": "Sedmica prelazi u novi mjesec. Za svakog radnika upišite sate za {first} i za {second}.",
+  "@weeklyReportsSplitHint": {
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklyReportsTotalHours": "Ukupno: {hours} h",
+  "@weeklyReportsTotalHours": {
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklyReportsTotalOnly": "Ukupno sati (bez radnika)",
+  "weeklyReportsPictures": "Slike potpisane satnice",
+  "weeklyReportsPicturesHint": "Ako je sedmica na više listova, dodajte sve slike u isti izvještaj.",
+  "weeklyReportsTakePhoto": "Slikaj",
+  "weeklyReportsChooseFiles": "Izaberi datoteke",
+  "weeklyReportsPagesWorkers": "Slika: {pages} · radnika: {workers}",
+  "@weeklyReportsPagesWorkers": {
+    "placeholders": {
+      "pages": {
+        "type": "int"
+      },
+      "workers": {
+        "type": "int"
+      }
+    }
+  },
+  "weeklyReportsPagesOnly": "Slika: {pages}",
+  "@weeklyReportsPagesOnly": {
+    "placeholders": {
+      "pages": {
+        "type": "int"
+      }
+    }
+  },
+  "weeklyReportsResend": "Pošalji ponovo",
+  "weeklyReportsCorrectionNote": "Vraćeno na ispravku: {note}",
+  "@weeklyReportsCorrectionNote": {
+    "placeholders": {
+      "note": {
+        "type": "String"
+      }
+    }
+  },
+  "weeklyReportsEnteredByOffice": "Unijela uprava",
+  "weeklyReportStatusCorrectionRequested": "Potrebna korekcija",
+  "notificationWeeklyReportCorrectionTitle": "Sedmični izvještaj treba korekciju",
+  "notificationWeeklyReportCorrectionBody": "{projectName} — KW{isoWeek}/{isoYear}: {note}",
+  "@notificationWeeklyReportCorrectionBody": {
+    "placeholders": {
+      "projectName": {
+        "type": "String"
+      },
+      "isoWeek": {
+        "type": "String"
+      },
+      "isoYear": {
+        "type": "String"
+      },
+      "note": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationWeeklyReportApprovedTitle": "Sedmični izvještaj odobren",
+  "notificationWeeklyReportApprovedBody": "{projectName} — KW{isoWeek}/{isoYear}",
+  "@notificationWeeklyReportApprovedBody": {
+    "placeholders": {
+      "projectName": {
+        "type": "String"
+      },
+      "isoWeek": {
+        "type": "String"
+      },
+      "isoYear": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationWeeklyReportEnteredByOfficeTitle": "Uprava je unijela sedmični izvještaj",
+  "notificationWeeklyReportEnteredByOfficeBody": "{projectName} — KW{isoWeek}/{isoYear}",
+  "@notificationWeeklyReportEnteredByOfficeBody": {
+    "placeholders": {
+      "projectName": {
+        "type": "String"
+      },
+      "isoWeek": {
+        "type": "String"
+      },
+      "isoYear": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationTypeWeeklyReportCorrection": "Sedmični izvještaj treba korekciju",
+  "notificationTypeWeeklyReportApproved": "Sedmični izvještaj odobren",
+  "notificationTypeWeeklyReportEnteredByOffice": "Uprava je unijela sedmični izvještaj"
 }

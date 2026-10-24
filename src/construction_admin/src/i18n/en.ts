@@ -978,10 +978,10 @@ export const en = {
   'releaseNotes.close': 'Got it',
 
 
-  'releaseNotes.dnd1020.title': "Schedule: drag a worker",
-  'releaseNotes.dnd1020.drag': "In the Schedule (By site and Timeline) you can drag a worker onto a site, onto another worker (swap) or into Free. Sites that lack their skill light up green. On a phone, hold them with a finger; a plain tap still opens the worker's window.",
-  'releaseNotes.dnd1020.window': "After you let go, a window names the worker, the site and the dates (working days), and the period can be lengthened: that day only, until the end of the week, until the site ends or your own dates. It says what changes (for example which site is left without a skill), and only Confirm changes the schedule. Undo works as before.",
-  'releaseNotes.dnd1020.timeline': "In the timeline you drag a worker's bar (the whole stretch) onto a site in the strip above the table, or onto another worker's name to swap. Absences cannot be dragged.",
+  'releaseNotes.android1024.title': "Android 1.1.35: weekly report with workers and several pictures",
+  'releaseNotes.android1024.form': "A foreman in the app (More > Weekly reports) sends the report with a list of workers and their hours and with several pictures in one go (take a photo or choose files). A worker is picked by name: the crew of his own sites is offered first, and from two letters the search finds anyone. For a week that runs into a new month the hours are entered for both months.",
+  'releaseNotes.android1024.again': "A report sent back for correction shows the reason and has a Send again button, which opens the form with the site and week already chosen. A report the office entered is marked.",
+  'releaseNotes.android1024.notices': "The app shows notices for a report that was approved, sent back for correction, or entered by the office in the foreman's name.",
   'releaseNotes.office1024.title': "Weekly report that came by e-mail: entry by the office",
   'releaseNotes.office1024.enter': "The office (Admin, Super admin and Project manager) can enter a report that came by e-mail, phone or post: Planning > Weekly reports > Enter a report. Choose the site, week and foreman, say where it came from (e.g. e-mail from the customer 20.10.), add the pictures and workers.",
   'releaseNotes.office1024.review': "An Admin gets the same review straight away: pictures on the left, workers and hours on the right, editable. They can Save for later or Approve and enter in the Ledger in one step. The list shows the Source (App or Office). If a report for that week already exists, the entry is added to it.",
@@ -991,7 +991,7 @@ export const en = {
   'releaseNotes.lines1024.review': "In the review the pictures are on the left (turn the pages, zoom), and on the right the data the foreman entered, editable: change the hours, another worker, add or delete a row. Each row says what the Ledger holds now.",
   'releaseNotes.lines1024.ledger': "Approve and enter in the Ledger puts the hours in the right week and worker row of the monthly sheet (the section and row are made if missing). A cell that already says something else is replaced or left (Replace / Keep the old). Entered cells are green, and above the sheet it says how many hours were approved from reports and how many typed by hand. Sending back for correction takes the entered hours back.",
   'releaseNotes.lines1024.month': "A week that runs over a month's end: the foreman enters hours for both months, and each goes to the Ledger of its own month. If a month has no Ledger or it is closed, approving says so.",
-  'releaseNotes.lines1024.merge': "Two reports for the same site and week are merged into one review. For now the Android app sends a report as before (one picture and a total); you then add the workers in the review.",
+  'releaseNotes.lines1024.merge': "Two reports for the same site and week are merged into one review.",
   'releaseNotes.weekly1024.title': "Weekly reports: review and approval",
   'releaseNotes.weekly1024.review': "In Planning > Weekly reports a report now opens in the program (the Preview button), without downloading: the document is on the left, and above it the site, week, hours, who sent it and the note. Download still saves the file. The buttons on the list have text, and the chips above the list show what waits.",
   'releaseNotes.weekly1024.approve': "A report is approved or sent back for correction with a reason (Approve / Needs correction). The foreman is notified and sends the report again; the new one replaces the old one.",

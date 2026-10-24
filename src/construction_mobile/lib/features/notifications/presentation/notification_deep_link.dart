@@ -66,7 +66,11 @@ String? deepLinkForData(
     'DocumentRequestDue' ||
     'DocumentRequestOverdue' =>
       AppRoutes.myDocuments,
-    'WeeklyReportDue' => AppRoutes.weeklyReports,
+    'WeeklyReportDue' ||
+    'WeeklyReportCorrection' ||
+    'WeeklyReportApproved' ||
+    'WeeklyReportEnteredByOffice' =>
+      AppRoutes.weeklyReports,
     'BulletinPosted' => AppRoutes.bulletin,
     'TaskAssigned' || 'DefectAssigned' || 'WorkItemDue' => AppRoutes.workItems,
     _ => null,

@@ -3161,4 +3161,124 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authMfaBack => 'Back to sign in';
+
+  @override
+  String get weeklyReportsWorkers => 'Workers and hours';
+
+  @override
+  String get weeklyReportsAddWorker => 'Add a worker';
+
+  @override
+  String get weeklyReportsSearchWorker => 'Search by name';
+
+  @override
+  String get weeklyReportsNoWorkerFound => 'No one found.';
+
+  @override
+  String get weeklyReportsRemoveRow => 'Remove';
+
+  @override
+  String weeklyReportsHoursInMonth(String month) {
+    return 'Hours in $month';
+  }
+
+  @override
+  String weeklyReportsSplitHint(String first, String second) {
+    return 'The week runs into the next month. Enter each worker\'s hours for $first and for $second.';
+  }
+
+  @override
+  String weeklyReportsTotalHours(String hours) {
+    return 'Total: $hours h';
+  }
+
+  @override
+  String get weeklyReportsTotalOnly => 'Total hours (no workers listed)';
+
+  @override
+  String get weeklyReportsPictures => 'Pictures of the signed sheet';
+
+  @override
+  String get weeklyReportsPicturesHint =>
+      'If the week is on several sheets, add all of them to the same report.';
+
+  @override
+  String get weeklyReportsTakePhoto => 'Take a photo';
+
+  @override
+  String get weeklyReportsChooseFiles => 'Choose files';
+
+  @override
+  String weeklyReportsPagesWorkers(int pages, int workers) {
+    return '$pages pictures · $workers workers';
+  }
+
+  @override
+  String weeklyReportsPagesOnly(int pages) {
+    return 'Pictures: $pages';
+  }
+
+  @override
+  String get weeklyReportsResend => 'Send again';
+
+  @override
+  String weeklyReportsCorrectionNote(String note) {
+    return 'Sent back: $note';
+  }
+
+  @override
+  String get weeklyReportsEnteredByOffice => 'Entered by the office';
+
+  @override
+  String get weeklyReportStatusCorrectionRequested => 'Needs correction';
+
+  @override
+  String get notificationWeeklyReportCorrectionTitle =>
+      'Weekly report needs a correction';
+
+  @override
+  String notificationWeeklyReportCorrectionBody(
+    String projectName,
+    String isoWeek,
+    String isoYear,
+    String note,
+  ) {
+    return '$projectName — KW$isoWeek/$isoYear: $note';
+  }
+
+  @override
+  String get notificationWeeklyReportApprovedTitle => 'Weekly report approved';
+
+  @override
+  String notificationWeeklyReportApprovedBody(
+    String projectName,
+    String isoWeek,
+    String isoYear,
+  ) {
+    return '$projectName — KW$isoWeek/$isoYear';
+  }
+
+  @override
+  String get notificationWeeklyReportEnteredByOfficeTitle =>
+      'Weekly report entered by the office';
+
+  @override
+  String notificationWeeklyReportEnteredByOfficeBody(
+    String projectName,
+    String isoWeek,
+    String isoYear,
+  ) {
+    return '$projectName — KW$isoWeek/$isoYear';
+  }
+
+  @override
+  String get notificationTypeWeeklyReportCorrection =>
+      'Weekly report needs a correction';
+
+  @override
+  String get notificationTypeWeeklyReportApproved => 'Weekly report approved';
+
+  @override
+  String get notificationTypeWeeklyReportEnteredByOffice =>
+      'Weekly report entered by the office';
 }

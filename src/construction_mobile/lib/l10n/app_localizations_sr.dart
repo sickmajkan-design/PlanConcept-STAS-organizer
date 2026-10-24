@@ -3163,4 +3163,126 @@ class AppLocalizationsSr extends AppLocalizations {
 
   @override
   String get authMfaBack => 'Nazad na prijavu';
+
+  @override
+  String get weeklyReportsWorkers => 'Radnici i sati';
+
+  @override
+  String get weeklyReportsAddWorker => 'Dodaj radnika';
+
+  @override
+  String get weeklyReportsSearchWorker => 'Pretraga po imenu';
+
+  @override
+  String get weeklyReportsNoWorkerFound => 'Niko nije pronađen.';
+
+  @override
+  String get weeklyReportsRemoveRow => 'Ukloni';
+
+  @override
+  String weeklyReportsHoursInMonth(String month) {
+    return 'Sati u $month';
+  }
+
+  @override
+  String weeklyReportsSplitHint(String first, String second) {
+    return 'Sedmica prelazi u novi mjesec. Za svakog radnika upišite sate za $first i za $second.';
+  }
+
+  @override
+  String weeklyReportsTotalHours(String hours) {
+    return 'Ukupno: $hours h';
+  }
+
+  @override
+  String get weeklyReportsTotalOnly => 'Ukupno sati (bez radnika)';
+
+  @override
+  String get weeklyReportsPictures => 'Slike potpisane satnice';
+
+  @override
+  String get weeklyReportsPicturesHint =>
+      'Ako je sedmica na više listova, dodajte sve slike u isti izvještaj.';
+
+  @override
+  String get weeklyReportsTakePhoto => 'Slikaj';
+
+  @override
+  String get weeklyReportsChooseFiles => 'Izaberi datoteke';
+
+  @override
+  String weeklyReportsPagesWorkers(int pages, int workers) {
+    return 'Slika: $pages · radnika: $workers';
+  }
+
+  @override
+  String weeklyReportsPagesOnly(int pages) {
+    return 'Slika: $pages';
+  }
+
+  @override
+  String get weeklyReportsResend => 'Pošalji ponovo';
+
+  @override
+  String weeklyReportsCorrectionNote(String note) {
+    return 'Vraćeno na ispravku: $note';
+  }
+
+  @override
+  String get weeklyReportsEnteredByOffice => 'Unijela uprava';
+
+  @override
+  String get weeklyReportStatusCorrectionRequested => 'Potrebna korekcija';
+
+  @override
+  String get notificationWeeklyReportCorrectionTitle =>
+      'Sedmični izvještaj treba korekciju';
+
+  @override
+  String notificationWeeklyReportCorrectionBody(
+    String projectName,
+    String isoWeek,
+    String isoYear,
+    String note,
+  ) {
+    return '$projectName — KW$isoWeek/$isoYear: $note';
+  }
+
+  @override
+  String get notificationWeeklyReportApprovedTitle =>
+      'Sedmični izvještaj odobren';
+
+  @override
+  String notificationWeeklyReportApprovedBody(
+    String projectName,
+    String isoWeek,
+    String isoYear,
+  ) {
+    return '$projectName — KW$isoWeek/$isoYear';
+  }
+
+  @override
+  String get notificationWeeklyReportEnteredByOfficeTitle =>
+      'Uprava je unijela sedmični izvještaj';
+
+  @override
+  String notificationWeeklyReportEnteredByOfficeBody(
+    String projectName,
+    String isoWeek,
+    String isoYear,
+  ) {
+    return '$projectName — KW$isoWeek/$isoYear';
+  }
+
+  @override
+  String get notificationTypeWeeklyReportCorrection =>
+      'Sedmični izvještaj treba korekciju';
+
+  @override
+  String get notificationTypeWeeklyReportApproved =>
+      'Sedmični izvještaj odobren';
+
+  @override
+  String get notificationTypeWeeklyReportEnteredByOffice =>
+      'Uprava je unijela sedmični izvještaj';
 }

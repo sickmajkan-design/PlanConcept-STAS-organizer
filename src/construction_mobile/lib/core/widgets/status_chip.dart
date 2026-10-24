@@ -31,7 +31,7 @@ class StatusChip extends StatelessWidget {
     'ExpiringSoon',
   };
   static const _bad = <String>{
-    'Suspended', 'UnderRepair', 'Lost', 'Rejected', 'Expired',
+    'Suspended', 'UnderRepair', 'Lost', 'Rejected', 'Expired', 'CorrectionRequested',
   };
 
   @override

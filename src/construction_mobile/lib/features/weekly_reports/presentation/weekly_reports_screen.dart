@@ -78,13 +78,13 @@ class _SubmitHeader extends ConsumerWidget {
   }
 }
 
-class _WeeklyReportCard extends StatelessWidget {
+class _WeeklyReportCard extends ConsumerWidget {
   const _WeeklyReportCard({required this.report});
 
   final WeeklySiteReport report;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final l10n = context.l10n;
 
@@ -129,7 +129,7 @@ class _WeeklyReportCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     '${enumLabel(l10n, EnumKind.weeklyReportType, report.type)} · '
-                    '${report.fileName}',
+                    '${report.lineCount > 0 ? l10n.weeklyReportsPagesWorkers(report.pageCount, report.lineCount) : l10n.weeklyReportsPagesOnly(report.pageCount)}',
                     style: theme.textTheme.bodySmall,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -140,9 +140,32 @@ class _WeeklyReportCard extends StatelessWidget {
               const SizedBox(height: 6),
               Text(report.note!, style: theme.textTheme.bodySmall),
             ],
+            if (report.source == 'Office') ...[
+              const SizedBox(height: 6),
+              Text(
+                l10n.weeklyReportsEnteredByOffice,
+                style: theme.textTheme.bodySmall
+                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              ),
+            ],
+            if (report.status == 'CorrectionRequested') ...[
+              const SizedBox(height: 8),
+              Text(
+                l10n.weeklyReportsCorrectionNote(report.reviewNote ?? ''),
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(color: theme.colorScheme.error),
+              ),
+              const SizedBox(height: 8),
+              OutlinedButton.icon(
+                onPressed: () =>
+                    showSubmitWeeklyReportSheet(context, ref, resend: report),
+                icon: const Icon(Icons.replay_outlined),
+                label: Text(l10n.weeklyReportsResend),
+              ),
+            ],
             const SizedBox(height: 8),
             Text(
-              report.processedAt != null
+              report.status == 'Processed' && report.processedAt != null
                   ? l10n.weeklyReportsProcessedOn(formatDate(report.processedAt))
                   : formatDateTime(report.createdAt),
               style: theme.textTheme.labelSmall

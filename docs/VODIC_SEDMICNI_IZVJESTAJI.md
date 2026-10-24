@@ -17,7 +17,9 @@ Poslovođa svake sedmice pošalje izvještaj za gradilište: **slike potpisane s
 4. **Slike:** dodajte sve slike potpisane satnice u isto slanje. Ako je sedmica na više listova, svaki list je jedna slika. Slike možete i prevući u okvir.
 5. Dva izvještaja za isto gradilište i sedmicu se **spajaju u jedan pregled** (slike i radnici se dodaju jedni drugima).
 
-> Android aplikacija za sada šalje izvještaj kao ranije (jedna slika i ukupan zbir). Radnike tada dodajete u pregledu.
+### U aplikaciji (Android 1.1.35)
+
+**Više > Sedmični izvještaji > Pošalji izvještaj:** gradilište, sedmica i vrsta; zatim **Radnici i sati** (Dodaj radnika: prvo se nudi ekipa vaših gradilišta, a od dva slova pretraga nalazi bilo koga); zatim **slike** (Slikaj ili Izaberi datoteke, koliko god listova ima). Sedmica koja prelazi u novi mjesec ima sate za oba mjeseca. Izvještaj vraćen na korekciju pokazuje razlog i ima dugme **Pošalji ponovo**.
 
 ## Izvještaj koji je stigao mailom ili drugačije (ured)
 

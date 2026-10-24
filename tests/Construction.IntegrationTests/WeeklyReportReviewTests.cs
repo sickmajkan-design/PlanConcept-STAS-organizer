@@ -180,4 +180,58 @@ public class WeeklyReportReviewTests
 
         Assert.True(summary.GetProperty("awaitingReview").GetInt32() >= 1);
     }
+
+    [Fact]
+    public async Task A_foreman_picks_workers_from_his_own_crew_or_finds_anyone_by_name()
+    {
+        var (projectId, _) = await SiteOfTheForemanAsync();
+        var crew = await _api.InScope(async db =>
+        {
+            var member = new Employee
+            {
+                EmployeeNumber = $"CR-{Guid.NewGuid():N}"[..14],
+                FirstName = "Crewmember",
+                LastName = $"Zmaj{Guid.NewGuid():N}"[..10],
+                Position = "Monter",
+                EmploymentDate = new DateOnly(2020, 1, 1),
+                Status = EmployeeStatus.Active,
+            };
+            var stranger = new Employee
+            {
+                EmployeeNumber = $"ST-{Guid.NewGuid():N}"[..14],
+                FirstName = "Stranger",
+                LastName = $"Vuk{Guid.NewGuid():N}"[..10],
+                Position = "Monter",
+                EmploymentDate = new DateOnly(2020, 1, 1),
+                Status = EmployeeStatus.Active,
+            };
+            db.Employees.AddRange(member, stranger);
+            await db.SaveChangesAsync();
+            db.EmployeeProjects.Add(new EmployeeProject { EmployeeId = member.Id, ProjectId = projectId, StartDate = new DateOnly(2020, 1, 1) });
+            await db.SaveChangesAsync();
+
+            return (member, stranger);
+        });
+        using var foreman = _api.ClientAs(UserRole.Foreman);
+
+        var own = await foreman.GetFromJsonAsync<JsonElement>("/api/v1/weeklysitereports/workers");
+        var ownNames = own.EnumerateArray().Select(w => w.GetProperty("fullName").GetString()).ToList();
+        Assert.Contains($"{crew.member.FirstName} {crew.member.LastName}", ownNames);
+        Assert.DoesNotContain($"{crew.stranger.FirstName} {crew.stranger.LastName}", ownNames);
+
+        var found = await foreman.GetFromJsonAsync<JsonElement>($"/api/v1/weeklysitereports/workers?search={crew.stranger.LastName}");
+        Assert.Contains(found.EnumerateArray(), w => w.GetProperty("id").GetGuid() == crew.stranger.Id);
+
+        // One letter finds nobody: the list is not a way to read out the whole staff.
+        var tooShort = await foreman.GetFromJsonAsync<JsonElement>("/api/v1/weeklysitereports/workers?search=S");
+        Assert.Empty(tooShort.EnumerateArray());
+    }
+
+    [Fact]
+    public async Task A_worker_cannot_list_the_people_for_a_report()
+    {
+        using var worker = _api.ClientAs(UserRole.Worker);
+
+        Assert.Equal(HttpStatusCode.Forbidden, (await worker.GetAsync("/api/v1/weeklysitereports/workers")).StatusCode);
+    }
 }
