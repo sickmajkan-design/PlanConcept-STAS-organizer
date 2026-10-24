@@ -317,4 +317,98 @@ public class WeeklyReportLedgerEntryTests : IntegrationTestBase
         Assert.Equal(45m, after.Lines.Single().ExistingFirstMonth);
         Assert.Equal(ledger.Name, after.FirstMonth.LedgerName);
     }
+
+    [Fact]
+    public async Task A_report_the_office_enters_is_marked_as_theirs_with_the_note_and_the_foreman_is_told()
+    {
+        var w = await SeedAsync();
+        var foreman = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Foreman, w.Anna.Id));
+
+        var report = await InScope(async scope =>
+        {
+            ActAs(scope, w.Office);
+            return await scope.Send(new CreateWeeklySiteReportCommand
+            {
+                ProjectId = w.Project.Id,
+                IsoYear = 2044,
+                IsoWeek = WholeWeek,
+                Type = WeeklyReportType.SignedHours,
+                SubmittedByEmployeeId = w.Anna.Id,
+                SourceNote = "mail od kupca 20.10.",
+                Files = [Picture()],
+                Lines = [new ReportLineInput(w.Boris.Id, 40m)],
+            });
+        });
+
+        Assert.Equal(WeeklyReportSource.Office, report.Source);
+        Assert.Equal("mail od kupca 20.10.", report.SourceNote);
+        Assert.Equal(w.Office.Email, report.EnteredByEmail);
+
+        var told = await InScope(scope => scope.Db.Notifications.CountAsync(
+            n => n.UserId == foreman.Id && n.Type == NotificationType.WeeklyReportEnteredByOffice));
+        Assert.Equal(1, told);
+    }
+
+    [Fact]
+    public async Task The_foremans_own_report_is_marked_as_from_the_app_and_nobody_is_told_it_was_entered_for_them()
+    {
+        var w = await SeedAsync();
+        var foreman = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Foreman, w.Anna.Id));
+        await InScope(async scope =>
+        {
+            scope.Db.EmployeeProjects.Add(new EmployeeProject
+            {
+                EmployeeId = w.Anna.Id,
+                ProjectId = w.Project.Id,
+                StartDate = new DateOnly(2020, 1, 1),
+            });
+            await scope.Db.SaveChangesAsync();
+            return 0;
+        });
+
+        var report = await InScope(async scope =>
+        {
+            scope.CurrentUser.SignInAs(foreman.Id, UserRole.Foreman, w.Anna.Id, foreman.Email);
+            return await scope.Send(new CreateWeeklySiteReportCommand
+            {
+                ProjectId = w.Project.Id,
+                IsoYear = 2045,
+                IsoWeek = WholeWeek,
+                Type = WeeklyReportType.SignedHours,
+                Files = [Picture()],
+                Lines = [new ReportLineInput(w.Anna.Id, 40m)],
+            });
+        });
+
+        Assert.Equal(WeeklyReportSource.App, report.Source);
+        Assert.Null(report.EnteredByEmail);
+        var told = await InScope(scope => scope.Db.Notifications.CountAsync(
+            n => n.UserId == foreman.Id && n.Type == NotificationType.WeeklyReportEnteredByOffice));
+        Assert.Equal(0, told);
+    }
+
+    [Fact]
+    public async Task A_project_manager_may_enter_a_report_too()
+    {
+        var w = await SeedAsync();
+        var manager = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.ProjectManager));
+
+        var report = await InScope(async scope =>
+        {
+            scope.CurrentUser.SignInAs(manager.Id, UserRole.ProjectManager, null, manager.Email);
+            return await scope.Send(new CreateWeeklySiteReportCommand
+            {
+                ProjectId = w.Project.Id,
+                IsoYear = 2046,
+                IsoWeek = WholeWeek,
+                Type = WeeklyReportType.SignedHours,
+                SubmittedByEmployeeId = w.Anna.Id,
+                Files = [Picture()],
+                Lines = [new ReportLineInput(w.Boris.Id, 30m)],
+            });
+        });
+
+        Assert.Equal(WeeklyReportSource.Office, report.Source);
+        Assert.Equal(WeeklyReportStatus.Submitted, report.Status);
+    }
 }

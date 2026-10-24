@@ -2555,6 +2555,7 @@ export const notificationTypes = [
   'WeeklyReportSubmitted',
   'WeeklyReportCorrection',
   'WeeklyReportApproved',
+  'WeeklyReportEnteredByOffice',
 ] as const;
 
 export type NotificationType = (typeof notificationTypes)[number];
@@ -2730,6 +2731,9 @@ export const weeklyReportTypes = ['SignedHours', 'Aufmass', 'Other'] as const;
 export type WeeklyReportType = (typeof weeklyReportTypes)[number];
 
 /** `Processed` is what the office sees as "Odobreno": the name is older than the review. */
+/** Where a weekly report came from: the foreman sent it, or the office entered it (e-mail, phone, paper). */
+export type WeeklyReportSource = 'App' | 'Office';
+
 export const weeklyReportStatuses = ['Submitted', 'Processed', 'CorrectionRequested'] as const;
 
 export type WeeklyReportStatus = (typeof weeklyReportStatuses)[number];
@@ -2749,6 +2753,10 @@ export interface WeeklySiteReport {
   /** How many pictures the report has, and how many workers are listed in it. */
   pageCount: number;
   lineCount: number;
+  source: WeeklyReportSource;
+  /** For an office entry, what the office said about where it came from. */
+  sourceNote: string | null;
+  enteredByEmail: string | null;
   status: WeeklyReportStatus;
   processedAt: string | null;
   processedByEmail: string | null;

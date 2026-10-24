@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 
-import { weeklyReportTypes, type WeeklyReportType } from '../../api/types';
+import { weeklyReportTypes, type WeeklyReportType, type WeeklySiteReport } from '../../api/types';
 import { canManageAssignments } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { useEnumLabel } from '../../i18n/enumLabels';
@@ -48,7 +48,16 @@ const monthLabel = (month: { year: number; month: number }) => `${String(month.m
  * (as many as the sheet has pages). The workers can be anyone, not only those posted to the site. For a week that
  * runs over a month's end the hours of each worker are given for both months.
  */
-export function SubmitReportDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function SubmitReportDialog({
+  open,
+  onClose,
+  onCreated,
+}: {
+  open: boolean;
+  onClose: () => void;
+  /** The report that was made (or the one it was added to), so the screen can open it for checking. */
+  onCreated?: (report: WeeklySiteReport) => void;
+}) {
   const t = useT();
   const enumLabel = useEnumLabel();
   const { user } = useAuth();
@@ -65,6 +74,7 @@ export function SubmitReportDialog({ open, onClose }: { open: boolean; onClose: 
   const [submittedByEmployeeId, setSubmittedByEmployeeId] = useState('');
   const [quantity, setQuantity] = useState('');
   const [note, setNote] = useState('');
+  const [sourceNote, setSourceNote] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [lines, setLines] = useState<LineRow[]>([]);
 
@@ -83,6 +93,7 @@ export function SubmitReportDialog({ open, onClose }: { open: boolean; onClose: 
     setSubmittedByEmployeeId('');
     setQuantity('');
     setNote('');
+    setSourceNote('');
     setFiles([]);
     setLines([]);
   };
@@ -99,6 +110,7 @@ export function SubmitReportDialog({ open, onClose }: { open: boolean; onClose: 
         submittedByEmployeeId: canPickEmployee && submittedByEmployeeId ? submittedByEmployeeId : null,
         quantity: signed && lines.length === 0 && quantity ? Number(quantity) : null,
         note: note.trim() || null,
+        sourceNote: canPickEmployee ? sourceNote.trim() || null : null,
         files,
         lines: signed
           ? lines.map((line) => ({
@@ -109,9 +121,10 @@ export function SubmitReportDialog({ open, onClose }: { open: boolean; onClose: 
           : [],
       },
       {
-        onSuccess: () => {
+        onSuccess: (report) => {
           reset();
           onClose();
+          onCreated?.(report);
         },
       },
     );
@@ -121,7 +134,7 @@ export function SubmitReportDialog({ open, onClose }: { open: boolean; onClose: 
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{t('weeklyReports.submit')}</DialogTitle>
+      <DialogTitle>{canPickEmployee ? t('weeklyReports.enter') : t('weeklyReports.submit')}</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
           <FormControl fullWidth>
@@ -198,6 +211,18 @@ export function SubmitReportDialog({ open, onClose }: { open: boolean; onClose: 
                 ))}
               </Select>
             </FormControl>
+          )}
+
+          {canPickEmployee && (
+            <TextField
+              label={t('weeklyReports.sourceNote')}
+              placeholder={t('weeklyReports.sourceNotePlaceholder')}
+              helperText={t('weeklyReports.sourceNoteHelp')}
+              value={sourceNote}
+              onChange={(event) => setSourceNote(event.target.value)}
+              slotProps={{ htmlInput: { maxLength: 500 } }}
+              fullWidth
+            />
           )}
 
           {signed && (

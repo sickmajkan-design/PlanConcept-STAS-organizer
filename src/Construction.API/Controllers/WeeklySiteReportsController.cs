@@ -159,6 +159,7 @@ public class WeeklySiteReportsController : ApiControllerBase
                     SubmittedByEmployeeId = request.SubmittedByEmployeeId,
                     Quantity = request.Quantity,
                     Note = request.Note,
+                    SourceNote = request.SourceNote,
                     Files = files,
                     Lines = lines,
                 },
@@ -282,6 +283,9 @@ public class CreateWeeklySiteReportRequest
     public decimal? Quantity { get; set; }
 
     public string? Note { get; set; }
+
+    /// <summary>For an entry by the office: where the report came from ("mail od kupca 20.10.").</summary>
+    public string? SourceNote { get; set; }
 
     /// <summary>The pictures of the signed sheet: a week can be written on several.</summary>
     public List<IFormFile>? Files { get; set; }

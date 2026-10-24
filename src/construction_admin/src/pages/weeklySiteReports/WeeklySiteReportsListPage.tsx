@@ -29,7 +29,7 @@ import {
   type WeeklySiteReport,
   type WeeklySiteReportsSummary,
 } from '../../api/types';
-import { canAdministerAccounts, canViewDirectory } from '../../auth/authHelpers';
+import { canAdministerAccounts, canManageAssignments, canViewDirectory } from '../../auth/authHelpers';
 import { useAuth } from '../../auth/useAuth';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
@@ -125,8 +125,11 @@ export function WeeklySiteReportsListPage() {
   const { user } = useAuth();
   const canSubmit = canViewDirectory(user);
   const canReview = canAdministerAccounts(user);
+  // The office also enters reports that came by e-mail or on paper, in the foreman's name.
+  const enteringForOffice = canManageAssignments(user);
 
   const [submitOpen, setSubmitOpen] = useState(false);
+  const [enteredNotice, setEnteredNotice] = useState<string | null>(null);
   // A notice opens the list already at what waits for a look.
   const [searchParams] = useSearchParams();
   const [view, setView] = useState<View>(() => {
@@ -179,6 +182,17 @@ export function WeeklySiteReportsListPage() {
         headerName: t('weeklyReports.hours'),
         width: 90,
         valueGetter: (v) => (v == null ? '—' : v),
+      },
+      {
+        field: 'source',
+        headerName: t('weeklyReports.col.source'),
+        width: 120,
+        sortable: false,
+        renderCell: (params) => (
+          <Tooltip title={params.row.source === 'Office' ? [params.row.enteredByEmail, params.row.sourceNote].filter(Boolean).join(' · ') : ''}>
+            <span>{params.row.source === 'Office' ? t('weeklyReports.source.office') : t('weeklyReports.source.app')}</span>
+          </Tooltip>
+        ),
       },
       {
         field: 'pageCount',
@@ -273,7 +287,7 @@ export function WeeklySiteReportsListPage() {
         action={
           canSubmit
             ? {
-                label: t('weeklyReports.submit'),
+                label: enteringForOffice ? t('weeklyReports.enter') : t('weeklyReports.submit'),
                 icon: <AddOutlined />,
                 onClick: () => setSubmitOpen(true),
               }
@@ -281,7 +295,23 @@ export function WeeklySiteReportsListPage() {
         }
       />
 
-      <SubmitReportDialog open={submitOpen} onClose={() => setSubmitOpen(false)} />
+      <SubmitReportDialog
+        open={submitOpen}
+        onClose={() => setSubmitOpen(false)}
+        onCreated={(report) => {
+          // A report that joined an existing one is said so; the account that can review opens it at once,
+          // with the pictures beside the workers, to check and enter into the Ledger.
+          const joined = Date.now() - new Date(report.createdAt).getTime() > 60_000;
+          setEnteredNotice(joined ? t('weeklyReports.enteredJoined') : t('weeklyReports.entered'));
+          if (canReview) setPreviewing(report);
+        }}
+      />
+
+      {enteredNotice && (
+        <Alert severity="success" onClose={() => setEnteredNotice(null)} sx={{ mb: 2 }}>
+          {enteredNotice}
+        </Alert>
+      )}
 
       <CorrectionDialog
         report={correcting}

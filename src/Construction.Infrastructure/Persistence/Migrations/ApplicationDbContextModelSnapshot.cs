@@ -5053,6 +5053,9 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("EnteredByUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("FileName")
                         .IsRequired()
                         .HasMaxLength(512)
@@ -5088,6 +5091,13 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<long>("SizeBytes")
                         .HasColumnType("bigint");
 
+                    b.Property<int>("Source")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SourceNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
@@ -5106,6 +5116,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("EnteredByUserId");
 
                     b.HasIndex("ProcessedByUserId");
 
@@ -6859,6 +6871,11 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Construction.Domain.Entities.WeeklySiteReport", b =>
                 {
+                    b.HasOne("Construction.Domain.Entities.User", "EnteredByUser")
+                        .WithMany()
+                        .HasForeignKey("EnteredByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Construction.Domain.Entities.User", "ProcessedByUser")
                         .WithMany()
                         .HasForeignKey("ProcessedByUserId")
@@ -6875,6 +6892,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasForeignKey("SubmittedByEmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("EnteredByUser");
 
                     b.Navigation("ProcessedByUser");
 

@@ -40,7 +40,7 @@ import { useT } from '../../i18n/useI18n';
 import { formatDateTime } from '../../utils/formatting';
 import { formatIsoWeek } from '../../utils/isoWeek';
 import { useAllEmployeesQuery } from '../employees/useEmployees';
-import { useApproveWeeklySiteReport, useWeeklySiteReportQuery } from './useWeeklySiteReports';
+import { useApproveWeeklySiteReport, useUpdateWeeklySiteReportLines, useWeeklySiteReportQuery } from './useWeeklySiteReports';
 
 /** More hours than a week holds are a typing mistake. */
 const MAX_WEEK_HOURS = 168;
@@ -180,11 +180,13 @@ export function ReportReviewDialog({
   const { data: detail, isLoading, isError } = useWeeklySiteReportQuery(reportId);
   const { data: employeesPage } = useAllEmployeesQuery();
   const approve = useApproveWeeklySiteReport();
+  const saveLines = useUpdateWeeklySiteReportLines();
 
   const [pageIndex, setPageIndex] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [rows, setRows] = useState<Row[]>([]);
   const [result, setResult] = useState<ApproveWeeklySiteReportResult | null>(null);
+  const [saved, setSaved] = useState(false);
 
   // The rows start from what the foreman wrote, once per report that is opened.
   const loadedId = detail?.id;
@@ -194,6 +196,7 @@ export function ReportReviewDialog({
     setPageIndex(0);
     setZoom(1);
     setResult(null);
+    setSaved(false);
     // Only when another report is opened; saving a correction must not throw away what is typed.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadedId]);
@@ -265,6 +268,24 @@ export function ReportReviewDialog({
     );
   };
 
+  /** Keeps what was typed, for later: the report stays waiting for review. */
+  const save = () => {
+    if (!detail) return;
+
+    setSaved(false);
+    saveLines.mutate(
+      {
+        id: detail.id,
+        lines: rows.map((row) => ({
+          employeeId: row.employeeId,
+          hours: toNumber(row.first) + toNumber(row.second),
+          hoursSecondMonth: toNumber(row.second),
+        })),
+      },
+      { onSuccess: () => setSaved(true) },
+    );
+  };
+
   const download = async (page: WeeklyReportPage) => {
     if (!detail) return;
     const blob = await weeklySiteReportsApi.pageBlob(detail.id, page.id);
@@ -308,6 +329,8 @@ export function ReportReviewDialog({
             })}
             {' · '}
             {enumLabel('weeklyReportType', detail.type)}
+            {detail.source === 'Office' &&
+              ` · ${t('weeklyReports.review.enteredByOffice', { who: detail.enteredByEmail ?? '—', note: detail.sourceNote ? `: ${detail.sourceNote}` : '' })}`}
             {reportedTotal != null && ` · ${t('weeklyReports.review.reportedTotal', { hours: formatHours(reportedTotal) })}`}
           </Typography>
         )}
@@ -587,6 +610,8 @@ export function ReportReviewDialog({
                 )}
               </Box>
 
+              {saved && !result && <Alert severity="info">{t('weeklyReports.review.saved')}</Alert>}
+              {saveLines.error && <Alert severity="error">{saveLines.error.message}</Alert>}
               {result && (
                 <Alert severity="success">
                   {t('weeklyReports.review.done', { written: result.cellsWritten, same: result.cellsUnchanged, kept: result.cellsKept })}
@@ -603,6 +628,11 @@ export function ReportReviewDialog({
         {detail && !result && (
           <Button color="warning" startIcon={<ReplayOutlined />} onClick={() => onRequestCorrection(detail)}>
             {t('weeklyReports.requestCorrection')}
+          </Button>
+        )}
+        {detail && !approved && !result && rows.length > 0 && (
+          <Button variant="outlined" disabled={hasProblem || saveLines.isPending} onClick={save}>
+            {t('weeklyReports.review.saveForLater')}
           </Button>
         )}
         {detail && !approved && !result && (

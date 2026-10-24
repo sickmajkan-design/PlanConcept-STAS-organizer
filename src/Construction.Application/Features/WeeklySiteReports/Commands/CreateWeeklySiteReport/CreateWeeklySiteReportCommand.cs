@@ -52,6 +52,9 @@ public record CreateWeeklySiteReportCommand : IRequest<WeeklySiteReportDto>
 
     public string? Note { get; init; }
 
+    /// <summary>For a report the office enters because it came by e-mail or on paper: where it came from.</summary>
+    public string? SourceNote { get; init; }
+
     /// <summary>The pictures of the signed sheet: a week can be written on several.</summary>
     public IReadOnlyList<ReportFileInput> Files { get; init; } = [];
 
@@ -81,6 +84,8 @@ public class CreateWeeklySiteReportCommandValidator : AbstractValidator<CreateWe
             .When(x => x.Quantity is not null);
 
         RuleFor(x => x.Note).MaximumLength(1000);
+
+        RuleFor(x => x.SourceNote).MaximumLength(500);
 
         RuleFor(x => x.Files)
             .NotEmpty().WithMessage("A file is required — the office cannot bill without proof.")
@@ -299,6 +304,9 @@ public class CreateWeeklySiteReportCommandHandler
             IsoYear = request.IsoYear,
             IsoWeek = request.IsoWeek,
             SubmittedByEmployeeId = employeeId.Value,
+            // An entry by the office is marked as such; the foreman's own submission never is.
+            Source = isOfficeRole ? WeeklyReportSource.Office : WeeklyReportSource.App,
+            EnteredByUserId = isOfficeRole ? _currentUserService.UserId : null,
         };
 
         var oldKeys = replacing ? report.Pages.Select(p => p.StorageKey).Append(report.StorageKey).ToList() : [];
@@ -385,6 +393,20 @@ public class CreateWeeklySiteReportCommandHandler
                 report.SubmittedByEmployeeId = employeeId.Value;
             }
 
+            if (isOfficeRole)
+            {
+                if (isNew || replacing)
+                {
+                    report.Source = WeeklyReportSource.Office;
+                    report.EnteredByUserId = _currentUserService.UserId;
+                }
+
+                if (!string.IsNullOrWhiteSpace(request.SourceNote))
+                {
+                    report.SourceNote = request.SourceNote.Trim();
+                }
+            }
+
             if (isNew)
             {
                 _context.WeeklySiteReports.Add(report);
@@ -423,6 +445,18 @@ public class CreateWeeklySiteReportCommandHandler
             created.SubmittedByEmployeeName,
             _currentUserService.UserId,
             cancellationToken);
+
+        // The foreman is told when the office entered the report in his name, so he knows the week is covered.
+        if (isOfficeRole)
+        {
+            await WeeklyReportNotices.ToForemanEnteredAsync(
+                _context,
+                _notifications,
+                report,
+                created.ProjectName,
+                _currentUserService.UserId,
+                cancellationToken);
+        }
 
         return created;
     }

@@ -38,6 +38,13 @@ public record WeeklySiteReportDto
 
     public DateTime? ProcessedAt { get; init; }
 
+    /// <summary>Where the report came from; for an office entry, who entered it and what they said about it.</summary>
+    public WeeklyReportSource Source { get; init; }
+
+    public string? SourceNote { get; init; }
+
+    public string? EnteredByEmail { get; init; }
+
     /// <summary>Why the report was sent back, while it waits for a new one.</summary>
     public string? ReviewNote { get; init; }
 
@@ -67,6 +74,9 @@ public static class WeeklySiteReportMapping
             Status = r.Status,
             ProcessedAt = r.ProcessedAt,
             ReviewNote = r.ReviewNote,
+            Source = r.Source,
+            SourceNote = r.SourceNote,
+            EnteredByEmail = r.EnteredByUser != null ? r.EnteredByUser.Email : null,
             ProcessedByEmail = r.ProcessedByUser != null ? r.ProcessedByUser.Email : null,
             CreatedAt = r.CreatedAt,
         };

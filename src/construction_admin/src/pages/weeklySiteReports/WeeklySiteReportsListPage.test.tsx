@@ -35,6 +35,9 @@ function report(overrides: Record<string, unknown> = {}) {
     fileName: 'satnica.pdf',
     pageCount: 2,
     lineCount: 0,
+    source: 'App',
+    sourceNote: null,
+    enteredByEmail: null,
     status: 'Submitted',
     processedAt: null,
     processedByEmail: null,
@@ -213,6 +216,42 @@ describe('WeeklySiteReportsListPage', () => {
     const posts = network.calls.filter((call) => call.method === 'POST' && call.url.endsWith('/w1/request-correction'));
     expect(posts).toHaveLength(1);
     expect(JSON.stringify(posts[0].body)).toContain('Nedostaje potpis kupca');
+  }, SCREEN_TIMEOUT);
+
+  it('says which reports the office entered, and what it said about where they came from', async () => {
+    network.reply('/weeklysitereports/w1', 200, detail({ source: 'Office', enteredByEmail: 'ured@firma.test', sourceNote: 'mail od kupca 20.10.' }));
+    await renderReports([report({ lineCount: 2, source: 'Office', enteredByEmail: 'ured@firma.test', sourceNote: 'mail od kupca 20.10.' })]);
+    await screen.findByText('Hala B');
+
+    expect(screen.getByText(/^(Uprava|Office)$/)).toBeDefined();
+
+    await userEvent.click(screen.getByRole('button', { name: /^(Pregledaj|Preview)$/ }));
+    const dialog = await screen.findByRole('dialog');
+    expect(await within(dialog).findByText(/mail od kupca 20\.10\./)).toBeDefined();
+  }, SCREEN_TIMEOUT);
+
+  it('saves the workers for later without approving, and the report keeps waiting', async () => {
+    network.reply('/weeklysitereports/w1', 200, detail());
+    await renderReports([report({ lineCount: 2 })]);
+    await screen.findByText('Hala B');
+
+    await userEvent.click(screen.getByRole('button', { name: /^(Pregledaj|Preview)$/ }));
+    const dialog = await screen.findByRole('dialog');
+    await within(dialog).findByText('Adin Čengić');
+
+    await userEvent.click(within(dialog).getByRole('button', { name: /^(Sačuvaj za kasnije|Save for later)$/ }));
+
+    const puts = network.calls.filter((call) => call.method === 'PUT' && call.url.endsWith('/w1/lines'));
+    expect(puts).toHaveLength(1);
+    expect(JSON.stringify(puts[0].body)).toContain('"employeeId":"e1"');
+    expect(network.calls.filter((call) => call.url.endsWith('/w1/approve'))).toHaveLength(0);
+    expect(await within(dialog).findByText(/(Sačuvano|Saved)\./)).toBeDefined();
+  }, SCREEN_TIMEOUT);
+
+  it('offers the office to enter a report that came by e-mail', async () => {
+    await renderReports([report()]);
+
+    expect(await screen.findByRole('button', { name: /(Unesi izvještaj|Enter a report)/ })).toBeDefined();
   }, SCREEN_TIMEOUT);
 
   it('lists the late sites with the foreman to ask when Late is chosen', async () => {

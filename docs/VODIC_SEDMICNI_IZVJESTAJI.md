@@ -19,6 +19,17 @@ Poslovođa svake sedmice pošalje izvještaj za gradilište: **slike potpisane s
 
 > Android aplikacija za sada šalje izvještaj kao ranije (jedna slika i ukupan zbir). Radnike tada dodajete u pregledu.
 
+## Izvještaj koji je stigao mailom ili drugačije (ured)
+
+Ako izvještaj nije poslao poslovođa nego je stigao mailom, telefonom ili poštom, unesite ga sami: **Unesi izvještaj**.
+
+1. Izaberite gradilište, sedmicu i poslovođu u čije ime se unosi, i upišite **odakle je izvještaj** (npr. *mail od kupca 20.10.*).
+2. Dodajte slike (iz maila ih sačuvajte pa prevucite u okvir) i, ako želite, radnike sa satima.
+3. **Admin i Super admin** odmah dobiju isti pregled kao za poslane izvještaje: slike lijevo, radnici i sati desno (uredivi). **Sačuvaj za kasnije** ostavlja izvještaj u *Čeka pregled*; **Odobri i upiši u Evidenciju** završava sve u jednom koraku.
+4. **Voditelj projekta** može unijeti izvještaj; odobrava Admin.
+5. Na listi kolona **Izvor** kaže *Aplikacija* ili *Uprava*. Poslovođa dobija obavijest da je uprava unijela izvještaj u njegovo ime, a opomena u utorak se ne šalje za pokrivenu sedmicu.
+6. Ako za to gradilište i sedmicu već postoji izvještaj, unos se **dodaje u njega** (slike i radnici), a stranica to kaže.
+
 ## Pregled (ured)
 
 Čipovi iznad liste: **Čeka pregled**, **Potrebna korekcija**, **Kasni**, **Odobreno**. Dugmad na redu:

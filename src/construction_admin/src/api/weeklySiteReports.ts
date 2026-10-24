@@ -21,6 +21,8 @@ export interface CreateWeeklySiteReportInput {
   submittedByEmployeeId?: string | null;
   quantity?: number | null;
   note?: string | null;
+  /** For an office entry: where the report came from ("mail od kupca 20.10."). */
+  sourceNote?: string | null;
   /** The pictures of the signed sheet: a week can be written on several. */
   files: File[];
   /** The workers and their hours; the report's total is their sum. */
@@ -51,6 +53,7 @@ export const weeklySiteReportsApi = {
     if (input.submittedByEmployeeId) form.append('submittedByEmployeeId', input.submittedByEmployeeId);
     if (input.quantity != null) form.append('quantity', String(input.quantity));
     if (input.note) form.append('note', input.note);
+    if (input.sourceNote) form.append('sourceNote', input.sourceNote);
     for (const file of input.files) form.append('files', file);
     if (input.lines && input.lines.length > 0) form.append('lines', JSON.stringify(input.lines));
 

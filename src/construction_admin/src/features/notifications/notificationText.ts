@@ -243,6 +243,17 @@ export function resolveNotificationText(t: T, notification: Notification): Notif
         }),
       };
 
+    case 'WeeklyReportEnteredByOffice':
+      if (!d.projectName || !d.isoYear || !d.isoWeek) return fallback;
+      return {
+        title: text('notificationWeeklyReportEnteredByOfficeTitle'),
+        body: text('notificationWeeklyReportEnteredByOfficeBody', {
+          projectName: d.projectName,
+          isoWeek: d.isoWeek,
+          isoYear: d.isoYear,
+        }),
+      };
+
     case 'WeeklyReportApproved':
       if (!d.projectName || !d.isoYear || !d.isoWeek) return fallback;
       return {

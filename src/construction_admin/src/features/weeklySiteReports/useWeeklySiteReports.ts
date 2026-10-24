@@ -48,6 +48,14 @@ export function useWeeklySiteReportQuery(id: string | null) {
   });
 }
 
+/** Saves the corrections to the workers and hours without approving the report. */
+export function useUpdateWeeklySiteReportLines() {
+  return useResourceMutation(
+    (input: { id: string; lines: WeeklyReportLineInput[] }) => weeklySiteReportsApi.updateLines(input.id, input.lines),
+    [weeklySiteReportKeys.all, ['weeklySiteReports', 'detail']],
+  );
+}
+
 export function useRequestWeeklySiteReportCorrection() {
   return useResourceMutation(
     (input: { id: string; note: string }) => weeklySiteReportsApi.requestCorrection(input.id, input.note),

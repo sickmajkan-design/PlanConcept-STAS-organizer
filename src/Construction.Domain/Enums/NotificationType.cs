@@ -130,5 +130,8 @@ public enum NotificationType
     WeeklyReportCorrection = 46,
 
     /// <summary>The office approved a weekly site report.</summary>
-    WeeklyReportApproved = 47
+    WeeklyReportApproved = 47,
+
+    /// <summary>The office entered a weekly site report in the foreman's name, because it came by e-mail or on paper.</summary>
+    WeeklyReportEnteredByOffice = 48
 }

@@ -135,6 +135,7 @@ export function resolveNotificationTarget(
 
     case 'WeeklyReportCorrection':
     case 'WeeklyReportApproved':
+    case 'WeeklyReportEnteredByOffice':
       return null;
 
     case 'DocumentSubmitted':

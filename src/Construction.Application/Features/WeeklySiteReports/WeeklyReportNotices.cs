@@ -52,6 +52,34 @@ public static class WeeklyReportNotices
             userIds, type, title, body, Data(report, report.Project.Name, note), cancellationToken: cancellationToken);
     }
 
+    /// <summary>The foreman a report is attributed to: the office entered it in his name.</summary>
+    public static async Task ToForemanEnteredAsync(
+        IApplicationDbContext context,
+        INotificationService notifications,
+        WeeklySiteReport report,
+        string projectName,
+        Guid? exceptUserId,
+        CancellationToken cancellationToken)
+    {
+        var userIds = await context.Users
+            .Where(u => u.IsActive && u.EmployeeId == report.SubmittedByEmployeeId && u.Id != exceptUserId)
+            .Select(u => u.Id)
+            .ToListAsync(cancellationToken);
+
+        if (userIds.Count == 0)
+        {
+            return;
+        }
+
+        await notifications.NotifyUsersAsync(
+            userIds,
+            NotificationType.WeeklyReportEnteredByOffice,
+            "Weekly report entered by the office",
+            $"{projectName} — KW{report.IsoWeek:D2}/{report.IsoYear}",
+            Data(report, projectName, report.SourceNote),
+            cancellationToken: cancellationToken);
+    }
+
     /// <summary>The office: a report was sent and waits to be looked at.</summary>
     public static async Task ToOfficeAsync(
         IApplicationDbContext context,

@@ -23,6 +23,13 @@ public class WeeklySiteReportConfiguration : IEntityTypeConfiguration<WeeklySite
 
         builder.Property(r => r.ReviewNote).HasMaxLength(1000);
 
+        builder.Property(r => r.SourceNote).HasMaxLength(500);
+
+        builder.HasOne(r => r.EnteredByUser)
+            .WithMany()
+            .HasForeignKey(r => r.EnteredByUserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.Property(r => r.FileName).HasMaxLength(512).IsRequired();
 
         builder.Property(r => r.ContentType).HasMaxLength(200).IsRequired();

@@ -203,6 +203,16 @@ public static class PushTextResolver
                         : $"{projectName} — KW{isoWeek}/{isoYear}: {note}");
             }
 
+            case NotificationType.WeeklyReportEnteredByOffice:
+            {
+                var projectName = Str("projectName");
+                var isoYear = Str("isoYear");
+                var isoWeek = Str("isoWeek");
+                if (projectName is null || isoYear is null || isoWeek is null) break;
+
+                return ("Uprava je unijela sedmični izvještaj", $"{projectName} — KW{isoWeek}/{isoYear}");
+            }
+
             case NotificationType.WeeklyReportApproved:
             {
                 var projectName = Str("projectName");

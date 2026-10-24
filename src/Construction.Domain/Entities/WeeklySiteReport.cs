@@ -70,6 +70,16 @@ public class WeeklySiteReport : BaseEntity, IAuditable
 
     public User? ProcessedByUser { get; set; }
 
+    /// <summary>Where the report came from, and for an office entry what to say about it ("mail od kupca 20.10.").</summary>
+    public WeeklyReportSource Source { get; set; } = WeeklyReportSource.App;
+
+    public string? SourceNote { get; set; }
+
+    /// <summary>Who in the office entered the report, for a report that was not sent by the foreman.</summary>
+    public Guid? EnteredByUserId { get; set; }
+
+    public User? EnteredByUser { get; set; }
+
     /// <summary>Why the report was sent back. Cleared when the report is sent again or approved.</summary>
     public string? ReviewNote { get; set; }
 
