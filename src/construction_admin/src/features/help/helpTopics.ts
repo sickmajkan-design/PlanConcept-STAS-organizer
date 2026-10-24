@@ -489,6 +489,56 @@ export const helpTopics: HelpTopic[] = [
     },
   },
   {
+    id: 'sedmicni-izvjestaji',
+    group: 'work',
+    path: paths.weeklyReports,
+    audience: office,
+    content: {
+      sr: {
+        title: 'Sedmični izvještaji sa gradilišta',
+        summary:
+          'Poslovođa svake sedmice pošalje potpisane sate ili Aufmaß za gradilište; ured ih pregleda u programu i odobri ili vrati na korekciju.',
+        steps: [
+          'Otvorite Planiranje, pa Sedmični izvještaji. Čipovi iznad liste pokazuju šta čeka: Čeka pregled, Potrebna korekcija i Kasni.',
+          'Pregledaj otvara izvještaj u programu, bez skidanja: lijevo je dokument (PDF, slika, Word ili Excel), a iznad su gradilište, sedmica, sati, ko je poslao i napomena. Preuzmi snima datoteku na računar.',
+          'Odobri znači da su sati tačni. Poslovođa dobija obavijest.',
+          'Potrebna korekcija traži razlog (šta treba ispraviti). Poslovođa ga vidi u obavijesti i šalje izvještaj ponovo; novi izvještaj zamjenjuje stari, pa za gradilište i sedmicu uvijek postoji jedan.',
+          'Kasni pokazuje gradilišta koja su prošle sedmice imala raspoređene radnike, a do ponedjeljka u 12:00 nemaju izvještaj, s imenom poslovođe kojeg treba pitati.',
+          'U Evidenciji (mjesečna tabela) obračun upozori ako se zbir sati radnika za cijelu sedmicu razlikuje od odobrenog izvještaja; sate možete ručno ispraviti u tabeli.',
+        ],
+        example:
+          'U utorak ujutro poslovođa Hale B dobije opomenu jer izvještaj za KW42 nije stigao. Pošalje ga u srijedu; ured dobija obavijest, otvara Pregledaj, vidi da nema potpisa kupca i vraća ga s razlogom. Poslovođa pošalje novi, ured ga odobri.',
+        tips: [
+          'Rok za slanje je ponedjeljak u 12:00; opomena poslovođi ide u utorak ujutro, jednom po gradilištu i sedmici.',
+          'Ured dobija obavijest čim izvještaj stigne, a na početnoj stranici se može dodati widget Sedmični izvještaji.',
+          'Izvještaj vraćen na korekciju se ne računa kao da nije poslat: gradilište se ne pojavljuje pod Kasni.',
+        ],
+        keywords: ['sedmični izvještaj', 'izvještaj', 'satnica', 'aufmaß', 'pregled', 'odobri', 'korekcija', 'kasni', 'poslovođa', 'kw'],
+      },
+      en: {
+        title: 'Weekly site reports',
+        summary:
+          'Every week the foreman sends the signed hours or the Aufmaß for a site; the office reviews them in the program and approves them or sends them back for correction.',
+        steps: [
+          'Open Planning, then Weekly reports. The chips above the list show what waits: Waiting for review, Needs correction and Late.',
+          'Preview opens the report in the program, without downloading: the document is on the left (PDF, image, Word or Excel), and above it the site, week, hours, who sent it and the note. Download saves the file to your computer.',
+          'Approve means the hours are right. The foreman is notified.',
+          'Needs correction asks for a reason (what to fix). The foreman sees it in the notice and sends the report again; the new report replaces the old one, so there is always one per site and week.',
+          'Late shows the sites that had workers posted to them last week and have no report by Monday 12:00, with the foreman to ask.',
+          'In the Ledger (the monthly sheet) the checks warn if the workers\' hours for a whole week differ from the approved report; you can correct the hours in the sheet by hand.',
+        ],
+        example:
+          'On Tuesday morning the foreman of Hall B gets a reminder because the report for KW42 has not come in. He sends it on Wednesday; the office is notified, opens Preview, sees the customer\'s signature is missing and sends it back with a reason. The foreman sends a new one and the office approves it.',
+        tips: [
+          'The deadline is Monday 12:00; the foreman\'s reminder goes out on Tuesday morning, once per site and week.',
+          'The office is notified as soon as a report arrives, and the Weekly reports widget can be added to the home page.',
+          'A report sent back for correction does not count as missing: the site does not appear under Late.',
+        ],
+        keywords: ['weekly report', 'report', 'timesheet', 'aufmaß', 'review', 'approve', 'correction', 'late', 'foreman', 'kw'],
+      },
+    },
+  },
+  {
     id: 'raspored',
     group: 'work',
     path: paths.schedule,
@@ -839,6 +889,7 @@ export const helpTopics: HelpTopic[] = [
           'Radna snaga. Raspoloživa radna snaga u jednom pogledu: ko radi, ko čeka odluku o odsustvu, ko je odsutan. Kako se računa: Veliki broj su radnici s otvorenom smjenom, „od N aktivnih” su radnici sa statusom Aktivan. Traka: Na gradilištu (prijavljeni), Zahtjevi na čekanju (zahtjevi za odsustvo u statusu Zahtjev) i Na odsustvu danas (odobrena odsustva čiji period obuhvata današnji dan organizacije). Trake po projektima su broj prijavljenih na svakom (šest najvećih). Ispod su prva najviše 5 zahtjeva za odsustvo na čekanju. Sa izabranom poslovnom jedinicom broji se samo ona.',
           'Zahtjevi za odsustvo. Odgovorite na zahtjeve za odsustvo bez odlaska na drugu stranicu. Kako se računa: Zahtjevi u statusu Zahtjev, s tipom, periodom i brojem dana; kvačica odobrava, krstić odbija (traži razlog). Odgovara samo administrator i nikad na vlastiti zahtjev. Isti odgovor odmah spušta brojeve u meniju i u „Zahtijeva pažnju”.',
           'Narudžbe. Zahtjevi radnika za artikle (odjeća, obuća, šljemovi, alat) koji još nisu u njihovim rukama. Kako se računa: Tri broja su brojevi koje daje server po koraku: Zatraženo, Naručeno, U dostavi (ne računa se Isporučeno, Odbijeno ni Otkazano). Ispod je 5 najnovijih otvorenih narudžbi sa sljedećim korakom na jedan pritisak. „Hitno” je oznaka koju je postavio onaj ko traži. Uz Zatraženo stoji „od jučer”. Sa izabranom poslovnom jedinicom: narudžbe njenih gradilišta.',
+          'Sedmični izvještaji. Šta čeka ured: izvještaji za pregled, vraćeni na korekciju i gradilišta koja kasne. Kako se računa: Tri broja su brojevi koje daje server: Čeka pregled (status Poslato), Potrebna korekcija (vraćeni poslovođi, čeka se novi) i Kasni. Gradilište kasni ako je prošle sedmice (ponedjeljak do nedjelje) imalo raspoređene radnike, a do ponedjeljka u 12:00 po vremenu organizacije nema izvještaja; izvještaj vraćen na korekciju se računa kao poslat. Lista prvo pokazuje gradilišta koja kasne (s poslovođom), zatim najranije poslate izvještaje. Pregled i odobravanje su na stranici Sedmični izvještaji.',
         ],
         example:
           'Osam radnika je prijavljeno, a dva sata čekaju odobrenje: „Prisutnost danas” pokazuje prsten 8 od 16, „7h 30min danas” i „2 čekaju odobrenje”.',
@@ -857,6 +908,7 @@ export const helpTopics: HelpTopic[] = [
           'Workforce. The available workforce in one look: who is working, who is waiting for a leave decision, who is away. How it is counted: The large number is the workers with an open shift, "of N active" the workers with the status Active. The bar: On site (clocked in), Requests waiting (leave requests with the status Requested) and On leave today (approved leave whose period covers the organisation\'s today). The bars per project are the number clocked in on each (the six largest). Below are the first 5 leave requests waiting. With a business unit chosen only it is counted.',
           'Leave requests. Answer leave requests without going to another page. How it is counted: Requests with the status Requested, with the type, period and number of days; the tick approves, the cross rejects (a reason is asked for). Only an administrator answers, and never their own request. The same answer drops the numbers in the menu and in "Needs attention" at once.',
           'Orders. Workers\' requests for articles (clothing, footwear, helmets, tools) that are not yet in their hands. How it is counted: The three numbers are the server\'s own counts per step: Requested, Ordered, In delivery (Delivered, Rejected and Cancelled are not counted). Below are the 5 newest open orders with the next step one press away. "Urgent" is a mark set by whoever asks. Requested carries "since yesterday". With a business unit chosen: the orders of its sites.',
+          'Weekly reports. What waits for the office: reports to review, reports sent back and sites that are late. How it is counted: The three numbers are the server\'s own counts: Waiting for review (status Submitted), Needs correction (sent back to the foreman, a new one is awaited) and Late. A site is late if it had workers posted to it last week (Monday to Sunday) and has no report by Monday 12:00 organisation time; a report sent back for correction counts as sent. The list shows the late sites first (with the foreman), then the oldest reports sent. Review and approval are on the Weekly reports page.',
         ],
         example:
           'Eight workers are clocked in and two sets of hours are waiting for approval: "Attendance today" shows the ring 8 of 16, "7h 30m today" and "2 waiting for approval".',

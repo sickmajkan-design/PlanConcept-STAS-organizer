@@ -2,11 +2,13 @@ using Construction.API.Authorization;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.WeeklySiteReports.Commands.CreateWeeklySiteReport;
 using Construction.Application.Features.WeeklySiteReports.Commands.MarkWeeklySiteReportProcessed;
+using Construction.Application.Features.WeeklySiteReports.Commands.RequestWeeklySiteReportCorrection;
 using Construction.Application.Features.WeeklySiteReports.Models;
 using Construction.Application.Features.WeeklySiteReports.Queries.GetMyReportableProjects;
 using Construction.Application.Features.WeeklySiteReports.Queries.GetMyWeeklySiteReports;
 using Construction.Application.Features.WeeklySiteReports.Queries.GetWeeklySiteReportContent;
 using Construction.Application.Features.WeeklySiteReports.Queries.GetWeeklySiteReports;
+using Construction.Application.Features.WeeklySiteReports.Queries.GetWeeklySiteReportsSummary;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,6 +30,15 @@ public class WeeklySiteReportsController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>What waits for the office: reports to review, reports sent back, sites that are late.</summary>
+    [HttpGet("summary")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(WeeklySiteReportsSummaryDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<WeeklySiteReportsSummaryDto>> GetSummary(CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetWeeklySiteReportsSummaryQuery(), cancellationToken));
     }
 
     /// <summary>What the caller has submitted themselves — the mobile app's own history.</summary>
@@ -97,7 +108,8 @@ public class WeeklySiteReportsController : ApiControllerBase
         return CreatedAtAction(nameof(GetContent), new { id = report.Id }, report);
     }
 
-    /// <summary>Marks a report as handled — billed, filed, whatever "done" means to the office.</summary>
+    /// <summary>Approves a report. The old name stays so clients written against it keep working.</summary>
+    [HttpPost("{id:guid}/approve")]
     [HttpPost("{id:guid}/mark-processed")]
     [Authorize(Policy = Policies.AdminAndAbove)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -107,6 +119,27 @@ public class WeeklySiteReportsController : ApiControllerBase
         await Mediator.Send(new MarkWeeklySiteReportProcessedCommand(id), cancellationToken);
         return NoContent();
     }
+
+    /// <summary>Sends a report back to the foreman with a reason; the foreman sends it again.</summary>
+    [HttpPost("{id:guid}/request-correction")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RequestCorrection(
+        Guid id,
+        [FromBody] RequestCorrectionRequest request,
+        CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new RequestWeeklySiteReportCorrectionCommand(id, request.Note ?? string.Empty), cancellationToken);
+        return NoContent();
+    }
+}
+
+/// <summary>Why a report is sent back.</summary>
+public class RequestCorrectionRequest
+{
+    public string? Note { get; set; }
 }
 
 /// <summary>The multipart form a submission arrives as.</summary>

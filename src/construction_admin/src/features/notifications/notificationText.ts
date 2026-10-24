@@ -219,6 +219,41 @@ export function resolveNotificationText(t: T, notification: Notification): Notif
         }),
       };
 
+    case 'WeeklyReportSubmitted':
+      if (!d.projectName || !d.isoYear || !d.isoWeek) return fallback;
+      return {
+        title: text('notificationWeeklyReportSubmittedTitle'),
+        body: text('notificationWeeklyReportSubmittedBody', {
+          projectName: d.projectName,
+          isoWeek: d.isoWeek,
+          isoYear: d.isoYear,
+          submittedBy: d.submittedBy ?? '',
+        }),
+      };
+
+    case 'WeeklyReportCorrection':
+      if (!d.projectName || !d.isoYear || !d.isoWeek) return fallback;
+      return {
+        title: text('notificationWeeklyReportCorrectionTitle'),
+        body: text('notificationWeeklyReportCorrectionBody', {
+          projectName: d.projectName,
+          isoWeek: d.isoWeek,
+          isoYear: d.isoYear,
+          note: d.note ?? '',
+        }),
+      };
+
+    case 'WeeklyReportApproved':
+      if (!d.projectName || !d.isoYear || !d.isoWeek) return fallback;
+      return {
+        title: text('notificationWeeklyReportApprovedTitle'),
+        body: text('notificationWeeklyReportApprovedBody', {
+          projectName: d.projectName,
+          isoWeek: d.isoWeek,
+          isoYear: d.isoYear,
+        }),
+      };
+
     case 'EmployeeClockedIn':
       if (!d.employeeName || !d.projectName) return fallback;
       return {

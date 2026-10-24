@@ -19,6 +19,7 @@ export const dashboardWidgetTypes = [
   'ActiveProjects',
   'ArticleOrders',
   'BranchOverview',
+  'WeeklyReports',
 ] as const;
 
 export type DashboardWidgetType = (typeof dashboardWidgetTypes)[number];

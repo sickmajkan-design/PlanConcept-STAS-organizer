@@ -29,7 +29,7 @@ const CAUTION = new Set([
   // the crew until it is returned.
   'RentedOut',
 ]);
-const BAD = new Set(['Suspended', 'UnderRepair', 'Lost', 'Rejected', 'Cancelled', 'Deleted']);
+const BAD = new Set(['Suspended', 'UnderRepair', 'Lost', 'Rejected', 'Cancelled', 'Deleted', 'CorrectionRequested']);
 
 /**
  * Colour-coded label for the API's status enums. Colours are grouped by

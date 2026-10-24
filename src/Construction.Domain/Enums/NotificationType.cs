@@ -121,5 +121,14 @@ public enum NotificationType
     DocumentRequestDue = 43,
 
     /// <summary>The deadline of a request has passed and nothing was sent; goes to the office.</summary>
-    DocumentRequestOverdue = 44
+    DocumentRequestOverdue = 44,
+
+    /// <summary>A foreman sent a weekly site report and it waits for the office to review it.</summary>
+    WeeklyReportSubmitted = 45,
+
+    /// <summary>The office sent a weekly site report back to the foreman, with a reason.</summary>
+    WeeklyReportCorrection = 46,
+
+    /// <summary>The office approved a weekly site report.</summary>
+    WeeklyReportApproved = 47
 }

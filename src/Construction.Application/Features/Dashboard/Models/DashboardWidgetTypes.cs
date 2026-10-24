@@ -31,6 +31,7 @@ public static class DashboardWidgetTypes
     public const string ActiveProjects = nameof(ActiveProjects);
     public const string ArticleOrders = nameof(ArticleOrders);
     public const string BranchOverview = nameof(BranchOverview);
+    public const string WeeklyReports = nameof(WeeklyReports);
     public const string Finance = nameof(Finance);
 
     public static readonly IReadOnlyList<string> All =
@@ -54,6 +55,7 @@ public static class DashboardWidgetTypes
         ActiveProjects,
         ArticleOrders,
         BranchOverview,
+        WeeklyReports,
     ];
 
     /// <summary>

@@ -10,10 +10,9 @@ import {
   Stack,
   Typography,
 } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 
 import { attachmentsApi } from '../api/attachments';
-import type { Attachment } from '../api/types';
 import { useT } from '../i18n/useI18n';
 import { PdfPages } from './PdfPages';
 
@@ -25,6 +24,13 @@ type PreviewState =
   | { kind: 'html'; html: string; note?: string }
   | { kind: 'unsupported'; legacyWord?: boolean }
   | { kind: 'error' };
+
+/** What the preview needs to know about a file; any attachment already has it. */
+export interface PreviewSource {
+  id: string;
+  fileName: string;
+  contentType: string;
+}
 
 function extensionOf(fileName: string): string {
   const dot = fileName.lastIndexOf('.');
@@ -74,13 +80,23 @@ function sanitizeHtml(html: string): string {
  * parsed into HTML — all through libraries loaded on demand so a user who
  * never opens an office document never pays for the bundle weight. Only the
  * legacy binary `.doc` format has no parser available; it still downloads.
+ *
+ * Other files that are not attachments (a weekly report's sheet) are shown the same way: `loadBlob` fetches the
+ * bytes (it must be a stable function, as it is a dependency of the load), `details` goes above the preview and
+ * `actions` before the download button.
  */
 export function AttachmentPreviewDialog({
   attachment,
   onClose,
+  loadBlob,
+  details,
+  actions,
 }: {
-  attachment: Attachment | null;
+  attachment: PreviewSource | null;
   onClose: () => void;
+  loadBlob?: (id: string) => Promise<Blob>;
+  details?: ReactNode;
+  actions?: ReactNode;
 }) {
   const t = useT();
   const [preview, setPreview] = useState<PreviewState>({ kind: 'loading' });
@@ -104,7 +120,7 @@ export function AttachmentPreviewDialog({
       let blob: Blob;
 
       try {
-        blob = await attachmentsApi.blob(attachment.id);
+        blob = await (loadBlob ? loadBlob(attachment.id) : attachmentsApi.blob(attachment.id));
       } catch {
         // A fetch failure (the file is recorded but missing from storage, a
         // permission change, a dropped connection) is not the same problem
@@ -205,12 +221,13 @@ export function AttachmentPreviewDialog({
       if (downloadObjectUrl) URL.revokeObjectURL(downloadObjectUrl);
       if (previewObjectUrl) URL.revokeObjectURL(previewObjectUrl);
     };
-  }, [attachment, t]);
+  }, [attachment, loadBlob, t]);
 
   return (
     <Dialog open={!!attachment} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>{attachment?.fileName}</DialogTitle>
       <DialogContent>
+        {details}
         {preview.kind === 'loading' && (
           <Stack sx={{ alignItems: 'center', py: 6 }}>
             <CircularProgress size={28} />
@@ -303,7 +320,8 @@ export function AttachmentPreviewDialog({
           </Stack>
         )}
       </DialogContent>
-      <DialogActions>
+      <DialogActions sx={{ flexWrap: 'wrap', gap: 0.5 }}>
+        {actions}
         {downloadUrl && attachment && (
           <Button
             component="a"

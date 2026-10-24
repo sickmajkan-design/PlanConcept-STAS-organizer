@@ -129,6 +129,14 @@ export function resolveNotificationTarget(
         ? `${paths.bulletin}?highlight=${data.bulletinPostId}`
         : paths.bulletin;
 
+    // The office opens the list at what waits for a look; the foreman's notices are for the app.
+    case 'WeeklyReportSubmitted':
+      return hasAccountAdmin ? `${paths.weeklyReports}?view=Submitted` : null;
+
+    case 'WeeklyReportCorrection':
+    case 'WeeklyReportApproved':
+      return null;
+
     case 'DocumentSubmitted':
     case 'DocumentRequestOverdue':
       return data.requestId ? `${paths.documentRequests}?highlight=${data.requestId}` : paths.documentRequests;

@@ -173,6 +173,46 @@ public static class PushTextResolver
                 return ("Sedmični izvještaj još nije predat", $"{projectName} — KW{isoWeek}/{isoYear}");
             }
 
+            case NotificationType.WeeklyReportSubmitted:
+            {
+                var projectName = Str("projectName");
+                var isoYear = Str("isoYear");
+                var isoWeek = Str("isoWeek");
+                if (projectName is null || isoYear is null || isoWeek is null) break;
+
+                var by = Str("submittedBy");
+                return (
+                    "Sedmični izvještaj čeka pregled",
+                    string.IsNullOrEmpty(by)
+                        ? $"{projectName} — KW{isoWeek}/{isoYear}"
+                        : $"{projectName} — KW{isoWeek}/{isoYear}, {by}");
+            }
+
+            case NotificationType.WeeklyReportCorrection:
+            {
+                var projectName = Str("projectName");
+                var isoYear = Str("isoYear");
+                var isoWeek = Str("isoWeek");
+                if (projectName is null || isoYear is null || isoWeek is null) break;
+
+                var note = Str("note");
+                return (
+                    "Sedmični izvještaj treba korekciju",
+                    string.IsNullOrEmpty(note)
+                        ? $"{projectName} — KW{isoWeek}/{isoYear}"
+                        : $"{projectName} — KW{isoWeek}/{isoYear}: {note}");
+            }
+
+            case NotificationType.WeeklyReportApproved:
+            {
+                var projectName = Str("projectName");
+                var isoYear = Str("isoYear");
+                var isoWeek = Str("isoWeek");
+                if (projectName is null || isoYear is null || isoWeek is null) break;
+
+                return ("Sedmični izvještaj odobren", $"{projectName} — KW{isoWeek}/{isoYear}");
+            }
+
             case NotificationType.EmployeeClockedIn:
             {
                 var employeeName = Str("employeeName");

@@ -2044,6 +2044,7 @@ export interface LedgerCheck {
     | 'HoursDifferFromApp'
     | 'MissingInvoice'
     | 'MissingSignedTimesheet'
+    | 'HoursDifferFromReport'
     | 'EmployeeInOtherUnit';
   sectionId: string;
   sectionName: string;
@@ -2542,6 +2543,9 @@ export const notificationTypes = [
   'DocumentRequestCancelled',
   'DocumentRequestDue',
   'DocumentRequestOverdue',
+  'WeeklyReportSubmitted',
+  'WeeklyReportCorrection',
+  'WeeklyReportApproved',
 ] as const;
 
 export type NotificationType = (typeof notificationTypes)[number];
@@ -2716,7 +2720,8 @@ export const weeklyReportTypes = ['SignedHours', 'Aufmass', 'Other'] as const;
 
 export type WeeklyReportType = (typeof weeklyReportTypes)[number];
 
-export const weeklyReportStatuses = ['Submitted', 'Processed'] as const;
+/** `Processed` is what the office sees as "Odobreno": the name is older than the review. */
+export const weeklyReportStatuses = ['Submitted', 'Processed', 'CorrectionRequested'] as const;
 
 export type WeeklyReportStatus = (typeof weeklyReportStatuses)[number];
 
@@ -2735,7 +2740,35 @@ export interface WeeklySiteReport {
   status: WeeklyReportStatus;
   processedAt: string | null;
   processedByEmail: string | null;
+  /** Why the office sent the report back, while it waits for a new one. */
+  reviewNote: string | null;
   createdAt: string;
+}
+
+export interface WeeklySiteReportWaiting {
+  id: string;
+  projectName: string;
+  isoYear: number;
+  isoWeek: number;
+  submittedByEmployeeName: string;
+  createdAt: string;
+}
+
+export interface WeeklySiteReportOverdue {
+  projectId: string;
+  projectName: string;
+  foremanNames: string[];
+}
+
+/** What the office has to do about weekly reports right now. */
+export interface WeeklySiteReportsSummary {
+  awaitingReview: number;
+  correctionRequested: number;
+  waiting: WeeklySiteReportWaiting[];
+  isoYear: number;
+  isoWeek: number;
+  deadlineUtc: string;
+  overdue: WeeklySiteReportOverdue[];
 }
 
 export interface WeeklySiteReportListQuery extends ListQuery {

@@ -47,6 +47,13 @@ public static class LedgerCheckKinds
     public const string MissingSignedTimesheet = "MissingSignedTimesheet";
 
     /// <summary>
+    /// The hours of a site's workers for a whole calendar week do not add up to what the approved weekly site
+    /// report says. A prompt to look: either the report or the typed hours has a mistake, or somebody's hours for
+    /// the week are missing.
+    /// </summary>
+    public const string HoursDifferFromReport = "HoursDifferFromReport";
+
+    /// <summary>
     /// A person in a business unit's payroll who that unit did not employ at any time in the month —
     /// they are on another unit's books, or on none. A prompt to look: the pay may belong here
     /// anyway, but then their employment in this unit is what is missing.
@@ -118,6 +125,9 @@ public class GetLedgerChecksQueryValidator : AbstractValidator<GetLedgerChecksQu
 public class GetLedgerChecksQueryHandler
     : IRequestHandler<GetLedgerChecksQuery, IReadOnlyList<LedgerCheckDto>>
 {
+    /// <summary>Hours that may differ from the approved weekly report before it is worth saying so.</summary>
+    private const decimal HoursReportTolerance = 0.5m;
+
     private readonly IApplicationDbContext _context;
 
     public GetLedgerChecksQueryHandler(IApplicationDbContext context)
@@ -470,6 +480,7 @@ public class GetLedgerChecksQueryHandler
         {
             var monthWeeks = LedgerTemplates.MonthWeeks(period.Year, period.Month);
             var flaggedWeeks = new HashSet<(Guid SectionId, int Number)>();
+            var weekTotals = new Dictionary<(Guid SectionId, int Number), decimal>();
 
             foreach (var row in rows.Where(r => r.ProjectId is not null))
             {
@@ -486,6 +497,7 @@ public class GetLedgerChecksQueryHandler
                     if (value > 0 && number <= monthWeeks.Count)
                     {
                         flaggedWeeks.Add((row.SectionId, number));
+                        weekTotals[(row.SectionId, number)] = weekTotals.GetValueOrDefault((row.SectionId, number)) + value;
                     }
                 }
             }
@@ -532,6 +544,49 @@ public class GetLedgerChecksQueryHandler
                         SectionId = key.SectionId,
                         SectionName = section.SectionName,
                         ColumnName = columns.First(c => c.Id == weekColumns.First(w => w.Number == key.Number).Id).Name,
+                    });
+                }
+
+                // The approved weekly site report is the office's own word on a whole week's hours at the site. A
+                // week cut by the month's end holds only some of its days here, so only whole weeks are compared.
+                var approvedReports = (await _context.WeeklySiteReports
+                        .AsNoTracking()
+                        .Where(r => neededProjectIds.Contains(r.ProjectId)
+                            && r.Status == WeeklyReportStatus.Processed
+                            && r.Type == WeeklyReportType.SignedHours
+                            && r.Quantity != null)
+                        .Select(r => new { r.ProjectId, r.IsoYear, r.IsoWeek, Hours = r.Quantity!.Value })
+                        .ToListAsync(cancellationToken))
+                    .GroupBy(r => (r.ProjectId, r.IsoYear, r.IsoWeek))
+                    .ToDictionary(g => g.Key, g => g.Sum(r => r.Hours));
+
+                foreach (var key in neededKeys.OrderBy(k => k.Number))
+                {
+                    var week = monthWeeks[key.Number - 1];
+
+                    if (week.To.DayNumber - week.From.DayNumber != 6
+                        || !approvedReports.TryGetValue((key.ProjectId, key.Year, key.Week), out var reported))
+                    {
+                        continue;
+                    }
+
+                    var typed = weekTotals.GetValueOrDefault((key.SectionId, key.Number));
+
+                    if (Math.Abs(typed - reported) <= HoursReportTolerance)
+                    {
+                        continue;
+                    }
+
+                    var section = rows.First(r => r.SectionId == key.SectionId);
+
+                    issues.Add(new LedgerCheckDto
+                    {
+                        Kind = LedgerCheckKinds.HoursDifferFromReport,
+                        SectionId = key.SectionId,
+                        SectionName = section.SectionName,
+                        ColumnName = columns.First(c => c.Id == weekColumns.First(w => w.Number == key.Number).Id).Name,
+                        Amount = Math.Round(typed, 2),
+                        ReferenceAmount = Math.Round(reported, 2),
                     });
                 }
             }

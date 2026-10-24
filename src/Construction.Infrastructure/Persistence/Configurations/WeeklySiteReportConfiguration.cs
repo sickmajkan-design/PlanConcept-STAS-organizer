@@ -21,6 +21,8 @@ public class WeeklySiteReportConfiguration : IEntityTypeConfiguration<WeeklySite
 
         builder.Property(r => r.Note).HasMaxLength(1000);
 
+        builder.Property(r => r.ReviewNote).HasMaxLength(1000);
+
         builder.Property(r => r.FileName).HasMaxLength(512).IsRequired();
 
         builder.Property(r => r.ContentType).HasMaxLength(200).IsRequired();

@@ -1,5 +1,4 @@
 using Construction.Application.Common;
-using System.Globalization;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Entities;
 using Construction.Domain.Enums;
@@ -9,13 +8,13 @@ using Microsoft.EntityFrameworkCore;
 namespace Construction.Application.Features.WeeklySiteReports.Commands.SendWeeklyReportReminders;
 
 /// <summary>
-/// Monday's check: which sites had nobody assigned to them submit last ISO
-/// week's report yet, and who to nudge about it.
+/// Tuesday morning's check: which sites had nobody send last ISO week's report by Monday noon, and who to nudge
+/// about it — the foreman posted to that site.
 /// </summary>
 /// <remarks>
-/// A no-op on every other day of the week — the daily sweep this rides
-/// inside of runs roughly every 24 hours regardless of weekday, and "every
-/// day" is not what "every Monday" asked for.
+/// A no-op on Mondays and before the reminder time on Tuesdays. From then on it sends, once per site, week and
+/// foreman: a sweep that missed the Tuesday morning still sends later in the week, and one that runs every hour
+/// finds the claim already taken.
 /// </remarks>
 public record SendWeeklyReportRemindersCommand : IRequest<int>;
 
@@ -41,40 +40,17 @@ public class SendWeeklyReportRemindersCommandHandler
         var now = _dateTimeProvider.UtcNow;
         var today = CompanyTime.LocalDate(now);
 
-        if (today.DayOfWeek != DayOfWeek.Monday)
+        if (today.DayOfWeek == DayOfWeek.Monday
+            || (today.DayOfWeek == DayOfWeek.Tuesday
+                && CompanyTime.LocalTimeOfDay(now) < WeeklyReportWeek.ReminderTime))
         {
             return 0;
         }
 
-        var lastWeekEnd = today.AddDays(-1);
-        var lastWeekStart = lastWeekEnd.AddDays(-6);
-        var isoYear = ISOWeek.GetYear(lastWeekEnd.ToDateTime(TimeOnly.MinValue));
-        var isoWeek = ISOWeek.GetWeekOfYear(lastWeekEnd.ToDateTime(TimeOnly.MinValue));
+        var week = WeeklyReportWeek.Last(now);
+        var missing = await WeeklyReportWeek.MissingAsync(_context, week, cancellationToken);
 
-        // Every site with someone posted to it at any point during that
-        // week, and whether it already has a report for it.
-        var sitesWithAssignments = await _context.EmployeeProjects
-            .Where(a => a.StartDate <= lastWeekEnd && (a.EndDate == null || a.EndDate >= lastWeekStart))
-            .Select(a => new { a.ProjectId, a.EmployeeId })
-            .Distinct()
-            .ToListAsync(cancellationToken);
-
-        if (sitesWithAssignments.Count == 0)
-        {
-            return 0;
-        }
-
-        var projectIds = sitesWithAssignments.Select(a => a.ProjectId).Distinct().ToList();
-
-        var reportedProjectIds = await _context.WeeklySiteReports
-            .Where(r => r.IsoYear == isoYear && r.IsoWeek == isoWeek && projectIds.Contains(r.ProjectId))
-            .Select(r => r.ProjectId)
-            .Distinct()
-            .ToListAsync(cancellationToken);
-
-        var missingProjectIds = projectIds.Except(reportedProjectIds).ToHashSet();
-
-        if (missingProjectIds.Count == 0)
+        if (missing.Count == 0)
         {
             return 0;
         }
@@ -90,25 +66,18 @@ public class SendWeeklyReportRemindersCommandHandler
             .Where(u => u.EmployeeId is not null)
             .ToLookup(u => u.EmployeeId!.Value, u => u.Id);
 
-        var projectNames = await _context.Projects
-            .Where(p => missingProjectIds.Contains(p.Id))
-            .Select(p => new { p.Id, p.Name })
-            .ToDictionaryAsync(p => p.Id, p => p.Name, cancellationToken);
-
         var sent = 0;
 
-        foreach (var assignment in sitesWithAssignments)
+        foreach (var assignment in missing)
         {
-            if (!missingProjectIds.Contains(assignment.ProjectId)) continue;
-
             foreach (var userId in foremenByEmployeeId[assignment.EmployeeId])
             {
                 var claim = new WeeklyReportReminder
                 {
                     ProjectId = assignment.ProjectId,
                     EmployeeId = assignment.EmployeeId,
-                    IsoYear = isoYear,
-                    IsoWeek = isoWeek,
+                    IsoYear = week.IsoYear,
+                    IsoWeek = week.IsoWeek,
                     SentAt = now,
                 };
                 _context.WeeklyReportReminders.Add(claim);
@@ -128,13 +97,13 @@ public class SendWeeklyReportRemindersCommandHandler
                     userId,
                     NotificationType.WeeklyReportDue,
                     "Weekly hours not yet submitted",
-                    $"{projectNames.GetValueOrDefault(assignment.ProjectId, "")} — KW{isoWeek:D2}/{isoYear}",
+                    $"{assignment.ProjectName} — KW{week.IsoWeek:D2}/{week.IsoYear}",
                     new Dictionary<string, string>
                     {
                         ["projectId"] = assignment.ProjectId.ToString(),
-                        ["projectName"] = projectNames.GetValueOrDefault(assignment.ProjectId, ""),
-                        ["isoYear"] = isoYear.ToString(),
-                        ["isoWeek"] = isoWeek.ToString(),
+                        ["projectName"] = assignment.ProjectName,
+                        ["isoYear"] = week.IsoYear.ToString(),
+                        ["isoWeek"] = week.IsoWeek.ToString(),
                     },
                     cancellationToken: cancellationToken);
 

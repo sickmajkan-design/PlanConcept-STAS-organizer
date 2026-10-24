@@ -32,6 +32,9 @@ public record WeeklySiteReportDto
 
     public DateTime? ProcessedAt { get; init; }
 
+    /// <summary>Why the report was sent back, while it waits for a new one.</summary>
+    public string? ReviewNote { get; init; }
+
     public string? ProcessedByEmail { get; init; }
 
     public DateTime CreatedAt { get; init; }
@@ -55,6 +58,7 @@ public static class WeeklySiteReportMapping
             FileName = r.FileName,
             Status = r.Status,
             ProcessedAt = r.ProcessedAt,
+            ReviewNote = r.ReviewNote,
             ProcessedByEmail = r.ProcessedByUser != null ? r.ProcessedByUser.Email : null,
             CreatedAt = r.CreatedAt,
         };

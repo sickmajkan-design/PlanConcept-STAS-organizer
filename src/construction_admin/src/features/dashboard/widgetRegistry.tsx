@@ -17,6 +17,7 @@ import { ActiveProjectsWidget } from './widgets/ActiveProjectsWidget';
 import { BranchOverviewWidget } from './widgets/BranchOverviewWidget';
 import { CompanyKpiWidget } from './widgets/CompanyKpiWidget';
 import { DocumentExpiryWidget } from './widgets/DocumentExpiryWidget';
+import { WeeklyReportsWidget } from './widgets/WeeklyReportsWidget';
 import { FinanceWidget } from './widgets/FinanceWidget';
 import { FleetStatusWidget } from './widgets/FleetStatusWidget';
 import { IncomeVsExpenseWidget } from './widgets/IncomeVsExpenseWidget';
@@ -158,6 +159,14 @@ export const widgetRegistry: Record<DashboardWidgetType, WidgetRegistryEntry> = 
     help: 'widgeti-ljudi',
     fit: true,
     // Answering a request is the API's AdminAndAbove.
+    allowed: canReviewAbsences,
+  },
+  WeeklyReports: {
+    component: WeeklyReportsWidget,
+    titleKey: 'dashboard.widget.WeeklyReports',
+    help: 'widgeti-ljudi',
+    fit: true,
+    // Reviewing a report is the API's AdminAndAbove.
     allowed: canReviewAbsences,
   },
   ActiveProjects: {

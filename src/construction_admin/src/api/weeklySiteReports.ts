@@ -7,6 +7,7 @@ import type {
   WeeklyReportType,
   WeeklySiteReport,
   WeeklySiteReportListQuery,
+  WeeklySiteReportsSummary,
 } from './types';
 
 export interface CreateWeeklySiteReportInput {
@@ -55,8 +56,18 @@ export const weeklySiteReportsApi = {
     });
   },
 
-  markProcessed: (id: string) =>
-    request<void>({ method: 'POST', url: `/api/v1/weeklysitereports/${id}/mark-processed` }),
+  summary: () =>
+    request<WeeklySiteReportsSummary>({ method: 'GET', url: '/api/v1/weeklysitereports/summary' }),
+
+  approve: (id: string) =>
+    request<void>({ method: 'POST', url: `/api/v1/weeklysitereports/${id}/approve` }),
+
+  requestCorrection: (id: string, note: string) =>
+    request<void>({
+      method: 'POST',
+      url: `/api/v1/weeklysitereports/${id}/request-correction`,
+      data: { note },
+    }),
 
   /** The proof document's bytes, for opening/downloading — the endpoint needs a bearer token, so a plain link cannot reach it. */
   blob: async (id: string): Promise<Blob> => {

@@ -37,6 +37,13 @@ public class DailyReminderService : BackgroundService
     private static readonly TimeSpan Interval = TimeSpan.FromHours(24);
 
     /// <summary>
+    /// How often the weekly-report reminder looks. It is due on a Tuesday morning, which a sweep that runs once
+    /// every 24 hours from whenever the server last started cannot promise; the hourly look finds the claim of an
+    /// earlier one already taken and sends nothing twice.
+    /// </summary>
+    private static readonly TimeSpan WeeklyReportInterval = TimeSpan.FromHours(1);
+
+    /// <summary>
     /// Delay before the first sweep, so startup is not competing with
     /// migrations and the first requests for a connection.
     /// </summary>
@@ -62,18 +69,57 @@ public class DailyReminderService : BackgroundService
         {
             await Task.Delay(StartupDelay, stoppingToken);
 
-            using var timer = new PeriodicTimer(Interval);
-
-            do
-            {
-                await RunOnceAsync(stoppingToken);
-            }
-            while (await timer.WaitForNextTickAsync(stoppingToken));
+            await Task.WhenAll(RunDailyAsync(stoppingToken), RunWeeklyReportRemindersAsync(stoppingToken));
         }
         catch (OperationCanceledException)
         {
             // Shutdown, not a failure.
         }
+    }
+
+    private async Task RunDailyAsync(CancellationToken stoppingToken)
+    {
+        using var timer = new PeriodicTimer(Interval);
+
+        do
+        {
+            await RunOnceAsync(stoppingToken);
+        }
+        while (await timer.WaitForNextTickAsync(stoppingToken));
+    }
+
+    private async Task RunWeeklyReportRemindersAsync(CancellationToken stoppingToken)
+    {
+        using var timer = new PeriodicTimer(WeeklyReportInterval);
+
+        do
+        {
+            try
+            {
+                using var scope = _scopeFactory.CreateScope();
+
+                var mediator = scope.ServiceProvider.GetRequiredService<ISender>();
+
+                var sent = await mediator.Send(new SendWeeklyReportRemindersCommand(), stoppingToken);
+
+                _metrics.RemindersSent("weekly-report-due", sent);
+
+                if (sent > 0)
+                {
+                    _logger.LogInformation("Sent {Count} weekly-report reminder(s).", sent);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception exception)
+            {
+                _metrics.JobFailed("weekly-report-reminders");
+                _logger.LogError(exception, "The weekly-report reminder sweep failed; the next hour will retry it.");
+            }
+        }
+        while (await timer.WaitForNextTickAsync(stoppingToken));
     }
 
     private async Task RunOnceAsync(CancellationToken cancellationToken)
@@ -192,16 +238,6 @@ public class DailyReminderService : BackgroundService
                     "Queued {Count} scheduled report(s).", reports);
             }
 
-            var weeklyReportReminders = await mediator.Send(
-                new SendWeeklyReportRemindersCommand(), cancellationToken);
-
-            _metrics.RemindersSent("weekly-report-due", weeklyReportReminders);
-
-            if (weeklyReportReminders > 0)
-            {
-                _logger.LogInformation(
-                    "Sent {Count} weekly-report reminder(s).", weeklyReportReminders);
-            }
         }
         catch (OperationCanceledException)
         {

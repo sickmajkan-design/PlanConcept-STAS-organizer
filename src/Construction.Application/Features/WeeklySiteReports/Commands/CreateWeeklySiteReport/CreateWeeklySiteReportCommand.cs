@@ -89,17 +89,20 @@ public class CreateWeeklySiteReportCommandHandler
     private readonly ICurrentUserService _currentUserService;
     private readonly IFileStorage _storage;
     private readonly IOutbox _outbox;
+    private readonly INotificationService _notifications;
 
     public CreateWeeklySiteReportCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
         IFileStorage storage,
-        IOutbox outbox)
+        IOutbox outbox,
+        INotificationService notifications)
     {
         _context = context;
         _currentUserService = currentUserService;
         _storage = storage;
         _outbox = outbox;
+        _notifications = notifications;
     }
 
     public async Task<WeeklySiteReportDto> Handle(
@@ -166,29 +169,48 @@ public class CreateWeeklySiteReportCommandHandler
         var contentType = AttachmentRules.ResolveContentType(fileName)
             ?? throw new ConflictException("That file type is not accepted.");
 
-        var report = new WeeklySiteReport
+        // A report the office sent back is answered by sending it again: the same row takes the new file, so the
+        // site and week have one report to look at, not a rejected one and a new one side by side.
+        var resent = await _context.WeeklySiteReports
+            .FirstOrDefaultAsync(
+                r => r.ProjectId == request.ProjectId
+                    && r.IsoYear == request.IsoYear
+                    && r.IsoWeek == request.IsoWeek
+                    && r.Status == WeeklyReportStatus.CorrectionRequested,
+                cancellationToken);
+
+        var previousStorageKey = resent?.StorageKey;
+        var report = resent ?? new WeeklySiteReport
         {
             Id = Guid.NewGuid(),
             ProjectId = request.ProjectId,
-            SubmittedByEmployeeId = employeeId.Value,
             IsoYear = request.IsoYear,
             IsoWeek = request.IsoWeek,
-            Type = request.Type,
-            Quantity = request.Type == WeeklyReportType.SignedHours ? request.Quantity : null,
-            Note = request.Note?.Trim(),
-            FileName = fileName,
-            ContentType = contentType,
-            SizeBytes = request.SizeBytes,
         };
 
+        report.SubmittedByEmployeeId = employeeId.Value;
+        report.Type = request.Type;
+        report.Quantity = request.Type == WeeklyReportType.SignedHours ? request.Quantity : null;
+        report.Note = request.Note?.Trim();
+        report.FileName = fileName;
+        report.ContentType = contentType;
+        report.SizeBytes = request.SizeBytes;
+        report.Status = WeeklyReportStatus.Submitted;
+        report.ProcessedAt = null;
+        report.ProcessedByUserId = null;
+        report.ReviewNote = null;
+
         report.StorageKey =
-            $"weekly-site-reports/{report.ProjectId:N}/{report.Id:N}{Path.GetExtension(fileName)}";
+            $"weekly-site-reports/{report.ProjectId:N}/{Guid.NewGuid():N}{Path.GetExtension(fileName)}";
 
         await _storage.SaveAsync(report.StorageKey, request.Content, contentType, cancellationToken);
 
         try
         {
-            _context.WeeklySiteReports.Add(report);
+            if (resent is null)
+            {
+                _context.WeeklySiteReports.Add(report);
+            }
 
             var forwardTo = await _context.CompanySettings
                 .Select(c => c.WeeklyReportsForwardEmail)
@@ -223,10 +245,26 @@ public class CreateWeeklySiteReportCommandHandler
             throw;
         }
 
-        return await _context.WeeklySiteReports
+        if (previousStorageKey is not null && previousStorageKey != report.StorageKey)
+        {
+            await _storage.DeleteAsync(previousStorageKey, CancellationToken.None);
+        }
+
+        var created = await _context.WeeklySiteReports
             .AsNoTracking()
             .Where(r => r.Id == report.Id)
             .Select(WeeklySiteReportMapping.Projection)
             .FirstAsync(cancellationToken);
+
+        await WeeklyReportNotices.ToOfficeAsync(
+            _context,
+            _notifications,
+            report,
+            created.ProjectName,
+            created.SubmittedByEmployeeName,
+            _currentUserService.UserId,
+            cancellationToken);
+
+        return created;
     }
 }

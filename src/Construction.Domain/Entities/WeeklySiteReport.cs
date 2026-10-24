@@ -69,4 +69,7 @@ public class WeeklySiteReport : BaseEntity, IAuditable
     public Guid? ProcessedByUserId { get; set; }
 
     public User? ProcessedByUser { get; set; }
+
+    /// <summary>Why the report was sent back. Cleared when the report is sent again or approved.</summary>
+    public string? ReviewNote { get; set; }
 }

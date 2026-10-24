@@ -30,9 +30,28 @@ export function useCreateWeeklySiteReport() {
   );
 }
 
-export function useMarkWeeklySiteReportProcessed() {
+export function useApproveWeeklySiteReport() {
   return useResourceMutation(
-    (id: string) => weeklySiteReportsApi.markProcessed(id),
-    [weeklySiteReportKeys.all],
+    (id: string) => weeklySiteReportsApi.approve(id),
+    [weeklySiteReportKeys.all, WEEKLY_SUMMARY_KEY],
   );
+}
+
+export function useRequestWeeklySiteReportCorrection() {
+  return useResourceMutation(
+    (input: { id: string; note: string }) => weeklySiteReportsApi.requestCorrection(input.id, input.note),
+    [weeklySiteReportKeys.all, WEEKLY_SUMMARY_KEY],
+  );
+}
+
+const WEEKLY_SUMMARY_KEY = ['weeklySiteReports', 'summary'] as const;
+
+/** What waits for the office: for the page's chips and the home page widget. */
+export function useWeeklySiteReportsSummaryQuery(enabled = true) {
+  return useQuery({
+    queryKey: WEEKLY_SUMMARY_KEY,
+    queryFn: () => weeklySiteReportsApi.summary(),
+    enabled,
+    staleTime: 30_000,
+  });
 }

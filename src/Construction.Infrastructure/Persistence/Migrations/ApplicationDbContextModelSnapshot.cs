@@ -5076,6 +5076,10 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("numeric(10,2)");
 
+                    b.Property<string>("ReviewNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
                     b.Property<long>("SizeBytes")
                         .HasColumnType("bigint");
 
