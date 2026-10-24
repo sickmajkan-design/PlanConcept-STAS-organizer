@@ -18,6 +18,8 @@ public interface INotificationService
         bool requiresAcknowledgment = false,
         CancellationToken cancellationToken = default);
 
+    /// <param name="broadcastId">The announcement the rows belong to, when this is one.</param>
+    /// <param name="isReminder">The rows repeat an announcement for those who had not read it.</param>
     /// <returns>The number of recipients that were persisted.</returns>
     Task<int> NotifyUsersAsync(
         IReadOnlyCollection<Guid> userIds,
@@ -26,5 +28,7 @@ public interface INotificationService
         string body,
         IReadOnlyDictionary<string, string>? data = null,
         bool requiresAcknowledgment = false,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        Guid? broadcastId = null,
+        bool isReminder = false);
 }

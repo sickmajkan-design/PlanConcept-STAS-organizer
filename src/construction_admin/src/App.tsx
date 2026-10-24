@@ -351,6 +351,15 @@ const NotificationsPage = lazy(() =>
     default: m.NotificationsPage,
   })),
 );
+const NewAnnouncementPage = lazy(() =>
+  import('./pages/notifications/NewAnnouncementPage').then((m) => ({ default: m.NewAnnouncementPage })),
+);
+const BroadcastsListPage = lazy(() =>
+  import('./pages/notifications/BroadcastsListPage').then((m) => ({ default: m.BroadcastsListPage })),
+);
+const BroadcastDetailPage = lazy(() =>
+  import('./pages/notifications/BroadcastDetailPage').then((m) => ({ default: m.BroadcastDetailPage })),
+);
 const BulletinPage = lazy(() =>
   import('./pages/bulletin/BulletinPage').then((m) => ({ default: m.BulletinPage })),
 );
@@ -560,6 +569,9 @@ function Layout() {
               <Route path={paths.users} element={<UsersListPage />} />
               <Route path={paths.userNew} element={<UserFormPage />} />
               <Route path={`${paths.users}/:id/edit`} element={<UserFormPage />} />
+              <Route path={paths.notificationsNew} element={<NewAnnouncementPage />} />
+              <Route path={paths.notificationsSent} element={<BroadcastsListPage />} />
+              <Route path={`${paths.notificationsSent}/:id`} element={<BroadcastDetailPage />} />
               <Route path={paths.notificationGroups} element={<NotificationGroupsListPage />} />
               <Route path={paths.notificationGroupNew} element={<NotificationGroupFormPage />} />
               <Route

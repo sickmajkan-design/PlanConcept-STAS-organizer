@@ -8,7 +8,6 @@ import {
   ListItemButton,
   Pagination,
   Paper,
-  Snackbar,
   Stack,
   Switch,
   Typography,
@@ -33,9 +32,9 @@ import { resolveNotificationTarget } from '../../features/notifications/notifica
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { resolveNotificationText } from '../../features/notifications/notificationText';
 import { useT } from '../../i18n/useI18n';
+import { paths } from '../../routes/paths';
 import { useFormatRelative } from '../../i18n/useFormatRelative';
 import { useOpenOnParam } from '../../hooks/useOpenOnParam';
-import { AnnounceDialog } from './AnnounceDialog';
 
 const PAGE_SIZE = 20;
 
@@ -55,9 +54,7 @@ export function NotificationsPage() {
 
   const [page, setPage] = useState(1);
   const [unreadOnly, setUnreadOnly] = useState(false);
-  const [announcing, setAnnouncing] = useState(false);
-  useOpenOnParam('compose', () => setAnnouncing(true));
-  const [sentTo, setSentTo] = useState<number | null>(null);
+  useOpenOnParam('compose', () => navigate(paths.notificationsNew));
 
   const query: NotificationListQuery = useMemo(
     () => ({ pageNumber: page, pageSize: PAGE_SIZE, unreadOnly }),
@@ -96,9 +93,14 @@ export function NotificationsPage() {
             ? {
                 label: t('notifications.announce'),
                 icon: <CampaignOutlined />,
-                onClick: () => setAnnouncing(true),
+                onClick: () => navigate(paths.notificationsNew),
               }
             : undefined
+        }
+        secondaryActions={
+          canAdministerAccounts(user) ? (
+            <Button onClick={() => navigate(paths.notificationsSent)}>{t('notifications.sentTitle')}</Button>
+          ) : undefined
         }
       />
 
@@ -203,22 +205,6 @@ export function NotificationsPage() {
           />
         </Stack>
       )}
-
-      <AnnounceDialog
-        open={announcing}
-        onClose={() => setAnnouncing(false)}
-        onSent={setSentTo}
-      />
-
-      {/* The recipient count is the only confirmation there is that the
-          audience filter did what was meant — a message sent to nobody looks
-          exactly like one sent to everybody otherwise. */}
-      <Snackbar
-        open={sentTo !== null}
-        autoHideDuration={6000}
-        onClose={() => setSentTo(null)}
-        message={t('notifications.sentTo', { count: sentTo ?? 0 })}
-      />
     </Box>
   );
 }

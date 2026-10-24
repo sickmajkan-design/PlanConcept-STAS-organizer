@@ -3257,6 +3257,9 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("character varying(4000)");
 
+                    b.Property<Guid?>("BroadcastId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -3264,6 +3267,9 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         .HasColumnType("jsonb");
 
                     b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsReminder")
                         .HasColumnType("boolean");
 
                     b.Property<DateTime?>("ReadAt")
@@ -3286,13 +3292,69 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Via")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("BroadcastId");
 
                     b.HasIndex("CreatedAt");
 
                     b.HasIndex("UserId", "IsRead");
 
                     b.ToTable("notifications", (string)null);
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.NotificationBroadcast", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AudienceJson")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("LastReminderAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("RecipientCount")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("RequiresAcknowledgment")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid?>("SentByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("WithoutAccountCount")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("SentByUserId");
+
+                    b.ToTable("notification_broadcasts", (string)null);
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.NotificationGroup", b =>
@@ -6335,13 +6397,30 @@ namespace Construction.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Construction.Domain.Entities.Notification", b =>
                 {
+                    b.HasOne("Construction.Domain.Entities.NotificationBroadcast", "Broadcast")
+                        .WithMany()
+                        .HasForeignKey("BroadcastId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("Construction.Domain.Entities.User", "User")
                         .WithMany("Notifications")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Broadcast");
+
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.NotificationBroadcast", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.User", "SentByUser")
+                        .WithMany()
+                        .HasForeignKey("SentByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("SentByUser");
                 });
 
             modelBuilder.Entity("Construction.Domain.Entities.NotificationGroupMember", b =>

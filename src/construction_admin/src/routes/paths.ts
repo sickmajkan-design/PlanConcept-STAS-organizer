@@ -109,6 +109,9 @@ export const paths = {
   weeklyReports: '/weekly-reports',
 
   notifications: '/notifications',
+  notificationsNew: '/notifications/new',
+  notificationsSent: '/notifications/sent',
+  notificationBroadcast: (id: string) => `/notifications/sent/${id}`,
   notificationGroups: '/notification-groups',
   /** Legacy addresses, kept so old bookmarks and links land on the merged page. */
   branches: '/branches',

@@ -1,10 +1,15 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import {
   notificationsApi,
   type NotificationListQuery,
 } from '../../api/notifications';
-import type { AnnouncementInput } from '../../api/types';
+import type {
+  AnnouncementInput,
+  AudienceTarget,
+  BroadcastListQuery,
+  SendBroadcastInput,
+} from '../../api/types';
 import { createResourceKeys, useResourceList, useResourceMutation } from '../resourceQueries';
 
 export const notificationKeys = createResourceKeys<NotificationListQuery>('notifications');
@@ -71,4 +76,43 @@ export function useSendAnnouncement() {
     (input: AnnouncementInput) => notificationsApi.announce(input),
     inboxCaches,
   );
+}
+
+const broadcastsKey = ['notifications', 'broadcasts'] as const;
+
+/** Who the chosen targets would reach; asked again as the choices change, the last answer shown meanwhile. */
+export function useAudiencePreviewQuery(targets: AudienceTarget[]) {
+  return useQuery({
+    queryKey: ['notifications', 'audience-preview', targets],
+    queryFn: () => notificationsApi.previewAudience(targets),
+    enabled: targets.length > 0,
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useSendBroadcast() {
+  return useResourceMutation((input: SendBroadcastInput) => notificationsApi.sendBroadcast(input), [broadcastsKey]);
+}
+
+/** The sent announcements, newest first. */
+export function useBroadcastsQuery(query: BroadcastListQuery) {
+  return useQuery({
+    queryKey: [...broadcastsKey, 'list', query],
+    queryFn: () => notificationsApi.broadcasts(query),
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useBroadcastQuery(id: string | undefined) {
+  return useQuery({
+    queryKey: [...broadcastsKey, 'detail', id],
+    queryFn: () => notificationsApi.broadcast(id!),
+    enabled: !!id,
+    // Reading happens while the page is open: people read it, the numbers move.
+    refetchInterval: 30_000,
+  });
+}
+
+export function useRemindBroadcast() {
+  return useResourceMutation((id: string) => notificationsApi.remind(id), [broadcastsKey]);
 }

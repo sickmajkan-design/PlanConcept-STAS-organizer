@@ -6,6 +6,7 @@ import {
   DeleteOutlined,
   EditOutlined,
   FolderOutlined,
+  CampaignOutlined,
 } from '@mui/icons-material';
 import {
   Alert,
@@ -165,6 +166,15 @@ export function EmployeeDetailPage() {
                   onClick={() => navigate(`${paths.documentRequests}?new=1&employeeId=${employee.id}`)}
                 >
                   {t('docRequests.employeeButton')}
+                </Button>
+              )}
+              {canAdministerAccounts(user) && employee.hasUserAccount && (
+                <Button
+                  variant="outlined"
+                  startIcon={<CampaignOutlined />}
+                  onClick={() => navigate(`${paths.notificationsNew}?employee=${employee.id}`)}
+                >
+                  {t('employees.sendMessage')}
                 </Button>
               )}
               <Button

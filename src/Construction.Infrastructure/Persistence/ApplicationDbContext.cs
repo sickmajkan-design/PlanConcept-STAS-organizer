@@ -176,6 +176,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
 
     public DbSet<ScheduledReportSubscription> ScheduledReportSubscriptions => Set<ScheduledReportSubscription>();
 
+    public DbSet<NotificationBroadcast> NotificationBroadcasts => Set<NotificationBroadcast>();
+
     public DbSet<WeeklySiteReport> WeeklySiteReports => Set<WeeklySiteReport>();
 
     public DbSet<WeeklySiteReportPage> WeeklySiteReportPages => Set<WeeklySiteReportPage>();

@@ -171,6 +171,8 @@ public interface IApplicationDbContext
 
     DbSet<ScheduledReportSubscription> ScheduledReportSubscriptions { get; }
 
+    DbSet<NotificationBroadcast> NotificationBroadcasts { get; }
+
     DbSet<WeeklySiteReport> WeeklySiteReports { get; }
 
     DbSet<WeeklySiteReportPage> WeeklySiteReportPages { get; }

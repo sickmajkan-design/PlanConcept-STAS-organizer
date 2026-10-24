@@ -41,7 +41,9 @@ public class NotificationService : INotificationService
         string body,
         IReadOnlyDictionary<string, string>? data = null,
         bool requiresAcknowledgment = false,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        Guid? broadcastId = null,
+        bool isReminder = false)
     {
         if (userIds.Count == 0)
         {
@@ -64,7 +66,9 @@ public class NotificationService : INotificationService
                     Title = title,
                     Body = body,
                     DataJson = dataJson,
-                    RequiresAcknowledgment = requiresAcknowledgment
+                    RequiresAcknowledgment = requiresAcknowledgment,
+                    BroadcastId = broadcastId,
+                    IsReminder = isReminder
                 });
             }
 

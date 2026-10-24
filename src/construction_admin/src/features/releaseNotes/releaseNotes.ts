@@ -1,5 +1,5 @@
 import type { User } from '../../api/types';
-import { canViewDirectory } from '../../auth/authHelpers';
+import { canAdministerAccounts, canViewDirectory } from '../../auth/authHelpers';
 import type { MessageKey } from '../../i18n/en';
 
 /**
@@ -11,7 +11,7 @@ import type { MessageKey } from '../../i18n/en';
  * what changed recently, not a changelog: when a release is added, drop the
  * sections older than the fifth (and their `releaseNotes.*` keys in i18n).
  */
-export const RELEASE_ID = '2026-10-24.32';
+export const RELEASE_ID = '2026-10-24.33';
 
 /** The day of the release, `YYYY-MM-DD`, read from {@link RELEASE_ID}. */
 export const RELEASE_DATE = RELEASE_ID.slice(0, 10);
@@ -25,6 +25,12 @@ export interface ReleaseSection {
 }
 
 export const releaseSections: ReleaseSection[] = [
+  {
+    id: 'notices1024',
+    titleKey: 'releaseNotes.notices1024.title',
+    itemKeys: ['releaseNotes.notices1024.audience', 'releaseNotes.notices1024.sent', 'releaseNotes.notices1024.read', 'releaseNotes.notices1024.remind'],
+    audience: (user) => canAdministerAccounts(user),
+  },
   {
     id: 'android1024',
     titleKey: 'releaseNotes.android1024.title',
@@ -47,12 +53,6 @@ export const releaseSections: ReleaseSection[] = [
     id: 'weekly1024',
     titleKey: 'releaseNotes.weekly1024.title',
     itemKeys: ['releaseNotes.weekly1024.review', 'releaseNotes.weekly1024.approve', 'releaseNotes.weekly1024.late', 'releaseNotes.weekly1024.notice', 'releaseNotes.weekly1024.ledger'],
-    audience: (user) => canViewDirectory(user),
-  },
-  {
-    id: 'sheet1024',
-    titleKey: 'releaseNotes.sheet1024.title',
-    itemKeys: ['releaseNotes.sheet1024.width', 'releaseNotes.sheet1024.weeks'],
     audience: (user) => canViewDirectory(user),
   },
 ];

@@ -37,6 +37,7 @@ public class MaintenanceTests : IntegrationTestBase
             PasswordResetTokenGrace = TimeSpan.FromDays(3_650),
             LocationRecordRetention = locations ?? TimeSpan.FromDays(3_650),
             SentOutboxMessageRetention = TimeSpan.FromDays(3_650),
+            BroadcastRetention = TimeSpan.FromDays(3_650),
             BatchSize = batchSize,
             MaxBatchesPerTable = maxBatches,
         };
@@ -682,5 +683,47 @@ public class MaintenanceTests : IntegrationTestBase
             .SingleAsync(t => t.EmployeeId == employee.Id));
 
         Assert.Equal(45.11, entry.StartLatitude!.Value, 2);
+    }
+
+    [Fact]
+    public async Task The_record_of_a_sent_announcement_goes_after_a_year_and_the_inbox_rows_stay()
+    {
+        var user = await InScope(scope => TestData.SeedUserAsync(scope, UserRole.Worker));
+        var title = $"Staro {Guid.NewGuid():N}";
+
+        var (oldId, freshId) = await InScope(async scope =>
+        {
+            var old = new NotificationBroadcast { Title = title, Body = "x", RecipientCount = 1, CreatedAt = DateTime.UtcNow.AddDays(-400) };
+            var fresh = new NotificationBroadcast { Title = title + " novo", Body = "x", RecipientCount = 1 };
+            scope.Db.NotificationBroadcasts.AddRange(old, fresh);
+            await scope.Db.SaveChangesAsync();
+
+            scope.Db.Notifications.Add(new Notification
+            {
+                UserId = user.Id,
+                Type = NotificationType.GeneralAnnouncement,
+                Title = title,
+                Body = "x",
+                BroadcastId = old.Id,
+            });
+            await scope.Db.SaveChangesAsync();
+
+            // The audit stamp sets the time on insert; the age is written after.
+            await scope.Db.NotificationBroadcasts
+                .Where(b => b.Id == old.Id)
+                .ExecuteUpdateAsync(s => s.SetProperty(b => b.CreatedAt, DateTime.UtcNow.AddDays(-400)));
+
+            return (old.Id, fresh.Id);
+        });
+
+        var result = await InScope(scope => scope.Send(Sweep() with { BroadcastRetention = TimeSpan.FromDays(365) }));
+
+        Assert.True(result.Broadcasts >= 1);
+        Assert.False(await InScope(scope => scope.Db.NotificationBroadcasts.AnyAsync(b => b.Id == oldId)));
+        Assert.True(await InScope(scope => scope.Db.NotificationBroadcasts.AnyAsync(b => b.Id == freshId)));
+
+        // The person's own inbox row stays, no longer linked to the record that is gone.
+        var row = await InScope(scope => scope.Db.Notifications.SingleAsync(n => n.UserId == user.Id && n.Title == title));
+        Assert.Null(row.BroadcastId);
     }
 }

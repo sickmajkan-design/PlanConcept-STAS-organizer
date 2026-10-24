@@ -33,9 +33,12 @@ public record PurgeResult(
     /// <summary>Refused sign-in attempts removed once past their retention window.</summary>
     public int FailedLogins { get; init; }
 
+    /// <summary>Records of sent announcements removed once past their retention window.</summary>
+    public int Broadcasts { get; init; }
+
     public int Total =>
         RefreshTokens + PasswordResetTokens + LocationRecords + OutboxMessages
-        + AuditEntries + TimeEntryCoordinates + IdempotencyRecords + UserSessions + FailedLogins;
+        + AuditEntries + TimeEntryCoordinates + IdempotencyRecords + UserSessions + FailedLogins + Broadcasts;
 }
 
 /// <summary>
@@ -117,6 +120,12 @@ public record PurgeExpiredDataCommand : IRequest<PurgeResult>
     /// Null keeps them forever.
     /// </summary>
     public TimeSpan? UserSessionRetention { get; init; } = TimeSpan.FromDays(30);
+
+    /// <summary>
+    /// How long the record of a sent announcement (what was said, to whom, who read it) is kept. The inbox rows of the
+    /// people it reached stay with them. Null keeps the records forever.
+    /// </summary>
+    public TimeSpan? BroadcastRetention { get; init; } = TimeSpan.FromDays(365);
 
     /// <summary>How long a refused sign-in attempt is kept. Null keeps them forever.</summary>
     public TimeSpan? FailedLoginRetention { get; init; } = TimeSpan.FromDays(30);
@@ -351,6 +360,16 @@ public class PurgeExpiredDataCommandHandler
                 cancellationToken);
         }
 
+        var broadcasts = 0;
+
+        if (request.BroadcastRetention is { } broadcastRetention)
+        {
+            broadcasts = await DeleteInBatchesAsync(
+                _context.NotificationBroadcasts.Where(b => b.CreatedAt < utcNow - broadcastRetention),
+                request,
+                cancellationToken);
+        }
+
         // The report of a spreadsheet import holds people's names; the import itself stays as a record.
         await _context.BookImportBatches
             .Where(b => b.ReportJson != null && b.CreatedAt < utcNow - TimeSpan.FromDays(180))
@@ -362,6 +381,7 @@ public class PurgeExpiredDataCommandHandler
             LocationPartitionsDropped = partitionsDropped,
             UserSessions = sessions,
             FailedLogins = failedLogins,
+            Broadcasts = broadcasts,
         };
     }
 

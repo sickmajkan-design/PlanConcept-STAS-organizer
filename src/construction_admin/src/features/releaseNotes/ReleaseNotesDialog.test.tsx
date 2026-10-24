@@ -55,7 +55,7 @@ describe('ReleaseNotesDialog', () => {
   it('tells an administrator about everything meant for administrators', async () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('SuperAdmin') });
 
-    await screen.findByText('Ledger: the month sheet without scrolling');
+    await screen.findByText('Weekly reports: workers, several pictures, entry in the Ledger');
     expect(screen.getByText('Weekly reports: review and approval')).toBeDefined();
     expect(screen.getByText('Weekly reports: review and approval')).toBeDefined();
   }, SCREEN_TIMEOUT);

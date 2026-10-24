@@ -541,6 +541,58 @@ export const helpTopics: HelpTopic[] = [
     },
   },
   {
+    id: 'obavjestenja',
+    group: 'work',
+    path: paths.notificationsNew,
+    audience: office,
+    content: {
+      sr: {
+        title: 'Obavještenja: slanje i ko je pročitao',
+        summary:
+          'Pošaljite poruku radniku, grupi, ekipi gradilišta, poslovnoj jedinici, ulozi ili svima, i pratite ko ju je pročitao i potvrdio.',
+        steps: [
+          'Otvorite zvonce, pa Novo obavještenje. Upišite naslov i poruku.',
+          'U Kome šaljem dodajte primaoce: Radnik (po imenu), Grupa, Projekat (ekipa koja je sada na gradilištu), Jedinica, Uloga ili Svi. Možete dodati više izvora; svaka osoba dobija obavještenje jednom.',
+          'Desno se uživo vidi ko će ga dobiti i preko kog izvora. Osobe bez korisničkog naloga su označene i ne mogu primiti obavještenje.',
+          'Uključite Traži potvrdu ako primalac mora potvrditi da je pročitao (ne može ništa drugo u aplikaciji dok ne potvrdi), pa Pošalji.',
+          'Poslana obavještenja (zvonce > Poslana obavještenja) pokazuju šta je poslato, kome, i traku pročitalo i potvrdilo. Klik na red pokazuje po osobi: isporuka (push ili samo zvonce), kada je pročitao i kada potvrdio.',
+          'Podsjeti šalje ponovo samo onima koji nisu pročitali (ili nisu potvrdili), najviše jednom dnevno.',
+          'Poruku jednoj osobi šaljete i sa njenog kartona: dugme Pošalji poruku.',
+        ],
+        example:
+          'Sutra je sastanak u 6:30 na Hali B. Izaberete Projekat: Hala B i Radnik: Igor P. (koji je na pozajmici), uključite Traži potvrdu i pošaljete. Navečer u pregledu vidite da su 4 od 5 pročitala, a jedan nije; kliknete Podsjeti i podsjetnik ide samo njemu.',
+        tips: [
+          'Svi traži potvrdu prije slanja, jer se slanje ne može povući.',
+          'Izvor Projekat uzima ljude koji su na gradilištu danas, a Jedinica ljude koje jedinica trenutno zapošljava.',
+          'Zapis poslanog obavještenja se čuva 12 mjeseci; obavještenja u sandučetu osobe ostaju.',
+        ],
+        keywords: ['obavještenje', 'poruka', 'poslano', 'pročitao', 'potvrda', 'podsjetnik', 'grupa', 'projekat', 'svi', 'zvonce'],
+      },
+      en: {
+        title: 'Announcements: sending and who has read',
+        summary:
+          'Send a message to a worker, a group, a site crew, a business unit, a role or everyone, and see who has read and confirmed it.',
+        steps: [
+          'Open the bell, then New announcement. Enter a title and a message.',
+          'Under Who it is for add recipients: Worker (by name), Group, Project (the crew on the site now), Unit, Role or Everyone. You can add several sources; each person gets the announcement once.',
+          'On the right you see live who will get it and through which source. People without a user account are marked and cannot receive it.',
+          'Switch on Ask for confirmation if the recipient has to confirm they read it (they cannot do anything else in the app until they do), then Send.',
+          'Sent announcements (bell > Sent announcements) shows what was sent, to whom, and a bar for read and confirmed. A click on a row shows per person: delivery (push or bell only), when it was read and when confirmed.',
+          'Remind sends it again only to those who have not read (or not confirmed), at most once a day.',
+          'A message to one person can also be sent from their card: the Send a message button.',
+        ],
+        example:
+          'Tomorrow there is a meeting at 6:30 on Hall B. You choose Project: Hall B and Worker: Igor P. (who is on loan), switch on Ask for confirmation and send. In the evening you see 4 of 5 have read it and one has not; you click Remind and the reminder goes only to him.',
+        tips: [
+          'Everyone asks for confirmation before sending, because a sending cannot be taken back.',
+          'The Project source takes the people who are on the site today, and Unit the people the unit employs now.',
+          'The record of a sent announcement is kept for 12 months; the notices in a person\'s inbox stay.',
+        ],
+        keywords: ['announcement', 'message', 'sent', 'read', 'confirm', 'reminder', 'group', 'project', 'everyone', 'bell'],
+      },
+    },
+  },
+  {
     id: 'raspored',
     group: 'work',
     path: paths.schedule,

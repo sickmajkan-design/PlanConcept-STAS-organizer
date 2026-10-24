@@ -2930,3 +2930,101 @@ export interface RefundInput {
   description: string;
   projectId?: string | null;
 }
+
+/** What one choice of the audience of an announcement stands for. */
+export type AudienceKind = 'Everyone' | 'Employee' | 'Group' | 'Project' | 'Branch' | 'Role';
+
+/** One choice of the audience; several are summed and each person is counted once. */
+export interface AudienceTarget {
+  kind: AudienceKind;
+  /** The employee, group, project or business unit chosen. */
+  id?: string | null;
+  /** For `Role`: the role. */
+  role?: Role | null;
+}
+
+/** A choice as it is shown: its name and how many people it stands for. */
+export interface AudienceChip extends AudienceTarget {
+  label: string;
+  count: number;
+}
+
+export interface AudiencePerson {
+  employeeId: string | null;
+  userId: string | null;
+  name: string;
+  role: string;
+  /** Without an account nothing can be sent to the person. */
+  hasAccount: boolean;
+  /** The choices that reach the person. */
+  via: string[];
+}
+
+export interface AudiencePreview {
+  people: AudiencePerson[];
+  chips: AudienceChip[];
+  total: number;
+  reachable: number;
+  withoutAccount: number;
+}
+
+export interface SendBroadcastInput {
+  title: string;
+  body: string;
+  targets: AudienceTarget[];
+  requiresAcknowledgment: boolean;
+}
+
+export interface SendBroadcastResult {
+  broadcastId: string;
+  recipients: number;
+  withoutAccount: number;
+}
+
+export interface BroadcastListItem {
+  id: string;
+  title: string;
+  preview: string;
+  audience: AudienceChip[];
+  sentAt: string;
+  sentBy: string | null;
+  requiresAcknowledgment: boolean;
+  recipients: number;
+  read: number;
+  acknowledged: number;
+}
+
+export interface BroadcastListQuery {
+  pageNumber: number;
+  pageSize: number;
+  search?: string;
+  requiresAcknowledgment?: boolean;
+  notAllRead?: boolean;
+}
+
+export interface BroadcastRecipient {
+  userId: string;
+  name: string;
+  role: string;
+  /** Through which choice of the audience the person was reached. */
+  via: string | null;
+  /** Whether a phone is registered for push; without one the notice is only in the bell. */
+  hasDevice: boolean;
+  isRead: boolean;
+  readAt: string | null;
+  acknowledgedAt: string | null;
+  reminders: number;
+}
+
+export interface BroadcastDetail {
+  id: string;
+  title: string;
+  body: string;
+  audience: AudienceChip[];
+  sentAt: string;
+  sentBy: string | null;
+  requiresAcknowledgment: boolean;
+  withoutAccount: number;
+  lastReminderAt: string | null;
+  recipients: BroadcastRecipient[];
+}

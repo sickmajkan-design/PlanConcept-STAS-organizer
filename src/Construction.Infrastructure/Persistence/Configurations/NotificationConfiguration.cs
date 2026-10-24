@@ -28,6 +28,14 @@ public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
             .HasForeignKey(n => n.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.Property(n => n.Via).HasMaxLength(300);
+
+        builder.HasOne(n => n.Broadcast)
+            .WithMany()
+            .HasForeignKey(n => n.BroadcastId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasIndex(n => n.BroadcastId);
         builder.HasIndex(n => new { n.UserId, n.IsRead });
         builder.HasIndex(n => n.CreatedAt);
     }

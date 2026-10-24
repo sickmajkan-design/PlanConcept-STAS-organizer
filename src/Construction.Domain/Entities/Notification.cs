@@ -34,4 +34,15 @@ public class Notification : BaseEntity
     public bool RequiresAcknowledgment { get; set; }
 
     public DateTime? AcknowledgedAt { get; set; }
+
+    /// <summary>The announcement this inbox row belongs to, when it was sent as one; null for notices the system raised.</summary>
+    public Guid? BroadcastId { get; set; }
+
+    public NotificationBroadcast? Broadcast { get; set; }
+
+    /// <summary>For an announcement: through which choice of the audience this person was reached ("Projekat: Hala B").</summary>
+    public string? Via { get; set; }
+
+    /// <summary>A repeat of the announcement sent to those who had not read it; not counted among the first deliveries.</summary>
+    public bool IsReminder { get; set; }
 }

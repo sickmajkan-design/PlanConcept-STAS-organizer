@@ -4,6 +4,7 @@ using Construction.Application.Features.Notifications.Commands.AcknowledgeNotifi
 using Construction.Application.Features.Notifications.Commands.MarkAllNotificationsRead;
 using Construction.Application.Features.Notifications.Commands.MarkNotificationRead;
 using Construction.Application.Features.Notifications.Commands.RegisterDeviceToken;
+using Construction.Application.Features.Notifications.Broadcasts;
 using Construction.Application.Features.Notifications.Commands.SendAnnouncement;
 using Construction.Application.Features.Notifications.Commands.SendDirectNotification;
 using Construction.Application.Features.Notifications.Commands.UnregisterDeviceToken;
@@ -125,6 +126,64 @@ public class NotificationsController : ApiControllerBase
         return Ok(await Mediator.Send(command, cancellationToken));
     }
 
+    /// <summary>Who a choice of targets would reach, before anything is sent.</summary>
+    [HttpPost("audience-preview")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(AudiencePreviewDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<AudiencePreviewDto>> PreviewAudience(
+        [FromBody] AudiencePreviewRequest request,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetAudiencePreviewQuery(request.Targets ?? []), cancellationToken));
+    }
+
+    /// <summary>
+    /// Sends an announcement to everybody the chosen targets name (each person once) and keeps a record of it, so
+    /// the sender can see who has read it.
+    /// </summary>
+    [HttpPost("broadcasts")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(SendBroadcastResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<SendBroadcastResult>> SendBroadcast(
+        SendBroadcastCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command, cancellationToken));
+    }
+
+    /// <summary>The announcements that were sent, newest first, with how many have read and confirmed them.</summary>
+    [HttpGet("broadcasts")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(PagedList<BroadcastListItemDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<PagedList<BroadcastListItemDto>>> GetBroadcasts(
+        [FromQuery] GetBroadcastsQuery query,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(query, cancellationToken));
+    }
+
+    /// <summary>One sent announcement with, for every recipient, whether and when they read and confirmed it.</summary>
+    [HttpGet("broadcasts/{id:guid}")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(BroadcastDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<BroadcastDetailDto>> GetBroadcast(Guid id, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetBroadcastQuery(id), cancellationToken));
+    }
+
+    /// <summary>Sends the announcement again to those who have not read (or confirmed) it. Returns how many.</summary>
+    [HttpPost("broadcasts/{id:guid}/remind")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(int), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<int>> RemindBroadcast(Guid id, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new RemindBroadcastCommand(id), cancellationToken));
+    }
+
     /// <summary>
     /// Sends a free-typed message straight to one employee. A Foreman may
     /// only target someone currently posted to one of their own sites;
@@ -144,4 +203,10 @@ public class NotificationsController : ApiControllerBase
         await Mediator.Send(command, cancellationToken);
         return NoContent();
     }
+}
+
+/// <summary>The choices an audience is made of.</summary>
+public class AudiencePreviewRequest
+{
+    public List<AudienceTarget>? Targets { get; set; }
 }
