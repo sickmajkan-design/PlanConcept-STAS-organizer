@@ -874,6 +874,7 @@ function SectionCard({
               {t('common.loading')}
             </Typography>
           ) : (
+          <>
           {/* Columns share the full width, so the whole sheet is visible without scrolling; the scroll stays only as a fallback on very narrow screens. */}
           {emptyWeekIds.size > 0 && (
             <Button size="small" onClick={() => setShowEmptyWeeks((v) => !v)} sx={{ mb: 0.5 }}>
@@ -945,6 +946,7 @@ function SectionCard({
               </TableBody>
             </Table>
           </TableContainer>
+          </>
           )}
 
           <Button size="small" startIcon={<AddOutlined />} sx={{ mt: 1 }} onClick={onAddRow}>
