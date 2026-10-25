@@ -66,7 +66,7 @@ Uparivanje ide po: **kartica** + **dan** + **iznos**. Red izvoda ima karticu, a 
 ### 3.4 Šta se označava kao razlika
 
 * **Drugi iznos**: vozač je za taj dan evidentirao drugi iznos (prikazuju se oba).
-* **TD ne odgovara**: izvod kaže TD drugog vozila nego što je to na kojem je kartica. Oznaka "SD SMART" na izvodu je opća i ne provjerava se.
+* **TD ne odgovara**: izvod kaže TD drugog vozila nego što je to na kojem je kartica. Oznaka "SD SMART" na izvodu je opšta i ne provjerava se.
 * **Pogrešno gorivo**: benzin na dizel vozilu i obrnuto. AdBlue se ne provjerava, hibridi su izuzeti.
 * **Nepotpun unos**: unos se slaže, ali nema kilometraže ili slike računa.
 

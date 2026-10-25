@@ -2528,7 +2528,7 @@ class AppLocalizationsSr extends AppLocalizations {
   String get weeklyReportsSend => 'Pošalji';
 
   @override
-  String get notifyEmployeeAction => 'Obavijesti';
+  String get notifyEmployeeAction => 'Obavještenja';
 
   @override
   String get notifyEmployeeTitle => 'Pošalji poruku';

@@ -166,17 +166,17 @@ export const helpTopics: HelpTopic[] = [
           'Pri dodavanju ili izmjeni dokumenta otvorite Datumi i upišite Važi do.',
           'Ispod toga se pojave Podsjetnici prije isteka: dodajte ponuđene rokove (90, 60, 30, 14 dana) ili upišite svoj broj dana (1 do 365). Najviše pet po dokumentu.',
           'Po potrebi upišite Čuvati do: dokument se ne može obrisati prije tog datuma (npr. zakonski rok čuvanja).',
-          'Kad rok stigne, svi administratori dobiju obavijest Dokument ističe. Onaj ko je dokument dodao vidi dodatak da ga je dodao on.',
+          'Kad rok stigne, svi administratori dobiju obavještenje Dokument ističe. Onaj ko je dokument dodao vidi dodatak da ga je dodao on.',
           'Kad obnovite dokument (nova viza), promijenite datum Važi do; podsjetnici kreću ispočetka za novi datum.',
         ],
         example:
-          'Viza ističe 30.06.2027. Postavite podsjetnike 90 i 30 dana: 1. aprila i 31. maja administratori dobiju obavijest. Ljekarski pregled istog radnika ima samo podsjetnik od 30 dana.',
+          'Viza ističe 30.06.2027. Postavite podsjetnike 90 i 30 dana: 1. aprila i 31. maja administratori dobiju obavještenje. Ljekarski pregled istog radnika ima samo podsjetnik od 30 dana.',
         tips: [
-          'Svaki rok javlja se jednom. Ako je više rokova prošlo dok niko nije gledao, stiže jedna obavijest, ne više.',
-          'Dokument bez vlastitih podsjetnika ostaje na općem pravilu (zadano 30 dana).',
+          'Svaki rok javlja se jednom. Ako je više rokova prošlo dok niko nije gledao, stiže jedno obavještenje, ne više.',
+          'Dokument bez vlastitih podsjetnika ostaje na opštem pravilu (zadano 30 dana).',
           'Lista Dokumenti sortirana po Važi do uvijek pokazuje šta je najhitnije; istekli su označeni crveno.',
         ],
-        keywords: ['istek', 'ističe', 'rok', 'važi do', 'čuvati do', 'podsjetnik', 'viza', 'ljekarski', 'obnova', 'obavijest'],
+        keywords: ['istek', 'ističe', 'rok', 'važi do', 'čuvati do', 'podsjetnik', 'viza', 'ljekarski', 'obnova', 'obavještenje'],
       },
       en: {
         title: 'Expiry dates and reminders',
@@ -261,13 +261,13 @@ export const helpTopics: HelpTopic[] = [
           'Osobe su odmah obaviještene u aplikaciji. Tamo vide šta se traži i šalju fotografije ili PDF.',
           'Ono što stigne čeka pod Za provjeru. Otvorite zahtjev (Provjeri) i pogledajte poslane datoteke.',
           'Prihvatite: upišite Vrijedi do ako dokument ističe. Dokument se stavlja na karton osobe i dijeli s njom.',
-          'Ili vratite s razlogom (najmanje pet znakova, ništa o zdravlju osobe): osoba dobija obavijest i šalje ponovo. Ponuđeni su gotovi razlozi, npr. slika je mutna.',
+          'Ili vratite s razlogom (najmanje pet znakova, ništa o zdravlju osobe): osoba dobija obavještenje i šalje ponovo. Ponuđeni su gotovi razlozi, npr. slika je mutna.',
           'Zahtjev koji više ne treba povucite; povučen zahtjev se može i trajno obrisati.',
         ],
         example:
           'Za tri nova radnika zatražite paket Novi radnik s rokom za pet dana. Za svakoga stiže pet slika. Jednoj fotografiji pasoša vratite s razlogom Slika je mutna, a ostale prihvatite. Lista Samo kojima je rok istekao pokazuje ko kasni.',
         tips: [
-          'Rok: osoba je podsjećena u aplikaciji dan prije i na dan roka, a vama stiže jedna obavijest ako rok prođe i ništa nije poslano. Zahtjev koji čeka na vašu provjeru se ne podsjeća.',
+          'Rok: osoba je podsjećena u aplikaciji dan prije i na dan roka, a vama stiže jedno obavještenje ako rok prođe i ništa nije poslano. Zahtjev koji čeka na vašu provjeru se ne podsjeća.',
           'Isti zahtjev za istu osobu se ne pravi dvaput dok prvi čeka.',
           'Za svaki zahtjev se vidi broj pokušaja i cijela istorija.',
           'Brisanje zahtjeva se upisuje u reviziju; poslane datoteke ostaju na kartonu, nepodijeljene.',
@@ -497,21 +497,21 @@ export const helpTopics: HelpTopic[] = [
       sr: {
         title: 'Sedmični izvještaji sa gradilišta',
         summary:
-          'Poslovođa svake sedmice pošalje potpisane sate ili Aufmaß za gradilište; ured ih pregleda u programu i odobri ili vrati na korekciju.',
+          'Poslovođa svake sedmice pošalje potpisane sate ili Aufmaß za gradilište; kancelarija ih pregleda u programu i odobri ili vrati na korekciju.',
         steps: [
           'Otvorite Planiranje, pa Sedmični izvještaji. Čipovi iznad liste pokazuju šta čeka: Čeka pregled, Potrebna korekcija i Kasni.',
           'Pregledaj otvara izvještaj u programu, bez skidanja: lijevo su sve slike (listanje i uvećanje), a desno radnici i sati koje je poslovođa unio. Podaci su uredivi: promijenite sate, zamijenite radnika, dodajte ili obrišite red. Preuzmi snima sliku na računar.',
-          'Odobri i upiši u Evidenciju stavlja sate svakog radnika u pravu sedmicu mjesečne tabele (Finansije > Evidencija). Uz svaki red piše šta je trenutno u tabeli; ako se razlikuje, birate Zamijeni ili Zadrži staro. Mjesec mora imati Evidenciju i ne smije biti zaključan. Upisane ćelije su zelene. Poslovođa dobija obavijest.',
-          'Potrebna korekcija traži razlog (šta treba ispraviti). Poslovođa ga vidi u obavijesti i šalje izvještaj ponovo; novi izvještaj zamjenjuje stari, pa za gradilište i sedmicu uvijek postoji jedan.',
-          'Izvještaj koji je stigao mailom, telefonom ili poštom unesite sami: Unesi izvještaj. Izaberite gradilište, sedmicu i poslovođu, upišite odakle je došao (npr. mail od kupca 20.10.), dodajte slike i radnike. Admin odmah dobije pregled za provjeru i odobravanje; Sačuvaj za kasnije ostavlja izvještaj u Čeka pregled. Voditelj projekta može unijeti izvještaj, a odobrava Admin. Poslovođa dobija obavijest da je uprava unijela izvještaj, a ako za tu sedmicu već postoji izvještaj, unos se dodaje u njega.',
+          'Odobri i upiši u Evidenciju stavlja sate svakog radnika u pravu sedmicu mjesečne tabele (Finansije > Evidencija). Uz svaki red piše šta je trenutno u tabeli; ako se razlikuje, birate Zamijeni ili Zadrži staro. Mjesec mora imati Evidenciju i ne smije biti zaključan. Upisane ćelije su zelene. Poslovođa dobija obavještenje.',
+          'Potrebna korekcija traži razlog (šta treba ispraviti). Poslovođa ga vidi u obavještenju i šalje izvještaj ponovo; novi izvještaj zamjenjuje stari, pa za gradilište i sedmicu uvijek postoji jedan.',
+          'Izvještaj koji je stigao mailom, telefonom ili poštom unesite sami: Unesi izvještaj. Izaberite gradilište, sedmicu i poslovođu, upišite odakle je došao (npr. mail od kupca 20.10.), dodajte slike i radnike. Admin odmah dobije pregled za provjeru i odobravanje; Sačuvaj za kasnije ostavlja izvještaj u Čeka pregled. Voditelj projekta može unijeti izvještaj, a odobrava Admin. Poslovođa dobija obavještenje da je uprava unijela izvještaj, a ako za tu sedmicu već postoji izvještaj, unos se dodaje u njega.',
           'Kasni pokazuje gradilišta koja su prošle sedmice imala raspoređene radnike, a do ponedjeljka u 12:00 nemaju izvještaj, s imenom poslovođe kojeg treba pitati.',
           'Sedmica koja prelazi u novi mjesec: poslovođa upisuje sate za oba mjeseca, a svaki ide u Evidenciju svog mjeseca. Iznad tabele piše koliko je sati odobreno iz izvještaja, a koliko upisano ručno; sate uvijek možete ručno ispraviti u tabeli (ćelija prestaje biti zelena).',
         ],
         example:
-          'U utorak ujutro poslovođa Hale B dobije opomenu jer izvještaj za KW42 nije stigao. Pošalje ga u srijedu; ured dobija obavijest, otvara Pregledaj, vidi da nema potpisa kupca i vraća ga s razlogom. Poslovođa pošalje novi, ured ga odobri.',
+          'U utorak ujutro poslovođa Hale B dobije opomenu jer izvještaj za KW42 nije stigao. Pošalje ga u srijedu; kancelarija dobija obavještenje, otvara Pregledaj, vidi da nema potpisa kupca i vraća ga s razlogom. Poslovođa pošalje novi, kancelarija ga odobri.',
         tips: [
           'Rok za slanje je ponedjeljak u 12:00; opomena poslovođi ide u utorak ujutro, jednom po gradilištu i sedmici.',
-          'Ured dobija obavijest čim izvještaj stigne, a na početnoj stranici se može dodati widget Sedmični izvještaji.',
+          'Kancelarija dobija obavještenje čim izvještaj stigne, a na početnoj stranici se može dodati widget Sedmični izvještaji.',
           'Izvještaj vraćen na korekciju se ne računa kao da nije poslat: gradilište se ne pojavljuje pod Kasni.',
         ],
         keywords: ['sedmični izvještaj', 'izvještaj', 'satnica', 'aufmaß', 'pregled', 'odobri', 'korekcija', 'kasni', 'poslovođa', 'kw'],
@@ -953,7 +953,7 @@ export const helpTopics: HelpTopic[] = [
           'Radna snaga. Raspoloživa radna snaga u jednom pogledu: ko radi, ko čeka odluku o odsustvu, ko je odsutan. Kako se računa: Veliki broj su radnici s otvorenom smjenom, „od N aktivnih” su radnici sa statusom Aktivan. Traka: Na gradilištu (prijavljeni), Zahtjevi na čekanju (zahtjevi za odsustvo u statusu Zahtjev) i Na odsustvu danas (odobrena odsustva čiji period obuhvata današnji dan organizacije). Trake po projektima su broj prijavljenih na svakom (šest najvećih). Ispod su prva najviše 5 zahtjeva za odsustvo na čekanju. Sa izabranom poslovnom jedinicom broji se samo ona.',
           'Zahtjevi za odsustvo. Odgovorite na zahtjeve za odsustvo bez odlaska na drugu stranicu. Kako se računa: Zahtjevi u statusu Zahtjev, s tipom, periodom i brojem dana; kvačica odobrava, krstić odbija (traži razlog). Odgovara samo administrator i nikad na vlastiti zahtjev. Isti odgovor odmah spušta brojeve u meniju i u „Zahtijeva pažnju”.',
           'Narudžbe. Zahtjevi radnika za artikle (odjeća, obuća, šljemovi, alat) koji još nisu u njihovim rukama. Kako se računa: Tri broja su brojevi koje daje server po koraku: Zatraženo, Naručeno, U dostavi (ne računa se Isporučeno, Odbijeno ni Otkazano). Ispod je 5 najnovijih otvorenih narudžbi sa sljedećim korakom na jedan pritisak. „Hitno” je oznaka koju je postavio onaj ko traži. Uz Zatraženo stoji „od jučer”. Sa izabranom poslovnom jedinicom: narudžbe njenih gradilišta.',
-          'Sedmični izvještaji. Šta čeka ured: izvještaji za pregled, vraćeni na korekciju i gradilišta koja kasne. Kako se računa: Tri broja su brojevi koje daje server: Čeka pregled (status Poslato), Potrebna korekcija (vraćeni poslovođi, čeka se novi) i Kasni. Gradilište kasni ako je prošle sedmice (ponedjeljak do nedjelje) imalo raspoređene radnike, a do ponedjeljka u 12:00 po vremenu organizacije nema izvještaja; izvještaj vraćen na korekciju se računa kao poslat. Lista prvo pokazuje gradilišta koja kasne (s poslovođom), zatim najranije poslate izvještaje. Pregled i odobravanje su na stranici Sedmični izvještaji.',
+          'Sedmični izvještaji. Šta čeka kancelariju: izvještaji za pregled, vraćeni na korekciju i gradilišta koja kasne. Kako se računa: Tri broja su brojevi koje daje server: Čeka pregled (status Poslato), Potrebna korekcija (vraćeni poslovođi, čeka se novi) i Kasni. Gradilište kasni ako je prošle sedmice (ponedjeljak do nedjelje) imalo raspoređene radnike, a do ponedjeljka u 12:00 po vremenu organizacije nema izvještaja; izvještaj vraćen na korekciju se računa kao poslat. Lista prvo pokazuje gradilišta koja kasne (s poslovođom), zatim najranije poslate izvještaje. Pregled i odobravanje su na stranici Sedmični izvještaji.',
         ],
         example:
           'Osam radnika je prijavljeno, a dva sata čekaju odobrenje: „Prisutnost danas” pokazuje prsten 8 od 16, „7h 30min danas” i „2 čekaju odobrenje”.',

@@ -1,15 +1,15 @@
 # Vodič: Sedmični izvještaji sa gradilišta (pregled, odobravanje, upis u Evidenciju)
 
-> **Gdje je:** **Planiranje > Rad i zadaci > Sedmični izvještaji**. Pregled i odobravanje: Admin i Super admin. Slanje: poslovođa (i ured, u ime poslovođe).
+> **Gdje je:** **Planiranje > Rad i zadaci > Sedmični izvještaji**. Pregled i odobravanje: Admin i Super admin. Slanje: poslovođa (i kancelarija, u ime poslovođe).
 
-Poslovođa svake sedmice pošalje izvještaj za gradilište: **slike potpisane satnice** i **radnike s njihovim satima**. Ured provjeri podatke uz sliku, ispravi ako treba i odobri; odobreni sati se sami upišu u mjesečnu tabelu u **Finansije > Evidencija**.
+Poslovođa svake sedmice pošalje izvještaj za gradilište: **slike potpisane satnice** i **radnike s njihovim satima**. Kancelarija provjeri podatke uz sliku, ispravi ako treba i odobri; odobreni sati se sami upišu u mjesečnu tabelu u **Finansije > Evidencija**.
 
 ## Rok i opomena
 
 - Izvještaj za prošlu sedmicu se šalje do **ponedjeljka u 12:00**.
-- Ako do roka nema izvještaja za gradilište na kojem su bili raspoređeni radnici, poslovođa dobija **opomenu u utorak ujutro**, jednom po gradilištu i sedmici. Ured vidi takva gradilišta pod **Kasni**.
+- Ako do roka nema izvještaja za gradilište na kojem su bili raspoređeni radnici, poslovođa dobija **opomenu u utorak ujutro**, jednom po gradilištu i sedmici. Kancelarija vidi takva gradilišta pod **Kasni**.
 
-## Slanje (poslovođa, ili ured u njegovo ime)
+## Slanje (poslovođa, ili kancelarija u njegovo ime)
 
 1. **Novi izvještaj:** izaberite gradilište i sedmicu (KW) i vrstu (Potpisani sati, Aufmaß, Drugo).
 2. **Radnici i sati:** dodajte radnika po radnika i upišite sate za cijelu sedmicu. Radnik može biti bilo ko, ne samo raspoređeni na gradilište.
@@ -21,7 +21,7 @@ Poslovođa svake sedmice pošalje izvještaj za gradilište: **slike potpisane s
 
 **Više > Sedmični izvještaji > Pošalji izvještaj:** gradilište, sedmica i vrsta; zatim **Radnici i sati** (Dodaj radnika: prvo se nudi ekipa vaših gradilišta, a od dva slova pretraga nalazi bilo koga); zatim **slike** (Slikaj ili Izaberi datoteke, koliko god listova ima). Sedmica koja prelazi u novi mjesec ima sate za oba mjeseca. Izvještaj vraćen na korekciju pokazuje razlog i ima dugme **Pošalji ponovo**.
 
-## Izvještaj koji je stigao mailom ili drugačije (ured)
+## Izvještaj koji je stigao mailom ili drugačije (kancelarija)
 
 Ako izvještaj nije poslao poslovođa nego je stigao mailom, telefonom ili poštom, unesite ga sami: **Unesi izvještaj**.
 
@@ -29,10 +29,10 @@ Ako izvještaj nije poslao poslovođa nego je stigao mailom, telefonom ili pošt
 2. Dodajte slike (iz maila ih sačuvajte pa prevucite u okvir) i, ako želite, radnike sa satima.
 3. **Admin i Super admin** odmah dobiju isti pregled kao za poslane izvještaje: slike lijevo, radnici i sati desno (uredivi). **Sačuvaj za kasnije** ostavlja izvještaj u *Čeka pregled*; **Odobri i upiši u Evidenciju** završava sve u jednom koraku.
 4. **Voditelj projekta** može unijeti izvještaj; odobrava Admin.
-5. Na listi kolona **Izvor** kaže *Aplikacija* ili *Uprava*. Poslovođa dobija obavijest da je uprava unijela izvještaj u njegovo ime, a opomena u utorak se ne šalje za pokrivenu sedmicu.
+5. Na listi kolona **Izvor** kaže *Aplikacija* ili *Uprava*. Poslovođa dobija obavještenje da je uprava unijela izvještaj u njegovo ime, a opomena u utorak se ne šalje za pokrivenu sedmicu.
 6. Ako za to gradilište i sedmicu već postoji izvještaj, unos se **dodaje u njega** (slike i radnici), a stranica to kaže.
 
-## Pregled (ured)
+## Pregled (kancelarija)
 
 Čipovi iznad liste: **Čeka pregled**, **Potrebna korekcija**, **Kasni**, **Odobreno**. Dugmad na redu:
 
@@ -47,7 +47,7 @@ U pregledu:
 - Sate možete promijeniti, radnika zamijeniti, red dodati ili obrisati. **Zbir radnika** se poredi sa zbirom koji je upisao poslovođa.
 - Gdje se razlikuje od onog što već piše, birate **Zamijeni** (zadano) ili **Zadrži staro**.
 - **Odobri i upiši u Evidenciju:** sati idu u pravu sedmicu (kolona KW) i red radnika; sekcija gradilišta i red se naprave ako ih nema.
-- **Potrebna korekcija:** traži razlog; poslovođa ga vidi u obavijesti i šalje novi izvještaj koji zamjenjuje stari. Ako je izvještaj već bio odobren, upisani sati se **povlače** (ručno upisano ostaje).
+- **Potrebna korekcija:** traži razlog; poslovođa ga vidi u obavještenju i šalje novi izvještaj koji zamjenjuje stari. Ako je izvještaj već bio odobren, upisani sati se **povlače** (ručno upisano ostaje).
 
 Odobravanje neće proći ako mjesec **nema Evidenciju** (napravite je: Finansije > Evidencija > Novi mjesec) ili je **zaključan** (otključajte uz razlog).
 
@@ -57,11 +57,11 @@ Odobravanje neće proći ako mjesec **nema Evidenciju** (napravite je: Finansije
 - Iznad tabele piše **koliko je sati odobreno iz izvještaja, a koliko upisano ručno**. Zarada radnika, naplata i marža se računaju iz svih sati, kao i prije.
 - Sate uvijek možete ručno ispraviti; ćelija tada prestaje biti zelena.
 
-## Obavijesti i widget
+## Obavještenja i widget
 
-- Ured dobija obavijest čim izvještaj stigne; poslovođa dobija obavijest o odobrenju ili vraćanju (s razlogom).
+- Kancelarija dobija obavještenje čim izvještaj stigne; poslovođa dobija obavještenje o odobrenju ili vraćanju (s razlogom).
 - Na početnoj stranici se može dodati widget **Sedmični izvještaji** (čeka pregled, korekcija, kasni).
 
 ## Primjer
 
-Poslovođa Hale B pošalje KW42 s dvije slike i šest radnika. Ured otvara Pregledaj, vidi da Igor ima 42,5 h na slici a poslovođa je upisao 40, ispravi, a kod Adina vidi da u Evidenciji već piše 30 h pa izabere Zadrži staro. Odobri: pet ćelija se upiše, jedna ostaje; iznad tabele piše da je 212,5 h odobreno iz izvještaja.
+Poslovođa Hale B pošalje KW42 s dvije slike i šest radnika. Kancelarija otvara Pregledaj, vidi da Igor ima 42,5 h na slici a poslovođa je upisao 40, ispravi, a kod Adina vidi da u Evidenciji već piše 30 h pa izabere Zadrži staro. Odobri: pet ćelija se upiše, jedna ostaje; iznad tabele piše da je 212,5 h odobreno iz izvještaja.

@@ -47,14 +47,14 @@ Počinje rad u ponedjeljak, a Dario, Mira i Esad nemaju ništa na kartonu.
 
 1. Zatraži dokument > izaberite sva tri imena.
 2. Paket **Novi radnik**, rok **petak**.
-3. Pošaljite. Sva trojica dobijaju obavijest u aplikaciji sa spiskom šta se traži.
+3. Pošaljite. Sva trojica dobijaju obavještenje u aplikaciji sa spiskom šta se traži.
 4. U petak otvorite listu: filter **Samo kojima je rok istekao** pokazuje ko kasni, a **Za provjeru** ono što je stiglo.
 
 ---
 
 ## 3. Šta radi osoba (aplikacija)
 
-1. Dobije obavijest, otvori **Više > Moji dokumenti** (ili obavijest) i vidi šta se traži, uz rok i napomenu.
+1. Dobije obavještenje, otvori **Više > Moji dokumenti** (ili obavještenje) i vidi šta se traži, uz rok i napomenu.
 2. Izabere **Slikaj** ili **Izaberi** i pošalje fotografije ili PDF. Može više datoteka za jedan dokument (npr. obje strane).
 3. Zahtjev prelazi u **Za provjeru**; osoba vidi da je poslala.
 4. Ako je uprava vrati, vidi **razlog** i šalje ponovo. Svaki pokušaj se broji.
@@ -90,19 +90,19 @@ Mira je poslala pasoš, ali je slika mutna.
 
 ---
 
-## 5. Obavijesti i rok
+## 5. Obavještenja i rok
 
 - Osoba: odmah kad se zatraži, vrati ili povuče zahtjev.
 - Uprava: kad osoba pošalje, odgovor je u listi bez osvježavanja stranice.
 - **Rok:** ako zahtjev ima rok, osoba je u aplikaciji **podsjećena dan prije i na sam dan roka**. Podsjetnik ne govori šta se traži, jer se čita na zaključanom ekranu.
-- **Kasni:** ako rok prođe, a ništa nije poslano, onaj ko je zatražio dokument dobija **jednu obavijest** (ako njega više nema, svi administratori). Lista pokazuje status *Kasni*, a filter *Samo kojima je rok istekao* sužava je na takve.
+- **Kasni:** ako rok prođe, a ništa nije poslano, onaj ko je zatražio dokument dobija **jedno obavještenje** (ako njega više nema, svi administratori). Lista pokazuje status *Kasni*, a filter *Samo kojima je rok istekao* sužava je na takve.
 - Zahtjev koji čeka na vašu provjeru, prihvaćen ili povučen se **ne podsjeća**. Zahtjev koji ste vratili s razlogom se podsjeća, jer opet čeka osobu.
 - Kad pomjerite rok, novi rok dobija nove podsjetnike.
-- E-mail obavijesti o zahtjevima nisu uključene (planirano kao opcija).
+- E-mail obavještenja o zahtjevima nisu uključena (planirano kao opcija).
 
 ### Primjer
 
-Zatražili ste pasoš od Mire s rokom u petak. U četvrtak Mira dobije podsjetnik u aplikaciji, a u petak ujutro drugi. Ako ništa ne pošalje, u subotu stiže vama obavijest "Zahtjev za dokument kasni: Mira…" i u listi je zahtjev označen kao *Kasni*.
+Zatražili ste pasoš od Mire s rokom u petak. U četvrtak Mira dobije podsjetnik u aplikaciji, a u petak ujutro drugi. Ako ništa ne pošalje, u subotu stiže vama obavještenje "Zahtjev za dokument kasni: Mira…" i u listi je zahtjev označen kao *Kasni*.
 
 ---
 

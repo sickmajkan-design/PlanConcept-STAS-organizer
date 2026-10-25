@@ -23,11 +23,11 @@ Dokument s datumom isteka može imati **vlastite podsjetnike**, pa za vizu može
 
 Šta se dešava:
 
-- Kad dođe prvi rok, **svi administratori i super administratori** dobiju obavijest „Dokument ističe“. Onaj ko je dokument dodao u obavijesti vidi dodatak „vi ste dodali ovaj dokument“.
+- Kad dođe prvi rok, **svi administratori i super administratori** dobiju obavještenje „Dokument ističe“. Onaj ko je dokument dodao u obavještenju vidi dodatak „vi ste dodali ovaj dokument“.
 - Svaki rok javlja se jednom. Kasniji rok javlja se ponovo kad stigne.
-- Ako se aplikacija nije provjeravala dok je prošlo više rokova, stiže jedna obavijest, ne više.
+- Ako se aplikacija nije provjeravala dok je prošlo više rokova, stiže jedno obavještenje, ne više.
 - Kad promijenite datum isteka (obnovljena viza), podsjetnici kreću ispočetka za novi datum.
-- Dokument **bez** vlastitih podsjetnika ostaje na općem pravilu, svakog administratora posebno (zadano 30 dana).
+- Dokument **bez** vlastitih podsjetnika ostaje na opštem pravilu, svakog administratora posebno (zadano 30 dana).
 - Podsjetnik se traži samo uz datum isteka. Fotografija ne ističe.
 
 ## 3. Telefon osobe koja već stanuje
@@ -44,7 +44,7 @@ Radnik, u aplikaciji: **Više > Podsjetnici za smjenu**.
 - **Podsjeti me da se odjavim**: u zadano vrijeme, samo ako je radnik tada još prijavljen.
 - Ne javlja se podsjetnik za prijavu danas ako je radnik već prijavljen.
 - Radi bez interneta, podešava se na samom telefonu i ne vidi ga kancelarija.
-- Prvi put se traži dozvola za obavijesti. Ako je odbijena, podsjetnik ostaje isključen i aplikacija to kaže.
-- Vrijeme je približno: Android ponekad odgodi obavijest za nekoliko minuta radi štednje baterije.
+- Prvi put se traži dozvola za obavještenja. Ako je odbijena, podsjetnik ostaje isključen i aplikacija to kaže.
+- Vrijeme je približno: Android ponekad odgodi obavještenje za nekoliko minuta radi štednje baterije.
 
 Ograničenje u ovoj verziji: podsjetnik ne zna za odsustva i praznike. Radnik bira dane za koje ga želi.

@@ -126,17 +126,17 @@ Tri odvojene stvari:
 
 Šta se dešava kad rok stigne:
 
-- Svi administratori i super administratori dobiju obavijest **Dokument ističe**.
-- Svaki rok javlja se jednom. Ako je prošlo više rokova dok niko nije gledao, stiže jedna obavijest.
+- Svi administratori i super administratori dobiju obavještenje **Dokument ističe**.
+- Svaki rok javlja se jednom. Ako je prošlo više rokova dok niko nije gledao, stiže jedno obavještenje.
 - Kad promijenite *Važi do* (obnovljena viza), podsjetnici kreću ispočetka.
-- Dokument bez vlastitih podsjetnika ostaje na općem pravilu (zadano 30 dana).
+- Dokument bez vlastitih podsjetnika ostaje na opštem pravilu (zadano 30 dana).
 
 ### Primjer
 
 Viza ističe 30.06.2027, a ljekarski pregled istog radnika 31.12.2026.
 
-- Viza: podsjetnici **90** i **30** dana, pa obavijesti stižu 1. aprila i 31. maja 2027.
-- Ljekarski pregled: samo **30**, obavijest 1. decembra 2026.
+- Viza: podsjetnici **90** i **30** dana, pa obavještenja stižu 1. aprila i 31. maja 2027.
+- Ljekarski pregled: samo **30**, obavještenje 1. decembra 2026.
 - Kad radnik donese novu vizu, otvorite stari dokument i promijenite *Važi do* na novi datum; podsjetnici kreću iznova.
 
 Detaljnije: [VODIC_DOKUMENTI_PODSJETNICI.md](VODIC_DOKUMENTI_PODSJETNICI.md).

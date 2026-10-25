@@ -49,7 +49,7 @@ Radnje nude početak nečeg novog bez traženja po meniju. Prikazuju se samo one
 | **Provjera DKV izvoda** | usklađivanje izvoda |
 | **Novi zaposleni, projekat, kupac, vozilo, alat, materijal** | odgovarajući obrazac |
 | **Evidentiraj trošak vozila**, **Prijavi odsustvo**, **Novi unos radnog vremena**, **Nova radna stavka** | odgovarajući obrazac |
-| **Pošalji obavijest**, **Novi korisnik** | administracija |
+| **Pošalji obavještenje**, **Novi korisnik** | administracija |
 
 ---
 

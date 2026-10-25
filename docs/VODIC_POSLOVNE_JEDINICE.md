@@ -17,7 +17,7 @@ Dva tipa:
 | Tip | Šta znači | Brojevi na dokumentima |
 |---|---|---|
 | **Zasebno pravno lice** | Ima vlastitu registraciju i poreske brojeve | Samo njeni. Ako broj nije upisan, ostaje prazan, nikad se ne posuđuje tuđi |
-| **Predstavništvo** | Nije samostalno pravno lice (npr. ured u drugoj državi) | Što nema svoje (registrovani naziv, JIB/PIB, matični i PDV broj), uzima se od firme ("Podaci firme") |
+| **Predstavništvo** | Nije samostalno pravno lice (npr. kancelarija u drugoj državi) | Što nema svoje (registrovani naziv, JIB/PIB, matični i PDV broj), uzima se od firme ("Podaci firme") |
 
 ## 2. Gdje se sve nalazi
 
@@ -72,7 +72,7 @@ Imaju polje **Poslovna jedinica**.
 
 Ako imate regije, filijale i urede, jedinicu možete postaviti ispod druge.
 
-* U obrascu jedinice izaberite **Pripada jedinici**. Prazno znači da stoji direktno ispod firme. Najviše su **tri nivoa** (regija, filijala, ured). Program ne dopušta da jedinica bude ispod same sebe ni ispod svoje podjedinice.
+* U obrascu jedinice izaberite **Pripada jedinici**. Prazno znači da stoji direktno ispod firme. Najviše su **tri nivoa** (regija, filijala, kancelarija). Program ne dopušta da jedinica bude ispod same sebe ni ispod svoje podjedinice.
 * **Rukovodilac jedinice** je jedan zaposleni koji je vodi. Nije obavezan. Vlasnik i kontakt osoba ostaju kao tekst za dokumente.
 * Jedinica koja ima podjedinice ne može se obrisati dok se one ne premjeste ili uklone.
 
@@ -112,14 +112,14 @@ Zbir jedinica ne može biti veći od cjeline. Ono što ne pripada nijednoj jedin
 
 ## 6. Obavještenja
 
-* **Promjena jedinice**: zaposleni koji ima nalog dobija obavijest (push i u aplikaciji): "Zaposleni ste u jedinici X od datuma" ili "Od datuma niste raspoređeni ni u jednu poslovnu jedinicu". Obavijest ide samo onima čija se jedinica zaista promijenila, i tek nakon što je sve sačuvano.
-* **Obavijest jedinici**: u obrascu opšte obavijesti postoji izbor **Poslovna jedinica**; poruka ide ljudima koje ta jedinica trenutno zapošljava (može se kombinovati sa ulogom i gradilištem).
+* **Promjena jedinice**: zaposleni koji ima nalog dobija obavještenje (push i u aplikaciji): "Zaposleni ste u jedinici X od datuma" ili "Od datuma niste raspoređeni ni u jednu poslovnu jedinicu". Obavještenje ide samo onima čija se jedinica zaista promijenila, i tek nakon što je sve sačuvano.
+* **Obavještenje jedinici**: u obrascu opšteg obavještenja postoji izbor **Poslovna jedinica**; poruka ide ljudima koje ta jedinica trenutno zapošljava (može se kombinovati sa ulogom i gradilištem).
 * **Lista "Još treba podesiti"** (početna, administratori): kad postoji bar jedna jedinica, javlja koliko je radnika i gradilišta bez jedinice, a link vodi na dodjelu.
 
 ## 7. Telefon (aplikacija 1.1.15)
 
 * Na kartici zaposlenog i na gradilištu piše **Poslovna jedinica**.
-* Radnik dobija obavijest o promjeni jedinice, na svom jeziku.
+* Radnik dobija obavještenje o promjeni jedinice, na svom jeziku.
 * Stara verzija aplikacije nastavlja raditi; samo ne prikazuje jedinicu.
 
 ## 8. Ko šta smije
