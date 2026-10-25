@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { companySettingsApi } from '../../api/companySettings';
 import type { CompanySettingsInput } from '../../api/types';
 import { createResourceKeys, useResourceMutation } from '../resourceQueries';
+import { rasterizeSvg } from '../branches/rasterizeSvg';
 import { bumpCompanyLogoVersion } from './useCompanyLogoUrl';
 
 const keys = createResourceKeys<never>('company-settings');
@@ -54,7 +55,7 @@ export function useUpdateCompanySettings() {
 export function useUploadCompanyLogo() {
   return useResourceMutation(
     async (file: File) => {
-      const result = await companySettingsApi.uploadLogo(file);
+      const result = await companySettingsApi.uploadLogo(file, await rasterizeSvg(file));
       bumpCompanyLogoVersion();
       return result;
     },

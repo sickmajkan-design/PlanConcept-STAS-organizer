@@ -11,7 +11,7 @@ import type { MessageKey } from '../../i18n/en';
  * what changed recently, not a changelog: when a release is added, drop the
  * sections older than the fifth (and their `releaseNotes.*` keys in i18n).
  */
-export const RELEASE_ID = '2026-10-24.33';
+export const RELEASE_ID = '2026-10-25.34';
 
 /** The day of the release, `YYYY-MM-DD`, read from {@link RELEASE_ID}. */
 export const RELEASE_DATE = RELEASE_ID.slice(0, 10);
@@ -25,6 +25,12 @@ export interface ReleaseSection {
 }
 
 export const releaseSections: ReleaseSection[] = [
+  {
+    id: 'logos1025',
+    titleKey: 'releaseNotes.logos1025.title',
+    itemKeys: ['releaseNotes.logos1025.bar', 'releaseNotes.logos1025.upload', 'releaseNotes.logos1025.main', 'releaseNotes.logos1025.exports', 'releaseNotes.logos1025.open', 'releaseNotes.logos1025.missing', 'releaseNotes.logos1025.android'],
+    audience: (user) => canViewDirectory(user),
+  },
   {
     id: 'notices1024',
     titleKey: 'releaseNotes.notices1024.title',
@@ -47,12 +53,6 @@ export const releaseSections: ReleaseSection[] = [
     id: 'lines1024',
     titleKey: 'releaseNotes.lines1024.title',
     itemKeys: ['releaseNotes.lines1024.form', 'releaseNotes.lines1024.review', 'releaseNotes.lines1024.ledger', 'releaseNotes.lines1024.month', 'releaseNotes.lines1024.merge'],
-    audience: (user) => canViewDirectory(user),
-  },
-  {
-    id: 'weekly1024',
-    titleKey: 'releaseNotes.weekly1024.title',
-    itemKeys: ['releaseNotes.weekly1024.review', 'releaseNotes.weekly1024.approve', 'releaseNotes.weekly1024.late', 'releaseNotes.weekly1024.notice', 'releaseNotes.weekly1024.ledger'],
     audience: (user) => canViewDirectory(user),
   },
 ];

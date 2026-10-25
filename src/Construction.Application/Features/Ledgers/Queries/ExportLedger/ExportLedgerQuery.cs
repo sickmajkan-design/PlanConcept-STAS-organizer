@@ -53,7 +53,7 @@ public class ExportLedgerQueryHandler : IRequestHandler<ExportLedgerQuery, Expor
         var ledger = await _context.Ledgers
             .AsNoTracking()
             .Where(l => l.Id == request.LedgerId)
-            .Select(l => new { l.Name, l.Year, l.Month, BranchName = l.Branch != null ? l.Branch.Name : null })
+            .Select(l => new { l.Name, l.Year, l.Month, l.BranchId, BranchName = l.Branch != null ? l.Branch.Name : null })
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException(nameof(Ledger), request.LedgerId);
 
@@ -162,7 +162,8 @@ public class ExportLedgerQueryHandler : IRequestHandler<ExportLedgerQuery, Expor
                     ],
                     summaryRows),
             ],
-            _dateTimeProvider.UtcNow.ToString("dd.MM.yyyy. HH:mm"));
+            _dateTimeProvider.UtcNow.ToString("dd.MM.yyyy. HH:mm"),
+            ledger.BranchId);
 
         return new ExportFile(
             $"evidencija-{ledger.Year}-{ledger.Month:00}.xlsx",

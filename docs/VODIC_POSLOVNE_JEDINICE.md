@@ -147,6 +147,24 @@ Zbir jedinica ne može biti veći od cjeline. Ono što ne pripada nijednoj jedin
 
 Pretraga: **Ctrl+K**, „jedinica“ ili „filijala“ otvara stranicu **Firma i poslovne jedinice**; uputstvo „Poslovne jedinice“ ponavlja ove korake u aplikaciji.
 
+## 8b. Logo poslovne jedinice
+
+Svaka zasebna jedinica ima svoj logo. Kad je izabrana u zaglavlju, njen logo, naziv i adresa pojavljuju se na dva mjesta: u gornjem lijevom uglu trake menija (uz uvećani pregled kad zadržite miš) i u sredini gornje trake. Tako se odmah vidi u kojoj jedinici radite.
+
+**Dodavanje loga.** Otvorite **Administracija > Firma i poslovne jedinice**, kartica **Poslovne jedinice**, izmjena jedinice, odjeljak **Logo**. Prevucite sliku ili je izaberite. Dozvoljeni su SVG (najoštriji), PNG, JPG i WEBP do 2 MB, najbolje s providnom pozadinom. SVG se pri otpremanju očisti od skripti i vanjskih veza, a panel uz njega šalje i PNG kopiju koju koriste Excel i aplikacija. Logo se čuva odmah, bez dugmeta Sačuvaj. Mogu ga mijenjati Admin i Super Admin.
+
+**Logo za tamnu temu.** Nije obavezan. Ako ga ne dodate, na tamnoj temi se logo prikazuje na bijeloj podlozi. Poseban logo se može dodati tek kad postoji osnovni.
+
+**Sve poslovne jedinice.** Kad nije izabrana nijedna jedinica, vidi se logo **glavne jedinice**. Glavna je samo jedna: uključite **Glavna jedinica** na ekranu te jedinice, a prethodna prestaje biti glavna. Dok glavna nije izabrana (ili nema logo), vidi se logo firme iz Podešavanja kompanije. Isključena jedinica ne može biti glavna.
+
+**Jedinica bez loga.** U traci se vidi isprekidan okvir koji podsjeća da logo treba dodati, a ne zamjenski krug s inicijalima.
+
+**Adresa u traci.** Podaci jedinice (adresa, kontakt, matični i poreski brojevi) nisu tajna: vide ih svi koji imaju nalog na panelu, pa adresa i grad stoje u traci za svakoga. Mijenjaju ih Admin i Super Admin, a poreske brojeve samo Super Admin.
+
+**Faktura i Excel izvozi.** Faktura jedinice nosi njen logo i naziv. Excel izvoz sužen na jedinicu (sati, gradilišta, radnici, vozila, alati, troškovi, Knjiga, Evidencija) ima u zaglavlju njen naziv i logo. Izvoz za sve jedinice nosi logo glavne jedinice, a dok glavna nije izabrana, logo firme. Jedinica bez vlastitog loga koristi logo glavne jedinice. Excel crta sliku, pa uz SVG treba i PNG kopija (panel je pravi sam).
+
+**Prijava.** Ekran za prijavu u panel i u aplikaciju ne prikazuje logo jedinice. Tu će stajati logo same aplikacije, po njenim brend standardima.
+
 ## 9. Česta pitanja
 
 **Radnik radi na gradilištu jedinice B, a zaposlen je u A. Gdje se računa?**

@@ -47,6 +47,16 @@ public class BranchConfiguration : IEntityTypeConfiguration<Branch>
             .HasForeignKey(b => b.HeadEmployeeId)
             .OnDelete(DeleteBehavior.SetNull);
 
+        builder.Property(b => b.LogoStorageKey).HasMaxLength(300);
+        builder.Property(b => b.LogoContentType).HasMaxLength(100);
+        builder.Property(b => b.LogoDarkStorageKey).HasMaxLength(300);
+        builder.Property(b => b.LogoDarkContentType).HasMaxLength(100);
+        builder.Property(b => b.LogoRasterStorageKey).HasMaxLength(300);
+        builder.Property(b => b.IsMain).HasDefaultValue(false);
+
+        // One main unit at most: the database refuses a second one.
+        builder.HasIndex(b => b.IsMain).IsUnique().HasFilter("\"IsMain\" = TRUE");
+
         builder.HasIndex(b => b.ParentBranchId);
         builder.HasIndex(b => b.Name).IsUnique();
     }

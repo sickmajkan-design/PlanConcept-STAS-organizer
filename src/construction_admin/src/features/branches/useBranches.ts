@@ -2,6 +2,7 @@ import { employeesApi } from '../../api/employees';
 import { useQuery } from '@tanstack/react-query';
 
 import { branchesApi } from '../../api/branches';
+import { rasterizeSvg } from './rasterizeSvg';
 import type { BranchInput } from '../../api/types';
 import { createResourceKeys, useResourceMutation } from '../resourceQueries';
 
@@ -33,6 +34,25 @@ export function useUpdateBranch() {
     ({ id, input }: { id: string; input: BranchInput }) => branchesApi.update(id, input),
     affected,
   );
+}
+
+export function useUploadBranchLogo() {
+  return useResourceMutation(
+    async ({ id, file, dark }: { id: string; file: File; dark?: boolean }) =>
+      branchesApi.uploadLogo(id, file, dark, dark ? null : await rasterizeSvg(file)),
+    [branchKeys.all],
+  );
+}
+
+export function useRemoveBranchLogo() {
+  return useResourceMutation(
+    ({ id, dark }: { id: string; dark?: boolean }) => branchesApi.removeLogo(id, dark),
+    [branchKeys.all],
+  );
+}
+
+export function useSetMainBranch() {
+  return useResourceMutation((id: string) => branchesApi.setMain(id), [branchKeys.all]);
 }
 
 export function useDeleteBranch() {

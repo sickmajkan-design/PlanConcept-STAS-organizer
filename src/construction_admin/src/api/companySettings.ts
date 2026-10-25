@@ -5,10 +5,10 @@ import type {
   PublicCompanyBranding,
 } from './types';
 
-/** Mirrors the API's AttachmentRules image limit, which the logo upload reuses. */
-export const MAX_LOGO_BYTES = 20 * 1024 * 1024;
+/** Mirrors the API's logo limit, shared by the company logo and the logo of a business unit. */
+export const MAX_LOGO_BYTES = 2 * 1024 * 1024;
 
-export const LOGO_ACCEPTED_EXTENSIONS = '.jpg,.jpeg,.png,.webp,.heic';
+export const LOGO_ACCEPTED_EXTENSIONS = '.jpg,.jpeg,.png,.webp,.svg';
 
 export const companySettingsApi = {
   get: () =>
@@ -31,9 +31,11 @@ export const companySettingsApi = {
       url: '/api/v1/company-settings/branding',
     }),
 
-  uploadLogo: (file: File) => {
+  /** `raster` is a png copy of an SVG logo: spreadsheets and the phone draw pictures, not SVG. */
+  uploadLogo: (file: File, raster?: Blob | null) => {
     const form = new FormData();
     form.append('file', file);
+    if (raster) form.append('raster', raster, 'logo.png');
 
     // No explicit Content-Type: the browser sets it, since only it knows the
     // multipart boundary it generated.

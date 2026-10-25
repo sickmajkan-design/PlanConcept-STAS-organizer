@@ -80,6 +80,28 @@ public class Branch : BaseEntity, IAuditable
     /// </summary>
     public string Path { get; set; } = string.Empty;
 
+    /// <summary>Where the unit's logo is stored. Null when it has none.</summary>
+    public string? LogoStorageKey { get; set; }
+
+    public string? LogoContentType { get; set; }
+
+    /// <summary>The logo for the dark theme. Optional: the light logo is used when this is null.</summary>
+    public string? LogoDarkStorageKey { get; set; }
+
+    public string? LogoDarkContentType { get; set; }
+
+    /// <summary>For an SVG logo, the png copy that spreadsheets and the phone draw. Null for a picture logo.</summary>
+    public string? LogoRasterStorageKey { get; set; }
+
+    /// <summary>When a logo was last changed. Goes into the picture's address so no one keeps the old one.</summary>
+    public DateTime? LogoUpdatedAt { get; set; }
+
+    /// <summary>
+    /// The unit whose logo stands for "all business units". At most one unit has it; it is set on
+    /// its own, never through a normal edit.
+    /// </summary>
+    public bool IsMain { get; set; }
+
     /// <summary>The person who runs the unit. Optional; the unit's owner and contact stay as text for documents.</summary>
     public Guid? HeadEmployeeId { get; set; }
 

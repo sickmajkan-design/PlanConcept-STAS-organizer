@@ -47,8 +47,10 @@ class CompanySettingsRepository extends ApiRepository {
   /// anonymous access, but there is no harm in sending the token anyway.
   Future<Uint8List> fetchLogo() {
     return guard(() async {
+      // The picture copy: an SVG logo cannot be drawn by the app, so it asks for its png copy.
       final response = await dio.get<List<int>>(
         '/api/v1/company-settings/logo',
+        queryParameters: {'raster': 'true'},
         options: Options(responseType: ResponseType.bytes),
       );
 

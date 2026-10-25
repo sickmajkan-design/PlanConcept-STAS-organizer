@@ -36,6 +36,17 @@ public class BranchDto
 
     public string? HeadEmployeeName { get; init; }
 
+    /// <summary>The unit has its own logo. Everyone who reads units gets this, not just management.</summary>
+    public bool HasLogo { get; init; }
+
+    public bool HasDarkLogo { get; init; }
+
+    /// <summary>When the logo last changed, in ticks; part of the picture's address so a new logo shows at once.</summary>
+    public long? LogoVersion { get; init; }
+
+    /// <summary>The unit whose logo stands for "all business units".</summary>
+    public bool IsMain { get; init; }
+
     // Everything below is for management only: anyone else reads a unit to filter by it and gets
     // these as null.
 
@@ -147,6 +158,10 @@ public static class BranchView
         Color = branch.Color,
         IsActive = branch.IsActive,
         Kind = branch.Kind,
+        HasLogo = branch.LogoStorageKey != null,
+        HasDarkLogo = branch.LogoDarkStorageKey != null,
+        LogoVersion = branch.LogoUpdatedAt?.Ticks,
+        IsMain = branch.IsMain,
         ProjectCount = projectCount,
         EmployeeCount = employeeCount,
         LegalName = details ? branch.LegalName : null,
@@ -186,19 +201,15 @@ public static class BranchView
         return Map(branch, count, details, tax, employees, headName);
     }
 
-    /// <summary>What the caller may see of a unit: its details at all, and its tax numbers in particular.</summary>
-    public static async Task<(bool Details, bool Tax)> AccessAsync(
+    /// <summary>
+    /// What the caller may see of a unit. The data of the company's own units (address, numbers, contacts)
+    /// is not secret from its own staff, so everyone who has a panel account reads all of it; only
+    /// changing it is limited, see <see cref="BranchRules"/>.
+    /// </summary>
+    public static Task<(bool Details, bool Tax)> AccessAsync(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
-        CancellationToken cancellationToken)
-    {
-        var details = BranchRules.IsManagement(currentUserService.Role);
-
-        var tax = details
-            && await CustomerRules.ResolveCanViewTaxDetailsAsync(context, currentUserService, cancellationToken);
-
-        return (details, tax);
-    }
+        CancellationToken cancellationToken) => Task.FromResult((true, true));
 }
 
 /// <summary>Shared payload for creating and updating a business unit, so the field rules exist once.</summary>
@@ -447,6 +458,13 @@ public class UpdateBranchCommandHandler : IRequestHandler<UpdateBranchCommand, B
 
         BranchFieldMapper.Apply(branch, request, CustomerRules.CanEditTaxDetails(_currentUserService.Role));
         branch.IsActive = request.IsActive;
+
+        // A unit that is switched off cannot stand for all of them.
+        if (!branch.IsActive)
+        {
+            branch.IsMain = false;
+        }
+
         await BranchLookup.EnsureHeadAsync(_context, request.HeadEmployeeId, cancellationToken);
         branch.HeadEmployeeId = request.HeadEmployeeId;
         await BranchTree.PlaceAsync(_context, branch, request.ParentBranchId, cancellationToken);
@@ -464,11 +482,16 @@ public class DeleteBranchCommandHandler : IRequestHandler<DeleteBranchCommand>
 {
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IFileStorage _storage;
 
-    public DeleteBranchCommandHandler(IApplicationDbContext context, ICurrentUserService currentUserService)
+    public DeleteBranchCommandHandler(
+        IApplicationDbContext context,
+        ICurrentUserService currentUserService,
+        IFileStorage storage)
     {
         _context = context;
         _currentUserService = currentUserService;
+        _storage = storage;
     }
 
     public async Task Handle(DeleteBranchCommand request, CancellationToken cancellationToken)
@@ -486,6 +509,14 @@ public class DeleteBranchCommandHandler : IRequestHandler<DeleteBranchCommand>
         if (await _context.Projects.IgnoreQueryFilters().AnyAsync(p => p.BranchId == branch.Id, cancellationToken))
         {
             throw new ConflictException("This business unit has projects and can only be switched off, not deleted.");
+        }
+
+        foreach (var key in new[] { branch.LogoStorageKey, branch.LogoDarkStorageKey, branch.LogoRasterStorageKey })
+        {
+            if (key is not null)
+            {
+                await _storage.DeleteAsync(key, cancellationToken);
+            }
         }
 
         _context.Branches.Remove(branch);

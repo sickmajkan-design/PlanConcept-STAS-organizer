@@ -72,14 +72,16 @@ public class CompanySettingsController : ApiControllerBase
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetLogo(CancellationToken cancellationToken)
+    public async Task<IActionResult> GetLogo([FromQuery] bool raster, CancellationToken cancellationToken)
     {
-        var logo = await Mediator.Send(new GetCompanyLogoQuery(), cancellationToken);
+        var logo = await Mediator.Send(new GetCompanyLogoQuery(raster), cancellationToken);
 
         if (logo is null)
         {
             return NotFound();
         }
+
+        LogoResponse.Harden(Response, logo.ContentType);
 
         return File(logo.Content, logo.ContentType);
     }
@@ -87,7 +89,7 @@ public class CompanySettingsController : ApiControllerBase
     [HttpPost("/api/v{version:apiVersion}/company-settings/logo")]
     [HttpPost("/api/company-settings/logo")]
     [Authorize(Policy = Policies.SuperAdminOnly)]
-    [RequestSizeLimit(Application.Features.Attachments.AttachmentRules.MaxSizeBytes + 1024 * 1024)]
+    [RequestSizeLimit(Application.Features.Branches.LogoStorage.MaxSizeBytes * 2 + 1024 * 1024)]
     [ProducesResponseType(typeof(CompanySettingsDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
@@ -102,13 +104,15 @@ public class CompanySettingsController : ApiControllerBase
         }
 
         await using var content = request.File.OpenReadStream();
+        await using var rasterContent = request.Raster is { Length: > 0 } ? request.Raster.OpenReadStream() : null;
 
         var settings = await Mediator.Send(
             new UploadCompanyLogoCommand
             {
                 FileName = request.File.FileName,
                 SizeBytes = request.File.Length,
-                Content = content
+                Content = content,
+                RasterContent = rasterContent
             },
             cancellationToken);
 
@@ -131,4 +135,7 @@ public class CompanySettingsController : ApiControllerBase
 public class UploadCompanyLogoRequest
 {
     public IFormFile? File { get; set; }
+
+    /// <summary>For an SVG, a png copy of it that spreadsheets and the phone draw.</summary>
+    public IFormFile? Raster { get; set; }
 }

@@ -1172,6 +1172,11 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsMain")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("Kind")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -1182,6 +1187,29 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<string>("LegalName")
                         .HasMaxLength(300)
                         .HasColumnType("character varying(300)");
+
+                    b.Property<string>("LogoContentType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("LogoDarkContentType")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("LogoDarkStorageKey")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("LogoRasterStorageKey")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("LogoStorageKey")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<DateTime?>("LogoUpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -1232,6 +1260,10 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("HeadEmployeeId");
+
+                    b.HasIndex("IsMain")
+                        .IsUnique()
+                        .HasFilter("\"IsMain\" = TRUE");
 
                     b.HasIndex("Name")
                         .IsUnique();
@@ -1393,6 +1425,10 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<string>("LogoContentType")
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
+
+                    b.Property<string>("LogoRasterStorageKey")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
 
                     b.Property<string>("LogoStorageKey")
                         .HasMaxLength(256)

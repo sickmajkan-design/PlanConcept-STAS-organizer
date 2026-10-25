@@ -321,6 +321,13 @@ export interface Branch {
   /** The employee who runs the unit. */
   headEmployeeId: string | null;
   headEmployeeName: string | null;
+  /** The unit has its own logo, and optionally one for the dark theme. */
+  hasLogo: boolean;
+  hasDarkLogo: boolean;
+  /** Changes whenever the logo does; goes into the picture's address so a new logo shows at once. */
+  logoVersion: number | null;
+  /** The unit whose logo stands for "all business units". At most one. */
+  isMain: boolean;
   // The rest is for management only; anyone else gets null.
   legalName: string | null;
   address: string | null;

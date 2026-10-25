@@ -20,6 +20,8 @@ import {
 
 import type { Invoice, InvoiceIssuer } from '../../api/invoices';
 import { countryLabel } from '../../data/countries';
+import { branchLogoUrl } from '../../features/branches/branchLogo';
+import { useCompanyLogoUrl } from '../../features/companySettings/useCompanyLogoUrl';
 import { useInvoiceDocumentQuery } from '../../features/invoices/useInvoices';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useI18n } from '../../i18n/useI18n';
@@ -44,6 +46,25 @@ const PRINT_STYLES = {
   },
 } as const;
 
+/** The logo that heads the document: the issuer's own, the main unit's, or the company's. On white, as on paper. */
+function IssuerLogo({ issuer }: { issuer: InvoiceIssuer }) {
+  const companyLogo = useCompanyLogoUrl();
+
+  const src = issuer.logoBranchId
+    ? branchLogoUrl({ id: issuer.logoBranchId, logoVersion: issuer.logoVersion ?? null })
+    : issuer.hasLogo
+      ? companyLogo
+      : null;
+
+  if (!src) return null;
+
+  return (
+    <Box sx={{ display: 'inline-flex', bgcolor: '#fff', mb: 1 }}>
+      <Box component="img" src={src} alt="" sx={{ height: 56, maxWidth: 200, objectFit: 'contain' }} />
+    </Box>
+  );
+}
+
 function IssuerBlock({ issuer }: { issuer: InvoiceIssuer }) {
   const { t } = useI18n();
   const place = [issuer.postalCode, issuer.city].filter(Boolean).join(' ');
@@ -57,6 +78,7 @@ function IssuerBlock({ issuer }: { issuer: InvoiceIssuer }) {
 
   return (
     <Box>
+      <IssuerLogo issuer={issuer} />
       <Typography variant="h6" sx={{ fontWeight: 700, lineHeight: 1.25 }}>
         {issuer.name || '—'}
       </Typography>

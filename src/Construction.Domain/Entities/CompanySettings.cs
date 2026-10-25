@@ -54,6 +54,9 @@ public class CompanySettings : BaseEntity, IAuditable
     /// <summary>Needed to set the right Content-Type header when the logo is served back.</summary>
     public string? LogoContentType { get; set; }
 
+    /// <summary>For an SVG logo, the png copy that spreadsheets and the phone draw. Null for a picture logo.</summary>
+    public string? LogoRasterStorageKey { get; set; }
+
     /// <summary>
     /// The organisation's time zone (an IANA id such as <c>Europe/Belgrade</c>): the calendar the whole platform keeps for
     /// it. What day a shift belongs to, what "today" is, what a clock-in time reads as, in the server's reports, in the

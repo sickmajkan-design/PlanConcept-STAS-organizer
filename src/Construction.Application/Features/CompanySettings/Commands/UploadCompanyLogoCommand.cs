@@ -1,6 +1,6 @@
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
-using Construction.Application.Features.Attachments;
+using Construction.Application.Features.Branches;
 using Construction.Application.Features.CompanySettings.Models;
 using Construction.Domain.Enums;
 using FluentValidation;
@@ -22,6 +22,9 @@ public record UploadCompanyLogoCommand : IRequest<CompanySettingsDto>
     public long SizeBytes { get; init; }
 
     public Stream Content { get; init; } = Stream.Null;
+
+    /// <summary>For an SVG, a png copy of it that spreadsheets and the phone draw. Optional.</summary>
+    public Stream? RasterContent { get; init; }
 }
 
 public class UploadCompanyLogoCommandValidator : AbstractValidator<UploadCompanyLogoCommand>
@@ -34,30 +37,25 @@ public class UploadCompanyLogoCommandValidator : AbstractValidator<UploadCompany
 
         RuleFor(x => x.FileName)
             .Must(name => ResolveImageContentType(name) is not null)
-            .WithMessage("The logo must be an image (jpg, png, webp or heic).")
+            .WithMessage("The logo must be a png, jpg, webp or svg picture.")
             .When(x => !string.IsNullOrWhiteSpace(x.FileName));
 
         RuleFor(x => x.SizeBytes)
             .GreaterThan(0).WithMessage("The file is empty.")
-            .LessThanOrEqualTo(AttachmentRules.MaxSizeBytes)
+            .LessThanOrEqualTo(LogoStorage.MaxSizeBytes)
             .WithMessage(
-                $"The file is larger than the {AttachmentRules.MaxSizeBytes / (1024 * 1024)} MB limit.");
+                $"The file is larger than the {LogoStorage.MaxSizeBytes / (1024 * 1024)} MB limit.");
     }
 
-    internal static string? ResolveImageContentType(string fileName)
-    {
-        var contentType = AttachmentRules.ResolveContentType(fileName);
-
-        return contentType is not null && contentType.StartsWith("image/", StringComparison.Ordinal)
-            ? contentType
-            : null;
-    }
+    internal static string? ResolveImageContentType(string fileName) => LogoStorage.ResolveContentType(fileName);
 }
 
 public class UploadCompanyLogoCommandHandler
     : IRequestHandler<UploadCompanyLogoCommand, CompanySettingsDto>
 {
     public const string StorageKey = "company/logo";
+
+    public const string RasterKey = "company/logo-raster";
 
     private readonly IApplicationDbContext _context;
     private readonly ICurrentUserService _currentUserService;
@@ -82,12 +80,10 @@ public class UploadCompanyLogoCommandHandler
             throw new ForbiddenAccessException("Only a SuperAdmin may change the company logo.");
         }
 
-        var contentType = UploadCompanyLogoCommandValidator.ResolveImageContentType(request.FileName)
-            ?? throw new ConflictException("The logo must be an image (jpg, png, webp or heic).");
-
-        // SaveAsync already replaces whatever is under the key, so there is
-        // nothing to delete first.
-        await _storage.SaveAsync(StorageKey, request.Content, contentType, cancellationToken);
+        // SaveAsync already replaces whatever is under the key, so there is nothing to delete first; an SVG is
+        // cleaned on the way.
+        var stored = await LogoStorage.SaveAsync(
+            _storage, StorageKey, RasterKey, request.FileName, request.Content, request.RasterContent, cancellationToken);
 
         var settings = await _context.CompanySettings.FirstOrDefaultAsync(cancellationToken);
 
@@ -97,8 +93,9 @@ public class UploadCompanyLogoCommandHandler
             _context.CompanySettings.Add(settings);
         }
 
-        settings.LogoStorageKey = StorageKey;
-        settings.LogoContentType = contentType;
+        settings.LogoStorageKey = stored.Key;
+        settings.LogoContentType = stored.ContentType;
+        settings.LogoRasterStorageKey = stored.RasterKey;
 
         await _context.SaveChangesAsync(cancellationToken);
 

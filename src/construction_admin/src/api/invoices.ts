@@ -72,6 +72,11 @@ export interface InvoiceIssuer {
   email: string | null;
   /** The numbers shown are the company's, because the unit is an office with none of its own. */
   usesCompanyNumbers: boolean;
+  /** There is a logo to head the document with. */
+  hasLogo?: boolean;
+  /** The unit whose logo it is (the issuer's own, or the main unit's); null for the company's own. */
+  logoBranchId?: string | null;
+  logoVersion?: number | null;
 }
 
 export interface InvoiceDocumentRecipient {

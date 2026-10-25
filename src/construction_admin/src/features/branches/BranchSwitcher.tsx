@@ -24,7 +24,7 @@ import { canAdministerAccounts } from '../../auth/authHelpers';
 import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { useBranchFilter } from './BranchContext';
-import { BranchDot } from './BranchDot';
+import { BranchMark } from './BranchMark';
 import { buildBranchTree, flattenBranchTree } from './branchTree';
 import { useBranchesQuery } from './useBranches';
 
@@ -71,8 +71,8 @@ export function BranchSwitcher() {
         onClick={() => choose(branch.id)}
         sx={{ pl: 2 + (depth - 1) * 2.5 }}
       >
-        <ListItemIcon sx={{ minWidth: 24 }}>
-          <BranchDot color={branch.color} />
+        <ListItemIcon sx={{ minWidth: 32 }}>
+          <BranchMark branch={branch} />
         </ListItemIcon>
         <Box sx={{ flex: 1 }}>{branch.name}</Box>
         {branch.id === branchId && <CheckOutlined fontSize="small" sx={{ ml: 2 }} />}
@@ -135,7 +135,7 @@ export function BranchSwitcher() {
           bgcolor: current ? `${current.color}14` : undefined,
         }}
       >
-        {current && <BranchDot color={current.color} />}
+        {current && <BranchMark branch={current} />}
         <Box component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {current ? current.name : t('branches.all')}
         </Box>

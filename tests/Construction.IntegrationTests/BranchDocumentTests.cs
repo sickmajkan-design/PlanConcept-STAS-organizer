@@ -259,11 +259,14 @@ public class BranchDocumentTests : IntegrationTestBase
             return Open(await scope.Send(new ExportProjectsQuery { BranchId = branch.Id }));
         });
 
-        var last = narrowed.Row(1).LastCellUsed()!.Address.ColumnNumber;
+        // The unit's own name heads a file narrowed to it, above the column headers.
+        Assert.Equal(branch.Name, narrowed.Cell(1, 1).GetString());
 
-        Assert.Equal("Poslovna jedinica", narrowed.Cell(1, last).GetString());
-        Assert.Equal($"In {inside}", narrowed.Cell(2, 1).GetString());
-        Assert.Equal(branch.Name, narrowed.Cell(2, last).GetString());
+        var last = narrowed.Row(2).LastCellUsed()!.Address.ColumnNumber;
+
+        Assert.Equal("Poslovna jedinica", narrowed.Cell(2, last).GetString());
+        Assert.Equal($"In {inside}", narrowed.Cell(3, 1).GetString());
+        Assert.Equal(branch.Name, narrowed.Cell(3, last).GetString());
 
         // Only that unit's project: the next row is the generated-at footer, not another project.
         Assert.DoesNotContain(

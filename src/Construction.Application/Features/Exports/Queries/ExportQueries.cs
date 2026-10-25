@@ -1,4 +1,4 @@
-using Construction.Application.Common;
+﻿using Construction.Application.Common;
 using Construction.Application.Features.Branches;
 using Construction.Application.Features.Finance;
 using Construction.Application.Common.Exceptions;
@@ -31,6 +31,12 @@ public sealed record ExportFile(string FileName, string ContentType, byte[] Cont
 /// Making it explicit also means the client can offer the choice, which it
 /// should: the person exporting is not always the person reading.
 /// </remarks>
+/// <summary>An export that can be narrowed to a business unit, whose logo and name then head the file.</summary>
+public interface IBranchExport
+{
+    Guid? BranchId { get; }
+}
+
 public abstract record ExportQueryBase
 {
     public DateOnly From { get; init; }
@@ -73,7 +79,7 @@ public class ExportQueryValidator<T> : AbstractValidator<T> where T : ExportQuer
 /// <summary>
 /// The hours, row by row. The export payroll is actually run from.
 /// </summary>
-public sealed record ExportTimeEntriesQuery : ExportQueryBase, IRequest<ExportFile>
+public sealed record ExportTimeEntriesQuery : ExportQueryBase, IBranchExport, IRequest<ExportFile>
 {
     public Guid? EmployeeId { get; init; }
 
@@ -226,7 +232,7 @@ internal static class ExportFileFactory
         return new ExportFile(
             fileName,
             writer.ContentType,
-            writer.Write(Spreadsheet.Of(sheet, GeneratedAtLabel(request.Language))));
+            writer.Write(Spreadsheet.Of(sheet, GeneratedAtLabel(request.Language), (request as IBranchExport)?.BranchId)));
     }
 
     /// <summary>
@@ -245,7 +251,7 @@ internal static class ExportFileFactory
         return new ExportFile(
             fileName,
             writer.ContentType,
-            writer.Write(new Spreadsheet(sheets, GeneratedAtLabel(request.Language))));
+            writer.Write(new Spreadsheet(sheets, GeneratedAtLabel(request.Language), (request as IBranchExport)?.BranchId)));
     }
 
     /// <summary>
@@ -258,14 +264,15 @@ internal static class ExportFileFactory
         SpreadsheetSheet sheet,
         string prefix,
         DateOnly takenOn,
-        string? language)
+        string? language,
+        Guid? branchId = null)
     {
         var fileName = $"{prefix}-{takenOn:yyyy-MM-dd}.xlsx";
 
         return new ExportFile(
             fileName,
             writer.ContentType,
-            writer.Write(Spreadsheet.Of(sheet, GeneratedAtLabel(language))));
+            writer.Write(Spreadsheet.Of(sheet, GeneratedAtLabel(language), branchId)));
     }
 
     /// <summary>
@@ -305,7 +312,7 @@ public abstract record DirectoryExportQueryBase
     public string? Language { get; init; }
 }
 
-public sealed record ExportEmployeesQuery : DirectoryExportQueryBase, IRequest<ExportFile>
+public sealed record ExportEmployeesQuery : DirectoryExportQueryBase, IBranchExport, IRequest<ExportFile>
 {
     public EmployeeStatus? Status { get; init; }
 
@@ -395,11 +402,11 @@ public class ExportEmployeesQueryHandler : IRequestHandler<ExportEmployeesQuery,
             ]).ToList());
 
         return _writer.RenderSnapshot(
-            sheet, "employees", _dateTimeProvider.Today, request.Language);
+            sheet, "employees", _dateTimeProvider.Today, request.Language, request.BranchId);
     }
 }
 
-public sealed record ExportProjectsQuery : DirectoryExportQueryBase, IRequest<ExportFile>
+public sealed record ExportProjectsQuery : DirectoryExportQueryBase, IBranchExport, IRequest<ExportFile>
 {
     public ProjectStatus? Status { get; init; }
 
@@ -486,11 +493,11 @@ public class ExportProjectsQueryHandler : IRequestHandler<ExportProjectsQuery, E
             ]).ToList());
 
         return _writer.RenderSnapshot(
-            sheet, "projects", _dateTimeProvider.Today, request.Language);
+            sheet, "projects", _dateTimeProvider.Today, request.Language, request.BranchId);
     }
 }
 
-public sealed record ExportVehiclesQuery : DirectoryExportQueryBase, IRequest<ExportFile>
+public sealed record ExportVehiclesQuery : DirectoryExportQueryBase, IBranchExport, IRequest<ExportFile>
 {
     public VehicleStatus? Status { get; init; }
 
@@ -595,11 +602,11 @@ public class ExportVehiclesQueryHandler : IRequestHandler<ExportVehiclesQuery, E
             ]).ToList());
 
         return _writer.RenderSnapshot(
-            sheet, "vehicles", _dateTimeProvider.Today, request.Language);
+            sheet, "vehicles", _dateTimeProvider.Today, request.Language, request.BranchId);
     }
 }
 
-public sealed record ExportToolsQuery : DirectoryExportQueryBase, IRequest<ExportFile>
+public sealed record ExportToolsQuery : DirectoryExportQueryBase, IBranchExport, IRequest<ExportFile>
 {
     public ToolStatus? Status { get; init; }
 
@@ -684,7 +691,7 @@ public class ExportToolsQueryHandler : IRequestHandler<ExportToolsQuery, ExportF
             ]).ToList());
 
         return _writer.RenderSnapshot(
-            sheet, "tools", _dateTimeProvider.Today, request.Language);
+            sheet, "tools", _dateTimeProvider.Today, request.Language, request.BranchId);
     }
 }
 
@@ -698,7 +705,7 @@ public class ExportToolsQueryHandler : IRequestHandler<ExportToolsQuery, ExportF
 /// its arithmetic. The report and the export must never disagree, and the only
 /// way to guarantee that is for one to be the other.
 /// </remarks>
-public sealed record ExportProjectCostsQuery : ExportQueryBase, IRequest<ExportFile>
+public sealed record ExportProjectCostsQuery : ExportQueryBase, IBranchExport, IRequest<ExportFile>
 {
     public Guid? ProjectId { get; init; }
 
@@ -971,7 +978,7 @@ public class ExportProjectCostsQueryHandler
     }
 }
 
-public sealed record ExportVehicleCostsQuery : ExportQueryBase, IRequest<ExportFile>
+public sealed record ExportVehicleCostsQuery : ExportQueryBase, IBranchExport, IRequest<ExportFile>
 {
     public Guid? VehicleId { get; init; }
 
@@ -1185,7 +1192,7 @@ public class ExportVehicleCostsQueryHandler
 // ---- tool costs -------------------------------------------------------------
 
 /// <summary>The tool cost report as a spreadsheet. Mirrors <see cref="ExportVehicleCostsQuery"/> exactly, tool for vehicle.</summary>
-public sealed record ExportToolCostsQuery : ExportQueryBase, IRequest<ExportFile>
+public sealed record ExportToolCostsQuery : ExportQueryBase, IBranchExport, IRequest<ExportFile>
 {
     public Guid? ToolId { get; init; }
 
@@ -1376,7 +1383,7 @@ public class ExportToolCostsQueryHandler
 
 // ---- stock -----------------------------------------------------------------
 
-public sealed record ExportMaterialMovementsQuery : ExportQueryBase, IRequest<ExportFile>
+public sealed record ExportMaterialMovementsQuery : ExportQueryBase, IBranchExport, IRequest<ExportFile>
 {
     public Guid? MaterialId { get; init; }
 
@@ -1597,7 +1604,7 @@ public class ExportAbsencesQueryHandler : IRequestHandler<ExportAbsencesQuery, E
 
 // ---- finance entries -----------------------------------------------------
 
-public sealed record ExportFinanceEntriesQuery : ExportQueryBase, IRequest<ExportFile>
+public sealed record ExportFinanceEntriesQuery : ExportQueryBase, IBranchExport, IRequest<ExportFile>
 {
     public Guid? EmployeeId { get; init; }
 

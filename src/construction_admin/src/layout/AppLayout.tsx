@@ -1,5 +1,5 @@
 import { ArrowBackOutlined, ChevronRightOutlined, LogoutOutlined, MenuOutlined, PasswordOutlined, VerifiedUserOutlined, PlaceOutlined, PushPin, PushPinOutlined, HelpOutlined, LanguageOutlined, KeyboardOutlined, MoreHorizOutlined, SearchOutlined, StarOutlined, StarBorderOutlined, SettingsBrightnessOutlined } from '@mui/icons-material';
-import { AppBar, Avatar, Badge, BottomNavigation, Alert, BottomNavigationAction, Box, Breadcrumbs, ButtonBase, ClickAwayListener, Divider, Drawer, Fade, IconButton, Link as MuiLink, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, Paper, Popper, Toolbar, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
+import { AppBar, Avatar, Badge, BottomNavigation, Alert, BottomNavigationAction, Box, Breadcrumbs, ButtonBase, Chip, ClickAwayListener, Divider, Drawer, Fade, IconButton, Link as MuiLink, ListItemButton, ListItemIcon, ListItemText, Menu, MenuItem, Paper, Popper, Toolbar, Tooltip, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { alpha, keyframes } from '@mui/material/styles';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
@@ -15,7 +15,7 @@ import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { OfflineBanner } from '../components/OfflineBanner';
 import { UndoSnackbarHost } from '../components/UndoSnackbarHost';
 import { darkLogoSx } from '../features/companySettings/darkLogoSx';
-import { useCompanyLogoUrl } from '../features/companySettings/useCompanyLogoUrl';
+import { MissingLogoMark, useActiveBrand, useBrandPicture } from '../features/branches/useActiveBrand';
 import {
   useCompanyBrandingQuery,
   useCompanySettingsQuery,
@@ -188,8 +188,13 @@ export function AppLayout({ children }: { children: ReactNode }) {
   const { locale, setLocale } = useI18n();
   const enumLabel = useEnumLabel();
   const { data: branding } = useCompanyBrandingQuery();
-  const logoUrl = useCompanyLogoUrl();
   const { data: companyDetails } = useCompanySettingsQuery(canViewDirectory(user));
+  // Who the rail and the top bar speak for: the chosen business unit, the main one for "all", or the company.
+  const brand = useActiveBrand();
+  const brandPicture = useBrandPicture(brand);
+  const brandDetails = brand.branch
+    ? { address: brand.address, taxId: brand.branch.taxId, phone: brand.branch.phone, email: brand.branch.email }
+    : companyDetails;
   const favorites = useFavorites();
   const itemBadgeCounts = useNavBadgeCounts(user);
 
@@ -380,14 +385,14 @@ export function AppLayout({ children }: { children: ReactNode }) {
           onMouseEnter={(event) => scheduleLogoPreview(event.currentTarget)}
           onMouseLeave={cancelLogoPreview}
         >
-          {branding?.hasLogo ? (
+          {brandPicture ? (
             <Box
               sx={{
                 width: 48,
                 height: 48,
                 p: 0.5,
                 borderRadius: 2,
-                bgcolor: 'background.paper',
+                bgcolor: brandPicture.lightPlate ? '#fff' : 'background.paper',
                 border: '1px solid',
                 borderColor: 'divider',
                 display: 'flex',
@@ -395,14 +400,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
             >
               <Box
                 component="img"
-                src={logoUrl}
+                src={brandPicture.src}
                 alt=""
-                sx={[{ width: '100%', height: '100%', objectFit: 'contain' }, darkLogoSx]}
+                sx={[{ width: '100%', height: '100%', objectFit: 'contain' }, brandPicture.invert && darkLogoSx]}
               />
             </Box>
+          ) : brand.missingLogo ? (
+            <MissingLogoMark size={48} />
           ) : (
             <Avatar variant="rounded" sx={{ width: 44, height: 44, bgcolor: 'primary.main', fontSize: 20 }}>
-              {(branding?.name || t('nav.appName')).slice(0, 1)}
+              {brand.name.slice(0, 1)}
             </Avatar>
           )}
         </IconButton>
@@ -427,53 +434,56 @@ export function AppLayout({ children }: { children: ReactNode }) {
               onMouseLeave={cancelLogoPreview}
             >
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
-                {branding?.hasLogo ? (
+                {brandPicture ? (
                   <Box
                     sx={{
                       width: 220,
                       height: 220,
                       borderRadius: 1,
-                      bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'background.default' : 'grey.50'),
+                      bgcolor: (theme) =>
+                        brandPicture.lightPlate ? '#fff' : theme.palette.mode === 'dark' ? 'background.default' : 'grey.50',
                     }}
                   >
                     <Box
                       component="img"
-                      src={logoUrl}
+                      src={brandPicture.src}
                       alt=""
-                      sx={[{ width: '100%', height: '100%', objectFit: 'contain' }, darkLogoSx]}
+                      sx={[{ width: '100%', height: '100%', objectFit: 'contain' }, brandPicture.invert && darkLogoSx]}
                     />
                   </Box>
+                ) : brand.missingLogo ? (
+                  <MissingLogoMark size={220} />
                 ) : (
                   <Avatar
                     variant="rounded"
                     sx={{ width: 220, height: 220, bgcolor: 'primary.main', fontSize: 64 }}
                   >
-                    {(branding?.name || t('nav.appName')).slice(0, 1)}
+                    {brand.name.slice(0, 1)}
                   </Avatar>
                 )}
 
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25, width: '100%' }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                    {branding?.name || t('nav.appName')}
+                    {brand.name}
                   </Typography>
-                  {companyDetails?.address && (
+                  {brandDetails?.address && (
                     <Typography variant="body2" color="text.secondary">
-                      {companyDetails.address}
+                      {brandDetails.address}
                     </Typography>
                   )}
-                  {companyDetails?.taxId && (
+                  {brandDetails?.taxId && (
                     <Typography variant="body2" color="text.secondary">
-                      {t('companySettings.taxId')}: {companyDetails.taxId}
+                      {t('companySettings.taxId')}: {brandDetails.taxId}
                     </Typography>
                   )}
-                  {companyDetails?.phone && (
+                  {brandDetails?.phone && (
                     <Typography variant="body2" color="text.secondary">
-                      {companyDetails.phone}
+                      {brandDetails.phone}
                     </Typography>
                   )}
-                  {companyDetails?.email && (
+                  {brandDetails?.email && (
                     <Typography variant="body2" color="text.secondary">
-                      {companyDetails.email}
+                      {brandDetails.email}
                     </Typography>
                   )}
                 </Box>
@@ -655,7 +665,19 @@ export function AppLayout({ children }: { children: ReactNode }) {
           [reduceMotion]: { transition: 'none' },
         }}
       >
-        <Toolbar sx={{ gap: 1, position: 'relative', minHeight: { md: TOP_BAR_HEIGHT } }}>
+        {/* From md up the bar is three columns, so the unit's identity is exactly in the middle of the bar
+            while there is room and slides left only as far as the buttons on the right need. */}
+        <Toolbar
+          sx={{
+            gap: 1,
+            position: 'relative',
+            minHeight: { md: TOP_BAR_HEIGHT },
+            display: { xs: 'flex', md: 'grid' },
+            gridTemplateColumns: { md: '1fr auto 1fr' },
+            alignItems: 'center',
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: { xs: 1, md: 'initial' }, minWidth: 0 }}>
           {!isDesktop && (
             <IconButton edge="start" onClick={() => setMobileOpen(true)}>
               <MenuOutlined />
@@ -668,17 +690,16 @@ export function AppLayout({ children }: { children: ReactNode }) {
               </IconButton>
             </Tooltip>
           )}
-          <Box sx={{ flex: 1 }} />
+          </Box>
 
-          {/* The company's own identity in the middle of the bar. It sits in the flex flow
-              between two spacers, so it can never run under the buttons: it first drops the
-              address, then the name, then the whole block as the page area narrows, and the
-              picture itself scales with the window. */}
-          {showBrandLogo && (
+          {/* Who we are right now (the chosen unit, or the company) in the middle of the bar. It cannot run
+              under the buttons: it first drops the address, then the name, then the whole block as the
+              page area narrows, and the picture itself scales with the window. */}
+          {showBrandLogo ? (
             <Box
               component={Link}
               to={paths.home}
-              aria-label={branding?.name || t('nav.appName')}
+              aria-label={brand.name}
               sx={{
                 display: 'flex',
                 alignItems: 'center',
@@ -709,29 +730,39 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 '&:hover .brand-name': { color: 'primary.main' },
               }}
             >
-              {branding?.hasLogo ? (
+              {brandPicture ? (
                 <Box
-                  component="img"
-                  src={logoUrl}
-                  alt=""
                   sx={[
-                    {
-                      height: 'clamp(40px, 3.6vw, 52px)',
-                      width: 'auto',
-                      maxWidth: showBrandName ? 220 : 320,
-                      objectFit: 'contain',
-                      flexShrink: 1,
-                      minWidth: 0,
-                    },
-                    darkLogoSx,
+                    { display: 'flex', flexShrink: 1, minWidth: 0 },
+                    // A unit's logo in its own colours on the dark theme sits on a light plate.
+                    brandPicture.lightPlate && { bgcolor: '#fff', borderRadius: 1.5, p: 0.5 },
                   ]}
-                />
+                >
+                  <Box
+                    component="img"
+                    src={brandPicture.src}
+                    alt=""
+                    sx={[
+                      {
+                        height: 'clamp(40px, 3.6vw, 52px)',
+                        width: 'auto',
+                        maxWidth: showBrandName ? 220 : 320,
+                        objectFit: 'contain',
+                        flexShrink: 1,
+                        minWidth: 0,
+                      },
+                      brandPicture.invert && darkLogoSx,
+                    ]}
+                  />
+                </Box>
+              ) : brand.missingLogo ? (
+                <MissingLogoMark size={48} />
               ) : (
                 <Avatar
                   variant="rounded"
                   sx={{ width: 48, height: 48, bgcolor: 'primary.main', fontSize: 22, flexShrink: 0 }}
                 >
-                  {(branding?.name || t('nav.appName')).slice(0, 1)}
+                  {brand.name.slice(0, 1)}
                 </Avatar>
               )}
               {showBrandName && (
@@ -744,9 +775,12 @@ export function AppLayout({ children }: { children: ReactNode }) {
                       noWrap
                       sx={{ fontWeight: 700, lineHeight: 1.25, transition: 'color 0.18s' }}
                     >
-                      {branding?.name || t('nav.appName')}
+                      {brand.name}
+                      {brand.allUnits && (
+                        <Chip size="small" color="primary" variant="outlined" label={t('branchLogo.allUnits')} sx={{ ml: 1, height: 20, fontSize: 11, fontWeight: 600 }} />
+                      )}
                     </Typography>
-                    {showBrandAddress && companyDetails?.address && (
+                    {showBrandAddress && brand.address && (
                       <Typography
                         variant="body2"
                         color="text.secondary"
@@ -755,7 +789,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                       >
                         <PlaceOutlined sx={{ fontSize: 15, flexShrink: 0 }} />
                         <Box component="span" sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {companyDetails.address}
+                          {brand.address}
                         </Box>
                       </Typography>
                     )}
@@ -763,9 +797,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 </>
               )}
             </Box>
+          ) : (
+            <Box aria-hidden sx={{ display: { xs: 'none', md: 'block' } }} />
           )}
-          <Box sx={{ flex: 1 }} />
-
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-end' }}>
           <Tooltip title={t('guide.title')}>
             <IconButton
               onClick={() => setGuideOpen(true)}
@@ -797,6 +832,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
               {initialsOf(user.firstName, user.lastName, user.email)}
             </Avatar>
           </IconButton>
+          </Box>
           <Menu
             anchorEl={menuAnchor}
             open={!!menuAnchor}

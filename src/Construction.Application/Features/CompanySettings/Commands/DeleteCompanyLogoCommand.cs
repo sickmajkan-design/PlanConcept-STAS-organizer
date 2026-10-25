@@ -32,6 +32,7 @@ public class DeleteCompanyLogoCommandHandler : IRequestHandler<DeleteCompanyLogo
         }
 
         await _storage.DeleteAsync(UploadCompanyLogoCommandHandler.StorageKey, cancellationToken);
+        await _storage.DeleteAsync(UploadCompanyLogoCommandHandler.RasterKey, cancellationToken);
 
         var settings = await _context.CompanySettings.FirstOrDefaultAsync(cancellationToken);
 
@@ -39,6 +40,7 @@ public class DeleteCompanyLogoCommandHandler : IRequestHandler<DeleteCompanyLogo
         {
             settings.LogoStorageKey = null;
             settings.LogoContentType = null;
+            settings.LogoRasterStorageKey = null;
 
             await _context.SaveChangesAsync(cancellationToken);
         }

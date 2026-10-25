@@ -44,6 +44,16 @@ public sealed record IssuerDto
 
     /// <summary>True when the numbers shown are the company's, because the unit is an office that has none of its own.</summary>
     public bool UsesCompanyNumbers { get; init; }
+
+    /// <summary>
+    /// The unit whose logo heads the document: the issuer's own when it has one, otherwise the main unit's.
+    /// Null when the company's own logo is the one (or there is none).
+    /// </summary>
+    public Guid? LogoBranchId { get; init; }
+
+    public long? LogoVersion { get; init; }
+
+    public bool HasLogo { get; init; }
 }
 
 /// <summary>
@@ -131,6 +141,19 @@ public static class BranchIssuer
             ? await context.Branches.AsNoTracking().FirstOrDefaultAsync(b => b.Id == id, cancellationToken)
             : null;
 
-        return Resolve(branch, company, includeTaxDetails);
+        var issuer = Resolve(branch, company, includeTaxDetails);
+
+        // The logo is the issuer's own, or else the main unit's (the one for all units), or else the company's.
+        var logoUnit = branch is { LogoStorageKey: not null }
+            ? branch
+            : await context.Branches.AsNoTracking()
+                .FirstOrDefaultAsync(b => b.IsMain && b.IsActive && b.LogoStorageKey != null, cancellationToken);
+
+        if (logoUnit is not null)
+        {
+            return issuer with { HasLogo = true, LogoBranchId = logoUnit.Id, LogoVersion = logoUnit.LogoUpdatedAt?.Ticks };
+        }
+
+        return issuer with { HasLogo = company?.LogoStorageKey != null };
     }
 }

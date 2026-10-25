@@ -43,6 +43,8 @@ public class CompanySettingsConfiguration : IEntityTypeConfiguration<CompanySett
         builder.Property(c => c.LogoStorageKey)
             .HasMaxLength(256);
 
+        builder.Property(c => c.LogoRasterStorageKey).HasMaxLength(300);
+
         builder.Property(c => c.LogoContentType)
             .HasMaxLength(128);
 

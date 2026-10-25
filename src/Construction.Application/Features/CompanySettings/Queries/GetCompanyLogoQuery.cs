@@ -7,7 +7,7 @@ namespace Construction.Application.Features.CompanySettings.Queries;
 /// <summary>The logo's bytes, ready to stream. No authorization check — reached anonymously.</summary>
 public record CompanyLogoContent(Stream Content, string ContentType);
 
-public record GetCompanyLogoQuery : IRequest<CompanyLogoContent?>;
+public record GetCompanyLogoQuery(bool Raster = false) : IRequest<CompanyLogoContent?>;
 
 public class GetCompanyLogoQueryHandler : IRequestHandler<GetCompanyLogoQuery, CompanyLogoContent?>
 {
@@ -27,12 +27,20 @@ public class GetCompanyLogoQueryHandler : IRequestHandler<GetCompanyLogoQuery, C
         var settings = await _context.CompanySettings
             .AsNoTracking()
             .Where(c => c.LogoStorageKey != null)
-            .Select(c => new { c.LogoStorageKey, c.LogoContentType })
+            .Select(c => new { c.LogoStorageKey, c.LogoContentType, c.LogoRasterStorageKey })
             .FirstOrDefaultAsync(cancellationToken);
 
         if (settings?.LogoStorageKey is null)
         {
             return null;
+        }
+
+        if (request.Raster)
+        {
+            var picture = await Branches.LogoStorage.ReadPictureAsync(
+                _storage, settings.LogoStorageKey, settings.LogoContentType, settings.LogoRasterStorageKey, cancellationToken);
+
+            return picture is null ? null : new CompanyLogoContent(new MemoryStream(picture.Value.Bytes), picture.Value.ContentType);
         }
 
         var content = await _storage.OpenReadAsync(settings.LogoStorageKey, cancellationToken);

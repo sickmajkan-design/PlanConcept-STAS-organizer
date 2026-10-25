@@ -52,10 +52,17 @@ public sealed record SpreadsheetSheet(
 /// feature handlers stay testable without a rendering dependency and the
 /// choice of library stays replaceable.
 /// </remarks>
-public sealed record Spreadsheet(IReadOnlyList<SpreadsheetSheet> Sheets, string? GeneratedAtLabel = null)
+public sealed record Spreadsheet(
+    IReadOnlyList<SpreadsheetSheet> Sheets,
+    string? GeneratedAtLabel = null,
+    Guid? BranchId = null)
 {
-    public static Spreadsheet Of(SpreadsheetSheet sheet, string? generatedAtLabel = null) =>
-        new([sheet], generatedAtLabel);
+    /// <summary>
+    /// <paramref name="branchId"/> is the business unit the export is narrowed to: its logo and name head the
+    /// sheet. Without one, the company's logo and name do.
+    /// </summary>
+    public static Spreadsheet Of(SpreadsheetSheet sheet, string? generatedAtLabel = null, Guid? branchId = null) =>
+        new([sheet], generatedAtLabel, branchId);
 }
 
 /// <summary>

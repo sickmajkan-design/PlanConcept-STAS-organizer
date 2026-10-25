@@ -344,7 +344,7 @@ public class BranchTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task An_admin_sees_the_details_but_not_the_tax_numbers_until_granted()
+    public async Task An_admin_sees_the_details_and_the_tax_numbers_without_a_special_grant()
     {
         var name = UniqueName("Tax");
 
@@ -361,9 +361,11 @@ public class BranchTests : IntegrationTestBase
 
             Assert.Equal("Sarajevo", unit.City);
             Assert.Equal("Ime Prezime", unit.OwnerName);
-            Assert.Null(unit.TaxId);
-            Assert.Null(unit.RegistrationNumber);
-            Assert.Null(unit.VatNumber);
+
+            // The data of the company's own units is not secret from its staff.
+            Assert.Equal("4200000000001", unit.TaxId);
+            Assert.NotNull(unit.RegistrationNumber);
+            Assert.NotNull(unit.VatNumber);
         });
 
         await InScope(async scope =>
@@ -376,7 +378,7 @@ public class BranchTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task Anyone_below_management_reads_a_unit_without_its_details()
+    public async Task Anyone_with_a_panel_account_reads_the_details_of_a_unit()
     {
         var name = UniqueName("Basics");
 
@@ -388,15 +390,15 @@ public class BranchTests : IntegrationTestBase
 
         await InScope(async scope =>
         {
-            // Even with the tax grant: a foreman reads a unit only to filter by it.
-            await SignInWithTaxGrantAsync(scope, UserRole.Foreman, granted: true);
+            // Without any grant: the data of a unit is not secret from the company's own staff.
+            await SignInWithTaxGrantAsync(scope, UserRole.Foreman, granted: false);
             var unit = (await scope.Send(new GetBranchesQuery())).Single(b => b.Name == name);
 
             Assert.Equal(name, unit.Name);
-            Assert.Null(unit.Address);
-            Assert.Null(unit.OwnerName);
-            Assert.Null(unit.Phone);
-            Assert.Null(unit.TaxId);
+            Assert.NotNull(unit.Address);
+            Assert.NotNull(unit.OwnerName);
+            Assert.NotNull(unit.Phone);
+            Assert.NotNull(unit.TaxId);
         });
     }
 

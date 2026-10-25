@@ -1,6 +1,7 @@
 using ClosedXML.Excel;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Spreadsheets;
+using Construction.Application.Features.Branches;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -67,7 +68,7 @@ public sealed class ClosedXmlSpreadsheetWriter : ISpreadsheetWriter
 
     public byte[] Write(Spreadsheet spreadsheet)
     {
-        var branding = LoadBranding();
+        var branding = LoadBranding(spreadsheet.BranchId);
 
         using var workbook = new XLWorkbook();
 
@@ -94,40 +95,52 @@ public sealed class ClosedXmlSpreadsheetWriter : ISpreadsheetWriter
     /// shared entry point, and threading branding through fourteen handler
     /// constructors would be needless surface area for the same result.
     /// </remarks>
-    private SpreadsheetBranding LoadBranding()
+    private SpreadsheetBranding LoadBranding(Guid? branchId)
     {
         using var scope = _scopeFactory.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
 
-        var settings = context.CompanySettings
+        var company = context.CompanySettings
             .AsNoTracking()
-            .Select(c => new { c.Name, c.LogoStorageKey, c.LogoContentType })
+            .Select(c => new { c.Name, c.LogoStorageKey, c.LogoContentType, c.LogoRasterStorageKey })
             .FirstOrDefault();
 
-        if (settings is null)
-        {
-            return new SpreadsheetBranding(null, null, null);
-        }
+        // The unit the export is narrowed to heads the file with its own name and logo.
+        var unit = branchId is { } id
+            ? context.Branches
+                .AsNoTracking()
+                .Where(u => u.Id == id)
+                .Select(u => new { Name = u.LegalName ?? u.Name, u.LogoStorageKey, u.LogoContentType, u.LogoRasterStorageKey })
+                .FirstOrDefault()
+            : null;
 
-        byte[]? logoBytes = null;
+        // The logo is the unit's own, or else the main unit's (the one for all units), or else the company's.
+        var main = unit is { LogoStorageKey: not null }
+            ? null
+            : context.Branches
+                .AsNoTracking()
+                .Where(u => u.IsMain && u.IsActive && u.LogoStorageKey != null)
+                .Select(u => new { u.LogoStorageKey, u.LogoContentType, u.LogoRasterStorageKey })
+                .FirstOrDefault();
 
-        if (settings.LogoStorageKey is not null)
-        {
-            using var logoStream = _storage.OpenReadAsync(settings.LogoStorageKey)
+        var (logoKey, logoType, logoRaster) = unit is { LogoStorageKey: not null }
+            ? (unit.LogoStorageKey, unit.LogoContentType, unit.LogoRasterStorageKey)
+            : main is not null
+                ? (main.LogoStorageKey, main.LogoContentType, main.LogoRasterStorageKey)
+                : (company?.LogoStorageKey, company?.LogoContentType, company?.LogoRasterStorageKey);
+
+        var name = unit?.Name ?? company?.Name;
+
+        // A spreadsheet draws a picture, so an SVG logo is drawn from its png copy; none, no logo.
+        var picture = logoKey is null
+            ? null
+            : LogoStorage.ReadPictureAsync(_storage, logoKey, logoType, logoRaster, CancellationToken.None)
                 .GetAwaiter().GetResult();
 
-            if (logoStream is not null)
-            {
-                using var buffer = new MemoryStream();
-                logoStream.CopyTo(buffer);
-                logoBytes = buffer.ToArray();
-            }
-        }
-
         return new SpreadsheetBranding(
-            string.IsNullOrWhiteSpace(settings.Name) ? null : settings.Name,
-            logoBytes,
-            settings.LogoContentType);
+            string.IsNullOrWhiteSpace(name) ? null : name,
+            picture?.Bytes,
+            picture?.ContentType);
     }
 
     /// <summary>
@@ -321,10 +334,15 @@ public sealed class ClosedXmlSpreadsheetWriter : ISpreadsheetWriter
             // Anchored on the header row rather than resized to it: a logo
             // squeezed into a 15-point row is unrecognisable, so it is left
             // at a sensible fixed height and simply overlaps the row below,
-            // which is blank whitespace either way.
-            worksheet.AddPicture(logoStream)
-                .MoveTo(worksheet.Cell(1, columnCount + 1))
-                .WithSize(120, 40);
+            // which is blank whitespace either way. The width follows the
+            // picture, so a square logo is not stretched into a wide one.
+            var picture = worksheet.AddPicture(logoStream);
+            const int logoHeight = 40;
+            var logoWidth = picture.OriginalHeight > 0
+                ? Math.Min(180, (int)Math.Round((double)picture.OriginalWidth * logoHeight / picture.OriginalHeight))
+                : 120;
+
+            picture.MoveTo(worksheet.Cell(1, columnCount + 1)).WithSize(Math.Max(logoWidth, 1), logoHeight);
         }
 
         return 1;

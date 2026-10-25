@@ -125,6 +125,6 @@ public class GetBookExportQueryHandler : IRequestHandler<GetBookExportQuery, Exp
         return new ExportFile(
             $"knjiga-{from}-{to}.xlsx",
             _writer.ContentType,
-            _writer.Write(Spreadsheet.Of(sheet, _dateTimeProvider.UtcNow.ToString("dd.MM.yyyy. HH:mm"))));
+            _writer.Write(Spreadsheet.Of(sheet, _dateTimeProvider.UtcNow.ToString("dd.MM.yyyy. HH:mm"), request.BranchId)));
     }
 }

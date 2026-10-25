@@ -10,7 +10,7 @@ const KEYWORDS: Record<string, string> = {
   [paths.documentRequests]:
     'zahtjev dokument traži novi radnik paket za provjeru prihvati vrati pasoš request document new worker package check accept return passport',
   [paths.audit]: 'revizija trag izmjena ko je otvorio osjetljivo audit trail history who opened sensitive',
-  [paths.organization]: 'firma poslovne jedinice filijala predstavništvo organizacija company branch business units',
+  [paths.organization]: 'firma poslovne jedinice filijala predstavništvo organizacija logo glavna jedinica company branch business units logo main unit',
   [paths.schedule]: 'raspored planiranje smjena zamjena odsutni ekipa potreba schedule planning shift replacement crew',
   [paths.bookOverview]: 'knjiga evidencija novac dobit prihod trošak ulaz izlaz book money profit income cost',
   [paths.bookEntries]: 'zapisi unos trošak prihod faktura gorivo izvoz zip knjigovođa entries costs invoice export accountant',

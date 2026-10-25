@@ -27,6 +27,7 @@ import { useAuth } from '../../auth/useAuth';
 import { COUNTRIES, countryLabel, resolveCountryCode } from '../../data/countries';
 import { useT } from '../../i18n/useI18n';
 import { BranchDot } from './BranchDot';
+import { BranchLogoSection } from './BranchLogoSection';
 import { useEveryEmployeeQuery } from '../employees/useEmployees';
 import { allowedParents } from './branchTree';
 import { useBranchesQuery, useCreateBranch, useUpdateBranch } from './useBranches';
@@ -283,6 +284,15 @@ export function BranchFormDialog({
               </Stack>
             </Box>
           </Grid>
+
+          {isEdit && (
+            <>
+              {section(t('branchLogo.section'))}
+              <Grid size={12}>
+                <BranchLogoSection branch={target} />
+              </Grid>
+            </>
+          )}
 
           {section(t('branches.sectionAddress'))}
           <Grid size={12}>{text('legalName', t('branches.legalName'))}</Grid>
