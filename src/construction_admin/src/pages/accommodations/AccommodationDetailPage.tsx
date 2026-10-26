@@ -1,4 +1,5 @@
 import {
+  GroupAddOutlined,
   AddOutlined,
   ChevronLeftOutlined,
   ChevronRightOutlined,
@@ -77,6 +78,7 @@ import { useI18n, useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { dateOnlyOffset, formatDate, formatMoney } from '../../utils/formatting';
 import { companyNow } from '../../utils/companyTime';
+import { BulkStayDialog } from '../../features/accommodations/BulkStayDialog';
 
 /** What a place is called: its name, or its address when nobody named it. */
 export const accommodationTitle = (accommodation: Pick<Accommodation, 'name' | 'address'>) =>
@@ -358,6 +360,7 @@ function OccupantsCard({ accommodation }: { accommodation: Accommodation }) {
   const t = useT();
   const [showEnded, setShowEnded] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [addingMany, setAddingMany] = useState(false);
   const [editing, setEditing] = useState<AccommodationStay | null>(null);
 
   const query = useMemo(
@@ -398,6 +401,9 @@ function OccupantsCard({ accommodation }: { accommodation: Accommodation }) {
             />
             <Button size="small" startIcon={<AddOutlined />} onClick={() => setAdding(true)}>
               {t('accommodations.addOccupant')}
+            </Button>
+            <Button size="small" startIcon={<GroupAddOutlined />} onClick={() => setAddingMany(true)}>
+              {t('accommodations.bulk.open')}
             </Button>
           </Stack>
         </Stack>
@@ -458,6 +464,12 @@ function OccupantsCard({ accommodation }: { accommodation: Accommodation }) {
       </CardContent>
 
       <StayDialog open={adding} accommodationId={accommodation.id} onClose={() => setAdding(false)} />
+      <BulkStayDialog
+        open={addingMany}
+        accommodationId={accommodation.id}
+        title={accommodationTitle(accommodation)}
+        onClose={() => setAddingMany(false)}
+      />
       <StayDialog
         open={!!editing}
         accommodationId={accommodation.id}

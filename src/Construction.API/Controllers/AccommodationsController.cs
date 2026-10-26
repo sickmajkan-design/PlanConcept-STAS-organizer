@@ -1,4 +1,5 @@
 using Construction.API.Authorization;
+using Construction.API.Filters;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.Accommodations.Commands.CreateAccommodation;
 using Construction.Application.Features.Accommodations.Costs;
@@ -117,6 +118,24 @@ public class AccommodationsController : ApiControllerBase
     public async Task<ActionResult<AccommodationStayDto>> AddStay(
         Guid id,
         AddAccommodationStayCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { AccommodationId = id }, cancellationToken));
+    }
+
+    /// <summary>
+    /// Puts several people into this accommodation at once, each with their own dates and project. With
+    /// <c>preview</c> nothing is written and the answer says what would happen to each of them.
+    /// </summary>
+    [HttpPost("{id:guid}/stays/bulk")]
+    [Idempotent]
+    [Authorize(Policy = Policies.ProjectManagerAndAbove)]
+    [ProducesResponseType(typeof(AccommodationStaysResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<AccommodationStaysResultDto>> AddStays(
+        Guid id,
+        AddAccommodationStaysCommand command,
         CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(command with { AccommodationId = id }, cancellationToken));

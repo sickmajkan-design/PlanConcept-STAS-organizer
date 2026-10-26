@@ -11,7 +11,7 @@ import type { MessageKey } from '../../i18n/en';
  * what changed recently, not a changelog: when a release is added, drop the
  * sections older than the fifth (and their `releaseNotes.*` keys in i18n).
  */
-export const RELEASE_ID = '2026-10-26.35';
+export const RELEASE_ID = '2026-10-26.36';
 
 /** The day of the release, `YYYY-MM-DD`, read from {@link RELEASE_ID}. */
 export const RELEASE_DATE = RELEASE_ID.slice(0, 10);
@@ -25,6 +25,12 @@ export interface ReleaseSection {
 }
 
 export const releaseSections: ReleaseSection[] = [
+  {
+    id: 'stays1026',
+    titleKey: 'releaseNotes.stays1026.title',
+    itemKeys: ['releaseNotes.stays1026.many', 'releaseNotes.stays1026.check', 'releaseNotes.stays1026.own', 'releaseNotes.stays1026.customer'],
+    audience: (user) => canViewDirectory(user),
+  },
   {
     id: 'kits1026',
     titleKey: 'releaseNotes.kits1026.title',
@@ -47,12 +53,6 @@ export const releaseSections: ReleaseSection[] = [
     id: 'android1024',
     titleKey: 'releaseNotes.android1024.title',
     itemKeys: ['releaseNotes.android1024.form', 'releaseNotes.android1024.again', 'releaseNotes.android1024.notices'],
-    audience: (user) => canViewDirectory(user),
-  },
-  {
-    id: 'office1024',
-    titleKey: 'releaseNotes.office1024.title',
-    itemKeys: ['releaseNotes.office1024.enter', 'releaseNotes.office1024.review', 'releaseNotes.office1024.notice'],
     audience: (user) => canViewDirectory(user),
   },
 ];

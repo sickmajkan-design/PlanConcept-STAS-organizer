@@ -1,0 +1,216 @@
+<title>Kupac na rasporedu i projektima</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: three tabs. Schedule views, the projects list before/after, and the rule that ties them. */
+:root{
+  --bg:#eef1f6; --surface:#ffffff; --surface2:#f6f8fc; --line:#dbe1ec; --fg:#18202f; --muted:#5b6679;
+  --primary:#3457d5; --primary-soft:#e4eafc; --warn:#9a5b00; --warn-bg:#fff2d9; --ok:#17794a; --ok-bg:#dff5ea;
+  --bad:#b3261e; --bad-bg:#fde4e2; --cust:#6a3fb5; --cust-bg:#efe6fb;
+  --font:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f141d; --surface:#171e2b; --surface2:#1d2636; --line:#2b364b; --fg:#e7ecf6; --muted:#9aa6bb;
+  --primary:#7c97ff; --primary-soft:#24305a; --warn:#ffcf7a; --warn-bg:#3a2d12; --ok:#5fd29a; --ok-bg:#12372a;
+  --bad:#ff9d96; --bad-bg:#40191a; --cust:#c6a6ff; --cust-bg:#2e2150; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141d; --surface:#171e2b; --surface2:#1d2636; --line:#2b364b; --fg:#e7ecf6; --muted:#9aa6bb;
+  --primary:#7c97ff; --primary-soft:#24305a; --warn:#ffcf7a; --warn-bg:#3a2d12; --ok:#5fd29a; --ok-bg:#12372a;
+  --bad:#ff9d96; --bad-bg:#40191a; --cust:#c6a6ff; --cust-bg:#2e2150; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:14px;line-height:1.45;
+  padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1{font-size:22px;margin:0} h2{font-size:15px;margin:0} h3{font-size:12px;margin:0;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+p{margin:0} .muted{color:var(--muted)} .num{font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;cursor:pointer}
+.tabs{display:flex;flex-wrap:wrap;gap:6px}
+.tab{border:1px solid var(--line);background:var(--surface);padding:7px 14px;border-radius:8px}
+.tab[aria-selected="true"]{background:var(--primary);border-color:var(--primary);color:#fff}
+:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+section{display:flex;flex-direction:column;gap:14px}
+.note{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+.note ul{margin:6px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:3px}
+.frame{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;min-width:0}
+.fh{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--surface2)}
+.fb{padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+.scroll{overflow-x:auto}
+.badge{display:inline-block;padding:1px 9px;border-radius:99px;font-size:12px}
+.badge.new{background:var(--ok-bg);color:var(--ok)} .badge.old{background:var(--bad-bg);color:var(--bad)}
+/* the customer tag: one element everywhere */
+.cust{font-size:12px;color:var(--cust);background:var(--cust-bg);border-radius:6px;padding:0 7px;white-space:nowrap;font-weight:400}
+.cust.none{color:var(--muted);background:transparent;border:1px dashed var(--line)}
+.site{display:flex;align-items:flex-start;gap:8px;min-width:0}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;margin-top:5px}
+.nm{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;min-width:0}
+.nm b{font-weight:600}
+.stack{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+table{border-collapse:collapse;width:100%}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--muted);font-weight:600}
+.chip{display:inline-block;padding:1px 9px;border-radius:99px;font-size:12px;background:var(--surface2);border:1px solid var(--line)}
+.chip.warn{background:var(--warn-bg);color:var(--warn);border-color:transparent}
+.chip.ok{background:var(--ok-bg);color:var(--ok);border-color:transparent}
+.card{border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.card .ch{display:flex;gap:8px;align-items:flex-start;padding:10px 12px;border-bottom:1px solid var(--line)}
+.card .ch .stack{flex:1}
+.card .cb{padding:10px 12px;color:var(--muted);font-size:13px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px}
+.row{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 14px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row.sub{padding-left:38px;background:var(--surface2)}
+.gh{display:flex;gap:8px;align-items:center;padding:8px 14px;background:var(--surface2);border-bottom:1px solid var(--line)}
+.sw{display:flex;gap:8px;align-items:center}
+.sw i{width:34px;height:18px;border-radius:99px;background:var(--primary);position:relative;display:inline-block}
+.sw i::after{content:"";position:absolute;right:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#fff}
+.sw.off i{background:var(--line)} .sw.off i::after{right:auto;left:2px}
+.phone{width:300px;max-width:100%;border:1px solid var(--line);border-radius:14px;padding:10px;background:var(--surface)}
+</style>
+
+<div class="wrap">
+  <div>
+    <h1>Kupac uz svaki projekat: raspored i lista projekata</h1>
+    <p class="muted">Prijedlog izgleda prije implementacije. Isti ljubičasti znak kupca, svugdje isto. Podaci su izmišljeni primjeri.</p>
+  </div>
+  <div class="tabs" role="tablist" id="tabs">
+    <button class="tab" role="tab" aria-selected="true" data-t="t1">1 · Raspored</button>
+    <button class="tab" role="tab" aria-selected="false" data-t="t2">2 · Lista projekata</button>
+    <button class="tab" role="tab" aria-selected="false" data-t="t3">3 · Pravila i pitanja</button>
+  </div>
+
+  <!-- 1 -->
+  <section id="t1">
+    <div class="note"><h2>Zašto ga nema na rasporedu</h2>
+      <p>Prošli put je znak kupca dodat samo u stari prikaz rasporeda i na nekoliko drugih ekrana. Novi raspored (/schedule) ima pet prikaza i svaki piše ime gradilišta za sebe: Dan, Po gradilištima, Vremenska traka, Lista i Troškovi, plus prozori za premještanje i potrebe. Podatak o kupcu raspored već dobija sa servera, pa za to nije potreban nijedan novi poziv.</p>
+    </div>
+
+    <div class="grid2">
+      <div class="frame"><div class="fh"><h2>Po gradilištima</h2><span class="badge new">predlog</span></div>
+        <div class="scroll"><table>
+          <tr><th>Gradilište</th><th>Pon</th><th>Uto</th><th>Sri</th></tr>
+          <tr><td><div class="site"><span class="dot" style="background:#3457d5"></span><div class="stack">
+            <span class="nm"><b>Stambeni objekat Lamela B</b><span class="cust">Invest-Gradnja d.o.o.</span></span>
+            <span class="muted" style="font-size:12px">12.03. – 30.11. · treba 8</span></div></div></td><td class="num">6/8</td><td class="num">8/8</td><td class="num">8/8</td></tr>
+          <tr><td><div class="site"><span class="dot" style="background:#d55734"></span><div class="stack">
+            <span class="nm"><b>Hala Logistik Park</b><span class="cust">LogPark a.d.</span></span>
+            <span class="muted" style="font-size:12px">01.04. – … · treba 5</span></div></div></td><td class="num">5/5</td><td class="num">4/5</td><td class="num">5/5</td></tr>
+          <tr><td><div class="site"><span class="dot" style="background:#17794a"></span><div class="stack">
+            <span class="nm"><b>Servisni objekat Nova</b><span class="cust none">Bez kupca</span></span>
+            <span class="muted" style="font-size:12px">… · nema potrebe</span></div></div></td><td></td><td></td><td></td></tr>
+        </table></div>
+      </div>
+
+      <div class="frame"><div class="fh"><h2>Dan</h2><span class="badge new">predlog</span></div>
+        <div class="fb">
+          <div class="card"><div class="ch"><span class="dot" style="background:#3457d5"></span><div class="stack"><b>Stambeni objekat Lamela B</b><span class="cust" style="background:none;padding:0">Invest-Gradnja d.o.o.</span></div><span class="chip warn num">6 / 8</span></div><div class="cb">Marko Ilić, Jovana Kovač, Dragan Savić …</div></div>
+          <div class="card"><div class="ch"><span class="dot" style="background:#d55734"></span><div class="stack"><b>Hala Logistik Park</b><span class="cust" style="background:none;padding:0">LogPark a.d.</span></div><span class="chip ok num">5 / 5</span></div><div class="cb">Ana Novak, Petar Marić …</div></div>
+          <p class="muted">Kartica je uska, pa je kupac u drugom redu ispod imena.</p>
+        </div>
+      </div>
+
+      <div class="frame"><div class="fh"><h2>Vremenska traka</h2><span class="badge new">predlog</span></div>
+        <div class="fb">
+          <h3>Oznake boja</h3>
+          <div class="legend">
+            <span class="site"><span class="dot" style="background:#3457d5;margin-top:4px"></span><span class="nm"><b>Lamela B</b><span class="cust">Invest-Gradnja</span></span></span>
+            <span class="site"><span class="dot" style="background:#d55734;margin-top:4px"></span><span class="nm"><b>Logistik Park</b><span class="cust">LogPark</span></span></span>
+            <span class="site"><span class="dot" style="background:#17794a;margin-top:4px"></span><span class="nm"><b>Nova</b><span class="cust none">Bez kupca</span></span></span>
+          </div>
+          <h3>Traka radnika (mrđa pokazivač)</h3>
+          <div style="background:var(--primary-soft);border-left:3px solid var(--primary);border-radius:6px;padding:4px 10px;font-size:12px;width:fit-content">Stambeni objekat Lamela B · <span style="color:var(--cust)">Invest-Gradnja d.o.o.</span></div>
+          <p class="muted">Na samoj traci nema mjesta, pa se kupac vidi u oznaci i u opisu koji se otvori na pokazivaču.</p>
+        </div>
+      </div>
+
+      <div class="frame"><div class="fh"><h2>Troškovi i prozori</h2><span class="badge new">predlog</span></div>
+        <div class="fb">
+          <h3>Troškovi plana</h3>
+          <div class="stack"><b>Hala Logistik Park</b><span class="cust" style="background:none;padding:0">LogPark a.d. · 18 dana</span></div>
+          <h3>Prozor „Premjesti radnika“</h3>
+          <div style="border:1px solid var(--line);border-radius:8px;padding:10px 12px">
+            <p><b>Jovana Kovač</b> prelazi na</p>
+            <p class="nm" style="margin-top:4px"><b>Hala Logistik Park</b><span class="cust">LogPark a.d.</span></p>
+            <p class="muted" style="margin-top:4px">Poslije: Hala Logistik Park, 03.11. – 14.11.</p>
+          </div>
+          <h3>Lista</h3>
+          <p class="muted">Lista je po radnicima, ne po gradilištima, pa tu ništa ne mijenjam: gradilište u ćeliji dobija oznaku kupca kad ima mjesta.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section id="t2" hidden>
+    <div class="note"><h2>Kako je sada, i šta predlažem</h2>
+      <ul>
+        <li>Lista projekata je <b>grupisana po kupcu</b>: ime kupca je naslov grupe, a redovi ispod su projekti. Red projekta sam nigdje ne piše kupca.</li>
+        <li>Zato u pretrazi, pri filtriranju, na telefonu i u prikazu ploče (kartice po stanju) kupac nije uz projekat, a pod-projekti na to ne nasljeđuju ništa vidljivo.</li>
+        <li>Predlog: <b>znak kupca u svakom redu</b>, isti kao na rasporedu. Grupisanje ostaje, ali se može isključiti prekidačem „Grupiši po kupcu“. Kad je isključeno, lista je jedna ravna i svaki red nosi znak.</li>
+      </ul>
+    </div>
+
+    <div class="grid2">
+      <div class="frame"><div class="fh"><h2>Sada</h2><span class="badge old">trenutno</span></div>
+        <div class="gh"><b>Invest-Gradnja d.o.o.</b><span class="chip">2</span></div>
+        <div class="row"><div class="stack"><b>Stambeni objekat Lamela B</b><span class="muted" style="font-size:12px">Banja Luka · do 30.11.</span></div><span class="chip ok">U toku</span></div>
+        <div class="row sub"><div class="stack"><span>Lamela B, faza 2</span><span class="muted" style="font-size:12px">pod-projekat</span></div><span class="chip ok">U toku</span></div>
+        <div class="gh"><b>LogPark a.d.</b><span class="chip">1</span></div>
+        <div class="row"><div class="stack"><b>Hala Logistik Park</b><span class="muted" style="font-size:12px">Prijedor</span></div><span class="chip ok">U toku</span></div>
+      </div>
+
+      <div class="frame"><div class="fh"><h2>Predlog: grupisano (zadano)</h2><span class="badge new">predlog</span></div>
+        <div class="fb" style="padding:10px 16px"><span class="sw"><i></i>Grupiši po kupcu</span></div>
+        <div class="gh"><b>Invest-Gradnja d.o.o.</b><span class="chip">2</span></div>
+        <div class="row"><div class="stack"><span class="nm"><b>Stambeni objekat Lamela B</b><span class="cust">Invest-Gradnja d.o.o.</span></span><span class="muted" style="font-size:12px">Banja Luka · do 30.11.</span></div><span class="chip ok">U toku</span></div>
+        <div class="row sub"><div class="stack"><span class="nm"><span>Lamela B, faza 2</span><span class="cust">Invest-Gradnja d.o.o.</span></span><span class="muted" style="font-size:12px">pod-projekat</span></div><span class="chip ok">U toku</span></div>
+        <div class="gh"><b>LogPark a.d.</b><span class="chip">1</span></div>
+        <div class="row"><div class="stack"><span class="nm"><b>Hala Logistik Park</b><span class="cust">LogPark a.d.</span></span><span class="muted" style="font-size:12px">Prijedor</span></div><span class="chip ok">U toku</span></div>
+      </div>
+
+      <div class="frame"><div class="fh"><h2>Predlog: ravno (prekidač isključen)</h2><span class="badge new">predlog</span></div>
+        <div class="fb" style="padding:10px 16px"><span class="sw off"><i></i>Grupiši po kupcu</span></div>
+        <div class="row"><div class="stack"><span class="nm"><b>Hala Logistik Park</b><span class="cust">LogPark a.d.</span></span><span class="muted" style="font-size:12px">Prijedor</span></div><span class="chip ok">U toku</span></div>
+        <div class="row"><div class="stack"><span class="nm"><b>Servisni objekat Nova</b><span class="cust none">Bez kupca</span></span><span class="muted" style="font-size:12px">Nacrt</span></div><span class="chip warn">Nacrt</span></div>
+        <div class="row"><div class="stack"><span class="nm"><b>Stambeni objekat Lamela B</b><span class="cust">Invest-Gradnja d.o.o.</span></span><span class="muted" style="font-size:12px">Banja Luka · do 30.11.</span></div><span class="chip ok">U toku</span></div>
+        <div class="fb"><p class="muted">Ovako se projekti mogu poredati po imenu ili datumu, a kupac se i dalje vidi.</p></div>
+      </div>
+
+      <div class="frame"><div class="fh"><h2>Kartice (prikaz ploče) i telefon</h2><span class="badge new">predlog</span></div>
+        <div class="fb" style="flex-direction:row;flex-wrap:wrap;gap:14px">
+          <div class="card" style="width:230px"><div class="ch"><div class="stack"><b>Hala Logistik Park</b><span class="cust" style="background:none;padding:0">LogPark a.d.</span></div></div><div class="cb">Prijedor · do 30.11.</div></div>
+          <div class="phone"><div class="stack"><b>Stambeni objekat Lamela B</b><span class="cust" style="background:none;padding:0">Invest-Gradnja d.o.o.</span></div><p class="muted" style="margin-top:4px;font-size:12px">Banja Luka</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section id="t3" hidden>
+    <div class="note"><h2>Pravila koja predlažem</h2>
+      <ul>
+        <li><b>Jedan znak</b> (ljubičasta oznaka s imenom kupca) i jedna komponenta za cijeli panel. Na rasporedu, listi, karticama i prozorima izgleda isto.</li>
+        <li><b>Širina odlučuje položaj.</b> Gdje ima mjesta, znak je pored imena. Gdje je tijesno (kartica dana, telefon, vremenska traka), prelazi u drugi red ispod imena.</li>
+        <li><b>Bez kupca</b> piše isprekidanom oznakom, da se vidi šta nedostaje popuniti.</li>
+        <li><b>Pod-projekat</b> pokazuje kupca glavnog projekta.</li>
+        <li><b>Pretraga</b> na /projects i na rasporedu nalazi i po imenu kupca (provjerit ću da li to na projektima već radi).</li>
+        <li><b>Nema novih poziva:</b> raspored već nosi ime kupca, a lista projekata ga ima u svakom redu.</li>
+      </ul>
+    </div>
+    <div class="note"><h2>Pitanja za tebe</h2>
+      <ul>
+        <li>Na listi projekata: grupisanje po kupcu i dalje zadano uz znak u svakom redu, ili ravna lista kao zadana?</li>
+        <li>Da li klik na znak kupca treba da filtrira projekte tog kupca? To nisam uključio, a lako je dodati.</li>
+        <li>Da li želiš znak i na obilježjima koja su sada samo boja: kartica dana na telefonu radnika (aplikacija)? Aplikaciju nisam dirao.</li>
+      </ul>
+    </div>
+    <div class="note"><h2>Obim i rizik</h2>
+      <p>Mijenja se samo prikaz (panel). Nema izmjena baze ni servera. Rizik je u širini: dugo ime projekta plus dugo ime kupca, pa oba prelaze u više redova i ne smiju se međusobno gurati. Provjerio bih to na telefonu i na tabletu.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+var tabs=document.getElementById('tabs');
+tabs.addEventListener('click',function(e){var b=e.target.closest('.tab');if(!b)return;
+  tabs.querySelectorAll('.tab').forEach(function(x){x.setAttribute('aria-selected',x===b?'true':'false')});
+  ['t1','t2','t3'].forEach(function(id){document.getElementById(id).hidden=(id!==b.dataset.t)})});
+</script>

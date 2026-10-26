@@ -12,6 +12,7 @@ import type {
   ListQuery,
   PagedList,
 } from './types';
+import { idempotencyHeaders } from './idempotency';
 
 export interface AccommodationListQuery extends ListQuery {
   type?: AccommodationType;
@@ -73,6 +74,14 @@ export const accommodationsApi = {
         data: input,
       }),
 
+    addMany: (accommodationId: string, input: AccommodationStaysInput, idempotencyKey?: string) =>
+      request<AccommodationStaysResult>({
+        method: 'POST',
+        url: `/api/v1/accommodations/${accommodationId}/stays/bulk`,
+        data: input,
+        headers: idempotencyHeaders(idempotencyKey),
+      }),
+
     update: (id: string, input: AccommodationStayInput) =>
       request<AccommodationStay>({
         method: 'PUT',
@@ -91,3 +100,44 @@ export const accommodationsApi = {
       params: period,
     }),
 };
+
+export interface AccommodationStayRowInput {
+  employeeId: string;
+  startDate?: string | null;
+  endDate?: string | null;
+  projectId?: string | null;
+  note?: string | null;
+}
+
+export interface AccommodationStaysInput {
+  /** True: nothing is written, the answer says what would happen to each person. */
+  preview: boolean;
+  stays: AccommodationStayRowInput[];
+}
+
+export type AccommodationStayRowStatus = 'Ok' | 'OverCapacity' | 'Conflict' | 'Invalid';
+
+export interface AccommodationStayRowResult {
+  employeeId: string;
+  employeeName: string | null;
+  startDate: string;
+  endDate: string | null;
+  projectId: string | null;
+  projectName: string | null;
+  status: AccommodationStayRowStatus;
+  /** EmployeeNotFound, ProjectNotFound, EndBeforeStart, ListedTwice or AlreadyHoused. */
+  reason: string | null;
+  place: string | null;
+  placeUntil: string | null;
+  /** The stay that was written. Null in a preview and for a person who was not written. */
+  stayId: string | null;
+}
+
+export interface AccommodationStaysResult {
+  preview: boolean;
+  beds: number | null;
+  peakOccupancy: number;
+  peakDate: string | null;
+  saved: number;
+  rows: AccommodationStayRowResult[];
+}

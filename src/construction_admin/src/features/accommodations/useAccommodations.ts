@@ -6,6 +6,7 @@ import {
   type AccommodationListQuery,
   type AccommodationStayListQuery,
 } from '../../api/accommodations';
+import type { AccommodationStaysInput } from '../../api/accommodations';
 import type { AccommodationInput, AccommodationStayInput } from '../../api/types';
 import {
   createResourceKeys,
@@ -120,4 +121,22 @@ export function useRefreshAccommodationCosts() {
   const queryClient = useQueryClient();
 
   return () => queryClient.invalidateQueries({ queryKey: ['accommodationCosts'] });
+}
+
+/** Looks at what several people at once would do to an accommodation. Writes nothing. */
+export function usePreviewAccommodationStays() {
+  return useResourceMutation(
+    (variables: { accommodationId: string; input: AccommodationStaysInput }, key: string) =>
+      accommodationsApi.stays.addMany(variables.accommodationId, variables.input, key),
+    [],
+  );
+}
+
+/** Houses several people at once. Its own hook so it has its own idempotency key apart from the preview's. */
+export function useSaveAccommodationStays() {
+  return useResourceMutation(
+    (variables: { accommodationId: string; input: AccommodationStaysInput }, key: string) =>
+      accommodationsApi.stays.addMany(variables.accommodationId, variables.input, key),
+    stayCaches,
+  );
 }

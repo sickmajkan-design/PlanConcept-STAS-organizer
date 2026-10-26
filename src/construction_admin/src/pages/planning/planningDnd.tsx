@@ -20,6 +20,7 @@ import { createContext, useContext, useState, type ReactNode } from 'react';
 import { shortage, workdayIndexes, type Plan, type PlanPerson } from '../../features/planning/planningLogic';
 import { useT } from '../../i18n/useI18n';
 import { initials, siteColor } from './planningUi';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 /** What is being dragged: one person over the stretch of days the grab stands for (a day, or a bar in the timeline). */
 export interface DragPayload {
@@ -179,7 +180,7 @@ export function SiteTray({ plan }: { plan: Plan }) {
           key={site.id}
           id={`site:${site.id}`}
           target={{ kind: 'site', projectId: site.id }}
-          label={site.name}
+          label={<ProjectLabel name={site.name} projectId={site.id} customerName={site.customerName} />}
           color={siteColor(site.id)}
           fits={!!person && !!payload && fillsGap(plan, site.id, person, payload.from, payload.to)}
           dragging={!!person}
@@ -201,7 +202,7 @@ function TrayChip({
 }: {
   id: string;
   target: DropTarget;
-  label: string;
+  label: ReactNode;
   color?: string;
   dashed?: boolean;
   fits: boolean;

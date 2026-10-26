@@ -35,6 +35,7 @@ import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
 import { formatDate } from '../../utils/formatting';
 import { siteColor } from './planningUi';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 export interface PlanningActions {
   assign: (
@@ -358,7 +359,9 @@ export function SiteDialog({
 
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle sx={{ pb: 0.5 }}>{site.name}</DialogTitle>
+      <DialogTitle sx={{ pb: 0.5 }}>
+        <ProjectLabel name={site.name} projectId={site.id} customerName={site.customerName} variant="stacked" />
+      </DialogTitle>
       <DialogContent>
         <Typography variant="body2" color="text.secondary">
           {t('planning.s.needsLine', { total: needOf(site), list: site.needs.map((n) => `${n.count} ${n.position}`).join(', ') || '—' })}

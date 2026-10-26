@@ -76,6 +76,8 @@ public class UpdateAccommodationStayCommandValidator : AbstractValidator<UpdateA
     }
 }
 
+internal sealed record StayClash(string Where, DateOnly? Until);
+
 internal static class StayRules
 {
     /// <summary>
@@ -90,14 +92,7 @@ internal static class StayRules
         DateOnly? end,
         CancellationToken cancellationToken)
     {
-        var clash = await context.AccommodationStays
-            .AsNoTracking()
-            .Where(s => s.EmployeeId == employeeId
-                && (excludeStayId == null || s.Id != excludeStayId)
-                && s.StartDate <= (end ?? DateOnly.MaxValue)
-                && (s.EndDate == null || s.EndDate >= start))
-            .Select(s => new { Where = s.Accommodation.Name ?? s.Accommodation.Address })
-            .FirstOrDefaultAsync(cancellationToken);
+        var clash = await FindClashAsync(context, employeeId, excludeStayId, start, end, cancellationToken);
 
         if (clash is not null)
         {
@@ -105,6 +100,23 @@ internal static class StayRules
                 $"This person already has a stay at {clash.Where} on those dates. End that one first.");
         }
     }
+
+    /// <summary>The stay that is in the way, or null: where it is and until when.</summary>
+    public static Task<StayClash?> FindClashAsync(
+        IApplicationDbContext context,
+        Guid employeeId,
+        Guid? excludeStayId,
+        DateOnly start,
+        DateOnly? end,
+        CancellationToken cancellationToken) =>
+        context.AccommodationStays
+            .AsNoTracking()
+            .Where(s => s.EmployeeId == employeeId
+                && (excludeStayId == null || s.Id != excludeStayId)
+                && s.StartDate <= (end ?? DateOnly.MaxValue)
+                && (s.EndDate == null || s.EndDate >= start))
+            .Select(s => new StayClash(s.Accommodation.Name ?? s.Accommodation.Address, s.EndDate))
+            .FirstOrDefaultAsync(cancellationToken);
 }
 
 public class AddAccommodationStayCommandHandler
@@ -162,48 +174,13 @@ public class AddAccommodationStayCommandHandler
         _context.AccommodationStays.Add(stay);
         await _context.SaveChangesAsync(cancellationToken);
 
-        await NotifyPersonAsync(stay, cancellationToken);
+        await StayNotifications.NotifyAsync(_context, _notifications, stay, cancellationToken);
 
         return await _context.AccommodationStays
             .AsNoTracking()
             .Where(s => s.Id == stay.Id)
             .Select(AccommodationStayMapping.Projection)
             .FirstAsync(cancellationToken);
-    }
-
-    /// <summary>Tells the person where they now live; a person with no account has nobody to tell.</summary>
-    private async Task NotifyPersonAsync(AccommodationStay stay, CancellationToken cancellationToken)
-    {
-        var userIds = await _context.Users
-            .Where(u => u.IsActive && u.EmployeeId == stay.EmployeeId)
-            .Select(u => u.Id)
-            .ToListAsync(cancellationToken);
-
-        if (userIds.Count == 0)
-        {
-            return;
-        }
-
-        var place = await _context.Accommodations
-            .AsNoTracking()
-            .Where(a => a.Id == stay.AccommodationId)
-            .Select(a => new { a.Name, a.Address })
-            .FirstAsync(cancellationToken);
-
-        var name = string.IsNullOrWhiteSpace(place.Name) ? place.Address : place.Name;
-
-        await _notifications.NotifyUsersAsync(
-            userIds,
-            NotificationType.AccommodationAssigned,
-            "New accommodation",
-            $"You have been housed at {name} from {stay.StartDate:dd.MM.yyyy}.",
-            new Dictionary<string, string>
-            {
-                ["accommodationId"] = stay.AccommodationId.ToString(),
-                ["accommodationName"] = name,
-                ["startDate"] = stay.StartDate.ToString("yyyy-MM-dd")
-            },
-            cancellationToken: cancellationToken);
     }
 }
 

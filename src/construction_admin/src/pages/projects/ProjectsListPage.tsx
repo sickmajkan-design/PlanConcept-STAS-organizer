@@ -20,8 +20,8 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import type { ProjectListQuery } from '../../api/projects';
 import type { Project, ProjectStatus } from '../../api/types';
@@ -56,6 +56,7 @@ import { useListQueryState } from '../../hooks/useListQueryState';
 import { useSavedViews } from '../../hooks/useSavedViews';
 import { paths } from '../../routes/paths';
 import { formatDate } from '../../utils/formatting';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 interface ProjectViewState {
   search: string;
@@ -87,7 +88,13 @@ export function ProjectsListPage() {
   const t = useT();
   const enumLabel = useEnumLabel();
   const list = useListQueryState<ProjectStatus>('name');
-  const [customerFilter, setCustomerFilter] = useState('');
+  // A customer chosen anywhere in the panel arrives as ?customer=<id>; the filter follows the address.
+  const [searchParams] = useSearchParams();
+  const [customerFilter, setCustomerFilter] = useState(() => searchParams.get('customer') ?? '');
+  const customerParam = searchParams.get('customer');
+  useEffect(() => {
+    if (customerParam !== null) setCustomerFilter(customerParam);
+  }, [customerParam]);
   const { data: customers } = useAllCustomersQuery();
 
   const savedViews = useSavedViews<ProjectViewState>('projects');
@@ -435,8 +442,8 @@ function ProjectRow({
               </span>
             </Tooltip>
           )}
-          <Typography variant="body2" sx={{ fontWeight: isMain ? 700 : 500 }} noWrap>
-            {project.name}
+          <Typography variant="body2" sx={{ fontWeight: isMain ? 700 : 500, minWidth: 0 }} noWrap>
+            <ProjectLabel name={project.name} customerName={project.customerName} customerId={project.customerId} noWrap />
           </Typography>
         </Stack>
         {project.address && (

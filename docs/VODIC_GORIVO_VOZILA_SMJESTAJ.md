@@ -106,6 +106,21 @@ Za vozilo izdato drugoj firmi, uz izdavanje se upisuje **Povratak do** (planiran
 * **Obavještenje:** Admin i Super Admin dobiju obavještenje **30 dana** i ponovo **7 dana** prije svakog od datuma. Datum unesen u posljednjoj sedmici dobije samo hitno obavještenje. Kad se datum promijeni (npr. produži registracija), podsjetnici počinju ispočetka. Istekli rok se ne javlja; za to služi crvena boja. Provjera se vrši jednom dnevno.
 * Izvoz vozila (Excel) sadrži TD i sve datume.
 
+## 4a. Više ljudi u smještaj odjednom
+
+Na stranici smještaja, pored **Dodaj osobu**, stoji **Dodaj više ljudi**. Dijalog ima tri koraka.
+
+1. **Izbor.** Dodaj radnike jednog po jednog, ili klikni **Dodaj ekipu projekta** pa izaberi projekat: dodaju se svi koji su raspoređeni na njega. To možeš ponoviti za više projekata, jedan za drugim, jer isti smještaj može služiti ljudima s više gradilišta. Gore upišeš zajedničke datume i klikneš **Primijeni na sve**, a zatim svakom radniku prepraviš **Od**, **Do**, **Teret projekta** i napomenu. Radnik koji je raspoređen na tačno jedan projekat dobije taj projekat unaprijed.
+2. **Pregled** (ništa se još ne upisuje). Vidiš najveći broj ljudi koji će stanovati istovremeno u tom razdoblju (npr. „najviše 10 od 8 ležajeva“) i za svakog radnika ishod:
+   * **Može**: u redu je.
+   * **Preko kapaciteta**: u nekom danu je ljudi više nego ležajeva. To je **upozorenje**: i dalje se može snimiti.
+   * **Ne može**: radnik već stanuje drugdje u tom razdoblju (piše gdje i do kad, pa prvo završi taj smještaj), dva puta je na listi, ili je kraj prije početka.
+3. **Snimanje.** Snimaju se svi radnici koji su u redu, a ostali se vide s razlogom. Piše „Snimljeno 4 od 5“, a **Ponovi za nesnimljene** vraća samo njih na ispravku. Svaki smješteni radnik dobija **svoje obavještenje**, kao pri pojedinačnom unosu. Ako dugme pritisneš dvaput ili veza pukne, niko se ne smješta dvaput.
+
+Ako broj ležajeva nije upisan, kapacitet se ne računa, a pregled kaže „Broj ležajeva nije upisan“.
+
+**Primjer.** U apartman sa 8 ležajeva dolazi ekipa: 4 radnika s Hale Logistik Park od 2.11. i 3 s Lamele B od 9.11. Kliknete Dodaj ekipu projekta za oba projekta, upišete datume i svakom ostaje njegov projekat na teret. Pregled kaže da se 10. novembra nađe 7 ljudi na 8 ležajeva, pa snimite.
+
 ## 5. Smještaj tokom odsustva
 
 Kad se odsustvo odobri nekome ko stanuje u smještaju firme, dijalog **Odobri** kaže gdje stanuje i nudi dvije opcije. Isto pitanje je u dijalogu za evidentiranje odsustva kao već odobrenog, i u dashboard widgetu zahtjeva.

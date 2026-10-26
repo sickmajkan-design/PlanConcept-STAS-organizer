@@ -1178,6 +1178,52 @@ export const helpTopics: HelpTopic[] = [
       },
     },
   },
+  {
+    id: 'smjestaj-vise-ljudi',
+    group: 'work',
+    path: paths.accommodations,
+    audience: staff,
+    content: {
+      sr: {
+        title: 'Više ljudi u smještaj odjednom',
+        summary:
+          'Cijela ekipa se smješta u jednom koraku, svaki radnik sa svojim datumima i projektom na teret, uz pregled prije snimanja.',
+        steps: [
+          'Otvorite smještaj, pa Dodaj više ljudi.',
+          'Dodajte radnike jednog po jednog ili kliknite Dodaj ekipu projekta (možete za više projekata, jedan za drugim). Gore upišite zajedničke datume i kliknite Primijeni na sve, pa svakom radniku prepravite Od, Do i projekat na teret.',
+          'Dalje: pregled. Vidite najveći broj ljudi koji stanuju istovremeno i za svakoga: Može, Preko kapaciteta (samo upozorenje) ili Ne može (već stanuje drugdje, dva puta je na listi, kraj prije početka).',
+          'Snimi. Snimaju se svi koji su u redu, a za ostale piše razlog; Ponovi za nesnimljene vraća samo njih. Svaki smješteni radnik dobija svoje obavještenje.',
+        ],
+        example:
+          'U apartman sa 8 ležajeva dolazi 4 radnika s jednog gradilišta od 2.11. i 3 s drugog od 9.11. Dodate ekipe oba projekta, svakom ostaje njegov projekat na teret, a pregled pokazuje da se 10.11. nađe 7 ljudi na 8 ležajeva.',
+        tips: [
+          'Radnik koji već stanuje drugdje se ne smješta; prvo završite taj smještaj.',
+          'Ako broj ležajeva nije upisan, kapacitet se ne računa.',
+          'Pritisak na dugme dvaput ne pravi duplikate.',
+        ],
+        keywords: ['smještaj', 'više ljudi', 'ekipa', 'odjednom', 'ležajevi', 'kapacitet', 'boravak', 'stanovanje'],
+      },
+      en: {
+        title: 'Several people into housing at once',
+        summary:
+          'A whole crew is housed in one step, each worker with their own dates and project to charge, with a check before saving.',
+        steps: [
+          'Open the accommodation, then Add several people.',
+          'Add workers one by one or click Add the team of a project (for several projects, one after another). Enter shared dates at the top and click Apply to all, then change From, To and the project to charge for each worker.',
+          'Next: check. You see the most people living there at once and for each person: Can be housed, Over the beds (only a warning) or Cannot (already lives elsewhere, listed twice, ends before it starts).',
+          'Save. Everyone who is in order is saved and the rest show a reason; Try again for those not saved brings only them back. Each housed worker gets their own notification.',
+        ],
+        example:
+          'An apartment with 8 beds gets 4 workers from one site from 2 November and 3 from another from 9 November. You add the teams of both projects, each keeps their own project to charge, and the check shows 7 people on 8 beds on 10 November.',
+        tips: [
+          'A worker who already lives elsewhere is not housed; end that stay first.',
+          'If the number of beds is not entered, capacity is not calculated.',
+          'Pressing the button twice does not make duplicates.',
+        ],
+        keywords: ['accommodation', 'housing', 'several people', 'crew', 'at once', 'beds', 'capacity', 'stay'],
+      },
+    },
+  },
 ]
 
 export function helpTopicsFor(user: User | null | undefined): HelpTopic[] {

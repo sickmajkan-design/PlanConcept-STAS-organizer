@@ -25,6 +25,7 @@ import { useT } from '../../i18n/useI18n';
 import { formatDate } from '../../utils/formatting';
 import { PeriodFields, summary, useAttempt, type PlanningActions } from './PlanningDialogs';
 import type { DropTarget } from './planningDnd';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 /**
  * What opens when a person is dropped on a site, on the free list or on another person. The drop only chooses
@@ -190,7 +191,7 @@ export function MoveDialog({
                 {t('planning.m.now')}: <b>{summary(plan, person, from, to, awayText, freeText)}</b>
               </Typography>
               <Typography variant="body2">
-                {t('planning.m.after')}: <b>{site ? site.name : freeText}</b>
+                {t('planning.m.after')}: <b>{site ? <ProjectLabel name={site.name} projectId={site.id} customerName={site.customerName} /> : freeText}</b>
               </Typography>
               <Stack spacing={0.75} sx={{ mt: 1.25 }}>
                 {notes.map((note) => (

@@ -7,6 +7,7 @@ import { ErrorState } from '../../components/ErrorState';
 import { useBranchFilter } from '../../features/branches/BranchContext';
 import { useI18n } from '../../i18n/useI18n';
 import { formatMoney } from '../../utils/formatting';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 const HOURS = [6, 7, 8, 9, 10];
 
@@ -103,7 +104,7 @@ export function CostView({ range }: { range: { from: string; to: string } }) {
                 <tr key={p.projectId}>
                   <td>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      {p.name}
+                      <ProjectLabel name={p.name} projectId={p.projectId} variant="stacked" />
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {t('planning.cost.days', { count: p.plannedDays })}
