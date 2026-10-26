@@ -92,6 +92,8 @@ export function resolveNotificationTarget(
       return null;
 
     case 'VehicleDateExpiring':
+    case 'VehicleFineAdded':
+    case 'VehicleFineDue':
     case 'VehicleTollExpiring':
       return hasDirectory && data.vehicleId ? paths.vehicleDetail(data.vehicleId) : null;
 

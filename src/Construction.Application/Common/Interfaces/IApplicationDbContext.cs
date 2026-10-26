@@ -129,6 +129,10 @@ public interface IApplicationDbContext
 
     DbSet<VehicleTollExpiryReminder> VehicleTollExpiryReminders { get; }
 
+    DbSet<VehicleFine> VehicleFines { get; }
+
+    DbSet<VehicleFineReminder> VehicleFineReminders { get; }
+
     DbSet<VehicleRentalOut> VehicleRentalsOut { get; }
 
     DbSet<ToolExpense> ToolExpenses { get; }

@@ -179,7 +179,7 @@ export function useNavBadgeCounts(user: User | null | undefined): Record<string,
     [paths.articleOrders]: countOf(attention, 'articleOrders'),
     [paths.employees]: countOf(attention, 'certificatesExpiring'),
     [paths.accommodations]: contractsCount,
-    [paths.vehicles]: countOf(attention, 'vehicleDates'),
+    [paths.vehicles]: countOf(attention, 'vehicleDates') + countOf(attention, 'vehicleFines'),
     [paths.materials]: lowStockCount,
     // The hub of the cost tabs carries the number of the tab that has one; the tab itself is left out of group totals.
     [paths.costRecords]: vehicleExpensesCount + countOf(attention, 'dkvRows'),

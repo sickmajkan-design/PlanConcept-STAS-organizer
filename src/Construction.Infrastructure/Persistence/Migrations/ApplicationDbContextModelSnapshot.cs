@@ -4901,6 +4901,103 @@ namespace Construction.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.VehicleFine", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<int>("BorneBy")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<Guid?>("DriverEmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly?>("DueDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateOnly>("OccurredOn")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("PaidOn")
+                        .HasColumnType("date");
+
+                    b.Property<Guid?>("RecordedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("VehicleId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordedByUserId");
+
+                    b.HasIndex("DriverEmployeeId", "Status");
+
+                    b.HasIndex("Status", "DueDate");
+
+                    b.HasIndex("VehicleId", "OccurredOn");
+
+                    b.ToTable("vehicle_fines", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_vehicle_fines_amount_not_negative", "\"Amount\" >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.VehicleFineReminder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DaysBefore")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("DueDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime>("SentAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("VehicleFineId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VehicleFineId", "DaysBefore", "DueDate")
+                        .IsUnique();
+
+                    b.ToTable("vehicle_fine_reminders", (string)null);
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.VehicleRentalOut", b =>
                 {
                     b.Property<Guid>("Id")
@@ -6983,6 +7080,42 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("Vehicle");
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.VehicleFine", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.Employee", "DriverEmployee")
+                        .WithMany()
+                        .HasForeignKey("DriverEmployeeId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Construction.Domain.Entities.User", "RecordedByUser")
+                        .WithMany()
+                        .HasForeignKey("RecordedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Construction.Domain.Entities.Vehicle", "Vehicle")
+                        .WithMany("Fines")
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DriverEmployee");
+
+                    b.Navigation("RecordedByUser");
+
+                    b.Navigation("Vehicle");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.VehicleFineReminder", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.VehicleFine", "VehicleFine")
+                        .WithMany()
+                        .HasForeignKey("VehicleFineId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("VehicleFine");
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.VehicleRentalOut", b =>
                 {
                     b.HasOne("Construction.Domain.Entities.Customer", "Customer")
@@ -7385,6 +7518,8 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("Attachments");
 
                     b.Navigation("Expenses");
+
+                    b.Navigation("Fines");
 
                     b.Navigation("FuelCards");
 

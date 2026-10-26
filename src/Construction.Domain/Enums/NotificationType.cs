@@ -133,5 +133,11 @@ public enum NotificationType
     WeeklyReportApproved = 47,
 
     /// <summary>The office entered a weekly site report in the foreman's name, because it came by e-mail or on paper.</summary>
-    WeeklyReportEnteredByOffice = 48
+    WeeklyReportEnteredByOffice = 48,
+
+    /// <summary>A fine was entered against a vehicle.</summary>
+    VehicleFineAdded = 49,
+
+    /// <summary>An open fine is close to its due date, or past it.</summary>
+    VehicleFineDue = 50
 }

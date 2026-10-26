@@ -133,6 +133,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<VehicleTollPayment> VehicleTollPayments => Set<VehicleTollPayment>();
 
     public DbSet<VehicleTollExpiryReminder> VehicleTollExpiryReminders => Set<VehicleTollExpiryReminder>();
+    public DbSet<VehicleFine> VehicleFines => Set<VehicleFine>();
+    public DbSet<VehicleFineReminder> VehicleFineReminders => Set<VehicleFineReminder>();
 
     public DbSet<VehicleRentalOut> VehicleRentalsOut => Set<VehicleRentalOut>();
 

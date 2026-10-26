@@ -1,5 +1,5 @@
 import type { User } from '../../api/types';
-import { canAdministerAccounts, canViewDirectory } from '../../auth/authHelpers';
+import { canViewDirectory } from '../../auth/authHelpers';
 import type { MessageKey } from '../../i18n/en';
 
 /**
@@ -11,7 +11,7 @@ import type { MessageKey } from '../../i18n/en';
  * what changed recently, not a changelog: when a release is added, drop the
  * sections older than the fifth (and their `releaseNotes.*` keys in i18n).
  */
-export const RELEASE_ID = '2026-10-26.37';
+export const RELEASE_ID = '2026-10-26.38';
 
 /** The day of the release, `YYYY-MM-DD`, read from {@link RELEASE_ID}. */
 export const RELEASE_DATE = RELEASE_ID.slice(0, 10);
@@ -25,6 +25,12 @@ export interface ReleaseSection {
 }
 
 export const releaseSections: ReleaseSection[] = [
+  {
+    id: 'vehicles1026',
+    titleKey: 'releaseNotes.vehicles1026.title',
+    itemKeys: ['releaseNotes.vehicles1026.state', 'releaseNotes.vehicles1026.tolls', 'releaseNotes.vehicles1026.fines', 'releaseNotes.vehicles1026.notices'],
+    audience: (user) => canViewDirectory(user),
+  },
   {
     id: 'people1026',
     titleKey: 'releaseNotes.people1026.title',
@@ -48,12 +54,6 @@ export const releaseSections: ReleaseSection[] = [
     titleKey: 'releaseNotes.logos1025.title',
     itemKeys: ['releaseNotes.logos1025.bar', 'releaseNotes.logos1025.upload', 'releaseNotes.logos1025.main', 'releaseNotes.logos1025.exports', 'releaseNotes.logos1025.open', 'releaseNotes.logos1025.missing', 'releaseNotes.logos1025.android'],
     audience: (user) => canViewDirectory(user),
-  },
-  {
-    id: 'notices1024',
-    titleKey: 'releaseNotes.notices1024.title',
-    itemKeys: ['releaseNotes.notices1024.audience', 'releaseNotes.notices1024.sent', 'releaseNotes.notices1024.read', 'releaseNotes.notices1024.remind'],
-    audience: (user) => canAdministerAccounts(user),
   },
 ];
 

@@ -237,6 +237,20 @@ public class GetAttentionQueryHandler : IRequestHandler<GetAttentionQuery, Atten
 
             Add("vehicleDates", soonest.Count, soonest);
 
+            var fines = await _context.VehicleFines.AsNoTracking()
+                .Where(f => f.Status == VehicleFineStatus.Open && f.DueDate != null && f.DueDate <= today.AddDays(7))
+                .Where(f => branchId == null || f.Vehicle.Branch!.Path.Contains(token)
+                    || (f.Vehicle.BranchId == null && f.Vehicle.AssignedProject != null && f.Vehicle.AssignedProject.Branch!.Path.Contains(token)))
+                .OrderBy(f => f.DueDate)
+                .Select(f => new
+                {
+                    Name = f.Vehicle.RegistrationNumber + " - " + f.Description,
+                    f.DueDate,
+                })
+                .ToListAsync(cancellationToken);
+
+            Add("vehicleFines", fines.Count, fines.Select(f => new AttentionItemDto { Label = f.Name, Date = f.DueDate }));
+
             var certificates = _context.EmployeeCertificates.AsNoTracking()
                 .Where(c => c.ValidUntil != null && c.ValidUntil <= horizon && c.Employee.Status == EmployeeStatus.Active);
             if (branchId is not null)

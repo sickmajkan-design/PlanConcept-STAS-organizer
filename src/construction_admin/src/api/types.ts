@@ -644,6 +644,13 @@ export interface Vehicle {
   assignedProjectName: string | null;
   /** True when a vignette/tunnel/passage on this vehicle is unpaid, expired or about to expire. */
   hasExpiredOrExpiringTolls: boolean;
+  tollCount: number;
+  unpaidTollCount: number;
+  /** `YYYY-MM-DD`: the earliest end of validity among the paid tolls, which may be past. */
+  nextTollValidUntil: string | null;
+  openFineCount: number;
+  openFineTotal: number;
+  overdueFineCount: number;
   createdAt: string;
   updatedAt: string | null;
 }
@@ -2558,6 +2565,8 @@ export const notificationTypes = [
   'RefundDecided',
   'VehicleTollExpiring',
   'VehicleDateExpiring',
+  'VehicleFineAdded',
+  'VehicleFineDue',
   'EmployeeBranchChanged',
   'DocumentRequested',
   'DocumentSubmitted',

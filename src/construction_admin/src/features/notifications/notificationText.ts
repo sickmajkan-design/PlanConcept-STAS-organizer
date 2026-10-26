@@ -128,6 +128,30 @@ export function resolveNotificationText(t: T, notification: Notification): Notif
       };
     }
 
+    case 'VehicleFineAdded': {
+      if (!d.vehicleName || !d.description || !d.amount) return fallback;
+
+      return {
+        title: text('notificationVehicleFineAddedTitle'),
+        body: text('notificationVehicleFineAddedBody', { vehicleName: d.vehicleName, description: d.description, amount: d.amount }),
+      };
+    }
+
+    case 'VehicleFineDue': {
+      if (!d.vehicleName || !d.description || !d.dueDate || !d.daysLeft) return fallback;
+      const late = Number(d.daysLeft) < 0;
+
+      return {
+        title: text('notificationVehicleFineDueTitle'),
+        body: text(late ? 'notificationVehicleFineLateBody' : 'notificationVehicleFineDueBody', {
+          vehicleName: d.vehicleName,
+          description: d.description,
+          date: isoDate(d.dueDate),
+          days: d.daysLeft,
+        }),
+      };
+    }
+
     case 'VehicleTollExpiring': {
       if (!d.vehicleRegistrationNumber || !d.type || !d.country || !d.validUntil) return fallback;
       const typeKey = `vehicleTollType.${d.type}` as MessageKey;

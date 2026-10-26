@@ -7,6 +7,7 @@ using Construction.Application.Features.DocumentRequests.Commands.SendDocumentRe
 using Construction.Application.Features.Recurring;
 using Construction.Application.Features.ScheduledReports.Commands.SendScheduledReports;
 using Construction.Application.Features.TimeEntries.Commands.AutoCloseStaleShifts;
+using Construction.Application.Features.VehicleFines;
 using Construction.Application.Features.VehicleTolls.Commands.SendVehicleTollExpiryReminders;
 using Construction.Application.Features.Vehicles.Commands.SendVehicleDateReminders;
 using Construction.Application.Features.WeeklySiteReports.Commands.SendWeeklyReportReminders;
@@ -190,6 +191,17 @@ public class DailyReminderService : BackgroundService
             {
                 _logger.LogInformation(
                     "Sent reminders for {Count} vehicle date(s).", vehicleDates);
+            }
+
+            var vehicleFines = await mediator.Send(
+                new SendVehicleFineRemindersCommand(), cancellationToken);
+
+            _metrics.RemindersSent("vehicle-fine", vehicleFines);
+
+            if (vehicleFines > 0)
+            {
+                _logger.LogInformation(
+                    "Sent reminders for {Count} vehicle fine(s).", vehicleFines);
             }
 
             var work = await mediator.Send(

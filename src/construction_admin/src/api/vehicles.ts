@@ -18,6 +18,8 @@ export interface VehicleListQuery extends ListQuery {
   assignedProjectId?: string;
   unassigned?: boolean;
   incompleteOnly?: boolean;
+  /** Only vehicles with something that ran out or runs out within a month, an unpaid toll or an open fine. */
+  needsAttention?: boolean;
 }
 
 export const vehiclesApi = {

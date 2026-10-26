@@ -206,4 +206,25 @@ public class VehicleDateReminderTests : IntegrationTestBase
 
         Assert.Empty(await NoticesAboutAsync(foreman.Id, vehicle.Id));
     }
+
+    [Fact]
+    public async Task A_date_falling_due_today_is_announced_once_more_on_the_day_itself()
+    {
+        var (admin, vehicle) = await SeedAsync(v => v.InsuranceValidUntil = Today.AddDays(5));
+        await SweepAsync();
+
+        // Days later the date is today: the third stage is announced once, and the earlier ones are not repeated.
+        await InScope(async scope =>
+        {
+            var v = await scope.Db.Vehicles.SingleAsync(x => x.Id == vehicle.Id);
+            v.InsuranceValidUntil = Today;
+            await scope.Db.SaveChangesAsync();
+        });
+        await SweepAsync();
+        await SweepAsync();
+
+        var notices = await NoticesAboutAsync(admin.Id, vehicle.Id);
+        Assert.Equal(2, notices.Count);
+        Assert.Equal("0", Field(notices[^1], "daysLeft"));
+    }
 }

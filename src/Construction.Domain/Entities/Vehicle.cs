@@ -88,6 +88,8 @@ public class Vehicle : BaseEntity, ISoftDeletable, IAuditable
     /// <summary>Vignettes, tunnel tolls and road-passage charges this vehicle carries. See <see cref="VehicleToll"/>.</summary>
     public ICollection<VehicleToll> Tolls { get; set; } = new List<VehicleToll>();
 
+    public ICollection<VehicleFine> Fines { get; set; } = new List<VehicleFine>();
+
     public bool IsDeleted { get; set; }
 
     public DateTime? DeletedAt { get; set; }

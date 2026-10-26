@@ -114,6 +114,7 @@ import { paths } from '../../routes/paths';
 import { dateOnlyOffset, formatDate, formatMoney } from '../../utils/formatting';
 import { VehicleExpenseDialog } from '../costs/VehicleExpensesPage';
 import { ProjectLabel } from '../../components/ProjectLabel';
+import { VehicleFinesCard } from '../../features/vehicles/VehicleFinesCard';
 
 export function VehicleDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -481,6 +482,12 @@ export function VehicleDetailPage() {
         <Grid size={12}>
           <VehicleTollsCard vehicleId={vehicle.id} canEdit={canAdministerAccounts(user)} />
         </Grid>
+
+        {canAdministerAccounts(user) && (
+          <Grid size={12}>
+            <VehicleFinesCard vehicleId={vehicle.id} holderId={vehicle.assignedEmployeeId} />
+          </Grid>
+        )}
 
         <Grid size={12}>
           <VehicleCostsCard vehicleId={vehicle.id} />

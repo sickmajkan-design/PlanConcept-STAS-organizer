@@ -106,7 +106,28 @@ Za vozilo izdato drugoj firmi, uz izdavanje se upisuje **Povratak do** (planiran
 * **Obavještenje:** Admin i Super Admin dobiju obavještenje **30 dana** i ponovo **7 dana** prije svakog od datuma. Datum unesen u posljednjoj sedmici dobije samo hitno obavještenje. Kad se datum promijeni (npr. produži registracija), podsjetnici počinju ispočetka. Istekli rok se ne javlja; za to služi crvena boja. Provjera se vrši jednom dnevno.
 * Izvoz vozila (Excel) sadrži TD i sve datume.
 
-## 4a. Više ljudi u smještaj odjednom
+## 4a. Stanje vozila, vinjete i kazne
+
+**Znak stanja.** Prva kolona liste vozila je jedna tačka: **zelena** (sve u redu), **žuta** (nešto ističe u 30 dana ili postoji otvorena kazna), **crvena** (nešto je isteklo, vinjeta nije plaćena ili je kazni prošao rok), **siva** (nijedan rok ni vinjeta nije ni unesen, pa se ništa ne zna). Klik na tačku kaže šta tačno. Prekidač **Traže pažnju** sužava listu na žuta i crvena vozila.
+
+**Vinjete.** Vozilo može imati više vinjeta i putarina (po državi). Kolona **Vinjete do** pokazuje najbliži rok, a „+2“ znači da ih ima još dvije. Ako je neka neplaćena, kolona to pokazuje (crveno) umjesto roka. Sve su na detalju vozila.
+
+**Kazne** (samo Admin i Super Admin). Na detalju vozila, kartica **Kazne**, **Dodaj kaznu**: datum prekršaja, iznos, rok plaćanja, opis, vozač, **ko snosi (firma ili vozač)** i stanje (otvorena, plaćena, osporena). Predložen vozač je onaj ko trenutno ima vozilo zaduženo; ako je bio neko drugi, izaberi ga ili „Nepoznat“. Kad kaznu snosi vozač, mora biti imenovan, a kazna se bilježi kao njegov dug. Platforma ga ne naplaćuje: kako se naplaćuje (plata, gotovina) ostaje odluka kancelarije. Lista vozila ima kolonu **Otvorene kazne** (broj i zbir; crveno ako je neka prešla rok).
+
+**Obavještenja** (Admin i Super Admin):
+
+| Šta | Kad |
+|---|---|
+| Rokovi vozila (registracija, tehnički, osiguranje, servis, najam) | 30 dana, 7 dana i **na dan isteka** |
+| Vinjete i putarine | kad uđu u prozor koji je Admin izabrao (zadano 30 dana), i kad su istekle, jednom po važenju |
+| Nova kazna | odmah, svima osim onome ko je unio |
+| Kazna kojoj ističe rok | 7 i 2 dana prije roka, i jednom kad je rok prošao, dok je otvorena (osporena i plaćena se ne javljaju) |
+
+Na početnoj, u „Zahtijeva pažnju“, kazne s rokom unutar 7 dana ili prošlim rokom čine posebnu stavku, a broj na meniju Vozila ih uračunava.
+
+**Primjer.** Stigne rješenje za brzinu: 120 KM, rok 2.11. Kancelarija ga unese i izabere „Snosi vozač“ i vozača. Ostali admini dobiju obavještenje, na listi se vidi „1 · 120,00“ i žuta tačka, a 26.10. i 31.10. stiže podsjetnik.
+
+## 4b. Više ljudi u smještaj odjednom
 
 Na stranici smještaja, pored **Dodaj osobu**, stoji **Dodaj više ljudi**. Dijalog ima tri koraka.
 

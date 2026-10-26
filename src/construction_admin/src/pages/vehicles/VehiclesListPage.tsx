@@ -10,6 +10,7 @@ import {
 import {
   Box,
   Button,
+  Chip,
   FormControl,
   FormControlLabel,
   IconButton,
@@ -58,6 +59,7 @@ import { useListQueryState } from '../../hooks/useListQueryState';
 import { useSavedViews } from '../../hooks/useSavedViews';
 import { paths } from '../../routes/paths';
 import { formatDate, formatMoney } from '../../utils/formatting';
+import { VehicleStateDot } from '../../features/vehicles/VehicleStateDot';
 
 interface VehicleViewState {
   search: string;
@@ -65,6 +67,7 @@ interface VehicleViewState {
   sortModel: GridSortModel;
   ownershipFilter: VehicleOwnershipType | '';
   incompleteOnly: boolean;
+  needsAttention?: boolean;
 }
 
 export function VehiclesListPage() {
@@ -75,6 +78,7 @@ export function VehiclesListPage() {
   const list = useListQueryState<VehicleStatus>('brand');
 
   const [incompleteOnly, setIncompleteOnly] = useState(false);
+  const [needsAttention, setNeedsAttention] = useState(false);
   const [ownershipFilter, setOwnershipFilter] = useState<VehicleOwnershipType | ''>('');
 
   const savedViews = useSavedViews<VehicleViewState>('vehicles');
@@ -85,6 +89,7 @@ export function VehiclesListPage() {
     list.setSortModel(state.sortModel);
     setOwnershipFilter(state.ownershipFilter);
     setIncompleteOnly(state.incompleteOnly);
+    setNeedsAttention(state.needsAttention ?? false);
     list.resetToFirstPage();
   };
 
@@ -95,6 +100,7 @@ export function VehiclesListPage() {
       sortModel: list.sortModel,
       ownershipFilter,
       incompleteOnly,
+      needsAttention,
     });
   };
 
@@ -104,8 +110,9 @@ export function VehiclesListPage() {
       status: list.filter || undefined,
       ownershipType: ownershipFilter || undefined,
       incompleteOnly: incompleteOnly || undefined,
+      needsAttention: needsAttention || undefined,
     }),
-    [list.query, list.filter, ownershipFilter, incompleteOnly],
+    [list.query, list.filter, ownershipFilter, incompleteOnly, needsAttention],
   );
 
   const [viewMode, setViewMode] = useViewMode('vehicles');
@@ -139,6 +146,15 @@ export function VehiclesListPage() {
             icon={<LocalShippingOutlined fontSize="small" />}
           />
         ),
+      },
+      {
+        field: 'state',
+        headerName: t('vehicleState.column'),
+        width: 80,
+        sortable: false,
+        align: 'center',
+        headerAlign: 'center',
+        renderCell: (params) => <VehicleStateDot vehicle={params.row} />,
       },
       {
         field: 'brand',
@@ -206,6 +222,44 @@ export function VehiclesListPage() {
         renderCell: (params) =>
           params.row.nextServiceDue ? (
             <VehicleDateChip label={t('vehicles.dateShort')} date={params.row.nextServiceDue} />
+          ) : (
+            '—'
+          ),
+      },
+      {
+        field: 'nextTollValidUntil',
+        headerName: t('vehicles.tollsUntil'),
+        width: 210,
+        sortable: false,
+        renderCell: (params) => (
+          <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
+            {params.row.unpaidTollCount > 0 ? (
+              <Chip size="small" color="error" label={t('vehicles.tollsUnpaid', { count: params.row.unpaidTollCount })} />
+            ) : params.row.nextTollValidUntil ? (
+              <VehicleDateChip label={t('vehicles.dateShort')} date={params.row.nextTollValidUntil} />
+            ) : (
+              '—'
+            )}
+            {params.row.tollCount > 1 && (
+              <Typography variant="caption" color="text.secondary">
+                {`+${params.row.tollCount - 1}`}
+              </Typography>
+            )}
+          </Stack>
+        ),
+      },
+      {
+        field: 'openFineCount',
+        headerName: t('vehicles.openFines'),
+        width: 170,
+        sortable: false,
+        renderCell: (params) =>
+          params.row.openFineCount > 0 ? (
+            <Chip
+              size="small"
+              color={params.row.overdueFineCount > 0 ? 'error' : 'warning'}
+              label={`${params.row.openFineCount} · ${formatMoney(params.row.openFineTotal, locale)}`}
+            />
           ) : (
             '—'
           ),
@@ -359,7 +413,7 @@ export function VehiclesListPage() {
       )}
 
       <FilterBar
-        activeCount={(list.filter ? 1 : 0) + (ownershipFilter ? 1 : 0) + (incompleteOnly ? 1 : 0)}
+        activeCount={(list.filter ? 1 : 0) + (ownershipFilter ? 1 : 0) + (incompleteOnly ? 1 : 0) + (needsAttention ? 1 : 0)}
         search={
           <SearchField
             value={list.search}
@@ -409,6 +463,11 @@ export function VehiclesListPage() {
             ))}
           </Select>
         </FormControl>
+
+        <FormControlLabel
+          control={<Switch checked={needsAttention} onChange={(event) => setNeedsAttention(event.target.checked)} />}
+          label={t('vehicleState.needsAttention')}
+        />
 
         <FormControlLabel
           control={
@@ -462,7 +521,7 @@ export function VehiclesListPage() {
       ) : (
         <ResourceDataGrid
         columnsKey="vehicles"
-        filtered={list.hasFilters || ownershipFilter !== '' || incompleteOnly}
+        filtered={list.hasFilters || ownershipFilter !== '' || incompleteOnly || needsAttention}
         onClearFilters={() => {
           list.clearFilters();
           setOwnershipFilter('');

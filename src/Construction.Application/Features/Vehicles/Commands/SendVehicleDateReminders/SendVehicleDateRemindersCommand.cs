@@ -20,6 +20,9 @@ public record SendVehicleDateRemindersCommand : IRequest<int>
     public const int EarlyStage = 30;
 
     public const int LateStage = 7;
+
+    /// <summary>The day itself: the last chance to renew before the date is a day past.</summary>
+    public const int DayOfStage = 0;
 }
 
 public class SendVehicleDateRemindersCommandHandler : IRequestHandler<SendVehicleDateRemindersCommand, int>
@@ -119,14 +122,19 @@ public class SendVehicleDateRemindersCommandHandler : IRequestHandler<SendVehicl
         foreach (var item in due)
         {
             var daysLeft = item.Date.DayNumber - today.DayNumber;
-            var stage = daysLeft <= SendVehicleDateRemindersCommand.LateStage
-                ? SendVehicleDateRemindersCommand.LateStage
-                : SendVehicleDateRemindersCommand.EarlyStage;
+            var stage = daysLeft <= SendVehicleDateRemindersCommand.DayOfStage
+                ? SendVehicleDateRemindersCommand.DayOfStage
+                : daysLeft <= SendVehicleDateRemindersCommand.LateStage
+                    ? SendVehicleDateRemindersCommand.LateStage
+                    : SendVehicleDateRemindersCommand.EarlyStage;
 
             // The stage being announced, plus every earlier one it makes redundant.
-            var claims = stage == SendVehicleDateRemindersCommand.LateStage
-                ? new[] { SendVehicleDateRemindersCommand.EarlyStage, SendVehicleDateRemindersCommand.LateStage }
-                : new[] { SendVehicleDateRemindersCommand.EarlyStage };
+            var claims = new[]
+            {
+                SendVehicleDateRemindersCommand.EarlyStage,
+                SendVehicleDateRemindersCommand.LateStage,
+                SendVehicleDateRemindersCommand.DayOfStage,
+            }.Where(s => s >= stage).ToArray();
 
             var announced = false;
 

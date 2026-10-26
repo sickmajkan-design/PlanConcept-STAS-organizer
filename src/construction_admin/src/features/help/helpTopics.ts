@@ -1226,6 +1226,54 @@ export const helpTopics: HelpTopic[] = [
       },
     },
   },
+  {
+    id: 'vozila-stanje-kazne',
+    group: 'work',
+    path: paths.vehicles,
+    audience: staff,
+    content: {
+      sr: {
+        title: 'Stanje vozila, vinjete i kazne',
+        summary:
+          'Lista vozila ima jedan znak stanja, kolone za vinjete i otvorene kazne, a uprava dobija obavještenja prije nego što rok istekne.',
+        steps: [
+          'Otvorite Vozila. Prva kolona je tačka: zelena (u redu), žuta (nešto ističe u 30 dana ili ima otvorena kazna), crvena (isteklo, neplaćena vinjeta ili kazni je prošao rok), siva (rokovi nisu uneseni). Klik na tačku kaže zašto.',
+          'Prekidač Traže pažnju ostavlja samo žuta i crvena vozila.',
+          'Vinjete: vozilo može imati više njih. Kolona Vinjete do pokazuje najbliži rok i broj ostalih, a neplaćena se vidi odmah. Unos je na detalju vozila.',
+          'Kazne (Admin i Super Admin): detalj vozila, Dodaj kaznu. Upišite datum, iznos, rok plaćanja, opis, vozača i ko snosi: firma ili vozač. Kad snosi vozač, mora biti imenovan i kazna se bilježi kao njegov dug; platforma ga ne naplaćuje.',
+          'Obavještenja: rokovi vozila 30 i 7 dana prije i na dan isteka; nova kazna odmah; kazna kojoj ističe rok 7 i 2 dana prije i kad je rok prošao.',
+        ],
+        example:
+          'Stigne rješenje za brzinu, 120 KM, rok 2.11. Unesete kaznu i izaberete Snosi vozač, pa vozača. Ostali admini dobiju obavještenje, a na listi vozilo dobije žutu tačku i „1 · 120,00“.',
+        tips: [
+          'Siva tačka nije zelena: znači da za vozilo nije unesen nijedan rok.',
+          'Predloženi vozač je onaj ko trenutno ima vozilo zaduženo; promijenite ga ako je vozio neko drugi.',
+          'Osporena i plaćena kazna se više ne javlja kao otvorena.',
+        ],
+        keywords: ['vozila', 'kazne', 'vinjeta', 'osiguranje', 'registracija', 'rok', 'stanje', 'pažnja', 'putarina', 'obavještenja'],
+      },
+      en: {
+        title: 'Vehicle state, vignettes and fines',
+        summary:
+          'The vehicles list has one sign of state, columns for vignettes and open fines, and the management is told before a date runs out.',
+        steps: [
+          'Open Vehicles. The first column is a dot: green (all in order), amber (something runs out within 30 days or a fine is open), red (something has run out, a vignette is unpaid or a fine is past its due date), grey (no dates entered). A click says why.',
+          'The Needs attention switch leaves only amber and red vehicles.',
+          'Vignettes: a vehicle can have several. The column Vignettes until shows the nearest date and how many more there are, and an unpaid one shows at once. They are entered on the vehicle.',
+          'Fines (Admin and Super Admin): vehicle, Add a fine. Enter the date, amount, due date, description, driver and who bears it: the firm or the driver. When the driver bears it, they must be named and the fine is recorded as their debt; the platform does not collect it.',
+          'Notifications: vehicle dates 30 and 7 days before and on the day; a new fine at once; a fine close to its due date 7 and 2 days before and once when it is past.',
+        ],
+        example:
+          'A notice arrives for speeding, 120 KM, due 2 November. You enter the fine and choose Driver bears it, then the driver. The other admins are notified, and the vehicle gets an amber dot and "1 · 120.00" on the list.',
+        tips: [
+          'A grey dot is not green: it means no date was ever entered for the vehicle.',
+          'The suggested driver is whoever has the vehicle now; change it if somebody else drove.',
+          'A contested or paid fine is no longer reported as open.',
+        ],
+        keywords: ['vehicles', 'fines', 'vignette', 'insurance', 'registration', 'due', 'state', 'attention', 'toll', 'notifications'],
+      },
+    },
+  },
 ]
 
 export function helpTopicsFor(user: User | null | undefined): HelpTopic[] {

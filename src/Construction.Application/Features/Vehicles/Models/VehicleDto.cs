@@ -99,6 +99,23 @@ public class VehicleDto
     /// </summary>
     public bool HasExpiredOrExpiringTolls { get; init; }
 
+    /// <summary>How many tolls (vignettes, tunnels, passages) the vehicle carries.</summary>
+    public int TollCount { get; init; }
+
+    /// <summary>Tolls not paid yet.</summary>
+    public int UnpaidTollCount { get; init; }
+
+    /// <summary>The earliest end of validity among the paid tolls (may be in the past). Null when none is paid.</summary>
+    public DateOnly? NextTollValidUntil { get; init; }
+
+    /// <summary>Fines still open (not paid, not contested).</summary>
+    public int OpenFineCount { get; init; }
+
+    public decimal OpenFineTotal { get; init; }
+
+    /// <summary>Open fines whose due date has passed.</summary>
+    public int OverdueFineCount { get; init; }
+
     public DateTime CreatedAt { get; init; }
 
     public DateTime? UpdatedAt { get; init; }
@@ -198,6 +215,15 @@ public static class VehicleMapping
                 t.Status == VehicleTollStatus.Unpaid
                 || t.ValidUntil == null
                 || t.ValidUntil.Value <= today.AddDays(7)),
+            TollCount = vehicle.Tolls.Count(),
+            UnpaidTollCount = vehicle.Tolls.Count(t => t.Status == VehicleTollStatus.Unpaid),
+            NextTollValidUntil = vehicle.Tolls
+                .Where(t => t.Status == VehicleTollStatus.Paid && t.ValidUntil != null)
+                .Min(t => t.ValidUntil),
+            OpenFineCount = vehicle.Fines.Count(f => f.Status == VehicleFineStatus.Open),
+            OpenFineTotal = vehicle.Fines.Where(f => f.Status == VehicleFineStatus.Open).Sum(f => (decimal?)f.Amount) ?? 0m,
+            OverdueFineCount = vehicle.Fines.Count(f =>
+                f.Status == VehicleFineStatus.Open && f.DueDate != null && f.DueDate.Value < today),
             CreatedAt = vehicle.CreatedAt,
             UpdatedAt = vehicle.UpdatedAt,
         };

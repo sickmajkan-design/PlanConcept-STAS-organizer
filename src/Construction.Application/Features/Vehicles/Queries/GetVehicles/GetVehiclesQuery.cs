@@ -45,6 +45,12 @@ public record GetVehiclesQuery : ISortablePagedQuery, IRequest<PagedList<Vehicle
     /// <summary>When true, returns only vehicles missing a VIN or QR code.</summary>
     public bool? IncompleteOnly { get; init; }
 
+    /// <summary>
+    /// When true, returns only vehicles that need a look: a date that has passed or comes within 30 days, a toll that
+    /// is unpaid or lapsing, or an open fine. A vehicle with no date entered at all is not counted.
+    /// </summary>
+    public bool? NeedsAttention { get; init; }
+
     public string? SortBy { get; init; }
 
     public bool SortDescending { get; init; }
@@ -143,6 +149,20 @@ public class GetVehiclesQueryHandler : IRequestHandler<GetVehiclesQuery, PagedLi
         if (request.IncompleteOnly == true)
         {
             query = query.Where(v => v.Vin == null || v.QrCode == null);
+        }
+
+        if (request.NeedsAttention == true)
+        {
+            var soon = today.AddDays(30);
+
+            query = query.Where(v =>
+                v.RegistrationValidUntil <= soon
+                || v.TechnicalInspectionValidUntil <= soon
+                || v.InsuranceValidUntil <= soon
+                || v.NextServiceDue <= soon
+                || (v.OwnershipType != VehicleOwnershipType.Owned && v.RentedUntil <= soon)
+                || v.Tolls.Any(t => t.Status == VehicleTollStatus.Unpaid || (t.ValidUntil != null && t.ValidUntil <= soon))
+                || v.Fines.Any(f => f.Status == VehicleFineStatus.Open));
         }
 
         query = ApplySorting(query, request.SortBy, request.SortDescending);

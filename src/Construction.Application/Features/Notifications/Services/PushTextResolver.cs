@@ -518,6 +518,31 @@ public static class PushTextResolver
                     $"{vehicleName}: {what} {IsoDate(date)} (još {daysLeft} dana).");
             }
 
+            case NotificationType.VehicleFineAdded:
+            {
+                var vehicleName = Str("vehicleName");
+                var description = Str("description");
+                var amount = Str("amount");
+                if (vehicleName is null || description is null || amount is null) break;
+
+                return ("Nova kazna za vozilo", $"{vehicleName}: {description}, {amount}.");
+            }
+
+            case NotificationType.VehicleFineDue:
+            {
+                var vehicleName = Str("vehicleName");
+                var description = Str("description");
+                var dueDate = Str("dueDate");
+                var daysLeft = Str("daysLeft");
+                if (vehicleName is null || description is null || dueDate is null || daysLeft is null) break;
+
+                return (
+                    "Rok plaćanja kazne",
+                    int.TryParse(daysLeft, out var left) && left < 0
+                        ? $"{vehicleName}: {description}, rok je bio {IsoDate(dueDate)}."
+                        : $"{vehicleName}: {description}, rok {IsoDate(dueDate)} (još {daysLeft} dana).");
+            }
+
             case NotificationType.DkvStatementMismatch:
             {
                 var total = Str("total");
