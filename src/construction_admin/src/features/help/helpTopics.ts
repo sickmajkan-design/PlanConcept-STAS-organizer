@@ -1145,7 +1145,7 @@ export const helpTopics: HelpTopic[] = [
           'Snimi izmjene šalje samo redove koje ste mijenjali. Ako neki red ne uspije, piše koji i zašto, a ostali su snimljeni.',
           'Zaposleni: Ljudi, Zaposleni, Brzi unos. Osnovni podaci se mijenjaju u ćeliji. Dugme Cijene sata (za one s pravom na finansije) mijenja cijene više radnika: datum Važi od, pa Povećaj za %, za iznos ili Postavi tačan iznos, Primijeni na označene, Pregled i snimi. Dosadašnja cijena se zatvara dan prije novog datuma.',
           'Zaglavlje vozila i alata pokazuje VIN ili serijski broj, QR, ko ih drži i na kom su projektu.',
-          'Uz ime projekta (raspored, liste, sati, materijal, alati, vozila) piše i kupac ljubičastom bojom. Projekat bez kupca pokazuje „Bez kupca“, pa se vidi šta treba popuniti.',
+          'Uz ime projekta (raspored, liste, sati, materijal, alati, vozila) piše i kupac ljubičastom bojom. Projekat bez kupca pokazuje „Bez kupca“, pa se vidi šta treba popuniti. Kupac s upisanom državom (Kupci, polje Država) ima zastavicu i oznaku (npr. CH); filter Država kupca je na listi projekata, a Predloži iz projekata na listi kupaca nudi državu gradilišta kao prijedlog za potvrdu.',
         ],
         example:
           'Pet vozila ima osiguranje do 31. marta. U Brzom unosu vozila označite petoro, izaberete Osiguranje do, upišete 2027-03-31, kliknete Primijeni na 5 i Snimi izmjene.',
@@ -1167,7 +1167,7 @@ export const helpTopics: HelpTopic[] = [
           'Save changes sends only the rows you changed. If a row fails it says which and why, and the others are saved.',
           'Employees: People, Employees, Quick entry. Basic data is changed in the cell. The Hourly rates button (for those with the finance right) changes the rates of several people: the date Valid from, then Raise by %, by amount or Set exact amount, Apply to selected, Review and save. The earlier rate is closed the day before the new date.',
           'The header of a vehicle and of a tool shows the VIN or serial number, QR, who holds it and on which project it is.',
-          'Next to the project name (schedule, lists, hours, materials, tools, vehicles) the customer is written in purple. A project with no customer shows "No customer", so you see what needs filling in.',
+          'Next to the project name (schedule, lists, hours, materials, tools, vehicles) the customer is written in purple. A project with no customer shows "No customer", so you see what needs filling in. A customer with a country entered (Customers, Country field) has a flag and a code (for example CH); the filter Customer country is on the projects list, and Suggest from projects on the customers list offers the country of the sites as a suggestion to confirm.',
         ],
         example:
           'Five vehicles have insurance until 31 March. In Quick entry of vehicles tick the five, choose Insurance until, type 2027-03-31, click Apply to 5 and Save changes.',

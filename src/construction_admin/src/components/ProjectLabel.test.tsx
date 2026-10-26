@@ -63,4 +63,28 @@ describe('ProjectLabel', () => {
 
     expect(rowClicked).toBe(false);
   }, SCREEN_TIMEOUT);
+
+  it('shows the flag of the customer, and the site only when it is somewhere else', async () => {
+    network.reply('/projects', 200, page([
+      project({ customerCountryCode: 'CH', countryCode: 'DE' }),
+      project({ id: 'p2', name: 'Hala B', customerCountryCode: 'BA', countryCode: 'BA' }),
+    ]));
+    await renderLabel({ projectId: 'p1' });
+
+    // The customer's country, with its name for a screen reader, and the site's own because it differs.
+    expect(await screen.findByLabelText('Švicarska')).toBeDefined();
+    expect(await screen.findByLabelText('Njemačka')).toBeDefined();
+
+    // Same country on both: no second flag.
+    await renderLabel({ name: 'Hala B', projectId: 'p2' });
+    expect(await screen.findAllByLabelText('Bosna i Hercegovina')).toHaveLength(1);
+  }, SCREEN_TIMEOUT);
+
+  it('shows no flag for a customer without a country', async () => {
+    network.reply('/projects', 200, page([project({ customerCountryCode: null })]));
+    await renderLabel({ projectId: 'p1' });
+
+    await screen.findByText('LogPark a.d.');
+    expect(screen.queryByRole('img')).toBeNull();
+  }, SCREEN_TIMEOUT);
 });

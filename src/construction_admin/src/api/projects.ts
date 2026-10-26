@@ -18,6 +18,8 @@ export interface ProjectListQuery extends ListQuery {
   status?: ProjectStatus | '';
   employeeId?: string;
   customerId?: string;
+  /** The customer's country (two letters), or `none` for projects whose customer has no country. */
+  customerCountry?: string;
   branchId?: string;
   /** Restricts results to the sub-projects of this Main project. */
   parentProjectId?: string;

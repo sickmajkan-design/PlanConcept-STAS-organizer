@@ -199,7 +199,7 @@ export function DayView({ plan, day, openWorker, openSite, readOnly }: ViewProps
               <Stack direction="row" spacing={1} sx={{ alignItems: 'center', p: 1.5, borderBottom: 1, borderColor: 'divider' }}>
                 <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: siteColor(site.id), flex: 'none' }} />
                 <Typography variant="subtitle1" sx={{ fontWeight: 700, flex: 1, minWidth: 0, overflowWrap: 'anywhere', lineHeight: 1.2 }}>
-                  <ProjectLabel name={site.name} projectId={site.id} customerName={site.customerName} variant="stacked" />
+                  <ProjectLabel name={site.name} projectId={site.id} customerName={site.customerName} customerCountryCode={site.customerCountryCode} siteCountryCode={site.countryCode} variant="stacked" />
                 </Typography>
                 {extra > 0 && <Chip size="small" label={t('planning.day.surplus', { count: extra })} />}
                 {need > 0 && (

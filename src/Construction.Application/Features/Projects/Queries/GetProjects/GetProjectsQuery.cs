@@ -31,6 +31,9 @@ public record GetProjectsQuery : ISortablePagedQuery, IRequest<PagedList<Project
 
     public Guid? CustomerId { get; init; }
 
+    /// <summary>The customer's country (two letters), or <c>none</c> for projects whose customer has none or that have no customer.</summary>
+    public string? CustomerCountry { get; init; }
+
     /// <summary>Restricts results to one business unit (poslovna jedinica).</summary>
     public Guid? BranchId { get; init; }
 
@@ -111,6 +114,15 @@ public class GetProjectsQueryHandler : IRequestHandler<GetProjectsQuery, PagedLi
         if (request.CustomerId is { } customerId)
         {
             query = query.Where(p => p.CustomerId == customerId);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.CustomerCountry))
+        {
+            var country = request.CustomerCountry.Trim().ToUpperInvariant();
+
+            query = country == "NONE"
+                ? query.Where(p => p.Customer == null || p.Customer.CountryCode == null)
+                : query.Where(p => p.Customer != null && p.Customer.CountryCode == country);
         }
 
         if (request.BranchId is { } branchId)

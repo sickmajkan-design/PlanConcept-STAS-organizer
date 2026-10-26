@@ -57,6 +57,8 @@ import { useSavedViews } from '../../hooks/useSavedViews';
 import { paths } from '../../routes/paths';
 import { formatDate } from '../../utils/formatting';
 import { ProjectLabel } from '../../components/ProjectLabel';
+import { CountryFlag } from '../../components/CountryFlag';
+import { COUNTRIES } from '../../data/countries';
 
 interface ProjectViewState {
   search: string;
@@ -79,6 +81,7 @@ interface ProjectBlock {
 interface CustomerGroup {
   key: string;
   customerName: string;
+  customerCountryCode: string | null;
   projectCount: number;
   blocks: ProjectBlock[];
 }
@@ -96,6 +99,8 @@ export function ProjectsListPage() {
     if (customerParam !== null) setCustomerFilter(customerParam);
   }, [customerParam]);
   const { data: customers } = useAllCustomersQuery();
+  // The country of the customer, chosen from the list or `none` for the customers without one.
+  const [customerCountry, setCustomerCountry] = useState('');
 
   const savedViews = useSavedViews<ProjectViewState>('projects');
 
@@ -116,8 +121,9 @@ export function ProjectsListPage() {
       ...FULL_LIST,
       status: list.filter || undefined,
       customerId: customerFilter || undefined,
+      customerCountry: customerCountry || undefined,
     }),
-    [list.query, list.filter, customerFilter],
+    [list.query, list.filter, customerFilter, customerCountry],
   );
 
   const [viewMode, setViewMode] = useViewMode('projects');
@@ -149,7 +155,7 @@ export function ProjectsListPage() {
     const items = data?.items ?? [];
     const unassignedLabel = t('projects.noCustomer');
 
-    const byCustomer = new Map<string, { customerName: string; projects: Project[] }>();
+    const byCustomer = new Map<string, { customerName: string; customerCountryCode: string | null; projects: Project[] }>();
     for (const project of items) {
       const key = project.customerId ?? '';
       const bucket = byCustomer.get(key);
@@ -158,6 +164,7 @@ export function ProjectsListPage() {
       } else {
         byCustomer.set(key, {
           customerName: project.customerName ?? unassignedLabel,
+          customerCountryCode: project.customerCountryCode,
           projects: [project],
         });
       }
@@ -195,7 +202,7 @@ export function ProjectsListPage() {
           blocks.push({ main: null, orphanParentName: sub.parentProjectName ?? undefined, subs: [sub] });
         });
 
-      return { key, customerName: bucket.customerName, projectCount: bucket.projects.length, blocks };
+      return { key, customerName: bucket.customerName, customerCountryCode: bucket.customerCountryCode, projectCount: bucket.projects.length, blocks };
     });
 
     result.sort((a, b) => {
@@ -273,6 +280,29 @@ export function ProjectsListPage() {
           </Select>
         </FormControl>
 
+        <FormControl size="small" sx={{ minWidth: 180 }}>
+          <InputLabel id="project-customer-country-label">{t('projects.customerCountry')}</InputLabel>
+          <Select
+            labelId="project-customer-country-label"
+            label={t('projects.customerCountry')}
+            value={customerCountry}
+            onChange={(event) => {
+              setCustomerCountry(event.target.value);
+              list.resetToFirstPage();
+            }}
+          >
+            <MenuItem value="">
+              <em>{t('common.all')}</em>
+            </MenuItem>
+            <MenuItem value="none">{t('projects.customerCountryNone')}</MenuItem>
+            {COUNTRIES.map((c) => (
+              <MenuItem key={c.code} value={c.code}>
+                {c.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
         <ExportButton
           onExport={(language) =>
             exportsApi.projects({ search: list.search, status: list.filter, language })
@@ -316,6 +346,7 @@ export function ProjectsListPage() {
           {groups.map((group) => (
             <Box key={group.key}>
               <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', alignItems: 'center', mb: 1 }}>
+                <CountryFlag code={group.customerCountryCode} />
                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
                   {group.customerName}
                 </Typography>
@@ -443,7 +474,7 @@ function ProjectRow({
             </Tooltip>
           )}
           <Typography variant="body2" sx={{ fontWeight: isMain ? 700 : 500, minWidth: 0 }} noWrap>
-            <ProjectLabel name={project.name} customerName={project.customerName} customerId={project.customerId} noWrap />
+            <ProjectLabel name={project.name} customerName={project.customerName} customerId={project.customerId} customerCountryCode={project.customerCountryCode} siteCountryCode={project.countryCode} noWrap />
           </Typography>
         </Stack>
         {project.address && (

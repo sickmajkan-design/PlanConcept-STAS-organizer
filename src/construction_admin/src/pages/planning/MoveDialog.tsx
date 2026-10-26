@@ -191,7 +191,7 @@ export function MoveDialog({
                 {t('planning.m.now')}: <b>{summary(plan, person, from, to, awayText, freeText)}</b>
               </Typography>
               <Typography variant="body2">
-                {t('planning.m.after')}: <b>{site ? <ProjectLabel name={site.name} projectId={site.id} customerName={site.customerName} /> : freeText}</b>
+                {t('planning.m.after')}: <b>{site ? <ProjectLabel name={site.name} projectId={site.id} customerName={site.customerName} customerCountryCode={site.customerCountryCode} siteCountryCode={site.countryCode} /> : freeText}</b>
               </Typography>
               <Stack spacing={0.75} sx={{ mt: 1.25 }}>
                 {notes.map((note) => (

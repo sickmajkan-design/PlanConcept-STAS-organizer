@@ -23,6 +23,9 @@ public record GetCustomersQuery : ISortablePagedQuery, IRequest<PagedList<Custom
     /// <summary>Matches name, contact person and phone (case-insensitive).</summary>
     public string? Search { get; init; }
 
+    /// <summary>A two-letter country code, or <c>none</c> for the customers without a country.</summary>
+    public string? Country { get; init; }
+
     public string? SortBy { get; init; }
 
     public bool SortDescending { get; init; }
@@ -64,6 +67,15 @@ public class GetCustomersQueryHandler : IRequestHandler<GetCustomersQuery, Paged
                 EF.Functions.Like(c.Name.ToLower(), pattern, SearchPattern.Escape) ||
                 (c.ContactPerson != null && EF.Functions.Like(c.ContactPerson.ToLower(), pattern, SearchPattern.Escape)) ||
                 (c.Phone != null && EF.Functions.Like(c.Phone.ToLower(), pattern, SearchPattern.Escape)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Country))
+        {
+            var country = request.Country.Trim().ToUpperInvariant();
+
+            query = country == "NONE"
+                ? query.Where(c => c.CountryCode == null)
+                : query.Where(c => c.CountryCode == country);
         }
 
         query = ApplySorting(query, request.SortBy, request.SortDescending);

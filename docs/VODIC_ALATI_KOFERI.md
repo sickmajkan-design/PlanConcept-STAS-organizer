@@ -10,6 +10,14 @@ Svugdje gdje se pokazuje projekat (raspored, liste projekata, sati, materijal, r
 - Projekat bez kupca pokazuje **„Bez kupca“**, da se vidi šta treba popuniti.
 - Kupac se uzima s projekta. Da ga promijenite, izmijenite projekat.
 - Isti kupac može imati više projekata, pa ime kupca pomaže da se razlikuju projekti sličnog naziva.
+- Klik na ime kupca otvara projekte tog kupca.
+
+**Država kupca (zastavica).** Kupac ima **državu** (Kupci, izmjena kupca, polje Država). Uz njegovo ime stoji zastavica i dvoslovna oznaka (npr. CH), pa se vidi iz koje je zemlje kupac: u naslovu grupe i u svakom redu liste projekata, i svugdje gdje se pokazuje projekat (raspored, sati, materijal…). Prava slika zastave, jer emoji zastave na Windowsu izgledaju kao dva slova.
+
+- To je država **kupca**, a ne gradilišta. Država gradilišta (koja određuje praznike) ostaje na projektu. Kad se razlikuju (kupac iz Švicarske, gradilište u Njemačkoj), uz kupca stoji i manja isprekidana oznaka „gradilište: DE“.
+- Kupac bez države nema zastavicu; ništa se ne piše uz svaki red.
+- **Lista projekata** ima filter **Država kupca** (i „Bez države“), a **lista kupaca** kolonu Država, isti filter i traku „Kupaca bez države: N“.
+- **Predloži iz projekata**: za kupce bez države nudi državu njihovih gradilišta, ali samo kad su sva u istoj. Ništa se ne upisuje dok ne potvrdiš, jer država gradilišta nije uvijek država kupca.
 
 ## 2. Brzi unos vozila i alata
 

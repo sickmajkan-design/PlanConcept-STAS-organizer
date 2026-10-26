@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Alert,
+  Autocomplete,
   Box,
   Button,
   Divider,
@@ -27,6 +28,7 @@ import { customerFormSchema, type CustomerFormValues } from '../../features/cust
 import { useDuplicateWarning } from '../../hooks/useDuplicateWarning';
 import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
+import { COUNTRIES, countryLabel, resolveCountryCode } from '../../data/countries';
 
 async function searchSimilarCustomers(term: string) {
   const result = await customersApi.list({ pageNumber: 1, pageSize: 5, search: term });
@@ -39,6 +41,7 @@ async function searchSimilarCustomers(term: string) {
 
 const emptyValues: CustomerFormValues = {
   name: '',
+  countryCode: '',
   contactPerson: '',
   phone: '',
   email: '',
@@ -79,6 +82,7 @@ export function CustomerFormPage() {
     if (existing) {
       reset({
         name: existing.name,
+        countryCode: countryLabel(existing.countryCode),
         contactPerson: existing.contactPerson ?? '',
         phone: existing.phone ?? '',
         email: existing.email ?? '',
@@ -101,6 +105,7 @@ export function CustomerFormPage() {
   const onSubmit = async (values: CustomerFormValues) => {
     const input: CustomerInput = {
       name: values.name.trim(),
+      countryCode: resolveCountryCode(values.countryCode ?? ''),
       contactPerson: values.contactPerson || null,
       phone: values.phone || null,
       email: values.email || null,
@@ -194,6 +199,24 @@ export function CustomerFormPage() {
                       fullWidth
                       error={!!fieldState.error}
                       helperText={fieldState.error?.message}
+                    />
+                  )}
+                />
+              </Grid>
+              <Grid size={12}>
+                <Controller
+                  name="countryCode"
+                  control={control}
+                  render={({ field }) => (
+                    <Autocomplete
+                      freeSolo
+                      fullWidth
+                      options={COUNTRIES.map((c) => c.label)}
+                      inputValue={field.value ?? ''}
+                      onInputChange={(_event, value) => field.onChange(value)}
+                      renderInput={(params) => (
+                        <TextField {...params} label={t('customers.country')} helperText={t('customers.countryHint')} />
+                      )}
                     />
                   )}
                 />

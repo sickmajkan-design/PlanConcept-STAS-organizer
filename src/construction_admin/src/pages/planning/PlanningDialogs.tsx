@@ -360,7 +360,7 @@ export function SiteDialog({
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle sx={{ pb: 0.5 }}>
-        <ProjectLabel name={site.name} projectId={site.id} customerName={site.customerName} variant="stacked" />
+        <ProjectLabel name={site.name} projectId={site.id} customerName={site.customerName} customerCountryCode={site.customerCountryCode} siteCountryCode={site.countryCode} variant="stacked" />
       </DialogTitle>
       <DialogContent>
         <Typography variant="body2" color="text.secondary">

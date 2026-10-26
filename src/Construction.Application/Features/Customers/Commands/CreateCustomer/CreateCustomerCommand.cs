@@ -35,6 +35,7 @@ public class CreateCustomerCommandHandler : IRequestHandler<CreateCustomerComman
             Phone = request.Phone?.Trim(),
             Email = request.Email?.Trim(),
             Note = request.Note?.Trim(),
+            CountryCode = string.IsNullOrWhiteSpace(request.CountryCode) ? null : request.CountryCode.Trim().ToUpperInvariant(),
             TaxId = canEditTaxDetails ? request.TaxId?.Trim() : null,
             RegistrationNumber = canEditTaxDetails ? request.RegistrationNumber?.Trim() : null,
             VatNumber = canEditTaxDetails ? request.VatNumber?.Trim() : null,

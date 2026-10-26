@@ -77,6 +77,9 @@ public class PlanningProjectDto
 
     public string? CustomerName { get; init; }
 
+    /// <summary>The customer's country (two letters). The site's own is <c>CountryCode</c>.</summary>
+    public string? CustomerCountryCode { get; init; }
+
     public DateOnly? StartDate { get; init; }
 
     public DateOnly? EndDate { get; init; }
@@ -235,6 +238,7 @@ public class GetPlanningQueryHandler : IRequestHandler<GetPlanningQuery, Plannin
                 Name = p.Name,
                 Status = p.Status.ToString(),
                 CustomerName = p.Customer != null ? p.Customer.Name : null,
+                CustomerCountryCode = p.Customer != null ? p.Customer.CountryCode : null,
                 StartDate = p.StartDate,
                 EndDate = p.EndDate,
                 WorksSaturdays = p.WorksSaturdays,

@@ -17,6 +17,8 @@ export const customerFormSchema = z.object({
     .trim()
     .min(1, { error: zodMsg('validation.required') })
     .max(256, { error: zodMsg('validation.maxLength', { max: 256 }) }),
+  // A country's name or its two-letter code; resolved to the code when saving.
+  countryCode: z.string().trim().max(64).optional().or(z.literal('')),
   contactPerson: z
     .string()
     .trim()

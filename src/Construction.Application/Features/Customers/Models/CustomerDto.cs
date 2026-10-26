@@ -17,6 +17,9 @@ public class CustomerDto
 
     public string? Note { get; init; }
 
+    /// <summary>Two-letter country code of the customer, or null when it was never entered.</summary>
+    public string? CountryCode { get; init; }
+
     /// <summary>
     /// Null both when it was never set and when the caller may not see it —
     /// <see cref="ProjectionFor"/> is what tells the two apart, by never
@@ -63,6 +66,7 @@ public static class CustomerMapping
             Phone = customer.Phone,
             Email = customer.Email,
             Note = customer.Note,
+            CountryCode = customer.CountryCode,
             TaxId = canViewTaxDetails ? customer.TaxId : null,
             RegistrationNumber = canViewTaxDetails ? customer.RegistrationNumber : null,
             VatNumber = canViewTaxDetails ? customer.VatNumber : null,

@@ -154,7 +154,7 @@ export function NeedView({
                       <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: siteColor(site.id), flex: 'none' }} />
                       <Box sx={{ minWidth: 0, flex: 1 }}>
                         <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
-                          <ProjectLabel name={site.name} projectId={site.id} customerName={site.customerName} variant="stacked" noWrap />
+                          <ProjectLabel name={site.name} projectId={site.id} customerName={site.customerName} customerCountryCode={site.customerCountryCode} siteCountryCode={site.countryCode} variant="stacked" noWrap />
                         </Typography>
                         <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
                           {site.startDate ? formatDate(site.startDate) : '…'} – {site.endDate ? formatDate(site.endDate) : '…'} ·{' '}

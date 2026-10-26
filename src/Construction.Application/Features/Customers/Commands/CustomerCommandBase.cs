@@ -18,6 +18,9 @@ public abstract record CustomerCommandBase
 
     public string? Note { get; init; }
 
+    /// <summary>Two-letter country code of the customer; blank clears it.</summary>
+    public string? CountryCode { get; init; }
+
     /// <summary>
     /// Tax ID, registration number and VAT number — only ever applied by the
     /// handler when the caller passes <c>CustomerRules.CanEditTaxDetails</c>;
@@ -53,6 +56,10 @@ public abstract class CustomerCommandBaseValidator<T> : AbstractValidator<T>
 
         RuleFor(x => x.Note)
             .MaximumLength(2000);
+
+        RuleFor(x => x.CountryCode)
+            .Matches("^[A-Za-z]{2}$").WithMessage("Use the two-letter country code (ISO 3166-1 alpha-2).")
+            .When(x => !string.IsNullOrWhiteSpace(x.CountryCode));
 
         RuleFor(x => x.TaxId).MaximumLength(64);
         RuleFor(x => x.RegistrationNumber).MaximumLength(64);

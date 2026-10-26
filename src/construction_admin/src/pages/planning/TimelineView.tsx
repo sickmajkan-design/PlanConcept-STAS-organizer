@@ -20,6 +20,7 @@ import { useT } from '../../i18n/useI18n';
 import { SiteTray, useDragInfo, useDragSource, useDropTarget } from './planningDnd';
 import { AWAY_COLOR, awayChipSx, shortDate, siteColor, WEEKDAYS } from './planningUi';
 import type { ViewProps } from './planningTypes';
+import { CountryFlag } from '../../components/CountryFlag';
 
 type Filter = 'all' | 'free' | 'away';
 
@@ -184,7 +185,7 @@ export function TimelineView({
       {readOnly ? (
         <Legend
           entries={[
-            ...plan.projects.map((p) => ({ key: p.id, color: siteColor(p.id), name: p.name, customer: p.customerName })),
+            ...plan.projects.map((p) => ({ key: p.id, color: siteColor(p.id), name: p.name, customer: p.customerName, country: p.customerCountryCode })),
             { key: 'away', color: AWAY_COLOR, name: t('planning.t.legendAway') },
           ]}
           anchor={legendAnchor}
@@ -324,7 +325,7 @@ function Legend({
   setAnchor,
   moreLabel,
 }: {
-  entries: { key: string; color: string; name: string; customer?: string | null }[];
+  entries: { key: string; color: string; name: string; customer?: string | null; country?: string | null }[];
   anchor: HTMLElement | null;
   setAnchor: (element: HTMLElement | null) => void;
   moreLabel: (count: number) => string;
@@ -335,10 +336,11 @@ function Legend({
   const shown = sites.slice(0, LEGEND_SHOWN);
   const rest = sites.slice(LEGEND_SHOWN);
 
-  const item = (entry: { key: string; color: string; name: string; customer?: string | null }, cut: boolean) => (
+  const item = (entry: { key: string; color: string; name: string; customer?: string | null; country?: string | null }, cut: boolean) => (
     <Box key={entry.key} title={entry.customer ? `${entry.name} · ${entry.customer}` : entry.name} sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flex: 'none', whiteSpace: 'nowrap' }}>
       <Box sx={{ width: 10, height: 10, borderRadius: 0.5, bgcolor: entry.color, flex: 'none' }} />
       {cut ? short(entry.name) : entry.name}
+      {entry.customer && entry.country && <CountryFlag code={entry.country} showCode={false} />}
       {entry.customer && <Box component="span" sx={{ color: 'secondary.main' }}>{cut ? short(entry.customer) : entry.customer}</Box>}
     </Box>
   );
@@ -358,6 +360,7 @@ function Legend({
                 <Box key={entry.key} sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                   <Box sx={{ width: 10, height: 10, borderRadius: 0.5, bgcolor: entry.color, flex: 'none' }} />
                   {entry.name}
+                  {entry.customer && entry.country && <CountryFlag code={entry.country} showCode={false} />}
                   {entry.customer && <Box component="span" sx={{ color: 'secondary.main' }}>{entry.customer}</Box>}
                 </Box>
               ))}

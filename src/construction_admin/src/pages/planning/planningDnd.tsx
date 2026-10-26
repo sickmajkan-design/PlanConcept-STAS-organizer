@@ -180,7 +180,7 @@ export function SiteTray({ plan }: { plan: Plan }) {
           key={site.id}
           id={`site:${site.id}`}
           target={{ kind: 'site', projectId: site.id }}
-          label={<ProjectLabel name={site.name} projectId={site.id} customerName={site.customerName} />}
+          label={<ProjectLabel name={site.name} projectId={site.id} customerName={site.customerName} customerCountryCode={site.customerCountryCode} siteCountryCode={site.countryCode} />}
           color={siteColor(site.id)}
           fits={!!person && !!payload && fillsGap(plan, site.id, person, payload.from, payload.to)}
           dragging={!!person}

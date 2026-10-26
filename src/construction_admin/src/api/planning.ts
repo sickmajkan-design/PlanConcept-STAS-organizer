@@ -6,6 +6,8 @@ export interface PlanningProject {
   name: string;
   status: string;
   customerName: string | null;
+  /** The customer's country (two letters). The site's own is `countryCode`. */
+  customerCountryCode?: string | null;
   startDate: string | null;
   endDate: string | null;
   worksSaturdays: boolean;

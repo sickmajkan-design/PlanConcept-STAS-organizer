@@ -238,6 +238,8 @@ export interface Project {
   description: string | null;
   customerId: string | null;
   customerName: string | null;
+  /** The customer's country (two letters), not the site's. */
+  customerCountryCode: string | null;
   /** The business unit (poslovna jedinica) the project belongs to. */
   branchId: string | null;
   branchName: string | null;
@@ -401,6 +403,8 @@ export interface Customer {
   phone: string | null;
   email: string | null;
   note: string | null;
+  /** Two-letter country code of the customer, or null when it was never entered. */
+  countryCode: string | null;
   /**
    * Null both when it was never set and when the signed-in user may not see
    * it — the two look the same on purpose, since the API never sends the
@@ -417,6 +421,8 @@ export interface Customer {
 
 export interface CustomerInput {
   name: string;
+  /** Two-letter code; blank clears it. */
+  countryCode?: string | null;
   contactPerson?: string | null;
   phone?: string | null;
   email?: string | null;

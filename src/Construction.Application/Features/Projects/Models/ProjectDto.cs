@@ -15,6 +15,9 @@ public class ProjectDto
 
     public string? CustomerName { get; init; }
 
+    /// <summary>The customer's country (two letters), not the site's.</summary>
+    public string? CustomerCountryCode { get; init; }
+
     public Guid? BranchId { get; init; }
 
     public string? BranchName { get; init; }
@@ -88,6 +91,7 @@ public static class ProjectMapping
             Description = project.Description,
             CustomerId = project.CustomerId,
             CustomerName = project.Customer != null ? project.Customer.Name : null,
+            CustomerCountryCode = project.Customer != null ? project.Customer.CountryCode : null,
             BranchId = project.BranchId,
             BranchName = project.Branch != null ? project.Branch.Name : null,
             BranchColor = project.Branch != null ? project.Branch.Color : null,

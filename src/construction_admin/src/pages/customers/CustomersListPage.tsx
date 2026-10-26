@@ -1,7 +1,19 @@
 import { AddOutlined, DeleteOutlined, EditOutlined } from '@mui/icons-material';
-import { Box, IconButton, Stack, Tooltip, Typography } from '@mui/material';
+import {
+  Alert,
+  Box,
+  Button,
+  FormControl,
+  IconButton,
+  InputLabel,
+  MenuItem,
+  Select,
+  Stack,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import type { GridColDef } from '@mui/x-data-grid';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import type { CustomerListQuery } from '../../api/customers';
@@ -20,13 +32,20 @@ import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
 import { useT } from '../../i18n/useI18n';
 import { useListQueryState } from '../../hooks/useListQueryState';
 import { paths } from '../../routes/paths';
+import { CountryFlag } from '../../components/CountryFlag';
+import { CountrySuggestionDialog } from '../../features/customers/CountrySuggestionDialog';
+import { COUNTRIES, countryLabel } from '../../data/countries';
 
 export function CustomersListPage() {
   const navigate = useNavigate();
   const t = useT();
   const list = useListQueryState('name', 'asc', 'customers');
 
-  const query: CustomerListQuery = list.query;
+  const [country, setCountry] = useState('');
+  const [suggesting, setSuggesting] = useState(false);
+
+  const query: CustomerListQuery = useMemo(() => ({ ...list.query, country: country || undefined }), [list.query, country]);
+  const withoutCountry = useCustomersQuery({ pageNumber: 1, pageSize: 1, country: 'none' }).data?.totalCount ?? 0;
 
   const { data, isLoading, isError, error, refetch } = useCustomersQuery(query);
   const deleteCustomer = useDeleteCustomer();
@@ -37,6 +56,21 @@ export function CustomersListPage() {
   const columns: GridColDef<Customer>[] = useMemo(
     () => [
       { field: 'name', headerName: t('customers.name'), flex: 1, minWidth: 200 },
+      {
+        field: 'countryCode',
+        headerName: t('customers.country'),
+        width: 210,
+        valueGetter: (v) => countryLabel(v as string | null),
+        renderCell: (params) =>
+          params.row.countryCode ? (
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+              <CountryFlag code={params.row.countryCode} />
+              <span>{countryLabel(params.row.countryCode)}</span>
+            </Stack>
+          ) : (
+            '—'
+          ),
+      },
       {
         field: 'contactPerson',
         headerName: t('customers.contactPerson'),
@@ -108,7 +142,50 @@ export function CustomersListPage() {
           onChange={list.setSearch}
           placeholder={t('customers.searchPlaceholder')}
         />
+        <FormControl size="small" sx={{ minWidth: 200 }}>
+          <InputLabel id="customer-country-filter">{t('customers.country')}</InputLabel>
+          <Select
+            labelId="customer-country-filter"
+            label={t('customers.country')}
+            value={country}
+            onChange={(event) => {
+              setCountry(event.target.value);
+              list.resetToFirstPage();
+            }}
+          >
+            <MenuItem value="">
+              <em>{t('common.all')}</em>
+            </MenuItem>
+            <MenuItem value="none">{t('customers.countryNone')}</MenuItem>
+            {COUNTRIES.map((c) => (
+              <MenuItem key={c.code} value={c.code}>
+                {c.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
       </Stack>
+
+      {withoutCountry > 0 && (
+        <Alert
+          severity="warning"
+          sx={{ mb: 2 }}
+          action={
+            <Stack direction="row" spacing={1}>
+              <Button color="inherit" size="small" onClick={() => setSuggesting(true)}>
+                {t('customers.suggestFromProjects')}
+              </Button>
+              <Button color="inherit" size="small" onClick={() => setCountry('none')}>
+                {t('customers.showWithoutCountry')}
+              </Button>
+            </Stack>
+          }
+        >
+          {t('customers.withoutCountry', { count: withoutCountry })}
+        </Alert>
+      )}
+
+      {suggesting && <CountrySuggestionDialog onClose={() => setSuggesting(false)} />}
 
       {list.savedViews && (
         <Box sx={{ mb: 2 }}>

@@ -15,6 +15,12 @@ public class Customer : BaseEntity, ISoftDeletable, IAuditable
     public string? Note { get; set; }
 
     /// <summary>
+    /// The country the customer is from (ISO 3166-1 alpha-2, upper case). Not the country of the site: a Swiss customer
+    /// can build in Germany, and the site's own code (<see cref="Project.CountryCode"/>) decides the holidays.
+    /// </summary>
+    public string? CountryCode { get; set; }
+
+    /// <summary>
     /// Tax identification number — JIB, PIB, OIB, Steuernummer, whatever the
     /// customer's own country calls it. Visible only to a SuperAdmin, or to
     /// a user a SuperAdmin has explicitly granted

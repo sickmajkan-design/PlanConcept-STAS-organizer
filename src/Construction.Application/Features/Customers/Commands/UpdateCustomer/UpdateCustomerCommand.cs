@@ -42,6 +42,7 @@ public class UpdateCustomerCommandHandler : IRequestHandler<UpdateCustomerComman
         customer.Phone = request.Phone?.Trim();
         customer.Email = request.Email?.Trim();
         customer.Note = request.Note?.Trim();
+        customer.CountryCode = string.IsNullOrWhiteSpace(request.CountryCode) ? null : request.CountryCode.Trim().ToUpperInvariant();
 
         if (canEditTaxDetails)
         {
