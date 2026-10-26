@@ -36,6 +36,7 @@ import { useListQueryState } from '../../hooks/useListQueryState';
 import { useSavedViews } from '../../hooks/useSavedViews';
 import { paths } from '../../routes/paths';
 import { formatMoney } from '../../utils/formatting';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 interface MaterialViewState {
   search: string;
@@ -165,6 +166,7 @@ export function MaterialsListPage() {
         flex: 1,
         minWidth: 160,
         valueGetter: (v) => v || t('materials.warehouseStock'),
+        renderCell: ({ row, value }) => (row.projectName ? <ProjectLabel name={row.projectName} projectId={row.projectId} variant="stacked" noWrap /> : value),
       },
       {
         field: 'actions',

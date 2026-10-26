@@ -17,6 +17,14 @@ public class ToolDto
 
     public string Status { get; init; } = null!;
 
+    /// <summary>A case of tools with a list of what is inside it.</summary>
+    public bool IsKit { get; init; }
+
+    public int KitItemCount { get; init; }
+
+    /// <summary>Worth of everything the case is made of, whatever its state.</summary>
+    public decimal KitTotalValue { get; init; }
+
     public string OwnershipType { get; init; } = null!;
 
     /// <summary>Set when a rental/lease rate is currently in force (EndDate null). Null for an owned tool, or one with no rate on file.</summary>
@@ -78,6 +86,9 @@ public static class ToolMapping
             SerialNumber = tool.SerialNumber,
             QrCode = tool.QrCode,
             Status = tool.Status.ToString(),
+            IsKit = tool.IsKit,
+            KitItemCount = tool.KitItems.Count(),
+            KitTotalValue = tool.KitItems.Sum(i => i.Quantity * i.UnitPrice),
             OwnershipType = tool.OwnershipType.ToString(),
             CurrentRentalMonthlyAmount = tool.RentalRates
                 .Where(r => r.EndDate == null)

@@ -343,6 +343,7 @@ export function VehiclesListPage() {
     <Box>
       <PageHeader
         title={t('vehicles.title')}
+        secondaryActions={<Button onClick={() => navigate(paths.vehiclesQuickEntry)}>{t('quickEntry.open')}</Button>}
         subtitle={data ? t('common.total', { count: data.totalCount }) : undefined}
         action={{
           label: t('vehicles.add'),

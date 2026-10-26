@@ -4205,6 +4205,9 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsKit")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -4299,6 +4302,108 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.ToTable("tool_expenses", null, t =>
                         {
                             t.HasCheckConstraint("ck_tool_expenses_amount_not_negative", "\"Amount\" >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.ToolKitEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("Amount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("EmployeeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ItemId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ItemName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int?>("PayoutMethod")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("RecordedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("SettledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ToolId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordedByUserId");
+
+                    b.HasIndex("EmployeeId", "SettledAt");
+
+                    b.HasIndex("ToolId", "CreatedAt");
+
+                    b.ToTable("tool_kit_events", (string)null);
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.ToolKitItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("State")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ToolId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ToolId", "SortOrder");
+
+                    b.ToTable("tool_kit_items", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_tool_kit_items_price_not_negative", "\"UnitPrice\" >= 0");
+
+                            t.HasCheckConstraint("ck_tool_kit_items_quantity_positive", "\"Quantity\" >= 1");
                         });
                 });
 
@@ -6711,6 +6816,42 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("Tool");
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.ToolKitEvent", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.Employee", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Construction.Domain.Entities.User", "RecordedByUser")
+                        .WithMany()
+                        .HasForeignKey("RecordedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Construction.Domain.Entities.Tool", "Tool")
+                        .WithMany("KitEvents")
+                        .HasForeignKey("ToolId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("RecordedByUser");
+
+                    b.Navigation("Tool");
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.ToolKitItem", b =>
+                {
+                    b.HasOne("Construction.Domain.Entities.Tool", "Tool")
+                        .WithMany("KitItems")
+                        .HasForeignKey("ToolId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tool");
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.ToolRentalOut", b =>
                 {
                     b.HasOne("Construction.Domain.Entities.Customer", "Customer")
@@ -7214,6 +7355,10 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.Navigation("Attachments");
 
                     b.Navigation("Expenses");
+
+                    b.Navigation("KitEvents");
+
+                    b.Navigation("KitItems");
 
                     b.Navigation("RentalRates");
 

@@ -43,6 +43,7 @@ import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { formatDate } from '../../utils/formatting';
 import { todayCompany } from '../../utils/companyTime';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 interface WorkItemViewState {
   search: string;
@@ -152,6 +153,7 @@ export function WorkItemsListPage() {
         flex: 1,
         minWidth: 140,
         valueGetter: (v) => v || t('workItems.noProject'),
+        renderCell: ({ row, value }) => (row.projectName ? <ProjectLabel name={row.projectName} projectId={row.projectId} variant="stacked" noWrap /> : value),
       },
       {
         field: 'assignedEmployeeName',

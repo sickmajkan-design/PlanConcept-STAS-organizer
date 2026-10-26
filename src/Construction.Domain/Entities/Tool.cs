@@ -27,6 +27,16 @@ public class Tool : BaseEntity, ISoftDeletable, IAuditable
 
     public Project? AssignedProject { get; set; }
 
+    /// <summary>
+    /// A case of tools (a "kofer") rather than a single tool. It keeps its own assignment, QR label and status like any
+    /// tool, and has a list of what is inside it. Fixed when it is created.
+    /// </summary>
+    public bool IsKit { get; set; }
+
+    public ICollection<ToolKitItem> KitItems { get; set; } = new List<ToolKitItem>();
+
+    public ICollection<ToolKitEvent> KitEvents { get; set; } = new List<ToolKitEvent>();
+
     public ICollection<Attachment> Attachments { get; set; } = new List<Attachment>();
 
     public ICollection<ToolExpense> Expenses { get; set; } = new List<ToolExpense>();

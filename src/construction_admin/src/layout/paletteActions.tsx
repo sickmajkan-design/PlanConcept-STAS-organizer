@@ -62,6 +62,8 @@ export function buildPaletteActions(
       { key: 'customer', label: t('action.newCustomer'), path: paths.customerNew, icon: plus },
       { key: 'vehicle', label: t('action.newVehicle'), path: paths.vehicleNew, icon: plus },
       { key: 'tool', label: t('action.newTool'), path: paths.toolNew, icon: plus },
+      { key: 'quickEntryVehicles', label: t('action.quickEntryVehicles'), path: paths.vehiclesQuickEntry, icon: plus, keywords: 'tabela masovni unos izmjena datumi registracija osiguranje bulk' },
+      { key: 'quickEntryTools', label: t('action.quickEntryTools'), path: paths.toolsQuickEntry, icon: plus, keywords: 'tabela masovni unos izmjena bulk' },
       { key: 'material', label: t('action.newMaterial'), path: paths.materialNew, icon: plus },
     );
   }

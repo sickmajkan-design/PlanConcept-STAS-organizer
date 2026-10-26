@@ -40,9 +40,11 @@ public class WeeklySiteReportsController : ApiControllerBase
     [HttpGet("summary")]
     [Authorize(Policy = Policies.AdminAndAbove)]
     [ProducesResponseType(typeof(WeeklySiteReportsSummaryDto), StatusCodes.Status200OK)]
-    public async Task<ActionResult<WeeklySiteReportsSummaryDto>> GetSummary(CancellationToken cancellationToken)
+    public async Task<ActionResult<WeeklySiteReportsSummaryDto>> GetSummary(
+        [FromQuery] Guid? branchId,
+        CancellationToken cancellationToken)
     {
-        return Ok(await Mediator.Send(new GetWeeklySiteReportsSummaryQuery(), cancellationToken));
+        return Ok(await Mediator.Send(new GetWeeklySiteReportsSummaryQuery { BranchId = branchId }, cancellationToken));
     }
 
     /// <summary>What the caller has submitted themselves — the mobile app's own history.</summary>

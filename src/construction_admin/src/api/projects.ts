@@ -33,6 +33,7 @@ export const projectsApi = createCrudApi<
 
 export interface ProjectRevenueListQuery extends ListQuery {
   projectId?: string;
+  branchId?: string;
   from?: string;
   to?: string;
 }
@@ -43,11 +44,11 @@ export interface ProjectRevenueListQuery extends ListQuery {
  * revenue is booked and withdrawn rather than edited in place.
  */
 export const realizationApi = {
-  plan: (year: number) =>
+  plan: (year: number, branchId?: string) =>
     request<AnnualRealizationPlan>({
       method: 'GET',
       url: '/api/v1/projects/annual-realization',
-      params: { year },
+      params: listParams({ year, branchId }),
     }),
 
   revenues: {

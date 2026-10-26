@@ -7,6 +7,7 @@ import { useWeeklySiteReportsSummaryQuery } from '../../weeklySiteReports/useWee
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
 import { InsetList, InsetRow, MiniStat, MoreLink, StatGrid } from './widgetUi';
+import { ProjectLabel } from '../../../components/ProjectLabel';
 
 const SHOWN = 6;
 
@@ -60,7 +61,7 @@ export function WeeklyReportsWidget({ instanceId: _instanceId, onRemove, onExpan
                 <InsetRow
                   key={site.projectId}
                   tone="bad"
-                  primary={site.projectName}
+                  primary={<ProjectLabel name={site.projectName} projectId={site.projectId} />}
                   secondary={
                     site.foremanNames.length > 0
                       ? t('dashboard.weeklyReports.lateRowForeman', {

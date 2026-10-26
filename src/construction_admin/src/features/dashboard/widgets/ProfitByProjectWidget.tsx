@@ -22,6 +22,7 @@ import { formatPeriod } from '../../finance/periods';
 import { useFinanceByProject } from '../../finance/useFinanceSeries';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
+import { ProjectLabel } from '../../../components/ProjectLabel';
 
 const TOP = 10;
 
@@ -128,7 +129,7 @@ export function ProfitByProjectWidget({ onRemove, onExpandWidth }: DashboardWidg
                       to={paths.projectDetail(row.projectId)}
                       sx={{ color: 'inherit', textDecoration: 'none', fontWeight: 600 }}
                     >
-                      {row.projectName}
+                      <ProjectLabel name={row.projectName} projectId={row.projectId} />
                     </Box>
                   </TableCell>
                   <TableCell align="right">{formatMoney(row.revenue, locale)}</TableCell>

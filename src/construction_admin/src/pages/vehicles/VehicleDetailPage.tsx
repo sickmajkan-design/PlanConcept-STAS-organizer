@@ -113,6 +113,7 @@ import { useRecordVisit } from '../../layout/useRecentRecords';
 import { paths } from '../../routes/paths';
 import { dateOnlyOffset, formatDate, formatMoney } from '../../utils/formatting';
 import { VehicleExpenseDialog } from '../costs/VehicleExpensesPage';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 export function VehicleDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -206,6 +207,17 @@ export function VehicleDetailPage() {
                   {t('vehicles.tdMissing')}
                 </Typography>
               )}
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                {[
+                  vehicle.vin && `${t('vehicles.vin')}: ${vehicle.vin}`,
+                  `${t('vehicles.fuelType')}: ${enumLabel('fuelType', vehicle.fuelType)}`,
+                  vehicle.qrCode && `${t('vehicles.qrCode')}: ${vehicle.qrCode}`,
+                  vehicle.assignedEmployeeName && `${t('detail.assignedTo')}: ${vehicle.assignedEmployeeName}`,
+                  vehicle.assignedProjectName && `${t('detail.project')}: ${vehicle.assignedProjectName}`,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </Typography>
               <Stack direction="row" spacing={1} sx={{ mt: 1.5, alignItems: 'center' }}>
                 <StatusChip status={vehicle.status} kind="vehicleStatus" />
                 <StatusChip status={vehicle.ownershipType} kind="vehicleOwnershipType" />
@@ -404,7 +416,7 @@ export function VehicleDetailPage() {
                     sx={{ flex: 1, cursor: 'pointer' }}
                     onClick={() => navigate(paths.projectDetail(vehicle.assignedProjectId!))}
                   >
-                    {vehicle.assignedProjectName}
+                    <ProjectLabel name={vehicle.assignedProjectName!} projectId={vehicle.assignedProjectId} />
                   </Typography>
                   <Button
                     size="small"

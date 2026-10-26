@@ -137,6 +137,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<VehicleRentalOut> VehicleRentalsOut => Set<VehicleRentalOut>();
 
     public DbSet<ToolExpense> ToolExpenses => Set<ToolExpense>();
+    public DbSet<ToolKitItem> ToolKitItems => Set<ToolKitItem>();
+    public DbSet<ToolKitEvent> ToolKitEvents => Set<ToolKitEvent>();
 
     public DbSet<ToolRentalRate> ToolRentalRates => Set<ToolRentalRate>();
 

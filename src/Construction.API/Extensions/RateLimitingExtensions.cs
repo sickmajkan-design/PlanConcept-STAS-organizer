@@ -39,10 +39,10 @@ public class AuthRateLimitSettings
     /// Requests of any kind one signed-in account may make per
     /// <see cref="GlobalWindowSeconds"/>. A backstop against a runaway client or
     /// a stolen token being used to scrape, not a pacing mechanism: the admin
-    /// panel's busiest screens make a few dozen calls, so ten a second is far
-    /// above anything a person produces.
+    /// panel's home board makes close to a hundred calls when it opens or when the business unit changes, and
+    /// accounts are often shared by several people, so the allowance is generous: fifty a second.
     /// </summary>
-    public int AuthenticatedPermitLimit { get; set; } = 600;
+    public int AuthenticatedPermitLimit { get; set; } = 3000;
 
     /// <summary>
     /// Requests without a valid token one address may make per window. Higher

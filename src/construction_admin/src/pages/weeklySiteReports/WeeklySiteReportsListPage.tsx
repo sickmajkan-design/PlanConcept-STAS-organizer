@@ -47,6 +47,7 @@ import { useT } from '../../i18n/useI18n';
 import { formatIsoWeek } from '../../utils/isoWeek';
 import { ReportReviewDialog } from '../../features/weeklySiteReports/ReportReviewDialog';
 import { SubmitReportDialog } from '../../features/weeklySiteReports/SubmitReportDialog';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 function CorrectionDialog({
   report,
@@ -164,7 +165,13 @@ export function WeeklySiteReportsListPage() {
         width: 100,
         valueGetter: (_v, row) => formatIsoWeek(row.isoYear, row.isoWeek),
       },
-      { field: 'projectName', headerName: t('weeklyReports.project'), flex: 1, minWidth: 160 },
+      {
+        field: 'projectName',
+        headerName: t('weeklyReports.project'),
+        flex: 1,
+        minWidth: 160,
+        renderCell: ({ row }) => <ProjectLabel name={row.projectName} projectId={row.projectId} variant="stacked" noWrap />,
+      },
       {
         field: 'submittedByEmployeeName',
         headerName: t('weeklyReports.submittedBy'),
@@ -396,7 +403,7 @@ function OverduePanel({ summary }: { summary: WeeklySiteReportsSummary | undefin
       </Alert>
       {summary.overdue.map((site) => (
         <Paper key={site.projectId} variant="outlined" sx={{ px: 2, py: 1.25 }}>
-          <Typography sx={{ fontWeight: 600 }}>{site.projectName}</Typography>
+          <Typography sx={{ fontWeight: 600 }}><ProjectLabel name={site.projectName} projectId={site.projectId} /></Typography>
           <Typography variant="body2" color="text.secondary">
             {site.foremanNames.length > 0
               ? t('weeklyReports.overdueForeman', { names: site.foremanNames.join(', ') })

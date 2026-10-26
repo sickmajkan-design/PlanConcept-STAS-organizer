@@ -10,6 +10,7 @@ import {
 import {
   Box,
   Button,
+  Chip,
   FormControl,
   FormControlLabel,
   IconButton,
@@ -140,6 +141,7 @@ export function ToolsListPage() {
         renderCell: (params) => (
           <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
             <span>{params.row.name}</span>
+            {params.row.isKit && <Chip size="small" variant="outlined" label={t('tools.kitChip')} />}
             {(!params.row.serialNumber || !params.row.qrCode) && (
               <Tooltip title={t('tools.incompleteHint')}>
                 <WarningAmberOutlined fontSize="small" color="warning" />
@@ -242,6 +244,7 @@ export function ToolsListPage() {
     <Box>
       <PageHeader
         title={t('tools.title')}
+        secondaryActions={<Button onClick={() => navigate(paths.toolsQuickEntry)}>{t('quickEntry.open')}</Button>}
         subtitle={data ? t('common.total', { count: data.totalCount }) : undefined}
         action={{
           label: t('tools.add'),

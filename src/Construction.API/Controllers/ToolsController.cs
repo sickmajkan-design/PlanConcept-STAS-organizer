@@ -8,6 +8,7 @@ using Construction.Application.Features.Tools.Commands.SelfCheckOutTool;
 using Construction.Application.Features.Tools.Commands.SelfReturnTool;
 using Construction.Application.Features.Tools.Commands.UnassignTool;
 using Construction.Application.Features.Tools.Commands.UpdateTool;
+using Construction.Application.Features.Tools.Kits;
 using Construction.Application.Features.Tools.Models;
 using Construction.Application.Features.Tools.Queries.GetToolById;
 using Construction.Application.Features.Tools.Queries.GetToolByQrCode;
@@ -187,5 +188,90 @@ public class ToolsController : ApiControllerBase
     public async Task<ActionResult<ToolDto>> Return(Guid id, CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(new SelfReturnToolCommand(id), cancellationToken));
+    }
+
+    /// <summary>What a case of tools is made of, what is wrong with it and what is owed because of it.</summary>
+    [HttpGet("{id:guid}/kit")]
+    [Authorize(Policy = Policies.ForemanAndAbove)]
+    [ProducesResponseType(typeof(ToolKitDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ToolKitDto>> GetKit(Guid id, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetToolKitQuery(id), cancellationToken));
+    }
+
+    /// <summary>Adds an item to a case.</summary>
+    [HttpPost("{id:guid}/kit/items")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(ToolKitDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ToolKitDto>> AddKitItem(
+        Guid id,
+        AddToolKitItemCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { ToolId = id }, cancellationToken));
+    }
+
+    /// <summary>Changes the name, the count or the price of an item.</summary>
+    [HttpPut("{id:guid}/kit/items/{itemId:guid}")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(ToolKitDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ToolKitDto>> UpdateKitItem(
+        Guid id,
+        Guid itemId,
+        UpdateToolKitItemCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { ToolId = id, ItemId = itemId }, cancellationToken));
+    }
+
+    /// <summary>Takes an item out of the list. Its history stays.</summary>
+    [HttpDelete("{id:guid}/kit/items/{itemId:guid}")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(ToolKitDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ToolKitDto>> RemoveKitItem(Guid id, Guid itemId, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new RemoveToolKitItemCommand(id, itemId), cancellationToken));
+    }
+
+    /// <summary>Reports an item missing or broken, hands it in, charges or writes it off, restores it.</summary>
+    [HttpPost("{id:guid}/kit/items/{itemId:guid}/actions")]
+    [Idempotent]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(ToolKitDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ToolKitDto>> ActOnKitItem(
+        Guid id,
+        Guid itemId,
+        ActOnToolKitItemCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { ToolId = id, ItemId = itemId }, cancellationToken));
+    }
+
+    /// <summary>Marks a charge as collected or a refund as paid.</summary>
+    [HttpPost("{id:guid}/kit/events/{eventId:guid}/settle")]
+    [Idempotent]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(ToolKitDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ToolKitDto>> SettleKitEvent(Guid id, Guid eventId, CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new SettleToolKitEventCommand(id, eventId), cancellationToken));
+    }
+
+    /// <summary>Makes one or more copies of a tool or a case, each with its own name and QR code.</summary>
+    [HttpPost("{id:guid}/copy")]
+    [Idempotent]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(IReadOnlyList<ToolDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<IReadOnlyList<ToolDto>>> Copy(
+        Guid id,
+        CopyToolCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command with { ToolId = id }, cancellationToken));
     }
 }

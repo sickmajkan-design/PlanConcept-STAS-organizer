@@ -15,6 +15,7 @@ import { useOpenOnParam } from '../../hooks/useOpenOnParam';
 import { useT } from '../../i18n/useI18n';
 import { formatDate } from '../../utils/formatting';
 import { NewArticleOrderDialog } from './NewArticleOrderDialog';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 /** "1 par Radne cipele (broj 43), 2 kom Sljem": what was asked for, on one line. */
 function itemsSummary(order: ArticleOrder): string {
@@ -72,7 +73,7 @@ export function ArticleOrdersPage() {
           </Tooltip>
         ),
       },
-      { field: 'projectName', headerName: t('articleOrders.project'), width: 170, sortable: false, valueGetter: (value) => value ?? '—' },
+      { field: 'projectName', headerName: t('articleOrders.project'), width: 170, sortable: false, valueGetter: (value) => value ?? '—', renderCell: ({ row, value }) => (row.projectName ? <ProjectLabel name={row.projectName} projectId={row.projectId} variant="stacked" noWrap /> : value) },
       { field: 'createdAt', headerName: t('articleOrders.asked'), width: 120, valueGetter: (value) => formatDate(value) },
       {
         field: 'status',

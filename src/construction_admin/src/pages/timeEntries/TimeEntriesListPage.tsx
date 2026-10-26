@@ -59,6 +59,7 @@ import {
 import { PendingReviewDialog } from './PendingReviewDialog';
 import { CheckInIcon, CHECK_IN_PRESENTATION, TimeEntryCard, type CheckInState } from './TimeEntryCard';
 import { companyDayBounds } from '../../utils/companyTime';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 /** One page-worth of an entire day's entries — a crew this size never needs real pagination. */
 const DAY_PAGE: { pageNumber: number; pageSize: number } = { pageNumber: 1, pageSize: 100 };
@@ -490,7 +491,7 @@ function ProjectColumn({
         sx={{ alignItems: 'center', p: 1.5, borderBottom: '1px solid', borderColor: 'divider' }}
       >
         <Typography variant="subtitle2" sx={{ fontWeight: 700, flex: 1 }} noWrap title={group.projectName}>
-          {group.projectName}
+          <ProjectLabel name={group.projectName} noWrap />
         </Typography>
         <Chip size="small" label={group.entries.length} />
       </Stack>

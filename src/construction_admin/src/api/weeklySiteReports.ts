@@ -66,8 +66,12 @@ export const weeklySiteReportsApi = {
     });
   },
 
-  summary: () =>
-    request<WeeklySiteReportsSummary>({ method: 'GET', url: '/api/v1/weeklysitereports/summary' }),
+  summary: (branchId?: string) =>
+    request<WeeklySiteReportsSummary>({
+      method: 'GET',
+      url: '/api/v1/weeklysitereports/summary',
+      params: listParams({ branchId }),
+    }),
 
   detail: (id: string) =>
     request<WeeklySiteReportDetail>({ method: 'GET', url: `/api/v1/weeklysitereports/${id}` }),

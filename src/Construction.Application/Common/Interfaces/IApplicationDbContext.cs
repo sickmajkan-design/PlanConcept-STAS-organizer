@@ -133,6 +133,10 @@ public interface IApplicationDbContext
 
     DbSet<ToolExpense> ToolExpenses { get; }
 
+    DbSet<ToolKitItem> ToolKitItems { get; }
+
+    DbSet<ToolKitEvent> ToolKitEvents { get; }
+
     DbSet<ToolRentalRate> ToolRentalRates { get; }
 
     DbSet<ToolRentalOut> ToolRentalsOut { get; }

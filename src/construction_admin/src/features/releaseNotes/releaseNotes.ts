@@ -11,7 +11,7 @@ import type { MessageKey } from '../../i18n/en';
  * what changed recently, not a changelog: when a release is added, drop the
  * sections older than the fifth (and their `releaseNotes.*` keys in i18n).
  */
-export const RELEASE_ID = '2026-10-25.34';
+export const RELEASE_ID = '2026-10-26.35';
 
 /** The day of the release, `YYYY-MM-DD`, read from {@link RELEASE_ID}. */
 export const RELEASE_DATE = RELEASE_ID.slice(0, 10);
@@ -25,6 +25,12 @@ export interface ReleaseSection {
 }
 
 export const releaseSections: ReleaseSection[] = [
+  {
+    id: 'kits1026',
+    titleKey: 'releaseNotes.kits1026.title',
+    itemKeys: ['releaseNotes.kits1026.kit', 'releaseNotes.kits1026.problems', 'releaseNotes.kits1026.copy', 'releaseNotes.kits1026.quick', 'releaseNotes.kits1026.customer', 'releaseNotes.kits1026.units'],
+    audience: (user) => canViewDirectory(user),
+  },
   {
     id: 'logos1025',
     titleKey: 'releaseNotes.logos1025.title',
@@ -47,12 +53,6 @@ export const releaseSections: ReleaseSection[] = [
     id: 'office1024',
     titleKey: 'releaseNotes.office1024.title',
     itemKeys: ['releaseNotes.office1024.enter', 'releaseNotes.office1024.review', 'releaseNotes.office1024.notice'],
-    audience: (user) => canViewDirectory(user),
-  },
-  {
-    id: 'lines1024',
-    titleKey: 'releaseNotes.lines1024.title',
-    itemKeys: ['releaseNotes.lines1024.form', 'releaseNotes.lines1024.review', 'releaseNotes.lines1024.ledger', 'releaseNotes.lines1024.month', 'releaseNotes.lines1024.merge'],
     audience: (user) => canViewDirectory(user),
   },
 ];

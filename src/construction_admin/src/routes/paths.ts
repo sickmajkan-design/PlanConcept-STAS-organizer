@@ -31,11 +31,13 @@ export const paths = {
   vehicles: '/vehicles',
   vehicleDetail: (id: string) => `/vehicles/${id}`,
   vehicleNew: '/vehicles/new',
+  vehiclesQuickEntry: '/vehicles/quick-entry',
   vehicleEdit: (id: string) => `/vehicles/${id}/edit`,
 
   tools: '/tools',
   toolDetail: (id: string) => `/tools/${id}`,
   toolNew: '/tools/new',
+  toolsQuickEntry: '/tools/quick-entry',
   toolEdit: (id: string) => `/tools/${id}/edit`,
 
   materials: '/materials',

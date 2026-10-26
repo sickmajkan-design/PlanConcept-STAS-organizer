@@ -1,4 +1,5 @@
 import {
+  ContentCopyOutlined,
   ApartmentOutlined,
   AssignmentReturnOutlined,
   DeleteOutlined,
@@ -86,6 +87,9 @@ import { useRecordVisit } from '../../layout/useRecentRecords';
 import { paths } from '../../routes/paths';
 import { formatDate, formatMoney } from '../../utils/formatting';
 import { ToolExpenseDialog } from '../costs/ToolExpensesPage';
+import { ProjectLabel } from '../../components/ProjectLabel';
+import { CopyToolDialog } from '../../features/tools/CopyToolDialog';
+import { ToolKitCard } from '../../features/tools/ToolKitCard';
 
 export function ToolDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -112,6 +116,7 @@ export function ToolDetailPage() {
   const [confirmUnassignEmployee, setConfirmUnassignEmployee] = useState(false);
   const [confirmUnassignProject, setConfirmUnassignProject] = useState(false);
   const [qrLabelOpen, setQrLabelOpen] = useState(false);
+  const [copyOpen, setCopyOpen] = useState(false);
 
   if (isLoading) return null;
   if (isError || !tool) {
@@ -165,6 +170,16 @@ export function ToolDetailPage() {
                 {tool.name}
               </Typography>
               <Typography color="text.secondary">{tool.category ?? t('tools.uncategorised')}</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                {[
+                  tool.serialNumber && `${t('tools.serialNumber')}: ${tool.serialNumber}`,
+                  tool.qrCode && `${t('tools.qrCode')}: ${tool.qrCode}`,
+                  tool.assignedEmployeeName && `${t('detail.heldBy')} ${tool.assignedEmployeeName}`,
+                  tool.assignedProjectName && `${t('detail.project')}: ${tool.assignedProjectName}`,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </Typography>
               <Stack direction="row" spacing={1} sx={{ mt: 1.5, alignItems: 'center' }}>
                 <StatusChip status={tool.status} kind="toolStatus" />
                 <DocumentCountChip ownerType="Tool" ownerId={tool.id} />
@@ -183,6 +198,9 @@ export function ToolDetailPage() {
                 onClick={() => setQrLabelOpen(true)}
               >
                 {t('common.printLabel')}
+              </Button>
+              <Button variant="outlined" startIcon={<ContentCopyOutlined />} onClick={() => setCopyOpen(true)}>
+                {t('toolCopy.open')}
               </Button>
               <Button
                 variant="outlined"
@@ -309,7 +327,7 @@ export function ToolDetailPage() {
                     sx={{ flex: 1, cursor: 'pointer' }}
                     onClick={() => navigate(paths.projectDetail(tool.assignedProjectId!))}
                   >
-                    {tool.assignedProjectName}
+                    <ProjectLabel name={tool.assignedProjectName!} projectId={tool.assignedProjectId} />
                   </Typography>
                   <Button
                     size="small"
@@ -364,6 +382,12 @@ export function ToolDetailPage() {
         {tool.ownershipType !== 'Owned' && (
           <Grid size={12}>
             <ToolRentalCard toolId={tool.id} />
+          </Grid>
+        )}
+
+        {tool.isKit && (
+          <Grid size={12}>
+            <ToolKitCard toolId={tool.id} holderId={tool.assignedEmployeeId} />
           </Grid>
         )}
 
@@ -430,6 +454,17 @@ export function ToolDetailPage() {
         onConfirm={handleDelete}
         onCancel={() => setConfirmDelete(false)}
       />
+
+      {copyOpen && (
+        <CopyToolDialog
+          tool={tool}
+          onClose={() => setCopyOpen(false)}
+          onDone={(copies) => {
+            setCopyOpen(false);
+            navigate(copies.length === 1 ? paths.toolDetail(copies[0].id) : paths.tools);
+          }}
+        />
+      )}
 
       <QrLabelDialog
         open={qrLabelOpen}

@@ -52,6 +52,7 @@ import { useI18n, useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { formatDate, formatDateTime, formatMoney, formatQuantity } from '../../utils/formatting';
 import { MovementDialog } from '../costs/StockMovementsPage';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 const HISTORY_ROWS = 15;
 
@@ -257,7 +258,7 @@ export function MaterialDetailPage() {
                   <Avatar sx={{ bgcolor: 'action.selected' }}>
                     <ApartmentOutlined />
                   </Avatar>
-                  <Typography>{material.projectName}</Typography>
+                  <Typography><ProjectLabel name={material.projectName ?? ""} projectId={material.projectId} /></Typography>
                 </Stack>
               ) : (
                 <Typography color="text.secondary" sx={{ mt: 1 }}>

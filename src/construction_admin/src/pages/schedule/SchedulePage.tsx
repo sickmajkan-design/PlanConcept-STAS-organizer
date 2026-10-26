@@ -42,6 +42,7 @@ import {
   todayIsoDate,
   weekDays,
 } from './weekWindow';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 /** Wide enough for a name and role, narrow enough to leave the week the space. */
 const NAME_COLUMN = '220px';
@@ -426,7 +427,7 @@ function EmployeeRow({
                 }}
               >
                 <Typography variant="caption" noWrap component="div" sx={{ fontWeight: 600 }}>
-                  {assignment.projectName}
+                  <ProjectLabel name={assignment.projectName} projectId={assignment.projectId} variant="stacked" noWrap />
                 </Typography>
               </Box>
             </Tooltip>

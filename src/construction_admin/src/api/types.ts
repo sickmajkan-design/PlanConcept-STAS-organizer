@@ -738,6 +738,11 @@ export interface Tool {
   qrCode: string | null;
   status: ToolStatus;
   ownershipType: ToolOwnershipType;
+  /** A case of tools with a list of what is inside it. */
+  isKit: boolean;
+  kitItemCount: number;
+  /** Worth of everything the case is made of, whatever its state. */
+  kitTotalValue: number;
   /** The rate currently in force, when `ownershipType` is Rented or Leased. */
   currentRentalMonthlyAmount: number | null;
   currentRentalProvider: string | null;
@@ -758,6 +763,8 @@ export interface Tool {
 }
 
 export interface ToolInput {
+  /** Only when creating: makes it a case of tools. Never changed afterwards. */
+  isKit?: boolean;
   branchId?: string | null;
   name: string;
   category?: string | null;

@@ -34,6 +34,7 @@ import { useT } from '../../i18n/useI18n';
 import { formatDate, formatTimeOfDay, splitMinutes } from '../../utils/formatting';
 import { companyNow } from '../../utils/companyTime';
 import { companyDayBounds } from '../../utils/companyTime';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 type SortField = 'employeeName' | 'entryCount' | 'totalMinutes' | 'approvedMinutes' | 'pendingCount';
 type SortDirection = 'asc' | 'desc';
@@ -364,7 +365,7 @@ function EmployeeGroupRow({
           <Typography variant="body2">{group.employeeName}</Typography>
           {!hasBreakdown && (
             <Typography variant="caption" color="text.secondary">
-              {group.projects[0]?.projectName ?? t('timeEntries.noProject')}
+              {group.projects[0]?.projectName ? <ProjectLabel name={group.projects[0].projectName} projectId={group.projects[0].projectId} /> : t('timeEntries.noProject')}
             </Typography>
           )}
         </TableCell>
@@ -449,7 +450,7 @@ function EmployeeShiftDetail({
         {data.items.map((entry) => (
           <TableRow key={entry.id}>
             <TableCell width={40} />
-            <TableCell>{entry.projectName ?? t('timeEntries.noProject')}</TableCell>
+            <TableCell>{entry.projectName ? <ProjectLabel name={entry.projectName} projectId={entry.projectId} /> : t('timeEntries.noProject')}</TableCell>
             <TableCell>{formatDate(entry.startedAt)}</TableCell>
             <TableCell>
               {entry.endedAt

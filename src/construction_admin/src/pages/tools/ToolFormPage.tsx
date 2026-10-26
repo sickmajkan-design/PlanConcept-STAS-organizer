@@ -5,7 +5,9 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   FormControl,
+  FormControlLabel,
   Grid,
   InputLabel,
   MenuItem,
@@ -15,7 +17,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -51,6 +53,7 @@ export function ToolFormPage() {
 
   const { data: existing, isLoading, isError, error, refetch } = useToolQuery(id);
   const createTool = useCreateTool();
+  const [isKit, setIsKit] = useState(false);
   const updateTool = useUpdateTool(id ?? '');
 
   const {
@@ -95,6 +98,7 @@ export function ToolFormPage() {
       status: values.status,
       ownershipType: values.ownershipType,
       branchId: values.branchId || null,
+      ...(isEdit ? {} : { isKit }),
     };
 
     try {
@@ -135,6 +139,17 @@ export function ToolFormPage() {
             {rootError?.message && <Alert severity="error">{rootError.message}</Alert>}
 
             <Grid container spacing={2}>
+              {!isEdit && (
+                <Grid size={12}>
+                  <FormControlLabel
+                    control={<Checkbox checked={isKit} onChange={(e) => setIsKit(e.target.checked)} />}
+                    label={t('toolForm.isKit')}
+                  />
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', ml: 4 }}>
+                    {t('toolForm.isKitHint')}
+                  </Typography>
+                </Grid>
+              )}
               <Grid size={12}>
                 <Controller
                   name="name"

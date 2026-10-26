@@ -1,4 +1,5 @@
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Application.Features.Projects.Realization.Models;
 using FluentValidation;
 using MediatR;
@@ -20,6 +21,9 @@ namespace Construction.Application.Features.Projects.Realization.Queries;
 public record GetAnnualRealizationPlanQuery : IRequest<AnnualRealizationPlanDto>
 {
     public int Year { get; init; }
+
+    /// <summary>Only the projects of this business unit and the ones nested under it.</summary>
+    public Guid? BranchId { get; init; }
 }
 
 public class GetAnnualRealizationPlanQueryValidator
@@ -55,6 +59,7 @@ public class GetAnnualRealizationPlanQueryHandler
 
         var projects = await _context.Projects
             .AsNoTracking()
+            .InBranch(request.BranchId)
             .OrderBy(p => p.Name)
             .Select(p => new
             {
@@ -65,8 +70,11 @@ public class GetAnnualRealizationPlanQueryHandler
             })
             .ToListAsync(cancellationToken);
 
+        var projectIds = projects.Select(p => p.Id).ToList();
+
         var revenues = await _context.ProjectRevenues
             .AsNoTracking()
+            .Where(r => request.BranchId == null || projectIds.Contains(r.ProjectId))
             .Select(r => new { r.ProjectId, r.Amount, r.OccurredOn })
             .ToListAsync(cancellationToken);
 

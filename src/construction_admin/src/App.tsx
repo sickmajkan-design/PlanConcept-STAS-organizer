@@ -96,6 +96,11 @@ const ScheduledReportsListPage = lazy(() =>
     default: m.ScheduledReportsListPage,
   })),
 );
+const QuickEntryPage = lazy(() =>
+  import('./pages/quickEntry/QuickEntryPage').then((m) => ({
+    default: m.QuickEntryPage,
+  })),
+);
 const VehiclesListPage = lazy(() =>
   import('./pages/vehicles/VehiclesListPage').then((m) => ({
     default: m.VehiclesListPage,
@@ -441,11 +446,13 @@ function Layout() {
 
               <Route path={paths.vehicles} element={<VehiclesListPage />} />
               <Route path={paths.vehicleNew} element={<VehicleFormPage />} />
+              <Route path={paths.vehiclesQuickEntry} element={<QuickEntryPage kind="vehicles" />} />
               <Route path={`${paths.vehicles}/:id`} element={<VehicleDetailPage />} />
               <Route path={`${paths.vehicles}/:id/edit`} element={<VehicleFormPage />} />
 
               <Route path={paths.tools} element={<ToolsListPage />} />
               <Route path={paths.toolNew} element={<ToolFormPage />} />
+              <Route path={paths.toolsQuickEntry} element={<QuickEntryPage kind="tools" />} />
               <Route path={`${paths.tools}/:id`} element={<ToolDetailPage />} />
               <Route path={`${paths.tools}/:id/edit`} element={<ToolFormPage />} />
 

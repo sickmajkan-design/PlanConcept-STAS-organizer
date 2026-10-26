@@ -21,6 +21,7 @@ import { useI18n, useT } from '../../i18n/useI18n';
 import { formatMoney } from '../../utils/formatting';
 import { splitHours, type Period } from './monthWindow';
 import { ProjectCostDialog } from './ProjectCostDialog';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 type Field =
   | 'total'
@@ -150,7 +151,7 @@ export function ProjectCostBoard({ period }: { period: Period }) {
             <Stack direction="row" spacing={2} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
               <Box sx={{ minWidth: 0 }}>
                 <Typography variant="subtitle1" sx={{ fontWeight: 700 }} noWrap>
-                  {row.projectName}
+                  <ProjectLabel name={row.projectName} projectId={row.projectId} noWrap />
                 </Typography>
                 <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mt: 0.25 }}>
                   {data.includesLabour && (

@@ -1,4 +1,5 @@
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Domain.Enums;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +10,11 @@ namespace Construction.Application.Features.WeeklySiteReports.Queries.GetWeeklyS
 /// What the office has to do about weekly reports right now: how many wait for a look, how many were sent back,
 /// and which sites have not sent last week's report by the deadline.
 /// </summary>
-public record GetWeeklySiteReportsSummaryQuery : IRequest<WeeklySiteReportsSummaryDto>;
+public record GetWeeklySiteReportsSummaryQuery : IRequest<WeeklySiteReportsSummaryDto>
+{
+    /// <summary>Only the sites of this business unit and the ones nested under it.</summary>
+    public Guid? BranchId { get; init; }
+}
 
 public record WeeklySiteReportsSummaryDto
 {
@@ -77,14 +82,20 @@ public class GetWeeklySiteReportsSummaryQueryHandler
         var now = _dateTimeProvider.UtcNow;
         var week = WeeklyReportWeek.Last(now);
 
-        var counts = await _context.WeeklySiteReports
-            .AsNoTracking()
+        var reports = _context.WeeklySiteReports.AsNoTracking();
+
+        if (request.BranchId is { } branchId)
+        {
+            var token = BranchTree.Token(branchId);
+            reports = reports.Where(r => r.Project.Branch!.Path.Contains(token));
+        }
+
+        var counts = await reports
             .GroupBy(r => r.Status)
             .Select(g => new { Status = g.Key, Count = g.Count() })
             .ToListAsync(cancellationToken);
 
-        var waiting = await _context.WeeklySiteReports
-            .AsNoTracking()
+        var waiting = await reports
             .Where(r => r.Status == WeeklyReportStatus.Submitted)
             .OrderBy(r => r.CreatedAt)
             .Take(WaitingShown)
@@ -104,6 +115,13 @@ public class GetWeeklySiteReportsSummaryQueryHandler
         if (WeeklyReportWeek.IsPastDeadline(week, now))
         {
             var missing = await WeeklyReportWeek.MissingAsync(_context, week, cancellationToken);
+
+            if (request.BranchId is not null)
+            {
+                var unitSites = (await _context.Projects.AsNoTracking().InBranch(request.BranchId).Select(p => p.Id)
+                    .ToListAsync(cancellationToken)).ToHashSet();
+                missing = missing.Where(m => unitSites.Contains(m.ProjectId)).ToList();
+            }
 
             var employeeIds = missing.Select(m => m.EmployeeId).Distinct().ToList();
 

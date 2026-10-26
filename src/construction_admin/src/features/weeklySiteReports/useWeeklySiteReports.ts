@@ -1,4 +1,4 @@
-import { useBranchScoped } from '../branches/BranchContext';
+import { useBranchScoped, useUnitParams } from '../branches/BranchContext';
 import { useQuery } from '@tanstack/react-query';
 
 import {
@@ -67,9 +67,12 @@ const WEEKLY_SUMMARY_KEY = ['weeklySiteReports', 'summary'] as const;
 
 /** What waits for the office: for the page's chips and the home page widget. */
 export function useWeeklySiteReportsSummaryQuery(enabled = true) {
+  // Narrowed to the business unit chosen in the header, like the other widgets.
+  const { branchId } = useUnitParams();
+
   return useQuery({
-    queryKey: WEEKLY_SUMMARY_KEY,
-    queryFn: () => weeklySiteReportsApi.summary(),
+    queryKey: [...WEEKLY_SUMMARY_KEY, branchId ?? null] as const,
+    queryFn: () => weeklySiteReportsApi.summary(branchId),
     enabled,
     staleTime: 30_000,
   });

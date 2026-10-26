@@ -1,4 +1,5 @@
 using Construction.Application.Common.Interfaces;
+using Construction.Application.Features.Branches;
 using Construction.Application.Common.Models;
 using Construction.Application.Features.Projects.Realization.Models;
 using Construction.Domain.Entities;
@@ -21,6 +22,9 @@ public record GetProjectRevenuesQuery : ISortablePagedQuery, IRequest<PagedList<
     public int PageSize { get; init; } = 20;
 
     public Guid? ProjectId { get; init; }
+
+    /// <summary>Only the payments of the projects of this business unit and the ones nested under it.</summary>
+    public Guid? BranchId { get; init; }
 
     public DateOnly? From { get; init; }
 
@@ -61,6 +65,12 @@ public class GetProjectRevenuesQueryHandler
         if (request.ProjectId is { } projectId)
         {
             query = query.Where(r => r.ProjectId == projectId);
+        }
+
+        if (request.BranchId is { } branchId)
+        {
+            var token = BranchTree.Token(branchId);
+            query = query.Where(r => r.Project.Branch!.Path.Contains(token));
         }
 
         if (request.From is { } from)

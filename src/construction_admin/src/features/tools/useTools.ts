@@ -1,7 +1,13 @@
 import { useBranchFilter } from '../branches/BranchContext';
 import { useQuery } from '@tanstack/react-query';
 
-import { toolsApi, type ToolListQuery } from '../../api/tools';
+import {
+  toolsApi,
+  type CopyToolInput,
+  type ToolKitActionInput,
+  type ToolKitItemInput,
+  type ToolListQuery,
+} from '../../api/tools';
 import type { Tool, ToolInput } from '../../api/types';
 import {
   createResourceKeys,
@@ -112,4 +118,46 @@ export function useUnassignProjectTool() {
     (toolId: string, key: string) => toolsApi.unassignProject(toolId, key),
     [toolKeys.all, ...employeeAssignmentCaches],
   );
+}
+
+// ---- cases of tools ----------------------------------------------------------------------------------------------
+
+export function useToolKitQuery(id: string | undefined) {
+  return useQuery({
+    queryKey: [...toolKeys.all, 'kit', id],
+    queryFn: () => toolsApi.kit(id!),
+    enabled: !!id,
+  });
+}
+
+const kitCaches = (id: string) => [[...toolKeys.all, 'kit', id] as const, toolKeys.all];
+
+export function useAddKitItem(id: string) {
+  return useResourceMutation((input: ToolKitItemInput) => toolsApi.addKitItem(id, input), kitCaches(id));
+}
+
+export function useUpdateKitItem(id: string) {
+  return useResourceMutation(
+    (v: { itemId: string; input: ToolKitItemInput }) => toolsApi.updateKitItem(id, v.itemId, v.input),
+    kitCaches(id),
+  );
+}
+
+export function useRemoveKitItem(id: string) {
+  return useResourceMutation((itemId: string) => toolsApi.removeKitItem(id, itemId), kitCaches(id));
+}
+
+export function useActOnKitItem(id: string) {
+  return useResourceMutation(
+    (v: { itemId: string; input: ToolKitActionInput }, key: string) => toolsApi.actOnKitItem(id, v.itemId, v.input, key),
+    kitCaches(id),
+  );
+}
+
+export function useSettleKitEvent(id: string) {
+  return useResourceMutation((eventId: string, key: string) => toolsApi.settleKitEvent(id, eventId, key), kitCaches(id));
+}
+
+export function useCopyTool(id: string) {
+  return useResourceMutation((input: CopyToolInput, key: string) => toolsApi.copy(id, input, key), [toolKeys.all]);
 }

@@ -1076,6 +1076,108 @@ export const helpTopics: HelpTopic[] = [
       },
     },
   },
+  {
+    id: 'koferi-alat',
+    group: 'work',
+    path: paths.tools,
+    audience: office,
+    content: {
+      sr: {
+        title: 'Koferi s alatom: sastav, nestanak, kvar i kopiranje',
+        summary:
+          'Kofer je alat koji ima popis onoga što je u njemu, sa količinom i cijenom svake stavke. Uvijek se zna šta kofer sadrži, šta fali i šta se kome duguje.',
+        steps: [
+          'Napravite kofer: Alati, Dodaj alat, pa označite „Ovo je kofer s više alata“. To se kasnije ne mijenja.',
+          'Otvorite kofer i u kartici Sastav kofera dodajte stavke: naziv, količina i cijena jednog komada. Zbir je vrijednost kofera. Stavku izmijenite dvostrukim klikom ili s menija (tri tačke).',
+          'Kad stavka nestane: meni stavke, Prijavi da nedostaje. Zatim Zaduži radnika (cijena ide radniku, a vi je kasnije označite kao Naplaćeno), Otpiši (niko se ne zadužuje) ili Radnik kupio zamjenu (birate Refundirati radniku ili Bez refundacije ako je štetu napravio radnik; pri refundaciji birate Uz platu ili Gotovinom na ruke, a vi iznos označite kao Isplaćeno kad ga isplatite). Iznos je unaprijed puna cijena i možete ga promijeniti.',
+          'Kad se stavka pokvari: Prijavi kvar. Pokvarena stavka mora doći do uprave, pa kad stigne izaberite Uprava primila pokvarenu stavku. Tek tada je možete otpisati, vratiti u kofer ili označiti zamjenu koju je radnik kupio.',
+          'Zaduženje i refundacija se računaju radniku koji drži kofer. Ako ga niko ne drži, ili je kriv neko drugi, izaberite radnika u prozoru.',
+          'Kopiranje: u kofer ili alat kliknite Kopiraj. Upišite koliko primjeraka, naziv s oznakom {n} za broj (npr. „Kofer električara E-{n}“) i od kog broja počinje. Svaki primjerak dobija novi naziv i novi QR kod, a sastav i cijene se kopiraju ako to izaberete.',
+        ],
+        example:
+          'Kofer električara E-014 ima 12 stavki i vrijedi 186 KM. Marko prijavi da su nestala kliješta (12 KM). Zadužite ga za iznos, a kad ga naplatite, kliknete Naplaćeno. Zatim kopirate kofer 3 puta i dobijete E-015, E-016 i E-017, svaki s novim QR kodom.',
+        tips: [
+          'Serijski broj, ko drži kofer, istorija i dokumenti se ne kopiraju. Novi primjerak kreće slobodan.',
+          'Stavka koja je uklonjena iz popisa ostaje u istoriji kofera.',
+          'Cijene se mogu izostaviti pri kopiranju, pa ih upišete poslije.',
+          'Platforma sama ne isplaćuje: bilježi šta se kome duguje i kako. Uz platu znači da kancelarija iznos uključi u platu radnika pa označi Isplaćeno.',
+        ],
+        keywords: ['kofer', 'alat', 'sastav', 'stavke', 'nestalo', 'kvar', 'zaduženje', 'refundacija', 'kopiranje', 'qr', 'inventar'],
+      },
+      en: {
+        title: 'Tool cases: contents, missing and broken items, copying',
+        summary:
+          'A case is a tool that has a list of what is inside it, with a count and a price for each item. You always know what the case holds, what is missing and what is owed to whom.',
+        steps: [
+          'Create a case: Tools, Add tool, then tick "This is a case with several tools". It cannot be changed later.',
+          'Open the case and in the card What is in the case add items: name, count and the price of one piece. The total is the worth of the case. Change an item by double-clicking it or from its menu (three dots).',
+          'When an item goes missing: item menu, Report missing. Then Charge the worker (the price goes to the worker, and you later mark it Collected), Write off (nobody is charged) or Worker bought a replacement (you choose Refund the worker, or No refund if the worker caused the damage; for a refund you choose With the pay or In cash, and you mark the amount Paid out when you pay it). The amount starts as the full price and you can change it.',
+          'When an item breaks: Report broken. A broken item has to reach the office; when it does choose Office received the broken item. Only then can you write it off, put it back in the case or mark a replacement the worker bought.',
+          'A charge and a refund are about the worker who holds the case. If nobody holds it, or somebody else is responsible, choose the worker in the window.',
+          'Copying: in a case or a tool click Copy. Enter how many, a name with {n} for the number (for example "Electrician case E-{n}") and the number to start at. Every copy gets a new name and a new QR code, and the contents and prices are copied if you choose so.',
+        ],
+        example:
+          'Electrician case E-014 has 12 items and is worth 186 KM. Marko reports the pliers (12 KM) missing. You charge him the amount, and when you collect it you click Collected. Then you copy the case 3 times and get E-015, E-016 and E-017, each with a new QR code.',
+        tips: [
+          'Serial number, holder, history and documents are not copied. A new copy starts free.',
+          'An item removed from the list stays in the history of the case.',
+          'Prices can be left out when copying, and entered afterwards.',
+          'The platform does not pay out by itself: it records what is owed to whom and how. With the pay means the office puts the amount into the worker\'s pay and then marks it Paid out.',
+        ],
+        keywords: ['case', 'tool', 'contents', 'items', 'missing', 'broken', 'charge', 'refund', 'copy', 'qr', 'inventory'],
+      },
+    },
+  },
+  {
+    id: 'brzi-unos',
+    group: 'work',
+    path: paths.vehiclesQuickEntry,
+    audience: office,
+    content: {
+      sr: {
+        title: 'Brzi unos vozila i alata, i kupac uz projekat',
+        summary:
+          'Brzi unos je tabela u kojoj se sva polja vozila ili alata mijenjaju na mjestu. Uz ime projekta svugdje piše i kupac.',
+        steps: [
+          'Otvorite Vozila ili Alati, pa kliknite Brzi unos.',
+          'Kliknite ćeliju i pišite. Tab vodi udesno, Enter nadolje. Datumi se pišu kao 2027-03-31. Izmijenjene ćelije dobijaju plavi rub.',
+          'Za istu vrijednost u više redova označite redove, izaberite polje i vrijednost, pa Primijeni na označene. Vrijednost se upiše u izabrane redove, a tek tada je snimate.',
+          'Snimi izmjene šalje samo redove koje ste mijenjali. Ako neki red ne uspije, piše koji i zašto, a ostali su snimljeni.',
+          'Zaglavlje vozila i alata pokazuje VIN ili serijski broj, QR, ko ih drži i na kom su projektu.',
+          'Uz ime projekta (raspored, liste, sati, materijal, alati, vozila) piše i kupac ljubičastom bojom. Projekat bez kupca pokazuje „Bez kupca“, pa se vidi šta treba popuniti.',
+        ],
+        example:
+          'Pet vozila ima osiguranje do 31. marta. U Brzom unosu vozila označite petoro, izaberete Osiguranje do, upišete 2027-03-31, kliknete Primijeni na 5 i Snimi izmjene.',
+        tips: [
+          'Brzi unos je i u Ctrl+K: upišite „brzi unos“.',
+          'Kupac se uzima sa projekta. Da ga promijenite, izmijenite projekat.',
+          'Lijepljenje iz Excela i skeniranje QR u tabeli još nisu dodati.',
+        ],
+        keywords: ['brzi unos', 'tabela', 'masovno', 'vozila', 'alati', 'datumi', 'registracija', 'osiguranje', 'kupac', 'projekat'],
+      },
+      en: {
+        title: 'Quick entry of vehicles and tools, and the customer next to the project',
+        summary:
+          'Quick entry is a table in which every field of the vehicles or the tools is changed in place. The customer is written next to the project name everywhere.',
+        steps: [
+          'Open Vehicles or Tools, then click Quick entry.',
+          'Click a cell and type. Tab moves right, Enter moves down. Dates are typed like 2027-03-31. Changed cells get a blue edge.',
+          'For the same value in several rows tick the rows, choose the field and the value, then Apply to selected. The value is written into the chosen rows, and only then do you save.',
+          'Save changes sends only the rows you changed. If a row fails it says which and why, and the others are saved.',
+          'The header of a vehicle and of a tool shows the VIN or serial number, QR, who holds it and on which project it is.',
+          'Next to the project name (schedule, lists, hours, materials, tools, vehicles) the customer is written in purple. A project with no customer shows "No customer", so you see what needs filling in.',
+        ],
+        example:
+          'Five vehicles have insurance until 31 March. In Quick entry of vehicles tick the five, choose Insurance until, type 2027-03-31, click Apply to 5 and Save changes.',
+        tips: [
+          'Quick entry is also in Ctrl+K: type "quick entry".',
+          'The customer comes from the project. To change it, edit the project.',
+          'Pasting from Excel and scanning a QR code in the table are not added yet.',
+        ],
+        keywords: ['quick entry', 'table', 'bulk', 'vehicles', 'tools', 'dates', 'registration', 'insurance', 'customer', 'project'],
+      },
+    },
+  },
 ]
 
 export function helpTopicsFor(user: User | null | undefined): HelpTopic[] {

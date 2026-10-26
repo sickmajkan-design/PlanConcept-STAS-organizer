@@ -15,6 +15,7 @@ import { useT } from '../../i18n/useI18n';
 import { StatusChip } from '../../components/StatusChip';
 import { formatTimeOfDay, splitMinutes } from '../../utils/formatting';
 import { ReviewButtons } from './ReviewButtons';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 /** Two-letter initials from a full "First Last" name, for the card avatar. */
 export function employeeInitials(fullName: string): string {
@@ -181,7 +182,7 @@ export function TimeEntryCard({
           </Typography>
           {showProject && (
             <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>
-              {entry.projectName ?? t('timeEntries.noProject')}
+              {entry.projectName ? <ProjectLabel name={entry.projectName} projectId={entry.projectId} noWrap /> : t('timeEntries.noProject')}
             </Typography>
           )}
           <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5, mt: 0.25 }}>

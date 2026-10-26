@@ -49,6 +49,7 @@ import { useListQueryState } from '../../hooks/useListQueryState';
 import { useI18n, useT } from '../../i18n/useI18n';
 import { formatDate, formatMoney } from '../../utils/formatting';
 import { companyNow } from '../../utils/companyTime';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 type RealizationSortField =
   | 'projectName'
@@ -232,7 +233,7 @@ export function AnnualRealizationPlanPage() {
               <TableBody>
                 {sortedRows.map((row) => (
                   <TableRow key={row.projectId} hover>
-                    <TableCell>{row.projectName}</TableCell>
+                    <TableCell><ProjectLabel name={row.projectName} projectId={row.projectId} /></TableCell>
                     <TableCell>
                       <StatusChip status={row.status} kind="projectStatus" />
                     </TableCell>

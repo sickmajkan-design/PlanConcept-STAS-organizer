@@ -10,6 +10,7 @@ Sve na srpskom (ijekavica). Isti sadržaj, kraće, nalazi se u aplikaciji: izbor
 | [VODIC_KNJIGA_TROSKOVA.md](VODIC_KNJIGA_TROSKOVA.md) | Super Admin (i oni kojima je dodijeljeno) | pregled, zapisi, obračun mjeseca, isplate, ponavljajući troškovi, uvoz iz Excela, izvoz za knjigovođu |
 | [VODIC_RASPORED.md](VODIC_RASPORED.md) | voditelji, Admin, Super Admin | raspored i planiranje radne snage |
 | [VODIC_POSLOVNE_JEDINICE.md](VODIC_POSLOVNE_JEDINICE.md) | Admin, Super Admin | filijale, predstavništva, zaposleni po jedinicama |
+| [VODIC_ALATI_KOFERI.md](VODIC_ALATI_KOFERI.md) | Admin, Super Admin | koferi s alatom (sastav, nestanak, kvar, kopiranje), brzi unos vozila i alata, kupac uz projekat |
 | [VODIC_GORIVO_VOZILA_SMJESTAJ.md](VODIC_GORIVO_VOZILA_SMJESTAJ.md) | kancelarija | gorivo, vozila i smještaj |
 | [VODIC_PRETRAGA_I_PRECICE.md](VODIC_PRETRAGA_I_PRECICE.md) | svi | Ctrl+K, radnje, prečice |
 | [VODIC_PRIJAVA_I_SIGURNOST.md](VODIC_PRIJAVA_I_SIGURNOST.md) | svi | prijava, lozinka, drugi faktor, trag izmjena |

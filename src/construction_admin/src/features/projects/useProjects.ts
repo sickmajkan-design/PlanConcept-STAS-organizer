@@ -20,7 +20,7 @@ export const projectRevenueKeys = createResourceKeys<ProjectRevenueListQuery>('p
 
 export const realizationKeys = {
   all: ['realization'] as const,
-  plan: (year: number) => ['realization', 'plan', year] as const,
+  plan: (year: number, branchId?: string) => ['realization', 'plan', year, branchId ?? null] as const,
 };
 
 /** The largest page the API will serve, used by the picker queries below. */
@@ -98,9 +98,11 @@ export function useDeleteProject() {
 // ---- annual realization -----------------------------------------------
 
 export function useAnnualRealizationPlanQuery(year: number) {
+  const { branchId } = useBranchFilter();
+
   return useQuery({
-    queryKey: realizationKeys.plan(year),
-    queryFn: () => realizationApi.plan(year),
+    queryKey: realizationKeys.plan(year, branchId),
+    queryFn: () => realizationApi.plan(year, branchId),
   });
 }
 

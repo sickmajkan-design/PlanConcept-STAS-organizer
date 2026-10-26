@@ -8,6 +8,7 @@ import { useI18n } from '../../../i18n/useI18n';
 import { paths } from '../../../routes/paths';
 import { chartPalette } from '../../../theme';
 import { formatMoney } from '../../../utils/formatting';
+import { useBranchFilter } from '../../branches/BranchContext';
 import { fetchAllPages } from '../dashboardData';
 import type { DashboardWidgetProps } from '../widgetTypes';
 import { WidgetShell } from './WidgetShell';
@@ -36,22 +37,25 @@ export function ProjectsRealizationWidget({ instanceId: _instanceId, onRemove, o
   const theme = useTheme();
   const year = companyNow().getFullYear();
   const { from, to } = yearBounds(year);
+  // Narrowed to the business unit chosen in the header, like the other widgets.
+  const { branchId, basis } = useBranchFilter();
+  const people = branchId && basis === 'Employer' ? 'Employer' : undefined;
 
   const planQuery = useQuery({
-    queryKey: ['dashboard', 'projects-realization', year] as const,
-    queryFn: () => realizationApi.plan(year),
+    queryKey: ['dashboard', 'projects-realization', year, branchId ?? null] as const,
+    queryFn: () => realizationApi.plan(year, branchId),
   });
 
   const costQuery = useQuery({
-    queryKey: ['dashboard', 'company-cost-composition', year] as const,
-    queryFn: () => costsApi.companyReport({ from, to }),
+    queryKey: ['dashboard', 'company-cost-composition', year, branchId ?? null, people ?? null] as const,
+    queryFn: () => costsApi.companyReport({ from, to, branchId, basis: people }),
   });
 
   const revenueQuery = useQuery({
-    queryKey: ['dashboard', 'revenue-trend', year] as const,
+    queryKey: ['dashboard', 'revenue-trend', year, branchId ?? null] as const,
     // 200 is this endpoint's own max page size (GetProjectRevenuesQuery), not an arbitrary choice — a bigger request
     // 400s outright. Every page is read: the months are added up from the payments, and a year can hold more than 200.
-    queryFn: () => fetchAllPages((pageNumber) => realizationApi.revenues.list({ pageNumber, pageSize: 200, from, to })),
+    queryFn: () => fetchAllPages((pageNumber) => realizationApi.revenues.list({ pageNumber, pageSize: 200, from, to, branchId })),
   });
 
   // The API gives a share as a fraction (0.98 is 98%); the bar and the "complete" colour are in percent.

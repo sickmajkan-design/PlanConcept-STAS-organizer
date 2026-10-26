@@ -7,7 +7,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Construction.Application.Features.Tools.Commands.CreateTool;
 
-public record CreateToolCommand : ToolCommandBase, IRequest<ToolDto>;
+public record CreateToolCommand : ToolCommandBase, IRequest<ToolDto>
+{
+    /// <summary>Creates a case of tools. Decided here and never changed afterwards.</summary>
+    public bool IsKit { get; init; }
+}
 
 public class CreateToolCommandValidator : ToolCommandBaseValidator<CreateToolCommand>;
 
@@ -46,7 +50,8 @@ public class CreateToolCommandHandler : IRequestHandler<CreateToolCommand, ToolD
             SerialNumber = serialNumber,
             QrCode = qrCode,
             Status = request.Status,
-            OwnershipType = request.OwnershipType
+            OwnershipType = request.OwnershipType,
+            IsKit = request.IsKit
         };
 
         _context.Tools.Add(tool);
