@@ -218,9 +218,14 @@ export function EmployeesListPage() {
         subtitle={data ? t('common.total', { count: data.totalCount }) : undefined}
         secondaryActions={
           canAdministerAccounts(user) && (
-            <Button variant="outlined" startIcon={<UploadFileOutlined />} onClick={() => setImporting(true)}>
-              {t('onboarding.import.button')}
-            </Button>
+            <>
+              <Button variant="outlined" onClick={() => navigate(paths.employeesQuickEntry)}>
+                {t('quickEntry.open')}
+              </Button>
+              <Button variant="outlined" startIcon={<UploadFileOutlined />} onClick={() => setImporting(true)}>
+                {t('onboarding.import.button')}
+              </Button>
+            </>
           )
         }
         action={{

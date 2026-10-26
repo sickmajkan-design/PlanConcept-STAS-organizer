@@ -13,6 +13,8 @@ export const paths = {
   employees: '/employees',
   employeeDetail: (id: string) => `/employees/${id}`,
   employeeNew: '/employees/new',
+  employeesQuickEntry: '/employees/quick-entry',
+  employeeRatesQuickEntry: '/employees/quick-entry/rates',
   employeeEdit: (id: string) => `/employees/${id}/edit`,
   hierarchy: '/hierarchy',
 

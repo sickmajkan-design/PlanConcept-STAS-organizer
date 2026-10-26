@@ -101,6 +101,11 @@ const QuickEntryPage = lazy(() =>
     default: m.QuickEntryPage,
   })),
 );
+const EmployeeRatesQuickEntryPage = lazy(() =>
+  import('./pages/quickEntry/EmployeeRatesQuickEntryPage').then((m) => ({
+    default: m.EmployeeRatesQuickEntryPage,
+  })),
+);
 const VehiclesListPage = lazy(() =>
   import('./pages/vehicles/VehiclesListPage').then((m) => ({
     default: m.VehiclesListPage,
@@ -435,6 +440,7 @@ function Layout() {
             <Route element={<RequireDirectoryAccess />}>
               <Route path={paths.employees} element={<EmployeesListPage />} />
               <Route path={paths.employeeNew} element={<EmployeeFormPage />} />
+              <Route path={paths.employeesQuickEntry} element={<QuickEntryPage kind="employees" />} />
               <Route path={`${paths.employees}/:id`} element={<EmployeeDetailPage />} />
               <Route path={`${paths.employees}/:id/edit`} element={<EmployeeFormPage />} />
               <Route path={paths.hierarchy} element={<HierarchyPage />} />
@@ -472,6 +478,7 @@ function Layout() {
               <Route path={`${paths.workItems}/:id/edit`} element={<WorkItemFormPage />} />
 
               <Route element={<RequireFinanceAccess />}>
+                <Route path={paths.employeeRatesQuickEntry} element={<EmployeeRatesQuickEntryPage />} />
                 <Route path={paths.costs} element={<CostsPage />} />
                 <Route path={paths.companyRevenues} element={<CompanyRevenuesPage />} />
               </Route>

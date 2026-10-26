@@ -27,6 +27,26 @@ Zaglavlje vozila pokazuje VIN, gorivo, QR, ko ga drži i na kom je projektu, uz 
 
 **Još nije dodato:** lijepljenje redova iz Excela i skeniranje QR koda u tabeli.
 
+## 2a. Brzi unos zaposlenih
+
+**Ljudi > Zaposleni > Brzi unos** (ili Ctrl+K: „brzi unos zaposlenih“). Dvije tabele, a između njih se prelazi dugmetom gore desno.
+
+**Osnovni podaci.** Ime, prezime, radno mjesto, status, vrsta, telefon, e-mail, adresa, datum zaposlenja i datum rođenja mijenjaju se u ćeliji, a „Ista vrijednost za označene redove“ upisuje istu vrijednost u više radnika. Šifra radnika se ovdje ne mijenja. Snimaju se samo izmijenjeni redovi; ako red ne uspije (npr. e-mail koji već postoji), piše koji i zašto, a ostali su snimljeni.
+
+**Cijene sata** (vide je samo oni koji imaju pravo na finansije). Označiš radnike, izabereš datum **Važi od** i način:
+
+| Način | Šta radi |
+|---|---|
+| Povećaj za % | Cijena sata i dodaci (vikend, praznik, prekovremeno, putovanje) se množe za isti procenat. Dnevna cijena se množi isto. |
+| Povećaj za iznos | Isti iznos se dodaje na cijenu sata i na svaki dodatak koji postoji. |
+| Postavi tačan iznos | Cijena sata postaje taj iznos, a dodaci se pomjere za istu razliku. Jedino ovo pravi **prvu** cijenu radniku koji je nema. |
+
+Radnici bez cijene se kod procenta i iznosa preskaču (piše koliko ih je). Ćelije se mogu mijenjati i ručno. **Pregled i snimi** pokazuje staru i novu cijenu i razliku po radniku, i ukupnu razliku na sat. Nova cijena važi **od izabranog datuma**, a dosadašnja se zatvara dan ranije, pa izvještaji iz prošlosti ostaju tačni. Ako datum ne odgovara (npr. prije početka važeće cijene), taj red nije snimljen i piše razlog.
+
+**Primjer.** Od 1. decembra svi zidari dobijaju 5 % više. Označiš zidare, upišeš 5, klikneš „Primijeni na označene“, pa „Pregled i snimi“.
+
+**Nije u ovoj verziji:** poslovna jedinica i projekat za više radnika odjednom, uvjerenja, godišnji odmor (dani), dodavanje novih radnika (za to je obrazac i uvoz iz Excela).
+
 ## 3. Kofer s alatom
 
 Kofer je alat koji ima popis onoga što je u njemu. Svaka stavka ima **količinu** i **cijenu jednog komada**, pa je vrijednost kofera zbir.

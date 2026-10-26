@@ -45,6 +45,14 @@ export function buildPaletteActions(
       path: `${paths.vehicleExpenses}?new=1`,
       icon: <LocalGasStationOutlined fontSize="small" />,
     });
+
+    actions.push({
+      key: 'quickEntryRates',
+      label: t('action.quickEntryRates'),
+      path: paths.employeeRatesQuickEntry,
+      icon: <LocalGasStationOutlined fontSize="small" />,
+      keywords: 'cijena sata plata povišica radnici tabela masovni unos hourly rate raise',
+    });
   }
 
   if (canViewDirectory(user)) {
@@ -63,6 +71,7 @@ export function buildPaletteActions(
       { key: 'vehicle', label: t('action.newVehicle'), path: paths.vehicleNew, icon: plus },
       { key: 'tool', label: t('action.newTool'), path: paths.toolNew, icon: plus },
       { key: 'quickEntryVehicles', label: t('action.quickEntryVehicles'), path: paths.vehiclesQuickEntry, icon: plus, keywords: 'tabela masovni unos izmjena datumi registracija osiguranje bulk' },
+      { key: 'quickEntryEmployees', label: t('action.quickEntryEmployees'), path: paths.employeesQuickEntry, icon: plus, keywords: 'radnici zaposleni tabela masovni unos izmjena pozicija telefon status bulk' },
       { key: 'quickEntryTools', label: t('action.quickEntryTools'), path: paths.toolsQuickEntry, icon: plus, keywords: 'tabela masovni unos izmjena bulk' },
       { key: 'material', label: t('action.newMaterial'), path: paths.materialNew, icon: plus },
     );

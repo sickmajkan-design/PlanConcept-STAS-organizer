@@ -4,11 +4,17 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 
 import { toApiError } from '../../api/apiError';
+import { employeesApi } from '../../api/employees';
 import { toolsApi } from '../../api/tools';
-import type { PagedList, Tool, ToolInput, Vehicle, VehicleInput } from '../../api/types';
-import { fuelTypes, toolOwnershipTypes, toolStatuses, vehicleOwnershipTypes, vehicleStatuses } from '../../api/types';
+import type { Employee, EmployeeInput, PagedList, Tool, ToolInput, Vehicle, VehicleInput } from '../../api/types';
+import { employeeStatuses, employeeTypes, fuelTypes, toolOwnershipTypes, toolStatuses, vehicleOwnershipTypes, vehicleStatuses } from '../../api/types';
 import { vehiclesApi } from '../../api/vehicles';
 import { PageHeader } from '../../components/PageHeader';
+import { useAuth } from '../../auth/useAuth';
+import { canViewFinance } from '../../auth/authHelpers';
+import { employeeKeys } from '../../features/employees/useEmployees';
+import { paths } from '../../routes/paths';
+import { useNavigate } from 'react-router-dom';
 import { fetchAllPages } from '../../features/dashboard/dashboardData';
 import { useBranchFilter } from '../../features/branches/BranchContext';
 import { toolKeys } from '../../features/tools/useTools';
@@ -16,7 +22,7 @@ import { vehicleKeys } from '../../features/vehicles/useVehicles';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
 
-type Kind = 'vehicles' | 'tools';
+type Kind = 'vehicles' | 'tools' | 'employees';
 type Row = Record<string, unknown> & { id: string };
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
@@ -26,6 +32,8 @@ const DATE_FIELDS = new Set([
   'insuranceValidUntil',
   'nextServiceDue',
   'rentedUntil',
+  'employmentDate',
+  'dateOfBirth',
 ]);
 
 const text = (v: unknown) => (typeof v === 'string' && v.trim() !== '' ? v.trim() : null);
@@ -64,8 +72,24 @@ function toolInput(r: Tool): ToolInput {
   };
 }
 
+function employeeInput(r: Employee): EmployeeInput {
+  return {
+    employeeNumber: r.employeeNumber,
+    firstName: r.firstName.trim(),
+    lastName: r.lastName.trim(),
+    phone: text(r.phone),
+    email: text(r.email),
+    address: text(r.address),
+    dateOfBirth: text(r.dateOfBirth),
+    employmentDate: r.employmentDate,
+    position: r.position.trim(),
+    status: r.status,
+    type: r.type,
+  };
+}
+
 /**
- * Every editable field of the vehicles or the tools in one table. A cell is changed in place, several rows can take
+ * Every editable field of the vehicles, the tools or the employees in one table. A cell is changed in place, several rows can take
  * the same value at once, and only the rows that changed are sent when saving.
  */
 export function QuickEntryPage({ kind }: { kind: Kind }) {
@@ -74,6 +98,9 @@ export function QuickEntryPage({ kind }: { kind: Kind }) {
   const queryClient = useQueryClient();
   const { branchId } = useBranchFilter();
   const isVehicles = kind === 'vehicles';
+  const isEmployees = kind === 'employees';
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   const { data, isLoading } = useQuery({
     queryKey: ['quick-entry', kind, branchId ?? null],
@@ -82,7 +109,9 @@ export function QuickEntryPage({ kind }: { kind: Kind }) {
       const load = (pageNumber: number) =>
         (isVehicles
           ? vehiclesApi.list({ pageNumber, pageSize: 100, sortBy: 'brand', ...unit })
-          : toolsApi.list({ pageNumber, pageSize: 100, sortBy: 'name', ...unit })) as unknown as Promise<PagedList<Row>>;
+          : isEmployees
+            ? employeesApi.list({ pageNumber, pageSize: 100, ...unit })
+            : toolsApi.list({ pageNumber, pageSize: 100, sortBy: 'name', ...unit })) as unknown as Promise<PagedList<Row>>;
       return (await fetchAllPages(load)).items;
     },
   });
@@ -114,7 +143,20 @@ export function QuickEntryPage({ kind }: { kind: Kind }) {
     preProcessEditCellProps: (p) => ({ ...p.props, error: p.props.value !== '' && !DATE.test(String(p.props.value)) }),
   });
 
-  const columns: GridColDef[] = isVehicles
+  const columns: GridColDef[] = isEmployees
+    ? [
+        plain('firstName', t('employees.firstName')),
+        plain('lastName', t('employees.lastName')),
+        plain('position', t('employees.position'), 160),
+        select('status', t('employees.status'), employeeStatuses, 'employeeStatus'),
+        select('type', t('employees.type'), employeeTypes, 'employeeType'),
+        plain('phone', t('employees.phone'), 150),
+        plain('email', t('employees.email'), 190),
+        plain('address', t('employees.address'), 190),
+        date('employmentDate', t('employees.employmentDate')),
+        date('dateOfBirth', t('employees.dateOfBirth')),
+      ]
+    : isVehicles
     ? [
         plain('brand', t('vehicles.brand')),
         plain('model', t('vehicles.model')),
@@ -172,6 +214,7 @@ export function QuickEntryPage({ kind }: { kind: Kind }) {
       try {
         const row = edits[id];
         if (isVehicles) await vehiclesApi.update(id, vehicleInput(row as unknown as Vehicle));
+        else if (isEmployees) await employeesApi.update(id, employeeInput(row as unknown as Employee));
         else await toolsApi.update(id, toolInput(row as unknown as Tool));
         done++;
         setEdits((prev) => {
@@ -180,11 +223,11 @@ export function QuickEntryPage({ kind }: { kind: Kind }) {
         });
       } catch (error) {
         const row = edits[id];
-        failed.push(`${isVehicles ? row.registrationNumber : row.name}: ${toApiError(error).message}`);
+        failed.push(`${isVehicles ? row.registrationNumber : isEmployees ? row.fullName : row.name}: ${toApiError(error).message}`);
       }
     }
     setSaving(false);
-    await queryClient.invalidateQueries({ queryKey: isVehicles ? vehicleKeys.all : toolKeys.all });
+    await queryClient.invalidateQueries({ queryKey: isVehicles ? vehicleKeys.all : isEmployees ? employeeKeys.all : toolKeys.all });
     await queryClient.invalidateQueries({ queryKey: ['quick-entry', kind] });
     setMessage(
       failed.length
@@ -198,8 +241,13 @@ export function QuickEntryPage({ kind }: { kind: Kind }) {
   return (
     <Box>
       <PageHeader
-        title={isVehicles ? t('quickEntry.vehiclesTitle') : t('quickEntry.toolsTitle')}
+        title={isVehicles ? t('quickEntry.vehiclesTitle') : isEmployees ? t('quickEntry.employeesTitle') : t('quickEntry.toolsTitle')}
         description={t('quickEntry.description')}
+        secondaryActions={
+          isEmployees && canViewFinance(user) ? (
+            <Button onClick={() => navigate(paths.employeeRatesQuickEntry)}>{t('quickEntry.tabRates')}</Button>
+          ) : undefined
+        }
       />
 
       <Paper variant="outlined" sx={{ p: 1.5, mb: 2 }}>
