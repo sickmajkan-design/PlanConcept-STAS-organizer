@@ -35,6 +35,7 @@ import { useI18n } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { formatDate, formatMoney } from '../../utils/formatting';
 import { companyNow } from '../../utils/companyTime';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 function today(): string {
   const now = companyNow();
@@ -216,7 +217,7 @@ export function BookReceivablesPage() {
                   <TableRow key={`${row.source}-${row.id}`} hover>
                     <TableCell>{row.title || '—'}</TableCell>
                     <TableCell>{row.counterparty ?? '—'}</TableCell>
-                    <TableCell>{row.projectName ?? '—'}</TableCell>
+                    <TableCell>{row.projectName ? <ProjectLabel name={row.projectName} projectId={row.projectId} /> : '—'}</TableCell>
                     <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDate(row.issuedOn)}</TableCell>
                     <TableCell sx={{ whiteSpace: 'nowrap' }}>{row.dueDate ? formatDate(row.dueDate) : '—'}</TableCell>
                     <TableCell>

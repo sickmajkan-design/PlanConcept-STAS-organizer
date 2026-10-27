@@ -122,6 +122,7 @@ import { useI18n, useT } from '../../i18n/useI18n';
 import { LedgerChecksPanel, LedgerExportButton, LedgerReportHoursStrip } from './LedgerChecksPanel';
 import { paths } from '../../routes/paths';
 import { formatDate, formatMoney } from '../../utils/formatting';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 const NUMERIC_TYPES: readonly LedgerColumnDataType[] = ['Number', 'Currency'];
 
@@ -837,7 +838,7 @@ function SectionCard({
           {section.name}
           {section.projectName && (
             <Typography component="span" color="text.secondary" sx={{ ml: 1, fontWeight: 400 }}>
-              ({section.projectName})
+              (<ProjectLabel name={section.projectName} projectId={section.projectId} />)
             </Typography>
           )}
         </Typography>

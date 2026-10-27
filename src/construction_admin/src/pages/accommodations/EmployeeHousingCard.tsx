@@ -8,6 +8,7 @@ import { useT } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { dateOnlyOffset, formatDate } from '../../utils/formatting';
 import { StayDialog } from './AccommodationDetailPage';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 /** Where this person lives now, and where they have lived. Placing them is a click away. */
 export function EmployeeHousingCard({ employeeId }: { employeeId: string }) {
@@ -57,7 +58,7 @@ export function EmployeeHousingCard({ employeeId }: { employeeId: string }) {
             <Typography variant="body2" color="text.secondary">
               {t('accommodations.since')} {formatDate(current.startDate)}
               {current.endDate ? ` · ${t('accommodations.until')} ${formatDate(current.endDate)}` : ''}
-              {current.projectName ? ` · ${current.projectName}` : ''}
+              {current.projectName && <> · <ProjectLabel name={current.projectName} projectId={current.projectId} /></>}
             </Typography>
           </Stack>
         ) : (

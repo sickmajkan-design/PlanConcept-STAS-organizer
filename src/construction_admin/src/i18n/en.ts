@@ -4820,12 +4820,6 @@ export const en = {
   'toolCopy.qrAuto': 'new, automatic',
   'toolCopy.note': 'Serial number, holder, history and documents are not copied. Each copy starts free, in the stock room.',
   'toolCopy.create': 'Create {count}',
-  'releaseNotes.kits1026.title': 'Cases of tools, quick entry and the customer next to the project',
-  'releaseNotes.kits1026.kit': 'A case of tools now has its contents: every item has a count and a price, so the worth of the case is always known.',
-  'releaseNotes.kits1026.problems': 'When an item goes missing or breaks, report it on the case: charge the worker, write it off, or refund the worker for a replacement they bought. A broken item has to reach the office first.',
-  'releaseNotes.kits1026.copy': 'A case or a tool can be copied, with a new name and a new QR code for every copy.',
-  'releaseNotes.kits1026.quick': 'Quick entry: every editable field of the vehicles or the tools in one table, with the same value for several selected rows at once.',
-  'releaseNotes.kits1026.customer': 'The customer is now shown next to the project name wherever a project appears.',
   'toolKit.amountHint': 'Full price of the item to start with. Change it to charge or refund a different amount.',
   'toolKit.refund.yes': 'Refund the worker',
   'toolKit.refund.no': 'No refund (the worker caused the damage)',
@@ -4836,7 +4830,6 @@ export const en = {
   'toolKit.payout.CashHint': 'The worker is paid in cash. The amount stays open on the case until you hand it over and mark it Paid out here.',
   'toolKit.payout.choose': 'Choose how the refund is paid: with the pay or in cash.',
   'toolKit.event.ReplacementNotRefunded': 'Worker bought a replacement, no refund',
-  'releaseNotes.kits1026.units': 'The realization and weekly-report widgets on the home board now follow the business unit you choose.',
   'projects.showCustomer': 'Projects of {name}',
   'accommodations.bulk.open': 'Add several people',
   'accommodations.bulk.title': 'Add several people to the accommodation',
@@ -4999,6 +4992,10 @@ export const en = {
   'releaseNotes.country1026.site': 'When the site is in another country than the customer, a small mark says so.',
   'releaseNotes.country1026.filter': 'The project list has a Customer country filter, and the customer list a Country column and filter.',
   'releaseNotes.country1026.suggest': 'For customers without a country, Suggest from projects offers the country of their sites, to confirm.',
+  'releaseNotes.customer1027.title': 'The customer next to the project in the Book, the Ledger and housing',
+  'releaseNotes.customer1027.book': 'In the Book of costs (entries, receivables, recurring costs) the customer is now written under the project name.',
+  'releaseNotes.customer1027.ledger': 'In the monthly Ledger the site of each section shows its customer.',
+  'releaseNotes.customer1027.stays': 'On housing (stays, cost per project) and on the employee card the project comes with its customer.',
 } as const;
 
 export type MessageKey = keyof typeof en;

@@ -58,6 +58,7 @@ import { useI18n } from '../../i18n/useI18n';
 import { paths } from '../../routes/paths';
 import { formatDate, formatMoney } from '../../utils/formatting';
 import { companyNow } from '../../utils/companyTime';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 const PAGE_SIZE = 50;
 const bookKey = ['book'] as const;
@@ -716,7 +717,7 @@ export function BookEntriesPage() {
                   <TableCell>{t(`book.kind.${row.kind}` as MessageKey)}</TableCell>
                   <TableCell>{descriptionOf(row)}</TableCell>
                   <TableCell>{row.categoryName ?? '—'}</TableCell>
-                  <TableCell>{row.projectName ?? t('book.entries.noProject')}</TableCell>
+                  <TableCell>{row.projectName ? <ProjectLabel name={row.projectName} projectId={row.projectId} /> : t('book.entries.noProject')}</TableCell>
                   <TableCell>{counterpartyOf(row)}</TableCell>
                   <TableCell>
                     <Chip size="small" variant="outlined" label={sourceLabel(row)} />

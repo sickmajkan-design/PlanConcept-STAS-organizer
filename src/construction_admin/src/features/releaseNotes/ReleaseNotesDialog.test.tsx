@@ -55,7 +55,7 @@ describe('ReleaseNotesDialog', () => {
   it('tells an administrator about everything meant for administrators', async () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('SuperAdmin') });
 
-    await screen.findByText('Cases of tools, quick entry and the customer next to the project');
+    await screen.findByText('The customer next to the project in the Book, the Ledger and housing');
     expect(screen.getByText("The customer's country: flag and code next to every project")).toBeDefined();
   }, SCREEN_TIMEOUT);
 

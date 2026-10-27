@@ -79,6 +79,7 @@ import { paths } from '../../routes/paths';
 import { dateOnlyOffset, formatDate, formatMoney } from '../../utils/formatting';
 import { companyNow } from '../../utils/companyTime';
 import { BulkStayDialog } from '../../features/accommodations/BulkStayDialog';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 /** What a place is called: its name, or its address when nobody named it. */
 export const accommodationTitle = (accommodation: Pick<Accommodation, 'name' | 'address'>) =>
@@ -442,7 +443,7 @@ function OccupantsCard({ accommodation }: { accommodation: Accommodation }) {
                     </TableCell>
                     <TableCell>{formatDate(stay.startDate)}</TableCell>
                     <TableCell>{stay.endDate ? formatDate(stay.endDate) : t('rates.open')}</TableCell>
-                    <TableCell>{stay.projectName || '—'}</TableCell>
+                    <TableCell>{stay.projectName ? <ProjectLabel name={stay.projectName} projectId={stay.projectId} /> : '—'}</TableCell>
                     <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                       <Tooltip title={t('common.edit')}>
                         <IconButton size="small" onClick={() => setEditing(stay)}>
@@ -1182,7 +1183,7 @@ function CostSummaryCard({ accommodationId }: { accommodationId: string }) {
                       <TableBody>
                         {data.byProject.map((row) => (
                           <TableRow key={row.projectId ?? 'none'}>
-                            <TableCell>{row.projectName ?? t('accommodations.noProject')}</TableCell>
+                            <TableCell>{row.projectName ? <ProjectLabel name={row.projectName} projectId={row.projectId} /> : t('accommodations.noProject')}</TableCell>
                             <TableCell align="right">{formatMoney(row.cost, locale)}</TableCell>
                           </TableRow>
                         ))}

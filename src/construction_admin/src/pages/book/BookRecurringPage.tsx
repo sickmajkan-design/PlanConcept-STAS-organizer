@@ -15,7 +15,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 
 import { toApiError } from '../../api/apiError';
 import { bookApi } from '../../api/book';
@@ -32,6 +32,7 @@ import type { MessageKey } from '../../i18n/en';
 import { useI18n } from '../../i18n/useI18n';
 import { formatDate, formatMoney } from '../../utils/formatting';
 import { companyNow } from '../../utils/companyTime';
+import { ProjectLabel } from '../../components/ProjectLabel';
 
 const recurringKey = ['book', 'recurring'] as const;
 
@@ -84,8 +85,8 @@ export function BookRecurringPage() {
     void queryClient.invalidateQueries({ queryKey: ['finance'] });
   };
 
-  const whereOf = (template: RecurringExpense): string => {
-    if (template.projectName) return template.projectName;
+  const whereOf = (template: RecurringExpense): ReactNode => {
+    if (template.projectName) return <ProjectLabel name={template.projectName} projectId={template.projectId} />;
     if (template.countryCode) return t(`book.country.${template.countryCode}` as MessageKey);
     return t('book.entries.noProject');
   };
