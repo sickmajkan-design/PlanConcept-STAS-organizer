@@ -5,6 +5,7 @@ using Construction.Application.Features.TimeEntries.Commands.CreateTimeEntry;
 using Construction.Application.Features.TimeEntries.Commands.DeleteTimeEntry;
 using Construction.Application.Features.TimeEntries.Commands.ReviewTimeEntry;
 using Construction.Application.Features.TimeEntries.Commands.UpdateTimeEntry;
+using Construction.Application.Features.TimeEntries.Models;
 using Construction.Application.Features.TimeEntries.Queries.GetCurrentTimeEntry;
 using Construction.Application.Features.TimeEntries.Queries.GetTimeEntries;
 using Construction.Application.Features.TimeEntries.Queries.GetTimeEntrySummary;
@@ -203,7 +204,7 @@ public class TimeEntryTests : IntegrationTestBase
     public async Task Clocking_in_on_the_sites_own_public_holiday_is_recorded_as_one()
     {
         var (employee, user) = await InScope(SeedWorkerAsync);
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = HolidayWeekday;
 
         var project = await InScope(async scope =>
         {
@@ -219,20 +220,27 @@ public class TimeEntryTests : IntegrationTestBase
             return p;
         });
 
-        var entry = await InScope(scope =>
-        {
-            ActAs(scope, user, employee.Id);
-            return scope.Send(new ClockInCommand { ProjectId = project.Id });
-        });
+        var entry = await ClockInOnAsync(user, employee, project, HolidayWeekday);
 
         Assert.Equal(WorkType.PublicHoliday, entry.WorkType);
     }
+
+    // A fixed Tuesday: a holiday only counts on a working day, so these must not depend on the day the suite runs.
+    private static readonly DateOnly HolidayWeekday = new(2031, 3, 4);
+
+    private Task<TimeEntryDto> ClockInOnAsync(User user, Employee employee, Project project, DateOnly day, WorkType? type = null) =>
+        InScope(scope =>
+        {
+            ActAs(scope, user, employee.Id);
+            scope.Clock.FreezeAt(day.ToDateTime(new TimeOnly(9, 0), DateTimeKind.Utc));
+            return scope.Send(new ClockInCommand { ProjectId = project.Id, WorkType = type ?? WorkType.Regular });
+        });
 
     [Fact]
     public async Task A_deliberately_chosen_work_type_is_never_overridden_by_the_holiday_calendar()
     {
         var (employee, user) = await InScope(SeedWorkerAsync);
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = HolidayWeekday;
 
         var project = await InScope(async scope =>
         {
@@ -248,11 +256,7 @@ public class TimeEntryTests : IntegrationTestBase
             return p;
         });
 
-        var entry = await InScope(scope =>
-        {
-            ActAs(scope, user, employee.Id);
-            return scope.Send(new ClockInCommand { ProjectId = project.Id, WorkType = WorkType.Overtime });
-        });
+        var entry = await ClockInOnAsync(user, employee, project, HolidayWeekday, WorkType.Overtime);
 
         Assert.Equal(WorkType.Overtime, entry.WorkType);
     }
@@ -261,7 +265,7 @@ public class TimeEntryTests : IntegrationTestBase
     public async Task A_public_holiday_in_a_different_country_does_not_apply()
     {
         var (employee, user) = await InScope(SeedWorkerAsync);
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = HolidayWeekday;
 
         var project = await InScope(async scope =>
         {
@@ -279,11 +283,7 @@ public class TimeEntryTests : IntegrationTestBase
             return p;
         });
 
-        var entry = await InScope(scope =>
-        {
-            ActAs(scope, user, employee.Id);
-            return scope.Send(new ClockInCommand { ProjectId = project.Id });
-        });
+        var entry = await ClockInOnAsync(user, employee, project, HolidayWeekday);
 
         Assert.Equal(WorkType.Regular, entry.WorkType);
     }

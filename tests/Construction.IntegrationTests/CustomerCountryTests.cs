@@ -73,21 +73,23 @@ public class CustomerCountryTests : IntegrationTestBase
         {
             var a = await TestData.SeedProjectAsync(scope);
             var b = await TestData.SeedProjectAsync(scope);
+            a.Name = $"Swiss site {Unique()}";
             a.CustomerId = swiss.Id;
+            b.Name = $"Nowhere site {Unique()}";
             b.CustomerId = nowhere.Id;
             await scope.Db.SaveChangesAsync();
             return (a, b);
         });
 
-        var swissProjects = await InScopeAs(UserRole.Admin, scope => scope.Send(new GetProjectsQuery { PageSize = 100, CustomerCountry = "ch" }));
+        var swissProjects = await InScopeAs(UserRole.Admin, scope => scope.Send(new GetProjectsQuery { PageSize = 100, CustomerCountry = "ch", Search = "Swiss site" }));
         Assert.Contains(swissProjects.Items, p => p.Id == swissSite.Id);
         Assert.DoesNotContain(swissProjects.Items, p => p.Id == nowhereSite.Id);
 
-        var none = await InScopeAs(UserRole.Admin, scope => scope.Send(new GetProjectsQuery { PageSize = 100, CustomerCountry = "none" }));
+        var none = await InScopeAs(UserRole.Admin, scope => scope.Send(new GetProjectsQuery { PageSize = 100, CustomerCountry = "none", Search = "Nowhere site" }));
         Assert.Contains(none.Items, p => p.Id == nowhereSite.Id);
         Assert.DoesNotContain(none.Items, p => p.Id == swissSite.Id);
 
-        var customers = await InScopeAs(UserRole.Admin, scope => scope.Send(new GetCustomersQuery { PageSize = 100, Country = "none" }));
+        var customers = await InScopeAs(UserRole.Admin, scope => scope.Send(new GetCustomersQuery { PageSize = 100, Country = "none", Search = "Nowhere" }));
         Assert.Contains(customers.Items, c => c.Id == nowhere.Id);
         Assert.DoesNotContain(customers.Items, c => c.Id == swiss.Id);
     }
