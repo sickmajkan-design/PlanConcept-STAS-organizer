@@ -199,10 +199,15 @@ public class GetFinanceSeriesQueryHandler : IRequestHandler<GetFinanceSeriesQuer
         var includesLabour = true;
         var buckets = new List<FinanceBucketDto>(ranges.Count);
 
+        // Read once for the whole period instead of once per bar.
+        var dayTotals = await CostDayTotals.LoadAsync(
+            _context, request.From, request.To, request.BranchId, request.Basis,
+            await FinanceRules.CanSeePayAsync(_context, _currentUserService, cancellationToken), cancellationToken);
+
         // One at a time: they share this request's DbContext.
         foreach (var (from, to) in ranges)
         {
-            var costs = await _sender.Send(new GetCompanyCostsQuery { From = from, To = to, BranchId = request.BranchId, Basis = request.Basis }, cancellationToken);
+            var costs = await _sender.Send(new GetCompanyCostsQuery { From = from, To = to, BranchId = request.BranchId, Basis = request.Basis, DayTotals = dayTotals }, cancellationToken);
             includesLabour &= costs.IncludesLabour;
 
             var project = Sum(projectByDay, from, to);

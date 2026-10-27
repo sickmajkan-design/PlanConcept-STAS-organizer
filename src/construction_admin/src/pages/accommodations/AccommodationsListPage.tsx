@@ -27,6 +27,7 @@ import type { AccommodationListQuery } from '../../api/accommodations';
 import { accommodationTypes, type Accommodation, type AccommodationType } from '../../api/types';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { EmptyState } from '../../components/EmptyState';
+import { FilterBar } from '../../components/FilterBar';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
 import { DocumentCountBadge } from '../../components/DocumentCountBadge';
@@ -84,15 +85,16 @@ export function AccommodationsListPage() {
         }}
       />
 
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ flexWrap: 'wrap', mb: 2 }}>
-        <Button variant="outlined" onClick={() => navigate(paths.accommodationImport)}>
-          {t('accommodationImport.title')}
-        </Button>
-        <SearchField
-          value={list.search}
-          onChange={list.setSearch}
-          placeholder={t('accommodations.searchPlaceholder')}
-        />
+      <FilterBar
+        activeCount={(type ? 1 : 0) + (activeOnly ? 0 : 1)}
+        search={
+          <SearchField
+            value={list.search}
+            onChange={list.setSearch}
+            placeholder={t('accommodations.searchPlaceholder')}
+          />
+        }
+      >
         <TextField
           select
           size="small"
@@ -112,7 +114,10 @@ export function AccommodationsListPage() {
           control={<Switch checked={activeOnly} onChange={(event) => setActiveOnly(event.target.checked)} />}
           label={t('accommodations.activeOnly')}
         />
-      </Stack>
+        <Button variant="outlined" onClick={() => navigate(paths.accommodationImport)}>
+          {t('accommodationImport.title')}
+        </Button>
+      </FilterBar>
 
       {list.savedViews && (
         <Box sx={{ mb: 2 }}>

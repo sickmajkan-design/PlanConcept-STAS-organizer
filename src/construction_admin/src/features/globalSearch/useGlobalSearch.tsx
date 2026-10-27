@@ -54,6 +54,8 @@ import {
 import type { User } from '../../api/types';
 import type { MessageKey } from '../../i18n/en';
 import { liveT } from '../../i18n/liveT';
+import { queryClient } from '../../queryClient';
+import { projectCustomersQuery } from '../projects/useProjectCustomers';
 import { formatDate } from '../../utils/formatting';
 import { paths } from '../../routes/paths';
 
@@ -171,6 +173,11 @@ async function searchDocumentRequests(query: string): Promise<GlobalSearchResult
 }
 
 async function runGlobalSearch(query: string, scope: SearchScope): Promise<GlobalSearchGroup[]> {
+  // Cached for five minutes; if it cannot be read the results simply show the project alone.
+  const projectCustomers = await queryClient.fetchQuery(projectCustomersQuery).catch(() => null);
+  const withCustomer = (project: string | null | undefined) =>
+    project ? [project, projectCustomers?.byName.get(project)?.name].filter(Boolean).join(' · ') : undefined;
+
   const includeAccounts = scope.accounts;
   const listQuery = { search: query, pageNumber: 1, pageSize: PAGE_SIZE };
 
@@ -237,7 +244,7 @@ async function runGlobalSearch(query: string, scope: SearchScope): Promise<Globa
       searchEntity(() => workItemsApi.list(listQuery), (w) => ({
         id: w.id,
         label: w.title,
-        sublabel: w.projectName ?? undefined,
+        sublabel: withCustomer(w.projectName),
         path: paths.workItemEdit(w.id),
       })),
       searchEntity(() => accommodationsApi.list(listQuery), (a) => ({
@@ -296,7 +303,7 @@ async function runGlobalSearch(query: string, scope: SearchScope): Promise<Globa
       searchEntity(() => articleOrdersApi.list(listQuery), (o) => ({
         id: o.id,
         label: o.items.map((i) => i.name).slice(0, 3).join(', ') || o.requestedByName,
-        sublabel: [o.requestedByName, o.projectName].filter(Boolean).join(' · '),
+        sublabel: [o.requestedByName, withCustomer(o.projectName)].filter(Boolean).join(' · '),
         path: `${paths.articleOrders}?highlight=${o.id}`,
       })),
       scope.invoices

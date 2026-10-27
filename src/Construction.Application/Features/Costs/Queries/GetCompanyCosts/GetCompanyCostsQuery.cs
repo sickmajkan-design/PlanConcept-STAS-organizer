@@ -90,6 +90,64 @@ public record GetCompanyCostsQuery : IRequest<CompanyCostsDto>
     /// so a request from outside can never bind it.
     /// </summary>
     internal bool SkipFinanceCheck { get; init; }
+
+    /// <summary>
+    /// Day totals already read for a wider period that contains this one, so a caller asking for many
+    /// slices (the finance chart) does not repeat the same three queries per slice.
+    /// </summary>
+    internal CostDayTotals? DayTotals { get; init; }
+}
+
+/// <summary>Hand-entered pay, material taken out and general expenses, summed per day.</summary>
+internal sealed class CostDayTotals
+{
+    public Dictionary<DateOnly, decimal> ManualPay { get; init; } = [];
+
+    public Dictionary<DateOnly, decimal> Material { get; init; } = [];
+
+    public Dictionary<DateOnly, decimal> General { get; init; } = [];
+
+    public static decimal Sum(Dictionary<DateOnly, decimal> byDay, DateOnly from, DateOnly to) =>
+        byDay.Where(d => d.Key >= from && d.Key <= to).Sum(d => d.Value);
+
+    public static async Task<CostDayTotals> LoadAsync(
+        IApplicationDbContext context,
+        DateOnly from,
+        DateOnly to,
+        Guid? branchId,
+        BranchBasis basis,
+        bool includesLabour,
+        CancellationToken cancellationToken)
+    {
+        var manualPay = includesLabour
+            ? await context.FinanceEntries
+                .AsNoTracking()
+                .InBranch(branchId, basis)
+                .Where(f => f.OccurredOn >= from && f.OccurredOn <= to)
+                .GroupBy(f => f.OccurredOn)
+                .Select(g => new { Day = g.Key, Amount = g.Sum(f => f.Amount) })
+                .ToDictionaryAsync(r => r.Day, r => r.Amount, cancellationToken)
+            : [];
+
+        var material = await context.MaterialMovements
+            .AsNoTracking()
+            .InBranch(branchId)
+            .Where(m => m.Kind == MaterialMovementKind.Out && m.UnitPrice != null)
+            .Where(m => m.OccurredOn >= from && m.OccurredOn <= to)
+            .GroupBy(m => m.OccurredOn)
+            .Select(g => new { Day = g.Key, Amount = g.Sum(m => m.UnitPrice!.Value * m.Quantity) })
+            .ToDictionaryAsync(r => r.Day, r => r.Amount, cancellationToken);
+
+        var general = await context.GeneralExpenses
+            .AsNoTracking()
+            .InBranch(branchId)
+            .Where(e => e.OccurredOn >= from && e.OccurredOn <= to)
+            .GroupBy(e => e.OccurredOn)
+            .Select(g => new { Day = g.Key, Amount = g.Sum(e => e.Amount) })
+            .ToDictionaryAsync(r => r.Day, r => r.Amount, cancellationToken);
+
+        return new CostDayTotals { ManualPay = manualPay, Material = material, General = general };
+    }
 }
 
 public class GetCompanyCostsQueryValidator : AbstractValidator<GetCompanyCostsQuery>
@@ -157,26 +215,12 @@ public class GetCompanyCostsQueryHandler : IRequestHandler<GetCompanyCostsQuery,
             unpriced = entries.Sum(e => e.UnpricedMinutes);
         }
 
-        var manualPay = includesLabour
-            ? await _context.FinanceEntries
-                .AsNoTracking()
-                .InBranch(request.BranchId, request.Basis)
-                .Where(f => f.OccurredOn >= from && f.OccurredOn <= to)
-                .SumAsync(f => (decimal?)f.Amount, cancellationToken) ?? 0m
-            : 0m;
+        var days = request.DayTotals
+            ?? await CostDayTotals.LoadAsync(_context, from, to, request.BranchId, request.Basis, includesLabour, cancellationToken);
 
-        var material = await _context.MaterialMovements
-            .AsNoTracking()
-            .InBranch(request.BranchId)
-            .Where(m => m.Kind == MaterialMovementKind.Out && m.UnitPrice != null)
-            .Where(m => m.OccurredOn >= from && m.OccurredOn <= to)
-            .SumAsync(m => (decimal?)(m.UnitPrice!.Value * m.Quantity), cancellationToken) ?? 0m;
-
-        var general = await _context.GeneralExpenses
-            .AsNoTracking()
-            .InBranch(request.BranchId)
-            .Where(e => e.OccurredOn >= from && e.OccurredOn <= to)
-            .SumAsync(e => (decimal?)e.Amount, cancellationToken) ?? 0m;
+        var manualPay = CostDayTotals.Sum(days.ManualPay, from, to);
+        var material = CostDayTotals.Sum(days.Material, from, to);
+        var general = CostDayTotals.Sum(days.General, from, to);
 
         var accommodation = await LoadAccommodationAsync(from, to, request.BranchId, cancellationToken);
 

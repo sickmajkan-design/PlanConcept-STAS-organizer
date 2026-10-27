@@ -36,9 +36,13 @@ public record PurgeResult(
     /// <summary>Records of sent announcements removed once past their retention window.</summary>
     public int Broadcasts { get; init; }
 
+    /// <summary>Half-finished two-step sign-ins removed once expired.</summary>
+    public int MfaChallenges { get; init; }
+
     public int Total =>
         RefreshTokens + PasswordResetTokens + LocationRecords + OutboxMessages
-        + AuditEntries + TimeEntryCoordinates + IdempotencyRecords + UserSessions + FailedLogins + Broadcasts;
+        + AuditEntries + TimeEntryCoordinates + IdempotencyRecords + UserSessions + FailedLogins + Broadcasts
+        + MfaChallenges;
 }
 
 /// <summary>
@@ -258,6 +262,13 @@ public class PurgeExpiredDataCommandHandler
             request,
             cancellationToken);
 
+        // Minutes-long and single-use, so a day past expiry nothing needs them.
+        var mfaChallenges = await DeleteInBatchesAsync(
+            _context.MfaChallenges
+                .Where(c => c.ExpiresAt < utcNow - TimeSpan.FromDays(1)),
+            request,
+            cancellationToken);
+
         var locations = 0;
         var partitionsDropped = 0;
 
@@ -382,6 +393,7 @@ public class PurgeExpiredDataCommandHandler
             UserSessions = sessions,
             FailedLogins = failedLogins,
             Broadcasts = broadcasts,
+            MfaChallenges = mfaChallenges,
         };
     }
 

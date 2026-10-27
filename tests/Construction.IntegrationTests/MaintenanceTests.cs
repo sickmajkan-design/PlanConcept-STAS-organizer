@@ -133,6 +133,34 @@ public class MaintenanceTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task An_expired_two_step_challenge_is_removed_and_an_open_one_stays()
+    {
+        var user = await InScope(scope => TestData.SeedUserAsync(scope));
+
+        var (stale, open) = await InScope(async scope =>
+        {
+            MfaChallenge Make(DateTime expiresAt) => new()
+            {
+                UserId = user.Id,
+                TokenHash = Guid.NewGuid().ToString("N"),
+                ExpiresAt = expiresAt,
+            };
+
+            var a = Make(DateTime.UtcNow.AddDays(-3));
+            var b = Make(DateTime.UtcNow.AddMinutes(5));
+            scope.Db.MfaChallenges.AddRange(a, b);
+            await scope.Db.SaveChangesAsync();
+
+            return (a.Id, b.Id);
+        });
+
+        await InScope(scope => scope.Send(Sweep()));
+
+        Assert.False(await InScope(scope => scope.Db.MfaChallenges.AnyAsync(c => c.Id == stale)));
+        Assert.True(await InScope(scope => scope.Db.MfaChallenges.AnyAsync(c => c.Id == open)));
+    }
+
+    [Fact]
     public async Task A_used_reset_token_is_removed_once_it_has_expired()
     {
         var user = await InScope(scope => TestData.SeedUserAsync(scope));

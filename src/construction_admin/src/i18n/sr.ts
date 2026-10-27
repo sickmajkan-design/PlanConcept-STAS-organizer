@@ -5040,4 +5040,7 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.customer1027.book': 'U Knjizi troškova (zapisi, potraživanja, ponavljajući troškovi) kupac je sada ispisan ispod imena projekta.',
   'releaseNotes.customer1027.ledger': 'U mjesečnoj Evidenciji gradilište svake sekcije prikazuje svog kupca.',
   'releaseNotes.customer1027.stays': 'Na smještaju (boravci, trošak po projektu) i na kartici zaposlenog projekat dolazi sa svojim kupcem.',
+  'releaseNotes.customer1027.search': 'U pretrazi (Ctrl+K) radne stavke i narudžbe uz projekat prikazuju kupca.',
+  'releaseNotes.customer1027.housingPhone': 'Na telefonu popis smještaja sklapa filtere iza jednog dugmeta Filteri, kao i ostali popisi, pa se prvi redovi vide odmah.',
+  'releaseNotes.customer1027.finance': 'Grafikon u Finansijama se otvara brže: manje upita prema bazi po zahtjevu.',
 };
