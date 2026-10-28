@@ -27,6 +27,7 @@ import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { RowActions } from '../../components/RowActions';
 import { SavedViewsBar } from '../../components/SavedViewsBar';
 import { SearchField } from '../../components/SearchField';
+import { FilterBar } from '../../components/FilterBar';
 import { useDeleteMaterial, useMaterialsQuery } from '../../features/materials/useMaterials';
 import { useBulkDelete } from '../../hooks/useBulkDelete';
 import { useBulkSelection } from '../../hooks/useBulkSelection';
@@ -212,12 +213,10 @@ export function MaterialsListPage() {
         }}
       />
 
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        spacing={2} useFlexGap
-        sx={{ flexWrap: 'wrap', mb: 2, alignItems: { sm: 'center' } }}
+      <FilterBar
+        activeCount={[warehouseOnly, incompleteOnly, lowStockOnly].filter(Boolean).length}
+        search={<SearchField value={list.search} onChange={list.setSearch} placeholder={t('materials.searchPlaceholder')} />}
       >
-        <SearchField value={list.search} onChange={list.setSearch} placeholder={t('materials.searchPlaceholder')} />
         <FormControlLabel
           control={
             <Switch
@@ -254,7 +253,7 @@ export function MaterialsListPage() {
           }
           label={t('materials.lowStockOnly')}
         />
-      </Stack>
+      </FilterBar>
 
       <Box sx={{ mb: 2 }}>
         <SavedViewsBar

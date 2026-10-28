@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Entities;
@@ -9,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Construction.Application.Features.Finance;
 
 /// <summary>Records money received that belongs to no project — a rental, or anything else.</summary>
-public record RecordCompanyRevenueCommand : IRequest<CompanyRevenueDto>
+public record RecordCompanyRevenueCommand : IRequest<CompanyRevenueDto>, IRequiresFullFinance
 {
     public decimal Amount { get; init; }
 

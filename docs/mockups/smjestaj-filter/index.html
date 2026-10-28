@@ -1,0 +1,167 @@
+<title>Smještaj filter na telefonu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Instrument+Sans:wght@400;600&display=swap">
+<style>
+/* Layout: two phone frames side by side (Prije / Poslije), same data, same height, so the fold is the argument. */
+:root {
+  --bg: #f4f3f1;
+  --surface: #ffffff;
+  --fg: #1d1c1a;
+  --muted: #6b6761;
+  --line: #dedbd6;
+  --accent: #d9631e;
+  --accent-ink: #ffffff;
+  --ok: #2e7d4f;
+  --off: #8a8680;
+  --frame: #2a2825;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #171614; --surface: #232220; --fg: #f1efeb; --muted: #a09b93; --line: #3a3835;
+    --accent: #f08a4b; --accent-ink: #1d1c1a; --ok: #6cc38d; --off: #8f8a82; --frame: #0c0b0a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #171614; --surface: #232220; --fg: #f1efeb; --muted: #a09b93; --line: #3a3835;
+  --accent: #f08a4b; --accent-ink: #1d1c1a; --ok: #6cc38d; --off: #8f8a82; --frame: #0c0b0a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 14px; line-height: 1.45;
+  padding-inline: max(16px, env(safe-area-inset-left, 0px)) max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+.page { max-width: 880px; margin: 0 auto; display: grid; gap: 28px; }
+h1 { font-family: var(--display); font-size: 28px; line-height: 1.15; margin: 0 0 6px; text-wrap: balance; }
+.lead { color: var(--muted); max-width: 62ch; margin: 0; }
+.stage { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 28px; justify-items: center; }
+.col { display: grid; gap: 10px; justify-items: center; width: 100%; max-width: 340px; }
+.tag { font-family: var(--display); font-weight: 600; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.tag b { color: var(--accent); }
+
+/* phone */
+.phone { width: 100%; max-width: 340px; height: 600px; background: var(--surface); border: 8px solid var(--frame); border-radius: 28px; overflow: hidden; display: flex; flex-direction: column; }
+.bar { background: var(--frame); color: #fff; padding: 10px 14px; font-family: var(--display); font-weight: 600; font-size: 15px; display: flex; justify-content: space-between; }
+.scroll { flex: 1; overflow: hidden; padding: 12px; position: relative; }
+.head { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; }
+.head h2 { font-family: var(--display); font-size: 19px; margin: 0; }
+.head small { color: var(--muted); display: block; font-size: 12px; }
+.btn { font: inherit; font-weight: 600; border-radius: 6px; padding: 7px 12px; cursor: pointer; border: 1px solid var(--accent); background: transparent; color: var(--accent); white-space: nowrap; min-height: 36px; }
+.btn.solid { background: var(--accent); color: var(--accent-ink); }
+.btn:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.stack { display: grid; gap: 10px; }
+.row { display: flex; gap: 8px; align-items: center; }
+.row > .grow { flex: 1; min-width: 0; }
+input[type=search], select { font: inherit; width: 100%; min-height: 40px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--fg); }
+label.sw { display: flex; align-items: center; gap: 8px; cursor: pointer; min-height: 36px; }
+label.sw input { width: 36px; height: 20px; accent-color: var(--accent); }
+.fold { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .18s ease-out; }
+.fold.open { grid-template-rows: 1fr; }
+.fold > div { overflow: hidden; }
+.fold .inner { padding-top: 10px; display: grid; gap: 10px; }
+@media (prefers-reduced-motion: reduce) { .fold { transition: none; } }
+.card { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-top: 10px; background: var(--surface); }
+.card .t { font-weight: 600; }
+.card .a { color: var(--muted); font-size: 13px; }
+.chips { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+.chip { font-size: 12px; border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; }
+.chip.ok { color: var(--ok); border-color: var(--ok); }
+.chip.off { color: var(--off); }
+.empty { color: var(--muted); text-align: center; padding: 28px 8px; }
+.cut { position: absolute; inset: auto 0 0 0; height: 36px; background: linear-gradient(transparent, var(--surface)); pointer-events: none; }
+.note { max-width: 62ch; color: var(--muted); font-size: 13px; }
+.note b { color: var(--fg); }
+.count { display: inline-block; min-width: 2.6ch; text-align: center; }
+</style>
+
+<div class="page">
+  <header>
+    <h1>Filter na popisu smještaja, na telefonu</h1>
+    <p class="lead">Lijevo je danas: pet kontrola jedna ispod druge i prvi smještaj tek pri dnu ekrana. Desno je predlog: pretraga ostaje, ostalo je iza dugmeta Filteri, kao na popisima alata i vozila. Oba telefona rade, probajte.</p>
+  </header>
+
+  <section class="stage">
+    <div class="col">
+      <div class="tag"><b>Prije</b> · danas</div>
+      <div class="phone" id="before"></div>
+    </div>
+    <div class="col">
+      <div class="tag"><b>Poslije</b> · predlog</div>
+      <div class="phone" id="after"></div>
+    </div>
+  </section>
+
+  <p class="note"><b>Brojač na dugmetu</b> broji samo filtere koji odstupaju od početnog stanja. "Samo aktivni" je uključen po defaultu, pa se ne računa dok ga ne isključite. Tip smještaja se računa čim je izabran. Na računaru se ništa ne mijenja: isti red kontrola kao danas.</p>
+</div>
+
+<script>
+const DATA = [
+  { n: 'Apartman Lipa', a: 'Ulica Nova 12, Zagreb', t: 'Apartman', on: true, beds: 4 },
+  { n: 'Kuća Hrast', a: 'Hrastova 3, Velika Gorica', t: 'Kuća', on: true, beds: 8 },
+  { n: 'Soba Dvorište', a: 'Mala ulica 5, Zagreb', t: 'Soba', on: true, beds: 2 },
+  { n: 'Hotel Vrba', a: 'Savska cesta 80, Zagreb', t: 'Hotel', on: true, beds: 12 },
+  { n: 'Apartman Breza', a: 'Livadska 9, Samobor', t: 'Apartman', on: false, beds: 3 },
+  { n: 'Soba Jela', a: 'Šumska 14, Sesvete', t: 'Soba', on: true, beds: 2 },
+];
+const TYPES = ['Apartman', 'Kuća', 'Soba', 'Hotel'];
+
+function build(root, folded) {
+  const s = { q: '', type: '', activeOnly: true, open: false };
+  const id = root.id;
+  root.innerHTML = `
+    <div class="bar"><span>STAS Organizer</span><span aria-hidden="true">☰</span></div>
+    <div class="scroll">
+      <div class="head"><div><h2>Smještaj</h2><small id="${id}-total"></small></div><button class="btn solid" type="button">+ Dodaj</button></div>
+      <div id="${id}-controls"></div>
+      <div id="${id}-list"></div>
+      <div class="cut"></div>
+    </div>`;
+  const $ = (suffix) => root.querySelector('#' + id + '-' + suffix);
+
+  const search = `<input type="search" id="${id}-q" placeholder="Pretraži smještaj" aria-label="Pretraži smještaj">`;
+  const typeSel = `<select id="${id}-type" aria-label="Tip"><option value="">Svi tipovi</option>${TYPES.map((x) => `<option>${x}</option>`).join('')}</select>`;
+  const sw = `<label class="sw"><input type="checkbox" role="switch" id="${id}-act" checked> Samo aktivni</label>`;
+  const imp = `<button class="btn" type="button">Uvoz iz Excela</button>`;
+
+  if (!folded) {
+    $('controls').innerHTML = `<div class="stack">${imp}${search}${typeSel}${sw}</div>`;
+  } else {
+    $('controls').innerHTML = `
+      <div class="row"><div class="grow">${search}</div><button class="btn" id="${id}-fb" type="button" aria-expanded="false"></button></div>
+      <div class="fold" id="${id}-fold"><div><div class="inner">${typeSel}${sw}${imp}</div></div></div>`;
+  }
+
+  function active() { return (s.type ? 1 : 0) + (s.activeOnly ? 0 : 1); }
+
+  function render() {
+    const rows = DATA.filter((r) =>
+      (!s.q || (r.n + ' ' + r.a).toLowerCase().includes(s.q.toLowerCase())) &&
+      (!s.type || r.t === s.type) && (!s.activeOnly || r.on));
+    $('total').textContent = rows.length + ' ukupno';
+    $('list').innerHTML = rows.length
+      ? rows.map((r) => `<div class="card"><div class="t">${r.n}</div><div class="a">${r.a}</div>
+          <div class="chips"><span class="chip">${r.t}</span><span class="chip">${r.beds} kreveta</span>
+          <span class="chip ${r.on ? 'ok' : 'off'}">${r.on ? 'Aktivan' : 'Neaktivan'}</span></div></div>`).join('')
+      : `<div class="empty">Nijedan smještaj ne odgovara filterima.</div>`;
+    if (folded) {
+      const b = $('fb'), n = active();
+      b.textContent = n ? `Filteri (${n})` : 'Filteri';
+      b.className = 'btn' + (n ? ' solid' : '');
+      b.setAttribute('aria-expanded', String(s.open));
+      $('fold').classList.toggle('open', s.open);
+    }
+  }
+
+  $('q').addEventListener('input', (e) => { s.q = e.target.value; render(); });
+  $('type').addEventListener('change', (e) => { s.type = e.target.value; render(); });
+  $('act').addEventListener('change', (e) => { s.activeOnly = e.target.checked; render(); });
+  if (folded) $('fb').addEventListener('click', () => { s.open = !s.open; render(); });
+  render();
+}
+build(document.getElementById('before'), false);
+build(document.getElementById('after'), true);
+</script>

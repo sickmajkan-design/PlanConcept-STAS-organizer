@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<title>Detalj obavještenja</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:#1b1b1d}
+.dt *{box-sizing:border-box}
+.dt{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#ececec;background:#1b1b1d;width:1440px;height:900px;padding:20px 28px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+.panel{background:#26262a;border:1px solid #34343a;border-radius:12px}
+.muted{color:#b0b0b8}
+.btn{font:inherit;font-size:14px;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid #4a4a52;background:#2c2c31;color:#ececec;cursor:pointer}
+.btn.primary{background:#f1b24a;color:#1b1b1d;border-color:#f1b24a;font-weight:700}
+.btn[disabled]{opacity:.5;cursor:default}
+.fchip{font:inherit;font-size:13px;border:1px solid #4a4a52;border-radius:999px;padding:7px 14px;background:transparent;color:#d8d8dc;cursor:pointer;min-height:36px}
+.fchip.on{background:#f1b24a;color:#1b1b1d;border-color:#f1b24a;font-weight:700}
+.card{flex:1 1 0;min-width:0;background:#26262a;border:1px solid #34343a;border-radius:12px;padding:12px 14px}
+.card .l{font-size:12px;color:#b0b0b8}.card .v{font-size:24px;font-weight:700;margin-top:2px}
+.bar{height:8px;border-radius:4px;background:#3a3a40;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%}
+.grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.2fr) 150px 170px 170px;gap:12px;align-items:center}
+.th{font-size:11px;color:#b0b0b8;padding:0 4px}
+.tr{border-top:1px solid #34343a;padding:10px 4px;font-size:14px}
+.pill{font-size:12px;border-radius:999px;padding:3px 10px;border:1px solid #4a4a52;color:#d8d8dc;display:inline-block}
+.pill.ok{border-color:#6fcf97;color:#7ed6a0}.pill.bad{border-color:#ff9b8f;color:#ff9b8f}.pill.warn{border-color:#f1b24a;color:#f1b24a}
+.tag{font-size:11px;border-radius:999px;padding:2px 8px;border:1px solid #4a4a52;color:#d8d8dc;margin-right:4px}
+</style>
+</helmet>
+<div class="dt">
+
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px">
+    <div>
+      <div class="muted" style="font-size:13px">Obavještenja › Poslana › Pregled</div>
+      <h1 style="margin:2px 0 0;font-size:24px;font-weight:700">Sutra se počinje u 6:30 na Hali B</h1>
+      <div class="muted" style="font-size:13px;margin-top:2px">Poslao Darijo S. danas u 14:05 · traži potvrdu</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn">Izvezi (Excel)</button>
+      <button class="btn">Pošalji kao novo</button>
+    </div>
+  </div>
+
+  <div class="panel" style="padding:14px 18px;display:flex;gap:28px;align-items:flex-start">
+    <div style="flex:1;min-width:0">
+      <div class="muted" style="font-size:12px;margin-bottom:4px">Poruka</div>
+      <div style="font-size:15px;line-height:1.5">Zbog betoniranja sastanak je u 6:30 ispred kontejnera. Obavezno nositi kacigu i reflektirajući prsluk.</div>
+    </div>
+    <div style="flex:0 0 360px">
+      <div class="muted" style="font-size:12px;margin-bottom:6px">Poslano kome</div>
+      <span class="tag">Projekat: Hala B (5)</span><span class="tag">Radnik: Igor P.</span>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px">
+    <div class="card"><div class="l">Primalaca</div><div class="v">{{total}}</div><div class="l" style="margin-top:2px">jedan po osobi</div></div>
+    <div class="card"><div class="l">Pročitalo</div><div class="v" style="color:#7ed6a0">{{read}}</div><div class="bar"><i style="width:{{readPct}}%;background:#6fcf97"></i></div></div>
+    <div class="card"><div class="l">Potvrdilo</div><div class="v" style="color:#f1b24a">{{acked}}</div><div class="bar"><i style="width:{{ackPct}}%;background:#f1b24a"></i></div></div>
+    <div class="card"><div class="l">Nije pročitalo</div><div class="v" style="color:#ff9b8f">{{unread}}</div><div class="l" style="margin-top:2px">{{unreadNote}}</div></div>
+  </div>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <button class="fchip {{t0}}" onClick="{{pick0}}">Svi ({{total}})</button>
+    <button class="fchip {{t1}}" onClick="{{pick1}}">Nisu pročitali ({{unread}})</button>
+    <button class="fchip {{t2}}" onClick="{{pick2}}">Pročitali, nisu potvrdili ({{waitAck}})</button>
+    <button class="fchip {{t3}}" onClick="{{pick3}}">Potvrdili ({{acked}})</button>
+    <span style="flex:1"></span>
+    <button class="btn primary" disabled="{{remindDone}}" onClick="{{remind}}">{{remindLabel}}</button>
+  </div>
+
+  <div class="panel" style="padding:6px 14px;flex:1;min-height:0;overflow:auto">
+    <div class="grid" style="padding:8px 4px">
+      <div class="th">Primalac</div><div class="th">Preko</div><div class="th">Isporučeno</div><div class="th">Pročitao</div><div class="th">Potvrdio</div>
+    </div>
+    <sc-for list="{{rows}}" as="p" hint-placeholder-count="6">
+      <div class="grid tr">
+        <div><b>{{p.name}}</b> <span class="muted" style="font-size:12px">· {{p.role}}</span></div>
+        <div class="muted" style="font-size:13px">{{p.via}}</div>
+        <div><span class="pill {{p.delCls}}">{{p.delivered}}</span></div>
+        <div><span class="pill {{p.readCls}}">{{p.readAt}}</span></div>
+        <div><span class="pill {{p.ackCls}}">{{p.ackAt}}</span></div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div class="muted" style="font-size:12px">Podsjetnik ide samo onima koji nisu pročitali (ili nisu potvrdili), kao nova obavijest s oznakom "Podsjetnik". Isporučeno kaže da li je push stigao na telefon ili je samo u zvoncu.</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 0, reminded: false };
+  }
+  renderVals() {
+    // read: null = not read; ack: null = not confirmed; push: 'Push' | 'Samo zvonce'
+    const people = [
+      { name: 'Marko Marković', role: 'Poslovođa', via: 'Projekat: Hala B', push: 'Push', read: '14:06', ack: '14:08' },
+      { name: 'Adin Čengić', role: 'Radnik', via: 'Projekat: Hala B', push: 'Push', read: '14:21', ack: '14:21' },
+      { name: 'Jovica Krstić', role: 'Radnik', via: 'Projekat: Hala B', push: 'Push', read: '15:02', ack: null },
+      { name: 'Igor Pijetlović', role: 'Radnik', via: 'Hala B, direktno', push: 'Push', read: '16:40', ack: '16:41' },
+      { name: 'Vladimir Radojčić', role: 'Radnik', via: 'Projekat: Hala B', push: 'Samo zvonce', read: null, ack: null }
+    ];
+    const st = this.state;
+    const total = people.length;
+    const read = people.filter((p) => p.read).length;
+    const acked = people.filter((p) => p.ack).length;
+    const unread = total - read;
+    const waitAck = read - acked;
+    const shown = people.filter((p) => st.tab === 0 || (st.tab === 1 && !p.read) || (st.tab === 2 && p.read && !p.ack) || (st.tab === 3 && p.ack));
+    const rows = shown.map((p) => ({
+      name: p.name, role: p.role, via: p.via,
+      delivered: p.push, delCls: p.push === 'Push' ? 'ok' : 'warn',
+      readAt: p.read ? 'danas ' + p.read : 'nije pročitao', readCls: p.read ? 'ok' : 'bad',
+      ackAt: p.ack ? 'danas ' + p.ack : (p.read ? 'čeka se potvrda' : 'nije potvrdio'), ackCls: p.ack ? 'ok' : (p.read ? 'warn' : 'bad')
+    }));
+    const to = unread + waitAck;
+    const on = (i) => (st.tab === i ? 'on' : '');
+    return {
+      total, read, acked, unread, waitAck,
+      readPct: Math.round(100 * read / total), ackPct: Math.round(100 * acked / total),
+      unreadNote: unread > 0 ? 'Vladimir Radojčić nema push (samo zvonce)' : 'svi su pročitali',
+      rows,
+      t0: on(0), t1: on(1), t2: on(2), t3: on(3),
+      pick0: () => this.setState({ tab: 0 }), pick1: () => this.setState({ tab: 1 }),
+      pick2: () => this.setState({ tab: 2 }), pick3: () => this.setState({ tab: 3 }),
+      remindDone: st.reminded,
+      remindLabel: st.reminded ? 'Podsjetnik poslat (' + to + ')' : 'Podsjeti ' + to + ' osobe',
+      remind: () => this.setState({ reminded: true })
+    };
+  }
+}
+</script>
+</body>
+</html>

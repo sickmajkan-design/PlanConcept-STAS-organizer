@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<title>Poslana obavještenja</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:#1b1b1d}
+.ls *{box-sizing:border-box}
+.ls{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#ececec;background:#1b1b1d;width:1440px;height:760px;padding:20px 28px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+.panel{background:#26262a;border:1px solid #34343a;border-radius:12px}
+.muted{color:#b0b0b8}
+.btn{font:inherit;font-size:14px;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid #4a4a52;background:#2c2c31;color:#ececec;cursor:pointer}
+.btn.primary{background:#f1b24a;color:#1b1b1d;border-color:#f1b24a;font-weight:700}
+.fchip{font:inherit;font-size:13px;border:1px solid #4a4a52;border-radius:999px;padding:7px 14px;background:transparent;color:#d8d8dc;cursor:pointer;min-height:36px}
+.fchip.on{background:#f1b24a;color:#1b1b1d;border-color:#f1b24a;font-weight:700}
+.grid{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(0,1.6fr) 130px 150px 190px 100px;gap:12px;align-items:center}
+.th{font-size:11px;color:#b0b0b8;padding:0 4px}
+.tr{border-top:1px solid #34343a;padding:12px 4px;cursor:pointer}
+.tr:hover{background:#2c2c31}
+.bar{height:8px;border-radius:4px;background:#3a3a40;overflow:hidden}
+.bar i{display:block;height:100%;background:#6fcf97}
+.tag{font-size:11px;border-radius:999px;padding:2px 8px;border:1px solid #4a4a52;color:#d8d8dc;margin-right:4px}
+.tag.ack{border-color:#f1b24a;color:#ffd48a}
+.st{font-size:12px}
+.st.bad{color:#ff9b8f}.st.ok{color:#7ed6a0}.st.warn{color:#f1b24a}
+</style>
+</helmet>
+<div class="ls">
+
+  <div style="display:flex;justify-content:space-between;align-items:flex-end">
+    <div>
+      <div class="muted" style="font-size:13px">Obavještenja › Poslana</div>
+      <h1 style="margin:2px 0 0;font-size:24px;font-weight:700">Poslana obavještenja</h1>
+    </div>
+    <button class="btn primary">+ Novo obavještenje</button>
+  </div>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <button class="fchip {{f0}}" onClick="{{pick0}}">Sva</button>
+    <button class="fchip {{f1}}" onClick="{{pick1}}">Traže potvrdu</button>
+    <button class="fchip {{f2}}" onClick="{{pick2}}">Nisu svi pročitali</button>
+    <span style="flex:1"></span>
+    <input aria-label="Pretraga" placeholder="Pretraga po naslovu ili primaocu" style="font:inherit;font-size:14px;min-height:40px;width:300px;background:#26262a;color:#ececec;border:1px solid #4a4a52;border-radius:10px;padding:0 12px">
+  </div>
+
+  <div class="panel" style="padding:8px 14px;flex:1;min-height:0;overflow:auto">
+    <div class="grid" style="padding:8px 4px">
+      <div class="th">Obavještenje</div><div class="th">Primaoci</div><div class="th">Poslano</div><div class="th">Poslao</div><div class="th">Pročitalo</div><div class="th">Potvrdilo</div>
+    </div>
+    <sc-for list="{{rows}}" as="r" hint-placeholder-count="7">
+      <div class="grid tr">
+        <div style="min-width:0">
+          <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{r.title}}</div>
+          <div class="muted" style="font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{r.preview}}</div>
+        </div>
+        <div style="min-width:0"><sc-for list="{{r.audience}}" as="a" hint-placeholder-count="2"><span class="tag">{{a}}</span></sc-for></div>
+        <div style="font-size:13px">{{r.sent}}</div>
+        <div style="font-size:13px">{{r.by}}</div>
+        <div>
+          <div class="bar"><i style="width:{{r.readPct}}%"></i></div>
+          <div class="st {{r.readCls}}" style="margin-top:4px">{{r.readText}}</div>
+        </div>
+        <div>
+          <sc-if value="{{r.needsAck}}" hint-placeholder-val="{{true}}">
+            <div class="bar"><i style="width:{{r.ackPct}}%;background:#f1b24a"></i></div>
+            <div class="st {{r.ackCls}}" style="margin-top:4px">{{r.ackText}}</div>
+          </sc-if>
+          <sc-if value="{{r.noAck}}" hint-placeholder-val="{{false}}"><span class="muted" style="font-size:12px">ne traži se</span></sc-if>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div class="muted" style="font-size:12px">Klik na red otvara detalje: ko je pročitao, ko nije, i dugme za podsjetnik.</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":760}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { filter: 0 };
+  }
+  renderVals() {
+    const all = [
+      { title: 'Sutra se počinje u 6:30 na Hali B', preview: 'Zbog betoniranja sastanak je u 6:30 ispred kontejnera.', audience: ['Projekat: Hala B', 'Radnik: Igor P.'], sent: 'danas 14:05', by: 'Darijo S.', total: 5, read: 4, ack: 3, needsAck: true },
+      { title: 'Novi radni prsluci od ponedjeljka', preview: 'Reflektirajući prsluci se preuzimaju u magacinu.', audience: ['Svi korisnici'], sent: 'jučer 09:12', by: 'Darijo S.', total: 42, read: 38, ack: 0, needsAck: false },
+      { title: 'Promjena rasporeda: KW44', preview: 'Raspored za sedmicu 44 je objavljen, provjerite svoje gradilište.', audience: ['Poslovna jedinica: Njemačka'], sent: '22.10. 16:40', by: 'Marko M.', total: 18, read: 18, ack: 0, needsAck: false },
+      { title: 'Obavezna potvrda: pravila zaštite na radu', preview: 'Pročitajte i potvrdite izmijenjena pravila.', audience: ['Grupa: Betoniranje', 'Uloga: Poslovođe'], sent: '20.10. 08:00', by: 'Darijo S.', total: 9, read: 9, ack: 7, needsAck: true },
+      { title: 'Plata za oktobar se isplaćuje 5.11.', preview: 'Akontacije do 25.10. dostavite poslovođi.', audience: ['Svi korisnici'], sent: '19.10. 11:30', by: 'Darijo S.', total: 42, read: 31, ack: 0, needsAck: false },
+      { title: 'Sastanak poslovođa u petak', preview: 'Petak 24.10. u 15:00, ured.', audience: ['Uloga: Poslovođe'], sent: '17.10. 10:15', by: 'Darijo S.', total: 4, read: 4, ack: 0, needsAck: false }
+    ];
+    const f = this.state.filter;
+    const shown = all.filter((r) => f === 0 || (f === 1 && r.needsAck) || (f === 2 && r.read < r.total));
+    const rows = shown.map((r) => {
+      const readPct = Math.round(100 * r.read / r.total);
+      const ackPct = r.needsAck ? Math.round(100 * r.ack / r.total) : 0;
+      return {
+        title: r.title, preview: r.preview, audience: r.audience, sent: r.sent, by: r.by,
+        readPct, readText: r.read + ' od ' + r.total + (r.read === r.total ? ' · svi' : ''),
+        readCls: r.read === r.total ? 'ok' : 'warn',
+        needsAck: r.needsAck, noAck: !r.needsAck,
+        ackPct, ackText: r.ack + ' od ' + r.total + (r.ack === r.total ? ' · svi' : ' · čeka se ' + (r.total - r.ack)),
+        ackCls: r.ack === r.total ? 'ok' : 'bad'
+      };
+    });
+    const on = (i) => (f === i ? 'on' : '');
+    return {
+      rows,
+      f0: on(0), f1: on(1), f2: on(2),
+      pick0: () => this.setState({ filter: 0 }),
+      pick1: () => this.setState({ filter: 1 }),
+      pick2: () => this.setState({ filter: 2 })
+    };
+  }
+}
+</script>
+</body>
+</html>

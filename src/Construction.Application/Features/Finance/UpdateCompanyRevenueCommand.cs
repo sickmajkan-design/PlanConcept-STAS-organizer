@@ -1,3 +1,4 @@
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Entities;
@@ -9,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Construction.Application.Features.Finance;
 
 /// <summary>Corrects a company revenue that was typed in wrong.</summary>
-public record UpdateCompanyRevenueCommand : IRequest<CompanyRevenueDto>
+public record UpdateCompanyRevenueCommand : IRequest<CompanyRevenueDto>, IRequiresFullFinance
 {
     public Guid Id { get; init; }
 

@@ -28,6 +28,7 @@ import {
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { SavedViewsBar } from '../../components/SavedViewsBar';
 import { SearchField } from '../../components/SearchField';
+import { FilterBar } from '../../components/FilterBar';
 import { StatusChip } from '../../components/StatusChip';
 import { StatusLegend } from '../../components/StatusLegend';
 import {
@@ -228,16 +229,16 @@ export function WorkItemsListPage() {
         }}
       />
 
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        spacing={2}
-        sx={{ mb: 2, alignItems: { sm: 'center' }, flexWrap: 'wrap' }}
+      <FilterBar
+        activeCount={(!isBoard && !openOnly ? 1 : 0) + (overdueOnly ? 1 : 0) + (defectsOnly ? 1 : 0)}
+        search={
+          <SearchField
+            value={list.search}
+            onChange={list.setSearch}
+            placeholder={t('workItems.searchPlaceholder')}
+          />
+        }
       >
-        <SearchField
-          value={list.search}
-          onChange={list.setSearch}
-          placeholder={t('workItems.searchPlaceholder')}
-        />
         {!isBoard && (
         <FormControlLabel
           control={
@@ -278,7 +279,7 @@ export function WorkItemsListPage() {
         />
         <ViewModeToggle value={viewMode} onChange={setViewMode} />
         <StatusLegend kind="workItemStatus" values={workItemStatuses} />
-      </Stack>
+      </FilterBar>
 
       <Box sx={{ mb: 2 }}>
         <SavedViewsBar

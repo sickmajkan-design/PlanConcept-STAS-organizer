@@ -120,6 +120,17 @@ public class OutboxTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task An_unknown_address_is_not_answered_faster_than_a_known_one()
+    {
+        var started = System.Diagnostics.Stopwatch.GetTimestamp();
+
+        await InScope(scope => scope.Send(
+            new ForgotPasswordCommand { Email = "nobody-here@example.test" }));
+
+        Assert.True(System.Diagnostics.Stopwatch.GetElapsedTime(started) >= TimeSpan.FromMilliseconds(390));
+    }
+
+    [Fact]
     public async Task An_unknown_address_queues_nothing()
     {
         var before = await InScope(scope => scope.Db.OutboxMessages.CountAsync());

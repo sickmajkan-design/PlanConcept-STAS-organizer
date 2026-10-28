@@ -114,6 +114,14 @@ public class FinanceSeriesTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task A_caller_without_the_right_is_refused_before_the_body_is_judged()
+    {
+        // An empty body would be a validation error; the refusal has to come first so the fields are not revealed.
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() =>
+            AsAsync(UserRole.Admin, FinanceAccess.None, scope => scope.Send(new RecordCompanyRevenueCommand())));
+    }
+
+    [Fact]
     public async Task Recording_a_company_revenue_needs_the_full_finance_right()
     {
         await Assert.ThrowsAsync<ForbiddenAccessException>(() =>

@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<title>Novo obavještenje</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:#1b1b1d}
+.nw *{box-sizing:border-box}
+.nw{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#ececec;background:#1b1b1d;width:1440px;height:900px;padding:20px 28px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+.panel{background:#26262a;border:1px solid #34343a;border-radius:12px}
+.muted{color:#b0b0b8}
+.lbl{font-size:12px;color:#b0b0b8;display:block;margin-bottom:4px}
+.field{width:100%;background:#1b1b1d;color:#ececec;border:1px solid #4a4a52;border-radius:10px;padding:10px 12px;font:inherit;font-size:15px}
+.field:focus{outline:2px solid #f1b24a;outline-offset:1px}
+.btn{font:inherit;font-size:14px;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid #4a4a52;background:#2c2c31;color:#ececec;cursor:pointer}
+.btn.primary{background:#f1b24a;color:#1b1b1d;border-color:#f1b24a;font-weight:700}
+.btn.sm{min-height:36px;font-size:13px;padding:0 12px}
+.chip{display:inline-flex;align-items:center;gap:8px;font-size:13px;border:1px solid #f1b24a;color:#ffd48a;border-radius:999px;padding:6px 6px 6px 12px;background:#3a2f17}
+.chip button{font:inherit;width:24px;height:24px;border-radius:50%;border:0;background:#4a3a1a;color:#ffd48a;cursor:pointer;line-height:1}
+.add{font:inherit;font-size:13px;border:1px dashed #5a5a62;color:#d8d8dc;background:transparent;border-radius:999px;padding:7px 12px;cursor:pointer;min-height:36px}
+.add:hover{border-color:#f1b24a;color:#f1b24a}
+.row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-top:1px solid #34343a;font-size:14px}
+.tag{font-size:11px;border-radius:999px;padding:2px 8px;border:1px solid #4a4a52;color:#b0b0b8}
+.tag.warn{border-color:#f1b24a;color:#f1b24a}
+</style>
+</helmet>
+<div class="nw">
+
+  <div style="display:flex;justify-content:space-between;align-items:flex-end">
+    <div>
+      <div class="muted" style="font-size:13px">Obavještenja › Novo</div>
+      <h1 style="margin:2px 0 0;font-size:24px;font-weight:700">Novo obavještenje</h1>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn">Poslana obavještenja</button>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:16px;flex:1;min-height:0">
+
+    <div class="panel" style="flex:1.25;min-width:0;padding:18px;display:flex;flex-direction:column;gap:14px;overflow:auto">
+
+      <div>
+        <label class="lbl" for="t">Naslov</label>
+        <input id="t" class="field" value="Sutra se počinje u 6:30 na Hali B">
+      </div>
+      <div>
+        <label class="lbl" for="m">Poruka</label>
+        <textarea id="m" class="field" rows="4">Zbog betoniranja sastanak je u 6:30 ispred kontejnera. Obavezno nositi kacigu i reflektirajući prsluk.</textarea>
+      </div>
+
+      <div>
+        <span class="lbl">Kome šaljem (možete dodati više, primalac se broji jednom)</span>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;min-height:44px;align-items:center;padding:8px;border:1px solid #4a4a52;border-radius:10px;background:#1b1b1d">
+          <sc-for list="{{chips}}" as="c" hint-placeholder-count="2">
+            <span class="chip">{{c.label}} <span style="opacity:.7">· {{c.count}}</span><button aria-label="Ukloni" onClick="{{c.remove}}">×</button></span>
+          </sc-for>
+          <sc-if value="{{noChips}}" hint-placeholder-val="{{false}}">
+            <span class="muted" style="font-size:13px">Izaberite bar jednu grupu ispod.</span>
+          </sc-if>
+        </div>
+      </div>
+
+      <div>
+        <span class="lbl">Dodaj primaoce</span>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <sc-for list="{{options}}" as="o" hint-placeholder-count="8">
+            <button class="add" onClick="{{o.add}}">+ {{o.label}}</button>
+          </sc-for>
+        </div>
+        <div class="muted" style="font-size:12px;margin-top:6px">Radnik (po imenu), Grupa, Projekat (ekipa na gradilištu), Poslovna jedinica, Uloga, Svi.</div>
+      </div>
+
+      <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center">
+        <label style="display:flex;gap:8px;align-items:center;font-size:14px"><input type="checkbox" checked> Traži potvrdu da je pročitano</label>
+        <label style="display:flex;gap:8px;align-items:center;font-size:14px"><input type="checkbox"> Zakaži slanje</label>
+      </div>
+      <div class="muted" style="font-size:12px;margin-top:-6px">Kad se traži potvrda, primalac ne može ništa drugo u aplikaciji dok ne potvrdi; vidjećete ko je potvrdio, a ko nije.</div>
+
+      <div style="margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <span class="muted" style="font-size:13px">Šalje se kao push na telefon i u zvonce u aplikaciji i panelu.</span>
+        <div style="display:flex;gap:8px">
+          <button class="btn">Sačuvaj kao šablon</button>
+          <button class="btn primary" onClick="{{send}}">{{sendLabel}}</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="flex:0 0 440px;padding:18px;display:flex;flex-direction:column;gap:10px;min-height:0">
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <h2 style="margin:0;font-size:17px">Primaoci</h2>
+        <span style="font-size:28px;font-weight:700;color:#f1b24a">{{total}}</span>
+      </div>
+      <div class="muted" style="font-size:13px">{{summary}}</div>
+
+      <sc-if value="{{noAccount}}" hint-placeholder-val="{{true}}">
+        <div style="border:1px solid #f1b24a;border-radius:10px;padding:10px 12px;font-size:13px;color:#ffd48a;background:#3a2f17">
+          {{noAccountCount}} od izabranih nema korisnički nalog pa ih obavještenje ne može stići. Vidi se ispod.
+        </div>
+      </sc-if>
+
+      <div style="flex:1;min-height:0;overflow:auto">
+        <sc-for list="{{people}}" as="p" hint-placeholder-count="8">
+          <div class="row">
+            <span>{{p.name}} <span class="muted" style="font-size:12px">· {{p.role}}</span></span>
+            <sc-if value="{{p.noAccount}}" hint-placeholder-val="{{false}}"><span class="tag warn">bez naloga</span></sc-if>
+            <sc-if value="{{p.hasAccount}}" hint-placeholder-val="{{true}}"><span class="tag">{{p.via}}</span></sc-if>
+          </div>
+        </sc-for>
+        <sc-if value="{{nobody}}" hint-placeholder-val="{{false}}">
+          <div class="muted" style="padding:18px 0;font-size:14px">Još nema primalaca.</div>
+        </sc-if>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { picked: ['project:hala', 'worker:igor'], sent: false };
+  }
+  renderVals() {
+    // sample firm: who belongs to which target (a person can be in several)
+    const people = {
+      adin: { name: 'Adin Čengić', role: 'Radnik', account: true },
+      igor: { name: 'Igor Pijetlović', role: 'Radnik', account: true },
+      jovica: { name: 'Jovica Krstić', role: 'Radnik', account: true },
+      vlado: { name: 'Vladimir Gjorgijev', role: 'Radnik', account: true },
+      vlad2: { name: 'Vladimir Radojčić', role: 'Radnik', account: false },
+      marko: { name: 'Marko Marković', role: 'Poslovođa', account: true },
+      dario: { name: 'Darijo Stanković', role: 'Admin', account: true },
+      ivan: { name: 'Ivan Horvat', role: 'Radnik', account: true },
+      ana: { name: 'Ana Novak', role: 'Radnik', account: true }
+    };
+    const targets = {
+      'project:hala': { label: 'Projekat: Hala B (ekipa)', short: 'Projekat: Hala B', members: ['adin', 'igor', 'jovica', 'marko', 'vlad2'] },
+      'project:aldi': { label: 'Projekat: Aldi (ekipa)', short: 'Projekat: Aldi', members: ['vlado', 'ivan', 'marko'] },
+      'group:betoniranje': { label: 'Grupa: Betoniranje', short: 'Grupa: Betoniranje', members: ['adin', 'jovica', 'ivan'] },
+      'role:foreman': { label: 'Uloga: Poslovođe', short: 'Uloga: Poslovođe', members: ['marko'] },
+      'branch:de': { label: 'Poslovna jedinica: Njemačka', short: 'Jedinica: Njemačka', members: ['adin', 'igor', 'jovica', 'vlado', 'marko', 'ana'] },
+      'worker:igor': { label: 'Radnik: Igor Pijetlović', short: 'Radnik: Igor Pijetlović', members: ['igor'] },
+      'worker:ana': { label: 'Radnik: Ana Novak', short: 'Radnik: Ana Novak', members: ['ana'] },
+      'all': { label: 'Svi korisnici', short: 'Svi', members: Object.keys(people) }
+    };
+    const st = this.state;
+    const picked = st.picked.filter((k) => targets[k]);
+
+    const via = {};
+    picked.forEach((k) => targets[k].members.forEach((m) => { (via[m] = via[m] || []).push(targets[k].short); }));
+    const ids = Object.keys(via);
+    const list = ids.map((id) => ({
+      name: people[id].name,
+      role: people[id].role,
+      noAccount: !people[id].account,
+      hasAccount: people[id].account,
+      via: via[id].length > 1 ? via[id].length + ' izvora' : via[id][0]
+    })).sort((a, b) => a.name.localeCompare(b.name));
+    const noAccountCount = list.filter((p) => p.noAccount).length;
+    const reachable = list.length - noAccountCount;
+
+    const chips = picked.map((k) => ({
+      label: targets[k].label,
+      count: targets[k].members.length,
+      remove: () => this.setState({ picked: st.picked.filter((x) => x !== k) })
+    }));
+    const options = Object.keys(targets).filter((k) => !picked.includes(k)).map((k) => ({
+      label: targets[k].short,
+      add: () => this.setState({ picked: [...st.picked, k] })
+    }));
+
+    return {
+      chips, options, people: list,
+      noChips: chips.length === 0,
+      nobody: list.length === 0,
+      total: reachable,
+      summary: picked.length === 0 ? 'Dodajte primaoce da vidite koliko ljudi će dobiti obavještenje.'
+        : 'Ukupno ' + list.length + ' osoba iz ' + picked.length + ' izvora; ' + reachable + ' ih može primiti obavještenje.',
+      noAccount: noAccountCount > 0,
+      noAccountCount,
+      sendLabel: st.sent ? 'Poslano (' + reachable + ')' : 'Pošalji ' + reachable + ' osoba',
+      send: () => this.setState({ sent: true })
+    };
+  }
+}
+</script>
+</body>
+</html>

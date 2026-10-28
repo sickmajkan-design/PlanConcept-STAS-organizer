@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<title>Obračun radnika</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:#1b1b1d}
+.sheet *{box-sizing:border-box}
+.sheet{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#ececec;background:#1b1b1d;min-height:900px}
+.hcell{font-size:11px;line-height:1.2;color:#b9b9bf;text-align:right;align-self:end;padding:0 2px;overflow-wrap:anywhere}
+.cell{font-size:12.5px;text-align:right;padding:0 2px;font-variant-numeric:tabular-nums;color:#ececec;min-width:0}
+.cell.inp{border-bottom:1px solid #5a5a62;margin:0 2px;padding:2px 0}
+.cell.calc{font-weight:600;background:#2c2c31;border-radius:4px;padding:3px 2px}
+.cell.auto{color:#cfd2ff;background:#26283a;border-radius:4px;padding:3px 2px}
+.cell.zero{color:#7d7d86}
+.cell.neg{color:#ff9b8f}
+.rowline{border-top:1px solid #34343a}
+.chip{font-size:12px;border:1px solid #4a4a52;border-radius:999px;padding:3px 10px;color:#d8d8dc;background:#232326}
+.legend span.sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-2px}
+.btn{font:inherit;font-size:13px;color:#f1b24a;background:none;border:0;padding:8px 6px;cursor:pointer;min-height:44px}
+.tog{font:inherit;font-size:13px;color:#ececec;background:#2c2c31;border:1px solid #4a4a52;border-radius:8px;padding:8px 14px;min-height:44px;cursor:pointer}
+</style>
+</helmet>
+<div class="sheet" style="padding:24px 24px 48px;display:flex;flex-direction:column;gap:18px">
+
+  <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between">
+    <div>
+      <div style="font-size:13px;color:#b9b9bf">Finansije › Evidencija</div>
+      <h1 style="margin:2px 0 0;font-size:24px;font-weight:700">Oktobar 2026 · Obračun radnika</h1>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+      <button class="tog" onClick="{{toggleWeeks}}">{{weeksLabel}}</button>
+      <button class="tog">Izvezi u Excel</button>
+      <button class="tog" style="border-color:#f1b24a;color:#f1b24a">Zaključaj mjesec</button>
+    </div>
+  </div>
+
+  <div class="legend" style="display:flex;flex-wrap:wrap;gap:6px 22px;font-size:12px;color:#b9b9bf">
+    <div><span class="sw" style="border-bottom:2px solid #5a5a62;background:#1b1b1d"></span>upisuje se ručno</div>
+    <div><span class="sw" style="background:#2c2c31"></span>računa se samo</div>
+    <div><span class="sw" style="background:#26283a"></span>dolazi iz sistema (cijena, gorivo, smještaj, odsustva, refundacije)</div>
+    <div style="color:#8e8e98">Zaglavlja su skraćena; puni naziv kolone vidi se kad pređete mišem preko nje.</div>
+  </div>
+
+  <div style="display:flex;flex-wrap:wrap;gap:10px">
+    <sc-for list="{{summary}}" as="s" hint-placeholder-count="4">
+      <div style="flex:1 1 180px;background:#26262a;border:1px solid #34343a;border-radius:10px;padding:12px 14px">
+        <div style="font-size:12px;color:#b9b9bf">{{s.label}}</div>
+        <div style="font-size:20px;font-weight:700;margin-top:2px">{{s.value}}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:10px;background:#26262a;border:1px solid #34343a;border-radius:10px;padding:12px 16px">
+    <span style="font-weight:700;font-size:14px">ACHEN ENERGIO</span>
+    <span class="chip">3 reda</span>
+    <span style="flex:1"></span>
+    <span style="font-size:12px;color:#8e8e98">zatvoreno</span>
+  </div>
+
+  <div style="background:#26262a;border:1px solid #34343a;border-radius:10px;padding:14px 16px 8px">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <span style="font-weight:700;font-size:14px">Aldi</span>
+      <span class="chip">6 redova</span>
+      <span style="flex:1"></span>
+      <span style="font-size:12px;color:#b9b9bf">Cijela tabela stane na ekran, bez vodoravnog skrolanja</span>
+    </div>
+
+    <div style="display:grid;gap:0;align-items:end;padding-bottom:8px;{{gridStyle}}">
+      <div class="hcell" style="text-align:left;font-size:12px">Radnik</div>
+      <sc-for list="{{headers}}" as="h" hint-placeholder-count="22">
+        <div class="hcell" title="{{h.full}}">{{h.short}}</div>
+      </sc-for>
+    </div>
+
+    <sc-for list="{{rows}}" as="r" hint-placeholder-count="6">
+      <div class="rowline" style="display:grid;align-items:center;padding:7px 0;{{gridStyle}}">
+        <div style="min-width:0;padding-right:6px">
+          <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{r.name}}</div>
+          <div style="font-size:11px;color:#8e8e98">Radnici</div>
+        </div>
+        <sc-for list="{{r.cells}}" as="c" hint-placeholder-count="22">
+          <div class="cell {{c.cls}}">{{c.text}}</div>
+        </sc-for>
+      </div>
+    </sc-for>
+
+    <div class="rowline" style="display:grid;align-items:center;padding:9px 0 6px;border-top:2px solid #4a4a52;{{gridStyle}}">
+      <div style="font-size:13px;font-weight:700">Zbir</div>
+      <sc-for list="{{totals}}" as="c" hint-placeholder-count="22">
+        <div class="cell" style="font-weight:700">{{c.text}}</div>
+      </sc-for>
+    </div>
+    <button class="btn">+ Dodaj red</button>
+  </div>
+
+  <div style="font-size:12px;color:#8e8e98;max-width:900px;line-height:1.5">
+    Primjer podataka, nije stvarni obračun. Kolone dijele cijelu raspoloživu širinu i prate veličinu prozora; prazna šesta sedmica se može sakriti dugmetom gore pa ostale kolone dobiju više mjesta.
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { hideWeek6: false };
+  }
+  renderVals() {
+    const f = (n) => n.toFixed(2);
+    const heads = [
+      ['Cijena sata','Cijena sata radnika'],
+      ['KW36','KW36'],['KW37','KW37'],['KW38','KW38'],['KW39','KW39'],['KW40','KW40'],['Sed. 6','Sedmica 6'],
+      ['Sati','Sati'],
+      ['Cijena kl.','Cijena sata za klijenta'],
+      ['Zarada','Zarada radnika'],
+      ['Naplata','Naplata klijentu'],
+      ['Marža','Marža'],
+      ['Doprinosi','Doprinosi'],
+      ['Rent a car','Rent a car'],
+      ['Gorivo','Gorivo'],
+      ['Stanovanje','Stanovanje'],
+      ['God. odmor +','Godišnji odmor (+)'],
+      ['Refund. +','Refundacija (+)'],
+      ['Razlika / bonus','Razlika od prošle plate / bonus'],
+      ['Akontacija −','Akontacija (−)'],
+      ['Regres','Regres'],
+      ['Rezultat','Rezultat']
+    ];
+    // type per column: i = typed, a = from system, c = calculated
+    const types = ['a','i','i','i','i','i','i','c','a','c','c','c','i','a','a','a','a','a','i','i','i','c'];
+    const people = [
+      { name: 'Adin Čengić', rate: 16, w: [50,50,50,50,20,0], cr: 22, contrib: 310, rent: 0, fuel: 85.4, housing: 120, hol: 0, ref: 0, diff: 0, adv: 500, reg: 0 },
+      { name: 'Darijo Stanković', rate: 14, w: [40,40,40,40,16,0], cr: 22, contrib: 270, rent: 0, fuel: 0, housing: 120, hol: 0, ref: 24.5, diff: 0, adv: 300, reg: 0 },
+      { name: 'Igor Pijetlović', rate: 15, w: [45,48,45,50,20,0], cr: 22, contrib: 295, rent: 90, fuel: 62, housing: 120, hol: 0, ref: 0, diff: 40, adv: 400, reg: 0 },
+      { name: 'Jovica Krstić', rate: 13.5, w: [40,40,32,40,20,0], cr: 22, contrib: 250, rent: 0, fuel: 0, housing: 120, hol: 108, ref: 0, diff: 0, adv: 250, reg: 0 },
+      { name: 'Vladimir Gjorgijev', rate: 14, w: [50,50,50,50,20,0], cr: 22, contrib: 290, rent: 0, fuel: 41.7, housing: 120, hol: 0, ref: 0, diff: 0, adv: 600, reg: 0 },
+      { name: 'Vladimir Radojčić', rate: 12, w: [36,40,40,40,12,0], cr: 22, contrib: 240, rent: 0, fuel: 0, housing: 120, hol: 0, ref: 0, diff: 0, adv: 200, reg: 0 }
+    ];
+    const hide6 = this.state.hideWeek6;
+    const keep = (i) => !(hide6 && i === 6);
+
+    const rowsData = people.map((p) => {
+      const hours = p.w.reduce((a, b) => a + b, 0);
+      const pay = p.rate * hours + p.hol + p.ref + p.diff - p.adv;
+      const billing = hours * p.cr;
+      const margin = billing - pay;
+      const result = margin - p.contrib - p.rent - p.fuel - p.housing - p.adv - p.reg;
+      const vals = [p.rate, ...p.w, hours, p.cr, pay, billing, margin, p.contrib, p.rent, p.fuel, p.housing, p.hol, p.ref, p.diff, p.adv, p.reg, result];
+      return { name: p.name, vals };
+    });
+
+    const mkCell = (v, i) => {
+      const zero = v === 0;
+      return { text: zero && types[i] === 'i' ? '' : f(v), cls: types[i] === 'i' ? 'inp' : types[i] === 'a' ? 'auto' : 'calc' };
+    };
+    const rows = rowsData.map((r) => ({
+      name: r.name,
+      cells: r.vals.map((v, i) => ({ v, i })).filter((x) => keep(x.i)).map((x) => {
+        const c = mkCell(x.v, x.i);
+        if (x.i === 21 && x.v < 0) c.cls += ' neg';
+        return c;
+      })
+    }));
+    const sums = heads.map((_, i) => rowsData.reduce((a, r) => a + r.vals[i], 0));
+    const totals = sums.map((v, i) => ({ v, i })).filter((x) => keep(x.i)).map((x) => ({
+      text: x.i === 0 || x.i === 8 ? '' : f(x.v)
+    }));
+    const headers = heads.map((h, i) => ({ short: h[0], full: h[1], i })).filter((h) => keep(h.i));
+    const n = headers.length;
+
+    const sumBy = (i) => sums[i];
+    const summary = [
+      { label: 'Sati ukupno', value: f(sumBy(7)) },
+      { label: 'Zarada radnika', value: f(sumBy(9)) + ' €' },
+      { label: 'Naplata klijentu', value: f(sumBy(10)) + ' €' },
+      { label: 'Rezultat gradilišta', value: f(sumBy(21)) + ' €' }
+    ];
+
+    return {
+      headers, rows, totals, summary,
+      gridStyle: 'grid-template-columns:150px repeat(' + n + ', minmax(0, 1fr));',
+      weeksLabel: hide6 ? 'Prikaži praznu sedmicu 6' : 'Sakrij praznu sedmicu 6',
+      toggleWeeks: () => this.setState({ hideWeek6: !this.state.hideWeek6 })
+    };
+  }
+}
+</script>
+</body>
+</html>

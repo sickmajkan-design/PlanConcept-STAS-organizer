@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<title>Evidencija nakon odobrenja</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:#1b1b1d}
+.lg *{box-sizing:border-box}
+.lg{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#ececec;background:#1b1b1d;width:1440px;height:700px;padding:20px 28px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+.panel{background:#26262a;border:1px solid #34343a;border-radius:12px}
+.muted{color:#b0b0b8}
+.card{flex:1 1 0;min-width:0;background:#26262a;border:1px solid #34343a;border-radius:12px;padding:12px 14px}
+.card .l{font-size:12px;color:#b0b0b8}
+.card .v{font-size:22px;font-weight:700;margin-top:2px}
+.g{display:grid;grid-template-columns:200px repeat(9,minmax(0,1fr));gap:0;align-items:center}
+.h{font-size:11px;color:#b0b0b8;text-align:right;padding:0 4px}
+.c{font-size:13px;text-align:right;padding:6px 4px;font-variant-numeric:tabular-nums}
+.c.calc{font-weight:600;background:#2c2c31;border-radius:4px}
+.c.src{background:#1f3327;border:1px solid #3d7a56;border-radius:4px;color:#b9efcf;position:relative}
+.c.hand{border-bottom:1px solid #5a5a62}
+.c.kept{background:#3a2f17;border:1px solid #f1b24a;border-radius:4px;color:#ffd48a}
+.r{border-top:1px solid #34343a}
+.badge{font-size:10px;line-height:1;border-radius:999px;padding:2px 6px;border:1px solid #3d7a56;color:#7ed6a0;margin-left:4px}
+.lgd{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:12px;color:#b0b0b8}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-2px}
+</style>
+</helmet>
+<div class="lg">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end">
+    <div>
+      <div class="muted" style="font-size:13px">Finansije › Evidencija</div>
+      <h1 style="margin:2px 0 0;font-size:24px;font-weight:700">Oktobar 2026 · Obračun radnika</h1>
+    </div>
+    <div class="muted" style="font-size:13px">KW42 upisana iz odobrenog izvještaja, danas u 09:02 (Dario S.)</div>
+  </div>
+
+  <div style="display:flex;gap:10px">
+    <div class="card"><div class="l">Odobreno iz izvještaja</div><div class="v">212,5 h</div><div class="l" style="margin-top:2px">KW42 · Aldi</div></div>
+    <div class="card"><div class="l">Upisano ukupno (Aldi)</div><div class="v">412,5 h</div><div class="l" style="margin-top:2px">KW41 + KW42</div></div>
+    <div class="card" style="border-color:#f1b24a"><div class="l">Bez odobrenog izvještaja</div><div class="v" style="color:#f1b24a">200 h</div><div class="l" style="margin-top:2px">KW41 upisano ručno</div></div>
+    <div class="card"><div class="l">Zarada radnika</div><div class="v">5.827,50 €</div></div>
+    <div class="card"><div class="l">Naplata klijentu</div><div class="v">9.075,00 €</div></div>
+    <div class="card"><div class="l">Marža</div><div class="v">3.247,50 €</div></div>
+  </div>
+
+  <div class="lgd">
+    <div><span class="sw" style="background:#1f3327;border:1px solid #3d7a56"></span>upisano iz odobrenog izvještaja</div>
+    <div><span class="sw" style="background:#3a2f17;border:1px solid #f1b24a"></span>razlikovalo se, ostavljeno staro (ručna vrijednost)</div>
+    <div><span class="sw" style="border-bottom:2px solid #5a5a62"></span>upisano ručno</div>
+    <div><span class="sw" style="background:#2c2c31"></span>računa se samo</div>
+  </div>
+
+  <div class="panel" style="padding:14px 16px;flex:1;min-height:0">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <span style="font-weight:700;font-size:15px">Aldi</span>
+      <span style="font-size:12px;border:1px solid #4a4a52;border-radius:999px;padding:3px 10px">5 redova</span>
+      <span style="flex:1"></span>
+      <span class="muted" style="font-size:12px">Klik na zelenu ćeliju otvara izvještaj iz kojeg je upisana</span>
+    </div>
+    <div class="g" style="padding-bottom:6px">
+      <div class="h" style="text-align:left">Radnik</div>
+      <div class="h">Cijena sata</div><div class="h">KW41</div><div class="h">KW42</div><div class="h">KW43</div>
+      <div class="h">Sati</div><div class="h">Zarada radnika</div><div class="h">Naplata klijentu</div><div class="h">Marža</div>
+    </div>
+
+    <div class="g r"><div style="font-weight:600">Adin Čengić</div>
+      <div class="c">16,00</div><div class="c hand">40,00</div><div class="c src">45,00</div><div class="c hand"></div>
+      <div class="c calc">85,00</div><div class="c calc">1360,00</div><div class="c calc">1870,00</div><div class="c calc">510,00</div></div>
+    <div class="g r"><div style="font-weight:600">Igor Pijetlović</div>
+      <div class="c">15,00</div><div class="c hand">40,00</div><div class="c src">42,50</div><div class="c hand"></div>
+      <div class="c calc">82,50</div><div class="c calc">1237,50</div><div class="c calc">1815,00</div><div class="c calc">577,50</div></div>
+    <div class="g r"><div style="font-weight:600">Jovica Krstić</div>
+      <div class="c">13,50</div><div class="c hand">40,00</div><div class="c src">40,00</div><div class="c hand"></div>
+      <div class="c calc">80,00</div><div class="c calc">1080,00</div><div class="c calc">1760,00</div><div class="c calc">680,00</div></div>
+    <div class="g r"><div style="font-weight:600">Vladimir Gjorgijev</div>
+      <div class="c">14,00</div><div class="c hand">40,00</div><div class="c src">45,00</div><div class="c hand"></div>
+      <div class="c calc">85,00</div><div class="c calc">1190,00</div><div class="c calc">1870,00</div><div class="c calc">680,00</div></div>
+    <div class="g r"><div style="font-weight:600">Vladimir Radojčić</div>
+      <div class="c">12,00</div><div class="c hand">40,00</div><div class="c src">40,00</div><div class="c hand"></div>
+      <div class="c calc">80,00</div><div class="c calc">960,00</div><div class="c calc">1760,00</div><div class="c calc">800,00</div></div>
+    <div class="g r" style="border-top:2px solid #4a4a52;margin-top:2px"><div style="font-weight:700">Zbir</div>
+      <div class="c"></div><div class="c" style="font-weight:700">200,00</div><div class="c" style="font-weight:700">212,50</div><div class="c"></div>
+      <div class="c" style="font-weight:700">412,50</div><div class="c" style="font-weight:700">5827,50</div><div class="c" style="font-weight:700">9075,00</div><div class="c" style="font-weight:700">3247,50</div></div>
+
+    <div style="margin-top:14px;background:#1b1b1d;border:1px dashed #4a4a52;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.55">
+      <b>Provjera sedmice KW42:</b> zbir radnika 212,5 h = odobreni izvještaj 212,5 h <span class="badge">slaže se</span><br>
+      <b>Provjera sedmice KW41:</b> nema odobrenog izvještaja za uporedbu; sati su upisani ručno <span class="badge" style="border-color:#f1b24a;color:#f1b24a">bez izvještaja</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":700}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

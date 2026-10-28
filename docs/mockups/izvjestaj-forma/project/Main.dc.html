@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<title>Pregled sedmičnog izvještaja</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&display=swap">
+<style>
+body{margin:0;background:#1b1b1d}
+.rv *{box-sizing:border-box}
+.rv{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#ececec;background:#1b1b1d;width:1440px;height:900px;padding:20px 28px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+.panel{background:#26262a;border:1px solid #34343a;border-radius:12px}
+.muted{color:#b0b0b8}
+.btn{font:inherit;font-size:14px;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid #4a4a52;background:#2c2c31;color:#ececec;cursor:pointer}
+.btn.primary{background:#f1b24a;color:#1b1b1d;border-color:#f1b24a;font-weight:700}
+.btn.warn{border-color:#f1b24a;color:#f1b24a;background:transparent}
+.btn[disabled]{opacity:.5;cursor:default}
+.chip{font-size:12px;border-radius:999px;padding:3px 10px;border:1px solid #4a4a52;color:#d8d8dc}
+.chip.warn{border-color:#f1b24a;color:#f1b24a}
+.chip.ok{border-color:#6fcf97;color:#7ed6a0}
+.thumb{width:84px;height:110px;border-radius:6px;border:2px solid #4a4a52;background:#f2efe6;cursor:pointer;display:block;padding:0;position:relative}
+.thumb.on{border-color:#f1b24a}
+.thumb span{position:absolute;left:0;right:0;bottom:-22px;text-align:center;font-size:12px;color:#b0b0b8}
+.paper{background:#f2efe6;color:#26262a;border-radius:6px;padding:28px 34px;width:100%;min-height:520px;font-family:"Caveat",cursive;font-size:22px;box-shadow:0 2px 14px rgba(0,0,0,.45)}
+.paper h3{margin:0 0 4px;font-family:system-ui,sans-serif;font-size:15px}
+.line{display:flex;justify-content:space-between;border-bottom:1px solid #b9b4a4;padding:6px 0}
+.sign{margin-top:34px;font-size:34px;color:#2b4a9a;transform:rotate(-4deg);width:160px;border-bottom:1px solid #2b4a9a}
+.th{font-size:11px;color:#b0b0b8;text-align:left;padding:0 6px}
+.row{display:grid;grid-template-columns:minmax(0,1.5fr) 92px minmax(0,1.35fr) 44px;gap:8px;align-items:center;border-top:1px solid #34343a;padding:7px 0}
+.inp{font:inherit;font-size:15px;width:100%;min-height:44px;background:#1b1b1d;color:#ececec;border:1px solid #4a4a52;border-radius:8px;padding:0 10px;text-align:right}
+.inp:focus{outline:2px solid #f1b24a;outline-offset:1px}
+.st{font-size:12px;line-height:1.3}
+.st.ok{color:#7ed6a0}.st.neutral{color:#b0b0b8}.st.warn{color:#f1b24a}
+.ib{font:inherit;width:44px;height:44px;border-radius:8px;border:1px solid #4a4a52;background:transparent;color:#b0b0b8;cursor:pointer;font-size:16px}
+.seg{display:inline-flex;border:1px solid #4a4a52;border-radius:8px;overflow:hidden;margin-top:4px}
+.seg button{font:inherit;font-size:12px;border:0;background:transparent;color:#d8d8dc;padding:6px 10px;cursor:pointer;min-height:30px}
+.seg button.on{background:#f1b24a;color:#1b1b1d;font-weight:700}
+</style>
+</helmet>
+<div class="rv">
+
+  <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px">
+    <div>
+      <div class="muted" style="font-size:13px">Planiranje › Sedmični izvještaji › Pregled</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:2px">
+        <h1 style="margin:0;font-size:24px;font-weight:700">Aldi · KW42 · 12.–18.10.2026</h1>
+        <span class="chip {{statusCls}}">{{statusText}}</span>
+      </div>
+      <div class="muted" style="font-size:13px;margin-top:2px">Poslao Marko Marković, 19.10. u 08:14 · 2 slike dokumenta · poslovođa je upisao ukupno 212,5 h</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn">Preuzmi sve slike</button>
+      <button class="btn">Sljedeći za pregled (3) →</button>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:16px;flex:1;min-height:0">
+
+    <div class="panel" style="flex:0 0 640px;padding:14px;display:flex;gap:16px;min-height:0">
+      <div style="display:flex;flex-direction:column;gap:30px;padding-top:4px">
+        <button class="thumb {{p1cls}}" onClick="{{showP1}}" aria-label="Stranica 1"><span>Strana 1</span></button>
+        <button class="thumb {{p2cls}}" onClick="{{showP2}}" aria-label="Stranica 2"><span>Strana 2</span></button>
+      </div>
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span class="muted" style="font-size:13px">{{pageLabel}}</span>
+          <span style="display:flex;gap:6px"><button class="ib" aria-label="Umanji">−</button><button class="ib" aria-label="Uvećaj">+</button></span>
+        </div>
+        <sc-if value="{{isPage1}}" hint-placeholder-val="{{true}}">
+          <div class="paper">
+            <h3>Satnica · Aldi · KW 42 (12.–18.10.)</h3>
+            <div class="line"><span>Čengić A.</span><span>8 8 8 8 8 5 0 = 45</span></div>
+            <div class="line"><span>Pijetlović I.</span><span>8 8 8 8 8 2,5 0 = 42,5</span></div>
+            <div class="line"><span>Krstić J.</span><span>8 8 8 8 8 0 0 = 40</span></div>
+            <div class="line"><span>Gjorgijev V.</span><span>8 8 8 8 8 5 0 = 45</span></div>
+            <div class="muted" style="font-family:system-ui;font-size:12px;margin-top:22px;color:#6b665a">nastavak na strani 2</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{isPage2}}" hint-placeholder-val="{{false}}">
+          <div class="paper">
+            <h3>Satnica · Aldi · KW 42 · strana 2</h3>
+            <div class="line"><span>Radojčić V.</span><span>8 8 8 8 8 0 0 = 40</span></div>
+            <div class="line"><span>Ukupno</span><span>212,5</span></div>
+            <div style="font-family:system-ui;font-size:12px;margin-top:34px;color:#6b665a">Potpis predstavnika kupca</div>
+            <div class="sign">M. Weber</div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <div class="panel" style="flex:1;min-width:0;padding:16px;display:flex;flex-direction:column;gap:10px;min-height:0">
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <h2 style="margin:0;font-size:17px">Podaci koje je unio poslovođa</h2>
+        <span class="muted" style="font-size:12px">Ispravite ako se ne slažu sa slikom</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px">
+        <div><div class="th">Gradilište</div><div style="padding:10px 6px;font-weight:600">Aldi</div></div>
+        <div><div class="th">Sedmica</div><div style="padding:10px 6px;font-weight:600">KW42 · 12.–18.10.</div></div>
+        <div><div class="th">Mjesec u Evidenciji</div><div style="padding:10px 6px;font-weight:600">Oktobar 2026</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:minmax(0,1.5fr) 92px minmax(0,1.35fr) 44px;gap:8px;padding-top:2px">
+        <div class="th">Radnik</div><div class="th" style="text-align:right">Sati</div><div class="th">U Evidenciji (KW42)</div><div></div>
+      </div>
+
+      <div style="flex:1;min-height:0;overflow:auto">
+        <sc-for list="{{workers}}" as="w" hint-placeholder-count="5">
+          <div class="row">
+            <div style="min-width:0">
+              <div style="font-weight:600;font-size:15px">{{w.name}}</div>
+              <div class="muted" style="font-size:12px">povezan sa zaposlenim ✓</div>
+            </div>
+            <input class="inp" type="text" inputmode="decimal" aria-label="Sati" value="{{w.hours}}" onChange="{{w.onHours}}">
+            <div>
+              <div class="st {{w.stCls}}">{{w.stText}}</div>
+              <sc-if value="{{w.isDiff}}" hint-placeholder-val="{{false}}">
+                <div class="seg">
+                  <button class="{{w.replaceCls}}" onClick="{{w.doReplace}}">Zamijeni</button>
+                  <button class="{{w.keepCls}}" onClick="{{w.doKeep}}">Zadrži staro</button>
+                </div>
+              </sc-if>
+            </div>
+            <button class="ib" aria-label="Ukloni red">×</button>
+          </div>
+        </sc-for>
+        <div style="padding:8px 0"><button class="btn" style="min-height:40px">+ Dodaj radnika</button></div>
+      </div>
+
+      <div style="border-top:1px solid #34343a;padding-top:10px;display:flex;flex-direction:column;gap:6px">
+        <div style="display:flex;justify-content:space-between;font-size:14px">
+          <span>Zbir radnika: <b>{{total}}</b> h</span>
+          <span class="st {{totalCls}}">{{totalNote}}</span>
+        </div>
+        <div style="background:#1b1b1d;border:1px dashed #4a4a52;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.5">
+          <b>Šta će se upisati:</b> Evidencija › Oktobar 2026 › Aldi › KW42<br>
+          <span class="muted">{{willWrite}}</span>
+        </div>
+      </div>
+
+      <sc-if value="{{showApproved}}" hint-placeholder-val="{{false}}">
+        <div style="background:#1f3327;border:1px solid #6fcf97;border-radius:10px;padding:10px 12px;font-size:14px;color:#b9efcf">Odobreno i upisano u Evidenciju. Poslovođa je obaviješten.</div>
+      </sc-if>
+
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button class="btn warn">Potrebna korekcija…</button>
+        <button class="btn primary" onClick="{{approve}}" disabled="{{isApproved}}">Odobri i upiši u Evidenciju</button>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      page: 1,
+      approved: false,
+      hours: ['45', '42,5', '40', '45', '40'],
+      keep: [false, false, false, false, false]
+    };
+  }
+  renderVals() {
+    const names = ['Adin Čengić', 'Igor Pijetlović', 'Jovica Krstić', 'Vladimir Gjorgijev', 'Vladimir Radojčić'];
+    const existing = [45, 40, null, null, null];
+    const fmt = (n) => (Math.round(n * 10) / 10).toString().replace('.', ',');
+    const num = (s) => { const v = parseFloat(String(s).replace(',', '.')); return isNaN(v) ? 0 : v; };
+    const st = this.state;
+    let total = 0, nWrite = 0, nSame = 0, nKeep = 0;
+
+    const workers = names.map((name, i) => {
+      const h = num(st.hours[i]);
+      total += h;
+      const ex = existing[i];
+      let stText, stCls, isDiff = false;
+      if (ex === null) { stText = 'Prazno: upisuje se ' + fmt(h) + ' h'; stCls = 'ok'; nWrite++; }
+      else if (Math.abs(ex - h) < 0.01) { stText = 'Isto: ' + fmt(ex) + ' h, bez promjene'; stCls = 'neutral'; nSame++; }
+      else {
+        isDiff = true; stCls = 'warn';
+        stText = 'Razlikuje se: sada ' + fmt(ex) + ' h';
+        if (st.keep[i]) nKeep++; else nWrite++;
+      }
+      return {
+        name, hours: st.hours[i], stText, stCls, isDiff,
+        replaceCls: st.keep[i] ? '' : 'on',
+        keepCls: st.keep[i] ? 'on' : '',
+        onHours: (e) => { const a = st.hours.slice(); a[i] = e.target.value; this.setState({ hours: a }); },
+        doReplace: () => { const a = st.keep.slice(); a[i] = false; this.setState({ keep: a }); },
+        doKeep: () => { const a = st.keep.slice(); a[i] = true; this.setState({ keep: a }); }
+      };
+    });
+
+    const reported = 212.5;
+    const diff = Math.abs(total - reported) > 0.01;
+    const parts = [nWrite + ' ćelija se upisuje', nSame + ' je već isto'];
+    if (nKeep > 0) parts.push(nKeep + ' ostaje kako je');
+
+    return {
+      workers,
+      isPage1: st.page === 1, isPage2: st.page === 2,
+      p1cls: st.page === 1 ? 'on' : '', p2cls: st.page === 2 ? 'on' : '',
+      pageLabel: 'Slika ' + st.page + ' od 2',
+      showP1: () => this.setState({ page: 1 }),
+      showP2: () => this.setState({ page: 2 }),
+      total: fmt(total),
+      totalCls: diff ? 'warn' : 'ok',
+      totalNote: diff ? 'Poslovođa je upisao ' + fmt(reported) + ' h: razlika ' + fmt(total - reported) + ' h' : 'Slaže se sa zbirom koji je upisao poslovođa (' + fmt(reported) + ' h)',
+      willWrite: parts.join(' · '),
+      statusText: st.approved ? 'Odobreno' : 'Poslato, čeka pregled',
+      statusCls: st.approved ? 'ok' : 'warn',
+      showApproved: st.approved,
+      isApproved: st.approved,
+      approve: () => this.setState({ approved: true })
+    };
+  }
+}
+</script>
+</body>
+</html>

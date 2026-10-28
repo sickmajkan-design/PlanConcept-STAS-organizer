@@ -1,4 +1,5 @@
 using Construction.Application.Common.Exceptions;
+using Construction.Application.Common.Behaviours;
 using Construction.Application.Common.Interfaces;
 using Construction.Domain.Entities;
 using MediatR;
@@ -6,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Construction.Application.Features.Finance;
 
-public record DeleteCompanyRevenueCommand(Guid Id) : IRequest;
+public record DeleteCompanyRevenueCommand(Guid Id) : IRequest, IRequiresFullFinance;
 
 public class DeleteCompanyRevenueCommandHandler : IRequestHandler<DeleteCompanyRevenueCommand>
 {

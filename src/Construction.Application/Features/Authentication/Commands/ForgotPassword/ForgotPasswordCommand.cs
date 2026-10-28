@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Security.Cryptography;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Common.Security;
@@ -32,6 +33,12 @@ public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordComman
 {
     private static readonly TimeSpan TokenLifetime = TimeSpan.FromHours(1);
 
+    /// <summary>
+    /// Every answer takes at least this long, so an address that exists (which writes a token) cannot be told
+    /// from one that does not by how fast the reply comes back.
+    /// </summary>
+    private static readonly TimeSpan MinimumDuration = TimeSpan.FromMilliseconds(400);
+
     private readonly IApplicationDbContext _context;
     private readonly IOutbox _outbox;
     private readonly IDateTimeProvider _dateTimeProvider;
@@ -50,6 +57,25 @@ public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordComman
     }
 
     public async Task Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
+    {
+        var started = Stopwatch.GetTimestamp();
+
+        try
+        {
+            await StartResetAsync(request, cancellationToken);
+        }
+        finally
+        {
+            var remaining = MinimumDuration - Stopwatch.GetElapsedTime(started);
+
+            if (remaining > TimeSpan.Zero)
+            {
+                await Task.Delay(remaining, cancellationToken);
+            }
+        }
+    }
+
+    private async Task StartResetAsync(ForgotPasswordCommand request, CancellationToken cancellationToken)
     {
         var normalizedEmail = request.Email.Trim().ToLowerInvariant();
 

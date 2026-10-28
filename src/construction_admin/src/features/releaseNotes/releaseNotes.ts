@@ -11,7 +11,7 @@ import type { MessageKey } from '../../i18n/en';
  * what changed recently, not a changelog: when a release is added, drop the
  * sections older than the fifth (and their `releaseNotes.*` keys in i18n).
  */
-export const RELEASE_ID = '2026-10-27.41';
+export const RELEASE_ID = '2026-10-28.42';
 
 /** The day of the release, `YYYY-MM-DD`, read from {@link RELEASE_ID}. */
 export const RELEASE_DATE = RELEASE_ID.slice(0, 10);
@@ -25,12 +25,6 @@ export interface ReleaseSection {
 }
 
 export const releaseSections: ReleaseSection[] = [
-  {
-    id: 'country1026',
-    titleKey: 'releaseNotes.country1026.title',
-    itemKeys: ['releaseNotes.country1026.flag', 'releaseNotes.country1026.site', 'releaseNotes.country1026.filter', 'releaseNotes.country1026.suggest'],
-    audience: (user) => canViewDirectory(user),
-  },
   {
     id: 'vehicles1026',
     titleKey: 'releaseNotes.vehicles1026.title',
@@ -52,7 +46,13 @@ export const releaseSections: ReleaseSection[] = [
   {
     id: 'customer1027',
     titleKey: 'releaseNotes.customer1027.title',
-    itemKeys: ['releaseNotes.customer1027.book', 'releaseNotes.customer1027.ledger', 'releaseNotes.customer1027.stays', 'releaseNotes.customer1027.search', 'releaseNotes.customer1027.finance', 'releaseNotes.customer1027.housingPhone'],
+    itemKeys: ['releaseNotes.customer1027.book', 'releaseNotes.customer1027.ledger', 'releaseNotes.customer1027.stays', 'releaseNotes.customer1027.search', 'releaseNotes.customer1027.finance'],
+    audience: (user) => canViewDirectory(user),
+  },
+  {
+    id: 'phone1028',
+    titleKey: 'releaseNotes.phone1028.title',
+    itemKeys: ['releaseNotes.phone1028.lists'],
     audience: (user) => canViewDirectory(user),
   },
 ];

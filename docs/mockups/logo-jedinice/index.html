@@ -1,0 +1,258 @@
+<title>Logo poslovne jedinice</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: a mocked panel top bar that follows the chosen unit; phone view; logo upload form. */
+:root{
+  --bg:#eef1f6; --surface:#ffffff; --surface2:#f6f8fc; --line:#dbe1ec; --fg:#18202f; --muted:#5b6679;
+  --primary:#3457d5; --primary-soft:#e4eafc; --warn:#9a5b00; --warn-bg:#fff2d9; --ok:#17794a;
+  --logo-plate:#ffffff;
+  --font:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f141d; --surface:#171e2b; --surface2:#1d2636; --line:#2b364b; --fg:#e7ecf6; --muted:#9aa6bb;
+  --primary:#7c97ff; --primary-soft:#24305a; --warn:#ffcf7a; --warn-bg:#3a2d12; --ok:#5fd29a; --logo-plate:#0f141d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f141d; --surface:#171e2b; --surface2:#1d2636; --line:#2b364b; --fg:#e7ecf6; --muted:#9aa6bb;
+  --primary:#7c97ff; --primary-soft:#24305a; --warn:#ffcf7a; --warn-bg:#3a2d12; --ok:#5fd29a; --logo-plate:#0f141d; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:14px;line-height:1.45;
+  padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1{font-size:22px;margin:0}
+h2{font-size:15px;margin:0 0 4px}
+p{margin:0}
+.muted{color:var(--muted)}
+.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.tabs,.seg{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;color:inherit;cursor:pointer}
+.tab{border:1px solid var(--line);background:var(--surface);padding:7px 14px;border-radius:8px}
+.tab[aria-selected="true"]{background:var(--primary);border-color:var(--primary);color:#fff}
+.tab:focus-visible,.unit:focus-visible,.sw:focus-visible,.btn:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+section{display:flex;flex-direction:column;gap:14px}
+.note{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+.note ul{margin:6px 0 0;padding-left:18px}
+
+/* panel frame */
+.frame{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.bar{display:flex;align-items:center;gap:12px;padding:8px 16px;border-bottom:1px solid var(--line);min-height:64px}
+.bar.centered{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
+.bar.centered .brand{flex:none;justify-content:center;max-width:100%}
+.bar.centered .tools{justify-self:end}
+.bar.centered .bn{justify-content:center}
+.brand{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+.plate{width:46px;height:46px;border-radius:10px;border:1px solid var(--line);background:var(--logo-plate);display:grid;place-items:center;flex:none;overflow:hidden}
+.plate svg{width:34px;height:34px}
+.plate.missing{border-style:dashed;color:var(--warn);background:var(--warn-bg)}
+.bn{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:8px}
+.badge{font-size:11px;font-weight:600;padding:1px 8px;border-radius:99px;background:var(--primary-soft);color:var(--primary)}
+.ba{color:var(--muted);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tools{display:flex;align-items:center;gap:8px;flex:none}
+.ic{width:34px;height:34px;border-radius:50%;background:var(--surface2);border:1px solid var(--line)}
+.av{width:34px;height:34px;border-radius:50%;background:var(--primary);color:#fff;display:grid;place-items:center;font-size:13px}
+.sw{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 10px}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+.shell{display:grid;grid-template-columns:72px minmax(0,1fr)}
+.main{min-width:0}
+.rail{border-right:1px solid var(--line);background:var(--surface2);display:flex;flex-direction:column;align-items:center;gap:14px;padding:10px 0}
+.rail .plate{width:52px;height:52px;position:relative}
+.rail .plate svg{width:40px;height:40px}
+.rail .ri{width:30px;height:30px;border-radius:8px;background:var(--line);display:block}
+.callout{position:absolute;font-size:11px;font-weight:600;color:var(--primary);background:var(--primary-soft);border-radius:6px;padding:1px 7px;white-space:nowrap}
+.body{display:grid;grid-template-columns:230px 1fr;min-height:250px}
+.menu{border-right:1px solid var(--line);padding:10px;display:flex;flex-direction:column;gap:4px}
+.menu .u{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;border:0;background:none;text-align:left;width:100%}
+.menu .u:hover{background:var(--surface2)}
+.menu .u[aria-current="true"]{background:var(--primary-soft);color:var(--primary);font-weight:600}
+.menu .u.child{margin-left:18px;width:calc(100% - 18px)}
+.menu .mini{width:26px;height:26px;border-radius:6px;border:1px solid var(--line);background:var(--logo-plate);display:grid;place-items:center;flex:none}
+.menu .mini svg{width:20px;height:20px}
+.menu .mini.missing{border-style:dashed;color:var(--warn)}
+.menu h3{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:6px 10px 2px}
+.content{padding:18px;display:flex;flex-direction:column;gap:10px}
+.sk{height:14px;border-radius:6px;background:var(--surface2)}
+.hint{display:flex;gap:10px;align-items:center;background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:8px 12px;font-size:13px}
+.hint a{color:inherit;font-weight:600}
+
+/* phone */
+.phones{display:flex;flex-wrap:wrap;gap:20px}
+.phone{width:min(100%,340px);border:8px solid var(--fg);border-radius:30px;background:var(--surface);overflow:hidden}
+.phone .bar{padding:8px 12px;min-height:56px;gap:10px}
+.phone .plate{width:38px;height:38px}
+.phone .plate svg{width:28px;height:28px}
+.phone .bn{font-size:14px}
+.phone .content{padding:14px}
+.cap{font-size:12px;color:var(--muted);margin-bottom:6px}
+
+/* form */
+.form{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.drops{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;background:var(--surface2)}
+.drop.dark{background:#0f141d;color:#e7ecf6;border-color:#2b364b}
+.drop .pv{width:92px;height:92px;display:grid;place-items:center}
+.drop .pv svg{width:80px;height:80px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 14px}
+.btn.p{background:var(--primary);border-color:var(--primary);color:#fff}
+.field{display:flex;flex-direction:column;gap:4px}
+.field span{font-size:12px;color:var(--muted)}
+.field div{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--surface2)}
+.rules{font-size:12px;color:var(--muted)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+@media (max-width:760px){.bar.centered{grid-template-columns:minmax(0,1fr) auto}.bar.centered>span{display:none}.bar.centered .brand{justify-content:flex-start}.body{grid-template-columns:1fr}.menu{display:none}.form{grid-template-columns:1fr}.tools .ic,.tools .hide{display:none}}
+@media (prefers-reduced-motion:no-preference){.bar,.plate{transition:background .15s}}
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>Logo poslovne jedinice u traci panela</h1>
+      <p class="muted">Mockup. Klikom na jedinicu u izborniku vidite kako se traka mijenja.</p>
+    </div>
+    <div class="seg" role="group" aria-label="Tema">
+      <button class="tab" id="t-light" aria-selected="false">Svijetla</button>
+      <button class="tab" id="t-dark" aria-selected="false">Tamna</button>
+    </div>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="desktop" aria-selected="true">Traka na računaru</button>
+    <button class="tab" role="tab" data-tab="phone" aria-selected="false">Telefon</button>
+    <button class="tab" role="tab" data-tab="form" aria-selected="false">Unos loga (Organizacija)</button>
+  </div>
+
+  <section id="desktop">
+    <div class="note">
+      <h2>Šta se prikazuje kad je izabrano "Sve poslovne jedinice"</h2>
+      <div class="seg" role="group" aria-label="Prikaz za sve jedinice" style="margin-top:8px">
+        <button class="tab" id="m-firm" aria-selected="true">A. Logo firme (klijenta)</button>
+        <button class="tab" id="m-main" aria-selected="false">B. Logo matične (glavne) jedinice</button>
+      </div>
+      <p class="muted" id="mnote" style="margin-top:8px"></p>
+    </div>
+    <div class="frame shell">
+      <aside class="rail" aria-label="Meni"><span id="railLogo"></span><i class="ri"></i><i class="ri"></i><i class="ri"></i><i class="ri"></i></aside>
+      <div class="main">
+      <div class="bar centered">
+        <span></span>
+        <div class="brand" id="brand"></div>
+        <div class="tools">
+          <button class="sw" id="swbtn" tabindex="0"><span class="dot" id="swdot"></span><span id="swname"></span><span class="muted">▾</span></button>
+          <span class="ic hide"></span><span class="ic hide"></span><span class="av">DK</span>
+        </div>
+      </div>
+      <div class="body">
+        <nav class="menu" id="menu" aria-label="Poslovne jedinice"></nav>
+        <div class="content">
+          <div class="hint" id="hint" hidden><strong>Logo nedostaje.</strong> Dodajte ga u Organizacija, da se jedinica odmah prepozna. <a href="#" data-goto="form">Dodaj logo</a></div>
+          <div class="sk" style="width:38%"></div><div class="sk" style="width:90%"></div><div class="sk" style="width:80%"></div><div class="sk" style="width:86%"></div>
+        </div>
+      </div>
+      </div>
+    </div>
+    <div class="note">
+      <h2>Kako traka radi</h2>
+      <ul>
+        <li>Logo izabrane jedinice zamjenjuje logo firme na <strong>dva mjesta</strong>: u gornjem lijevom uglu menija (uz isti uvećani pregled na zadržavanje miša) i u sredini gornje trake, uz naziv i adresu sa gradom. Dizajn ostaje isti.</li>
+        <li>"Sve poslovne jedinice": na oba mjesta logo i naziv firme, s oznakom "Sve jedinice" u traci.</li>
+        <li>Svaka samostalna jedinica ima svoj logo. Nema zamjenskih krugova s inicijalima. Jedinica bez loga dobija isprekidan okvir i upozorenje (vidi "Bez loga" u izborniku), vidljivo samo onima koji mogu da je urede.</li>
+        <li>Podjedinice (pogon, odjel) koje nisu zasebna jedinica prikazuju logo nadređene. Zaseban logo imaju samo zasebne jedinice.</li>
+        <li>U izborniku svaka jedinica ima malu sličicu loga umjesto same tačkice.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="phone" hidden>
+    <div class="phones">
+      <div><p class="cap">Izabrana jedinica</p><div class="phone"><div class="bar"><div class="brand" id="pb1"></div><span class="av">DK</span></div><div class="content"><div class="sk" style="width:60%"></div><div class="sk"></div><div class="sk" style="width:80%"></div></div></div></div>
+      <div><p class="cap">Sve jedinice</p><div class="phone"><div class="bar"><div class="brand" id="pb2"></div><span class="av">DK</span></div><div class="content"><div class="sk" style="width:60%"></div><div class="sk"></div><div class="sk" style="width:80%"></div></div></div></div>
+    </div>
+    <div class="note"><p>Na telefonu traka pokazuje logo i skraćeni naziv. Adresa se ne prikazuje jer nema mjesta. Isto vrijedi u Android aplikaciji, ako se radi u fazi 3.</p></div>
+  </section>
+
+  <section id="form" hidden>
+    <div class="form">
+      <div class="card">
+        <h2>Bio-Teo Sarajevo · Logo</h2>
+        <div class="drops">
+          <div class="drop"><span class="muted">Na svijetloj pozadini</span><div class="pv" data-logo="sa"></div><button class="btn">Zamijeni</button></div>
+          <div class="drop dark"><span>Na tamnoj pozadini</span><div class="pv" data-logo="sa-dark"></div><button class="btn">Zamijeni</button></div>
+        </div>
+        <p class="rules">PNG, JPG, WEBP ili SVG, do 2 MB. Najbolje kvadratan ili širok logo s prozirnom pozadinom. Ako ne dodate tamnu varijantu, koristi se svijetla.</p>
+        <div class="row"><button class="btn p">Snimi</button><button class="btn">Ukloni logo</button></div>
+      </div>
+      <div class="card">
+        <h2>Pregled u traci</h2>
+        <div class="frame"><div class="bar"><div class="brand" id="pv-bar"></div></div></div>
+        <div class="field"><span>Naziv</span><div>Bio-Teo Sarajevo</div></div>
+        <div class="field"><span>Adresa u traci</span><div>Zmaja od Bosne 12, Sarajevo</div></div>
+        <p class="rules">Logo može mijenjati samo Admin i Super Admin. Isti logo se kasnije koristi na dokumentima i izvozima te jedinice.</p>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  var LOGOS={
+    sa:'<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="4" y="4" width="32" height="32" rx="8" fill="#3457d5"/><path d="M12 28V16l8-6 8 6v12" fill="none" stroke="#fff" stroke-width="3"/><rect x="17" y="20" width="6" height="8" fill="#fff"/></svg>',
+    'sa-dark':'<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="4" y="4" width="32" height="32" rx="8" fill="#7c97ff"/><path d="M12 28V16l8-6 8 6v12" fill="none" stroke="#0f141d" stroke-width="3"/><rect x="17" y="20" width="6" height="8" fill="#0f141d"/></svg>',
+    bl:'<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="16" fill="#17794a"/><path d="M10 26l7-12 5 8 3-5 5 9z" fill="#fff"/></svg>',
+    de:'<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="5" y="5" width="30" height="30" rx="4" fill="#c2410c"/><path d="M11 12h18M11 20h18M11 28h18" stroke="#fff" stroke-width="3"/></svg>',
+    firm:'<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="4" y="4" width="32" height="32" rx="16" fill="#18202f"/><path d="M13 25l7-12 7 12z" fill="none" stroke="#fff" stroke-width="3"/></svg>'
+  };
+  var UNITS=[
+    {id:'all',name:'Sve poslovne jedinice',addr:'',color:'#5b6679',logo:'firm',all:true},
+    {id:'sa',name:'Bio-Teo Sarajevo',short:'Sarajevo',addr:'Zmaja od Bosne 12, Sarajevo',color:'#3457d5',logo:'sa'},
+    {id:'bl',name:'Bio-Teo Banja Luka',short:'Banja Luka',addr:'Kralja Petra I 45, Banja Luka',color:'#17794a',logo:'bl'},
+    {id:'de',name:'Bio-Teo Deutschland GmbH',short:'Deutschland',addr:'Königsallee 18, Düsseldorf',color:'#c2410c',logo:'de'},
+    {id:'ml',name:'Pogon Mostar',short:'Mostar',addr:'Bulevar 3, Mostar',color:'#7c3aed',logo:null,child:true}
+  ];
+  var cur='all',mode='firm';
+  var ALL={
+    firm:{name:'Bio-Teo d.o.o.',addr:'Firma i sve jedinice',logo:'firm',txt:'Logo i naziv firme iz Postavki kompanije, s oznakom "Sve jedinice". Odmah je jasno da nije izabrana nijedna jedinica. Logo već postoji u sistemu. Preporuka.'},
+    main:{name:'Bio-Teo Sarajevo',addr:'Matična jedinica, prikazano sve jedinice',logo:'sa',txt:'Logo jedinice koju označimo kao glavnu. Rizik: izgleda kao da je izabrana samo ta jedinica, pa se lakše pogriješi.'}
+  };
+  function $(s){return document.querySelector(s)}
+  function plate(u,cls){
+    return u.logo?'<span class="'+cls+'">'+LOGOS[u.logo]+'</span>'
+      :'<span class="'+cls+' missing" title="Logo nedostaje"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3" stroke-dasharray="3 3"/><path d="M12 8v8M8 12h8"/></svg></span>';
+  }
+  function brandHtml(u,phone){
+    var name=phone&&!u.all?u.short:u.name;
+    var badge=u.all?'<span class="badge">Sve jedinice</span>':'';
+    var addr=phone?'':'<div class="ba">'+u.addr+'</div>';
+    return plate(u,'plate')+'<div style="min-width:0"><div class="bn">'+name+badge+'</div>'+addr+'</div>';
+  }
+  function render(){
+    var a=ALL[mode];UNITS[0].name=a.name;UNITS[0].addr=a.addr;UNITS[0].logo=a.logo;
+    $('#mnote').textContent=a.txt;
+    $('#m-firm').setAttribute('aria-selected',mode==='firm');$('#m-main').setAttribute('aria-selected',mode==='main');
+    var u=UNITS.filter(function(x){return x.id===cur})[0];
+    $('#brand').innerHTML=brandHtml(u,false);
+    $('#railLogo').innerHTML=plate(u,'plate');
+    $('#swdot').style.background=u.color; $('#swname').textContent=u.all?'Sve jedinice':u.short;
+    $('#hint').hidden=!!u.logo;
+    var m='<h3>Poslovne jedinice</h3>';
+    UNITS.forEach(function(x){
+      var mini=x.logo?'<span class="mini">'+LOGOS[x.logo]+'</span>':'<span class="mini missing" title="Bez loga">+</span>';
+      m+='<button class="u'+(x.child?' child':'')+'" aria-current="'+(x.id===cur)+'" data-u="'+x.id+'">'+mini+'<span>'+(x.all?'Sve poslovne jedinice':x.name)+(x.logo?'':' <span class="muted">· bez loga</span>')+'</span></button>';
+    });
+    $('#menu').innerHTML=m;
+    document.querySelectorAll('#menu .u').forEach(function(b){b.onclick=function(){cur=b.dataset.u;render()}});
+    var sa=UNITS[1],all=UNITS[0];
+    $('#pb1').innerHTML=brandHtml(u,true);
+    $('#pb2').innerHTML=brandHtml(all,true);
+    $('#pv-bar').innerHTML=brandHtml(sa,false);
+  }
+  document.querySelectorAll('[data-logo]').forEach(function(e){e.innerHTML=LOGOS[e.dataset.logo]});
+  function show(t){
+    ['desktop','phone','form'].forEach(function(id){document.getElementById(id).hidden=id!==t});
+    document.querySelectorAll('[data-tab]').forEach(function(b){b.setAttribute('aria-selected',b.dataset.tab===t)});
+  }
+  document.querySelectorAll('[data-tab]').forEach(function(b){b.onclick=function(){show(b.dataset.tab)}});
+  document.querySelectorAll('[data-goto]').forEach(function(a){a.onclick=function(e){e.preventDefault();show(a.dataset.goto)}});
+  function theme(t){document.documentElement.setAttribute('data-theme',t);$('#t-light').setAttribute('aria-selected',t==='light');$('#t-dark').setAttribute('aria-selected',t==='dark')}
+  $('#t-light').onclick=function(){theme('light')};$('#t-dark').onclick=function(){theme('dark')};
+  $('#m-firm').onclick=function(){mode='firm';render()};$('#m-main').onclick=function(){mode='main';render()};
+  render();
+})();
+</script>

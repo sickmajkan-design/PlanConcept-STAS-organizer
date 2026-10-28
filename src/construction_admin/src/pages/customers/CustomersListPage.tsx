@@ -25,6 +25,7 @@ import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { RowActions } from '../../components/RowActions';
 import { SavedViewsBar } from '../../components/SavedViewsBar';
 import { SearchField } from '../../components/SearchField';
+import { FilterBar } from '../../components/FilterBar';
 import { useCustomersQuery, useDeleteCustomer } from '../../features/customers/useCustomers';
 import { useBulkDelete } from '../../hooks/useBulkDelete';
 import { useBulkSelection } from '../../hooks/useBulkSelection';
@@ -136,12 +137,16 @@ export function CustomersListPage() {
         }}
       />
 
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ flexWrap: 'wrap', mb: 2 }}>
-        <SearchField
-          value={list.search}
-          onChange={list.setSearch}
-          placeholder={t('customers.searchPlaceholder')}
-        />
+      <FilterBar
+        activeCount={country ? 1 : 0}
+        search={
+          <SearchField
+            value={list.search}
+            onChange={list.setSearch}
+            placeholder={t('customers.searchPlaceholder')}
+          />
+        }
+      >
         <FormControl size="small" sx={{ minWidth: 200 }}>
           <InputLabel id="customer-country-filter">{t('customers.country')}</InputLabel>
           <Select
@@ -164,7 +169,7 @@ export function CustomersListPage() {
             ))}
           </Select>
         </FormControl>
-      </Stack>
+      </FilterBar>
 
       {withoutCountry > 0 && (
         <Alert

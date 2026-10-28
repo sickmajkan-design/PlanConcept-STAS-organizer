@@ -4987,18 +4987,14 @@ export const en = {
   'customers.suggestSeveral': 'Its projects are in several countries ({codes}): choose by hand.',
   'customers.suggestNone': 'Every customer has a country.',
   'customers.suggestApply': 'Write {count}',
-  'releaseNotes.country1026.title': 'The customer\'s country: flag and code next to every project',
-  'releaseNotes.country1026.flag': 'A customer now has a country. Its flag and code are shown next to the customer on the schedule, the project list and wherever a project appears.',
-  'releaseNotes.country1026.site': 'When the site is in another country than the customer, a small mark says so.',
-  'releaseNotes.country1026.filter': 'The project list has a Customer country filter, and the customer list a Country column and filter.',
-  'releaseNotes.country1026.suggest': 'For customers without a country, Suggest from projects offers the country of their sites, to confirm.',
   'releaseNotes.customer1027.title': 'The customer next to the project in the Book, the Ledger and housing',
   'releaseNotes.customer1027.book': 'In the Book of costs (entries, receivables, recurring costs) the customer is now written under the project name.',
   'releaseNotes.customer1027.ledger': 'In the monthly Ledger the site of each section shows its customer.',
   'releaseNotes.customer1027.stays': 'On housing (stays, cost per project) and on the employee card the project comes with its customer.',
   'releaseNotes.customer1027.search': 'In the search (Ctrl+K) work items and orders show the customer beside the project.',
-  'releaseNotes.customer1027.housingPhone': 'On a phone the housing list folds its filters behind one Filters button, like the other lists, so the first rows are visible at once.',
   'releaseNotes.customer1027.finance': 'The Finance chart opens faster: fewer database queries per request.',
+  'releaseNotes.phone1028.title': 'Filters fold behind one button on a phone',
+  'releaseNotes.phone1028.lists': 'On a phone the lists of housing, materials, work items and customers keep the search in view and fold their other filters behind one Filters button, like the other lists. The button shows how many filters are in force.',
 } as const;
 
 export type MessageKey = keyof typeof en;
