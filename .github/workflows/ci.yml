@@ -4,6 +4,7 @@ on:
   push:
     branches: ['**']
   pull_request:
+  workflow_dispatch:
 
 # A new push supersedes an in-flight run on the same ref, so a branch being
 # pushed repeatedly does not queue up stale runs.
@@ -178,7 +179,7 @@ jobs:
     name: Mobile (iOS build, unsigned)
     runs-on: macos-latest
     # shortcut: push payload lists at most 20 commits, so a huge push can skip this job; upgrade to a paths filter if that bites.
-    if: github.event_name == 'pull_request' || contains(join(github.event.commits.*.modified, ','), 'src/construction_mobile') || contains(join(github.event.commits.*.added, ','), 'src/construction_mobile')
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || contains(toJSON(github.event.commits.*.modified), 'src/construction_mobile') || contains(toJSON(github.event.commits.*.added), 'src/construction_mobile')
     defaults:
       run:
         working-directory: src/construction_mobile
