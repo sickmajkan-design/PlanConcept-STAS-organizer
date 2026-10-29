@@ -170,6 +170,36 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  # The iOS build, without signing. There is no Mac here and no Apple account
+  # yet, but a Swift/CocoaPods/plugin break is already detectable: `--no-codesign`
+  # compiles everything and stops before the step that needs a certificate.
+  # macOS minutes cost ~10x Linux, so it only runs when the app itself changes.
+  ios:
+    name: Mobile (iOS build, unsigned)
+    runs-on: macos-latest
+    # shortcut: push payload lists at most 20 commits, so a huge push can skip this job; upgrade to a paths filter if that bites.
+    if: github.event_name == 'pull_request' || contains(join(github.event.commits.*.modified, ','), 'src/construction_mobile') || contains(join(github.event.commits.*.added, ','), 'src/construction_mobile')
+    defaults:
+      run:
+        working-directory: src/construction_mobile
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2
+        with:
+          flutter-version: '3.44.x'
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # No GoogleService-Info.plist yet (needs the Firebase iOS app), so this
+      # proves compilation only, not that push works on a device.
+      - name: Build iOS without signing
+        run: flutter build ios --no-codesign
+
   admin:
     name: Admin (React)
     runs-on: ubuntu-latest

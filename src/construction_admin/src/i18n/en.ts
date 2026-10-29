@@ -4964,11 +4964,6 @@ export const en = {
   'notificationText.notificationVehicleFineDueTitle': 'A fine is close to its due date',
   'notificationText.notificationVehicleFineDueBody': '{vehicleName}: {description}, pay by {date} ({days} days left).',
   'notificationText.notificationVehicleFineLateBody': '{vehicleName}: {description}, the due date was {date}.',
-  'releaseNotes.vehicles1026.title': 'Vehicles: state at a glance, vignettes and fines',
-  'releaseNotes.vehicles1026.state': 'The vehicles list has one dot per vehicle: green, amber, red, or grey when no date was entered. A click says why, and Needs attention narrows the list.',
-  'releaseNotes.vehicles1026.tolls': 'A column for the vignettes with the nearest date, an unpaid one showing at once.',
-  'releaseNotes.vehicles1026.fines': 'Fines on a vehicle: amount, due date, driver and who bears it. A fine the driver bears is recorded as their debt.',
-  'releaseNotes.vehicles1026.notices': 'The management is told about a new fine at once, about one close to its due date, and about vehicle dates on the day they run out.',
   'projectLabel.site': 'site:',
   'projects.customerCountry': 'Customer country',
   'projects.customerCountryNone': 'No country entered',
@@ -4995,6 +4990,8 @@ export const en = {
   'releaseNotes.customer1027.finance': 'The Finance chart opens faster: fewer database queries per request.',
   'releaseNotes.phone1028.title': 'Filters fold behind one button on a phone',
   'releaseNotes.phone1028.lists': 'On a phone the lists of housing, materials, work items and customers keep the search in view and fold their other filters behind one Filters button, like the other lists. The button shows how many filters are in force.',
+  'releaseNotes.ios1029.title': 'Preparing the iPhone app',
+  'releaseNotes.ios1029.pages': 'Public privacy-policy (/privatnost.html) and support (/podrska.html) pages were added, which Apple requires for the iPhone app. Their contents are completed once the company sends its details.',
 } as const;
 
 export type MessageKey = keyof typeof en;

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="sr-Latn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Politika privatnosti – Construction Organizer</title>
+<style>
+body{font:16px/1.6 system-ui,sans-serif;max-width:46rem;margin:0 auto;padding:1.5rem 1rem 3rem;color:#1b1f24;background:#fff}
+h1{font-size:1.6rem}h2{font-size:1.15rem;margin-top:2rem}
+table{border-collapse:collapse;width:100%;font-size:.92rem}td,th{border:1px solid #ccd;padding:.4rem .5rem;text-align:left;vertical-align:top}
+.todo{background:#fff3cd;padding:0 .25rem}
+@media (prefers-color-scheme:dark){body{background:#14171a;color:#e6e8ea}td,th{border-color:#3a4047}.todo{background:#5a4a10}}
+</style>
+</head>
+<body>
+<h1>Politika privatnosti</h1>
+<p>Aplikacija <strong>Construction Organizer</strong> (iPhone i Android) i web panel služe firmi za organizaciju rada na gradilištima: evidenciju sati, raspored, zadatke, dokumente i materijal. Aplikaciju koristite samo ako vam je firma otvorila nalog.</p>
+
+<h2>Ko obrađuje podatke</h2>
+<p>Voditelj obrade je firma koja vam je otvorila nalog: <span class="todo">[naziv firme, adresa, e-pošta za privatnost]</span>. Vlasnik aplikacije (<span class="todo">[naziv firme]</span>) ne koristi vaše podatke u druge svrhe, ne prodaje ih i ne koristi za oglašavanje ili praćenje preko drugih aplikacija.</p>
+
+<h2>Koje podatke aplikacija obrađuje</h2>
+<table>
+<tr><th>Podatak</th><th>Čemu služi</th><th>Koliko se čuva</th></tr>
+<tr><td>Ime, telefon, e-pošta, radno mjesto, nalog i lozinka (u obliku sažetka)</td><td>Prijava i kadrovska evidencija</td><td>Dok nalog postoji</td></tr>
+<tr><td><strong>Položaj (GPS)</strong>, otprilike jednom u minuti, i koordinate prijave i odjave smjene</td><td>Karta uživo za kancelariju i dokaz prisustva na gradilištu (samo tokom smjene)</td><td>Položaj 180 dana, zatim se briše; koordinate smjene uz smjenu</td></tr>
+<tr><td>Radni sati, zadaci, odsustva</td><td>Obračun i organizacija posla</td><td>Trajno, do brisanja</td></tr>
+<tr><td>Fotografije i dokumenti koje sami priložite</td><td>Prilog projektu, radniku ili alatu</td><td>Dok ih ne uklonite ili firma ne obriše</td></tr>
+<tr><td>Odsustva (uključujući razlog koji upišete), podaci o dokumentima vezanim za radnika (ugovori, uvjerenja)</td><td>Kadrovska evidencija</td><td>Trajno, do brisanja</td></tr>
+<tr><td>Token uređaja</td><td>Slanje obavještenja</td><td>Do odjave uređaja</td></tr>
+<tr><td>IP adresa pri prijavi</td><td>Sigurnost i otkrivanje zloupotrebe naloga</td><td>30 dana poslije isteka sesije</td></tr>
+<tr><td>Zapis o izmjenama (ko je šta promijenio, uz e-poštu i IP adresu)</td><td>Dokazivanje usklađenosti</td><td>Trajno; brisanje podataka ga ne dira</td></tr>
+</table>
+
+<h2>Položaj</h2>
+<p>Aplikacija šalje položaj kancelariji <strong>samo dok ste prijavljeni na radnu smjenu</strong>, uključujući i dok je aplikacija u pozadini, da bi se vidjelo ko je na kojem gradilištu. Odjavom sa smjene slanje prestaje, a van smjene se položaj ne prati. Položaj koji je nastao tokom smjene, a nije stigao na server zbog slabog signala, šalje se naknadno. Možete uskratiti dozvolu u postavkama telefona; tada aplikacija radi bez karte uživo, a firma odlučuje šta to znači za evidenciju prisustva.</p>
+
+<h2>Kamera i fotografije</h2>
+<p>Kamera se koristi za fotografije priloga i za skeniranje QR oznaka na alatu i vozilima. Biblioteka fotografija otvara se samo kad sami odaberete sliku.</p>
+
+<h2>Komu se podaci šalju</h2>
+<p>Podaci se čuvaju na serveru firme. Obavještenja na telefonu prolaze kroz Google Firebase Cloud Messaging i Apple Push Notification service (šalje se samo token uređaja i tekst obavještenja). Podaci o položaju ne napuštaju server firme.</p>
+
+<h2>Vaša prava</h2>
+<p>Možete tražiti uvid, ispravku, prenos ili brisanje svojih podataka, kao i prigovor na obradu. Obratite se firmi na <span class="todo">[e-pošta za privatnost]</span>; zahtjev se rješava u roku od 30 dana. Imate pravo i na pritužbu nadležnom tijelu za zaštitu podataka.</p>
+
+<p><small>Posljednja izmjena: <span class="todo">[datum]</span>.</small></p>
+</body>
+</html>

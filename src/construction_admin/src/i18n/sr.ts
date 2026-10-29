@@ -5008,11 +5008,6 @@ export const sr: Record<MessageKey, Message> = {
   'notificationText.notificationVehicleFineDueTitle': 'Kazni se približava rok plaćanja',
   'notificationText.notificationVehicleFineDueBody': '{vehicleName}: {description}, rok {date} (još {days} dana).',
   'notificationText.notificationVehicleFineLateBody': '{vehicleName}: {description}, rok je bio {date}',
-  'releaseNotes.vehicles1026.title': 'Vozila: stanje na prvi pogled, vinjete i kazne',
-  'releaseNotes.vehicles1026.state': 'Lista vozila ima po jednu tačku: zelenu, žutu, crvenu, ili sivu kad rok nije unesen. Klik kaže zašto, a Traže pažnju sužava listu.',
-  'releaseNotes.vehicles1026.tolls': 'Kolona za vinjete s najbližim rokom, a neplaćena se vidi odmah.',
-  'releaseNotes.vehicles1026.fines': 'Kazne na vozilu: iznos, rok plaćanja, vozač i ko snosi. Kazna koju snosi vozač bilježi se kao njegov dug.',
-  'releaseNotes.vehicles1026.notices': 'Uprava dobija obavještenje o novoj kazni odmah, o kazni kojoj ističe rok, i o rokovima vozila na sam dan isteka.',
   'projectLabel.site': 'gradilište:',
   'projects.customerCountry': 'Država kupca',
   'projects.customerCountryNone': 'Bez države',
@@ -5039,4 +5034,6 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.customer1027.finance': 'Grafikon u Finansijama se otvara brže: manje upita prema bazi po zahtjevu.',
   'releaseNotes.phone1028.title': 'Filteri se na telefonu sklapaju iza jednog dugmeta',
   'releaseNotes.phone1028.lists': 'Na telefonu popisi smještaja, materijala, radnih stavki i kupaca drže pretragu na vidiku, a ostale filtere sklapaju iza jednog dugmeta Filteri, kao i ostali popisi. Dugme pokazuje koliko je filtera uključeno.',
+  'releaseNotes.ios1029.title': 'Priprema za iPhone aplikaciju',
+  'releaseNotes.ios1029.pages': 'Dodane su javne stranice politike privatnosti (/privatnost.html) i podrške (/podrska.html), koje Apple traži za iPhone aplikaciju. Sadržaj se popunjava kad firma pošalje svoje podatke.',
 };
