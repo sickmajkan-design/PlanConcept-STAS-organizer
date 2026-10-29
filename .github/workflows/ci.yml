@@ -171,15 +171,38 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
+  # Cheap Linux job that says whether the app changed, so the expensive macOS
+  # build below runs only then. Compares the pushed range itself, which unlike
+  # the event payload has no 20-commit cap and no nested-list quirks.
+  mobile-changed:
+    name: Mobile changed?
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.diff.outputs.changed }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - id: diff
+        run: |
+          base="${{ github.event.before }}"
+          if [ "${{ github.event_name }}" != "push" ] || ! git cat-file -e "$base^{commit}" 2>/dev/null; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          elif git diff --name-only "$base" "${{ github.sha }}" | grep -q '^src/construction_mobile/'; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
   # The iOS build, without signing. There is no Mac here and no Apple account
   # yet, but a Swift/CocoaPods/plugin break is already detectable: `--no-codesign`
   # compiles everything and stops before the step that needs a certificate.
   # macOS minutes cost ~10x Linux, so it only runs when the app itself changes.
   ios:
     name: Mobile (iOS build, unsigned)
+    needs: mobile-changed
+    if: needs.mobile-changed.outputs.changed == 'true'
     runs-on: macos-latest
-    # shortcut: push payload lists at most 20 commits, so a huge push can skip this job; upgrade to a paths filter if that bites.
-    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' || contains(toJSON(github.event.commits.*.modified), 'src/construction_mobile') || contains(toJSON(github.event.commits.*.added), 'src/construction_mobile')
     defaults:
       run:
         working-directory: src/construction_mobile
