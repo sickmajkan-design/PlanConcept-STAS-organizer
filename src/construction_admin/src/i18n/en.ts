@@ -2006,6 +2006,15 @@ export const en = {
   'attachments.editTitle': 'Edit document',
   'attachments.deleteTitle': 'Delete this document?',
   'attachments.deleteBody': '{name} will be removed, and the file itself deleted. This cannot be undone.',
+  'attachments.selectAll': 'Select all shown',
+  'attachments.selectRow': 'Select {name}',
+  'attachments.selected': '{count} selected ({size})',
+  'attachments.deleteSelected': 'Delete selected for good',
+  'attachments.clearSelection': 'Clear selection',
+  'attachments.bulkDeleteTitle': 'Delete the selected documents for good?',
+  'attachments.bulkDeleteBody': '{count} documents ({size}) will be deleted from the server: the file and the record, no trace. This cannot be undone. Documents still under a retention date are skipped.',
+  'attachments.bulkDeleted': 'Documents deleted: {count}; freed {size}.',
+  'attachments.bulkKept': '{count} kept because of a retention date.',
   'attachments.expired': 'Expired',
   'attachments.expiredOn': 'Expired {date}',
   'attachments.expiresOn': 'Valid until {date}',
@@ -5000,8 +5009,6 @@ export const en = {
   'customers.suggestSeveral': 'Its projects are in several countries ({codes}): choose by hand.',
   'customers.suggestNone': 'Every customer has a country.',
   'customers.suggestApply': 'Write {count}',
-  'releaseNotes.phone1028.title': 'Filters fold behind one button on a phone',
-  'releaseNotes.phone1028.lists': 'On a phone the lists of housing, materials, work items and customers keep the search in view and fold their other filters behind one Filters button, like the other lists. The button shows how many filters are in force.',
   'releaseNotes.ios1029.title': 'Preparing the iPhone app',
   'releaseNotes.ios1029.pages': 'Public privacy-policy (/privatnost.html) and support (/podrska.html) pages were added, which Apple requires for the iPhone app. Their contents are completed once the company sends its details.',
   'releaseNotes.account1030.title': 'Account deletion request from the app',
@@ -5016,6 +5023,8 @@ export const en = {
   'releaseNotes.disk1113.title': 'Watching the server disk space',
   'releaseNotes.disk1113.watch': 'On the Audit trail page the Super Admin now sees how much space is left on the server. When it is low it appears on the home list and a notice arrives (at most once a day). The check is also available to an outside monitor at /health/dependencies.',
   'releaseNotes.disk1113.cleanup': 'On the Server disk space card the Clean up button shows what can be deleted for good: files with no record, documents of deleted employees, projects and vehicles, and the traces of deleted documents. Each kind is deleted separately, after a confirmation, and documents still under a retention date are left alone. A document deleted from the panel loses its file on the server too; this cleans what was left behind.',
+  'releaseNotes.bulkdelete1113.title': 'Deleting several documents at once',
+  'releaseNotes.bulkdelete1113.pick': 'On the Documents page you can now tick several documents and delete them for good with one click: the file on the server and the record, no trace. Documents still under a retention date are skipped. The steps are in the guide Deleting documents and cleaning the server (Ctrl+K).',
 } as const;
 
 export type MessageKey = keyof typeof en;

@@ -247,6 +247,54 @@ export const helpTopics: HelpTopic[] = [
     },
   },
   {
+    id: 'dokumenti-brisanje',
+    group: 'documents',
+    path: paths.expiringDocuments,
+    audience: office,
+    content: {
+      sr: {
+        title: 'Brisanje dokumenata i čišćenje servera',
+        summary:
+          'Dokument koji više nije potreban briše se zauvijek: i datoteka na serveru i zapis. Više njih se bira odjednom, a Super Admin čisti i ono što je ostalo iza obrisanih zapisa.',
+        steps: [
+          'Otvorite Dokumenti. Suzite listu pretragom i filterima (zapis, vrsta, oznaka) i izaberite period Sve, pa uključite Prikaži i dokumente bez roka isteka.',
+          'Označite dokumente koje brišete kvačicom u prvom stupcu. Kvačica u zaglavlju bira sve prikazane. Dokument kojem traje rok čuvanja, i dokument knjige troškova ili potpisanog sata, ne može se izabrati.',
+          'Iznad liste piše koliko je izabrano i koliko to zauzima. Pritisnite Obriši izabrano zauvijek i potvrdite.',
+          'Server briše datoteke i zapise bez traga i javi koliko je oslobođeno. Ovo se ne može poništiti.',
+          'Super Admin: na stranici Trag izmjena, na kartici Prostor na serveru, dugme Očisti pokazuje ostatke: datoteke bez zapisa, dokumente obrisanih zaposlenika, projekata i vozila, i tragove obrisanih dokumenata. Svaka vrsta se briše posebno, uz potvrdu.',
+        ],
+        example:
+          'Završen je projekat i njegovi stari skenovi više ne trebaju. U Dokumentima izaberite zapis Projekat i naziv projekta, označite sve prikazano, pritisnite Obriši izabrano zauvijek. Ako je neki od njih pod rokom čuvanja do 2030, ostaje, a poruka kaže koliko ih je ostalo.',
+        tips: [
+          'Dokument obrisan pojedinačno (korpa na redu) takođe gubi datoteku sa servera; razlika je samo što mu u bazi ostaje mali trag da je postojao. Grupno brisanje i čišćenje tragova uklanjaju i taj trag.',
+          'Kopije za slučaj kvara čuvaju obrisani dokument još do 14 dana, dok se ne obnove. To je namjerno: kopija služi da se vrati stanje poslije greške.',
+          'Slike Docker-a (stara izdanja aplikacije) čiste se na samom serveru, ne iz panela; vidi docs/SECURITY.md, odjeljak Cleaning the server.',
+        ],
+        keywords: ['brisanje', 'obrisi', 'obriši', 'zauvijek', 'ocisti', 'očisti', 'server', 'prostor', 'disk', 'dokumenti', 'grupno', 'vise odjednom'],
+      },
+      en: {
+        title: 'Deleting documents and cleaning the server',
+        summary:
+          'A document that is no longer needed is deleted for good: the file on the server and the record. Several can be picked at once, and the Super Admin also cleans what was left behind by deleted records.',
+        steps: [
+          'Open Documents. Narrow the list with the search and filters (record, type, label), choose the period All, and switch on Also show documents without an expiry date.',
+          'Tick the documents to delete in the first column. The box in the header picks everything shown. A document still under a retention date, and a document of the book of costs or a signed timesheet, cannot be picked.',
+          'Above the list it says how many are picked and how much they take. Press Delete selected for good and confirm.',
+          'The server deletes the files and the records without a trace and says how much it freed. This cannot be undone.',
+          'Super Admin: on the Audit trail page, on the Server disk space card, the Clean up button shows what was left behind: files with no record, documents of deleted employees, projects and vehicles, and the traces of deleted documents. Each kind is deleted on its own, after a confirmation.',
+        ],
+        example:
+          'A project is finished and its old scans are no longer needed. In Documents choose the record Project and the project name, tick everything shown, press Delete selected for good. If one of them is under a retention date to 2030 it stays, and the message says how many were kept.',
+        tips: [
+          'A document deleted one by one (the bin on its row) also loses its file on the server; the only difference is that a small trace in the database says it existed. Bulk delete and the clean-up of traces remove that trace too.',
+          'The safety copies keep a deleted document for up to 14 days, until they are replaced. That is on purpose: a copy is there to bring the state back after a mistake.',
+          'Docker images (old releases of the application) are cleaned on the server itself, not from the panel; see docs/SECURITY.md, section Cleaning the server.',
+        ],
+        keywords: ['delete', 'remove', 'for good', 'permanently', 'clean', 'cleanup', 'server', 'space', 'disk', 'documents', 'bulk', 'several'],
+      },
+    },
+  },
+  {
     id: 'zahtjevi-dokumenti',
     group: 'documents',
     path: paths.documentRequests,

@@ -1,6 +1,7 @@
 using Construction.API.Authorization;
 using Construction.Application.Features.Attachments;
 using Construction.Application.Features.Attachments.Commands.DeleteAttachment;
+using Construction.Application.Features.Attachments.Commands.DeleteAttachments;
 using Construction.Application.Features.Attachments.Commands.SetAttachmentSharing;
 using Construction.Application.Features.Attachments.Commands.UpdateAttachment;
 using Construction.Application.Features.Attachments.Commands.UploadAttachment;
@@ -204,6 +205,18 @@ public class AttachmentsController : ApiControllerBase
     public async Task<ActionResult<MyDocumentsDto>> GetMine(CancellationToken cancellationToken)
     {
         return Ok(await Mediator.Send(new GetMyDocumentsQuery(), cancellationToken));
+    }
+
+    /// <summary>Removes many documents for good: the file and the record, no trace. Documents under a retention date are kept.</summary>
+    [HttpPost("delete")]
+    [Authorize(Policy = Policies.AdminAndAbove)]
+    [ProducesResponseType(typeof(DeleteAttachmentsResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<DeleteAttachmentsResultDto>> DeleteMany(
+        [FromBody] DeleteAttachmentsCommand command,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(command, cancellationToken));
     }
 
     /// <summary>Removes an attachment and the file behind it.</summary>

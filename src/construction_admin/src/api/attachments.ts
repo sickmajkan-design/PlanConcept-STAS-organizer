@@ -79,6 +79,14 @@ export interface AttachmentCount {
   expired: number;
 }
 
+export interface DeleteAttachmentsResult {
+  removed: number;
+  freedBytes: number;
+  keptForRetention: number;
+  notAllowed: number;
+  notFound: number;
+}
+
 export const attachmentsApi = {
   /** The document count of every record of one kind, for a list page. Records with none are absent. */
   counts: (ownerType: AttachmentOwnerType) =>
@@ -190,6 +198,10 @@ export const attachmentsApi = {
 
   remove: (id: string) =>
     request<void>({ method: 'DELETE', url: `/api/v1/attachments/${id}` }),
+
+  /** Removes many documents for good: file and record, no trace. Retained documents are kept and counted. */
+  removeMany: (ids: string[]) =>
+    request<DeleteAttachmentsResult>({ method: 'POST', url: '/api/v1/attachments/delete', data: { ids } }),
 
   /**
    * Fetches an attachment's bytes as an object URL.

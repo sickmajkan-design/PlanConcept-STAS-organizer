@@ -1,5 +1,5 @@
 import type { User } from '../../api/types';
-import { canViewDirectory, isSuperAdmin } from '../../auth/authHelpers';
+import { canAdministerAccounts, canViewDirectory, isSuperAdmin } from '../../auth/authHelpers';
 import type { MessageKey } from '../../i18n/en';
 
 /**
@@ -11,7 +11,7 @@ import type { MessageKey } from '../../i18n/en';
  * what changed recently, not a changelog: when a release is added, drop the
  * sections older than the fifth (and their `releaseNotes.*` keys in i18n).
  */
-export const RELEASE_ID = '2026-11-13.49';
+export const RELEASE_ID = '2026-11-13.50';
 
 /** The day of the release, `YYYY-MM-DD`, read from {@link RELEASE_ID}. */
 export const RELEASE_DATE = RELEASE_ID.slice(0, 10);
@@ -25,12 +25,6 @@ export interface ReleaseSection {
 }
 
 export const releaseSections: ReleaseSection[] = [
-  {
-    id: 'phone1028',
-    titleKey: 'releaseNotes.phone1028.title',
-    itemKeys: ['releaseNotes.phone1028.lists'],
-    audience: (user) => canViewDirectory(user),
-  },
   {
     id: 'ios1029',
     titleKey: 'releaseNotes.ios1029.title',
@@ -61,6 +55,12 @@ export const releaseSections: ReleaseSection[] = [
     titleKey: 'releaseNotes.disk1113.title',
     itemKeys: ['releaseNotes.disk1113.watch', 'releaseNotes.disk1113.cleanup'],
     audience: (user) => isSuperAdmin(user),
+  },
+  {
+    id: 'bulkdelete1113',
+    titleKey: 'releaseNotes.bulkdelete1113.title',
+    itemKeys: ['releaseNotes.bulkdelete1113.pick'],
+    audience: (user) => canAdministerAccounts(user),
   },
 ];
 

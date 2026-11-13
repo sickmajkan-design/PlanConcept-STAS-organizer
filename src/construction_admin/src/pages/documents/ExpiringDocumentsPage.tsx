@@ -1,7 +1,11 @@
-import { DeleteOutlined, EditOutlined, UploadFileOutlined } from '@mui/icons-material';
+import DeleteOutlined from '@mui/icons-material/DeleteOutlined';
+import EditOutlined from '@mui/icons-material/EditOutlined';
+import UploadFileOutlined from '@mui/icons-material/UploadFileOutlined';
 import {
+  Alert,
   Box,
   Button,
+  Checkbox,
   Chip,
   IconButton,
   Tooltip,
@@ -26,6 +30,9 @@ import { useEffect, useMemo, useState } from 'react';
 
 import type { Attachment, AttachmentCategory, AttachmentOwnerType } from '../../api/types';
 import { attachmentCategories, attachmentOwnerTypes } from '../../api/types';
+import type { DeleteAttachmentsResult } from '../../api/attachments';
+import { canAdministerAccounts } from '../../auth/authHelpers';
+import { useAuth } from '../../auth/useAuth';
 import { AttachmentPreviewDialog } from '../../components/AttachmentPreviewDialog';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { EditDocumentDialog } from '../../components/EditDocumentDialog';
@@ -35,7 +42,8 @@ import { PageDropOverlay } from '../../components/files/PageDropOverlay';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
 import { UploadDocumentDialog } from '../../components/UploadDocumentDialog';
-import { useDeleteAttachment, useExpiringDocumentsQuery } from '../../features/attachments/useAttachments';
+import { useDeleteAttachment, useDeleteAttachments, useExpiringDocumentsQuery } from '../../features/attachments/useAttachments';
+import { formatSize } from '../../features/system/formatSize';
 import { usePageDrop } from '../../features/files/usePageDrop';
 import { useOpenOnParam } from '../../hooks/useOpenOnParam';
 import { useDeleteWithConfirm } from '../../hooks/useDeleteWithConfirm';
@@ -50,6 +58,9 @@ const WINDOWS = [7, 30, 90, 180] as const;
 const ALL_WINDOW = 'all';
 
 type WindowValue = (typeof WINDOWS)[number] | typeof ALL_WINDOW;
+
+/** Documents that are removed from their own screens, never from a list of all documents. */
+const OWN_SCREEN_ONLY = new Set<AttachmentOwnerType>(['BookEntry', 'SignedTimesheet']);
 
 /** A retention date still in the future blocks deletion, same as on the record's own page. */
 const isRetained = (retainUntil: string | null) => !!retainUntil && retainUntil > todayCompany();
@@ -82,6 +93,12 @@ export function ExpiringDocumentsPage() {
   const [previewing, setPreviewing] = useState<Attachment | null>(null);
   const [editing, setEditing] = useState<Attachment | null>(null);
   const remove = useDeleteWithConfirm<Attachment>(useDeleteAttachment());
+  const { user } = useAuth();
+  const canBulkDelete = canAdministerAccounts(user);
+  const removeMany = useDeleteAttachments();
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [confirmingBulk, setConfirmingBulk] = useState(false);
+  const [bulkResult, setBulkResult] = useState<DeleteAttachmentsResult | null>(null);
 
   // The palette's "upload a document" lands here with ?upload=1.
   useOpenOnParam('upload', () => {
@@ -181,6 +198,26 @@ export function ExpiringDocumentsPage() {
     // Runs once the deep-linked document is available, not on every refetch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetId, !!sortedData]);
+
+  /** What can be picked: not under a retention date and not a document that has its own screen. */
+  const isPickable = (document: Attachment) =>
+    !isRetained(document.retainUntil) && !OWN_SCREEN_ONLY.has(document.ownerType);
+
+  // Only what is on screen counts: a document filtered out of view is never deleted by a click on the list.
+  const pickable = (sortedData ?? []).filter(isPickable);
+  const chosen = pickable.filter((document) => selected.has(document.id));
+  const chosenBytes = chosen.reduce((sum, document) => sum + document.sizeBytes, 0);
+
+  const toggleOne = (id: string) =>
+    setSelected((previous) => {
+      const next = new Set(previous);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const toggleAll = () =>
+    setSelected(chosen.length === pickable.length ? new Set() : new Set(pickable.map((document) => document.id)));
 
   return (
     <Box>
@@ -306,9 +343,30 @@ export function ExpiringDocumentsPage() {
         )}
       </Stack>
 
-      <Stack direction="row" sx={{ mb: 1, justifyContent: 'flex-end' }}>
+      <Stack direction="row" sx={{ mb: 1, alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+        {canBulkDelete && chosen.length > 0 && (
+          <>
+            <Typography variant="body2" data-testid="selection-summary">
+              {t('attachments.selected', { count: chosen.length, size: formatSize(chosenBytes) })}
+            </Typography>
+            <Button size="small" color="error" variant="outlined" onClick={() => setConfirmingBulk(true)}>
+              {t('attachments.deleteSelected')}
+            </Button>
+            <Button size="small" onClick={() => setSelected(new Set())}>
+              {t('attachments.clearSelection')}
+            </Button>
+          </>
+        )}
+        <Box sx={{ flex: 1 }} />
         <ExportZipButton ids={(sortedData ?? []).map((document) => document.id)} />
       </Stack>
+
+      {bulkResult && (
+        <Alert severity="success" sx={{ mb: 1 }} onClose={() => setBulkResult(null)} data-testid="bulk-result">
+          {t('attachments.bulkDeleted', { count: bulkResult.removed, size: formatSize(bulkResult.freedBytes) })}
+          {bulkResult.keptForRetention > 0 && ` ${t('attachments.bulkKept', { count: bulkResult.keptForRetention })}`}
+        </Alert>
+      )}
 
       <UploadDocumentDialog open={uploading} onClose={() => setUploading(false)} initialFiles={dropped} />
       <PageDropOverlay show={pageDrop.isOver} />
@@ -333,6 +391,21 @@ export function ExpiringDocumentsPage() {
         onCancel={remove.cancel}
       />
 
+      <ConfirmDialog
+        open={confirmingBulk}
+        title={t('attachments.bulkDeleteTitle')}
+        description={t('attachments.bulkDeleteBody', { count: chosen.length, size: formatSize(chosenBytes) })}
+        confirmLabel={t('attachments.deleteSelected')}
+        destructive
+        onConfirm={async () => {
+          const result = await removeMany.mutateAsync(chosen.map((document) => document.id));
+          setBulkResult(result);
+          setSelected(new Set());
+          setConfirmingBulk(false);
+        }}
+        onCancel={() => setConfirmingBulk(false)}
+      />
+
       {remove.error && (
         <Typography variant="body2" color="error" sx={{ mb: 1 }}>
           {remove.error.message}
@@ -346,6 +419,18 @@ export function ExpiringDocumentsPage() {
           <Table size="small">
             <TableHead>
               <TableRow>
+                {canBulkDelete && (
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      size="small"
+                      disabled={pickable.length === 0}
+                      checked={pickable.length > 0 && chosen.length === pickable.length}
+                      indeterminate={chosen.length > 0 && chosen.length < pickable.length}
+                      onChange={toggleAll}
+                      slotProps={{ input: { 'aria-label': t('attachments.selectAll') } }}
+                    />
+                  </TableCell>
+                )}
                 <TableCell sortDirection={sortBy === 'fileName' ? sortDirection : false}>
                   <TableSortLabel
                     active={sortBy === 'fileName'}
@@ -415,6 +500,18 @@ export function ExpiringDocumentsPage() {
                       bgcolor: isHighlighted(document.id) ? 'action.hover' : undefined,
                     }}
                   >
+                    {canBulkDelete && (
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          size="small"
+                          disabled={!isPickable(document)}
+                          checked={selected.has(document.id)}
+                          onChange={() => toggleOne(document.id)}
+                          onDoubleClick={(event) => event.stopPropagation()}
+                          slotProps={{ input: { 'aria-label': t('attachments.selectRow', { name: document.title || document.fileName }) } }}
+                        />
+                      </TableCell>
+                    )}
                     <TableCell>
                       {document.title || document.fileName}
                       {(document.tags ?? []).length > 0 && (
@@ -502,7 +599,7 @@ export function ExpiringDocumentsPage() {
 
               {sortedData.length === 0 && !isLoading && (
                 <TableRow>
-                  <TableCell colSpan={6}>
+                  <TableCell colSpan={canBulkDelete ? 7 : 6}>
                     <Stack spacing={1.5} sx={{ py: 1, alignItems: 'flex-start' }}>
                       <Typography variant="body2" color="text.secondary">
                         {search || tagFilter || ownerTypeFilter || categoryFilter

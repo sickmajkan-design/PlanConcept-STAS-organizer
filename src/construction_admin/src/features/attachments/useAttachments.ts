@@ -141,6 +141,11 @@ export function useDeleteAttachment() {
   return useResourceMutation((id: string) => attachmentsApi.remove(id), attachmentCaches);
 }
 
+/** Removes the picked documents for good in one call. */
+export function useDeleteAttachments() {
+  return useResourceMutation((ids: string[]) => attachmentsApi.removeMany(ids), attachmentCaches);
+}
+
 /**
  * Resolves the record's cover photo: the newest `Photo`-category attachment,
  * fetched through the authenticated blob-URL path (see `attachmentsApi.objectUrl`
