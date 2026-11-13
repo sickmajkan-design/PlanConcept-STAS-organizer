@@ -191,11 +191,33 @@ public class AttachmentRulesTests
         Assert.False(AttachmentRules.CanUpload(UserRole.Worker, ownerType, category));
     }
 
-    [Fact]
-    public void A_foreman_may_add_anything()
+    [Theory]
+    [InlineData(AttachmentOwnerType.Project, AttachmentCategory.Contract)]
+    [InlineData(AttachmentOwnerType.Vehicle, AttachmentCategory.Photo)]
+    [InlineData(AttachmentOwnerType.WorkItem, AttachmentCategory.Photo)]
+    [InlineData(AttachmentOwnerType.VehicleExpense, AttachmentCategory.Other)]
+    public void A_foreman_may_add_to_site_records(AttachmentOwnerType ownerType, AttachmentCategory category)
     {
-        Assert.True(AttachmentRules.CanUpload(
-            UserRole.Foreman, AttachmentOwnerType.Employee, AttachmentCategory.Contract));
+        Assert.True(AttachmentRules.CanUpload(UserRole.Foreman, ownerType, category));
+    }
+
+    [Theory]
+    [InlineData(AttachmentCategory.Contract)]
+    [InlineData(AttachmentCategory.Certificate)]
+    [InlineData(AttachmentCategory.Photo)]
+    public void A_foreman_may_not_add_to_a_persons_file_that_they_cannot_read(AttachmentCategory category)
+    {
+        Assert.False(AttachmentRules.CanRead(UserRole.Foreman, AttachmentOwnerType.Employee));
+        Assert.False(AttachmentRules.CanUpload(UserRole.Foreman, AttachmentOwnerType.Employee, category));
+    }
+
+    [Theory]
+    [InlineData(UserRole.SuperAdmin)]
+    [InlineData(UserRole.Admin)]
+    [InlineData(UserRole.ProjectManager)]
+    public void The_office_may_still_add_to_a_persons_file(UserRole role)
+    {
+        Assert.True(AttachmentRules.CanUpload(role, AttachmentOwnerType.Employee, AttachmentCategory.Contract));
     }
 
     [Theory]

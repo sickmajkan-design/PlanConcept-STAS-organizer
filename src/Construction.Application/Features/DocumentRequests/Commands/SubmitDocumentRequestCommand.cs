@@ -106,6 +106,15 @@ public class SubmitDocumentRequestCommandHandler : IRequestHandler<SubmitDocumen
                 "Too many attempts for this request. Please speak to the office.");
         }
 
+        await AttachmentQuota.EnsureRoomAsync(
+            _context,
+            AttachmentOwnerType.Employee,
+            request.EmployeeId,
+            userId,
+            command.Files.Sum(f => f.SizeBytes),
+            command.Files.Count,
+            cancellationToken);
+
         // Check everything before storing anything, so a bad third file does not leave two behind.
         var prepared = new List<(Attachment Attachment, Stream Content, string ContentType)>();
 

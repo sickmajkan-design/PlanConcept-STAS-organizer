@@ -287,6 +287,13 @@ public static class AttachmentRules
             return role is UserRole.SuperAdmin;
         }
 
+        // A person's own file is private: the Foreman cannot read these (see CanRead), so may not add to a colleague's
+        // either. Workers never could. The office roles do.
+        if (ownerType == AttachmentOwnerType.Employee && role == UserRole.Foreman)
+        {
+            return false;
+        }
+
         if (role is UserRole.SuperAdmin or UserRole.Admin
             or UserRole.ProjectManager or UserRole.Foreman)
         {

@@ -5034,4 +5034,6 @@ export const sr: Record<MessageKey, Message> = {
   'releaseNotes.security1113.preview': 'Pregled Word i Excel dokumenata više ne dozvoljava linkove koji pokreću skriptu.',
   'releaseNotes.security1113.password': 'Najčešće lozinke (Password1, Welcome2024 i slične) se ne prihvataju.',
   'releaseNotes.security1113.search': 'Pretraga poslanih obavijesti opet radi.',
+  'releaseNotes.security1113.files': 'Predradnik više ne može dodavati dokumente uz karton radnika (ugovori i ljekarski pregledi ostaju samo za Admina i više). Na kartonu radnika se dokumenti ne prikazuju nikome ispod Admina.',
+  'releaseNotes.security1113.quota': 'Ograničenja: do 200 dokumenata po zapisu, a jedan nalog može poslati do 300 dokumenata i 1 GB u 24 sata.',
 };

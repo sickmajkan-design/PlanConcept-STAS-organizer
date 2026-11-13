@@ -144,6 +144,9 @@ public class UploadAttachmentCommandHandler
         await EnsureRefundIsTheirsAsync(request, cancellationToken);
         await EnsureVehicleExpenseIsTheirsAsync(request, cancellationToken);
 
+        await AttachmentQuota.EnsureRoomAsync(
+            _context, request.OwnerType, request.OwnerId, _currentUserService.UserId, request.SizeBytes, 1, cancellationToken);
+
         var fileName = AttachmentRules.SanitiseFileName(request.FileName);
 
         // Re-derived from the name rather than trusted from the upload: the

@@ -397,18 +397,21 @@ export function EmployeeDetailPage() {
           </Grid>
         )}
 
-        <Grid size={12}>
-          <Card>
-            <CardContent>
-              <AttachmentList
-                ownerType="Employee"
-                ownerId={employee.id}
-                categories={['Contract', 'Identity', 'Visa', 'Licence', 'Certificate', 'Diploma', 'MedicalCheck', 'Other']}
-                canDelete={canAdministerAccounts(user)}
-              />
-            </CardContent>
-          </Card>
-        </Grid>
+        {/* A person's contracts and medical checks stop at Admin on the server; a Foreman or Project Manager would only see an error here. */}
+        {canAdministerAccounts(user) && (
+          <Grid size={12}>
+            <Card>
+              <CardContent>
+                <AttachmentList
+                  ownerType="Employee"
+                  ownerId={employee.id}
+                  categories={['Contract', 'Identity', 'Visa', 'Licence', 'Certificate', 'Diploma', 'MedicalCheck', 'Other']}
+                  canDelete
+                />
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
 
       </Grid>
 
