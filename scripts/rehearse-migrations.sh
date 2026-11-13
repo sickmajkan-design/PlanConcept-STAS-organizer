@@ -92,7 +92,8 @@ ensure_ef_tool() {
     fi
 
     echo "--- installing dotnet-ef"
-    dotnet tool install --global dotnet-ef >/dev/null 2>&1 || true
+    # Pinned to the EF Core of the project: the latest tool needs the .NET 10 runtime, which the build agents do not have.
+    dotnet tool install --global dotnet-ef --version 9.0.18 >/dev/null 2>&1 || true
     PATH="$PATH:$HOME/.dotnet/tools"
     export PATH
 
