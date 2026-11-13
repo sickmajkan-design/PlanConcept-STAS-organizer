@@ -8,8 +8,8 @@ namespace Construction.Application.Features.Attachments;
 /// How much one record may hold, and how much one account may send in a day.
 /// </summary>
 /// <remarks>
-/// The limits are generous for honest use (a site folder with a few hundred photographs, an office dropping a month of
-/// scans) and exist so that one account, or one stolen session, cannot fill the disk. The rate limit of the upload
+/// The limits are generous for honest use (a site folder with a few hundred photographs, an office entering the papers of
+/// a whole workforce: 100 people with 5 documents is 500 files in a day) and exist so that one account, or one stolen session, cannot fill the disk. The rate limit of the upload
 /// endpoint slows a burst down; these limits cap the total.
 /// <para>
 /// shortcut: fixed constants, and the day is the last 24 hours rather than a calendar day. Move them to configuration if
@@ -22,10 +22,10 @@ public static class AttachmentQuota
     public const int MaxFilesPerRecord = 200;
 
     /// <summary>Most files one account may add in 24 hours.</summary>
-    public const int MaxFilesPerAccountPerDay = 300;
+    public const int MaxFilesPerAccountPerDay = 1000;
 
     /// <summary>Most bytes one account may add in 24 hours.</summary>
-    public const long MaxBytesPerAccountPerDay = 1024L * 1024 * 1024;
+    public const long MaxBytesPerAccountPerDay = 5L * 1024 * 1024 * 1024;
 
     /// <summary>
     /// Refuses the upload when it would pass a limit. Counts what is already stored, so it is checked before the file

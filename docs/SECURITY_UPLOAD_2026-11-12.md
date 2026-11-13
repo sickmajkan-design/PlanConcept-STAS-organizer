@@ -126,3 +126,5 @@ Uz jedan zapis zaposlenika prihvaćeno je 60 dodatnih fajlova bez prigovora. Ogr
 Ograničenja: PDF provjera čita obične oznake (sakrivene u tokovima objekata neće se uhvatiti, vidi `shortcut:` u kodu), a nepoznati makro u ispravnom Office fajlu prolazi osim ako ga ClamAV već poznaje.
 Pri prvom pokretanju sam našao jedan vlastiti propust (fajl `PK` + program je davao 500 zbog drugačijeg izuzetka iz biblioteke); popravljen i pokriven testom.
 Testovi: 777 jediničnih prolazi, integracioni 1.397 od 1.414 (17 neuspjelih: 14 `ScheduleTests` koji koriste fiksni datum 3. 8. 2026, pa ih pravilo "najviše N dana unazad" odbija danas, i 3 moja koja su bila pogrešno napisana i sada prolaze). Pet dodatnih paketa (Upload*, Attachment*, DocumentRequest*) ponovo prolazi: 79 od 79.
+
+**Kvote (odluka 2026-11-13):** 200 dokumenata po zapisu; po nalogu 1.000 dokumenata i 5 GB u 24 sata (prvo 300 i 1 GB; podignuto jer unos papira za 100 radnika po 5 dokumenata je 500 fajlova u jednom danu). Brojke su konstante u `AttachmentQuota.cs`.

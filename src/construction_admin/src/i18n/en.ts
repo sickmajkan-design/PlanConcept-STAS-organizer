@@ -4991,7 +4991,7 @@ export const en = {
   'releaseNotes.security1113.password': 'The most common passwords (Password1, Welcome2024 and the like) are not accepted.',
   'releaseNotes.security1113.search': 'Search in sent announcements works again.',
   'releaseNotes.security1113.files': 'A foreman can no longer add documents to the card of a worker (contracts and medical checks stay with Admin and above). Nobody below Admin sees the documents on the card of a worker.',
-  'releaseNotes.security1113.quota': 'Limits: up to 200 documents per record, and one account can send up to 300 documents and 1 GB in 24 hours.',
+  'releaseNotes.security1113.quota': 'Limits: up to 200 documents per record, and one account can send up to 1,000 documents and 5 GB in 24 hours.',
 } as const;
 
 export type MessageKey = keyof typeof en;
