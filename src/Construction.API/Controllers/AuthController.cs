@@ -10,6 +10,7 @@ using Construction.Application.Features.Authentication.Commands.ResetPassword;
 using Construction.Application.Features.Authentication.Commands.UpdatePreferredLanguage;
 using Construction.Application.Features.Authentication.Models;
 using Construction.Application.Features.Authentication.Queries.GetCurrentUser;
+using Construction.Application.Features.Privacy.Commands.RequestAccountDeletion;
 using Construction.API.Authentication;
 using Construction.API.Extensions;
 using Microsoft.AspNetCore.Authorization;
@@ -246,6 +247,16 @@ public class AuthController : ApiControllerBase
         CancellationToken cancellationToken)
     {
         await Mediator.Send(command, cancellationToken);
+        return NoContent();
+    }
+
+    /// <summary>The current user asks for their personal data to be erased; the Super Admins are told.</summary>
+    [HttpPost("me/deletion-request")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> RequestMyDeletion(CancellationToken cancellationToken)
+    {
+        await Mediator.Send(new RequestAccountDeletionCommand(), cancellationToken);
         return NoContent();
     }
 }

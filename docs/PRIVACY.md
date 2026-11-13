@@ -259,6 +259,8 @@ POST /api/v1/privacy/employees/{employeeId}/erase
 { "reason": "Zahtjev lica, ref DSR-2026-014" }
 ```
 
+Zahtjev radnika stiže iz aplikacije (Više → Zatraži brisanje naloga, `POST /api/v1/auth/me/deletion-request`) kao obavještenje Super Adminima; brisanje ne pokreće samo. Zahtjev se nigdje ne bilježi osim u obavještenju. /
+
 Samo Super Admin. Nepovratno. Razlog je obavezan i upisuje se u audit trag. /
 Super Admin only. Irreversible. The reason is required and recorded in the audit
 trail.

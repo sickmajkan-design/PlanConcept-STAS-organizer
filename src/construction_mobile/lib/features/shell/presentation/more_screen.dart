@@ -209,6 +209,12 @@ class MoreScreen extends ConsumerWidget {
                   ),
                   const Divider(height: 1, indent: 20, endIndent: 20),
                   ListTile(
+                    leading: const Icon(Icons.person_remove_outlined),
+                    title: Text(context.l10n.accountDeleteTitle),
+                    onTap: () => _requestDeletion(context, ref),
+                  ),
+                  const Divider(height: 1, indent: 20, endIndent: 20),
+                  ListTile(
                     leading: const Icon(Icons.logout),
                     title: Text(context.l10n.commonSignOut),
                     onTap: () => _confirmSignOut(context, ref),
@@ -263,6 +269,38 @@ class MoreScreen extends ConsumerWidget {
 
     if (chosen != null) {
       await ref.read(localeControllerProvider.notifier).select(chosen);
+    }
+  }
+
+  Future<void> _requestDeletion(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.accountDeleteQuestion),
+        content: Text(l10n.accountDeleteBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.accountDeleteSend),
+          ),
+        ],
+      ),
+    );
+
+    if (!(confirmed ?? false)) return;
+
+    try {
+      await ref.read(authControllerProvider.notifier).requestAccountDeletion();
+      messenger.showSnackBar(SnackBar(content: Text(l10n.accountDeleteSent)));
+    } on ApiException catch (exception) {
+      messenger.showSnackBar(SnackBar(content: Text(exception.describe(l10n))));
     }
   }
 

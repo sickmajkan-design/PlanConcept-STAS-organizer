@@ -111,6 +111,11 @@ class AuthRepository extends ApiRepository {
     return postVoid('/api/v1/auth/forgot-password', data: {'email': email});
   }
 
+  /// Asks the office to erase this account's personal data.
+  Future<void> requestAccountDeletion() {
+    return postVoid('/api/v1/auth/me/deletion-request');
+  }
+
   Future<void> resetPassword({
     required String email,
     required String token,

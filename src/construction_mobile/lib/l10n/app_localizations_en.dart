@@ -75,6 +75,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get commonSignOut => 'Sign out';
 
   @override
+  String get accountDeleteTitle => 'Request account deletion';
+
+  @override
+  String get accountDeleteQuestion => 'Request account deletion?';
+
+  @override
+  String get accountDeleteBody =>
+      'The office will receive your request and erase your personal data (contact details, location, absence reasons). Hours and pay records are kept for as long as the law requires. The account is not deleted right away.';
+
+  @override
+  String get accountDeleteSend => 'Send request';
+
+  @override
+  String get accountDeleteSent => 'Your request was sent to the office.';
+
+  @override
   String get commonSignOutQuestion => 'Sign out?';
 
   @override

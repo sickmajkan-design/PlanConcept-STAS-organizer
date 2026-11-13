@@ -75,6 +75,22 @@ class AppLocalizationsSr extends AppLocalizations {
   String get commonSignOut => 'Odjavi se';
 
   @override
+  String get accountDeleteTitle => 'Zatraži brisanje naloga';
+
+  @override
+  String get accountDeleteQuestion => 'Zatražiti brisanje naloga?';
+
+  @override
+  String get accountDeleteBody =>
+      'Kancelarija će dobiti vaš zahtjev i obrisati vaše lične podatke (kontakt, lokaciju, razloge odsustva). Sati rada i plate čuvaju se onoliko koliko zakon nalaže. Nalog se ne briše odmah.';
+
+  @override
+  String get accountDeleteSend => 'Pošalji zahtjev';
+
+  @override
+  String get accountDeleteSent => 'Zahtjev je poslat kancelariji.';
+
+  @override
   String get commonSignOutQuestion => 'Odjaviti se?';
 
   @override

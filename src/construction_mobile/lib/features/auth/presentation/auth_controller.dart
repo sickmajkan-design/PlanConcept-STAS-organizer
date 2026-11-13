@@ -196,6 +196,10 @@ class AuthController extends AsyncNotifier<AuthState> {
         );
   }
 
+  Future<void> requestAccountDeletion() {
+    return ref.read(authRepositoryProvider).requestAccountDeletion();
+  }
+
   Future<void> requestPasswordReset(String email) {
     return ref.read(authRepositoryProvider).requestPasswordReset(email.trim());
   }

@@ -218,6 +218,36 @@ abstract class AppLocalizations {
   /// **'Sign out'**
   String get commonSignOut;
 
+  /// No description provided for @accountDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Request account deletion'**
+  String get accountDeleteTitle;
+
+  /// No description provided for @accountDeleteQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Request account deletion?'**
+  String get accountDeleteQuestion;
+
+  /// No description provided for @accountDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The office will receive your request and erase your personal data (contact details, location, absence reasons). Hours and pay records are kept for as long as the law requires. The account is not deleted right away.'**
+  String get accountDeleteBody;
+
+  /// No description provided for @accountDeleteSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Send request'**
+  String get accountDeleteSend;
+
+  /// No description provided for @accountDeleteSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Your request was sent to the office.'**
+  String get accountDeleteSent;
+
   /// No description provided for @commonSignOutQuestion.
   ///
   /// In en, this message translates to:
