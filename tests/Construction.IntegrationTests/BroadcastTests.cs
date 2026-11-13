@@ -270,4 +270,39 @@ public class BroadcastTests
             HttpStatusCode.Forbidden,
             (await client.PostAsJsonAsync("/api/v1/notifications/audience-preview", Targets())).StatusCode);
     }
+
+    [Theory]
+    [InlineData("title")]
+    [InlineData("TITLE")]
+    [InlineData("it's 100% a _wild_ \"card\"; DROP TABLE users;--")]
+    public async Task Searching_the_list_never_fails_and_finds_by_title_whatever_the_case_or_characters(string term)
+    {
+        // The audience column is jsonb, which has no lower(); the search used to answer 500 for every word.
+        var crew = await SeedAsync();
+        var marker = Guid.NewGuid().ToString("N")[..10];
+        var sent = await SendAsync(crew, title: $"Title {marker}");
+        var id = sent.GetProperty("broadcastId").GetGuid();
+
+        using var office = _api.ClientAs(UserRole.Admin);
+
+        var byTitle = await office.GetAsync($"/api/v1/notifications/broadcasts?pageSize=50&search={Uri.EscapeDataString(term == "title" || term == "TITLE" ? marker : term)}");
+        Assert.Equal(HttpStatusCode.OK, byTitle.StatusCode);
+
+        if (term is "title" or "TITLE")
+        {
+            var json = await byTitle.Content.ReadFromJsonAsync<JsonElement>();
+            Assert.Contains(json.GetProperty("items").EnumerateArray(), i => i.GetProperty("id").GetGuid() == id);
+        }
+    }
+
+    [Fact]
+    public async Task A_search_for_text_that_is_nowhere_returns_an_empty_list()
+    {
+        using var office = _api.ClientAs(UserRole.Admin);
+
+        var json = await office.GetFromJsonAsync<JsonElement>(
+            $"/api/v1/notifications/broadcasts?search={Guid.NewGuid():N}");
+
+        Assert.Equal(0, json.GetProperty("items").GetArrayLength());
+    }
 }

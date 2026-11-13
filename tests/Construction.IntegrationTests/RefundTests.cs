@@ -139,7 +139,7 @@ public class RefundTests
 
     private static MultipartFormDataContent Receipt(string ownerId)
     {
-        var file = new ByteArrayContent([0xFF, 0xD8, 0xFF, 0xE0, 3, 4]);
+        var file = new ByteArrayContent(TestFiles.WithSignature("photo.jpg", string.Empty));
         file.Headers.ContentType = new MediaTypeHeaderValue("image/jpeg");
 
         return new MultipartFormDataContent

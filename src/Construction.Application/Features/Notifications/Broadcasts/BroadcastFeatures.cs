@@ -225,8 +225,22 @@ public class GetBroadcastsQueryHandler : IRequestHandler<GetBroadcastsQuery, Pag
         if (!string.IsNullOrWhiteSpace(request.Search))
         {
             var term = request.Search.Trim();
-            query = query.Where(b => EF.Functions.Like(b.Title.ToLower(), $"%{term.ToLower()}%")
-                || EF.Functions.Like(b.AudienceJson.ToLower(), $"%{term.ToLower()}%"));
+
+            // The audience is a jsonb column, and PostgreSQL has no lower() for jsonb, so the previous
+            // Like(AudienceJson.ToLower()) made every search a 500. Matched here instead, over the two short columns
+            // only, and the page is then read by id. A user's text is never part of the SQL, and a % or _ in it is an
+            // ordinary character rather than a wildcard.
+            // shortcut: reads every announcement's title and audience; upgrade to a text column or a trigram index when
+            // there are tens of thousands of announcements.
+            var matching = (await query
+                    .Select(b => new { b.Id, b.Title, b.AudienceJson })
+                    .ToListAsync(cancellationToken))
+                .Where(b => b.Title.Contains(term, StringComparison.OrdinalIgnoreCase)
+                    || b.AudienceJson.Contains(term, StringComparison.OrdinalIgnoreCase))
+                .Select(b => b.Id)
+                .ToList();
+
+            query = query.Where(b => matching.Contains(b.Id));
         }
 
         if (request.RequiresAcknowledgment == true)

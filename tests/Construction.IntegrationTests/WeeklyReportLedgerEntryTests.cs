@@ -45,7 +45,7 @@ public class WeeklyReportLedgerEntryTests : IntegrationTestBase
         scope.CurrentUser.SignInAs(user.Id, user.Role, null, user.Email);
 
     private static ReportFileInput Picture(string name = "satnica.jpg") =>
-        new(name, 13, new MemoryStream([0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0xFF, 0xD9]));
+        new(name, TestFiles.WithSignature("photo.jpg", string.Empty).Length, new MemoryStream(TestFiles.WithSignature("photo.jpg", string.Empty)));
 
     /// <summary>Week 10 of the year: a Monday to Sunday that stays inside March.</summary>
     private const int WholeWeek = 10;

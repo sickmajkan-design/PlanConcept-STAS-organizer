@@ -2,6 +2,7 @@ using System.Globalization;
 using Construction.Application.Common.Exceptions;
 using Construction.Application.Common.Interfaces;
 using Construction.Application.Features.Attachments;
+using Construction.Application.Features.Attachments.Commands.UploadAttachment;
 using Construction.Application.Features.Outbox;
 using Construction.Application.Features.WeeklySiteReports.Models;
 using Construction.Domain.Entities;
@@ -204,19 +205,22 @@ public class CreateWeeklySiteReportCommandHandler
     private readonly IFileStorage _storage;
     private readonly IOutbox _outbox;
     private readonly INotificationService _notifications;
+    private readonly IVirusScanner _virusScanner;
 
     public CreateWeeklySiteReportCommandHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUserService,
         IFileStorage storage,
         IOutbox outbox,
-        INotificationService notifications)
+        INotificationService notifications,
+        IVirusScanner virusScanner)
     {
         _context = context;
         _currentUserService = currentUserService;
         _storage = storage;
         _outbox = outbox;
         _notifications = notifications;
+        _virusScanner = virusScanner;
     }
 
     public async Task<WeeklySiteReportDto> Handle(
@@ -311,19 +315,34 @@ public class CreateWeeklySiteReportCommandHandler
 
         var oldKeys = replacing ? report.Pages.Select(p => p.StorageKey).Append(report.StorageKey).ToList() : [];
 
+        // Checked before anything is stored, with the same gate as every other upload (content, then antivirus): a
+        // report is opened by the office exactly like a document, so it must not be a way around either check.
+        var checkedFiles = new List<(ReportFileInput Input, string FileName, string ContentType, Stream Content)>();
+
+        foreach (var input in request.Files)
+        {
+            var fileName = AttachmentRules.SanitiseFileName(input.FileName);
+            var contentType = AttachmentRules.ResolveContentType(fileName)
+                ?? throw new ConflictException("That file type is not accepted.");
+
+            var content = await UploadAttachmentCommandHandler.VerifySignatureAsync(
+                input.Content, fileName, cancellationToken);
+
+            await _virusScanner.EnsureCleanAsync(content, cancellationToken);
+
+            checkedFiles.Add((input, fileName, contentType, content));
+        }
+
         // Bytes first: every picture is stored before any row says it exists.
         var saved = new List<(ReportFileInput Input, string FileName, string ContentType, string Key)>();
 
         try
         {
-            foreach (var input in request.Files)
+            foreach (var (input, fileName, contentType, content) in checkedFiles)
             {
-                var fileName = AttachmentRules.SanitiseFileName(input.FileName);
-                var contentType = AttachmentRules.ResolveContentType(fileName)
-                    ?? throw new ConflictException("That file type is not accepted.");
                 var key = $"weekly-site-reports/{request.ProjectId:N}/{Guid.NewGuid():N}{Path.GetExtension(fileName)}";
 
-                await _storage.SaveAsync(key, input.Content, contentType, cancellationToken);
+                await _storage.SaveAsync(key, content, contentType, cancellationToken);
                 saved.Add((input, fileName, contentType, key));
             }
 

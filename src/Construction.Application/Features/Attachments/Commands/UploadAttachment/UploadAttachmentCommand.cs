@@ -241,6 +241,9 @@ public class UploadAttachmentCommandHandler
             throw new ConflictException("The content of the file does not match its type.");
         }
 
+        // Past the first bytes: archive bombs, macros, script in a PDF, absurd picture sizes.
+        await UploadContentInspector.InspectAsync(content, fileName, cancellationToken);
+
         return content;
     }
 

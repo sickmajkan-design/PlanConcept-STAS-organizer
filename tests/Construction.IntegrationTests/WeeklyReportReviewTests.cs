@@ -47,7 +47,7 @@ public class WeeklyReportReviewTests
 
     private static MultipartFormDataContent Report(Guid projectId, int week, string note = "ok")
     {
-        var sheet = new ByteArrayContent([0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0xFF, 0xD9]);
+        var sheet = new ByteArrayContent(TestFiles.WithSignature("photo.jpg", string.Empty));
         sheet.Headers.ContentType = new("image/jpeg");
 
         return new MultipartFormDataContent

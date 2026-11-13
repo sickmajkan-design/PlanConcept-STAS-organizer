@@ -15,6 +15,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { attachmentsApi } from '../api/attachments';
 import { useT } from '../i18n/useI18n';
 import { PdfPages } from './PdfPages';
+import { sanitizePreviewHtml } from '../utils/sanitizePreviewHtml';
 
 type PreviewState =
   | { kind: 'loading' }
@@ -41,34 +42,6 @@ function extensionOf(fileName: string): string {
 const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
 const HEIC_EXTENSIONS = ['heic', 'heif'];
 const EXCEL_EXTENSIONS = ['xls', 'xlsx', 'csv'];
-
-/**
- * Strips anything a parsed document could use to run script or reach off the
- * page before it is handed to `dangerouslySetInnerHTML` — mammoth and
- * SheetJS both build real HTML from file content, so a crafted file name,
- * cell value, or paragraph is attacker-controlled text by the time it gets
- * here.
- */
-function sanitizeHtml(html: string): string {
-  const parsed = new DOMParser().parseFromString(html, 'text/html');
-
-  parsed
-    .querySelectorAll('script, style, iframe, object, embed, link, meta')
-    .forEach((el) => el.remove());
-
-  parsed.querySelectorAll('*').forEach((el) => {
-    for (const attr of [...el.attributes]) {
-      const name = attr.name.toLowerCase();
-      const value = attr.value.trim().toLowerCase();
-
-      if (name.startsWith('on') || ((name === 'href' || name === 'src') && value.startsWith('javascript:'))) {
-        el.removeAttribute(attr.name);
-      }
-    }
-  });
-
-  return parsed.body.innerHTML;
-}
 
 /**
  * A large in-place look at any uploaded document, opened on double-click
@@ -173,7 +146,7 @@ export function AttachmentPreviewDialog({
 
           if (cancelled) return;
 
-          setPreview({ kind: 'html', html: sanitizeHtml(result.value) });
+          setPreview({ kind: 'html', html: sanitizePreviewHtml(result.value) });
           return;
         }
 
@@ -196,7 +169,7 @@ export function AttachmentPreviewDialog({
 
           setPreview({
             kind: 'html',
-            html: sanitizeHtml(XLSX.utils.sheet_to_html(sheet)),
+            html: sanitizePreviewHtml(XLSX.utils.sheet_to_html(sheet)),
             note:
               restSheetNames.length > 0
                 ? t('attachments.moreSheets', { count: restSheetNames.length })

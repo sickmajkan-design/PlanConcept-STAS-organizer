@@ -38,7 +38,11 @@ try
     builder.Services.AddScoped<IAssistantToolset, AssistantToolset>();
 
     builder.Services
-        .AddControllers()
+        .AddControllers(options =>
+        {
+            // Ahead of the built-in binders, which would otherwise take every string first.
+            options.ModelBinderProviders.Insert(0, new Construction.API.Json.NoNulStringModelBinderProvider());
+        })
         .AddJsonOptions(options =>
         {
             options.JsonSerializerOptions.Converters.Add(

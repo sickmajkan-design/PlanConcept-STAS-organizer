@@ -433,3 +433,14 @@ document request) streams it to a ClamAV daemon first (`Antivirus__*` settings, 
   not stored.
 - Tests: `ClamAvScannerTests` (protocol against a stand-in daemon), the upload and document-request
   integration tests (EICAR, scanner down).
+
+## Upload gate (2026-11-13)
+
+Every path that stores an uploaded file (attachments, document-request answers, weekly-report pictures) goes through the same two steps before anything is saved, so a new upload route must not skip either:
+
+1. **Content** — `UploadAttachmentCommandHandler.VerifySignatureAsync`: the first bytes fit the extension (`AttachmentRules.MatchesSignature`), then `UploadContentInspector` looks inside: Office files must be a real archive (`[Content_Types].xml` plus `word/` or `xl/`, at most 10 000 parts, 200 MB unpacked, 200:1 ratio, no `vbaProject`/ActiveX/executables), PDFs must not contain `/JavaScript`, `/JS`, `/Launch` or `/EmbeddedFile`, pictures must declare a readable size of at most 120 megapixels and 20 000 px a side.
+2. **Antivirus** — `IVirusScanner.EnsureCleanAsync` (fails closed: 503 when ClamAV is down).
+
+Spreadsheet imports (one reader, `ClosedXmlFuelStatementParser`) refuse a workbook that unpacks to more than 20 MB or has more than 50 000 rows, and answer 409 with a sentence for anything unreadable. Text in forms and query strings may not contain NUL (`NoNulStringModelBinderProvider`).
+
+Known limits: the PDF check reads plain tokens (names hidden in object streams get through), an unknown macro in a valid Office file passes unless ClamAV knows it, and per-record file counts and storage quotas are not enforced. The browser preview of Word/Excel (`sanitizePreviewHtml.ts`) allows only `http`, `https`, `mailto`, `tel` links. Tests and evidence: `docs/SECURITY_UPLOAD_2026-11-12.md`.
