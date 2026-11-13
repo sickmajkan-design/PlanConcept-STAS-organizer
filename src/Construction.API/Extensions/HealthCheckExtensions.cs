@@ -40,7 +40,8 @@ public static class HealthCheckExtensions
         services
             .AddHealthChecks()
             .AddDbContextCheck<ApplicationDbContext>("database", tags: [ReadyTag])
-            .AddCheck<AntivirusHealthCheck>("antivirus", tags: [DependenciesTag]);
+            .AddCheck<AntivirusHealthCheck>("antivirus", tags: [DependenciesTag])
+            .AddCheck<DiskSpaceHealthCheck>("disk", tags: [DependenciesTag]);
 
         return services;
     }

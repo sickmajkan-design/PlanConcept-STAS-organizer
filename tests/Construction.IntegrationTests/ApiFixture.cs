@@ -105,6 +105,10 @@ public sealed class ApiFixture : IAsyncLifetime
                         services.Remove(timer);
                     }
 
+                    // The machine's real disk would make the attention list depend on how full it is.
+                    services.AddSingleton<FakeDiskSpace>();
+                    services.AddSingleton<Construction.Application.Common.Interfaces.IDiskSpace>(sp => sp.GetRequiredService<FakeDiskSpace>());
+
                     services.AddLogging(logging => logging.SetMinimumLevel(LogLevel.Warning));
                 });
             });

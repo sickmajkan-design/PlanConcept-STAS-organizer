@@ -16,10 +16,13 @@ import { useMemo, useState } from 'react';
 
 import type { AuditTrailQuery } from '../../api/audit';
 import { auditActions, type AuditAction, type AuditEntry } from '../../api/types';
+import { useAuth } from '../../auth/useAuth';
+import { isSuperAdmin } from '../../auth/authHelpers';
 import { PageHeader } from '../../components/PageHeader';
 import { ResourceDataGrid } from '../../components/ResourceDataGrid';
 import { StatusChip } from '../../components/StatusChip';
 import { useAuditListQuery } from '../../features/audit/useAudit';
+import { StorageCard } from '../../features/system/StorageCard';
 import { useEnumLabel } from '../../i18n/enumLabels';
 import { useT } from '../../i18n/useI18n';
 import { formatDateTime } from '../../utils/formatting';
@@ -33,6 +36,7 @@ import { formatDateTime } from '../../utils/formatting';
  */
 export function AuditPage() {
   const t = useT();
+  const { user } = useAuth();
   const enumLabel = useEnumLabel();
 
   const [entityName, setEntityName] = useState('');
@@ -158,6 +162,8 @@ export function AuditPage() {
         description={t('audit.pageDescription')}
         subtitle={data ? t('common.total', { count: data.totalCount }) : undefined}
       />
+
+      {isSuperAdmin(user) && <StorageCard />}
 
       <Stack direction="row" spacing={2} sx={{ mb: 2, flexWrap: 'wrap' }}>
         <TextField

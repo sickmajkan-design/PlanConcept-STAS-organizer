@@ -112,6 +112,10 @@ public sealed class DatabaseFixture : IAsyncLifetime
         services.AddSingleton<FakeVirusScanner>();
         services.AddSingleton<IVirusScanner>(sp => sp.GetRequiredService<FakeVirusScanner>());
 
+        // A disk the tests can fill; the real one would make the result depend on the machine running them.
+        services.AddSingleton<FakeDiskSpace>();
+        services.AddSingleton<IDiskSpace>(sp => sp.GetRequiredService<FakeDiskSpace>());
+
         services.AddSingleton<RecordingPushSender>();
         services.AddSingleton<IPushSender>(sp => sp.GetRequiredService<RecordingPushSender>());
 

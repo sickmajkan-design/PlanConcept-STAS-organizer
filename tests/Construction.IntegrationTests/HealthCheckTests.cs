@@ -68,15 +68,16 @@ public class HealthCheckTests
         // A scanner that is down stops files being sent and nothing else; taking the API out of rotation for
         // it would turn a partial outage into a total one. So it answers on its own path, for a monitor, and
         // readiness does not mention it. (Scanning is off in this host, so it is healthy.)
+        // The disk has its own check on the same path, for the same reason: a full disk is fixed by cleaning up.
         var dependencies = await GetAsync("/health/dependencies", HttpStatusCode.OK);
-        var antivirus = Assert.Single(dependencies.GetProperty("checks").EnumerateArray());
-        Assert.Equal("antivirus", antivirus.GetProperty("name").GetString());
-        Assert.Equal("Healthy", antivirus.GetProperty("status").GetString());
+        var checks = dependencies.GetProperty("checks").EnumerateArray().ToList();
+        Assert.Equal(["antivirus", "disk"], checks.Select(c => c.GetProperty("name").GetString()!).Order().ToArray());
+        Assert.All(checks, c => Assert.Equal("Healthy", c.GetProperty("status").GetString()));
 
         var ready = await GetAsync("/health/ready", HttpStatusCode.OK);
         Assert.DoesNotContain(
             ready.GetProperty("checks").EnumerateArray(),
-            check => check.GetProperty("name").GetString() == "antivirus");
+            check => check.GetProperty("name").GetString() is "antivirus" or "disk");
     }
 
     [Fact]

@@ -268,6 +268,7 @@ public static class DependencyInjection
         var section = configuration.GetSection(FileStorageSettings.SectionName);
 
         services.Configure<FileStorageSettings>(section);
+        services.AddSingleton<IDiskSpace, DriveInfoDiskSpace>();
 
         var settings = section.Get<FileStorageSettings>() ?? new FileStorageSettings();
 

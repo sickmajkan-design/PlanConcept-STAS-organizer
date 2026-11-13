@@ -5,6 +5,7 @@ using Construction.Application.Features.Accommodations.Reminders;
 using Construction.Application.Features.Attachments.Commands.SendRetentionEndedReminders;
 using Construction.Application.Features.DocumentRequests.Commands.SendDocumentRequestReminders;
 using Construction.Application.Features.Recurring;
+using Construction.Application.Features.SystemStatus;
 using Construction.Application.Features.ScheduledReports.Commands.SendScheduledReports;
 using Construction.Application.Features.TimeEntries.Commands.AutoCloseStaleShifts;
 using Construction.Application.Features.VehicleFines;
@@ -132,6 +133,13 @@ public class DailyReminderService : BackgroundService
             using var scope = _scopeFactory.CreateScope();
 
             var mediator = scope.ServiceProvider.GetRequiredService<ISender>();
+
+            var diskWarnings = await mediator.Send(new SendDiskSpaceWarningCommand(), cancellationToken);
+
+            if (diskWarnings > 0)
+            {
+                _logger.LogWarning("Told {Count} Super Admin(s) that the disk is running out.", diskWarnings);
+            }
 
             var documents = await mediator.Send(
                 new SendExpiryRemindersCommand(), cancellationToken);

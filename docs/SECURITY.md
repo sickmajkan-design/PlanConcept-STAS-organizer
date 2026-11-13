@@ -444,3 +444,14 @@ Every path that stores an uploaded file (attachments, document-request answers, 
 Spreadsheet imports (one reader, `ClosedXmlFuelStatementParser`) refuse a workbook that unpacks to more than 20 MB or has more than 50 000 rows, and answer 409 with a sentence for anything unreadable. Text in forms and query strings may not contain NUL (`NoNulStringModelBinderProvider`).
 
 Known limits: the PDF check reads plain tokens (names hidden in object streams get through), an unknown macro in a valid Office file passes unless ClamAV knows it, and per-record file counts and storage quotas are not enforced. The browser preview of Word/Excel (`sanitizePreviewHtml.ts`) allows only `http`, `https`, `mailto`, `tel` links. Tests and evidence: `docs/SECURITY_UPLOAD_2026-11-12.md`.
+
+## Watching the server's disk (2026-11-13)
+
+The disk holds the documents, the database, the backups and the Docker images, so it is the one thing that stops everything when it fills. It is watched in four ways, all from one reading (`IDiskSpace`, the disk the file storage is on; thresholds in `DiskSpaceRules`: low under 20% or 8 GB free, critical under 10% or 3 GB):
+
+- **Super Admin, always:** the Audit trail page shows a card with free space, used space and what the documents take (`GET /api/v1/system/storage`).
+- **Home list:** the "Needs attention" list shows "low on disk space" (amber) or "almost out" (red) to the Super Admin.
+- **Notice:** `SendDiskSpaceWarningCommand` in the daily sweep notifies every active Super Admin (and pushes it to the phone), at most once per 20 hours, only while low.
+- **Outside monitor:** `/health/dependencies` has a `disk` check, Degraded when low and Unhealthy (503) when critical. Point the uptime monitor (keyword `Healthy`) at it to be told by e-mail or SMS even when nobody opens the panel.
+
+What fills the test server in practice is old Docker images: every deploy leaves the previous `api` and `admin` image behind untagged (388 of them, 16.8 GB, on 2026-11-13). `docker image prune -f` removes only the untagged ones and is safe to run after a deploy; the documents and the database are small by comparison.

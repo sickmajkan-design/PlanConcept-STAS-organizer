@@ -67,19 +67,22 @@ public class GetAttentionQueryHandler : IRequestHandler<GetAttentionQuery, Atten
     private readonly IDateTimeProvider _clock;
     private readonly ISender _sender;
     private readonly IVirusScanner _scanner;
+    private readonly IDiskSpace _disk;
 
     public GetAttentionQueryHandler(
         IApplicationDbContext context,
         ICurrentUserService currentUser,
         IDateTimeProvider clock,
         ISender sender,
-        IVirusScanner scanner)
+        IVirusScanner scanner,
+        IDiskSpace disk)
     {
         _context = context;
         _currentUser = currentUser;
         _clock = clock;
         _sender = sender;
         _scanner = scanner;
+        _disk = disk;
     }
 
     public async Task<AttentionDto> Handle(GetAttentionQuery request, CancellationToken cancellationToken)
@@ -108,6 +111,15 @@ public class GetAttentionQueryHandler : IRequestHandler<GetAttentionQuery, Atten
             if (_scanner.IsEnabled && !await _scanner.IsReachableAsync(cancellationToken))
             {
                 Add("virusScanner", 1);
+            }
+
+            // The Super Admin is the one who can do something about the disk, so only they are told here.
+            if (role == UserRole.SuperAdmin && _disk.Read() is { Level: not DiskSpaceLevel.Ok } reading)
+            {
+                Add(
+                    reading.Level == DiskSpaceLevel.Critical ? "diskSpaceCritical" : "diskSpace",
+                    1,
+                    [new AttentionItemDto { Label = reading.Describe() }]);
             }
 
             var absences = _context.Absences.AsNoTracking().InBranch(branchId).Where(a => a.Status == AbsenceStatus.Requested);

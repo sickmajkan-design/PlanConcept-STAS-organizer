@@ -18,11 +18,13 @@ export const DOCUMENT_WINDOW_DAYS = 30;
 export const SUMMARY_GROUPS = 3;
 
 /** What stops people, or is already late: shown in red rather than amber. */
-const URGENT = new Set(['virusScanner', 'lateInvoices', 'lateCosts']);
+const URGENT = new Set(['virusScanner', 'diskSpaceCritical', 'lateInvoices', 'lateCosts']);
 
 /** Where each kind of thing is dealt with. */
 export const DESTINATIONS: Record<string, string> = {
   virusScanner: paths.help,
+  diskSpace: paths.audit,
+  diskSpaceCritical: paths.audit,
   absenceRequests: paths.absences,
   expensesToReview: paths.vehicleExpenses,
   timeEntriesToReview: paths.timeEntries,
@@ -43,6 +45,8 @@ export const DESTINATIONS: Record<string, string> = {
 export const ORDER = [
   // Nothing else on the list stops people working the way this does.
   'virusScanner',
+  'diskSpaceCritical',
+  'diskSpace',
   'absenceRequests',
   'timeEntriesToReview',
   'expensesToReview',
