@@ -26,7 +26,19 @@ public class ScheduleTests : IntegrationTestBase
     {
     }
 
-    private static readonly DateOnly Monday = new(2026, 8, 3);
+    /// <summary>
+    /// The next Monday. A fixed date stops working once it is more than the 90 days an absence may be backdated, which
+    /// is what turned fourteen of these tests red; relative to today they keep their meaning.
+    /// </summary>
+    private static readonly DateOnly Monday = NextMonday();
+
+    private static DateOnly NextMonday()
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var days = ((int)DayOfWeek.Monday - (int)today.DayOfWeek + 7) % 7;
+
+        return today.AddDays(days == 0 ? 7 : days);
+    }
 
     private static void ActAs(TestScope scope, User user, Guid? employeeId = null) =>
         scope.CurrentUser.SignInAs(user.Id, user.Role, employeeId, user.Email);
