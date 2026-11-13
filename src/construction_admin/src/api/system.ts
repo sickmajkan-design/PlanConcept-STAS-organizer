@@ -37,8 +37,69 @@ export interface StorageCleanupResult {
   keptForRetention: number;
 }
 
+export interface HostStatus {
+  known: boolean;
+  os: string;
+  uptimeSeconds: number | null;
+  cores: number;
+  load1: number | null;
+  load5: number | null;
+  load15: number | null;
+  memoryTotalBytes: number | null;
+  memoryAvailableBytes: number | null;
+  swapTotalBytes: number | null;
+  swapFreeBytes: number | null;
+}
+
+export interface ApplicationStatus {
+  startedAtUtc: string;
+  uptimeSeconds: number;
+  version: string;
+  environment: string;
+  runtime: string;
+  processMemoryBytes: number;
+  managedHeapBytes: number;
+  threads: number;
+}
+
+export interface TableSize {
+  name: string;
+  bytes: number;
+}
+
+export interface DatabaseStatus {
+  reachable: boolean;
+  version: string | null;
+  sizeBytes: number;
+  connections: number;
+  activeConnections: number;
+  maxConnections: number;
+  cacheHitPercent: number | null;
+  largestTables: TableSize[];
+}
+
+export interface ServicesStatus {
+  virusScannerEnabled: boolean;
+  virusScannerReachable: boolean;
+  fileStorage: 'disk' | 'objectStorage';
+  outboxPending: number;
+  outboxAbandoned: number;
+  oldestPendingUtc: string | null;
+}
+
+/** The whole picture of the server, in one request, for the Super Admin's status page. */
+export interface ServerStatus {
+  atUtc: string;
+  host: HostStatus;
+  application: ApplicationStatus;
+  database: DatabaseStatus;
+  services: ServicesStatus;
+  storage: StorageStatus;
+}
+
 export const systemApi = {
   storage: () => request<StorageStatus>({ method: 'GET', url: '/api/v1/system/storage' }),
+  status: () => request<ServerStatus>({ method: 'GET', url: '/api/v1/system/status' }),
   cleanupScan: () => request<StorageCleanupScan>({ method: 'GET', url: '/api/v1/system/storage/cleanup' }),
   cleanupRun: (kind: StorageCleanupKind) =>
     request<StorageCleanupResult>({ method: 'POST', url: '/api/v1/system/storage/cleanup', data: { kind } }),

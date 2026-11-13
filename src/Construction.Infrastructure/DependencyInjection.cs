@@ -1,3 +1,4 @@
+using Construction.Application.Features.SystemStatus;
 using Construction.Application.Common;
 using Construction.Application.Common.Interfaces;
 using Construction.Infrastructure.Antivirus;
@@ -269,6 +270,7 @@ public static class DependencyInjection
 
         services.Configure<FileStorageSettings>(section);
         services.AddSingleton<IDiskSpace, DriveInfoDiskSpace>();
+        services.AddScoped<IServerProbe, Monitoring.ServerProbe>();
 
         var settings = section.Get<FileStorageSettings>() ?? new FileStorageSettings();
 

@@ -331,6 +331,11 @@ const DataQualityPage = lazy(() =>
     default: m.DataQualityPage,
   })),
 );
+const ServerStatusPage = lazy(() =>
+  import('./pages/system/ServerStatusPage').then((m) => ({
+    default: m.ServerStatusPage,
+  })),
+);
 const AuditPage = lazy(() =>
   import('./pages/audit/AuditPage').then((m) => ({
     default: m.AuditPage,
@@ -604,6 +609,7 @@ function Layout() {
               <Route path={paths.ledgers} element={<LedgersListPage />} />
               <Route path={paths.bookImport} element={<BookImportPage />} />
               <Route path={paths.bookSettlement} element={<BookSettlementPage />} />
+              <Route path={paths.system} element={<ServerStatusPage />} />
               <Route path={`${paths.ledgers}/:id`} element={<LedgerDetailPage />} />
             </Route>
 

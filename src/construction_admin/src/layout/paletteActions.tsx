@@ -4,6 +4,7 @@ import {
   EventBusyOutlined,
   FolderOutlined,
   LocalGasStationOutlined,
+  MonitorHeartOutlined,
   UploadFileOutlined,
 } from '@mui/icons-material';
 import type { ReactNode } from 'react';
@@ -14,6 +15,7 @@ import {
   canSeeSpending,
   canViewBook,
   canViewDirectory,
+  isSuperAdmin,
 } from '../auth/authHelpers';
 import type { useT } from '../i18n/useI18n';
 import { paths } from '../routes/paths';
@@ -52,6 +54,16 @@ export function buildPaletteActions(
       path: paths.employeeRatesQuickEntry,
       icon: <LocalGasStationOutlined fontSize="small" />,
       keywords: 'cijena sata plata povišica radnici tabela masovni unos hourly rate raise',
+    });
+  }
+
+  if (isSuperAdmin(user)) {
+    actions.push({
+      key: 'serverStatus',
+      label: t('action.serverStatus'),
+      path: paths.system,
+      icon: <MonitorHeartOutlined fontSize="small" />,
+      keywords: 'server stanje disk memorija procesor baza status zdravlje prostor health memory cpu database',
     });
   }
 

@@ -19,6 +19,15 @@ public class SystemController : ApiControllerBase
         return Ok(await Mediator.Send(new GetStorageStatusQuery(), cancellationToken));
     }
 
+    /// <summary>The whole picture of the server: machine, application, database and what the platform leans on.</summary>
+    [HttpGet("/api/v{version:apiVersion}/system/status")]
+    [HttpGet("/api/system/status")]
+    [ProducesResponseType(typeof(ServerStatusDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ServerStatusDto>> Status(CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetServerStatusQuery(), cancellationToken));
+    }
+
     /// <summary>What could be cleaned off the server: files nothing points at, documents of deleted records, traces.</summary>
     [HttpGet("/api/v{version:apiVersion}/system/storage/cleanup")]
     [HttpGet("/api/system/storage/cleanup")]

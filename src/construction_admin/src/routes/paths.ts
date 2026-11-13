@@ -106,6 +106,7 @@ export const paths = {
   expiringDocuments: '/documents/expiring',
   documentRequests: '/documents/requests',
   audit: '/audit',
+  system: '/system',
   dataQuality: '/data-quality',
   presence: '/presence',
 

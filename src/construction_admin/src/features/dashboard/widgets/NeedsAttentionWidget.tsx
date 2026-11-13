@@ -23,8 +23,8 @@ const URGENT = new Set(['virusScanner', 'diskSpaceCritical', 'lateInvoices', 'la
 /** Where each kind of thing is dealt with. */
 export const DESTINATIONS: Record<string, string> = {
   virusScanner: paths.help,
-  diskSpace: paths.audit,
-  diskSpaceCritical: paths.audit,
+  diskSpace: paths.system,
+  diskSpaceCritical: paths.system,
   absenceRequests: paths.absences,
   expensesToReview: paths.vehicleExpenses,
   timeEntriesToReview: paths.timeEntries,

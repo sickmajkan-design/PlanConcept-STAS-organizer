@@ -4,6 +4,7 @@ import {
   canViewBook,
   canViewDirectory,
   canViewFinanceStatistics,
+  isSuperAdmin,
 } from '../../auth/authHelpers';
 import { paths } from '../../routes/paths';
 
@@ -291,6 +292,58 @@ export const helpTopics: HelpTopic[] = [
           'Docker images (old releases of the application) are cleaned on the server itself, not from the panel; see docs/SECURITY.md, section Cleaning the server.',
         ],
         keywords: ['delete', 'remove', 'for good', 'permanently', 'clean', 'cleanup', 'server', 'space', 'disk', 'documents', 'bulk', 'several'],
+      },
+    },
+  },
+  {
+    id: 'server-stanje',
+    group: 'account',
+    path: paths.system,
+    audience: (user) => isSuperAdmin(user),
+    content: {
+      sr: {
+        title: 'Stanje servera',
+        summary:
+          'Jedna stranica koja pokazuje šta se trenutno dešava sa serverom: računar, aplikacija, baza i servisi. Osvježava se sama svakih 30 sekundi. Vidi je samo Super Admin.',
+        steps: [
+          'Otvorite je kroz Ctrl+K (upišite server) ili dugmetom Stanje servera na kartici Prostor na serveru.',
+          'Na vrhu piše Sve je u redu, ili spisak onoga što traži pažnju (disk, memorija, opterećenje, veze prema bazi, antivirus, poruke koje se ne šalju).',
+          'Računar: koliko radi bez prekida, opterećenje u posljednjih 1, 5 i 15 minuta prema broju jezgara, slobodna memorija i swap.',
+          'Aplikacija: verzija, kada je pokrenuta, memorija procesa i broj niti. Poslije svakog izdanja vidite novu verziju i novo vrijeme pokretanja.',
+          'Baza: veličina, broj veza prema granici, koliko se čitanja služi iz memorije i najveće tabele.',
+          'Servisi: antivirus, gdje se čuvaju datoteke, broj dokumenata i red poruka (e-pošta i obavještenja koja čekaju ili su odbačena).',
+          'Dugme Očisti na kartici prostora otvara čišćenje servera (datoteke bez zapisa, dokumenti obrisanih zapisa, tragovi).',
+        ],
+        example:
+          'Poslije izdanja otvorite Stanje servera: verzija je nova, vrijeme pokretanja je prije minut, baza i antivirus rade, a opterećenje je nisko. Ako piše da poruke čekaju duže od 15 minuta, e-pošta ili obavještenja se ne šalju i treba pogledati servis za slanje.',
+        tips: [
+          'Žuto znači da treba djelovati uskoro, crveno da treba odmah.',
+          'Kontejneri, Docker slike i noćna kopija su na samom serveru i nisu vidljivi odavde; za njih služi uputstvo docs/UPUTSTVO_CISCENJE_SERVERA.md.',
+          'Ako se aplikacija pokrene na Windowsu (razvoj), podaci o računaru se ne vide i prikazuju se kao crtica.',
+        ],
+        keywords: ['server', 'stanje', 'status', 'disk', 'memorija', 'procesor', 'opterećenje', 'baza', 'antivirus', 'zdravlje', 'prostor'],
+      },
+      en: {
+        title: 'Server status',
+        summary:
+          'One page that shows what is happening on the server right now: the machine, the application, the database and the services. It refreshes by itself every 30 seconds. Only the Super Admin sees it.',
+        steps: [
+          'Open it with Ctrl+K (type server) or with the Server status button on the Server disk space card.',
+          'The top says All is well, or lists what needs attention (disk, memory, load, database connections, antivirus, messages that are not being sent).',
+          'Machine: how long it has been running, the load of the last 1, 5 and 15 minutes against the number of cores, free memory and swap.',
+          'Application: the version, when it started, the process memory and the number of threads. After a release you see the new version and a new start time.',
+          'Database: the size, the connections against the limit, how many reads are served from memory and the largest tables.',
+          'Services: the antivirus, where files are kept, the number of documents and the message queue (e-mail and notices waiting or given up on).',
+          'The Clean up button on the disk card opens the server clean-up (files with no record, documents of deleted records, traces).',
+        ],
+        example:
+          'After a release open Server status: the version is new, the start time is a minute ago, the database and the antivirus are up, and the load is low. If it says messages have waited more than 15 minutes, e-mail or notices are not going out and the sending service needs a look.',
+        tips: [
+          'Yellow means act soon, red means act now.',
+          'Containers, Docker images and the nightly copy are on the server itself and cannot be seen from here; the guide docs/UPUTSTVO_CISCENJE_SERVERA.md covers them.',
+          'When the application runs on Windows (development) the figures of the machine are not available and show as a dash.',
+        ],
+        keywords: ['server', 'status', 'disk', 'memory', 'cpu', 'load', 'database', 'antivirus', 'health', 'space'],
       },
     },
   },

@@ -2,8 +2,10 @@ import StorageOutlined from '@mui/icons-material/StorageOutlined';
 import { Box, Button, Card, CardContent, Chip, LinearProgress, Stack, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
 
 import { systemApi, type StorageStatus } from '../../api/system';
+import { paths } from '../../routes/paths';
 import { useT } from '../../i18n/useI18n';
 import { StorageCleanupDialog } from './StorageCleanupDialog';
 import { formatSize } from './formatSize';
@@ -45,6 +47,9 @@ export function StorageCardView({ status }: { status: StorageStatus }) {
             {t('storage.title')}
           </Typography>
           {status.known && <Chip size="small" color={tone} label={levelLabel} />}
+          <Button size="small" component={RouterLink} to={paths.system}>
+            {t('storage.details')}
+          </Button>
           <Button size="small" variant="outlined" onClick={() => setCleaning(true)}>
             {t('storage.cleanup.open')}
           </Button>
