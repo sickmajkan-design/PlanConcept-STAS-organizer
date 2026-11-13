@@ -45,4 +45,13 @@ public interface IFileStorage
     /// retried delete is not an error.
     /// </summary>
     Task DeleteAsync(string storageKey, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Every stored object, with its size and when it was last written. Only for the cleanup screen, which compares it
+    /// with what the records point at; nothing on the normal paths lists the store.
+    /// </summary>
+    Task<IReadOnlyList<StoredObject>> ListAsync(CancellationToken cancellationToken = default);
 }
+
+/// <summary>One object in the store.</summary>
+public readonly record struct StoredObject(string Key, long Size, DateTime LastModifiedUtc);

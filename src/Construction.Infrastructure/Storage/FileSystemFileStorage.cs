@@ -78,6 +78,21 @@ public class FileSystemFileStorage : IFileStorage
         return Task.CompletedTask;
     }
 
+    public Task<IReadOnlyList<StoredObject>> ListAsync(CancellationToken cancellationToken = default)
+    {
+        var objects = new List<StoredObject>();
+
+        foreach (var path in Directory.EnumerateFiles(_root, "*", SearchOption.AllDirectories))
+        {
+            var info = new FileInfo(path);
+            var key = Path.GetRelativePath(_root, path).Replace('\\', '/');
+
+            objects.Add(new StoredObject(key, info.Length, info.LastWriteTimeUtc));
+        }
+
+        return Task.FromResult<IReadOnlyList<StoredObject>>(objects);
+    }
+
     /// <summary>
     /// Turns a storage key into a path, refusing anything that would land
     /// outside the storage root.

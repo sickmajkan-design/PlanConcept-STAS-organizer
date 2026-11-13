@@ -1,17 +1,12 @@
 import StorageOutlined from '@mui/icons-material/StorageOutlined';
-import { Box, Card, CardContent, Chip, LinearProgress, Stack, Typography } from '@mui/material';
+import { Box, Button, Card, CardContent, Chip, LinearProgress, Stack, Typography } from '@mui/material';
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 
 import { systemApi, type StorageStatus } from '../../api/system';
 import { useT } from '../../i18n/useI18n';
-
-const GIGABYTE = 1024 * 1024 * 1024;
-const MEGABYTE = 1024 * 1024;
-
-/** `7.6 GB` for a disk, `52 MB` for a folder's worth: one decimal above a gigabyte, none below. */
-export function formatSize(bytes: number): string {
-  return bytes >= GIGABYTE ? `${(bytes / GIGABYTE).toFixed(1)} GB` : `${Math.round(bytes / MEGABYTE)} MB`;
-}
+import { StorageCleanupDialog } from './StorageCleanupDialog';
+import { formatSize } from './formatSize';
 
 const TONE = { 0: 'success', 1: 'warning', 2: 'error' } as const;
 
@@ -35,6 +30,7 @@ export function StorageCard() {
 
 export function StorageCardView({ status }: { status: StorageStatus }) {
   const t = useT();
+  const [cleaning, setCleaning] = useState(false);
   const used = status.known && status.totalBytes > 0 ? (status.usedBytes / status.totalBytes) * 100 : 0;
   const tone = TONE[status.level];
   const levelLabel =
@@ -49,6 +45,9 @@ export function StorageCardView({ status }: { status: StorageStatus }) {
             {t('storage.title')}
           </Typography>
           {status.known && <Chip size="small" color={tone} label={levelLabel} />}
+          <Button size="small" variant="outlined" onClick={() => setCleaning(true)}>
+            {t('storage.cleanup.open')}
+          </Button>
         </Stack>
 
         {status.known ? (
@@ -74,6 +73,7 @@ export function StorageCardView({ status }: { status: StorageStatus }) {
           </Typography>
         </Box>
       </CardContent>
+      <StorageCleanupDialog open={cleaning} onClose={() => setCleaning(false)} />
     </Card>
   );
 }

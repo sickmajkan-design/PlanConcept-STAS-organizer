@@ -14,6 +14,32 @@ export interface StorageStatus {
   documentsCount: number;
 }
 
+export type StorageCleanupKind = 'OrphanFiles' | 'DeletedRecordDocuments' | 'DeletionTraces';
+
+export interface StorageCleanupCategory {
+  kind: StorageCleanupKind;
+  count: number;
+  bytes: number;
+  examples: string[];
+  keptForRetention: number;
+}
+
+export interface StorageCleanupScan {
+  categories: StorageCleanupCategory[];
+  orphanGraceHours: number;
+}
+
+export interface StorageCleanupResult {
+  kind: StorageCleanupKind;
+  removedFiles: number;
+  removedRows: number;
+  freedBytes: number;
+  keptForRetention: number;
+}
+
 export const systemApi = {
   storage: () => request<StorageStatus>({ method: 'GET', url: '/api/v1/system/storage' }),
+  cleanupScan: () => request<StorageCleanupScan>({ method: 'GET', url: '/api/v1/system/storage/cleanup' }),
+  cleanupRun: (kind: StorageCleanupKind) =>
+    request<StorageCleanupResult>({ method: 'POST', url: '/api/v1/system/storage/cleanup', data: { kind } }),
 };

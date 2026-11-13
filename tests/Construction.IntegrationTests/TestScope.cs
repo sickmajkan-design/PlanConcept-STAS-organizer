@@ -38,6 +38,9 @@ public sealed class TestScope : IDisposable
     public FakeVirusScanner VirusScanner =>
         _scope.ServiceProvider.GetRequiredService<FakeVirusScanner>();
 
+    public IFileStorage Storage =>
+        _scope.ServiceProvider.GetRequiredService<IFileStorage>();
+
     public FakeDiskSpace Disk =>
         _scope.ServiceProvider.GetRequiredService<FakeDiskSpace>();
 

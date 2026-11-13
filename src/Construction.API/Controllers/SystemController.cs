@@ -1,4 +1,5 @@
 using Construction.API.Authorization;
+using Construction.Application.Features.StorageCleanup;
 using Construction.Application.Features.SystemStatus;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,4 +18,30 @@ public class SystemController : ApiControllerBase
     {
         return Ok(await Mediator.Send(new GetStorageStatusQuery(), cancellationToken));
     }
+
+    /// <summary>What could be cleaned off the server: files nothing points at, documents of deleted records, traces.</summary>
+    [HttpGet("/api/v{version:apiVersion}/system/storage/cleanup")]
+    [HttpGet("/api/system/storage/cleanup")]
+    [ProducesResponseType(typeof(StorageCleanupDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<StorageCleanupDto>> Cleanup(CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new GetStorageCleanupQuery(), cancellationToken));
+    }
+
+    /// <summary>Removes one kind of leftover for good. Irreversible; the panel asks for confirmation first.</summary>
+    [HttpPost("/api/v{version:apiVersion}/system/storage/cleanup")]
+    [HttpPost("/api/system/storage/cleanup")]
+    [ProducesResponseType(typeof(StorageCleanupResultDto), StatusCodes.Status200OK)]
+    public async Task<ActionResult<StorageCleanupResultDto>> RunCleanup(
+        [FromBody] RunStorageCleanupRequest request,
+        CancellationToken cancellationToken)
+    {
+        return Ok(await Mediator.Send(new RunStorageCleanupCommand(request.Kind), cancellationToken));
+    }
+}
+
+/// <summary>Which kind of leftover to remove.</summary>
+public class RunStorageCleanupRequest
+{
+    public StorageCleanupKind Kind { get; init; }
 }

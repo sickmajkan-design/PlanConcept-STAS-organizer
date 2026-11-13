@@ -4,7 +4,8 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import type { StorageStatus } from '../../api/system';
 import { installFakeNetwork, renderScreen, type FakeNetwork } from '../../test/renderScreen';
-import { formatSize, StorageCard } from './StorageCard';
+import { StorageCard } from './StorageCard';
+import { formatSize } from './formatSize';
 
 /**
  * The Super Admin always sees how much room the server has left, and the card says so in words and in colour when it

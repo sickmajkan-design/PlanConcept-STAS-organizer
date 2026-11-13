@@ -455,3 +455,17 @@ The disk holds the documents, the database, the backups and the Docker images, s
 - **Outside monitor:** `/health/dependencies` has a `disk` check, Degraded when low and Unhealthy (503) when critical. Point the uptime monitor (keyword `Healthy`) at it to be told by e-mail or SMS even when nobody opens the panel.
 
 What fills the test server in practice is old Docker images: every deploy leaves the previous `api` and `admin` image behind untagged (388 of them, 16.8 GB, on 2026-11-13). `docker image prune -f` removes only the untagged ones and is safe to run after a deploy; the documents and the database are small by comparison.
+
+## Cleaning the server (2026-11-13)
+
+**What deleting a document does.** A document deleted in the panel loses its file on the server at once (`DeleteAttachmentCommand` removes the stored bytes), and its row stays only as a soft-deleted trace of who removed what. A document under a retention date (`RetainUntil` in the future) cannot be deleted. On the test server on 2026-11-13: 191 live documents, 3 traces, 199 files on disk, every file pointed at by a live record, no orphans, no missing files.
+
+**What is left to clean** (Super Admin, button *Clean up* on the Server disk space card of the Audit trail page; `GET`/`POST /api/v1/system/storage/cleanup`):
+
+- **Files with no record** (older than 24 hours, so an upload in flight is safe): left by a failed delete or a restore from an older backup.
+- **Documents of deleted records**: the live documents of an employee, project, vehicle, tool, work item or accommodation that has been deleted. The file and the row are removed for good; retained documents are skipped and counted.
+- **Traces of deleted documents**: the soft-deleted rows, removed for real.
+
+Each kind is removed on its own, after a confirmation, and logged with the user id. Nothing here runs by itself: the cleanup is a decision, not a schedule.
+
+**Docker images** are outside the API's reach (the API has no Docker access, on purpose), so they are cleaned from the host: `scripts/prune-docker.sh` removes untagged images and build cache older than a week and never touches a volume. Install it once on the server with `/etc/cron.d/construction-prune` (`30 3 * * * root /opt/construction/scripts/prune-docker.sh >> /var/log/construction-prune.log 2>&1`) and run it after a deploy.

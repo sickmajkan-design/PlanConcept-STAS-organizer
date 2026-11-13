@@ -97,4 +97,30 @@ public class S3FileStorage : IFileStorage
         // delete needs.
         await _client.DeleteObjectAsync(_bucket, storageKey, cancellationToken);
     }
+
+    public async Task<IReadOnlyList<StoredObject>> ListAsync(CancellationToken cancellationToken = default)
+    {
+        var objects = new List<StoredObject>();
+        string? continuation = null;
+
+        do
+        {
+            var page = await _client.ListObjectsV2Async(
+                new ListObjectsV2Request { BucketName = _bucket, ContinuationToken = continuation },
+                cancellationToken);
+
+            foreach (var item in page.S3Objects ?? [])
+            {
+                objects.Add(new StoredObject(
+                    item.Key,
+                    item.Size ?? 0,
+                    (item.LastModified ?? DateTime.UtcNow).ToUniversalTime()));
+            }
+
+            continuation = page.IsTruncated == true ? page.NextContinuationToken : null;
+        }
+        while (continuation is not null);
+
+        return objects;
+    }
 }
