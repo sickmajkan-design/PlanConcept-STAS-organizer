@@ -25,6 +25,24 @@ if [ -n "$domain" ]; then
     | openssl x509 -noout -enddate -issuer 2>/dev/null || true)"
   [ -n "$tls" ] && printf '%s\n' "$tls" | put tls.txt
 fi
+# Basic hardening of the host for the security card: key=value lines, read-only (nothing is changed here). The pending-update
+# count runs `apt-get -s` (about 3 s of CPU), so it is refreshed once an hour and kept in updates.cache.
+cache="$dir/updates.cache"
+if [ ! -f "$cache" ] || [ -n "$(find "$cache" -mmin +60 2>/dev/null)" ]; then
+  sim="$(apt-get -s upgrade 2>/dev/null | grep '^Inst' || true)"
+  printf 'updates_total=%s\nupdates_security=%s\n' "$(printf '%s' "$sim" | grep -c . || true)" "$(printf '%s' "$sim" | grep -ci security || true)" > "$cache"
+fi
+{
+  cat "$cache"
+  sshd -T 2>/dev/null | awk '$1=="passwordauthentication"{print "ssh_password="$2} $1=="permitrootlogin"{print "ssh_root="$2}' || true
+  if [ "$(systemctl is-active fail2ban 2>/dev/null || true)" = active ]; then echo fail2ban=active
+  elif command -v fail2ban-client > /dev/null 2>&1; then echo fail2ban=inactive
+  else echo fail2ban=missing; fi
+  echo "auto_updates=$(systemctl is-enabled unattended-upgrades 2>/dev/null || echo missing)"
+  if [ -f /var/run/reboot-required ]; then echo reboot_required=yes; else echo reboot_required=no; fi
+  echo "ports=$(ss -tlnH 2>/dev/null | awk '{print $4}' | grep -vE '^(127\.|\[?::1\]?)' | sed 's/.*://' | sort -un | paste -sd, - || true)"
+  if command -v ufw > /dev/null 2>&1; then echo "firewall=$(ufw status 2>/dev/null | head -1 | awk '{print tolower($2)}')"; else echo firewall=missing; fi
+} | put security.txt
 # One sample for the load charts: time | 1-minute load | cores | memory used % | disk used %. Seven days at one per five
 # minutes is about 2000 lines; the file is cut to the last 2100.
 metrics="$dir/metrics.log"

@@ -123,6 +123,13 @@ export interface UptimeStatus {
   outages: Outage[];
 }
 
+export interface SecurityCheck {
+  key: 'sshPassword' | 'sshRoot' | 'fail2ban' | 'firewall' | 'updates' | 'autoUpdates' | 'reboot' | 'ports';
+  status: 'ok' | 'warn' | 'info';
+  value: string;
+  extra: string;
+}
+
 export interface Container {
   name: string;
   image: string;
@@ -142,6 +149,8 @@ export interface DockerStatus {
   certificate: { notAfterUtc: string; issuer: string } | null;
   /** Newest first, one per commit, at most five; the first is running. */
   releases: { seenAtUtc: string; commit: string; migrations: number }[];
+  /** Basic hardening checks of the host; empty until the host script has written them. */
+  security: SecurityCheck[];
 }
 
 /** The whole picture of the server, in one request, for the Super Admin's status page. */

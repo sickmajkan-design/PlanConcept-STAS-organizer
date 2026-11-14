@@ -71,6 +71,48 @@ public class DockerStatusParserTests
     }
 
     [Fact]
+    public void A_hardened_host_passes_every_check()
+    {
+        var checks = DockerStatusParser.ParseSecurity(
+            "updates_total=0\nupdates_security=0\nssh_password=no\nssh_root=prohibit-password\nfail2ban=active\n" +
+            "auto_updates=enabled\nreboot_required=no\nports=22,80,443\nfirewall=active\n");
+
+        Assert.Equal(8, checks.Count);
+        Assert.All(checks, c => Assert.Equal("ok", c.Status));
+    }
+
+    [Fact]
+    public void Each_weakness_is_flagged_and_a_host_firewall_that_is_off_is_only_information()
+    {
+        var checks = DockerStatusParser.ParseSecurity(
+            "updates_total=52\nupdates_security=3\nssh_password=yes\nssh_root=yes\nfail2ban=missing\n" +
+            "auto_updates=disabled\nreboot_required=yes\nports=22,80,443,5432\nfirewall=inactive\n")
+            .ToDictionary(c => c.Key);
+
+        Assert.Equal("warn", checks["sshPassword"].Status);
+        Assert.Equal("warn", checks["sshRoot"].Status);
+        Assert.Equal("warn", checks["fail2ban"].Status);
+        Assert.Equal("warn", checks["autoUpdates"].Status);
+        Assert.Equal("warn", checks["reboot"].Status);
+        Assert.Equal("warn", checks["updates"].Status);
+        Assert.Equal("3", checks["updates"].Value);
+        Assert.Equal("52", checks["updates"].Extra);
+        Assert.Equal("warn", checks["ports"].Status);
+        Assert.Equal("5432", checks["ports"].Extra);
+        Assert.Equal("info", checks["firewall"].Status);
+    }
+
+    [Fact]
+    public void Ordinary_updates_alone_are_information_and_unreadable_keys_are_not_listed()
+    {
+        var checks = DockerStatusParser.ParseSecurity("updates_total=52\nupdates_security=0\n");
+
+        var only = Assert.Single(checks);
+        Assert.Equal("info", only.Status);
+        Assert.Empty(DockerStatusParser.ParseSecurity(null));
+    }
+
+    [Fact]
     public void A_broken_line_is_skipped_and_a_missing_summary_is_allowed()
     {
         var status = DockerStatusParser.Parse("{\"Names\":\"a\",\"State\":\"running\"}\n{ half a line", null, "  ", At);

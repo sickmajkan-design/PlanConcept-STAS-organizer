@@ -6,6 +6,7 @@ import { useState, type ReactNode } from 'react';
 import { systemApi, type ServerStatus } from '../../api/system';
 import { ErrorState } from '../../components/ErrorState';
 import { PageHeader } from '../../components/PageHeader';
+import type { MessageKey } from '../../i18n/en';
 import { useT } from '../../i18n/useI18n';
 import { formatDateTime } from '../../utils/formatting';
 import { formatDuration } from '../../features/system/formatDuration';
@@ -115,6 +116,11 @@ export function ServerStatusPage() {
             <Grid size={12}>
               <DockerSection status={data} />
             </Grid>
+            {data.docker.security.length > 0 && (
+              <Grid size={12}>
+                <SecuritySection status={data} />
+              </Grid>
+            )}
             {data.docker.releases.length > 0 && (
               <Grid size={12}>
                 <ReleasesSection status={data} />
@@ -150,6 +156,39 @@ export function ServerStatusPage() {
         </>
       )}
     </Box>
+  );
+}
+
+function SecuritySection({ status }: { status: ServerStatus }) {
+  const t = useT();
+  const { security } = status.docker;
+  const tone = { ok: 'success', warn: 'warning', info: 'default' } as const;
+  const label = { ok: t('serverSecurity.ok'), warn: t('serverSecurity.warn'), info: t('serverSecurity.info') } as const;
+
+  return (
+    <Section title={t('serverSecurity.title')}>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+        {t('serverSecurity.description')}
+      </Typography>
+      {security.map((check, index) => (
+        <Box key={check.key} sx={{ py: 0.75, borderTop: index === 0 ? 0 : 1, borderColor: 'divider' }}>
+          <Stack direction="row" sx={{ gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Typography variant="body2" sx={{ fontWeight: 500, minWidth: 220 }}>
+              {t(`serverSecurity.${check.key}.title`)}
+            </Typography>
+            <Chip size="small" color={tone[check.status]} label={label[check.status]} />
+            <Typography variant="body2" color="text.secondary" sx={{ minWidth: 0, overflowWrap: 'anywhere' }}>
+              {t(`serverSecurity.${check.key}.${check.status}` as MessageKey, { value: check.value, extra: check.extra })}
+            </Typography>
+          </Stack>
+          {check.status === 'warn' && (
+            <Typography variant="caption" color="text.secondary" component="div" sx={{ mt: 0.5, overflowWrap: 'anywhere' }}>
+              {t(`serverSecurity.${check.key}.fix` as MessageKey)}
+            </Typography>
+          )}
+        </Box>
+      ))}
+    </Section>
   );
 }
 

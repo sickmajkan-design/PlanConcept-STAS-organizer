@@ -38,6 +38,22 @@ public class ReleaseDto
     public int Migrations { get; init; }
 }
 
+/// <summary>One basic hardening check of the host. The panel words it from <see cref="Key"/> and <see cref="Status"/>.</summary>
+public class SecurityCheckDto
+{
+    /// <summary>sshPassword, sshRoot, fail2ban, firewall, updates, autoUpdates, reboot or ports.</summary>
+    public string Key { get; init; } = string.Empty;
+
+    /// <summary><c>ok</c>, <c>warn</c> (needs action) or <c>info</c> (worth knowing, no action implied).</summary>
+    public string Status { get; init; } = string.Empty;
+
+    /// <summary>What was found: yes/no, active/missing, a count, or the ports.</summary>
+    public string Value { get; init; } = string.Empty;
+
+    /// <summary>A second figure where one check has two (total pending updates, unexpected ports).</summary>
+    public string Extra { get; init; } = string.Empty;
+}
+
 /// <summary>Docker's own summary of the images on the host, as text ("16.8GB (98%)").</summary>
 public class DockerImagesDto
 {
@@ -72,6 +88,9 @@ public class DockerStatusDto
 
     /// <summary>Newest first, one row per commit, at most five. The first is the one running.</summary>
     public List<ReleaseDto> Releases { get; init; } = [];
+
+    /// <summary>Empty until the host script has written <c>security.txt</c>.</summary>
+    public List<SecurityCheckDto> Security { get; init; } = [];
 }
 
 /// <summary>Reads what <c>scripts/docker-status.sh</c> left behind.</summary>
@@ -86,7 +105,7 @@ public interface IDockerStatusReader
 public static class DockerStatusParser
 {
     /// <summary>Parses the JSON-lines files the script writes. A line that is not JSON is skipped, not fatal.</summary>
-    public static DockerStatusDto Parse(string containersJsonl, string? dfJsonl, string? prune, DateTime updatedAtUtc, string? tls = null, string? releasesLog = null)
+    public static DockerStatusDto Parse(string containersJsonl, string? dfJsonl, string? prune, DateTime updatedAtUtc, string? tls = null, string? releasesLog = null, string? security = null)
     {
         var containers = new List<ContainerDto>();
 
@@ -126,7 +145,79 @@ public static class DockerStatusParser
             LastPrune = string.IsNullOrWhiteSpace(prune) ? null : prune.Trim(),
             Certificate = ParseCertificate(tls),
             Releases = ParseReleases(releasesLog),
+            Security = ParseSecurity(security),
         };
+    }
+
+    private static readonly string[] ExpectedPorts = ["22", "80", "443"];
+
+    /// <summary>
+    /// Turns the <c>key=value</c> lines into checks. A key the script could not read is simply not listed, so an unknown
+    /// is never shown as fine.
+    /// </summary>
+    public static List<SecurityCheckDto> ParseSecurity(string? text)
+    {
+        var values = new Dictionary<string, string>(StringComparer.Ordinal);
+
+        foreach (var line in (text ?? string.Empty).Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var at = line.IndexOf('=');
+
+            if (at > 0)
+            {
+                values[line[..at]] = line[(at + 1)..].Trim();
+            }
+        }
+
+        var checks = new List<SecurityCheckDto>();
+
+        void Add(string key, string status, string value, string extra = "") =>
+            checks.Add(new SecurityCheckDto { Key = key, Status = status, Value = value, Extra = extra });
+
+        if (values.TryGetValue("ssh_password", out var password))
+        {
+            Add("sshPassword", password == "no" ? "ok" : "warn", password);
+        }
+
+        if (values.TryGetValue("ssh_root", out var root))
+        {
+            Add("sshRoot", root is "no" or "prohibit-password" or "without-password" or "forced-commands-only" ? "ok" : "warn", root);
+        }
+
+        if (values.TryGetValue("fail2ban", out var fail2ban))
+        {
+            Add("fail2ban", fail2ban == "active" ? "ok" : "warn", fail2ban);
+        }
+
+        if (values.TryGetValue("firewall", out var firewall))
+        {
+            // A cloud firewall in front of the host does the same job, so a host firewall that is off is not a verdict.
+            Add("firewall", firewall == "active" ? "ok" : "info", firewall);
+        }
+
+        if (values.TryGetValue("updates_total", out var total) && int.TryParse(total, out var totalCount))
+        {
+            var security = values.TryGetValue("updates_security", out var s) && int.TryParse(s, out var securityCount) ? securityCount : 0;
+            Add("updates", security > 0 ? "warn" : totalCount > 0 ? "info" : "ok", security.ToString(CultureInfo.InvariantCulture), totalCount.ToString(CultureInfo.InvariantCulture));
+        }
+
+        if (values.TryGetValue("auto_updates", out var auto))
+        {
+            Add("autoUpdates", auto == "enabled" ? "ok" : "warn", auto);
+        }
+
+        if (values.TryGetValue("reboot_required", out var reboot))
+        {
+            Add("reboot", reboot == "yes" ? "warn" : "ok", reboot);
+        }
+
+        if (values.TryGetValue("ports", out var ports) && ports.Length > 0)
+        {
+            var unexpected = ports.Split(',', StringSplitOptions.RemoveEmptyEntries).Where(p => !ExpectedPorts.Contains(p)).ToList();
+            Add("ports", unexpected.Count == 0 ? "ok" : "warn", ports, string.Join(",", unexpected));
+        }
+
+        return checks;
     }
 
     /// <summary>Reads <c>time|commit|migrations</c> lines (oldest first) into newest-first rows, one per commit.</summary>

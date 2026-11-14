@@ -23,7 +23,8 @@ export interface ServerAlert {
     | 'restoreNotChecked'
     | 'containerDown'
     | 'dockerStale'
-    | 'certificateExpiring';
+    | 'certificateExpiring'
+    | 'securityChecks';
   tone: AlertTone;
 }
 
@@ -98,6 +99,9 @@ export function serverAlerts(status: ServerStatus, now: number = Date.now()): Se
     if (left < 7 * DAY) alerts.push({ key: 'certificateExpiring', tone: 'error' });
     else if (left < 14 * DAY) alerts.push({ key: 'certificateExpiring', tone: 'warning' });
   }
+
+  // Hardening gaps are never urgent on their own, so they only ever warn.
+  if (status.docker.security.some((check) => check.status === 'warn')) alerts.push({ key: 'securityChecks', tone: 'warning' });
 
   return alerts;
 }

@@ -14,7 +14,7 @@ const healthy = (): ServerStatus => ({
     items: [{ name: 'construction-20260813T020000Z.dump', takenAtUtc: new Date().toISOString(), sizeBytes: 1000, hasDocuments: true, offsite: true }],
     restoreCheckedAtUtc: new Date().toISOString(),
   },
-  docker: { known: true, updatedAtUtc: new Date().toISOString(), containers: [{ name: 'api', image: 'api:latest', state: 'running', status: 'Up 3 days' }], images: null, lastPrune: null, certificate: { notAfterUtc: new Date(Date.now() + 60 * 86_400_000).toISOString(), issuer: "Let's Encrypt" }, releases: [] },
+  docker: { known: true, updatedAtUtc: new Date().toISOString(), containers: [{ name: 'api', image: 'api:latest', state: 'running', status: 'Up 3 days' }], images: null, lastPrune: null, certificate: { notAfterUtc: new Date(Date.now() + 60 * 86_400_000).toISOString(), issuer: "Let's Encrypt" }, releases: [], security: [] },
   uptime: { known: true, sinceUtc: '2026-11-01T00:00:00Z', windowDays: 30, availabilityPercent: 100, downSeconds: 0, outages: [] },
   host: {
     known: true,
@@ -183,7 +183,7 @@ describe('serverAlerts', () => {
     expect(keys(stale)).toEqual(['dockerStale']);
 
     const absent = healthy();
-    absent.docker = { known: false, updatedAtUtc: null, containers: [], images: null, lastPrune: null, certificate: null, releases: [] };
+    absent.docker = { known: false, updatedAtUtc: null, containers: [], images: null, lastPrune: null, certificate: null, releases: [], security: [] };
     expect(keys(absent)).toEqual([]);
   });
 
@@ -199,6 +199,19 @@ describe('serverAlerts', () => {
     const expired = healthy();
     expired.docker.certificate = { notAfterUtc: new Date(Date.now() - 86_400_000).toISOString(), issuer: 'x' };
     expect(serverAlerts(expired)).toEqual([{ key: 'certificateExpiring', tone: 'error' }]);
+  });
+
+  it('warns when a hardening check of the host needs action, and stays quiet for information', () => {
+    const weak = healthy();
+    weak.docker.security = [{ key: 'fail2ban', status: 'warn', value: 'missing', extra: '' }];
+    expect(serverAlerts(weak)).toEqual([{ key: 'securityChecks', tone: 'warning' }]);
+
+    const fine = healthy();
+    fine.docker.security = [
+      { key: 'firewall', status: 'info', value: 'inactive', extra: '' },
+      { key: 'sshPassword', status: 'ok', value: 'no', extra: '' },
+    ];
+    expect(serverAlerts(fine)).toEqual([]);
   });
 
   it('takes the worst tone of all that is wrong', () => {
