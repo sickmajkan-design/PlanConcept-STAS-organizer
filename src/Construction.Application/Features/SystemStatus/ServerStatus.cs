@@ -98,9 +98,46 @@ public class ServicesStatusDto
     public DateTime? OldestPendingUtc { get; init; }
 }
 
+/// <summary>One backup: a dump, the documents archive taken with it, and whether a copy left the machine.</summary>
+public class BackupItemDto
+{
+    public string Name { get; init; } = string.Empty;
+
+    public DateTime TakenAtUtc { get; init; }
+
+    /// <summary>Dump plus documents archive.</summary>
+    public long SizeBytes { get; init; }
+
+    public bool HasDocuments { get; init; }
+
+    /// <summary>A verified copy exists off this machine (the receipt <c>offsite.sh</c> writes).</summary>
+    public bool Offsite { get; init; }
+}
+
+/// <summary>What the backup folder says. Read-only; the backup container does the work.</summary>
+public class BackupStatusDto
+{
+    /// <summary>False when the folder is not visible to the API (no volume mounted, or a development machine).</summary>
+    public bool Known { get; init; }
+
+    /// <summary>Newest first, at most 10.</summary>
+    public List<BackupItemDto> Items { get; init; } = [];
+
+    /// <summary>When the restore rehearsal last passed; null if it never has.</summary>
+    public DateTime? RestoreCheckedAtUtc { get; init; }
+}
+
+/// <summary>Reads the folder the nightly backup writes to.</summary>
+public interface IBackupCatalog
+{
+    BackupStatusDto Read();
+}
+
 public class ServerStatusDto
 {
     public DateTime AtUtc { get; init; }
+
+    public BackupStatusDto Backups { get; init; } = new();
 
     public HostStatusDto Host { get; init; } = new();
 
@@ -136,8 +173,10 @@ public class GetServerStatusQueryHandler : IRequestHandler<GetServerStatusQuery,
     private readonly ICurrentUserService _currentUser;
     private readonly IDateTimeProvider _clock;
     private readonly ISender _sender;
+    private readonly IBackupCatalog _backups;
 
     public GetServerStatusQueryHandler(
+        IBackupCatalog backups,
         IServerProbe probe,
         IApplicationDbContext context,
         IVirusScanner scanner,
@@ -145,6 +184,7 @@ public class GetServerStatusQueryHandler : IRequestHandler<GetServerStatusQuery,
         IDateTimeProvider clock,
         ISender sender)
     {
+        _backups = backups;
         _probe = probe;
         _context = context;
         _scanner = scanner;
@@ -174,6 +214,7 @@ public class GetServerStatusQueryHandler : IRequestHandler<GetServerStatusQuery,
         return new ServerStatusDto
         {
             AtUtc = _clock.UtcNow,
+            Backups = _backups.Read(),
             Host = _probe.ReadHost(),
             Application = _probe.ReadApplication(),
             Database = database,

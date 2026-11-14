@@ -17,6 +17,7 @@ const MB = 1024 * 1024;
 
 const status = (over: Partial<ServerStatus> = {}): ServerStatus => ({
   atUtc: '2026-11-13T22:00:00Z',
+  backups: { known: false, items: [], restoreCheckedAtUtc: null },
   host: {
     known: true,
     os: 'Ubuntu 24.04',

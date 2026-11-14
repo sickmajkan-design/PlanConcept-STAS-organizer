@@ -55,7 +55,7 @@ describe('ReleaseNotesDialog', () => {
   it('tells an administrator about everything meant for administrators', async () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('SuperAdmin') });
 
-    await screen.findByText('Preparing the iPhone app');
+    await screen.findByText('Account deletion request from the app');
     expect(screen.getByText('Stricter checks on documents and passwords')).toBeDefined();
   }, SCREEN_TIMEOUT);
 

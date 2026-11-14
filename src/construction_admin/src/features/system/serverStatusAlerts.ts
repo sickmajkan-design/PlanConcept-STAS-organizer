@@ -16,11 +16,17 @@ export interface ServerAlert {
     | 'connectionsHigh'
     | 'connectionsCritical'
     | 'outboxAbandoned'
-    | 'outboxStuck';
+    | 'outboxStuck'
+    | 'backupMissing'
+    | 'backupOld'
+    | 'backupNotOffsite'
+    | 'restoreNotChecked';
   tone: AlertTone;
 }
 
 const MINUTE = 60_000;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
 
 /**
  * What on the server needs a person, from the one reading the page shows. Kept as one function with no screen in it,
@@ -60,6 +66,21 @@ export function serverAlerts(status: ServerStatus, now: number = Date.now()): Se
 
   const oldest = status.services.oldestPendingUtc ? Date.parse(status.services.oldestPendingUtc) : null;
   if (oldest !== null && now - oldest > 15 * MINUTE) alerts.push({ key: 'outboxStuck', tone: 'warning' });
+
+  // Backups are nightly, so 26 h is "last night's did not happen". Nothing is said when the folder is not visible.
+  const { known, items, restoreCheckedAtUtc } = status.backups;
+  if (known) {
+    const newest = items[0];
+    if (!newest) alerts.push({ key: 'backupMissing', tone: 'error' });
+    else {
+      if (now - Date.parse(newest.takenAtUtc) > 26 * HOUR) alerts.push({ key: 'backupOld', tone: 'error' });
+      if (!newest.offsite) alerts.push({ key: 'backupNotOffsite', tone: 'warning' });
+    }
+    // Rehearsed weekly; 10 days leaves room for one missed Sunday.
+    if (!restoreCheckedAtUtc || now - Date.parse(restoreCheckedAtUtc) > 10 * DAY) {
+      alerts.push({ key: 'restoreNotChecked', tone: 'warning' });
+    }
+  }
 
   return alerts;
 }

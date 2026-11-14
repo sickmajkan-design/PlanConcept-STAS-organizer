@@ -271,6 +271,7 @@ public static class DependencyInjection
         services.Configure<FileStorageSettings>(section);
         services.AddSingleton<IDiskSpace, DriveInfoDiskSpace>();
         services.AddScoped<IServerProbe, Monitoring.ServerProbe>();
+        services.AddSingleton<IBackupCatalog, Monitoring.BackupCatalog>();
 
         var settings = section.Get<FileStorageSettings>() ?? new FileStorageSettings();
 

@@ -103,6 +103,9 @@ export function ServerStatusPage() {
           <StorageCard />
 
           <Grid container spacing={2}>
+            <Grid size={12}>
+              <BackupsSection status={data} />
+            </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
               <HostSection status={data} />
             </Grid>
@@ -119,6 +122,44 @@ export function ServerStatusPage() {
         </>
       )}
     </Box>
+  );
+}
+
+function BackupsSection({ status }: { status: ServerStatus }) {
+  const t = useT();
+  const { known, items, restoreCheckedAtUtc } = status.backups;
+  const newest = items[0];
+  const yes = (ok: boolean) => <Chip size="small" color={ok ? 'success' : 'warning'} label={ok ? t('serverStatus.backupYes') : t('serverStatus.backupNo')} />;
+
+  return (
+    <Section title={t('serverStatus.backups')}>
+      {!known && <Typography variant="body2" color="text.secondary">{t('serverStatus.backupsHidden')}</Typography>}
+      {known && !newest && <Typography variant="body2" color="text.secondary">{t('serverStatus.backupsNone')}</Typography>}
+      {known && newest && (
+        <>
+          <Row label={t('serverStatus.backupLast')} value={`${formatDateTime(newest.takenAtUtc)} · ${formatSize(newest.sizeBytes)}`} />
+          <Row label={t('serverStatus.backupOffsite')} value={yes(newest.offsite)} />
+          <Row
+            label={t('serverStatus.backupRestore')}
+            value={restoreCheckedAtUtc ? formatDateTime(restoreCheckedAtUtc) : t('serverStatus.backupNever')}
+          />
+          <Box sx={{ mt: 1 }}>
+            {items.slice(0, 5).map((item) => (
+              <Row
+                key={item.name}
+                label={`${formatDateTime(item.takenAtUtc)}${item.hasDocuments ? '' : ` (${t('serverStatus.backupNoDocs')})`}`}
+                value={
+                  <Stack direction="row" sx={{ gap: 1, alignItems: 'center', justifyContent: 'flex-end' }}>
+                    {formatSize(item.sizeBytes)}
+                    {yes(item.offsite)}
+                  </Stack>
+                }
+              />
+            ))}
+          </Box>
+        </>
+      )}
+    </Section>
   );
 }
 

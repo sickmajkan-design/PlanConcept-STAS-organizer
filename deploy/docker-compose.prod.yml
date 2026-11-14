@@ -136,6 +136,8 @@ services:
       OTEL_SERVICE_NAME: construction-api
     volumes:
       - attachment-data:/var/lib/construction/storage
+      # Read-only: the Server status page lists the backups and warns when the last one is old.
+      - backup-data:/backups:ro
     networks:
       - internal
 
@@ -265,6 +267,10 @@ services:
         apk add --no-cache bash coreutils findutils tar curl openssl age >/dev/null
         while true; do
           bash /scripts/backup.sh || echo "backup failed" >&2
+          # Sundays: rehearse a restore into a scratch database (writes the receipt the panel shows).
+          if [ "$(date -u +%u)" = "7" ]; then
+            bash /scripts/verify-restore.sh || echo "restore check failed" >&2
+          fi
           sleep 86400
         done
     networks:

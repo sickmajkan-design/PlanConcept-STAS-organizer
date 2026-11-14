@@ -9,6 +9,11 @@ const GB = 1024 * 1024 * 1024;
 /** A healthy server; each test spoils one thing. */
 const healthy = (): ServerStatus => ({
   atUtc: '2026-11-13T22:00:00Z',
+  backups: {
+    known: true,
+    items: [{ name: 'construction-20260813T020000Z.dump', takenAtUtc: new Date().toISOString(), sizeBytes: 1000, hasDocuments: true, offsite: true }],
+    restoreCheckedAtUtc: new Date().toISOString(),
+  },
   host: {
     known: true,
     os: 'Ubuntu',
@@ -142,6 +147,28 @@ describe('serverAlerts', () => {
     const fresh = healthy();
     fresh.services.oldestPendingUtc = '2026-11-13T21:55:00Z';
     expect(keys(fresh, now)).toEqual([]);
+  });
+
+  it('watches the backups: none, older than 26 h, not off the server, restore not rehearsed', () => {
+    const none = healthy();
+    none.backups.items = [];
+    expect(keys(none)).toEqual(['backupMissing']);
+
+    const old = healthy();
+    old.backups.items[0].takenAtUtc = new Date(Date.now() - 27 * 3_600_000).toISOString();
+    expect(keys(old)).toEqual(['backupOld']);
+
+    const local = healthy();
+    local.backups.items[0].offsite = false;
+    expect(keys(local)).toEqual(['backupNotOffsite']);
+
+    const unchecked = healthy();
+    unchecked.backups.restoreCheckedAtUtc = null;
+    expect(keys(unchecked)).toEqual(['restoreNotChecked']);
+
+    const unseen = healthy();
+    unseen.backups = { known: false, items: [], restoreCheckedAtUtc: null };
+    expect(keys(unseen)).toEqual([]);
   });
 
   it('takes the worst tone of all that is wrong', () => {

@@ -87,9 +87,28 @@ export interface ServicesStatus {
   oldestPendingUtc: string | null;
 }
 
+export interface BackupItem {
+  name: string;
+  takenAtUtc: string;
+  /** Dump plus documents archive. */
+  sizeBytes: number;
+  hasDocuments: boolean;
+  /** A verified copy exists off the server. */
+  offsite: boolean;
+}
+
+export interface BackupStatus {
+  /** False when the backup folder is not visible to the API. */
+  known: boolean;
+  /** Newest first. */
+  items: BackupItem[];
+  restoreCheckedAtUtc: string | null;
+}
+
 /** The whole picture of the server, in one request, for the Super Admin's status page. */
 export interface ServerStatus {
   atUtc: string;
+  backups: BackupStatus;
   host: HostStatus;
   application: ApplicationStatus;
   database: DatabaseStatus;

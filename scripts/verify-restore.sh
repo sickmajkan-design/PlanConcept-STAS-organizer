@@ -148,3 +148,7 @@ else
 fi
 
 log "Restore verification PASSED: ${tables} table(s), ${rows} row(s) matched."
+
+# A receipt the panel reads (its mtime is the time of the last pass). Written only on success, so a failing
+# rehearsal shows up as a receipt that keeps getting older.
+printf 'dump=%s\ntables=%s\nrows=%s\n' "$(basename "$dump")" "$tables" "$rows" > "${BACKUP_DIR}/restore-check.ok"

@@ -476,4 +476,10 @@ Each kind is removed on its own, after a confirmation, and logged with the user 
 
 `GET /api/v1/system/status` (Super Admin) and the panel page `/system` (Ctrl+K: server, or the *Server status* button on the disk card) show, refreshed every 30 seconds: the machine (uptime, load against cores, memory and swap, read from `/proc` of the host, which the container can see), the application (version, start time, process memory, threads), the database (size, connections against `max_connections`, cache hit ratio, five largest tables) and the services (antivirus, file storage, documents, e-mail/push queue with abandoned messages). The top line is computed in `serverStatusAlerts.ts`: memory under 15% (7%) free, five-minute load above the cores (twice), connections above 70% (90%), abandoned outbox messages, a message waiting more than 15 minutes, plus the disk level and a scanner that is down.
 
-What it cannot show, on purpose: containers, Docker images and the nightly backup are on the host, and the API has no Docker access. The disk reading, `scripts/prune-docker.sh` and its log cover them.
+What it cannot show, on purpose: containers and Docker images are on the host, and the API has no Docker access. The disk reading, `scripts/prune-docker.sh` and its log cover them.
+
+### Backups on the status page (2026-11-14)
+
+The `backup-data` volume is mounted **read-only** into the API at `/backups` (`Backup__Directory` overrides the path). `BackupCatalog` lists `construction-<stamp>.dump`, the `-files.tar.gz` taken with it and the `.offsite` receipt `offsite.sh` writes after a verified upload, and reads the mtime of `restore-check.ok`, which `verify-restore.sh` writes only when a restore rehearsal passes. The `backup` container now runs that rehearsal every Sunday. Alerts: no backup (red), newest older than 26 h (red), newest with no off-site receipt (yellow), no passing rehearsal for 10 days (yellow). The API cannot start a backup or a rehearsal; that needs a decision about how the API may reach another container and is not built.
+
+Deploy note: `deploy/docker-compose.prod.yml` and `scripts/verify-restore.sh` are copied to the server by hand (see the deploy notes), then `api` and `backup` are recreated.
