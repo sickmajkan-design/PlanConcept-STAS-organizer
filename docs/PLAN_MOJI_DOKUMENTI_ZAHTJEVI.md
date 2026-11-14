@@ -185,7 +185,7 @@ Dokumenti > Zahtjevi (filter: Poslano / Kasni / Otvoreno)
 ### 7.5 Obavijesti i statusi "odmah nakon akcije" (dopuna 2026-10-15)
 
 Načelo: **svaka promjena statusa zahtjeva = jedan događaj** koji u istoj transakciji (a) mijenja
-status, (b) upisuje zapis u povijest zahtjeva, (c) kreira `Notification` za drugu stranu i šalje push.
+status, (b) upisuje zapis u istoriju zahtjeva, (c) kreira `Notification` za drugu stranu i šalje push.
 Nema stanja bez obavijesti i nema obavijesti bez stanja.
 
 | Akcija | Tko je radi | Obavijest prima | Što vidi druga strana odmah |
@@ -194,7 +194,7 @@ Nema stanja bez obavijesti i nema obavijesti bez stanja.
 | Radnik pošalje dokument | Radnik | **Uprava** (zahtjevatelj + ostali admini s pravom): "Marko H. je poslao dokument" | Zahtjev "Poslano — čeka provjeru", dokument za preview |
 | Uprava prihvati | Uprava | **Radnik**: "Dokument je prihvaćen" | "Prihvaćeno", dokument u listi "Moji dokumenti" |
 | Uprava vrati s razlogom | Uprava | **Radnik**: "Dokument je vraćen — pošalji ponovno" | "Vraćeno" + **razlog istaknut** + gumb "Pošalji novi" |
-| Radnik ponovno pošalje | Radnik | **Uprava**: "Novi dokument poslan" | "Poslano" (ponovno), prethodna verzija ostaje u povijesti |
+| Radnik ponovno pošalje | Radnik | **Uprava**: "Novi dokument poslan" | "Poslano" (ponovno), prethodna verzija ostaje u istoriji |
 | Uprava otkaže | Uprava | **Radnik**: "Zahtjev je otkazan" | "Otkazano" |
 | Rok blizu / prošao | Sustav | Radnik (dan prije, na dan); uprava (kasni) | Oznaka "Kasni N dana" |
 
@@ -212,7 +212,7 @@ drugi vidi novi status, a drugi klik na zastarjelo stanje daje 409 "Već obrađe
 - Radnikov ekran detalja zahtjeva uvijek povlači svježi status pri otvaranju (ne vjeruje se starom cacheu).
 - Ako realtime kasnije zatreba: SSE kanal za samo ovaj ekran, ne mijenja model.
 
-**Povijest zahtjeva (vidljiva obje strane, bez internih bilješki uprave):** nova tablica
+**Istorija zahtjeva (vidljiva obje strane, bez internih bilješki uprave):** nova tablica
 `DocumentRequestEvent` (RequestId, Type: Created/Submitted/Accepted/Returned/Resubmitted/Cancelled,
 ActorUserId, At, Reason?, AttachmentId?). Prikaz kao vremenska crta:
 
@@ -227,7 +227,7 @@ Ljekarski pregled
 **Odbijanje zbog nečitljivosti — pravila:**
 - Razlog je **obavezan** (min. 5 znakova) i bira se iz brzih opcija uz slobodan tekst:
   "Nečitljivo / mutno", "Nepotpuno (fale stranice)", "Pogrešan dokument", "Istekao", "Drugo".
-- Vraćanje ne briše poslanu datoteku: ostaje u povijesti i kartonu kao *nepodijeljena, neprihvaćena* verzija
+- Vraćanje ne briše poslanu datoteku: ostaje u istoriji i kartonu kao *nepodijeljena, neprihvaćena* verzija
   (revizijski trag), ali se ne prikazuje u "Moji dokumenti" niti kao važeća.
 - Radnik može poslati novi dokument neograničeno puta dok je zahtjev Vraćen; uprava vidi broj pokušaja
   (npr. "3. pokušaj") — iznad praga (5) zahtjev se označi za ručni dogovor.
@@ -272,7 +272,7 @@ dalje ima pravo pregleda (uloga se ponovno provjerava pri slanju).
 6. Radnik: `GET /me/document-requests` + `submit` (S3, S6, S8) + testovi sigurnosti — 8 b
 7. Uprava: pregled/prihvati/vrati/otkaži + audit — 5 b
 8. Mobilno: lista zahtjeva, slanje kamera/galerija/datoteka, offline red — 8 b (preko faze)
-9. Obavijesti u oba smjera (tablica 7.5), povijest zahtjeva (`DocumentRequestEvent`), polling/osvježavanje
+9. Obavijesti u oba smjera (tablica 7.5), istorija zahtjeva (`DocumentRequestEvent`), polling/osvježavanje
    ekrana, deep link, podsjetnik roka — 5 b, High
 11. E-mail obavijesti kao opt-in (postavka, generički tekst, outbox, odjava) — 3 b, Medium (može i u fazi 3)
 10. Vraćanje s obaveznim razlogom + brze opcije + brojač pokušaja + ponovno slanje — 3 b, High

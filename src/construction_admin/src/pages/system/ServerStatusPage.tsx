@@ -103,7 +103,10 @@ export function ServerStatusPage() {
           <StorageCard />
 
           <Grid container spacing={2}>
-            <Grid size={12}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <UptimeSection status={data} />
+            </Grid>
+            <Grid size={{ xs: 12, md: 6 }}>
               <BackupsSection status={data} />
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
@@ -122,6 +125,44 @@ export function ServerStatusPage() {
         </>
       )}
     </Box>
+  );
+}
+
+function UptimeSection({ status }: { status: ServerStatus }) {
+  const t = useT();
+  const { known, sinceUtc, windowDays, availabilityPercent, downSeconds, outages } = status.uptime;
+  // The address an outside monitor (UptimeRobot and the like) should call: it answers 200 while the database is reachable.
+  const monitorUrl = `${window.location.origin}/health/ready`;
+
+  return (
+    <Section title={t('serverStatus.uptimeTitle')}>
+      {!known && <Typography variant="body2" color="text.secondary">{t('serverStatus.uptimeNone')}</Typography>}
+      {known && (
+        <>
+          <Row
+            label={t('serverStatus.uptimeAvailability', { days: windowDays })}
+            value={`${availabilityPercent.toLocaleString('sr-Latn-RS', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`}
+            tone={availabilityPercent < 99 ? 'warning' : undefined}
+          />
+          <Row label={t('serverStatus.uptimeDown')} value={downSeconds > 0 ? formatDuration(downSeconds) : t('serverStatus.uptimeNoDown')} />
+          {sinceUtc && <Row label={t('serverStatus.uptimeSince')} value={formatDateTime(sinceUtc)} />}
+          {outages.length > 0 && (
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="caption" color="text.secondary">{t('serverStatus.uptimeOutages')}</Typography>
+              {outages.map((outage) => (
+                <Row key={outage.startedAtUtc} label={formatDateTime(outage.startedAtUtc)} value={formatDuration(outage.seconds)} />
+              ))}
+            </Box>
+          )}
+        </>
+      )}
+      <Typography variant="caption" color="text.secondary" component="p" sx={{ mt: 1.5 }}>
+        {t('serverStatus.uptimeMonitor')}
+      </Typography>
+      <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }} data-testid="monitor-url">
+        {monitorUrl}
+      </Typography>
+    </Section>
   );
 }
 

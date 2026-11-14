@@ -105,10 +105,29 @@ export interface BackupStatus {
   restoreCheckedAtUtc: string | null;
 }
 
+export interface Outage {
+  startedAtUtc: string;
+  endedAtUtc: string;
+  seconds: number;
+}
+
+/** How long the application has been up, by the heartbeats it writes itself. */
+export interface UptimeStatus {
+  known: boolean;
+  sinceUtc: string | null;
+  windowDays: number;
+  /** 0 to 100. */
+  availabilityPercent: number;
+  downSeconds: number;
+  /** Newest first. */
+  outages: Outage[];
+}
+
 /** The whole picture of the server, in one request, for the Super Admin's status page. */
 export interface ServerStatus {
   atUtc: string;
   backups: BackupStatus;
+  uptime: UptimeStatus;
   host: HostStatus;
   application: ApplicationStatus;
   database: DatabaseStatus;

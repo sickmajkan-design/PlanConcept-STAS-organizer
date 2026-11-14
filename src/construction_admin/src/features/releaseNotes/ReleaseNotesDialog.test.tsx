@@ -55,7 +55,7 @@ describe('ReleaseNotesDialog', () => {
   it('tells an administrator about everything meant for administrators', async () => {
     renderScreen(<ReleaseNotesDialog />, { user: signedIn('SuperAdmin') });
 
-    await screen.findByText('Account deletion request from the app');
+    await screen.findByText('Application availability on the Server status page');
     expect(screen.getByText('Stricter checks on documents and passwords')).toBeDefined();
   }, SCREEN_TIMEOUT);
 

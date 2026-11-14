@@ -127,6 +127,35 @@ public class BackupStatusDto
     public DateTime? RestoreCheckedAtUtc { get; init; }
 }
 
+public class OutageDto
+{
+    public DateTime StartedAtUtc { get; init; }
+
+    public DateTime EndedAtUtc { get; init; }
+
+    public long Seconds { get; init; }
+}
+
+/// <summary>How long the application has been up, by the heartbeats it wrote itself (see <c>UptimeService</c>).</summary>
+public class UptimeStatusDto
+{
+    /// <summary>False before the first heartbeat, or when the database could not be read.</summary>
+    public bool Known { get; init; }
+
+    /// <summary>When heartbeats started being recorded; the figures below cover time since then, up to 30 days.</summary>
+    public DateTime? SinceUtc { get; init; }
+
+    public int WindowDays { get; init; }
+
+    /// <summary>Share of the window the application was running, 0 to 100.</summary>
+    public double AvailabilityPercent { get; init; }
+
+    public long DownSeconds { get; init; }
+
+    /// <summary>Newest first, within the window, at most 10.</summary>
+    public List<OutageDto> Outages { get; init; } = [];
+}
+
 /// <summary>Reads the folder the nightly backup writes to.</summary>
 public interface IBackupCatalog
 {
@@ -138,6 +167,8 @@ public class ServerStatusDto
     public DateTime AtUtc { get; init; }
 
     public BackupStatusDto Backups { get; init; } = new();
+
+    public UptimeStatusDto Uptime { get; init; } = new();
 
     public HostStatusDto Host { get; init; } = new();
 
@@ -193,6 +224,44 @@ public class GetServerStatusQueryHandler : IRequestHandler<GetServerStatusQuery,
         _sender = sender;
     }
 
+    private const int WindowDays = 30;
+
+    private async Task<UptimeStatusDto> ReadUptimeAsync(CancellationToken cancellationToken)
+    {
+        var since = await _context.ServiceHeartbeats.AsNoTracking()
+            .Select(h => (DateTime?)h.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (since is null)
+        {
+            return new UptimeStatusDto();
+        }
+
+        var now = _clock.UtcNow;
+        var windowStart = now.AddDays(-WindowDays) > since.Value ? now.AddDays(-WindowDays) : since.Value;
+
+        var outages = await _context.ServiceOutages.AsNoTracking()
+            .Where(o => o.EndedAt > windowStart)
+            .OrderByDescending(o => o.StartedAt)
+            .ToListAsync(cancellationToken);
+
+        // An outage that began before the window only counts from the window's start.
+        var down = outages.Sum(o => (o.EndedAt - (o.StartedAt > windowStart ? o.StartedAt : windowStart)).TotalSeconds);
+        var total = Math.Max((now - windowStart).TotalSeconds, 1);
+
+        return new UptimeStatusDto
+        {
+            Known = true,
+            SinceUtc = since,
+            WindowDays = WindowDays,
+            AvailabilityPercent = Math.Round(Math.Max(0, 100 - down / total * 100), 2),
+            DownSeconds = (long)down,
+            Outages = outages.Take(10)
+                .Select(o => new OutageDto { StartedAtUtc = o.StartedAt, EndedAtUtc = o.EndedAt, Seconds = (long)(o.EndedAt - o.StartedAt).TotalSeconds })
+                .ToList(),
+        };
+    }
+
     public async Task<ServerStatusDto> Handle(GetServerStatusQuery request, CancellationToken cancellationToken)
     {
         StorageCleanupGuard.EnsureSuperAdmin(_currentUser);
@@ -215,6 +284,7 @@ public class GetServerStatusQueryHandler : IRequestHandler<GetServerStatusQuery,
         {
             AtUtc = _clock.UtcNow,
             Backups = _backups.Read(),
+            Uptime = database.Reachable ? await ReadUptimeAsync(cancellationToken) : new UptimeStatusDto(),
             Host = _probe.ReadHost(),
             Application = _probe.ReadApplication(),
             Database = database,

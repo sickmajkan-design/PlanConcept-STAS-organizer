@@ -13,6 +13,10 @@ public interface IApplicationDbContext
 
     DbSet<FailedLogin> FailedLogins { get; }
 
+    DbSet<ServiceOutage> ServiceOutages { get; }
+
+    DbSet<ServiceHeartbeat> ServiceHeartbeats { get; }
+
     DbSet<PasswordResetToken> PasswordResetTokens { get; }
 
     DbSet<MfaRecoveryCode> MfaRecoveryCodes { get; }

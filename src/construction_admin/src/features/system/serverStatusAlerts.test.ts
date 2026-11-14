@@ -14,6 +14,7 @@ const healthy = (): ServerStatus => ({
     items: [{ name: 'construction-20260813T020000Z.dump', takenAtUtc: new Date().toISOString(), sizeBytes: 1000, hasDocuments: true, offsite: true }],
     restoreCheckedAtUtc: new Date().toISOString(),
   },
+  uptime: { known: true, sinceUtc: '2026-11-01T00:00:00Z', windowDays: 30, availabilityPercent: 100, downSeconds: 0, outages: [] },
   host: {
     known: true,
     os: 'Ubuntu',

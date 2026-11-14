@@ -4044,6 +4044,51 @@ namespace Construction.Infrastructure.Persistence.Migrations
                     b.ToTable("scheduled_report_subscriptions", (string)null);
                 });
 
+            modelBuilder.Entity("Construction.Domain.Entities.ServiceHeartbeat", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("LastBeatAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("service_heartbeats", (string)null);
+                });
+
+            modelBuilder.Entity("Construction.Domain.Entities.ServiceOutage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("EndedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StartedAt");
+
+                    b.ToTable("service_outages", (string)null);
+                });
+
             modelBuilder.Entity("Construction.Domain.Entities.SignedTimesheet", b =>
                 {
                     b.Property<Guid>("Id")

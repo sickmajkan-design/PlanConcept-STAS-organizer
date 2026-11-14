@@ -18,6 +18,8 @@ public class ApplicationDbContext : DbContext, IApplicationDbContext
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<UserSession> UserSessions => Set<UserSession>();
     public DbSet<FailedLogin> FailedLogins => Set<FailedLogin>();
+    public DbSet<ServiceOutage> ServiceOutages => Set<ServiceOutage>();
+    public DbSet<ServiceHeartbeat> ServiceHeartbeats => Set<ServiceHeartbeat>();
 
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 

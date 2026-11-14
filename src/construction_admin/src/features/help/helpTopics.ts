@@ -313,7 +313,8 @@ export const helpTopics: HelpTopic[] = [
           'Baza: veličina, broj veza prema granici, koliko se čitanja služi iz memorije i najveće tabele.',
           'Servisi: antivirus, gdje se čuvaju datoteke, broj dokumenata i red poruka (e-pošta i obavještenja koja čekaju ili su odbačena).',
           'Dugme Očisti na kartici prostora otvara čišćenje servera (datoteke bez zapisa, dokumenti obrisanih zapisa, tragovi).',
-          'Rezervne kopije: kada je zadnja napravljena, koliko je velika, da li postoji provjerena kopija izvan servera i kada je zadnji put uspješno probano vraćanje. Povrat se proba sam svake nedjelje.',
+          'Dostupnost aplikacije: koliko je aplikacija radila u poslednjih 30 dana i spisak prekida dužih od 3 minuta. Bilježi se svakog minuta, pa se vidi i kad je pao ceo server. Ispod je adresa koju spoljni servis za nadzor (npr. UptimeRobot) treba da proverava svaka 2 minuta; on javlja i kad vi ne gledate.',
+          'Rezervne kopije: kada je poslednja napravljena, koliko je velika, da li postoji provjerena kopija izvan servera i kada je poslednji put uspješno probano vraćanje. Povrat se proba sam svake nedjelje.',
         ],
         example:
           'Poslije izdanja otvorite Stanje servera: verzija je nova, vrijeme pokretanja je prije minut, baza i antivirus rade, a opterećenje je nisko. Ako piše da poruke čekaju duže od 15 minuta, e-pošta ili obavještenja se ne šalju i treba pogledati servis za slanje.',
@@ -323,7 +324,7 @@ export const helpTopics: HelpTopic[] = [
           'Kopija bez provjerenog povrata nije prava kopija: ako je povrat star više od 10 dana, javlja se žuto upozorenje.',
           'Ako se aplikacija pokrene na Windowsu (razvoj), podaci o računaru se ne vide i prikazuju se kao crtica.',
         ],
-        keywords: ['server', 'stanje', 'status', 'disk', 'memorija', 'procesor', 'opterećenje', 'baza', 'antivirus', 'zdravlje', 'prostor', 'kopija', 'kopije', 'backup', 'rezervna'],
+        keywords: ['server', 'stanje', 'status', 'disk', 'memorija', 'procesor', 'opterećenje', 'baza', 'antivirus', 'zdravlje', 'prostor', 'kopija', 'kopije', 'backup', 'rezervna', 'dostupnost', 'prekid', 'uptime'],
       },
       en: {
         title: 'Server status',
@@ -337,6 +338,7 @@ export const helpTopics: HelpTopic[] = [
           'Database: the size, the connections against the limit, how many reads are served from memory and the largest tables.',
           'Services: the antivirus, where files are kept, the number of documents and the message queue (e-mail and notices waiting or given up on).',
           'The Clean up button on the disk card opens the server clean-up (files with no record, documents of deleted records, traces).',
+          'Application availability: how much of the last 30 days the application was running and a list of outages longer than 3 minutes. It is recorded every minute, so a stretch when the whole server was down shows too. Below is the address an outside monitoring service (e.g. UptimeRobot) should check every 2 minutes; it alerts you even when you are not looking.',
           'Backups: when the last one was made, how big it is, whether a verified copy exists off the server and when a restore was last rehearsed successfully. A restore is rehearsed by itself every Sunday.',
         ],
         example:
@@ -347,7 +349,7 @@ export const helpTopics: HelpTopic[] = [
           'A backup without a verified restore is not a real backup: if the last rehearsal is older than 10 days a yellow warning appears.',
           'When the application runs on Windows (development) the figures of the machine are not available and show as a dash.',
         ],
-        keywords: ['server', 'status', 'disk', 'memory', 'cpu', 'load', 'database', 'antivirus', 'health', 'space', 'backup', 'backups', 'copy'],
+        keywords: ['server', 'status', 'disk', 'memory', 'cpu', 'load', 'database', 'antivirus', 'health', 'space', 'backup', 'backups', 'copy', 'availability', 'outage', 'uptime'],
       },
     },
   },

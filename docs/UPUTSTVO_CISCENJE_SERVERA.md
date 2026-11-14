@@ -27,7 +27,7 @@ Otvorite **Trag izmjena**, kartica **Prostor na serveru**, dugme **Očisti**. Pr
 |---|---|---|
 | **Datoteke bez zapisa** | Datoteke na disku na koje nijedan zapis ne pokazuje (ostatak neuspjelog brisanja ili vraćanja iz stare kopije). Starije od 24 sata. | Kad god broj nije nula. Bez gubitka: nikome ne trebaju. |
 | **Dokumenti obrisanih zapisa** | Dokumenti zaposlenika, projekata, vozila, alata, zadataka i smještaja koji su obrisani, a dokumenti su ostali. | Kad ste sigurni da vam ti dokumenti ne trebaju (npr. bivši radnik, a rok čuvanja je istekao). Dokumenti pod rokom čuvanja se preskaču. |
-| **Tragovi obrisanih dokumenata** | Redovi u bazi koji pokazuju da je dokument nekad postojao. Datoteke već nema. | Povremeno, ako ne trebate historiju brisanja. Zapis ko je šta obrisao ostaje u dnevniku servera. |
+| **Tragovi obrisanih dokumenata** | Redovi u bazi koji pokazuju da je dokument nekad postojao. Datoteke već nema. | Povremeno, ako ne trebate istoriju brisanja. Zapis ko je šta obrisao ostaje u dnevniku servera. |
 
 Poslije brisanja panel kaže koliko je datoteka i zapisa obrisano i koliko je prostora oslobođeno.
 
